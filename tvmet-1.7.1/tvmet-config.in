@@ -1,0 +1,104 @@
+#!/bin/sh
+# $Id: tvmet-config.in,v 1.2 2003/05/24 08:19:42 opetzold Exp $
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+exec_prefix_set=no
+includedir=@includedir@
+
+usage()
+{
+    cat <<EOF
+Usage: tvmet-config [OPTION] ...
+
+Generic options
+  --version	output tvmet version information.
+  --help	display this help and exit.
+
+Compilation support options
+  --cxxflags	print pre-processor and compiler flags
+  --includes	print include path
+  --libs	print library linking information
+
+Install directories tvmet was configured to
+  --prefix[=DIR]
+  --exec-prefix[=DIR]
+
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      if test $exec_prefix_set = no ; then
+        exec_prefix=$optarg
+      fi
+      ;;
+    --prefix)
+      echo_prefix=yes
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      exec_prefix_set=yes
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=yes
+      ;;
+    --version)
+      echo @VERSION@
+      ;;
+    --help)
+      usage 0
+      ;;
+    --cxxflags)
+      echo_cxxflags=yes
+      ;;
+    --includes)
+      echo_includes=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done
+
+if test "$echo_prefix" = "yes"; then
+	echo $prefix
+fi
+
+if test "$echo_exec_prefix" = "yes"; then
+	echo $exec_prefix
+fi
+
+if test "$echo_includes" = "yes"; then
+      if test "$includedir" != "/usr/include" ; then
+            echo -I$includedir
+      fi
+fi
+
+if test "$echo_cxxflags" = "yes"; then
+    echo @CXXFLAGS@
+fi
+
+if test "$echo_libs" = "yes"; then
+      if test @libdir@ != /usr/lib ; then
+            echo "-L@libdir@"
+      fi
+fi
+
+exit 0

@@ -1,0 +1,41 @@
+/*
+ * $Id: links.dox,v 1.3 2003/12/05 19:08:59 opetzold Exp $
+ */
+
+/**
+   \page links Links of Interest or Related Links
+
+
+
+   \section generell General Information on Numeric C++
+   - <a href=http://osl.iu.edu/~tveldhui/papers/techniques/>Techniques for Scientific C++</a>
+   - <a href=http://osl.iu.edu/~tveldhui/papers/Expression-Templates/exprtmpl.html>Expression Templates</a>
+   - <a href=http://osl.iu.edu/~tveldhui/papers/Template-Metaprograms/meta-art.html>Template Metaprograms</a>
+   - <a href=http://oonumerics.org/oon/>The Object-Oriented Numerics Page</a> - a very good entry point
+   - <a href=http://www.openscience.org/links.php?section=103>The OpenScience Project > Mathematics > Linear Algebra</a>
+   - <a href=http://sal.kachinatech.com/B/0/>SAL- Numerical Analysis - Miscellaneous Software</a>
+
+   \section numlibs Other ET and MT Vector and Matrix Libraries
+
+   - <a href=http://oonumerics.org/blitz/>blitz++</a>
+   - <a href=http://www.genesys-e.org/ublas/>uBlas</a>
+   - <a href=http://www.lsc.nd.edu/research/mtl>MTL</a>
+   - <a href=http://sourceforge.net/projects/etsmo/>ETSMO</a>  - no files released since over one year
+   - <a href=http://met.sourceforge.net/>MET</a>
+   - <a href=http://sourceforge.net/projects/metaet/>meta::Expr{T_emplate}</a>
+   - <a href=http://www.acl.lanl.gov/pete/>PETE</a>
+   - <a href=http://www.acl.lanl.gov/pooma/>POOMA</a>
+   - <a href=http://math.nist.gov/tnt/>TNT</a> - Template Numerical Toolkit
+
+   This list isn't complete. For more freely available libraries please have
+   a look <a href=http://www.oonumerics.org/oon/#libraries>here</a>.
+*/
+
+
+// Local Variables:
+// mode:c++
+// End:
+
+// Local Variables:
+// mode:c++
+// End:

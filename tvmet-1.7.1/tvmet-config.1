@@ -1,0 +1,67 @@
+.TH tvmet 1 "August 2002"
+.SH NAME
+tvmet-config - script to get information about the installed version of tvmet
+.SH SYNOPSIS
+.B tvmet-config
+[\-\-prefix\fI[=DIR]\fP] [\-\-exec\-prefix\fI[=DIR]\fP] [\-\-version] [\-\-libs] [\-\-cxxflags]
+.SH DESCRIPTION
+.PP
+\fItvmet-config\fP is a tool that is used to configure to determine
+the compiler and linker flags that should be used to compile and link
+programs that use \fItvmet\fP. It is also used internally to the .m4
+macros for GNU autoconf that are included with \fItvmet\fP.
+.
+.SH OPTIONS
+.l
+\fItvmet-config\fP accepts the following options:
+.TP 8
+.B  \-\-version
+Print the currently installed version of \fItvmet\fP on the standard
+output.
+.TP 8
+.B  \-\-libs
+Print the linker flags that are necessary to link a \fItvmet\fP
+program.
+.TP 8
+.B  \-\-cxxflags
+Print the compiler flags that are necessary to compile a \fItvmet\fP
+program.
+.TP 8
+.B  \-\-prefix
+Print the prefix with which \fItvmet\fP was compiled.
+.TP 8
+.B  \-\-prefix=PREFIX
+If specified, use PREFIX instead of the installation prefix that
+\fItvmet\fP was built with when computing the output for the
+\-\-cflags and \-\-libs options. This option is also used for the exec
+prefix if \-\-exec\-prefix was not specified. This option must be
+specified before any \-\-libs or \-\-cflags options.
+.TP 8
+.B  \-\-exec\-prefix
+Print the exec\-prefix with which \fItvmet\fP was compiled.
+.TP 8
+.B  \-\-exec\-prefix=PREFIX
+If specified, use PREFIX instead of the installation exec prefix that
+\fItvmet\fP was built with when computing the output for the
+\-\-cflags and \-\-libs options.  This option must be specified before
+any \-\-libs or \-\-cflags options.
+.SH COPYRIGHT
+tvmet Copyright \(co 2001, 2001 by Olaf Petzold <opetzold@users.sourceforge.net>
+.PP
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+.PP
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+.PP
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+.SH AUTHOR
+This manpage is an almost word-for-word copy of the gtk-config
+manpage, written by Owen Taylor.  It was modified by Olaf Petzold
+<opetzold@users.regiocom.net>

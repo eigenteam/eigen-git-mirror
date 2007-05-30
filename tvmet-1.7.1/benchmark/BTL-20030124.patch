@@ -1,0 +1,3887 @@
+diff -Nur BTL-20030124/actions/action_aat_product.hh BTL/actions/action_aat_product.hh
+--- BTL-20030124/actions/action_aat_product.hh	2002-12-02 14:57:49.000000000 +0100
++++ BTL/actions/action_aat_product.hh	2003-11-12 19:06:26.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  action_aat_product.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef ACTION_AAT_PRODUCT
+ #define ACTION_AAT_PRODUCT
+ #include "utilities.h"
+@@ -26,103 +26,39 @@
+ #include "init/init_vector.hh"
+ #include "init/init_matrix.hh"
+ 
+-using namespace std;
+-
+ template<class Interface>
+-class Action_aat_product {
++class Action_aat_product
++{
++  Action_aat_product(const  Action_aat_product &);
+ 
+ public :
+-
+   // Ctor
+-
+-  Action_aat_product( int size ):_size(size)
+-  {
+-    MESSAGE("Action_aat_product Ctor");
+-
+-    // STL matrix and vector initialization
+-
+-    init_matrix<pseudo_random>(A_stl,_size);
+-    init_matrix<null_function>(X_stl,_size);
+-    init_matrix<null_function>(resu_stl,_size);
+-
+-    // generic matrix and vector initialization
+-
+-    Interface::matrix_from_stl(A_ref,A_stl);
+-    Interface::matrix_from_stl(X_ref,X_stl);
+-
+-    Interface::matrix_from_stl(A,A_stl);
+-    Interface::matrix_from_stl(X,X_stl);
+-
+-  }
+-
+-  // invalidate copy ctor
+-
+-  Action_aat_product( const  Action_aat_product & )
+-  {
+-    INFOS("illegal call to Action_aat_product Copy Ctor");
+-    exit(0);
+-  }
++  Action_aat_product(int size);
+ 
+   // Dtor
++  ~Action_aat_product();
+ 
+-  ~Action_aat_product( void ){
+-
+-    MESSAGE("Action_aat_product Dtor");
+-
+-    // deallocation
+-
+-    Interface::free_matrix(A,_size);
+-    Interface::free_matrix(X,_size);
+-
+-    Interface::free_matrix(A_ref,_size);
+-    Interface::free_matrix(X_ref,_size);
+-
+-  }
+-  
+   // action name
+-
+-  static inline std::string name( void )
+-  {
+-    return "aat_"+Interface::name();
++  static inline std::string name() {
++    return "aat_" + Interface::name();
+   }
+ 
+-  double nb_op_base( void ){
++  double nb_op_base() {
+     return 2.0*_size*_size*_size;
+   }
+ 
+-  inline void initialize( void ){
+-
++  void initialize() {
+     Interface::copy_matrix(A_ref,A,_size);
+     Interface::copy_matrix(X_ref,X,_size);
+-    
+   }
+ 
+-  inline void calculate( void ) {
+-
+-      Interface::aat_product(A,X,_size);
+-
++  void calculate( void ) {
++    Interface::aat_product(A,X,_size);
+   }
+ 
+-  void check_result( void ){
+-
+-    // calculation check
+-
+-    Interface::matrix_to_stl(X,resu_stl);
+-
+-    STL_interface<typename Interface::real_type>::aat_product(A_stl,X_stl,_size);
+-    
+-    typename Interface::real_type error=
+-      STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
+- 
+-    if (error>1.e-6){
+-      INFOS("WRONG CALCULATION...residual=" << error);      
+-      exit(0);
+-    }
+-
+-  }
+-
+-private : 
++  void check_result();
+ 
++private :
+   typename Interface::stl_matrix A_stl;
+   typename Interface::stl_matrix X_stl;
+   typename Interface::stl_matrix resu_stl;
+@@ -133,13 +69,61 @@
+   typename Interface::gene_matrix A;
+   typename Interface::gene_matrix X;
+ 
+-
+   int _size;
+-
+ };
+-  
+ 
+-#endif
+ 
++/*
++ * Implementation
++ */
++template<class Interface>
++Action_aat_product<Interface>::Action_aat_product(int size)
++  : _size(size)
++{
++  MESSAGE("Action_aat_product Ctor");
++
++  // STL matrix and vector initialization
++  init_matrix<pseudo_random>(A_stl,_size);
++  init_matrix<null_function>(X_stl,_size);
++  init_matrix<null_function>(resu_stl,_size);
++
++  // generic matrix and vector initialization
++  Interface::matrix_from_stl(A_ref,A_stl);
++  Interface::matrix_from_stl(X_ref,X_stl);
++
++  Interface::matrix_from_stl(A,A_stl);
++  Interface::matrix_from_stl(X,X_stl);
++}
++
++template<class Interface>
++Action_aat_product<Interface>::~Action_aat_product()
++{
++  MESSAGE("Action_aat_product Dtor");
++
++  // deallocation
++  Interface::free_matrix(A,_size);
++  Interface::free_matrix(X,_size);
++
++  Interface::free_matrix(A_ref,_size);
++  Interface::free_matrix(X_ref,_size);
++}
++
++template<class Interface>
++void Action_aat_product<Interface>::check_result()
++{
++  // calculation check
++
++  Interface::matrix_to_stl(X,resu_stl);
+ 
++  STL_interface<typename Interface::real_type>::aat_product(A_stl,X_stl,_size);
+ 
++  typename Interface::real_type error=
++    STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
++
++  if (error>1.e-6){
++    INFOS("WRONG CALCULATION...residual=" << error);
++    exit(0);
++  }
++}
++
++#endif
+diff -Nur BTL-20030124/actions/action_ata_product.hh BTL/actions/action_ata_product.hh
+--- BTL-20030124/actions/action_ata_product.hh	2002-12-02 14:58:14.000000000 +0100
++++ BTL/actions/action_ata_product.hh	2003-11-12 19:13:07.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  action_ata_product.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef ACTION_ATA_PRODUCT
+ #define ACTION_ATA_PRODUCT
+ #include "utilities.h"
+@@ -26,103 +26,39 @@
+ #include "init/init_vector.hh"
+ #include "init/init_matrix.hh"
+ 
+-using namespace std;
+-
+ template<class Interface>
+-class Action_ata_product {
++class Action_ata_product
++{
++  Action_ata_product(const  Action_ata_product &);
+ 
+ public :
+-
+   // Ctor
+-
+-  Action_ata_product( int size ):_size(size)
+-  {
+-    MESSAGE("Action_ata_product Ctor");
+-
+-    // STL matrix and vector initialization
+-
+-    init_matrix<pseudo_random>(A_stl,_size);
+-    init_matrix<null_function>(X_stl,_size);
+-    init_matrix<null_function>(resu_stl,_size);
+-
+-    // generic matrix and vector initialization
+-
+-    Interface::matrix_from_stl(A_ref,A_stl);
+-    Interface::matrix_from_stl(X_ref,X_stl);
+-
+-    Interface::matrix_from_stl(A,A_stl);
+-    Interface::matrix_from_stl(X,X_stl);
+-
+-  }
+-
+-  // invalidate copy ctor
+-
+-  Action_ata_product( const  Action_ata_product & )
+-  {
+-    INFOS("illegal call to Action_ata_product Copy Ctor");
+-    exit(0);
+-  }
++  Action_ata_product(int size);
+ 
+   // Dtor
++  ~Action_ata_product();
+ 
+-  ~Action_ata_product( void ){
+-
+-    MESSAGE("Action_ata_product Dtor");
+-
+-    // deallocation
+-
+-    Interface::free_matrix(A,_size);
+-    Interface::free_matrix(X,_size);
+-
+-    Interface::free_matrix(A_ref,_size);
+-    Interface::free_matrix(X_ref,_size);
+-
+-  }
+-  
+   // action name
+-
+-  static inline std::string name( void )
+-  {
+-    return "ata_"+Interface::name();
++  static inline std::string name() {
++    return "ata_" + Interface::name();
+   }
+ 
+-  double nb_op_base( void ){
++  double nb_op_base() {
+     return 2.0*_size*_size*_size;
+   }
+ 
+-  inline void initialize( void ){
+-
++  void initialize() {
+     Interface::copy_matrix(A_ref,A,_size);
+     Interface::copy_matrix(X_ref,X,_size);
+-    
+   }
+ 
+   inline void calculate( void ) {
+-
+-      Interface::ata_product(A,X,_size);
+-
++    Interface::ata_product(A,X,_size);
+   }
+ 
+-  void check_result( void ){
+-
+-    // calculation check
+-
+-    Interface::matrix_to_stl(X,resu_stl);
+-
+-    STL_interface<typename Interface::real_type>::ata_product(A_stl,X_stl,_size);
+-    
+-    typename Interface::real_type error=
+-      STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
+- 
+-    if (error>1.e-6){
+-      INFOS("WRONG CALCULATION...residual=" << error);      
+-      exit(0);
+-    }
+-
+-  }
+-
+-private : 
++  void check_result();
+ 
++private :
+   typename Interface::stl_matrix A_stl;
+   typename Interface::stl_matrix X_stl;
+   typename Interface::stl_matrix resu_stl;
+@@ -133,13 +69,60 @@
+   typename Interface::gene_matrix A;
+   typename Interface::gene_matrix X;
+ 
+-
+   int _size;
+-
+ };
+-  
+ 
+-#endif
+ 
++/*
++ * Implementation
++ */
++template<class Interface>
++Action_ata_product<Interface>::Action_ata_product(int size)
++  : _size(size)
++{
++  MESSAGE("Action_ata_product Ctor");
++
++  // STL matrix and vector initialization
++  init_matrix<pseudo_random>(A_stl,_size);
++  init_matrix<null_function>(X_stl,_size);
++  init_matrix<null_function>(resu_stl,_size);
++
++  // generic matrix and vector initialization
++  Interface::matrix_from_stl(A_ref,A_stl);
++  Interface::matrix_from_stl(X_ref,X_stl);
++
++  Interface::matrix_from_stl(A,A_stl);
++  Interface::matrix_from_stl(X,X_stl);
++}
++
++template<class Interface>
++Action_ata_product<Interface>::~Action_ata_product()
++{
++  MESSAGE("Action_ata_product Dtor");
++
++  // deallocation
++  Interface::free_matrix(A,_size);
++  Interface::free_matrix(X,_size);
++
++  Interface::free_matrix(A_ref,_size);
++  Interface::free_matrix(X_ref,_size);
++}
++
++template<class Interface>
++void Action_ata_product<Interface>::check_result()
++{
++  // calculation check
++  Interface::matrix_to_stl(X,resu_stl);
+ 
++  STL_interface<typename Interface::real_type>::ata_product(A_stl,X_stl,_size);
+ 
++  typename Interface::real_type error=
++    STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
++
++  if (error>1.e-6){
++    INFOS("WRONG CALCULATION...residual=" << error);
++    exit(0);
++  }
++}
++
++#endif
+diff -Nur BTL-20030124/actions/action_axpy.hh BTL/actions/action_axpy.hh
+--- BTL-20030124/actions/action_axpy.hh	2003-01-08 11:11:35.000000000 +0100
++++ BTL/actions/action_axpy.hh	2003-11-12 19:07:44.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  action_axpy.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef ACTION_AXPY
+ #define ACTION_AXPY
+ #include "utilities.h"
+@@ -26,106 +26,39 @@
+ #include "init/init_vector.hh"
+ #include "init/init_matrix.hh"
+ 
+-using namespace std;
+-
+ template<class Interface>
+-class Action_axpy {
+-
+-public :
++class Action_axpy
++{
++  Action_axpy(const Action_axpy &);
+ 
++public:
+   // Ctor
+-
+-  Action_axpy( int size ):_size(size),_coef(1.0)
+-  {
+-    MESSAGE("Action_axpy Ctor");
+-
+-    // STL vector initialization
+-
+-    init_vector<pseudo_random>(X_stl,_size);
+-    init_vector<pseudo_random>(Y_stl,_size);
+-    init_vector<null_function>(resu_stl,_size);
+-
+-    // generic matrix and vector initialization
+-
+-    Interface::vector_from_stl(X_ref,X_stl);
+-    Interface::vector_from_stl(Y_ref,Y_stl);
+-
+-    Interface::vector_from_stl(X,X_stl);
+-    Interface::vector_from_stl(Y,Y_stl);
+-    
+-
+-  }
+-
+-  // invalidate copy ctor
+-
+-  Action_axpy( const  Action_axpy & )
+-  {
+-    INFOS("illegal call to Action_axpy Copy Ctor");
+-    exit(0);
+-  }
++  Action_axpy(int size);
+ 
+   // Dtor
++  ~Action_axpy();
+ 
+-  ~Action_axpy( void ){
+-
+-    MESSAGE("Action_axpy Dtor");
+-
+-    // deallocation
+-
+-    Interface::free_vector(X_ref);
+-    Interface::free_vector(Y_ref);
+-
+-    Interface::free_vector(X);
+-    Interface::free_vector(Y);
+-
+-
+-  }
+-  
+   // action name
+-
+-  static inline std::string name( void )
+-  {
+-    return "axpy_"+Interface::name();
++  static inline std::string name() {
++    return "axpy_" + Interface::name();
+   }
+ 
+-  double nb_op_base( void ){
++  double nb_op_base() {
+     return 2.0*_size;
+   }
+ 
+-  inline void initialize( void ){
+-
++  void initialize() {
+     Interface::copy_vector(X_ref,X,_size);
+     Interface::copy_vector(Y_ref,Y,_size);
+-    
+   }
+ 
+-  inline void calculate( void ) {
+-
+-      Interface::axpy(_coef,X,Y,_size);
+-
++  void calculate() {
++    Interface::axpy(_coef,X,Y,_size);
+   }
+ 
++  void check_result();
+ 
+-  void check_result( void ){
+-
+-    // calculation check
+-
+-    Interface::vector_to_stl(Y,resu_stl);
+-
+-    STL_interface<typename Interface::real_type>::axpy(_coef,X_stl,Y_stl,_size);
+-    
+-    typename Interface::real_type error=
+-      STL_interface<typename Interface::real_type>::norm_diff(Y_stl,resu_stl);
+- 
+-    if (error>1.e-6){
+-      INFOS("WRONG CALCULATION...residual=" << error);      
+-      exit(0);
+-    }
+-
+-  }
+-
+-private : 
+-
++private :
+   typename Interface::stl_vector X_stl;
+   typename Interface::stl_vector Y_stl;
+   typename Interface::stl_vector resu_stl;
+@@ -139,13 +72,59 @@
+   typename Interface::real_type _coef;
+ 
+   int _size;
++};
+ 
+-  
+ 
+-};
+-  
++/*
++ * Implementation
++ */
++template<class Interface>
++Action_axpy<Interface>::Action_axpy(int size)
++  : _coef(1.0), _size(size)
++{
++  MESSAGE("Action_axpy Ctor");
++
++  // STL vector initialization
++  init_vector<pseudo_random>(X_stl,_size);
++  init_vector<pseudo_random>(Y_stl,_size);
++  init_vector<null_function>(resu_stl,_size);
++
++  // generic matrix and vector initialization
++  Interface::vector_from_stl(X_ref,X_stl);
++  Interface::vector_from_stl(Y_ref,Y_stl);
++
++  Interface::vector_from_stl(X,X_stl);
++  Interface::vector_from_stl(Y,Y_stl);
++}
+ 
+-#endif
++template<class Interface>
++Action_axpy<Interface>::~Action_axpy()
++{
++  MESSAGE("Action_axpy Dtor");
++
++  // deallocation
++  Interface::free_vector(X_ref);
++  Interface::free_vector(Y_ref);
++
++  Interface::free_vector(X);
++  Interface::free_vector(Y);
++}
++
++template<class Interface>
++void Action_axpy<Interface>::check_result()
++{
++  // calculation check
++  Interface::vector_to_stl(Y,resu_stl);
+ 
++  STL_interface<typename Interface::real_type>::axpy(_coef,X_stl,Y_stl,_size);
+ 
++  typename Interface::real_type error=
++    STL_interface<typename Interface::real_type>::norm_diff(Y_stl,resu_stl);
+ 
++  if (error>1.e-6){
++    INFOS("WRONG CALCULATION...residual=" << error);
++    exit(0);
++  }
++}
++
++#endif
+diff -Nur BTL-20030124/actions/action_matrix_matrix_product.hh BTL/actions/action_matrix_matrix_product.hh
+--- BTL-20030124/actions/action_matrix_matrix_product.hh	2002-12-02 14:57:27.000000000 +0100
++++ BTL/actions/action_matrix_matrix_product.hh	2003-11-12 19:49:11.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  action_matrix_matrix_product.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef ACTION_MATRIX_MATRIX_PRODUCT
+ #define ACTION_MATRIX_MATRIX_PRODUCT
+ #include "utilities.h"
+@@ -26,109 +26,40 @@
+ #include "init/init_vector.hh"
+ #include "init/init_matrix.hh"
+ 
+-using namespace std;
+-
+ template<class Interface>
+-class Action_matrix_matrix_product {
+-
+-public :
++class Action_matrix_matrix_product
++{
++  Action_matrix_matrix_product(const Action_matrix_matrix_product &);
+ 
++public:
+   // Ctor
+-
+-  Action_matrix_matrix_product( int size ):_size(size)
+-  {
+-    MESSAGE("Action_matrix_matrix_product Ctor");
+-
+-    // STL matrix and vector initialization
+-
+-    init_matrix<pseudo_random>(A_stl,_size);
+-    init_matrix<pseudo_random>(B_stl,_size);
+-    init_matrix<null_function>(X_stl,_size);
+-    init_matrix<null_function>(resu_stl,_size);
+-
+-    // generic matrix and vector initialization
+-
+-    Interface::matrix_from_stl(A_ref,A_stl);
+-    Interface::matrix_from_stl(B_ref,B_stl);
+-    Interface::matrix_from_stl(X_ref,X_stl);
+-
+-    Interface::matrix_from_stl(A,A_stl);
+-    Interface::matrix_from_stl(B,B_stl);
+-    Interface::matrix_from_stl(X,X_stl);
+-
+-  }
+-
+-  // invalidate copy ctor
+-
+-  Action_matrix_matrix_product( const  Action_matrix_matrix_product & )
+-  {
+-    INFOS("illegal call to Action_matrix_matrix_product Copy Ctor");
+-    exit(0);
+-  }
++  Action_matrix_matrix_product(int size);
+ 
+   // Dtor
++  ~Action_matrix_matrix_product();
+ 
+-  ~Action_matrix_matrix_product( void ){
+-
+-    MESSAGE("Action_matrix_matrix_product Dtor");
+-
+-    // deallocation
+-
+-    Interface::free_matrix(A,_size);
+-    Interface::free_matrix(B,_size);
+-    Interface::free_matrix(X,_size);
+-
+-    Interface::free_matrix(A_ref,_size);
+-    Interface::free_matrix(B_ref,_size);
+-    Interface::free_matrix(X_ref,_size);
+-
+-  }
+-  
+   // action name
+-
+-  static inline std::string name( void )
+-  {
+-    return "matrix_matrix_"+Interface::name();
++  static inline std::string name() {
++    return "matrix_matrix_" + Interface::name();
+   }
+ 
+-  double nb_op_base( void ){
++  double nb_op_base() {
+     return 2.0*_size*_size*_size;
+   }
+ 
+-  inline void initialize( void ){
+-
++  void initialize() {
+     Interface::copy_matrix(A_ref,A,_size);
+     Interface::copy_matrix(B_ref,B,_size);
+     Interface::copy_matrix(X_ref,X,_size);
+-    
+   }
+ 
+-  inline void calculate( void ) {
+-
+-      Interface::matrix_matrix_product(A,B,X,_size);
+-
++  inline void calculate() {
++    Interface::matrix_matrix_product(A,B,X,_size);
+   }
+ 
+-  void check_result( void ){
+-
+-    // calculation check
+-
+-    Interface::matrix_to_stl(X,resu_stl);
+-
+-    STL_interface<typename Interface::real_type>::matrix_matrix_product(A_stl,B_stl,X_stl,_size);
+-    
+-    typename Interface::real_type error=
+-      STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
+- 
+-    if (error>1.e-6){
+-      INFOS("WRONG CALCULATION...residual=" << error);      
+-      exit(0);
+-    }
+-
+-  }
+-
+-private : 
++  void check_result();
+ 
++private :
+   typename Interface::stl_matrix A_stl;
+   typename Interface::stl_matrix B_stl;
+   typename Interface::stl_matrix X_stl;
+@@ -142,13 +73,66 @@
+   typename Interface::gene_matrix B;
+   typename Interface::gene_matrix X;
+ 
+-
+   int _size;
+-
+ };
+-  
+ 
+-#endif
+ 
++/*
++ * Implementation
++ */
++template<class Interface>
++Action_matrix_matrix_product<Interface>::Action_matrix_matrix_product(int size)
++  : _size(size)
++{
++  MESSAGE("Action_matrix_matrix_product Ctor");
++
++  // STL matrix and vector initialization
++  init_matrix<pseudo_random>(A_stl,_size);
++  init_matrix<pseudo_random>(B_stl,_size);
++  init_matrix<null_function>(X_stl,_size);
++  init_matrix<null_function>(resu_stl,_size);
++
++  // generic matrix and vector initialization
++  Interface::matrix_from_stl(A_ref,A_stl);
++  Interface::matrix_from_stl(B_ref,B_stl);
++  Interface::matrix_from_stl(X_ref,X_stl);
++
++  Interface::matrix_from_stl(A,A_stl);
++  Interface::matrix_from_stl(B,B_stl);
++  Interface::matrix_from_stl(X,X_stl);
++}
+ 
++template<class Interface>
++Action_matrix_matrix_product<Interface>::~Action_matrix_matrix_product()
++{
++  MESSAGE("Action_matrix_matrix_product Dtor");
++
++  // deallocation
++  Interface::free_matrix(A,_size);
++  Interface::free_matrix(B,_size);
++  Interface::free_matrix(X,_size);
++
++  Interface::free_matrix(A_ref,_size);
++  Interface::free_matrix(B_ref,_size);
++  Interface::free_matrix(X_ref,_size);
+ 
++}
++
++template<class Interface>
++void Action_matrix_matrix_product<Interface>::check_result()
++{
++  // calculation check
++  Interface::matrix_to_stl(X,resu_stl);
++
++  STL_interface<typename Interface::real_type>::matrix_matrix_product(A_stl,B_stl,X_stl,_size);
++
++  typename Interface::real_type error=
++    STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
++
++  if (error>1.e-6){
++    INFOS("WRONG CALCULATION...residual=" << error);
++    exit(0);
++  }
++}
++
++#endif
+diff -Nur BTL-20030124/actions/action_matrix_vector_product.hh BTL/actions/action_matrix_vector_product.hh
+--- BTL-20030124/actions/action_matrix_vector_product.hh	2002-12-02 14:58:57.000000000 +0100
++++ BTL/actions/action_matrix_vector_product.hh	2003-11-12 19:08:45.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  action_matrix_vector_product.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef ACTION_MATRIX_VECTOR_PRODUCT
+ #define ACTION_MATRIX_VECTOR_PRODUCT
+ #include "utilities.h"
+@@ -26,109 +26,40 @@
+ #include "init/init_vector.hh"
+ #include "init/init_matrix.hh"
+ 
+-using namespace std;
+-
+ template<class Interface>
+-class Action_matrix_vector_product {
++class Action_matrix_vector_product
++{
++  Action_matrix_vector_product(const Action_matrix_vector_product &);
+ 
+ public :
+-
+   // Ctor
+-
+-  Action_matrix_vector_product( int size ):_size(size)
+-  {
+-    MESSAGE("Action_matrix_vector_product Ctor");
+-
+-    // STL matrix and vector initialization
+-
+-    init_matrix<pseudo_random>(A_stl,_size);
+-    init_vector<pseudo_random>(B_stl,_size);
+-    init_vector<null_function>(X_stl,_size);
+-    init_vector<null_function>(resu_stl,_size);
+-
+-    // generic matrix and vector initialization
+-
+-    Interface::matrix_from_stl(A_ref,A_stl);
+-    Interface::vector_from_stl(B_ref,B_stl);
+-    Interface::vector_from_stl(X_ref,X_stl);
+-
+-    Interface::matrix_from_stl(A,A_stl);
+-    Interface::vector_from_stl(B,B_stl);
+-    Interface::vector_from_stl(X,X_stl);
+-
+-  }
+-
+-  // invalidate copy ctor
+-
+-  Action_matrix_vector_product( const  Action_matrix_vector_product & )
+-  {
+-    INFOS("illegal call to Action_matrix_vector_product Copy Ctor");
+-    exit(0);
+-  }
++  Action_matrix_vector_product(int size);
+ 
+   // Dtor
++  ~Action_matrix_vector_product();
+ 
+-  ~Action_matrix_vector_product( void ){
+-
+-    MESSAGE("Action_matrix_vector_product Dtor");
+-
+-    // deallocation
+-
+-    Interface::free_matrix(A,_size);
+-    Interface::free_vector(B);
+-    Interface::free_vector(X);
+-
+-    Interface::free_matrix(A_ref,_size);
+-    Interface::free_vector(B_ref);
+-    Interface::free_vector(X_ref);
+-
+-  }
+-  
+   // action name
+-
+-  static inline std::string name( void )
+-  {
+-    return "matrix_vector_"+Interface::name();
++  static inline std::string name() {
++    return "matrix_vector_" + Interface::name();
+   }
+ 
+-  double nb_op_base( void ){
++  double nb_op_base(){
+     return 2.0*_size*_size;
+   }
+ 
+-  inline void initialize( void ){
+-
++  void initialize() {
+     Interface::copy_matrix(A_ref,A,_size);
+     Interface::copy_vector(B_ref,B,_size);
+     Interface::copy_vector(X_ref,X,_size);
+-    
+-  }
+-
+-  inline void calculate( void ) {
+-
+-      Interface::matrix_vector_product(A,B,X,_size);
+-
+   }
+ 
+-  void check_result( void ){
+-
+-    // calculation check
+-
+-    Interface::vector_to_stl(X,resu_stl);
+-
+-    STL_interface<typename Interface::real_type>::matrix_vector_product(A_stl,B_stl,X_stl,_size);
+-    
+-    typename Interface::real_type error=
+-      STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
+- 
+-    if (error>1.e-6){
+-      INFOS("WRONG CALCULATION...residual=" << error);      
+-      exit(0);
+-    }
+-
++  inline void calculate() {
++    Interface::matrix_vector_product(A,B,X,_size);
+   }
+ 
+-private : 
++  void check_result();
+ 
++private:
+   typename Interface::stl_matrix A_stl;
+   typename Interface::stl_vector B_stl;
+   typename Interface::stl_vector X_stl;
+@@ -142,13 +73,71 @@
+   typename Interface::gene_vector B;
+   typename Interface::gene_vector X;
+ 
+-
+   int _size;
+-
+ };
+-  
+ 
+-#endif
+ 
++/*
++ * Implementation
++ */
++template<class Interface>
++Action_matrix_vector_product<Interface>::Action_matrix_vector_product( int size )
++  : _size(size)
++{
++  MESSAGE("Action_matrix_vector_product Ctor");
++
++  // STL matrix and vector initialization
++
++  init_matrix<pseudo_random>(A_stl,_size);
++  init_vector<pseudo_random>(B_stl,_size);
++  init_vector<null_function>(X_stl,_size);
++  init_vector<null_function>(resu_stl,_size);
++
++  // generic matrix and vector initialization
++
++  Interface::matrix_from_stl(A_ref,A_stl);
++  Interface::vector_from_stl(B_ref,B_stl);
++  Interface::vector_from_stl(X_ref,X_stl);
++
++  Interface::matrix_from_stl(A,A_stl);
++  Interface::vector_from_stl(B,B_stl);
++  Interface::vector_from_stl(X,X_stl);
++
++}
++
++template<class Interface>
++Action_matrix_vector_product<Interface>::~Action_matrix_vector_product()
++{
++
++  MESSAGE("Action_matrix_vector_product Dtor");
++
++  // deallocation
++
++  Interface::free_matrix(A,_size);
++  Interface::free_vector(B);
++  Interface::free_vector(X);
++
++  Interface::free_matrix(A_ref,_size);
++  Interface::free_vector(B_ref);
++  Interface::free_vector(X_ref);
++
++}
++
++template<class Interface>
++void Action_matrix_vector_product<Interface>::check_result()
++{
++  // calculation check
++  Interface::vector_to_stl(X,resu_stl);
++
++  STL_interface<typename Interface::real_type>::matrix_vector_product(A_stl,B_stl,X_stl,_size);
++
++  typename Interface::real_type error=
++    STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
+ 
++  if (error>1.e-6){
++    INFOS("WRONG CALCULATION...residual=" << error);
++    exit(0);
++  }
++}
+ 
++#endif
+diff -Nur BTL-20030124/data/aat.hh BTL/data/aat.hh
+--- BTL-20030124/data/aat.hh	2002-12-04 15:06:08.000000000 +0100
++++ BTL/data/aat.hh	2003-12-07 19:31:27.000000000 +0100
+@@ -1,21 +1,21 @@
+ #!/usr/bin/gnuplot -persist
+ #
+-#    
++#
+ #    	G N U P L O T
+ #    	Linux version 3.7
+ #    	patchlevel 0
+ #    	last modified Thu Jan 14 19:34:53 BST 1999
+-#    
++#
+ #    	Copyright(C) 1986 - 1993, 1998, 1999
+ #    	Thomas Williams, Colin Kelley and many others
+-#    
++#
+ #    	Type `help` to access the on-line reference manual
+ #    	The gnuplot FAQ is available from
+ #    		<http://www.uni-karlsruhe.de/~ig25/gnuplot-faq/>
+-#    
++#
+ #    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+ #    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+-#    
++#
+ # set terminal postscript landscape noenhanced monochrome dashed defaultplex "Helvetica" 14
+ # set output 'bench_gcc.ps'
+ set noclip points
+@@ -76,9 +76,9 @@
+ set mytics default
+ set mx2tics default
+ set my2tics default
+-set xtics border mirror norotate autofreq 
+-set ytics border mirror norotate autofreq 
+-set ztics border nomirror norotate autofreq 
++set xtics border mirror norotate autofreq
++set ytics border mirror norotate autofreq
++set ztics border nomirror norotate autofreq
+ set nox2tics
+ set noy2tics
+ set title "A x At product " 0.000000,0.000000  ""
+@@ -104,5 +104,5 @@
+ set rmargin -1
+ set tmargin -1
+ set locale "C"
+-set xrange [10:1000]
++set xrange [1:100]
+ ##set yrange [0:400]
+diff -Nur BTL-20030124/data/ata.hh BTL/data/ata.hh
+--- BTL-20030124/data/ata.hh	2002-12-04 15:06:08.000000000 +0100
++++ BTL/data/ata.hh	2003-12-07 19:31:36.000000000 +0100
+@@ -1,21 +1,21 @@
+ #!/usr/bin/gnuplot -persist
+ #
+-#    
++#
+ #    	G N U P L O T
+ #    	Linux version 3.7
+ #    	patchlevel 0
+ #    	last modified Thu Jan 14 19:34:53 BST 1999
+-#    
++#
+ #    	Copyright(C) 1986 - 1993, 1998, 1999
+ #    	Thomas Williams, Colin Kelley and many others
+-#    
++#
+ #    	Type `help` to access the on-line reference manual
+ #    	The gnuplot FAQ is available from
+ #    		<http://www.uni-karlsruhe.de/~ig25/gnuplot-faq/>
+-#    
++#
+ #    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+ #    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+-#    
++#
+ # set terminal postscript landscape noenhanced monochrome dashed defaultplex "Helvetica" 14
+ # set output 'bench_gcc.ps'
+ set noclip points
+@@ -76,9 +76,9 @@
+ set mytics default
+ set mx2tics default
+ set my2tics default
+-set xtics border mirror norotate autofreq 
+-set ytics border mirror norotate autofreq 
+-set ztics border nomirror norotate autofreq 
++set xtics border mirror norotate autofreq
++set ytics border mirror norotate autofreq
++set ztics border nomirror norotate autofreq
+ set nox2tics
+ set noy2tics
+ set title "At x A product " 0.000000,0.000000  ""
+@@ -104,5 +104,5 @@
+ set rmargin -1
+ set tmargin -1
+ set locale "C"
+-set xrange [10:1000]
++set xrange [1:100]
+ ##set yrange [0:400]
+diff -Nur BTL-20030124/data/axpy.hh BTL/data/axpy.hh
+--- BTL-20030124/data/axpy.hh	2003-01-06 11:07:11.000000000 +0100
++++ BTL/data/axpy.hh	2003-11-15 07:06:46.000000000 +0100
+@@ -1,21 +1,21 @@
+ #!/usr/bin/gnuplot -persist
+ #
+-#    
++#
+ #    	G N U P L O T
+ #    	Linux version 3.7
+ #    	patchlevel 0
+ #    	last modified Thu Jan 14 19:34:53 BST 1999
+-#    
++#
+ #    	Copyright(C) 1986 - 1993, 1998, 1999
+ #    	Thomas Williams, Colin Kelley and many others
+-#    
++#
+ #    	Type `help` to access the on-line reference manual
+ #    	The gnuplot FAQ is available from
+ #    		<http://www.uni-karlsruhe.de/~ig25/gnuplot-faq/>
+-#    
++#
+ #    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+ #    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+-#    
++#
+ # set terminal postscript landscape noenhanced monochrome dashed defaultplex "Helvetica" 14
+ # set output 'bench_gcc.ps'
+ set noclip points
+@@ -76,9 +76,9 @@
+ set mytics default
+ set mx2tics default
+ set my2tics default
+-set xtics border mirror norotate autofreq 
+-set ytics border mirror norotate autofreq 
+-set ztics border nomirror norotate autofreq 
++set xtics border mirror norotate autofreq
++set ytics border mirror norotate autofreq
++set ztics border nomirror norotate autofreq
+ set nox2tics
+ set noy2tics
+ set title "Y+=alpha*X " 0.000000,0.000000  ""
+@@ -104,5 +104,5 @@
+ set rmargin -1
+ set tmargin -1
+ set locale "C"
+-set xrange [1:1000000]
++set xrange [1:100]
+ ##set yrange [0:550]
+diff -Nur BTL-20030124/data/matrix_matrix.hh BTL/data/matrix_matrix.hh
+--- BTL-20030124/data/matrix_matrix.hh	2003-01-06 11:08:38.000000000 +0100
++++ BTL/data/matrix_matrix.hh	2003-11-15 07:06:16.000000000 +0100
+@@ -1,21 +1,21 @@
+ #!/usr/bin/gnuplot -persist
+ #
+-#    
++#
+ #    	G N U P L O T
+ #    	Linux version 3.7
+ #    	patchlevel 0
+ #    	last modified Thu Jan 14 19:34:53 BST 1999
+-#    
++#
+ #    	Copyright(C) 1986 - 1993, 1998, 1999
+ #    	Thomas Williams, Colin Kelley and many others
+-#    
++#
+ #    	Type `help` to access the on-line reference manual
+ #    	The gnuplot FAQ is available from
+ #    		<http://www.uni-karlsruhe.de/~ig25/gnuplot-faq/>
+-#    
++#
+ #    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+ #    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+-#    
++#
+ # set terminal postscript landscape noenhanced monochrome dashed defaultplex "Helvetica" 14
+ # set output 'bench_gcc.ps'
+ set noclip points
+@@ -76,9 +76,9 @@
+ set mytics default
+ set mx2tics default
+ set my2tics default
+-set xtics border mirror norotate autofreq 
+-set ytics border mirror norotate autofreq 
+-set ztics border nomirror norotate autofreq 
++set xtics border mirror norotate autofreq
++set ytics border mirror norotate autofreq
++set ztics border nomirror norotate autofreq
+ set nox2tics
+ set noy2tics
+ set title "matrix matrix product " 0.000000,0.000000  ""
+@@ -104,5 +104,5 @@
+ set rmargin -1
+ set tmargin -1
+ set locale "C"
+-set xrange [1:1000]
++set xrange [1:100]
+ ##set yrange [0:400]
+diff -Nur BTL-20030124/data/matrix_vector.hh BTL/data/matrix_vector.hh
+--- BTL-20030124/data/matrix_vector.hh	2003-01-06 11:08:29.000000000 +0100
++++ BTL/data/matrix_vector.hh	2003-11-15 07:06:24.000000000 +0100
+@@ -1,21 +1,21 @@
+ #!/usr/bin/gnuplot -persist
+ #
+-#    
++#
+ #    	G N U P L O T
+ #    	Linux version 3.7
+ #    	patchlevel 0
+ #    	last modified Thu Jan 14 19:34:53 BST 1999
+-#    
++#
+ #    	Copyright(C) 1986 - 1993, 1998, 1999
+ #    	Thomas Williams, Colin Kelley and many others
+-#    
++#
+ #    	Type `help` to access the on-line reference manual
+ #    	The gnuplot FAQ is available from
+ #    		<http://www.uni-karlsruhe.de/~ig25/gnuplot-faq/>
+-#    
++#
+ #    	Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+ #    	Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+-#    
++#
+ # set terminal postscript landscape noenhanced monochrome dashed defaultplex "Helvetica" 14
+ # set output 'bench_gcc.ps'
+ set noclip points
+@@ -76,9 +76,9 @@
+ set mytics default
+ set mx2tics default
+ set my2tics default
+-set xtics border mirror norotate autofreq 
+-set ytics border mirror norotate autofreq 
+-set ztics border nomirror norotate autofreq 
++set xtics border mirror norotate autofreq
++set ytics border mirror norotate autofreq
++set ztics border nomirror norotate autofreq
+ set nox2tics
+ set noy2tics
+ set title "matrix vector product " 0.000000,0.000000  ""
+@@ -104,5 +104,5 @@
+ set rmargin -1
+ set tmargin -1
+ set locale "C"
+-set xrange [1:1000]
++set xrange [1:100]
+ ##set yrange [0:400]
+diff -Nur BTL-20030124/data/mk_gnuplot_script.sh BTL/data/mk_gnuplot_script.sh
+--- BTL-20030124/data/mk_gnuplot_script.sh	2003-01-10 11:52:01.000000000 +0100
++++ BTL/data/mk_gnuplot_script.sh	2003-11-30 14:56:49.000000000 +0100
+@@ -26,8 +26,8 @@
+ BASE=${LAST##*/} ; BASE=${FILE##*/} ; AVANT=bench_${WHAT}_ ; REDUC=${BASE##*$AVANT} ; TITLE=${REDUC%.dat}
+ echo "'"$LAST"'" title "'"$TITLE"'" >>  $WHAT.gnuplot
+ 
+-#echo set term postscript color >> $WHAT.gnuplot
+-#echo set output "'"$WHAT.ps"'" >> $WHAT.gnuplot
++echo set term postscript color >> $WHAT.gnuplot
++echo set output "'"$WHAT.ps"'" >> $WHAT.gnuplot
+ echo set term pbm small color >> $WHAT.gnuplot
+ echo set output "'"$WHAT.ppm"'" >> $WHAT.gnuplot
+ echo plot \\ >> $WHAT.gnuplot
+@@ -62,7 +62,3 @@
+ gnuplot -persist < $WHAT.gnuplot
+ 
+ rm $WHAT.gnuplot
+-
+-
+-
+-
+diff -Nur BTL-20030124/data/mk_mean_script.sh BTL/data/mk_mean_script.sh
+--- BTL-20030124/data/mk_mean_script.sh	2003-01-21 16:57:53.000000000 +0100
++++ BTL/data/mk_mean_script.sh	2003-11-30 15:10:01.000000000 +0100
+@@ -10,7 +10,7 @@
+ mkdir $WORK_DIR
+ 
+ DATA_FILE=`find $DIR -name "*.dat" | grep _${WHAT}`
+-echo 
++echo
+ for FILE in $DATA_FILE
+ do
+         ##echo hello world
+@@ -19,7 +19,7 @@
+ 
+ 	##echo "mk_mean_script1" ${TITLE}
+ 	cp $FILE ${WORK_DIR}/${TITLE}
+-	
++
+ done
+ 
+ cd $WORK_DIR
+@@ -29,11 +29,3 @@
+ cd ..
+ 
+ rm -R $WORK_DIR
+-
+-
+-
+-
+-
+-
+-
+-
+diff -Nur BTL-20030124/data/mk_new_gnuplot.sh BTL/data/mk_new_gnuplot.sh
+--- BTL-20030124/data/mk_new_gnuplot.sh	2003-01-10 12:02:58.000000000 +0100
++++ BTL/data/mk_new_gnuplot.sh	2003-11-30 15:58:09.000000000 +0100
+@@ -5,6 +5,7 @@
+ 
+ DATA_FILE=`cat ../order_lib`
+ 
++echo set grid xtics ytics mxtics mytics >> $WHAT.gnuplot
+ echo plot \\ >> $WHAT.gnuplot
+ 
+ for FILE in $DATA_FILE
+@@ -12,7 +13,21 @@
+     LAST=$FILE
+ done
+ 
++# GUI plot
++for FILE in $DATA_FILE
++do
++     if [ $FILE != $LAST ]
++     then
++	echo "'"$FILE"'" ",\\" >>  $WHAT.gnuplot
++     fi
++done
++echo "'"$LAST"'" >>  $WHAT.gnuplot
+ 
++# postscript plot
++echo set size 2,1.412 >> $WHAT.gnuplot
++echo set terminal postscript eps color \"Arial\" 24 >> $WHAT.gnuplot
++echo set output "'"../${DIR}/$WHAT.eps"'" >> $WHAT.gnuplot
++echo plot \\ >> $WHAT.gnuplot
+ for FILE in $DATA_FILE
+ do
+      if [ $FILE != $LAST ]
+@@ -22,10 +37,9 @@
+ done
+ echo "'"$LAST"'" >>  $WHAT.gnuplot
+ 
+-echo set term postscript color >> $WHAT.gnuplot
+-echo set output "'"../${DIR}/$WHAT.ps"'" >> $WHAT.gnuplot
+-#echo set term pbm color >> $WHAT.gnuplot
+-#echo set output "'"../${DIR}/$WHAT.ppm"'" >> $WHAT.gnuplot
++# png plot
++echo set terminal png small color >> $WHAT.gnuplot
++echo set output "'"../${DIR}/$WHAT.png"'" >> $WHAT.gnuplot
+ echo plot \\ >> $WHAT.gnuplot
+ for FILE in $DATA_FILE
+ do
+@@ -39,7 +53,3 @@
+ gnuplot -persist < $WHAT.gnuplot
+ 
+ rm $WHAT.gnuplot
+-
+-
+-
+-
+diff -Nur BTL-20030124/data/order_lib BTL/data/order_lib
+--- BTL-20030124/data/order_lib	1970-01-01 01:00:00.000000000 +0100
++++ BTL/data/order_lib	2003-12-07 19:31:44.000000000 +0100
+@@ -0,0 +1,7 @@
++ATLAS
++C
++ublas
++f77
++tvmet
++STL
++blitz
+diff -Nur BTL-20030124/generic_bench/bench.hh BTL/generic_bench/bench.hh
+--- BTL-20030124/generic_bench/bench.hh	2003-03-08 22:40:23.000000000 +0100
++++ BTL/generic_bench/bench.hh	2003-11-12 19:57:27.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  bench.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:16 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef BENCH_HH
+ #define BENCH_HH
+ #include "bench_parameter.hh"
+@@ -31,58 +31,47 @@
+ //#include "timers/x86_perf_analyzer.hh"
+ //#include "timers/STL_perf_analyzer.hh"
+ 
+-using namespace std;
+-
+-template <template<class> class Perf_Analyzer, class Action>
+-void bench( int size_min, int size_max, int nb_point ){
+-
+-  // bench name 
+-  
+-  string filename="bench_"+Action::name()+".dat";
++template <
++  template<class> class Perf_Analyzer,
++  class Action
++>
++void bench(int size_min, int size_max, int nb_point) {
++  // bench name
++  std::string filename="bench_" + Action::name() + ".dat";
+ 
+   INFOS("starting " <<filename);
+ 
+-  // utilities 
+-  
++  // utilities
+   std::vector<double> tab_mflops(nb_point);
+   std::vector<int> tab_sizes(nb_point);
+ 
+   // matrices and vector size calculations
+-
+-  size_lin_log(nb_point,size_min,size_max,tab_sizes);
++  size_lin_log(nb_point, size_min, size_max, tab_sizes);
+ 
+   // loop on matrix size
+-
+   Perf_Analyzer<Action> perf_action;
+ 
+-  for (int i=nb_point-1;i>=0;i--){
+-
++  for (int i = nb_point-1; i >= 0; i--) {
+     INFOS("size=" <<tab_sizes[i]<<"   ("<<nb_point-i<<"/"<<nb_point<<")");
+     tab_mflops[i]= perf_action.eval_mflops(tab_sizes[i]);
+-
+   }
+ 
+   // dump the result in a file  :
+-
+   dump_file_x_y(tab_sizes,tab_mflops,filename);
+-
+ }
+ 
+ // default Perf Analyzer
+-
+ template <class Action>
+-void bench( int size_min, int size_max, int nb_point ){
++void bench(int size_min, int size_max, int nb_point) {
+ 
+   // if the rdtsc is not available :
+-  bench<Portable_Perf_Analyzer,Action>(size_min,size_max,nb_point);
++  bench<Portable_Perf_Analyzer,Action>(size_min, size_max, nb_point);
+   // if the rdtsc is available :
+-  //  bench<Mixed_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-
++  // bench<Mixed_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+ 
+   // Only for small problem size. Otherwize it will be too long
+-  //bench<X86_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-  //bench<STL_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-
++  // bench<X86_Perf_Analyzer,Action>(size_min,size_max,nb_point);
++  // bench<STL_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+ }
+ 
+ #endif
+diff -Nur BTL-20030124/generic_bench/bench.hh~ BTL/generic_bench/bench.hh~
+--- BTL-20030124/generic_bench/bench.hh~	2003-03-13 15:36:19.000000000 +0100
++++ BTL/generic_bench/bench.hh~	1970-01-01 01:00:00.000000000 +0100
+@@ -1,88 +0,0 @@
+-//=====================================================
+-// File   :  bench.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
+-// Copyright (C) EDF R&D,  lun sep 30 14:23:16 CEST 2002
+-//=====================================================
+-// 
+-// This program is free software; you can redistribute it and/or
+-// modify it under the terms of the GNU General Public License
+-// as published by the Free Software Foundation; either version 2
+-// of the License, or (at your option) any later version.
+-// 
+-// This program is distributed in the hope that it will be useful,
+-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-// GNU General Public License for more details.
+-// You should have received a copy of the GNU General Public License
+-// along with this program; if not, write to the Free Software
+-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
+-#ifndef BENCH_HH
+-#define BENCH_HH
+-#include "bench_parameter.hh"
+-#include <iostream>
+-#include "utilities.h"
+-#include "size_lin_log.hh"
+-#include "dump_file_x_y.hh"
+-#include <vector>
+-#include <string>
+-#include "timers/portable_perf_analyzer.hh"
+-#include "timers/mixed_perf_analyzer.hh"
+-#include "timers/x86_perf_analyzer.hh"
+-#include "timers/STL_perf_analyzer.hh"
+-
+-using namespace std;
+-
+-template <template<class> class Perf_Analyzer, class Action>
+-void bench( int size_min, int size_max, int nb_point ){
+-
+-  // bench name 
+-  
+-  string filename="bench_"+Action::name()+".dat";
+-
+-  INFOS("starting " <<filename);
+-
+-  // utilities 
+-  
+-  std::vector<double> tab_mflops(nb_point);
+-  std::vector<int> tab_sizes(nb_point);
+-
+-  // matrices and vector size calculations
+-
+-  size_lin_log(nb_point,size_min,size_max,tab_sizes);
+-
+-  // loop on matrix size
+-
+-  Perf_Analyzer<Action> perf_action;
+-
+-  for (int i=nb_point-1;i>=0;i--){
+-
+-    INFOS("size=" <<tab_sizes[i]<<"   ("<<nb_point-i<<"/"<<nb_point<<")");
+-    tab_mflops[i]= perf_action.eval_mflops(tab_sizes[i]);
+-
+-  }
+-
+-  // dump the result in a file  :
+-
+-  dump_file_x_y(tab_sizes,tab_mflops,filename);
+-
+-}
+-
+-// default Perf Analyzer
+-
+-template <class Action>
+-void bench( int size_min, int size_max, int nb_point ){
+-
+-  // if the rdtsc is not available :
+-  //bench<Portable_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-  // if the rdtsc is available :
+-  bench<Mixed_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-
+-
+-  // Only for small problem size. Otherwize it will be too long
+-  //bench<X86_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-  //bench<STL_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+-
+-}
+-
+-#endif
+diff -Nur BTL-20030124/generic_bench/bench_parameter.hh BTL/generic_bench/bench_parameter.hh
+--- BTL-20030124/generic_bench/bench_parameter.hh	2003-03-17 14:42:37.000000000 +0100
++++ BTL/generic_bench/bench_parameter.hh	2003-11-13 21:37:12.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  bench_parameter.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:16 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,34 +16,34 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef BENCH_PARAMETER_HH
+ #define BENCH_PARAMETER_HH
+ 
+ // minimal time for each measurement
+ #define REAL_TYPE double
+ // minimal time for each measurement
+-#define MIN_TIME 2.0 
++#define MIN_TIME 2.0
+ // nb of point on bench curves
+-#define NB_POINT 100
++#define NB_POINT 20
+ // min vector size for axpy bench
+ #define MIN_AXPY 20
+ // max vector size for axpy bench
+-#define MAX_AXPY 1000000
++#define MAX_AXPY 100
+ // min matrix size for matrix vector product bench
+-#define MIN_MV 10
++#define MIN_MV 1
+ // max matrix size for matrix vector product bench
+-#define MAX_MV 1000
++#define MAX_MV 100
+ // min matrix size for matrix matrix product bench
+-#define MIN_MM 10
++#define MIN_MM 1
+ // max matrix size for matrix matrix product bench
+-#define MAX_MM 1000
++#define MAX_MM 100
+ // min matrix size for LU bench
+-#define MIN_LU 10
++#define MIN_LU 1
+ // max matrix size for LU bench
+-#define MAX_LU 1000
++#define MAX_LU 100
+ // max size for tiny vector and matrix
+-#define TINY_MV_MAX_SIZE 5
++#define TINY_MV_MAX_SIZE 10
+ // default nb_sample for x86 timer
+ #define DEFAULT_NB_SAMPLE 1000
+ 
+diff -Nur BTL-20030124/generic_bench/bench_parameter.hh~ BTL/generic_bench/bench_parameter.hh~
+--- BTL-20030124/generic_bench/bench_parameter.hh~	2003-03-08 22:39:52.000000000 +0100
++++ BTL/generic_bench/bench_parameter.hh~	1970-01-01 01:00:00.000000000 +0100
+@@ -1,52 +0,0 @@
+-//=====================================================
+-// File   :  bench_parameter.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
+-// Copyright (C) EDF R&D,  lun sep 30 14:23:16 CEST 2002
+-//=====================================================
+-// 
+-// This program is free software; you can redistribute it and/or
+-// modify it under the terms of the GNU General Public License
+-// as published by the Free Software Foundation; either version 2
+-// of the License, or (at your option) any later version.
+-// 
+-// This program is distributed in the hope that it will be useful,
+-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-// GNU General Public License for more details.
+-// You should have received a copy of the GNU General Public License
+-// along with this program; if not, write to the Free Software
+-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
+-#ifndef BENCH_PARAMETER_HH
+-#define BENCH_PARAMETER_HH
+-
+-// minimal time for each measurement
+-#define REAL_TYPE double
+-// minimal time for each measurement
+-#define MIN_TIME 2.0 
+-// nb of point on bench curves
+-#define NB_POINT 100
+-// min vector size for axpy bench
+-#define MIN_AXPY 20
+-// max vector size for axpy bench
+-#define MAX_AXPY 1000000
+-// min matrix size for matrix vector product bench
+-#define MIN_MV 10
+-// max matrix size for matrix vector product bench
+-#define MAX_MV 1000
+-// min matrix size for matrix matrix product bench
+-#define MIN_MM 10
+-// max matrix size for matrix matrix product bench
+-#define MAX_MM 1000
+-// min matrix size for LU bench
+-#define MIN_LU 10
+-// max matrix size for LU bench
+-#define MAX_LU 1000
+-// max size for tiny vector and matrix
+-#define TINY_MV_MAX_SIZE 10
+-// default nb_sample for x86 timer
+-#define DEFAULT_NB_SAMPLE 1000
+-
+-
+-
+-#endif
+diff -Nur BTL-20030124/generic_bench/init/init_function.hh BTL/generic_bench/init/init_function.hh
+--- BTL-20030124/generic_bench/init/init_function.hh	2002-11-21 16:04:06.000000000 +0100
++++ BTL/generic_bench/init/init_function.hh	2003-10-31 21:41:10.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  init_function.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:18 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef INIT_FUNCTION_HH
+ #define INIT_FUNCTION_HH
+ 
+@@ -30,24 +30,24 @@
+   return index_i+index_j;
+ }
+ 
+-double pseudo_random(int index)
++double pseudo_random(int /* index */)
+ {
+   //  INFOS("random="<<(std::rand()/double(RAND_MAX)));
+   return std::rand()/double(RAND_MAX);
+ }
+ 
+-double pseudo_random(int index_i, int index_j)
++double pseudo_random(int /* index_i */, int /* index_j */)
+ {
+   return std::rand()/double(RAND_MAX);
+ }
+ 
+ 
+-double null_function(int index)
++double null_function(int /* index */)
+ {
+   return 0.0;
+ }
+ 
+-double null_function(int index_i, int index_j)
++double null_function(int /* index_i */, int /* index_j */)
+ {
+   return 0.0;
+ }
+diff -Nur BTL-20030124/generic_bench/init/init_matrix.hh BTL/generic_bench/init/init_matrix.hh
+--- BTL-20030124/generic_bench/init/init_matrix.hh	2002-11-21 16:04:06.000000000 +0100
++++ BTL/generic_bench/init/init_matrix.hh	2003-11-02 11:44:15.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  init_matrix.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef INIT_MATRIX_HH
+ #define INIT_MATRIX_HH
+ 
+@@ -29,7 +29,7 @@
+ 
+   X.resize(size);
+ 
+-  for (int j=0;j<X.size();j++){
++  for (unsigned j=0;j<X.size();j++){
+     X[j]=typename Vector::value_type(init_function(row,j));
+   }
+ }
+@@ -43,11 +43,11 @@
+ void init_matrix(Vector &  A, int size){
+ 
+   A.resize(size);
+-  for (int row=0; row<A.size() ; row++){
++  for (unsigned row=0; row<A.size() ; row++){
+     init_row<init_function>(A[row],size,row);
+   }
+-  
+-  
++
++
+ }
+ 
+ #endif
+diff -Nur BTL-20030124/generic_bench/init/init_vector.hh BTL/generic_bench/init/init_vector.hh
+--- BTL-20030124/generic_bench/init/init_vector.hh	2002-11-21 16:04:06.000000000 +0100
++++ BTL/generic_bench/init/init_vector.hh	2003-11-11 19:30:52.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  init_vector.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:18 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef INIT_VECTOR_HH
+ #define INIT_VECTOR_HH
+ 
+@@ -29,7 +29,7 @@
+ 
+   X.resize(size);
+ 
+-  for (int i=0;i<X.size();i++){
++  for (unsigned i=0;i<X.size();i++){
+     X[i]=typename Vector::value_type(init_function(i));
+   }
+ }
+diff -Nur BTL-20030124/generic_bench/static/bench_static.hh BTL/generic_bench/static/bench_static.hh
+--- BTL-20030124/generic_bench/static/bench_static.hh	2003-01-24 16:22:02.000000000 +0100
++++ BTL/generic_bench/static/bench_static.hh	2003-11-13 21:10:29.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  bench_static.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:16 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef BENCH_STATIC_HH
+ #define BENCH_STATIC_HH
+ #include "bench_parameter.hh"
+@@ -28,51 +28,41 @@
+ #include "timers/mixed_perf_analyzer.hh"
+ #include "timers/x86_perf_analyzer.hh"
+ 
+-using namespace std;
+-
+-
+-template <template<class> class Perf_Analyzer, template<class> class Action, template<class,int> class Interface> 
+-void bench_static( void ){
+-
+-  string filename="bench_"+Action<Interface<REAL_TYPE,10> >::name()+".dat";
++template <
++  template<class> class Perf_Analyzer,
++  template<class> class Action,
++  template<class, int> class Interface,
++  unsigned Sz
++>
++void bench_static()
++{
++  std::string filename="bench_" + Action<Interface<REAL_TYPE,10> >::name() + ".dat";
+ 
+   INFOS("starting " <<filename);
+ 
+-  const int max_size=TINY_MV_MAX_SIZE;
+-
+   std::vector<double> tab_mflops;
+   std::vector<double> tab_sizes;
+ 
+-  static_size_generator<max_size,Perf_Analyzer,Action,Interface>::go(tab_sizes,tab_mflops);
+-
+-  dump_file_x_y(tab_sizes,tab_mflops,filename);
++  static_size_generator<Sz, Perf_Analyzer, Action, Interface>::go(tab_sizes, tab_mflops);
+ 
++  dump_file_x_y(tab_sizes, tab_mflops, filename);
+ }
+ 
+ // default Perf Analyzer
++template <
++  template<class> class Action,
++  template<class, int> class Interface,
++  unsigned Sz
++>
++void bench_static()
++{
++  // if the rdtsc is not available :
++  bench_static<Portable_Perf_Analyzer, Action, Interface, Sz>();
++  // if the rdtsc is available :
++  // bench_static<Mixed_Perf_Analyzer,Action,Interface, Sz>();
+ 
+-template <template<class> class Action, template<class,int> class Interface> 
+-void bench_static( void ){
+-
+-  bench_static<Portable_Perf_Analyzer,Action,Interface>();
+-  //bench_static<Mixed_Perf_Analyzer,Action,Interface>();
+-  //bench_static<X86_Perf_Analyzer,Action,Interface>();
+-
++  // Only for small problem size. Otherwize it will be too long
++  // bench_static<X86_Perf_Analyzer,Action,Interface, Sz>();
+ }
+ 
+ #endif
+-
+-
+-
+-
+-
+-
+-
+-
+- 
+-
+-    
+-
+-
+-    
+-    
+diff -Nur BTL-20030124/generic_bench/static/static_size_generator.hh BTL/generic_bench/static/static_size_generator.hh
+--- BTL-20030124/generic_bench/static/static_size_generator.hh	2003-01-09 14:33:50.000000000 +0100
++++ BTL/generic_bench/static/static_size_generator.hh	2003-11-12 18:26:52.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  static_size_generator.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  mar déc 3 18:59:36 CET 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,41 +16,47 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef _STATIC_SIZE_GENERATOR_HH
+ #define _STATIC_SIZE_GENERATOR_HH
+-#include <vector>
+ 
+-using namespace std;
++#include <vector>
+ 
+ //recursive generation of statically defined matrix and vector sizes
+-
+-template <int SIZE,template<class> class Perf_Analyzer, template<class> class Action, template<class,int> class Interface> 
+-struct static_size_generator{
+-  static  void go(vector<double> & tab_sizes, vector<double> & tab_mflops)
++template <
++  int SIZE,
++  template<class> class Perf_Analyzer,
++  template<class> class Action,
++  template<class, int> class Interface
++>
++struct static_size_generator
++{
++  static void go(std::vector<double>& tab_sizes, std::vector<double>& tab_mflops)
+   {
+     tab_sizes.push_back(SIZE);
+ 
+     Perf_Analyzer<Action<Interface<REAL_TYPE,SIZE> > > perf_action;
+     tab_mflops.push_back(perf_action.eval_mflops(SIZE));
+-    static_size_generator<SIZE-1,Perf_Analyzer,Action,Interface>::go(tab_sizes,tab_mflops);
++
++    static_size_generator<SIZE-1, Perf_Analyzer, Action, Interface>::go(tab_sizes,tab_mflops);
+   };
+ };
+ 
+ //recursion end
+-
+-template <template<class> class Perf_Analyzer, template<class> class Action, template<class,int> class Interface> 
+-struct static_size_generator<1,Perf_Analyzer,Action,Interface>{  
+-  static  void go(vector<double> & tab_sizes, vector<double> & tab_mflops)
++template <
++  template<class> class Perf_Analyzer,
++  template<class> class Action,
++  template<class, int> class Interface
++>
++struct static_size_generator<1, Perf_Analyzer, Action, Interface>
++{
++  static void go(std::vector<double>& tab_sizes, std::vector<double>& tab_mflops)
+   {
+     tab_sizes.push_back(1);
++
+     Perf_Analyzer<Action<Interface<REAL_TYPE,1> > > perf_action;
+     tab_mflops.push_back(perf_action.eval_mflops(1));
+   };
+ };
+ 
+ #endif
+-  
+-  
+-  
+-  
+diff -Nur BTL-20030124/generic_bench/timers/portable_perf_analyzer.hh BTL/generic_bench/timers/portable_perf_analyzer.hh
+--- BTL-20030124/generic_bench/timers/portable_perf_analyzer.hh	2003-01-15 11:06:09.000000000 +0100
++++ BTL/generic_bench/timers/portable_perf_analyzer.hh	2003-11-12 20:09:14.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  portable_perf_analyzer.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  mar déc 3 18:59:35 CET 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef _PORTABLE_PERF_ANALYZER_HH
+ #define _PORTABLE_PERF_ANALYZER_HH
+ 
+@@ -24,111 +24,118 @@
+ #include "timers/portable_timer.hh"
+ 
+ template <class Action>
+-class Portable_Perf_Analyzer{
+-public:  
+-  Portable_Perf_Analyzer( void ):_nb_calc(1),_nb_init(1),_chronos(){
+-    MESSAGE("Portable_Perf_Analyzer Ctor");
+-  };
+-  Portable_Perf_Analyzer( const Portable_Perf_Analyzer & ){
+-    INFOS("Copy Ctor not implemented");
+-    exit(0);
+-  };
+-  ~Portable_Perf_Analyzer( void ){
+-    MESSAGE("Portable_Perf_Analyzer Dtor");
+-  };
+-  
+-
+-
+-  inline double eval_mflops(int size)
+-  {
+-  
+-    Action action(size);
+-    
+-    double time_baseline=time_init(action);
+-    
+-    while (time_baseline < MIN_TIME) {
+-      
+-      _nb_init*=2;
+-      time_baseline=time_init(action);
+-    }
+-    
+-    time_baseline=time_baseline/(double(_nb_init));
+-    
+-    double time_action=time_calculate(action);
+-    
+-    while (time_action < MIN_TIME) {
+-      
+-      _nb_calc*=2;
+-      time_action=time_calculate(action);
+-    }
+-    
+-  //   INFOS("size="<<size);
+-//     INFOS("_nb_init="<<_nb_init);
+-//     INFOS("_nb_calc="<<_nb_calc);
+-    
+-    
+-    time_action=time_action/(double(_nb_calc));
+-    
+-    action.check_result();
+-    
+-//     INFOS("time_baseline="<<time_baseline);  
+-//     INFOS("time_action="<<time_action);  
+-    
+-    
+-    time_action=time_action-time_baseline;
+-    
+-//     INFOS("time_corrected="<<time_action);  
+-    
+-    return action.nb_op_base()/(time_action*1000000.0);
+-  }
++class Portable_Perf_Analyzer
++{
++  Portable_Perf_Analyzer(const Portable_Perf_Analyzer&);
+ 
+-  inline double time_init(Action & action)
+-  {
+-    
+-    // time measurement
+-
+-    _chronos.start();
+-    
+-    for (int ii=0;ii<_nb_init;ii++){
+-
+-      action.initialize();
+-
+-    }
+-  
+-    _chronos.stop();
++public:
++  Portable_Perf_Analyzer();
+ 
+-    return _chronos.user_time();
+-  }
++  ~Portable_Perf_Analyzer();
+ 
++  double eval_mflops(int size);
+ 
+-  inline double time_calculate(Action & action){
+-  
+-    // time measurement
+-
+-    _chronos.start();
+-
+-    for (int ii=0;ii<_nb_calc;ii++){
+-
+-      action.initialize();
+-      action.calculate();
+-      
+-    }
+-  
+-    _chronos.stop();
+-  
+-    return _chronos.user_time();
+-  }
++  double time_init(Action& action);
+ 
+-  unsigned long long get_nb_calc( void ){
++  double time_calculate(Action& action);
++
++  unsigned long long get_nb_calc() {
+     return _nb_calc;
+   }
+ 
+-
+ private:
+   unsigned long long _nb_calc;
+   unsigned long long _nb_init;
+   Portable_Timer _chronos;
+-  
+ };
+ 
++
++/*
++ * Implementation
++ */
++template <class Action>
++Portable_Perf_Analyzer<Action>::Portable_Perf_Analyzer()
++  : _nb_calc(1), _nb_init(1), _chronos()
++{
++  MESSAGE("Portable_Perf_Analyzer Ctor");
++};
++
++template <class Action>
++Portable_Perf_Analyzer<Action>::~Portable_Perf_Analyzer()
++{
++  MESSAGE("Portable_Perf_Analyzer Dtor");
++};
++
++template <class Action>
++double Portable_Perf_Analyzer<Action>::time_init(Action& action)
++{
++  // time measurement
++  _chronos.start();
++
++  for (unsigned ii = 0; ii < _nb_init; ii++){
++    action.initialize();
++  }
++
++  _chronos.stop();
++
++  return _chronos.user_time();
++}
++
++template <class Action>
++double Portable_Perf_Analyzer<Action>::time_calculate(Action& action)
++{
++  // time measurement
++  _chronos.start();
++
++  for (unsigned ii = 0; ii <_nb_calc; ii++) {
++    // the measured bench self
++    action.initialize();
++    action.calculate();
++  }
++
++  _chronos.stop();
++
++  return _chronos.user_time();
++}
++
++template <class Action>
++double Portable_Perf_Analyzer<Action>::eval_mflops(int size)
++{
++  Action action(size);
++
++  double time_baseline = time_init(action);
++
++  while (time_baseline < MIN_TIME) {
++    _nb_init*=2;
++    time_baseline=time_init(action);
++  }
++
++  time_baseline=time_baseline/(double(_nb_init));
++
++  // perform the benchmark timing
++  double time_action=time_calculate(action);
++
++  while (time_action < MIN_TIME) {
++    _nb_calc*=2;
++    time_action=time_calculate(action);
++  }
++
++  // INFOS("size="<<size);
++  // INFOS("_nb_init="<<_nb_init);
++  // INFOS("_nb_calc="<<_nb_calc);
++
++  time_action=time_action/(double(_nb_calc));
++
++  action.check_result();
++
++  // INFOS("time_baseline="<<time_baseline);
++  // INFOS("time_action="<<time_action);
++
++  time_action=time_action-time_baseline;
++
++  // INFOS("time_corrected="<<time_action);
++
++  return action.nb_op_base()/(time_action*1000000.0);
++}
++
+ #endif //_PORTABLE_PERF_ANALYZER_HH
+diff -Nur BTL-20030124/generic_bench/timers/portable_timer.hh~ BTL/generic_bench/timers/portable_timer.hh~
+--- BTL-20030124/generic_bench/timers/portable_timer.hh~	2002-12-03 19:01:18.000000000 +0100
++++ BTL/generic_bench/timers/portable_timer.hh~	1970-01-01 01:00:00.000000000 +0100
+@@ -1,103 +0,0 @@
+-//=====================================================
+-// File   :  portable_timer.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)> from boost lib
+-// Copyright (C) EDF R&D,  lun sep 30 14:23:17 CEST 2002
+-//=====================================================
+-// 
+-// This program is free software; you can redistribute it and/or
+-// modify it under the terms of the GNU General Public License
+-// as published by the Free Software Foundation; either version 2
+-// of the License, or (at your option) any later version.
+-// 
+-// This program is distributed in the hope that it will be useful,
+-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-// GNU General Public License for more details.
+-// You should have received a copy of the GNU General Public License
+-// along with this program; if not, write to the Free Software
+-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
+-//  simple_time extracted from the boost library
+-//  
+-#ifndef _PORTABLE_TIMER_HH
+-#define _PORTABLE_TIMER_HH
+-
+-#include <time.h>
+-#include <sys/time.h>
+-#include <sys/resource.h>
+-#include <unistd.h>
+-#include <sys/times.h>
+-
+-#define USEC_IN_SEC 1000000
+-
+-
+-//  timer  -------------------------------------------------------------------//
+-
+-//  A timer object measures CPU time.
+-
+-class Portable_Timer
+-{
+- public:
+-
+-  Portable_Timer( void ):_utime_sec_start(-1),
+-		_utime_usec_start(-1),
+-		_utime_sec_stop(-1),
+-		_utime_usec_stop(-1)
+-  {
+-  }
+-    
+-
+-  void   start() 
+-  { 
+-    
+-    int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
+-    
+-    _start_time = std::clock(); 
+-
+-    _utime_sec_start  =  resourcesUsage.ru_utime.tv_sec ;
+-    _utime_usec_start =  resourcesUsage.ru_utime.tv_usec ;
+-
+-  }
+-  
+-  void stop() 
+-  { 
+-    
+-    int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
+-    
+-    _stop_time = std::clock(); 
+-    
+-    _utime_sec_stop  =  resourcesUsage.ru_utime.tv_sec ;
+-    _utime_usec_stop =  resourcesUsage.ru_utime.tv_usec ;
+-    
+-  }
+-
+-  double elapsed()
+-  {
+-    return  double(_stop_time - _start_time) / CLOCKS_PER_SEC; 
+-  }
+-  
+-  double user_time()
+-  {
+-    long tot_utime_sec=_utime_sec_stop-_utime_sec_start;
+-    long tot_utime_usec=_utime_usec_stop-_utime_usec_start;
+-    return double(tot_utime_sec)+ double(tot_utime_usec)/double(USEC_IN_SEC) ;
+-  }
+-
+-  
+-private:
+-
+-  struct rusage resourcesUsage ;
+-  
+-  long _utime_sec_start ;
+-  long _utime_usec_start ;
+-  
+-  long _utime_sec_stop ;
+-  long _utime_usec_stop ;
+-  
+-  std::clock_t _start_time;
+-  std::clock_t _stop_time;
+-
+-}; // Portable_Timer
+-
+-
+-#endif  // PORTABLE_TIMER_HPP
+diff -Nur BTL-20030124/generic_bench/timers/x86_timer.hh BTL/generic_bench/timers/x86_timer.hh
+--- BTL-20030124/generic_bench/timers/x86_timer.hh	2003-01-21 12:51:35.000000000 +0100
++++ BTL/generic_bench/timers/x86_timer.hh	2003-10-30 19:10:04.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  x86_timer.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  mar déc 3 18:59:35 CET 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef _X86_TIMER_HH
+ #define _X86_TIMER_HH
+ 
+@@ -46,7 +46,7 @@
+ 
+   X86_Timer( void ):_frequency(FREQUENCY),_nb_sample(0)
+   {
+-    MESSAGE("X86_Timer Default Ctor");    
++    MESSAGE("X86_Timer Default Ctor");
+   }
+ 
+   inline void start( void ){
+@@ -61,7 +61,7 @@
+     rdtsc(_click_stop.n32[0],_click_stop.n32[1]);
+ 
+   }
+-  
++
+ 
+   inline double frequency( void ){
+     return _frequency;
+@@ -72,13 +72,13 @@
+     return (_click_stop.n64-_click_start.n64)/double(FREQUENCY);
+ 
+ 
+-  }    
++  }
+ 
+   unsigned long long  get_click( void ){
+-    
++
+     return (_click_stop.n64-_click_start.n64);
+ 
+-  }    
++  }
+ 
+   inline void find_frequency( void ){
+ 
+@@ -103,70 +103,70 @@
+     //    INFOS("fine grained time : "<<  get_elapsed_time_in_second());
+     //  INFOS("coarse grained time : "<<  final-initial);
+     _frequency=_frequency*get_elapsed_time_in_second()/double(final-initial);
+-    ///  INFOS("CPU frequency : "<<  _frequency);        
++    ///  INFOS("CPU frequency : "<<  _frequency);
+ 
+   }
+ 
+   void  add_get_click( void ){
+-       
++
+     _nb_sample++;
+     _counted_clicks[get_click()]++;
+     fill_history_clicks();
+ 
+-  }    
++  }
+ 
+   void dump_statistics(string filemane){
+-    
++
+     ofstream outfile (filemane.c_str(),ios::out) ;
+ 
+     std::map<unsigned long long , unsigned long long>::iterator itr;
+     for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-      outfile  << (*itr).first << "  " << (*itr).second << endl ;       
+-      }      
+-    
++      {
++      outfile  << (*itr).first << "  " << (*itr).second << endl ;
++      }
++
+     outfile.close();
+ 
+   }
+ 
+   void dump_history(string filemane){
+-    
++
+     ofstream outfile (filemane.c_str(),ios::out) ;
+ 
+ 
+ 
+-    for(int i=0 ; i<_history_mean_clicks.size() ; i++)
+-      {      
+-	outfile  << i << " " 
+-		 << _history_mean_clicks[i] << " " 
+-		 << _history_shortest_clicks[i] << " " 
++    for(unsigned i=0 ; i<_history_mean_clicks.size() ; i++)
++      {
++	outfile  << i << " "
++		 << _history_mean_clicks[i] << " "
++		 << _history_shortest_clicks[i] << " "
+ 		 << _history_most_occured_clicks[i] << endl ;
+-      }      
+-    
++      }
++
+     outfile.close();
+ 
+   }
+-     
++
+ 
+ 
+   double get_mean_clicks( void ){
+-    
++
+     std::map<unsigned long long,unsigned long long>::iterator itr;
+-    
++
+     unsigned long long mean_clicks=0;
+ 
+     for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-	
++      {
++
+ 	mean_clicks+=(*itr).second*(*itr).first;
+-      }      
++      }
+ 
+     return mean_clicks/double(_nb_sample);
+ 
+   }
+ 
+   double get_shortest_clicks( void ){
+-    
++
+     return double((*_counted_clicks.begin()).first);
+ 
+   }
+@@ -188,18 +188,18 @@
+     std::map<unsigned long long,unsigned long long>::iterator itr;
+ 
+     for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-	
++      {
++
+ 	if (max_occurence<=(*itr).second){
+ 	  max_occurence=(*itr).second;
+ 	  moc=(*itr).first;
+ 	}
+-      }      
+-    
+-    return double(moc);    
++      }
++
++    return double(moc);
+ 
+   }
+-  
++
+   void clear( void )
+   {
+     _counted_clicks.clear();
+@@ -212,9 +212,9 @@
+   }
+ 
+ 
+-    
++
+ private :
+-  
++
+   union
+   {
+     unsigned long int n32[2] ;
+@@ -237,7 +237,7 @@
+ 
+   unsigned long long _nb_sample;
+ 
+-  
++
+ 
+ };
+ 
+diff -Nur BTL-20030124/generic_bench/timers/x86_timer.hh~ BTL/generic_bench/timers/x86_timer.hh~
+--- BTL-20030124/generic_bench/timers/x86_timer.hh~	2003-01-07 17:31:58.000000000 +0100
++++ BTL/generic_bench/timers/x86_timer.hh~	1970-01-01 01:00:00.000000000 +0100
+@@ -1,245 +0,0 @@
+-//=====================================================
+-// File   :  x86_timer.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
+-// Copyright (C) EDF R&D,  mar déc 3 18:59:35 CET 2002
+-//=====================================================
+-// 
+-// This program is free software; you can redistribute it and/or
+-// modify it under the terms of the GNU General Public License
+-// as published by the Free Software Foundation; either version 2
+-// of the License, or (at your option) any later version.
+-// 
+-// This program is distributed in the hope that it will be useful,
+-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-// GNU General Public License for more details.
+-// You should have received a copy of the GNU General Public License
+-// along with this program; if not, write to the Free Software
+-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
+-#ifndef _X86_TIMER_HH
+-#define _X86_TIMER_HH
+-
+-#include <sys/time.h>
+-#include <sys/resource.h>
+-#include <unistd.h>
+-#include <sys/times.h>
+-//#include "system_time.h"
+-#include <asm/msr.h>
+-#include "utilities.h"
+-#include <map>
+-#include <fstream>
+-#include <string>
+-#include <iostream>
+-
+-// frequence de la becanne en Hz
+-//#define FREQUENCY 648000000
+-//#define FREQUENCY 1400000000
+-#define FREQUENCY 1695000000
+-
+-using namespace std;
+-
+-
+-class X86_Timer {
+-
+-public :
+-
+-  X86_Timer( void ):_frequency(FREQUENCY),_nb_sample(0)
+-  {
+-    MESSAGE("X86_Timer Default Ctor");    
+-  }
+-
+-  inline void start( void ){
+-
+-    rdtsc(_click_start.n32[0],_click_start.n32[1]);
+-
+-  }
+-
+-
+-  inline void stop( void ){
+-
+-    rdtsc(_click_stop.n32[0],_click_stop.n32[1]);
+-
+-  }
+-  
+-
+-  inline double frequency( void ){
+-    return _frequency;
+-  }
+-
+-  double get_elapsed_time_in_second( void ){
+-
+-    return (_click_stop.n64-_click_start.n64)/double(FREQUENCY);
+-
+-
+-  }    
+-
+-  unsigned long long  get_click( void ){
+-    
+-    return (_click_stop.n64-_click_start.n64);
+-
+-  }    
+-
+-  inline void find_frequency( void ){
+-
+-    time_t initial, final;
+-    int dummy=2;
+-
+-    initial = time(0);
+-    start();
+-    do {
+-      dummy+=2;
+-    }
+-    while(time(0)==initial);
+-    // On est au debut d'un cycle d'une seconde !!!
+-    initial = time(0);
+-    start();
+-    do {
+-      dummy+=2;
+-    }
+-    while(time(0)==initial);
+-    final=time(0);
+-    stop();
+-    INFOS("fine grained time : "<<  get_elapsed_time_in_second());
+-    INFOS("coarse grained time : "<<  final-initial);
+-    _frequency=_frequency*get_elapsed_time_in_second()/double(final-initial);
+-    INFOS("CPU frequency : "<<  _frequency);        
+-
+-  }
+-
+-  void  add_get_click( void ){
+-       
+-    _nb_sample++;
+-    _counted_clicks[get_click()]++;
+-    fill_history_clicks();
+-
+-  }    
+-
+-  void dump_statistics(string filemane){
+-    
+-    ofstream outfile (filemane.c_str(),ios::out) ;
+-
+-    std::map<unsigned long long , unsigned long long>::iterator itr;
+-    for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-      outfile  << (*itr).first << "  " << (*itr).second << endl ;       
+-      }      
+-    
+-    outfile.close();
+-
+-  }
+-
+-  void dump_history(string filemane){
+-    
+-    ofstream outfile (filemane.c_str(),ios::out) ;
+-
+-
+-
+-    for(int i=0 ; i<_history_mean_clicks.size() ; i++)
+-      {      
+-	outfile  << i << " " 
+-		 << _history_mean_clicks[i] << " " 
+-		 << _history_shortest_clicks[i] << " " 
+-		 << _history_most_occured_clicks[i] << endl ;
+-      }      
+-    
+-    outfile.close();
+-
+-  }
+-     
+-
+-
+-  double get_mean_clicks( void ){
+-    
+-    std::map<unsigned long long,unsigned long long>::iterator itr;
+-    
+-    unsigned long long mean_clicks=0;
+-
+-    for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-	
+-	mean_clicks+=(*itr).second*(*itr).first;
+-      }      
+-
+-    return mean_clicks/double(_nb_sample);
+-
+-  }
+-
+-  double get_shortest_clicks( void ){
+-    
+-    return double((*_counted_clicks.begin()).first);
+-
+-  }
+-
+-  void fill_history_clicks( void ){
+-
+-    _history_mean_clicks.push_back(get_mean_clicks());
+-    _history_shortest_clicks.push_back(get_shortest_clicks());
+-    _history_most_occured_clicks.push_back(get_most_occured_clicks());
+-
+-  }
+-
+-
+-  double get_most_occured_clicks( void ){
+-
+-    unsigned long long moc=0;
+-    unsigned long long max_occurence=0;
+-
+-    std::map<unsigned long long,unsigned long long>::iterator itr;
+-
+-    for(itr=_counted_clicks.begin() ; itr!=_counted_clicks.end()  ; itr++)
+-      {      
+-	
+-	if (max_occurence<=(*itr).second){
+-	  max_occurence=(*itr).second;
+-	  moc=(*itr).first;
+-	}
+-      }      
+-    
+-    return double(moc);    
+-
+-  }
+-  
+-  void clear( void )
+-  {
+-    _counted_clicks.clear();
+-
+-    _history_mean_clicks.clear();
+-    _history_shortest_clicks.clear();
+-    _history_most_occured_clicks.clear();
+-
+-    _nb_sample=0;
+-  }
+-
+-
+-    
+-private :
+-  
+-  union
+-  {
+-    unsigned long int n32[2] ;
+-    unsigned long long n64 ;
+-  } _click_start;
+-
+-  union
+-  {
+-    unsigned long int n32[2] ;
+-    unsigned long long n64 ;
+-  } _click_stop;
+-
+-  double _frequency ;
+-
+-  map<unsigned long long,unsigned long long> _counted_clicks;
+-
+-  vector<double> _history_mean_clicks;
+-  vector<double> _history_shortest_clicks;
+-  vector<double> _history_most_occured_clicks;
+-
+-  unsigned long long _nb_sample;
+-
+-  
+-
+-};
+-
+-
+-#endif
+diff -Nur BTL-20030124/generic_bench/utils/dump_file_x_y.hh BTL/generic_bench/utils/dump_file_x_y.hh
+--- BTL-20030124/generic_bench/utils/dump_file_x_y.hh	2002-11-21 16:04:06.000000000 +0100
++++ BTL/generic_bench/utils/dump_file_x_y.hh	2003-11-12 19:53:23.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  dump_file_x_y.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:20 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,9 +16,10 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef DUMP_FILE_X_Y_HH
+ #define DUMP_FILE_X_Y_HH
++
+ #include <fstream>
+ #include <string>
+ 
+@@ -27,21 +28,17 @@
+ //            [] operator for seting element
+ // the vector element must have the << operator define
+ 
+-using namespace std;
+-
+ template<class Vector_A, class Vector_B>
+-void dump_file_x_y(const Vector_A & X, const Vector_B & Y, const std::string & filename){
+-  
+-  ofstream outfile (filename.c_str(),ios::out) ;
+-  int size=X.size();
+-  
+-  for (int i=0;i<size;i++){
++void dump_file_x_y(const Vector_A& X, const Vector_B& Y, const std::string& filename) {
+ 
+-      outfile << X[i] << " " << Y[i] << endl ;
++  std::ofstream outfile (filename.c_str(), std::ios::out) ;
++  unsigned size=X.size();
+ 
++  for (unsigned i = 0; i < size; i++) {
++    outfile << X[i] << " " << Y[i] << std::endl;
+   }
+ 
+   outfile.close();
+-} 
++}
+ 
+ #endif
+diff -Nur BTL-20030124/generic_bench/utils/size_lin_log.hh BTL/generic_bench/utils/size_lin_log.hh
+--- BTL-20030124/generic_bench/utils/size_lin_log.hh	2003-01-14 19:52:59.000000000 +0100
++++ BTL/generic_bench/utils/size_lin_log.hh	2003-11-12 19:55:23.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  size_lin_log.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  mar déc 3 18:59:37 CET 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef SIZE_LIN_LOG
+ #define SIZE_LIN_LOG
+ 
+@@ -30,41 +30,27 @@
+ 
+   X.resize(nb_point);
+ 
+-  if (nb_point>ten){
+-
+-    for (int i=0;i<nine;i++){
+-      
+-      X[i]=i+1;
+-
++  if(nb_point > ten) {
++    for (int i = 0; i < nine; i++) {
++      X[i] = i+1;
+     }
+ 
+     Vector log_size;
+-    size_log(nb_point-nine,ten,size_max,log_size);
+ 
+-    for (int i=0;i<nb_point-nine;i++){
+-      
+-      X[i+nine]=log_size[i];
++    size_log(nb_point-nine, ten, size_max, log_size);
+ 
++    for (int i = 0; i < nb_point-nine; i++) {
++      X[i+nine] = log_size[i];
+     }
+-  }
+-  else{
+-
+-    for (int i=0;i<nb_point;i++){
+-      
+-      X[i]=i+1;
+-
++  } else{
++    for (int i = 0; i < nb_point; i++) {
++      X[i] = i+1;
+     }
+   }
+ 
+- //  for (int i=0;i<nb_point;i++){
+-    
+-//        INFOS("computed sizes : X["<<i<<"]="<<X[i]);
+-    
+-//   }
+-
++  // for (int i=0;i<nb_point;i++){
++  //   INFOS("computed sizes : X["<<i<<"]="<<X[i]);
++  // }
+ }
+-  
+-#endif
+-    
+-
+ 
++#endif
+diff -Nur BTL-20030124/generic_bench/utils/size_log.hh BTL/generic_bench/utils/size_log.hh
+--- BTL-20030124/generic_bench/utils/size_log.hh	2002-12-02 19:54:46.000000000 +0100
++++ BTL/generic_bench/utils/size_log.hh	2003-10-30 19:56:14.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  size_log.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:17 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef SIZE_LOG
+ #define SIZE_LOG
+ 
+@@ -42,8 +42,8 @@
+   for (int i=0;i<nb_point;i++){
+ 
+     ls = ls_min + float(i)*delta_ls ;
+-    
+-    size=int(exp(ls)); 
++
++    size=int(exp(ls));
+ 
+     X[i]=size;
+   }
+diff -Nur BTL-20030124/libs/ATLAS/Makefile BTL/libs/ATLAS/Makefile
+--- BTL-20030124/libs/ATLAS/Makefile	2002-11-21 16:04:06.000000000 +0100
++++ BTL/libs/ATLAS/Makefile	2003-11-15 07:31:10.000000000 +0100
+@@ -1,10 +1,10 @@
+-include $(BENCH_BASE)/Makefile.in 
++include $(BENCH_BASE)/Makefile.in
+ 
+ INCLUDES=$(INCLUDES_BASE) -I$(FORTRAN_DIR) -I$(ATLAS_BLAS_INCLUDE) -I$(ATLAS_BLAS_INCLUDE2)
+ OPTIM=$(OPTIM_BASE)
+ DEBUG=$(DEBUG_BASE)
+ 
+-CXXFLAGS = $(OPTIM) $(INCLUDES)
++CXXFLAGS = $(OPTIM) $(INCLUDES) -DDREAL
+ 
+ LIBS=$(LIBS_BASE) -L$(ATLAS_BLAS_LIB) -llapack -lcblas -latlas
+ 
+@@ -12,12 +12,10 @@
+ 
+ all : $(DEPEND_BASE) main
+ 
+-main:	Makefile main.o  
+-	$(CXX) -o main main.o   $(LIBS) 
++main:	Makefile main.o
++	$(CXX) -o main main.o   $(LIBS)
+ 
+ 
+ ###########################################################################
+ 
+ main.o : $(DEPEND_BASE) main.cpp ATLAS_interface.hh
+-
+-
+diff -Nur BTL-20030124/libs/tiny_blitz/main.cpp BTL/libs/tiny_blitz/main.cpp
+--- BTL-20030124/libs/tiny_blitz/main.cpp	2003-01-21 13:03:40.000000000 +0100
++++ BTL/libs/tiny_blitz/main.cpp	2003-11-13 21:11:52.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  main.cpp
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:30 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #include "utilities.h"
+ #include "tiny_blitz_interface.hh"
+ #include "static/bench_static.hh"
+@@ -27,11 +27,9 @@
+ 
+ int main()
+ {
+-  bench_static<Action_axpy,tiny_blitz_interface>();
+-  bench_static<Action_matrix_matrix_product,tiny_blitz_interface>();
+-  bench_static<Action_matrix_vector_product,tiny_blitz_interface>();
++  bench_static<Action_axpy,tiny_blitz_interface, TINY_MV_MAX_SIZE>();
++  bench_static<Action_matrix_matrix_product,tiny_blitz_interface, TINY_MV_MAX_SIZE>();
++  bench_static<Action_matrix_vector_product,tiny_blitz_interface, TINY_MV_MAX_SIZE>();
+ 
+   return 0;
+ }
+-
+-
+diff -Nur BTL-20030124/libs/tvmet/main.cpp BTL/libs/tvmet/main.cpp
+--- BTL-20030124/libs/tvmet/main.cpp	2003-01-21 13:05:17.000000000 +0100
++++ BTL/libs/tvmet/main.cpp	2003-11-14 13:29:57.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  main.cpp
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:30 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,21 +16,24 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #include "utilities.h"
+ #include "tvmet_interface.hh"
+ #include "static/bench_static.hh"
+ #include "action_matrix_vector_product.hh"
+ #include "action_matrix_matrix_product.hh"
+ #include "action_axpy.hh"
++#include "action_ata_product.hh"
++#include "action_aat_product.hh"
++
+ 
+ int main()
+ {
+-  bench_static<Action_axpy,tvmet_interface>();
+-  bench_static<Action_matrix_matrix_product,tvmet_interface>();
+-  bench_static<Action_matrix_vector_product,tvmet_interface>();
++  bench_static<Action_axpy,tvmet_interface, TINY_MV_MAX_SIZE>();
++  bench_static<Action_matrix_vector_product,tvmet_interface, MAX_MV>();
++  bench_static<Action_matrix_matrix_product,tvmet_interface, MAX_MM>();
++  bench_static<Action_ata_product,tvmet_interface, MAX_MM>();
++  bench_static<Action_aat_product,tvmet_interface, MAX_MM>();
+ 
+   return 0;
+ }
+-
+-
+diff -Nur BTL-20030124/libs/tvmet/Makefile BTL/libs/tvmet/Makefile
+--- BTL-20030124/libs/tvmet/Makefile	2003-01-21 11:38:53.000000000 +0100
++++ BTL/libs/tvmet/Makefile	2003-10-30 19:02:08.000000000 +0100
+@@ -1,8 +1,8 @@
+-include $(BENCH_BASE)/Makefile.in 
++include $(BENCH_BASE)/Makefile.in
+ 
+-LIBS=$(LIBS_BASE) 
+-INCLUDES=-I. $(INCLUDES_BASE) -I$(TVMET_INCLUDES)
+-OPTIM=$(OPTIM_BASE) 
++LIBS=$(LIBS_BASE)
++INCLUDES=-I. $(INCLUDES_BASE) -I$(TVMET_ROOT)/include
++OPTIM=$(shell echo `$(TVMET_ROOT)/tvmet-config --cxxflags`)
+ DEBUG=$(DEBUG_BASE)
+ 
+ CXXFLAGS = $(OPTIM) $(INCLUDES)
+@@ -13,8 +13,8 @@
+ 
+ all : $(DEPEND_BASE) main
+ 
+-main:	Makefile main.o  
+-	$(CXX) -o main main.o $(LIBS) 
++main:	Makefile main.o
++	$(CXX) -o main main.o $(LIBS)
+ 
+ 
+ ###########################################################################
+diff -Nur BTL-20030124/libs/tvmet/tvmet_interface.hh BTL/libs/tvmet/tvmet_interface.hh
+--- BTL-20030124/libs/tvmet/tvmet_interface.hh	2003-01-21 12:05:19.000000000 +0100
++++ BTL/libs/tvmet/tvmet_interface.hh	2003-11-13 18:20:13.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  tvmet_interface.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:30 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef TVMET_INTERFACE_HH
+ #define TVMET_INTERFACE_HH
+ 
+@@ -25,117 +25,98 @@
+ 
+ #include <vector>
+ 
+-using namespace tvmet;
+-
+ template<class real, int SIZE>
+-class tvmet_interface{
+-  
++class tvmet_interface
++{
+ public :
+-  
++
+   typedef real real_type ;
+ 
+   typedef std::vector<real>  stl_vector;
+   typedef std::vector<stl_vector > stl_matrix;
+-  
+-  typedef Vector<real,SIZE> gene_vector;
+-  typedef Matrix<real,SIZE,SIZE> gene_matrix;
+ 
+-  static inline std::string name( void )
+-  {
++  typedef tvmet::Vector<real, SIZE> gene_vector;
++  typedef tvmet::Matrix<real, SIZE, SIZE> gene_matrix;
++
++  static inline std::string name() {
+     return "tvmet";
+   }
+-  
+- 
+-  static void free_matrix(gene_matrix & A, int N){
+-    
+-    return ;
+-  }
+-  
+-  static void free_vector(gene_vector & B){
+-    
+-    return ;
+-    
+-  }
+-  
+-  static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
+-    
+-    for (int i=0; i<A_stl.size() ; i++){
+-      for (int j=0; j<A_stl[i].size() ; j++){
+-	A(i,j)=A_stl[i][j];
++
++  static void free_matrix(gene_matrix& A, int N) {
++    return;
++  }
++
++  static void free_vector(gene_vector& B) {
++    return;
++  }
++
++  static inline void matrix_from_stl(gene_matrix& A, stl_matrix& A_stl) {
++    for (unsigned i = 0; i < A_stl.size(); i++){
++      for (unsigned j = 0; j < A_stl[i].size(); j++) {
++	A(i,j) = A_stl[i][j];
+       }
+-      
+     }
+   }
+-  
+-  static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
+-    
+-    for (int i=0; i<B_stl.size() ; i++){
+-      B[i]=B_stl[i];
++
++  static inline void vector_from_stl(gene_vector& B, stl_vector& B_stl) {
++    for (unsigned i = 0; i < B_stl.size(); i++) {
++      B[i] = B_stl[i];
+     }
+   }
+-  
+-  static inline void vector_to_stl(gene_vector & B, stl_vector & B_stl){
+-    
+-    for (int i=0; i<B_stl.size() ; i++){
+-      B_stl[i]=B[i];
++
++  static inline void vector_to_stl(gene_vector& B, stl_vector& B_stl) {
++    for (unsigned i = 0; i < B_stl.size(); i++) {
++      B_stl[i] = B[i];
+     }
+   }
+ 
+-  static inline void matrix_to_stl(gene_matrix & A, stl_matrix & A_stl){
+-    
+-    int N=A_stl.size();
+-    
+-    for (int i=0;i<N;i++){
++  static inline void matrix_to_stl(gene_matrix& A, stl_matrix& A_stl) {
++    unsigned N = A_stl.size();
++
++    for (unsigned i = 0;i < N;i++) {
+       A_stl[i].resize(N);
+-      for (int j=0;j<N;j++){
+-	A_stl[i][j]=A(i,j);
++      for (unsigned j = 0;j < N;j++) {
++	A_stl[i][j] = A(i,j);
+       }
+     }
+-    
+   }
+ 
+-
+-  static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N)
+-  {
+-    
+-    for (int i=0;i<N;i++){
+-      for (int j=0;j<N;j++){
+-	cible(i,j)=source(i,j);
++  static inline void copy_matrix(const gene_matrix& source, gene_matrix& cible, unsigned N) {
++    for (unsigned i = 0;i < N;i++) {
++      for (unsigned j = 0;j < N;j++) {
++	cible(i,j) = source(i,j);
+       }
+     }
+-    
+   }
+ 
+-  static inline void copy_vector(const gene_vector & source, gene_vector & cible, int N)
+-  {
+-    
+-    for (int i=0;i<N;i++){
+-      cible[i]=source[i];
++  static inline void copy_vector(const gene_vector& source, gene_vector& cible, unsigned N) {
++    for (unsigned i = 0;i < N;i++) {
++      cible[i] = source[i];
+     }
+-    
+-  }
+-  
+-  
+-  
+-  static inline void matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N)
+-  {
+-    X=product(A,B);
+   }
+ 
++  static inline void matrix_matrix_product(const gene_matrix& A, const gene_matrix& B, gene_matrix& X, unsigned N) {
++    X = prod(A,B);
++  }
+ 
+-  static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
+-  {
+-    X=product(A,B);    
+-    
++  static inline void matrix_vector_product(gene_matrix& A, gene_vector& B, gene_vector& X, unsigned N) {
++    X = prod(A,B);
+   }
+ 
+-  static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N)
+-  {    
+-    Y+=coef*X;
++  static inline void axpy(const real coef, const gene_vector& X, gene_vector& Y, unsigned N) {
++    Y += coef*X;
+   }
+ 
++  static inline void ata_product(gene_matrix& A, gene_matrix& X, unsigned N) {
++    //X = prod(trans(A),A);
++    X  =  MtM_prod(A, A);
++  }
+ 
++  static inline void aat_product(gene_matrix& A, gene_matrix& X, unsigned N) {
++    //X = prod(A,trans(A));
++    X  =  MMt_prod(A, A);
++  }
+ };
+ 
+-  
++
+ #endif
+diff -Nur BTL-20030124/libs/ublas/main.cpp BTL/libs/ublas/main.cpp
+--- BTL-20030124/libs/ublas/main.cpp	2002-11-21 16:04:06.000000000 +0100
++++ BTL/libs/ublas/main.cpp	2003-11-13 21:57:42.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  main.cpp
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:27 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #include "utilities.h"
+ #include "ublas_interface.hh"
+ #include "bench.hh"
+@@ -26,14 +26,16 @@
+ #include "action_ata_product.hh"
+ #include "action_aat_product.hh"
+ 
++using namespace std;
++
+ int main()
+ {
+-  bench<Action_axpy<ublas_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);  
++  bench<Action_axpy<ublas_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
++
++  bench<Action_matrix_vector_product<ublas_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+ 
+-  bench<Action_matrix_vector_product<ublas_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);  
++  bench<Action_matrix_matrix_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+ 
+-  bench<Action_matrix_matrix_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);  
+- 
+   bench<Action_ata_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+ 
+   bench<Action_aat_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+@@ -41,5 +43,3 @@
+ 
+   return 0;
+ }
+-
+-
+diff -Nur BTL-20030124/libs/ublas/ublas_interface.hh BTL/libs/ublas/ublas_interface.hh
+--- BTL-20030124/libs/ublas/ublas_interface.hh	2002-11-29 16:43:28.000000000 +0100
++++ BTL/libs/ublas/ublas_interface.hh	2003-11-13 21:58:08.000000000 +0100
+@@ -1,14 +1,14 @@
+ //=====================================================
+ // File   :  ublas_interface.hh
+-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
++// Author :  L. Plagne <laurent.plagne@edf.fr)>
+ // Copyright (C) EDF R&D,  lun sep 30 14:23:27 CEST 2002
+ //=====================================================
+-// 
++//
+ // This program is free software; you can redistribute it and/or
+ // modify it under the terms of the GNU General Public License
+ // as published by the Free Software Foundation; either version 2
+ // of the License, or (at your option) any later version.
+-// 
++//
+ // This program is distributed in the hope that it will be useful,
+ // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@@ -16,7 +16,7 @@
+ // You should have received a copy of the GNU General Public License
+ // along with this program; if not, write to the Free Software
+ // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+-// 
++//
+ #ifndef UBLAS_INTERFACE_HH
+ #define UBLAS_INTERFACE_HH
+ 
+@@ -29,7 +29,6 @@
+ #include <boost/numeric/ublas/concepts.hpp>
+ #include <boost/numeric/ublas/storage.hpp>
+ 
+-
+ template <class real>
+ class ublas_interface{
+ 
+@@ -45,65 +44,65 @@
+   //typedef  numerics::vector<real,numerics::unbounded_array<real> > gene_vector;
+   typedef  typename boost::numeric::ublas::matrix<real>  gene_matrix;
+   typedef  typename boost::numeric::ublas::vector<real> gene_vector;
+-  
++
+   static inline std::string name( void )
+   {
+     return "ublas";
+   }
+ 
+ 
+-  
++
+ 
+   static void free_matrix(gene_matrix & A, int N){
+-    
++
+     return ;
+   }
+-  
++
+   static void free_vector(gene_vector & B){
+-    
++
+     return ;
+-    
++
+   }
+-  
++
+   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
+-    
++
+     A.resize(A_stl.size(),A_stl[0].size());
+-    
++
+     for (int i=0; i<A_stl.size() ; i++){
+       for (int j=0; j<A_stl[i].size() ; j++){
+ 	A(i,j)=A_stl[i][j];
+       }
+-      
++
+     }
+   }
+-  
++
+   static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
+-    
++
+     B.resize(B_stl.size());
+-    
++
+     for (int i=0; i<B_stl.size() ; i++){
+       B(i)=B_stl[i];
+     }
+   }
+-  
++
+   static inline void vector_to_stl(gene_vector & B, stl_vector & B_stl){
+-    
++
+     for (int i=0; i<B_stl.size() ; i++){
+       B_stl[i]=B(i);
+     }
+   }
+ 
+   static inline void matrix_to_stl(gene_matrix & A, stl_matrix & A_stl){
+-    
++
+     int N=A_stl.size();
+-    
++
+     for (int i=0;i<N;i++){
+       A_stl[i].resize(N);
+       for (int j=0;j<N;j++){
+ 	A_stl[i][j]=A(i,j);
+       }
+     }
+-  
++
+   }
+ 
+   static inline void copy_vector(const gene_vector & source, gene_vector & cible, int N){
+@@ -119,19 +118,19 @@
+       }
+     }
+   }
+- 
++
+    static inline void matrix_vector_product_slow(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
+   {
+-    X =  prod(A,B);    
++    X =  prod(A,B);
+   }
+ 
+   static inline void matrix_matrix_product_slow(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N)
+   {
+-    X =  prod(A,B);    
++    X =  prod(A,B);
+   }
+ 
+   static inline void axpy_slow(const real coef, const gene_vector & X, gene_vector & Y, int N)
+-  {    
++  {
+     Y+=coef*X;
+   }
+ 
+@@ -139,16 +138,16 @@
+ 
+   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
+   {
+-    X.assign(prod(A,B));    
++    X.assign(prod(A,B));
+   }
+ 
+   static inline void matrix_matrix_product(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N)
+   {
+-    X.assign(prod(A,B));    
++    X.assign(prod(A,B));
+   }
+ 
+   static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N)
+-  {    
++  {
+     Y.plus_assign(coef*X);
+   }
+ 
+@@ -166,7 +165,7 @@
+ 
+ 
+ 
+-  
++
+ };
+ 
+ #endif
+diff -Nur BTL-20030124/Makefile BTL/Makefile
+--- BTL-20030124/Makefile	2003-01-21 17:41:55.000000000 +0100
++++ BTL/Makefile	2003-11-15 07:09:13.000000000 +0100
+@@ -2,42 +2,43 @@
+ 
+ BENCH_LIB=$(BENCH_BASE)/libs
+ 
+-all : C STL f77 blitz ATLAS MTL ublas INTEL_BLAS STL_algo tiny_blitz tvmet##C_BLAS
++#all : C STL f77 blitz ATLAS MTL ublas INTEL_BLAS STL_algo tiny_blitz tvmet##C_BLAS
++all : C STL f77 blitz ATLAS ublas STL_algo tiny_blitz tvmet
+ 
+-blitz : test_conf  
++blitz : test_conf
+ 	( cd $(BENCH_LIB)/blitz ; make )
+ 
+-MTL : test_conf  
++MTL : test_conf
+ 	(cd $(BENCH_LIB)/MTL ; make )
+ 
+-f77 : test_conf  
++f77 : test_conf
+ 	(cd $(BENCH_LIB)/f77 ; make )
+ 
+-C : test_conf  
++C : test_conf
+ 	(cd $(BENCH_LIB)/C ; make )
+ 
+-STL : test_conf  
++STL : test_conf
+ 	(cd $(BENCH_LIB)/STL ; make )
+ 
+-ATLAS : test_conf  
++ATLAS : test_conf
+ 	(cd $(BENCH_LIB)/ATLAS ; make )
+ 
+-ublas : test_conf  
++ublas : test_conf
+ 	(cd $(BENCH_LIB)/ublas ; make )
+ 
+-C_BLAS : test_conf  
++C_BLAS : test_conf
+ 	(cd $(BENCH_LIB)/C_BLAS ; make )
+ 
+-INTEL_BLAS : test_conf  
++INTEL_BLAS : test_conf
+ 	(cd $(BENCH_LIB)/INTEL_BLAS ; make )
+ 
+-STL_algo : test_conf  
++STL_algo : test_conf
+ 	(cd $(BENCH_LIB)/STL_algo ; make )
+ 
+-tiny_blitz : test_conf  
++tiny_blitz : test_conf
+ 	(cd $(BENCH_LIB)/tiny_blitz ; make )
+ 
+-tvmet : test_conf  
++tvmet : test_conf
+ 	(cd $(BENCH_LIB)/tvmet ; make )
+ 
+ 
+@@ -62,5 +63,3 @@
+ 		echo done ;\
+ 	)\
+ 	done
+-
+-
+diff -Nur BTL-20030124/Makefile.in BTL/Makefile.in
+--- BTL-20030124/Makefile.in	2003-01-21 12:02:16.000000000 +0100
++++ BTL/Makefile.in	2003-11-13 21:15:23.000000000 +0100
+@@ -1,44 +1,37 @@
+-## TVMET
+-
+-TVMET_INCLUDES=/home01/lplagne/public/tvmet-0.7.0/include
++## TVMET >1.3.0
++TVMET_ROOT=/home/opetzold/work/tvmet
+ 
+ ##  UBLAS
+-
+-BOOST_ROOT=/home01/lplagne/public/boost/boost_1_28_0
++BOOST_ROOT=/usr/include/boost
+ 
+ ##  BLITZ
+-
+-##BLITZ_ROOT=/home01/lplagne/public/blitz/blitz-20001213
+-BLITZ_ROOT=/home01/lplagne/public/blitz/blitz-0.6
++BLITZ_ROOT=/home/opetzold/work/blitz++-0.7
+ 
+ ##  MTL
+-MTL_ROOT=/home01/lplagne/public/MTL/include
++##MTL_ROOT=/home01/lplagne/public/MTL/include
+ ##MTL_ROOT=/home01/lplagne/public/MTL/mtl-2.1.2-20
+ ##MTL_PATCH=/home01/lplagne/mtl_patch/mtl-spec-1.0
+ ##ITL_ROOT=/home01/lplagne/public/MTL/ITL/itl-4.0.0-1
+ 
+ ##  ATLAS
+-
+-ATLAS_BLAS_LIB=/home01/lplagne/public/atlas/ATLAS/lib/Linux_PIIISSE1
+-ATLAS_BLAS_INCLUDE2=/home01/lplagne/public/atlas/ATLAS/include/Linux_PIIISSE1
+-ATLAS_BLAS_INCLUDE=/home01/lplagne/public/atlas/ATLAS/include
++ATLAS_BLAS_LIB=/usr/local/lib
++ATLAS_BLAS_INCLUDE2=/usr/local/include/atlas/Linux_P4SSE2
++ATLAS_BLAS_INCLUDE=/usr/local/include/atlas
+ 
+ ## C_BLAS
+-
+-C_BLAS_INCLUDE=/home01/lplagne/public/blas_netlib/CBLAS/src
+-C_BLAS_LIB=/home01/lplagne/public/blas_netlib/CBLAS/lib/LINUX/cblas_LINUX.a
+-F77_BLAS_LIB=/home01/lplagne/public/blas_netlib/f77_blas/libblas.a 
++#C_BLAS_INCLUDE=/home01/lplagne/public/blas_netlib/CBLAS/src
++#C_BLAS_LIB=/home01/lplagne/public/blas_netlib/CBLAS/lib/LINUX/cblas_LINUX.a
++#F77_BLAS_LIB=/home01/lplagne/public/blas_netlib/f77_blas/libblas.a
+ 
+ ## INTEL_BLAS
+-
+-INTEL_BLAS_INCLUDE=/opt/intel/mkl/include
+-IBLIB=/opt/intel/mkl/lib/32
+-INTEL_BLAS_LIB=$(IBLIB)/libmkl_lapack.a $(IBLIB)/libmkl_p3.a $(IBLIB)/libmkl_p4.a $(IBLIB)/libguide.a $(IBLIB)/libmkl_def.a -lg2c -lpthread
+-##INTEL_BLAS_LIB=-L/opt/intel/mkl/lib/32 -lmkl_lapack64 -lmkl_lapack32 -lmkl_p4 -lmkl_p3 -lguide -lmkl_def -lg2c 
++#INTEL_BLAS_INCLUDE=/opt/intel/mkl/include
++#IBLIB=/opt/intel/mkl/lib/32
++#INTEL_BLAS_LIB=$(IBLIB)/libmkl_lapack.a $(IBLIB)/libmkl_p3.a $(IBLIB)/libmkl_p4.a $(IBLIB)/libguide.a $(IBLIB)/libmkl_def.a -lg2c -lpthread
++##INTEL_BLAS_LIB=-L/opt/intel/mkl/lib/32 -lmkl_lapack64 -lmkl_lapack32 -lmkl_p4 -lmkl_p3 -lguide -lmkl_def -lg2c
+ 
+ 
+ 
+-## INCLUDES 
++## INCLUDES
+ 
+ ACTIONS=$(BENCH_BASE)/actions
+ 
+@@ -52,13 +45,13 @@
+ INCLUDES_BASE=  -I$(BENCH_BASE)/includes -I$(STL) -I$(GENERIC) -I$(ACTIONS) -I$(BENCH_UTILS)
+ 
+ 
+-## LIBS 
++## LIBS
+ 
+-LIBS_BASE = -lm 	
++LIBS_BASE = -lm
+ 
+ ##CXX = KCC
+ 
+-DEFINED_VAR= 
++DEFINED_VAR=
+ CXX=g++ $(DEFINED_VAR)
+ MAKE_LIB= ar cr
+ 
+@@ -78,7 +71,7 @@
+ 
+ ###########################################################################
+ 
+-.SUFFIXES: .o .cpp 
++.SUFFIXES: .o .cpp
+ 
+ .cpp.o:
+ 	$(CXX) $(CXXFLAGS) -c $<
+@@ -86,14 +79,14 @@
+ ###########################################################################
+ ###########################################################################
+ 
+-.SUFFIXES: .o .cxx 
++.SUFFIXES: .o .cxx
+ 
+ .cxx.o:
+ 	$(CXX) $(CXXFLAGS) -c $<
+ 
+ ###########################################################################
+ 
+-default: 
++default:
+ 	make all
+ 
+ test_conf :
+@@ -105,5 +98,3 @@
+ clean:
+ 	rm -f *.o *.ii *.int.c *.s *~ \#* main core rm *.dat *.a
+ 	rm -rf ti_files
+-
+-

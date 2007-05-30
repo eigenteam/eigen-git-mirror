@@ -1,0 +1,295 @@
+/**
+   \page faq FAQ
+
+   <p>Contents:</p>
+   -# \ref license_tvmet
+   -# \ref commercial_tvmet
+   -# \ref debug
+   -# \ref optimize
+   -# \ref ambiguous_overload
+   -# \ref conversion_non_scalar
+   -# \ref could_not_convert
+   -# \ref assign_op
+   -# \ref comma_initializer
+   -# \ref no_match_operator
+   -# \ref dimension_error
+   -# \ref rtlx_kernel_crash
+   -# \ref regressiontest_failed
+
+   Certain items on this page are also covered by the \ref usage and \ref notes
+   pages!
+
+
+
+   \section license_tvmet How is tvmet licensed?
+
+   tvmet comes with completely free source code. tvmet is available under the
+   terms of the GNU Lesser General Public License (LGPL).
+
+   I have amended the LGPL to explicitly allow statically linking tvmet (or any
+   modified version of tvmet) to your software.  The LGPL is not clear on this
+   and I definitely want to allow it.
+
+   \sa \ref license
+
+
+
+
+   \section commercial_tvmet Can I use it in commercial software products?
+
+   Yes, you can. The LGPL allows you to do this, and you do not need to release
+   the source code to your software. You do need to release the source code for
+   any modifications you make to tvmet itself. (We would hope you would send
+   any improvements like these back to us anyways.)
+
+
+
+
+   \section debug Debugging the code
+
+   Not all faults can be caught at compile time.  Therefore, there is a need
+   for runtime debugging by defining <code>TVMET_DEBUG</code> (e.g. index
+   operators of <code>Vector::operator(i)</code> and
+   <code>Matrix::operator(i,j)</code>). On defined TVMET_DEBUG a bounds checking
+   is involved. Runtime errors are handled throwing an assertion failure using
+   std::assert(). <code>TVMET_DEBUG</code> is <b>not</b> enabled by defining
+   <code>DEBUG</code>. This behavior differs from release less than 0.6.0
+
+   If you don't get the expected result on certain operations you can try the
+   \ref expr_print feature to check that the expression is being evaluated as
+   you expect.
+
+
+
+
+
+   \section optimize Optimizing the code
+
+   Starting after tvmet 1.5.0 there is a new define <code>TVMET_OPTIMIZE</code>.
+
+   If this is defined tvmet uses some compiler specific keywords.
+   Mainly, this declares the functions using gcc's
+   <tt>__attribute__((always_inline))</tt>. This allows the
+   compiler to produce high efficient code even on less
+   optimization levels, like gcc's -O2 or even -O!
+   This is known to work with gcc v3.3.3 (and higher).
+   Using icc's v8 gnuc compatibility mode this may work, I've read
+   that it's using as an hint, this means you can have static inline
+   functions inside left so you can't get the full power of this feature
+   for circumstances.
+
+
+
+
+   \section ambiguous_overload ambiguous overload for ... Compiler Error
+
+   When using gcc-2.96 you can get a compiler error like:
+
+   \code
+   ambiguous overload for ...
+   /usr/include/g++-3/stl_relops.h:42: candidates are: bool operator>
+   ...
+   \endcode
+
+   I haven't any solution for this--even if I don't use it in the tvmet library.
+   A simple define __SGI_STL_INTERNAL_RELOPS in the config header doesn't solve
+   the problem. The easiest way (brute force method) is to comment out all
+   operators in stl_reops.h.  (The better way is to use the gcc-3.0.x and later,
+   see \ref compiler.)
+
+
+
+
+
+  \section conversion_non_scalar conversion from ... to non-scalar type ... Compiler Error
+
+   You get a compiler error like:
+
+   \code
+   conversion from `tvmet::XprVector< ... >, Sz>' to non-scalar type
+   	`tvmet::Vector<T, Sz>' requested
+   \endcode
+
+   Please read about \ref construct.  You probably ignored or forgot the rules
+   of using expression templates.
+
+
+
+
+
+   \section could_not_convert could not convert `tvmet::operatorXX(...)' to `bool' ... Compiler Error
+
+   You get a compiler error like:
+
+   \code
+   could not convert `tvmet::operator==( ... , ... )' to `bool'
+   \endcode
+
+   In the example above, you did try (or hoped) to use a global operator==
+   which doesn't return a bool.  Please read \ref compare.
+
+
+
+
+   \section assign_op no match for ?= operator
+
+   You get a compiler error like:
+
+   \code
+   no match for `tvmet::Vector<...>& /= tvmet::Vector<...>&' operator
+   \endcode
+
+   For element-wise operations, you need to use the element_wise namespace
+   (found within tvmet). As the name suggests, all these operators are
+   performed in an element wise fashion.  (e.g. division of two vectors--not
+   allowed from a mathematical perspective--element by element.)  The following
+   code snippet shows how to use it:
+
+   \code
+   using namespace tvmet;
+   Vector<double,3> v1, v2;
+
+   v1 = 1,2,3;
+   v2 = v1;
+
+   cout << v1 << endl;
+   {
+     using namespace tvmet::element_wise;
+     v1 /= v2;
+   }
+   cout << v1 << endl;
+   \endcode
+
+   \sa \ref operators
+   \sa \ref alias
+
+
+
+
+   \section comma_initializer storage size of `ERROR_CommaInitializerList_is_too_long' isn't known
+
+    You get a compiler error like:
+
+   \code
+   In member function `tvmet::CommaInitializer<Obj, LEN>::Initializer<T, (N + 1)> ....
+   storage size of `ERROR_CommaInitializerList_is_too_long' isn't known
+   \endcode
+
+   You have caused a forced compile time error.  tvmet prevents you from
+   overwriting foreign memory!  In other words, your comma separated initializer
+   list is too long, e.g. you wrote something like:
+
+   \code
+   using namespace tvmet;
+   Vector<double,3>		v0;
+
+   v0 = 1,2,3,4,5,6,7,8,9;
+   \endcode
+
+   You just tried to fill a %Vector of length 3 with 9 values, which would
+   normally result in values being written off the end of the vector.  tvmet
+   prevents this with the compile time error you just saw.
+
+
+
+
+   \section no_match_operator no match for `...' operator
+
+   You get a compiler error like:
+
+   \code
+   no match for `tvmet::Matrix<T, Sz, Sz>& * tvmet::XprVector<tvmet::MatrixColVectorReference<T, Sz, Sz>, Sz>' operator
+   include/tvmet/xpr/VectorOperators.h:123: candidates are:
+   // a lot of candidates....
+   \endcode
+
+   Perhaps you wrote code like:
+
+   \code
+   Matrix<float,3,3>             eigenvecs;
+   Matrix<float,3,3>             M;
+   ...
+
+   Vector<float,3> ev0( M * col(eigenvecs, 0) );
+   \endcode
+
+   Using %tvmet prior to release 1.2.0 in this case: Obviously an operator
+   is missing... but which one?  Well, all arithmetic operators have a
+   functional equivalent, in this case, prod().  Rewriting the code above
+   using the function syntax will give you a more descriptive error message:
+
+   \code
+   no matching function for call to
+   `prod(tvmet::Matrix<float, 3, 3>&, tvmet::XprVector<tvmet::MatrixColVectorReference<float, 3, 3>, 3>)'
+   \endcode
+
+   This says, I forgot to write a function with the appropriate operator.
+   In this case, please give me a hint by writing a short example, used compiler
+   and tvmet release.
+
+   \sa \ref dimension_error.
+
+
+
+
+
+
+   \section dimension_error no match for `tvmet::Matrix<double, R, C>& * tvmet::Vector<double, Sz>&' operator
+
+   You get a compiler error like:
+
+   \code
+   no match for `tvmet::Matrix<double, 4, 4>& * tvmet::Vector<double, 3>&' operator
+   candidates are: T tvmet::operator*(const T&, ...) ...
+   \endcode
+
+   This is a feature of tvmet.  The compiler detects a mathematical problem:
+   You tried call an operator between tvmet objects which had incompatible
+   dimensions.  For example, you attempted to multiply a matrix of dimension
+   4x4 with a vector of size 3 - this isn't mathematically feasible.
+
+
+
+
+
+   \section rtlx_kernel_crash Using with Linux Real-time Extensions crashes in kernel mode
+
+   Normally there should not be a problem on using tvmet inside Linux kernel
+   space as a C++ kernel module.  Unfortunately, code working in normal
+   environment (e.g. Linux user space) crashes the Linux box by using linux
+   real-time extensions, definitely on <a href=http://www.rtai.org>RTAI</a>.
+
+   I haven't found the reason yet, my knowledge of assembler and debugging is
+   too limited.
+
+
+
+
+
+   \section regressiontest_failed Failed regression tests
+
+   Well, this is a strange world.  It can happen that some (especially the
+   tan) regression test can fail.  This is not a problem with the %tvmet library.
+   After some hours I reduce the problem to:
+
+   \code
+   cout << (std::tan(1.0) - std::tan(1.0)) << endl;
+   \endcode
+
+   got <tt>6.17995e-17</tt> on my Linux Mandrake 8.2/9.1 box. It makes no
+   difference if I take the tan function from namespace std or from the global
+   namespace.  This is especially a problem for g++ v3.2 and prior. The Intel
+   compiler v7.0 isn't affected.
+
+   Especially on VC++ 7.1 you will get 2 failed tests for complex
+   %Matrix and %Vector. The error is about <tt>8.88178e-016</tt> and
+   <tt>1.77636e-015</tt>.
+
+*/
+
+
+
+// Local Variables:
+// mode:c++
+// End:
+//  LocalWords:  RTAI

@@ -1,0 +1,190 @@
+* release 1.7.1
+
+- major and minor bug fix release.
+- element wise operations on non square matrix expressions.
+  does work as expected now.
+- tvmet compiles with gcc 3.4.3.
+- extended docs.
+- new regression tests.
+
+* release 1.7.0
+
+- support for Microsoft VC++ 7.1
+- several critical bug fixes.
+- docs enhanced and corrected; new chapter for VC++ 7.1.
+- conj for signed types disabled, since an unary minus operator
+  applied to unsigned type will	result unsigned type.
+- drem, hypot, jn, yn, cbrt and rint are inside the global namespace
+  now.
+- some fixes for Makefile on creating pdf documentation.
+- header depencies limited.
+
+* release 1.6.0
+
+- major bug fix: tvmet did crash on zero matrix print (introduced
+  with release 1.5.0, there was only a patch available).
+- corrected and extended docs.
+- new regressions added for traits.
+- some compiler specific optimizations for gcc and icc
+  (compatibility mode) introduced, use it by defined TVMET_OPTIMIZE.
+  This uses the gcc's __attribute__((always_inline)) wrapped by a
+  macro - this allows to produce high optimized and inline code
+  even on lower optimization levels, e.g. -O. This is enabled by
+  configure process by --enable-optimize.
+- For pgCC 5.1 the TVMET_HAVE_LONG_DOUBLE has been disabled, since
+  the support is incomplete imo. For icc some pragma are used
+  to avoid warnings about 'operands are evaluated in unspecified
+  order' since it concerns ostream printing only.
+- traits prepared to be an entry point of several functions
+  used in the feature.
+- new functions c{matrix,vector}_ref to handle C style vectors
+  and arrays as expressions - using inside the tvmet Matrix/Vector
+  expressions as usual.
+- tvmet's syntax/naming convention more cleaner, code should be
+  more readable now. Further more unused template parameter has
+  been removed.
+- new function identity<>() to create identity matrices.
+- some cosmetic changes.
+
+* release 1.5.0
+
+- the build process is more compliant to the GNU standard.
+- alias function extended.
+- Matrix and Vector data printing improved, gives better output
+  even by negative values/contents.
+- configure script supports different compiler better; users
+  can specify  --enable-optimize, --enable-debug and
+  --enable-warnings for their needs.
+- the configure and build process has been improved generally;
+  tvmet can be build in a separate build directory and passes
+  the distcheck target successfully.
+
+* release 1.4.1
+
+- new function alias to solve the aliasing problem.
+- major bug fix: forgotten header tvmet/loop/Vector.h added
+  and benchmark shows AtA and AAt graph with matrices
+  less than 10x10 too - the BTL patch is updated.
+
+* release 1.4.0
+
+- major and minor bug fixes
+- Matrix/Vector and XprMatrix/XprVector uses an assign_to()
+  function - this could be a way for pre-evaluate/caching
+  nodes of the sub expressions for further releases.
+- an alternate way of computing matrix-matrix and matrix-vector
+  products added: using meta templates or loops. Therefore some
+  trigger are introduced which are not tuned yet. Using
+  matrix-matrix products less than Rows*Cols 8*8 or
+  matrix-vector products less than Sz=8 uses meta templates
+  else loops.
+- regression tests added for loop products, as well as bugs
+  fixed.
+- enums Rows, Cols and Size for Matrix and Vector are
+  introduced.
+- expression level printing improved - more info's are shown
+- output format has been changed, the output is compatible
+  to octave/matlab. To get the type and size info as before
+  a new member function info() has been introduced which can
+  be streamed to ostreams.
+- improved data printing, aligns output regarding of maximum
+  element.
+- different members for expression and data printing.
+- BTL benchmark results added.
+
+* release 1.3.0
+
+- major and minor bug fixes - all users should update !
+- RVO problem/bug removed, chaining/composed expressions are
+  working now. The problem was related on use of temporaries
+  on composed functions, which gone out of scope.
+- sources compiled without optimizations, by -O0, doesn't crash
+  any more. The Problem was related by holding expressions by
+  references instead by value. At higher optimization levels
+  there were no faults than.
+- better english documentation (spelling and grammar) as well
+  some corrections and extensions.
+- benchmark removed from sources.
+- interface changes.
+- prodTrans renamed to trans_prod to follow the naming convention
+- boolean version of eval removed to avoid confusion, comparing
+  is done using all_elements and any_elements.
+- support for complex<> slightly improved.
+
+* release 1.2.1
+
+- major and minor bug fixes.
+- corrected and extended docs.
+- tvmet's const correctness improved.
+
+* release 1.2.0
+
+- major and minor bug fixes
+- better gcc 2.95.3 support but, still problems
+- function naming convention from product to prod, transpose
+  to trans etc. changed.
+- new functions add,sub,mul and div on element wise functions.
+- expressions used for row/col and diag vectors on matrices,
+  prevents use of temporaries on expressions for pre-evaluation.
+- Vector access using braces () is default on internal use,
+  brackets [] are still valid and supported.
+- better debug support.
+- regression test improved and more tests added, especially
+  on expressions.
+- more functions and operators on functions.
+- better header file layout.
+
+* release 1.1.0
+
+- major and minor bug fixes
+- new meta templated functions for matrix operations for
+  product(transpose(M), M), product(M, transpose(M)) and
+  transpose(product(M,M)), namely MtM_product(), MMt_product
+  as well as productTransposed().
+- productTranspose(M,V) renamed to Mtx_product(). In this
+  function is a return dimension bug removed (working for non-
+  square matrices too now).
+- Therefore, old productTransposed() functions doesn't have
+  the old meaning any more!
+- a matrix expression can be transposed too.
+- new functions and operators for products of expression of
+  matrices and vectors added - chaining of this should work
+  now.
+- better support for non-square matrices and non-square
+  matrix-matrix and matrix-vector functions/operations.
+- regression test improved and more tests added.
+- file and directory structure extended.
+
+* release 1.0.1:
+
+- minor bug fixes
+
+* release 1.0.0:
+
+- corrected and improved documents
+- new product(XprMatrix, Vector) and operator*(XprMatrix, Vector)
+  as well as product(XprMatrix<>, XprVector<>),
+- more regression tests
+- better intel compiler support
+- extended include directory structure
+
+* release 0.9.0:
+
+- the benchmark is delayed.
+- new function product(XprMatrix<>,XprMatrix<>) and operator*
+  (XprMatrix<>,XprMatrix<>), therefore concating of mathematical
+  expressions are better supported now.
+- Addendum to the LGPL, static linking is explicit allowed.
+- regression tests for element wise operations added.
+- docs FAQ enhanced.
+- new function diag(Matrix<>) added.
+- autoconf 2.5x ready.
+- default distribution is tar.bz2 now.
+- tvmet-doc-xxx.prm target removed, docs are inside the rpm
+  package self.
+
+
+
+
+
+%%% Local IspellDict: "english"

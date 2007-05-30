@@ -1,0 +1,111 @@
+%% Version: $Id: tvmet.sty.in,v 1.2 2004/03/27 14:00:33 opetzold Exp $
+
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\def\@rcs@ $#1Date: #2 #3$$#4Revision: #5$ {
+   \ProvidesPackage{tvmet}[#2 v#5tvmet doxygen latex style]}
+\@rcs@ $Date: 2004/03/27 14:00:33 $$Revision: 1.2 $
+
+\DeclareOption{}{%%%
+  }
+
+%%\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{}}
+\ExecuteOptions{}
+\ProcessOptions
+
+% elementary for pdflatex
+\newif\ifpdf
+  \ifx\pdfoutput\undefined
+  \pdffalse                     % no pdftex
+\else
+  \pdfoutput=1                  % running pdftex
+  \pdftrue
+\fi
+
+% Postscript fonts
+\RequirePackage[scaled=0.92]{helvet}
+\RequirePackage{courier}
+\RequirePackage{typearea}       % from KOMA script
+
+% doxygen need this; it includes the style for formulas too
+\RequirePackage{fancyhdr}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%% tvmet style %%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%
+%% page borders
+%%
+\areaset[2cm]%                  % binding border
+  {16cm}{26cm}                  % text width and height
+
+%%
+%% sans serif is default font
+%%
+\renewcommand{\familydefault}{\sfdefault}
+
+%%
+%% overwrite doxygen's hyperref setup
+%%
+\ifpdf\hypersetup{
+  baseurl={http://tvmet.sourceforge.net},
+  pdftitle={@PACKAGE@ @VERSION@ Reference Manual},
+  pdfauthor={\textcopyright\,Olaf Petzold},
+  pdfsubject={%
+    This Tiny Vector and Matrix C++ template
+    libary uses Meta Templates and Expression Templates to evaluate results
+    at compile time - to make it fast for low order (tiny) systems.
+  },
+  pdfkeywords={%
+    tiny vector matrix fast C++ STL template library
+    expression templates meta templates fixed size fixed dimension
+    matrix-matrix matrix-vector vector-matrix binary unary operations operators
+    product transpose linear algebra cross product dot product type promotion
+    exception linux kernel embedded system regression test gcc g++
+    blitz blitz++ TinyVector TinyMatrix MTL TNT
+    gnu compiler suite portland group c++ kai c++ intel compiler LGPL
+  },
+  %
+  bookmarks={true},
+  bookmarksnumbered={true},
+  bookmarksopen={true},
+  pdfpagelabels={true},
+  pdfmenubar={true},
+  pdftoolbar={true},
+  plainpages={false},
+  pdfstartview={FitH},
+  pdfpagemode={UseOutlines},
+  pdfhighlight={/I}
+}
+\fi
+
+%%
+%% overwrite fancyheadings
+%%
+\makeatletter
+  \def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+    \hbox{}\vspace*{\fill}
+    \thispagestyle{empty}
+    \newpage
+    \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+\renewcommand{\sectionmark}[1]{%
+  \markright{\thesection.\ #1}}
+\makeatletter
+  \lhead[\textbf{@PACKAGE@  @VERSION@}]{\fancyplain{}{\bfseries\rightmark}}
+  \rhead[\fancyplain{}{\bfseries\leftmark}]{\textbf{@PACKAGE@  @VERSION@}}
+\makeatother
+\chead{}
+\lfoot{}
+\cfoot{\bfseries --\ \thepage\ --}
+\rfoot{}
+\setlength{\headwidth}{0.0cm}
+\setlength{\headwidth}{\textwidth}
+
+\endinput
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-auto-save: nil
+%%% TeX-auto-parse-length: 99999
+%%% ispell-local-dictionary: "american"
+%%% End:

@@ -1,0 +1,52 @@
+/*
+ * $Id: benchmark.dox,v 1.8 2004/04/10 04:58:35 opetzold Exp $
+ */
+
+/**
+
+  \page benchmark Benchmark
+
+  Prior to version 0.8.0, tvmet had benchmark results listed here. Benchmarking
+  isn't as easy as had been thought. The compiler's optimizer is very tricky -
+  even more than I am. 8( To outwit the optimizer takes time - I would rather
+  put the time into tvmet, itself.
+
+  Laurent Plagne has created some benchmarks using tvmet and other libraries,
+  please have a look at
+  <a href="http://www.opencascade.org/upload/87">opencascade</a>.
+
+  The following benchmarks are done on my
+  Intel(R) Pentium(R) 4 CPU 2.40GHz
+  Linux box:
+  - \ref bench_axpy
+  - \ref bench_matrix_matrix
+  - \ref bench_matrix_vector
+  - \ref bench_aat
+  - \ref bench_ata
+
+  using a patched version of BTL 20030124. The patch is necessary to be able
+  to compile tvmet due to the high inline level used here. The patch is
+  distributed with the package.
+
+  \section bench_axpy axpy
+  \image html axpy.png "axpy"
+
+  \section bench_matrix_matrix Matrix-Matrix
+  \image html matrix_matrix.png "Matrix-Matrix"
+
+  \section bench_matrix_vector Matrix-Vector
+  \image html matrix_vector.png "Matrix-Vector"
+
+  \section bench_aat MMt
+  \image html aat.png "M M^t"
+
+  \section bench_ata MtM
+  \image html ata.png "M^t M"
+
+*/
+
+
+// Local Variables:
+// mode:c++
+// End:
+//  LocalWords:  BTL GHz Plagne

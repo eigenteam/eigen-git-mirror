@@ -1,0 +1,17 @@
+<hr>
+<table width="100%">
+  <tr>
+    <td width="20%" align="right" valign="center">
+      Author:<br>
+	 <script language="JavaScript">
+	       var m_name="opetzold";
+	       var m_domain="users.sourceforge.net";
+	       var m_text='<a href="mailto:'+m_name+'@'+m_domain+'?subject=tvmet @VERSION@">';
+	       m_text+='Olaf Petzold</a>';
+	       document.write(m_text);
+      </script>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

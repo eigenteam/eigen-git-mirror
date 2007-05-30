@@ -1,0 +1,40 @@
+/*
+ * $Id: works.dox,v 1.5 2005/03/09 12:33:00 opetzold Exp $
+ */
+
+/**
+   \page works Future works
+
+   A good library is never complete. Here are some points which I hope to cover
+   in the future:
+
+   -# more regression tests (bit operations are missing, not all functions and type
+      promotion are tested) and examples (temporary the regression test can act
+      as examples). The problems with the regression tests actually used is,
+      that they does not follow mathematical, strong logical guide lines to cover all
+      possible cases.
+   -# write more examples, the regression test should not act as examples.
+   -# better support for std::complex type.
+   -# add functions like
+      - matrix inverse using LUdecomposition and other matrix vector functions
+      - meta functions for sin, cos etc.
+   -# System V math support on linux seems to be incomplete
+   -# better compiler support
+   -# Interface to other numerical libraries as uBlas, BLAS, and LAPACK.
+
+
+   Maybe, there will be a tvmet2. Some of the features mentioned above will
+   require a redesign of tvmet. With this new design tvmet can better handle
+   special matrices, like banded, symmetric or triangular matrices etc.
+   Furthermore, sparse tiny vectors and matrices are easy to implement, as well
+   as an allocator concept for re-sizable containers.
+
+   The priority depends on the \ref projects as well as the support from the
+   community - please support %tvmet.
+
+ */
+
+
+// Local Variables:
+// mode:c++
+// End:

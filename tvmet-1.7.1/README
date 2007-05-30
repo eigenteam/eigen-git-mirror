@@ -1,0 +1,9 @@
+This tiny vector and matrix template libary uses meta templates and
+template expressions to evaluate results at compile time - to make
+it fast for low order systems. Temporaries are kicked off. 
+
+Nevertheless, this isn't a matlab or octave in C++!
+
+For more informations please have a look into docs/html/ or to the 
+project web page at http://tvmet.sourceforge.net
+

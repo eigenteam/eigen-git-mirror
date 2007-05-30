@@ -1,0 +1,761 @@
+2003-02-12  Olaf Petzold  <opetzold@wit.regiocom.net>
+
+	* ChangeLog: this files is renamed to ChangeLog.1 and holds all old
+		Changes. We use the cvs ChangeLog now.
+
+	* examples/Makefile.am: example target diag added.
+
+	* examples/diag.cc: added.
+
+	* regression/TestMathOps.h: TestMathOps<T>::MatrixDiagVector() added.
+
+	* include/tvmet/MatrixFunctions.h: diag(Matrix<T, Sz, Sz>& m)  added.
+
+	* include/tvmet/Matrix.h: MatrixDiagVectorReference added.
+
+2003-02-10 opetzold  <opetzold@wit.regiocom.net>
+
+	* Makefile.am (rpm): rpm package is using bz2 archive now.
+
+	* tvmet.spec.in: target tvmet-doc-xxx removed, it's inside the standard
+		rpm package
+
+2003-02-09 opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.8.0 released (cvs tagged)
+
+	* Makefile.am: target doc-dist added to dist-hook, as well as
+		moving ps/pdf manuals into distdir.
+
+	* doc/compiler.dox: HTML <li></li> environment removed to avoid
+		problems with latex ref manual.
+
+	* configure.in, Makefile.am: parts adapted to new syntax style of
+		autoconf 2.5x and automake 1.6x
+
+	* include/tvmet/util/Timer.h: rusage cpp wrapper replaced with
+		config.h's defined(TVMET_HAVE_XYZ_H)
+
+	* configure.in: enhanced for better recognizing, features from autoconf-2.5x
+		added. Some problems left using
+		AC_INIT(AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
+
+	* doc/Doxyfile.in (INPUT): points to @top_srcdir@/include/@PACKAGE@, therefore
+		we can apply other lib's includes too (e.g. for benchmark)
+
+2003-02-08 opetzold  <opetzold@wit.regiocom.net>
+
+	* config/license: removed
+
+	* version 0.7.6 released internally (cvs tagged)
+
+	* misc corrections to the cvs
+
+	* doc/bench*.png: replaced with an 'empty' picture
+
+	* doc/Makefile.am: bug fixed: tgz dist installs the docs now
+
+	* include/tvmet/Makefile.am: bug fixed: tgz dist install target doesn't
+		install meta and util directory; include/tvmet/meta/Makefile.am,
+		include/tvmet/util/Makefile.am added
+
+	* version 0.7.5 released internally (cvs tagged)
+
+	* project imported into cvs, cvs keyword Id corrected and added
+
+	* doc/Util.h: header guard prefix TVMET extended
+
+	* include/tvmet/meta/: copyright and cvs Id keyword added
+
+2002-12-28  opetzold  <opetzold@wit.regiocom.net>
+
+	* benchmark/BenchImpl.h: Each BenchImpl does run 10 times each benchmark to
+		trick the optimizer a little bit.
+
+2002-12-27  opetzold  <opetzold@wit.regiocom.net>
+
+	* benchmark/Makefile.am: each benchmark got his own optimizer cxxflags.
+
+2002-12-22  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.7.4 released internally
+
+	* include/tvmet/MatrixFunctions.h: element_wise::product(Matrix, Matrix)
+		added.
+
+	* benchmark/benchmark.m: stl and peak benchmark added
+
+	* benchmark/stl.{cc|h}: created to measure STL performance
+
+	* benchmark/peak.{cc|h}: created to measure peak performance
+
+	* benchmark/Interface.h: interface_peak etc. added
+
+	* benchmark/BenchmarkBase.h: created, moved basic functionality from
+		Benchmark.h
+
+2002-12-21  opetzold  <opetzold@wit.regiocom.net>
+
+	* benchmark/BenchInfo.h: created, class definition moved from
+		Benchmark.h into.
+
+2002-12-17  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.7.3 released internally
+
+	* doc/benchmark.dox: Result comments to each benchmark removed.
+
+	* doc/ doxygen extension is dox now to avoid confusion.
+
+	* include/tvmet/util/General.h: all functions inside doxygroup
+		_util_function now.
+
+	* benchmark/Makefile.am: Depencies corrected.
+
+2002-12-16  opetzold  <opetzold@wit.regiocom.net>
+
+	* benchmark/Benchmark.h (class BenchInfo): typeid added
+
+	* benchmark/*.cc: axpy included in benchmark
+
+	* benchmark/BenchImpl.h (BenchImpl::vector_inner_product): result z static
+		now to avoid removing by optimizer of gcc-3.2, thanks to Jörg Walter.
+
+	* benchmark/Benchmark.h (class Benchmark): BUG inside set_complexity(),
+		vector_add(), vector_outer_product() removed, thanks to Jörg Walter.
+
+2002-12-15  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/XprMatrixOperators.h: element_wise
+		operator*(XprMatrix, XprMatrix) supports non-square matrizes now.
+
+	* bechmark/*: (C) added
+
+	* include/tvmet/XprOperators.h: IMPLEMENT macros splitted for
+		XprVector<> and XprMatrix<>, NS element_wise introduced,
+		file splited into Xpr{Matrix, Vector}Operators.h
+
+2002-12-14  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.7.2 released internally; interface has changed too!
+
+	* include/tvmet/MatrixImpl.h (Matrix::print_on): small BUG removed,
+		introduced from v0.4.2 (last comma separator was wrong)
+
+	* doc/operator_tab.html: added as doc for namespace element_wise
+
+	* regressions/*: adapted to namespace element_wise
+
+	* include/tvmet/tvmet.h: doxygen namespace description moved from
+		doc/misc.doc into this header.
+
+	* include/tvmet/MatrixOperators.h: operators for *=, /= ... <<= for
+		Matrix<> and XprMatrix<> inside namespace element_wise now!
+		Macro KICK_MATH_SENSE absolete now!
+
+	* include/tvmet/MatrixImpl.h: operator impl for +=, -= ... <<= for
+		Matrix<> and XprMatrix<> moved here from Matrix.h.
+
+	* include/tvmet/MatrixImpl.h: Forgotten macro prefix TVMET_ added.
+		operator %=,^=,&=,|= have as argument std::size_t since these
+		are bitops, only int's are allowed/usefull.
+
+	* include/tvmet/Matrix.h (class Matrix): operator %=,^=,&=,|= have
+		as argumeent std::size_t since these are bitops, only int's
+		are allowed/usefull.
+
+	* include/tvmet/VectorOperators.h: operators for /=, %= ... <<= for
+		Vector<> and XprVector<> inside namespace element_wise now!
+		Macro KICK_MATH_SENSE absolete now!
+
+	* include/tvmet/VectorImpl.h: operator impl for +=, -= ... <<= for
+		Vector<> and XprVector<> moved here from Vector.h.
+
+	* include/tvmet/Vector.h (class Vector): member operators for
+		+=, -= ... <<= for Vector<> and XprVector<> named to equivalent
+		functions.
+
+	* doc/faq.doc: comma_initializer and assign_op compiler error section
+		added.
+
+	* include/tvmet/VectorImpl.h: Forgotten macro prefix TVMET_ added.
+
+	* version 0.7.1 released internally
+
+2002-12-10  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/notes.doc: notes about aliasing added.
+
+	* doc/benchmark.doc: Fomula written for benchmarks, notes abot aliasing.
+
+	* benchmark/ublas.h: assumes alias free ops, thanks to Jörg Walter
+
+2002-12-08  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/MatrixOperators.h: operator*(XprMatrix, Matrix|Matrix, XprMatrix)
+		moved from NS tvmet::element_wise to tvmet,
+		operator/(XprMatrix, Matrix|Matrix, XprMatrix) moved from NS
+		tvmet to tvmet::element_wise. M = transpose(M1) * M2 is working now.
+
+	* include/tvmet/meta/Gemv.h: doxygen class docs corrected.
+
+	* regression/TestMathOps.h: productTranspose regression Test added
+
+	* include/tvmet/MatrixFunctions.h: Formula written in doxygen docs for
+		productTransposed(M,x)
+
+2002-11-30  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.7.0 released
+
+	* include/tvmet/{Matrix,Vector}.h: Reference level printing changed.
+
+2002-11-26  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/{Xpr,BinaryFunctionals,UnaryFunctionals,Matrix,Vector}.h:
+		expression printing enhanced.
+
+	* include/tvmet/VectorOperators.h: Vector<std::complex<T>, Sz> and std::complex<T>,
+		std::complex<T> and Vector<std::complex<T>, Sz> are working now.
+
+	* include/tvmet/MatrixOperators.h:  Matrix<T, Rows, Cols> and complex<T>,
+ 		complex<T> and Matrix<T, Rows, Cols> are working now.
+
+2002-11-24  opetzold  <opetzold@wit.regiocom.net>
+
+	* regression/TestSTL.h: added for regression with STL's vector class.
+
+	* include/tvmet/Vector.h (class Vector): runtime condition added for
+		construction from given iterator.
+
+	* regression/*: TVMET prefix for all *.h
+
+	* version 0.6.3 released internally
+
+	* regression/Makefile.am: CXXFLAGS limited to the minimum optimizations
+
+	* regression/TestMathOps.h: adapted to the new situation.
+
+	* regression/MVOps.h: moved to namespace util, file moved to
+		include/tvmet/util/General.h; functions renamed
+
+	* include/tvmet/Timer.h: moved to util subdir.
+
+	* include/tvmet/*: All meta stuff moved to an own namespace into a
+		subdirectoy meta.
+
+	* include/tvmet/Matrix.h (class Matrix::assign): adapted for use of meta
+		templates default parameter
+
+	* include/tvmet/MetaMatrix.h (class Matrix): {Row,Col}Stride have default
+		parameter now.
+
+	* doc/Makefile.am: CXXFLAGS limited to the minimum optimizations
+
+2002-11-23  opetzold  |opetzold@wit.regiocom.net>
+
+	* version 0.6.2 released internally
+
+	* doc/benchmark.doc: updated.
+
+	* benchmark/* completly rewritten, uses interfaces for libaries (blitz,
+		ublas, mtl), results in MFlops now.
+
+2002-11-16  opetzold  <opetzold@wit.regiocom.net>
+
+	* benchmark/Timer.h (class Timer): moved to namespace tvmet::util, file
+		moved to include/tvmet
+
+2002-11-14  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.6.1 released internally
+
+	* doc/{notes,faq}.doc: About regression test moved from notes to
+		faq. Added to faq dimension check error compiler.
+
+	* doc/*: Benchmark results added.
+
+	* regression/TestMathOps.h (TestMathOps<T>::MatrixOps()): Regression
+		for trace(Matrix<>) added.
+
+	* include/tvmet/MatrixFunctions.h: trace(Matrix<>) added.
+
+	* include/tvmet/Matrix.h (class MetaMatrix): MetaMatrix::trace added.
+
+2002-11-13  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/*.h:  brute force replace DECLARE_XYZ with TVMET prefix
+		to avoid complications with other macros.
+		Same to asXpr() -> as_expr() to hold member conventions.
+
+	* include/tvmet/*.h:  brute force replace ExprType with expr_type to be
+		conform to the used style.
+
+2002-11-12  opetzold  <opetzold@wit.regiocom.net>
+
+	* regression/MVOps.h: Header guard with TVMET prefix, doxygen like,
+		VVAdd fn added.
+
+2002-11-10  opetzold  <opetzold@wit.regiocom.net>
+
+	* regression/*: completly rewritten. Now we have a benchmark with blitz++,
+		tvmet, ublas and conventional implementation.
+
+	* doc/*: Corrections and Enhancements to the docs generally (intro rewritten).
+
+	* include/tvmet/tvmet.h: Guard for defined DEBUG arround TVMET_DEBUG removed.
+		TVMET_DEBUG isn't turned on at defined DEBUG any more.
+
+2002-11-03  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.6.0 released
+
+	* regression/TestMathOps.h: Test for normalize(Vector<>) added.
+
+	* include/tvmet/{Matrix,Vector}Operators.h: Matrix/Vector<T, Sz> and POD's
+		extended with long long int to handle long long from NumericTraits
+		too.
+
+2002-10-29  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/{usage,faq}.doc enhanced.
+
+	* include/tvmet/VectorFunctions.h: normalize(Vector<>) added.
+
+	* regression/TestUnFunc.h: copy && paste devel killed:
+		3 test cases indicate that they are testing the inverse functions,
+		asin, acos, atan but the test case calls the sin function - thanks
+		to Darin DeForest (deforest) from sf.
+
+2002-10-19  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/{Matrix|Vector}Functions.h: Formula docs enhanced,
+		doxy grouping enhanced for unary and binary functions and
+		operators.
+
+2002-10-17  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.5.1 released as doc update
+
+	* doc/Doxygen.in: PREDEFINED targets use the forgotten TVMET prefix too.
+
+	* include/tvmet/{Binary|UnaryFunctionals.h, NumericTraits.h,
+		TypePromotion.h TvmetBase.h}: macros
+		generated operators, functions and functionals doc added for
+		doxygen include path.
+
+2002-10-10  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/{functions|operators}_doc.cc: naming convention for private
+		data updated
+
+	* doc/*: Corrections and Enhancements to the docs generally.
+
+2002-08-18  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.5.o released after some time of playing with.
+
+	* doc/tvmet.css: using tvmet.css now.
+
+	* Small docs enhancements.
+
+2002-08-03  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/VectorImpl.h (print_on): simplifyied rewritten.
+
+	* include/tvmet/MatrixImpl.h (print_on): simplifyied rewritten.
+
+	* version 0.4.2 released only internal
+
+	* doc/compiler.doc: Section general compiler requirements added.
+
+	* include/tvmet/*.h: forwards for namespace std rewritten to avoid
+		doxygen confuse.
+
+	* regression/TestMathOps.h: Regression test for row() and col() added.
+
+	* include/tvmet/Matrix.h (Matrix{Row, Col}VectorReference):
+		operator[] const added, manual ctor removed.
+
+	* include/tvmet/Matrix.h (Matrix{Row, Col}VectorReference): XprLevel is
+		IndentLevl now (removed	bug from beginning time.)
+
+	* examples/mv.cc: cstdlib for rand added for compatibility.
+
+2002-07-27  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.4.1 released only internal
+
+	* regression/Makefile.am (regression_LDADD): cppunit-1.9.8 needs -ldl for
+		dl{open,close,sym}.
+
+	* include/tvmet/Matrix.h (class Matrix): added reverse_iterator STL
+		interface as well as empty() and max_size(). size() is static now.
+
+	* include/tvmet/Vector.h (class Vector): added reverse_iterator STL
+		interface as well as front(), back(), empty(), max_size().
+		size() is static now.
+
+	* tvmet.spec.in: Adapted for manual.
+
+	* Makefile.am (man_MANS): manual for tvmet-config written
+
+	* include/tvmet/*: brute force query replace printOn with print_on
+		for member naming conformity.
+
+	* include/tvmet/*: brute force query replace restrict by _tvmet_restrict
+		due to the use of the prefix macro.
+
+	* include/tvmet/* all header guards with TVMET_ prefix extensioned.
+
+	* doc/Doxyfile.in: adapted to the new situation
+
+	* tvmet-config.in (Usage): corrected very old package name (tvm)
+
+	* include/tvmet/config/config-{icc,kcc,pgi}.h: dummies created for
+		compiler specifics.
+
+	* include/tvmet/config/config-gcc.h: created for gcc specifics.
+
+	* include/tvmet/TvmetBase.h: created, contents of old tvmet.h moved in.
+
+	* include/tvmet/tvmet.h (IndentLevel): forgotten member rename to be
+		conform to m_xxx; particular rewritten and splitted, so below
+		and above.
+
+	* configure.in: We are using the ac_create_prefix_config_h to create
+		a prefixed config.h header now. Unfortunally accconfig.h is
+		deprecated too. With this we can easy mix different packages
+		(prior all autoXXX defined PACKAGE and VERSION with the result
+		of multiple define warnings).
+
+	* Makefile.am (m4sources): added ac_create_prefix_config_h.m4, aclocal.m4
+		moved from root dir to config dir.
+
+2002-07-24  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/VectorImpl.h: printOn() does care the io manipulators
+		std::setw(), see examples/mv.cc
+
+	* include/tvmet/MatrixImpl.h: same too.
+
+2002-07-23  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.4.0 released
+
+	* include/tvmet/NumericTraits.h: rewritten to avoid macro and ifdef garbage.
+
+	* include/tvmet/*: member rename to be conform to m_xxx
+
+	* include/tvmet/Matrix.h: CT_CONDITION have the tvmet identifier now.
+
+	* include/tvmet/Vector.h: CT_CONDITION have the tvmet identifier now.
+
+2002-07-17  opetzold  <opetzold@wit.regiocom.net>
+
+	* now we have a postscript and pdf manual
+
+	* doc/functions_doc.cc: some missed return statements added.
+
+2002-07-16  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/Makefile.am: pdf support improved.
+
+	* doc/Makefile.am (doc-dist): tvmet-doc-xxx dist doesn't have html subdir anymore
+		- usefull for sourceforge dist since we have only html docs.
+
+	* regression/main.cc (main): args removed to avoid warnings.
+
+	* configure.in: CXX_OPTIMIZE_FLAG/CXX_DEBUG_FLAGS for GnuCC -W -Wall added
+
+	* include/tvmet/TypePromotion.h: No idea when this bug where introduced - the
+		header guard was in wrong scope, v0.3.1 suffered. Nobdy told me ...
+
+	* include/tvmet/TypePromotion.h: Support for long long. Enhanced for unsigned
+		and complex types as well. Change ranking breaks compatibility
+		with prior releases.
+
+	* include/tvmet/NumericTraits.h: support for long long. Specialized version for
+		long double and long long self removed - there isn't a way to guarantee
+		the precision than.
+
+	* config/ac_c_long_long.m4 added.
+
+2002-07-13  opetzold  <opetzold@wit.regiocom.net>
+
+	* acconfig.h: political correct error messages now 8-)
+
+2002-07-07  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.3.1 released
+
+	* include/tvmet/Vector.h (class Vector): brute force query replace ThisType
+		by this_type, to be conform to the naming convention
+
+	* include/tvmet/Matrix.h (class Matrix): brute force query replace ThisType
+		by this_type, to be conform to the naming convention
+
+	* doc/Doxyfile.in: slighly minor changes.
+
+2002-07-06  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/Matrix.h (class Matrix): same here.
+
+	* include/tvmet/Vector.h (class Vector): doxygen correctness for copy ctor doc.
+
+2002-06-25  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/notes.doc: chapter _thread inside contents now.
+
+	* include/tvmet/TypePromotion.h: classes inside namespace tvmet now.
+
+2002-06-23  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.3.0 released
+
+	* doc-dists does have a doxygen tag file now
+
+	* header class descriptions follows now the statement
+		\class <name> [<header-file>] [<header-name>]
+
+	* include/tvmet/CompileTimeError.h, include/tvmet/CommaInitializer.h: doxygen
+		confuseness removed (first line of header (LGPL) introduced a doxy comment - therfore
+		doxygen did interpret the follwing statement)
+
+2002-06-22  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/Functional.h: class replaced by struct, since all members are public
+
+	* include/tvmet/XprOperators.h: std::complex<T> templated
+
+	* include/tvmet/XprFunctions.h: std::complex<T> templated
+
+	* include/tvmet/VectorOperators.h: std::complex<T> templated
+
+	* include/tvmet/VectorFunctions.h: std::complex<T> templated
+
+	* include/tvmet/VectorEval.h: std::complex<T> templated, macro removed
+
+	* include/tvmet/UnaryFunctionals.h: std::complex<T> templated
+
+	* include/tvmet/MatrixFunctions.h:  std::complex<T> templated
+
+	* include/tvmet/MatrixOperators.h: std::complex<T> templated
+
+	* include/tvmet/MatrixEval.h: std::complex<T> templated, macro removed
+
+	* include/tvmet/XprFunctions.h: forgotten exp function added
+
+	* regression/TestMathOps.h: bug removed in regressions due to prior initialized
+		vars. Moved the test into MatrixMatrixVector.
+
+	* benchmark/Benchmark.h: new, parts from m1.cc and v1.cc has been moved here.
+
+2002-06-20  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/TypePromotion.h: std::complex<int> added, therfore the priorities
+		for all complex types have changed!
+
+	* include/tvmet/NumericTraits.h: depends on HAVE_LONG_DOUBLE, sum_type of double
+		is long double or double.
+
+	* include/tvmet/{MatrixEval.h, MatrixFunctions.h, MatrixOperators.h, NumericTraits.h,
+		TypePromotion.h, UnaryFunctionals.h, VectorEval.h, VectorFunctions.h,
+		VectorOperators.h, XprFunctions.h, XprOperators.h} HAVE_LONG_DOUBLE
+		encapsulated.
+
+	* configure.in: AC_C_LONG_DOUBLE added.
+
+	* include/tvmet/UnaryFunctionals.h: for std::complex<> expanded, uses now a const reference.
+		functions for std::complex<int> added
+
+	* include/tvmet/MatrixEval.h: std::complex<int> added
+
+	* doc/Doxyfile.in (BIN_ABSPATH): updated for doxygen 2.2.18 (new generated).
+
+2002-06-16  opetzold  <opetzold@wit.regiocom.net>
+
+	* examples/Makefile.am (examples): bug corrected.
+
+	* include/tvmet/NumericTraits.h: complex<int> numeric traits added.
+
+	* include/tvmet/MatrixOperators.h: operator*() is in namespace element_wise left
+
+2002-06-13  opetzold  <opetzold@wit.regiocom.net>
+
+	* doc/Makefile.am (doc-dist): gzip with bzip2 replaced
+
+	* Makefile.am (doc-dist): gzip to bzip2 replaced as well
+
+	* include/tvmet/MatrixFunctions.h: for std::complex<> expanded, uses now a const reference.
+		functions for std::complex<int> added
+
+2002-06-12  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/XprFunctions.h: for std::complex<> expanded, uses now a const reference.
+		functions for std::complex<int> added
+
+	* include/tvmet/MatrixOperators.h (DECLARE_BINARY_OPERATOR): for std::complex<>
+		expanded, uses now a const reference.
+		operators for std::complex<int> added
+
+	* include/tvmet/VectorOperators.h (DECLARE_BINARY_OPERATOR): for std::complex<>
+		expanded, uses now a const reference.
+		operators for std::complex<int> added
+
+	* include/tvmet/XprOperators.h (DECLARE_BINARY_OPERATOR): for std::complex<>
+		expanded, uses now a const reference.
+		logical operators for float, double etc. removed, since isn't applicable
+		operators for std::complex<int> added
+
+2002-06-11  opetzold  <opetzold@wit.regiocom.net>
+
+	* acconfig.h (__S_STL_INTERNAL_RELOPS): hack removed since isn't usefull.
+
+	* doc/Makefile.am (api): target renamed to doc
+
+	* include/tvmet/tvmet.h: NS_TVMET_BEGIN/END removed again due to doxygen problems
+		description of namespace moved to misc.doc
+
+	* doc/Doxyfile.in (INPUT): @top_srcdir@/include/tvmet now
+
+	* include/tvmet/tvmet.h: macros NS_TVMET_BEGIN/END completly removed - too
+		much trouble with doxygen, only NS_TVMET_NAME is used now. NS_TVMET_NAME
+		has a guard now.
+
+	* include/tvmet/*.h: doxygen grouping for global functions and operators
+
+	* doc/functions.doc: added for global functions documenting
+
+	* doc/operators.doc: added for global operators documenting
+
+2002-06-09  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.2.1 released
+
+	* benchmark/* completly rewritten
+
+	* regression/MVOps.h: extracted from TestMathOp.h for use for benchmarking
+
+2002-06-08  opetzold  <opetzold@wit.regiocom.net>
+
+	* regression/: checked/rewritten and updated against cppunit-1.8.0,
+		which s now used for regression test.0
+		TestConstruction.cc TestMathOps.cc TestXpr.cc removed.
+
+	* regression/main.cc: Oops, non std iostream include header fixed. Thanks
+		to gcc-3.1 8-)
+
+	* include/tvmet/*.h: doxygen enhancements
+
+	* doc/Makefile.am: modified for splitted doc files, ChangeLog and THANKS files
+		included into html doc tree.
+
+	* doc/intro.doc: original intro.doxy splitted to several *.doc files,
+		anhanced docs and topics regrouped.
+
+	* include/tvmet/Matrix.h (class Matrix): Member assignValue(), forgotten return
+		statement added. Thanks to Kresimir Fresl <fresl@grad.hr>
+
+2002-06-02  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.2.0 released
+
+	* include/tvmet/Matrix.h (class Matrix): STL iterator constructors and interface
+		added.
+
+	* include/tvmet/Vector.h (class Vector): STL iterator constructors and interface
+		added.
+
+	* generell: Designer decision to rename all const_reference to ConstReference,
+		reference to Reference, expr_type to ExprType. This make its possible
+		to support the STL interface. Finally this means a public interface
+		change.
+
+	* include/tvmet/MatrixFunctions.h (class MetaMM ): typename
+		PromoteTraits<T1, T2>::value_type' is implicitly a typename,
+		changed, (class MetaMV ): same here.
+
+	* include/tvmet/: brute-force query-replace size_t with std::size_t
+
+	* doc/intro.doxy: slightly changed and anhanced docs due to positive
+		test with stlport and gcc-3.1.
+
+	* include/tvmet/UnaryFunctionals.h: removed ieee math functions
+		from namespace std, STLport does it right.
+
+2002-06-01  opetzold  <opetzold@wit.regiocom.net>
+
+	* cleaned some comments/doxygen tags for cosmetic
+
+	* removed doing vector cross product as ET from todo list
+
+	* include/tvmet/Vector.h (class Vector): enum  size removed, since it's never used
+		here and not really usefull. Added new member function size() instead.
+
+	* include/tvmet/Matrix.h (class Matrix): enum { rows, cols} removed since they are
+		never used here, and not really usefull. Added new member functions
+		rows() and cols() instead.
+
+	* include/tvmet/Vector.h (class Vector): template argument length replaced
+		with tvmet::Vector template argument Sz, since it's the same.
+		Removed enum length, since isn't needed.
+
+	* Makefile.am (rpm): --target=noarch added, therefore it's really
+		plattform independed 8)
+
+2002-04-27  opetzold  <opetzold@wit.regiocom.net>
+
+	* version 0.1.2 released
+
+	* include/tvmet/tvmet.h (NS_TVMET): removed since it holds only the name self and
+		isn't used anwhere expect NS_TVMET_BEGIN.
+
+	* doc/header.html: meta tags added and sf logo changed.
+
+2002-04-21  opetzold  <opetzold@wit.regiocom.net>
+
+	* docs/ adhanced
+
+	* include/tvmet/Matrix.h (MatrixReference::operator()): removed const since
+		it isn't const.
+
+2002-04-20  opetzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/Matrix.h: MatrixColVectorReference, MatrixRowVectorReference added.
+
+	* include/tvmet/MatrixFunctions.h: row() and col() functions added
+
+	* examples/: new complex examples
+
+	* macro for automake added tvmet.m4
+
+2002-03-11  O.Petzold  <opetzold@wit.regiocom.net>
+
+	* version 0.1.1 released
+
+2002-03-05  O.Petzold  <opetzold@wit.regiocom.net>
+
+	* examples/: some examples added for xpr printing and simple mv, mm ops
+
+	* include/tvmet/Vector.h (VectorReference, VectorConstReference): XprLevel
+		printing uses typeid now.
+
+	* include/tvmet/Matrix.h (MatrixReference, MatrixConstReference): XprLevel
+		printing uses typeid now.
+
+	* include/tvmet/VectorImpl.h (operator<<()): XprLevel printing uses typeid now.
+
+	* include/tvmet/MatrixImpl.h (operator<<()): XprLevel printing uses typeid now.
+
+2002-03-04  O.Petzold  <opetzold@wit.regiocom.net>
+
+	* include/tvmet/MatrixFunctions.h: min/max temp vars improved
+
+	* include/tvmet/VectorFunctions.h: min/max temp vars improved
+
+	* doc/intro.doxy: corrections
+
+2002-03-01  O.Petzold  <opetzold@wit.regiocom.net>
+
+	* version 0.1.0 released
