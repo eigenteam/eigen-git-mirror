@@ -1,5 +1,7 @@
 project(eigen2)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 OPTION(BUILD_TESTS "Build tests"  OFF)
 OPTION(BUILD_EXAMPLES "Build examples"  OFF)
 
