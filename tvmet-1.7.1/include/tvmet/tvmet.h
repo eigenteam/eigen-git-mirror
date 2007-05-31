@@ -51,25 +51,6 @@
 #  include <tvmet/config/config-vc71.h>
 #endif
 
-
-// give up for these cases
-#if !defined(TVMET_HAVE_MUTABLE)
-#  error "Your compiler doesn't support the mutable keyword! Giving up."
-#endif
-
-#if !defined(TVMET_HAVE_TYPENAME)
-#  error "Your compiler doesn't support the typename keyword! Giving up."
-#endif
-
-#if !defined(TVMET_HAVE_NAMESPACES)
-#  error "Your compiler doesn't support the namespace concept! Giving up."
-#endif
-
-#if !defined(TVMET_HAVE_PARTIAL_SPECIALIZATION)
-#  error "Your compiler doesn't support partial specialization! Giving up."
-#endif
-
-
 /*
  * other compiler specific stuff
  */

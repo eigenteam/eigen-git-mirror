@@ -7,13 +7,6 @@ INCLUDE (CheckSysvMath)
 INCLUDE (CheckLongDouble)
 INCLUDE (CheckLongLong)
 
-# the following are directories where stuff will be installed to
-set(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/include/tvmet"
-    CACHE PATH
-    "The subdirectory to the header prefix"
-    FORCE)
-
 FILE(GLOB tvmet_header_SRCS "*.h")
 
 CHECK_INCLUDE_FILES (sys/time.h TVMET_HAVE_SYS_TIME_H)
@@ -25,6 +18,13 @@ CHECK_IEEE_MATH     (TVMET_HAVE_IEEE_MATH)
 CHECK_SYSV_MATH     (TVMET_HAVE_SYSV_MATH)
 CHECK_LONG_DOUBLE   (TVMET_HAVE_LONG_DOUBLE)
 CHECK_LONG_DOUBLE   (TVMET_HAVE_LONG_LONG)
+
+# the following are directories where stuff will be installed to
+set(INCLUDE_INSTALL_DIR
+    "${CMAKE_INSTALL_PREFIX}/include/tvmet"
+    CACHE PATH
+    "The subdirectory to the header prefix"
+    FORCE)
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                ${INCLUDE_INSTALL_DIR}/config.h)

@@ -1,1 +1,2 @@
-add_subdirectory(include)
+ADD_SUBDIRECTORY(include)
+ADD_SUBDIRECTORY(testsuite)
