@@ -24,12 +24,12 @@
 #ifndef TVMET_VECTOR_H
 #define TVMET_VECTOR_H
 
-#include <iterator>					// reverse_iterator
+#include <iterator> // reverse_iterator
+#include <cassert>
 
 #include <tvmet/tvmet.h>
 #include <tvmet/TypePromotion.h>
 #include <tvmet/CommaInitializer.h>
-#include <tvmet/RunTimeError.h>
 
 #include <tvmet/xpr/Vector.h>
 
@@ -83,7 +83,7 @@ public:
 public: // access operators
   /** access by index. */
   value_type operator()(std::size_t i) const {
-    TVMET_RT_CONDITION(i < Size, "VectorConstReference Bounce Violation")
+    assert(i < Size);
     return m_data[i];
   }
 
@@ -214,8 +214,7 @@ public:
   template<class InputIterator>
   explicit Vector(InputIterator first, InputIterator last)
   {
-    TVMET_RT_CONDITION( static_cast<std::size_t>(std::distance(first, last)) <= Size,
-			"InputIterator doesn't fits in size" )
+    assert( static_cast<std::size_t>(std::distance(first, last)) <= Size);
     std::copy(first, last, m_data);
   }
 
@@ -226,7 +225,7 @@ public:
   template<class InputIterator>
   explicit Vector(InputIterator first, std::size_t sz)
   {
-    TVMET_RT_CONDITION( sz <= Size, "InputIterator doesn't fits in size" )
+    assert(sz <= Size);
     std::copy(first, first + sz, m_data);
   }
 
@@ -333,12 +332,12 @@ public: // access operators
 public: // index access operators
   value_type& _tvmet_restrict operator()(std::size_t i) {
     // Note: g++-2.95.3 does have problems on typedef reference
-    TVMET_RT_CONDITION(i < Size, "Vector Bounce Violation")
+    assert(i < Size);
     return m_data[i];
   }
 
   value_type operator()(std::size_t i) const {
-    TVMET_RT_CONDITION(i < Size, "Vector Bounce Violation")
+    assert(i < Size);
     return m_data[i];
   }
 

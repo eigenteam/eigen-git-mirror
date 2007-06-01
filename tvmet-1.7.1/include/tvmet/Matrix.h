@@ -24,12 +24,12 @@
 #ifndef TVMET_MATRIX_H
 #define TVMET_MATRIX_H
 
-#include <iterator>					// reverse_iterator
+#include <iterator> // reverse_iterator
+#include <cassert>
 
 #include <tvmet/tvmet.h>
 #include <tvmet/TypePromotion.h>
 #include <tvmet/CommaInitializer.h>
-#include <tvmet/RunTimeError.h>
 
 #include <tvmet/xpr/Matrix.h>
 #include <tvmet/xpr/MatrixRow.h>
@@ -92,7 +92,7 @@ public:
 public: // access operators
   /** access by index. */
   value_type operator()(std::size_t i, std::size_t j) const {
-    TVMET_RT_CONDITION((i < Rows) && (j < Cols), "MatrixConstReference Bounce Violation")
+    assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
 
@@ -226,8 +226,7 @@ public:
   template<class InputIterator>
   explicit Matrix(InputIterator first, InputIterator last)
   {
-    TVMET_RT_CONDITION(static_cast<std::size_t>(std::distance(first, last)) <= Size,
-		       "InputIterator doesn't fits in size" )
+    assert(static_cast<std::size_t>(std::distance(first, last)) <= Size);
     std::copy(first, last, m_data);
   }
 
@@ -238,7 +237,7 @@ public:
   template<class InputIterator>
   explicit Matrix(InputIterator first, std::size_t sz)
   {
-    TVMET_RT_CONDITION(sz <= Size, "InputIterator doesn't fits in size" )
+    assert(sz <= Size);
     std::copy(first, first + sz, m_data);
   }
 
@@ -269,12 +268,12 @@ public: // access operators
 public: // index access operators
   value_type& _tvmet_restrict operator()(std::size_t i, std::size_t j) {
     // Note: g++-2.95.3 does have problems on typedef reference
-    TVMET_RT_CONDITION((i < Rows) && (j < Cols), "Matrix Bounce Violation")
+    assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
 
   value_type operator()(std::size_t i, std::size_t j) const {
-    TVMET_RT_CONDITION((i < Rows) && (j < Cols), "Matrix Bounce Violation")
+    assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
 
