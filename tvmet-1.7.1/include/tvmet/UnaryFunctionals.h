@@ -39,7 +39,7 @@ struct Fcnl_not : public UnaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "Fcnl_not<T="
        << typeid(T).name() << ">,"
        << std::endl;
@@ -60,7 +60,7 @@ struct Fcnl_##NAME : public UnaryFunctional {				\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(T).name() << ">,"					\
        << std::endl;							\
@@ -99,7 +99,7 @@ struct Fcnl_##NAME : public UnaryFunctional {				\
   }									\
   									\
  static 								\
- void print_xpr(std::ostream& os, std::size_t l=0) {			\
+ void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(value_type).name() << ">,"				\
        << std::endl;							\
@@ -139,7 +139,7 @@ struct Fcnl_##NAME : public UnaryFunctional {				\
   }									\
 									\
  static									\
- void print_xpr(std::ostream& os, std::size_t l=0) {			\
+ void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(value_type).name() << ">,"				\
        << std::endl;							\
@@ -177,7 +177,7 @@ struct Fcnl_##NAME : public UnaryFunctional {				\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(value_type).name() << ">,"				\
        << std::endl;							\
@@ -219,7 +219,7 @@ struct Fcnl_##NAME< POD > : public UnaryFunctional {			\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(value_type).name() << ">,"				\
        << std::endl;							\
@@ -260,7 +260,7 @@ struct Fcnl_abs< std::complex<T> > : public UnaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "Fcnl_abs<T="
        << typeid(std::complex<T>).name() << ">,"
        << std::endl;
@@ -286,7 +286,7 @@ struct Fcnl_conj< std::complex<T> > : public UnaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "Fcnl_conj<T="
        << typeid(std::complex<T>).name() << ">,"
        << std::endl;
@@ -310,7 +310,7 @@ struct Fcnl_##NAME< std::complex<T> > : public UnaryFunctional {	\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(std::complex<T>).name() << ">,"			\
        << std::endl;							\
@@ -341,7 +341,7 @@ struct Fcnl_##NAME : public UnaryFunctional {				\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l) << "Fcnl_" << #NAME << "<T="			\
        << typeid(POD).name() << ">,"					\
        << std::endl;							\

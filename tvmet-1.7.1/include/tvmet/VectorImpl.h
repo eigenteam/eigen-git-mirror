@@ -36,8 +36,8 @@ namespace tvmet {
 /*
  * member operators for i/o
  */
-template<class T, std::size_t Sz>
-std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, std::size_t l) const
+template<class T, int Sz>
+std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, int l) const
 {
   os << IndentLevel(l++) << "Vector[" << ops << "]<"
      << typeid(T).name() << ", " << Size << ">,"
@@ -48,7 +48,7 @@ std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, std::size_t l) const
 }
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
 {
   enum {
@@ -58,7 +58,7 @@ std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
   std::streamsize w = IoPrintHelper<Vector>::width(dispatch<complex_type>(), *this);
 
   os << std::setw(0) << "[\n  ";
-  for(std::size_t i = 0; i < (Size - 1); ++i) {
+  for(int i = 0; i < (Size - 1); ++i) {
     os << std::setw(w) << m_data[i] << ", ";
   }
   os << std::setw(w) << m_data[Size - 1] << "\n]";
@@ -71,7 +71,7 @@ std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
  * member operators with scalars, per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 Vector<T, Sz>& Vector<T, Sz>::operator OP (value_type rhs) {		\
   typedef XprLiteral<value_type> 			expr_type;	\
@@ -87,9 +87,9 @@ TVMET_IMPLEMENT_MACRO(div_eq, /=)
 
 
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
-Vector<T, Sz>& Vector<T, Sz>::operator OP (std::size_t rhs) {		\
+Vector<T, Sz>& Vector<T, Sz>::operator OP (int rhs) {		\
   typedef XprLiteral<value_type> 			expr_type;	\
   this->M_##NAME(XprVector<expr_type, Size>(expr_type(rhs)));		\
   return *this;								\
@@ -108,7 +108,7 @@ TVMET_IMPLEMENT_MACRO(shr_eq, >>=)
  * member functions (operators) with vectors, for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)									\
-template<class T1, std::size_t Sz>									\
+template<class T1, int Sz>									\
 template <class T2>											\
 inline Vector<T1, Sz>&											\
 Vector<T1, Sz>::M_##NAME (const Vector<T2, Size>& rhs) {						\
@@ -133,7 +133,7 @@ TVMET_IMPLEMENT_MACRO(shr_eq)
  * member functions (operators) with expressions, for use width +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					   \
-template<class T, std::size_t Sz>					   \
+template<class T, int Sz>					   \
 template <class E>							   \
 inline 									   \
 Vector<T, Sz>&								   \
@@ -160,7 +160,7 @@ TVMET_IMPLEMENT_MACRO(shr_eq)
  * for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)								     \
-template<class T1, std::size_t Sz>								     \
+template<class T1, int Sz>								     \
 template <class T2>										     \
 inline 												     \
 Vector<T1, Sz>&											     \
@@ -182,7 +182,7 @@ TVMET_IMPLEMENT_MACRO(div_eq)
  * for use width +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						      \
-template<class T, std::size_t Sz>						      \
+template<class T, int Sz>						      \
 template <class E>								      \
 inline 										      \
 Vector<T, Sz>&									      \

@@ -38,7 +38,7 @@ namespace tvmet {
  *        M\,v
  *        \f]
  */
-template<class E1, std::size_t Rows, std::size_t Cols,
+template<class E1, int Rows, int Cols,
 	 class E2>
 class XprMVProduct
   : public TvmetBase< XprMVProduct<E1, Rows, Cols, E2> >
@@ -81,27 +81,27 @@ public:
 private:
   /** Wrapper for meta gemm. */
   static inline
-  value_type do_gemv(dispatch<true>, const E1& lhs, const E2& rhs, std::size_t j) {
+  value_type do_gemv(dispatch<true>, const E1& lhs, const E2& rhs, int j) {
     return meta::gemv<Rows, Cols,
                       0>::prod(lhs, rhs, j);
   }
 
   /** Wrapper for loop gemm. */
   static inline
-  value_type do_gemv(dispatch<false>, const E1& lhs, const E2& rhs, std::size_t j) {
+  value_type do_gemv(dispatch<false>, const E1& lhs, const E2& rhs, int j) {
     return loop::gemv<Rows, Cols>::prod(lhs, rhs, j);
   }
 
 public:
   /** index operator, returns the expression by index. This is the vector
       style since a matrix*vector gives a vector. */
-  value_type operator()(std::size_t j) const {
+  value_type operator()(int j) const {
     TVMET_RT_CONDITION(j < Rows , "XprMVProduct Bounce Violation")
     return do_gemv(dispatch<use_meta>(), m_lhs, m_rhs, j);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMVProduct["
        << (use_meta ? "M" :  "L") << ", O=" << ops

@@ -28,7 +28,7 @@ namespace tvmet {
 
 
 /* forwards */
-template<class T, std::size_t Sz> class Vector;
+template<class T, int Sz> class Vector;
 
 
 /*********************************************************
@@ -45,7 +45,7 @@ template<class T, std::size_t Sz> class Vector;
  * function(XprVector<E1, Sz>, XprVector<E2, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class E1, class E2, std::size_t Sz>				\
+template<class E1, class E2, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E1::value_type, typename E2::value_type>,	\
@@ -73,7 +73,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, POD)				\
-template<class E, std::size_t Sz>				\
+template<class E, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< typename E::value_type, POD >,			\
@@ -85,7 +85,7 @@ XprVector<							\
 NAME (const XprVector<E, Sz>& lhs, 				\
       POD rhs) TVMET_CXX_ALWAYS_INLINE;				\
 								\
-template<class E, std::size_t Sz>				\
+template<class E, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, typename E::value_type>,			\
@@ -137,7 +137,7 @@ TVMET_DECLARE_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class E, std::size_t Sz, class T>			\
+template<class E, int Sz, class T>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< typename E::value_type, std::complex<T> >,	\
@@ -149,7 +149,7 @@ XprVector<							\
 NAME (const XprVector<E, Sz>& lhs,				\
       const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 								\
-template<class E, std::size_t Sz, class T>			\
+template<class E, int Sz, class T>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< std::complex<T>, typename E::value_type>,	\
@@ -176,17 +176,17 @@ TVMET_DECLARE_MACRO(div)
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
 sum(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
 product(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E1, class E2, std::size_t Sz>
+template<class E1, class E2, int Sz>
 typename PromoteTraits<
   typename E1::value_type,
   typename E2::value_type
@@ -195,13 +195,13 @@ dot(const XprVector<E1, Sz>& lhs,
     const XprVector<E2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, class E, std::size_t Sz>
+template<class T, class E, int Sz>
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const Vector<T, Sz>& lhs,
     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, class T, std::size_t Sz>
+template<class E, class T, int Sz>
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const XprVector<E, Sz>& lhs,
     const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
@@ -233,17 +233,17 @@ cross(const XprVector<E, 3>& lhs,
       const Vector<T, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
 norm1(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
 norm2(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_div<typename E::value_type, typename E::value_type>,
@@ -264,7 +264,7 @@ normalize(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
  * function(XprVector<E1, Sz>, XprVector<E2, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class E1, class E2, std::size_t Sz>				\
+template<class E1, class E2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -299,7 +299,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, POD)				\
-template<class E, std::size_t Sz>					\
+template<class E, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -319,7 +319,7 @@ NAME (const XprVector<E, Sz>& lhs, POD rhs) {				\
     expr_type(lhs, XprLiteral< POD >(rhs)));				\
 }									\
 									\
-template<class E, std::size_t Sz>					\
+template<class E, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -379,7 +379,7 @@ TVMET_IMPLEMENT_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)				   \
-template<class E, std::size_t Sz, class T>				\
+template<class E, int Sz, class T>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -399,7 +399,7 @@ NAME (const XprVector<E, Sz>& lhs, const std::complex<T>& rhs) {	\
     expr_type(lhs, XprLiteral< std::complex<T> >(rhs)));		\
 }									\
 									\
-template<class E, std::size_t Sz, class T>				\
+template<class E, int Sz, class T>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -444,7 +444,7 @@ TVMET_IMPLEMENT_MACRO(div)
  * \sum_{i = 0}^{Sz-1} v[i]
  * \f]
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename NumericTraits<typename E::value_type>::sum_type
 sum(const XprVector<E, Sz>& v) {
@@ -462,7 +462,7 @@ sum(const XprVector<E, Sz>& v) {
  * \prod_{i = 0}^{Sz - 1} v[i]
  * \f]
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename NumericTraits<typename E::value_type>::sum_type
 product(const XprVector<E, Sz>& v) {
@@ -482,7 +482,7 @@ product(const XprVector<E, Sz>& v) {
  * where lhs is a column vector and rhs is a row vector, both vectors
  * have the same dimension.
  */
-template<class E1, class E2, std::size_t Sz>
+template<class E1, class E2, int Sz>
 inline
 typename PromoteTraits<
   typename E1::value_type,
@@ -505,7 +505,7 @@ dot(const XprVector<E1, Sz>& lhs, const XprVector<E2, Sz>& rhs) {
  * where lhs is a column vector and rhs is a row vector, both vectors
  * have the same dimension.
  */
-template<class T, class E, std::size_t Sz>
+template<class T, class E, int Sz>
 inline
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const Vector<T, Sz>& lhs, const XprVector<E, Sz>& rhs) {
@@ -525,7 +525,7 @@ dot(const Vector<T, Sz>& lhs, const XprVector<E, Sz>& rhs) {
  * where lhs is a column vector and rhs is a row vector, both vectors
  * have the same dimension.
  */
-template<class E, class T, std::size_t Sz>
+template<class E, class T, int Sz>
 inline
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {
@@ -611,7 +611,7 @@ cross(const Vector<T1, 3>& lhs, const XprVector<E2, 3>& rhs) {
  * |Vector<T, Sz> v| = |v| = \sum_{i=0}^{Sz-1}\,|v[i]|
  * \f]
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename NumericTraits<typename E::value_type>::sum_type
 norm1(const XprVector<E, Sz>& v) {
@@ -632,7 +632,7 @@ norm1(const XprVector<E, Sz>& v) {
  *
  * \note The internal cast for Vector<int> avoids warnings on sqrt.
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename NumericTraits<typename E::value_type>::sum_type
 norm2(const XprVector<E, Sz>& v) {
@@ -652,7 +652,7 @@ norm2(const XprVector<E, Sz>& v) {
  * \frac{Vector<T, Sz> v}{\sqrt{ \sum_{i=0}^{Sz-1}\,v[i]^2 }}
  * \f]
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 XprVector<
   XprBinOp<

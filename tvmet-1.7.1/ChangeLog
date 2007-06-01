@@ -3160,7 +3160,7 @@
 
 2003-05-18 19:37  opetzold
 
-	* include/tvmet/: Matrix.h, Vector.h: cast to std::size_t for
+	* include/tvmet/: Matrix.h, Vector.h: cast to int for
 	iterator concept constructors runtime check.
 
 2003-05-18 18:04  opetzold

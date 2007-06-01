@@ -64,17 +64,17 @@ public:
 #endif
 
   /** Index operator, evaluates the expression inside. */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     return UnOp::apply_on(m_expr(i));
   }
 
   /** index operator for arrays/matrices. */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     return UnOp::apply_on(m_expr(i, j));
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprUnOp[O="<< ops << ", (O=" << ops_expr << ")]<"
        << std::endl;

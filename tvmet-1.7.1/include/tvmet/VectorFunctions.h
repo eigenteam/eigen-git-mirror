@@ -45,7 +45,7 @@ namespace tvmet {
  * function(XprVector<E, Sz>, Vector<T, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class T1, class T2, std::size_t Sz>			\
+template<class T1, class T2, int Sz>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<T1, T2>,					\
@@ -57,7 +57,7 @@ XprVector<							\
 NAME (const Vector<T1, Sz>& lhs,				\
       const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 								\
-template<class E, class T, std::size_t Sz>			\
+template<class E, class T, int Sz>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<typename E::value_type, T>,			\
@@ -69,7 +69,7 @@ XprVector<							\
 NAME (const XprVector<E, Sz>& lhs,				\
       const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 								\
-template<class E, class T, std::size_t Sz>			\
+template<class E, class T, int Sz>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<T, typename E::value_type>,			\
@@ -97,7 +97,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, POD)				\
-template<class T, std::size_t Sz>				\
+template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< T, POD >,					\
@@ -109,7 +109,7 @@ XprVector<							\
 NAME (const Vector<T, Sz>& lhs, 				\
       POD rhs) TVMET_CXX_ALWAYS_INLINE;				\
 								\
-template<class T, std::size_t Sz>				\
+template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, T>,					\
@@ -161,7 +161,7 @@ TVMET_DECLARE_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
@@ -173,7 +173,7 @@ XprVector<								\
 NAME (const Vector<std::complex<T>, Sz>& lhs,				\
       const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 									\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
@@ -200,17 +200,17 @@ TVMET_DECLARE_MACRO(div)
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 typename NumericTraits<T>::sum_type
 sum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 typename NumericTraits<T>::sum_type
 product(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, class T2, std::size_t Sz>
+template<class T1, class T2, int Sz>
 typename PromoteTraits<T1, T2>::value_type
 dot(const Vector<T1, Sz>& lhs,
     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
@@ -222,17 +222,17 @@ cross(const Vector<T1, 3>& lhs,
       const Vector<T2, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 typename NumericTraits<T>::sum_type
 norm1(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 typename NumericTraits<T>::sum_type
 norm2(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_div<T, T>,
@@ -248,45 +248,45 @@ normalize(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
  * min/max unary functions
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-template<class E, std::size_t Sz>
-Extremum<typename E::value_type, std::size_t, vector_tag>
+template<class E, int Sz>
+Extremum<typename E::value_type, int, vector_tag>
 maximum(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
-Extremum<T, std::size_t, vector_tag>
+template<class T, int Sz>
+Extremum<T, int, vector_tag>
 maximum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
-Extremum<typename E::value_type, std::size_t, vector_tag>
+template<class E, int Sz>
+Extremum<typename E::value_type, int, vector_tag>
 minimum(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
-Extremum<T, std::size_t, vector_tag>
+template<class T, int Sz>
+Extremum<T, int, vector_tag>
 minimum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename E::value_type
 max(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 T max(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 typename E::value_type
 min(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 T min(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   VectorConstReference<T, Sz>,
   Sz
@@ -310,7 +310,7 @@ cvector_ref(const T* mem) TVMET_CXX_ALWAYS_INLINE;
  * function(XprVector<E, Sz>, Vector<T, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -330,7 +330,7 @@ NAME (const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {		\
     expr_type(lhs.const_ref(), rhs.const_ref()));			\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -350,7 +350,7 @@ NAME (const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {		\
     expr_type(lhs, rhs.const_ref()));					\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -386,7 +386,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, POD)				\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -406,7 +406,7 @@ NAME (const Vector<T, Sz>& lhs, POD rhs) {				\
     expr_type(lhs.const_ref(), XprLiteral< POD >(rhs)));		\
 }									\
 									\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -466,7 +466,7 @@ TVMET_IMPLEMENT_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 inline										\
 XprVector<									\
   XprBinOp<									\
@@ -486,7 +486,7 @@ NAME (const Vector<std::complex<T>, Sz>& lhs, const std::complex<T>& rhs) {	\
     expr_type(lhs.const_ref(), XprLiteral< std::complex<T> >(rhs)));		\
 }										\
 										\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 inline										\
 XprVector<									\
   XprBinOp<									\
@@ -531,7 +531,7 @@ TVMET_IMPLEMENT_MACRO(div)
  * \sum_{i = 0}^{Sz-1} v[i]
  * \f]
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 typename NumericTraits<T>::sum_type
 sum(const Vector<T, Sz>& v) {
@@ -549,7 +549,7 @@ sum(const Vector<T, Sz>& v) {
  * \prod_{i = 0}^{Sz - 1} v[i]
  * \f]
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 typename NumericTraits<T>::sum_type
 product(const Vector<T, Sz>& v) {
@@ -569,7 +569,7 @@ product(const Vector<T, Sz>& v) {
  * where lhs is a column vector and rhs is a row vector, both vectors
  * have the same dimension.
  */
-template<class T1, class T2, std::size_t Sz>
+template<class T1, class T2, int Sz>
 inline
 typename PromoteTraits<T1, T2>::value_type
 dot(const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {
@@ -606,7 +606,7 @@ cross(const Vector<T1, 3>& lhs, const Vector<T2, 3>& rhs) {
  * |Vector<T, Sz> v| = |v| = \sum_{i=0}^{Sz-1}\,|v[i]|
  * \f]
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 typename NumericTraits<T>::sum_type
 norm1(const Vector<T, Sz>& v) {
@@ -627,7 +627,7 @@ norm1(const Vector<T, Sz>& v) {
  *
  * \note The internal cast for Vector<int> avoids warnings on sqrt.
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 typename NumericTraits<T>::sum_type
 norm2(const Vector<T, Sz>& v) {
@@ -646,7 +646,7 @@ norm2(const Vector<T, Sz>& v) {
  * \frac{Vector<T, Sz> v}{\sqrt{ \sum_{i=0}^{Sz-1}\,v[i]^2 }}
  * \f]
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<
@@ -677,24 +677,24 @@ normalize(const Vector<T, Sz>& v) {
  * \brief Find the maximum of a vector expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
-Extremum<typename E::value_type, std::size_t, vector_tag>
+Extremum<typename E::value_type, int, vector_tag>
 maximum(const XprVector<E, Sz>& e) {
   typedef typename E::value_type 			value_type;
 
   value_type 						m_max(e(0));
-  std::size_t 						m_idx(0);
+  int 						m_idx(0);
 
   // this loop is faster than meta templates!
-  for(std::size_t i = 1; i != Sz; ++i) {
+  for(int i = 1; i != Sz; ++i) {
     if(e(i) > m_max) {
       m_max = e(i);
       m_idx = i;
     }
   }
 
-  return Extremum<value_type, std::size_t, vector_tag>(m_max, m_idx);
+  return Extremum<value_type, int, vector_tag>(m_max, m_idx);
 }
 
 
@@ -703,9 +703,9 @@ maximum(const XprVector<E, Sz>& e) {
  * \brief Find the maximum of a vector
  * \ingroup _unary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
-Extremum<T, std::size_t, vector_tag>
+Extremum<T, int, vector_tag>
 maximum(const Vector<T, Sz>& v) { return maximum(v.as_expr()); }
 
 
@@ -714,24 +714,24 @@ maximum(const Vector<T, Sz>& v) { return maximum(v.as_expr()); }
  * \brief Find the minimum of a vector expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
-Extremum<typename E::value_type, std::size_t, vector_tag>
+Extremum<typename E::value_type, int, vector_tag>
 minimum(const XprVector<E, Sz>& e) {
   typedef typename E::value_type 			value_type;
 
   value_type 						m_min(e(0));
-  std::size_t 						m_idx(0);
+  int 						m_idx(0);
 
   // this loop is faster than meta templates!
-  for(std::size_t i = 1; i != Sz; ++i) {
+  for(int i = 1; i != Sz; ++i) {
     if(e(i) < m_min) {
       m_min = e(i);
       m_idx = i;
     }
   }
 
-  return Extremum<value_type, std::size_t, vector_tag>(m_min, m_idx);
+  return Extremum<value_type, int, vector_tag>(m_min, m_idx);
 }
 
 
@@ -740,9 +740,9 @@ minimum(const XprVector<E, Sz>& e) {
  * \brief Find the minimum of a vector
  * \ingroup _unary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
-Extremum<T, std::size_t, vector_tag>
+Extremum<T, int, vector_tag>
 minimum(const Vector<T, Sz>& v) { return minimum(v.as_expr()); }
 
 
@@ -751,7 +751,7 @@ minimum(const Vector<T, Sz>& v) { return minimum(v.as_expr()); }
  * \brief Find the maximum of a vector expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename E::value_type
 max(const XprVector<E, Sz>& e) {
@@ -760,7 +760,7 @@ max(const XprVector<E, Sz>& e) {
   value_type 						m_max(e(0));
 
   // this loop is faster than meta templates!
-  for(std::size_t i = 1; i != Sz; ++i)
+  for(int i = 1; i != Sz; ++i)
     if(e(i) > m_max)
       m_max = e(i);
 
@@ -773,7 +773,7 @@ max(const XprVector<E, Sz>& e) {
  * \brief Find the maximum of a vector
  * \ingroup _unary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 T max(const Vector<T, Sz>& v) {
   typedef T			 			value_type;
@@ -796,7 +796,7 @@ T max(const Vector<T, Sz>& v) {
  * \brief Find the minimum of a vector expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 typename E::value_type
 min(const XprVector<E, Sz>& e) {
@@ -805,7 +805,7 @@ min(const XprVector<E, Sz>& e) {
   value_type 						m_min(e(0));
 
   // this loop is faster than meta templates!
-  for(std::size_t i = 1; i != Sz; ++i)
+  for(int i = 1; i != Sz; ++i)
     if(e(i) < m_min)
       m_min = e(i);
 
@@ -818,7 +818,7 @@ min(const XprVector<E, Sz>& e) {
  * \brief Find the minimum of a vector
  * \ingroup _unary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 T min(const Vector<T, Sz>& v) {
   typedef T			 			value_type;
@@ -860,7 +860,7 @@ T min(const Vector<T, Sz>& v) {
  *
  * \since release 1.6.0
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   VectorConstReference<T, Sz>,

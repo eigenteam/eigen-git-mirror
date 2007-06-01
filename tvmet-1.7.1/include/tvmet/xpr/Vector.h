@@ -31,7 +31,7 @@ namespace tvmet {
 
 
 /* forwards */
-template <class T, std::size_t Sz> class Vector;
+template <class T, int Sz> class Vector;
 
 /**
  * \class XprVector Vector.h "tvmet/xpr/Vector.h"
@@ -46,7 +46,7 @@ template <class T, std::size_t Sz> class Vector;
  * actually implements the expression.
  * \note leave the Ctors non-explicit to allow implicit type conversation.
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 class XprVector : public TvmetBase< XprVector<E, Sz> >
 {
   XprVector();
@@ -83,13 +83,13 @@ public:
 #endif
 
  /** const index operator for vectors. */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     TVMET_RT_CONDITION(i < Size, "XprVector Bounce Violation")
     return m_expr(i);
   }
 
   /** const index operator for vectors. */
-  value_type operator[](std::size_t i) const {
+  value_type operator[](int i) const {
     return this->operator()(i);
   }
 
@@ -118,7 +118,7 @@ public:
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprVector["
        << (use_meta ? "M" :  "L") << ", O=" << ops << "]<"

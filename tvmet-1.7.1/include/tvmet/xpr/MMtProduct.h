@@ -40,8 +40,8 @@ namespace tvmet {
  * \note The number of cols of rhs matrix have to be equal to cols of rhs matrix.
  *       The result is a (Rows1 x Rows2) matrix.
  */
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 class XprMMtProduct
   : public TvmetBase< XprMMtProduct<E1, Rows1, Cols1, E2, Cols2> >
 {
@@ -85,7 +85,7 @@ public:
 private:
   /** Wrapper for meta gemm. */
   static inline
-  value_type do_gemmt(dispatch<true>, const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  value_type do_gemmt(dispatch<true>, const E1& lhs, const E2& rhs, int i, int j) {
     return meta::gemmt<Rows1, Cols1,
                        Cols2,
                        0>::prod(lhs, rhs, i, j);
@@ -93,19 +93,19 @@ private:
 
   /** Wrapper for loop gemm. */
   static inline
-  value_type do_gemmt(dispatch<false>, const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  value_type do_gemmt(dispatch<false>, const E1& lhs, const E2& rhs, int i, int j) {
     return loop::gemmt<Rows1, Cols1, Cols1>::prod(lhs, rhs, i, j);
   }
 
 public:
   /** index operator for arrays/matrices */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     TVMET_RT_CONDITION((i < Rows1) && (j < Rows2), "XprMMtProduct Bounce Violation")
     return do_gemmt(dispatch<use_meta>(), m_lhs, m_rhs, i, j);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMMtProduct["
        << (use_meta ? "M" :  "L") << ", O=" << ops

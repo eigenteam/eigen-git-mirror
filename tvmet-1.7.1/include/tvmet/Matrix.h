@@ -40,11 +40,11 @@ namespace tvmet {
 
 
 /* forwards */
-template<class T, std::size_t Rows, std::size_t Cols> class Matrix;
+template<class T, int Rows, int Cols> class Matrix;
 template<class T,
-	 std::size_t RowsBgn, std::size_t RowsEnd,
-	 std::size_t ColsBgn, std::size_t ColsEnd,
-	 std::size_t RowStride, std::size_t ColStride /*=1*/>
+	 int RowsBgn, int RowsEnd,
+	 int ColsBgn, int ColsEnd,
+	 int RowStride, int ColStride /*=1*/>
 class MatrixSliceConstReference; // unused here; for me only
 
 
@@ -52,7 +52,7 @@ class MatrixSliceConstReference; // unused here; for me only
  * \class MatrixConstReference Matrix.h "tvmet/Matrix.h"
  * \brief value iterator for ET
  */
-template<class T, std::size_t NRows, std::size_t NCols>
+template<class T, int NRows, int NCols>
 class MatrixConstReference
   : public TvmetBase < MatrixConstReference<T, NRows, NCols> >
 {
@@ -91,13 +91,13 @@ public:
 
 public: // access operators
   /** access by index. */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l)
        << "MatrixConstReference[O=" << ops << "]<"
        << "T=" << typeid(value_type).name() << ">,"
@@ -119,7 +119,7 @@ private:
  * two paramters are needed). Therefore the cleanest way to do it is
  * with operator() rather than with operator[]. \see C++ FAQ Lite 13.8
  */
-template<class T, std::size_t NRows, std::size_t NCols>
+template<class T, int NRows, int NCols>
 class Matrix
 {
 public:
@@ -190,20 +190,20 @@ public: // STL  interface
   }
 
   /** The size of the matrix. */
-  static std::size_t size() { return Size; }
+  static int size() { return Size; }
 
   /** STL vector max_size() - returns allways rows()*cols(). */
-  static std::size_t max_size() { return Size; }
+  static int max_size() { return Size; }
 
   /** STL vector empty() - returns allways false. */
   static bool empty() { return false; }
 
 public:
   /** The number of rows of matrix. */
-  static std::size_t rows() { return Rows; }
+  static int rows() { return Rows; }
 
   /** The number of columns of matrix. */
-  static std::size_t cols() { return Cols; }
+  static int cols() { return Cols; }
 
 public:
   /** Default Destructor */
@@ -226,7 +226,7 @@ public:
   template<class InputIterator>
   explicit Matrix(InputIterator first, InputIterator last)
   {
-    assert(static_cast<std::size_t>(std::distance(first, last)) <= Size);
+    assert(static_cast<int>(std::distance(first, last)) <= Size);
     std::copy(first, last, m_data);
   }
 
@@ -235,7 +235,7 @@ public:
    * self, there isn't any stored reference to the array pointer.
    */
   template<class InputIterator>
-  explicit Matrix(InputIterator first, std::size_t sz)
+  explicit Matrix(InputIterator first, int sz)
   {
     assert(sz <= Size);
     std::copy(first, first + sz, m_data);
@@ -266,13 +266,13 @@ public: // access operators
   const value_type* _tvmet_restrict data() const { return m_data; }
 
 public: // index access operators
-  value_type& _tvmet_restrict operator()(std::size_t i, std::size_t j) {
+  value_type& _tvmet_restrict operator()(int i, int j) {
     // Note: g++-2.95.3 does have problems on typedef reference
     assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
 
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     assert((i < Rows) && (j < Cols));
     return m_data[i * Cols + j];
   }
@@ -341,7 +341,7 @@ public:  // assign operations
   }
 
 private:
-  template<class Obj, std::size_t LEN> friend class CommaInitializer;
+  template<class Obj, int LEN> friend class CommaInitializer;
 
   /** This is a helper for assigning a comma separated initializer
       list. It's equal to Matrix& operator=(value_type) which does
@@ -359,12 +359,12 @@ public: // math operators with scalars
   Matrix& operator*=(value_type) TVMET_CXX_ALWAYS_INLINE;
   Matrix& operator/=(value_type) TVMET_CXX_ALWAYS_INLINE;
 
-  Matrix& operator%=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator^=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator&=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator|=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator<<=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator>>=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator%=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator^=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator&=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator|=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator<<=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator>>=(int) TVMET_CXX_ALWAYS_INLINE;
 
 public: // math operators with matrizes
   // NOTE: access using the operators in ns element_wise, since that's what is does
@@ -419,7 +419,7 @@ public: // io
   static Info info() { return Info(); }
 
   /** Member function for expression level printing. */
-  std::ostream& print_xpr(std::ostream& os, std::size_t l=0) const;
+  std::ostream& print_xpr(std::ostream& os, int l=0) const;
 
   /** Member function for printing internal data. */
   std::ostream& print_on(std::ostream& os) const;

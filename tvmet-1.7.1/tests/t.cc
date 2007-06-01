@@ -7,7 +7,7 @@ using std::endl;
 
 struct separator {
   std::ostream& print_on(std::ostream& os) const {
-    for(std::size_t i = 0; i < 63; ++i) os << "-";
+    for(int i = 0; i < 63; ++i) os << "-";
     return os;
   }
 };

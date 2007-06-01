@@ -27,8 +27,8 @@
 
 /** forward */
 namespace tvmet {
-template<class T, std::size_t Rows, std::size_t Cols> class Matrix;
-template<class T, std::size_t Sz> class Vector;
+template<class T, int Rows, int Cols> class Matrix;
+template<class T, int Sz> class Vector;
 }
 
 namespace tvmet {
@@ -45,16 +45,16 @@ namespace util {
  * \brief General matrix matrix multiplication using loops.
  * \ingroup _util_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 void
 Gemm(const Matrix<T, Rows, Cols>& m1, const Matrix<T, Rows, Cols>& m2,
      Matrix<T, Rows, Cols>& m3)
 {
-  for (std::size_t i = 0; i < Rows; ++i) {
-    for (std::size_t j = 0; j < Cols; ++j) {
+  for (int i = 0; i < Rows; ++i) {
+    for (int j = 0; j < Cols; ++j) {
       T sum(0);
-      for (std::size_t k = 0; k < Cols; ++k) {
+      for (int k = 0; k < Cols; ++k) {
 	sum += m1(i,k) * m2(k,j);
       }
       m3(i,j) = sum;
@@ -68,15 +68,15 @@ Gemm(const Matrix<T, Rows, Cols>& m1, const Matrix<T, Rows, Cols>& m2,
  * \brief General matrix vector multiplication using loops.
  * \ingroup _util_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 void
 Gemv(const Matrix<T, Rows, Cols>& m, const Vector<T, Cols>& v,
      Vector<T, Cols>& v2)
 {
-  for (std::size_t i = 0; i < Rows; ++i){
+  for (int i = 0; i < Rows; ++i){
     v2(i) = T(0);	// clean up before use
-    for (std::size_t j = 0; j < Cols; ++j) {
+    for (int j = 0; j < Cols; ++j) {
       v2(i) += m(i,j) * v(j);
       }
   }
@@ -88,13 +88,13 @@ Gemv(const Matrix<T, Rows, Cols>& m, const Vector<T, Cols>& v,
  * \brief General vector vector elementwise multiplication using loop.
  * \ingroup _util_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 void
 Gevvmul(const Vector<T, Sz>& v1, const Vector<T, Sz>& v2,
        Vector<T, Sz>& v3)
 {
-  for(std::size_t i = 0; i < Sz; ++i)
+  for(int i = 0; i < Sz; ++i)
     v3(i) = v1(i) * v2(i);
 }
 
@@ -104,13 +104,13 @@ Gevvmul(const Vector<T, Sz>& v1, const Vector<T, Sz>& v2,
  * \brief General vector vector elementwise multiplication using loop.
  * \ingroup _util_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 void
 Gevvadd(const Vector<T, Sz>& v1, const Vector<T, Sz>& v2,
 	Vector<T, Sz>& v3)
 {
-  for(std::size_t i = 0; i < Sz; ++i)
+  for(int i = 0; i < Sz; ++i)
     v3(i) = v1(i) + v2(i);
 }
 

@@ -4641,7 +4641,7 @@ EOF
 
 const char *program_name = NULL;
 
-void * xmalloc (size_t num);
+void * xmalloc (int num);
 char * xstrdup (const char *string);
 char * basename (const char *name);
 char * fnqualify(const char *path);
@@ -4680,7 +4680,7 @@ EOF
 }
 
 void *
-xmalloc (size_t num)
+xmalloc (int num)
 {
   void * p = (void *) malloc (num);
   if (!p)
@@ -4716,7 +4716,7 @@ basename (const char *name)
 char *
 fnqualify(const char *path)
 {
-  size_t size;
+  int size;
   char *p;
   char tmp[LT_PATHMAX + 1];
 
@@ -4743,7 +4743,7 @@ fnqualify(const char *path)
 char *
 strendzap(char *str, const char *pat)
 {
-  size_t len, patlen;
+  int len, patlen;
 
   assert(str != NULL);
   assert(pat != NULL);

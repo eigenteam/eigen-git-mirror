@@ -33,7 +33,7 @@ namespace loop {
  * \class Matrix Matrix.h "tvmet/loop/Matrix.h"
  * \brief Loop %Matrix class using expression and loop templates.
  */
-template<std::size_t Rows, std::size_t Cols>
+template<int Rows, int Cols>
 class Matrix
 {
   Matrix(const Matrix&);
@@ -47,8 +47,8 @@ public:
   template<class E1, class E2, class Assign>
   static inline
   void assign(E1& lhs, const E2& rhs, const Assign& assign_fn) {
-    for(std::size_t i = 0; i != Rows; ++i)
-      for(std::size_t j = 0; j != Cols; ++j)
+    for(int i = 0; i != Rows; ++i)
+      for(int j = 0; j != Cols; ++j)
 	assign_fn.apply_on(lhs(i, j), rhs(i, j));
   }
 };

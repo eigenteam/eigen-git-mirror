@@ -40,7 +40,7 @@ public:
   explicit XprNull() { }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l) << "XprNull[O=0]" << std::endl;
   }
 };

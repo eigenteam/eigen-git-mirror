@@ -42,7 +42,7 @@ namespace tvmet {
  * \endcode
  * \sa \ref compare
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
 bool all_elements(const XprMatrix<E, Rows, Cols>& e) {
   return meta::Matrix<Rows, Cols, 0, 0>::all_elements(e);
@@ -64,7 +64,7 @@ bool all_elements(const XprMatrix<E, Rows, Cols>& e) {
  * \endcode
  * \sa \ref compare
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
 bool any_elements(const XprMatrix<E, Rows, Cols>& e) {
   return meta::Matrix<Rows, Cols, 0, 0>::any_elements(e);
@@ -87,7 +87,7 @@ bool any_elements(const XprMatrix<E, Rows, Cols>& e) {
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class T2, class T3, std::size_t Rows, std::size_t Cols>
+template<class E1, class T2, class T3, int Rows, int Cols>
 inline
 XprMatrix<
   XprEval<
@@ -117,7 +117,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class T2, class E3, std::size_t Rows, std::size_t Cols>
+template<class E1, class T2, class E3, int Rows, int Cols>
 inline
 XprMatrix<
   XprEval<
@@ -147,7 +147,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, class T3, std::size_t Rows, std::size_t Cols>
+template<class E1, class E2, class T3, int Rows, int Cols>
 inline
 XprMatrix<
   XprEval<
@@ -177,7 +177,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, class E3, std::size_t Rows, std::size_t Cols>
+template<class E1, class E2, class E3, int Rows, int Cols>
 inline
 XprMatrix<
   XprEval<
@@ -207,7 +207,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
  * XprMatrix<E1, Rows, Cols> ? XprMatrix<E2, Rows, Cols> : POD
  */
 #define TVMET_IMPLEMENT_MACRO(POD)               			\
-template<class E, std::size_t Rows, std::size_t Cols>			\
+template<class E, int Rows, int Cols>			\
 inline               							\
 XprMatrix<               						\
   XprEval<               						\
@@ -227,7 +227,7 @@ eval(const XprMatrix<E, Rows, Cols>& e, POD x2, POD x3) {      		\
     expr_type(e, XprLiteral< POD >(x2), XprLiteral< POD >(x3))); 	\
 }               							\
                								\
-template<class E1, class E3, std::size_t Rows, std::size_t Cols> 	\
+template<class E1, class E3, int Rows, int Cols> 	\
 inline               							\
 XprMatrix<               						\
   XprEval<               						\
@@ -247,7 +247,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, POD x2, const XprMatrix<E3, Rows, Cols
     expr_type(e1, XprLiteral< POD >(x2), e3)); 				\
 }               							\
                								\
-template<class E1, class E2, std::size_t Rows, std::size_t Cols>	\
+template<class E1, class E2, int Rows, int Cols>	\
 inline               							\
 XprMatrix<               						\
   XprEval<               						\
@@ -299,7 +299,7 @@ TVMET_IMPLEMENT_MACRO(long double)
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E, std::size_t Rows, std::size_t Cols, class T>
+template<class E, int Rows, int Cols, class T>
 inline
 XprMatrix<
   XprEval<
@@ -327,7 +327,7 @@ eval(const XprMatrix<E, Rows, Cols>& e, const std::complex<T>& x2, const std::co
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E3, std::size_t Rows, std::size_t Cols, class T>
+template<class E1, class E3, int Rows, int Cols, class T>
 inline
 XprMatrix<
   XprEval<
@@ -355,7 +355,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, const std::complex<T>& x2, const XprMa
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, std::size_t Rows, std::size_t Cols, class T>
+template<class E1, class E2, int Rows, int Cols, class T>
 inline
 XprMatrix<
   XprEval<

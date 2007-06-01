@@ -42,7 +42,7 @@ struct Fcnl_assign : public BinaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "fcnl_assign<T1="
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"
        << std::endl;
@@ -71,7 +71,7 @@ struct Fcnl_##NAME : public BinaryFunctional {				\
   }									\
 									\
   static								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l)						\
        << "Fcnl_" << #NAME << "<T1="					\
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
@@ -114,7 +114,7 @@ struct Fcnl_##NAME : public BinaryFunctional {				\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l)						\
        << "Fcnl_" << #NAME << "<T1="					\
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
@@ -155,7 +155,7 @@ struct Fcnl_##NAME : public BinaryFunctional {				\
   }									\
   									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l)						\
        << "Fcnl_" << #NAME << "<T1="					\
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
@@ -189,7 +189,7 @@ struct Fcnl_##NAME : public BinaryFunctional {				\
   }									\
    									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l)						\
        << "Fcnl_" << #NAME << "<T1="					\
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
@@ -219,7 +219,7 @@ struct Fcnl_##NAME : public BinaryFunctional {				\
   }									\
    									\
   static 								\
-  void print_xpr(std::ostream& os, std::size_t l=0) {			\
+  void print_xpr(std::ostream& os, int l=0) {			\
     os << IndentLevel(l)						\
        << "Fcnl_" << #NAME << "<T1="					\
        << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
@@ -260,7 +260,7 @@ struct Fcnl_polar<T,T> : public BinaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "Fcnl_polar<T1="
        << typeid(T).name() << ", T2=" << typeid(T).name() << ">,"
        << std::endl;
@@ -286,7 +286,7 @@ struct Fcnl_swap : public BinaryFunctional {
   }
 
   static
-  void print_xpr(std::ostream& os, std::size_t l=0) {
+  void print_xpr(std::ostream& os, int l=0) {
     os << IndentLevel(l) << "Fcnl_swap<T1="
        << typeid(T1).name() << ", T2" << typeid(T2).name() << ">,"
        << std::endl;

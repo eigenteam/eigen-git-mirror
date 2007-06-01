@@ -31,7 +31,7 @@ namespace tvmet {
  * \class XprMatrixCol MatrixCol.h "tvmet/xpr/MatrixCol.h"
  * \brief Expression on matrix used for access on the column vector.
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 class XprMatrixCol
   : public TvmetBase< XprMatrixCol<E, Rows, Cols> >
 {
@@ -50,7 +50,7 @@ public:
 
 public:
   /** Constructor. */
-  explicit XprMatrixCol(const E& e, std::size_t no)
+  explicit XprMatrixCol(const E& e, int no)
     : m_expr(e), m_col(no)
   {
     TVMET_RT_CONDITION(no < Cols, "XprMatrixCol Bounce Violation")
@@ -63,13 +63,13 @@ public:
   { }
 #endif
 
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     TVMET_RT_CONDITION(i < Rows, "XprMatrixCol Bounce Violation")
     return m_expr(i, m_col);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMatrixCol[O=" << ops << ", (O=" << ops_expr << ")]<"
        << std::endl;
@@ -82,7 +82,7 @@ public: // debugging Xpr parse tree
 
 private:
   const E						m_expr;
-  const std::size_t					m_col;
+  const int					m_col;
 };
 
 

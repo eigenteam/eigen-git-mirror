@@ -32,7 +32,7 @@ namespace tvmet {
  *********************************************************/
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 std::ostream& operator<<(std::ostream& os,
 			 const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
@@ -49,12 +49,12 @@ std::ostream& operator<<(std::ostream& os,
  * Note: per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 Vector<T1, Sz>&								\
 operator OP (Vector<T1, Sz>& lhs,					\
 	     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class T, class E, std::size_t Sz>				\
+template<class T, class E, int Sz>				\
 Vector<T, Sz>&								\
 operator OP (Vector<T, Sz>& lhs,					\
 	     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
@@ -91,7 +91,7 @@ namespace element_wise {
  * operator(XprVector<E, Sz>, Vector<T1, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
@@ -103,7 +103,7 @@ XprVector<								\
 operator OP (const Vector<T1, Sz>& lhs, 				\
 	     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
@@ -115,7 +115,7 @@ XprVector<								\
 operator OP (const XprVector<E, Sz>& lhs,				\
 	     const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
@@ -143,7 +143,7 @@ namespace element_wise {
  * Note: operations +,-,*,/ are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP, POD)			\
-template<class T, std::size_t Sz>				\
+template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< T, POD >,					\
@@ -155,7 +155,7 @@ XprVector<							\
 operator OP (const Vector<T, Sz>& lhs, 				\
 	     POD rhs) TVMET_CXX_ALWAYS_INLINE;			\
 								\
-template<class T, std::size_t Sz>				\
+template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, T>,					\
@@ -207,7 +207,7 @@ TVMET_DECLARE_MACRO(div, /, long double)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -219,7 +219,7 @@ XprVector<									\
 operator OP (const Vector<std::complex<T>, Sz>& lhs, 				\
 	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 										\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -252,7 +252,7 @@ TVMET_DECLARE_MACRO(div, /)		// per se element wise
  * Note: operations are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
@@ -264,7 +264,7 @@ XprVector<								\
 operator OP (const Vector<T1, Sz>& lhs, 				\
 	     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
@@ -276,7 +276,7 @@ XprVector<								\
 operator OP (const XprVector<E, Sz>& lhs, 				\
 	     const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
@@ -321,7 +321,7 @@ TVMET_DECLARE_MACRO(or, ||)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -333,7 +333,7 @@ XprVector<									\
 operator OP (const Vector<std::complex<T>, Sz>& lhs, 				\
 	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 										\
-template<class T, std::size_t Sz>						\
+template<class T, int Sz>						\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -366,7 +366,7 @@ TVMET_DECLARE_MACRO(or, ||)
  * Note: operations are per se element_wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP, TP)				\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< T, TP >,						\
@@ -377,7 +377,7 @@ XprVector<								\
 >									\
 operator OP (const Vector<T, Sz>& lhs, TP rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< TP, T>,						\
@@ -475,7 +475,7 @@ TVMET_DECLARE_MACRO(or, ||, long double)
  * Note: per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)				\
-template <class T, std::size_t Sz>				\
+template <class T, int Sz>				\
 XprVector<							\
   XprUnOp<							\
     Fcnl_##NAME<T>,						\
@@ -501,7 +501,7 @@ TVMET_DECLARE_MACRO(neg, -)
  * \brief Overload operator for i/o
  * \ingroup _binary_operator
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 std::ostream& operator<<(std::ostream& os, const Vector<T, Sz>& rhs) {
   return rhs.print_on(os);
@@ -519,13 +519,13 @@ std::ostream& operator<<(std::ostream& os, const Vector<T, Sz>& rhs) {
  * Note: per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)				\
-template<class T1, class T2, std::size_t Sz>			\
+template<class T1, class T2, int Sz>			\
 inline Vector<T1, Sz>&						\
 operator OP (Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {	\
   return lhs.M_##NAME(rhs);					\
 }								\
 								\
-template<class T, class E, std::size_t Sz>			\
+template<class T, class E, int Sz>			\
 inline Vector<T, Sz>&						\
 operator OP (Vector<T, Sz>& lhs, const XprVector<E, Sz>& rhs) {	\
   return lhs.M_##NAME(rhs);					\
@@ -563,7 +563,7 @@ namespace element_wise {
  * operator(XprVector<E, Sz>, Vector<T1, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -577,7 +577,7 @@ operator OP (const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {	\
   return NAME (lhs, rhs);						\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -591,7 +591,7 @@ operator OP (const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {	\
   return NAME (lhs, rhs);						\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -621,7 +621,7 @@ namespace element_wise {
  * Note: operations +,-,*,/ are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP, POD)		\
-template<class T, std::size_t Sz>			\
+template<class T, int Sz>			\
 inline							\
 XprVector<						\
   XprBinOp<						\
@@ -635,7 +635,7 @@ operator OP (const Vector<T, Sz>& lhs, POD rhs) {	\
   return NAME (lhs, rhs);				\
 }							\
 							\
-template<class T, std::size_t Sz>			\
+template<class T, int Sz>			\
 inline							\
 XprVector<						\
   XprBinOp<						\
@@ -689,7 +689,7 @@ TVMET_IMPLEMENT_MACRO(div, /, long double)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)			\
-template<class T, std::size_t Sz>			\
+template<class T, int Sz>			\
 inline							\
 XprVector<						\
   XprBinOp<						\
@@ -704,7 +704,7 @@ operator OP (const Vector<std::complex<T>, Sz>& lhs, 	\
   return NAME (lhs, rhs);				\
 }							\
 							\
-template<class T, std::size_t Sz>			\
+template<class T, int Sz>			\
 inline							\
 XprVector<						\
   XprBinOp<						\
@@ -741,7 +741,7 @@ TVMET_IMPLEMENT_MACRO(div, /)		// per se element wise
  * Note: operations are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -761,7 +761,7 @@ operator OP (const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {	\
     expr_type(lhs.const_ref(), rhs.const_ref()));			\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -781,7 +781,7 @@ operator OP (const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {	\
     expr_type(lhs, rhs.const_ref()));					\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -833,7 +833,7 @@ TVMET_IMPLEMENT_MACRO(or, ||)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)							\
-template<class T, std::size_t Sz>							\
+template<class T, int Sz>							\
 inline											\
 XprVector<										\
   XprBinOp<										\
@@ -853,7 +853,7 @@ operator OP (const Vector<std::complex<T>, Sz>& lhs, const std::complex<T>& rhs)
     expr_type(lhs.const_ref(), XprLiteral< std::complex<T> >(rhs)));			\
 }											\
 											\
-template<class T, std::size_t Sz>							\
+template<class T, int Sz>							\
 inline											\
 XprVector<										\
   XprBinOp<										\
@@ -894,7 +894,7 @@ TVMET_IMPLEMENT_MACRO(or, ||)
  * Note: operations are per se element_wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP, TP)				\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -914,7 +914,7 @@ operator OP (const Vector<T, Sz>& lhs, TP rhs) {			\
     expr_type(lhs.const_ref(), XprLiteral< TP >(rhs)));			\
 }									\
 									\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -1021,7 +1021,7 @@ TVMET_IMPLEMENT_MACRO(or, ||, long double)
  * Note: per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template <class T, std::size_t Sz>					\
+template <class T, int Sz>					\
 inline									\
 XprVector<								\
   XprUnOp<								\

@@ -43,9 +43,9 @@ namespace meta {
  *       matrix.
  */
 
-template<std::size_t Rows1, std::size_t Cols1,
-	 std::size_t Cols2,
-	 std::size_t K>
+template<int Rows1, int Cols1,
+	 int Cols2,
+	 int K>
 class gemtm
 {
 private:
@@ -65,7 +65,7 @@ public:
     typename E1::value_type,
     typename E2::value_type
   >::value_type
-  prod(const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  prod(const E1& lhs, const E2& rhs, int i, int j) {
     return lhs(K, i) * rhs(K, j)
       + gemtm<Rows1 * doIt, Cols1 * doIt,
               Cols2 * doIt,
@@ -88,7 +88,7 @@ class gemtm<0,0,0,0>
 public:
   template<class E1, class E2>
   static inline
-  XprNull prod(const E1&, const E2&, std::size_t, std::size_t) {
+  XprNull prod(const E1&, const E2&, int, int) {
     return XprNull();
   }
 };

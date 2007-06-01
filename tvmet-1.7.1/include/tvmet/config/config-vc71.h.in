@@ -220,7 +220,7 @@
 #endif
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
-/* #undef _tvmet_size_t */
+/* #undef _tvmet_int */
 
 
 

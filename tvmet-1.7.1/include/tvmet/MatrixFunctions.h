@@ -29,8 +29,8 @@
 namespace tvmet {
 
 /* forwards */
-template<class T, std::size_t Sz> class Vector;
-template<class T, std::size_t Sz> class VectorConstReference;
+template<class T, int Sz> class Vector;
+template<class T, int Sz> class VectorConstReference;
 
 
 /*********************************************************
@@ -49,7 +49,7 @@ template<class T, std::size_t Sz> class VectorConstReference;
  * function(Matrix<T, Rows, Cols>, XprMatrix<E, Rows, Cols>)
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>	\
+template<class T1, class T2, int Rows, int Cols>	\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
@@ -61,7 +61,7 @@ XprMatrix<								\
 NAME (const Matrix<T1, Rows, Cols>& lhs,				\
       const Matrix<T2, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class E, class T, std::size_t Rows, std::size_t Cols>		\
+template<class E, class T, int Rows, int Cols>		\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
@@ -73,7 +73,7 @@ XprMatrix<								\
 NAME (const XprMatrix<E, Rows, Cols>& lhs,				\
       const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class T, class E, std::size_t Rows, std::size_t Cols>		\
+template<class T, class E, int Rows, int Cols>		\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
@@ -101,7 +101,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, POD)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, POD >,						\
@@ -113,7 +113,7 @@ XprMatrix<								\
 NAME (const Matrix<T, Rows, Cols>& lhs, 				\
       POD rhs) TVMET_CXX_ALWAYS_INLINE;					\
 									\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< POD, T>,						\
@@ -165,7 +165,7 @@ TVMET_DECLARE_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME)						\
-template<class T, std::size_t Rows, std::size_t Cols>				\
+template<class T, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -177,7 +177,7 @@ XprMatrix<									\
 NAME (const Matrix< std::complex<T>, Rows, Cols>& lhs,				\
       const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;			\
 										\
-template<class T, std::size_t Rows, std::size_t Cols>				\
+template<class T, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
@@ -204,8 +204,8 @@ TVMET_DECLARE_MACRO(div)
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 XprMatrix<
   XprMMProduct<
     MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -217,8 +217,8 @@ prod(const Matrix<T1, Rows1, Cols1>& lhs,
      const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,			// M1(Rows1, Cols1)
@@ -230,8 +230,8 @@ prod(const XprMatrix<E1, Rows1, Cols1>& lhs,
      const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 XprMatrix<
   XprMMProduct<
     MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -243,8 +243,8 @@ prod(const Matrix<T1, Rows1, Cols1>& lhs,
      const XprMatrix<E2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 XprMatrix<
   XprMMProductTransposed<
     MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -256,8 +256,8 @@ trans_prod(const Matrix<T1, Rows1, Cols1>& lhs,
 	   const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>	// Rows2 = Rows1
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>	// Rows2 = Rows1
 XprMatrix<
   XprMtMProduct<
     MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -269,8 +269,8 @@ MtM_prod(const Matrix<T1, Rows1, Cols1>& lhs,
 	 const Matrix<T2, Rows1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Rows2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Rows2>
 XprMatrix<
   XprMMtProduct<
     MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -287,7 +287,7 @@ MMt_prod(const Matrix<T1, Rows1, Cols1>& lhs,
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>
+template<class T1, class T2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
     MatrixConstReference<T1, Rows, Cols>, Rows, Cols,	// M(Rows, Cols)
@@ -299,7 +299,7 @@ prod(const Matrix<T1, Rows, Cols>& lhs,
      const Vector<T2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, class E2, std::size_t Rows, std::size_t Cols>
+template<class T1, class E2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
     MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
@@ -311,7 +311,7 @@ prod(const Matrix<T1, Rows, Cols>& lhs,
      const XprVector<E2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E1, class T2, std::size_t Rows, std::size_t Cols>
+template<class E1, class T2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,		// M(Rows, Cols)
@@ -323,7 +323,7 @@ prod(const XprMatrix<E1, Rows, Cols>& lhs,
      const Vector<T2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>
+template<class T1, class T2, int Rows, int Cols>
 XprVector<
   XprMtVProduct<
     MatrixConstReference<T1, Rows, Cols>, Rows,	Cols,   // M(Rows, Cols)
@@ -340,7 +340,7 @@ Mtx_prod(const Matrix<T1, Rows, Cols>& lhs,
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprMatrixTranspose<
     MatrixConstReference<T, Rows, Cols>
@@ -350,12 +350,12 @@ XprMatrix<
 trans(const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 typename NumericTraits<T>::sum_type
 trace(const Matrix<T, Sz, Sz>& m) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprVector<
   XprMatrixRow<
     MatrixConstReference<T, Rows, Cols>,
@@ -364,10 +364,10 @@ XprVector<
   Cols
 >
 row(const Matrix<T, Rows, Cols>& m,
-    std::size_t no) TVMET_CXX_ALWAYS_INLINE;
+    int no) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprVector<
   XprMatrixCol<
     MatrixConstReference<T, Rows, Cols>,
@@ -376,10 +376,10 @@ XprVector<
   Rows
 >
 col(const Matrix<T, Rows, Cols>& m,
-    std::size_t no) TVMET_CXX_ALWAYS_INLINE;
+    int no) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprMatrixDiag<
     MatrixConstReference<T, Sz, Sz>,
@@ -395,41 +395,41 @@ diag(const Matrix<T, Sz, Sz>& m) TVMET_CXX_ALWAYS_INLINE;
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class E, std::size_t Rows, std::size_t Cols>
-Extremum<typename E::value_type, std::size_t, matrix_tag>
+template<class E, int Rows, int Cols>
+Extremum<typename E::value_type, int, matrix_tag>
 maximum(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
-Extremum<T, std::size_t, matrix_tag>
+template<class T, int Rows, int Cols>
+Extremum<T, int, matrix_tag>
 maximum(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Rows, std::size_t Cols>
-Extremum<typename E::value_type, std::size_t, matrix_tag>
+template<class E, int Rows, int Cols>
+Extremum<typename E::value_type, int, matrix_tag>
 minimum(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
-Extremum<T, std::size_t, matrix_tag>
+template<class T, int Rows, int Cols>
+Extremum<T, int, matrix_tag>
 minimum(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 typename E::value_type
 max(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 T max(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 typename E::value_type
 min(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 T min(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
 
 
@@ -438,7 +438,7 @@ T min(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprIdentity<T, Rows, Cols>,
   Rows, Cols
@@ -456,7 +456,7 @@ XprMatrix<
 identity() TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   MatrixConstReference<T, Rows, Cols>,
   Rows, Cols
@@ -480,7 +480,7 @@ cmatrix_ref(const T* mem) TVMET_CXX_ALWAYS_INLINE;
  * function(Matrix<T, Rows, Cols>, XprMatrix<E, Rows, Cols>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						\
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>		\
+template<class T1, class T2, int Rows, int Cols>		\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -500,7 +500,7 @@ NAME (const Matrix<T1, Rows, Cols>& lhs, const Matrix<T2, Rows, Cols>& rhs) {	\
     expr_type(lhs.const_ref(), rhs.const_ref()));				\
 }										\
 										\
-template<class E, class T, std::size_t Rows, std::size_t Cols>			\
+template<class E, class T, int Rows, int Cols>			\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -520,7 +520,7 @@ NAME (const XprMatrix<E, Rows, Cols>& lhs, const Matrix<T, Rows, Cols>& rhs) {	\
     expr_type(lhs, rhs.const_ref()));						\
 }										\
 										\
-template<class T, class E, std::size_t Rows, std::size_t Cols>			\
+template<class T, class E, int Rows, int Cols>			\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -556,7 +556,7 @@ namespace element_wise {
  * Note: - operations +,-,*,/ are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, POD)				\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -576,7 +576,7 @@ NAME (const Matrix<T, Rows, Cols>& lhs, POD rhs) {			\
     expr_type(lhs.const_ref(), XprLiteral< POD >(rhs)));		\
 }									\
 									\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -636,7 +636,7 @@ TVMET_IMPLEMENT_MACRO(div, long double)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -657,7 +657,7 @@ NAME (const Matrix< std::complex<T>, Rows, Cols>& lhs,			\
     expr_type(lhs.const_ref(), XprLiteral< std::complex<T> >(rhs)));	\
 }									\
 									\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -699,8 +699,8 @@ TVMET_IMPLEMENT_MACRO(div)
  * \ingroup _binary_function
  * \note The rows2 has to be equal to cols1.
  */
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 inline
 XprMatrix<
   XprMMProduct<
@@ -724,8 +724,8 @@ prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& rhs) {
  * \brief Evaluate the product of XprMatrix and Matrix.
  * \ingroup _binary_function
  */
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 inline
 XprMatrix<
   XprMMProduct<
@@ -749,8 +749,8 @@ prod(const XprMatrix<E1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& rhs
  * \brief Evaluate the product of Matrix and XprMatrix.
  * \ingroup _binary_function
  */
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 inline
 XprMatrix<
   XprMMProduct<
@@ -778,8 +778,8 @@ prod(const Matrix<T1, Rows1, Cols1>& lhs, const XprMatrix<E2, Cols1, Cols2>& rhs
  * (M_1\,M_2)^T
  * \f]
  */
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>
 inline
 XprMatrix<
   XprMMProductTransposed<
@@ -810,8 +810,8 @@ trans_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& 
  *       matrix 1, since matrix 1 is trans - the result is a (Cols1 x Cols2)
  *       matrix.
  */
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Cols2>	// Rows2 = Rows1
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Cols2>	// Rows2 = Rows1
 inline
 XprMatrix<
   XprMtMProduct<
@@ -836,8 +836,8 @@ MtM_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Rows1, Cols2>& rh
  * \ingroup _binary_function
  * \note The Cols2 has to be equal to Cols1.
  */
-template<class T1, std::size_t Rows1, std::size_t Cols1,
-	 class T2, std::size_t Rows2>
+template<class T1, int Rows1, int Cols1,
+	 class T2, int Rows2>
 inline
 XprMatrix<
   XprMMtProduct<
@@ -866,7 +866,7 @@ MMt_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Rows2, Cols1>& rh
  * \brief Function for the matrix-vector-product
  * \ingroup _binary_function
  */
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>
+template<class T1, class T2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
@@ -890,7 +890,7 @@ prod(const Matrix<T1, Rows, Cols>& lhs, const Vector<T2, Cols>& rhs) {
  * \brief Function for the matrix-vector-product
  * \ingroup _binary_function
  */
-template<class T1, class E2, std::size_t Rows, std::size_t Cols>
+template<class T1, class E2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
@@ -914,7 +914,7 @@ prod(const Matrix<T1, Rows, Cols>& lhs, const XprVector<E2, Cols>& rhs) {
  * \brief Compute the product of an XprMatrix with a Vector.
  * \ingroup _binary_function
  */
-template<class E1, class T2, std::size_t Rows, std::size_t Cols>
+template<class E1, class T2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
@@ -942,7 +942,7 @@ prod(const XprMatrix<E1, Rows, Cols>& lhs, const Vector<T2, Cols>& rhs) {
  * M^T\, x
  * \f]
  */
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>
+template<class T1, class T2, int Rows, int Cols>
 inline
 XprVector<
   XprMtVProduct<
@@ -971,7 +971,7 @@ Mtx_prod(const Matrix<T1, Rows, Cols>& lhs, const Vector<T2, Rows>& rhs) {
  * \brief Transpose the matrix
  * \ingroup _unary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprMatrixTranspose<
@@ -998,7 +998,7 @@ trans(const Matrix<T, Rows, Cols>& rhs) {
  *  \sum_{k = 0}^{Sz-1} m(k, k)
  * \f]
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 typename NumericTraits<T>::sum_type
 trace(const Matrix<T, Sz, Sz>& m) {
@@ -1007,11 +1007,11 @@ trace(const Matrix<T, Sz, Sz>& m) {
 
 
 /**
- * \fn row(const Matrix<T, Rows, Cols>& m, std::size_t no)
+ * \fn row(const Matrix<T, Rows, Cols>& m, int no)
  * \brief Returns a row vector of the given matrix.
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprVector<
   XprMatrixRow<
@@ -1020,7 +1020,7 @@ XprVector<
   >,
   Cols
 >
-row(const Matrix<T, Rows, Cols>& m, std::size_t no) {
+row(const Matrix<T, Rows, Cols>& m, int no) {
   typedef XprMatrixRow<
     MatrixConstReference<T, Rows, Cols>,
     Rows, Cols
@@ -1030,11 +1030,11 @@ row(const Matrix<T, Rows, Cols>& m, std::size_t no) {
 
 
 /**
- * \fn col(const Matrix<T, Rows, Cols>& m, std::size_t no)
+ * \fn col(const Matrix<T, Rows, Cols>& m, int no)
  * \brief Returns a column vector of the given matrix.
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprVector<
   XprMatrixCol<
@@ -1043,7 +1043,7 @@ XprVector<
   >,
   Rows
 >
-col(const Matrix<T, Rows, Cols>& m, std::size_t no) {
+col(const Matrix<T, Rows, Cols>& m, int no) {
   typedef XprMatrixCol<
     MatrixConstReference<T, Rows, Cols>,
     Rows, Cols
@@ -1057,7 +1057,7 @@ col(const Matrix<T, Rows, Cols>& m, std::size_t no) {
  * \brief Returns the diagonal vector of the given square matrix.
  * \ingroup _unary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprMatrixDiag<
@@ -1085,17 +1085,17 @@ diag(const Matrix<T, Sz, Sz>& m) {
  * \brief Find the maximum of a matrix expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
-Extremum<typename E::value_type, std::size_t, matrix_tag>
+Extremum<typename E::value_type, int, matrix_tag>
 maximum(const XprMatrix<E, Rows, Cols>& e) {
   typedef typename E::value_type 			value_type;
 
   value_type 						temp(e(0, 0));
-  std::size_t 						row_no(0), col_no(0);
+  int 						row_no(0), col_no(0);
 
-  for(std::size_t i = 0; i != Rows; ++i) {
-    for(std::size_t j = 0; j != Cols; ++j) {
+  for(int i = 0; i != Rows; ++i) {
+    for(int j = 0; j != Cols; ++j) {
       if(e(i, j) > temp) {
 	temp = e(i, j);
 	row_no = i;
@@ -1104,7 +1104,7 @@ maximum(const XprMatrix<E, Rows, Cols>& e) {
     }
   }
 
-  return Extremum<value_type, std::size_t, matrix_tag>(temp, row_no, col_no);
+  return Extremum<value_type, int, matrix_tag>(temp, row_no, col_no);
 }
 
 
@@ -1113,9 +1113,9 @@ maximum(const XprMatrix<E, Rows, Cols>& e) {
  * \brief Find the maximum of a matrix
  * \ingroup _unary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
-Extremum<T, std::size_t, matrix_tag>
+Extremum<T, int, matrix_tag>
 maximum(const Matrix<T, Rows, Cols>& m) { return maximum(m.as_expr()); }
 
 
@@ -1124,17 +1124,17 @@ maximum(const Matrix<T, Rows, Cols>& m) { return maximum(m.as_expr()); }
  * \brief Find the minimum of a matrix expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
-Extremum<typename E::value_type, std::size_t, matrix_tag>
+Extremum<typename E::value_type, int, matrix_tag>
 minimum(const XprMatrix<E, Rows, Cols>& e) {
   typedef typename E::value_type 			value_type;
 
   value_type 						temp(e(0, 0));
-  std::size_t 						row_no(0), col_no(0);
+  int 						row_no(0), col_no(0);
 
-  for(std::size_t i = 0; i != Rows; ++i) {
-    for(std::size_t j = 0; j != Cols; ++j) {
+  for(int i = 0; i != Rows; ++i) {
+    for(int j = 0; j != Cols; ++j) {
       if(e(i, j) < temp) {
 	temp = e(i, j);
 	row_no = i;
@@ -1143,7 +1143,7 @@ minimum(const XprMatrix<E, Rows, Cols>& e) {
     }
   }
 
-  return Extremum<value_type, std::size_t, matrix_tag>(temp, row_no, col_no);
+  return Extremum<value_type, int, matrix_tag>(temp, row_no, col_no);
 }
 
 
@@ -1152,9 +1152,9 @@ minimum(const XprMatrix<E, Rows, Cols>& e) {
  * \brief Find the minimum of a matrix
  * \ingroup _unary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
-Extremum<T, std::size_t, matrix_tag>
+Extremum<T, int, matrix_tag>
 minimum(const Matrix<T, Rows, Cols>& m) { return minimum(m.as_expr()); }
 
 
@@ -1163,7 +1163,7 @@ minimum(const Matrix<T, Rows, Cols>& m) { return minimum(m.as_expr()); }
  * \brief Find the maximum of a matrix expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
 typename E::value_type
 max(const XprMatrix<E, Rows, Cols>& e) {
@@ -1171,8 +1171,8 @@ max(const XprMatrix<E, Rows, Cols>& e) {
 
   value_type 						temp(e(0, 0));
 
-  for(std::size_t i = 0; i != Rows; ++i)
-    for(std::size_t j = 0; j != Cols; ++j)
+  for(int i = 0; i != Rows; ++i)
+    for(int j = 0; j != Cols; ++j)
       if(e(i, j) > temp)
 	temp = e(i, j);
 
@@ -1185,7 +1185,7 @@ max(const XprMatrix<E, Rows, Cols>& e) {
  * \brief Find the maximum of a matrix
  * \ingroup _unary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 T max(const Matrix<T, Rows, Cols>& m) {
   typedef T			 			value_type;
@@ -1210,7 +1210,7 @@ T max(const Matrix<T, Rows, Cols>& m) {
  * \brief Find the minimum of a matrix expression
  * \ingroup _unary_function
  */
-template<class E, std::size_t Rows, std::size_t Cols>
+template<class E, int Rows, int Cols>
 inline
 typename E::value_type
 min(const XprMatrix<E, Rows, Cols>& e) {
@@ -1218,8 +1218,8 @@ min(const XprMatrix<E, Rows, Cols>& e) {
 
   value_type 						temp(e(0, 0));
 
-  for(std::size_t i = 0; i != Rows; ++i)
-    for(std::size_t j = 0; j != Cols; ++j)
+  for(int i = 0; i != Rows; ++i)
+    for(int j = 0; j != Cols; ++j)
       if(e(i, j) < temp)
 	temp = e(i, j);
 
@@ -1232,7 +1232,7 @@ min(const XprMatrix<E, Rows, Cols>& e) {
  * \brief Find the minimum of a matrix
  * \ingroup _unary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 T min(const Matrix<T, Rows, Cols>& m) {
   typedef T			 			value_type;
@@ -1280,7 +1280,7 @@ T min(const Matrix<T, Rows, Cols>& m) {
  *
  * \since release 1.6.0
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprIdentity<T, Rows, Cols>,
@@ -1354,7 +1354,7 @@ identity() {
  *
  * \since release 1.6.0
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   MatrixConstReference<T, Rows, Cols>,

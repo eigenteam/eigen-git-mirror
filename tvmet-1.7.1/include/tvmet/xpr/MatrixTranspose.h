@@ -62,10 +62,10 @@ public:
 
   /** index operator for arrays/matrices. This simple swap the index
       access for transpose. */
-  value_type operator()(std::size_t i, std::size_t j) const { return m_expr(j, i); }
+  value_type operator()(int i, int j) const { return m_expr(j, i); }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMatrixTranspose[O=" << ops << ", (O=" << ops_expr << ")]<"
        << std::endl;

@@ -77,17 +77,17 @@ public:
 
 public: //access
   /** index operator for vectors. */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     return m_expr1(i) ? m_expr2(i) : m_expr3(i);
   }
 
   /** index operator for matrizes. */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     return m_expr1(i, j) ? m_expr2(i, j) : m_expr3(i, j);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprEval[" << ops << ", ("
        << ops_expr1 << ", " << ops_expr2 << ", " << ops_expr3 << ")]<"

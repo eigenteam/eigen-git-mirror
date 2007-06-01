@@ -68,17 +68,17 @@ public:
 #endif
 
   /** Index operator, evaluates the expression inside. */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     return BinOp::apply_on(m_lhs(i), m_rhs(i));
   }
 
   /** Index operator for arrays/matrices */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     return BinOp::apply_on(m_lhs(i, j), m_rhs(i, j));
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprBinOp[O="<< ops << ", (O1=" << ops_lhs << ", O2=" << ops_rhs << ")]<"
        << std::endl;

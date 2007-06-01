@@ -47,15 +47,15 @@ template<class E> class TvmetBase { };
 class IndentLevel : public TvmetBase< IndentLevel >
 {
 public:
-  IndentLevel(std::size_t level) : m_level(level) { }
+  IndentLevel(int level) : m_level(level) { }
 
   std::ostream& print_xpr(std::ostream& os) const {
-    for(std::size_t i = 0; i != m_level; ++i) os << "   ";
+    for(int i = 0; i != m_level; ++i) os << "   ";
     return os;
   }
 
 private:
-  std::size_t 					m_level;
+  int 					m_level;
 };
 
 

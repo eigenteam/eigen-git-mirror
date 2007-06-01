@@ -35,7 +35,7 @@ namespace tvmet {
  * unary_function(Matrix<T, Rows, Cols>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class T, std::size_t Rows, std::size_t Cols>		\
+template<class T, int Rows, int Cols>		\
 inline								\
 XprMatrix<							\
   XprUnOp<							\
@@ -96,7 +96,7 @@ TVMET_DECLARE_MACRO(finite)
  */
 #if defined(TVMET_HAVE_COMPLEX)
 #define TVMET_DECLARE_MACRO(NAME)						\
-template<class T, std::size_t Rows, std::size_t Cols>				\
+template<class T, int Rows, int Cols>				\
 inline										\
 XprMatrix<									\
   XprUnOp<									\
@@ -127,7 +127,7 @@ TVMET_DECLARE_MACRO(conj)
  * unary_function(Matrix<T, Rows, Cols>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprUnOp<								\
@@ -194,7 +194,7 @@ TVMET_IMPLEMENT_MACRO(finite)
  */
 #if defined(TVMET_HAVE_COMPLEX)
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprUnOp<								\

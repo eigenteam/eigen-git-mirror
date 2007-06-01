@@ -16,7 +16,7 @@ using namespace std;
 
 NS_TVMET_BEGIN
 
-template<size_t Sz, size_t Idx=0>
+template<int Sz, int Idx=0>
 class MetaSwap // later, should be MetaVector
 {
 private:
@@ -47,7 +47,7 @@ public:
  * \fun swap
  * \brief swaps to vector expressions XprVector<E, Sz>
  */
-template<class E1, class E2, size_t Sz>
+template<class E1, class E2, int Sz>
 inline
 void swap(XprVector<E1, Sz> e1, XprVector<E2, Sz> e2) {
   MetaSwap<Sz>::swap(e1, e2);
@@ -57,7 +57,7 @@ void swap(XprVector<E1, Sz> e1, XprVector<E2, Sz> e2) {
  * \fun swap
  * \brief swaps to vector
  */
-template<class T1, class T2, size_t Sz>
+template<class T1, class T2, int Sz>
 inline
 void swap(Vector<T1, Sz>& lhs, Vector<T2, Sz>& rhs) {
   swap(lhs.asXpr(), rhs.asXpr());
@@ -68,11 +68,11 @@ void swap(Vector<T1, Sz>& lhs, Vector<T2, Sz>& rhs) {
  * \fun swap2
  * \brief swaps to vector expressions XprVector<E, Sz>
  */
-template<class E1, class E2, size_t Sz>
+template<class E1, class E2, int Sz>
 inline
 void swap2(XprVector<E1, Sz> e1, XprVector<E2, Sz> e2) {
   // loops are faster than meta templates
-  for(size_t i = 0; i < Sz; ++i)
+  for(int i = 0; i < Sz; ++i)
     std::swap(e1[i], e2[i]);
 }
 
@@ -80,11 +80,11 @@ void swap2(XprVector<E1, Sz> e1, XprVector<E2, Sz> e2) {
  * \fun swap2
  * \brief swaps to vector
  */
-template<class T1, class T2, size_t Sz>
+template<class T1, class T2, int Sz>
 inline
 void swap2(Vector<T1, Sz>& lhs, Vector<T2, Sz>& rhs) {
   // loops are faster than meta templates
-  for(size_t i = 0; i < Sz; ++i)
+  for(int i = 0; i < Sz; ++i)
     std::swap(lhs[i], rhs[i]);
 }
 
@@ -126,11 +126,11 @@ int main() {
   cout << "\nSwap Vectors\n\n";
   cout << v1 << endl;
   cout << v2 << endl;
-  for(size_t i = 0; i < LOOPS; ++i)
+  for(int i = 0; i < LOOPS; ++i)
     test_meta_swap(v1, v2);
   cout << v1 << endl;
   cout << v2 << endl;
-  for(size_t i = 0; i < LOOPS; ++i)
+  for(int i = 0; i < LOOPS; ++i)
     test_loop_swap(v1, v2);
   cout << v1 << endl;
   cout << v2 << endl;

@@ -31,7 +31,7 @@ namespace tvmet {
 
 
 /* forwards */
-template <class T, std::size_t Rows, std::size_t Cols> class Matrix;
+template <class T, int Rows, int Cols> class Matrix;
 
 /**
  * \class XprMatrix Matrix.h "tvmet/xpr/Matrix.h"
@@ -46,7 +46,7 @@ template <class T, std::size_t Rows, std::size_t Cols> class Matrix;
  * actually implements the expression.
  * \note leave the CCtors non-explicit to allow implicit type conversation.
  */
-template<class E, std::size_t NRows, std::size_t NCols>
+template<class E, int NRows, int NCols>
 class XprMatrix
   : public TvmetBase< XprMatrix<E, NRows, NCols> >
 {
@@ -86,7 +86,7 @@ public:
 #endif
 
   /** access by index. */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     TVMET_RT_CONDITION((i < Rows) && (j < Cols), "XprMatrix Bounce Violation")
     return m_expr(i, j);
   }
@@ -116,7 +116,7 @@ public:
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMatrix["
        << (use_meta ? "M" :  "L") << ", O=" << ops << "]<"

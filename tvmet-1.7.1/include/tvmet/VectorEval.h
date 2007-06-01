@@ -47,7 +47,7 @@ namespace tvmet {
  * \endcode
  * \sa \ref compare
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 bool all_elements(const XprVector<E, Sz>& e) {
   return meta::Vector<Sz>::all_elements(e);
@@ -69,7 +69,7 @@ bool all_elements(const XprVector<E, Sz>& e) {
  * \endcode
  * \sa \ref compare
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 inline
 bool any_elements(const XprVector<E, Sz>& e) {
   return meta::Vector<Sz>::any_elements(e);
@@ -91,7 +91,7 @@ bool any_elements(const XprVector<E, Sz>& e) {
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class T2, class T3, std::size_t Sz>
+template<class E1, class T2, class T3, int Sz>
 inline
 XprVector<
   XprEval<
@@ -119,7 +119,7 @@ eval(const XprVector<E1, Sz>& e1, const Vector<T2, Sz>& v2, const Vector<T3, Sz>
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class T2, class E3, std::size_t Sz>
+template<class E1, class T2, class E3, int Sz>
 inline
 XprVector<
   XprEval<
@@ -147,7 +147,7 @@ eval(const XprVector<E1, Sz>& e1, const Vector<T2, Sz>& v2, const XprVector<E3, 
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, class T3, std::size_t Sz>
+template<class E1, class E2, class T3, int Sz>
 inline
 XprVector<
   XprEval<
@@ -175,7 +175,7 @@ eval(const XprVector<E1, Sz>& e1, const XprVector<E2, Sz>& e2, const Vector<T3, 
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, class E3, std::size_t Sz>
+template<class E1, class E2, class E3, int Sz>
 inline
 XprVector<
   XprEval<
@@ -203,7 +203,7 @@ eval(const XprVector<E1, Sz>& e1, const XprVector<E2, Sz>& e2, const XprVector<E
  * XprVector<E1, Sz> ? XprVector<E2, Sz> : POD
  */
 #define TVMET_IMPLEMENT_MACRO(POD)         				\
-template<class E, std::size_t Sz>      					\
+template<class E, int Sz>      					\
 inline               							\
 XprVector<               						\
   XprEval<               						\
@@ -223,7 +223,7 @@ eval(const XprVector<E, Sz>& e, POD x2, POD x3) {      			\
     expr_type(e, XprLiteral< POD >(x2), XprLiteral< POD >(x3))); 	\
 }               							\
                								\
-template<class E1, class E3, std::size_t Sz>   				\
+template<class E1, class E3, int Sz>   				\
 inline               							\
 XprVector<               						\
   XprEval<               						\
@@ -243,7 +243,7 @@ eval(const XprVector<E1, Sz>& e1, POD x2, const XprVector<E3, Sz>& e3) { \
     expr_type(e1, XprLiteral< POD >(x2), e3)); 				\
 }               							\
                								\
-template<class E1, class E2, std::size_t Sz>   				\
+template<class E1, class E2, int Sz>   				\
 inline               							\
 XprVector<               						\
   XprEval<               						\
@@ -296,7 +296,7 @@ TVMET_IMPLEMENT_MACRO(long double)
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E, std::size_t Sz, class T>
+template<class E, int Sz, class T>
 inline
 XprVector<
   XprEval<
@@ -323,7 +323,7 @@ eval(const XprVector<E, Sz>& e, std::complex<T> z2, std::complex<T> z3) {
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E3, std::size_t Sz, class T>
+template<class E1, class E3, int Sz, class T>
 inline
 XprVector<
   XprEval<
@@ -350,7 +350,7 @@ eval(const XprVector<E1, Sz>& e1, std::complex<T> z2, const XprVector<E3, Sz>& e
  * This eval is for the a?b:c syntax, since it's not allowed to overload
  * these operators.
  */
-template<class E1, class E2, std::size_t Sz, class T>
+template<class E1, class E2, int Sz, class T>
 inline
 XprVector<
   XprEval<

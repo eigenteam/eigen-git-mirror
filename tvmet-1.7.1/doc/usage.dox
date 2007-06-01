@@ -152,7 +152,7 @@
                 2,5,8,
                 3,6,9 };
 
-   std::size_t sz = sizeof(data)/sizeof(T);
+   int sz = sizeof(data)/sizeof(T);
    T* first = data;
    T* last = data + sz;
 

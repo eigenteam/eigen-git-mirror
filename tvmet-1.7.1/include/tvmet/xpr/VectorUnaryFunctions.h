@@ -35,7 +35,7 @@ namespace tvmet {
  * unary_function(XprVector<E, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class E, std::size_t Sz>				\
+template<class E, int Sz>				\
 inline								\
 XprVector<							\
   XprUnOp<							\
@@ -100,7 +100,7 @@ TVMET_DECLARE_MACRO(finite)
  * unary_function(XprVector<E, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class E, std::size_t Sz>					\
+template<class E, int Sz>					\
 inline									\
 XprVector<								\
   XprUnOp<								\

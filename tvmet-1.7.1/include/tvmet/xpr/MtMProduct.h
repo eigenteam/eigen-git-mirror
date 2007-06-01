@@ -41,8 +41,8 @@ namespace tvmet {
  *       since lhs matrix 1 is transposed.
  *       The result is a (Cols1 x Cols2) matrix.
  */
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 class XprMtMProduct
   : public TvmetBase< XprMtMProduct<E1, Rows1, Cols1, E2, Cols2> >
 {
@@ -84,7 +84,7 @@ public:
 private:
   /** Wrapper for meta gemm. */
   static inline
-  value_type do_gemtm(dispatch<true>, const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  value_type do_gemtm(dispatch<true>, const E1& lhs, const E2& rhs, int i, int j) {
     return meta::gemtm<Rows1, Cols1,
                        Cols2,
                        0>::prod(lhs, rhs, i, j);
@@ -92,20 +92,20 @@ private:
 
   /** Wrapper for loop gemm. */
   static inline
-  value_type do_gemtm(dispatch<false>, const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  value_type do_gemtm(dispatch<false>, const E1& lhs, const E2& rhs, int i, int j) {
     return loop::gemtm<Rows1, Cols1,
 	               Cols2>::prod(lhs, rhs, i, j);
   }
 
 public:
   /** index operator for arrays/matrices */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     TVMET_RT_CONDITION((i < Cols1) && (j < Cols2), "XprMtMProduct Bounce Violation")
     return do_gemtm(dispatch<use_meta>(), m_lhs, m_rhs, i, j);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMtMProduct["
        << (use_meta ? "M" :  "L") << ", O=" << ops

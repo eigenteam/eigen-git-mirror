@@ -33,7 +33,7 @@ namespace loop {
  * \class Vector Vector.h "tvmet/loop/Vector.h"
  * \brief Loop %Vector class using expression and loop templates.
  */
-template<std::size_t Sz>
+template<int Sz>
 class Vector
 {
   Vector(const Vector&);
@@ -47,7 +47,7 @@ public:
   template<class E1, class E2, class Assign>
   static inline
   void assign(E1& lhs, const E2& rhs, const Assign& assign_fn) {
-    for(std::size_t i = 0; i != Sz; ++i)
+    for(int i = 0; i != Sz; ++i)
       assign_fn.apply_on(lhs(i), rhs(i));
   }
 };

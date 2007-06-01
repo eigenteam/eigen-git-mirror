@@ -38,19 +38,19 @@ namespace loop {
  *        \f]
  * \par Example:
  * \code
- * template<class T, std::size_t Rows, std::size_t Cols>
+ * template<class T, int Rows, int Cols>
  * inline
  * void
  * prod(const Matrix<T, Rows, Cols>& lhs, const Vector<T, Rows>& rhs,
  * 	Vector<T, Cols>& dest)
  * {
- *   for (std::size_t i = 0; i != Cols; ++i) {
+ *   for (int i = 0; i != Cols; ++i) {
  *     dest(i) = tvmet::loop::gemtv<Rows, Cols>().prod(lhs, rhs, i);
  *   }
  * }
  * \endcode
  */
-template<std::size_t Rows, std::size_t Cols>
+template<int Rows, int Cols>
 class gemtv
 {
   gemtv(const gemtv&);
@@ -72,13 +72,13 @@ public:
     typename E1::value_type,
     typename E2::value_type
     >::value_type
-  prod(const E1& lhs, const E2& rhs, std::size_t i) {
+  prod(const E1& lhs, const E2& rhs, int i) {
     typename PromoteTraits<
       typename E1::value_type,
       typename E2::value_type
     >::value_type  				sum(0);
-    std::size_t 				j(0);
-    std::size_t 				n(N);
+    int 				j(0);
+    int 				n(N);
 
     // Duff's device
     switch(count % 8) {

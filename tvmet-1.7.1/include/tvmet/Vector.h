@@ -37,14 +37,14 @@ namespace tvmet {
 
 
 /* forwards */
-template<class T, std::size_t Sz> class Vector;
+template<class T, int Sz> class Vector;
 
 
 /**
  * \class VectorConstReference Vector.h "tvmet/Vector.h"
  * \brief Const value iterator for ET
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 class VectorConstReference
   : public TvmetBase< VectorConstReference<T, Sz> >
 {
@@ -82,13 +82,13 @@ public:
 
 public: // access operators
   /** access by index. */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     assert(i < Size);
     return m_data[i];
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l)
        << "VectorConstReference[O=" << ops << "]<"
        << "T=" << typeid(T).name() << ">,"
@@ -104,7 +104,7 @@ private:
  * \class Vector Vector.h "tvmet/Vector.h"
  * \brief Compile time fixed length vector with evaluation on compile time.
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 class Vector
 {
 public:
@@ -188,10 +188,10 @@ public: // STL  interface
   static bool empty() { return false; }
 
   /** The size of the vector. */
-  static std::size_t size() { return Size; }
+  static int size() { return Size; }
 
   /** STL vector max_size() - returns allways Size. */
-  static std::size_t max_size() { return Size; }
+  static int max_size() { return Size; }
 
 public:
   /** Default Destructor */
@@ -214,7 +214,7 @@ public:
   template<class InputIterator>
   explicit Vector(InputIterator first, InputIterator last)
   {
-    assert( static_cast<std::size_t>(std::distance(first, last)) <= Size);
+    assert( static_cast<int>(std::distance(first, last)) <= Size);
     std::copy(first, last, m_data);
   }
 
@@ -223,7 +223,7 @@ public:
    * vector self, there isn't any stored reference to the array pointer.
    */
   template<class InputIterator>
-  explicit Vector(InputIterator first, std::size_t sz)
+  explicit Vector(InputIterator first, int sz)
   {
     assert(sz <= Size);
     std::copy(first, first + sz, m_data);
@@ -330,23 +330,23 @@ public: // access operators
   const value_type* _tvmet_restrict data() const { return m_data; }
 
 public: // index access operators
-  value_type& _tvmet_restrict operator()(std::size_t i) {
+  value_type& _tvmet_restrict operator()(int i) {
     // Note: g++-2.95.3 does have problems on typedef reference
     assert(i < Size);
     return m_data[i];
   }
 
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     assert(i < Size);
     return m_data[i];
   }
 
-  value_type& _tvmet_restrict operator[](std::size_t i) {
+  value_type& _tvmet_restrict operator[](int i) {
     // Note: g++-2.95.3 does have problems on typedef reference
     return this->operator()(i);
   }
 
-  value_type operator[](std::size_t i) const {
+  value_type operator[](int i) const {
     return this->operator()(i);
   }
 
@@ -400,7 +400,7 @@ public:   // assign operations
   }
 
 private:
-  template<class Obj, std::size_t LEN> friend class CommaInitializer;
+  template<class Obj, int LEN> friend class CommaInitializer;
 
   /** This is a helper for assigning a comma separated initializer
       list. It's equal to Vector& operator=(value_type) which does
@@ -418,12 +418,12 @@ public: // math operators with scalars
   Vector& operator*=(value_type) TVMET_CXX_ALWAYS_INLINE;
   Vector& operator/=(value_type) TVMET_CXX_ALWAYS_INLINE;
 
-  Vector& operator%=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator^=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator&=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator|=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator<<=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator>>=(std::size_t) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator%=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator^=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator&=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator|=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator<<=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator>>=(int) TVMET_CXX_ALWAYS_INLINE;
 
 public: // math assign operators with vectors
   // NOTE: access using the operators in ns element_wise, since that's what is does
@@ -478,7 +478,7 @@ public: // io
   static Info info() { return Info(); }
 
   /** Member function for expression level printing. */
-  std::ostream& print_xpr(std::ostream& os, std::size_t l=0) const;
+  std::ostream& print_xpr(std::ostream& os, int l=0) const;
 
   /** Member function for printing internal data. */
   std::ostream& print_on(std::ostream& os) const;

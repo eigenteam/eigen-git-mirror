@@ -40,7 +40,7 @@ namespace tvmet {
  * binary_function(XprVector<E>, Vector<T, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class T1, class T2, std::size_t Sz>			\
+template<class T1, class T2, int Sz>			\
 inline								\
 XprVector<							\
   XprBinOp<							\
@@ -53,7 +53,7 @@ XprVector<							\
 NAME(const Vector<T1, Sz>& lhs, 				\
      const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 								\
-template<class E, class T, std::size_t Sz>			\
+template<class E, class T, int Sz>			\
 inline								\
 XprVector<							\
   XprBinOp<							\
@@ -66,7 +66,7 @@ XprVector<							\
 NAME(const XprVector<E, Sz>& lhs, 				\
      const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 								\
-template<class E, class T, std::size_t Sz>			\
+template<class E, class T, int Sz>			\
 inline								\
 XprVector<							\
   XprBinOp<							\
@@ -97,7 +97,7 @@ TVMET_DECLARE_MACRO(polar)
  * binary_function(Vector<T, Sz>, POD)
  */
 #define TVMET_DECLARE_MACRO(NAME, TP)				\
-template<class T, std::size_t Sz>				\
+template<class T, int Sz>				\
 inline								\
 XprVector<							\
   XprBinOp<							\
@@ -161,7 +161,7 @@ TVMET_DECLARE_MACRO(pow, long double)
  */
 
 #if defined(TVMET_HAVE_COMPLEX) && defined(TVMET_HAVE_COMPLEX_MATH1)
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_pow<T, std::complex<T> >,
@@ -174,7 +174,7 @@ pow(const Vector<T, Sz>& lhs,
     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_pow<std::complex<T>, std::complex<T> >,
@@ -187,7 +187,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs,
     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_pow<std::complex<T>, T>,
@@ -200,7 +200,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs,
     const T& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_pow<std::complex<T>, int>,
@@ -213,7 +213,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs,
     int rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_polar<T, T>,
@@ -241,7 +241,7 @@ polar(const Vector<T, Sz>& lhs, const T& rhs) TVMET_CXX_ALWAYS_INLINE;
  * binary_function(XprVector<E>, Vector<T, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T1, class T2, std::size_t Sz>				\
+template<class T1, class T2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -261,7 +261,7 @@ NAME(const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {		\
     expr_type(lhs.const_ref(), rhs.const_ref()));			\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -281,7 +281,7 @@ NAME(const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {		\
     expr_type(lhs, rhs.const_ref()));					\
 }									\
 									\
-template<class E, class T, std::size_t Sz>				\
+template<class E, class T, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -319,7 +319,7 @@ TVMET_IMPLEMENT_MACRO(polar)
  * binary_function(Vector<T, Sz>, POD)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, TP)					\
-template<class T, std::size_t Sz>					\
+template<class T, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -395,7 +395,7 @@ TVMET_IMPLEMENT_MACRO(pow, long double)
  * \fn pow(const Vector<T, Sz>& lhs, const std::complex<T>& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<
@@ -420,7 +420,7 @@ pow(const Vector<T, Sz>& lhs, const std::complex<T>& rhs) {
  * \fn pow(const Vector<std::complex<T>, Sz>& lhs, const std::complex<T>& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<
@@ -445,7 +445,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs, const std::complex<T>& rhs) {
  * \fn pow(const Vector<std::complex<T>, Sz>& lhs, const T& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<
@@ -470,7 +470,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs, const T& rhs) {
  * \fn pow(const Vector<std::complex<T>, Sz>& lhs, int rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<
@@ -495,7 +495,7 @@ pow(const Vector<std::complex<T>, Sz>& lhs, int rhs) {
  * \fn polar(const Vector<T, Sz>& lhs, const T& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Sz>
+template<class T, int Sz>
 inline
 XprVector<
   XprBinOp<

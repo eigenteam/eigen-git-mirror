@@ -31,7 +31,7 @@ namespace tvmet {
  * \class XprMatrixDiag MatrixDiag.h "tvmet/xpr/MatrixDiag.h"
  * \brief Expression on matrix used for access on the diagonal vector.
  */
-template<class E, std::size_t Sz>
+template<class E, int Sz>
 class XprMatrixDiag
   : public TvmetBase< XprMatrixDiag<E, Sz> >
 {
@@ -62,13 +62,13 @@ public:
 #endif
 
   /** index operator for arrays/matrizes */
-  value_type operator()(std::size_t i) const {
+  value_type operator()(int i) const {
     TVMET_RT_CONDITION(i < Sz, "XprMatrixDiag Bounce Violation")
     return m_expr(i, i);
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprMatrixDiag[O=" << ops << ", (O=" << ops_expr << ")]<"
        << std::endl;

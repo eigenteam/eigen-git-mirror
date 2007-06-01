@@ -20,7 +20,7 @@ namespace tvmet {
  * \since release 1.6.0
  * \sa identity
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 struct XprIdentity
   : public TvmetBase< XprIdentity<T, Rows, Cols> >
 {
@@ -38,12 +38,12 @@ public:
 
 public:
   /** access by index. */
-  value_type operator()(std::size_t i, std::size_t j) const {
+  value_type operator()(int i, int j) const {
     return i==j ? 1 : 0;
   }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++)
        << "XprIdentity[O="<< ops << ")]<"
        << std::endl;

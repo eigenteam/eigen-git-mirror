@@ -46,7 +46,7 @@ namespace tvmet {
  * size [varg].
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class E1, std::size_t Rows1, std::size_t Cols1,			\
+template<class E1, int Rows1, int Cols1,			\
          class E2>								\
 XprMatrix<									\
   XprBinOp<									\
@@ -74,7 +74,7 @@ namespace element_wise {
  * Note: operations +,-,*,/ are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP, POD)					\
-template<class E, std::size_t Rows, std::size_t Cols>				\
+template<class E, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, POD >,					\
@@ -86,7 +86,7 @@ XprMatrix<									\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs, 				\
 	     POD rhs) TVMET_CXX_ALWAYS_INLINE;					\
 										\
-template<class E,std::size_t Rows, std::size_t Cols>				\
+template<class E,int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<POD, typename E::value_type>,					\
@@ -138,7 +138,7 @@ TVMET_DECLARE_MACRO(div, /, long double)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class E, std::size_t Rows, std::size_t Cols, class T>			\
+template<class E, int Rows, int Cols, class T>			\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, std::complex<T> >,			\
@@ -150,7 +150,7 @@ XprMatrix<									\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs,				\
 	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 										\
-template<class E, std::size_t Rows, std::size_t Cols, class T>			\
+template<class E, int Rows, int Cols, class T>			\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<std::complex<T>, typename E::value_type>,			\
@@ -183,8 +183,8 @@ TVMET_DECLARE_MACRO(div, /)
  * \ingroup _binary_operator
  * \sa prod(XprMatrix<E1, Rows1, Cols1> lhs, XprMatrix<E2, Cols1, Cols2> rhs)
  */
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
@@ -207,7 +207,7 @@ operator*(const XprMatrix<E1, Rows1, Cols1>& lhs,
  * \ingroup _binary_operator
  * \sa prod(XprMatrix<E1, Rows, Cols> lhs, XprVector<E2, Cols> rhs)
  */
-template<class E1, std::size_t Rows, std::size_t Cols,
+template<class E1, int Rows, int Cols,
 	 class E2>
 XprVector<
   XprMVProduct<
@@ -230,7 +230,7 @@ operator*(const XprMatrix<E1, Rows, Cols>& lhs,
  * Note: operations are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class E1, std::size_t Rows, std::size_t Cols,				\
+template<class E1, int Rows, int Cols,				\
          class E2>								\
 XprMatrix<									\
   XprBinOp<									\
@@ -275,7 +275,7 @@ TVMET_DECLARE_MACRO(or, ||)
  * \todo type promotion
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template<class E, std::size_t Rows, std::size_t Cols, class T>			\
+template<class E, int Rows, int Cols, class T>			\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, std::complex<T> >,			\
@@ -287,7 +287,7 @@ XprMatrix<									\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs, 				\
 	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 										\
-template<class E, std::size_t Rows, std::size_t Cols, class T>			\
+template<class E, int Rows, int Cols, class T>			\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<std::complex<T>, typename E::value_type>,			\
@@ -320,7 +320,7 @@ TVMET_DECLARE_MACRO(or, ||)
  * Note: operations are per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP, TP)					\
-template<class E, std::size_t Rows, std::size_t Cols>				\
+template<class E, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, TP >,					\
@@ -332,7 +332,7 @@ XprMatrix<									\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs, 				\
 	     TP rhs) TVMET_CXX_ALWAYS_INLINE;					\
 										\
-template<class E, std::size_t Rows, std::size_t Cols>				\
+template<class E, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<TP, typename E::value_type>,					\
@@ -431,7 +431,7 @@ TVMET_DECLARE_MACRO(or, ||, long double)
  * Note: per se element wise
  */
 #define TVMET_DECLARE_MACRO(NAME, OP)						\
-template <class E, std::size_t Rows, std::size_t Cols>				\
+template <class E, int Rows, int Cols>				\
 XprMatrix<									\
   XprUnOp<									\
     Fcnl_##NAME<typename E::value_type>,					\
@@ -468,7 +468,7 @@ TVMET_DECLARE_MACRO(neg, -)
  * size [varg].
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class E1, std::size_t Rows1, std::size_t Cols1,		\
+template<class E1, int Rows1, int Cols1,		\
          class E2>							\
 inline									\
 XprMatrix<								\
@@ -499,7 +499,7 @@ namespace element_wise {
  * Note: operations +,-,*,/ are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP, POD)			\
-template<class E, std::size_t Rows, std::size_t Cols>		\
+template<class E, int Rows, int Cols>		\
 inline								\
 XprMatrix<							\
   XprBinOp<							\
@@ -513,7 +513,7 @@ operator OP (const XprMatrix<E, Rows, Cols>& lhs, POD rhs) {	\
   return NAME (lhs, rhs);					\
 }								\
 								\
-template<class E,std::size_t Rows, std::size_t Cols>		\
+template<class E,int Rows, int Cols>		\
 inline								\
 XprMatrix<							\
   XprBinOp<							\
@@ -567,7 +567,7 @@ TVMET_IMPLEMENT_MACRO(div, /, long double)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)				\
-template<class E, std::size_t Rows, std::size_t Cols, class T>	\
+template<class E, int Rows, int Cols, class T>	\
 inline								\
 XprMatrix<							\
   XprBinOp<							\
@@ -582,7 +582,7 @@ operator OP (const XprMatrix<E, Rows, Cols>& lhs,		\
   return NAME (lhs, rhs);					\
 }								\
 								\
-template<class E, std::size_t Rows, std::size_t Cols, class T>	\
+template<class E, int Rows, int Cols, class T>	\
 inline								\
 XprMatrix<							\
   XprBinOp<							\
@@ -618,8 +618,8 @@ TVMET_IMPLEMENT_MACRO(div, /)
  * \ingroup _binary_operator
  * \sa prod(XprMatrix<E1, Rows1, Cols1> lhs, XprMatrix<E2, Cols1, Cols2> rhs)
  */
-template<class E1, std::size_t Rows1, std::size_t Cols1,
-	 class E2, std::size_t Cols2>
+template<class E1, int Rows1, int Cols1,
+	 class E2, int Cols2>
 inline
 XprMatrix<
   XprMMProduct<
@@ -644,7 +644,7 @@ operator*(const XprMatrix<E1, Rows1, Cols1>& lhs, const XprMatrix<E2, Cols1, Col
  * \ingroup _binary_operator
  * \sa prod(XprMatrix<E1, Rows, Cols> lhs, XprVector<E2, Cols> rhs)
  */
-template<class E1, std::size_t Rows, std::size_t Cols,
+template<class E1, int Rows, int Cols,
 	 class E2>
 inline
 XprVector<
@@ -669,7 +669,7 @@ operator*(const XprMatrix<E1, Rows, Cols>& lhs, const XprVector<E2, Cols>& rhs) 
  * Note: operations are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class E1, std::size_t Rows, std::size_t Cols,			\
+template<class E1, int Rows, int Cols,			\
          class E2>							\
 inline									\
 XprMatrix<								\
@@ -722,7 +722,7 @@ TVMET_IMPLEMENT_MACRO(or, ||)
  * \todo type promotion
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class E, std::size_t Rows, std::size_t Cols, class T>		\
+template<class E, int Rows, int Cols, class T>		\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -743,7 +743,7 @@ operator OP (const XprMatrix<E, Rows, Cols>& lhs, 			\
     expr_type(lhs, XprLiteral< std::complex<T> >(rhs)));		\
 }									\
 									\
-template<class E, std::size_t Rows, std::size_t Cols, class T>		\
+template<class E, int Rows, int Cols, class T>		\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -785,7 +785,7 @@ TVMET_IMPLEMENT_MACRO(or, ||)
  * Note: operations are per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP, TP)				\
-template<class E, std::size_t Rows, std::size_t Cols>			\
+template<class E, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -805,7 +805,7 @@ operator OP (const XprMatrix<E, Rows, Cols>& lhs, TP rhs) {		\
     expr_type(lhs, XprLiteral< TP >(rhs)));				\
 }									\
 									\
-template<class E, std::size_t Rows, std::size_t Cols>			\
+template<class E, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -913,7 +913,7 @@ TVMET_IMPLEMENT_MACRO(or, ||, long double)
  * Note: per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template <class E, std::size_t Rows, std::size_t Cols>			\
+template <class E, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprUnOp<								\

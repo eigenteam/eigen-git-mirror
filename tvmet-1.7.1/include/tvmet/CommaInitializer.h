@@ -60,7 +60,7 @@ namespace tvmet {
  * will be written random into the memory.
  *
  */
-template<class Obj, std::size_t LEN>
+template<class Obj, int LEN>
 class CommaInitializer
 {
   CommaInitializer();
@@ -71,7 +71,7 @@ private:
    * \class Initializer
    * \brief Helper fo recursive overloaded comma operator.
    */
-  template<class T, std::size_t N> class Initializer
+  template<class T, int N> class Initializer
   {
     Initializer();
     Initializer& operator=(const Initializer&);
@@ -139,7 +139,7 @@ private:
 /*
  * Implementation
  */
-template<class Obj, std::size_t LEN>
+template<class Obj, int LEN>
 typename CommaInitializer<Obj, LEN>::template Initializer<typename Obj::value_type, 2>
 CommaInitializer<Obj, LEN>::operator,(typename Obj::value_type rhs)
 {

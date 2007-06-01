@@ -35,7 +35,7 @@ namespace tvmet {
  * binary_function(XprMatrix<E1, Rows, Cols>, XprMatrix<E2, Rows, Cols>)
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class E1, std::size_t Rows, std::size_t Cols, class E2>	\
+template<class E1, int Rows, int Cols, class E2>	\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E1::value_type, typename E2::value_type>,	\
@@ -65,7 +65,7 @@ TVMET_DECLARE_MACRO(pow)
  * binary_function(XprMatrix<E, Rows, Cols>, POD)
  */
 #define TVMET_DECLARE_MACRO(NAME, TP)			\
-template<class E, std::size_t Rows, std::size_t Cols>	\
+template<class E, int Rows, int Cols>	\
 XprMatrix<						\
   XprBinOp<						\
     Fcnl_##NAME<typename E::value_type, TP >,		\
@@ -129,7 +129,7 @@ TVMET_DECLARE_MACRO(pow, long double)
  * binary_function(XprMatrix<E, Rows, Cols>, std::complex<>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class E, std::size_t Rows, std::size_t Cols, class T>	\
+template<class E, int Rows, int Cols, class T>	\
 XprMatrix<							\
   XprBinOp<							\
     Fcnl_##NAME<typename E::value_type, std::complex<T> >,	\
@@ -164,7 +164,7 @@ TVMET_DECLARE_MACRO(yn)
  * binary_function(XprMatrix<E1, Rows, Cols>, XprMatrix<E2, Rows, Cols>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)							\
-template<class E1, std::size_t Rows, std::size_t Cols, class E2>			\
+template<class E1, int Rows, int Cols, class E2>			\
 inline											\
 XprMatrix<										\
   XprBinOp<										\
@@ -202,7 +202,7 @@ TVMET_IMPLEMENT_MACRO(pow)
  * binary_function(XprMatrix<E, Rows, Cols>, POD)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, TP)					\
-template<class E, std::size_t Rows, std::size_t Cols>			\
+template<class E, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -274,7 +274,7 @@ TVMET_IMPLEMENT_MACRO(pow, long double)
  * binary_function(XprMatrix<E, Rows, Cols>, std::complex<>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class E, std::size_t Rows, std::size_t Cols, class T>		\
+template<class E, int Rows, int Cols, class T>		\
 inline									\
 XprMatrix<								\
   XprBinOp<								\

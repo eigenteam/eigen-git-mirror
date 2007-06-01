@@ -27,7 +27,7 @@
 
 using namespace std;
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 double
 frob_norm(const tvmet::Matrix<T, Rows, Cols>& M) {
   return std::sqrt(M(0,0)*M(0,0) + M(1,0)*M(1,0) + M(2,0)*M(2,0)
@@ -36,7 +36,7 @@ frob_norm(const tvmet::Matrix<T, Rows, Cols>& M) {
 }
 
 namespace tvmet {
-  template<class T, std::size_t Rows, std::size_t Cols>
+  template<class T, int Rows, int Cols>
   typename NumericTraits<T>::float_type
   norm(const Matrix<T, Rows, Cols>& M) {
     return std::sqrt( sum( diag( MtM_prod(M,M) ) ) );

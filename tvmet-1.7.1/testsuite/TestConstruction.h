@@ -119,7 +119,7 @@ void
 TestConstruction<T>::vector_ctor1() {
   T data[] = {1,2,3};
 
-  std::size_t sz = sizeof(data)/sizeof(T);
+  int sz = sizeof(data)/sizeof(T);
   T* first = data;
   T* last = data + sz;
 
@@ -129,14 +129,14 @@ TestConstruction<T>::vector_ctor1() {
 }
 
 /*
- * Vector (InputIterator first, std::size_t sz)
+ * Vector (InputIterator first, int sz)
  */
 template <class T>
 void
 TestConstruction<T>::vector_ctor2() {
   T data[] = {1,2,3};
 
-  std::size_t sz = sizeof(data)/sizeof(T);
+  int sz = sizeof(data)/sizeof(T);
   T* first = data;
 
   vector_type v(first, sz);
@@ -220,7 +220,7 @@ TestConstruction<T>::matrix_ctor1() {
 	       2,5,8,
 	       3,6,9 };
 
-  std::size_t sz = sizeof(data)/sizeof(T);
+  int sz = sizeof(data)/sizeof(T);
   T* first = data;
   T* last = data + sz;
 
@@ -230,7 +230,7 @@ TestConstruction<T>::matrix_ctor1() {
 }
 
 /*
- * Matrix (InputIterator first, std::size_t sz)
+ * Matrix (InputIterator first, int sz)
  */
 template <class T>
 void
@@ -239,7 +239,7 @@ TestConstruction<T>::matrix_ctor2() {
 	       2,5,8,
 	       3,6,9 };
 
-  std::size_t sz = sizeof(data)/sizeof(T);
+  int sz = sizeof(data)/sizeof(T);
   T* first = data;
 
   matrix_type m(first, sz);

@@ -36,8 +36,8 @@ namespace meta {
  * \class Matrix Matrix.h "tvmet/meta/Matrix.h"
  * \brief Meta %Matrix class using expression and meta templates.
  */
-template<std::size_t Rows, std::size_t Cols,
-	 std::size_t M=0, std::size_t N=0>
+template<int Rows, int Cols,
+	 int M=0, int N=0>
 class Matrix
 {
   Matrix();

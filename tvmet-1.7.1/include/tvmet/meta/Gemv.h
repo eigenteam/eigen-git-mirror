@@ -39,8 +39,8 @@ namespace meta {
  *        M\,v
  *        \f]
  */
-template<std::size_t Rows, std::size_t Cols,
-	 std::size_t J>
+template<int Rows, int Cols,
+	 int J>
 class gemv
 {
   gemv();
@@ -60,7 +60,7 @@ public:
     typename E1::value_type,
     typename E2::value_type
   >::value_type
-  prod(const E1& lhs, const E2& rhs, std::size_t i) {
+  prod(const E1& lhs, const E2& rhs, int i) {
     return lhs(i, J) * rhs(J)
       + gemv<Rows * doIt, Cols * doIt,
              (J+1)* doIt>::prod(lhs, rhs, i);
@@ -82,7 +82,7 @@ class gemv<0,0,0>
 public:
   template<class E1, class E2>
   static inline
-  XprNull prod(const E1&, const E2&, std::size_t) {
+  XprNull prod(const E1&, const E2&, int) {
     return XprNull();
   }
 };

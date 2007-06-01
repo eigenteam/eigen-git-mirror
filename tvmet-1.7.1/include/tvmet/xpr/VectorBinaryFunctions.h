@@ -36,7 +36,7 @@ namespace tvmet {
  * binary_function(XprVector<E1, Sz>, XprVector<E2, Sz>)
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class E1, class E2, std::size_t Sz>				\
+template<class E1, class E2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -67,7 +67,7 @@ TVMET_DECLARE_MACRO(polar)
  * binary_function(XprVector<E, Sz>, POD)
  */
 #define TVMET_DECLARE_MACRO(NAME, TP)		\
-template<class E, std::size_t Sz>		\
+template<class E, int Sz>		\
 inline						\
 XprVector<					\
   XprBinOp<					\
@@ -132,7 +132,7 @@ TVMET_DECLARE_MACRO(pow, long double)
  * binary_function(XprVector<E, Sz>, std::complex<>)
  */
 #define TVMET_DECLARE_MACRO(NAME)				\
-template<class E, std::size_t Sz, class T>			\
+template<class E, int Sz, class T>			\
 inline								\
 XprVector<							\
   XprBinOp<							\
@@ -167,7 +167,7 @@ TVMET_DECLARE_MACRO(pow)
  * binary_function(XprVector<E1, Sz>, XprVector<E2, Sz>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class E1, class E2, std::size_t Sz>				\
+template<class E1, class E2, int Sz>				\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -205,7 +205,7 @@ TVMET_IMPLEMENT_MACRO(polar)
  * binary_function(XprVector<E, Sz>, POD)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, TP)					\
-template<class E, std::size_t Sz>					\
+template<class E, int Sz>					\
 inline									\
 XprVector<								\
   XprBinOp<								\
@@ -277,7 +277,7 @@ TVMET_IMPLEMENT_MACRO(pow, long double)
  * binary_function(XprVector<E, Sz>, std::complex<>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class E, std::size_t Sz, class T>				\
+template<class E, int Sz, class T>				\
 inline									\
 XprVector<								\
   XprBinOp<								\

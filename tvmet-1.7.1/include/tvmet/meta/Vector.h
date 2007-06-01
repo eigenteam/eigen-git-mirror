@@ -30,7 +30,7 @@
 namespace tvmet {
 
 /* forwards */
-template<class T, std::size_t Sz> class Vector;
+template<class T, int Sz> class Vector;
 
 
 namespace meta {
@@ -40,7 +40,7 @@ namespace meta {
  * \class Vector Vector.h "tvmet/meta/Vector.h"
  * \brief Meta %Vector class using expression templates
  */
-template<std::size_t Sz, std::size_t K=0>
+template<int Sz, int K=0>
 class Vector
 {
   Vector();

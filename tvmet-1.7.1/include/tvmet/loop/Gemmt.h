@@ -38,14 +38,14 @@ namespace loop {
  *        \f]
  * \par Example:
  * \code
- * template<class T, std::size_t Rows1, std::size_t Cols1, std::size_t Cols2>
+ * template<class T, int Rows1, int Cols1, int Cols2>
  * inline
  * void
  * prod(const Matrix<T, Rows1, Cols1>& lhs, const Matrix<T, Rows2, Cols1>& rhs,
  * 	Matrix<T, Rows1, Rows2>& dest)
  * {
- *   for (std::size_t i = 0; i != Rows1; ++i) {
- *     for (std::size_t j = 0; j != Rows2; ++j) {
+ *   for (int i = 0; i != Rows1; ++i) {
+ *     for (int j = 0; j != Rows2; ++j) {
  *       dest(i, j) = tvmet::loop::gemmt<Rows1, Cols1, Cols1>().prod(lhs, rhs, i, j);
  *     }
  *   }
@@ -54,8 +54,8 @@ namespace loop {
  * \note The number of cols of rhs matrix have to be equal to cols of rhs matrix.
  *       The result is a (Rows1 x Rows2) matrix.
  */
-template<std::size_t Rows1, std::size_t Cols1,
-	 std::size_t Cols2 /* unused */>
+template<int Rows1, int Cols1,
+	 int Cols2 /* unused */>
 class gemmt
 {
   gemmt(const gemmt&);
@@ -77,13 +77,13 @@ public:
     typename E1::value_type,
     typename E2::value_type
     >::value_type
-  prod(const E1& lhs, const E2& rhs, std::size_t i, std::size_t j) {
+  prod(const E1& lhs, const E2& rhs, int i, int j) {
     typename PromoteTraits<
       typename E1::value_type,
       typename E2::value_type
     >::value_type  				sum(0);
-    std::size_t 				k(0);
-    std::size_t 				n(N);
+    int 				k(0);
+    int 				n(N);
 
     // Duff's device
     switch(count % 8) {

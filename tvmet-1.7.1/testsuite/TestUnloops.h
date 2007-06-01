@@ -110,9 +110,9 @@ void TestUnloops<T>::mv_product(const LHS& A, const RHS& B, RES& X) {
     N = RHS::Size // is Vector
   };
 
-  for (std::size_t i = 0; i < M; i++){
+  for (int i = 0; i < M; i++){
     value_type sum(0);
-    for (std::size_t j = 0; j < N; j++){
+    for (int j = 0; j < N; j++){
       sum += A(i, j) * B(j);
     }
     X(i) = sum;
@@ -132,10 +132,10 @@ void TestUnloops<T>::mm_product(const LHS& A, const RHS& B, RES& X) {
     K = RHS::Rows
   };
 
-  for (std::size_t i = 0; i < M; ++i) {
-    for (std::size_t j = 0; j < N; ++j) {
+  for (int i = 0; i < M; ++i) {
+    for (int j = 0; j < N; ++j) {
       value_type sum(0);
-      for (std::size_t k = 0; k < K; ++k) {
+      for (int k = 0; k < K; ++k) {
 	sum += A(i, k) * B(k, j);
       }
       X(i, j) = sum;
@@ -156,10 +156,10 @@ void TestUnloops<T>::mtm_product(const LHS& A, const RHS& B, RES& X) {
     K = RHS::Rows
   };
 
-  for (std::size_t i = 0; i < N; i++){
-    for (std::size_t j = 0; j < N; j++){
+  for (int i = 0; i < N; i++){
+    for (int j = 0; j < N; j++){
       value_type sum(0);
-      for (std::size_t k = 0; k < K; k++){
+      for (int k = 0; k < K; k++){
 	sum += A(k, i) * B(k, j);
       }
       X(i, j) = sum;
@@ -180,10 +180,10 @@ void TestUnloops<T>::mmt_product(const LHS& A, const RHS& B, RES& X) {
     K = LHS::Cols
   };
 
-  for (std::size_t i = 0;i < N; i++){
-    for (std::size_t j = 0;j < N; j++){
+  for (int i = 0;i < N; i++){
+    for (int j = 0;j < N; j++){
       value_type sum(0);
-      for (std::size_t k = 0;k < N; k++){
+      for (int k = 0;k < N; k++){
 	sum += A(i, k)*A(j, k);
       }
       X(i, j) = sum;

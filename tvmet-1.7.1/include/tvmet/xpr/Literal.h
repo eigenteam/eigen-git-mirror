@@ -63,13 +63,13 @@ public:
 #endif
 
   /** Index operator, gives the value for vectors. */
-  value_type operator()(std::size_t) const { return m_data; }
+  value_type operator()(int) const { return m_data; }
 
   /** Index operator for arrays/matrices. */
-  value_type operator()(std::size_t, std::size_t) const { return m_data; }
+  value_type operator()(int, int) const { return m_data; }
 
 public: // debugging Xpr parse tree
-  void print_xpr(std::ostream& os, std::size_t l=0) const {
+  void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l++) << "XprLiteral[O=" << ops << "]<T="
        << typeid(value_type).name()
        << ">," << std::endl;

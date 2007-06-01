@@ -157,11 +157,11 @@
 		Matrix<> and XprMatrix<> moved here from Matrix.h.
 
 	* include/tvmet/MatrixImpl.h: Forgotten macro prefix TVMET_ added.
-		operator %=,^=,&=,|= have as argument std::size_t since these
+		operator %=,^=,&=,|= have as argument int since these
 		are bitops, only int's are allowed/usefull.
 
 	* include/tvmet/Matrix.h (class Matrix): operator %=,^=,&=,|= have
-		as argumeent std::size_t since these are bitops, only int's
+		as argumeent int since these are bitops, only int's
 		are allowed/usefull.
 
 	* include/tvmet/VectorOperators.h: operators for /=, %= ... <<= for
@@ -676,7 +676,7 @@
 		PromoteTraits<T1, T2>::value_type' is implicitly a typename,
 		changed, (class MetaMV ): same here.
 
-	* include/tvmet/: brute-force query-replace size_t with std::size_t
+	* include/tvmet/: brute-force query-replace int with int
 
 	* doc/intro.doxy: slightly changed and anhanced docs due to positive
 		test with stlport and gcc-3.1.

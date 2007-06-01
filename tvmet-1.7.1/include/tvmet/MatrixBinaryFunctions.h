@@ -36,7 +36,7 @@ namespace tvmet {
  * binary_function(XprMatrix<E, Rows, Cols>, Matrix<T, Rows, Cols>)
  */
 #define TVMET_DECLARE_MACRO(NAME)					\
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>	\
+template<class T1, class T2, int Rows, int Cols>	\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
@@ -48,7 +48,7 @@ XprMatrix<								\
 NAME(const Matrix<T1, Rows, Cols>& lhs, 				\
      const Matrix<T2, Cols, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
 									\
-template<class E, class T, std::size_t Rows, std::size_t Cols>		\
+template<class E, class T, int Rows, int Cols>		\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
@@ -60,7 +60,7 @@ XprMatrix<								\
 NAME(const XprMatrix<E, Rows, Cols>& lhs, 				\
      const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
 									\
-template<class E, class T, std::size_t Rows, std::size_t Cols>		\
+template<class E, class T, int Rows, int Cols>		\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
@@ -90,7 +90,7 @@ TVMET_DECLARE_MACRO(polar)
  * binary_function(Matrix<T, Rows, Cols>, POD)
  */
 #define TVMET_DECLARE_MACRO(NAME, TP)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, TP >,						\
@@ -153,7 +153,7 @@ TVMET_DECLARE_MACRO(pow, long double)
  */
 
 #if defined(TVMET_HAVE_COMPLEX) && defined(TVMET_HAVE_COMPLEX_MATH1)
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprBinOp<
     Fcnl_pow<T, std::complex<T> >,
@@ -166,7 +166,7 @@ pow(const Matrix<T, Rows, Cols>& lhs,
     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprBinOp<
     Fcnl_pow< std::complex<T>, std::complex<T> >,
@@ -183,7 +183,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs,
  * \fn pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, const T& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprBinOp<
     Fcnl_pow<std::complex<T>, T>,
@@ -200,7 +200,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs,
  * \fn pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, int rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprBinOp<
     Fcnl_pow<std::complex<T>, int>,
@@ -213,7 +213,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs,
     int rhs) TVMET_CXX_ALWAYS_INLINE;
 
 
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 XprMatrix<
   XprBinOp<
     Fcnl_polar<T, T>,
@@ -243,7 +243,7 @@ polar(const Matrix<T, Rows, Cols>& lhs,
  * binary_function(XprMatrix<E, Rows, Cols>, Matrix<T, Rows, Cols>)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						\
-template<class T1, class T2, std::size_t Rows, std::size_t Cols>		\
+template<class T1, class T2, int Rows, int Cols>		\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -263,7 +263,7 @@ NAME(const Matrix<T1, Rows, Cols>& lhs, const Matrix<T2, Cols, Cols>& rhs) {	\
     expr_type(lhs.const_ref(), rhs.const_ref()));				\
 }										\
 										\
-template<class E, class T, std::size_t Rows, std::size_t Cols>			\
+template<class E, class T, int Rows, int Cols>			\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -283,7 +283,7 @@ NAME(const XprMatrix<E, Rows, Cols>& lhs, const Matrix<T, Rows, Cols>& rhs) {	\
     expr_type(lhs, rhs.const_ref()));						\
 }										\
 										\
-template<class E, class T, std::size_t Rows, std::size_t Cols>			\
+template<class E, class T, int Rows, int Cols>			\
 inline										\
 XprMatrix<									\
   XprBinOp<									\
@@ -320,7 +320,7 @@ TVMET_IMPLEMENT_MACRO(polar)
  * binary_function(Matrix<T, Rows, Cols>, POD)
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, TP)					\
-template<class T, std::size_t Rows, std::size_t Cols>			\
+template<class T, int Rows, int Cols>			\
 inline									\
 XprMatrix<								\
   XprBinOp<								\
@@ -396,7 +396,7 @@ TVMET_IMPLEMENT_MACRO(pow, long double)
  * \fn pow(const Matrix<T, Rows, Cols>& lhs, const std::complex<T>& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprBinOp<
@@ -421,7 +421,7 @@ pow(const Matrix<T, Rows, Cols>& lhs, const std::complex<T>& rhs) {
  * \fn pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, const std::complex<T>& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprBinOp<
@@ -446,7 +446,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, const std::complex<T>& rhs) 
  * \fn pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, const T& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprBinOp<
@@ -471,7 +471,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, const T& rhs) {
  * \fn pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, int rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprBinOp<
@@ -496,7 +496,7 @@ pow(const Matrix<std::complex<T>, Rows, Cols>& lhs, int rhs) {
  * \fn polar(const Matrix<T, Rows, Cols>& lhs, const T& rhs)
  * \ingroup _binary_function
  */
-template<class T, std::size_t Rows, std::size_t Cols>
+template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprBinOp<
