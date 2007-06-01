@@ -1,1 +1,1 @@
-add_subdirectory(tvmet)
+ADD_SUBDIRECTORY(tvmet)

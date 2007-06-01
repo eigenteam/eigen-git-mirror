@@ -20,7 +20,7 @@ CHECK_LONG_DOUBLE   (TVMET_HAVE_LONG_DOUBLE)
 CHECK_LONG_DOUBLE   (TVMET_HAVE_LONG_LONG)
 
 # the following are directories where stuff will be installed to
-set(INCLUDE_INSTALL_DIR
+SET(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/tvmet"
     CACHE PATH
     "The subdirectory to the header prefix"
@@ -29,8 +29,12 @@ set(INCLUDE_INSTALL_DIR
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                ${INCLUDE_INSTALL_DIR}/config.h)
 
-install(FILES 
+INSTALL(FILES 
   ${tvmet_header_SRCS}
   DESTINATION ${INCLUDE_INSTALL_DIR}
   )
 
+ADD_SUBDIRECTORY(loop)
+ADD_SUBDIRECTORY(meta)
+ADD_SUBDIRECTORY(xpr)
+# don't install the util/ subdirectory as it's only used for examples and tests
