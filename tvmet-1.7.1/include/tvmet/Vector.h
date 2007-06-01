@@ -195,25 +195,14 @@ public: // STL  interface
 
 public:
   /** Default Destructor */
-  ~Vector() {
-#if defined(TVMET_DYNAMIC_MEMORY)
-    delete [] m_data;
-#endif
-  }
+  ~Vector() {}
 
   /** Default Constructor. The allocated memory region isn't cleared. If you want
    a clean use the constructor argument zero. */
-  explicit Vector()
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
-  { }
+  explicit Vector() {}
 
   /** Copy Constructor, not explicit! */
   Vector(const Vector& rhs)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     *this = XprVector<ConstReference, Size>(rhs.const_ref());
   }
@@ -224,9 +213,6 @@ public:
    */
   template<class InputIterator>
   explicit Vector(InputIterator first, InputIterator last)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_RT_CONDITION( static_cast<std::size_t>(std::distance(first, last)) <= Size,
 			"InputIterator doesn't fits in size" )
@@ -239,9 +225,6 @@ public:
    */
   template<class InputIterator>
   explicit Vector(InputIterator first, std::size_t sz)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_RT_CONDITION( sz <= Size, "InputIterator doesn't fits in size" )
     std::copy(first, first + sz, m_data);
@@ -249,9 +232,6 @@ public:
 
   /** Constructor with initializer for all elements.  */
   explicit Vector(value_type rhs)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     typedef XprLiteral<value_type> expr_type;
     *this = XprVector<expr_type, Size>(expr_type(rhs));
@@ -259,9 +239,6 @@ public:
 
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(2 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1;
@@ -269,9 +246,6 @@ public:
 
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(3 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2;
@@ -279,9 +253,6 @@ public:
 
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(4 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3;
@@ -290,9 +261,6 @@ public:
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(5 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -301,9 +269,6 @@ public:
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4, value_type x5)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(6 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -313,9 +278,6 @@ public:
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4, value_type x5, value_type x6)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(7 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -325,9 +287,6 @@ public:
   /** Default Constructor with initializer list. */
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4, value_type x5, value_type x6, value_type x7)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(8 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -338,9 +297,6 @@ public:
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4, value_type x5, value_type x6, value_type x7,
 		  value_type x8)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(9 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -351,9 +307,6 @@ public:
   explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
 		  value_type x4, value_type x5, value_type x6, value_type x7,
 		  value_type x8, value_type x9)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_CT_CONDITION(10 <= Size, ArgumentList_is_too_long)
     m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
@@ -363,9 +316,6 @@ public:
   /** Construct a vector by expression. */
   template <class E>
   explicit Vector(const XprVector<E, Size>& e)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     *this = e;
   }
@@ -537,11 +487,7 @@ public: // io
 private:
   /** The data of vector self. */
 
-#if defined(TVMET_DYNAMIC_MEMORY)
-  value_type*						m_data;
-#else
-  value_type 						m_data[Size];
-#endif
+  value_type m_data[Size];
 };
 
 

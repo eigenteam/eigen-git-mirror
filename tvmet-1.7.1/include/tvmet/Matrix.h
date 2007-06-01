@@ -207,25 +207,14 @@ public:
 
 public:
   /** Default Destructor */
-  ~Matrix() {
-#if defined(TVMET_DYNAMIC_MEMORY)
-    delete [] m_data;
-#endif
-  }
+  ~Matrix() {}
 
   /** Default Constructor. The allocated memory region isn't cleared. If you want
    a clean use the constructor argument zero. */
-  explicit Matrix()
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
-  { }
+  explicit Matrix() {}
 
   /** Copy Constructor, not explicit! */
   Matrix(const Matrix& rhs)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     *this = XprMatrix<ConstReference, Rows, Cols>(rhs.const_ref());
   }
@@ -236,9 +225,6 @@ public:
    */
   template<class InputIterator>
   explicit Matrix(InputIterator first, InputIterator last)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_RT_CONDITION(static_cast<std::size_t>(std::distance(first, last)) <= Size,
 		       "InputIterator doesn't fits in size" )
@@ -251,9 +237,6 @@ public:
    */
   template<class InputIterator>
   explicit Matrix(InputIterator first, std::size_t sz)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     TVMET_RT_CONDITION(sz <= Size, "InputIterator doesn't fits in size" )
     std::copy(first, first + sz, m_data);
@@ -261,9 +244,6 @@ public:
 
   /** Construct the matrix by value. */
   explicit Matrix(value_type rhs)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     typedef XprLiteral<value_type> expr_type;
     *this = XprMatrix<expr_type, Rows, Cols>(expr_type(rhs));
@@ -272,9 +252,6 @@ public:
   /** Construct a matrix by expression. */
   template<class E>
   explicit Matrix(const XprMatrix<E, Rows, Cols>& e)
-#if defined(TVMET_DYNAMIC_MEMORY)
-    : m_data( new value_type[Size] )
-#endif
   {
     *this = e;
   }
@@ -450,11 +427,7 @@ public: // io
 
 private:
   /** The data of matrix self. */
-#if defined(TVMET_DYNAMIC_MEMORY)
-  value_type*						m_data;
-#else
-  value_type 						m_data[Size];
-#endif
+  value_type m_data[Size];
 };
 
 
