@@ -28,7 +28,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #cmakedefine TVMET_HAVE_UNISTD_H  1
 
-#define _tvmet_restrict __restrict__
+#define _tvmet_restrict @TVMET_RESTRICT_KEYWORD@
 
 /* _INCLUDE_TVMET_CONFIG_H */
 #endif
