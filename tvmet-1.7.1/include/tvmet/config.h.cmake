@@ -30,5 +30,7 @@
 
 #define _tvmet_restrict @TVMET_RESTRICT_KEYWORD@
 
+#define _tvmet_always_inline @TVMET_ALWAYS_INLINE@
+
 /* _INCLUDE_TVMET_CONFIG_H */
 #endif

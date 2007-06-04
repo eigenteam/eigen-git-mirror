@@ -7,6 +7,7 @@ INCLUDE (CheckSysvMath)
 INCLUDE (CheckLongDouble)
 INCLUDE (CheckLongLong)
 INCLUDE (CheckRestrictKeyword)
+INCLUDE (CheckAlwaysInline)
 
 FILE(GLOB tvmet_header_SRCS "*.h")
 
@@ -20,6 +21,7 @@ CHECK_SYSV_MATH         (TVMET_HAVE_SYSV_MATH)
 CHECK_LONG_DOUBLE       (TVMET_HAVE_LONG_DOUBLE)
 CHECK_LONG_DOUBLE       (TVMET_HAVE_LONG_LONG)
 CHECK_RESTRICT_KEYWORD  (TVMET_RESTRICT_KEYWORD)
+CHECK_ALWAYS_INLINE     (TVMET_ALWAYS_INLINE)
 
 # the following are directories where stuff will be installed to
 SET(INCLUDE_INSTALL_DIR
