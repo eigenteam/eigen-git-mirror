@@ -43,7 +43,7 @@ class IoPrintHelper {
 
 private:
   static std::streamsize width(const C& e) {
-    std::streamsize w = static_cast<std::streamsize>(std::log10(max(abs(e)))+1);
+    std::streamsize w = static_cast<std::streamsize>(10); //FIXME arbitrary value
     return w > 0 ? w : 0;
   }
 

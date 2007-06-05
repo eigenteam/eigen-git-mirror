@@ -27,29 +27,6 @@
 #include <tvmet/config.h>
 
 
-/***********************************************************************
- * Compiler specifics
- ***********************************************************************/
-#if defined(__GNUC__)
-#  include <tvmet/config/config-gcc.h>
-#endif
-
-#if defined(__ICC)
-#  include <tvmet/config/config-icc.h>
-#endif
-
-#if defined(__KCC)
-#  include <tvmet/config/config-kcc.h>
-#endif
-
-#if defined(__PGI)
-#  include <tvmet/config/config-pgi.h>
-#endif
-
-// vc7.1: 1310 and vc7.0 1300
-#if defined(_MSC_VER) && (_MSC_VER >= 1310)
-#  include <tvmet/config/config-vc71.h>
-#endif
 
 /*
  * other compiler specific stuff

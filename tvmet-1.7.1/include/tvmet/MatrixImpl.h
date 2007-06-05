@@ -71,7 +71,6 @@ std::ostream& Matrix<T, NRows, NCols>::print_on(std::ostream& os) const
   return os;
 }
 
-
 /*
  * member operators with scalars, per se element wise
  */

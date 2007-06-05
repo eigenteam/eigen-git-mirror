@@ -24,6 +24,8 @@
 #ifndef TVMET_XPR_MMTPRODUCT_H
 #define TVMET_XPR_MMTPRODUCT_H
 
+#include <cassert>
+
 #include <tvmet/meta/Gemmt.h>
 #include <tvmet/loop/Gemmt.h>
 
@@ -100,7 +102,7 @@ private:
 public:
   /** index operator for arrays/matrices */
   value_type operator()(int i, int j) const {
-    TVMET_RT_CONDITION((i < Rows1) && (j < Rows2), "XprMMtProduct Bounce Violation")
+    assert((i < Rows1) && (j < Rows2));
     return do_gemmt(dispatch<use_meta>(), m_lhs, m_rhs, i, j);
   }
 

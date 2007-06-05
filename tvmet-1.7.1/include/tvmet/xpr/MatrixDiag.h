@@ -21,6 +21,8 @@
  * $Id: MatrixDiag.h,v 1.13 2004/09/16 09:14:18 opetzold Exp $
  */
 
+#include <cassert>
+
 #ifndef TVMET_XPR_MATRIX_DIAG_H
 #define TVMET_XPR_MATRIX_DIAG_H
 
@@ -63,7 +65,7 @@ public:
 
   /** index operator for arrays/matrizes */
   value_type operator()(int i) const {
-    TVMET_RT_CONDITION(i < Sz, "XprMatrixDiag Bounce Violation")
+    assert(i < Sz);
     return m_expr(i, i);
   }
 

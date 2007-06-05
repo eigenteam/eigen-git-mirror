@@ -84,7 +84,7 @@ public:
 
  /** const index operator for vectors. */
   value_type operator()(int i) const {
-    TVMET_RT_CONDITION(i < Size, "XprVector Bounce Violation")
+    assert(i < Size);
     return m_expr(i);
   }
 
@@ -145,7 +145,6 @@ private:
 
 #include <tvmet/xpr/VectorFunctions.h>
 #include <tvmet/xpr/VectorBinaryFunctions.h>
-#include <tvmet/xpr/VectorUnaryFunctions.h>
 #include <tvmet/xpr/VectorOperators.h>
 #include <tvmet/xpr/Eval.h>
 

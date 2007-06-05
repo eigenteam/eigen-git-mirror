@@ -24,6 +24,8 @@
 #ifndef TVMET_XPR_MATRIX_H
 #define TVMET_XPR_MATRIX_H
 
+#include <cassert>
+
 #include <tvmet/meta/Matrix.h>
 #include <tvmet/loop/Matrix.h>
 
@@ -87,7 +89,7 @@ public:
 
   /** access by index. */
   value_type operator()(int i, int j) const {
-    TVMET_RT_CONDITION((i < Rows) && (j < Cols), "XprMatrix Bounce Violation")
+    assert((i < Rows) && (j < Cols));
     return m_expr(i, j);
   }
 
@@ -153,7 +155,6 @@ private:
 
 #include <tvmet/xpr/MatrixFunctions.h>
 #include <tvmet/xpr/MatrixBinaryFunctions.h>
-#include <tvmet/xpr/MatrixUnaryFunctions.h>
 #include <tvmet/xpr/MatrixOperators.h>
 #include <tvmet/xpr/Eval.h>
 

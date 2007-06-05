@@ -26,71 +26,6 @@
 
 namespace tvmet {
 
-
-/*********************************************************
- * PART I: DECLARATION
- *********************************************************/
-
-/*
- * unary_function(Matrix<T, Rows, Cols>)
- */
-#define TVMET_DECLARE_MACRO(NAME)				\
-template<class T, int Rows, int Cols>		\
-inline								\
-XprMatrix<							\
-  XprUnOp<							\
-    Fcnl_##NAME<T>,						\
-    MatrixConstReference<T, Rows, Cols>				\
-  >,								\
-  Rows, Cols							\
->								\
-NAME(const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
-
-TVMET_DECLARE_MACRO(abs)
-TVMET_DECLARE_MACRO(cbrt)
-TVMET_DECLARE_MACRO(ceil)
-TVMET_DECLARE_MACRO(floor)
-TVMET_DECLARE_MACRO(rint)
-TVMET_DECLARE_MACRO(sin)
-TVMET_DECLARE_MACRO(cos)
-TVMET_DECLARE_MACRO(tan)
-TVMET_DECLARE_MACRO(sinh)
-TVMET_DECLARE_MACRO(cosh)
-TVMET_DECLARE_MACRO(tanh)
-TVMET_DECLARE_MACRO(asin)
-TVMET_DECLARE_MACRO(acos)
-TVMET_DECLARE_MACRO(atan)
-TVMET_DECLARE_MACRO(exp)
-TVMET_DECLARE_MACRO(log)
-TVMET_DECLARE_MACRO(log10)
-TVMET_DECLARE_MACRO(sqrt)
-
-#if defined(TVMET_HAVE_IEEE_MATH)
-TVMET_DECLARE_MACRO(asinh)
-TVMET_DECLARE_MACRO(acosh)
-TVMET_DECLARE_MACRO(atanh)
-TVMET_DECLARE_MACRO(expm1)
-TVMET_DECLARE_MACRO(log1p)
-TVMET_DECLARE_MACRO(erf)
-TVMET_DECLARE_MACRO(erfc)
-TVMET_DECLARE_MACRO(j0)
-TVMET_DECLARE_MACRO(j1)
-TVMET_DECLARE_MACRO(y0)
-TVMET_DECLARE_MACRO(y1)
-TVMET_DECLARE_MACRO(lgamma)
-/** \todo isnan etc. - default return is only an int! */
-#if !defined(TVMET_NO_IEEE_MATH_ISNAN)
-TVMET_DECLARE_MACRO(isnan)
-#endif
-#if !defined(TVMET_NO_IEEE_MATH_ISINF)
-TVMET_DECLARE_MACRO(isinf)
-#endif
-TVMET_DECLARE_MACRO(finite)
-#endif // defined(TVMET_HAVE_IEEE_MATH)
-
-#undef TVMET_DECLARE_MACRO
-
-
 /*
  * unary_function(Matrix<std::complex<T>, Rows, Cols>)
  */
@@ -109,85 +44,11 @@ NAME(const Matrix<std::complex<T>, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
 
 TVMET_DECLARE_MACRO(real)
 TVMET_DECLARE_MACRO(imag)
-TVMET_DECLARE_MACRO(arg)
-TVMET_DECLARE_MACRO(norm)
 TVMET_DECLARE_MACRO(conj)
 
 #undef TVMET_DECLARE_MACRO
 
 #endif // defined(TVMET_HAVE_COMPLEX)
-
-
-/*********************************************************
- * PART II: IMPLEMENTATION
- *********************************************************/
-
-
-/*
- * unary_function(Matrix<T, Rows, Cols>)
- */
-#define TVMET_IMPLEMENT_MACRO(NAME)					\
-template<class T, int Rows, int Cols>			\
-inline									\
-XprMatrix<								\
-  XprUnOp<								\
-    Fcnl_##NAME<T>,							\
-    MatrixConstReference<T, Rows, Cols>					\
-  >,									\
-  Rows, Cols								\
->									\
-NAME(const Matrix<T, Rows, Cols>& rhs) {				\
-  typedef XprUnOp<							\
-    Fcnl_##NAME<T>,							\
-    MatrixConstReference<T, Rows, Cols>					\
-  > 							expr_type;	\
-  return XprMatrix<expr_type, Rows, Cols>(expr_type(rhs.const_ref()));	\
-}
-
-TVMET_IMPLEMENT_MACRO(abs)
-TVMET_IMPLEMENT_MACRO(cbrt)
-TVMET_IMPLEMENT_MACRO(ceil)
-TVMET_IMPLEMENT_MACRO(floor)
-TVMET_IMPLEMENT_MACRO(rint)
-TVMET_IMPLEMENT_MACRO(sin)
-TVMET_IMPLEMENT_MACRO(cos)
-TVMET_IMPLEMENT_MACRO(tan)
-TVMET_IMPLEMENT_MACRO(sinh)
-TVMET_IMPLEMENT_MACRO(cosh)
-TVMET_IMPLEMENT_MACRO(tanh)
-TVMET_IMPLEMENT_MACRO(asin)
-TVMET_IMPLEMENT_MACRO(acos)
-TVMET_IMPLEMENT_MACRO(atan)
-TVMET_IMPLEMENT_MACRO(exp)
-TVMET_IMPLEMENT_MACRO(log)
-TVMET_IMPLEMENT_MACRO(log10)
-TVMET_IMPLEMENT_MACRO(sqrt)
-
-#if defined(TVMET_HAVE_IEEE_MATH)
-TVMET_IMPLEMENT_MACRO(asinh)
-TVMET_IMPLEMENT_MACRO(acosh)
-TVMET_IMPLEMENT_MACRO(atanh)
-TVMET_IMPLEMENT_MACRO(expm1)
-TVMET_IMPLEMENT_MACRO(log1p)
-TVMET_IMPLEMENT_MACRO(erf)
-TVMET_IMPLEMENT_MACRO(erfc)
-TVMET_IMPLEMENT_MACRO(j0)
-TVMET_IMPLEMENT_MACRO(j1)
-TVMET_IMPLEMENT_MACRO(y0)
-TVMET_IMPLEMENT_MACRO(y1)
-TVMET_IMPLEMENT_MACRO(lgamma)
-/** \todo isnan etc. - default return is only an int! */
-#if !defined(TVMET_NO_IEEE_MATH_ISNAN)
-TVMET_IMPLEMENT_MACRO(isnan)
-#endif
-#if !defined(TVMET_NO_IEEE_MATH_ISINF)
-TVMET_IMPLEMENT_MACRO(isinf)
-#endif
-TVMET_IMPLEMENT_MACRO(finite)
-#endif // defined(TVMET_HAVE_IEEE_MATH)
-
-#undef TVMET_IMPLEMENT_MACRO
-
 
 /*
  * unary_function(Matrix<std::complex<T>, Rows, Cols>)
@@ -213,8 +74,6 @@ NAME(const Matrix<std::complex<T>, Rows, Cols>& rhs) {			\
 
 TVMET_IMPLEMENT_MACRO(real)
 TVMET_IMPLEMENT_MACRO(imag)
-TVMET_IMPLEMENT_MACRO(arg)
-TVMET_IMPLEMENT_MACRO(norm)
 TVMET_IMPLEMENT_MACRO(conj)
 
 #undef TVMET_IMPLEMENT_MACRO

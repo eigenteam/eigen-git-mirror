@@ -21,6 +21,8 @@
  * $Id: MatrixRow.h,v 1.14 2004/09/16 09:14:18 opetzold Exp $
  */
 
+#include <cassert>
+
 #ifndef TVMET_XPR_MATRIX_ROW_H
 #define TVMET_XPR_MATRIX_ROW_H
 
@@ -53,7 +55,7 @@ public:
   explicit XprMatrixRow(const E& e, int no)
     : m_expr(e), m_row(no)
   {
-    TVMET_RT_CONDITION(no < Rows, "XprMatrixRow Bounce Violation")
+    assert(no < Rows);
   }
 
   /** Copy Constructor. Not explicit! */
@@ -64,7 +66,7 @@ public:
 #endif
 
   value_type operator()(int j) const {
-    TVMET_RT_CONDITION(j < Cols, "XprMatrixRow Bounce Violation")
+    assert(j < Cols);
     return m_expr(m_row, j);
   }
 

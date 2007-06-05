@@ -24,6 +24,8 @@
 #ifndef TVMET_XPR_MVPRODUCT_H
 #define TVMET_XPR_MVPRODUCT_H
 
+#include <cassert>
+
 #include <tvmet/meta/Gemv.h>
 #include <tvmet/loop/Gemv.h>
 
@@ -96,7 +98,7 @@ public:
   /** index operator, returns the expression by index. This is the vector
       style since a matrix*vector gives a vector. */
   value_type operator()(int j) const {
-    TVMET_RT_CONDITION(j < Rows , "XprMVProduct Bounce Violation")
+    assert(j < Rows);
     return do_gemv(dispatch<use_meta>(), m_lhs, m_rhs, j);
   }
 
