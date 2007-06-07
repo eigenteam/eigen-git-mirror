@@ -41,4 +41,5 @@ INSTALL(FILES
 ADD_SUBDIRECTORY(loop)
 ADD_SUBDIRECTORY(meta)
 ADD_SUBDIRECTORY(xpr)
+ADD_SUBDIRECTORY(util)
 # don't install the util/ subdirectory as it's only used for examples and tests

@@ -1,6 +1,6 @@
 project(Eigen)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 OPTION(BUILD_TESTS "Build tests"  OFF)
 OPTION(BUILD_EXAMPLES "Build examples"  OFF)

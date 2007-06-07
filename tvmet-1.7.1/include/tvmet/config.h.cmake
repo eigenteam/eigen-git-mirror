@@ -13,7 +13,9 @@
 /* Define if the compiler supports IEEE math library */
 #cmakedefine TVMET_HAVE_IEEE_MATH
 
-/* Define to 1 if the long double type */
+/* Define to 1 if the long double type is supported and the
+ * standard math library provides math functions for this type
+ */
 #cmakedefine TVMET_HAVE_LONG_DOUBLE  1 
 
 /* Define if the compiler supports the long_long type */
