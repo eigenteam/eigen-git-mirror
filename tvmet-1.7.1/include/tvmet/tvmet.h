@@ -26,7 +26,11 @@
 
 #include <tvmet/config.h>
 
-
+// this might not work on all platforms. Specifically, Qt uses a
+// slightly different solution in the case when compiler==intel &&
+// os != windows. See in Qt's source code, the definition of Q_UNUSED
+// in src/corelib/global/qglobal.h
+#define TVMET_UNUSED(x) (void)x
 
 /*
  * other compiler specific stuff

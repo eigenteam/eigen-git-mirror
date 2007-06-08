@@ -135,7 +135,7 @@ struct NumericTraits<char> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -195,7 +195,7 @@ struct NumericTraits<unsigned char> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   base_type abs(argument_type x) { return std::abs(x); }
@@ -251,7 +251,7 @@ struct NumericTraits<short int> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -315,7 +315,7 @@ struct NumericTraits<short unsigned int> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   base_type abs(argument_type x) { return std::abs(x); }
@@ -371,7 +371,7 @@ struct NumericTraits<int> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -435,7 +435,7 @@ struct NumericTraits<unsigned int> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   base_type abs(argument_type x) { return x; }
@@ -491,7 +491,7 @@ struct NumericTraits<long> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -555,7 +555,7 @@ struct NumericTraits<unsigned long> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   base_type abs(argument_type x) { return x; }
@@ -607,7 +607,7 @@ struct NumericTraits<float> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -673,7 +673,7 @@ struct NumericTraits<double> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
@@ -736,7 +736,7 @@ struct NumericTraits<long double> {
   base_type real(argument_type x) { return x; }
 
   static inline
-  base_type imag(argument_type x) { return 0; }
+  base_type imag(argument_type x) { TVMET_UNUSED(x); return 0; }
 
   static inline
   value_type conj(argument_type x) { return x; }
