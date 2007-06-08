@@ -1,8 +1,5 @@
-/*
- * Tiny Vector Matrix Library
- * Dense Vector Matrix Libary of Tiny size using Expression Templates
- *
- * Copyright (C) 2001 - 2003 Olaf Petzold <opetzold@users.sourceforge.net>
+/* This file is part of Eigen, a C++ template library for linear algebra
+ * Copyright (C) 2007 Benoit Jacob <jacob@math.jussieu.fr>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,23 +15,11 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: SelfTest.cc,v 1.1 2004/04/24 11:55:15 opetzold Exp $
+ * $Id: main.cc,v 1.1 2004/04/24 11:55:15 opetzold Exp $
  */
 
-#include <iostream>
-#include <complex>
+#include "main.h"
 
-#include <SelfTest.h>
-#include <cppunit/extensions/HelperMacros.h>
+QTEST_APPLESS_MAIN( TvmetTestSuite )
+#include "main.moc"
 
-
-/****************************************************************************
- * instance
- ****************************************************************************/
-
-CPPUNIT_TEST_SUITE_REGISTRATION( SelfTest<double> );
-CPPUNIT_TEST_SUITE_REGISTRATION( SelfTest<int> );
-
-#if defined(TVMET_HAVE_COMPLEX)
-CPPUNIT_TEST_SUITE_REGISTRATION( SelfTest< std::complex<double> > );
-#endif
