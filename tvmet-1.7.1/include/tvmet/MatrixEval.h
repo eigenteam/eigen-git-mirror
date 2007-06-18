@@ -269,16 +269,8 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, const XprMatrix<E2, Rows, Cols>& e2, P
 
 TVMET_IMPLEMENT_MACRO(int)
 
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_IMPLEMENT_MACRO(long long int)
-#endif
-
 TVMET_IMPLEMENT_MACRO(float)
 TVMET_IMPLEMENT_MACRO(double)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_IMPLEMENT_MACRO(long double)
-#endif
 
 #undef TVMET_IMPLEMENT_MACRO
 

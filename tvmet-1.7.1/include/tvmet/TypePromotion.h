@@ -61,44 +61,16 @@ struct PrecisionTraits< T > {        					\
  * pod types
  */
 TVMET_PRECISION(int, 100)
-TVMET_PRECISION(unsigned int, 200)
-TVMET_PRECISION(long, 300)
-TVMET_PRECISION(unsigned long, 400)
-
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_PRECISION(long long, 500)
-TVMET_PRECISION(unsigned long long, 600)
-#endif // defined(TVMET_HAVE_LONG_LONG)
-
 TVMET_PRECISION(float, 700)
 TVMET_PRECISION(double, 800)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_PRECISION(long double, 900)
-#endif // defined(TVMET_HAVE_LONG_DOUBLE)
-
 
 /*
  * complex types
  */
 #if defined(TVMET_HAVE_COMPLEX)
 TVMET_PRECISION(std::complex<int>, 1000)
-TVMET_PRECISION(std::complex<unsigned int>, 1100)
-TVMET_PRECISION(std::complex<long>, 1200)
-TVMET_PRECISION(std::complex<unsigned long>, 1300)
-
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_PRECISION(std::complex<long long>, 1400)
-TVMET_PRECISION(std::complex<unsigned long long>, 1500)
-#endif // defined(TVMET_HAVE_LONG_LONG)
-
 TVMET_PRECISION(std::complex<float>, 1600)
 TVMET_PRECISION(std::complex<double>, 1700)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_PRECISION(std::complex<long double>, 1800)
-#endif // defined(TVMET_HAVE_LONG_DOUBLE)
-
 #endif // defined(TVMET_HAVE_COMPLEX)
 
 
@@ -132,33 +104,6 @@ template<class T>
 struct AutopromoteTraits {
   typedef T value_type;
 };
-
-
-/*
- * Defines a macro for specializing/defining
- * the promotion traits. bool, char, unsigned char, short int, etc. will
- * be autopromote to int, as in C and C++.
- */
-#define TVMET_AUTOPROMOTE(T1,T2)   					\
-template<>                          				 	\
-struct AutopromoteTraits<T1> {     					\
-  typedef T2 value_type;          					\
-};
-
-TVMET_AUTOPROMOTE(bool, int)
-TVMET_AUTOPROMOTE(char, int)
-TVMET_AUTOPROMOTE(unsigned char, int)
-TVMET_AUTOPROMOTE(short int, int)
-TVMET_AUTOPROMOTE(short unsigned int, unsigned int)
-
-/** \class AutopromoteTraits<bool>	TypePromotion.h "tvmet/TypePromotion.h" */
-/** \class AutopromoteTraits<char>	TypePromotion.h "tvmet/TypePromotion.h" */
-/** \class AutopromoteTraits<unsigned char> TypePromotion.h "tvmet/TypePromotion.h" */
-/** \class AutopromoteTraits<short int>	TypePromotion.h "tvmet/TypePromotion.h" */
-/** \class AutopromoteTraits<short unsigned int> TypePromotion.h "tvmet/TypePromotion.h" */
-
-#undef TVMET_AUTOPROMOTE
-
 
 /**
  * \class promoteTo TypePromotion.h "tvmet/TypePromotion.h"

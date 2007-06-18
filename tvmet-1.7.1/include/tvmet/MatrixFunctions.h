@@ -130,13 +130,6 @@ TVMET_DECLARE_MACRO(sub, int)
 TVMET_DECLARE_MACRO(mul, int)
 TVMET_DECLARE_MACRO(div, int)
 
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_DECLARE_MACRO(add, long long int)
-TVMET_DECLARE_MACRO(sub, long long int)
-TVMET_DECLARE_MACRO(mul, long long int)
-TVMET_DECLARE_MACRO(div, long long int)
-#endif
-
 TVMET_DECLARE_MACRO(add, float)
 TVMET_DECLARE_MACRO(sub, float)
 TVMET_DECLARE_MACRO(mul, float)
@@ -146,13 +139,6 @@ TVMET_DECLARE_MACRO(add, double)
 TVMET_DECLARE_MACRO(sub, double)
 TVMET_DECLARE_MACRO(mul, double)
 TVMET_DECLARE_MACRO(div, double)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_DECLARE_MACRO(add, long double)
-TVMET_DECLARE_MACRO(sub, long double)
-TVMET_DECLARE_MACRO(mul, long double)
-TVMET_DECLARE_MACRO(div, long double)
-#endif
 
 #undef TVMET_DECLARE_MACRO
 
@@ -601,13 +587,6 @@ TVMET_IMPLEMENT_MACRO(sub, int)
 TVMET_IMPLEMENT_MACRO(mul, int)
 TVMET_IMPLEMENT_MACRO(div, int)
 
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_IMPLEMENT_MACRO(add, long long int)
-TVMET_IMPLEMENT_MACRO(sub, long long int)
-TVMET_IMPLEMENT_MACRO(mul, long long int)
-TVMET_IMPLEMENT_MACRO(div, long long int)
-#endif
-
 TVMET_IMPLEMENT_MACRO(add, float)
 TVMET_IMPLEMENT_MACRO(sub, float)
 TVMET_IMPLEMENT_MACRO(mul, float)
@@ -617,13 +596,6 @@ TVMET_IMPLEMENT_MACRO(add, double)
 TVMET_IMPLEMENT_MACRO(sub, double)
 TVMET_IMPLEMENT_MACRO(mul, double)
 TVMET_IMPLEMENT_MACRO(div, double)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_IMPLEMENT_MACRO(add, long double)
-TVMET_IMPLEMENT_MACRO(sub, long double)
-TVMET_IMPLEMENT_MACRO(mul, long double)
-TVMET_IMPLEMENT_MACRO(div, long double)
-#endif
 
 #undef TVMET_IMPLEMENT_MACRO
 

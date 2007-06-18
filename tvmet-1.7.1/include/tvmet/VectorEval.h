@@ -265,16 +265,8 @@ eval(const XprVector<E1, Sz>& e1, const XprVector<E2, Sz>& e2, POD x3) { \
 
 TVMET_IMPLEMENT_MACRO(int)
 
-#if defined(TVMET_HAVE_LONG_LONG)
-TVMET_IMPLEMENT_MACRO(long long int)
-#endif // defined(TVMET_HAVE_LONG_LONG)
-
 TVMET_IMPLEMENT_MACRO(float)
 TVMET_IMPLEMENT_MACRO(double)
-
-#if defined(TVMET_HAVE_LONG_DOUBLE)
-TVMET_IMPLEMENT_MACRO(long double)
-#endif // defined(TVMET_HAVE_LONG_DOUBLE)
 
 #undef TVMET_IMPLEMENT_MACRO
 
