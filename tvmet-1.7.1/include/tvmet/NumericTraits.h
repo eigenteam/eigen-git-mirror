@@ -24,7 +24,7 @@
 #ifndef TVMET_NUMERIC_TRAITS_H
 #define TVMET_NUMERIC_TRAITS_H
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 #  include <complex>
 #endif
 #include <cmath>
@@ -352,7 +352,7 @@ struct NumericTraits<double> {
 /*
  * numeric traits for complex types
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 
 /**
  * \class NumericTraits< std::complex<int> > NumericTraits.h "tvmet/NumericTraits.h"
@@ -577,7 +577,7 @@ struct NumericTraits< std::complex<double> > {
 };
 
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace tvmet

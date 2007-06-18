@@ -23,10 +23,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifdef TVMET_HAVE_COMPLEX
+#ifdef EIGEN_USE_COMPLEX
 #include <complex>
 #endif
 
+#define EIGEN_USE_COMPLEX
 #include <tvmet/Vector.h>
 #include <tvmet/Matrix.h>
 

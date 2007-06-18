@@ -413,56 +413,56 @@ private:
 
 public: // math operators with scalars
   // NOTE: this meaning is clear - element wise ops even if not in ns element_wise
-  Vector& operator+=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator-=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator*=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator/=(value_type) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator+=(value_type) _tvmet_always_inline;
+  Vector& operator-=(value_type) _tvmet_always_inline;
+  Vector& operator*=(value_type) _tvmet_always_inline;
+  Vector& operator/=(value_type) _tvmet_always_inline;
 
-  Vector& operator%=(int) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator^=(int) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator&=(int) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator|=(int) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator<<=(int) TVMET_CXX_ALWAYS_INLINE;
-  Vector& operator>>=(int) TVMET_CXX_ALWAYS_INLINE;
+  Vector& operator%=(int) _tvmet_always_inline;
+  Vector& operator^=(int) _tvmet_always_inline;
+  Vector& operator&=(int) _tvmet_always_inline;
+  Vector& operator|=(int) _tvmet_always_inline;
+  Vector& operator<<=(int) _tvmet_always_inline;
+  Vector& operator>>=(int) _tvmet_always_inline;
 
 public: // math assign operators with vectors
   // NOTE: access using the operators in ns element_wise, since that's what is does
-  template <class T2> Vector& M_add_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_sub_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_mul_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_div_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_mod_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_xor_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_and_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_or_eq (const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_shl_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& M_shr_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class T2> Vector& M_add_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_sub_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_mul_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_div_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_mod_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_xor_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_and_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_or_eq (const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_shl_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& M_shr_eq(const Vector<T2, Size>&) _tvmet_always_inline;
 
 public: // math operators with expressions
   // NOTE: access using the operators in ns element_wise, since that's what is does
-  template <class E> Vector& M_add_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_sub_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_mul_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_div_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_mod_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_xor_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_and_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_or_eq (const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_shl_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& M_shr_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class E> Vector& M_add_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_sub_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_mul_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_div_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_mod_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_xor_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_and_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_or_eq (const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_shl_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& M_shr_eq(const XprVector<E, Size>&) _tvmet_always_inline;
 
 public: // aliased math operators with expressions, used with proxy
-  template <class T2> Vector& alias_assign(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& alias_add_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& alias_sub_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& alias_mul_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Vector& alias_div_eq(const Vector<T2, Size>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class T2> Vector& alias_assign(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& alias_add_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& alias_sub_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& alias_mul_eq(const Vector<T2, Size>&) _tvmet_always_inline;
+  template <class T2> Vector& alias_div_eq(const Vector<T2, Size>&) _tvmet_always_inline;
 
-  template <class E> Vector& alias_assign(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& alias_add_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& alias_sub_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& alias_mul_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Vector& alias_div_eq(const XprVector<E, Size>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class E> Vector& alias_assign(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& alias_add_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& alias_sub_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& alias_mul_eq(const XprVector<E, Size>&) _tvmet_always_inline;
+  template <class E> Vector& alias_div_eq(const XprVector<E, Size>&) _tvmet_always_inline;
 
 public: // io
   /** Structure for info printing as Vector<T, Size>. */
@@ -503,7 +503,6 @@ typedef Vector<double, 4> Vector4d;
 
 #include <tvmet/VectorImpl.h>
 #include <tvmet/VectorFunctions.h>
-#include <tvmet/VectorBinaryFunctions.h>
 #include <tvmet/VectorUnaryFunctions.h>
 #include <tvmet/VectorOperators.h>
 #include <tvmet/VectorEval.h>

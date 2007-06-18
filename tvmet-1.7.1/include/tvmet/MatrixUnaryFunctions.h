@@ -29,7 +29,7 @@ namespace tvmet {
 /*
  * unary_function(Matrix<std::complex<T>, Rows, Cols>)
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 #define TVMET_DECLARE_MACRO(NAME)						\
 template<class T, int Rows, int Cols>				\
 inline										\
@@ -40,7 +40,7 @@ XprMatrix<									\
   >,										\
   Rows, Cols									\
 >										\
-NAME(const Matrix<std::complex<T>, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+NAME(const Matrix<std::complex<T>, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(real)
 TVMET_DECLARE_MACRO(imag)
@@ -48,12 +48,12 @@ TVMET_DECLARE_MACRO(conj)
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 /*
  * unary_function(Matrix<std::complex<T>, Rows, Cols>)
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 #define TVMET_IMPLEMENT_MACRO(NAME)					\
 template<class T, int Rows, int Cols>			\
 inline									\
@@ -78,7 +78,7 @@ TVMET_IMPLEMENT_MACRO(conj)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace tvmet

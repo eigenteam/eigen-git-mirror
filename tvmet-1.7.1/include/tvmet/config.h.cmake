@@ -1,21 +1,6 @@
 #ifndef _INCLUDE_TVMET_CONFIG_H
 #define _INCLUDE_TVMET_CONFIG_H
 
-/* define if the compiler has complex<T> */
-#cmakedefine TVMET_HAVE_COMPLEX
-
-/* define if the compiler has complex math functions */
-#cmakedefine TVMET_HAVE_COMPLEX_MATH1
-
-/* define if the compiler has more complex math functions */
-#cmakedefine TVMET_HAVE_COMPLEX_MATH2
-
-/* Define if the compiler supports IEEE math library */
-#cmakedefine TVMET_HAVE_IEEE_MATH
-
-/* Define if the compiler supports SYSV math library */
-#cmakedefine TVMET_HAVE_SYSV_MATH
-
 /* Define to 1 if you have the <sys/time.h> header file. */
 #cmakedefine TVMET_HAVE_SYS_TIME_H  1 
 

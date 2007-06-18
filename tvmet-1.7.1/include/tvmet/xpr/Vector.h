@@ -144,7 +144,6 @@ private:
 #include <tvmet/xpr/Literal.h>
 
 #include <tvmet/xpr/VectorFunctions.h>
-#include <tvmet/xpr/VectorBinaryFunctions.h>
 #include <tvmet/xpr/VectorOperators.h>
 #include <tvmet/xpr/Eval.h>
 

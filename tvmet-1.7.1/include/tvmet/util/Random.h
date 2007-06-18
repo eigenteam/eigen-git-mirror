@@ -65,7 +65,7 @@ template<class T, int MIN, int MAX>
 unsigned int Random<T, MIN, MAX>::s_seed;
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /**
  * \class Random< std::complex<T> > Random.h "tvmet/util/Random.h"
  * \brief Specialized Random class.
@@ -86,7 +86,7 @@ public:
 // instance
 template<class T, int MIN, int MAX>
 unsigned int Random<std::complex<T>, MIN, MAX>::s_seed;
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace util

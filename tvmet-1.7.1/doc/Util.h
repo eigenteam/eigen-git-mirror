@@ -164,7 +164,7 @@ public:
 #ifdef TVMET_HAVE_LONG_DOUBLE
     datatypes.push_back( DataType("long double", "long double") );
 #endif // HAVE_LONG_DOUBLE
-#ifdef TVMET_HAVE_COMPLEX
+#ifdef EIGEN_USE_COMPLEX
     datatypes.push_back( DataType("const std::complex<T>&", "std::complex<T>") );
 #endif // HAVE_COMPLEX
   }

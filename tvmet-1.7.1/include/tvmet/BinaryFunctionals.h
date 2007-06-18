@@ -235,7 +235,7 @@ TVMET_IMPLEMENT_MACRO(yn)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /**
  * \class Fcnl_polar BinaryFunctionals.h "tvmet/BinaryFunctionals.h"
  * \brief %Functional for polar.
@@ -266,7 +266,7 @@ struct Fcnl_polar<T,T> : public BinaryFunctional {
        << std::endl;
   }
 };
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /**

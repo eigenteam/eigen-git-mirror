@@ -59,7 +59,7 @@ private:
 };
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /**
  * \class Incrementor< std::complex<T> > Incrementor.h "tvmet/util/Incrementor.h"
  * \brief Specialized Incrementor class.
@@ -76,7 +76,7 @@ struct Incrementor< std::complex<T> > {
 private:
   std::complex<T>       				m_inc;
 };
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace util

@@ -53,7 +53,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const XprVector<E1, Sz>& lhs, 				\
-	     const XprVector<E2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprVector<E2, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)		// per se element wise
 TVMET_DECLARE_MACRO(sub, -)		// per se element wise
@@ -82,7 +82,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const XprVector<E, Sz>& lhs, 				\
-	     POD rhs) TVMET_CXX_ALWAYS_INLINE;				\
+	     POD rhs) _tvmet_always_inline;				\
 									\
 template<class E, int Sz>					\
 inline									\
@@ -95,7 +95,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (POD lhs, 							\
-	     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +, int)
 TVMET_DECLARE_MACRO(sub, -, int)
@@ -115,7 +115,7 @@ TVMET_DECLARE_MACRO(div, /, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(XprVector<E, Sz>, complex<T>)
  * operator(complex<T>, XprVector<E, Sz>)
@@ -133,7 +133,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const XprVector<E, Sz>& lhs,				\
-	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+	     const std::complex<T>& rhs) _tvmet_always_inline;	\
 									\
 template<class E, int Sz, class T>				\
 inline									\
@@ -146,7 +146,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const std::complex<T>& lhs,				\
-	     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)		// per se element wise
 TVMET_DECLARE_MACRO(sub, -)		// per se element wise
@@ -155,7 +155,7 @@ TVMET_DECLARE_MACRO(div, /)		// per se element wise
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -176,7 +176,7 @@ XprVector<								\
   >,									\
   Sz									\
 >									\
-operator OP (const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+operator OP (const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(neg, -)
 
@@ -275,7 +275,7 @@ TVMET_IMPLEMENT_MACRO(div, /, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(XprVector<E, Sz>, complex<T>)
  * operator(complex<T>, XprVector<E, Sz>)
@@ -319,7 +319,7 @@ TVMET_IMPLEMENT_MACRO(div, /)		// per se element wise
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -35,6 +35,6 @@
 CPPUNIT_TEST_SUITE_REGISTRATION( TestConstruction<double> );
 CPPUNIT_TEST_SUITE_REGISTRATION( TestConstruction<int> );
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 CPPUNIT_TEST_SUITE_REGISTRATION( TestConstruction< std::complex<double> > );
 #endif

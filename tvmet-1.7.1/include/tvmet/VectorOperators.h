@@ -35,7 +35,7 @@ namespace tvmet {
 template<class T, int Sz>
 inline
 std::ostream& operator<<(std::ostream& os,
-			 const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+			 const Vector<T, Sz>& rhs) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -52,12 +52,12 @@ std::ostream& operator<<(std::ostream& os,
 template<class T1, class T2, int Sz>				\
 Vector<T1, Sz>&								\
 operator OP (Vector<T1, Sz>& lhs,					\
-	     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+	     const Vector<T2, Sz>& rhs) _tvmet_always_inline;	\
 									\
 template<class T, class E, int Sz>				\
 Vector<T, Sz>&								\
 operator OP (Vector<T, Sz>& lhs,					\
-	     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add_eq, +=)		// per se element wise
 TVMET_DECLARE_MACRO(sub_eq, -=)		// per se element wise
@@ -91,7 +91,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const Vector<T1, Sz>& lhs, 				\
-	     const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+	     const Vector<T2, Sz>& rhs) _tvmet_always_inline;	\
 									\
 template<class E, class T, int Sz>				\
 XprVector<								\
@@ -103,7 +103,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const XprVector<E, Sz>& lhs,				\
-	     const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
+	     const Vector<T, Sz>& rhs) _tvmet_always_inline;		\
 									\
 template<class E, class T, int Sz>				\
 XprVector<								\
@@ -115,7 +115,7 @@ XprVector<								\
   Sz									\
 >									\
 operator OP (const Vector<T, Sz>& lhs, 					\
-	     const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)		// per se element wise
 TVMET_DECLARE_MACRO(sub, -)		// per se element wise
@@ -143,7 +143,7 @@ XprVector<							\
   Sz								\
 >								\
 operator OP (const Vector<T, Sz>& lhs, 				\
-	     POD rhs) TVMET_CXX_ALWAYS_INLINE;			\
+	     POD rhs) _tvmet_always_inline;			\
 								\
 template<class T, int Sz>				\
 XprVector<							\
@@ -155,7 +155,7 @@ XprVector<							\
   Sz								\
 >								\
 operator OP (POD lhs, 						\
-	     const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const Vector<T, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +, int)
 TVMET_DECLARE_MACRO(sub, -, int)
@@ -175,7 +175,7 @@ TVMET_DECLARE_MACRO(div, /, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(Vector<std::complex<T>, Sz>, std::complex<T>)
  * operator(std::complex<T>, Vector<std::complex<T>, Sz>)
@@ -193,7 +193,7 @@ XprVector<									\
   Sz										\
 >										\
 operator OP (const Vector<std::complex<T>, Sz>& lhs, 				\
-	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
+	     const std::complex<T>& rhs) _tvmet_always_inline;		\
 										\
 template<class T, int Sz>						\
 XprVector<									\
@@ -205,7 +205,7 @@ XprVector<									\
   Sz										\
 >										\
 operator OP (const std::complex<T>& lhs, 					\
-	     const Vector< std::complex<T>, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const Vector< std::complex<T>, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)		// per se element wise
 TVMET_DECLARE_MACRO(sub, -)		// per se element wise
@@ -213,7 +213,7 @@ TVMET_DECLARE_MACRO(mul, *)		// per se element wise
 TVMET_DECLARE_MACRO(div, /)		// per se element wise
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 
@@ -235,7 +235,7 @@ XprVector<							\
   >,								\
   Sz								\
 >								\
-operator OP (const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+operator OP (const Vector<T, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(neg, -)
 #undef TVMET_DECLARE_MACRO
@@ -407,7 +407,7 @@ TVMET_IMPLEMENT_MACRO(div, /, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(Vector<std::complex<T>, Sz>, std::complex<T>)
  * operator(std::complex<T>, Vector<std::complex<T>, Sz>)
@@ -452,7 +452,7 @@ TVMET_IMPLEMENT_MACRO(div, /)		// per se element wise
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -32,7 +32,7 @@
  * instance
  ****************************************************************************/
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<int> > );
 CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<unsigned int> > );
 CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<long> > );

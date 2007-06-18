@@ -278,7 +278,7 @@ TVMET_IMPLEMENT_MACRO(double)
  * XprVector<E1, Sz> e1, std::complex<T> z2, XprVector<E3, Sz> e3
  * XprVector<E1, Sz> e1, XprVector<E2, Sz> e2, std::complex<T> z3
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 
 
 /**
@@ -361,7 +361,7 @@ eval(const XprVector<E1, Sz>& e1, const XprVector<E2, Sz>& e2, std::complex<T> z
   return XprVector<expr_type, Sz>(
     expr_type(e1, e2, XprLiteral< std::complex<T> >(z3)));
 }
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace tvmet

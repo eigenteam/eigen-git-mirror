@@ -354,56 +354,56 @@ private:
 
 public: // math operators with scalars
   // NOTE: this meaning is clear - element wise ops even if not in ns element_wise
-  Matrix& operator+=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator-=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator*=(value_type) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator/=(value_type) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator+=(value_type) _tvmet_always_inline;
+  Matrix& operator-=(value_type) _tvmet_always_inline;
+  Matrix& operator*=(value_type) _tvmet_always_inline;
+  Matrix& operator/=(value_type) _tvmet_always_inline;
 
-  Matrix& operator%=(int) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator^=(int) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator&=(int) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator|=(int) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator<<=(int) TVMET_CXX_ALWAYS_INLINE;
-  Matrix& operator>>=(int) TVMET_CXX_ALWAYS_INLINE;
+  Matrix& operator%=(int) _tvmet_always_inline;
+  Matrix& operator^=(int) _tvmet_always_inline;
+  Matrix& operator&=(int) _tvmet_always_inline;
+  Matrix& operator|=(int) _tvmet_always_inline;
+  Matrix& operator<<=(int) _tvmet_always_inline;
+  Matrix& operator>>=(int) _tvmet_always_inline;
 
 public: // math operators with matrizes
   // NOTE: access using the operators in ns element_wise, since that's what is does
-  template <class T2> Matrix& M_add_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_sub_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_mul_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_div_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_mod_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_xor_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_and_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_or_eq (const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_shl_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& M_shr_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class T2> Matrix& M_add_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_sub_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_mul_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_div_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_mod_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_xor_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_and_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_or_eq (const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_shl_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& M_shr_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
 
 public: // math operators with expressions
   // NOTE: access using the operators in ns element_wise, since that's what is does
-  template <class E> Matrix& M_add_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_sub_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_mul_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_div_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_mod_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_xor_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_and_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_or_eq (const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_shl_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& M_shr_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class E> Matrix& M_add_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_sub_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_mul_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_div_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_mod_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_xor_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_and_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_or_eq (const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_shl_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& M_shr_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
 
 public: // aliased math operators with expressions
-  template <class T2> Matrix& alias_assign(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& alias_add_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& alias_sub_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& alias_mul_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class T2> Matrix& alias_div_eq(const Matrix<T2, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class T2> Matrix& alias_assign(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& alias_add_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& alias_sub_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& alias_mul_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
+  template <class T2> Matrix& alias_div_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
 
-  template <class E> Matrix& alias_assign(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& alias_add_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& alias_sub_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& alias_mul_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
-  template <class E> Matrix& alias_div_eq(const XprMatrix<E, Rows, Cols>&) TVMET_CXX_ALWAYS_INLINE;
+  template <class E> Matrix& alias_assign(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& alias_add_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& alias_sub_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& alias_mul_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
+  template <class E> Matrix& alias_div_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
 
 public: // io
   /** Structure for info printing as Matrix<T, Rows, Cols>. */
@@ -443,7 +443,6 @@ typedef Matrix<double, 4, 4> Matrix4d;
 
 #include <tvmet/MatrixImpl.h>
 #include <tvmet/MatrixFunctions.h>
-#include <tvmet/MatrixBinaryFunctions.h>
 #include <tvmet/MatrixUnaryFunctions.h>
 #include <tvmet/MatrixOperators.h>
 #include <tvmet/MatrixEval.h>

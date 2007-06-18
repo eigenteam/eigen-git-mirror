@@ -57,7 +57,7 @@ XprMatrix<									\
   Rows1, Cols1									\
 >										\
 operator OP (const XprMatrix<E1, Rows1, Cols1>& lhs,				\
-	     const XprMatrix<E2, Rows1, Cols1>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprMatrix<E2, Rows1, Cols1>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)		// per se element wise
 TVMET_DECLARE_MACRO(sub, -)		// per se element wise
@@ -84,7 +84,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs, 				\
-	     POD rhs) TVMET_CXX_ALWAYS_INLINE;					\
+	     POD rhs) _tvmet_always_inline;					\
 										\
 template<class E,int Rows, int Cols>				\
 XprMatrix<									\
@@ -96,7 +96,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 operator OP (POD lhs, 								\
-	     const XprMatrix<E, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprMatrix<E, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +, int)
 TVMET_DECLARE_MACRO(sub, -, int)
@@ -116,7 +116,7 @@ TVMET_DECLARE_MACRO(div, /, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(XprMatrix<E, Rows, Cols>, complex<>)
  * operator(complex<>, XprMatrix<E, Rows, Cols>)
@@ -134,7 +134,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 operator OP (const XprMatrix<E, Rows, Cols>& lhs,				\
-	     const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
+	     const std::complex<T>& rhs) _tvmet_always_inline;		\
 										\
 template<class E, int Rows, int Cols, class T>			\
 XprMatrix<									\
@@ -146,7 +146,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 operator OP (const std::complex<T>& lhs,					\
-	     const XprMatrix<E, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	     const XprMatrix<E, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, +)
 TVMET_DECLARE_MACRO(sub, -)
@@ -155,7 +155,7 @@ TVMET_DECLARE_MACRO(div, /)
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -179,7 +179,7 @@ XprMatrix<
   Rows1, Cols2
 >
 operator*(const XprMatrix<E1, Rows1, Cols1>& lhs,
-	  const XprMatrix<E2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	  const XprMatrix<E2, Cols1, Cols2>& rhs) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -203,7 +203,7 @@ XprVector<
   Rows
 >
 operator*(const XprMatrix<E1, Rows, Cols>& lhs,
-	  const XprVector<E2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	  const XprVector<E2, Cols>& rhs) _tvmet_always_inline;
 
 
 
@@ -225,7 +225,7 @@ XprMatrix<									\
   >,										\
   Rows, Cols									\
 >										\
-operator OP (const XprMatrix<E, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
+operator OP (const XprMatrix<E, Rows, Cols>& m) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(neg, -)
 
@@ -329,7 +329,7 @@ TVMET_IMPLEMENT_MACRO(div, /, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * operator(XprMatrix<E, Rows, Cols>, complex<>)
  * operator(complex<>, XprMatrix<E, Rows, Cols>)
@@ -374,7 +374,7 @@ TVMET_IMPLEMENT_MACRO(div, /)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

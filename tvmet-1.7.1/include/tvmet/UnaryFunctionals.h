@@ -54,7 +54,7 @@ TVMET_IMPLEMENT_MACRO(neg, -)
  */
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 
 /**
  * \class Fcnl_conj< std::complex<T> > UnaryFunctionals.h "tvmet/UnaryFunctionals.h"
@@ -108,7 +108,7 @@ TVMET_IMPLEMENT_MACRO(imag)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 } // namespace tvmet
 

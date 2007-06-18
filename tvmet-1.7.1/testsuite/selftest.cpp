@@ -69,7 +69,7 @@ void TvmetTestSuite::selfTest()
   basics2<int> ();
   basics2<double> ();
   
-#ifdef TVMET_HAVE_COMPLEX
+#ifdef EIGEN_USE_COMPLEX
   basics1<complex<float>, 4> ();
   basics1<complex<double>, 4> ();
   basics2<complex<int> > ();

@@ -55,7 +55,7 @@ XprVector<								\
   Sz									\
 >									\
 NAME (const XprVector<E1, Sz>& lhs,					\
-      const XprVector<E2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E2, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)		// per se element wise
 TVMET_DECLARE_MACRO(sub)		// per se element wise
@@ -83,7 +83,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const XprVector<E, Sz>& lhs, 				\
-      POD rhs) TVMET_CXX_ALWAYS_INLINE;				\
+      POD rhs) _tvmet_always_inline;				\
 								\
 template<class E, int Sz>				\
 XprVector<							\
@@ -95,7 +95,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (POD lhs, 							\
-      const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, int)
 TVMET_DECLARE_MACRO(sub, int)
@@ -115,7 +115,7 @@ TVMET_DECLARE_MACRO(div, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(XprMatrix<E, Rows, Cols>, complex<T>)
  * function(complex<T>, XprMatrix<E, Rows, Cols>)
@@ -133,7 +133,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const XprVector<E, Sz>& lhs,				\
-      const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+      const std::complex<T>& rhs) _tvmet_always_inline;	\
 								\
 template<class E, int Sz, class T>			\
 XprVector<							\
@@ -145,7 +145,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const std::complex<T>& lhs, 				\
-      const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)
 TVMET_DECLARE_MACRO(sub)
@@ -154,7 +154,7 @@ TVMET_DECLARE_MACRO(div)
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -164,12 +164,12 @@ TVMET_DECLARE_MACRO(div)
 
 template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
-sum(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+sum(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
-product(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+product(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E1, class E2, int Sz>
@@ -178,19 +178,19 @@ typename PromoteTraits<
   typename E2::value_type
 >::value_type
 dot(const XprVector<E1, Sz>& lhs,
-    const XprVector<E2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+    const XprVector<E2, Sz>& rhs) _tvmet_always_inline;
 
 
 template<class T, class E, int Sz>
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const Vector<T, Sz>& lhs,
-    const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+    const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 
 template<class E, class T, int Sz>
 typename PromoteTraits<T, typename E::value_type>::value_type
 dot(const XprVector<E, Sz>& lhs,
-    const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+    const Vector<T, Sz>& rhs) _tvmet_always_inline;
 
 
 template<class E1, class E2>
@@ -202,31 +202,31 @@ Vector<
   3
 >
 cross(const XprVector<E1, 3>& lhs,
-      const XprVector<E2, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E2, 3>& rhs) _tvmet_always_inline;
 
 
 template<class T, class E>
 Vector<
   typename PromoteTraits<T, typename E::value_type>::value_type, 3>
 cross(const Vector<T, 3>& lhs,
-      const XprVector<E, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E, 3>& rhs) _tvmet_always_inline;
 
 
 template<class E, class T>
 Vector<
   typename PromoteTraits<T, typename E::value_type>::value_type, 3>
 cross(const XprVector<E, 3>& lhs,
-      const Vector<T, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Vector<T, 3>& rhs) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
-norm1(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+norm1(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 typename NumericTraits<typename E::value_type>::sum_type
-norm2(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+norm2(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
@@ -238,7 +238,7 @@ XprVector<
   >,
   Sz
 >
-normalize(const XprVector<E, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+normalize(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 /*********************************************************
@@ -343,7 +343,7 @@ TVMET_IMPLEMENT_MACRO(div, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(XprMatrix<E, Rows, Cols>, complex<T>)
  * function(complex<T>, XprMatrix<E, Rows, Cols>)
@@ -398,7 +398,7 @@ TVMET_IMPLEMENT_MACRO(div)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

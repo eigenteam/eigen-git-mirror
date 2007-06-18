@@ -282,7 +282,7 @@ TVMET_IMPLEMENT_MACRO(double)
  * XprMatrix<E1, Rows, Cols> e1, std::complex<T> z2, XprMatrix<E3, Rows, Cols> e3
  * XprMatrix<E1, Rows, Cols> e1, XprMatrix<E2, Rows, Cols> e2, std::complex<T> z3
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 
 /**
  * \fn eval(const XprMatrix<E, Rows, Cols>& e, const std::complex<T>& x2, const std::complex<T>& x3)
@@ -366,7 +366,7 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, const XprMatrix<E2, Rows, Cols>& e2, c
   return XprMatrix<expr_type, Rows, Cols>(
     expr_type(e1, e2, XprLiteral< std::complex<T> >(x3)));
 }
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 } // namespace tvmet

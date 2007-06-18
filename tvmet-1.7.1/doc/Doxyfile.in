@@ -916,7 +916,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = DOXYGEN_SKIP_THIS \
 		         TVMET_HAVE_LONG_DOUBLE \
-                         TVMET_HAVE_COMPLEX \
+                         EIGEN_USE_COMPLEX \
                          TVMET_HAVE_IEEE_MATH
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then

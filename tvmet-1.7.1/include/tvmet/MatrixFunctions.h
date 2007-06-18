@@ -59,7 +59,7 @@ XprMatrix<								\
   Rows, Cols								\
 >									\
 NAME (const Matrix<T1, Rows, Cols>& lhs,				\
-      const Matrix<T2, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+      const Matrix<T2, Rows, Cols>& rhs) _tvmet_always_inline;	\
 									\
 template<class E, class T, int Rows, int Cols>		\
 XprMatrix<								\
@@ -71,7 +71,7 @@ XprMatrix<								\
   Rows, Cols								\
 >									\
 NAME (const XprMatrix<E, Rows, Cols>& lhs,				\
-      const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+      const Matrix<T, Rows, Cols>& rhs) _tvmet_always_inline;	\
 									\
 template<class T, class E, int Rows, int Cols>		\
 XprMatrix<								\
@@ -83,7 +83,7 @@ XprMatrix<								\
   Rows, Cols								\
 >									\
 NAME (const Matrix<T, Rows, Cols>& lhs,					\
-      const XprMatrix<E, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprMatrix<E, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)			// per se element wise
 TVMET_DECLARE_MACRO(sub)			// per se element wise
@@ -111,7 +111,7 @@ XprMatrix<								\
   Rows, Cols								\
 >									\
 NAME (const Matrix<T, Rows, Cols>& lhs, 				\
-      POD rhs) TVMET_CXX_ALWAYS_INLINE;					\
+      POD rhs) _tvmet_always_inline;					\
 									\
 template<class T, int Rows, int Cols>			\
 XprMatrix<								\
@@ -123,7 +123,7 @@ XprMatrix<								\
   Rows, Cols								\
 >									\
 NAME (POD lhs, 								\
-      const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Matrix<T, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, int)
 TVMET_DECLARE_MACRO(sub, int)
@@ -143,7 +143,7 @@ TVMET_DECLARE_MACRO(div, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(Matrix<T, Rows, Cols>, complex<T>)
  * function(complex<T>, Matrix<T, Rows, Cols>)
@@ -161,7 +161,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 NAME (const Matrix< std::complex<T>, Rows, Cols>& lhs,				\
-      const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;			\
+      const std::complex<T>& rhs) _tvmet_always_inline;			\
 										\
 template<class T, int Rows, int Cols>				\
 XprMatrix<									\
@@ -173,7 +173,7 @@ XprMatrix<									\
   Rows, Cols									\
 >										\
 NAME (const std::complex<T>& lhs,						\
-      const Matrix< std::complex<T>, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Matrix< std::complex<T>, Rows, Cols>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)
 TVMET_DECLARE_MACRO(sub)
@@ -182,7 +182,7 @@ TVMET_DECLARE_MACRO(div)
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -200,7 +200,7 @@ XprMatrix<
   Rows1, Cols2							// return Dim
 >
 prod(const Matrix<T1, Rows1, Cols1>& lhs,
-     const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const Matrix<T2, Cols1, Cols2>& rhs) _tvmet_always_inline;
 
 
 template<class E1, int Rows1, int Cols1,
@@ -213,7 +213,7 @@ XprMatrix<
   Rows1, Cols2							// return Dim
 >
 prod(const XprMatrix<E1, Rows1, Cols1>& lhs,
-     const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const Matrix<T2, Cols1, Cols2>& rhs) _tvmet_always_inline;
 
 
 template<class T1, int Rows1, int Cols1,
@@ -226,7 +226,7 @@ XprMatrix<
   Rows1, Cols2							// return Dim
 >
 prod(const Matrix<T1, Rows1, Cols1>& lhs,
-     const XprMatrix<E2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const XprMatrix<E2, Cols1, Cols2>& rhs) _tvmet_always_inline;
 
 
 template<class T1, int Rows1, int Cols1,
@@ -239,7 +239,7 @@ XprMatrix<
   Cols2, Rows1							// return Dim
 >
 trans_prod(const Matrix<T1, Rows1, Cols1>& lhs,
-	   const Matrix<T2, Cols1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	   const Matrix<T2, Cols1, Cols2>& rhs) _tvmet_always_inline;
 
 
 template<class T1, int Rows1, int Cols1,
@@ -252,7 +252,7 @@ XprMatrix<
   Cols1, Cols2							// return Dim
 >
 MtM_prod(const Matrix<T1, Rows1, Cols1>& lhs,
-	 const Matrix<T2, Rows1, Cols2>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	 const Matrix<T2, Rows1, Cols2>& rhs) _tvmet_always_inline;
 
 
 template<class T1, int Rows1, int Cols1,
@@ -265,7 +265,7 @@ XprMatrix<
   Rows1, Rows2							// return Dim
 >
 MMt_prod(const Matrix<T1, Rows1, Cols1>& lhs,
-	 const Matrix<T2, Rows2, Cols1>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	 const Matrix<T2, Rows2, Cols1>& rhs) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -282,7 +282,7 @@ XprVector<
   Rows
 >
 prod(const Matrix<T1, Rows, Cols>& lhs,
-     const Vector<T2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const Vector<T2, Cols>& rhs) _tvmet_always_inline;
 
 
 template<class T1, class E2, int Rows, int Cols>
@@ -294,7 +294,7 @@ XprVector<
   Rows
 >
 prod(const Matrix<T1, Rows, Cols>& lhs,
-     const XprVector<E2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const XprVector<E2, Cols>& rhs) _tvmet_always_inline;
 
 
 template<class E1, class T2, int Rows, int Cols>
@@ -306,7 +306,7 @@ XprVector<
   Rows
 >
 prod(const XprMatrix<E1, Rows, Cols>& lhs,
-     const Vector<T2, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+     const Vector<T2, Cols>& rhs) _tvmet_always_inline;
 
 
 template<class T1, class T2, int Rows, int Cols>
@@ -318,7 +318,7 @@ XprVector<
   Cols
 >
 Mtx_prod(const Matrix<T1, Rows, Cols>& lhs,
-	 const Vector<T2, Rows>& rhs) TVMET_CXX_ALWAYS_INLINE;
+	 const Vector<T2, Rows>& rhs) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -333,12 +333,12 @@ XprMatrix<
   >,
   Cols, Rows
 >
-trans(const Matrix<T, Rows, Cols>& rhs) TVMET_CXX_ALWAYS_INLINE;
+trans(const Matrix<T, Rows, Cols>& rhs) _tvmet_always_inline;
 
 
 template<class T, int Sz>
 typename NumericTraits<T>::sum_type
-trace(const Matrix<T, Sz, Sz>& m) TVMET_CXX_ALWAYS_INLINE;
+trace(const Matrix<T, Sz, Sz>& m) _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
@@ -350,7 +350,7 @@ XprVector<
   Cols
 >
 row(const Matrix<T, Rows, Cols>& m,
-    int no) TVMET_CXX_ALWAYS_INLINE;
+    int no) _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
@@ -362,7 +362,7 @@ XprVector<
   Rows
 >
 col(const Matrix<T, Rows, Cols>& m,
-    int no) TVMET_CXX_ALWAYS_INLINE;
+    int no) _tvmet_always_inline;
 
 
 template<class T, int Sz>
@@ -373,7 +373,7 @@ XprVector<
   >,
   Sz
 >
-diag(const Matrix<T, Sz, Sz>& m) TVMET_CXX_ALWAYS_INLINE;
+diag(const Matrix<T, Sz, Sz>& m) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -383,40 +383,40 @@ diag(const Matrix<T, Sz, Sz>& m) TVMET_CXX_ALWAYS_INLINE;
 
 template<class E, int Rows, int Cols>
 Extremum<typename E::value_type, int, matrix_tag>
-maximum(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+maximum(const XprMatrix<E, Rows, Cols>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
 Extremum<T, int, matrix_tag>
-maximum(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
+maximum(const Matrix<T, Rows, Cols>& m) _tvmet_always_inline;
 
 
 template<class E, int Rows, int Cols>
 Extremum<typename E::value_type, int, matrix_tag>
-minimum(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+minimum(const XprMatrix<E, Rows, Cols>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
 Extremum<T, int, matrix_tag>
-minimum(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
+minimum(const Matrix<T, Rows, Cols>& m) _tvmet_always_inline;
 
 
 template<class E, int Rows, int Cols>
 typename E::value_type
-max(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+max(const XprMatrix<E, Rows, Cols>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
-T max(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
+T max(const Matrix<T, Rows, Cols>& m) _tvmet_always_inline;
 
 
 template<class E, int Rows, int Cols>
 typename E::value_type
-min(const XprMatrix<E, Rows, Cols>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+min(const XprMatrix<E, Rows, Cols>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
-T min(const Matrix<T, Rows, Cols>& m) TVMET_CXX_ALWAYS_INLINE;
+T min(const Matrix<T, Rows, Cols>& m) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -429,7 +429,7 @@ XprMatrix<
   XprIdentity<T, Rows, Cols>,
   Rows, Cols
 >
-identity() TVMET_CXX_ALWAYS_INLINE;
+identity() _tvmet_always_inline;
 
 
 template<class M>
@@ -439,7 +439,7 @@ XprMatrix<
     M::Rows, M::Cols>,
   M::Rows, M::Cols
 >
-identity() TVMET_CXX_ALWAYS_INLINE;
+identity() _tvmet_always_inline;
 
 
 template<class T, int Rows, int Cols>
@@ -447,7 +447,7 @@ XprMatrix<
   MatrixConstReference<T, Rows, Cols>,
   Rows, Cols
 >
-cmatrix_ref(const T* mem) TVMET_CXX_ALWAYS_INLINE;
+cmatrix_ref(const T* mem) _tvmet_always_inline;
 
 
 /*********************************************************
@@ -600,7 +600,7 @@ TVMET_IMPLEMENT_MACRO(div, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(Matrix<T, Rows, Cols>, complex<T>)
  * function(complex<T>, Matrix<T, Rows, Cols>)
@@ -657,7 +657,7 @@ TVMET_IMPLEMENT_MACRO(div)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

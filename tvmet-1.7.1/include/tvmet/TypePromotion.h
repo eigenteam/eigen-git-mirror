@@ -67,11 +67,11 @@ TVMET_PRECISION(double, 800)
 /*
  * complex types
  */
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 TVMET_PRECISION(std::complex<int>, 1000)
 TVMET_PRECISION(std::complex<float>, 1600)
 TVMET_PRECISION(std::complex<double>, 1700)
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /** \class PrecisionTraits<int>				TypePromotion.h "tvmet/TypePromotion.h" */

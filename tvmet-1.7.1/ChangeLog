@@ -412,7 +412,7 @@
 2004-06-08 18:19  opetzold
 
 	* include/tvmet/: tvmet.h, config/config-gcc.h: added macro
-	TVMET_CXX_ALWAYS_INLINE, to use gcc compiler better using
+	_tvmet_always_inline, to use gcc compiler better using
 	__attribute__((always_inline)).
 
 2004-06-08 18:17  opetzold
@@ -1972,7 +1972,7 @@
 2003-09-27 16:46  opetzold
 
 	* include/tvmet/MatrixBinaryFunctions.h: complex<> support improved
-	using TVMET_HAVE_COMPLEX_MATH{1,2}
+	using EIGEN_USE_COMPLEX_MATH{1,2}
 
 2003-09-25 21:37  opetzold
 

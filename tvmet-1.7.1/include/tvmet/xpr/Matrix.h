@@ -154,7 +154,6 @@ private:
 #include <tvmet/xpr/MatrixTranspose.h>
 
 #include <tvmet/xpr/MatrixFunctions.h>
-#include <tvmet/xpr/MatrixBinaryFunctions.h>
 #include <tvmet/xpr/MatrixOperators.h>
 #include <tvmet/xpr/Eval.h>
 

@@ -55,7 +55,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const Vector<T1, Sz>& lhs,				\
-      const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+      const Vector<T2, Sz>& rhs) _tvmet_always_inline;	\
 								\
 template<class E, class T, int Sz>			\
 XprVector<							\
@@ -67,7 +67,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const XprVector<E, Sz>& lhs,				\
-      const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;	\
+      const Vector<T, Sz>& rhs) _tvmet_always_inline;	\
 								\
 template<class E, class T, int Sz>			\
 XprVector<							\
@@ -79,7 +79,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const Vector<T, Sz>& lhs,					\
-      const XprVector<E, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const XprVector<E, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)		// per se element wise
 TVMET_DECLARE_MACRO(sub)		// per se element wise
@@ -107,7 +107,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (const Vector<T, Sz>& lhs, 				\
-      POD rhs) TVMET_CXX_ALWAYS_INLINE;				\
+      POD rhs) _tvmet_always_inline;				\
 								\
 template<class T, int Sz>				\
 XprVector<							\
@@ -119,7 +119,7 @@ XprVector<							\
   Sz								\
 >								\
 NAME (POD lhs, 							\
-      const Vector<T, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Vector<T, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add, int)
 TVMET_DECLARE_MACRO(sub, int)
@@ -139,7 +139,7 @@ TVMET_DECLARE_MACRO(div, double)
 #undef TVMET_DECLARE_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(Vector<std::complex<T>, Sz>, std::complex<T>)
  * function(std::complex<T>, Vector<std::complex<T>, Sz>)
@@ -157,7 +157,7 @@ XprVector<								\
   Sz									\
 >									\
 NAME (const Vector<std::complex<T>, Sz>& lhs,				\
-      const std::complex<T>& rhs) TVMET_CXX_ALWAYS_INLINE;		\
+      const std::complex<T>& rhs) _tvmet_always_inline;		\
 									\
 template<class T, int Sz>					\
 XprVector<								\
@@ -169,7 +169,7 @@ XprVector<								\
   Sz									\
 >									\
 NAME (const std::complex<T>& lhs,					\
-      const Vector< std::complex<T>, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Vector< std::complex<T>, Sz>& rhs) _tvmet_always_inline;
 
 TVMET_DECLARE_MACRO(add)
 TVMET_DECLARE_MACRO(sub)
@@ -178,7 +178,7 @@ TVMET_DECLARE_MACRO(div)
 
 #undef TVMET_DECLARE_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -188,34 +188,34 @@ TVMET_DECLARE_MACRO(div)
 
 template<class T, int Sz>
 typename NumericTraits<T>::sum_type
-sum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+sum(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
 typename NumericTraits<T>::sum_type
-product(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+product(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T1, class T2, int Sz>
 typename PromoteTraits<T1, T2>::value_type
 dot(const Vector<T1, Sz>& lhs,
-    const Vector<T2, Sz>& rhs) TVMET_CXX_ALWAYS_INLINE;
+    const Vector<T2, Sz>& rhs) _tvmet_always_inline;
 
 
 template<class T1, class T2>
 Vector<typename PromoteTraits<T1, T2>::value_type, 3>
 cross(const Vector<T1, 3>& lhs,
-      const Vector<T2, 3>& rhs) TVMET_CXX_ALWAYS_INLINE;
+      const Vector<T2, 3>& rhs) _tvmet_always_inline;
 
 
 template<class T, int Sz>
 typename NumericTraits<T>::sum_type
-norm1(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+norm1(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
 typename NumericTraits<T>::sum_type
-norm2(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+norm2(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
@@ -227,7 +227,7 @@ XprVector<
   >,
   Sz
 >
-normalize(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+normalize(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -236,40 +236,40 @@ normalize(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
 
 template<class E, int Sz>
 Extremum<typename E::value_type, int, vector_tag>
-maximum(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+maximum(const XprVector<E, Sz>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Sz>
 Extremum<T, int, vector_tag>
-maximum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+maximum(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 Extremum<typename E::value_type, int, vector_tag>
-minimum(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+minimum(const XprVector<E, Sz>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Sz>
 Extremum<T, int, vector_tag>
-minimum(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+minimum(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 typename E::value_type
-max(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+max(const XprVector<E, Sz>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Sz>
-T max(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+T max(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
 typename E::value_type
-min(const XprVector<E, Sz>& e); // NOT TVMET_CXX_ALWAYS_INLINE;
+min(const XprVector<E, Sz>& e); // NOT _tvmet_always_inline;
 
 
 template<class T, int Sz>
-T min(const Vector<T, Sz>& v) TVMET_CXX_ALWAYS_INLINE;
+T min(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
@@ -277,7 +277,7 @@ XprVector<
   VectorConstReference<T, Sz>,
   Sz
 >
-cvector_ref(const T* mem) TVMET_CXX_ALWAYS_INLINE;
+cvector_ref(const T* mem) _tvmet_always_inline;
 
 
 /*********************************************************
@@ -430,7 +430,7 @@ TVMET_IMPLEMENT_MACRO(div, double)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 /*
  * function(Vector<std::complex<T>, Sz>, std::complex<T>)
  * function(std::complex<T>, Vector<std::complex<T>, Sz>)
@@ -485,7 +485,7 @@ TVMET_IMPLEMENT_MACRO(div)
 
 #undef TVMET_IMPLEMENT_MACRO
 
-#endif // defined(TVMET_HAVE_COMPLEX)
+#endif // defined(EIGEN_USE_COMPLEX)
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++

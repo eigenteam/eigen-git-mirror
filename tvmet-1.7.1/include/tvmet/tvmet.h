@@ -33,23 +33,6 @@
 #define TVMET_UNUSED(x) (void)x
 
 /*
- * other compiler specific stuff
- */
-
-/**
- * \def TVMET_CXX_ALWAYS_INLINE
- * \brief Compiler specific stuff to force inline code if supported.
- *
- * Mainly, this declares the functions using g++'s
- * __attribute__((always_inline)). This features is enabled
- * on defined TVMET_OPTIMIZE.
- */
-#if !defined(TVMET_CXX_ALWAYS_INLINE)
-#define TVMET_CXX_ALWAYS_INLINE
-#endif
-
-
-/*
  * Complexity triggers, compiler and architecture specific.
  * If not defined, use defaults.
  */
@@ -98,52 +81,9 @@
 #  define TVMET_COMPLEXITY_MV_TRIGGER		8*8
 #endif
 
-
-/***********************************************************************
- * other specials
- ***********************************************************************/
-#if defined(TVMET_HAVE_IEEE_MATH)
-#  define _ALL_SOURCE
-#  if !defined(_XOPEN_SOURCE)
-#    define _XOPEN_SOURCE
-#  endif
-#  if !defined(_XOPEN_SOURCE_EXTENDED)
-#    define _XOPEN_SOURCE_EXTENDED
-#  endif
-#endif
-
-
-/**
- * \def TVMET_DEBUG
- * This is defined if <code>DEBUG</code> is defined. This enables runtime error
- * bounds checking. If you compile %tvmet from another source directory
- * which defines <code>DEBUG</code>, then <code>TVMET_DEBUG</code> will be
- * <b>not</b> defined (This behavior differs from release less than 0.6.0).
- */
-
-
-/**
- * \def TVMET_OPTIMIZE
- * If this is defined tvmet uses some compiler specific keywords.
- *  Mainly, this declares the functions using gcc's
- * <tt>__attribute__((always_inline))</tt>. This allows the
- * compiler to produce high efficient code even on less
- * optimization levels, like gcc's -O2 or even -O!
- * This is known to work with gcc v3.3.3 (and higher).
- * Using icc's v8 gnuc compatibility mode this may work, I've read
- * that it's using as an hint, this means you can have static inline
- * functions inside left.
- */
-#if !defined(TVMET_OPTIMIZE)
-#  undef  TVMET_CXX_ALWAYS_INLINE
-#  define TVMET_CXX_ALWAYS_INLINE
-#endif
-
-
 /***********************************************************************
  * Namespaces
  ***********************************************************************/
-
 
 /**
  * \namespace std
@@ -179,7 +119,7 @@
 /***********************************************************************
  * forwards
  ***********************************************************************/
-#if defined(TVMET_HAVE_COMPLEX)
+#if defined(EIGEN_USE_COMPLEX)
 namespace std {
   template<class T> class complex;
 }
