@@ -43,6 +43,7 @@ public:
 
 private slots:
     void selfTest();
+    void testNumericTraits();
 };
 
 #endif // EIGEN_TESTSUITE_MAIN_H

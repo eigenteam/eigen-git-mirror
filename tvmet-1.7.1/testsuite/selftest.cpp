@@ -53,11 +53,11 @@ template<typename T> static void basics2()
        2,5,8,
        3,6,9;
   
-  assert(v1(0) == T(1) && v1(1) == T(2) && v1(2) == T(3));
+  QVERIFY(v1(0) == T(1) && v1(1) == T(2) && v1(2) == T(3));
 
-  assert(m1(0,0) == T(1) && m1(0,1) == T(4) && m1(0,2) == T(7) &&
-	 m1(1,0) == T(2) && m1(1,1) == T(5) && m1(1,2) == T(8) &&
-	 m1(2,0) == T(3) && m1(2,1) == T(6) && m1(2,2) == T(9));
+  QVERIFY(m1(0,0) == T(1) && m1(0,1) == T(4) && m1(0,2) == T(7) &&
+	  m1(1,0) == T(2) && m1(1,1) == T(5) && m1(1,2) == T(8) &&
+	  m1(2,0) == T(3) && m1(2,1) == T(6) && m1(2,2) == T(9));
 }
 
 void TvmetTestSuite::selfTest()
@@ -69,10 +69,8 @@ void TvmetTestSuite::selfTest()
   basics2<int> ();
   basics2<double> ();
   
-#ifdef EIGEN_USE_COMPLEX
   basics1<complex<float>, 4> ();
   basics1<complex<double>, 4> ();
   basics2<complex<int> > ();
   basics2<complex<double> > ();
-#endif
 }
