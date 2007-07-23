@@ -27,21 +27,25 @@
 #include <complex>
 #endif
 
-#define EIGEN_USE_COMPLEX
 #include <tvmet/Vector.h>
 #include <tvmet/Matrix.h>
 
+#include <tvmet/util/Random.h>
+
+#include "compare.h"
+
 using namespace tvmet;
+using namespace util;
 using namespace std;
 
 class TvmetTestSuite : public QObject
 {
     Q_OBJECT
 
-public:
+  public:
     TvmetTestSuite() {};
 
-private slots:
+  private slots:
     void selfTest();
     void testNumericTraits();
 };

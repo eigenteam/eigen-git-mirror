@@ -23,103 +23,64 @@
 
 #include "main.h"
 
-template<typename T, int n> struct TestNumericTraits
+template<typename T> struct TestNumericTraits
 {
-  const T m_real;
-  const T m_imag;
-  const T m_conj;
-  const T m_abs_Q1;
-  
   void real()
   {
-    typedef typename tvmet::NumericTraits<T>::base_type real_type;
-    real_type r = tvmet::NumericTraits<T>::real(m_real);
-    QVERIFY( r == m_real );
+    T x = someRandom<T>();
+    typedef typename NumericTraits<T>::real_type real_type;
+    real_type r = NumericTraits<T>::real(x);
+    TEST_APPROX(r, x);
   }
 
   void imag()
   {
-    typedef typename tvmet::NumericTraits<T>::base_type real_type;
-    real_type r = tvmet::NumericTraits<T>::real(m_real);
-    QVERIFY( r == m_real );
+    T x = someRandom<T>();
+    typedef typename NumericTraits<T>::real_type real_type;
+    real_type r = NumericTraits<T>::imag(x);
+    TEST_ZERO(r);
   }
   
   void conj()
   {
-    typedef typename tvmet::NumericTraits<T>::base_type conj_type;
-    conj_type r = tvmet::NumericTraits<T>::conj(m_conj);
-    QVERIFY( r == m_conj );
+    T x = someRandom<T>();
+    typedef typename NumericTraits<T>::real_type conj_type;
+    conj_type r = NumericTraits<T>::conj(x);
+    TEST_APPROX(r, x);
   }
 
   void abs()
   {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type r1 = tvmet::NumericTraits<T>::abs(m_abs_Q1);
-    value_type r2 = tvmet::NumericTraits<T>::abs(-m_abs_Q1);
-    QVERIFY( r1 == m_abs_Q1 );
-    QVERIFY( r2 == m_abs_Q1 );
+    T x = someRandom<T>();
+    typedef typename NumericTraits<T>::real_type value_type;
+    value_type r1 = NumericTraits<T>::abs(x);
+    value_type r2 = NumericTraits<T>::abs(-x);
+    TEST_APPROX(r1, r2);
   }
   
   void sqrt()
   {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type r1 = tvmet::NumericTraits<T>::sqrt(m_real);
-    value_type r2 = tvmet::NumericTraits<T>::sqrt(m_imag);
-    QVERIFY( r1 == 2 );
-    QVERIFY( r2 == 3 );
+    T x = someRandom<T>();
+    T a = NumericTraits<T>::abs(x);
+    T b = NumericTraits<T>::sqrt(a);
+    // T could be an integer type, so b*b=a is not necessarily true
+    TEST_LESSTHAN(b*b, a);
+    TEST_LESSTHAN(a, (b+1)*(b+1));
   }
   
-  void norm1()
-  {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type r = tvmet::NumericTraits<T>::norm_1(m_real);
-    QVERIFY( r == tvmet::NumericTraits<T>::abs(m_real) );
-  }
-  
-  void norm2()
-  {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type r = tvmet::NumericTraits<T>::norm_2(m_real);
-    QVERIFY( r == tvmet::NumericTraits<T>::abs(m_real) );
-  }
-  
-  void normInf()
-  {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type r = tvmet::NumericTraits<T>::norm_inf(m_real);
-    QVERIFY( r == tvmet::NumericTraits<T>::abs(m_real) );
-  }
-  
-  void equals()
-  {
-    typedef typename tvmet::NumericTraits<T>::base_type value_type;
-    value_type lhs, rhs;
-    lhs = rhs = 47;
-    QVERIFY( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
-    // a not very intelligent test
-    rhs += 1;
-    QVERIFY( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
-  }
-
-  
-  TestNumericTraits() : m_real(4), m_imag(9), m_conj(16), m_abs_Q1(7)
+  TestNumericTraits()
   {
     real();
     imag();
     conj();
     abs();
     sqrt();
-    norm1();
-    norm2();
-    normInf();
-    equals();
   }
 };
 
 void TvmetTestSuite::testNumericTraits()
 {
-  TestNumericTraits<double,1>();
-  TestNumericTraits<int,   2>();
-  TestNumericTraits<float, 3>();
-  TestNumericTraits<double,4>();
+  TestNumericTraits<int>();
+  TestNumericTraits<float>();
+  TestNumericTraits<double>();
 }
