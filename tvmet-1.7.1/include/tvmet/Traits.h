@@ -56,6 +56,7 @@ struct Traits : public TraitsBase<T>
   using Base::imag;
   using Base::conj;
   using Base::sqrt;
+  using Base::isLessThan_nonfuzzy;
   
   static value_type random()
   {
@@ -74,7 +75,7 @@ struct Traits : public TraitsBase<T>
     if(isFloat())
       return(abs(a) <= abs(b) * epsilon());
     else
-      return(a==0);
+      return(a==static_cast<value_type>(0));
   }
   
   /**
@@ -105,13 +106,12 @@ struct Traits : public TraitsBase<T>
     *
     * Full story: returns a <= b || isApprox(a, b);
     */
-  static bool isLessThan( argument_type a, argument_type b )
+  static bool isLessThan(argument_type a, argument_type b)
   {
-    assert(!isComplex());
     if(isFloat())
-      return(a <= b || isApprox(a, b));
+      return(isLessThan_nonfuzzy(a,b) || isApprox(a, b));
     else
-      return(a<=b);
+      return(isLessThan_nonfuzzy(a,b));
   }
 
 };

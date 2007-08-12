@@ -25,12 +25,26 @@
 
 template<typename T> struct TestTraits
 {
-  void real()
+  void real_imag_conj_abs()
   {
     T x = Traits<T>::random();
-    typedef typename Traits<T>::real_type real_type;
-    real_type r = Traits<T>::real(x);
-    TEST_APPROX(r, x);
+    typedef typename Traits<T>::real_type real;
+    real r = Traits<T>::real(x);
+    real i = Traits<T>::imag(x);
+    T c = Traits<T>::conj(x);
+    real a = Traits<T>::abs(x);
+    
+    // a must be real
+    TEST_APPROX(a, Traits<real>::real(a));
+    TEST_APPROX(a, Traits<T>::real(a));
+    TEST_ZERO(Traits<real>::imag(a));
+    TEST_ZERO(Traits<T>::imag(a));
+    
+    // check Pythagora's formula
+    if(Traits<T>::isFloat() || !Traits<T>::isComplex()) TEST_APPROX(r*r + i*i, a*a);
+    
+    // check complex conjugation
+    TEST_APPROX(-i, Traits<T>::imag(c));
   }
 
   void imag()
@@ -60,20 +74,18 @@ template<typename T> struct TestTraits
   
   void sqrt()
   {
+    // only test compilation here
     T x = Traits<T>::random();
-    T a = Traits<T>::abs(x);
-    T b = Traits<T>::sqrt(a);
-    // T could be an integer type, so b*b=a is not necessarily true
-    TEST_LESSTHAN(b*b, a);
-    TEST_LESSTHAN(a, (b+1)*(b+1));
+    Traits<T>::sqrt(x);
   }
   
   void isApprox()
   {
     T x = Traits<T>::random();
+    T e = T(Traits<T>::epsilon()) / T(10);
     TEST(Traits<T>::isApprox(x,x));
-    TEST(Traits<T>::isApprox(x,x+Traits<T>::epsilon()/10));
-    TEST(!Traits<T>::isApprox(x,x+1));
+    TEST(Traits<T>::isApprox(x,x+e));
+    TEST(!Traits<T>::isApprox(x,x+T(1)));
   }
   
   void isNegligible()
@@ -88,6 +100,7 @@ template<typename T> struct TestTraits
     TEST(!Traits<T>::isNegligible(one, x));
   }
   
+  
   void isZero()
   {
     T zero(0), one(1), x = Traits<T>::random(), y = Traits<T>::random();
@@ -98,18 +111,22 @@ template<typename T> struct TestTraits
   
   void isLessThan()
   {
-    T one(1), x = Traits<T>::random();
-    TEST(Traits<T>::isLessThan(x, x+one));
-    TEST(!Traits<T>::isLessThan(x+one, x));
-    TEST(Traits<T>::isLessThan(x, x+Traits<T>::epsilon()/10));
+    if(Traits<T>::isComplex()) {
+      T x = Traits<T>::random(), y = Traits<T>::random();
+      TEST(!Traits<T>::isLessThan(x,y));
+    }
+    else {
+      T one(1), x = Traits<T>::random();
+      T e = T(Traits<T>::epsilon()) / T(10);
+      TEST(Traits<T>::isLessThan(x, x+one));
+      TEST(!Traits<T>::isLessThan(x+one, x));
+      TEST(Traits<T>::isLessThan(x, x+e));
+    }
   }
   
   TestTraits()
   {
-    real();
-    imag();
-    conj();
-    abs();
+    real_imag_conj_abs();
     sqrt();
     isApprox();
     isNegligible();
@@ -123,4 +140,7 @@ void TvmetTestSuite::testTraits()
   TestTraits<int>();
   TestTraits<float>();
   TestTraits<double>();
+  TestTraits<std::complex<int> >();
+  TestTraits<std::complex<float> >();
+  TestTraits<std::complex<double> >();
 }

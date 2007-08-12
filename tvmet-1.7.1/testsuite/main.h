@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define EIGEN_USE_COMPLEX
+
 #ifdef EIGEN_USE_COMPLEX
 #include <complex>
 #endif
