@@ -51,12 +51,12 @@ std::ostream& Matrix<T, NRows, NCols>::print_xpr(std::ostream& os, int l) const
 template<class T, int NRows, int NCols>
 std::ostream& Matrix<T, NRows, NCols>::print_on(std::ostream& os) const
 {
-  enum {
-    complex_type = NumericTraits<value_type>::is_complex
-  };
-
-  std::streamsize w = IoPrintHelper<Matrix>::width(dispatch<complex_type>(), *this);
-
+  std::streamsize w;
+  if(Traits<value_type>::isComplex())
+    w = IoPrintHelper<Matrix>::width(dispatch<true>(), *this);
+  else
+    w = IoPrintHelper<Matrix>::width(dispatch<false>(), *this);
+  
   os << std::setw(0) << "[\n";
   for(int i = 0; i < Rows; ++i) {
     os << " [";

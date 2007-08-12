@@ -18,13 +18,13 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: TestNumericTraits.cc,v 1.1 2004/09/15 07:51:43 opetzold Exp $
+ * $Id: TestTraits.cc,v 1.1 2004/09/15 07:51:43 opetzold Exp $
  */
 
 #include <iostream>
 #include <complex>
 
-#include <TestNumericTraits.h>
+#include <TestTraits.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -32,17 +32,17 @@
  * instance
  ****************************************************************************/
 
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<char> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<unsigned char> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<short int> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<unsigned short int> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<int> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<unsigned int> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<long> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<unsigned long> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<char> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<unsigned char> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<short int> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<unsigned short int> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<int> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<unsigned int> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<long> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<unsigned long> );
 
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<float> );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<double> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<float> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<double> );
 #if defined(TVMET_HAVE_LONG_DOUBLE)
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraits<long double> );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraits<long double> );
 #endif

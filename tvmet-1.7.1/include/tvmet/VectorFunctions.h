@@ -187,12 +187,12 @@ TVMET_DECLARE_MACRO(div)
 
 
 template<class T, int Sz>
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 sum(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 product(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
@@ -209,12 +209,12 @@ cross(const Vector<T1, 3>& lhs,
 
 
 template<class T, int Sz>
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 norm1(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
 template<class T, int Sz>
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 norm2(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 
@@ -505,7 +505,7 @@ TVMET_IMPLEMENT_MACRO(div)
  */
 template<class T, int Sz>
 inline
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 sum(const Vector<T, Sz>& v) {
   return meta::Vector<Sz>::sum(v);
 }
@@ -523,7 +523,7 @@ sum(const Vector<T, Sz>& v) {
  */
 template<class T, int Sz>
 inline
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 product(const Vector<T, Sz>& v) {
   return meta::Vector<Sz>::product(v);
 }
@@ -580,7 +580,7 @@ cross(const Vector<T1, 3>& lhs, const Vector<T2, 3>& rhs) {
  */
 template<class T, int Sz>
 inline
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 norm1(const Vector<T, Sz>& v) {
   return sum(abs(v));
 }
@@ -601,9 +601,9 @@ norm1(const Vector<T, Sz>& v) {
  */
 template<class T, int Sz>
 inline
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 norm2(const Vector<T, Sz>& v) {
-  return static_cast<T>( std::sqrt(static_cast<typename NumericTraits<T>::float_type>(dot(v, v))) );
+  return static_cast<T>( std::sqrt(static_cast<typename Traits<T>::float_type>(dot(v, v))) );
 }
 
 

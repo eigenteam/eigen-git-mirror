@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: TestNumericTraitsComplex.h,v 1.2 2004/11/04 18:12:40 opetzold Exp $
+ * $Id: TestTraitsComplex.h,v 1.2 2004/11/04 18:12:40 opetzold Exp $
  */
 
 #ifndef TVMET_TEST_NUMERIC_TRAITS_H
@@ -34,9 +34,9 @@
 #include <cassert>
 
 template <class T>
-class TestNumericTraitsComplex : public CppUnit::TestFixture
+class TestTraitsComplex : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( TestNumericTraitsComplex );
+  CPPUNIT_TEST_SUITE( TestTraitsComplex );
   CPPUNIT_TEST( Real );
   CPPUNIT_TEST( Imag );
   CPPUNIT_TEST( Conj );
@@ -53,7 +53,7 @@ private:
   typedef tvmet::Matrix<T, 3, 3>			matrix_type;
 
 public:
-  TestNumericTraitsComplex()
+  TestTraitsComplex()
     : m_p_real( 3), m_p_imag( 4),
       m_n_real(-3), m_n_imag(-4),
       m_z1(m_p_real, m_p_imag),
@@ -83,19 +83,19 @@ protected:
 private:
   // Helper
   void AbsHelper(tvmet::dispatch<true>,
-		 typename tvmet::NumericTraits<T>::base_type);
+		 typename tvmet::Traits<T>::base_type);
   void AbsHelper(tvmet::dispatch<false>,
-		 typename tvmet::NumericTraits<T>::base_type);
+		 typename tvmet::Traits<T>::base_type);
   void SqrtHelper(tvmet::dispatch<true>);
   void SqrtHelper(tvmet::dispatch<false>);
   void NormHelper(tvmet::dispatch<true>,
-		  typename tvmet::NumericTraits<T>::base_type);
+		  typename tvmet::Traits<T>::base_type);
   void NormHelper(tvmet::dispatch<false>,
-		  typename tvmet::NumericTraits<T>::base_type);
+		  typename tvmet::Traits<T>::base_type);
 
 
 private:
-  typedef typename tvmet::NumericTraits<T>::base_type 	base_type;
+  typedef typename tvmet::Traits<T>::base_type 	base_type;
   typedef T						value_type;
 
   const base_type					m_p_real;
@@ -115,10 +115,10 @@ private:
  ****************************************************************************/
 
 template <class T>
-void TestNumericTraitsComplex<T>::setUp () { }
+void TestTraitsComplex<T>::setUp () { }
 
 template <class T>
-void TestNumericTraitsComplex<T>::tearDown() { }
+void TestTraitsComplex<T>::tearDown() { }
 
 /*****************************************************************************
  * Implementation Part II
@@ -126,14 +126,14 @@ void TestNumericTraitsComplex<T>::tearDown() { }
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Real()
+TestTraitsComplex<T>::Real()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
-  base_type r1 = tvmet::NumericTraits<T>::real(m_z1);
-  base_type r2 = tvmet::NumericTraits<T>::real(m_z2);
-  base_type r3 = tvmet::NumericTraits<T>::real(m_z3);
-  base_type r4 = tvmet::NumericTraits<T>::real(m_z4);
+  base_type r1 = tvmet::Traits<T>::real(m_z1);
+  base_type r2 = tvmet::Traits<T>::real(m_z2);
+  base_type r3 = tvmet::Traits<T>::real(m_z3);
+  base_type r4 = tvmet::Traits<T>::real(m_z4);
 
   CPPUNIT_ASSERT( r1 == m_p_real );
   CPPUNIT_ASSERT( r2 == m_n_real );
@@ -144,14 +144,14 @@ TestNumericTraitsComplex<T>::Real()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Imag()
+TestTraitsComplex<T>::Imag()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
-  base_type i1 = tvmet::NumericTraits<T>::imag(m_z1);
-  base_type i2 = tvmet::NumericTraits<T>::imag(m_z2);
-  base_type i3 = tvmet::NumericTraits<T>::imag(m_z3);
-  base_type i4 = tvmet::NumericTraits<T>::imag(m_z4);
+  base_type i1 = tvmet::Traits<T>::imag(m_z1);
+  base_type i2 = tvmet::Traits<T>::imag(m_z2);
+  base_type i3 = tvmet::Traits<T>::imag(m_z3);
+  base_type i4 = tvmet::Traits<T>::imag(m_z4);
 
   CPPUNIT_ASSERT( i1 == m_p_imag );
   CPPUNIT_ASSERT( i2 == m_p_imag );
@@ -161,69 +161,69 @@ TestNumericTraitsComplex<T>::Imag()
 
 
 // conj only for signed types !!
-template <> void TestNumericTraitsComplex<std::complex<unsigned char> >::Conj() { }
-template <> void TestNumericTraitsComplex<std::complex<unsigned short int> >::Conj() { }
-template <> void TestNumericTraitsComplex<std::complex<unsigned int> >::Conj() { }
-template <> void TestNumericTraitsComplex<std::complex<unsigned long> >::Conj() { }
+template <> void TestTraitsComplex<std::complex<unsigned char> >::Conj() { }
+template <> void TestTraitsComplex<std::complex<unsigned short int> >::Conj() { }
+template <> void TestTraitsComplex<std::complex<unsigned int> >::Conj() { }
+template <> void TestTraitsComplex<std::complex<unsigned long> >::Conj() { }
 
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Conj()
+TestTraitsComplex<T>::Conj()
 {
-  typedef typename tvmet::NumericTraits<T>::value_type value_type;
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::value_type value_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
   };
 
   // conjugate
-  value_type conj_z1 = tvmet::NumericTraits<T>::conj(m_z1);
-  value_type conj_z2 = tvmet::NumericTraits<T>::conj(m_z2);
-  value_type conj_z3 = tvmet::NumericTraits<T>::conj(m_z3);
-  value_type conj_z4 = tvmet::NumericTraits<T>::conj(m_z4);
+  value_type conj_z1 = tvmet::Traits<T>::conj(m_z1);
+  value_type conj_z2 = tvmet::Traits<T>::conj(m_z2);
+  value_type conj_z3 = tvmet::Traits<T>::conj(m_z3);
+  value_type conj_z4 = tvmet::Traits<T>::conj(m_z4);
 
   // real part
-  base_type r1 = tvmet::NumericTraits<T>::real(conj_z1);
-  base_type r2 = tvmet::NumericTraits<T>::real(conj_z2);
-  base_type r3 = tvmet::NumericTraits<T>::real(conj_z3);
-  base_type r4 = tvmet::NumericTraits<T>::real(conj_z4);
+  base_type r1 = tvmet::Traits<T>::real(conj_z1);
+  base_type r2 = tvmet::Traits<T>::real(conj_z2);
+  base_type r3 = tvmet::Traits<T>::real(conj_z3);
+  base_type r4 = tvmet::Traits<T>::real(conj_z4);
 
   // imag part
-  base_type i1 = tvmet::NumericTraits<T>::imag(conj_z1);
-  base_type i2 = tvmet::NumericTraits<T>::imag(conj_z2);
-  base_type i3 = tvmet::NumericTraits<T>::imag(conj_z3);
-  base_type i4 = tvmet::NumericTraits<T>::imag(conj_z4);
+  base_type i1 = tvmet::Traits<T>::imag(conj_z1);
+  base_type i2 = tvmet::Traits<T>::imag(conj_z2);
+  base_type i3 = tvmet::Traits<T>::imag(conj_z3);
+  base_type i4 = tvmet::Traits<T>::imag(conj_z4);
 
   // check on real part; real is tested before
-  CPPUNIT_ASSERT( r1 == tvmet::NumericTraits<T>::real(m_z1) );
-  CPPUNIT_ASSERT( r2 == tvmet::NumericTraits<T>::real(m_z2) );
-  CPPUNIT_ASSERT( r3 == tvmet::NumericTraits<T>::real(m_z3) );
-  CPPUNIT_ASSERT( r4 == tvmet::NumericTraits<T>::real(m_z4) );
+  CPPUNIT_ASSERT( r1 == tvmet::Traits<T>::real(m_z1) );
+  CPPUNIT_ASSERT( r2 == tvmet::Traits<T>::real(m_z2) );
+  CPPUNIT_ASSERT( r3 == tvmet::Traits<T>::real(m_z3) );
+  CPPUNIT_ASSERT( r4 == tvmet::Traits<T>::real(m_z4) );
 
   // check on imag part
-  CPPUNIT_ASSERT( i1 == -tvmet::NumericTraits<T>::imag(m_z1) );
-  CPPUNIT_ASSERT( i2 == -tvmet::NumericTraits<T>::imag(m_z2) );
-  CPPUNIT_ASSERT( i3 == -tvmet::NumericTraits<T>::imag(m_z3) );
-  CPPUNIT_ASSERT( i4 == -tvmet::NumericTraits<T>::imag(m_z4) );
+  CPPUNIT_ASSERT( i1 == -tvmet::Traits<T>::imag(m_z1) );
+  CPPUNIT_ASSERT( i2 == -tvmet::Traits<T>::imag(m_z2) );
+  CPPUNIT_ASSERT( i3 == -tvmet::Traits<T>::imag(m_z3) );
+  CPPUNIT_ASSERT( i4 == -tvmet::Traits<T>::imag(m_z4) );
 }
 
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Abs()
+TestTraitsComplex<T>::Abs()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
   };
 
-  base_type a1 = tvmet::NumericTraits<T>::abs(m_z1);
-  base_type a2 = tvmet::NumericTraits<T>::abs(m_z2);
-  base_type a3 = tvmet::NumericTraits<T>::abs(m_z3);
-  base_type a4 = tvmet::NumericTraits<T>::abs(m_z4);
+  base_type a1 = tvmet::Traits<T>::abs(m_z1);
+  base_type a2 = tvmet::Traits<T>::abs(m_z2);
+  base_type a3 = tvmet::Traits<T>::abs(m_z3);
+  base_type a4 = tvmet::Traits<T>::abs(m_z4);
 
   // result depends on signed type
   AbsHelper(tvmet::dispatch<is_signed>(), a1);
@@ -235,8 +235,8 @@ TestNumericTraitsComplex<T>::Abs()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::AbsHelper(tvmet::dispatch<true>,
-				typename tvmet::NumericTraits<T>::base_type r)
+TestTraitsComplex<T>::AbsHelper(tvmet::dispatch<true>,
+				typename tvmet::Traits<T>::base_type r)
 {
   // signed type
   CPPUNIT_ASSERT( r == 5 );
@@ -245,26 +245,26 @@ TestNumericTraitsComplex<T>::AbsHelper(tvmet::dispatch<true>,
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::AbsHelper(tvmet::dispatch<false>,
-				typename tvmet::NumericTraits<T>::base_type r)
+TestTraitsComplex<T>::AbsHelper(tvmet::dispatch<false>,
+				typename tvmet::Traits<T>::base_type r)
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   base_type x = m_z1.real();	// sign doesn't matter on abs()
   base_type y = m_z1.imag();	// sign doesn't matter on abs()
 
   // unsigned type
   CPPUNIT_ASSERT( r == static_cast<base_type>(
-			 tvmet::NumericTraits<base_type>::sqrt(x * x + y * y))
+			 tvmet::Traits<base_type>::sqrt(x * x + y * y))
 		);
 }
 
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Sqrt()
+TestTraitsComplex<T>::Sqrt()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
@@ -277,16 +277,16 @@ TestNumericTraitsComplex<T>::Sqrt()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::SqrtHelper(tvmet::dispatch<true>)
+TestTraitsComplex<T>::SqrtHelper(tvmet::dispatch<true>)
 {
   // signed type
-  typedef typename tvmet::NumericTraits<T>::value_type value_type;
+  typedef typename tvmet::Traits<T>::value_type value_type;
 
   // sqrt
-  value_type z1 = tvmet::NumericTraits<T>::sqrt(m_z1);
-  value_type z2 = tvmet::NumericTraits<T>::sqrt(m_z2);
-  value_type z3 = tvmet::NumericTraits<T>::sqrt(m_z3);
-  value_type z4 = tvmet::NumericTraits<T>::sqrt(m_z4);
+  value_type z1 = tvmet::Traits<T>::sqrt(m_z1);
+  value_type z2 = tvmet::Traits<T>::sqrt(m_z2);
+  value_type z3 = tvmet::Traits<T>::sqrt(m_z3);
+  value_type z4 = tvmet::Traits<T>::sqrt(m_z4);
 
   CPPUNIT_ASSERT( z1 == value_type(2,1) );
   CPPUNIT_ASSERT( z2 == value_type(1,2) );
@@ -298,7 +298,7 @@ TestNumericTraitsComplex<T>::SqrtHelper(tvmet::dispatch<true>)
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::SqrtHelper(tvmet::dispatch<false>)
+TestTraitsComplex<T>::SqrtHelper(tvmet::dispatch<false>)
 {
   // unsigned type
 
@@ -306,11 +306,11 @@ TestNumericTraitsComplex<T>::SqrtHelper(tvmet::dispatch<false>)
    * very dirty - we assume we calculate right
    * on "negative" complex types */
 
-  typedef typename tvmet::NumericTraits<T>::value_type value_type;
+  typedef typename tvmet::Traits<T>::value_type value_type;
 
   // sqrt
-  value_type z1 = tvmet::NumericTraits<T>::sqrt(m_z1);
-  value_type z2 = tvmet::NumericTraits<T>::sqrt(m_z2);
+  value_type z1 = tvmet::Traits<T>::sqrt(m_z1);
+  value_type z2 = tvmet::Traits<T>::sqrt(m_z2);
 
   CPPUNIT_ASSERT( z1 == value_type(2,1) );
   CPPUNIT_ASSERT( z2 == value_type(1,2) );
@@ -319,19 +319,19 @@ TestNumericTraitsComplex<T>::SqrtHelper(tvmet::dispatch<false>)
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Norm_1()
+TestTraitsComplex<T>::Norm_1()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
   };
 
   // norm_1
-  base_type n1 = tvmet::NumericTraits<T>::norm_1(m_z1);
-  base_type n2 = tvmet::NumericTraits<T>::norm_1(m_z2);
-  base_type n3 = tvmet::NumericTraits<T>::norm_1(m_z3);
-  base_type n4 = tvmet::NumericTraits<T>::norm_1(m_z4);
+  base_type n1 = tvmet::Traits<T>::norm_1(m_z1);
+  base_type n2 = tvmet::Traits<T>::norm_1(m_z2);
+  base_type n3 = tvmet::Traits<T>::norm_1(m_z3);
+  base_type n4 = tvmet::Traits<T>::norm_1(m_z4);
 
   // result depends on signed type
   NormHelper(tvmet::dispatch<is_signed>(), n1);
@@ -343,19 +343,19 @@ TestNumericTraitsComplex<T>::Norm_1()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Norm_2()
+TestTraitsComplex<T>::Norm_2()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
   };
 
   // norm_2
-  base_type n1 = tvmet::NumericTraits<T>::norm_2(m_z1);
-  base_type n2 = tvmet::NumericTraits<T>::norm_2(m_z2);
-  base_type n3 = tvmet::NumericTraits<T>::norm_2(m_z3);
-  base_type n4 = tvmet::NumericTraits<T>::norm_2(m_z4);
+  base_type n1 = tvmet::Traits<T>::norm_2(m_z1);
+  base_type n2 = tvmet::Traits<T>::norm_2(m_z2);
+  base_type n3 = tvmet::Traits<T>::norm_2(m_z3);
+  base_type n4 = tvmet::Traits<T>::norm_2(m_z4);
 
   // result depends on signed type
   NormHelper(tvmet::dispatch<is_signed>(), n1);
@@ -367,19 +367,19 @@ TestNumericTraitsComplex<T>::Norm_2()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Norm_Inf()
+TestTraitsComplex<T>::Norm_Inf()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type base_type;
+  typedef typename tvmet::Traits<T>::base_type base_type;
 
   enum {
     is_signed = std::numeric_limits<base_type>::is_signed
   };
 
   // norm_inf
-  base_type n1 = tvmet::NumericTraits<T>::norm_inf(m_z1);
-  base_type n2 = tvmet::NumericTraits<T>::norm_inf(m_z2);
-  base_type n3 = tvmet::NumericTraits<T>::norm_inf(m_z3);
-  base_type n4 = tvmet::NumericTraits<T>::norm_inf(m_z4);
+  base_type n1 = tvmet::Traits<T>::norm_inf(m_z1);
+  base_type n2 = tvmet::Traits<T>::norm_inf(m_z2);
+  base_type n3 = tvmet::Traits<T>::norm_inf(m_z3);
+  base_type n4 = tvmet::Traits<T>::norm_inf(m_z4);
 
   // result depends on signed type
   NormHelper(tvmet::dispatch<is_signed>(), n1);
@@ -390,8 +390,8 @@ TestNumericTraitsComplex<T>::Norm_Inf()
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::NormHelper(tvmet::dispatch<true>,
-				typename tvmet::NumericTraits<T>::base_type)
+TestTraitsComplex<T>::NormHelper(tvmet::dispatch<true>,
+				typename tvmet::Traits<T>::base_type)
 {
   // XXX To be implement
 }
@@ -399,8 +399,8 @@ TestNumericTraitsComplex<T>::NormHelper(tvmet::dispatch<true>,
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::NormHelper(tvmet::dispatch<false>,
-				typename tvmet::NumericTraits<T>::base_type)
+TestTraitsComplex<T>::NormHelper(tvmet::dispatch<false>,
+				typename tvmet::Traits<T>::base_type)
 {
   // XXX To be implement
 }
@@ -408,49 +408,49 @@ TestNumericTraitsComplex<T>::NormHelper(tvmet::dispatch<false>,
 
 template <class T>
 void
-TestNumericTraitsComplex<T>::Equals()
+TestTraitsComplex<T>::Equals()
 {
   // XXX this test is to simple
 
-  typedef typename tvmet::NumericTraits<T>::value_type value_type;
+  typedef typename tvmet::Traits<T>::value_type value_type;
 
   value_type lhs, rhs;
 
   {
     lhs = rhs = m_z1;
 
-    CPPUNIT_ASSERT( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( true == tvmet::Traits<T>::equals(lhs,rhs) );
 
     rhs += m_z1;
 
-    CPPUNIT_ASSERT( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( false == tvmet::Traits<T>::equals(lhs,rhs) );
   }
   {
     lhs = rhs = m_z2;
 
-    CPPUNIT_ASSERT( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( true == tvmet::Traits<T>::equals(lhs,rhs) );
 
     rhs += m_z2;
 
-    CPPUNIT_ASSERT( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( false == tvmet::Traits<T>::equals(lhs,rhs) );
   }
   {
     lhs = rhs = m_z3;
 
-    CPPUNIT_ASSERT( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( true == tvmet::Traits<T>::equals(lhs,rhs) );
 
     rhs += m_z3;
 
-    CPPUNIT_ASSERT( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( false == tvmet::Traits<T>::equals(lhs,rhs) );
   }
   {
     lhs = rhs = m_z4;
 
-    CPPUNIT_ASSERT( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( true == tvmet::Traits<T>::equals(lhs,rhs) );
 
     rhs += m_z4;
 
-    CPPUNIT_ASSERT( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+    CPPUNIT_ASSERT( false == tvmet::Traits<T>::equals(lhs,rhs) );
   }
 }
 

@@ -61,8 +61,8 @@ public:
     ops_rhs   = E2::ops,
     M         = Cols * Rows,
     N         = Cols * (Rows - 1),
-    ops_plus  = M * NumericTraits<value_type>::ops_plus,
-    ops_muls  = N * NumericTraits<value_type>::ops_muls,
+    ops_plus  = M * Traits<value_type>::ops_plus,
+    ops_muls  = N * Traits<value_type>::ops_muls,
     ops       = ops_plus + ops_muls,
     use_meta  = Rows*Cols < TVMET_COMPLEXITY_MV_TRIGGER ? true : false
   };

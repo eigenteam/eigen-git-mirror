@@ -37,7 +37,7 @@ frob_norm(const tvmet::Matrix<T, Rows, Cols>& M) {
 
 namespace tvmet {
   template<class T, int Rows, int Cols>
-  typename NumericTraits<T>::float_type
+  typename Traits<T>::float_type
   norm(const Matrix<T, Rows, Cols>& M) {
     return std::sqrt( sum( diag( MtM_prod(M,M) ) ) );
   }
@@ -113,7 +113,7 @@ _Z9frob_normIdLj3ELj3EEdRKN5tvmet6MatrixIT_XT0_EXT1_EEE:
 /*
    gcc 3.3 produce the norm function using tvmet 1.3.0:
 
-_ZN5tvmet4normIdLj3ELj3EEENS_13NumericTraitsIT_E10float_typeERKNS_6MatrixIS2_XT0_EXT1_EEE:
+_ZN5tvmet4normIdLj3ELj3EEENS_13TraitsIT_E10float_typeERKNS_6MatrixIS2_XT0_EXT1_EEE:
 .LFB3252:
 .L194:
 .L198:

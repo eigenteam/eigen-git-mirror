@@ -24,7 +24,7 @@
 #ifndef TVMET_META_VECTOR_H
 #define TVMET_META_VECTOR_H
 
-#include <tvmet/NumericTraits.h>
+#include <tvmet/Traits.h>
 #include <tvmet/xpr/Null.h>
 
 namespace tvmet {
@@ -72,7 +72,7 @@ public:
   /** build the product of the vector. */
   template<class E>
   static inline
-  typename NumericTraits<
+  typename Traits<
     typename E::value_type
   >::sum_type
   product(const E& e) {

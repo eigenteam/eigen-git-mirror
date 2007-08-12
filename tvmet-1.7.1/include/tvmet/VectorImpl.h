@@ -51,12 +51,12 @@ std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, int l) const
 template<class T, int Sz>
 std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
 {
-  enum {
-    complex_type = NumericTraits<value_type>::is_complex
-  };
-
-  std::streamsize w = IoPrintHelper<Vector>::width(dispatch<complex_type>(), *this);
-
+  std::streamsize w;
+  if(Traits<value_type>::isComplex())
+    w = IoPrintHelper<Vector>::width(dispatch<true>(), *this);
+  else
+    w = IoPrintHelper<Vector>::width(dispatch<false>(), *this);
+    
   os << std::setw(0) << "[\n  ";
   for(int i = 0; i < (Size - 1); ++i) {
     os << std::setw(w) << m_data[i] << ", ";

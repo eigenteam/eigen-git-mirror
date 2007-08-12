@@ -313,7 +313,7 @@
 	* regression/TestMathOps.h: Test for normalize(Vector<>) added.
 
 	* include/tvmet/{Matrix,Vector}Operators.h: Matrix/Vector<T, Sz> and POD's
-		extended with long long int to handle long long from NumericTraits
+		extended with long long int to handle long long from Traits
 		too.
 
 2002-10-29  opetzold  <opetzold@wit.regiocom.net>
@@ -339,7 +339,7 @@
 
 	* doc/Doxygen.in: PREDEFINED targets use the forgotten TVMET prefix too.
 
-	* include/tvmet/{Binary|UnaryFunctionals.h, NumericTraits.h,
+	* include/tvmet/{Binary|UnaryFunctionals.h, Traits.h,
 		TypePromotion.h TvmetBase.h}: macros
 		generated operators, functions and functionals doc added for
 		doxygen include path.
@@ -443,7 +443,7 @@
 
 	* version 0.4.0 released
 
-	* include/tvmet/NumericTraits.h: rewritten to avoid macro and ifdef garbage.
+	* include/tvmet/Traits.h: rewritten to avoid macro and ifdef garbage.
 
 	* include/tvmet/*: member rename to be conform to m_xxx
 
@@ -475,7 +475,7 @@
 		and complex types as well. Change ranking breaks compatibility
 		with prior releases.
 
-	* include/tvmet/NumericTraits.h: support for long long. Specialized version for
+	* include/tvmet/Traits.h: support for long long. Specialized version for
 		long double and long long self removed - there isn't a way to guarantee
 		the precision than.
 
@@ -556,10 +556,10 @@
 	* include/tvmet/TypePromotion.h: std::complex<int> added, therfore the priorities
 		for all complex types have changed!
 
-	* include/tvmet/NumericTraits.h: depends on HAVE_LONG_DOUBLE, sum_type of double
+	* include/tvmet/Traits.h: depends on HAVE_LONG_DOUBLE, sum_type of double
 		is long double or double.
 
-	* include/tvmet/{MatrixEval.h, MatrixFunctions.h, MatrixOperators.h, NumericTraits.h,
+	* include/tvmet/{MatrixEval.h, MatrixFunctions.h, MatrixOperators.h, Traits.h,
 		TypePromotion.h, UnaryFunctionals.h, VectorEval.h, VectorFunctions.h,
 		VectorOperators.h, XprFunctions.h, XprOperators.h} HAVE_LONG_DOUBLE
 		encapsulated.
@@ -577,7 +577,7 @@
 
 	* examples/Makefile.am (examples): bug corrected.
 
-	* include/tvmet/NumericTraits.h: complex<int> numeric traits added.
+	* include/tvmet/Traits.h: complex<int> numeric traits added.
 
 	* include/tvmet/MatrixOperators.h: operator*() is in namespace element_wise left
 

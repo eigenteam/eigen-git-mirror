@@ -30,12 +30,9 @@
 #include <tvmet/Vector.h>
 #include <tvmet/Matrix.h>
 
-#include <tvmet/util/Random.h>
-
 #include "compare.h"
 
 using namespace tvmet;
-using namespace util;
 using namespace std;
 
 class TvmetTestSuite : public QObject
@@ -47,7 +44,7 @@ class TvmetTestSuite : public QObject
 
   private slots:
     void selfTest();
-    void testNumericTraits();
+    void testTraits();
 };
 
 #endif // EIGEN_TESTSUITE_MAIN_H

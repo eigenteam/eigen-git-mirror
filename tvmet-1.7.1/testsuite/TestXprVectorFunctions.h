@@ -285,9 +285,9 @@ TestXprVectorFunctions<T>::fn_norm() {
 
   CPPUNIT_ASSERT( t1 == sum(v1) );
   CPPUNIT_ASSERT( t2 == sum(v1) );
-  CPPUNIT_ASSERT( std::abs(t3 - std::sqrt(static_cast<typename tvmet::NumericTraits<T>::float_type>(14)))
+  CPPUNIT_ASSERT( std::abs(t3 - std::sqrt(static_cast<typename tvmet::Traits<T>::float_type>(14)))
 		  < std::numeric_limits<T>::epsilon() );
-  CPPUNIT_ASSERT( std::abs(t4 - std::sqrt(static_cast<typename tvmet::NumericTraits<T>::float_type>(14)))
+  CPPUNIT_ASSERT( std::abs(t4 - std::sqrt(static_cast<typename tvmet::Traits<T>::float_type>(14)))
 		  < std::numeric_limits<T>::epsilon() );
 
   r = v1/norm2(v1); 	// norm2 is checked before

@@ -163,12 +163,12 @@ TVMET_DECLARE_MACRO(div)
 
 
 template<class E, int Sz>
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 sum(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 product(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
@@ -220,12 +220,12 @@ cross(const XprVector<E, 3>& lhs,
 
 
 template<class E, int Sz>
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 norm1(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
 template<class E, int Sz>
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 norm2(const XprVector<E, Sz>& v) _tvmet_always_inline;
 
 
@@ -418,7 +418,7 @@ TVMET_IMPLEMENT_MACRO(div)
  */
 template<class E, int Sz>
 inline
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 sum(const XprVector<E, Sz>& v) {
   return meta::Vector<Sz>::sum(v);
 }
@@ -436,7 +436,7 @@ sum(const XprVector<E, Sz>& v) {
  */
 template<class E, int Sz>
 inline
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 product(const XprVector<E, Sz>& v) {
   return meta::Vector<Sz>::product(v);
 }
@@ -585,7 +585,7 @@ cross(const Vector<T1, 3>& lhs, const XprVector<E2, 3>& rhs) {
  */
 template<class E, int Sz>
 inline
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 norm1(const XprVector<E, Sz>& v) {
   return sum(abs(v));
 }
@@ -606,7 +606,7 @@ norm1(const XprVector<E, Sz>& v) {
  */
 template<class E, int Sz>
 inline
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 norm2(const XprVector<E, Sz>& v) {
   typedef typename E::value_type			value_type;
   return static_cast<value_type>( std::sqrt(static_cast<value_type>(dot(v, v))) );

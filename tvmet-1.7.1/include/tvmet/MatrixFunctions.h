@@ -337,7 +337,7 @@ trans(const Matrix<T, Rows, Cols>& rhs) _tvmet_always_inline;
 
 
 template<class T, int Sz>
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 trace(const Matrix<T, Sz, Sz>& m) _tvmet_always_inline;
 
 
@@ -972,7 +972,7 @@ trans(const Matrix<T, Rows, Cols>& rhs) {
  */
 template<class T, int Sz>
 inline
-typename NumericTraits<T>::sum_type
+typename Traits<T>::sum_type
 trace(const Matrix<T, Sz, Sz>& m) {
   return meta::Matrix<Sz, Sz, 0, 0>::trace(m);
 }

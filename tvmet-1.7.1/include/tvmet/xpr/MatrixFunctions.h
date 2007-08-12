@@ -255,7 +255,7 @@ trans(const XprMatrix<E, Rows, Cols>& rhs) _tvmet_always_inline;
 
 #if 0 // XXX needs declaration of meta::Matrix<Sz, Sz, 0, 0>::trace
 template<class E, int Sz>
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 trace(const XprMatrix<E, Sz, Sz>& m)_tvmet_always_inline;
 #endif
 
@@ -649,7 +649,7 @@ trans(const XprMatrix<E, Rows, Cols>& rhs) {
  */
 template<class E, int Sz>
 inline
-typename NumericTraits<typename E::value_type>::sum_type
+typename Traits<typename E::value_type>::sum_type
 trace(const XprMatrix<E, Sz, Sz>& m) {
   return meta::Matrix<Sz, Sz, 0, 0>::trace(m);
 }

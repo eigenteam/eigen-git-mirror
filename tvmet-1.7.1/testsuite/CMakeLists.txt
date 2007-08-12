@@ -11,9 +11,9 @@ INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 SET(testsuite_SOURCES
   main.cpp
   selftest.cpp
-  testnumerictraits.cpp
-#   TestNumericTraits.h TestNumericTraits.cc
-#   TestNumericTraitsComplex.h TestNumericTraitsComplex.cc
+  testtraits.cpp
+#   TestTraits.h TestTraits.cc
+#   TestTraitsComplex.h TestTraitsComplex.cc
 #   TestConstruction.h TestConstruction.cc
 #   TestComplexMatrix.h TestComplexMatrix.cc
 #   TestComplexVector.h TestComplexVector.cc

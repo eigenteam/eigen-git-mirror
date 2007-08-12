@@ -24,7 +24,7 @@
 #ifndef TVMET_META_MATRIX_H
 #define TVMET_META_MATRIX_H
 
-#include <tvmet/NumericTraits.h>
+#include <tvmet/Traits.h>
 #include <tvmet/xpr/Null.h>
 
 namespace tvmet {

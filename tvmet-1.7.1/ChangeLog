@@ -101,12 +101,12 @@
 
 2004-11-04 19:12  opetzold
 
-	* testsuite/: TestNumericTraits.h, TestNumericTraitsComplex.h: conj
+	* testsuite/: TestTraits.h, TestTraitsComplex.h: conj
 	tests updated for signed and unsigned types.
 
 2004-11-04 19:10  opetzold
 
-	* include/tvmet/NumericTraits.h: conj for all unsigned types
+	* include/tvmet/Traits.h: conj for all unsigned types
 	disabled. An unary minus operator applied to unsigned type will
 	result unsigned.
 
@@ -125,7 +125,7 @@
 
 2004-11-04 17:25  opetzold
 
-	* include/tvmet/NumericTraits.h: bug removed: displaced semicolon
+	* include/tvmet/Traits.h: bug removed: displaced semicolon
 	removed - was wrong statement termination.
 
 2004-11-04 17:21  opetzold
@@ -149,7 +149,7 @@
 
 2004-10-31 10:51  opetzold
 
-	* include/tvmet/NumericTraits.h: doxygen notes added for unsigned
+	* include/tvmet/Traits.h: doxygen notes added for unsigned
 	types and conj - it's useless.
 
 2004-10-31 10:50  opetzold
@@ -233,8 +233,8 @@
 
 2004-09-15 09:51  opetzold
 
-	* testsuite/: TestNumericTraits.cc, TestNumericTraits.h,
-	TestNumericTraitsComplex.cc, TestNumericTraitsComplex.h: added new
+	* testsuite/: TestTraits.cc, TestTraits.h,
+	TestTraitsComplex.cc, TestTraitsComplex.h: added new
 	tests for tvmet's traits.
 
 2004-07-06 11:45  opetzold
@@ -421,7 +421,7 @@
 
 2004-06-08 18:16  opetzold
 
-	* include/tvmet/NumericTraits.h: extended member to simplify
+	* include/tvmet/Traits.h: extended member to simplify
 	complex calcs; not used yet.
 
 2004-06-08 14:11  opetzold
@@ -914,7 +914,7 @@
 
 2003-12-13 21:20  opetzold
 
-	* include/tvmet/NumericTraits.h: infos about complex type added.
+	* include/tvmet/Traits.h: infos about complex type added.
 
 2003-12-09 19:38  opetzold
 
@@ -1191,7 +1191,7 @@
 	include/tvmet/MatrixEval.h, include/tvmet/MatrixFunctions.h,
 	include/tvmet/MatrixImpl.h, include/tvmet/MatrixOperators.h,
 	include/tvmet/MatrixUnaryFunctions.h,
-	include/tvmet/NumericTraits.h, include/tvmet/RunTimeError.h,
+	include/tvmet/Traits.h, include/tvmet/RunTimeError.h,
 	include/tvmet/TvmetBase.h, include/tvmet/TypePromotion.h,
 	include/tvmet/UnaryFunctionals.h, include/tvmet/Vector.h,
 	include/tvmet/VectorBinaryFunctions.h, include/tvmet/VectorEval.h,
@@ -1500,7 +1500,7 @@
 
 2003-10-21 20:48  opetzold
 
-	* include/tvmet/NumericTraits.h: complexity for numeric types
+	* include/tvmet/Traits.h: complexity for numeric types
 	added.
 
 2003-10-21 20:39  opetzold
@@ -1777,7 +1777,7 @@
 	CompileTimeError.h, Extremum.h, Functional.h, Matrix.h,
 	MatrixBinaryFunctions.h, MatrixEval.h, MatrixFunctions.h,
 	MatrixImpl.h, MatrixOperators.h, MatrixUnaryFunctions.h,
-	NumericTraits.h, RunTimeError.h, TvmetBase.h, TypePromotion.h,
+	Traits.h, RunTimeError.h, TvmetBase.h, TypePromotion.h,
 	UnaryFunctionals.h, Vector.h, VectorBinaryFunctions.h,
 	VectorEval.h, VectorFunctions.h, VectorImpl.h, VectorOperators.h,
 	VectorUnaryFunctions.h, tvmet.h, meta/Gemm.h, meta/Gemmt.h,
@@ -3811,7 +3811,7 @@
 	include/tvmet/Extremum.h, include/tvmet/Functional.h,
 	include/tvmet/Matrix.h, include/tvmet/MatrixEval.h,
 	include/tvmet/MatrixFunctions.h, include/tvmet/MatrixImpl.h,
-	include/tvmet/MatrixOperators.h, include/tvmet/NumericTraits.h,
+	include/tvmet/MatrixOperators.h, include/tvmet/Traits.h,
 	include/tvmet/RunTimeError.h, include/tvmet/TvmetBase.h,
 	include/tvmet/TypePromotion.h, include/tvmet/UnaryFunctionals.h,
 	include/tvmet/Vector.h, include/tvmet/VectorEval.h,
@@ -3935,7 +3935,7 @@
 	include/tvmet/Extremum.h, include/tvmet/Functional.h,
 	include/tvmet/Matrix.h, include/tvmet/MatrixEval.h,
 	include/tvmet/MatrixFunctions.h, include/tvmet/MatrixImpl.h,
-	include/tvmet/MatrixOperators.h, include/tvmet/NumericTraits.h,
+	include/tvmet/MatrixOperators.h, include/tvmet/Traits.h,
 	include/tvmet/RunTimeError.h, include/tvmet/TvmetBase.h,
 	include/tvmet/TypePromotion.h, include/tvmet/UnaryFunctionals.h,
 	include/tvmet/Vector.h, include/tvmet/VectorEval.h,
@@ -4003,7 +4003,7 @@
 	include/tvmet/Makefile.am, include/tvmet/Makefile.in,
 	include/tvmet/Matrix.h, include/tvmet/MatrixEval.h,
 	include/tvmet/MatrixFunctions.h, include/tvmet/MatrixImpl.h,
-	include/tvmet/MatrixOperators.h, include/tvmet/NumericTraits.h,
+	include/tvmet/MatrixOperators.h, include/tvmet/Traits.h,
 	include/tvmet/RunTimeError.h, include/tvmet/TvmetBase.h,
 	include/tvmet/TypePromotion.h, include/tvmet/UnaryFunctionals.h,
 	include/tvmet/Vector.h, include/tvmet/VectorEval.h,
@@ -4078,7 +4078,7 @@
 	include/tvmet/Makefile.am, include/tvmet/Makefile.in,
 	include/tvmet/Matrix.h, include/tvmet/MatrixEval.h,
 	include/tvmet/MatrixFunctions.h, include/tvmet/MatrixImpl.h,
-	include/tvmet/MatrixOperators.h, include/tvmet/NumericTraits.h,
+	include/tvmet/MatrixOperators.h, include/tvmet/Traits.h,
 	include/tvmet/RunTimeError.h, include/tvmet/TvmetBase.h,
 	include/tvmet/TypePromotion.h, include/tvmet/UnaryFunctionals.h,
 	include/tvmet/Vector.h, include/tvmet/VectorEval.h,

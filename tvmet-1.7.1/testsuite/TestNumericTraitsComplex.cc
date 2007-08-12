@@ -18,13 +18,13 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: TestNumericTraitsComplex.cc,v 1.1 2004/09/15 07:51:44 opetzold Exp $
+ * $Id: TestTraitsComplex.cc,v 1.1 2004/09/15 07:51:44 opetzold Exp $
  */
 
 #include <iostream>
 #include <complex>
 
-#include <TestNumericTraitsComplex.h>
+#include <TestTraitsComplex.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -33,13 +33,13 @@
  ****************************************************************************/
 
 #if defined(EIGEN_USE_COMPLEX)
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<int> > );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<unsigned int> > );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<long> > );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<unsigned long> > );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<float> > );
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<double> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<int> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<unsigned int> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<long> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<unsigned long> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<float> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<double> > );
 # if defined(TVMET_HAVE_LONG_DOUBLE)
-CPPUNIT_TEST_SUITE_REGISTRATION( TestNumericTraitsComplex< std::complex<long double> > );
+CPPUNIT_TEST_SUITE_REGISTRATION( TestTraitsComplex< std::complex<long double> > );
 # endif
 #endif

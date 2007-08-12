@@ -18,7 +18,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: TestNumericTraits.h,v 1.2 2004/11/04 18:12:40 opetzold Exp $
+ * $Id: TestTraits.h,v 1.2 2004/11/04 18:12:40 opetzold Exp $
  */
 
 #ifndef TVMET_TEST_NUMERIC_TRAITS_H
@@ -34,9 +34,9 @@
 #include <cassert>
 
 template <class T>
-class TestNumericTraits : public CppUnit::TestFixture
+class TestTraits : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( TestNumericTraits );
+  CPPUNIT_TEST_SUITE( TestTraits );
   CPPUNIT_TEST( Real );
   CPPUNIT_TEST( Imag );
   CPPUNIT_TEST( Conj );
@@ -53,7 +53,7 @@ private:
   typedef tvmet::Matrix<T, 3, 3>		matrix_type;
 
 public:
-  TestNumericTraits()
+  TestTraits()
     : m_real(4), m_imag(9),
       m_conj(16),
       m_abs_Q1(7), m_abs_Q2(-m_abs_Q1)
@@ -95,10 +95,10 @@ private:
  ****************************************************************************/
 
 template <class T>
-void TestNumericTraits<T>::setUp () { }
+void TestTraits<T>::setUp () { }
 
 template <class T>
-void TestNumericTraits<T>::tearDown() { }
+void TestTraits<T>::tearDown() { }
 
 /*****************************************************************************
  * Implementation Part II
@@ -106,11 +106,11 @@ void TestNumericTraits<T>::tearDown() { }
 
 template <class T>
 void
-TestNumericTraits<T>::Real()
+TestTraits<T>::Real()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type real_type;
+  typedef typename tvmet::Traits<T>::base_type real_type;
 
-  real_type r = tvmet::NumericTraits<T>::real(m_real);
+  real_type r = tvmet::Traits<T>::real(m_real);
 
   CPPUNIT_ASSERT( r == m_real );
 }
@@ -118,29 +118,29 @@ TestNumericTraits<T>::Real()
 
 template <class T>
 void
-TestNumericTraits<T>::Imag()
+TestTraits<T>::Imag()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type imag_type;
+  typedef typename tvmet::Traits<T>::base_type imag_type;
 
-  imag_type r = tvmet::NumericTraits<T>::imag(m_imag);
+  imag_type r = tvmet::Traits<T>::imag(m_imag);
 
   CPPUNIT_ASSERT( r == 0 );
 }
 
 
 // conj only for signed types !!
-template <> void TestNumericTraits<unsigned char>::Conj() { }
-template <> void TestNumericTraits<unsigned short int>::Conj() { }
-template <> void TestNumericTraits<unsigned int>::Conj() { }
-template <> void TestNumericTraits<unsigned long>::Conj() { }
+template <> void TestTraits<unsigned char>::Conj() { }
+template <> void TestTraits<unsigned short int>::Conj() { }
+template <> void TestTraits<unsigned int>::Conj() { }
+template <> void TestTraits<unsigned long>::Conj() { }
 
 template <class T>
 void
-TestNumericTraits<T>::Conj()
+TestTraits<T>::Conj()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type conj_type;
+  typedef typename tvmet::Traits<T>::base_type conj_type;
 
-  conj_type r = tvmet::NumericTraits<T>::conj(m_conj);
+  conj_type r = tvmet::Traits<T>::conj(m_conj);
 
   CPPUNIT_ASSERT( r == m_conj );
 }
@@ -148,16 +148,16 @@ TestNumericTraits<T>::Conj()
 
 template <class T>
 void
-TestNumericTraits<T>::Abs()
+TestTraits<T>::Abs()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
   enum {
     is_signed = std::numeric_limits<value_type>::is_signed
   };
 
-  value_type r1 = tvmet::NumericTraits<T>::abs(m_abs_Q1);
-  value_type r2 = tvmet::NumericTraits<T>::abs(m_abs_Q2);
+  value_type r1 = tvmet::Traits<T>::abs(m_abs_Q1);
+  value_type r2 = tvmet::Traits<T>::abs(m_abs_Q2);
 
   CPPUNIT_ASSERT( r1 == m_abs_Q1 );
 
@@ -168,7 +168,7 @@ TestNumericTraits<T>::Abs()
 
 template <class T>
 void
-TestNumericTraits<T>::AbsHelper(tvmet::dispatch<true>, const T& r)
+TestTraits<T>::AbsHelper(tvmet::dispatch<true>, const T& r)
 {
   // signed type
   CPPUNIT_ASSERT( r == (m_abs_Q1) );
@@ -177,7 +177,7 @@ TestNumericTraits<T>::AbsHelper(tvmet::dispatch<true>, const T& r)
 
 template <class T>
 void
-TestNumericTraits<T>::AbsHelper(tvmet::dispatch<false>, const T& r)
+TestTraits<T>::AbsHelper(tvmet::dispatch<false>, const T& r)
 {
   // unsigned type
   CPPUNIT_ASSERT( r == T(-m_abs_Q1) );
@@ -186,12 +186,12 @@ TestNumericTraits<T>::AbsHelper(tvmet::dispatch<false>, const T& r)
 
 template <class T>
 void
-TestNumericTraits<T>::Sqrt()
+TestTraits<T>::Sqrt()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
-  value_type r1 = tvmet::NumericTraits<T>::sqrt(m_real);
-  value_type r2 = tvmet::NumericTraits<T>::sqrt(m_imag);
+  value_type r1 = tvmet::Traits<T>::sqrt(m_real);
+  value_type r2 = tvmet::Traits<T>::sqrt(m_imag);
 
   CPPUNIT_ASSERT( r1 == 2 );
   CPPUNIT_ASSERT( r2 == 3 );
@@ -200,56 +200,56 @@ TestNumericTraits<T>::Sqrt()
 
 template <class T>
 void
-TestNumericTraits<T>::Norm_1()
+TestTraits<T>::Norm_1()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
-  value_type r = tvmet::NumericTraits<T>::norm_1(m_real);
+  value_type r = tvmet::Traits<T>::norm_1(m_real);
 
-  CPPUNIT_ASSERT( r == tvmet::NumericTraits<T>::abs(m_real) );
+  CPPUNIT_ASSERT( r == tvmet::Traits<T>::abs(m_real) );
 }
 
 
 template <class T>
 void
-TestNumericTraits<T>::Norm_2()
+TestTraits<T>::Norm_2()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
-  value_type r = tvmet::NumericTraits<T>::norm_2(m_real);
+  value_type r = tvmet::Traits<T>::norm_2(m_real);
 
-  CPPUNIT_ASSERT( r == tvmet::NumericTraits<T>::abs(m_real) );
+  CPPUNIT_ASSERT( r == tvmet::Traits<T>::abs(m_real) );
 }
 
 
 template <class T>
 void
-TestNumericTraits<T>::Norm_Inf()
+TestTraits<T>::Norm_Inf()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
-  value_type r = tvmet::NumericTraits<T>::norm_inf(m_real);
+  value_type r = tvmet::Traits<T>::norm_inf(m_real);
 
-  CPPUNIT_ASSERT( r == tvmet::NumericTraits<T>::abs(m_real) );
+  CPPUNIT_ASSERT( r == tvmet::Traits<T>::abs(m_real) );
 }
 
 
 template <class T>
 void
-TestNumericTraits<T>::Equals()
+TestTraits<T>::Equals()
 {
-  typedef typename tvmet::NumericTraits<T>::base_type value_type;
+  typedef typename tvmet::Traits<T>::base_type value_type;
 
   value_type lhs, rhs;
 
   lhs = rhs = 47;
 
-  CPPUNIT_ASSERT( true == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+  CPPUNIT_ASSERT( true == tvmet::Traits<T>::equals(lhs,rhs) );
 
   // a not very intelligent test
   rhs += 1;
 
-  CPPUNIT_ASSERT( false == tvmet::NumericTraits<T>::equals(lhs,rhs) );
+  CPPUNIT_ASSERT( false == tvmet::Traits<T>::equals(lhs,rhs) );
 }
 
 
