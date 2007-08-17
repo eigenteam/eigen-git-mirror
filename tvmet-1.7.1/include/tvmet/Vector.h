@@ -231,15 +231,6 @@ private:
   {
     m_array[index] = rhs;
   }
-  
-  /** This is a helper for assigning a comma separated initializer
-      list. It's equal to Vector& operator=(value_type) which does
-      replace it. */
-  Vector& assign_value(value_type rhs) {
-    typedef XprLiteral<value_type> 			expr_type;
-    *this = XprVector<expr_type, Size>(expr_type(rhs));
-    return *this;
-  }
 
 public: // math operators with scalars
   // NOTE: this meaning is clear - element wise ops even if not in ns element_wise

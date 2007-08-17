@@ -223,18 +223,7 @@ private:
   
   void commaWrite(int index, T rhs)
   {
-    int row = index / Cols;
-    int col = index % Cols;
-    m_array[row + col * Rows] = rhs;
-  }
-
-  /** This is a helper for assigning a comma separated initializer
-      list. It's equal to Matrix& operator=(T) which does
-      replace it. */
-  Matrix& assign_value(T rhs) {
-    typedef XprLiteral<T> expr_type;
-    *this = XprMatrix<expr_type, Rows, Cols>(expr_type(rhs));
-    return *this;
+    m_array[(index / Cols) + (index % Cols) * Rows] = rhs;
   }
 
 public: // math operators with scalars
