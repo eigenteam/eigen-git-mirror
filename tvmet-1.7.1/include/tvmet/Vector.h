@@ -239,13 +239,6 @@ public: // math operators with scalars
   Vector& operator*=(value_type) _tvmet_always_inline;
   Vector& operator/=(value_type) _tvmet_always_inline;
 
-  Vector& operator%=(int) _tvmet_always_inline;
-  Vector& operator^=(int) _tvmet_always_inline;
-  Vector& operator&=(int) _tvmet_always_inline;
-  Vector& operator|=(int) _tvmet_always_inline;
-  Vector& operator<<=(int) _tvmet_always_inline;
-  Vector& operator>>=(int) _tvmet_always_inline;
-
 public: // math assign operators with vectors
   // NOTE: access using the operators in ns element_wise, since that's what is does
   template <class T2> Vector& M_add_eq(const Vector<T2, Size>&) _tvmet_always_inline;

@@ -59,7 +59,7 @@ namespace tvmet {
  * will be written random into the memory.
  *
  */
-template<class Obj, int LEN>
+template<typename Obj, int LEN>
 class CommaInitializer
 {
   typedef typename Obj::value_type value_type;
@@ -109,24 +109,17 @@ public:
       means the first value is assigned by %operator=() and the 2nd value after the
       comma. Therefore we call the %Initializer::operator,() for the list starting
       after the 2nd. */
-  Initializer<2> operator,(value_type rhs);
+  Initializer<2> operator,(value_type rhs)
+  {
+    m_object.commaWrite(0, m_data);
+    m_object.commaWrite(1, rhs);
+    return Initializer<2>(m_object, 2);
+  }
 
 private:
-  Obj& 							m_object;
-  value_type 						m_data;
+  Obj& m_object;
+  value_type m_data;
 };
-
-/*
- * Implementation
- */
-template<class Obj, int LEN>
-typename CommaInitializer<Obj, LEN>::template Initializer<2>
-CommaInitializer<Obj, LEN>::operator,(typename Obj::value_type rhs)
-{
-  m_object.commaWrite(0, m_data);
-  m_object.commaWrite(1, rhs);
-  return Initializer<2>(m_object, 2);
-}
 
 } // namespace tvmet
 
