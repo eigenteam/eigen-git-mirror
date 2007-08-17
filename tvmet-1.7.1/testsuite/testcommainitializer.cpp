@@ -23,27 +23,7 @@
 
 #include "main.h"
 
-template<typename T, int n> static void basics1()
-{
-  const Vector<T, n> vZero(0);
-  const Vector<T, n> vOne(1);
-  const Matrix<T, n, n> mZero(0);
-  const Matrix<T, n, n> mOne(1);
-  
-  for(int i = 0; i < n; i++) {
-    QVERIFY(vZero(i) == T(0));
-    QVERIFY(vOne(i) == T(1));
-  }
-  
-  for(int i = 0; i < n; i++) {
-    for(int j = 0; j < n; j++) {
-      QVERIFY(mZero(i,j) == T(0));
-      QVERIFY(mOne(i,j) == T(1));
-    }
-  }
-}
-
-template<typename T> static void basics2()
+template<typename T> static void TestCommaInitializer()
 {
   // test the CommaInitializer
   Vector<T, 3> v1;
@@ -60,17 +40,10 @@ template<typename T> static void basics2()
 	  m1(2,0) == T(3) && m1(2,1) == T(6) && m1(2,2) == T(9));
 }
 
-void TvmetTestSuite::selfTest()
+void TvmetTestSuite::testCommaInitializer()
 {
-  basics1<int, 1> ();
-  basics1<int, 3> ();
-  basics1<float, 4> ();
-  basics1<double, 4> ();
-  basics2<int> ();
-  basics2<double> ();
-  
-  basics1<complex<float>, 4> ();
-  basics1<complex<double>, 4> ();
-  basics2<complex<int> > ();
-  basics2<complex<double> > ();
+  TestCommaInitializer<int> ();
+  TestCommaInitializer<double> ();
+  TestCommaInitializer<complex<int> > ();
+  TestCommaInitializer<complex<double> > ();
 }

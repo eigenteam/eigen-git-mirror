@@ -146,9 +146,9 @@ private:
 
 template<unsigned Rows, unsigned Cols,
 	 unsigned RowStride, unsigned ColStride>
-struct MatrixConstReference
+struct MatrixConstRef
 {
-  explicit MatrixConstReference(const Matrix<Rows, Cols>& rhs) : m_data(rhs.m_data) { }
+  explicit MatrixConstRef(const Matrix<Rows, Cols>& rhs) : m_data(rhs.m_data) { }
 
   double operator()(unsigned i, unsigned j) const {
     return m_data[i * RowStride + j * ColStride];
@@ -176,8 +176,8 @@ struct Matrix
 
   double operator()(unsigned i, unsigned j) const { return m_data[i * Cols + j]; }
 
-  MatrixConstReference<Rows,Cols,Cols,1> const_ref() const {
-    return MatrixConstReference<Rows,Cols,Cols,1>(*this);
+  MatrixConstRef<Rows,Cols,Cols,1> constRef() const {
+    return MatrixConstRef<Rows,Cols,Cols,1>(*this);
   }
 
   Matrix& operator=(const Matrix<Rows, Cols>& rhs) {
@@ -220,8 +220,8 @@ template<unsigned Rows1, unsigned Cols1,
 inline
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<Rows1, Cols1, Cols1, 1>,
-    MatrixConstReference<Cols1, Cols2, Cols2, 1>,
+    MatrixConstRef<Rows1, Cols1, Cols1, 1>,
+    MatrixConstRef<Cols1, Cols2, Cols2, 1>,
     Rows1, Cols1,	// M1(Rows1, Cols1)
     Cols2, 		// M2(Cols1, Cols2)
     Cols1, 1, 		// Stride M1
@@ -231,15 +231,15 @@ XprMatrix<
 >
 prod(const Matrix<Rows1, Cols1>& lhs, const Matrix<Cols1, Cols2>& rhs) {
   typedef XprMMProduct<
-    MatrixConstReference<Rows1, Cols1, Cols1, 1>,
-    MatrixConstReference<Cols1, Cols2, Cols2, 1>,
+    MatrixConstRef<Rows1, Cols1, Cols1, 1>,
+    MatrixConstRef<Cols1, Cols2, Cols2, 1>,
     Rows1, Cols1,
     Cols2,
     Cols1, 1,
     Cols2, 1
   >							expr_type;
   return XprMatrix<expr_type, Rows1, Cols2>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 template<class E1, unsigned Rows1, unsigned Cols1, unsigned Cols2>
@@ -247,7 +247,7 @@ inline
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>,
-    MatrixConstReference<Cols1, Cols2, Cols2, 1>,
+    MatrixConstRef<Cols1, Cols2, Cols2, 1>,
     Rows1, Cols1, Cols2,
     Cols1, 1, Cols2, 1
   >,
@@ -256,11 +256,11 @@ XprMatrix<
 prod(const XprMatrix<E1, Rows1, Cols1>& lhs, const Matrix<Cols1, Cols2>& rhs) {
   typedef XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>,
-    MatrixConstReference<Cols1, Cols2, Cols2, 1>,
+    MatrixConstRef<Cols1, Cols2, Cols2, 1>,
     Rows1, Cols1, Cols2,
     Cols1, 1, Cols2, 1
   >							expr_type;
-  return XprMatrix<expr_type, Rows1, Cols2>(expr_type(lhs, rhs.const_ref()));
+  return XprMatrix<expr_type, Rows1, Cols2>(expr_type(lhs, rhs.constRef()));
 }
 
 
@@ -268,15 +268,15 @@ template<unsigned Rows, unsigned Cols>
 inline
 XprMatrix<
   XprMatrixTranspose<
-    MatrixConstReference<Rows, Cols, Cols, 1>
+    MatrixConstRef<Rows, Cols, Cols, 1>
   >,
   Cols, Rows
 >
 trans(const Matrix<Rows, Cols>& rhs) {
   typedef XprMatrixTranspose<
-    MatrixConstReference<Rows, Cols, Cols, 1>
+    MatrixConstRef<Rows, Cols, Cols, 1>
   >							expr_type;
-  return XprMatrix<expr_type, Cols, Rows>(expr_type(rhs.const_ref()));
+  return XprMatrix<expr_type, Cols, Rows>(expr_type(rhs.constRef()));
 }
 
 

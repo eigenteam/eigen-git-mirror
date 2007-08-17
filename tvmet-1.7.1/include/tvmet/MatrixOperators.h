@@ -86,8 +86,8 @@ template<class T1, class T2, int Rows, int Cols>		\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<T1, T2>,							\
-    MatrixConstReference<T1, Rows, Cols>,					\
-    MatrixConstReference<T2, Rows, Cols>					\
+    MatrixConstRef<T1, Rows, Cols>,					\
+    MatrixConstRef<T2, Rows, Cols>					\
   >,										\
   Rows, Cols									\
 >										\
@@ -99,7 +99,7 @@ XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, T>,					\
     XprMatrix<E, Rows, Cols>,							\
-    MatrixConstReference<T, Rows, Cols>						\
+    MatrixConstRef<T, Rows, Cols>						\
   >,										\
   Rows, Cols									\
 >										\
@@ -110,7 +110,7 @@ template<class T, class E, int Rows, int Cols>			\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, T>,					\
-    MatrixConstReference<T, Rows, Cols>,					\
+    MatrixConstRef<T, Rows, Cols>,					\
     XprMatrix<E, Rows, Cols>							\
   >,										\
   Rows, Cols									\
@@ -137,7 +137,7 @@ template<class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, POD >,						\
-    MatrixConstReference<T, Rows, Cols>,				\
+    MatrixConstRef<T, Rows, Cols>,				\
     XprLiteral<POD >							\
   >,									\
   Rows, Cols								\
@@ -150,7 +150,7 @@ XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >,									\
   Rows, Cols								\
 >									\
@@ -187,7 +187,7 @@ template<class T, int Rows, int Cols>					\
 XprMatrix<										\
   XprBinOp<										\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,					\
-    MatrixConstReference< std::complex<T>, Rows, Cols>,					\
+    MatrixConstRef< std::complex<T>, Rows, Cols>,					\
     XprLiteral<std::complex<T> >							\
   >,											\
   Rows, Cols										\
@@ -200,7 +200,7 @@ XprMatrix<										\
   XprBinOp<										\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,					\
     XprLiteral< std::complex<T> >,							\
-    MatrixConstReference< std::complex<T>, Rows, Cols>					\
+    MatrixConstRef< std::complex<T>, Rows, Cols>					\
   >,											\
   Rows, Cols										\
 >											\
@@ -226,8 +226,8 @@ template<class T1, int Rows1, int Cols1,
 	 class T2, int Cols2>
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
 >
@@ -240,7 +240,7 @@ template<class E1, int Rows1, int Cols1,
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
 >
@@ -252,7 +252,7 @@ template<class T1, int Rows1, int Cols1,
 	 class E2, int Cols2>
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
     XprMatrix<E2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
@@ -269,8 +269,8 @@ operator*(const Matrix<T1, Rows1, Cols1>& lhs,
 template<class T1, int Rows, int Cols, class T2>
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
+    VectorConstRef<T2, Cols>
   >,
   Rows
 >
@@ -281,7 +281,7 @@ operator*(const Matrix<T1, Rows, Cols>& lhs,
 template<class T1, class E2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
     XprVector<E2, Cols>
   >,
   Rows
@@ -294,7 +294,7 @@ template<class E1, class T2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    VectorConstRef<T2, Cols>
   >,
   Rows
 >
@@ -316,7 +316,7 @@ template <class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprUnOp<								\
     Fcnl_##NAME<T>,							\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >,									\
   Rows, Cols								\
 >									\
@@ -397,8 +397,8 @@ inline										      \
 XprMatrix<									      \
   XprBinOp<									      \
     Fcnl_##NAME<T1, T2>,							      \
-    MatrixConstReference<T1, Rows, Cols>,					      \
-    MatrixConstReference<T2, Rows, Cols>					      \
+    MatrixConstRef<T1, Rows, Cols>,					      \
+    MatrixConstRef<T2, Rows, Cols>					      \
   >,										      \
   Rows, Cols									      \
 >										      \
@@ -412,7 +412,7 @@ XprMatrix<									      \
   XprBinOp<									      \
     Fcnl_##NAME<typename E::value_type, T>,					      \
     XprMatrix<E, Rows, Cols>,							      \
-    MatrixConstReference<T, Rows, Cols>						      \
+    MatrixConstRef<T, Rows, Cols>						      \
   >,										      \
   Rows, Cols									      \
 >										      \
@@ -425,7 +425,7 @@ inline										      \
 XprMatrix<									      \
   XprBinOp<									      \
     Fcnl_##NAME<typename E::value_type, T>,					      \
-    MatrixConstReference<T, Rows, Cols>,					      \
+    MatrixConstRef<T, Rows, Cols>,					      \
     XprMatrix<E, Rows, Cols>							      \
   >,										      \
   Rows, Cols									      \
@@ -454,7 +454,7 @@ inline								\
 XprMatrix<							\
   XprBinOp<							\
     Fcnl_##NAME<T, POD >,					\
-    MatrixConstReference<T, Rows, Cols>,			\
+    MatrixConstRef<T, Rows, Cols>,			\
     XprLiteral<POD >						\
   >,								\
   Rows, Cols							\
@@ -469,7 +469,7 @@ XprMatrix<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, T>,					\
     XprLiteral< POD >,						\
-    MatrixConstReference<T, Rows, Cols>				\
+    MatrixConstRef<T, Rows, Cols>				\
   >,								\
   Rows, Cols							\
 >								\
@@ -508,7 +508,7 @@ inline								\
 XprMatrix<							\
   XprBinOp<							\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,		\
-    MatrixConstReference< std::complex<T>, Rows, Cols>,		\
+    MatrixConstRef< std::complex<T>, Rows, Cols>,		\
     XprLiteral<std::complex<T> >				\
   >,								\
   Rows, Cols							\
@@ -524,7 +524,7 @@ XprMatrix<							\
   XprBinOp<							\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,		\
     XprLiteral< std::complex<T> >,				\
-    MatrixConstReference< std::complex<T>, Rows, Cols>		\
+    MatrixConstRef< std::complex<T>, Rows, Cols>		\
   >,								\
   Rows, Cols							\
 >								\
@@ -560,8 +560,8 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
 >
@@ -582,7 +582,7 @@ inline
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
 >
@@ -602,7 +602,7 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
     XprMatrix<E2, Cols1, Cols2>, Cols2
   >,
   Rows1, Cols2
@@ -628,8 +628,8 @@ template<class T1, int Rows, int Cols, class T2>
 inline
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
+    VectorConstRef<T2, Cols>
   >,
   Rows
 >
@@ -648,7 +648,7 @@ template<class T1, class E2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
     XprVector<E2, Cols>
   >,
   Rows
@@ -669,7 +669,7 @@ inline
 XprVector<
   XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    VectorConstRef<T2, Cols>
   >,
   Rows
 >
@@ -693,16 +693,16 @@ inline								       \
 XprMatrix<							       \
   XprUnOp<							       \
     Fcnl_##NAME<T>,						       \
-    MatrixConstReference<T, Rows, Cols>				       \
+    MatrixConstRef<T, Rows, Cols>				       \
   >,								       \
   Rows, Cols							       \
 >								       \
 operator OP (const Matrix<T, Rows, Cols>& rhs) {		       \
   typedef XprUnOp<						       \
     Fcnl_##NAME<T>,						       \
-    MatrixConstReference<T, Rows, Cols>				       \
+    MatrixConstRef<T, Rows, Cols>				       \
   >  							 expr_type;    \
-  return XprMatrix<expr_type, Rows, Cols>(expr_type(rhs.const_ref())); \
+  return XprMatrix<expr_type, Rows, Cols>(expr_type(rhs.constRef())); \
 }
 
 TVMET_IMPLEMENT_MACRO(neg, -)

@@ -40,7 +40,7 @@ template<class T, int Sz>					\
 XprVector<								\
   XprUnOp<								\
     Fcnl_##NAME< std::complex<T> >,					\
-    VectorConstReference<std::complex<T>, Sz>				\
+    VectorConstRef<std::complex<T>, Sz>				\
   >,									\
   Sz									\
 >									\
@@ -70,16 +70,16 @@ inline									\
 XprVector<								\
   XprUnOp<								\
     Fcnl_##NAME< std::complex<T> >,					\
-    VectorConstReference<std::complex<T>, Sz>				\
+    VectorConstRef<std::complex<T>, Sz>				\
   >,									\
   Sz									\
 >									\
 NAME(const Vector<std::complex<T>, Sz>& rhs) {				\
   typedef XprUnOp<							\
       Fcnl_##NAME< std::complex<T> >,					\
-      VectorConstReference<std::complex<T>, Sz>				\
+      VectorConstRef<std::complex<T>, Sz>				\
     > 							expr_type;	\
-    return XprVector<expr_type, Sz>(expr_type(rhs.const_ref()));	\
+    return XprVector<expr_type, Sz>(expr_type(rhs.constRef()));	\
 }
 
 TVMET_IMPLEMENT_MACRO(real)

@@ -45,8 +45,9 @@ class TvmetTestSuite : public QObject
     TvmetTestSuite() {};
 
   private slots:
-    void selfTest();
+    void testCommaInitializer();
     void testTraits();
+    void testConstructors();
 };
 
 #endif // EIGEN_TESTSUITE_MAIN_H

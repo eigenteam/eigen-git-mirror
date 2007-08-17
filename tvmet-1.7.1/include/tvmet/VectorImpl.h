@@ -27,17 +27,14 @@
 #include <iomanip>			// setw
 
 #include <tvmet/Functional.h>
-#include <tvmet/Io.h>
-
 
 namespace tvmet {
-
 
 /*
  * member operators for i/o
  */
-template<class T, int Sz>
-std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, int l) const
+template<class T, int Size>
+std::ostream& Vector<T, Size>::print_xpr(std::ostream& os, int l) const
 {
   os << IndentLevel(l++) << "Vector[" << ops << "]<"
      << typeid(T).name() << ", " << Size << ">,"
@@ -48,21 +45,14 @@ std::ostream& Vector<T, Sz>::print_xpr(std::ostream& os, int l) const
 }
 
 
-template<class T, int Sz>
-std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
+template<class T, int Size>
+std::ostream& Vector<T, Size>::print_on(std::ostream& os) const
 {
-  std::streamsize w;
-  if(Traits<value_type>::isComplex())
-    w = IoPrintHelper<Vector>::width(dispatch<true>(), *this);
-  else
-    w = IoPrintHelper<Vector>::width(dispatch<false>(), *this);
-    
-  os << std::setw(0) << "[\n  ";
+  os << "[\n  ";
   for(int i = 0; i < (Size - 1); ++i) {
-    os << std::setw(w) << m_data[i] << ", ";
+    os << m_array[i] << ", ";
   }
-  os << std::setw(w) << m_data[Size - 1] << "\n]";
-
+  os << m_array[Size - 1] << "\n]";
   return os;
 }
 
@@ -71,9 +61,9 @@ std::ostream& Vector<T, Sz>::print_on(std::ostream& os) const
  * member operators with scalars, per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T, int Sz>					\
+template<class T, int Size>					\
 inline									\
-Vector<T, Sz>& Vector<T, Sz>::operator OP (value_type rhs) {		\
+Vector<T, Size>& Vector<T, Size>::operator OP (value_type rhs) {		\
   typedef XprLiteral<value_type> 			expr_type;	\
   this->M_##NAME(XprVector<expr_type, Size>(expr_type(rhs)));		\
   return *this;								\
@@ -86,33 +76,15 @@ TVMET_IMPLEMENT_MACRO(div_eq, /=)
 #undef TVMET_IMPLEMENT_MACRO
 
 
-#define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template<class T, int Sz>					\
-inline									\
-Vector<T, Sz>& Vector<T, Sz>::operator OP (int rhs) {		\
-  typedef XprLiteral<value_type> 			expr_type;	\
-  this->M_##NAME(XprVector<expr_type, Size>(expr_type(rhs)));		\
-  return *this;								\
-}
-
-TVMET_IMPLEMENT_MACRO(mod_eq, %=)
-TVMET_IMPLEMENT_MACRO(xor_eq,^=)
-TVMET_IMPLEMENT_MACRO(and_eq, &=)
-TVMET_IMPLEMENT_MACRO(or_eq, |=)
-TVMET_IMPLEMENT_MACRO(shl_eq, <<=)
-TVMET_IMPLEMENT_MACRO(shr_eq, >>=)
-#undef TVMET_IMPLEMENT_MACRO
-
-
 /*
  * member functions (operators) with vectors, for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)									\
-template<class T1, int Sz>									\
+template<class T1, int Size>									\
 template <class T2>											\
-inline Vector<T1, Sz>&											\
-Vector<T1, Sz>::M_##NAME (const Vector<T2, Size>& rhs) {						\
-  this->M_##NAME( XprVector<typename Vector<T2, Size>::ConstReference, Size>(rhs.const_ref()) );	\
+inline Vector<T1, Size>&											\
+Vector<T1, Size>::M_##NAME (const Vector<T2, Size>& rhs) {						\
+  this->M_##NAME( XprVector<typename Vector<T2, Size>::ConstRef, Size>(rhs.constRef()) );	\
   return *this;												\
 }
 
@@ -120,24 +92,18 @@ TVMET_IMPLEMENT_MACRO(add_eq)
 TVMET_IMPLEMENT_MACRO(sub_eq)
 TVMET_IMPLEMENT_MACRO(mul_eq)
 TVMET_IMPLEMENT_MACRO(div_eq)
-TVMET_IMPLEMENT_MACRO(mod_eq)
-TVMET_IMPLEMENT_MACRO(xor_eq)
-TVMET_IMPLEMENT_MACRO(and_eq)
-TVMET_IMPLEMENT_MACRO(or_eq)
-TVMET_IMPLEMENT_MACRO(shl_eq)
-TVMET_IMPLEMENT_MACRO(shr_eq)
 #undef TVMET_IMPLEMENT_MACRO
 
 
 /*
- * member functions (operators) with expressions, for use width +=,-= ... <<=
+ * member functions (operators) with expressions, for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					   \
-template<class T, int Sz>					   \
+template<class T, int Size>					   \
 template <class E>							   \
 inline 									   \
-Vector<T, Sz>&								   \
-Vector<T, Sz>::M_##NAME (const XprVector<E, Size>& rhs) {		   \
+Vector<T, Size>&								   \
+Vector<T, Size>::M_##NAME (const XprVector<E, Size>& rhs) {		   \
   rhs.assign_to(*this, Fcnl_##NAME<value_type, typename E::value_type>()); \
   return *this;								   \
 }
@@ -146,12 +112,6 @@ TVMET_IMPLEMENT_MACRO(add_eq)
 TVMET_IMPLEMENT_MACRO(sub_eq)
 TVMET_IMPLEMENT_MACRO(mul_eq)
 TVMET_IMPLEMENT_MACRO(div_eq)
-TVMET_IMPLEMENT_MACRO(mod_eq)
-TVMET_IMPLEMENT_MACRO(xor_eq)
-TVMET_IMPLEMENT_MACRO(and_eq)
-TVMET_IMPLEMENT_MACRO(or_eq)
-TVMET_IMPLEMENT_MACRO(shl_eq)
-TVMET_IMPLEMENT_MACRO(shr_eq)
 #undef TVMET_IMPLEMENT_MACRO
 
 
@@ -160,12 +120,12 @@ TVMET_IMPLEMENT_MACRO(shr_eq)
  * for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)								     \
-template<class T1, int Sz>								     \
+template<class T1, int Size>								     \
 template <class T2>										     \
 inline 												     \
-Vector<T1, Sz>&											     \
-Vector<T1, Sz>::alias_##NAME (const Vector<T2, Size>& rhs) {					     \
-  this->alias_##NAME( XprVector<typename Vector<T2, Size>::ConstReference, Size>(rhs.const_ref()) ); \
+Vector<T1, Size>&											     \
+Vector<T1, Size>::alias_##NAME (const Vector<T2, Size>& rhs) {					     \
+  this->alias_##NAME( XprVector<typename Vector<T2, Size>::ConstRef, Size>(rhs.constRef()) ); \
   return *this;											     \
 }
 
@@ -179,15 +139,15 @@ TVMET_IMPLEMENT_MACRO(div_eq)
 
 /*
  * aliased member functions (operators) with expressions,
- * for use width +=,-= ... <<=
+ * for use with +=,-= ... <<=
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						      \
-template<class T, int Sz>						      \
+template<class T, int Size>						      \
 template <class E>								      \
 inline 										      \
-Vector<T, Sz>&									      \
-Vector<T, Sz>::alias_##NAME (const XprVector<E, Size>& rhs) {			      \
-  typedef Vector<T, Sz>					temp_type;		      \
+Vector<T, Size>&									      \
+Vector<T, Size>::alias_##NAME (const XprVector<E, Size>& rhs) {			      \
+  typedef Vector<T, Size>					temp_type;		      \
   temp_type(rhs).assign_to(*this, Fcnl_##NAME<value_type, typename E::value_type>()); \
   return *this;									      \
 }

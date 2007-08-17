@@ -49,8 +49,8 @@ template<class T1, class T2, int Sz>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<T1, T2>,					\
-    VectorConstReference<T1, Sz>,				\
-    VectorConstReference<T2, Sz>				\
+    VectorConstRef<T1, Sz>,				\
+    VectorConstRef<T2, Sz>				\
   >,								\
   Sz								\
 >								\
@@ -62,7 +62,7 @@ XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<typename E::value_type, T>,			\
     XprVector<E, Sz>,						\
-    VectorConstReference<T, Sz>					\
+    VectorConstRef<T, Sz>					\
   >,								\
   Sz								\
 >								\
@@ -73,7 +73,7 @@ template<class E, class T, int Sz>			\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME<T, typename E::value_type>,			\
-    VectorConstReference<T, Sz>,				\
+    VectorConstRef<T, Sz>,				\
     XprVector<E, Sz>						\
   >,								\
   Sz								\
@@ -101,7 +101,7 @@ template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< T, POD >,					\
-    VectorConstReference<T, Sz>,				\
+    VectorConstRef<T, Sz>,				\
     XprLiteral< POD >						\
   >,								\
   Sz								\
@@ -114,7 +114,7 @@ XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, T>,					\
     XprLiteral< POD >,						\
-    VectorConstReference<T, Sz>					\
+    VectorConstRef<T, Sz>					\
   >,								\
   Sz								\
 >								\
@@ -151,7 +151,7 @@ template<class T, int Sz>					\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
-    VectorConstReference< std::complex<T>, Sz>,				\
+    VectorConstRef< std::complex<T>, Sz>,				\
     XprLiteral< std::complex<T> >					\
   >,									\
   Sz									\
@@ -164,7 +164,7 @@ XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
     XprLiteral< std::complex<T> >,					\
-    VectorConstReference< std::complex<T>, Sz>				\
+    VectorConstRef< std::complex<T>, Sz>				\
   >,									\
   Sz									\
 >									\
@@ -222,7 +222,7 @@ template<class T, int Sz>
 XprVector<
   XprBinOp<
     Fcnl_div<T, T>,
-    VectorConstReference<T, Sz>,
+    VectorConstRef<T, Sz>,
     XprLiteral< T >
   >,
   Sz
@@ -274,7 +274,7 @@ T min(const Vector<T, Sz>& v) _tvmet_always_inline;
 
 template<class T, int Sz>
 XprVector<
-  VectorConstReference<T, Sz>,
+  VectorConstRef<T, Sz>,
   Sz
 >
 cvector_ref(const T* mem) _tvmet_always_inline;
@@ -301,19 +301,19 @@ inline									\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
-    VectorConstReference<T1, Sz>,					\
-    VectorConstReference<T2, Sz>					\
+    VectorConstRef<T1, Sz>,					\
+    VectorConstRef<T2, Sz>					\
   >,									\
   Sz									\
 >									\
 NAME (const Vector<T1, Sz>& lhs, const Vector<T2, Sz>& rhs) {		\
   typedef XprBinOp <							\
     Fcnl_##NAME<T1, T2>,						\
-    VectorConstReference<T1, Sz>,					\
-    VectorConstReference<T2, Sz>					\
+    VectorConstRef<T1, Sz>,					\
+    VectorConstRef<T2, Sz>					\
   >							expr_type;	\
   return XprVector<expr_type, Sz>(					\
-    expr_type(lhs.const_ref(), rhs.const_ref()));			\
+    expr_type(lhs.constRef(), rhs.constRef()));			\
 }									\
 									\
 template<class E, class T, int Sz>				\
@@ -322,7 +322,7 @@ XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
     XprVector<E, Sz>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >,									\
   Sz									\
 >									\
@@ -330,10 +330,10 @@ NAME (const XprVector<E, Sz>& lhs, const Vector<T, Sz>& rhs) {		\
   typedef XprBinOp<							\
      Fcnl_##NAME<typename E::value_type, T>,				\
     XprVector<E, Sz>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   > 							 expr_type;	\
   return XprVector<expr_type, Sz>(					\
-    expr_type(lhs, rhs.const_ref()));					\
+    expr_type(lhs, rhs.constRef()));					\
 }									\
 									\
 template<class E, class T, int Sz>				\
@@ -341,7 +341,7 @@ inline									\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprVector<E, Sz>							\
   >,									\
   Sz									\
@@ -349,11 +349,11 @@ XprVector<								\
 NAME (const Vector<T, Sz>& lhs, const XprVector<E, Sz>& rhs) {		\
   typedef XprBinOp<							\
     Fcnl_##NAME<T, typename E::value_type>,				\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprVector<E, Sz>							\
   > 						 	expr_type;	\
   return XprVector<expr_type, Sz>(					\
-    expr_type(lhs.const_ref(), rhs));					\
+    expr_type(lhs.constRef(), rhs));					\
 }
 
 TVMET_IMPLEMENT_MACRO(add)		// per se element wise
@@ -377,7 +377,7 @@ inline									\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< T, POD >,						\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprLiteral< POD >							\
   >,									\
   Sz									\
@@ -385,11 +385,11 @@ XprVector<								\
 NAME (const Vector<T, Sz>& lhs, POD rhs) {				\
   typedef XprBinOp<							\
     Fcnl_##NAME<T, POD >,						\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprLiteral< POD >							\
   >							expr_type;	\
   return XprVector<expr_type, Sz>(					\
-    expr_type(lhs.const_ref(), XprLiteral< POD >(rhs)));		\
+    expr_type(lhs.constRef(), XprLiteral< POD >(rhs)));		\
 }									\
 									\
 template<class T, int Sz>					\
@@ -398,7 +398,7 @@ XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >,									\
   Sz									\
 >									\
@@ -406,10 +406,10 @@ NAME (POD lhs, const Vector<T, Sz>& rhs) {				\
   typedef XprBinOp<							\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >							expr_type;	\
   return XprVector<expr_type, Sz>(					\
-    expr_type(XprLiteral< POD >(lhs), rhs.const_ref()));		\
+    expr_type(XprLiteral< POD >(lhs), rhs.constRef()));		\
 }
 
 TVMET_IMPLEMENT_MACRO(add, int)
@@ -443,7 +443,7 @@ inline										\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
-    VectorConstReference< std::complex<T>, Sz>,					\
+    VectorConstRef< std::complex<T>, Sz>,					\
     XprLiteral< std::complex<T> >						\
   >,										\
   Sz										\
@@ -451,11 +451,11 @@ XprVector<									\
 NAME (const Vector<std::complex<T>, Sz>& lhs, const std::complex<T>& rhs) {	\
   typedef XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
-    VectorConstReference< std::complex<T>, Sz>,					\
+    VectorConstRef< std::complex<T>, Sz>,					\
     XprLiteral< std::complex<T> >						\
   >							expr_type;		\
   return XprVector<expr_type, Sz>(						\
-    expr_type(lhs.const_ref(), XprLiteral< std::complex<T> >(rhs)));		\
+    expr_type(lhs.constRef(), XprLiteral< std::complex<T> >(rhs)));		\
 }										\
 										\
 template<class T, int Sz>						\
@@ -464,7 +464,7 @@ XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
     XprLiteral< std::complex<T> >,						\
-    VectorConstReference< std::complex<T>, Sz>					\
+    VectorConstRef< std::complex<T>, Sz>					\
   >,										\
   Sz										\
 >										\
@@ -472,10 +472,10 @@ NAME (const std::complex<T>& lhs, const Vector< std::complex<T>, Sz>& rhs) {	\
   typedef XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
     XprLiteral< std::complex<T> >,						\
-    VectorConstReference< std::complex<T>, Sz>					\
+    VectorConstRef< std::complex<T>, Sz>					\
   >							expr_type;		\
   return XprVector<expr_type, Sz>(						\
-    expr_type(XprLiteral< std::complex<T> >(lhs), rhs.const_ref()));		\
+    expr_type(XprLiteral< std::complex<T> >(lhs), rhs.constRef()));		\
 }
 
 TVMET_IMPLEMENT_MACRO(add)
@@ -623,7 +623,7 @@ inline
 XprVector<
   XprBinOp<
     Fcnl_div<T, T>,
-    VectorConstReference<T, Sz>,
+    VectorConstRef<T, Sz>,
     XprLiteral< T >
   >,
   Sz
@@ -631,11 +631,11 @@ XprVector<
 normalize(const Vector<T, Sz>& v) {
   typedef XprBinOp<
     Fcnl_div<T, T>,
-    VectorConstReference<T, Sz>,
+    VectorConstRef<T, Sz>,
     XprLiteral< T >
   >							expr_type;
   return XprVector<expr_type, Sz>(
-    expr_type(v.const_ref(), XprLiteral< T >(norm2(v))));
+    expr_type(v.constRef(), XprLiteral< T >(norm2(v))));
 }
 
 
@@ -678,7 +678,7 @@ maximum(const XprVector<E, Sz>& e) {
 template<class T, int Sz>
 inline
 Extremum<T, int, vector_tag>
-maximum(const Vector<T, Sz>& v) { return maximum(v.as_expr()); }
+maximum(const Vector<T, Sz>& v) { return maximum(v.expr()); }
 
 
 /**
@@ -715,7 +715,7 @@ minimum(const XprVector<E, Sz>& e) {
 template<class T, int Sz>
 inline
 Extremum<T, int, vector_tag>
-minimum(const Vector<T, Sz>& v) { return minimum(v.as_expr()); }
+minimum(const Vector<T, Sz>& v) { return minimum(v.expr()); }
 
 
 /**
@@ -835,11 +835,11 @@ T min(const Vector<T, Sz>& v) {
 template<class T, int Sz>
 inline
 XprVector<
-  VectorConstReference<T, Sz>,
+  VectorConstRef<T, Sz>,
   Sz
 >
 cvector_ref(const T* mem) {
-  typedef VectorConstReference<T, Sz>		expr_type;
+  typedef VectorConstRef<T, Sz>		expr_type;
 
   return XprVector<expr_type, Sz>(expr_type(mem));
 };

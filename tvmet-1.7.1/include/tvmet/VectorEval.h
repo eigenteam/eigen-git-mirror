@@ -96,19 +96,19 @@ inline
 XprVector<
   XprEval<
     XprVector<E1, Sz>,
-    VectorConstReference<T2, Sz>,
-    VectorConstReference<T3, Sz>
+    VectorConstRef<T2, Sz>,
+    VectorConstRef<T3, Sz>
   >,
   Sz
 >
 eval(const XprVector<E1, Sz>& e1, const Vector<T2, Sz>& v2, const Vector<T3, Sz>& v3) {
   typedef XprEval<
     XprVector<E1, Sz>,
-    VectorConstReference<T2, Sz>,
-    VectorConstReference<T3, Sz>
+    VectorConstRef<T2, Sz>,
+    VectorConstRef<T3, Sz>
   > 							expr_type;
   return XprVector<expr_type, Sz>(
-    expr_type(e1, v2.const_ref(), v3.const_ref()));
+    expr_type(e1, v2.constRef(), v3.constRef()));
 }
 
 
@@ -124,7 +124,7 @@ inline
 XprVector<
   XprEval<
     XprVector<E1, Sz>,
-    VectorConstReference<T2, Sz>,
+    VectorConstRef<T2, Sz>,
     XprVector<E3, Sz>
   >,
   Sz
@@ -132,11 +132,11 @@ XprVector<
 eval(const XprVector<E1, Sz>& e1, const Vector<T2, Sz>& v2, const XprVector<E3, Sz>& e3) {
   typedef XprEval<
     XprVector<E1, Sz>,
-    VectorConstReference<T2, Sz>,
+    VectorConstRef<T2, Sz>,
     XprVector<E3, Sz>
   > 							expr_type;
   return XprVector<expr_type, Sz>(
-    expr_type(e1, v2.const_ref(), e3));
+    expr_type(e1, v2.constRef(), e3));
 }
 
 
@@ -153,7 +153,7 @@ XprVector<
   XprEval<
     XprVector<E1, Sz>,
     XprVector<E2, Sz>,
-    VectorConstReference<T3, Sz>
+    VectorConstRef<T3, Sz>
   >,
   Sz
 >
@@ -161,10 +161,10 @@ eval(const XprVector<E1, Sz>& e1, const XprVector<E2, Sz>& e2, const Vector<T3, 
   typedef XprEval<
     XprVector<E1, Sz>,
     XprVector<E2, Sz>,
-    VectorConstReference<T3, Sz>
+    VectorConstRef<T3, Sz>
   > 							expr_type;
   return XprVector<expr_type, Sz>(
-    expr_type(e1, e2, v3.const_ref()));
+    expr_type(e1, e2, v3.constRef()));
 }
 
 

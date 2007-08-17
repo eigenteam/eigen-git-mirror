@@ -41,12 +41,12 @@ template<class T, int Sz> class Vector;
 
 
 /**
- * \class VectorConstReference Vector.h "tvmet/Vector.h"
+ * \class VectorConstRef Vector.h "tvmet/Vector.h"
  * \brief Const value iterator for ET
  */
 template<class T, int Sz>
-class VectorConstReference
-  : public TvmetBase< VectorConstReference<T, Sz> >
+class VectorConstRef
+  : public TvmetBase< VectorConstRef<T, Sz> >
 {
 public: // types
   typedef T 						value_type;
@@ -66,37 +66,37 @@ public:
   };
 
 private:
-  VectorConstReference();
-  VectorConstReference& operator=(const VectorConstReference&);
+  VectorConstRef();
+  VectorConstRef& operator=(const VectorConstRef&);
 
 public:
   /** Constructor. */
-  explicit VectorConstReference(const Vector<T, Size>& rhs)
-    : m_data(rhs.data())
+  explicit VectorConstRef(const Vector<T, Size>& rhs)
+    : m_array(rhs.array())
   { }
 
   /** Constructor by a given memory pointer. */
-  explicit VectorConstReference(const_pointer data)
-    : m_data(data)
+  explicit VectorConstRef(const_pointer data)
+    : m_array(data)
   { }
 
 public: // access operators
   /** access by index. */
   value_type operator()(int i) const {
     assert(i < Size);
-    return m_data[i];
+    return m_array[i];
   }
 
 public: // debugging Xpr parse tree
   void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l)
-       << "VectorConstReference[O=" << ops << "]<"
+       << "VectorConstRef[O=" << ops << "]<"
        << "T=" << typeid(T).name() << ">,"
        << std::endl;
   }
 
 private:
-  const_pointer _tvmet_restrict 			m_data;
+  const_pointer _tvmet_restrict 			m_array;
 };
 
 
@@ -104,36 +104,12 @@ private:
  * \class Vector Vector.h "tvmet/Vector.h"
  * \brief Compile time fixed length vector with evaluation on compile time.
  */
-template<class T, int Sz>
+template<class T, int Size>
 class Vector
 {
 public:
   /** Data type of the tvmet::Vector. */
   typedef T     					value_type;
-
-  /** Reference type of the tvmet::Vector data elements. */
-  typedef T&     					reference;
-
-  /** const reference type of the tvmet::Vector data elements. */
-  typedef const T&     					const_reference;
-
-  /** STL iterator interface. */
-  typedef T*     					iterator;
-
-  /** STL const_iterator interface. */
-  typedef const T*     					const_iterator;
-
-  /** STL reverse iterator interface. */
-  typedef std::reverse_iterator<iterator> 		reverse_iterator;
-
-  /** STL const reverse iterator interface. */
-  typedef std::reverse_iterator<const_iterator> 	const_reverse_iterator;
-
-public:
-  /** Dimensions. */
-  enum {
-    Size = Sz			/**< The size of the vector. */
-  };
 
 public:
   /** Complexity counter. */
@@ -143,173 +119,22 @@ public:
     use_meta   = ops < TVMET_COMPLEXITY_V_ASSIGN_TRIGGER ? true : false
   };
 
-public: // STL  interface
-  /** STL iterator interface. */
-  iterator begin() { return m_data; }
-
-  /** STL iterator interface. */
-  iterator end() { return m_data + Size; }
-
-  /** STL const_iterator interface. */
-  const_iterator begin() const { return m_data; }
-
-  /** STL const_iterator interface. */
-  const_iterator end() const { return m_data + Size; }
-
-  /** STL reverse iterator interface reverse begin. */
-  reverse_iterator rbegin() { return reverse_iterator( end() ); }
-
-  /** STL const reverse iterator interface reverse begin. */
-  const_reverse_iterator rbegin() const {
-    return const_reverse_iterator( end() );
-  }
-
-  /** STL reverse iterator interface reverse end. */
-  reverse_iterator rend() { return reverse_iterator( begin() ); }
-
-  /** STL const reverse iterator interface reverse end. */
-  const_reverse_iterator rend() const {
-    return const_reverse_iterator( begin() );
-  }
-
-  /** STL vector front element. */
-  value_type front() { return m_data[0]; }
-
-  /** STL vector const front element. */
-  const_reference front() const { return m_data[0]; }
-
-  /** STL vector back element. */
-  value_type back() { return m_data[Size-1]; }
-
-  /** STL vector const back element. */
-  const_reference back() const { return m_data[Size-1]; }
-
-  /** STL vector empty() - returns allways false. */
-  static bool empty() { return false; }
-
-  /** The size of the vector. */
-  static int size() { return Size; }
-
-  /** STL vector max_size() - returns allways Size. */
-  static int max_size() { return Size; }
-
 public:
   /** Default Destructor */
   ~Vector() {}
 
-  /** Default Constructor. The allocated memory region isn't cleared. If you want
-   a clean use the constructor argument zero. */
+  /** Default Constructor. Does nothing. */
   explicit Vector() {}
 
   /** Copy Constructor, not explicit! */
   Vector(const Vector& rhs)
   {
-    *this = XprVector<ConstReference, Size>(rhs.const_ref());
+    *this = XprVector<ConstRef, Size>(rhs.constRef());
   }
-
-  /**
-   * Constructor with STL iterator interface. The data will be copied into the
-   * vector self, there isn't any stored reference to the array pointer.
-   */
-  template<class InputIterator>
-  explicit Vector(InputIterator first, InputIterator last)
+  
+  explicit Vector(const value_type* array)
   {
-    assert( static_cast<int>(std::distance(first, last)) <= Size);
-    std::copy(first, last, m_data);
-  }
-
-  /**
-   * Constructor with STL iterator interface. The data will be copied into the
-   * vector self, there isn't any stored reference to the array pointer.
-   */
-  template<class InputIterator>
-  explicit Vector(InputIterator first, int sz)
-  {
-    assert(sz <= Size);
-    std::copy(first, first + sz, m_data);
-  }
-
-  /** Constructor with initializer for all elements.  */
-  explicit Vector(value_type rhs)
-  {
-    typedef XprLiteral<value_type> expr_type;
-    *this = XprVector<expr_type, Size>(expr_type(rhs));
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1)
-  {
-    TVMET_CT_CONDITION(2 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2)
-  {
-    TVMET_CT_CONDITION(3 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3)
-  {
-    TVMET_CT_CONDITION(4 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4)
-  {
-    TVMET_CT_CONDITION(5 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4, value_type x5)
-  {
-    TVMET_CT_CONDITION(6 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-    m_data[5] = x5;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4, value_type x5, value_type x6)
-  {
-    TVMET_CT_CONDITION(7 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-    m_data[5] = x5; m_data[6] = x6;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4, value_type x5, value_type x6, value_type x7)
-  {
-    TVMET_CT_CONDITION(8 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-    m_data[5] = x5; m_data[6] = x6; m_data[7] = x7;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4, value_type x5, value_type x6, value_type x7,
-		  value_type x8)
-  {
-    TVMET_CT_CONDITION(9 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-    m_data[5] = x5; m_data[6] = x6; m_data[7] = x7; m_data[8] = x8;
-  }
-
-  /** Default Constructor with initializer list. */
-  explicit Vector(value_type x0, value_type x1, value_type x2, value_type x3,
-		  value_type x4, value_type x5, value_type x6, value_type x7,
-		  value_type x8, value_type x9)
-  {
-    TVMET_CT_CONDITION(10 <= Size, ArgumentList_is_too_long)
-    m_data[0] = x0; m_data[1] = x1; m_data[2] = x2; m_data[3] = x3; m_data[4] = x4;
-    m_data[5] = x5; m_data[6] = x6; m_data[7] = x7; m_data[8] = x8; m_data[9] = x9;
+    for(int i = 0; i < Size; i++) m_array[i] = array[i];
   }
 
   /** Construct a vector by expression. */
@@ -326,19 +151,19 @@ public:
   }
 
 public: // access operators
-  value_type* _tvmet_restrict data() { return m_data; }
-  const value_type* _tvmet_restrict data() const { return m_data; }
+  value_type* _tvmet_restrict array() { return m_array; }
+  const value_type* _tvmet_restrict array() const { return m_array; }
 
 public: // index access operators
   value_type& _tvmet_restrict operator()(int i) {
     // Note: g++-2.95.3 does have problems on typedef reference
     assert(i < Size);
-    return m_data[i];
+    return m_array[i];
   }
 
   value_type operator()(int i) const {
     assert(i < Size);
-    return m_data[i];
+    return m_array[i];
   }
 
   value_type& _tvmet_restrict operator[](int i) {
@@ -351,14 +176,14 @@ public: // index access operators
   }
 
 public: // ET interface
-  typedef VectorConstReference<T, Size>    		ConstReference;
+  typedef VectorConstRef<T, Size>    		ConstRef;
 
   /** Return a const Reference of the internal data */
-  ConstReference const_ref() const { return ConstReference(*this); }
+  ConstRef constRef() const { return ConstRef(*this); }
 
   /** Return the vector as const expression. */
-  XprVector<ConstReference, Size> as_expr() const {
-    return XprVector<ConstReference, Size>(this->const_ref());
+  XprVector<ConstRef, Size> expr() const {
+    return XprVector<ConstRef, Size>(this->constRef());
   }
 
 private:
@@ -402,6 +227,11 @@ public:   // assign operations
 private:
   template<class Obj, int LEN> friend class CommaInitializer;
 
+  void commaWrite(int index, T rhs)
+  {
+    m_array[index] = rhs;
+  }
+  
   /** This is a helper for assigning a comma separated initializer
       list. It's equal to Vector& operator=(value_type) which does
       replace it. */
@@ -431,12 +261,6 @@ public: // math assign operators with vectors
   template <class T2> Vector& M_sub_eq(const Vector<T2, Size>&) _tvmet_always_inline;
   template <class T2> Vector& M_mul_eq(const Vector<T2, Size>&) _tvmet_always_inline;
   template <class T2> Vector& M_div_eq(const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_mod_eq(const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_xor_eq(const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_and_eq(const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_or_eq (const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_shl_eq(const Vector<T2, Size>&) _tvmet_always_inline;
-  template <class T2> Vector& M_shr_eq(const Vector<T2, Size>&) _tvmet_always_inline;
 
 public: // math operators with expressions
   // NOTE: access using the operators in ns element_wise, since that's what is does
@@ -444,12 +268,6 @@ public: // math operators with expressions
   template <class E> Vector& M_sub_eq(const XprVector<E, Size>&) _tvmet_always_inline;
   template <class E> Vector& M_mul_eq(const XprVector<E, Size>&) _tvmet_always_inline;
   template <class E> Vector& M_div_eq(const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_mod_eq(const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_xor_eq(const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_and_eq(const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_or_eq (const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_shl_eq(const XprVector<E, Size>&) _tvmet_always_inline;
-  template <class E> Vector& M_shr_eq(const XprVector<E, Size>&) _tvmet_always_inline;
 
 public: // aliased math operators with expressions, used with proxy
   template <class T2> Vector& alias_assign(const Vector<T2, Size>&) _tvmet_always_inline;
@@ -486,7 +304,7 @@ public: // io
 private:
   /** The data of vector self. */
 
-  value_type m_data[Size];
+  value_type m_array[Size];
 };
 
 typedef Vector<int, 2> Vector2i;

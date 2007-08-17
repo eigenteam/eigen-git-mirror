@@ -30,7 +30,7 @@ namespace tvmet {
 
 /* forwards */
 template<class T, int Sz> class Vector;
-template<class T, int Sz> class VectorConstReference;
+template<class T, int Sz> class VectorConstRef;
 
 
 /*********************************************************
@@ -53,8 +53,8 @@ template<class T1, class T2, int Rows, int Cols>	\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
-    MatrixConstReference<T1, Rows, Cols>,				\
-    MatrixConstReference<T2, Rows, Cols>				\
+    MatrixConstRef<T1, Rows, Cols>,				\
+    MatrixConstRef<T2, Rows, Cols>				\
   >,									\
   Rows, Cols								\
 >									\
@@ -66,7 +66,7 @@ XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
     XprMatrix<E, Rows, Cols>,						\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >,									\
   Rows, Cols								\
 >									\
@@ -77,7 +77,7 @@ template<class T, class E, int Rows, int Cols>		\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
-    MatrixConstReference<T, Rows, Cols>,				\
+    MatrixConstRef<T, Rows, Cols>,				\
     XprMatrix<E, Rows, Cols>						\
   >,									\
   Rows, Cols								\
@@ -105,7 +105,7 @@ template<class T, int Rows, int Cols>			\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, POD >,						\
-    MatrixConstReference<T, Rows, Cols>,				\
+    MatrixConstRef<T, Rows, Cols>,				\
     XprLiteral<POD >							\
   >,									\
   Rows, Cols								\
@@ -118,7 +118,7 @@ XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >,									\
   Rows, Cols								\
 >									\
@@ -155,7 +155,7 @@ template<class T, int Rows, int Cols>				\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
-    MatrixConstReference< std::complex<T>, Rows, Cols>,				\
+    MatrixConstRef< std::complex<T>, Rows, Cols>,				\
     XprLiteral<std::complex<T> >						\
   >,										\
   Rows, Cols									\
@@ -168,7 +168,7 @@ XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
     XprLiteral< std::complex<T> >,						\
-    MatrixConstReference< std::complex<T>, Rows, Cols>				\
+    MatrixConstRef< std::complex<T>, Rows, Cols>				\
   >,										\
   Rows, Cols									\
 >										\
@@ -194,8 +194,8 @@ template<class T1, int Rows1, int Cols1,
 	 class T2, int Cols2>
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2 		// M2(Cols1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2 		// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
 >
@@ -208,7 +208,7 @@ template<class E1, int Rows1, int Cols1,
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,			// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
 >
@@ -220,7 +220,7 @@ template<class T1, int Rows1, int Cols1,
 	 class E2, int Cols2>
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
     XprMatrix<E2, Cols1, Cols2>, Cols2				// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
@@ -233,8 +233,8 @@ template<class T1, int Rows1, int Cols1,
 	 class T2, int Cols2>
 XprMatrix<
   XprMMProductTransposed<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
   >,
   Cols2, Rows1							// return Dim
 >
@@ -246,8 +246,8 @@ template<class T1, int Rows1, int Cols1,
 	 class T2, int Cols2>	// Rows2 = Rows1
 XprMatrix<
   XprMtMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Rows1, Cols2>, Cols2		// M2(Rows1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Rows1, Cols2>, Cols2		// M2(Rows1, Cols2)
   >,
   Cols1, Cols2							// return Dim
 >
@@ -259,8 +259,8 @@ template<class T1, int Rows1, int Cols1,
 	 class T2, int Rows2>
 XprMatrix<
   XprMMtProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Rows2, Cols1>, Cols1 		// M2(Rows2, Cols1)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Rows2, Cols1>, Cols1 		// M2(Rows2, Cols1)
   >,
   Rows1, Rows2							// return Dim
 >
@@ -276,8 +276,8 @@ MMt_prod(const Matrix<T1, Rows1, Cols1>& lhs,
 template<class T1, class T2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,	// M(Rows, Cols)
-    VectorConstReference<T2, Cols> 			// V
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,	// M(Rows, Cols)
+    VectorConstRef<T2, Cols> 			// V
   >,
   Rows
 >
@@ -288,7 +288,7 @@ prod(const Matrix<T1, Rows, Cols>& lhs,
 template<class T1, class E2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
     XprVector<E2, Cols>
   >,
   Rows
@@ -301,7 +301,7 @@ template<class E1, class T2, int Rows, int Cols>
 XprVector<
   XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,		// M(Rows, Cols)
-    VectorConstReference<T2, Cols> 			// V
+    VectorConstRef<T2, Cols> 			// V
   >,
   Rows
 >
@@ -312,8 +312,8 @@ prod(const XprMatrix<E1, Rows, Cols>& lhs,
 template<class T1, class T2, int Rows, int Cols>
 XprVector<
   XprMtVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows,	Cols,   // M(Rows, Cols)
-    VectorConstReference<T2, Rows> 			// V
+    MatrixConstRef<T1, Rows, Cols>, Rows,	Cols,   // M(Rows, Cols)
+    VectorConstRef<T2, Rows> 			// V
   >,
   Cols
 >
@@ -329,7 +329,7 @@ Mtx_prod(const Matrix<T1, Rows, Cols>& lhs,
 template<class T, int Rows, int Cols>
 XprMatrix<
   XprMatrixTranspose<
-    MatrixConstReference<T, Rows, Cols>
+    MatrixConstRef<T, Rows, Cols>
   >,
   Cols, Rows
 >
@@ -344,7 +344,7 @@ trace(const Matrix<T, Sz, Sz>& m) _tvmet_always_inline;
 template<class T, int Rows, int Cols>
 XprVector<
   XprMatrixRow<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >,
   Cols
@@ -356,7 +356,7 @@ row(const Matrix<T, Rows, Cols>& m,
 template<class T, int Rows, int Cols>
 XprVector<
   XprMatrixCol<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >,
   Rows
@@ -368,7 +368,7 @@ col(const Matrix<T, Rows, Cols>& m,
 template<class T, int Sz>
 XprVector<
   XprMatrixDiag<
-    MatrixConstReference<T, Sz, Sz>,
+    MatrixConstRef<T, Sz, Sz>,
     Sz
   >,
   Sz
@@ -444,7 +444,7 @@ identity() _tvmet_always_inline;
 
 template<class T, int Rows, int Cols>
 XprMatrix<
-  MatrixConstReference<T, Rows, Cols>,
+  MatrixConstRef<T, Rows, Cols>,
   Rows, Cols
 >
 cmatrix_ref(const T* mem) _tvmet_always_inline;
@@ -471,19 +471,19 @@ inline										\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<T1, T2>,							\
-    MatrixConstReference<T1, Rows, Cols>,					\
-    MatrixConstReference<T2, Rows, Cols>					\
+    MatrixConstRef<T1, Rows, Cols>,					\
+    MatrixConstRef<T2, Rows, Cols>					\
   >,										\
   Rows, Cols									\
 >										\
 NAME (const Matrix<T1, Rows, Cols>& lhs, const Matrix<T2, Rows, Cols>& rhs) {	\
   typedef XprBinOp <								\
     Fcnl_##NAME<T1, T2>,							\
-    MatrixConstReference<T1, Rows, Cols>,					\
-    MatrixConstReference<T2, Rows, Cols>					\
+    MatrixConstRef<T1, Rows, Cols>,					\
+    MatrixConstRef<T2, Rows, Cols>					\
   >							expr_type;		\
   return XprMatrix<expr_type, Rows, Cols>(					\
-    expr_type(lhs.const_ref(), rhs.const_ref()));				\
+    expr_type(lhs.constRef(), rhs.constRef()));				\
 }										\
 										\
 template<class E, class T, int Rows, int Cols>			\
@@ -492,7 +492,7 @@ XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, T>,					\
     XprMatrix<E, Rows, Cols>,							\
-    MatrixConstReference<T, Rows, Cols>						\
+    MatrixConstRef<T, Rows, Cols>						\
   >,										\
   Rows, Cols									\
 >										\
@@ -500,10 +500,10 @@ NAME (const XprMatrix<E, Rows, Cols>& lhs, const Matrix<T, Rows, Cols>& rhs) {	\
   typedef XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,					\
     XprMatrix<E, Rows, Cols>,							\
-    MatrixConstReference<T, Rows, Cols>						\
+    MatrixConstRef<T, Rows, Cols>						\
   > 							 expr_type;		\
   return XprMatrix<expr_type, Rows, Cols>(					\
-    expr_type(lhs, rhs.const_ref()));						\
+    expr_type(lhs, rhs.constRef()));						\
 }										\
 										\
 template<class T, class E, int Rows, int Cols>			\
@@ -511,7 +511,7 @@ inline										\
 XprMatrix<									\
   XprBinOp<									\
     Fcnl_##NAME<typename E::value_type, T>,					\
-    MatrixConstReference<T, Rows, Cols>,					\
+    MatrixConstRef<T, Rows, Cols>,					\
     XprMatrix<E, Rows, Cols>							\
   >,										\
   Rows, Cols									\
@@ -519,11 +519,11 @@ XprMatrix<									\
 NAME (const Matrix<T, Rows, Cols>& lhs, const XprMatrix<E, Rows, Cols>& rhs) {	\
   typedef XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,					\
-    MatrixConstReference<T, Rows, Cols>,					\
+    MatrixConstRef<T, Rows, Cols>,					\
     XprMatrix<E, Rows, Cols>							\
   >	 						 expr_type;		\
   return XprMatrix<expr_type, Rows, Cols>(					\
-    expr_type(lhs.const_ref(), rhs));						\
+    expr_type(lhs.constRef(), rhs));						\
 }
 
 TVMET_IMPLEMENT_MACRO(add)			// per se element wise
@@ -547,7 +547,7 @@ inline									\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME<T, POD >,						\
-    MatrixConstReference<T, Rows, Cols>,				\
+    MatrixConstRef<T, Rows, Cols>,				\
     XprLiteral<POD >							\
   >,									\
   Rows, Cols								\
@@ -555,11 +555,11 @@ XprMatrix<								\
 NAME (const Matrix<T, Rows, Cols>& lhs, POD rhs) {			\
   typedef XprBinOp<							\
     Fcnl_##NAME<T, POD >,						\
-    MatrixConstReference<T, Rows, Cols>,				\
+    MatrixConstRef<T, Rows, Cols>,				\
     XprLiteral< POD >							\
   >							expr_type;	\
   return XprMatrix<expr_type, Rows, Cols>(				\
-    expr_type(lhs.const_ref(), XprLiteral< POD >(rhs)));		\
+    expr_type(lhs.constRef(), XprLiteral< POD >(rhs)));		\
 }									\
 									\
 template<class T, int Rows, int Cols>			\
@@ -568,7 +568,7 @@ XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >,									\
   Rows, Cols								\
 >									\
@@ -576,10 +576,10 @@ NAME (POD lhs, const Matrix<T, Rows, Cols>& rhs) {			\
   typedef XprBinOp<							\
     Fcnl_##NAME< POD, T>,						\
     XprLiteral< POD >,							\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >							expr_type;	\
   return XprMatrix<expr_type, Rows, Cols>(				\
-    expr_type(XprLiteral< POD >(lhs), rhs.const_ref()));		\
+    expr_type(XprLiteral< POD >(lhs), rhs.constRef()));		\
 }
 
 TVMET_IMPLEMENT_MACRO(add, int)
@@ -613,7 +613,7 @@ inline									\
 XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
-    MatrixConstReference< std::complex<T>, Rows, Cols>,			\
+    MatrixConstRef< std::complex<T>, Rows, Cols>,			\
     XprLiteral<std::complex<T> >					\
   >,									\
   Rows, Cols								\
@@ -622,11 +622,11 @@ NAME (const Matrix< std::complex<T>, Rows, Cols>& lhs,			\
       const std::complex<T>& rhs) {					\
   typedef XprBinOp<							\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
-    MatrixConstReference< std::complex<T>, Rows, Cols>,			\
+    MatrixConstRef< std::complex<T>, Rows, Cols>,			\
     XprLiteral< std::complex<T> >					\
   >							expr_type;	\
   return XprMatrix<expr_type, Rows, Cols>(				\
-    expr_type(lhs.const_ref(), XprLiteral< std::complex<T> >(rhs)));	\
+    expr_type(lhs.constRef(), XprLiteral< std::complex<T> >(rhs)));	\
 }									\
 									\
 template<class T, int Rows, int Cols>			\
@@ -635,7 +635,7 @@ XprMatrix<								\
   XprBinOp<								\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
     XprLiteral< std::complex<T> >,					\
-    MatrixConstReference< std::complex<T>, Rows, Cols>			\
+    MatrixConstRef< std::complex<T>, Rows, Cols>			\
   >,									\
   Rows, Cols								\
 >									\
@@ -644,10 +644,10 @@ NAME (const std::complex<T>& lhs,					\
   typedef XprBinOp<							\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,			\
     XprLiteral< std::complex<T> >,					\
-    MatrixConstReference<T, Rows, Cols>					\
+    MatrixConstRef<T, Rows, Cols>					\
   >							expr_type;	\
   return XprMatrix<expr_type, Rows, Cols>(				\
-    expr_type(XprLiteral< std::complex<T> >(lhs), rhs.const_ref()));	\
+    expr_type(XprLiteral< std::complex<T> >(lhs), rhs.constRef()));	\
 }
 
 TVMET_IMPLEMENT_MACRO(add)
@@ -676,18 +676,18 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2 		// M2(Cols1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2 		// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
 >
 prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& rhs) {
   typedef XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >							expr_type;
   return XprMatrix<expr_type, Rows1, Cols2>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -702,17 +702,17 @@ inline
 XprMatrix<
   XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,			// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
 >
 prod(const XprMatrix<E1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& rhs) {
   typedef XprMMProduct<
     XprMatrix<E1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >							expr_type;
   return XprMatrix<expr_type, Rows1, Cols2>(
-    expr_type(lhs, rhs.const_ref()));
+    expr_type(lhs, rhs.constRef()));
 }
 
 
@@ -726,18 +726,18 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
     XprMatrix<E2, Cols1, Cols2>, Cols2				// M2(Cols1, Cols2)
   >,
   Rows1, Cols2							// return Dim
 >
 prod(const Matrix<T1, Rows1, Cols1>& lhs, const XprMatrix<E2, Cols1, Cols2>& rhs) {
   typedef XprMMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
     XprMatrix<E2, Cols1, Cols2>, Cols2
   >							expr_type;
   return XprMatrix<expr_type, Rows1, Cols2>(
-    expr_type(lhs.const_ref(), rhs));
+    expr_type(lhs.constRef(), rhs));
 }
 
 
@@ -755,18 +755,18 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMProductTransposed<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2		// M2(Cols1, Cols2)
   >,
   Cols2, Rows1							// return Dim
 >
 trans_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Cols1, Cols2>& rhs) {
   typedef XprMMProductTransposed<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Cols1, Cols2>, Cols2
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Cols1, Cols2>, Cols2
   >							expr_type;
   return XprMatrix<expr_type, Cols2, Rows1>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -787,18 +787,18 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMtMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Rows1, Cols2>, Cols2		// M2(Rows1, Cols2)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Rows1, Cols2>, Cols2		// M2(Rows1, Cols2)
   >,
   Cols1, Cols2							// return Dim
 >
 MtM_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Rows1, Cols2>& rhs) {
   typedef XprMtMProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Rows1, Cols2>, Cols2
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Rows1, Cols2>, Cols2
   >							expr_type;
   return XprMatrix<expr_type, Cols1, Cols2>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -813,18 +813,18 @@ template<class T1, int Rows1, int Cols1,
 inline
 XprMatrix<
   XprMMtProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
-    MatrixConstReference<T2, Rows2, Cols1>, Cols1 		// M2(Rows2, Cols1)
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,	// M1(Rows1, Cols1)
+    MatrixConstRef<T2, Rows2, Cols1>, Cols1 		// M2(Rows2, Cols1)
   >,
   Rows1, Rows2							// return Dim
 >
 MMt_prod(const Matrix<T1, Rows1, Cols1>& lhs, const Matrix<T2, Rows2, Cols1>& rhs) {
   typedef XprMMtProduct<
-    MatrixConstReference<T1, Rows1, Cols1>, Rows1, Cols1,
-    MatrixConstReference<T2, Rows2, Cols1>, Cols1
+    MatrixConstRef<T1, Rows1, Cols1>, Rows1, Cols1,
+    MatrixConstRef<T2, Rows2, Cols1>, Cols1
   >							expr_type;
   return XprMatrix<expr_type, Rows1, Rows2>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -842,18 +842,18 @@ template<class T1, class T2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,	// M(Rows, Cols)
-    VectorConstReference<T2, Cols> 			// V
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,	// M(Rows, Cols)
+    VectorConstRef<T2, Cols> 			// V
   >,
   Rows
 >
 prod(const Matrix<T1, Rows, Cols>& lhs, const Vector<T2, Cols>& rhs) {
   typedef XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
+    VectorConstRef<T2, Cols>
   > 							expr_type;
   return XprVector<expr_type, Rows>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -866,18 +866,18 @@ template<class T1, class E2, int Rows, int Cols>
 inline
 XprVector<
   XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
     XprVector<E2, Cols>
   >,
   Rows
 >
 prod(const Matrix<T1, Rows, Cols>& lhs, const XprVector<E2, Cols>& rhs) {
   typedef XprMVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
     XprVector<E2, Cols>
   > 							expr_type;
   return XprVector<expr_type, Rows>(
-    expr_type(lhs.const_ref(), rhs));
+    expr_type(lhs.constRef(), rhs));
 }
 
 
@@ -891,17 +891,17 @@ inline
 XprVector<
   XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,		// M(Rows, Cols)
-    VectorConstReference<T2, Cols> 			// V
+    VectorConstRef<T2, Cols> 			// V
   >,
   Rows
 >
 prod(const XprMatrix<E1, Rows, Cols>& lhs, const Vector<T2, Cols>& rhs) {
   typedef XprMVProduct<
     XprMatrix<E1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Cols>
+    VectorConstRef<T2, Cols>
   > 							expr_type;
   return XprVector<expr_type, Rows>(
-    expr_type(lhs, rhs.const_ref()));
+    expr_type(lhs, rhs.constRef()));
 }
 
 
@@ -918,18 +918,18 @@ template<class T1, class T2, int Rows, int Cols>
 inline
 XprVector<
   XprMtVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows,	Cols,   // M(Rows, Cols)
-    VectorConstReference<T2, Rows> 			// V
+    MatrixConstRef<T1, Rows, Cols>, Rows,	Cols,   // M(Rows, Cols)
+    VectorConstRef<T2, Rows> 			// V
   >,
   Cols
 >
 Mtx_prod(const Matrix<T1, Rows, Cols>& lhs, const Vector<T2, Rows>& rhs) {
   typedef XprMtVProduct<
-    MatrixConstReference<T1, Rows, Cols>, Rows, Cols,
-    VectorConstReference<T2, Rows>
+    MatrixConstRef<T1, Rows, Cols>, Rows, Cols,
+    VectorConstRef<T2, Rows>
   > 							expr_type;
   return XprVector<expr_type, Cols>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 
@@ -947,16 +947,16 @@ template<class T, int Rows, int Cols>
 inline
 XprMatrix<
   XprMatrixTranspose<
-    MatrixConstReference<T, Rows, Cols>
+    MatrixConstRef<T, Rows, Cols>
   >,
   Cols, Rows
 >
 trans(const Matrix<T, Rows, Cols>& rhs) {
   typedef XprMatrixTranspose<
-    MatrixConstReference<T, Rows, Cols>
+    MatrixConstRef<T, Rows, Cols>
   >							expr_type;
   return XprMatrix<expr_type, Cols, Rows>(
-    expr_type(rhs.const_ref()));
+    expr_type(rhs.constRef()));
 }
 
 
@@ -987,17 +987,17 @@ template<class T, int Rows, int Cols>
 inline
 XprVector<
   XprMatrixRow<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >,
   Cols
 >
 row(const Matrix<T, Rows, Cols>& m, int no) {
   typedef XprMatrixRow<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >							expr_type;
-  return XprVector<expr_type, Cols>(expr_type(m.const_ref(), no));
+  return XprVector<expr_type, Cols>(expr_type(m.constRef(), no));
 }
 
 
@@ -1010,17 +1010,17 @@ template<class T, int Rows, int Cols>
 inline
 XprVector<
   XprMatrixCol<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >,
   Rows
 >
 col(const Matrix<T, Rows, Cols>& m, int no) {
   typedef XprMatrixCol<
-    MatrixConstReference<T, Rows, Cols>,
+    MatrixConstRef<T, Rows, Cols>,
     Rows, Cols
   >							expr_type;
-  return XprVector<expr_type, Rows>(expr_type(m.const_ref(), no));
+  return XprVector<expr_type, Rows>(expr_type(m.constRef(), no));
 }
 
 
@@ -1033,201 +1033,22 @@ template<class T, int Sz>
 inline
 XprVector<
   XprMatrixDiag<
-    MatrixConstReference<T, Sz, Sz>,
+    MatrixConstRef<T, Sz, Sz>,
     Sz
   >,
   Sz
 >
 diag(const Matrix<T, Sz, Sz>& m) {
   typedef XprMatrixDiag<
-    MatrixConstReference<T, Sz, Sz>,
+    MatrixConstRef<T, Sz, Sz>,
     Sz
   >							expr_type;
-  return XprVector<expr_type, Sz>(expr_type(m.const_ref()));
+  return XprVector<expr_type, Sz>(expr_type(m.constRef()));
 }
-
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * min/max unary functions
- *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
-
-/**
- * \fn maximum(const XprMatrix<E, Rows, Cols>& e)
- * \brief Find the maximum of a matrix expression
- * \ingroup _unary_function
- */
-template<class E, int Rows, int Cols>
-inline
-Extremum<typename E::value_type, int, matrix_tag>
-maximum(const XprMatrix<E, Rows, Cols>& e) {
-  typedef typename E::value_type 			value_type;
-
-  value_type 						temp(e(0, 0));
-  int 						row_no(0), col_no(0);
-
-  for(int i = 0; i != Rows; ++i) {
-    for(int j = 0; j != Cols; ++j) {
-      if(e(i, j) > temp) {
-	temp = e(i, j);
-	row_no = i;
-	col_no = j;
-      }
-    }
-  }
-
-  return Extremum<value_type, int, matrix_tag>(temp, row_no, col_no);
-}
-
-
-/**
- * \fn maximum(const Matrix<T, Rows, Cols>& m)
- * \brief Find the maximum of a matrix
- * \ingroup _unary_function
- */
-template<class T, int Rows, int Cols>
-inline
-Extremum<T, int, matrix_tag>
-maximum(const Matrix<T, Rows, Cols>& m) { return maximum(m.as_expr()); }
-
-
-/**
- * \fn minimum(const XprMatrix<E, Rows, Cols>& e)
- * \brief Find the minimum of a matrix expression
- * \ingroup _unary_function
- */
-template<class E, int Rows, int Cols>
-inline
-Extremum<typename E::value_type, int, matrix_tag>
-minimum(const XprMatrix<E, Rows, Cols>& e) {
-  typedef typename E::value_type 			value_type;
-
-  value_type 						temp(e(0, 0));
-  int 						row_no(0), col_no(0);
-
-  for(int i = 0; i != Rows; ++i) {
-    for(int j = 0; j != Cols; ++j) {
-      if(e(i, j) < temp) {
-	temp = e(i, j);
-	row_no = i;
-	col_no = j;
-      }
-    }
-  }
-
-  return Extremum<value_type, int, matrix_tag>(temp, row_no, col_no);
-}
-
-
-/**
- * \fn minimum(const Matrix<T, Rows, Cols>& m)
- * \brief Find the minimum of a matrix
- * \ingroup _unary_function
- */
-template<class T, int Rows, int Cols>
-inline
-Extremum<T, int, matrix_tag>
-minimum(const Matrix<T, Rows, Cols>& m) { return minimum(m.as_expr()); }
-
-
-/**
- * \fn max(const XprMatrix<E, Rows, Cols>& e)
- * \brief Find the maximum of a matrix expression
- * \ingroup _unary_function
- */
-template<class E, int Rows, int Cols>
-inline
-typename E::value_type
-max(const XprMatrix<E, Rows, Cols>& e) {
-  typedef typename E::value_type 			value_type;
-
-  value_type 						temp(e(0, 0));
-
-  for(int i = 0; i != Rows; ++i)
-    for(int j = 0; j != Cols; ++j)
-      if(e(i, j) > temp)
-	temp = e(i, j);
-
-  return temp;
-}
-
-
-/**
- * \fn max(const Matrix<T, Rows, Cols>& m)
- * \brief Find the maximum of a matrix
- * \ingroup _unary_function
- */
-template<class T, int Rows, int Cols>
-inline
-T max(const Matrix<T, Rows, Cols>& m) {
-  typedef T			 			value_type;
-  typedef typename Matrix<
-   T, Rows, Cols
-  >::const_iterator					const_iterator;
-
-  const_iterator					iter(m.begin());
-  const_iterator					last(m.end());
-  value_type 						temp(*iter);
-
-  for( ; iter != last; ++iter)
-    if(*iter > temp)
-      temp = *iter;
-
-  return temp;
-}
-
-
-/**
- * \fn min(const XprMatrix<E, Rows, Cols>& e)
- * \brief Find the minimum of a matrix expression
- * \ingroup _unary_function
- */
-template<class E, int Rows, int Cols>
-inline
-typename E::value_type
-min(const XprMatrix<E, Rows, Cols>& e) {
-  typedef typename E::value_type			value_type;
-
-  value_type 						temp(e(0, 0));
-
-  for(int i = 0; i != Rows; ++i)
-    for(int j = 0; j != Cols; ++j)
-      if(e(i, j) < temp)
-	temp = e(i, j);
-
-  return temp;
-}
-
-
-/**
- * \fn min(const Matrix<T, Rows, Cols>& m)
- * \brief Find the minimum of a matrix
- * \ingroup _unary_function
- */
-template<class T, int Rows, int Cols>
-inline
-T min(const Matrix<T, Rows, Cols>& m) {
-  typedef T			 			value_type;
-  typedef typename Matrix<
-   T, Rows, Cols
-  >::const_iterator					const_iterator;
-
-  const_iterator					iter(m.begin());
-  const_iterator					last(m.end());
-  value_type 						temp(*iter);
-
-  for( ; iter != last; ++iter)
-    if(*iter < temp)
-      temp = *iter;
-
-  return temp;
-}
-
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  * other unary functions
  *+++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
 
 /**
  * \fn XprMatrix<XprIdentity<typename M::value_type, M::Rows, M::Cols>, M::Rows, M::Cols>identity()
@@ -1329,11 +1150,11 @@ identity() {
 template<class T, int Rows, int Cols>
 inline
 XprMatrix<
-  MatrixConstReference<T, Rows, Cols>,
+  MatrixConstRef<T, Rows, Cols>,
   Rows, Cols
 >
 cmatrix_ref(const T* mem) {
-  typedef MatrixConstReference<T, Rows, Cols>	expr_type;
+  typedef MatrixConstRef<T, Rows, Cols>	expr_type;
 
   return XprMatrix<expr_type, Rows, Cols>(expr_type(mem));
 };

@@ -1,5 +1,5 @@
 /*
- * $Id: bad_xpr_const_ref.cc,v 1.1 2003/10/21 19:40:38 opetzold Exp $
+ * $Id: bad_xpr_constRef.cc,v 1.1 2003/10/21 19:40:38 opetzold Exp $
  *
  * This example shows the problem on holding references
  * by expressions. On higher optimization levels all things
@@ -64,9 +64,9 @@ struct XprVector
 
 
 template<unsigned Sz, unsigned Stride=1>
-struct VectorConstReference
+struct VectorConstRef
 {
-  explicit VectorConstReference(const Vector<Sz>& rhs) : m_data(rhs.m_data) { }
+  explicit VectorConstRef(const Vector<Sz>& rhs) : m_data(rhs.m_data) { }
 
   double operator()(unsigned i) const {
     return m_data[i * Stride];
@@ -85,9 +85,9 @@ struct Vector
 
   double operator()(unsigned i) const { return m_data[i]; }
 
-  typedef VectorConstReference<Sz, 1>    		ConstReference;
+  typedef VectorConstRef<Sz, 1>    		ConstRef;
 
-  ConstReference const_ref() const { return ConstReference(*this); }
+  ConstRef constRef() const { return ConstRef(*this); }
 
   template<class Fcnl>
   void assign_to(Vector& v, const Fcnl& fn) {
@@ -125,19 +125,19 @@ inline
 XprVector<
   XprBinOp<
   Fcnl_Add,
-    VectorConstReference<Sz>,
-    VectorConstReference<Sz>
+    VectorConstRef<Sz>,
+    VectorConstRef<Sz>
   >,
   Sz
 >
 add (const Vector<Sz>& lhs, const Vector<Sz>& rhs) {
   typedef XprBinOp <
     Fcnl_Add,
-    VectorConstReference<Sz>,
-    VectorConstReference<Sz>
+    VectorConstRef<Sz>,
+    VectorConstRef<Sz>
   >							expr_type;
   return XprVector<expr_type, Sz>(
-    expr_type(lhs.const_ref(), rhs.const_ref()));
+    expr_type(lhs.constRef(), rhs.constRef()));
 }
 
 

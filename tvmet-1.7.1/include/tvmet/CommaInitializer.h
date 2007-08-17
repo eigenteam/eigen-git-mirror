@@ -1,7 +1,7 @@
-/*
- * Tiny Vector Matrix Library
- * Dense Vector Matrix Libary of Tiny size using Expression Templates
+/* This file is part of Eigen, a C++ template library for linear algebra
+ * Copyright (C) 2007 Benoit Jacob <jacob@math.jussieu.fr>
  *
+ * Based on Tvmet source code, http://tvmet.sourceforge.net,
  * Copyright (C) 2001 - 2003 Olaf Petzold <opetzold@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@
 #include <tvmet/CompileTimeError.h>
 
 namespace tvmet {
-
 
 /**
  * \class CommaInitializer CommaInitializer.h "tvmet/CommaInitializer.h"
@@ -63,98 +62,73 @@ namespace tvmet {
 template<class Obj, int LEN>
 class CommaInitializer
 {
-  CommaInitializer();
-  CommaInitializer& operator=(const CommaInitializer&);
+  typedef typename Obj::value_type value_type;
 
-private:
   /**
    * \class Initializer
    * \brief Helper fo recursive overloaded comma operator.
    */
-  template<class T, int N> class Initializer
+  template<int N> class Initializer
   {
     Initializer();
     Initializer& operator=(const Initializer&);
 
   public:
-    typedef T						value_type;
-    typedef T*						iterator;
-
-  public:
-    Initializer(iterator iter) : m_iter(iter) { }
+    Initializer(Obj& obj, int index) : m_obj(obj), m_index(index) {}
 
     /** Overloads the comma operator for recursive assign values from comma
 	separated list. */
-    Initializer<value_type, N+1> operator,(value_type rhs)
+    Initializer<N+1> operator,(value_type rhs)
     {
       TVMET_CT_CONDITION(N < LEN, CommaInitializerList_is_too_long)
-      *m_iter = rhs;
-      return Initializer<value_type, N+1>(m_iter + 1);
+      m_obj.commaWrite(m_index, rhs);
+      return Initializer<N+1>(m_obj, m_index+1);
     }
 
   private:
-    iterator 						m_iter;
+    Obj& m_obj;
+    int m_index;
   };
-
-public:
-  typedef typename Obj::value_type 			value_type;
-  typedef value_type*					iterator;
 
 public:
   CommaInitializer(const CommaInitializer& rhs)
     : m_object(rhs.m_object),
-      m_data(rhs.m_data),
-      m_wipeout_on_destruct(true)
-  {
-    rhs.disable();
-  }
+      m_data(rhs.m_data)
+  {}
 
   /** Constructor used by Vector or Matrix operator(value_type rhs) */
   CommaInitializer(Obj& obj, value_type x)
     : m_object(obj),
-      m_data(x),
-      m_wipeout_on_destruct(true)
-  { }
+      m_data(x)
+  {}
 
-  /** Destructs and assigns the comma separated value. */
-  ~CommaInitializer() {
-    if(m_wipeout_on_destruct) m_object.assign_value(m_data);
-  }
+  /** Destructor, does nothing. */
+  ~CommaInitializer() {}
 
   /** Overloaded comma operator, called only once for the first occoured comma. This
       means the first value is assigned by %operator=() and the 2nd value after the
-      comma. Therfore we call the %Initializer::operator,() for the list starting
+      comma. Therefore we call the %Initializer::operator,() for the list starting
       after the 2nd. */
-  Initializer<value_type, 2> operator,(value_type rhs);
-
-  void disable() const { m_wipeout_on_destruct = false; }
+  Initializer<2> operator,(value_type rhs);
 
 private:
   Obj& 							m_object;
   value_type 						m_data;
-  mutable bool 						m_wipeout_on_destruct;
 };
-
 
 /*
  * Implementation
  */
 template<class Obj, int LEN>
-typename CommaInitializer<Obj, LEN>::template Initializer<typename Obj::value_type, 2>
+typename CommaInitializer<Obj, LEN>::template Initializer<2>
 CommaInitializer<Obj, LEN>::operator,(typename Obj::value_type rhs)
 {
-  m_wipeout_on_destruct = false;
-  iterator iter1 = m_object.data();
-  *iter1         = m_data;
-  iterator iter2 = iter1 + 1;
-  *iter2         = rhs;
-  return Initializer<value_type, 2>(iter2 + 1);
+  m_object.commaWrite(0, m_data);
+  m_object.commaWrite(1, rhs);
+  return Initializer<2>(m_object, 2);
 }
 
-
-
 } // namespace tvmet
-
 
 #endif //  TVMET_COMMA_INITIALIZER_H
 

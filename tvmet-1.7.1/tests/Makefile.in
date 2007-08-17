@@ -13,7 +13,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
-SOURCES = $(bad_temps_SOURCES) $(bad_xpr_const_ref_SOURCES) $(swap_SOURCES) $(tvmet_SOURCES)
+SOURCES = $(bad_temps_SOURCES) $(bad_xpr_constRef_SOURCES) $(swap_SOURCES) $(tvmet_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -37,7 +37,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_triplet = @host@
 EXTRA_PROGRAMS = swap$(EXEEXT) bad_temps$(EXEEXT) \
-	bad_xpr_const_ref$(EXEEXT) tvmet$(EXEEXT)
+	bad_xpr_constRef$(EXEEXT) tvmet$(EXEEXT)
 subdir = tests
 DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -63,9 +63,9 @@ CONFIG_CLEAN_FILES =
 am_bad_temps_OBJECTS = bad_temps.$(OBJEXT)
 bad_temps_OBJECTS = $(am_bad_temps_OBJECTS)
 bad_temps_LDADD = $(LDADD)
-am_bad_xpr_const_ref_OBJECTS = bad_xpr_const_ref.$(OBJEXT)
-bad_xpr_const_ref_OBJECTS = $(am_bad_xpr_const_ref_OBJECTS)
-bad_xpr_const_ref_LDADD = $(LDADD)
+am_bad_xpr_constRef_OBJECTS = bad_xpr_constRef.$(OBJEXT)
+bad_xpr_constRef_OBJECTS = $(am_bad_xpr_constRef_OBJECTS)
+bad_xpr_constRef_LDADD = $(LDADD)
 am_swap_OBJECTS = swap.$(OBJEXT)
 swap_OBJECTS = $(am_swap_OBJECTS)
 swap_LDADD = $(LDADD)
@@ -76,7 +76,7 @@ DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/bad_temps.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/bad_xpr_const_ref.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/bad_xpr_constRef.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/swap.Po ./$(DEPDIR)/tvmet.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -86,9 +86,9 @@ LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(bad_temps_SOURCES) $(bad_xpr_const_ref_SOURCES) \
+SOURCES = $(bad_temps_SOURCES) $(bad_xpr_constRef_SOURCES) \
 	$(swap_SOURCES) $(tvmet_SOURCES)
-DIST_SOURCES = $(bad_temps_SOURCES) $(bad_xpr_const_ref_SOURCES) \
+DIST_SOURCES = $(bad_temps_SOURCES) $(bad_xpr_constRef_SOURCES) \
 	$(swap_SOURCES) $(tvmet_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -208,7 +208,7 @@ EXTRA_DIST = README t.cc
 AM_CXXFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include
 swap_SOURCES = swap.cc
 bad_temps_SOURCES = bad_temps.cc
-bad_xpr_const_ref_SOURCES = bad_xpr_const_ref.cc
+bad_xpr_constRef_SOURCES = bad_xpr_constRef.cc
 tvmet_SOURCES = tvmet.cc
 all: all-am
 
@@ -246,9 +246,9 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 bad_temps$(EXEEXT): $(bad_temps_OBJECTS) $(bad_temps_DEPENDENCIES) 
 	@rm -f bad_temps$(EXEEXT)
 	$(CXXLINK) $(bad_temps_LDFLAGS) $(bad_temps_OBJECTS) $(bad_temps_LDADD) $(LIBS)
-bad_xpr_const_ref$(EXEEXT): $(bad_xpr_const_ref_OBJECTS) $(bad_xpr_const_ref_DEPENDENCIES) 
-	@rm -f bad_xpr_const_ref$(EXEEXT)
-	$(CXXLINK) $(bad_xpr_const_ref_LDFLAGS) $(bad_xpr_const_ref_OBJECTS) $(bad_xpr_const_ref_LDADD) $(LIBS)
+bad_xpr_constRef$(EXEEXT): $(bad_xpr_constRef_OBJECTS) $(bad_xpr_constRef_DEPENDENCIES) 
+	@rm -f bad_xpr_constRef$(EXEEXT)
+	$(CXXLINK) $(bad_xpr_constRef_LDFLAGS) $(bad_xpr_constRef_OBJECTS) $(bad_xpr_constRef_LDADD) $(LIBS)
 swap$(EXEEXT): $(swap_OBJECTS) $(swap_DEPENDENCIES) 
 	@rm -f swap$(EXEEXT)
 	$(CXXLINK) $(swap_LDFLAGS) $(swap_OBJECTS) $(swap_LDADD) $(LIBS)
@@ -263,7 +263,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bad_temps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bad_xpr_const_ref.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bad_xpr_constRef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/swap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tvmet.Po@am__quote@
 

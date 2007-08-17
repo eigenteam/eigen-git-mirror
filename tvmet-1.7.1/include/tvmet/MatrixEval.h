@@ -26,60 +26,6 @@
 
 namespace tvmet {
 
-
-/**
- * \fn bool all_elements(const XprMatrix<E, Rows, Cols>& e)
- * \brief check on statements for all elements
- * \ingroup _unary_function
- * This is for use with boolean operators like
- * \par Example:
- * \code
- * all_elements(matrix > 0) {
- *     // true branch
- * } else {
- *     // false branch
- * }
- * \endcode
- * \sa \ref compare
- */
-template<class E, int Rows, int Cols>
-inline
-bool all_elements(const XprMatrix<E, Rows, Cols>& e) {
-  return meta::Matrix<Rows, Cols, 0, 0>::all_elements(e);
-}
-
-
-/**
- * \fn bool any_elements(const XprMatrix<E, Rows, Cols>& e)
- * \brief check on statements for any elements
- * \ingroup _unary_function
- * This is for use with boolean operators like
- * \par Example:
- * \code
- * any_elements(matrix > 0) {
- *     // true branch
- * } else {
- *     // false branch
- * }
- * \endcode
- * \sa \ref compare
- */
-template<class E, int Rows, int Cols>
-inline
-bool any_elements(const XprMatrix<E, Rows, Cols>& e) {
-  return meta::Matrix<Rows, Cols, 0, 0>::any_elements(e);
-}
-
-
-/*
- * trinary evaluation functions with matrizes and xpr of
- *
- * XprMatrix<E1, Rows, Cols> ? Matrix<T2, Rows, Cols> : Matrix<T3, Rows, Cols>
- * XprMatrix<E1, Rows, Cols> ? Matrix<T2, Rows, Cols> : XprMatrix<E3, Rows, Cols>
- * XprMatrix<E1, Rows, Cols> ? XprMatrix<E2, Rows, Cols> : Matrix<T3, Rows, Cols>
- * XprMatrix<E1, Rows, Cols> ? XprMatrix<E2, Rows, Cols> : XprMatrix<E3, Rows, Cols>
- */
-
 /**
  * \fn eval(const XprMatrix<E1, Rows, Cols>& e1, const Matrix<T2, Rows, Cols>& m2, const Matrix<T3, Rows, Cols>& m3)
  * \brief Evals the matrix expressions.
@@ -92,8 +38,8 @@ inline
 XprMatrix<
   XprEval<
     XprMatrix<E1, Rows, Cols>,
-    MatrixConstReference<T2, Rows, Cols>,
-    MatrixConstReference<T3, Rows, Cols>
+    MatrixConstRef<T2, Rows, Cols>,
+    MatrixConstRef<T3, Rows, Cols>
   >,
   Rows, Cols
 >
@@ -102,11 +48,11 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
      const Matrix<T3, Rows, Cols>& m3) {
   typedef XprEval<
     XprMatrix<E1, Rows, Cols>,
-    MatrixConstReference<T2, Rows, Cols>,
-    MatrixConstReference<T3, Rows, Cols>
+    MatrixConstRef<T2, Rows, Cols>,
+    MatrixConstRef<T3, Rows, Cols>
   > 							expr_type;
   return XprMatrix<expr_type, Rows, Cols>(
-    expr_type(e1, m2.const_ref(), m3.const_ref()));
+    expr_type(e1, m2.constRef(), m3.constRef()));
 }
 
 
@@ -122,7 +68,7 @@ inline
 XprMatrix<
   XprEval<
     XprMatrix<E1, Rows, Cols>,
-    MatrixConstReference<T2, Rows, Cols>,
+    MatrixConstRef<T2, Rows, Cols>,
     XprMatrix<E3, Rows, Cols>
   >,
   Rows, Cols
@@ -132,11 +78,11 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
      const XprMatrix<E3, Rows, Cols>& e3) {
   typedef XprEval<
     XprMatrix<E1, Rows, Cols>,
-    MatrixConstReference<T2, Rows, Cols>,
+    MatrixConstRef<T2, Rows, Cols>,
     XprMatrix<E3, Rows, Cols>
   > 							expr_type;
   return XprMatrix<expr_type, Rows, Cols>(
-    expr_type(e1, m2.const_ref(), e3));
+    expr_type(e1, m2.constRef(), e3));
 }
 
 
@@ -153,7 +99,7 @@ XprMatrix<
   XprEval<
     XprMatrix<E1, Rows, Cols>,
     XprMatrix<E2, Rows, Cols>,
-    MatrixConstReference<T3, Rows, Cols>
+    MatrixConstRef<T3, Rows, Cols>
   >,
   Rows, Cols
 >
@@ -163,10 +109,10 @@ eval(const XprMatrix<E1, Rows, Cols>& e1,
   typedef XprEval<
     XprMatrix<E1, Rows, Cols>,
     XprMatrix<E2, Rows, Cols>,
-    MatrixConstReference<T3, Rows, Cols>
+    MatrixConstRef<T3, Rows, Cols>
   > 							expr_type;
   return XprMatrix<expr_type, Rows, Cols>(
-    expr_type(e1, e2, m3.const_ref()));
+    expr_type(e1, e2, m3.constRef()));
 }
 
 
@@ -268,7 +214,6 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, const XprMatrix<E2, Rows, Cols>& e2, P
 }
 
 TVMET_IMPLEMENT_MACRO(int)
-
 TVMET_IMPLEMENT_MACRO(float)
 TVMET_IMPLEMENT_MACRO(double)
 
@@ -367,7 +312,6 @@ eval(const XprMatrix<E1, Rows, Cols>& e1, const XprMatrix<E2, Rows, Cols>& e2, c
     expr_type(e1, e2, XprLiteral< std::complex<T> >(x3)));
 }
 #endif // defined(EIGEN_USE_COMPLEX)
-
 
 } // namespace tvmet
 

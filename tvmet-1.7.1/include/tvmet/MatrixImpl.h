@@ -27,17 +27,14 @@
 #include <iomanip>			// setw
 
 #include <tvmet/Functional.h>
-#include <tvmet/Io.h>
-
 
 namespace tvmet {
-
 
 /*
  * member operators for i/o
  */
-template<class T, int NRows, int NCols>
-std::ostream& Matrix<T, NRows, NCols>::print_xpr(std::ostream& os, int l) const
+template<class T, int Rows, int Cols>
+std::ostream& Matrix<T, Rows, Cols>::print_xpr(std::ostream& os, int l) const
 {
   os << IndentLevel(l++) << "Matrix[" << ops << "]<"
      << typeid(T).name() << ", " << Rows << ", " << Cols << ">,"
@@ -48,26 +45,19 @@ std::ostream& Matrix<T, NRows, NCols>::print_xpr(std::ostream& os, int l) const
 }
 
 
-template<class T, int NRows, int NCols>
-std::ostream& Matrix<T, NRows, NCols>::print_on(std::ostream& os) const
+template<class T, int Rows, int Cols>
+std::ostream& Matrix<T, Rows, Cols>::print_on(std::ostream& os) const
 {
-  std::streamsize w;
-  if(Traits<value_type>::isComplex())
-    w = IoPrintHelper<Matrix>::width(dispatch<true>(), *this);
-  else
-    w = IoPrintHelper<Matrix>::width(dispatch<false>(), *this);
-  
-  os << std::setw(0) << "[\n";
+  os << "[\n";
   for(int i = 0; i < Rows; ++i) {
     os << " [";
     for(int j = 0; j < (Cols - 1); ++j) {
-      os << std::setw(w) << this->operator()(i, j) << ", ";
+      os << this->operator()(i, j) << ", ";
     }
-    os << std::setw(w) << this->operator()(i, Cols - 1)
+    os << this->operator()(i, Cols - 1)
        << (i != (Rows-1) ? "],\n" : "]\n");
     }
   os << "]";
-
   return os;
 }
 
@@ -75,10 +65,10 @@ std::ostream& Matrix<T, NRows, NCols>::print_on(std::ostream& os) const
  * member operators with scalars, per se element wise
  */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)				    \
-template<class T, int NRows, int NCols>		    \
+template<class T, int Rows, int Cols>		    \
 inline 								    \
-Matrix<T, NRows, NCols>&					    \
-Matrix<T, NRows, NCols>::operator OP (value_type rhs) {		    \
+Matrix<T, Rows, Cols>&					    \
+Matrix<T, Rows, Cols>::operator OP (value_type rhs) {		    \
   typedef XprLiteral<value_type> 			expr_type;  \
   this->M_##NAME(XprMatrix<expr_type, Rows, Cols>(expr_type(rhs))); \
   return *this;							    \
@@ -90,36 +80,16 @@ TVMET_IMPLEMENT_MACRO(mul_eq, *=)
 TVMET_IMPLEMENT_MACRO(div_eq, /=)
 #undef TVMET_IMPLEMENT_MACRO
 
-
-#define TVMET_IMPLEMENT_MACRO(NAME, OP)				    \
-template<class T, int NRows, int NCols>		    \
-inline 								    \
-Matrix<T, NRows, NCols>&					    \
-Matrix<T, NRows, NCols>::operator OP (int rhs) {	    \
-  typedef XprLiteral<value_type> 			expr_type;  \
-  this->M_##NAME(XprMatrix<expr_type, Rows, Cols>(expr_type(rhs))); \
-  return *this;							    \
-}
-
-TVMET_IMPLEMENT_MACRO(mod_eq, %=)
-TVMET_IMPLEMENT_MACRO(xor_eq,^=)
-TVMET_IMPLEMENT_MACRO(and_eq, &=)
-TVMET_IMPLEMENT_MACRO(or_eq, |=)
-TVMET_IMPLEMENT_MACRO(shl_eq, <<=)
-TVMET_IMPLEMENT_MACRO(shr_eq, >>=)
-#undef TVMET_IMPLEMENT_MACRO
-
-
 /*
- *  member functions (operators) with matrizes, for use with +=,-= ... <<=
+ *  member functions (operators) with matrizes, for use with +=,-= ...
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)									     \
-template<class T1, int NRows, int NCols>						     \
+template<class T1, int Rows, int Cols>						     \
 template <class T2>											     \
 inline 													     \
-Matrix<T1, NRows, NCols>&										     \
-Matrix<T1, NRows, NCols>::M_##NAME (const Matrix<T2, Rows, Cols>& rhs) {				     \
-  this->M_##NAME( XprMatrix<typename Matrix<T2, Rows, Cols>::ConstReference, Rows, Cols>(rhs.const_ref()) ); \
+Matrix<T1, Rows, Cols>&										     \
+Matrix<T1, Rows, Cols>::M_##NAME (const Matrix<T2, Rows, Cols>& rhs) {				     \
+  this->M_##NAME( XprMatrix<typename Matrix<T2, Rows, Cols>::ConstRef, Rows, Cols>(rhs.constRef()) ); \
   return *this;												     \
 }
 
@@ -127,24 +97,18 @@ TVMET_IMPLEMENT_MACRO(add_eq)
 TVMET_IMPLEMENT_MACRO(sub_eq)
 TVMET_IMPLEMENT_MACRO(mul_eq)
 TVMET_IMPLEMENT_MACRO(div_eq)
-TVMET_IMPLEMENT_MACRO(mod_eq)
-TVMET_IMPLEMENT_MACRO(xor_eq)
-TVMET_IMPLEMENT_MACRO(and_eq)
-TVMET_IMPLEMENT_MACRO(or_eq)
-TVMET_IMPLEMENT_MACRO(shl_eq)
-TVMET_IMPLEMENT_MACRO(shr_eq)
 #undef TVMET_IMPLEMENT_MACRO
 
 
 /*
- * member functions (operators) with expressions, for use width +=,-= ... <<=
+ * member functions (operators) with expressions, for use with +=,-= ...
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)					   \
-template<class T, int NRows, int NCols>			   \
+template<class T, int Rows, int Cols>			   \
 template<class E>							   \
 inline 									   \
-Matrix<T, NRows, NCols>&						   \
-Matrix<T, NRows, NCols>::M_##NAME (const XprMatrix<E, Rows, Cols>& rhs) {  \
+Matrix<T, Rows, Cols>&						   \
+Matrix<T, Rows, Cols>::M_##NAME (const XprMatrix<E, Rows, Cols>& rhs) {  \
   rhs.assign_to(*this, Fcnl_##NAME<value_type, typename E::value_type>()); \
   return *this;								   \
 }
@@ -153,26 +117,19 @@ TVMET_IMPLEMENT_MACRO(add_eq)
 TVMET_IMPLEMENT_MACRO(sub_eq)
 TVMET_IMPLEMENT_MACRO(mul_eq)
 TVMET_IMPLEMENT_MACRO(div_eq)
-TVMET_IMPLEMENT_MACRO(mod_eq)
-TVMET_IMPLEMENT_MACRO(xor_eq)
-TVMET_IMPLEMENT_MACRO(and_eq)
-TVMET_IMPLEMENT_MACRO(or_eq)
-TVMET_IMPLEMENT_MACRO(shl_eq)
-TVMET_IMPLEMENT_MACRO(shr_eq)
 #undef TVMET_IMPLEMENT_MACRO
-
 
 /*
  * aliased member functions (operators) with matrizes,
- * for use with +=,-= ... <<=
+ * for use with +=,-= ...
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)										 \
-template<class T1, int NRows, int NCols>							 \
+template<class T1, int Rows, int Cols>							 \
 template <class T2>												 \
 inline 														 \
-Matrix<T1, NRows, NCols>&											 \
-Matrix<T1, NRows, NCols>::alias_##NAME (const Matrix<T2, Rows, Cols>& rhs) {					 \
-  this->alias_##NAME( XprMatrix<typename Matrix<T2, Rows, Cols>::ConstReference, Rows, Cols>(rhs.const_ref()) ); \
+Matrix<T1, Rows, Cols>&											 \
+Matrix<T1, Rows, Cols>::alias_##NAME (const Matrix<T2, Rows, Cols>& rhs) {					 \
+  this->alias_##NAME( XprMatrix<typename Matrix<T2, Rows, Cols>::ConstRef, Rows, Cols>(rhs.constRef()) ); \
   return *this;													 \
 }
 
@@ -186,15 +143,15 @@ TVMET_IMPLEMENT_MACRO(div_eq)
 
 /*
  * aliased member functions (operators) with expressions,
- * for use width +=,-= ... <<= and aliased(),
+ * for use with +=,-= ... and aliased(),
  */
 #define TVMET_IMPLEMENT_MACRO(NAME)						      \
-template<class T, int NRows, int NCols>				      \
+template<class T, int Rows, int Cols>				      \
 template<class E>								      \
 inline 										      \
-Matrix<T, NRows, NCols>&							      \
-Matrix<T, NRows, NCols>::alias_##NAME (const XprMatrix<E, Rows, Cols>& rhs) {	      \
-  typedef Matrix<T, NRows, NCols> 			temp_type;		      \
+Matrix<T, Rows, Cols>&							      \
+Matrix<T, Rows, Cols>::alias_##NAME (const XprMatrix<E, Rows, Cols>& rhs) {	      \
+  typedef Matrix<T, Rows, Cols> 			temp_type;		      \
   temp_type(rhs).assign_to(*this, Fcnl_##NAME<value_type, typename E::value_type>()); \
   return *this;									      \
 }

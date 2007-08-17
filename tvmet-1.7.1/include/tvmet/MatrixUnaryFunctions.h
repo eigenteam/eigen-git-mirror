@@ -36,7 +36,7 @@ inline										\
 XprMatrix<									\
   XprUnOp<									\
     Fcnl_##NAME< std::complex<T> >,						\
-    MatrixConstReference<std::complex<T>, Rows, Cols>				\
+    MatrixConstRef<std::complex<T>, Rows, Cols>				\
   >,										\
   Rows, Cols									\
 >										\
@@ -60,16 +60,16 @@ inline									\
 XprMatrix<								\
   XprUnOp<								\
     Fcnl_##NAME< std::complex<T> >,					\
-    MatrixConstReference<std::complex<T>, Rows, Cols>			\
+    MatrixConstRef<std::complex<T>, Rows, Cols>			\
   >,									\
   Rows, Cols								\
 >									\
 NAME(const Matrix<std::complex<T>, Rows, Cols>& rhs) {			\
   typedef XprUnOp<							\
     Fcnl_##NAME< std::complex<T> >,					\
-    MatrixConstReference<std::complex<T>, Rows, Cols>			\
+    MatrixConstRef<std::complex<T>, Rows, Cols>			\
   > 							expr_type;	\
-  return XprMatrix<expr_type, Rows, Cols>(expr_type(rhs.const_ref()));	\
+  return XprMatrix<expr_type, Rows, Cols>(expr_type(rhs.constRef()));	\
 }
 
 TVMET_IMPLEMENT_MACRO(real)

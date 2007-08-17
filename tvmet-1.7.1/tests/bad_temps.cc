@@ -127,9 +127,9 @@ private:
 
 template<unsigned Rows, unsigned Cols,
 	 unsigned RowStride, unsigned ColStride>
-struct MatrixConstReference
+struct MatrixConstRef
 {
-  explicit MatrixConstReference(const Matrix<Rows, Cols>& rhs) : m_data(rhs.m_data) { }
+  explicit MatrixConstRef(const Matrix<Rows, Cols>& rhs) : m_data(rhs.m_data) { }
 
   double operator()(unsigned i, unsigned j) const {
     return m_data[i * RowStride + j * ColStride];
@@ -157,8 +157,8 @@ struct Matrix
 
   double operator()(unsigned i, unsigned j) const { return m_data[i * Cols + j]; }
 
-  MatrixConstReference<Rows,Cols,Cols,1> const_ref() const {
-    return MatrixConstReference<Rows,Cols,Cols,1>(*this);
+  MatrixConstRef<Rows,Cols,Cols,1> constRef() const {
+    return MatrixConstRef<Rows,Cols,Cols,1>(*this);
   }
 
   template <class E> Matrix& operator=(const XprMatrix<E, Rows, Cols>& rhs) {
@@ -205,15 +205,15 @@ template<unsigned Rows, unsigned Cols>
 inline
 XprMatrix<
   XprMatrixTranspose<
-    MatrixConstReference<Rows, Cols, Cols, 1>
+    MatrixConstRef<Rows, Cols, Cols, 1>
   >,
   Cols, Rows
 >
 trans(const Matrix<Rows, Cols>& rhs) {
   typedef XprMatrixTranspose<
-    MatrixConstReference<Rows, Cols, Cols, 1>
+    MatrixConstRef<Rows, Cols, Cols, 1>
   >							expr_type;
-  return XprMatrix<expr_type, Cols, Rows>(expr_type(rhs.const_ref()));
+  return XprMatrix<expr_type, Cols, Rows>(expr_type(rhs.constRef()));
 }
 
 

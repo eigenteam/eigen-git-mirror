@@ -1,7 +1,7 @@
-/*
- * Tiny Vector Matrix Library
- * Dense Vector Matrix Libary of Tiny size using Expression Templates
+/* This file is part of Eigen, a C++ template library for linear algebra
+ * Copyright (C) 2007 Benoit Jacob <jacob@math.jussieu.fr>
  *
+ * Based on Tvmet source code, http://tvmet.sourceforge.net,
  * Copyright (C) 2001 - 2003 Olaf Petzold <opetzold@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
@@ -38,74 +38,56 @@
 
 namespace tvmet {
 
-
 /* forwards */
 template<class T, int Rows, int Cols> class Matrix;
-template<class T,
-	 int RowsBgn, int RowsEnd,
-	 int ColsBgn, int ColsEnd,
-	 int RowStride, int ColStride /*=1*/>
-class MatrixSliceConstReference; // unused here; for me only
-
 
 /**
- * \class MatrixConstReference Matrix.h "tvmet/Matrix.h"
+ * \class MatrixConstRef Matrix.h "tvmet/Matrix.h"
  * \brief value iterator for ET
  */
-template<class T, int NRows, int NCols>
-class MatrixConstReference
-  : public TvmetBase < MatrixConstReference<T, NRows, NCols> >
+template<class T, int Rows, int Cols>
+class MatrixConstRef
+  : public TvmetBase < MatrixConstRef<T, Rows, Cols> >
 {
-public:
-  typedef T						value_type;
-  typedef T*						pointer;
-  typedef const T*					const_pointer;
-
-  /** Dimensions. */
-  enum {
-    Rows = NRows,			/**< Number of rows. */
-    Cols = NCols,			/**< Number of cols. */
-    Size = Rows * Cols			/**< Complete Size of Matrix. */
-  };
 
 public:
   /** Complexity counter. */
   enum {
     ops       = Rows * Cols
   };
+  typedef T value_type;
 
 private:
-  MatrixConstReference();
-  MatrixConstReference& operator=(const MatrixConstReference&);
+  MatrixConstRef();
+  MatrixConstRef& operator=(const MatrixConstRef&);
 
 public:
   /** Constructor. */
-  explicit MatrixConstReference(const Matrix<T, Rows, Cols>& rhs)
-    : m_data(rhs.data())
+  explicit MatrixConstRef(const Matrix<T, Rows, Cols>& rhs)
+    : m_array(rhs.array())
   { }
 
   /** Constructor by a given memory pointer. */
-  explicit MatrixConstReference(const_pointer data)
-    : m_data(data)
+  explicit MatrixConstRef(const T* data)
+    : m_array(data)
   { }
 
-public: // access operators
   /** access by index. */
-  value_type operator()(int i, int j) const {
-    assert((i < Rows) && (j < Cols));
-    return m_data[i * Cols + j];
+  T operator()(int i, int j) const {
+    assert(i >= 0 && j >= 0 && i < Rows && j < Cols);
+    return m_array[i + j * Rows];
   }
 
-public: // debugging Xpr parse tree
+  /** debugging Xpr parse tree */
   void print_xpr(std::ostream& os, int l=0) const {
     os << IndentLevel(l)
-       << "MatrixConstReference[O=" << ops << "]<"
-       << "T=" << typeid(value_type).name() << ">,"
+       << "MatrixConstRef[O=" << ops << "]<"
+       << "T=" << typeid(T).name() << ">,"
        << std::endl;
   }
 
 private:
-  const_pointer _tvmet_restrict 			m_data;
+  const T* _tvmet_restrict m_array;
 };
 
 
@@ -119,40 +101,13 @@ private:
  * two paramters are needed). Therefore the cleanest way to do it is
  * with operator() rather than with operator[]. \see C++ FAQ Lite 13.8
  */
-template<class T, int NRows, int NCols>
+template<class T, int Rows, int Cols>
 class Matrix
 {
 public:
-  /** Data type of the tvmet::Matrix. */
-  typedef T						value_type;
 
-  /** Reference type of the tvmet::Matrix data elements. */
-  typedef T&     					reference;
-
-  /** const reference type of the tvmet::Matrix data elements. */
-  typedef const T&     					const_reference;
-
-  /** STL iterator interface. */
-  typedef T*     					iterator;
-
-  /** STL const_iterator interface. */
-  typedef const T*     					const_iterator;
-
-  /** STL reverse iterator interface. */
-  typedef std::reverse_iterator<iterator> 		reverse_iterator;
-
-  /** STL const reverse iterator interface. */
-  typedef std::reverse_iterator<const_iterator> 	const_reverse_iterator;
-
-public:
-  /** Dimensions. */
-  enum {
-    Rows = NRows,			/**< Number of rows. */
-    Cols = NCols,			/**< Number of cols. */
-    Size = Rows * Cols			/**< Complete Size of Matrix. */
-  };
-
-public:
+  typedef T value_type;
+  
   /** Complexity counter. */
   enum {
     ops_assign = Rows * Cols,
@@ -160,94 +115,30 @@ public:
     use_meta   = ops < TVMET_COMPLEXITY_M_ASSIGN_TRIGGER ? true : false
   };
 
-public: // STL  interface
-  /** STL iterator interface. */
-  iterator begin() { return m_data; }
-
-  /** STL iterator interface. */
-  iterator end() { return m_data + Size; }
-
-  /** STL const_iterator interface. */
-  const_iterator begin() const { return m_data; }
-
-  /** STL const_iterator interface. */
-  const_iterator end() const { return m_data + Size; }
-
-  /** STL reverse iterator interface reverse begin. */
-  reverse_iterator rbegin() { return reverse_iterator( end() ); }
-
-  /** STL const reverse iterator interface reverse begin. */
-  const_reverse_iterator rbegin() const {
-    return const_reverse_iterator( end() );
-  }
-
-  /** STL reverse iterator interface reverse end. */
-  reverse_iterator rend() { return reverse_iterator( begin() ); }
-
-  /** STL const reverse iterator interface reverse end. */
-  const_reverse_iterator rend() const {
-    return const_reverse_iterator( begin() );
-  }
-
-  /** The size of the matrix. */
-  static int size() { return Size; }
-
-  /** STL vector max_size() - returns allways rows()*cols(). */
-  static int max_size() { return Size; }
-
-  /** STL vector empty() - returns allways false. */
-  static bool empty() { return false; }
-
-public:
-  /** The number of rows of matrix. */
+  /** The number of rows of the matrix. */
   static int rows() { return Rows; }
 
-  /** The number of columns of matrix. */
+  /** The number of columns of the matrix. */
   static int cols() { return Cols; }
 
 public:
-  /** Default Destructor */
+  /** Default Destructor. Does nothing. */
   ~Matrix() {}
 
-  /** Default Constructor. The allocated memory region isn't cleared. If you want
-   a clean use the constructor argument zero. */
+  /** Default Constructor. Does nothing. The matrix entries are not initialized. */
   explicit Matrix() {}
 
   /** Copy Constructor, not explicit! */
   Matrix(const Matrix& rhs)
   {
-    *this = XprMatrix<ConstReference, Rows, Cols>(rhs.const_ref());
+    *this = XprMatrix<ConstRef, Rows, Cols>(rhs.constRef());
   }
-
-  /**
-   * Constructor with STL iterator interface. The data will be copied into the matrix
-   * self, there isn't any stored reference to the array pointer.
-   */
-  template<class InputIterator>
-  explicit Matrix(InputIterator first, InputIterator last)
+  
+  explicit Matrix(const value_type* array)
   {
-    assert(static_cast<int>(std::distance(first, last)) <= Size);
-    std::copy(first, last, m_data);
+    for(int i = 0; i < Rows * Cols; i++) m_array[i] = array[i];
   }
-
-  /**
-   * Constructor with STL iterator interface. The data will be copied into the matrix
-   * self, there isn't any stored reference to the array pointer.
-   */
-  template<class InputIterator>
-  explicit Matrix(InputIterator first, int sz)
-  {
-    assert(sz <= Size);
-    std::copy(first, first + sz, m_data);
-  }
-
-  /** Construct the matrix by value. */
-  explicit Matrix(value_type rhs)
-  {
-    typedef XprLiteral<value_type> expr_type;
-    *this = XprMatrix<expr_type, Rows, Cols>(expr_type(rhs));
-  }
-
+  
   /** Construct a matrix by expression. */
   template<class E>
   explicit Matrix(const XprMatrix<E, Rows, Cols>& e)
@@ -255,49 +146,37 @@ public:
     *this = e;
   }
 
-  /** assign a value_type on array, this can be used for a single value
+  /** assign a T on array, this can be used for a single value
       or a comma separeted list of values. */
-  CommaInitializer<Matrix, Size> operator=(value_type rhs) {
-    return CommaInitializer<Matrix, Size>(*this, rhs);
+  CommaInitializer<Matrix, Rows * Cols> operator=(T rhs) {
+    return CommaInitializer<Matrix, Rows * Cols>(*this, rhs);
   }
 
 public: // access operators
-  value_type* _tvmet_restrict data() { return m_data; }
-  const value_type* _tvmet_restrict data() const { return m_data; }
+  T* _tvmet_restrict array() { return m_array; }
+  const T* _tvmet_restrict array() const { return m_array; }
 
 public: // index access operators
-  value_type& _tvmet_restrict operator()(int i, int j) {
+  T& _tvmet_restrict operator()(int i, int j) {
     // Note: g++-2.95.3 does have problems on typedef reference
-    assert((i < Rows) && (j < Cols));
-    return m_data[i * Cols + j];
+    assert(i >= 0 && j >= 0 && i < Rows && j < Cols);
+    return m_array[i + j * Rows];
   }
 
-  value_type operator()(int i, int j) const {
-    assert((i < Rows) && (j < Cols));
-    return m_data[i * Cols + j];
+  const T& operator()(int i, int j) const {
+    assert(i >= 0 && j >= 0 && i < Rows && j < Cols);
+    return m_array[i + j * Rows];
   }
 
 public: // ET interface
-  typedef MatrixConstReference<T, Rows, Cols>   	ConstReference;
-
-  typedef MatrixSliceConstReference<
-    T,
-    0, Rows, 0, Cols,
-    Rows, 1
-  >							SliceConstReference;
+  typedef MatrixConstRef<T, Rows, Cols> ConstRef;
 
   /** Return a const Reference of the internal data */
-  ConstReference const_ref() const { return ConstReference(*this); }
+  ConstRef constRef() const { return ConstRef(*this); }
 
-  /**
-   * Return a sliced const Reference of the internal data.
-   * \note Doesn't work since isn't implemented, but it is in
-   * progress. Therefore this is a placeholder. */
-  ConstReference const_sliceref() const { return SliceConstReference(*this); }
-
-  /** Return the vector as const expression. */
-  XprMatrix<ConstReference, Rows, Cols> as_expr() const {
-    return XprMatrix<ConstReference, Rows, Cols>(this->const_ref());
+  /** Return the matrix as const expression. */
+  XprMatrix<ConstRef, Rows, Cols> expr() const {
+    return XprMatrix<ConstRef, Rows, Cols>(this->constRef());
   }
 
 private:
@@ -315,8 +194,7 @@ private:
     loop::Matrix<Rows, Cols>::assign(dest, src, assign_fn);
   }
 
-private:
-  /** assign this to a matrix  of a different type T2 using
+  /** assign *this to a matrix of a different type T2 using
       the functional assign_fn. */
   template<class T2, class Assign>
   void assign_to(Matrix<T2, Rows, Cols>& dest, const Assign& assign_fn) const {
@@ -329,68 +207,52 @@ public:  // assign operations
       generated. */
   template<class T2>
   Matrix& operator=(const Matrix<T2, Rows, Cols>& rhs) {
-    rhs.assign_to(*this, Fcnl_assign<value_type, T2>());
+    rhs.assign_to(*this, Fcnl_assign<T, T2>());
     return *this;
   }
 
   /** assign a given XprMatrix element wise to this matrix. */
   template <class E>
   Matrix& operator=(const XprMatrix<E, Rows, Cols>& rhs) {
-    rhs.assign_to(*this, Fcnl_assign<value_type, typename E::value_type>());
+    rhs.assign_to(*this, Fcnl_assign<T, typename E::value_type>());
     return *this;
   }
 
 private:
   template<class Obj, int LEN> friend class CommaInitializer;
+  
+  void commaWrite(int index, T rhs)
+  {
+    int row = index / Cols;
+    int col = index % Cols;
+    m_array[row + col * Rows] = rhs;
+  }
 
   /** This is a helper for assigning a comma separated initializer
-      list. It's equal to Matrix& operator=(value_type) which does
+      list. It's equal to Matrix& operator=(T) which does
       replace it. */
-  Matrix& assign_value(value_type rhs) {
-    typedef XprLiteral<value_type> 			expr_type;
+  Matrix& assign_value(T rhs) {
+    typedef XprLiteral<T> expr_type;
     *this = XprMatrix<expr_type, Rows, Cols>(expr_type(rhs));
     return *this;
   }
 
 public: // math operators with scalars
-  // NOTE: this meaning is clear - element wise ops even if not in ns element_wise
-  Matrix& operator+=(value_type) _tvmet_always_inline;
-  Matrix& operator-=(value_type) _tvmet_always_inline;
-  Matrix& operator*=(value_type) _tvmet_always_inline;
-  Matrix& operator/=(value_type) _tvmet_always_inline;
+  Matrix& operator+=(T) _tvmet_always_inline;
+  Matrix& operator-=(T) _tvmet_always_inline;
+  Matrix& operator*=(T) _tvmet_always_inline;
+  Matrix& operator/=(T) _tvmet_always_inline;
 
-  Matrix& operator%=(int) _tvmet_always_inline;
-  Matrix& operator^=(int) _tvmet_always_inline;
-  Matrix& operator&=(int) _tvmet_always_inline;
-  Matrix& operator|=(int) _tvmet_always_inline;
-  Matrix& operator<<=(int) _tvmet_always_inline;
-  Matrix& operator>>=(int) _tvmet_always_inline;
-
-public: // math operators with matrizes
-  // NOTE: access using the operators in ns element_wise, since that's what is does
   template <class T2> Matrix& M_add_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
   template <class T2> Matrix& M_sub_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
   template <class T2> Matrix& M_mul_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
   template <class T2> Matrix& M_div_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_mod_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_xor_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_and_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_or_eq (const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_shl_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
-  template <class T2> Matrix& M_shr_eq(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
 
 public: // math operators with expressions
-  // NOTE: access using the operators in ns element_wise, since that's what is does
   template <class E> Matrix& M_add_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
   template <class E> Matrix& M_sub_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
   template <class E> Matrix& M_mul_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
   template <class E> Matrix& M_div_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_mod_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_xor_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_and_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_or_eq (const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_shl_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
-  template <class E> Matrix& M_shr_eq(const XprMatrix<E, Rows, Cols>&) _tvmet_always_inline;
 
 public: // aliased math operators with expressions
   template <class T2> Matrix& alias_assign(const Matrix<T2, Rows, Cols>&) _tvmet_always_inline;
@@ -409,7 +271,7 @@ public: // io
   /** Structure for info printing as Matrix<T, Rows, Cols>. */
   struct Info : public TvmetBase<Info> {
     std::ostream& print_xpr(std::ostream& os) const {
-      os << "Matrix<T=" << typeid(value_type).name()
+      os << "Matrix<T=" << typeid(T).name()
 	 << ", R=" << Rows << ", C=" << Cols << ">";
       return os;
     }
@@ -426,7 +288,7 @@ public: // io
 
 private:
   /** The data of matrix self. */
-  value_type m_data[Size];
+  T m_array[Rows * Cols];
 };
 
 typedef Matrix<int, 2, 2> Matrix2i;

@@ -85,8 +85,8 @@ template<class T1, class T2, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
-    VectorConstReference<T1, Sz>,					\
-    VectorConstReference<T2, Sz>					\
+    VectorConstRef<T1, Sz>,					\
+    VectorConstRef<T2, Sz>					\
   >,									\
   Sz									\
 >									\
@@ -98,7 +98,7 @@ XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
     XprVector<E, Sz>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >,									\
   Sz									\
 >									\
@@ -109,7 +109,7 @@ template<class E, class T, int Sz>				\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprVector<E, Sz>							\
   >,									\
   Sz									\
@@ -137,7 +137,7 @@ template<class T, int Sz>				\
 XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< T, POD >,					\
-    VectorConstReference<T, Sz>,				\
+    VectorConstRef<T, Sz>,				\
     XprLiteral< POD >						\
   >,								\
   Sz								\
@@ -150,7 +150,7 @@ XprVector<							\
   XprBinOp<							\
     Fcnl_##NAME< POD, T>,					\
     XprLiteral< POD >,						\
-    VectorConstReference<T, Sz>					\
+    VectorConstRef<T, Sz>					\
   >,								\
   Sz								\
 >								\
@@ -187,7 +187,7 @@ template<class T, int Sz>						\
 XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
-    VectorConstReference< std::complex<T>, Sz>,					\
+    VectorConstRef< std::complex<T>, Sz>,					\
     XprLiteral< std::complex<T> >						\
   >,										\
   Sz										\
@@ -200,7 +200,7 @@ XprVector<									\
   XprBinOp<									\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,				\
     XprLiteral< std::complex<T> >,						\
-    VectorConstReference< std::complex<T>, Sz>					\
+    VectorConstRef< std::complex<T>, Sz>					\
   >,										\
   Sz										\
 >										\
@@ -231,7 +231,7 @@ template <class T, int Sz>				\
 XprVector<							\
   XprUnOp<							\
     Fcnl_##NAME<T>,						\
-    VectorConstReference<T, Sz>					\
+    VectorConstRef<T, Sz>					\
   >,								\
   Sz								\
 >								\
@@ -308,8 +308,8 @@ inline									\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T1, T2>,						\
-    VectorConstReference<T1, Sz>,					\
-    VectorConstReference<T2, Sz>					\
+    VectorConstRef<T1, Sz>,					\
+    VectorConstRef<T2, Sz>					\
   >,									\
   Sz									\
 >									\
@@ -323,7 +323,7 @@ XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<typename E::value_type, T>,				\
     XprVector<E, Sz>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >,									\
   Sz									\
 >									\
@@ -336,7 +336,7 @@ inline									\
 XprVector<								\
   XprBinOp<								\
     Fcnl_##NAME<T, typename E::value_type>,				\
-    VectorConstReference<T, Sz>,					\
+    VectorConstRef<T, Sz>,					\
     XprVector<E, Sz>							\
   >,									\
   Sz									\
@@ -366,7 +366,7 @@ inline							\
 XprVector<						\
   XprBinOp<						\
     Fcnl_##NAME< T, POD >,				\
-    VectorConstReference<T, Sz>,			\
+    VectorConstRef<T, Sz>,			\
     XprLiteral< POD >					\
   >,							\
   Sz							\
@@ -381,7 +381,7 @@ XprVector<						\
   XprBinOp<						\
     Fcnl_##NAME< POD, T>,				\
     XprLiteral< POD >,					\
-    VectorConstReference<T, Sz>				\
+    VectorConstRef<T, Sz>				\
   >,							\
   Sz							\
 >							\
@@ -420,7 +420,7 @@ inline							\
 XprVector<						\
   XprBinOp<						\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,	\
-    VectorConstReference< std::complex<T>, Sz>,		\
+    VectorConstRef< std::complex<T>, Sz>,		\
     XprLiteral< std::complex<T> >			\
   >,							\
   Sz							\
@@ -436,7 +436,7 @@ XprVector<						\
   XprBinOp<						\
     Fcnl_##NAME< std::complex<T>, std::complex<T> >,	\
     XprLiteral< std::complex<T> >,			\
-    VectorConstReference< std::complex<T>, Sz>		\
+    VectorConstRef< std::complex<T>, Sz>		\
   >,							\
   Sz							\
 >							\
@@ -470,16 +470,16 @@ inline									\
 XprVector<								\
   XprUnOp<								\
     Fcnl_##NAME<T>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >,									\
   Sz									\
 >									\
 operator OP (const Vector<T, Sz>& rhs) {				\
   typedef XprUnOp<							\
     Fcnl_##NAME<T>,							\
-    VectorConstReference<T, Sz>						\
+    VectorConstRef<T, Sz>						\
   >  							 expr_type;	\
-  return XprVector<expr_type, Sz>(expr_type(rhs.const_ref()));		\
+  return XprVector<expr_type, Sz>(expr_type(rhs.constRef()));		\
 }
 
 TVMET_IMPLEMENT_MACRO(neg, -)

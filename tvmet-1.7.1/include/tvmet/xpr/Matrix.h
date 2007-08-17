@@ -48,20 +48,12 @@ template <class T, int Rows, int Cols> class Matrix;
  * actually implements the expression.
  * \note leave the CCtors non-explicit to allow implicit type conversation.
  */
-template<class E, int NRows, int NCols>
+template<class E, int Rows, int Cols>
 class XprMatrix
-  : public TvmetBase< XprMatrix<E, NRows, NCols> >
+  : public TvmetBase< XprMatrix<E, Rows, Cols> >
 {
   XprMatrix();
   XprMatrix& operator=(const XprMatrix&);
-
-public:
-  /** Dimensions. */
-  enum {
-    Rows = NRows,			/**< Number of rows. */
-    Cols = NCols,			/**< Number of cols. */
-    Size = Rows * Cols			/**< Complete Size of Matrix. */
-  };
 
 public:
   /** Complexity counter. */
