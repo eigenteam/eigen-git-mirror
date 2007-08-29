@@ -26,7 +26,6 @@
 
 namespace tvmet {
 
-
 /**
  * \class Fcnl_assign BinaryFunctionals.h "tvmet/BinaryFunctionals.h"
  * \brief Binary operator for assign operations.
@@ -54,12 +53,6 @@ struct Fcnl_assign : public BinaryFunctional {
 /** \class Fcnl_sub_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 /** \class Fcnl_mul_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 /** \class Fcnl_div_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_mod_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_xor_eq		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_and_eq		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_or_eq		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_shl_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_shr_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
 template <class T1, class T2>						\
 struct Fcnl_##NAME : public BinaryFunctional {				\
@@ -83,12 +76,6 @@ TVMET_IMPLEMENT_MACRO(add_eq, +=)
 TVMET_IMPLEMENT_MACRO(sub_eq, -=)
 TVMET_IMPLEMENT_MACRO(mul_eq, *=)
 TVMET_IMPLEMENT_MACRO(div_eq, /=)
-TVMET_IMPLEMENT_MACRO(mod_eq, %=)
-TVMET_IMPLEMENT_MACRO(xor_eq, ^=)
-TVMET_IMPLEMENT_MACRO(and_eq, &=)
-TVMET_IMPLEMENT_MACRO(or_eq, |=)
-TVMET_IMPLEMENT_MACRO(shl_eq, <<=)
-TVMET_IMPLEMENT_MACRO(shr_eq, >>=)
 
 #undef TVMET_IMPLEMENT_MACRO
 
@@ -97,12 +84,6 @@ TVMET_IMPLEMENT_MACRO(shr_eq, >>=)
 /** \class Fcnl_sub 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 /** \class Fcnl_mul 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 /** \class Fcnl_div 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_mod 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_bitxor		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_bitand		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_bitor		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_shl 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_shr 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
 #define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
 template <class T1, class T2>						\
 struct Fcnl_##NAME : public BinaryFunctional {				\
@@ -126,114 +107,8 @@ TVMET_IMPLEMENT_MACRO(add, +)
 TVMET_IMPLEMENT_MACRO(sub, -)
 TVMET_IMPLEMENT_MACRO(mul, *)
 TVMET_IMPLEMENT_MACRO(div, /)
-TVMET_IMPLEMENT_MACRO(mod, %)
-TVMET_IMPLEMENT_MACRO(bitxor, ^)
-TVMET_IMPLEMENT_MACRO(bitand, &)
-TVMET_IMPLEMENT_MACRO(bitor, |)
-TVMET_IMPLEMENT_MACRO(shl, <<)
-TVMET_IMPLEMENT_MACRO(shr, >>)
 
 #undef TVMET_IMPLEMENT_MACRO
-
-
-/** \class Fcnl_greater 	BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_greater_eq 	BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_less 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_less_eq 	BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_not_eq 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_and 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_or 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-#define TVMET_IMPLEMENT_MACRO(NAME, OP)					\
-template <class T1, class T2>						\
-struct Fcnl_##NAME : public BinaryFunctional {				\
-  typedef bool						value_type;	\
-  									\
-  static inline								\
-  bool apply_on(T1 lhs, T2 rhs) {					\
-    return lhs OP rhs;							\
-  }									\
-  									\
-  static 								\
-  void print_xpr(std::ostream& os, int l=0) {			\
-    os << IndentLevel(l)						\
-       << "Fcnl_" << #NAME << "<T1="					\
-       << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
-       << std::endl;							\
-  }									\
-};
-
-TVMET_IMPLEMENT_MACRO(greater, >)
-TVMET_IMPLEMENT_MACRO(less, <)
-TVMET_IMPLEMENT_MACRO(greater_eq, >=)
-TVMET_IMPLEMENT_MACRO(less_eq, <=)
-TVMET_IMPLEMENT_MACRO(eq, ==)
-TVMET_IMPLEMENT_MACRO(not_eq, !=)
-TVMET_IMPLEMENT_MACRO(and, &&)
-TVMET_IMPLEMENT_MACRO(or, ||)
-
-#undef TVMET_IMPLEMENT_MACRO
-
-
-/** \class Fcnl_atan2 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_fmod 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_pow 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-#define TVMET_IMPLEMENT_MACRO(NAME)					\
-template <class T1, class T2>						\
-struct Fcnl_##NAME : public BinaryFunctional {				\
-  typedef typename PromoteTraits<T1, T2>::value_type	value_type;	\
-									\
-  static inline 							\
-  value_type apply_on(T1 lhs, T2 rhs) {					\
-    return TVMET_STD_SCOPE(NAME)(lhs, rhs);				\
-  }									\
-   									\
-  static 								\
-  void print_xpr(std::ostream& os, int l=0) {			\
-    os << IndentLevel(l)						\
-       << "Fcnl_" << #NAME << "<T1="					\
-       << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
-       << std::endl;							\
-  }									\
-};
-
-TVMET_IMPLEMENT_MACRO(atan2)
-TVMET_IMPLEMENT_MACRO(fmod)
-TVMET_IMPLEMENT_MACRO(pow)
-
-#undef TVMET_IMPLEMENT_MACRO
-
-
-/** \class Fcnl_drem 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_hypot 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_jn 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-/** \class Fcnl_yn 		BinaryFunctionals.h "tvmet/BinaryFunctionals.h" */
-#define TVMET_IMPLEMENT_MACRO(NAME)					\
-template <class T1, class T2>						\
-struct Fcnl_##NAME : public BinaryFunctional {				\
-  typedef typename PromoteTraits<T1, T2>::value_type	value_type;	\
-									\
-  static inline 							\
-  value_type apply_on(T1 lhs, T2 rhs) {					\
-    return TVMET_GLOBAL_SCOPE(NAME)(lhs, rhs);				\
-  }									\
-   									\
-  static 								\
-  void print_xpr(std::ostream& os, int l=0) {			\
-    os << IndentLevel(l)						\
-       << "Fcnl_" << #NAME << "<T1="					\
-       << typeid(T1).name() << ", T2=" << typeid(T2).name() << ">,"	\
-       << std::endl;							\
-  }									\
-};
-
-TVMET_IMPLEMENT_MACRO(drem)
-TVMET_IMPLEMENT_MACRO(hypot)
-TVMET_IMPLEMENT_MACRO(jn)
-TVMET_IMPLEMENT_MACRO(yn)
-
-#undef TVMET_IMPLEMENT_MACRO
-
 
 #if defined(EIGEN_USE_COMPLEX)
 /**
