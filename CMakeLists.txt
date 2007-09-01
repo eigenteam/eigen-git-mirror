@@ -1,7 +1,5 @@
 project(Eigen)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-
 OPTION(BUILD_TESTS "Build tests"  OFF)
 OPTION(BUILD_EXAMPLES "Build examples"  OFF)
 
@@ -16,4 +14,3 @@ endif (CMAKE_COMPILER_IS_GNUCXX)
 
 include_directories( ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} )
 
-add_subdirectory(tvmet-1.7.1)
