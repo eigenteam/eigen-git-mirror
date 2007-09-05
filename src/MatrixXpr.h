@@ -105,6 +105,9 @@ template<typename Content> class MatrixXpr
           this->operator()(i, j) = other(i, j);
     }
     
+    template<typename Derived>
+    void operator=(const MatrixBase<Derived>& matrix);
+    
     MatrixXpr<MatrixRow<MatrixXpr<Content> > > row(int i);
     MatrixXpr<MatrixCol<MatrixXpr<Content> > > col(int i);
     MatrixXpr<MatrixMinor<MatrixXpr<Content> > > minor(int row, int col);

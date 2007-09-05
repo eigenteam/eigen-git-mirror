@@ -211,6 +211,16 @@ class MatrixBase
     MatrixBase() {};
 };
 
+template<typename Content>
+template<typename Derived>
+void MatrixXpr<Content>::operator=(const MatrixBase<Derived>& matrix)
+{
+  assert(rows() == matrix.rows() && cols() == matrix.cols());
+  for(int i = 0; i < rows(); i++)
+    for(int j = 0; j < cols(); j++)
+      this->operator()(i, j) = matrix(i, j);
+}
+
 template<typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,
