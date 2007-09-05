@@ -14,3 +14,5 @@ endif (CMAKE_COMPILER_IS_GNUCXX)
 
 include_directories( ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} )
 
+add_subdirectory(src)
+add_subdirectory(test)
