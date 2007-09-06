@@ -44,7 +44,7 @@ template<typename MatrixType1,
   a = b;
   a = b + c;
   a = s * (b - c);
-  a << a + b;
+  a.alias() = a + b;
   
   MatrixType1 d(rows1, cols1);
   MatrixType2 e(rows2, cols2);

@@ -67,6 +67,7 @@ template<typename MatrixType> class MatrixRef
 {
   public:
     typedef typename ForwardDecl<MatrixType>::Scalar Scalar;
+    typedef MatrixXpr<MatrixRef<MatrixType> > Xpr;
     
     MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
@@ -92,6 +93,11 @@ template<typename MatrixType> class MatrixRef
     
     MatrixType& matrix() { return m_matrix; }
 
+    Xpr xpr()
+    {
+      return Xpr(*this);
+    }
+
   protected:
     MatrixType& m_matrix;
 };
@@ -106,6 +112,7 @@ class MatrixBase
     typedef MatrixRef<MatrixBase<Derived> > Ref;
     typedef MatrixConstXpr<ConstRef> ConstXpr;
     typedef MatrixXpr<Ref> Xpr;
+    typedef MatrixAlias<Derived> Alias;
 
     Ref ref()
     {
@@ -126,6 +133,8 @@ class MatrixBase
     {
       return ConstXpr(constRef());
     }
+    
+    Alias alias();
     
     static bool hasDynamicNumRows()
     {
@@ -175,29 +184,16 @@ class MatrixBase
     }
     
     template<typename XprContent> 
-    void operator=(const MatrixConstXpr<XprContent> &xpr)
+    MatrixBase& operator=(const MatrixConstXpr<XprContent> &otherXpr)
     {
-      resize(xpr.rows(), xpr.cols());
-      for(int i = 0; i < rows(); i++)
-        for(int j = 0; j < cols(); j++)
-          this->operator()(i, j) = xpr(i, j);
+      resize(otherXpr.rows(), otherXpr.cols());
+      xpr() = otherXpr;
+      return *this;
     }
     
-    void operator=(const MatrixBase &other)
+    MatrixBase& operator=(const MatrixBase &other)
     {
-      resize(other.rows(), other.cols());
-      for(int i = 0; i < rows(); i++)
-        for(int j = 0; j < cols(); j++)
-          this->operator()(i, j) = other(i, j);
-    }
-    
-    template<typename XprContent> 
-    void operator<<(const MatrixConstXpr<XprContent> &xpr)
-    {
-      Derived tmp(xpr.rows(), xpr.cols());
-      MatrixBase *ptr = static_cast<MatrixBase*>(&tmp);
-      *ptr = xpr;
-      *this = *ptr;
+      return *this = other.constXpr();
     }
     
     MatrixConstXpr<MatrixRow<const ConstRef> > row(int i) const;
@@ -213,12 +209,13 @@ class MatrixBase
 
 template<typename Content>
 template<typename Derived>
-void MatrixXpr<Content>::operator=(const MatrixBase<Derived>& matrix)
+MatrixXpr<Content>& MatrixXpr<Content>::operator=(const MatrixBase<Derived>& matrix)
 {
   assert(rows() == matrix.rows() && cols() == matrix.cols());
   for(int i = 0; i < rows(); i++)
     for(int j = 0; j < cols(); j++)
       this->operator()(i, j) = matrix(i, j);
+  return *this;
 }
 
 template<typename Derived>
@@ -250,6 +247,67 @@ std::ostream & operator << (std::ostream & s,
       s << std::endl;
   }
   return s;
+}
+
+template<typename Derived> class MatrixAlias
+{
+  public:
+    typedef typename Derived::Scalar Scalar;
+    typedef MatrixRef<MatrixAlias<Derived> > Ref;
+    typedef MatrixXpr<Ref> Xpr;
+    
+    MatrixAlias(Derived& matrix) : m_ref(matrix), m_tmp(matrix) {}
+    MatrixAlias(const MatrixAlias& other) : m_ref(other.m_ref), m_tmp(other.m_tmp) {}
+    
+    ~MatrixAlias()
+    {
+      m_ref.xpr() = m_tmp;
+    }
+    
+    Xpr xpr()
+    {
+      return Xpr(ref());
+    }
+    
+    static bool hasDynamicNumRows()
+    {
+      return MatrixBase<Derived>::hasDynamicNumRows();
+    }
+
+    static bool hasDynamicNumCols()
+    {
+      return MatrixBase<Derived>::hasDynamicNumCols();
+    }
+    
+    int rows() const { return m_tmp.rows(); }
+    int cols() const { return m_tmp.cols(); }
+    
+    Scalar& operator()(int row, int col)
+    {
+      return m_tmp(row, col);
+    }
+    
+    Ref ref()
+    {
+      return Ref(*this);
+    }
+    
+    template<typename XprContent> 
+    void operator=(const MatrixConstXpr<XprContent> &xpr)
+    {
+      ref().xpr() = xpr;
+    }
+    
+  protected:
+    MatrixRef<MatrixBase<Derived> > m_ref;
+    Derived m_tmp;
+};
+
+template<typename Derived>
+typename MatrixBase<Derived>::Alias
+MatrixBase<Derived>::alias()
+{
+  return Alias(*static_cast<Derived*>(this));
 }
 
 } // namespace Eigen

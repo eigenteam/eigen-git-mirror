@@ -116,6 +116,30 @@ operator *(typename Derived::Scalar scalar,
   return XprType(ProductType(matrix.constRef(), scalar));
 }
 
+template<typename Content>
+const MatrixConstXpr<
+  const ScalarProduct<
+    MatrixConstXpr<Content>
+  >
+>
+operator /(const MatrixConstXpr<Content>& xpr,
+                typename Content::Scalar scalar)
+{
+  return xpr * (static_cast<typename Content::Scalar>(1) / scalar);
+}
+
+template<typename Derived>
+const MatrixConstXpr<
+  const ScalarProduct<
+    MatrixConstRef<MatrixBase<Derived> >
+  >
+>
+operator /(const MatrixBase<Derived>& matrix,
+                typename Derived::Scalar scalar)
+{
+  return matrix * (static_cast<typename Derived::Scalar>(1) / scalar);
+}
+
 } // namespace Eigen
 
 #endif // EIGEN_SCALAROPS_H

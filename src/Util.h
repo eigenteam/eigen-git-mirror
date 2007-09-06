@@ -48,6 +48,7 @@ template<typename T> class MatrixX;
 template<typename T, int Size> class Vector;
 template<typename T> class VectorX;
 template<typename Derived> class MatrixBase;
+template<typename Derived> class MatrixAlias;
 
 template<typename T> struct ForwardDecl;
 template<typename T, int Rows, int Cols> struct ForwardDecl< Matrix<T, Rows, Cols> >
@@ -60,11 +61,19 @@ template<typename T> struct ForwardDecl< VectorX<T> >
 { typedef T Scalar; };
 template<typename T, int Rows, int Cols> struct ForwardDecl< MatrixBase<Matrix<T, Rows, Cols> > >
 { typedef T Scalar; };
+template<typename T, int Rows, int Cols> struct ForwardDecl< MatrixAlias<Matrix<T, Rows, Cols> > >
+{ typedef T Scalar; };
 template<typename T> struct ForwardDecl< MatrixBase<MatrixX<T> > >
+{ typedef T Scalar; };
+template<typename T> struct ForwardDecl< MatrixAlias<MatrixX<T> > >
 { typedef T Scalar; };
 template<typename T, int Size> struct ForwardDecl< MatrixBase<Vector<T, Size> > >
 { typedef T Scalar; };
+template<typename T, int Size> struct ForwardDecl< MatrixAlias<Vector<T, Size> > >
+{ typedef T Scalar; };
 template<typename T> struct ForwardDecl< MatrixBase<VectorX<T> > >
+{ typedef T Scalar; };
+template<typename T> struct ForwardDecl< MatrixAlias<VectorX<T> > >
 { typedef T Scalar; };
 
 template<typename MatrixType> class MatrixRef;

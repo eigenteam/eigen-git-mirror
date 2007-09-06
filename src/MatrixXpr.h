@@ -97,16 +97,17 @@ template<typename Content> class MatrixXpr
     }
     
     template<typename OtherContent>
-    void operator=(const MatrixConstXpr<OtherContent> &other)
+    MatrixXpr& operator=(const MatrixConstXpr<OtherContent> &other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
           this->operator()(i, j) = other(i, j);
+      return *this;
     }
     
     template<typename Derived>
-    void operator=(const MatrixBase<Derived>& matrix);
+    MatrixXpr& operator=(const MatrixBase<Derived>& matrix);
     
     MatrixXpr<MatrixRow<MatrixXpr<Content> > > row(int i);
     MatrixXpr<MatrixCol<MatrixXpr<Content> > > col(int i);

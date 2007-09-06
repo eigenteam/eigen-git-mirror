@@ -42,7 +42,7 @@ template<typename VectorType> void vectorOps(const VectorType& v)
   a = b;
   a = b + c;
   a = s * (b - c);
-  a << a + b;
+  a.alias() = a + b;
 }
 
 void EigenTest::testVectorOps()
