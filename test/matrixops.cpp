@@ -46,6 +46,10 @@ template<typename MatrixType1,
   a = s * (b - c);
   a.alias() = a + b;
   
+  a += b;
+  a.alias().xpr() += b;
+  a -= b + b;
+  
   MatrixType1 d(rows1, cols1);
   MatrixType2 e(rows2, cols2);
   QVERIFY( (d * e).rows() == rows1 && (d * e).cols() == cols2 );

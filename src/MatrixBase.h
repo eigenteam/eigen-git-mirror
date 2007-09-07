@@ -202,6 +202,16 @@ class MatrixBase
     MatrixConstXpr<MatrixBlock<const ConstRef> >
       block(int startRow, int endRow, int startCol = 0, int endCol = 0) const;
     
+    template<typename Content>
+    MatrixBase& operator+=(const MatrixConstXpr<Content> &xpr);
+    template<typename Content>
+    MatrixBase& operator-=(const MatrixConstXpr<Content> &xpr);
+    template<typename Derived2>
+    MatrixBase& operator+=(const MatrixBase<Derived2> &other);
+    template<typename Derived2>
+    MatrixBase& operator-=(const MatrixBase<Derived2> &other);
+
+    
   protected:
   
     MatrixBase() {};

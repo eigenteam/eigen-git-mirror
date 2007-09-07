@@ -167,6 +167,54 @@ EIGEN_MAKE_MATRIX_OP(Product,    *)
 
 #undef EIGEN_MAKE_MATRIX_OP
 
+#define EIGEN_MAKE_MATRIX_OP_EQ(SYMBOL) \
+template<typename Derived1> \
+template<typename Derived2> \
+MatrixBase<Derived1> & \
+MatrixBase<Derived1>::operator SYMBOL##=(const MatrixBase<Derived2> &mat2) \
+{ \
+  return *this = *this SYMBOL mat2; \
+} \
+\
+template<typename Derived> \
+template<typename Content> \
+MatrixBase<Derived> & \
+MatrixBase<Derived>::operator SYMBOL##=(const MatrixConstXpr<Content> &xpr) \
+{ \
+  return *this = *this SYMBOL xpr; \
+} \
+\
+template<typename Content> \
+template<typename Derived> \
+MatrixXpr<Content> & \
+MatrixXpr<Content>::operator SYMBOL##=(const MatrixBase<Derived> &mat) \
+{ \
+  assert(rows() == mat.rows() && cols() == mat.cols()); \
+  for(int i = 0; i < rows(); i++) \
+    for(int j = 0; j < cols(); j++) \
+      this->operator()(i, j) SYMBOL##= mat(i, j); \
+  return *this; \
+} \
+\
+template<typename Content1> \
+template<typename Content2> \
+MatrixXpr<Content1> & \
+MatrixXpr<Content1>::operator SYMBOL##=(const MatrixConstXpr<Content2> &other) \
+{ \
+  assert(rows() == other.rows() && cols() == other.cols()); \
+  for(int i = 0; i < rows(); i++) \
+    for(int j = 0; j < cols(); j++) \
+      this->operator()(i, j) SYMBOL##= other(i, j); \
+  return *this; \
+}
+
+EIGEN_MAKE_MATRIX_OP_EQ(+)
+EIGEN_MAKE_MATRIX_OP_EQ(-)
+
+#undef EIGEN_MAKE_MATRIX_OP_EQ
+
+
+
 } // namespace Eigen
 
 #endif // EIGEN_MATRIXOPS_H

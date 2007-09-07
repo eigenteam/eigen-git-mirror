@@ -114,6 +114,17 @@ template<typename Content> class MatrixXpr
     MatrixXpr<MatrixMinor<MatrixXpr<Content> > > minor(int row, int col);
     MatrixXpr<MatrixBlock<MatrixXpr<Content> > >
       block(int startRow, int endRow, int startCol= 0, int endCol = 0);
+    
+    template<typename Content2>
+    MatrixXpr& operator+=(const MatrixConstXpr<Content2> &other);
+    template<typename Content2>
+    MatrixXpr& operator-=(const MatrixConstXpr<Content2> &other);
+    template<typename Derived>
+    MatrixXpr& operator+=(const MatrixBase<Derived> &matrix);
+    template<typename Derived>
+    MatrixXpr& operator-=(const MatrixBase<Derived> &matrix);
+    
+  
   
   private:
     void operator=(const MatrixXpr &other)
