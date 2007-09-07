@@ -308,6 +308,18 @@ template<typename Derived> class MatrixAlias
       ref().xpr() = xpr;
     }
     
+    template<typename XprContent> 
+    void operator+=(const MatrixConstXpr<XprContent> &xpr)
+    {
+      ref().xpr() += xpr;
+    }
+    
+    template<typename XprContent> 
+    void operator-=(const MatrixConstXpr<XprContent> &xpr)
+    {
+      ref().xpr() -= xpr;
+    }
+    
   protected:
     MatrixRef<MatrixBase<Derived> > m_ref;
     Derived m_tmp;
