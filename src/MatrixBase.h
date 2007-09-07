@@ -206,11 +206,14 @@ class MatrixBase
     MatrixBase& operator+=(const MatrixConstXpr<Content> &xpr);
     template<typename Content>
     MatrixBase& operator-=(const MatrixConstXpr<Content> &xpr);
+    template<typename Content>
+    MatrixBase& operator*=(const MatrixConstXpr<Content> &xpr);
     template<typename Derived2>
     MatrixBase& operator+=(const MatrixBase<Derived2> &other);
     template<typename Derived2>
     MatrixBase& operator-=(const MatrixBase<Derived2> &other);
-
+    template<typename Derived2>
+    MatrixBase& operator*=(const MatrixBase<Derived2> &other);
     
   protected:
   
