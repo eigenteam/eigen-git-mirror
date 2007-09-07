@@ -213,24 +213,6 @@ EIGEN_MAKE_MATRIX_OP_EQ(-)
 
 #undef EIGEN_MAKE_MATRIX_OP_EQ
 
-template<typename Derived1>
-template<typename Derived2>
-MatrixBase<Derived1> &
-MatrixBase<Derived1>::operator *=(const MatrixBase<Derived2> &mat2)
-{
-  alias() = *this * mat2;
-  return *this;
-}
-
-template<typename Derived>
-template<typename Content>
-MatrixBase<Derived> &
-MatrixBase<Derived>::operator *=(const MatrixConstXpr<Content> &xpr)
-{
-  alias() = *this * xpr;
-  return *this;
-}
-
 } // namespace Eigen
 
 #endif // EIGEN_MATRIXOPS_H

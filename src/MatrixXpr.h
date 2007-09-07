@@ -123,8 +123,6 @@ template<typename Content> class MatrixXpr
     MatrixXpr& operator+=(const MatrixBase<Derived> &matrix);
     template<typename Derived>
     MatrixXpr& operator-=(const MatrixBase<Derived> &matrix);
-    
-  
   
   private:
     void operator=(const MatrixXpr &other)

@@ -49,12 +49,5 @@ int main(int, char **)
   m = m_save;
   m.alias() = m * m;
   cout << "And m is now:" << endl << m << endl << "as was expected." << endl;
-  cout << "To make your life easier, operator*= between matrices automatically" << endl
-       << "creates an alias. So a *= b is equivalent to a.alias() *= b," << endl
-       << "when a and b are matrices. So, coming back to the original matrix m," << endl
-       << "if we do m *= m, the matrix m becomes:" << endl;
-  m = m_save;
-  m *= m;
-  cout << m << endl << "as expected." << endl;
   return 0;
 }

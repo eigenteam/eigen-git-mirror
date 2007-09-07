@@ -206,14 +206,10 @@ class MatrixBase
     MatrixBase& operator+=(const MatrixConstXpr<Content> &xpr);
     template<typename Content>
     MatrixBase& operator-=(const MatrixConstXpr<Content> &xpr);
-    template<typename Content>
-    MatrixBase& operator*=(const MatrixConstXpr<Content> &xpr);
     template<typename Derived2>
     MatrixBase& operator+=(const MatrixBase<Derived2> &other);
     template<typename Derived2>
     MatrixBase& operator-=(const MatrixBase<Derived2> &other);
-    template<typename Derived2>
-    MatrixBase& operator*=(const MatrixBase<Derived2> &other);
     
   protected:
   
@@ -269,12 +265,12 @@ template<typename Derived> class MatrixAlias
     typedef MatrixRef<MatrixAlias<Derived> > Ref;
     typedef MatrixXpr<Ref> Xpr;
     
-    MatrixAlias(Derived& matrix) : m_ref(matrix), m_tmp(matrix) {}
-    MatrixAlias(const MatrixAlias& other) : m_ref(other.m_ref), m_tmp(other.m_tmp) {}
+    MatrixAlias(Derived& matrix) : m_aliased(matrix), m_tmp(matrix) {}
+    MatrixAlias(const MatrixAlias& other) : m_aliased(other.m_aliased), m_tmp(other.m_tmp) {}
     
     ~MatrixAlias()
     {
-      m_ref.xpr() = m_tmp;
+      m_aliased.xpr() = m_tmp;
     }
     
     Xpr xpr()
@@ -324,7 +320,7 @@ template<typename Derived> class MatrixAlias
     }
     
   protected:
-    MatrixRef<MatrixBase<Derived> > m_ref;
+    MatrixRef<MatrixBase<Derived> > m_aliased;
     Derived m_tmp;
 };
 
