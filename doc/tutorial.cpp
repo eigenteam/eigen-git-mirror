@@ -16,14 +16,13 @@ int main(int, char **)
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;
-  // here we need to use .xpr() to allow write access to the block.
-  m2.xpr().block(0,1,0,1) = m;
+  m2.block(0,1,0,1) = m;
   cout << "In the bottom-left block, we put the matrix m*m, which is:" << endl << m*m << endl;
-  m2.xpr().block(2,3,0,1) = m * m;
+  m2.block(2,3,0,1) = m * m;
   cout << "In the top-right block, we put the matrix m+m, which is:" << endl << m+m << endl;
-  m2.xpr().block(0,1,2,3) = m + m;
+  m2.block(0,1,2,3) = m + m;
   cout << "In the bottom-right block, we put the matrix m-m, which is:" << endl << m-m << endl;
-  m2.xpr().block(2,3,2,3) = m - m;
+  m2.block(2,3,2,3) = m - m;
   cout << "Now the 4x4 matrix m2 is:" << endl << m2 << endl;
   
   // here we don't need to use .xpr() because we only need read access.
