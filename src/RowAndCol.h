@@ -45,18 +45,18 @@ template<typename MatrixType> class MatrixRow
     int rows() const { return m_matrix.cols(); }
     int cols() const { return 1; }
     
-    Scalar& operator()(int row, int col=0)
+    Scalar& write(int row, int col=0)
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
-      return m_matrix(m_row, row);
+      return m_matrix.write(m_row, row);
     }
     
-    Scalar operator()(int row, int col=0) const
+    Scalar read(int row, int col=0) const
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
-      return m_matrix(m_row, row);
+      return m_matrix.read(m_row, row);
     }
     
   protected:
@@ -81,18 +81,18 @@ template<typename MatrixType> class MatrixCol
     int rows() const { return m_matrix.rows(); }
     int cols() const { return 1; }
     
-    Scalar& operator()(int row, int col=0)
+    Scalar& write(int row, int col=0)
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
-      return m_matrix(row, m_col);
+      return m_matrix.write(row, m_col);
     }
     
-    Scalar operator()(int row, int col=0) const
+    Scalar read(int row, int col=0) const
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
-      return m_matrix(row, m_col);
+      return m_matrix.read(row, m_col);
     }
     
   protected:
@@ -102,33 +102,18 @@ template<typename MatrixType> class MatrixCol
 
 #define EIGEN_MAKE_ROW_COL_FUNCTIONS(func, Func) \
 template<typename Derived> \
-MatrixConstXpr< \
+MatrixXpr< \
   Matrix##Func< \
-    const MatrixConstRef< \
+    MatrixRef< \
       MatrixBase<Derived> \
     > \
   > \
 > \
-MatrixBase<Derived>::func(int i) const\
+MatrixBase<Derived>::func(int i)\
 { \
-  typedef Matrix##Func<const ConstRef> ProductType; \
-  typedef MatrixConstXpr<ProductType> XprType; \
-  return XprType(ProductType(constRef(), i)); \
-} \
-\
-template<typename Content> \
-MatrixConstXpr< \
-  Matrix##Func< \
-    const MatrixConstXpr<Content> \
-  > \
-> \
-MatrixConstXpr<Content>::func(int i) const\
-{ \
-  typedef Matrix##Func< \
-            const MatrixConstXpr<Content> \
-          > ProductType; \
-  typedef MatrixConstXpr<ProductType> XprType; \
-  return XprType(ProductType(*this, i)); \
+  typedef Matrix##Func<Ref> ProductType; \
+  typedef MatrixXpr<ProductType> XprType; \
+  return XprType(ProductType(ref(), i)); \
 } \
 \
 template<typename Content> \
@@ -137,7 +122,7 @@ MatrixXpr< \
     MatrixXpr<Content> \
   > \
 > \
-MatrixXpr<Content>::func(int i) \
+MatrixXpr<Content>::func(int i)\
 { \
   typedef Matrix##Func< \
             MatrixXpr<Content> \

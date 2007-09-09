@@ -84,11 +84,11 @@ class Matrix: public MatrixBase< Matrix<T, Rows, Cols> >
     { Base::operator=(other); }
 
     template<typename XprContent>
-    void operator=(const MatrixConstXpr<XprContent> &xpr)
+    void operator=(const MatrixXpr<XprContent> &xpr)
     { Base::operator=(xpr); }
 
     template<typename XprContent>
-    explicit Matrix(const MatrixConstXpr<XprContent>& xpr)
+    explicit Matrix(const MatrixXpr<XprContent>& xpr)
     {
       *this = xpr;
     }
@@ -125,11 +125,11 @@ class MatrixX : public MatrixBase< MatrixX<T> >
     { Base::operator=(other); }
 
     template<typename XprContent>
-    void operator=(const MatrixConstXpr<XprContent> &xpr)
+    void operator=(const MatrixXpr<XprContent> &xpr)
     { Base::operator=(xpr); }
 
     template<typename XprContent>
-    explicit MatrixX(const MatrixConstXpr<XprContent>& xpr)
+    explicit MatrixX(const MatrixXpr<XprContent>& xpr)
     {
       _init(xpr.rows(), xpr.cols());
       *this = xpr;

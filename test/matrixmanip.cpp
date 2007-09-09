@@ -35,10 +35,10 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
   a.col(j);
   a.minor(i, j);
   a.block(1, rows-1, 1, cols-1);
-  a.xpr().row(i) = b.row(i);
-  a.xpr().row(i) += b.row(i);
-  a.xpr().minor(i, j) = b.block(1, rows-1, 1, cols-1);
-  a.alias().xpr().minor(i, j) -= a.block(1, rows-1, 1, cols-1);
+  a.row(i) = b.row(i);
+  a.row(i) += b.row(i);
+  a.minor(i, j) = b.block(1, rows-1, 1, cols-1);
+  a.alias().minor(i, j) -= a.block(1, rows-1, 1, cols-1);
 }
 
 void EigenTest::testMatrixManip()

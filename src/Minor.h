@@ -45,14 +45,14 @@ template<typename MatrixType> class MatrixMinor
     int rows() const { return m_matrix.rows() - 1; }
     int cols() const { return m_matrix.cols() - 1; }
     
-    Scalar& operator()(int row, int col=0)
+    Scalar& write(int row, int col=0)
     {
-      return m_matrix(row + (row >= m_row), col + (col >= m_col));
+      return m_matrix.write(row + (row >= m_row), col + (col >= m_col));
     }
     
-    Scalar operator()(int row, int col=0) const
+    Scalar read(int row, int col=0) const
     {
-      return m_matrix(row + (row >= m_row), col + (col >= m_col));
+      return m_matrix.read(row + (row >= m_row), col + (col >= m_col));
     }
     
   protected:
@@ -61,33 +61,18 @@ template<typename MatrixType> class MatrixMinor
 };
 
 template<typename Derived>
-MatrixConstXpr<
+MatrixXpr<
   MatrixMinor<
-    const MatrixConstRef<
+    MatrixRef<
       MatrixBase<Derived>
     >
   >
 >
-MatrixBase<Derived>::minor(int row, int col) const
+MatrixBase<Derived>::minor(int row, int col)
 {
-  typedef MatrixMinor<const ConstRef> ProductType;
-  typedef MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(constRef(), row, col));
-}
-
-template<typename Content>
-MatrixConstXpr<
-  MatrixMinor<
-    const MatrixConstXpr<Content>
-  >
->
-MatrixConstXpr<Content>::minor(int row, int col) const
-{
-  typedef MatrixMinor<
-            const MatrixConstXpr<Content>
-          > ProductType;
-  typedef MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(*this, row, col));
+  typedef MatrixMinor<Ref> ProductType;
+  typedef MatrixXpr<ProductType> XprType;
+  return XprType(ProductType(ref(), row, col));
 }
 
 template<typename Content>

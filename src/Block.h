@@ -49,14 +49,14 @@ template<typename MatrixType> class MatrixBlock
     int rows() const { return m_endRow - m_startRow + 1; }
     int cols() const { return m_endCol - m_startCol + 1; }
     
-    Scalar& operator()(int row, int col=0)
+    Scalar& write(int row, int col=0)
     {
-      return m_matrix(row + m_startRow, col + m_startCol);
+      return m_matrix.write(row + m_startRow, col + m_startCol);
     }
     
-    Scalar operator()(int row, int col=0) const
+    Scalar read(int row, int col=0) const
     {
-      return m_matrix(row + m_startRow, col + m_startCol);
+      return m_matrix.read(row + m_startRow, col + m_startCol);
     }
     
   protected:
@@ -65,33 +65,18 @@ template<typename MatrixType> class MatrixBlock
 };
 
 template<typename Derived>
-MatrixConstXpr<
+MatrixXpr<
   MatrixBlock<
-    const MatrixConstRef<
+    MatrixRef<
       MatrixBase<Derived>
     >
   >
 >
-MatrixBase<Derived>::block(int startRow, int endRow, int startCol, int endCol) const
+MatrixBase<Derived>::block(int startRow, int endRow, int startCol, int endCol)
 {
-  typedef MatrixBlock<const ConstRef> ProductType;
-  typedef MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(constRef(), startRow, endRow, startCol, endCol));
-}
-
-template<typename Content>
-MatrixConstXpr<
-  MatrixBlock<
-    const MatrixConstXpr<Content>
-  >
->
-MatrixConstXpr<Content>::block(int startRow, int endRow, int startCol, int endCol) const
-{
-  typedef MatrixBlock<
-            const MatrixConstXpr<Content>
-          > ProductType;
-  typedef MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(*this, startRow, endRow, startCol, endCol));
+  typedef MatrixBlock<Ref> ProductType;
+  typedef MatrixXpr<ProductType> XprType;
+  return XprType(ProductType(ref(), startRow, endRow, startCol, endCol));
 }
 
 template<typename Content>

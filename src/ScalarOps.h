@@ -42,9 +42,9 @@ template<typename MatrixType> class ScalarProduct
     int rows() const { return m_matrix.rows(); }
     int cols() const { return m_matrix.cols(); }
 
-    Scalar operator()(int row, int col) const
+    Scalar read(int row, int col) const
     {
-      return m_matrix(row, col) * m_scalar;
+      return m_matrix.read(row, col) * m_scalar;
     }
 
   protected:
@@ -53,89 +53,89 @@ template<typename MatrixType> class ScalarProduct
 };
 
 template<typename Content>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstXpr<Content>
+MatrixXpr<
+  ScalarProduct<
+    MatrixXpr<Content>
   >
 >
-operator *(const MatrixConstXpr<Content>& xpr,
-                typename Content::Scalar scalar)
+operator *(const MatrixXpr<Content>& xpr,
+           typename Content::Scalar scalar)
 {
-  typedef const ScalarProduct<
-              MatrixConstXpr<Content>
-            > ProductType;
-  typedef const MatrixConstXpr<ProductType> XprType;
+  typedef ScalarProduct<
+            MatrixXpr<Content>
+          > ProductType;
+  typedef MatrixXpr<ProductType> XprType;
   return XprType(ProductType(xpr, scalar));
 }
 
 template<typename Content>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstXpr<Content>
+MatrixXpr<
+  ScalarProduct<
+    MatrixXpr<Content>
   >
 >
 operator *(typename Content::Scalar scalar,
-                const MatrixConstXpr<Content>& xpr)
+           const MatrixXpr<Content>& xpr)
 {
-  typedef const ScalarProduct<
-              MatrixConstXpr<Content>
-            > ProductType;
-  typedef const MatrixConstXpr<ProductType> XprType;
+  typedef ScalarProduct<
+            MatrixXpr<Content>
+          > ProductType;
+  typedef MatrixXpr<ProductType> XprType;
   return XprType(ProductType(xpr, scalar));
 }
 
 template<typename Derived>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstRef<MatrixBase<Derived> >
+MatrixXpr<
+  ScalarProduct<
+    MatrixRef<MatrixBase<Derived> >
   >
 >
-operator *(const MatrixBase<Derived>& matrix,
-                typename Derived::Scalar scalar)
+operator *(MatrixBase<Derived>& matrix,
+           typename Derived::Scalar scalar)
 {
-  typedef const ScalarProduct<
-              MatrixConstRef<MatrixBase<Derived> >
+  typedef ScalarProduct<
+              MatrixRef<MatrixBase<Derived> >
             > ProductType;
-  typedef const MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(matrix.constRef(), scalar));
+  typedef MatrixXpr<ProductType> XprType;
+  return XprType(ProductType(matrix.ref(), scalar));
 }
 
 template<typename Derived>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstRef<MatrixBase<Derived> >
+MatrixXpr<
+  ScalarProduct<
+    MatrixRef<MatrixBase<Derived> >
   >
 >
 operator *(typename Derived::Scalar scalar,
-                const MatrixBase<Derived>& matrix)
+           MatrixBase<Derived>& matrix)
 {
-  typedef const ScalarProduct<
-              MatrixConstRef<MatrixBase<Derived> >
-            > ProductType;
-  typedef const MatrixConstXpr<ProductType> XprType;
-  return XprType(ProductType(matrix.constRef(), scalar));
+  typedef ScalarProduct<
+            MatrixRef<MatrixBase<Derived> >
+          > ProductType;
+  typedef MatrixXpr<ProductType> XprType;
+  return XprType(ProductType(matrix.ref(), scalar));
 }
 
 template<typename Content>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstXpr<Content>
+MatrixXpr<
+  ScalarProduct<
+    MatrixXpr<Content>
   >
 >
-operator /(const MatrixConstXpr<Content>& xpr,
-                typename Content::Scalar scalar)
+operator /(MatrixXpr<Content>& xpr,
+           typename Content::Scalar scalar)
 {
   return xpr * (static_cast<typename Content::Scalar>(1) / scalar);
 }
 
 template<typename Derived>
-const MatrixConstXpr<
-  const ScalarProduct<
-    MatrixConstRef<MatrixBase<Derived> >
+MatrixXpr<
+  ScalarProduct<
+    MatrixRef<MatrixBase<Derived> >
   >
 >
-operator /(const MatrixBase<Derived>& matrix,
-                typename Derived::Scalar scalar)
+operator /(MatrixBase<Derived>& matrix,
+           typename Derived::Scalar scalar)
 {
   return matrix * (static_cast<typename Derived::Scalar>(1) / scalar);
 }

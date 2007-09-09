@@ -46,9 +46,9 @@ template<typename Lhs, typename Rhs> class Matrix##NAME \
     int rows() const { return m_lhs.rows(); } \
     int cols() const { return m_lhs.cols(); } \
 \
-    Scalar operator()(int row, int col) const \
+    Scalar read(int row, int col) const \
     { \
-      return m_lhs(row, col) SYMBOL m_rhs(row, col); \
+      return m_lhs.read(row, col) SYMBOL m_rhs.read(row, col); \
     } \
 \
   protected: \
@@ -78,11 +78,11 @@ template<typename Lhs, typename Rhs> class MatrixProduct
     int rows() const { return m_lhs.rows(); }
     int cols() const { return m_rhs.cols(); }
     
-    Scalar operator()(int row, int col) const
+    Scalar read(int row, int col) const
     {
       Scalar x = static_cast<Scalar>(0);
       for(int i = 0; i < m_lhs.cols(); i++)
-        x += m_lhs(row, i) * m_rhs(i, col);
+        x += m_lhs.read(row, i) * m_rhs.read(i, col);
       return x;
     }
 
@@ -93,72 +93,72 @@ template<typename Lhs, typename Rhs> class MatrixProduct
 
 #define EIGEN_MAKE_MATRIX_OP(NAME, SYMBOL) \
 template<typename Content1, typename Content2> \
-const MatrixConstXpr< \
-  const Matrix##NAME< \
-    MatrixConstXpr<Content1>, \
-    MatrixConstXpr<Content2> \
+MatrixXpr< \
+  Matrix##NAME< \
+    MatrixXpr<Content1>, \
+    MatrixXpr<Content2> \
   > \
 > \
-operator SYMBOL(const MatrixConstXpr<Content1> &xpr1, const MatrixConstXpr<Content2> &xpr2) \
+operator SYMBOL(const MatrixXpr<Content1> &xpr1, const MatrixXpr<Content2> &xpr2) \
 { \
-  typedef const Matrix##NAME< \
-              MatrixConstXpr<Content1>, \
-              MatrixConstXpr<Content2> \
-            > ProductType; \
-  typedef const MatrixConstXpr<ProductType> XprType; \
+  typedef Matrix##NAME< \
+            MatrixXpr<Content1>, \
+            MatrixXpr<Content2> \
+          > ProductType; \
+  typedef MatrixXpr<ProductType> XprType; \
   return XprType(ProductType(xpr1, xpr2)); \
 } \
 \
 template<typename Derived, typename Content> \
-const MatrixConstXpr< \
-  const Matrix##NAME< \
-    MatrixConstRef<MatrixBase<Derived> >, \
-    MatrixConstXpr<Content> \
+MatrixXpr< \
+  Matrix##NAME< \
+    MatrixRef<MatrixBase<Derived> >, \
+    MatrixXpr<Content> \
   > \
 > \
-operator SYMBOL(const MatrixBase<Derived> &mat, const MatrixConstXpr<Content> &xpr) \
+operator SYMBOL(MatrixBase<Derived> &mat, const MatrixXpr<Content> &xpr) \
 { \
-  typedef const Matrix##NAME< \
-              MatrixConstRef<MatrixBase<Derived> >, \
-              MatrixConstXpr<Content> \
-            > ProductType; \
-  typedef const MatrixConstXpr<ProductType> XprType; \
-  return XprType(ProductType(mat.constRef(), xpr)); \
+  typedef Matrix##NAME< \
+            MatrixRef<MatrixBase<Derived> >, \
+            MatrixXpr<Content> \
+          > ProductType; \
+  typedef MatrixXpr<ProductType> XprType; \
+  return XprType(ProductType(mat.ref(), xpr)); \
 } \
 \
 template<typename Content, typename Derived> \
-const MatrixConstXpr< \
-  const Matrix##NAME< \
-    MatrixConstXpr<Content>, \
-    MatrixConstRef<MatrixBase<Derived> > \
+MatrixXpr< \
+  Matrix##NAME< \
+    MatrixXpr<Content>, \
+    MatrixRef<MatrixBase<Derived> > \
   > \
 > \
-operator SYMBOL(const MatrixConstXpr<Content> &xpr, const MatrixBase<Derived> &mat) \
+operator SYMBOL(const MatrixXpr<Content> &xpr, MatrixBase<Derived> &mat) \
 { \
-  typedef const Matrix##NAME< \
-              MatrixConstXpr<Content>, \
-              MatrixConstRef<MatrixBase<Derived> > \
-            > ProductType; \
-  typedef const MatrixConstXpr<ProductType> XprType; \
-  return XprType(ProductType(xpr, mat.constRef())); \
+  typedef Matrix##NAME< \
+            MatrixXpr<Content>, \
+            MatrixRef<MatrixBase<Derived> > \
+          > ProductType; \
+  typedef MatrixXpr<ProductType> XprType; \
+  return XprType(ProductType(xpr, mat.ref())); \
 } \
 \
 template<typename Derived1, typename Derived2> \
-const MatrixConstXpr< \
-  const Matrix##NAME< \
-    MatrixConstRef<MatrixBase<Derived1> >, \
-    MatrixConstRef<MatrixBase<Derived2> > \
+MatrixXpr< \
+  Matrix##NAME< \
+    MatrixRef<MatrixBase<Derived1> >, \
+    MatrixRef<MatrixBase<Derived2> > \
   > \
 > \
-operator SYMBOL(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2) \
+operator SYMBOL(MatrixBase<Derived1> &mat1, MatrixBase<Derived2> &mat2) \
 { \
-  typedef const Matrix##NAME< \
-            MatrixConstRef<MatrixBase<Derived1> >, \
-            MatrixConstRef<MatrixBase<Derived2> > \
+  typedef Matrix##NAME< \
+            MatrixRef<MatrixBase<Derived1> >, \
+            MatrixRef<MatrixBase<Derived2> > \
           > ProductType; \
-  typedef const MatrixConstXpr<ProductType> XprType; \
-  return XprType(ProductType(MatrixConstRef<MatrixBase<Derived1> >(mat1), \
-                             MatrixConstRef<MatrixBase<Derived2> >(mat2))); \
+  typedef MatrixXpr<ProductType> XprType; \
+  return XprType(ProductType(mat1.ref(), \
+                             mat2.ref())); \
 }
 
 EIGEN_MAKE_MATRIX_OP(Sum,        +)
@@ -171,7 +171,7 @@ EIGEN_MAKE_MATRIX_OP(Product,    *)
 template<typename Derived1> \
 template<typename Derived2> \
 MatrixBase<Derived1> & \
-MatrixBase<Derived1>::operator SYMBOL##=(const MatrixBase<Derived2> &mat2) \
+MatrixBase<Derived1>::operator SYMBOL##=(MatrixBase<Derived2> &mat2) \
 { \
   return *this = *this SYMBOL mat2; \
 } \
@@ -179,7 +179,7 @@ MatrixBase<Derived1>::operator SYMBOL##=(const MatrixBase<Derived2> &mat2) \
 template<typename Derived> \
 template<typename Content> \
 MatrixBase<Derived> & \
-MatrixBase<Derived>::operator SYMBOL##=(const MatrixConstXpr<Content> &xpr) \
+MatrixBase<Derived>::operator SYMBOL##=(const MatrixXpr<Content> &xpr) \
 { \
   return *this = *this SYMBOL xpr; \
 } \
@@ -187,24 +187,24 @@ MatrixBase<Derived>::operator SYMBOL##=(const MatrixConstXpr<Content> &xpr) \
 template<typename Content> \
 template<typename Derived> \
 MatrixXpr<Content> & \
-MatrixXpr<Content>::operator SYMBOL##=(const MatrixBase<Derived> &mat) \
+MatrixXpr<Content>::operator SYMBOL##=(MatrixBase<Derived> &mat) \
 { \
   assert(rows() == mat.rows() && cols() == mat.cols()); \
   for(int i = 0; i < rows(); i++) \
     for(int j = 0; j < cols(); j++) \
-      this->operator()(i, j) SYMBOL##= mat(i, j); \
+      write(i, j) SYMBOL##= mat.read(i, j); \
   return *this; \
 } \
 \
 template<typename Content1> \
 template<typename Content2> \
 MatrixXpr<Content1> & \
-MatrixXpr<Content1>::operator SYMBOL##=(const MatrixConstXpr<Content2> &other) \
+MatrixXpr<Content1>::operator SYMBOL##=(const MatrixXpr<Content2> &other) \
 { \
   assert(rows() == other.rows() && cols() == other.cols()); \
   for(int i = 0; i < rows(); i++) \
     for(int j = 0; j < cols(); j++) \
-      this->operator()(i, j) SYMBOL##= other(i, j); \
+      write(i, j) SYMBOL##= other.read(i, j); \
   return *this; \
 }
 

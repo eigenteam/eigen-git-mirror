@@ -34,42 +34,6 @@ template<typename MatrixType> class MatrixCol;
 template<typename MatrixType> class MatrixMinor;
 template<typename MatrixType> class MatrixBlock;
 
-template<typename Content> class MatrixConstXpr
-{
-  public:
-    typedef typename Content::Scalar Scalar;
-  
-    MatrixConstXpr(const Content& content)
-      : m_content(content) {}
-    
-    MatrixConstXpr(const MatrixConstXpr& other)
-      : m_content(other.m_content) {}
-    
-    ~MatrixConstXpr() {}
-    
-    static bool hasDynamicSize()
-    {
-      return Content::hasDynamicSize();
-    }
-    
-    int rows() const { return m_content.rows(); }
-    int cols() const { return m_content.cols(); }
-    
-    Scalar operator()(int row, int col) const
-    {
-      return m_content(row, col);
-    }
-    
-    MatrixConstXpr<MatrixRow<const MatrixConstXpr<Content> > > row(int i) const;
-    MatrixConstXpr<MatrixCol<const MatrixConstXpr<Content> > > col(int i) const;
-    MatrixConstXpr<MatrixMinor<const MatrixConstXpr<Content> > > minor(int row, int col) const;
-    MatrixConstXpr<MatrixBlock<const MatrixConstXpr<Content> > >
-      block(int startRow, int endRow, int startCol= 0, int endCol = 0) const;
-    
-  protected:
-    const Content m_content;
-};
-
 template<typename Content> class MatrixXpr
 {
   public:
@@ -83,26 +47,35 @@ template<typename Content> class MatrixXpr
     
     ~MatrixXpr() {}
     
-    static bool hasDynamicSize()
-    {
-      return Content::hasDynamicSize();
-    }
-    
     int rows() const { return m_content.rows(); }
     int cols() const { return m_content.cols(); }
     
-    Scalar& operator()(int row, int col)
+    Scalar& write(int row, int col)
     {
-      return m_content(row, col);
+      return m_content.write(row, col);
+    }
+    
+    Scalar read(int row, int col) const
+    {
+      return m_content.read(row, col);
     }
     
     template<typename OtherContent>
-    MatrixXpr& operator=(const MatrixConstXpr<OtherContent> &other)
+    MatrixXpr& operator=(const MatrixXpr<OtherContent>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
-          this->operator()(i, j) = other(i, j);
+          write(i, j) = other.read(i, j);
+      return *this;
+    }
+    
+    MatrixXpr& operator=(const MatrixXpr& other)
+    {
+      assert(rows() == other.rows() && cols() == other.cols());
+      for(int i = 0; i < rows(); i++)
+        for(int j = 0; j < cols(); j++)
+          write(i, j) = other.read(i, j);
       return *this;
     }
     
@@ -116,17 +89,13 @@ template<typename Content> class MatrixXpr
       block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
     template<typename Content2>
-    MatrixXpr& operator+=(const MatrixConstXpr<Content2> &other);
+    MatrixXpr& operator+=(const MatrixXpr<Content2> &other);
     template<typename Content2>
-    MatrixXpr& operator-=(const MatrixConstXpr<Content2> &other);
+    MatrixXpr& operator-=(const MatrixXpr<Content2> &other);
     template<typename Derived>
-    MatrixXpr& operator+=(const MatrixBase<Derived> &matrix);
+    MatrixXpr& operator+=(MatrixBase<Derived> &matrix);
     template<typename Derived>
-    MatrixXpr& operator-=(const MatrixBase<Derived> &matrix);
-  
-  private:
-    void operator=(const MatrixXpr &other)
-    {}
+    MatrixXpr& operator-=(MatrixBase<Derived> &matrix);
     
   protected:
     Content m_content;

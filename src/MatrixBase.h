@@ -32,37 +32,6 @@
 namespace Eigen
 {
 
-template<typename MatrixType> class MatrixConstRef
-{
-  public:
-    typedef typename ForwardDecl<MatrixType>::Scalar Scalar;
-    
-    MatrixConstRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    MatrixConstRef(const MatrixConstRef& other) : m_matrix(other.m_matrix) {}
-    ~MatrixConstRef() {}
-
-    static bool hasDynamicNumRows()
-    {
-      return MatrixType::hasDynamicNumRows();
-    }
-
-    static bool hasDynamicNumCols()
-    {
-      return MatrixType::hasDynamicNumCols();
-    }
-    
-    int rows() const { return m_matrix.rows(); }
-    int cols() const { return m_matrix.cols(); }
-
-    const Scalar& operator()(int row, int col) const
-    {
-      return m_matrix(row, col);
-    }
-
-  protected:
-    const MatrixType& m_matrix;
-};
-
 template<typename MatrixType> class MatrixRef
 {
   public:
@@ -86,12 +55,15 @@ template<typename MatrixType> class MatrixRef
     int rows() const { return m_matrix.rows(); }
     int cols() const { return m_matrix.cols(); }
 
-    Scalar& operator()(int row, int col)
+    const Scalar& read(int row, int col) const
     {
-      return m_matrix(row, col);
+      return m_matrix.read(row, col);
     }
     
-    MatrixType& matrix() { return m_matrix; }
+    Scalar& write(int row, int col)
+    {
+      return m_matrix.write(row, col);
+    }
 
     Xpr xpr()
     {
@@ -108,9 +80,7 @@ class MatrixBase
   public:
 
     typedef typename ForwardDecl<Derived>::Scalar Scalar;
-    typedef MatrixConstRef<MatrixBase<Derived> > ConstRef;
     typedef MatrixRef<MatrixBase<Derived> > Ref;
-    typedef MatrixConstXpr<ConstRef> ConstXpr;
     typedef MatrixXpr<Ref> Xpr;
     typedef MatrixAlias<Derived> Alias;
 
@@ -118,20 +88,10 @@ class MatrixBase
     {
       return Ref(*this);
     }
-    
-    ConstRef constRef() const
-    {
-      return ConstRef(*this);
-    }
-    
+   
     Xpr xpr()
     {
       return Xpr(ref());
-    }
-    
-    ConstXpr constXpr() const
-    {
-      return ConstXpr(constRef());
     }
     
     Alias alias();
@@ -171,20 +131,30 @@ class MatrixBase
       return static_cast<Derived*>(this)->m_array;
     }
 
-    const Scalar& operator()(int row, int col = 0) const
+    const Scalar& read(int row, int col = 0) const
     {
       EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * rows()];
     }
 
-    Scalar& operator()(int row, int col = 0)
+    const Scalar& operator()(int row, int col = 0) const
+    {
+      return read(row, col);
+    }
+
+    Scalar& write(int row, int col = 0)
     {
       EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * rows()];
     }
     
+    Scalar& operator()(int row, int col = 0)
+    {
+      return write(row, col);
+    }
+    
     template<typename XprContent> 
-    MatrixBase& operator=(const MatrixConstXpr<XprContent> &otherXpr)
+    MatrixBase& operator=(const MatrixXpr<XprContent> &otherXpr)
     {
       resize(otherXpr.rows(), otherXpr.cols());
       xpr() = otherXpr;
@@ -193,23 +163,27 @@ class MatrixBase
     
     MatrixBase& operator=(const MatrixBase &other)
     {
-      return *this = other.constXpr();
+      resize(other.rows(), other.cols());
+      for(int i = 0; i < rows(); i++)
+        for(int j = 0; j < cols(); j++)
+          this->operator()(i, j) = other(i, j);
+      return *this;
     }
     
-    MatrixConstXpr<MatrixRow<const ConstRef> > row(int i) const;
-    MatrixConstXpr<MatrixCol<const ConstRef> > col(int i) const;
-    MatrixConstXpr<MatrixMinor<const ConstRef> > minor(int row, int col) const;
-    MatrixConstXpr<MatrixBlock<const ConstRef> >
-      block(int startRow, int endRow, int startCol = 0, int endCol = 0) const;
+    MatrixXpr<MatrixRow<Ref> > row(int i);
+    MatrixXpr<MatrixCol<Ref> > col(int i);
+    MatrixXpr<MatrixMinor<Ref> > minor(int row, int col);
+    MatrixXpr<MatrixBlock<Ref> >
+      block(int startRow, int endRow, int startCol = 0, int endCol = 0);
     
     template<typename Content>
-    MatrixBase& operator+=(const MatrixConstXpr<Content> &xpr);
+    MatrixBase& operator+=(const MatrixXpr<Content> &xpr);
     template<typename Content>
-    MatrixBase& operator-=(const MatrixConstXpr<Content> &xpr);
+    MatrixBase& operator-=(const MatrixXpr<Content> &xpr);
     template<typename Derived2>
-    MatrixBase& operator+=(const MatrixBase<Derived2> &other);
+    MatrixBase& operator+=(MatrixBase<Derived2> &other);
     template<typename Derived2>
-    MatrixBase& operator-=(const MatrixBase<Derived2> &other);
+    MatrixBase& operator-=(MatrixBase<Derived2> &other);
     
   protected:
   
@@ -223,7 +197,7 @@ MatrixXpr<Content>& MatrixXpr<Content>::operator=(const MatrixBase<Derived>& mat
   assert(rows() == matrix.rows() && cols() == matrix.cols());
   for(int i = 0; i < rows(); i++)
     for(int j = 0; j < cols(); j++)
-      this->operator()(i, j) = matrix(i, j);
+      write(i, j) = matrix(i, j);
   return *this;
 }
 
@@ -245,14 +219,14 @@ std::ostream & operator <<
 
 template<typename Content>
 std::ostream & operator << (std::ostream & s,
-                            const MatrixConstXpr<Content>& m)
+                            const MatrixXpr<Content>& xpr)
 {
-  for( int i = 0; i < m.rows(); i++ )
+  for( int i = 0; i < xpr.rows(); i++ )
   {
-    s << m( i, 0 );
-    for (int j = 1; j < m.cols(); j++ )
-      s << " " << m( i, j );
-    if( i < m.rows() - 1)
+    s << xpr.read(i, 0);
+    for (int j = 1; j < xpr.cols(); j++ )
+      s << " " << xpr.read(i, j);
+    if( i < xpr.rows() - 1)
       s << std::endl;
   }
   return s;
@@ -291,9 +265,9 @@ template<typename Derived> class MatrixAlias
     int rows() const { return m_tmp.rows(); }
     int cols() const { return m_tmp.cols(); }
     
-    Scalar& operator()(int row, int col)
+    Scalar& write(int row, int col)
     {
-      return m_tmp(row, col);
+      return m_tmp.write(row, col);
     }
     
     Ref ref()
@@ -301,20 +275,29 @@ template<typename Derived> class MatrixAlias
       return Ref(*this);
     }
     
+    MatrixXpr<MatrixRow<Xpr> > row(int i) { return xpr().row(i); };
+    MatrixXpr<MatrixCol<Xpr> > col(int i) { return xpr().col(i); };
+    MatrixXpr<MatrixMinor<Xpr> > minor(int row, int col) { return xpr().minor(row, col); };
+    MatrixXpr<MatrixBlock<Xpr> >
+    block(int startRow, int endRow, int startCol = 0, int endCol = 0)
+    {
+      return xpr().block(startRow, endRow, startCol, endCol);
+    }
+    
     template<typename XprContent> 
-    void operator=(const MatrixConstXpr<XprContent> &xpr)
+    void operator=(const MatrixXpr<XprContent> &xpr)
     {
       ref().xpr() = xpr;
     }
     
     template<typename XprContent> 
-    void operator+=(const MatrixConstXpr<XprContent> &xpr)
+    void operator+=(const MatrixXpr<XprContent> &xpr)
     {
       ref().xpr() += xpr;
     }
     
     template<typename XprContent> 
-    void operator-=(const MatrixConstXpr<XprContent> &xpr)
+    void operator-=(const MatrixXpr<XprContent> &xpr)
     {
       ref().xpr() -= xpr;
     }
