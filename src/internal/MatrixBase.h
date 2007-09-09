@@ -26,53 +26,12 @@
 #ifndef EIGEN_MATRIXBASE_H
 #define EIGEN_MATRIXBASE_H
 
-#include"Util.h"
-#include"MatrixXpr.h"
+#include "Util.h"
+#include "MatrixXpr.h"
+#include "MatrixRef.h"
 
 namespace Eigen
 {
-
-template<typename MatrixType> class MatrixRef
-{
-  public:
-    typedef typename ForwardDecl<MatrixType>::Scalar Scalar;
-    typedef MatrixXpr<MatrixRef<MatrixType> > Xpr;
-    
-    MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
-    MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
-    ~MatrixRef() {}
-
-    static bool hasDynamicNumRows()
-    {
-      return MatrixType::hasDynamicNumRows();
-    }
-
-    static bool hasDynamicNumCols()
-    {
-      return MatrixType::hasDynamicNumCols();
-    }
-    
-    int rows() const { return m_matrix.rows(); }
-    int cols() const { return m_matrix.cols(); }
-
-    const Scalar& read(int row, int col) const
-    {
-      return m_matrix.read(row, col);
-    }
-    
-    Scalar& write(int row, int col)
-    {
-      return m_matrix.write(row, col);
-    }
-
-    Xpr xpr()
-    {
-      return Xpr(*this);
-    }
-
-  protected:
-    MatrixType& m_matrix;
-};
 
 template<typename Derived>
 class MatrixBase
@@ -232,88 +191,11 @@ std::ostream & operator << (std::ostream & s,
   return s;
 }
 
-template<typename Derived> class MatrixAlias
-{
-  public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixRef<MatrixAlias<Derived> > Ref;
-    typedef MatrixXpr<Ref> Xpr;
-    
-    MatrixAlias(Derived& matrix) : m_aliased(matrix), m_tmp(matrix) {}
-    MatrixAlias(const MatrixAlias& other) : m_aliased(other.m_aliased), m_tmp(other.m_tmp) {}
-    
-    ~MatrixAlias()
-    {
-      m_aliased.xpr() = m_tmp;
-    }
-    
-    Ref ref()
-    {
-      return Ref(*this);
-    }
-    
-    Xpr xpr()
-    {
-      return Xpr(ref());
-    }
-    
-    static bool hasDynamicNumRows()
-    {
-      return MatrixBase<Derived>::hasDynamicNumRows();
-    }
-
-    static bool hasDynamicNumCols()
-    {
-      return MatrixBase<Derived>::hasDynamicNumCols();
-    }
-    
-    int rows() const { return m_tmp.rows(); }
-    int cols() const { return m_tmp.cols(); }
-    
-    Scalar& write(int row, int col)
-    {
-      return m_tmp.write(row, col);
-    }
-    
-    MatrixXpr<MatrixRow<Xpr> > row(int i) { return xpr().row(i); };
-    MatrixXpr<MatrixCol<Xpr> > col(int i) { return xpr().col(i); };
-    MatrixXpr<MatrixMinor<Xpr> > minor(int row, int col) { return xpr().minor(row, col); };
-    MatrixXpr<MatrixBlock<Xpr> >
-    block(int startRow, int endRow, int startCol = 0, int endCol = 0)
-    {
-      return xpr().block(startRow, endRow, startCol, endCol);
-    }
-    
-    template<typename XprContent> 
-    void operator=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() = other;
-    }
-    
-    template<typename XprContent> 
-    void operator+=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() += other;
-    }
-    
-    template<typename XprContent> 
-    void operator-=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() -= other;
-    }
-    
-  protected:
-    MatrixRef<MatrixBase<Derived> > m_aliased;
-    Derived m_tmp;
-};
-
-template<typename Derived>
-typename MatrixBase<Derived>::Alias
-MatrixBase<Derived>::alias()
-{
-  return Alias(*static_cast<Derived*>(this));
-}
-
 } // namespace Eigen
+
+#include "MatrixAlias.h"
+#include "MatrixOps.h"
+#include "ScalarOps.h"
+#include "RowAndCol.h"
 
 #endif // EIGEN_MATRIXBASE_H

@@ -23,7 +23,7 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#include"main.h"
+#include "main.h"
 
 template<typename MatrixType1,
          typename MatrixType2> void matrixOps(const MatrixType1& m1, const MatrixType2& m2)

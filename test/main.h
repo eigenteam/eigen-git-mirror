@@ -26,11 +26,11 @@
 #ifndef EIGEN_TEST_MAIN_H
 #define EIGEN_TEST_MAIN_H
 
-#include<QtTest/QtTest>
-#include<All.h>
-#include<complex>
-#include<cstdlib>
-#include<ctime>
+#include <QtTest/QtTest>
+#include <All>
+#include <complex>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 using namespace Eigen;

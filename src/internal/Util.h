@@ -26,8 +26,8 @@
 #ifndef EIGEN_UTIL_H
 #define EIGEN_UTIL_H
 
-#include<iostream>
-#include<cassert>
+#include <iostream>
+#include <cassert>
 
 #undef minor
 

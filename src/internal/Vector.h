@@ -27,19 +27,19 @@
   * \brief Matrix and MatrixX class templates
   */
 
-#ifndef EIGEN_MATRIX_H
-#define EIGEN_MATRIX_H
+#ifndef EIGEN_VECTOR_H
+#define EIGEN_VECTOR_H
 
 #include "MatrixBase.h"
 
 namespace Eigen
 {
 
-template<typename T, int Rows, int Cols>
-class Matrix: public MatrixBase< Matrix<T, Rows, Cols> >
+template<typename T, int Size>
+class Vector: public MatrixBase<Vector<T, Size> >
 {
-    friend  class MatrixBase<Matrix<T, Rows, Cols> >;
-    typedef class MatrixBase<Matrix<T, Rows, Cols> > Base;
+    friend  class MatrixBase<Vector<T, Size> >;
+    typedef class MatrixBase<Vector<T, Size> > Base;
     
   public:
     typedef T Scalar;
@@ -53,131 +53,138 @@ class Matrix: public MatrixBase< Matrix<T, Rows, Cols> >
     { return false; }
 
     int _rows() const
-    { return Rows; }
+    { return Size; }
     
     int _cols() const
-    { return Cols; }
+    { return 1; }
 
     void _resize( int rows, int cols ) const
     {
-      assert(rows == Rows && cols == Cols);
+      assert( rows == Size && cols == 1 );
     }
 
   public:
 
-    Matrix()
+    Vector()
     {
-      assert(Rows > 0 && Cols > 0);
+      assert(Size > 0);
+    }
+
+    explicit Vector(int rows, int cols = 1)
+    {
+      assert(Size > 0 && rows == Size && cols == 1);
     }
     
-    Matrix(const Matrix& other) : Base()
+    Vector(const Vector& other) : Base()
     {
       *this = other;
     }
 
-    Matrix(int rows, int cols)
-    {
-      assert(Rows > 0 && Cols > 0 && rows == Rows && cols == Cols);
-    }
-
-    void operator=(const Matrix & other)
+    void operator=(const Vector & other)
     { Base::operator=(other); }
-
+    
     template<typename XprContent>
     void operator=(const MatrixXpr<XprContent> &xpr)
-    { Base::operator=(xpr); }
+    {
+      Base::operator=(xpr);
+    }
 
     template<typename XprContent>
-    explicit Matrix(const MatrixXpr<XprContent>& xpr)
+    explicit Vector(const MatrixXpr<XprContent>& xpr)
     {
       *this = xpr;
     }
+    
+    int size() const { return _rows(); }
 
   protected:
 
-    T m_array[ Rows * Cols ];
+    T m_array[Size];
 
 };
 
 template<typename T>
-class MatrixX : public MatrixBase< MatrixX<T> >
+class VectorX : public MatrixBase<VectorX<T> >
 {
-    friend  class MatrixBase<MatrixX<T> >;
-    typedef class MatrixBase<MatrixX<T> > Base;
+    friend  class MatrixBase<VectorX<T> >;
+    typedef class MatrixBase<VectorX<T> > Base;
 
   public:
 
     typedef T Scalar;
 
-    MatrixX(int rows, int cols)
-    { _init(rows, cols); }
-
-    MatrixX(const MatrixX& other) : Base()
+    explicit VectorX(int rows, int cols = 1)
     {
-      _init(other.rows(), other.cols());
+      assert(cols == 1);
+      _init(rows);
+    }
+    
+    VectorX(const VectorX& other) : Base()
+    {
+      _init(other.size());
       *this = other;
     }
-
-    ~MatrixX()
-    { delete[] m_array; }
-
-    void operator=(const MatrixX& other)
-    { Base::operator=(other); }
-
+    
+    void operator=(const VectorX& other)
+    {
+      Base::operator=(other);
+    }
+    
     template<typename XprContent>
     void operator=(const MatrixXpr<XprContent> &xpr)
-    { Base::operator=(xpr); }
+    {
+      Base::operator=(xpr);
+    }
 
     template<typename XprContent>
-    explicit MatrixX(const MatrixXpr<XprContent>& xpr)
+    explicit VectorX(const MatrixXpr<XprContent>& xpr)
     {
-      _init(xpr.rows(), xpr.cols());
+      _init(xpr.rows());
       *this = xpr;
     }
 
+    ~VectorX()
+    {
+      delete[] m_array; }
+
+    int size() const { return _rows(); }
+
   protected:
-
-    int m_rows, m_cols;
-
+    
+    int m_size;
     T *m_array;
 
   private:
 
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
+    int _rows() const { return m_size; }
+    int _cols() const { return 1; }
     
     static bool _hasDynamicNumRows()
     { return true; }
 
     static bool _hasDynamicNumCols()
-    { return true; }
+    { return false; }
 
-    void _resize( int rows, int cols )
+    void _resize(int rows, int cols)
     {
-      assert(rows > 0 && cols > 0);
-      if(rows * cols > m_rows * m_cols)
+      assert(rows > 0 && cols == 1);
+      if(rows > m_size)
       {
         delete[] m_array;
-        m_array  = new T[rows * cols];
+        m_array  = new T[rows];
       }
-      m_rows = rows;
-      m_cols = cols;
+      m_size = rows;
     }
-    
-    void _init( int rows, int cols )
+
+    void _init(int size)
     {
-      assert(rows > 0 && cols > 0);
-      m_rows = rows;
-      m_cols = cols;
-      m_array  = new T[m_rows * m_cols];
+      assert(size > 0);
+      m_size = size;
+      m_array = new T[m_size];
     }
 
 };
 
 } // namespace Eigen
 
-#include"MatrixOps.h"
-#include"ScalarOps.h"
-#include"RowAndCol.h"
-
-#endif // EIGEN_MATRIX_H
+#endif // EIGEN_VECTOR_H

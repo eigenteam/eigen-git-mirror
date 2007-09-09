@@ -23,13 +23,54 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_EIGEN_H
-#define EIGEN_EIGEN_H
+#ifndef EIGEN_MATRIXREF_H
+#define EIGEN_MATRIXREF_H
 
-#include"Matrix.h"
-#include"Vector.h"
-#include"RowAndCol.h"
-#include"Minor.h"
-#include"Block.h"
+namespace Eigen
+{
 
-#endif // EIGEN_EIGEN_H
+template<typename MatrixType> class MatrixRef
+{
+  public:
+    typedef typename ForwardDecl<MatrixType>::Scalar Scalar;
+    typedef MatrixXpr<MatrixRef<MatrixType> > Xpr;
+    
+    MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
+    MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
+    ~MatrixRef() {}
+
+    static bool hasDynamicNumRows()
+    {
+      return MatrixType::hasDynamicNumRows();
+    }
+
+    static bool hasDynamicNumCols()
+    {
+      return MatrixType::hasDynamicNumCols();
+    }
+    
+    int rows() const { return m_matrix.rows(); }
+    int cols() const { return m_matrix.cols(); }
+
+    const Scalar& read(int row, int col) const
+    {
+      return m_matrix.read(row, col);
+    }
+    
+    Scalar& write(int row, int col)
+    {
+      return m_matrix.write(row, col);
+    }
+
+    Xpr xpr()
+    {
+      return Xpr(*this);
+    }
+
+  protected:
+    MatrixType& m_matrix;
+};
+
+} // namespace Eigen
+
+#endif // EIGEN_MATRIXREF_H
