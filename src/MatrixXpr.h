@@ -70,6 +70,8 @@ template<typename Content> class MatrixXpr
       return *this;
     }
     
+    //special case of the above template operator=. Strangely, g++ 4.1 failed to use
+    //that template when OtherContent == Content
     MatrixXpr& operator=(const MatrixXpr& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());

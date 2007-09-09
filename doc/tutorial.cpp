@@ -25,7 +25,6 @@ int main(int, char **)
   m2.block(2,3,2,3) = m - m;
   cout << "Now the 4x4 matrix m2 is:" << endl << m2 << endl;
   
-  // here we don't need to use .xpr() because we only need read access.
   cout << "The central 2x2 block of m2 is:" << endl << m2.block(1,2,1,2) << endl;
   cout << "Row 0 of m2, written as a column vector, is:" << endl << m2.row(0) << endl;
   cout << "Column 1 of m2 is:" << endl << m2.col(1) << endl;

@@ -247,6 +247,11 @@ template<typename Derived> class MatrixAlias
       m_aliased.xpr() = m_tmp;
     }
     
+    Ref ref()
+    {
+      return Ref(*this);
+    }
+    
     Xpr xpr()
     {
       return Xpr(ref());
@@ -270,11 +275,6 @@ template<typename Derived> class MatrixAlias
       return m_tmp.write(row, col);
     }
     
-    Ref ref()
-    {
-      return Ref(*this);
-    }
-    
     MatrixXpr<MatrixRow<Xpr> > row(int i) { return xpr().row(i); };
     MatrixXpr<MatrixCol<Xpr> > col(int i) { return xpr().col(i); };
     MatrixXpr<MatrixMinor<Xpr> > minor(int row, int col) { return xpr().minor(row, col); };
@@ -285,21 +285,21 @@ template<typename Derived> class MatrixAlias
     }
     
     template<typename XprContent> 
-    void operator=(const MatrixXpr<XprContent> &xpr)
+    void operator=(const MatrixXpr<XprContent> &other)
     {
-      ref().xpr() = xpr;
+      xpr() = other;
     }
     
     template<typename XprContent> 
-    void operator+=(const MatrixXpr<XprContent> &xpr)
+    void operator+=(const MatrixXpr<XprContent> &other)
     {
-      ref().xpr() += xpr;
+      xpr() += other;
     }
     
     template<typename XprContent> 
-    void operator-=(const MatrixXpr<XprContent> &xpr)
+    void operator-=(const MatrixXpr<XprContent> &other)
     {
-      ref().xpr() -= xpr;
+      xpr() -= other;
     }
     
   protected:
