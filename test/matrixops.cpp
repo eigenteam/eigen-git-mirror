@@ -45,7 +45,6 @@ template<typename MatrixType1,
   a = b + c;
   a = s * (b - c);
   a = eval(a + b);
-  
   a += b;
   a -= b + b;
   
@@ -60,10 +59,10 @@ void EigenTest::testMatrixOps()
   matrixOps(Matrix<int, 2, 3>(), Matrix<int, 3, 1>());
   matrixOps(Matrix<double, 3, 3>(), Matrix<double, 3, 3>());
   matrixOps(Matrix<complex<float>, 4,3>(), Matrix<complex<float>, 3,4>());
-  /*matrixOps(MatrixXf(1, 1), MatrixXf(1, 3));
+  matrixOps(MatrixXf(1, 1), MatrixXf(1, 3));
   matrixOps(MatrixXi(2, 2), MatrixXi(2, 2));
   matrixOps(MatrixXd(3, 5), MatrixXd(5, 1));
   matrixOps(MatrixXcf(4, 4), MatrixXcf(4, 4));
   matrixOps(MatrixXd(3, 5), Matrix<double, 5, 1>());
-  matrixOps(Matrix4cf(), MatrixXcf(4, 4));*/
+  matrixOps(Matrix4cf(), MatrixXcf(4, 4));
 }

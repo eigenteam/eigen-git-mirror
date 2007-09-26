@@ -17,13 +17,11 @@ int main(int, char **)
   
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
-  Matrix<double,4,4> m2; // dynamic matrix with initial size 4x4 and uninitialized entries
+  MatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;
   m2.block(0,1,0,1) = m;
-  cout << "m2 is now " << endl << m2 << endl;
-  cout << "m2.block(0,1,0,1) has " << m2.block(0,1,0,1).rows() << " rows" << endl;
   cout << "In the bottom-left block, we put the matrix m*m, which is:" << endl << m*m << endl;
   m2.block(2,3,0,1) = m * m;
   cout << "In the top-right block, we put the matrix m+m, which is:" << endl << m+m << endl;

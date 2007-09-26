@@ -54,8 +54,8 @@ void EigenTest::testVectorOps()
   vectorOps(Vector2i());
   vectorOps(Vector3d());
   vectorOps(Vector4cf());
-  /*vectorOps(VectorXf(1));
+  vectorOps(VectorXf(1));
   vectorOps(VectorXi(2));
   vectorOps(VectorXd(3));
-  vectorOps(VectorXcf(4));*/
+  vectorOps(VectorXcf(4));
 }

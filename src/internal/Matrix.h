@@ -73,26 +73,27 @@ class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
   public:
     template<typename OtherDerived> 
-    Matrix& operator=(const EigenBase<Scalar, OtherDerived> &other)
+    Matrix& operator=(const EigenBase<Scalar, OtherDerived>& other)
+    {
+      resize(other.rows(), other.cols());
+      return Base::operator=(other);
+    }
+    Matrix& operator=(const Matrix& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
     
-    template<typename OtherDerived>
-    Matrix& operator+=(const EigenBase<Scalar, OtherDerived> &other)
-    {
-      return Base::operator+=(other);
-    }
-    template<typename OtherDerived>
-    Matrix& operator-=(const EigenBase<Scalar, OtherDerived> &other)
-    {
-      return Base::operator-=(other);
-    }
-  
+    INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
+    INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
+    
     explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
     template<typename OtherDerived>
     Matrix(const EigenBase<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
+    {
+      *this = other;
+    }
+    Matrix(const Matrix& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
