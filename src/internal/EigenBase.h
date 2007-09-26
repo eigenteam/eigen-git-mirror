@@ -23,86 +23,96 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIXXPR_H
-#define EIGEN_MATRIXXPR_H
+#ifndef EIGEN_EIGENBASE_H
+#define EIGEN_EIGENBASE_H
+
+#include "Util.h"
 
 namespace Eigen {
 
-//forward declarations
-template<typename MatrixType> class MatrixRow;
-template<typename MatrixType> class MatrixCol;
-template<typename MatrixType> class MatrixMinor;
-template<typename MatrixType> class MatrixBlock;
-
-template<typename Content> class MatrixXpr
+template<typename _Scalar, typename Derived> class EigenBase
 {
+    static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
+                     ColsAtCompileTime = Derived::ColsAtCompileTime;
   public:
-    typedef typename Content::Scalar Scalar;
+    typedef typename ForwardDecl<Derived>::Ref Ref;
+    typedef _Scalar Scalar;
   
-    MatrixXpr(const Content& content)
-      : m_content(content) {}
+    int rows() const { return static_cast<const Derived *>(this)->_rows(); }
+    int cols() const { return static_cast<const Derived *>(this)->_cols(); }
+    int size() const { return rows() * cols(); }
     
-    MatrixXpr(const MatrixXpr& other)
-      : m_content(other.m_content) {}
+    Ref ref()
+    { return static_cast<Derived *>(this)->_ref(); }
     
-    ~MatrixXpr() {}
-    
-    int rows() const { return m_content.rows(); }
-    int cols() const { return m_content.cols(); }
+    Ref ref() const
+    { return static_cast<const Derived *>(this)->_ref(); }
     
     Scalar& write(int row, int col)
     {
-      return m_content.write(row, col);
+      return static_cast<Derived *>(this)->_write(row, col);
     }
     
     Scalar read(int row, int col) const
     {
-      return m_content.read(row, col);
+      return static_cast<const Derived *>(this)->_read(row, col);
     }
     
-    template<typename OtherContent>
-    MatrixXpr& operator=(const MatrixXpr<OtherContent>& other)
+    template<typename OtherDerived>
+    Derived& operator=(const EigenBase<Scalar, OtherDerived>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
           write(i, j) = other.read(i, j);
-      return *this;
+      return *static_cast<Derived*>(this);
     }
     
     //special case of the above template operator=. Strangely, g++ 4.1 failed to use
-    //that template when OtherContent == Content
-    MatrixXpr& operator=(const MatrixXpr& other)
+    //that template when OtherDerived == Derived
+    Derived& operator=(const EigenBase& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
           write(i, j) = other.read(i, j);
-      return *this;
+      return *static_cast<Derived*>(this);
     }
     
-    template<typename Derived>
-    MatrixXpr& operator=(const MatrixBase<Derived>& matrix);
-    
-    MatrixXpr<MatrixRow<MatrixXpr<Content> > > row(int i);
-    MatrixXpr<MatrixCol<MatrixXpr<Content> > > col(int i);
-    MatrixXpr<MatrixMinor<MatrixXpr<Content> > > minor(int row, int col);
-    MatrixXpr<MatrixBlock<MatrixXpr<Content> > >
+    MatrixRow<EigenBase> row(int i);
+    MatrixCol<EigenBase> col(int i);
+    MatrixMinor<EigenBase> minor(int row, int col);
+    MatrixBlock<EigenBase>
       block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
-    template<typename Content2>
-    MatrixXpr& operator+=(const MatrixXpr<Content2> &other);
-    template<typename Content2>
-    MatrixXpr& operator-=(const MatrixXpr<Content2> &other);
-    template<typename Derived>
-    MatrixXpr& operator+=(MatrixBase<Derived> &matrix);
-    template<typename Derived>
-    MatrixXpr& operator-=(MatrixBase<Derived> &matrix);
+    template<typename OtherDerived>
+    Derived& operator+=(const EigenBase<Scalar, OtherDerived>& other);
+    template<typename OtherDerived>
+    Derived& operator-=(const EigenBase<Scalar, OtherDerived>& other);
+
+    Scalar operator()(int row, int col = 0) const
+    { return read(row, col); }
     
-  protected:
-    Content m_content;
+    Scalar& operator()(int row, int col = 0)
+    { return write(row, col); }
 };
+
+template<typename Scalar, typename Derived>
+std::ostream & operator <<
+( std::ostream & s,
+  const EigenBase<Scalar, Derived> & m )
+{
+  for( int i = 0; i < m.rows(); i++ )
+  {
+    s << m( i, 0 );
+    for (int j = 1; j < m.cols(); j++ )
+      s << " " << m( i, j );
+    if( i < m.rows() - 1)
+      s << std::endl;
+  }
+  return s;
+}
 
 } // namespace Eigen
 
-#endif // EIGEN_MATRIXXPR_H
+#endif // EIGEN_EIGENBASE_H

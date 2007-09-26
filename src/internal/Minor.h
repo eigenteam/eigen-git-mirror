@@ -29,11 +29,16 @@
 namespace Eigen {
 
 template<typename MatrixType> class MatrixMinor
+  : public EigenBase<typename MatrixType::Scalar, MatrixMinor<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Ref MatRef;
+    friend class EigenBase<Scalar, MatrixMinor<MatrixType> >;
+    typedef MatrixMinor Ref;
 
-    MatrixMinor(const MatrixType& matrix, int row, int col = 0)
+    MatrixMinor(const MatRef& matrix,
+                int row, int col = 0)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
       EIGEN_CHECK_RANGES(matrix, row, col);
@@ -42,54 +47,35 @@ template<typename MatrixType> class MatrixMinor
     MatrixMinor(const MatrixMinor& other)
       : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
     
-    int rows() const { return m_matrix.rows() - 1; }
-    int cols() const { return m_matrix.cols() - 1; }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixMinor)
     
-    Scalar& write(int row, int col=0)
+  private:
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_matrix.rows() - 1; }
+    int _cols() const { return m_matrix.cols() - 1; }
+    
+    Scalar& _write(int row, int col=0)
     {
       return m_matrix.write(row + (row >= m_row), col + (col >= m_col));
     }
     
-    Scalar read(int row, int col=0) const
+    Scalar _read(int row, int col=0) const
     {
       return m_matrix.read(row + (row >= m_row), col + (col >= m_col));
     }
     
   protected:
-    MatrixType m_matrix;
+    MatRef m_matrix;
     const int m_row, m_col;
 };
 
-template<typename Derived>
-MatrixXpr<
-  MatrixMinor<
-    MatrixRef<
-      MatrixBase<Derived>
-    >
-  >
->
-MatrixBase<Derived>::minor(int row, int col)
+template<typename Scalar, typename Derived>
+MatrixMinor<EigenBase<Scalar, Derived> >
+EigenBase<Scalar, Derived>::minor(int row, int col)
 {
-  typedef MatrixMinor<Ref> ProductType;
-  typedef MatrixXpr<ProductType> XprType;
-  return XprType(ProductType(ref(), row, col));
+  return MatrixMinor<EigenBase>(ref(), row, col);
 }
 
-template<typename Content>
-MatrixXpr<
-  MatrixMinor<
-    MatrixXpr<Content>
-  >
->
-MatrixXpr<Content>::minor(int row, int col)
-{
-  typedef MatrixMinor<
-            MatrixXpr<Content>
-          > ProductType;
-  typedef MatrixXpr<ProductType> XprType;
-  return XprType(ProductType(*this, row, col));
-}
-
-}
+} // namespace Eigen
 
 #endif // EIGEN_MINOR_H

@@ -5,18 +5,25 @@ using namespace Eigen;
 
 int main(int, char **)
 {
-  Matrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
+  Matrix<double,2,2> m, n; // 2x2 fixed-size matrix with uninitialized entries
   m(0,0) = 1;
   m(0,1) = 2;
   m(1,0) = 3;
   m(1,1) = 4;
+
+  n = m;
+  n = eval(n*n);
+  cout << n << endl;
+#if 0
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
-  MatrixX<double> m2(4, 4); // dynamic matrix with initial size 4x4 and uninitialized entries
+  Matrix<double,4,4> m2; // dynamic matrix with initial size 4x4 and uninitialized entries
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;
   m2.block(0,1,0,1) = m;
+  cout << "m2 is now " << endl << m2 << endl;
+  cout << "m2.block(0,1,0,1) has " << m2.block(0,1,0,1).rows() << " rows" << endl;
   cout << "In the bottom-left block, we put the matrix m*m, which is:" << endl << m*m << endl;
   m2.block(2,3,0,1) = m * m;
   cout << "In the top-right block, we put the matrix m+m, which is:" << endl << m+m << endl;
@@ -47,5 +54,6 @@ int main(int, char **)
   m = m_save;
   m.alias() = m * m;
   cout << "And m is now:" << endl << m << endl << "as was expected." << endl;
+#endif
   return 0;
 }

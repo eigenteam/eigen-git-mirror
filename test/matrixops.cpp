@@ -47,7 +47,7 @@ template<typename MatrixType1,
   a.alias() = a + b;
   
   a += b;
-  a.alias().xpr() += b;
+  a.alias() += b;
   a -= b + b;
   
   MatrixType1 d(rows1, cols1);
@@ -61,10 +61,10 @@ void EigenTest::testMatrixOps()
   matrixOps(Matrix<int, 2, 3>(), Matrix<int, 3, 1>());
   matrixOps(Matrix<double, 3, 3>(), Matrix<double, 3, 3>());
   matrixOps(Matrix<complex<float>, 4,3>(), Matrix<complex<float>, 3,4>());
-  matrixOps(MatrixX<float>(1, 1), MatrixX<float>(1, 3));
-  matrixOps(MatrixX<int>(2, 2), MatrixX<int>(2, 2));
-  matrixOps(MatrixX<double>(3, 5), MatrixX<double>(5, 1));
-  matrixOps(MatrixX<complex<float> >(4, 4), MatrixX<complex<float> >(4, 4));
-  matrixOps(MatrixX<double>(3, 5), Matrix<double, 5, 1>());
-  matrixOps(Matrix<complex<float>, 4, 4>(), MatrixX<complex<float> >(4, 4));
+  /*matrixOps(MatrixXf(1, 1), MatrixXf(1, 3));
+  matrixOps(MatrixXi(2, 2), MatrixXi(2, 2));
+  matrixOps(MatrixXd(3, 5), MatrixXd(5, 1));
+  matrixOps(MatrixXcf(4, 4), MatrixXcf(4, 4));
+  matrixOps(MatrixXd(3, 5), Matrix<double, 5, 1>());
+  matrixOps(Matrix4cf(), MatrixXcf(4, 4));*/
 }

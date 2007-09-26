@@ -29,12 +29,17 @@
 namespace Eigen {
 
 template<typename MatrixType> class MatrixBlock
+  : public EigenBase<typename MatrixType::Scalar, MatrixBlock<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Ref MatRef;
+    friend class EigenBase<Scalar, MatrixBlock<MatrixType> >;
+    typedef MatrixBlock Ref;
 
-    MatrixBlock(const MatrixType& matrix, int startRow, int endRow,
-                                          int startCol = 0, int endCol = 0)
+    MatrixBlock(const MatRef& matrix,
+                int startRow, int endRow,
+                int startCol = 0, int endCol = 0)
       : m_matrix(matrix), m_startRow(startRow), m_endRow(endRow),
                           m_startCol(startCol), m_endCol(endCol)
     {
@@ -46,54 +51,35 @@ template<typename MatrixType> class MatrixBlock
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    int rows() const { return m_endRow - m_startRow + 1; }
-    int cols() const { return m_endCol - m_startCol + 1; }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixBlock)
     
-    Scalar& write(int row, int col=0)
+  private:
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_endRow - m_startRow + 1; }
+    int _cols() const { return m_endCol - m_startCol + 1; }
+    
+    Scalar& _write(int row, int col=0)
     {
       return m_matrix.write(row + m_startRow, col + m_startCol);
     }
     
-    Scalar read(int row, int col=0) const
+    Scalar _read(int row, int col=0) const
     {
       return m_matrix.read(row + m_startRow, col + m_startCol);
     }
     
   protected:
-    MatrixType m_matrix;
+    MatRef m_matrix;
     const int m_startRow, m_endRow, m_startCol, m_endCol;
 };
 
-template<typename Derived>
-MatrixXpr<
-  MatrixBlock<
-    MatrixRef<
-      MatrixBase<Derived>
-    >
-  >
->
-MatrixBase<Derived>::block(int startRow, int endRow, int startCol, int endCol)
+template<typename Scalar, typename Derived>
+MatrixBlock<EigenBase<Scalar, Derived> >
+EigenBase<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
 {
-  typedef MatrixBlock<Ref> ProductType;
-  typedef MatrixXpr<ProductType> XprType;
-  return XprType(ProductType(ref(), startRow, endRow, startCol, endCol));
+  return MatrixBlock<EigenBase>(ref(), startRow, endRow, startCol, endCol);
 }
 
-template<typename Content>
-MatrixXpr<
-  MatrixBlock<
-    MatrixXpr<Content>
-  >
->
-MatrixXpr<Content>::block(int startRow, int endRow, int startCol, int endCol)
-{
-  typedef MatrixBlock<
-            MatrixXpr<Content>
-          > ProductType;
-  typedef MatrixXpr<ProductType> XprType;
-  return XprType(ProductType(*this, startRow, endRow, startCol, endCol));
-}
-
-}
+} // namespace Eigen
 
 #endif // EIGEN_BLOCK_H

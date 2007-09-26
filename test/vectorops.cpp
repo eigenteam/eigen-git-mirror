@@ -46,19 +46,16 @@ template<typename VectorType> void vectorOps(const VectorType& v)
   
   a += b;
   a += b + b;
-  a.xpr() -= b;
-  a.xpr() -= b + b;
   a.alias() += a + a;
 }
 
 void EigenTest::testVectorOps()
 {
-  vectorOps(Vector<float, 1>());
-  vectorOps(Vector<int, 2>());
-  vectorOps(Vector<double, 3>());
-  vectorOps(Vector<complex<float>, 4>());
-  vectorOps(VectorX<float>(1));
-  vectorOps(VectorX<int>(2));
-  vectorOps(VectorX<double>(3));
-  vectorOps(VectorX<complex<float> >(4));
+  vectorOps(Vector2i());
+  vectorOps(Vector3d());
+  vectorOps(Vector4cf());
+  /*vectorOps(VectorXf(1));
+  vectorOps(VectorXi(2));
+  vectorOps(VectorXd(3));
+  vectorOps(VectorXcf(4));*/
 }

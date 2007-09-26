@@ -29,86 +29,54 @@
 namespace Eigen
 {
 
-template<typename Derived> class MatrixAlias
+template<typename MatrixType> class MatrixAlias
+  : public EigenBase<typename MatrixType::Scalar, MatrixAlias<MatrixType> >
 {
   public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixRef<MatrixAlias<Derived> > Ref;
-    typedef MatrixXpr<Ref> Xpr;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef MatrixRef<MatrixAlias> Ref;
+    typedef EigenBase<typename MatrixType::Scalar, MatrixAlias> Base;
+    friend class EigenBase<typename MatrixType::Scalar, MatrixAlias>;
     
-    MatrixAlias(Derived& matrix) : m_aliased(matrix), m_tmp(matrix) {}
+    MatrixAlias(MatrixType& matrix) : m_aliased(matrix), m_tmp(matrix) {}
     MatrixAlias(const MatrixAlias& other) : m_aliased(other.m_aliased), m_tmp(other.m_tmp) {}
     
     ~MatrixAlias()
     {
-      m_aliased.xpr() = m_tmp;
+      m_aliased = m_tmp;
     }
     
-    Ref ref()
-    {
-      return Ref(*this);
-    }
-    
-    Xpr xpr()
-    {
-      return Xpr(ref());
-    }
-    
-    static bool hasDynamicNumRows()
-    {
-      return MatrixBase<Derived>::hasDynamicNumRows();
-    }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixAlias)
 
-    static bool hasDynamicNumCols()
+  private:
+    Ref _ref() const
     {
-      return MatrixBase<Derived>::hasDynamicNumCols();
+      return Ref(*const_cast<MatrixAlias*>(this));
     }
     
-    int rows() const { return m_tmp.rows(); }
-    int cols() const { return m_tmp.cols(); }
+    int _rows() const { return m_tmp.rows(); }
+    int _cols() const { return m_tmp.cols(); }
     
-    Scalar& write(int row, int col)
+    Scalar& _write(int row, int col)
     {
       return m_tmp.write(row, col);
     }
     
-    MatrixXpr<MatrixRow<Xpr> > row(int i) { return xpr().row(i); };
-    MatrixXpr<MatrixCol<Xpr> > col(int i) { return xpr().col(i); };
-    MatrixXpr<MatrixMinor<Xpr> > minor(int row, int col) { return xpr().minor(row, col); };
-    MatrixXpr<MatrixBlock<Xpr> >
-    block(int startRow, int endRow, int startCol = 0, int endCol = 0)
+    Scalar _read(int row, int col) const
     {
-      return xpr().block(startRow, endRow, startCol, endCol);
-    }
-    
-    template<typename XprContent> 
-    void operator=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() = other;
-    }
-    
-    template<typename XprContent> 
-    void operator+=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() += other;
-    }
-    
-    template<typename XprContent> 
-    void operator-=(const MatrixXpr<XprContent> &other)
-    {
-      xpr() -= other;
+      return m_aliased.read(row, col);
     }
     
   protected:
-    MatrixRef<MatrixBase<Derived> > m_aliased;
-    Derived m_tmp;
+    MatrixRef<MatrixType> m_aliased;
+    MatrixType m_tmp;
 };
 
-template<typename Derived>
-typename MatrixBase<Derived>::Alias
-MatrixBase<Derived>::alias()
+template<typename _Scalar, int _Rows, int _Cols>
+typename Matrix<_Scalar, _Rows, _Cols>::Alias
+Matrix<_Scalar, _Rows, _Cols>::alias()
 {
-  return Alias(*static_cast<Derived*>(this));
+  return Alias(*this);
 }
 
 } // namespace Eigen

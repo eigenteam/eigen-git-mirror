@@ -23,157 +23,111 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-/** \file Matrix.h
-  * \brief Matrix and MatrixX class templates
-  */
-
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-#include "MatrixBase.h"
+#include "Util.h"
+#include "EigenBase.h"
+#include "MatrixRef.h"
+#include "MatrixStorage.h"
 
 namespace Eigen
 {
 
-template<typename T, int Rows, int Cols>
-class Matrix: public MatrixBase< Matrix<T, Rows, Cols> >
+template<typename _Scalar, int _Rows, int _Cols>
+class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
+               public MatrixStorage<_Scalar, _Rows, _Cols>
 {
-    friend  class MatrixBase<Matrix<T, Rows, Cols> >;
-    typedef class MatrixBase<Matrix<T, Rows, Cols> > Base;
-    
   public:
-    typedef T Scalar;
-
+    friend class EigenBase<_Scalar, Matrix>;
+    typedef      EigenBase<_Scalar, Matrix>            Base;
+    typedef      MatrixStorage<_Scalar, _Rows, _Cols>  Storage;
+    typedef      _Scalar                               Scalar;
+    typedef      MatrixRef<Matrix>                     Ref;
+    typedef      MatrixAlias<Matrix>                   Alias;
+    
+    static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
+    
+    Alias alias();
+    
+    const Scalar* array() const
+    { return Storage::m_array; }
+    
+    Scalar* array()
+    { return Storage::m_array; }
+    
   private:
+    Ref _ref() const { return Ref(*const_cast<Matrix*>(this)); }
 
-    static bool _hasDynamicNumRows()
-    { return false; }
-
-    static bool _hasDynamicNumCols()
-    { return false; }
-
-    int _rows() const
-    { return Rows; }
-    
-    int _cols() const
-    { return Cols; }
-
-    void _resize( int rows, int cols ) const
+    const Scalar& _read(int row, int col = 0) const
     {
-      assert(rows == Rows && cols == Cols);
+      EIGEN_CHECK_RANGES(*this, row, col);
+      return array()[row + col * Storage::_rows()];
     }
-
+    
+    Scalar& _write(int row, int col = 0)
+    {
+      EIGEN_CHECK_RANGES(*this, row, col);
+      return array()[row + col * Storage::_rows()];
+    }
+    
   public:
-
-    Matrix()
+    template<typename OtherDerived> 
+    Matrix& operator=(const EigenBase<Scalar, OtherDerived> &other)
     {
-      assert(Rows > 0 && Cols > 0);
+      resize(other.rows(), other.cols());
+      return Base::operator=(other);
     }
     
-    Matrix(const Matrix& other) : Base()
+    template<typename OtherDerived>
+    Matrix& operator+=(const EigenBase<Scalar, OtherDerived> &other)
+    {
+      return Base::operator+=(other);
+    }
+    template<typename OtherDerived>
+    Matrix& operator-=(const EigenBase<Scalar, OtherDerived> &other)
+    {
+      return Base::operator-=(other);
+    }
+  
+    explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
+    template<typename OtherDerived>
+    Matrix(const EigenBase<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
-
-    Matrix(int rows, int cols)
-    {
-      assert(Rows > 0 && Cols > 0 && rows == Rows && cols == Cols);
-    }
-
-    void operator=(const Matrix & other)
-    { Base::operator=(other); }
-
-    template<typename XprContent>
-    void operator=(const MatrixXpr<XprContent> &xpr)
-    { Base::operator=(xpr); }
-
-    template<typename XprContent>
-    explicit Matrix(const MatrixXpr<XprContent>& xpr)
-    {
-      *this = xpr;
-    }
-
-  protected:
-
-    T m_array[ Rows * Cols ];
-
+    ~Matrix() {}
 };
 
-template<typename T>
-class MatrixX : public MatrixBase< MatrixX<T> >
+template<typename Scalar, typename Derived>
+Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+eval(const EigenBase<Scalar, Derived>& expression)
 {
-    friend  class MatrixBase<MatrixX<T> >;
-    typedef class MatrixBase<MatrixX<T> > Base;
+  return Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(expression);
+}
 
-  public:
+#define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
+typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix; \
+typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix;
 
-    typedef T Scalar;
+#define EIGEN_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, DynamicSize, X)
 
-    MatrixX(int rows, int cols)
-    { _init(rows, cols); }
-
-    MatrixX(const MatrixX& other) : Base()
-    {
-      _init(other.rows(), other.cols());
-      *this = other;
-    }
-
-    ~MatrixX()
-    { delete[] m_array; }
-
-    void operator=(const MatrixX& other)
-    { Base::operator=(other); }
-
-    template<typename XprContent>
-    void operator=(const MatrixXpr<XprContent> &xpr)
-    { Base::operator=(xpr); }
-
-    template<typename XprContent>
-    explicit MatrixX(const MatrixXpr<XprContent>& xpr)
-    {
-      _init(xpr.rows(), xpr.cols());
-      *this = xpr;
-    }
-
-  protected:
-
-    int m_rows, m_cols;
-
-    T *m_array;
-
-  private:
-
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
-    
-    static bool _hasDynamicNumRows()
-    { return true; }
-
-    static bool _hasDynamicNumCols()
-    { return true; }
-
-    void _resize( int rows, int cols )
-    {
-      assert(rows > 0 && cols > 0);
-      if(rows * cols > m_rows * m_cols)
-      {
-        delete[] m_array;
-        m_array  = new T[rows * cols];
-      }
-      m_rows = rows;
-      m_cols = cols;
-    }
-    
-    void _init( int rows, int cols )
-    {
-      assert(rows > 0 && cols > 0);
-      m_rows = rows;
-      m_cols = cols;
-      m_array  = new T[m_rows * m_cols];
-    }
-
-};
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<int>,    ci)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 } // namespace Eigen
+
+#include "MatrixAlias.h"
+#include "MatrixOps.h"
+#include "ScalarOps.h"
+#include "RowAndCol.h"
 
 #endif // EIGEN_MATRIX_H

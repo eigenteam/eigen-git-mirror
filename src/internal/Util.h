@@ -27,6 +27,7 @@
 #define EIGEN_UTIL_H
 
 #include <iostream>
+#include <complex>
 #include <cassert>
 
 #undef minor
@@ -43,40 +44,52 @@ namespace Eigen
 {
 
 //forward declarations
-template<typename T, int Rows, int Cols> class Matrix;
-template<typename T> class MatrixX;
-template<typename T, int Size> class Vector;
-template<typename T> class VectorX;
-template<typename Derived> class MatrixBase;
-template<typename Derived> class MatrixAlias;
-
-template<typename T> struct ForwardDecl;
-template<typename T, int Rows, int Cols> struct ForwardDecl< Matrix<T, Rows, Cols> >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< MatrixX<T> >
-{ typedef T Scalar; };
-template<typename T, int Size> struct ForwardDecl< Vector<T, Size> >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< VectorX<T> >
-{ typedef T Scalar; };
-template<typename T, int Rows, int Cols> struct ForwardDecl< MatrixBase<Matrix<T, Rows, Cols> > >
-{ typedef T Scalar; };
-template<typename T, int Rows, int Cols> struct ForwardDecl< MatrixAlias<Matrix<T, Rows, Cols> > >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< MatrixBase<MatrixX<T> > >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< MatrixAlias<MatrixX<T> > >
-{ typedef T Scalar; };
-template<typename T, int Size> struct ForwardDecl< MatrixBase<Vector<T, Size> > >
-{ typedef T Scalar; };
-template<typename T, int Size> struct ForwardDecl< MatrixAlias<Vector<T, Size> > >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< MatrixBase<VectorX<T> > >
-{ typedef T Scalar; };
-template<typename T> struct ForwardDecl< MatrixAlias<VectorX<T> > >
-{ typedef T Scalar; };
-
+template<typename _Scalar, int _Rows, int _Cols> class Matrix;
+template<typename MatrixType> class MatrixAlias;
 template<typename MatrixType> class MatrixRef;
+template<typename MatrixType> class MatrixRow;
+template<typename MatrixType> class MatrixCol;
+template<typename MatrixType> class MatrixMinor;
+template<typename MatrixType> class MatrixBlock;
+template<typename Lhs, typename Rhs> class MatrixSum;
+template<typename Lhs, typename Rhs> class MatrixDifference;
+template<typename Lhs, typename Rhs> class MatrixProduct;
+template<typename MatrixType> class ScalarProduct;
+
+template<typename T> struct ForwardDecl
+{
+  typedef T Ref;
+};
+
+template<typename _Scalar, int _Rows, int _Cols> struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
+{
+  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols> > Ref;
+};
+
+template<typename MatrixType> struct ForwardDecl<MatrixAlias<MatrixType> >
+{
+  typedef MatrixRef<MatrixAlias<MatrixType> > Ref;
+};
+
+const int DynamicSize = -1;
+
+#define EIGEN_UNUSED(x) (void)x
+
+#define INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename OtherScalar, typename OtherDerived> \
+Derived& operator Op(const EigenBase<OtherScalar, OtherDerived>& other) \
+{ \
+  return EigenBase<OtherScalar, Derived>::operator Op(other); \
+} \
+Derived& operator Op(const Derived& other) \
+{ \
+  return EigenBase<Scalar, Derived>::operator Op(other); \
+}
+
+#define INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+INHERIT_ASSIGNMENT_OPERATOR(Derived, -=)
 
 } // namespace Eigen
 

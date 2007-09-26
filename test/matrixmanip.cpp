@@ -38,7 +38,7 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
   a.row(i) = b.row(i);
   a.row(i) += b.row(i);
   a.minor(i, j) = b.block(1, rows-1, 1, cols-1);
-  a.alias().minor(i, j) -= a.block(1, rows-1, 1, cols-1);
+  //a.alias().minor(i, j) -= a.block(1, rows-1, 1, cols-1);
 }
 
 void EigenTest::testMatrixManip()
@@ -46,7 +46,7 @@ void EigenTest::testMatrixManip()
   matrixManip(Matrix<int, 2, 3>());
   matrixManip(Matrix<double, 3, 3>());
   matrixManip(Matrix<complex<float>, 4,3>());
-  matrixManip(MatrixX<int>(2, 2));
-  matrixManip(MatrixX<double>(3, 5));
-  matrixManip(MatrixX<complex<float> >(4, 4));
+  matrixManip(MatrixXi(2, 2));
+  matrixManip(MatrixXd(3, 5));
+  matrixManip(MatrixXcf(4, 4));
 }

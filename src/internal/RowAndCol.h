@@ -29,11 +29,15 @@
 namespace Eigen {
 
 template<typename MatrixType> class MatrixRow
+  : public EigenBase<typename MatrixType::Scalar, MatrixRow<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Ref MatRef;
+    friend class EigenBase<Scalar, MatrixRow<MatrixType> >;
+    typedef MatrixRow Ref;
 
-    MatrixRow(const MatrixType& matrix, int row)
+    MatrixRow(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
       EIGEN_CHECK_ROW_RANGE(matrix, row);
@@ -42,17 +46,28 @@ template<typename MatrixType> class MatrixRow
     MatrixRow(const MatrixRow& other)
       : m_matrix(other.m_matrix), m_row(other.m_row) {}
     
-    int rows() const { return m_matrix.cols(); }
-    int cols() const { return 1; }
+    template<typename OtherDerived>
+    MatrixRow& operator=(const EigenBase<Scalar, OtherDerived>& other)
+    {
+      return EigenBase<Scalar, MatrixRow<MatrixType> >::operator=(other);
+    }
     
-    Scalar& write(int row, int col=0)
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixRow)
+    
+  private:
+    const Ref& _ref() const { return *this; }
+    
+    int _rows() const { return m_matrix.cols(); }
+    int _cols() const { return 1; }
+    
+    Scalar& _write(int row, int col=0)
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.write(m_row, row);
     }
     
-    Scalar read(int row, int col=0) const
+    Scalar _read(int row, int col=0) const
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
@@ -60,16 +75,20 @@ template<typename MatrixType> class MatrixRow
     }
     
   protected:
-    MatrixType m_matrix;
+    MatRef m_matrix;
     const int m_row;
 };
 
 template<typename MatrixType> class MatrixCol
+  : public EigenBase<typename MatrixType::Scalar, MatrixCol<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-
-    MatrixCol(const MatrixType& matrix, int col)
+    typedef typename MatrixType::Ref MatRef;
+    friend class EigenBase<Scalar, MatrixCol<MatrixType> >;
+    typedef MatrixCol Ref;
+    
+    MatrixCol(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)
     {
       EIGEN_CHECK_COL_RANGE(matrix, col);
@@ -78,17 +97,21 @@ template<typename MatrixType> class MatrixCol
     MatrixCol(const MatrixCol& other)
       : m_matrix(other.m_matrix), m_col(other.m_col) {}
     
-    int rows() const { return m_matrix.rows(); }
-    int cols() const { return 1; }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixCol)
     
-    Scalar& write(int row, int col=0)
+  private:
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return 1; }
+    
+    Scalar& _write(int row, int col=0)
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.write(row, m_col);
     }
     
-    Scalar read(int row, int col=0) const
+    Scalar _read(int row, int col=0) const
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
@@ -96,46 +119,24 @@ template<typename MatrixType> class MatrixCol
     }
     
   protected:
-    MatrixType m_matrix;
+    MatRef m_matrix;
     const int m_col;
 };
 
-#define EIGEN_MAKE_ROW_COL_FUNCTIONS(func, Func) \
-template<typename Derived> \
-MatrixXpr< \
-  Matrix##Func< \
-    MatrixRef< \
-      MatrixBase<Derived> \
-    > \
-  > \
-> \
-MatrixBase<Derived>::func(int i)\
-{ \
-  typedef Matrix##Func<Ref> ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(ref(), i)); \
-} \
-\
-template<typename Content> \
-MatrixXpr< \
-  Matrix##Func< \
-    MatrixXpr<Content> \
-  > \
-> \
-MatrixXpr<Content>::func(int i)\
-{ \
-  typedef Matrix##Func< \
-            MatrixXpr<Content> \
-          > ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(*this, i)); \
+template<typename Scalar, typename Derived>
+MatrixRow<EigenBase<Scalar, Derived> >
+EigenBase<Scalar, Derived>::row(int i)
+{
+  return MatrixRow<EigenBase>(ref(), i);
 }
 
-EIGEN_MAKE_ROW_COL_FUNCTIONS(row, Row)
-EIGEN_MAKE_ROW_COL_FUNCTIONS(col, Col)
-
-#undef EIGEN_MAKE_ROW_COL_FUNCTIONS
-
+template<typename Scalar, typename Derived>
+MatrixCol<EigenBase<Scalar, Derived> >
+EigenBase<Scalar, Derived>::col(int i)
+{
+  return MatrixCol<EigenBase>(ref(), i);
 }
+
+} // namespace Eigen
 
 #endif // EIGEN_ROWANDCOL_H

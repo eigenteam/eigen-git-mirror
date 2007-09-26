@@ -28,45 +28,93 @@
 
 namespace Eigen {
 
-#define EIGEN_MAKE_MATRIX_OP_XPR(NAME, SYMBOL) \
-template<typename Lhs, typename Rhs> class Matrix##NAME \
-{ \
-  public: \
-    typedef typename Lhs::Scalar Scalar; \
-\
-    Matrix##NAME(const Lhs& lhs, const Rhs& rhs) \
-      : m_lhs(lhs), m_rhs(rhs) \
-    { \
-      assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols()); \
-    } \
-\
-    Matrix##NAME(const Matrix##NAME& other) \
-      : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {} \
-\
-    int rows() const { return m_lhs.rows(); } \
-    int cols() const { return m_lhs.cols(); } \
-\
-    Scalar read(int row, int col) const \
-    { \
-      return m_lhs.read(row, col) SYMBOL m_rhs.read(row, col); \
-    } \
-\
-  protected: \
-    const Lhs m_lhs; \
-    const Rhs m_rhs; \
-};
-
-EIGEN_MAKE_MATRIX_OP_XPR(Sum,        +)
-EIGEN_MAKE_MATRIX_OP_XPR(Difference, -)
-
-#undef EIGEN_MAKE_MATRIX_OP_XPR
-
-template<typename Lhs, typename Rhs> class MatrixProduct
+template<typename Lhs, typename Rhs> class MatrixSum
+  : public EigenBase<typename Lhs::Scalar, MatrixSum<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
+    typedef typename Lhs::Ref LhsRef;
+    typedef typename Rhs::Ref RhsRef;
+    friend class EigenBase<Scalar, MatrixSum>;
+    typedef MatrixSum Ref;
 
-    MatrixProduct(const Lhs& lhs, const Rhs& rhs)
+    MatrixSum(const LhsRef& lhs, const RhsRef& rhs)
+      : m_lhs(lhs), m_rhs(rhs)
+    {
+      assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
+    }
+
+    MatrixSum(const MatrixSum& other)
+      : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
+
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixSum)
+
+  private:
+  
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_lhs.rows(); }
+    int _cols() const { return m_lhs.cols(); }
+
+    Scalar _read(int row, int col) const
+    {
+      return m_lhs.read(row, col) + m_rhs.read(row, col);
+    }
+    
+  protected:
+    const LhsRef m_lhs;
+    const RhsRef m_rhs;
+};
+
+template<typename Lhs, typename Rhs> class MatrixDifference
+  : public EigenBase<typename Lhs::Scalar, MatrixDifference<Lhs, Rhs> >
+{
+  public:
+    typedef typename Lhs::Scalar Scalar;
+    typedef typename Lhs::Ref LhsRef;
+    typedef typename Rhs::Ref RhsRef;
+    friend class EigenBase<Scalar, MatrixDifference>;
+    typedef MatrixDifference Ref;
+    
+    MatrixDifference(const LhsRef& lhs, const RhsRef& rhs)
+      : m_lhs(lhs), m_rhs(rhs)
+    {
+      assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
+    }
+
+    MatrixDifference(const MatrixDifference& other)
+      : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
+
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixDifference)
+
+  private:
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_lhs.rows(); }
+    int _cols() const { return m_lhs.cols(); }
+
+    Scalar _read(int row, int col) const
+    {
+      return m_lhs.read(row, col) - m_rhs.read(row, col);
+    }
+    
+  protected:
+    const LhsRef m_lhs;
+    const RhsRef m_rhs;
+};
+
+template<typename Lhs, typename Rhs> class MatrixProduct
+  : public EigenBase<typename Lhs::Scalar, MatrixProduct<Lhs, Rhs> >
+{
+  public:
+    typedef typename Lhs::Scalar Scalar;
+    typedef typename Lhs::Ref LhsRef;
+    typedef typename Rhs::Ref RhsRef;
+    friend class EigenBase<Scalar, MatrixProduct>;
+    typedef MatrixProduct Ref;
+    
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
+
+    MatrixProduct(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {
       assert(lhs.cols() == rhs.rows());
@@ -75,143 +123,64 @@ template<typename Lhs, typename Rhs> class MatrixProduct
     MatrixProduct(const MatrixProduct& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
-    int rows() const { return m_lhs.rows(); }
-    int cols() const { return m_rhs.cols(); }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixProduct)
     
-    Scalar read(int row, int col) const
+  private:
+    const Ref& _ref() const { return *this; }
+    int _rows() const { return m_lhs.rows(); }
+    int _cols() const { return m_rhs.cols(); }
+    
+    Scalar _read(int row, int col) const
     {
       Scalar x = static_cast<Scalar>(0);
       for(int i = 0; i < m_lhs.cols(); i++)
         x += m_lhs.read(row, i) * m_rhs.read(i, col);
       return x;
     }
-
+    
   protected:
-    const Lhs m_lhs;
-    const Rhs m_rhs;
+    const LhsRef m_lhs;
+    const RhsRef m_rhs;
 };
 
-#define EIGEN_MAKE_MATRIX_OP(NAME, SYMBOL) \
-template<typename Content1, typename Content2> \
-MatrixXpr< \
-  Matrix##NAME< \
-    MatrixXpr<Content1>, \
-    MatrixXpr<Content2> \
-  > \
-> \
-operator SYMBOL(const MatrixXpr<Content1> &xpr1, const MatrixXpr<Content2> &xpr2) \
-{ \
-  typedef Matrix##NAME< \
-            MatrixXpr<Content1>, \
-            MatrixXpr<Content2> \
-          > ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(xpr1, xpr2)); \
-} \
-\
-template<typename Derived, typename Content> \
-MatrixXpr< \
-  Matrix##NAME< \
-    MatrixRef<MatrixBase<Derived> >, \
-    MatrixXpr<Content> \
-  > \
-> \
-operator SYMBOL(MatrixBase<Derived> &mat, const MatrixXpr<Content> &xpr) \
-{ \
-  typedef Matrix##NAME< \
-            MatrixRef<MatrixBase<Derived> >, \
-            MatrixXpr<Content> \
-          > ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(mat.ref(), xpr)); \
-} \
-\
-template<typename Content, typename Derived> \
-MatrixXpr< \
-  Matrix##NAME< \
-    MatrixXpr<Content>, \
-    MatrixRef<MatrixBase<Derived> > \
-  > \
-> \
-operator SYMBOL(const MatrixXpr<Content> &xpr, MatrixBase<Derived> &mat) \
-{ \
-  typedef Matrix##NAME< \
-            MatrixXpr<Content>, \
-            MatrixRef<MatrixBase<Derived> > \
-          > ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(xpr, mat.ref())); \
-} \
-\
-template<typename Derived1, typename Derived2> \
-MatrixXpr< \
-  Matrix##NAME< \
-    MatrixRef<MatrixBase<Derived1> >, \
-    MatrixRef<MatrixBase<Derived2> > \
-  > \
-> \
-operator SYMBOL(MatrixBase<Derived1> &mat1, MatrixBase<Derived2> &mat2) \
-{ \
-  typedef Matrix##NAME< \
-            MatrixRef<MatrixBase<Derived1> >, \
-            MatrixRef<MatrixBase<Derived2> > \
-          > ProductType; \
-  typedef MatrixXpr<ProductType> XprType; \
-  return XprType(ProductType(mat1.ref(), \
-                             mat2.ref())); \
+template<typename Scalar, typename Derived1, typename Derived2>
+MatrixProduct<Derived1, Derived2>
+operator*(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+{
+  return MatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
-EIGEN_MAKE_MATRIX_OP(Sum,        +)
-EIGEN_MAKE_MATRIX_OP(Difference, -)
-EIGEN_MAKE_MATRIX_OP(Product,    *)
-
-#undef EIGEN_MAKE_MATRIX_OP
-
-#define EIGEN_MAKE_MATRIX_OP_EQ(SYMBOL) \
-template<typename Derived1> \
-template<typename Derived2> \
-MatrixBase<Derived1> & \
-MatrixBase<Derived1>::operator SYMBOL##=(MatrixBase<Derived2> &mat2) \
-{ \
-  return *this = *this SYMBOL mat2; \
-} \
-\
-template<typename Derived> \
-template<typename Content> \
-MatrixBase<Derived> & \
-MatrixBase<Derived>::operator SYMBOL##=(const MatrixXpr<Content> &xpr) \
-{ \
-  return *this = *this SYMBOL xpr; \
-} \
-\
-template<typename Content> \
-template<typename Derived> \
-MatrixXpr<Content> & \
-MatrixXpr<Content>::operator SYMBOL##=(MatrixBase<Derived> &mat) \
-{ \
-  assert(rows() == mat.rows() && cols() == mat.cols()); \
-  for(int i = 0; i < rows(); i++) \
-    for(int j = 0; j < cols(); j++) \
-      write(i, j) SYMBOL##= mat.read(i, j); \
-  return *this; \
-} \
-\
-template<typename Content1> \
-template<typename Content2> \
-MatrixXpr<Content1> & \
-MatrixXpr<Content1>::operator SYMBOL##=(const MatrixXpr<Content2> &other) \
-{ \
-  assert(rows() == other.rows() && cols() == other.cols()); \
-  for(int i = 0; i < rows(); i++) \
-    for(int j = 0; j < cols(); j++) \
-      write(i, j) SYMBOL##= other.read(i, j); \
-  return *this; \
+template<typename Scalar, typename Derived1, typename Derived2>
+MatrixSum<Derived1, Derived2>
+operator+(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+{
+  return MatrixSum<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
-EIGEN_MAKE_MATRIX_OP_EQ(+)
-EIGEN_MAKE_MATRIX_OP_EQ(-)
+template<typename Scalar, typename Derived1, typename Derived2>
+MatrixDifference<Derived1, Derived2>
+operator-(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+{
+  return MatrixDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
+}
 
-#undef EIGEN_MAKE_MATRIX_OP_EQ
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+Derived &
+EigenBase<Scalar, Derived>::operator+=(const EigenBase<Scalar, OtherDerived>& other)
+{
+  *this = *this + other;
+  return *static_cast<Derived*>(this);
+}
+
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+Derived &
+EigenBase<Scalar, Derived>::operator-=(const EigenBase<Scalar, OtherDerived> &other)
+{
+  *this = *this - other;
+  return *static_cast<Derived*>(this);
+}
 
 } // namespace Eigen
 

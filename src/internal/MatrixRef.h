@@ -30,41 +30,30 @@ namespace Eigen
 {
 
 template<typename MatrixType> class MatrixRef
+ : public EigenBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
   public:
-    typedef typename ForwardDecl<MatrixType>::Scalar Scalar;
-    typedef MatrixXpr<MatrixRef<MatrixType> > Xpr;
+    typedef typename MatrixType::Scalar Scalar;
+    friend class EigenBase<Scalar, MatrixRef>;
     
     MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}
 
-    static bool hasDynamicNumRows()
-    {
-      return MatrixType::hasDynamicNumRows();
-    }
+    INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
-    static bool hasDynamicNumCols()
-    {
-      return MatrixType::hasDynamicNumCols();
-    }
-    
-    int rows() const { return m_matrix.rows(); }
-    int cols() const { return m_matrix.cols(); }
+  private:
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return m_matrix.cols(); }
 
-    const Scalar& read(int row, int col) const
+    Scalar _read(int row, int col) const
     {
       return m_matrix.read(row, col);
     }
     
-    Scalar& write(int row, int col)
+    Scalar& _write(int row, int col)
     {
       return m_matrix.write(row, col);
-    }
-
-    Xpr xpr()
-    {
-      return Xpr(*this);
     }
 
   protected:
