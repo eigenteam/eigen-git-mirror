@@ -12,9 +12,9 @@ int main(int, char **)
   m(1,1) = 4;
 
   n = m;
-  n = eval(n*n);
+  n = eval(n*n+n);
   cout << n << endl;
-#if 0
+  
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
   Matrix<double,4,4> m2; // dynamic matrix with initial size 4x4 and uninitialized entries
@@ -50,10 +50,9 @@ int main(int, char **)
        << "overwritten _while_ the matrix product m * m is being computed." << endl
        << "This is the counterpart of eliminating temporary objects!" << endl
        << "Anyway, if you want to store m * m into m, you can do this:" << endl
-       << "            m.alias() = m * m;" << endl;
+       << "            m = eval(m * m);" << endl;
   m = m_save;
-  m.alias() = m * m;
+  m = eval(m * m);
   cout << "And m is now:" << endl << m << endl << "as was expected." << endl;
-#endif
   return 0;
 }

@@ -38,7 +38,7 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
   a.row(i) = b.row(i);
   a.row(i) += b.row(i);
   a.minor(i, j) = b.block(1, rows-1, 1, cols-1);
-  //a.alias().minor(i, j) -= a.block(1, rows-1, 1, cols-1);
+  a.minor(i, j) -= eval(a.block(1, rows-1, 1, cols-1));
 }
 
 void EigenTest::testMatrixManip()

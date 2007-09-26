@@ -36,6 +36,9 @@ template<typename MatrixType> class MatrixMinor
     typedef typename MatrixType::Ref MatRef;
     friend class EigenBase<Scalar, MatrixMinor<MatrixType> >;
     typedef MatrixMinor Ref;
+    
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime - 1,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime - 1;
 
     MatrixMinor(const MatRef& matrix,
                 int row, int col = 0)

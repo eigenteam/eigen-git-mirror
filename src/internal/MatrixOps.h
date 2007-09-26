@@ -37,6 +37,9 @@ template<typename Lhs, typename Rhs> class MatrixSum
     typedef typename Rhs::Ref RhsRef;
     friend class EigenBase<Scalar, MatrixSum>;
     typedef MatrixSum Ref;
+    
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
     MatrixSum(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -74,6 +77,9 @@ template<typename Lhs, typename Rhs> class MatrixDifference
     typedef typename Rhs::Ref RhsRef;
     friend class EigenBase<Scalar, MatrixDifference>;
     typedef MatrixDifference Ref;
+    
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
     
     MatrixDifference(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)

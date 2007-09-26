@@ -125,7 +125,6 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 } // namespace Eigen
 
-#include "MatrixAlias.h"
 #include "MatrixOps.h"
 #include "ScalarOps.h"
 #include "RowAndCol.h"

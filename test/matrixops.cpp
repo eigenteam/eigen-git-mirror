@@ -44,10 +44,9 @@ template<typename MatrixType1,
   a = b;
   a = b + c;
   a = s * (b - c);
-  a.alias() = a + b;
+  a = eval(a + b);
   
   a += b;
-  a.alias() += b;
   a -= b + b;
   
   MatrixType1 d(rows1, cols1);

@@ -37,6 +37,9 @@ template<typename MatrixType> class MatrixRow
     friend class EigenBase<Scalar, MatrixRow<MatrixType> >;
     typedef MatrixRow Ref;
 
+    static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
+                     ColsAtCompileTime = 1;
+
     MatrixRow(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
@@ -87,6 +90,9 @@ template<typename MatrixType> class MatrixCol
     typedef typename MatrixType::Ref MatRef;
     friend class EigenBase<Scalar, MatrixCol<MatrixType> >;
     typedef MatrixCol Ref;
+    
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = 1;
     
     MatrixCol(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)

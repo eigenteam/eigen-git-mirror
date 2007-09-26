@@ -37,6 +37,9 @@ template<typename MatrixType> class ScalarProduct
     typedef ScalarProduct Ref;
     friend class EigenBase<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
 
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     ScalarProduct(const MatRef& matrix, Scalar scalar)
       : m_matrix(matrix), m_scalar(scalar) {}
 

@@ -36,6 +36,9 @@ template<typename MatrixType> class MatrixBlock
     typedef typename MatrixType::Ref MatRef;
     friend class EigenBase<Scalar, MatrixBlock<MatrixType> >;
     typedef MatrixBlock Ref;
+    
+    static const int RowsAtCompileTime = DynamicSize,
+                     ColsAtCompileTime = DynamicSize;
 
     MatrixBlock(const MatRef& matrix,
                 int startRow, int endRow,
