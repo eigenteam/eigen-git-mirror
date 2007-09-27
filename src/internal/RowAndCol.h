@@ -26,14 +26,14 @@
 #ifndef EIGEN_ROWANDCOL_H
 #define EIGEN_ROWANDCOL_H
 
-template<typename MatrixType> class MatrixRow
-  : public EigenBase<typename MatrixType::Scalar, MatrixRow<MatrixType> >
+template<typename MatrixType> class EiRow
+  : public EiObject<typename MatrixType::Scalar, MatrixRow<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EigenBase<Scalar, MatrixRow<MatrixType> >;
-    typedef MatrixRow Ref;
+    friend class EiObject<Scalar, MatrixRow<MatrixType> >;
+    typedef EiRow Ref;
 
     static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
                      ColsAtCompileTime = 1;
@@ -48,9 +48,9 @@ template<typename MatrixType> class MatrixRow
       : m_matrix(other.m_matrix), m_row(other.m_row) {}
     
     template<typename OtherDerived>
-    MatrixRow& operator=(const EigenBase<Scalar, OtherDerived>& other)
+    MatrixRow& operator=(const EiObject<Scalar, OtherDerived>& other)
     {
-      return EigenBase<Scalar, MatrixRow<MatrixType> >::operator=(other);
+      return EiObject<Scalar, MatrixRow<MatrixType> >::operator=(other);
     }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRow)
@@ -81,12 +81,12 @@ template<typename MatrixType> class MatrixRow
 };
 
 template<typename MatrixType> class MatrixCol
-  : public EigenBase<typename MatrixType::Scalar, MatrixCol<MatrixType> >
+  : public EiObject<typename MatrixType::Scalar, MatrixCol<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EigenBase<Scalar, MatrixCol<MatrixType> >;
+    friend class EiObject<Scalar, MatrixCol<MatrixType> >;
     typedef MatrixCol Ref;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -128,17 +128,17 @@ template<typename MatrixType> class MatrixCol
 };
 
 template<typename Scalar, typename Derived>
-MatrixRow<EigenBase<Scalar, Derived> >
-EigenBase<Scalar, Derived>::row(int i)
+MatrixRow<EiObject<Scalar, Derived> >
+EiObject<Scalar, Derived>::row(int i)
 {
-  return MatrixRow<EigenBase>(ref(), i);
+  return MatrixRow<EiObject>(ref(), i);
 }
 
 template<typename Scalar, typename Derived>
-MatrixCol<EigenBase<Scalar, Derived> >
-EigenBase<Scalar, Derived>::col(int i)
+MatrixCol<EiObject<Scalar, Derived> >
+EiObject<Scalar, Derived>::col(int i)
 {
-  return MatrixCol<EigenBase>(ref(), i);
+  return MatrixCol<EiObject>(ref(), i);
 }
 
 #endif // EIGEN_ROWANDCOL_H

@@ -47,7 +47,7 @@ void EigenTest::testMatrixManip()
   matrixManip(Matrix<int, 2, 3>());
   matrixManip(Matrix<double, 3, 3>());
   matrixManip(Matrix<complex<float>, 4,3>());
-  matrixManip(MatrixXi(2, 2));
-  matrixManip(MatrixXd(3, 5));
-  matrixManip(MatrixXcf(4, 4));
+  matrixManip(EiMatrixXi(2, 2));
+  matrixManip(EiMatrixXd(3, 5));
+  matrixManip(EiMatrixXcf(4, 4));
 }

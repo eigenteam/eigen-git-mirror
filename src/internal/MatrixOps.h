@@ -26,15 +26,15 @@
 #ifndef EIGEN_MATRIXOPS_H
 #define EIGEN_MATRIXOPS_H
 
-template<typename Lhs, typename Rhs> class MatrixSum
-  : public EigenBase<typename Lhs::Scalar, MatrixSum<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class EiSum
+  : public EiObject<typename Lhs::Scalar, MatrixSum<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EigenBase<Scalar, MatrixSum>;
-    typedef MatrixSum Ref;
+    friend class EiObject<Scalar, MatrixSum>;
+    typedef EiSum Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -66,15 +66,15 @@ template<typename Lhs, typename Rhs> class MatrixSum
     const RhsRef m_rhs;
 };
 
-template<typename Lhs, typename Rhs> class MatrixDifference
-  : public EigenBase<typename Lhs::Scalar, MatrixDifference<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class EiDifference
+  : public EiObject<typename Lhs::Scalar, MatrixDifference<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EigenBase<Scalar, MatrixDifference>;
-    typedef MatrixDifference Ref;
+    friend class EiObject<Scalar, MatrixDifference>;
+    typedef EiDifference Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -105,15 +105,15 @@ template<typename Lhs, typename Rhs> class MatrixDifference
     const RhsRef m_rhs;
 };
 
-template<typename Lhs, typename Rhs> class MatrixProduct
-  : public EigenBase<typename Lhs::Scalar, MatrixProduct<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class EiMatrixProduct
+  : public EiObject<typename Lhs::Scalar, MatrixProduct<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EigenBase<Scalar, MatrixProduct>;
-    typedef MatrixProduct Ref;
+    friend class EiObject<Scalar, MatrixProduct>;
+    typedef EiMatrixProduct Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -149,21 +149,21 @@ template<typename Lhs, typename Rhs> class MatrixProduct
 
 template<typename Scalar, typename Derived1, typename Derived2>
 MatrixSum<Derived1, Derived2>
-operator+(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+operator+(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
   return MatrixSum<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
 MatrixDifference<Derived1, Derived2>
-operator-(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+operator-(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
   return MatrixDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
 MatrixProduct<Derived1, Derived2>
-operator*(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+operator*(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
   return MatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
@@ -171,7 +171,7 @@ operator*(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Deriv
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &
-EigenBase<Scalar, Derived>::operator+=(const EigenBase<Scalar, OtherDerived>& other)
+EiObject<Scalar, Derived>::operator+=(const EiObject<Scalar, OtherDerived>& other)
 {
   *this = *this + other;
   return *static_cast<Derived*>(this);
@@ -180,7 +180,7 @@ EigenBase<Scalar, Derived>::operator+=(const EigenBase<Scalar, OtherDerived>& ot
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &
-EigenBase<Scalar, Derived>::operator-=(const EigenBase<Scalar, OtherDerived> &other)
+EiObject<Scalar, Derived>::operator-=(const EiObject<Scalar, OtherDerived> &other)
 {
   *this = *this - other;
   return *static_cast<Derived*>(this);
@@ -189,7 +189,7 @@ EigenBase<Scalar, Derived>::operator-=(const EigenBase<Scalar, OtherDerived> &ot
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &
-EigenBase<Scalar, Derived>::operator*=(const EigenBase<Scalar, OtherDerived> &other)
+EiObject<Scalar, Derived>::operator*=(const EiObject<Scalar, OtherDerived> &other)
 {
   *this = *this * other;
   return *static_cast<Derived*>(this);

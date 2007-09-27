@@ -26,12 +26,12 @@
 #ifndef EIGEN_MATRIXREF_H
 #define EIGEN_MATRIXREF_H
 
-template<typename MatrixType> class MatrixRef
- : public EigenBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
+template<typename MatrixType> class EiMatrixRef
+ : public EiObject<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class EigenBase<Scalar, MatrixRef>;
+    friend class EiObject<Scalar, MatrixRef>;
     
     MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}

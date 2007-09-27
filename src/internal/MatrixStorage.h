@@ -29,7 +29,7 @@
 template<typename Scalar,
          int      RowsAtCompileTime,
          int      ColsAtCompileTime>
-class MatrixStorage
+class EiMatrixStorage
 {
   protected:
     Scalar m_array[RowsAtCompileTime * RowsAtCompileTime];
@@ -55,7 +55,7 @@ class MatrixStorage
 };
 
 template<typename Scalar>
-class MatrixStorage<Scalar, DynamicSize, 1>
+class MatrixStorage<Scalar, EiDynamic, 1>
 {
   protected:
     int m_rows;
@@ -88,7 +88,7 @@ class MatrixStorage<Scalar, DynamicSize, 1>
 };
 
 template<typename Scalar>
-class MatrixStorage<Scalar, DynamicSize, DynamicSize>
+class MatrixStorage<Scalar, EiDynamic, EiDynamic>
 {
   protected:
     int m_rows, m_cols;

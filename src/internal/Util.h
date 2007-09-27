@@ -41,53 +41,48 @@
   assert(col >= 0 && col < (matrix).cols())
 
 //forward declarations
-template<typename _Scalar, int _Rows, int _Cols> class Matrix;
-template<typename MatrixType> class MatrixAlias;
-template<typename MatrixType> class MatrixRef;
-template<typename MatrixType> class MatrixRow;
-template<typename MatrixType> class MatrixCol;
-template<typename MatrixType> class MatrixMinor;
-template<typename MatrixType> class MatrixBlock;
-template<typename Lhs, typename Rhs> class MatrixSum;
-template<typename Lhs, typename Rhs> class MatrixDifference;
-template<typename Lhs, typename Rhs> class MatrixProduct;
-template<typename MatrixType> class ScalarProduct;
+template<typename _Scalar, int _Rows, int _Cols> class EiMatrix;
+template<typename MatrixType> class EiMatrixRef;
+template<typename MatrixType> class EiRow;
+template<typename MatrixType> class EiColumn;
+template<typename MatrixType> class EiMinor;
+template<typename MatrixType> class EiBlock;
+template<typename Lhs, typename Rhs> class EiSum;
+template<typename Lhs, typename Rhs> class EiDifference;
+template<typename Lhs, typename Rhs> class EiMatrixProduct;
+template<typename MatrixType> class EiScalarProduct;
 
-template<typename T> struct ForwardDecl
+template<typename T> struct EiForwardDecl
 {
   typedef T Ref;
 };
 
-template<typename _Scalar, int _Rows, int _Cols> struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
+template<typename _Scalar, int _Rows, int _Cols>
+struct EiForwardDecl<EiMatrix<_Scalar, _Rows, _Cols> >
 {
-  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols> > Ref;
+  typedef EiMatrixRef<EiMatrix<_Scalar, _Rows, _Cols> > Ref;
 };
 
-template<typename MatrixType> struct ForwardDecl<MatrixAlias<MatrixType> >
-{
-  typedef MatrixRef<MatrixAlias<MatrixType> > Ref;
-};
-
-const int DynamicSize = -1;
+const int EiDynamic = -1;
 
 #define EIGEN_UNUSED(x) (void)x
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
-Derived& operator Op(const EigenBase<OtherScalar, OtherDerived>& other) \
+Derived& operator Op(const EiObject<OtherScalar, OtherDerived>& other) \
 { \
-  return EigenBase<Scalar, Derived>::operator Op(other); \
+  return EiObject<Scalar, Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return EigenBase<Scalar, Derived>::operator Op(other); \
+  return EiObject<Scalar, Derived>::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return EigenBase<Scalar, Derived>::operator Op(scalar); \
+  return EiObject<Scalar, Derived>::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

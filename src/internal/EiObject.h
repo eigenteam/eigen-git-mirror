@@ -28,7 +28,7 @@
 
 #include "Util.h"
 
-template<typename _Scalar, typename Derived> class EigenBase
+template<typename _Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime;
@@ -57,7 +57,7 @@ template<typename _Scalar, typename Derived> class EigenBase
     }
     
     template<typename OtherDerived>
-    Derived& operator=(const EigenBase<Scalar, OtherDerived>& other)
+    Derived& operator=(const EiObject<Scalar, OtherDerived>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
@@ -68,7 +68,7 @@ template<typename _Scalar, typename Derived> class EigenBase
     
     //special case of the above template operator=. Strangely, g++ 4.1 failed to use
     //that template when OtherDerived == Derived
-    Derived& operator=(const EigenBase& other)
+    Derived& operator=(const EiObject& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       for(int i = 0; i < rows(); i++)
@@ -77,18 +77,18 @@ template<typename _Scalar, typename Derived> class EigenBase
       return *static_cast<Derived*>(this);
     }
     
-    MatrixRow<EigenBase> row(int i);
-    MatrixCol<EigenBase> col(int i);
-    MatrixMinor<EigenBase> minor(int row, int col);
-    MatrixBlock<EigenBase>
+    MatrixRow<EiObject> row(int i);
+    MatrixCol<EiObject> col(int i);
+    MatrixMinor<EiObject> minor(int row, int col);
+    EiBlock<EiObject>
       block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
     template<typename OtherDerived>
-    Derived& operator+=(const EigenBase<Scalar, OtherDerived>& other);
+    Derived& operator+=(const EiObject<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator-=(const EigenBase<Scalar, OtherDerived>& other);
+    Derived& operator-=(const EiObject<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator*=(const EigenBase<Scalar, OtherDerived>& other);
+    Derived& operator*=(const EiObject<Scalar, OtherDerived>& other);
    
     Derived& operator*=(const int& other);
     Derived& operator*=(const float& other);
@@ -114,7 +114,7 @@ template<typename _Scalar, typename Derived> class EigenBase
 template<typename Scalar, typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,
-  const EigenBase<Scalar, Derived> & m )
+  const EiObject<Scalar, Derived> & m )
 {
   for( int i = 0; i < m.rows(); i++ )
   {

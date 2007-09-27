@@ -12,7 +12,7 @@ int main(int, char **)
 
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
-  MatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
+  EiMatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;

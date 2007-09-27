@@ -26,14 +26,14 @@
 #ifndef EIGEN_SCALAROPS_H
 #define EIGEN_SCALAROPS_H
 
-template<typename MatrixType> class ScalarProduct
-  : public EigenBase<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
+template<typename MatrixType> class EiScalarProduct
+  : public EiObject<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    typedef ScalarProduct Ref;
-    friend class EigenBase<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
+    typedef EiScalarProduct Ref;
+    friend class EiObject<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -64,7 +64,7 @@ template<typename MatrixType> class ScalarProduct
 #define EIGEN_MAKE_SCALAR_OPS(OtherScalar)                             \
 template<typename Scalar, typename Derived>                            \
 ScalarProduct<Derived>                                                 \
-operator*(const EigenBase<Scalar, Derived>& matrix,                    \
+operator*(const EiObject<Scalar, Derived>& matrix,                    \
           OtherScalar scalar)                                          \
 {                                                                      \
   return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
@@ -73,14 +73,14 @@ operator*(const EigenBase<Scalar, Derived>& matrix,                    \
 template<typename Scalar, typename Derived>                            \
 ScalarProduct<Derived>                                                 \
 operator*(OtherScalar scalar,                                          \
-          const EigenBase<Scalar, Derived>& matrix)                    \
+          const EiObject<Scalar, Derived>& matrix)                    \
 {                                                                      \
   return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 ScalarProduct<Derived>                                                 \
-operator/(const EigenBase<Scalar, Derived>& matrix,                    \
+operator/(const EiObject<Scalar, Derived>& matrix,                    \
           OtherScalar scalar)                                          \
 {                                                                      \
   return matrix * (static_cast<typename Derived::Scalar>(1) / scalar); \
@@ -88,7 +88,7 @@ operator/(const EigenBase<Scalar, Derived>& matrix,                    \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EigenBase<Scalar, Derived>::operator*=(const OtherScalar &other)       \
+EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)       \
 {                                                                      \
   *this = *this * other;                                               \
   return *static_cast<Derived*>(this);                                 \
@@ -96,7 +96,7 @@ EigenBase<Scalar, Derived>::operator*=(const OtherScalar &other)       \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EigenBase<Scalar, Derived>::operator/=(const OtherScalar &other)       \
+EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)       \
 {                                                                      \
   *this = *this / other;                                               \
   return *static_cast<Derived*>(this);                                 \

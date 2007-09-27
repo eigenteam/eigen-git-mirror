@@ -27,17 +27,17 @@
 #define EIGEN_MATRIX_H
 
 #include "Util.h"
-#include "EigenBase.h"
+#include "EiObject.h"
 #include "MatrixRef.h"
 #include "MatrixStorage.h"
 
 template<typename _Scalar, int _Rows, int _Cols>
-class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
+class EiMatrix : public EiObject<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
-    friend class EigenBase<_Scalar, Matrix>;
-    typedef      EigenBase<_Scalar, Matrix>            Base;
+    friend class EiObject<_Scalar, Matrix>;
+    typedef      EiObject<_Scalar, Matrix>            Base;
     typedef      MatrixStorage<_Scalar, _Rows, _Cols>  Storage;
     typedef      _Scalar                               Scalar;
     typedef      MatrixRef<Matrix>                     Ref;
@@ -70,7 +70,7 @@ class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
   public:
     template<typename OtherDerived> 
-    Matrix& operator=(const EigenBase<Scalar, OtherDerived>& other)
+    Matrix& operator=(const EiObject<Scalar, OtherDerived>& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
@@ -88,7 +88,7 @@ class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
     template<typename OtherDerived>
-    Matrix(const EigenBase<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
+    Matrix(const EiObject<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
@@ -101,7 +101,7 @@ class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
 
 template<typename Scalar, typename Derived>
 Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
-eval(const EigenBase<Scalar, Derived>& expression)
+eval(const EiObject<Scalar, Derived>& expression)
 {
   return Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(expression);
 }
@@ -114,7 +114,7 @@ typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix;
 EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
 EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
 EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
-EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, DynamicSize, X)
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, EiDynamic, X)
 
 EIGEN_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
 EIGEN_MAKE_TYPEDEFS_ALL_SIZES(float,                f)

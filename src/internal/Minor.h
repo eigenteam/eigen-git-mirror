@@ -26,14 +26,14 @@
 #ifndef EIGEN_MINOR_H
 #define EIGEN_MINOR_H
 
-template<typename MatrixType> class MatrixMinor
-  : public EigenBase<typename MatrixType::Scalar, MatrixMinor<MatrixType> >
+template<typename MatrixType> class EiMinor
+  : public EiObject<typename MatrixType::Scalar, MatrixMinor<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EigenBase<Scalar, MatrixMinor<MatrixType> >;
-    typedef MatrixMinor Ref;
+    friend class EiObject<Scalar, MatrixMinor<MatrixType> >;
+    typedef EiMinor Ref;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime - 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime - 1;
@@ -71,10 +71,10 @@ template<typename MatrixType> class MatrixMinor
 };
 
 template<typename Scalar, typename Derived>
-MatrixMinor<EigenBase<Scalar, Derived> >
-EigenBase<Scalar, Derived>::minor(int row, int col)
+MatrixMinor<EiObject<Scalar, Derived> >
+EiObject<Scalar, Derived>::minor(int row, int col)
 {
-  return MatrixMinor<EigenBase>(ref(), row, col);
+  return MatrixMinor<EiObject>(ref(), row, col);
 }
 
 #endif // EIGEN_MINOR_H

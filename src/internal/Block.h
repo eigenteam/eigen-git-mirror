@@ -26,19 +26,19 @@
 #ifndef EIGEN_BLOCK_H
 #define EIGEN_BLOCK_H
 
-template<typename MatrixType> class MatrixBlock
-  : public EigenBase<typename MatrixType::Scalar, MatrixBlock<MatrixType> >
+template<typename MatrixType> class EiBlock
+  : public EiObject<typename MatrixType::Scalar, EiBlock<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EigenBase<Scalar, MatrixBlock<MatrixType> >;
-    typedef MatrixBlock Ref;
+    friend class EiObject<Scalar, EiBlock<MatrixType> >;
+    typedef EiBlock Ref;
     
-    static const int RowsAtCompileTime = DynamicSize,
-                     ColsAtCompileTime = DynamicSize;
+    static const int RowsAtCompileTime = EiDynamic,
+                     ColsAtCompileTime = EiDynamic;
 
-    MatrixBlock(const MatRef& matrix,
+    EiBlock(const MatRef& matrix,
                 int startRow, int endRow,
                 int startCol = 0, int endCol = 0)
       : m_matrix(matrix), m_startRow(startRow), m_endRow(endRow),
@@ -48,11 +48,11 @@ template<typename MatrixType> class MatrixBlock
           && startCol >= 0 && startCol <= endCol && endCol < matrix.cols());
     }
     
-    MatrixBlock(const MatrixBlock& other)
+    EiBlock(const EiBlock& other)
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixBlock)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(EiBlock)
     
   private:
     const Ref& _ref() const { return *this; }
@@ -75,10 +75,10 @@ template<typename MatrixType> class MatrixBlock
 };
 
 template<typename Scalar, typename Derived>
-MatrixBlock<EigenBase<Scalar, Derived> >
-EigenBase<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
+EiBlock<EiObject<Scalar, Derived> >
+EiObject<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
 {
-  return MatrixBlock<EigenBase>(ref(), startRow, endRow, startCol, endCol);
+  return EiBlock<EiObject>(ref(), startRow, endRow, startCol, endCol);
 }
 
 #endif // EIGEN_BLOCK_H
