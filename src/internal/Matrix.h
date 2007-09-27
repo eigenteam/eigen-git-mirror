@@ -23,29 +23,26 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIX_H
-#define EIGEN_MATRIX_H
+#ifndef EI_MATRIX_H
+#define EI_MATRIX_H
 
 #include "Util.h"
-#include "EiObject.h"
+#include "Object.h"
 #include "MatrixRef.h"
 #include "MatrixStorage.h"
 
 template<typename _Scalar, int _Rows, int _Cols>
-class EiMatrix : public EiObject<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
-               public MatrixStorage<_Scalar, _Rows, _Cols>
+class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
+               public EiMatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
-    friend class EiObject<_Scalar, Matrix>;
-    typedef      EiObject<_Scalar, Matrix>            Base;
-    typedef      MatrixStorage<_Scalar, _Rows, _Cols>  Storage;
-    typedef      _Scalar                               Scalar;
-    typedef      MatrixRef<Matrix>                     Ref;
-    typedef      MatrixAlias<Matrix>                   Alias;
+    friend class EiObject<_Scalar, EiMatrix>;
+    typedef      EiObject<_Scalar, EiMatrix>            Base;
+    typedef      EiMatrixStorage<_Scalar, _Rows, _Cols> Storage;
+    typedef      _Scalar                                Scalar;
+    typedef      EiMatrixRef<EiMatrix>                  Ref;
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
-    
-    Alias alias();
     
     const Scalar* array() const
     { return Storage::m_array; }
@@ -54,80 +51,81 @@ class EiMatrix : public EiObject<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     { return Storage::m_array; }
     
   private:
-    Ref _ref() const { return Ref(*const_cast<Matrix*>(this)); }
+    Ref _ref() const { return Ref(*const_cast<EiMatrix*>(this)); }
 
     const Scalar& _read(int row, int col = 0) const
     {
-      EIGEN_CHECK_RANGES(*this, row, col);
+      EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
     Scalar& _write(int row, int col = 0)
     {
-      EIGEN_CHECK_RANGES(*this, row, col);
+      EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
   public:
     template<typename OtherDerived> 
-    Matrix& operator=(const EiObject<Scalar, OtherDerived>& other)
-    {
-      resize(other.rows(), other.cols());
-      return Base::operator=(other);
-    }
-    Matrix& operator=(const Matrix& other)
+    EiMatrix& operator=(const EiObject<Scalar, OtherDerived>& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
-    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
-    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
+    EiMatrix& operator=(const EiMatrix& other)
+    {
+      resize(other.rows(), other.cols());
+      return Base::operator=(other);
+    }
     
-    explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
+    EI_INHERIT_ASSIGNMENT_OPERATOR(EiMatrix, +=)
+    EI_INHERIT_ASSIGNMENT_OPERATOR(EiMatrix, -=)
+    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(EiMatrix, *=)
+    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(EiMatrix, /=)
+    
+    explicit EiMatrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
     template<typename OtherDerived>
-    Matrix(const EiObject<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
+    EiMatrix(const EiObject<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
-    Matrix(const Matrix& other) : Storage(other.rows(), other.cols())
+    EiMatrix(const EiMatrix& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
-    ~Matrix() {}
+    ~EiMatrix() {}
 };
 
 template<typename Scalar, typename Derived>
-Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+EiMatrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
 eval(const EiObject<Scalar, Derived>& expression)
 {
-  return Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(expression);
+  return EiMatrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(expression);
 }
 
-#define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
-typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix; \
-typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix;
+#define EI_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
+typedef EiMatrix<Type, Size, Size> EiMatrix##SizeSuffix##TypeSuffix; \
+typedef EiMatrix<Type, Size, 1>    EiVector##SizeSuffix##TypeSuffix;
 
-#define EIGEN_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
-EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
-EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
-EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
-EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, EiDynamic, X)
+#define EI_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
+EI_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
+EI_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
+EI_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
+EI_MAKE_TYPEDEFS(Type, TypeSuffix, EiDynamic, X)
 
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<int>,    ci)
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
-EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
+EI_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
+EI_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
+EI_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
+EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<int>,    ci)
+EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
+EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
-#undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
-#undef EIGEN_MAKE_TYPEDEFS
+#undef EI_MAKE_TYPEDEFS_ALL_SIZES
+#undef EI_MAKE_TYPEDEFS
 
 #include "MatrixOps.h"
 #include "ScalarOps.h"
 #include "RowAndCol.h"
 
-#endif // EIGEN_MATRIX_H
+#endif // EI_MATRIX_H

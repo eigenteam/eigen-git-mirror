@@ -23,32 +23,32 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIXOPS_H
-#define EIGEN_MATRIXOPS_H
+#ifndef EI_MATRIXOPS_H
+#define EI_MATRIXOPS_H
 
 template<typename Lhs, typename Rhs> class EiSum
-  : public EiObject<typename Lhs::Scalar, MatrixSum<Lhs, Rhs> >
+  : public EiObject<typename Lhs::Scalar, EiSum<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EiObject<Scalar, MatrixSum>;
+    friend class EiObject<Scalar, EiSum>;
     typedef EiSum Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    MatrixSum(const LhsRef& lhs, const RhsRef& rhs)
+    EiSum(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    MatrixSum(const MatrixSum& other)
+    EiSum(const EiSum& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixSum)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiSum)
 
   private:
   
@@ -67,28 +67,28 @@ template<typename Lhs, typename Rhs> class EiSum
 };
 
 template<typename Lhs, typename Rhs> class EiDifference
-  : public EiObject<typename Lhs::Scalar, MatrixDifference<Lhs, Rhs> >
+  : public EiObject<typename Lhs::Scalar, EiDifference<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EiObject<Scalar, MatrixDifference>;
+    friend class EiObject<Scalar, EiDifference>;
     typedef EiDifference Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
     
-    MatrixDifference(const LhsRef& lhs, const RhsRef& rhs)
+    EiDifference(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    MatrixDifference(const MatrixDifference& other)
+    EiDifference(const EiDifference& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixDifference)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiDifference)
 
   private:
     const Ref& _ref() const { return *this; }
@@ -106,28 +106,28 @@ template<typename Lhs, typename Rhs> class EiDifference
 };
 
 template<typename Lhs, typename Rhs> class EiMatrixProduct
-  : public EiObject<typename Lhs::Scalar, MatrixProduct<Lhs, Rhs> >
+  : public EiObject<typename Lhs::Scalar, EiMatrixProduct<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class EiObject<Scalar, MatrixProduct>;
+    friend class EiObject<Scalar, EiMatrixProduct>;
     typedef EiMatrixProduct Ref;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    MatrixProduct(const LhsRef& lhs, const RhsRef& rhs)
+    EiMatrixProduct(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {
       assert(lhs.cols() == rhs.rows());
     }
     
-    MatrixProduct(const MatrixProduct& other)
+    EiMatrixProduct(const EiMatrixProduct& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixProduct)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMatrixProduct)
     
   private:
     const Ref& _ref() const { return *this; }
@@ -148,24 +148,24 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
 };
 
 template<typename Scalar, typename Derived1, typename Derived2>
-MatrixSum<Derived1, Derived2>
+EiSum<Derived1, Derived2>
 operator+(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return MatrixSum<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return EiSum<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
-MatrixDifference<Derived1, Derived2>
+EiDifference<Derived1, Derived2>
 operator-(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return MatrixDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return EiDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
-MatrixProduct<Derived1, Derived2>
+EiMatrixProduct<Derived1, Derived2>
 operator*(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return MatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return EiMatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived>
@@ -195,4 +195,4 @@ EiObject<Scalar, Derived>::operator*=(const EiObject<Scalar, OtherDerived> &othe
   return *static_cast<Derived*>(this);
 }
 
-#endif // EIGEN_MATRIXOPS_H
+#endif // EI_MATRIXOPS_H

@@ -23,28 +23,28 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_SCALAROPS_H
-#define EIGEN_SCALAROPS_H
+#ifndef EI_SCALAROPS_H
+#define EI_SCALAROPS_H
 
 template<typename MatrixType> class EiScalarProduct
-  : public EiObject<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
+  : public EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     typedef EiScalarProduct Ref;
-    friend class EiObject<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
+    friend class EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    ScalarProduct(const MatRef& matrix, Scalar scalar)
+    EiScalarProduct(const MatRef& matrix, Scalar scalar)
       : m_matrix(matrix), m_scalar(scalar) {}
 
-    ScalarProduct(const ScalarProduct& other)
+    EiScalarProduct(const EiScalarProduct& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ScalarProduct)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiScalarProduct)
 
   private:
     const Ref& _ref() const { return *this; }
@@ -61,26 +61,26 @@ template<typename MatrixType> class EiScalarProduct
     const Scalar m_scalar;
 };
 
-#define EIGEN_MAKE_SCALAR_OPS(OtherScalar)                             \
+#define EI_MAKE_SCALAR_OPS(OtherScalar)                             \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                                 \
-operator*(const EiObject<Scalar, Derived>& matrix,                    \
+EiScalarProduct<Derived>                                               \
+operator*(const EiObject<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
+  return EiScalarProduct<Derived>(matrix.ref(), scalar);               \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                                 \
+EiScalarProduct<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
-          const EiObject<Scalar, Derived>& matrix)                    \
+          const EiObject<Scalar, Derived>& matrix)                     \
 {                                                                      \
-  return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
+  return EiScalarProduct<Derived>(matrix.ref(), scalar);               \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                                 \
-operator/(const EiObject<Scalar, Derived>& matrix,                    \
+EiScalarProduct<Derived>                                               \
+operator/(const EiObject<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
   return matrix * (static_cast<typename Derived::Scalar>(1) / scalar); \
@@ -102,13 +102,13 @@ EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)       \
   return *static_cast<Derived*>(this);                                 \
 }
 
-EIGEN_MAKE_SCALAR_OPS(int)
-EIGEN_MAKE_SCALAR_OPS(float)
-EIGEN_MAKE_SCALAR_OPS(double)
-EIGEN_MAKE_SCALAR_OPS(std::complex<int>)
-EIGEN_MAKE_SCALAR_OPS(std::complex<float>)
-EIGEN_MAKE_SCALAR_OPS(std::complex<double>)
+EI_MAKE_SCALAR_OPS(int)
+EI_MAKE_SCALAR_OPS(float)
+EI_MAKE_SCALAR_OPS(double)
+EI_MAKE_SCALAR_OPS(std::complex<int>)
+EI_MAKE_SCALAR_OPS(std::complex<float>)
+EI_MAKE_SCALAR_OPS(std::complex<double>)
 
-#undef EIGEN_MAKE_SCALAR_OPS
+#undef EI_MAKE_SCALAR_OPS
 
-#endif // EIGEN_SCALAROPS_H
+#endif // EI_SCALAROPS_H

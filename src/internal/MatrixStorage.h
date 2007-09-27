@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIXSTORAGE_H
-#define EIGEN_MATRIXSTORAGE_H
+#ifndef EI_MATRIXSTORAGE_H
+#define EI_MATRIXSTORAGE_H
 
 template<typename Scalar,
          int      RowsAtCompileTime,
@@ -44,18 +44,18 @@ class EiMatrixStorage
     { return ColsAtCompileTime; }
 
   public:
-    MatrixStorage(int rows, int cols)
+    EiMatrixStorage(int rows, int cols)
     {
-      EIGEN_UNUSED(rows);
-      EIGEN_UNUSED(cols);
+      EI_UNUSED(rows);
+      EI_UNUSED(cols);
       assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
     
-    ~MatrixStorage() {};
+    ~EiMatrixStorage() {};
 };
 
 template<typename Scalar>
-class MatrixStorage<Scalar, EiDynamic, 1>
+class EiMatrixStorage<Scalar, EiDynamic, 1>
 {
   protected:
     int m_rows;
@@ -77,18 +77,18 @@ class MatrixStorage<Scalar, EiDynamic, 1>
     { return 1; }
     
   public:
-    MatrixStorage(int rows, int cols) : m_rows(rows)
+    EiMatrixStorage(int rows, int cols) : m_rows(rows)
     {
       assert(m_rows > 0 && cols == 1);
       m_array = new Scalar[m_rows];
     }
     
-    ~MatrixStorage()
+    ~EiMatrixStorage()
     { delete[] m_array; }
 };
 
 template<typename Scalar>
-class MatrixStorage<Scalar, EiDynamic, EiDynamic>
+class EiMatrixStorage<Scalar, EiDynamic, EiDynamic>
 {
   protected:
     int m_rows, m_cols;
@@ -113,14 +113,14 @@ class MatrixStorage<Scalar, EiDynamic, EiDynamic>
     { return m_cols; }
     
   public:
-    MatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
+    EiMatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(m_rows > 0 && m_cols > 0);
       m_array = new Scalar[m_rows * m_cols];
     }
     
-    ~MatrixStorage()
+    ~EiMatrixStorage()
     { delete[] m_array; }
 };
 
-#endif // EIGEN_MATRIXSTORAGE_H
+#endif // EI_MATRIXSTORAGE_H

@@ -23,11 +23,11 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MANIP_H
-#define EIGEN_MANIP_H
+#ifndef EI_MANIP_H
+#define EI_MANIP_H
 
 #include "internal/RowAndCol.h"
 #include "internal/Block.h"
 #include "internal/Minor.h"
 
-#endif // EIGEN_MANIP_H
+#endif // EI_MANIP_H

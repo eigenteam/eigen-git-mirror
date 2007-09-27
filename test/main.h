@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_TEST_MAIN_H
-#define EIGEN_TEST_MAIN_H
+#ifndef EI_TEST_MAIN_H
+#define EI_TEST_MAIN_H
 
 #include <QtTest/QtTest>
 #include <All>
@@ -47,4 +47,4 @@ class EigenTest : public QObject
     void testMatrixManip();
 };
 
-#endif // EIGEN_TEST_MAIN_H
+#endif // EI_TEST_MAIN_H

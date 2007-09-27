@@ -58,14 +58,14 @@ template<typename MatrixType1,
 
 void EigenTest::testMatrixOps()
 {
-  matrixOps(Matrix<float, 1, 1>(), Matrix<float, 1, 1>());
-  matrixOps(Matrix<int, 2, 3>(), Matrix<int, 3, 1>());
-  matrixOps(Matrix<double, 3, 3>(), Matrix<double, 3, 3>());
-  matrixOps(Matrix<complex<float>, 4,3>(), Matrix<complex<float>, 3,4>());
+  matrixOps(EiMatrix<float, 1, 1>(), EiMatrix<float, 1, 1>());
+  matrixOps(EiMatrix<int, 2, 3>(), EiMatrix<int, 3, 1>());
+  matrixOps(EiMatrix<double, 3, 3>(), EiMatrix<double, 3, 3>());
+  matrixOps(EiMatrix<complex<float>, 4,3>(), EiMatrix<complex<float>, 3,4>());
   matrixOps(EiMatrixXf(1, 1), EiMatrixXf(1, 3));
   matrixOps(EiMatrixXi(2, 2), EiMatrixXi(2, 2));
   matrixOps(EiMatrixXd(3, 5), EiMatrixXd(5, 1));
   matrixOps(EiMatrixXcf(4, 4), EiMatrixXcf(4, 4));
-  matrixOps(EiMatrixXd(3, 5), Matrix<double, 5, 1>());
+  matrixOps(EiMatrixXd(3, 5), EiMatrix<double, 5, 1>());
   matrixOps(EiMatrix4cf(), EiMatrixXcf(4, 4));
 }

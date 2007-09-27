@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_UTIL_H
-#define EIGEN_UTIL_H
+#ifndef EI_UTIL_H
+#define EI_UTIL_H
 
 #include <iostream>
 #include <complex>
@@ -32,12 +32,12 @@
 
 #undef minor
 
-#define EIGEN_UNUSED(x) (void)x
-#define EIGEN_CHECK_RANGES(matrix, row, col) \
+#define EI_UNUSED(x) (void)x
+#define EI_CHECK_RANGES(matrix, row, col) \
   assert(row >= 0 && row < (matrix).rows() && col >= 0 && col < (matrix).cols())
-#define EIGEN_CHECK_ROW_RANGE(matrix, row) \
+#define EI_CHECK_ROW_RANGE(matrix, row) \
   assert(row >= 0 && row < (matrix).rows())
-#define EIGEN_CHECK_COL_RANGE(matrix, col) \
+#define EI_CHECK_COL_RANGE(matrix, col) \
   assert(col >= 0 && col < (matrix).cols())
 
 //forward declarations
@@ -65,9 +65,9 @@ struct EiForwardDecl<EiMatrix<_Scalar, _Rows, _Cols> >
 
 const int EiDynamic = -1;
 
-#define EIGEN_UNUSED(x) (void)x
+#define EI_UNUSED(x) (void)x
 
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
 Derived& operator Op(const EiObject<OtherScalar, OtherDerived>& other) \
 { \
@@ -78,18 +78,18 @@ Derived& operator Op(const Derived& other) \
   return EiObject<Scalar, Derived>::operator Op(other); \
 }
 
-#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
   return EiObject<Scalar, Derived>::operator Op(scalar); \
 }
 
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+#define EI_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#endif // EIGEN_UTIL_H
+#endif // EI_UTIL_H

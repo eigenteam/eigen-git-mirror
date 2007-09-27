@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_BLOCK_H
-#define EIGEN_BLOCK_H
+#ifndef EI_BLOCK_H
+#define EI_BLOCK_H
 
 template<typename MatrixType> class EiBlock
   : public EiObject<typename MatrixType::Scalar, EiBlock<MatrixType> >
@@ -52,7 +52,7 @@ template<typename MatrixType> class EiBlock
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(EiBlock)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiBlock)
     
   private:
     const Ref& _ref() const { return *this; }
@@ -81,4 +81,4 @@ EiObject<Scalar, Derived>::block(int startRow, int endRow, int startCol, int end
   return EiBlock<EiObject>(ref(), startRow, endRow, startCol, endCol);
 }
 
-#endif // EIGEN_BLOCK_H
+#endif // EI_BLOCK_H

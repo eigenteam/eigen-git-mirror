@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_EIGENBASE_H
-#define EIGEN_EIGENBASE_H
+#ifndef EI_EIGENBASE_H
+#define EI_EIGENBASE_H
 
 #include "Util.h"
 
@@ -33,7 +33,7 @@ template<typename _Scalar, typename Derived> class EiObject
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime;
   public:
-    typedef typename ForwardDecl<Derived>::Ref Ref;
+    typedef typename EiForwardDecl<Derived>::Ref Ref;
     typedef _Scalar Scalar;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
@@ -77,9 +77,9 @@ template<typename _Scalar, typename Derived> class EiObject
       return *static_cast<Derived*>(this);
     }
     
-    MatrixRow<EiObject> row(int i);
-    MatrixCol<EiObject> col(int i);
-    MatrixMinor<EiObject> minor(int row, int col);
+    EiRow<EiObject> row(int i);
+    EiColumn<EiObject> col(int i);
+    EiMinor<EiObject> minor(int row, int col);
     EiBlock<EiObject>
       block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
@@ -127,4 +127,4 @@ std::ostream & operator <<
   return s;
 }
 
-#endif // EIGEN_EIGENBASE_H
+#endif // EI_EIGENBASE_H

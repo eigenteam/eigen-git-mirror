@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int, char **)
 {
-  Matrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
+  EiMatrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
   m(0,0) = 1;
   m(0,1) = 2;
   m(1,0) = 3;
@@ -35,7 +35,7 @@ int main(int, char **)
   cout << "We want to store that into m, i.e. do \"m = m * m;\"" << endl;
   cout << "Here we must be very careful. For if we do \"m = m * m;\"," << endl
        << "the matrix m becomes" << endl;
-  Matrix<double,2,2> m_save = m;
+  EiMatrix<double,2,2> m_save = m;
   m = m * m; // the bogus operation
   cout << m << "," << endl;
   cout << "which is not what was wanted!" << endl

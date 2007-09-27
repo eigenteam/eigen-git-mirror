@@ -23,10 +23,10 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_ALL_H
-#define EIGEN_ALL_H
+#ifndef EI_ALL_H
+#define EI_ALL_H
 
 #include "Core"
 #include "Manip"
 
-#endif // EIGEN_ALL_H
+#endif // EI_ALL_H

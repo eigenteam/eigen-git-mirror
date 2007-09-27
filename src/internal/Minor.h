@@ -23,32 +23,32 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MINOR_H
-#define EIGEN_MINOR_H
+#ifndef EI_MINOR_H
+#define EI_MINOR_H
 
 template<typename MatrixType> class EiMinor
-  : public EiObject<typename MatrixType::Scalar, MatrixMinor<MatrixType> >
+  : public EiObject<typename MatrixType::Scalar, EiMinor<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EiObject<Scalar, MatrixMinor<MatrixType> >;
+    friend class EiObject<Scalar, EiMinor<MatrixType> >;
     typedef EiMinor Ref;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime - 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime - 1;
 
-    MatrixMinor(const MatRef& matrix,
+    EiMinor(const MatRef& matrix,
                 int row, int col = 0)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
-      EIGEN_CHECK_RANGES(matrix, row, col);
+      EI_CHECK_RANGES(matrix, row, col);
     }
     
-    MatrixMinor(const MatrixMinor& other)
+    EiMinor(const EiMinor& other)
       : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixMinor)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMinor)
     
   private:
     const Ref& _ref() const { return *this; }
@@ -71,10 +71,10 @@ template<typename MatrixType> class EiMinor
 };
 
 template<typename Scalar, typename Derived>
-MatrixMinor<EiObject<Scalar, Derived> >
+EiMinor<EiObject<Scalar, Derived> >
 EiObject<Scalar, Derived>::minor(int row, int col)
 {
-  return MatrixMinor<EiObject>(ref(), row, col);
+  return EiMinor<EiObject>(ref(), row, col);
 }
 
-#endif // EIGEN_MINOR_H
+#endif // EI_MINOR_H

@@ -23,10 +23,10 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_CORE_H
-#define EIGEN_CORE_H
+#ifndef EI_CORE_H
+#define EI_CORE_H
 
 //#include "internal/Vector.h"
 #include "internal/Matrix.h"
 
-#endif // EIGEN_CORE_H
+#endif // EI_CORE_H

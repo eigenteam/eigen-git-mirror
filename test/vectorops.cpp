@@ -53,11 +53,11 @@ template<typename VectorType> void vectorOps(const VectorType& v)
 
 void EigenTest::testVectorOps()
 {
-  vectorOps(Vector2i());
-  vectorOps(Vector3d());
-  vectorOps(Vector4cf());
-  vectorOps(VectorXf(1));
-  vectorOps(VectorXi(2));
-  vectorOps(VectorXd(3));
-  vectorOps(VectorXcf(4));
+  vectorOps(EiVector2i());
+  vectorOps(EiVector3d());
+  vectorOps(EiVector4cf());
+  vectorOps(EiVectorXf(1));
+  vectorOps(EiVectorXi(2));
+  vectorOps(EiVectorXd(3));
+  vectorOps(EiVectorXcf(4));
 }

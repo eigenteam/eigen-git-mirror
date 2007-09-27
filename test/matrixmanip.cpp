@@ -44,9 +44,9 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
 
 void EigenTest::testMatrixManip()
 {
-  matrixManip(Matrix<int, 2, 3>());
-  matrixManip(Matrix<double, 3, 3>());
-  matrixManip(Matrix<complex<float>, 4,3>());
+  matrixManip(EiMatrix<int, 2, 3>());
+  matrixManip(EiMatrix<double, 3, 3>());
+  matrixManip(EiMatrix<complex<float>, 4,3>());
   matrixManip(EiMatrixXi(2, 2));
   matrixManip(EiMatrixXd(3, 5));
   matrixManip(EiMatrixXcf(4, 4));
