@@ -86,6 +86,22 @@ operator/(const EigenBase<Scalar, Derived>& matrix,                    \
           OtherScalar scalar)                                          \
 {                                                                      \
   return matrix * (static_cast<typename Derived::Scalar>(1) / scalar); \
+}                                                                      \
+                                                                       \
+template<typename Scalar, typename Derived>                            \
+Derived &                                                              \
+EigenBase<Scalar, Derived>::operator*=(const OtherScalar &other)       \
+{                                                                      \
+  *this = *this * other;                                               \
+  return *static_cast<Derived*>(this);                                 \
+}                                                                      \
+                                                                       \
+template<typename Scalar, typename Derived>                            \
+Derived &                                                              \
+EigenBase<Scalar, Derived>::operator/=(const OtherScalar &other)       \
+{                                                                      \
+  *this = *this / other;                                               \
+  return *static_cast<Derived*>(this);                                 \
 }
 
 EIGEN_MAKE_SCALAR_OPS(int)

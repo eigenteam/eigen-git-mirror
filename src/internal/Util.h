@@ -79,17 +79,27 @@ const int DynamicSize = -1;
 template<typename OtherScalar, typename OtherDerived> \
 Derived& operator Op(const EigenBase<OtherScalar, OtherDerived>& other) \
 { \
-  return EigenBase<OtherScalar, Derived>::operator Op(other); \
+  return EigenBase<Scalar, Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
   return EigenBase<Scalar, Derived>::operator Op(other); \
 }
 
+#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename Other> \
+Derived& operator Op(const Other& scalar) \
+{ \
+  return EigenBase<Scalar, Derived>::operator Op(scalar); \
+}
+
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
 EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=)
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+
 
 } // namespace Eigen
 

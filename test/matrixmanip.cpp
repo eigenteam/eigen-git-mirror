@@ -29,7 +29,7 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
 {
   int rows = m.rows(), cols = m.cols();
   int i = rand()%rows, j = rand()%cols;
-  
+
   MatrixType a(rows, cols), b(rows, cols);
   a.row(i);
   a.col(j);
@@ -37,6 +37,7 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
   a.block(1, rows-1, 1, cols-1);
   a.row(i) = b.row(i);
   a.row(i) += b.row(i);
+  a.col(j) *= 2;
   a.minor(i, j) = b.block(1, rows-1, 1, cols-1);
   a.minor(i, j) -= eval(a.block(1, rows-1, 1, cols-1));
 }

@@ -89,6 +89,22 @@ template<typename _Scalar, typename Derived> class EigenBase
     Derived& operator+=(const EigenBase<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const EigenBase<Scalar, OtherDerived>& other);
+    template<typename OtherDerived>
+    Derived& operator*=(const EigenBase<Scalar, OtherDerived>& other);
+   
+    Derived& operator*=(const int& other);
+    Derived& operator*=(const float& other);
+    Derived& operator*=(const double& other);
+    Derived& operator*=(const std::complex<int>& other);
+    Derived& operator*=(const std::complex<float>& other);
+    Derived& operator*=(const std::complex<double>& other);
+    
+    Derived& operator/=(const int& other);
+    Derived& operator/=(const float& other);
+    Derived& operator/=(const double& other);
+    Derived& operator/=(const std::complex<int>& other);
+    Derived& operator/=(const std::complex<float>& other);
+    Derived& operator/=(const std::complex<double>& other);
 
     Scalar operator()(int row, int col = 0) const
     { return read(row, col); }

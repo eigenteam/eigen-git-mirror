@@ -150,13 +150,6 @@ template<typename Lhs, typename Rhs> class MatrixProduct
 };
 
 template<typename Scalar, typename Derived1, typename Derived2>
-MatrixProduct<Derived1, Derived2>
-operator*(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
-{
-  return MatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
-}
-
-template<typename Scalar, typename Derived1, typename Derived2>
 MatrixSum<Derived1, Derived2>
 operator+(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
 {
@@ -168,6 +161,13 @@ MatrixDifference<Derived1, Derived2>
 operator-(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
 {
   return MatrixDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
+}
+
+template<typename Scalar, typename Derived1, typename Derived2>
+MatrixProduct<Derived1, Derived2>
+operator*(const EigenBase<Scalar, Derived1> &mat1, const EigenBase<Scalar, Derived2> &mat2)
+{
+  return MatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived>
@@ -185,6 +185,15 @@ Derived &
 EigenBase<Scalar, Derived>::operator-=(const EigenBase<Scalar, OtherDerived> &other)
 {
   *this = *this - other;
+  return *static_cast<Derived*>(this);
+}
+
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+Derived &
+EigenBase<Scalar, Derived>::operator*=(const EigenBase<Scalar, OtherDerived> &other)
+{
+  *this = *this * other;
   return *static_cast<Derived*>(this);
 }
 

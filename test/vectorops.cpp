@@ -45,7 +45,9 @@ template<typename VectorType> void vectorOps(const VectorType& v)
   a = eval(s * (b - c));
   
   a += b;
-  a += b + b;
+  a -= b + b;
+  a *= s;
+  b /= s;
   a += eval(a + a);
 }
 

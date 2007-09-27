@@ -47,6 +47,9 @@ template<typename MatrixType1,
   a = eval(a + b);
   a += b;
   a -= b + b;
+  a *= s;
+  b /= s;
+  if(rows1 == cols1) a *= b;
   
   MatrixType1 d(rows1, cols1);
   MatrixType2 e(rows2, cols2);
