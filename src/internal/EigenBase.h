@@ -28,8 +28,6 @@
 
 #include "Util.h"
 
-namespace Eigen {
-
 template<typename _Scalar, typename Derived> class EigenBase
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
@@ -128,7 +126,5 @@ std::ostream & operator <<
   }
   return s;
 }
-
-} // namespace Eigen
 
 #endif // EIGEN_EIGENBASE_H

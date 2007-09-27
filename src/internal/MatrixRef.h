@@ -26,9 +26,6 @@
 #ifndef EIGEN_MATRIXREF_H
 #define EIGEN_MATRIXREF_H
 
-namespace Eigen
-{
-
 template<typename MatrixType> class MatrixRef
  : public EigenBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
@@ -59,7 +56,5 @@ template<typename MatrixType> class MatrixRef
   protected:
     MatrixType& m_matrix;
 };
-
-} // namespace Eigen
 
 #endif // EIGEN_MATRIXREF_H

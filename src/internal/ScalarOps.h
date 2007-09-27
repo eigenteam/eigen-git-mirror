@@ -26,8 +26,6 @@
 #ifndef EIGEN_SCALAROPS_H
 #define EIGEN_SCALAROPS_H
 
-namespace Eigen {
-
 template<typename MatrixType> class ScalarProduct
   : public EigenBase<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
 {
@@ -112,7 +110,5 @@ EIGEN_MAKE_SCALAR_OPS(std::complex<float>)
 EIGEN_MAKE_SCALAR_OPS(std::complex<double>)
 
 #undef EIGEN_MAKE_SCALAR_OPS
-
-} // namespace Eigen
 
 #endif // EIGEN_SCALAROPS_H

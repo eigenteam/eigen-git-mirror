@@ -26,8 +26,6 @@
 #ifndef EIGEN_MINOR_H
 #define EIGEN_MINOR_H
 
-namespace Eigen {
-
 template<typename MatrixType> class MatrixMinor
   : public EigenBase<typename MatrixType::Scalar, MatrixMinor<MatrixType> >
 {
@@ -78,7 +76,5 @@ EigenBase<Scalar, Derived>::minor(int row, int col)
 {
   return MatrixMinor<EigenBase>(ref(), row, col);
 }
-
-} // namespace Eigen
 
 #endif // EIGEN_MINOR_H

@@ -26,8 +26,6 @@
 #ifndef EIGEN_BLOCK_H
 #define EIGEN_BLOCK_H
 
-namespace Eigen {
-
 template<typename MatrixType> class MatrixBlock
   : public EigenBase<typename MatrixType::Scalar, MatrixBlock<MatrixType> >
 {
@@ -82,7 +80,5 @@ EigenBase<Scalar, Derived>::block(int startRow, int endRow, int startCol, int en
 {
   return MatrixBlock<EigenBase>(ref(), startRow, endRow, startCol, endCol);
 }
-
-} // namespace Eigen
 
 #endif // EIGEN_BLOCK_H

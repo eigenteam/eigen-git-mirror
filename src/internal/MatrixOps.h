@@ -26,8 +26,6 @@
 #ifndef EIGEN_MATRIXOPS_H
 #define EIGEN_MATRIXOPS_H
 
-namespace Eigen {
-
 template<typename Lhs, typename Rhs> class MatrixSum
   : public EigenBase<typename Lhs::Scalar, MatrixSum<Lhs, Rhs> >
 {
@@ -196,7 +194,5 @@ EigenBase<Scalar, Derived>::operator*=(const EigenBase<Scalar, OtherDerived> &ot
   *this = *this * other;
   return *static_cast<Derived*>(this);
 }
-
-} // namespace Eigen
 
 #endif // EIGEN_MATRIXOPS_H

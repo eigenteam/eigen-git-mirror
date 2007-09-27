@@ -26,8 +26,6 @@
 #ifndef EIGEN_ROWANDCOL_H
 #define EIGEN_ROWANDCOL_H
 
-namespace Eigen {
-
 template<typename MatrixType> class MatrixRow
   : public EigenBase<typename MatrixType::Scalar, MatrixRow<MatrixType> >
 {
@@ -142,7 +140,5 @@ EigenBase<Scalar, Derived>::col(int i)
 {
   return MatrixCol<EigenBase>(ref(), i);
 }
-
-} // namespace Eigen
 
 #endif // EIGEN_ROWANDCOL_H

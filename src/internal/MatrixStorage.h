@@ -26,8 +26,6 @@
 #ifndef EIGEN_MATRIXSTORAGE_H
 #define EIGEN_MATRIXSTORAGE_H
 
-namespace Eigen {
-
 template<typename Scalar,
          int      RowsAtCompileTime,
          int      ColsAtCompileTime>
@@ -124,7 +122,5 @@ class MatrixStorage<Scalar, DynamicSize, DynamicSize>
     ~MatrixStorage()
     { delete[] m_array; }
 };
-
-} // namespace Eigen
 
 #endif // EIGEN_MATRIXSTORAGE_H

@@ -40,9 +40,6 @@
 #define EIGEN_CHECK_COL_RANGE(matrix, col) \
   assert(col >= 0 && col < (matrix).cols())
 
-namespace Eigen
-{
-
 //forward declarations
 template<typename _Scalar, int _Rows, int _Cols> class Matrix;
 template<typename MatrixType> class MatrixAlias;
@@ -99,8 +96,5 @@ EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
 EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
-
-
-} // namespace Eigen
 
 #endif // EIGEN_UTIL_H

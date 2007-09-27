@@ -33,7 +33,6 @@
 #include <ctime>
 
 using namespace std;
-using namespace Eigen;
 
 class EigenTest : public QObject
 {

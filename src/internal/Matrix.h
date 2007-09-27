@@ -31,9 +31,6 @@
 #include "MatrixRef.h"
 #include "MatrixStorage.h"
 
-namespace Eigen
-{
-
 template<typename _Scalar, int _Rows, int _Cols>
 class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
@@ -128,8 +125,6 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 #undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_TYPEDEFS
-
-} // namespace Eigen
 
 #include "MatrixOps.h"
 #include "ScalarOps.h"
