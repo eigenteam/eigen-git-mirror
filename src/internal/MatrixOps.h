@@ -50,7 +50,7 @@ template<typename Lhs, typename Rhs> class MatrixSum
     MatrixSum(const MatrixSum& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixSum)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixSum)
 
   private:
   
@@ -90,7 +90,7 @@ template<typename Lhs, typename Rhs> class MatrixDifference
     MatrixDifference(const MatrixDifference& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixDifference)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixDifference)
 
   private:
     const Ref& _ref() const { return *this; }
@@ -129,7 +129,7 @@ template<typename Lhs, typename Rhs> class MatrixProduct
     MatrixProduct(const MatrixProduct& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixProduct)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixProduct)
     
   private:
     const Ref& _ref() const { return *this; }

@@ -46,7 +46,7 @@ template<typename MatrixType> class ScalarProduct
     ScalarProduct(const ScalarProduct& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
-    INHERIT_ASSIGNMENT_OPERATORS(ScalarProduct)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ScalarProduct)
 
   private:
     const Ref& _ref() const { return *this; }
@@ -63,29 +63,39 @@ template<typename MatrixType> class ScalarProduct
     const Scalar m_scalar;
 };
 
-template<typename Scalar, typename Derived>
-ScalarProduct<Derived>
-operator*(const EigenBase<Scalar, Derived>& matrix,
-          Scalar scalar)
-{
-  return ScalarProduct<Derived>(matrix.ref(), scalar);
+#define EIGEN_MAKE_SCALAR_OPS(OtherScalar)                             \
+template<typename Scalar, typename Derived>                            \
+ScalarProduct<Derived>                                                 \
+operator*(const EigenBase<Scalar, Derived>& matrix,                    \
+          OtherScalar scalar)                                          \
+{                                                                      \
+  return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
+}                                                                      \
+                                                                       \
+template<typename Scalar, typename Derived>                            \
+ScalarProduct<Derived>                                                 \
+operator*(OtherScalar scalar,                                          \
+          const EigenBase<Scalar, Derived>& matrix)                    \
+{                                                                      \
+  return ScalarProduct<Derived>(matrix.ref(), scalar);                 \
+}                                                                      \
+                                                                       \
+template<typename Scalar, typename Derived>                            \
+ScalarProduct<Derived>                                                 \
+operator/(const EigenBase<Scalar, Derived>& matrix,                    \
+          OtherScalar scalar)                                          \
+{                                                                      \
+  return matrix * (static_cast<typename Derived::Scalar>(1) / scalar); \
 }
 
-template<typename Scalar, typename Derived>
-ScalarProduct<Derived>
-operator*(Scalar scalar,
-          const EigenBase<Scalar, Derived>& matrix)
-{
-  return ScalarProduct<Derived>(matrix.ref(), scalar);
-}
+EIGEN_MAKE_SCALAR_OPS(int)
+EIGEN_MAKE_SCALAR_OPS(float)
+EIGEN_MAKE_SCALAR_OPS(double)
+EIGEN_MAKE_SCALAR_OPS(std::complex<int>)
+EIGEN_MAKE_SCALAR_OPS(std::complex<float>)
+EIGEN_MAKE_SCALAR_OPS(std::complex<double>)
 
-template<typename Scalar, typename Derived>
-ScalarProduct<Derived>
-operator/(const EigenBase<Scalar, Derived>& matrix,
-          Scalar scalar)
-{
-  return matrix * (static_cast<typename Derived::Scalar>(1) / scalar);
-}
+#undef EIGEN_MAKE_SCALAR_OPS
 
 } // namespace Eigen
 

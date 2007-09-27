@@ -50,7 +50,7 @@ template<typename MatrixType> class MatrixMinor
     MatrixMinor(const MatrixMinor& other)
       : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
     
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixMinor)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixMinor)
     
   private:
     const Ref& _ref() const { return *this; }

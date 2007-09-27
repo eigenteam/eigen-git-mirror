@@ -54,7 +54,7 @@ template<typename MatrixType> class MatrixBlock
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixBlock)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixBlock)
     
   private:
     const Ref& _ref() const { return *this; }

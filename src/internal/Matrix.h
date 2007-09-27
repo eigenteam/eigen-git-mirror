@@ -84,8 +84,8 @@ class Matrix : public EigenBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
       return Base::operator=(other);
     }
     
-    INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
-    INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
     
     explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
     template<typename OtherDerived>
@@ -123,6 +123,9 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
 EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<int>,    ci)
 EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
 EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
+
+#undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
+#undef EIGEN_MAKE_TYPEDEFS
 
 } // namespace Eigen
 

@@ -40,7 +40,7 @@ template<typename MatrixType> class MatrixRef
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}
 
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
   private:
     int _rows() const { return m_matrix.rows(); }

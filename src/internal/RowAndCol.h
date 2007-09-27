@@ -55,7 +55,7 @@ template<typename MatrixType> class MatrixRow
       return EigenBase<Scalar, MatrixRow<MatrixType> >::operator=(other);
     }
     
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixRow)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRow)
     
   private:
     const Ref& _ref() const { return *this; }
@@ -103,7 +103,7 @@ template<typename MatrixType> class MatrixCol
     MatrixCol(const MatrixCol& other)
       : m_matrix(other.m_matrix), m_col(other.m_col) {}
     
-    INHERIT_ASSIGNMENT_OPERATORS(MatrixCol)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixCol)
     
   private:
     const Ref& _ref() const { return *this; }

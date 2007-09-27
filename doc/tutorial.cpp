@@ -5,16 +5,12 @@ using namespace Eigen;
 
 int main(int, char **)
 {
-  Matrix<double,2,2> m, n; // 2x2 fixed-size matrix with uninitialized entries
+  Matrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
   m(0,0) = 1;
   m(0,1) = 2;
   m(1,0) = 3;
   m(1,1) = 4;
 
-  n = m;
-  n = eval(n*n+n);
-  cout << n << endl;
-  
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
   MatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
