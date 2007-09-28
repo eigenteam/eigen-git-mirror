@@ -23,41 +23,30 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#include "main.h"
+#ifndef EI_EVAL_H
+#define EI_EVAL_H
 
-template<typename VectorType> void vectorOps(const VectorType& v)
+template<typename Expression> class EiEval
+  : public EiMatrix< typename Expression::Scalar,
+                     Expression::Derived::RowsAtCompileTime,
+                     Expression::Derived::ColsAtCompileTime >
 {
-  typedef typename VectorType::Scalar Scalar;
-  int size = v.size();
-  
-  VectorType a(size), b(size), c(b);
-  Scalar s;
-  a * s;
-  s * a;
-  a + b;
-  a - b;
-  (a + b) * s;
-  s * (a + b);
-  a + b + c;
-  a = b;
-  a = b + c;
-  a = s * (b - c);
-  a = (s * (b - c)).eval();
-  
-  a += b;
-  a -= b + b;
-  a *= s;
-  b /= s;
-  a += (a + a).eval();
+  public:
+    typedef typename Expression::Scalar Scalar;
+    typedef typename Expression::Derived Derived;
+    typedef EiMatrix< Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef Expression Base;
+    friend class EiObject<Scalar, Derived>;
+    
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiEval)
+    
+    EiEval(const Expression& expression) : MatrixType(expression) {}
+};
+
+template<typename Scalar, typename Derived>
+EiEval<EiObject<Scalar, Derived> > EiObject<Scalar, Derived>::eval() const
+{
+  return EiEval<EiObject<Scalar, Derived> >(*this);
 }
 
-void EigenTest::testVectorOps()
-{
-  vectorOps(EiVector2i());
-  vectorOps(EiVector3d());
-  vectorOps(EiVector4cf());
-  vectorOps(EiVectorXf(1));
-  vectorOps(EiVectorXi(2));
-  vectorOps(EiVectorXd(3));
-  vectorOps(EiVectorXcf(4));
-}
+#endif // EI_EVAL_H

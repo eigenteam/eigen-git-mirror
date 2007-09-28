@@ -28,13 +28,14 @@
 
 #include "Util.h"
 
-template<typename _Scalar, typename Derived> class EiObject
+template<typename _Scalar, typename _Derived> class EiObject
 {
-    static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
-                     ColsAtCompileTime = Derived::ColsAtCompileTime;
+    static const int RowsAtCompileTime = _Derived::RowsAtCompileTime,
+                     ColsAtCompileTime = _Derived::ColsAtCompileTime;
   public:
-    typedef typename EiForwardDecl<Derived>::Ref Ref;
+    typedef typename EiForwardDecl<_Derived>::Ref Ref;
     typedef _Scalar Scalar;
+    typedef _Derived Derived;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
@@ -109,6 +110,8 @@ template<typename _Scalar, typename Derived> class EiObject
     
     Scalar& operator()(int row, int col = 0)
     { return write(row, col); }
+    
+    EiEval<EiObject> eval() const;
 };
 
 template<typename Scalar, typename Derived>

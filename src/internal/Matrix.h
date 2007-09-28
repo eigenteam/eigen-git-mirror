@@ -97,13 +97,6 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
     ~EiMatrix() {}
 };
 
-template<typename Scalar, typename Derived>
-EiMatrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
-eval(const EiObject<Scalar, Derived>& expression)
-{
-  return EiMatrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(expression);
-}
-
 #define EI_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
 typedef EiMatrix<Type, Size, Size> EiMatrix##SizeSuffix##TypeSuffix; \
 typedef EiMatrix<Type, Size, 1>    EiVector##SizeSuffix##TypeSuffix;
@@ -124,6 +117,7 @@ EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #undef EI_MAKE_TYPEDEFS_ALL_SIZES
 #undef EI_MAKE_TYPEDEFS
 
+#include "Eval.h"
 #include "MatrixOps.h"
 #include "ScalarOps.h"
 #include "RowAndCol.h"

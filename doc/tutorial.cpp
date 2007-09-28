@@ -45,7 +45,7 @@ int main(int, char **)
        << "Anyway, if you want to store m * m into m, you can do this:" << endl
        << "            m = eval(m * m);" << endl;
   m = m_save;
-  m = eval(m * m);
+  m = (m * m).eval();
   cout << "And m is now:" << endl << m << endl << "as was expected." << endl;
   return 0;
 }

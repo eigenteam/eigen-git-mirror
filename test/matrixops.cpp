@@ -44,7 +44,7 @@ template<typename MatrixType1,
   a = b;
   a = b + c;
   a = s * (b - c);
-  a = eval(a + b);
+  a = (a + b).eval();
   a += b;
   a -= b + b;
   a *= s;
