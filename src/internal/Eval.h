@@ -28,15 +28,14 @@
 
 template<typename Expression> class EiEval
   : public EiMatrix< typename Expression::Scalar,
-                     Expression::Derived::RowsAtCompileTime,
-                     Expression::Derived::ColsAtCompileTime >
+                     Expression::RowsAtCompileTime,
+                     Expression::ColsAtCompileTime >
 {
   public:
     typedef typename Expression::Scalar Scalar;
-    typedef typename Expression::Derived Derived;
-    typedef EiMatrix< Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef EiMatrix< Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
-    friend class EiObject<Scalar, Derived>;
+    friend class EiObject<Scalar, Expression>;
     
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiEval)
     
@@ -44,9 +43,9 @@ template<typename Expression> class EiEval
 };
 
 template<typename Scalar, typename Derived>
-EiEval<EiObject<Scalar, Derived> > EiObject<Scalar, Derived>::eval() const
+EiEval<Derived> EiObject<Scalar, Derived>::eval() const
 {
-  return EiEval<EiObject<Scalar, Derived> >(*this);
+  return EiEval<Derived>(*static_cast<const Derived*>(this));
 }
 
 #endif // EI_EVAL_H

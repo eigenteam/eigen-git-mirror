@@ -128,17 +128,17 @@ template<typename MatrixType> class EiColumn
 };
 
 template<typename Scalar, typename Derived>
-EiRow<EiObject<Scalar, Derived> >
+EiRow<Derived>
 EiObject<Scalar, Derived>::row(int i)
 {
-  return EiRow<EiObject>(ref(), i);
+  return EiRow<Derived>(static_cast<Derived*>(this)->ref(), i);
 }
 
 template<typename Scalar, typename Derived>
-EiColumn<EiObject<Scalar, Derived> >
+EiColumn<Derived>
 EiObject<Scalar, Derived>::col(int i)
 {
-  return EiColumn<EiObject>(ref(), i);
+  return EiColumn<Derived>(static_cast<Derived*>(this)->ref(), i);
 }
 
 #endif // EI_ROWANDCOL_H

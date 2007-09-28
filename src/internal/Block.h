@@ -75,10 +75,10 @@ template<typename MatrixType> class EiBlock
 };
 
 template<typename Scalar, typename Derived>
-EiBlock<EiObject<Scalar, Derived> >
+EiBlock<Derived>
 EiObject<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
 {
-  return EiBlock<EiObject>(ref(), startRow, endRow, startCol, endCol);
+  return EiBlock<Derived>(static_cast<Derived*>(this)->ref(), startRow, endRow, startCol, endCol);
 }
 
 #endif // EI_BLOCK_H

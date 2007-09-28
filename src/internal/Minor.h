@@ -71,10 +71,10 @@ template<typename MatrixType> class EiMinor
 };
 
 template<typename Scalar, typename Derived>
-EiMinor<EiObject<Scalar, Derived> >
+EiMinor<Derived>
 EiObject<Scalar, Derived>::minor(int row, int col)
 {
-  return EiMinor<EiObject>(ref(), row, col);
+  return EiMinor<Derived>(static_cast<Derived*>(this)->ref(), row, col);
 }
 
 #endif // EI_MINOR_H

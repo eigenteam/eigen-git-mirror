@@ -28,14 +28,21 @@
 
 #include "Util.h"
 
-template<typename _Scalar, typename _Derived> class EiObject
+template<typename Scalar, typename Derived> class EiObject
 {
-    static const int RowsAtCompileTime = _Derived::RowsAtCompileTime,
-                     ColsAtCompileTime = _Derived::ColsAtCompileTime;
+    static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
+                     ColsAtCompileTime = Derived::ColsAtCompileTime;
+    
+    template<typename OtherDerived>
+    void _copy_helper(const EiObject<Scalar, OtherDerived>& other)
+    {
+      for(int i = 0; i < rows(); i++)
+        for(int j = 0; j < cols(); j++)
+          write(i, j) = other.read(i, j);
+    }
+    
   public:
-    typedef typename EiForwardDecl<_Derived>::Ref Ref;
-    typedef _Scalar Scalar;
-    typedef _Derived Derived;
+    typedef typename EiForwardDecl<Derived>::Ref Ref;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
@@ -61,9 +68,7 @@ template<typename _Scalar, typename _Derived> class EiObject
     Derived& operator=(const EiObject<Scalar, OtherDerived>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
-      for(int i = 0; i < rows(); i++)
-        for(int j = 0; j < cols(); j++)
-          write(i, j) = other.read(i, j);
+      _copy_helper(other);
       return *static_cast<Derived*>(this);
     }
     
@@ -72,17 +77,14 @@ template<typename _Scalar, typename _Derived> class EiObject
     Derived& operator=(const EiObject& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
-      for(int i = 0; i < rows(); i++)
-        for(int j = 0; j < cols(); j++)
-          write(i, j) = other.read(i, j);
+      _copy_helper(other);
       return *static_cast<Derived*>(this);
     }
     
-    EiRow<EiObject> row(int i);
-    EiColumn<EiObject> col(int i);
-    EiMinor<EiObject> minor(int row, int col);
-    EiBlock<EiObject>
-      block(int startRow, int endRow, int startCol= 0, int endCol = 0);
+    EiRow<Derived> row(int i);
+    EiColumn<Derived> col(int i);
+    EiMinor<Derived> minor(int row, int col);
+    EiBlock<Derived> block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
     template<typename OtherDerived>
     Derived& operator+=(const EiObject<Scalar, OtherDerived>& other);
@@ -111,7 +113,7 @@ template<typename _Scalar, typename _Derived> class EiObject
     Scalar& operator()(int row, int col = 0)
     { return write(row, col); }
     
-    EiEval<EiObject> eval() const;
+    EiEval<Derived> eval() const;
 };
 
 template<typename Scalar, typename Derived>
