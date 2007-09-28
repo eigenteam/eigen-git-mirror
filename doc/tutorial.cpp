@@ -43,7 +43,7 @@ int main(int, char **)
        << "overwritten _while_ the matrix product m * m is being computed." << endl
        << "This is the counterpart of eliminating temporary objects!" << endl
        << "Anyway, if you want to store m * m into m, you can do this:" << endl
-       << "            m = eval(m * m);" << endl;
+       << "            m = (m * m).eval();" << endl;
   m = m_save;
   m = (m * m).eval();
   cout << "And m is now:" << endl << m << endl << "as was expected." << endl;
