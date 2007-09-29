@@ -31,8 +31,9 @@ template<typename MatrixType> class EiScalarProduct
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::ConstRef MatRef;
     typedef EiScalarProduct Ref;
+    typedef EiScalarProduct ConstRef;
     friend class EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -48,6 +49,7 @@ template<typename MatrixType> class EiScalarProduct
 
   private:
     const Ref& _ref() const { return *this; }
+    const ConstRef& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -61,13 +63,13 @@ template<typename MatrixType> class EiScalarProduct
     const Scalar m_scalar;
 };
 
-#define EI_MAKE_SCALAR_OPS(OtherScalar)                             \
+#define EI_MAKE_SCALAR_OPS(OtherScalar)                                \
 template<typename Scalar, typename Derived>                            \
 EiScalarProduct<Derived>                                               \
 operator*(const EiObject<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return EiScalarProduct<Derived>(matrix.ref(), scalar);               \
+  return EiScalarProduct<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
@@ -75,7 +77,7 @@ EiScalarProduct<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
           const EiObject<Scalar, Derived>& matrix)                     \
 {                                                                      \
-  return EiScalarProduct<Derived>(matrix.ref(), scalar);               \
+  return EiScalarProduct<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
@@ -88,7 +90,7 @@ operator/(const EiObject<Scalar, Derived>& matrix,                     \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)       \
+EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)        \
 {                                                                      \
   *this = *this * other;                                               \
   return *static_cast<Derived*>(this);                                 \
@@ -96,7 +98,7 @@ EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)       \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)       \
+EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)        \
 {                                                                      \
   *this = *this / other;                                               \
   return *static_cast<Derived*>(this);                                 \

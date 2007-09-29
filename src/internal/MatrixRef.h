@@ -26,6 +26,32 @@
 #ifndef EI_MATRIXREF_H
 #define EI_MATRIXREF_H
 
+template<typename MatrixType> class EiMatrixConstRef
+ : public EiObject<typename MatrixType::Scalar, EiMatrixConstRef<MatrixType> >
+{
+  public:
+    typedef typename MatrixType::Scalar Scalar;
+    friend class EiObject<Scalar, EiMatrixConstRef>;
+    
+    EiMatrixConstRef(const MatrixType& matrix) : m_matrix(matrix) {}
+    EiMatrixConstRef(const EiMatrixConstRef& other) : m_matrix(other.m_matrix) {}
+    ~EiMatrixConstRef() {}
+
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMatrixConstRef)
+
+  private:
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return m_matrix.cols(); }
+
+    const Scalar& _read(int row, int col) const
+    {
+      return m_matrix._read(row, col);
+    }
+    
+  protected:
+    const MatrixType& m_matrix;
+};
+
 template<typename MatrixType> class EiMatrixRef
  : public EiObject<typename MatrixType::Scalar, EiMatrixRef<MatrixType> >
 {
@@ -43,9 +69,9 @@ template<typename MatrixType> class EiMatrixRef
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
-    Scalar _read(int row, int col) const
+    const Scalar& _read(int row, int col) const
     {
-      return m_matrix.read(row, col);
+      return m_matrix._read(row, col);
     }
     
     Scalar& _write(int row, int col)

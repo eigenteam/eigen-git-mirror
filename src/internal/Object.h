@@ -56,6 +56,7 @@ template<typename Scalar, typename Derived> class EiObject
     
   public:
     typedef typename EiForwardDecl<Derived>::Ref Ref;
+    typedef typename EiForwardDecl<Derived>::ConstRef ConstRef;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
@@ -64,10 +65,10 @@ template<typename Scalar, typename Derived> class EiObject
     Ref ref()
     { return static_cast<Derived *>(this)->_ref(); }
     
-    Ref ref() const
-    { return static_cast<const Derived *>(this)->_ref(); }
+    ConstRef constRef() const
+    { return static_cast<const Derived *>(this)->_constRef(); }
     
-    Scalar& EI_RESTRICT write(int row, int col)
+    Scalar& write(int row, int col)
     {
       return static_cast<Derived *>(this)->_write(row, col);
     }
@@ -127,7 +128,7 @@ template<typename Scalar, typename Derived> class EiObject
     Scalar operator()(int row, int col = 0) const
     { return read(row, col); }
     
-    Scalar& EI_RESTRICT operator()(int row, int col = 0)
+    Scalar& operator()(int row, int col = 0)
     { return write(row, col); }
     
     EiEval<Derived> eval() const EI_ALWAYS_INLINE;

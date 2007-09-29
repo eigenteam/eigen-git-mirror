@@ -41,25 +41,29 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
     typedef      EiMatrixStorage<_Scalar, _Rows, _Cols> Storage;
     typedef      _Scalar                                Scalar;
     typedef      EiMatrixRef<EiMatrix>                  Ref;
+    typedef      EiMatrixConstRef<EiMatrix>             ConstRef;
+    friend class EiMatrixRef<EiMatrix>;
+    friend class EiMatrixConstRef<EiMatrix>;
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
-    const Scalar* EI_RESTRICT array() const
+    const Scalar* array() const
     { return Storage::m_array; }
     
-    Scalar* EI_RESTRICT array()
+    Scalar* array()
     { return Storage::m_array; }
     
   private:
-    Ref _ref() const { return Ref(*const_cast<EiMatrix*>(this)); }
-
-    const Scalar& EI_RESTRICT _read(int row, int col = 0) const
+    Ref _ref() { return Ref(*this); }
+    ConstRef _constRef() const { return ConstRef(*this); }
+    
+    const Scalar& _read(int row, int col = 0) const
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
-    Scalar& EI_RESTRICT _write(int row, int col = 0)
+    Scalar& _write(int row, int col = 0)
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];

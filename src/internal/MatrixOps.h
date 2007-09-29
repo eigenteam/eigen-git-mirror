@@ -31,15 +31,16 @@ template<typename Lhs, typename Rhs> class EiSum
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::Ref LhsRef;
-    typedef typename Rhs::Ref RhsRef;
+    typedef typename Lhs::ConstRef LhsRef;
+    typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiSum>;
     typedef EiSum Ref;
+    typedef EiSum ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    EiSum(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
+    EiSum(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -53,6 +54,7 @@ template<typename Lhs, typename Rhs> class EiSum
   private:
   
     const Ref& _ref() const { return *this; }
+    const ConstRef& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -71,15 +73,16 @@ template<typename Lhs, typename Rhs> class EiDifference
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::Ref LhsRef;
-    typedef typename Rhs::Ref RhsRef;
+    typedef typename Lhs::ConstRef LhsRef;
+    typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiDifference>;
     typedef EiDifference Ref;
+    typedef EiDifference ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
     
-    EiDifference(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
+    EiDifference(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -92,6 +95,7 @@ template<typename Lhs, typename Rhs> class EiDifference
 
   private:
     const Ref& _ref() const { return *this; }
+    const Ref& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -110,15 +114,16 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::Ref LhsRef;
-    typedef typename Rhs::Ref RhsRef;
+    typedef typename Lhs::ConstRef LhsRef;
+    typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiMatrixProduct>;
     typedef EiMatrixProduct Ref;
+    typedef EiMatrixProduct ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    EiMatrixProduct(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
+    EiMatrixProduct(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {
       assert(lhs.cols() == rhs.rows());
@@ -131,6 +136,7 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     
   private:
     const Ref& _ref() const { return *this; }
+    const Ref& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
     
@@ -158,14 +164,14 @@ template<typename Scalar, typename Derived1, typename Derived2>
 EiSum<Derived1, Derived2>
 operator+(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return EiSum<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return EiSum<Derived1, Derived2>(mat1.constRef(), mat2.constRef());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
 EiDifference<Derived1, Derived2>
 operator-(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return EiDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return EiDifference<Derived1, Derived2>(mat1.constRef(), mat2.constRef());
 }
 
 template<typename Scalar, typename Derived>
@@ -173,7 +179,7 @@ template<typename OtherDerived>
 EiMatrixProduct<Derived, OtherDerived>
 EiObject<Scalar, Derived>::lazyMul(const EiObject<Scalar, OtherDerived> &other) const
 {
-  return EiMatrixProduct<Derived, OtherDerived>(ref(), other.ref());
+  return EiMatrixProduct<Derived, OtherDerived>(constRef(), other.constRef());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>

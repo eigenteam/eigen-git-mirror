@@ -43,6 +43,7 @@
 //forward declarations
 template<typename _Scalar, int _Rows, int _Cols> class EiMatrix;
 template<typename MatrixType> class EiMatrixRef;
+template<typename MatrixType> class EiMatrixConstRef;
 template<typename MatrixType> class EiRow;
 template<typename MatrixType> class EiColumn;
 template<typename MatrixType> class EiMinor;
@@ -56,12 +57,14 @@ template<typename ExpressionType> class EiEval;
 template<typename T> struct EiForwardDecl
 {
   typedef T Ref;
+  typedef T ConstRef;
 };
 
 template<typename _Scalar, int _Rows, int _Cols>
 struct EiForwardDecl<EiMatrix<_Scalar, _Rows, _Cols> >
 {
   typedef EiMatrixRef<EiMatrix<_Scalar, _Rows, _Cols> > Ref;
+  typedef EiMatrixConstRef<EiMatrix<_Scalar, _Rows, _Cols> > ConstRef;
 };
 
 const int EiDynamic = -1;
@@ -70,7 +73,7 @@ const int EiDynamic = -1;
 
 #ifdef __GNUC__
 # define EI_ALWAYS_INLINE __attribute__((always_inline))
-# define EI_RESTRICT      __restrict__
+# define EI_RESTRICT      /*__restrict__*/
 #else
 # define EI_ALWAYS_INLINE
 # define EI_RESTRICT

@@ -34,6 +34,7 @@ template<typename MatrixType> class EiMinor
     typedef typename MatrixType::Ref MatRef;
     friend class EiObject<Scalar, EiMinor<MatrixType> >;
     typedef EiMinor Ref;
+    typedef EiMinor ConstRef;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime - 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime - 1;
@@ -51,7 +52,8 @@ template<typename MatrixType> class EiMinor
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiMinor)
     
   private:
-    const Ref& _ref() const { return *this; }
+    Ref& _ref() { return *this; }
+    const ConstRef& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
     

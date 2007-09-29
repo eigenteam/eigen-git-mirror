@@ -32,7 +32,7 @@ template<typename Scalar,
 class EiMatrixStorage
 {
   protected:
-    Scalar EI_RESTRICT m_array[RowsAtCompileTime * RowsAtCompileTime];
+    Scalar m_array[RowsAtCompileTime * RowsAtCompileTime];
   
     void resize(int rows, int cols)
     { assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime); }
@@ -59,7 +59,7 @@ class EiMatrixStorage<Scalar, EiDynamic, ColsAtCompileTime>
 {
   protected:
     int m_rows;
-    Scalar* EI_RESTRICT m_array;
+    Scalar* m_array;
     
     void resize(int rows, int cols)
     {
@@ -94,7 +94,7 @@ class EiMatrixStorage<Scalar, RowsAtCompileTime, EiDynamic>
 {
   protected:
     int m_cols;
-    Scalar* EI_RESTRICT m_array;
+    Scalar* m_array;
     
     void resize(int rows, int cols)
     {
@@ -129,7 +129,7 @@ class EiMatrixStorage<Scalar, EiDynamic, EiDynamic>
 {
   protected:
     int m_rows, m_cols;
-    Scalar* EI_RESTRICT m_array;
+    Scalar* m_array;
     
     void resize(int rows, int cols)
     {

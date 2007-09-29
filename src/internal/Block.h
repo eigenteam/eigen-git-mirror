@@ -34,6 +34,7 @@ template<typename MatrixType> class EiBlock
     typedef typename MatrixType::Ref MatRef;
     friend class EiObject<Scalar, EiBlock<MatrixType> >;
     typedef EiBlock Ref;
+    typedef EiBlock ConstRef;
     
     static const int RowsAtCompileTime = EiDynamic,
                      ColsAtCompileTime = EiDynamic;
@@ -55,7 +56,8 @@ template<typename MatrixType> class EiBlock
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiBlock)
     
   private:
-    const Ref& _ref() const { return *this; }
+    Ref& _ref() { return *this; }
+    const Ref& _constRef() const { return *this; }
     int _rows() const { return m_endRow - m_startRow + 1; }
     int _cols() const { return m_endCol - m_startCol + 1; }
     
