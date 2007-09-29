@@ -36,6 +36,19 @@ template<typename Scalar, typename Derived> class EiObject
     template<typename OtherDerived>
     void _copy_helper(const EiObject<Scalar, OtherDerived>& other)
     {
+      if(RowsAtCompileTime == 3 && ColsAtCompileTime == 3)
+      {
+        write(0,0) = other.read(0,0);
+        write(1,0) = other.read(1,0);
+        write(2,0) = other.read(2,0);
+        write(0,1) = other.read(0,1);
+        write(1,1) = other.read(1,1);
+        write(2,1) = other.read(2,1);
+        write(0,2) = other.read(0,2);
+        write(1,2) = other.read(1,2);
+        write(2,2) = other.read(2,2);
+      }
+      else
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
           write(i, j) = other.read(i, j);
@@ -54,7 +67,7 @@ template<typename Scalar, typename Derived> class EiObject
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
     
-    Scalar& write(int row, int col)
+    Scalar& EI_RESTRICT write(int row, int col)
     {
       return static_cast<Derived *>(this)->_write(row, col);
     }
@@ -87,6 +100,10 @@ template<typename Scalar, typename Derived> class EiObject
     EiBlock<Derived> block(int startRow, int endRow, int startCol= 0, int endCol = 0);
     
     template<typename OtherDerived>
+    EiMatrixProduct<Derived, OtherDerived>
+    lazyMul(const EiObject<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
+    
+    template<typename OtherDerived>
     Derived& operator+=(const EiObject<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const EiObject<Scalar, OtherDerived>& other);
@@ -110,10 +127,10 @@ template<typename Scalar, typename Derived> class EiObject
     Scalar operator()(int row, int col = 0) const
     { return read(row, col); }
     
-    Scalar& operator()(int row, int col = 0)
+    Scalar& EI_RESTRICT operator()(int row, int col = 0)
     { return write(row, col); }
     
-    EiEval<Derived> eval() const;
+    EiEval<Derived> eval() const EI_ALWAYS_INLINE;
 };
 
 template<typename Scalar, typename Derived>

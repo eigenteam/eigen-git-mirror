@@ -39,7 +39,7 @@ template<typename Lhs, typename Rhs> class EiSum
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    EiSum(const LhsRef& lhs, const RhsRef& rhs)
+    EiSum(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -79,7 +79,7 @@ template<typename Lhs, typename Rhs> class EiDifference
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
     
-    EiDifference(const LhsRef& lhs, const RhsRef& rhs)
+    EiDifference(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -118,7 +118,7 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
-    EiMatrixProduct(const LhsRef& lhs, const RhsRef& rhs)
+    EiMatrixProduct(const LhsRef& EI_RESTRICT lhs, const RhsRef& EI_RESTRICT rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {
       assert(lhs.cols() == rhs.rows());
@@ -136,10 +136,17 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     
     Scalar _read(int row, int col) const
     {
-      Scalar x = static_cast<Scalar>(0);
-      for(int i = 0; i < m_lhs.cols(); i++)
-        x += m_lhs.read(row, i) * m_rhs.read(i, col);
-      return x;
+      if(Lhs::ColsAtCompileTime == 3)
+      {
+        return m_lhs(row,0) * m_rhs(0,col) + m_lhs(row,1) * m_rhs(1,col) + m_lhs(row,2) * m_rhs(2,col);
+      }
+      else
+      {
+        Scalar x = static_cast<Scalar>(0);
+        for(int i = 0; i < m_lhs.cols(); i++)
+          x += m_lhs.read(row, i) * m_rhs.read(i, col);
+        return x;
+      }
     }
     
   protected:
@@ -161,11 +168,19 @@ operator-(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived
   return EiDifference<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+EiMatrixProduct<Derived, OtherDerived>
+EiObject<Scalar, Derived>::lazyMul(const EiObject<Scalar, OtherDerived> &other) const
+{
+  return EiMatrixProduct<Derived, OtherDerived>(ref(), other.ref());
+}
+
 template<typename Scalar, typename Derived1, typename Derived2>
-EiMatrixProduct<Derived1, Derived2>
+EiEval<EiMatrixProduct<Derived1, Derived2> >
 operator*(const EiObject<Scalar, Derived1> &mat1, const EiObject<Scalar, Derived2> &mat2)
 {
-  return EiMatrixProduct<Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return mat1.lazyMul(mat2).eval();
 }
 
 template<typename Scalar, typename Derived>

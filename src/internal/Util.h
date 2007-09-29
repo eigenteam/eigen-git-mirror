@@ -68,6 +68,14 @@ const int EiDynamic = -1;
 
 #define EI_UNUSED(x) (void)x
 
+#ifdef __GNUC__
+# define EI_ALWAYS_INLINE __attribute__((always_inline))
+# define EI_RESTRICT      __restrict__
+#else
+# define EI_ALWAYS_INLINE
+# define EI_RESTRICT
+#endif
+
 #define EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
 Derived& operator Op(const EiObject<OtherScalar, OtherDerived>& other) \

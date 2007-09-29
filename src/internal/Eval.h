@@ -33,7 +33,7 @@ template<typename Expression> class EiEval
 {
   public:
     typedef typename Expression::Scalar Scalar;
-    typedef EiMatrix< Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
+    typedef EiMatrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
     friend class EiObject<Scalar, Expression>;
     

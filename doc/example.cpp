@@ -12,7 +12,7 @@ template<typename Scalar, typename Derived>
 EiScalarProduct<Derived>
 twice(const EiObject<Scalar, Derived>& m)
 {
-	return static_cast<Scalar>(2) * m;
+	return 2 * m;
 }
 
 int main(int, char**)

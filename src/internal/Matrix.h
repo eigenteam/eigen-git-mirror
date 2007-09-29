@@ -44,22 +44,22 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
-    const Scalar* array() const
+    const Scalar* EI_RESTRICT array() const
     { return Storage::m_array; }
     
-    Scalar* array()
+    Scalar* EI_RESTRICT array()
     { return Storage::m_array; }
     
   private:
     Ref _ref() const { return Ref(*const_cast<EiMatrix*>(this)); }
 
-    const Scalar& _read(int row, int col = 0) const
+    const Scalar& EI_RESTRICT _read(int row, int col = 0) const
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
-    Scalar& _write(int row, int col = 0)
+    Scalar& EI_RESTRICT _write(int row, int col = 0)
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];

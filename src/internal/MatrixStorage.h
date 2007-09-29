@@ -32,7 +32,7 @@ template<typename Scalar,
 class EiMatrixStorage
 {
   protected:
-    Scalar m_array[RowsAtCompileTime * RowsAtCompileTime];
+    Scalar EI_RESTRICT m_array[RowsAtCompileTime * RowsAtCompileTime];
   
     void resize(int rows, int cols)
     { assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime); }
@@ -54,18 +54,20 @@ class EiMatrixStorage
     ~EiMatrixStorage() {};
 };
 
-template<typename Scalar>
-class EiMatrixStorage<Scalar, EiDynamic, 1>
+template<typename Scalar, int ColsAtCompileTime>
+class EiMatrixStorage<Scalar, EiDynamic, ColsAtCompileTime>
 {
   protected:
     int m_rows;
-    Scalar *m_array;
+    Scalar* EI_RESTRICT m_array;
     
     void resize(int rows, int cols)
-    { assert(rows > 0 && cols == 1);
-      if(rows > m_rows) {
+    {
+      assert(rows > 0 && cols == ColsAtCompileTime);
+      if(rows > m_rows)
+      {
         delete[] m_array;
-        m_array  = new Scalar[rows];
+        m_array  = new Scalar[rows * ColsAtCompileTime];
       }
       m_rows = rows;
     }
@@ -74,13 +76,48 @@ class EiMatrixStorage<Scalar, EiDynamic, 1>
     { return m_rows; }
     
     int _cols() const
-    { return 1; }
+    { return ColsAtCompileTime; }
     
   public:
     EiMatrixStorage(int rows, int cols) : m_rows(rows)
     {
-      assert(m_rows > 0 && cols == 1);
-      m_array = new Scalar[m_rows];
+      assert(m_rows > 0 && cols == ColsAtCompileTime);
+      m_array = new Scalar[m_rows * ColsAtCompileTime];
+    }
+    
+    ~EiMatrixStorage()
+    { delete[] m_array; }
+};
+
+template<typename Scalar, int RowsAtCompileTime>
+class EiMatrixStorage<Scalar, RowsAtCompileTime, EiDynamic>
+{
+  protected:
+    int m_cols;
+    Scalar* EI_RESTRICT m_array;
+    
+    void resize(int rows, int cols)
+    {
+      assert(rows == RowsAtCompileTime && cols > 0);
+      if(cols > m_cols)
+      {
+        delete[] m_array;
+        m_array  = new Scalar[cols * RowsAtCompileTime];
+      }
+      m_cols = cols;
+    }
+    
+    int _rows() const
+    { return RowsAtCompileTime; }
+    
+    int _cols() const
+    { return m_cols; }
+    
+  public:
+    EiMatrixStorage(int rows, int cols) : m_cols(cols)
+    {
+      assert(rows == RowsAtCompileTime && cols > 0);
+      m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
     ~EiMatrixStorage()
@@ -92,7 +129,7 @@ class EiMatrixStorage<Scalar, EiDynamic, EiDynamic>
 {
   protected:
     int m_rows, m_cols;
-    Scalar *m_array;
+    Scalar* EI_RESTRICT m_array;
     
     void resize(int rows, int cols)
     {

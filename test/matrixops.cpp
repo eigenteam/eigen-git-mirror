@@ -49,7 +49,11 @@ template<typename MatrixType1,
   a -= b + b;
   a *= s;
   b /= s;
-  if(rows1 == cols1) a *= b;
+  if(rows1 == cols1)
+  {
+    a *= b;
+    a.lazyMul(b);
+  }
   
   MatrixType1 d(rows1, cols1);
   MatrixType2 e(rows2, cols2);
