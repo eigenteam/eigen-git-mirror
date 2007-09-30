@@ -32,7 +32,7 @@ template<typename Scalar,
 class EiMatrixStorage
 {
   protected:
-    Scalar m_array[RowsAtCompileTime * RowsAtCompileTime];
+    Scalar m_array[RowsAtCompileTime * ColsAtCompileTime];
   
     void resize(int rows, int cols)
     { assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime); }

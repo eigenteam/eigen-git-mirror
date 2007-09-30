@@ -48,7 +48,7 @@ template<typename Lhs, typename Rhs> class EiSum
 
     EiSum(const EiSum& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
-
+      
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiSum)
 
   private:
@@ -194,8 +194,7 @@ template<typename OtherDerived>
 Derived &
 EiObject<Scalar, Derived>::operator+=(const EiObject<Scalar, OtherDerived>& other)
 {
-  *this = *this + other;
-  return *static_cast<Derived*>(this);
+  return *this = *this + other;
 }
 
 template<typename Scalar, typename Derived>
@@ -203,8 +202,7 @@ template<typename OtherDerived>
 Derived &
 EiObject<Scalar, Derived>::operator-=(const EiObject<Scalar, OtherDerived> &other)
 {
-  *this = *this - other;
-  return *static_cast<Derived*>(this);
+  return *this = *this - other;
 }
 
 template<typename Scalar, typename Derived>
@@ -212,8 +210,7 @@ template<typename OtherDerived>
 Derived &
 EiObject<Scalar, Derived>::operator*=(const EiObject<Scalar, OtherDerived> &other)
 {
-  *this = *this * other;
-  return *static_cast<Derived*>(this);
+  return *this = *this * other;
 }
 
 #endif // EI_MATRIXOPS_H

@@ -48,7 +48,6 @@ template<typename MatrixType> class EiMatrixConstRef
       return m_matrix._read(row, col);
     }
     
-  protected:
     const MatrixType& m_matrix;
 };
 

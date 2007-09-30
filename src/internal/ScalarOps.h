@@ -92,16 +92,14 @@ template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
 EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)        \
 {                                                                      \
-  *this = *this * other;                                               \
-  return *static_cast<Derived*>(this);                                 \
+  return *this = *this * other;                                               \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
 EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)        \
 {                                                                      \
-  *this = *this / other;                                               \
-  return *static_cast<Derived*>(this);                                 \
+  return *this = *this / other;                                               \
 }
 
 EI_MAKE_SCALAR_OPS(int)
