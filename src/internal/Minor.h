@@ -36,8 +36,11 @@ template<typename MatrixType> class EiMinor
     typedef EiMinor Ref;
     typedef EiMinor ConstRef;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime - 1,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime - 1;
+    static const int
+      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != EiDynamic) ?
+                          MatrixType::RowsAtCompileTime - 1 : EiDynamic,
+      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != EiDynamic) ?
+                          MatrixType::ColsAtCompileTime - 1 : EiDynamic;
 
     EiMinor(const MatRef& matrix,
                 int row, int col = 0)
