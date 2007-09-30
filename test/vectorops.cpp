@@ -47,7 +47,6 @@ template<typename VectorType> void vectorOps(const VectorType& v)
   a += b;
   a -= b + b;
   a *= s;
-  b /= s;
   a += (a + a).eval();
 }
 

@@ -48,7 +48,6 @@ template<typename MatrixType1,
   a += b;
   a -= b + b;
   a *= s;
-  b /= s;
   if(rows1 == cols1)
   {
     a *= b;
