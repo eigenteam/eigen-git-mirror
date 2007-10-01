@@ -2,7 +2,6 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
-// Copyright (C) 2007      Michael Olbrich <michael.olbrich@gmx.net>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -28,31 +27,7 @@
 #define EI_OBJECT_H
 
 #include "Util.h"
-
-template<int UnrollCount, int Rows> class EiLoop
-{
-    static const int col = (UnrollCount-1) / Rows;
-    static const int row = (UnrollCount-1) % Rows;
-
-  public:
-    template <typename Derived1, typename Derived2>
-    static void copy(Derived1 &dst, const Derived2 &src)
-    {
-      EiLoop<UnrollCount-1, Rows>::copy(dst, src);
-      dst.write(row, col) = src.read(row, col);
-    }
-};
-
-template<int Rows> class EiLoop<0, Rows>
-{
-  public:
-    template <typename Derived1, typename Derived2>
-    static void copy(Derived1 &dst, const Derived2 &src)
-    {
-      EI_UNUSED(dst);
-      EI_UNUSED(src);
-    }
-};
+#include "Loop.h"
 
 template<typename Scalar, typename Derived> class EiObject
 {
