@@ -24,8 +24,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_EIGENBASE_H
-#define EI_EIGENBASE_H
+#ifndef EI_OBJECT_H
+#define EI_OBJECT_H
 
 #include "Util.h"
 
@@ -118,7 +118,7 @@ template<typename Scalar, typename Derived> class EiObject
     EiRow<Derived> row(int i);
     EiColumn<Derived> col(int i);
     EiMinor<Derived> minor(int row, int col);
-    EiBlock<Derived> block(int startRow, int endRow, int startCol= 0, int endCol = 0);
+    EiBlock<Derived> block(int startRow, int endRow, int startCol, int endCol);
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>
@@ -145,11 +145,25 @@ template<typename Scalar, typename Derived> class EiObject
     Derived& operator/=(const std::complex<float>& other);
     Derived& operator/=(const std::complex<double>& other);
 
-    Scalar operator()(int row, int col = 0) const
+    Scalar operator()(int row, int col) const
     { return read(row, col); }
     
-    Scalar& operator()(int row, int col = 0)
+    Scalar& operator()(int row, int col)
     { return write(row, col); }
+    
+    Scalar operator[](int index) const
+    {
+      assert(RowsAtCompileTime == 1 || ColsAtCompileTime == 1);
+      if(RowsAtCompileTime == 1) return read(0, index);
+      else return read(index, 0);
+    }
+    
+    Scalar& operator[](int index)
+    {
+      assert(RowsAtCompileTime == 1 || ColsAtCompileTime == 1);
+      if(RowsAtCompileTime == 1) return write(0, index);
+      else return write(index, 0);
+    }
     
     EiEval<Derived> eval() const EI_ALWAYS_INLINE;
 };
@@ -170,4 +184,4 @@ std::ostream & operator <<
   return s;
 }
 
-#endif // EI_EIGENBASE_H
+#endif // EI_OBJECT_H

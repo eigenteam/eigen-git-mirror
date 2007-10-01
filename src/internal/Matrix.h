@@ -33,7 +33,7 @@
 
 template<typename _Scalar, int _Rows, int _Cols>
 class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
-               public EiMatrixStorage<_Scalar, _Rows, _Cols>
+                 public EiMatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
     friend class EiObject<_Scalar, EiMatrix>;
@@ -57,13 +57,13 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
     Ref _ref() { return Ref(*this); }
     ConstRef _constRef() const { return ConstRef(*this); }
     
-    const Scalar& _read(int row, int col = 0) const
+    const Scalar& _read(int row, int col) const
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
-    Scalar& _write(int row, int col = 0)
+    Scalar& _write(int row, int col)
     {
       EI_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
@@ -103,7 +103,8 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
 
 #define EI_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
 typedef EiMatrix<Type, Size, Size> EiMatrix##SizeSuffix##TypeSuffix; \
-typedef EiMatrix<Type, Size, 1>    EiVector##SizeSuffix##TypeSuffix;
+typedef EiMatrix<Type, Size, 1>    EiVector##SizeSuffix##TypeSuffix; \
+typedef EiMatrix<Type, 1, Size>    EiRowVector##SizeSuffix##TypeSuffix;
 
 #define EI_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
 EI_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
@@ -124,6 +125,5 @@ EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #include "Eval.h"
 #include "MatrixOps.h"
 #include "ScalarOps.h"
-#include "RowAndCol.h"
 
 #endif // EI_MATRIX_H

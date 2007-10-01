@@ -26,8 +26,10 @@ int main(int, char **)
   cout << "Now the 4x4 matrix m2 is:" << endl << m2 << endl;
   
   cout << "The central 2x2 block of m2 is:" << endl << m2.block(1,2,1,2) << endl;
-  cout << "Row 0 of m2, written as a column vector, is:" << endl << m2.row(0) << endl;
+  cout << "Row 0 of m2 is:" << endl << m2.row(0) << endl;
+  cout << "The third element in that row is " << m2.row(0)[2] << endl;
   cout << "Column 1 of m2 is:" << endl << m2.col(1) << endl;
   cout << "The matrix m2 with row 0 and column 1 removed is:" << endl << m2.minor(0,1) << endl;
+  
   return 0;
 }

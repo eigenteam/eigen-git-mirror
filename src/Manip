@@ -26,7 +26,8 @@
 #ifndef EI_MANIP_H
 #define EI_MANIP_H
 
-#include "internal/RowAndCol.h"
+#include "internal/Row.h"
+#include "internal/Column.h"
 #include "internal/Block.h"
 #include "internal/Minor.h"
 
