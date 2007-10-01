@@ -28,36 +28,36 @@
 
 #include "Util.h"
 
-template<int count, int rows> class Loop
+template<int Size, int Rows> class EiLoop
 {
-  enum {
-      col  = (count-1)/rows,
-      row  = (count-1)%rows,
-      next =  count-1
-  };
+    static const int col = (Size-1) / Rows;
+    static const int row = (Size-1) % Rows;
+
   public:
-  template <typename Derived1, typename Derived2> static void copy(Derived1 &dst, const Derived2 &src)
-  {
-    Loop<next, rows>::copy(dst, src);
-    dst.write(row, col) = src.read(row, col);
-  }
-};
-template<int rows> class Loop<0, rows>
-{
-  public:
-  template <typename Derived1, typename Derived2> static void copy(Derived1 &dst, const Derived2 &src)
-  {
-    EI_UNUSED(dst);
-    EI_UNUSED(src);
-  }
+    template <typename Derived1, typename Derived2>
+    static void copy(Derived1 &dst, const Derived2 &src)
+    {
+      EiLoop<Size-1, Rows>::copy(dst, src);
+      dst.write(row, col) = src.read(row, col);
+    }
 };
 
+template<int Rows> class EiLoop<0, Rows>
+{
+  public:
+    template <typename Derived1, typename Derived2>
+    static void copy(Derived1 &dst, const Derived2 &src)
+    {
+      EI_UNUSED(dst);
+      EI_UNUSED(src);
+    }
+};
 
 template<typename Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime,
-                     CountAtCompileTime= RowsAtCompileTime*ColsAtCompileTime > 0 ?
+                     SizeAtCompileTime = RowsAtCompileTime*ColsAtCompileTime > 0 ?
                                          RowsAtCompileTime*ColsAtCompileTime : 0;
     
     template<typename OtherDerived>
@@ -65,8 +65,8 @@ template<typename Scalar, typename Derived> class EiObject
     {
       if ((RowsAtCompileTime != EiDynamic) &&
           (ColsAtCompileTime != EiDynamic) &&
-          (CountAtCompileTime <= 25))
-        Loop<CountAtCompileTime, RowsAtCompileTime>::copy(*this, other);
+          (SizeAtCompileTime <= 25))
+        EiLoop<SizeAtCompileTime, RowsAtCompileTime>::copy(*this, other);
       else
       for(int i = 0; i < rows(); i++)
         for(int j = 0; j < cols(); j++)
