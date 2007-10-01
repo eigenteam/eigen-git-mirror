@@ -69,7 +69,7 @@ struct EiForwardDecl<EiMatrix<_Scalar, _Rows, _Cols> >
 
 const int EiDynamic = -1;
 
-#define EI_LOOP_UNROLLING_LIMIT 8
+#define EI_LOOP_UNROLLING_LIMIT 25
 
 #define EI_UNUSED(x) (void)x
 

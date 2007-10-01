@@ -66,9 +66,7 @@ template<typename Scalar, typename Derived> class EiObject
     template<typename OtherDerived>
     void _copy_helper(const EiObject<Scalar, OtherDerived>& other)
     {
-      if(HasDynamicSize
-      && RowsAtCompileTime <= EI_LOOP_UNROLLING_LIMIT
-      && ColsAtCompileTime <= EI_LOOP_UNROLLING_LIMIT)
+      if(UnrollCount > 0 && UnrollCount <= EI_LOOP_UNROLLING_LIMIT)
         EiLoop<UnrollCount, RowsAtCompileTime>::copy(*this, other);
       else
         for(int i = 0; i < rows(); i++)
