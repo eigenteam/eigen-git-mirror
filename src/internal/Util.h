@@ -48,6 +48,7 @@ template<typename MatrixType> class EiRow;
 template<typename MatrixType> class EiColumn;
 template<typename MatrixType> class EiMinor;
 template<typename MatrixType> class EiBlock;
+template<typename MatrixType> class EiTranspose;
 template<typename Lhs, typename Rhs> class EiSum;
 template<typename Lhs, typename Rhs> class EiDifference;
 template<typename Lhs, typename Rhs> class EiMatrixProduct;

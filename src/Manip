@@ -30,5 +30,6 @@
 #include "internal/Column.h"
 #include "internal/Block.h"
 #include "internal/Minor.h"
+#include "internal/Transpose.h"
 
 #endif // EI_MANIP_H

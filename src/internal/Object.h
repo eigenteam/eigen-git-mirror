@@ -94,6 +94,7 @@ template<typename Scalar, typename Derived> class EiObject
     EiColumn<Derived> col(int i);
     EiMinor<Derived> minor(int row, int col);
     EiBlock<Derived> block(int startRow, int endRow, int startCol, int endCol);
+    EiTranspose<Derived> transpose();
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>
