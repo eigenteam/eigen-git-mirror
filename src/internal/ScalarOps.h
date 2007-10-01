@@ -32,8 +32,6 @@ template<typename MatrixType> class EiScalarProduct
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::ConstRef MatRef;
-    typedef EiScalarProduct Ref;
-    typedef EiScalarProduct ConstRef;
     friend class EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -48,8 +46,8 @@ template<typename MatrixType> class EiScalarProduct
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiScalarProduct)
 
   private:
-    const Ref& _ref() const { return *this; }
-    const ConstRef& _constRef() const { return *this; }
+    const EiScalarProduct& _ref() const { return *this; }
+    const EiScalarProduct& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 

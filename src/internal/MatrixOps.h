@@ -34,8 +34,6 @@ template<typename Lhs, typename Rhs> class EiSum
     typedef typename Lhs::ConstRef LhsRef;
     typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiSum>;
-    typedef EiSum Ref;
-    typedef EiSum ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -53,8 +51,8 @@ template<typename Lhs, typename Rhs> class EiSum
 
   private:
   
-    const Ref& _ref() const { return *this; }
-    const ConstRef& _constRef() const { return *this; }
+    const EiSum& _ref() const { return *this; }
+    const EiSum& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -76,8 +74,6 @@ template<typename Lhs, typename Rhs> class EiDifference
     typedef typename Lhs::ConstRef LhsRef;
     typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiDifference>;
-    typedef EiDifference Ref;
-    typedef EiDifference ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -94,8 +90,8 @@ template<typename Lhs, typename Rhs> class EiDifference
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiDifference)
 
   private:
-    const Ref& _ref() const { return *this; }
-    const Ref& _constRef() const { return *this; }
+    const EiDifference& _ref() const { return *this; }
+    const EiDifference& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -117,8 +113,6 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     typedef typename Lhs::ConstRef LhsRef;
     typedef typename Rhs::ConstRef RhsRef;
     friend class EiObject<Scalar, EiMatrixProduct>;
-    typedef EiMatrixProduct Ref;
-    typedef EiMatrixProduct ConstRef;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -135,8 +129,8 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiMatrixProduct)
     
   private:
-    const Ref& _ref() const { return *this; }
-    const Ref& _constRef() const { return *this; }
+    const EiMatrixProduct& _ref() const { return *this; }
+    const EiMatrixProduct& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
     

@@ -33,8 +33,6 @@ template<typename MatrixType> class EiRow
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     friend class EiObject<Scalar, EiRow<MatrixType> >;
-    typedef EiRow Ref;
-    typedef EiRow ConstRef;
 
     static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
                      ColsAtCompileTime = 1;
@@ -57,8 +55,8 @@ template<typename MatrixType> class EiRow
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiRow)
     
   private:
-    Ref& _ref() { return *this; }
-    const ConstRef& _constRef() const { return *this; }
+    EiRow& _ref() { return *this; }
+    const EiRow& _constRef() const { return *this; }
     
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return 1; }
@@ -89,8 +87,6 @@ template<typename MatrixType> class EiColumn
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     friend class EiObject<Scalar, EiColumn<MatrixType> >;
-    typedef EiColumn Ref;
-    typedef EiColumn ConstRef;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = 1;
@@ -107,8 +103,8 @@ template<typename MatrixType> class EiColumn
     EI_INHERIT_ASSIGNMENT_OPERATORS(EiColumn)
     
   private:
-    Ref& _ref() { return *this; }
-    const ConstRef& _constRef() const { return *this; }
+    EiColumn& _ref() { return *this; }
+    const EiColumn& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return 1; }
     
