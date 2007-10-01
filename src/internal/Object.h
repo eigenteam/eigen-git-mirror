@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2007      Michael Olbrich <michael.olbrich@gmx.net>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -28,16 +29,16 @@
 
 #include "Util.h"
 
-template<int Size, int Rows> class EiLoop
+template<int UnrollCount, int Rows> class EiLoop
 {
-    static const int col = (Size-1) / Rows;
-    static const int row = (Size-1) % Rows;
+    static const int col = (UnrollCount-1) / Rows;
+    static const int row = (UnrollCount-1) % Rows;
 
   public:
     template <typename Derived1, typename Derived2>
     static void copy(Derived1 &dst, const Derived2 &src)
     {
-      EiLoop<Size-1, Rows>::copy(dst, src);
+      EiLoop<UnrollCount-1, Rows>::copy(dst, src);
       dst.write(row, col) = src.read(row, col);
     }
 };
@@ -56,21 +57,23 @@ template<int Rows> class EiLoop<0, Rows>
 template<typename Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
-                     ColsAtCompileTime = Derived::ColsAtCompileTime,
-                     SizeAtCompileTime = RowsAtCompileTime*ColsAtCompileTime > 0 ?
-                                         RowsAtCompileTime*ColsAtCompileTime : 0;
+                     ColsAtCompileTime = Derived::ColsAtCompileTime;
+    static const bool HasDynamicSize = RowsAtCompileTime != EiDynamic
+                                    && ColsAtCompileTime != EiDynamic;
+    static const int UnrollCount = HasDynamicSize ?
+                                   RowsAtCompileTime * ColsAtCompileTime : 0;
     
     template<typename OtherDerived>
     void _copy_helper(const EiObject<Scalar, OtherDerived>& other)
     {
-      if ((RowsAtCompileTime != EiDynamic) &&
-          (ColsAtCompileTime != EiDynamic) &&
-          (SizeAtCompileTime <= 25))
-        EiLoop<SizeAtCompileTime, RowsAtCompileTime>::copy(*this, other);
+      if(HasDynamicSize
+      && RowsAtCompileTime <= EI_LOOP_UNROLLING_LIMIT
+      && ColsAtCompileTime <= EI_LOOP_UNROLLING_LIMIT)
+        EiLoop<UnrollCount, RowsAtCompileTime>::copy(*this, other);
       else
-      for(int i = 0; i < rows(); i++)
-        for(int j = 0; j < cols(); j++)
-          write(i, j) = other.read(i, j);
+        for(int i = 0; i < rows(); i++)
+          for(int j = 0; j < cols(); j++)
+            write(i, j) = other.read(i, j);
     }
     
   public:
