@@ -1,4 +1,4 @@
-#include "../src/All"
+#include "../src/Core.h"
 
 using namespace std;
 

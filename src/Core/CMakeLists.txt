@@ -1,6 +1,6 @@
-FILE(GLOB Eigen_internal_SRCS "*.h")
+FILE(GLOB Eigen_Core_SRCS "*.h")
 
 INSTALL(FILES 
-  ${Eigen_internal_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/internal
+  ${Eigen_Core_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/Core
   )

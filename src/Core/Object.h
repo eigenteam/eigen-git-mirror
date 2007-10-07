@@ -26,9 +26,6 @@
 #ifndef EI_OBJECT_H
 #define EI_OBJECT_H
 
-#include "Util.h"
-#include "Loop.h"
-
 template<typename Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,

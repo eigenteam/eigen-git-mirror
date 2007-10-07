@@ -27,8 +27,8 @@
 #define EI_TEST_MAIN_H
 
 #include <QtTest/QtTest>
-#include <All>
-#include <complex>
+#include "../src/Core.h"
+
 #include <cstdlib>
 #include <ctime>
 
