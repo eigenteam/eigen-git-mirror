@@ -47,4 +47,35 @@ class EigenTest : public QObject
     void testMatrixManip();
 };
 
+template<typename T> T TestEpsilon();
+template<> int TestEpsilon<int>() { return 0; }
+template<> float TestEpsilon<float>() { return 1e-2f; }
+template<> double TestEpsilon<double>() { return 1e-4; }
+template<typename T> T TestEpsilon<std::complex<T> >() { return TestEpsilon<T>(); }
+
+template<typename T> bool TestNegligible(const T& a, const T& b)
+{
+  return(EiAbs(a) <= EiAbs(b) * TestEpsilon<T>());
+}
+
+template<typename T> bool TestApprox(const T& a, const T& b)
+{
+  if(EiTraits<T>::IsFloat)
+    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * TestEpsilon<T>());
+  else
+    return(a == b);
+}
+
+template<typename T> bool TestLessThanOrApprox(const T& a, const T& b)
+{
+  if(EiTraits<T>::IsFloat)
+    return(a < b || EiApprox(a, b));
+  else
+    return(a <= b);
+}
+
+#define QVERIFY_NEGLIGIBLE(a, b) QVERIFY(TestNegligible(a, b))
+#define QVERIFY_APPROX(a, b) QVERIFY(TestApprox(a, b))
+#define QVERIFY_LESS_THAN_OR_APPROX(a, b) QVERIFY(TestLessThanOrApprox(a, b))
+
 #endif // EI_TEST_MAIN_H

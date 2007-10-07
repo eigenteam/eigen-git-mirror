@@ -27,6 +27,7 @@
 #define EI_MATRIX_H
 
 #include "Util.h"
+#include "Numeric.h"
 #include "Object.h"
 #include "MatrixRef.h"
 #include "MatrixStorage.h"

@@ -51,4 +51,4 @@ template<int Rows> class EiLoop<0, Rows>
     }
 };
 
-#endif //EI_LOOP_H
+#endif // EI_LOOP_H
