@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
@@ -23,47 +24,49 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_CONJUGATE_H
-#define EI_CONJUGATE_H
+#ifndef EI_TRACE_H
+#define EI_TRACE_H
 
-template<typename MatrixType> class EiConjugate
-  : public EiObject<typename MatrixType::Scalar, EiConjugate<MatrixType> >
+template<int CurrentRow, int Rows, typename Derived> struct EiTraceUnroller
 {
-  public:
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::ConstRef MatRef;
-    friend class EiObject<Scalar, EiConjugate<MatrixType> >;
-    
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+  typedef typename Derived::Scalar Scalar;
 
-    EiConjugate(const MatRef& matrix) : m_matrix(matrix) {}
-    
-    EiConjugate(const EiConjugate& other)
-      : m_matrix(other.m_matrix) {}
-    
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiConjugate)
-    
-  private:
-    EiConjugate& _ref() { return *this; }
-    const EiConjugate& _constRef() const { return *this; }
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
-    
-    Scalar _read(int row, int col) const
-    {
-      return EiConj(m_matrix.read(row, col));
-    }
-    
-  protected:
-    MatRef m_matrix;
+  static void run(const Derived &mat, Scalar &trace)
+  {
+    if(CurrentRow == Rows - 1)
+      trace = mat(CurrentRow, CurrentRow);
+    else
+      trace += mat(CurrentRow, CurrentRow);
+    EiTraceUnroller<CurrentRow-1, Rows, Derived>::run(mat, trace);
+  }
+};
+
+template<int Rows, typename Derived> struct EiTraceUnroller<-1, Rows, Derived>
+{
+  typedef typename Derived::Scalar Scalar;
+
+  static void run(const Derived &mat, Scalar &trace)
+  {
+    EI_UNUSED(mat);
+    EI_UNUSED(trace);
+  }
 };
 
 template<typename Scalar, typename Derived>
-EiConjugate<Derived>
-EiObject<Scalar, Derived>::conjugate() const
+Scalar EiObject<Scalar, Derived>::trace() const
 {
-  return EiConjugate<Derived>(static_cast<const Derived*>(this)->constRef());
+  assert(rows() == cols());
+  Scalar res;
+  if(RowsAtCompileTime != EiDynamic && RowsAtCompileTime <= 16)
+    EiTraceUnroller<RowsAtCompileTime - 1, RowsAtCompileTime, Derived>
+      ::run(*static_cast<const Derived*>(this), res);
+  else
+  {
+    res = read(0, 0);
+    for(int i = 1; i < rows(); i++)
+      res += read(i, i);
+  }
+  return res;
 }
 
-#endif // EI_CONJUGATE_H
+#endif // EI_TRACE_H

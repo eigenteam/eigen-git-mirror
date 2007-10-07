@@ -30,6 +30,5 @@ int main(int, char **)
   cout << "Column 1 of m2 is:" << endl << m2.col(1) << endl;
   cout << "The transpose of m2 is:" << endl << m2.transpose() << endl;
   cout << "The matrix m2 with row 0 and column 1 removed is:" << endl << m2.minor(0,1) << endl;
-  
   return 0;
 }

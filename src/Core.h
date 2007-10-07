@@ -1,6 +1,7 @@
 #include "Core/Util.h"
 #include "Core/Numeric.h"
 #include "Core/Object.h"
+#include "Core/CopyHelper.h"
 #include "Core/MatrixRef.h"
 #include "Core/MatrixStorage.h"
 #include "Core/Matrix.h"
@@ -10,3 +11,4 @@
 #include "Core/Minor.h"
 #include "Core/Transpose.h"
 #include "Core/Conjugate.h"
+#include "Core/Trace.h"

@@ -36,15 +36,7 @@ template<typename Scalar, typename Derived> class EiObject
                                    RowsAtCompileTime * ColsAtCompileTime : 0;
     
     template<typename OtherDerived>
-    void _copy_helper(const EiObject<Scalar, OtherDerived>& other)
-    {
-      if(UnrollCount > 0 && UnrollCount <= EI_LOOP_UNROLLING_LIMIT)
-        EiLoop<UnrollCount, RowsAtCompileTime>::copy(*this, other);
-      else
-        for(int i = 0; i < rows(); i++)
-          for(int j = 0; j < cols(); j++)
-            write(i, j) = other.read(i, j);
-    }
+    void _copy_helper(const EiObject<Scalar, OtherDerived>& other);
     
   public:
     typedef typename EiForwardDecl<Derived>::Ref Ref;
@@ -92,8 +84,9 @@ template<typename Scalar, typename Derived> class EiObject
     EiMinor<Derived> minor(int row, int col);
     EiBlock<Derived> block(int startRow, int endRow, int startCol, int endCol);
     EiTranspose<Derived> transpose();
-    EiConjugate<Derived> conjugate();
-    EiTranspose<EiConjugate<Derived> > adjoint() { return conjugate().transpose(); }
+    EiConjugate<Derived> conjugate() const;
+    EiTranspose<EiConjugate<Derived> > adjoint() const { return conjugate().transpose(); }
+    Scalar trace() const;
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>
