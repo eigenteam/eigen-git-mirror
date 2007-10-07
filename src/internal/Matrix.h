@@ -127,4 +127,5 @@ EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #include "MatrixOps.h"
 #include "ScalarOps.h"
 
+
 #endif // EI_MATRIX_H

@@ -95,6 +95,8 @@ template<typename Scalar, typename Derived> class EiObject
     EiMinor<Derived> minor(int row, int col);
     EiBlock<Derived> block(int startRow, int endRow, int startCol, int endCol);
     EiTranspose<Derived> transpose();
+    EiConjugate<Derived> conjugate();
+    EiTranspose<EiConjugate<Derived> > adjoint() { return conjugate().transpose(); }
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>

@@ -47,11 +47,13 @@ class EigenTest : public QObject
     void testMatrixManip();
 };
 
-template<typename T> T TestEpsilon();
-template<> int TestEpsilon<int>() { return 0; }
-template<> float TestEpsilon<float>() { return 1e-2f; }
-template<> double TestEpsilon<double>() { return 1e-4; }
-template<typename T> T TestEpsilon<std::complex<T> >() { return TestEpsilon<T>(); }
+template<typename T> inline typename EiTraits<T>::Real TestEpsilon();
+template<> inline int TestEpsilon<int>() { return 0; }
+template<> inline float TestEpsilon<float>() { return 1e-2f; }
+template<> inline double TestEpsilon<double>() { return 1e-4; }
+template<> inline int TestEpsilon<std::complex<int> >() { return TestEpsilon<int>(); }
+template<> inline float TestEpsilon<std::complex<float> >() { return TestEpsilon<float>(); }
+template<> inline double TestEpsilon<std::complex<double> >() { return TestEpsilon<double>(); }
 
 template<typename T> bool TestNegligible(const T& a, const T& b)
 {

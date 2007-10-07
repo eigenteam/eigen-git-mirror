@@ -24,8 +24,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_TRAITS_H
-#define EI_TRAITS_H
+#ifndef EI_NUMERIC_H
+#define EI_NUMERIC_H
 
 template<typename T> struct EiTraits;
 
@@ -35,10 +35,10 @@ template<> struct EiTraits<int>
   typedef double FloatingPoint;
   typedef double RealFloatingPoint;
   
-  static const int Epsilon = 0;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = false;
   
+  static int epsilon() { return 0; }
   static int real(const int& x) { return x; }
   static int imag(const int& x) { EI_UNUSED(x); return 0; }
   static int conj(const int& x) { return x; }
@@ -50,7 +50,7 @@ template<> struct EiTraits<int>
     // "rand()%21" would be bad. always use the high-order bits, not the low-order bits.
     // note: here (gcc 4.1) static_cast<int> seems to round the nearest int.
     // I don't know if that's part of the standard.
-    return -10 + static_cast<int>(20.0 * (rand() / (RAND_MAX + 1.0)));
+    return -10 + static_cast<int>(rand() / ((RAND_MAX + 1.0)/20.0));
   }
 };
 
@@ -60,10 +60,10 @@ template<> struct EiTraits<float>
   typedef float FloatingPoint;
   typedef float RealFloatingPoint;
   
-  static const float Epsilon;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
   
+  static float epsilon() { return 1e-5f; }
   static float real(const float& x) { return x; }
   static float imag(const float& x) { EI_UNUSED(x); return 0; }
   static float conj(const float& x) { return x; }
@@ -72,11 +72,9 @@ template<> struct EiTraits<float>
   static float abs2(const float& x) { return x*x; }
   static float random()
   {
-    return 20.0f * rand() / RAND_MAX - 10.0f;
+    return rand() / (RAND_MAX/20.0f) - 10.0f;
   }
 };
-
-const float EiTraits<float>::Epsilon = 1e-5f;
 
 template<> struct EiTraits<double>
 {
@@ -84,10 +82,10 @@ template<> struct EiTraits<double>
   typedef double FloatingPoint;
   typedef double RealFloatingPoint;
   
-  static const double Epsilon;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
   
+  static double epsilon() { return 1e-11; }
   static double real(const double& x) { return x; }
   static double imag(const double& x) { EI_UNUSED(x); return 0; }
   static double conj(const double& x) { return x; }
@@ -96,11 +94,9 @@ template<> struct EiTraits<double>
   static double abs2(const double& x) { return x*x; }
   static double random()
   {
-    return 20.0 * rand() / RAND_MAX - 10.0;
+    return rand() / (RAND_MAX/20.0) - 10.0;
   }
 };
-
-const double EiTraits<double>::Epsilon = 1e-11;
 
 template<typename _Real> struct EiTraits<std::complex<_Real> >
 {
@@ -109,10 +105,10 @@ template<typename _Real> struct EiTraits<std::complex<_Real> >
   typedef std::complex<double> FloatingPoint;
   typedef typename EiTraits<Real>::FloatingPoint RealFloatingPoint;
   
-  static const Real Epsilon;
   static const bool IsComplex = true;
   static const bool HasFloatingPoint = EiTraits<Real>::HasFloatingPoint;
   
+  static Real epsilon() { return EiTraits<Real>::epsilon(); }
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
@@ -127,10 +123,6 @@ template<typename _Real> struct EiTraits<std::complex<_Real> >
     return Complex(EiTraits<Real>::random(), EiTraits<Real>::random());
   }
 };
-
-template<typename _Real>
-const _Real EiTraits<std::complex<_Real> >::Epsilon
-  = EiTraits<_Real>::Epsilon;
 
 template<typename T> typename EiTraits<T>::Real EiReal(const T& x)
 { return EiTraits<T>::real(x); }
@@ -155,13 +147,13 @@ template<typename T> T EiRandom()
 
 template<typename T> bool EiNegligible(const T& a, const T& b)
 {
-  return(EiAbs(a) <= EiAbs(b) * EiTraits<T>::Epsilon);
+  return(EiAbs(a) <= EiAbs(b) * EiTraits<T>::epsilon());
 }
 
 template<typename T> bool EiApprox(const T& a, const T& b)
 {
   if(EiTraits<T>::IsFloat)
-    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * EiTraits<T>::Epsilon);
+    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * EiTraits<T>::epsilon());
   else
     return(a == b);
 }
@@ -174,4 +166,4 @@ template<typename T> bool EiLessThanOrApprox(const T& a, const T& b)
     return(a <= b);
 }
 
-#endif // EI_TRAITS_H
+#endif // EI_NUMERIC_H

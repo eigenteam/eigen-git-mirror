@@ -23,14 +23,47 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_MANIP_H
-#define EI_MANIP_H
+#ifndef EI_CONJUGATE_H
+#define EI_CONJUGATE_H
 
-#include "internal/Row.h"
-#include "internal/Column.h"
-#include "internal/Block.h"
-#include "internal/Minor.h"
-#include "internal/Transpose.h"
-#include "internal/Conjugate.h"
+template<typename MatrixType> class EiConjugate
+  : public EiObject<typename MatrixType::Scalar, EiConjugate<MatrixType> >
+{
+  public:
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Ref MatRef;
+    friend class EiObject<Scalar, EiConjugate<MatrixType> >;
+    
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-#endif // EI_MANIP_H
+    EiConjugate(const MatRef& matrix) : m_matrix(matrix) {}
+    
+    EiConjugate(const EiConjugate& other)
+      : m_matrix(other.m_matrix) {}
+    
+    EI_INHERIT_ASSIGNMENT_OPERATORS(EiConjugate)
+    
+  private:
+    EiConjugate& _ref() { return *this; }
+    const EiConjugate& _constRef() const { return *this; }
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return m_matrix.cols(); }
+    
+    Scalar _read(int row, int col) const
+    {
+      return EiConj(m_matrix.read(row, col));
+    }
+    
+  protected:
+    MatRef m_matrix;
+};
+
+template<typename Scalar, typename Derived>
+EiConjugate<Derived>
+EiObject<Scalar, Derived>::conjugate()
+{
+  return EiConjugate<Derived>(static_cast<Derived*>(this)->ref());
+}
+
+#endif // EI_CONJUGATE_H
