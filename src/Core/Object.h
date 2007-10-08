@@ -29,16 +29,17 @@
 template<typename Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
-                     ColsAtCompileTime = Derived::ColsAtCompileTime,
-                     SizeAtCompileTime
-      = RowsAtCompileTime == EiDynamic || ColsAtCompileTime == EiDynamic
-      ? EiDynamic : RowsAtCompileTime * ColsAtCompileTime;
-    static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
+                     ColsAtCompileTime = Derived::ColsAtCompileTime;
     
     template<typename OtherDerived>
     void _copy_helper(const EiObject<Scalar, OtherDerived>& other);
     
   public:
+    static const int SizeAtCompileTime
+      = RowsAtCompileTime == EiDynamic || ColsAtCompileTime == EiDynamic
+      ? EiDynamic : RowsAtCompileTime * ColsAtCompileTime;
+    static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
+    
     typedef typename EiForwardDecl<Derived>::Ref Ref;
     typedef typename EiForwardDecl<Derived>::ConstRef ConstRef;
   
@@ -90,6 +91,9 @@ template<typename Scalar, typename Derived> class EiObject
     
     template<typename OtherDerived>
     Scalar dot(const OtherDerived& other) const;
+    
+    Scalar norm2() const { assert(IsVector); return dot(*this); }
+    Scalar norm()  const { assert(IsVector); return EiSqrt(dot(*this)); }
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>

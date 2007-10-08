@@ -83,7 +83,8 @@ EiScalarProduct<Derived>                                               \
 operator/(const EiObject<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return matrix * (static_cast<typename Derived::Scalar>(1) / scalar); \
+  assert(EiTraits<Scalar>::HasFloatingPoint);                          \
+  return matrix * (static_cast<Scalar>(1) / scalar);                   \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
