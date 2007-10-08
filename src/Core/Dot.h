@@ -32,11 +32,11 @@ struct EiDotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     const int i = Index - 1;
+    EiDotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
     if(i == Size - 1)
       dot = v1[i] * EiConj(v2[i]);
     else
       dot += v1[i] * EiConj(v2[i]);
-    EiDotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
   }
 };
 

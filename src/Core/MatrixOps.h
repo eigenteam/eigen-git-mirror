@@ -112,11 +112,11 @@ struct EiMatrixProductUnroller
                   typename Lhs::Scalar &res)
   {
     const int i = Index - 1;
+    EiMatrixProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
     if(i == Size - 1)
       res = lhs.read(row, i) * rhs.read(i, col);
     else
       res += lhs.read(row, i) * rhs.read(i, col);
-    EiMatrixProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
   }
 };
 

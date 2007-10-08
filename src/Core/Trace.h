@@ -31,11 +31,11 @@ template<int Index, int Rows, typename Derived> struct EiTraceUnroller
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
     const int i = Index - 1;
+    EiTraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
     if(i == Rows - 1)
       trace = mat(i, i);
     else
       trace += mat(i, i);
-    EiTraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
   }
 };
 
