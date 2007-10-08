@@ -1,7 +1,6 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
@@ -24,51 +23,61 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_COPYHELPER_H
-#define EI_COPYHELPER_H
+#ifndef EI_DOT_H
+#define EI_DOT_H
 
-template<int UnrollCount, int Rows> struct EiCopyHelperUnroller
+template<int Index, int Size, typename Derived1, typename Derived2>
+struct EiDotUnroller
 {
-  static const int col = (UnrollCount-1) / Rows;
-  static const int row = (UnrollCount-1) % Rows;
-
-  template <typename Derived1, typename Derived2>
-  static void run(Derived1 &dst, const Derived2 &src)
+  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    EiCopyHelperUnroller<UnrollCount-1, Rows>::run(dst, src);
-    dst.write(row, col) = src.read(row, col);
+    const int i = Index - 1;
+    if(i == Size - 1)
+      dot = v1[i] * EiConj(v2[i]);
+    else
+      dot += v1[i] * EiConj(v2[i]);
+    EiDotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
   }
 };
 
-template<int Rows> struct EiCopyHelperUnroller<0, Rows>
+template<int Size, typename Derived1, typename Derived2>
+struct EiDotUnroller<0, Size, Derived1, Derived2>
 {
-  template <typename Derived1, typename Derived2>
-  static void run(Derived1 &dst, const Derived2 &src)
+  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    dst.write(0, 0) = src.read(0, 0);
+    EI_UNUSED(v1);
+    EI_UNUSED(v2);
+    EI_UNUSED(dot);
   }
 };
 
-template<int Rows> struct EiCopyHelperUnroller<EiDynamic, Rows>
+template<int Size, typename Derived1, typename Derived2>
+struct EiDotUnroller<EiDynamic, Size, Derived1, Derived2>
 {
-  template <typename Derived1, typename Derived2>
-  static void run(Derived1 &dst, const Derived2 &src)
+  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    EI_UNUSED(dst);
-    EI_UNUSED(src);
+    EI_UNUSED(v1);
+    EI_UNUSED(v2);
+    EI_UNUSED(dot);
   }
 };
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-void EiObject<Scalar, Derived>::_copy_helper(const EiObject<Scalar, OtherDerived>& other)
+Scalar EiObject<Scalar, Derived>::dot(const OtherDerived& other) const
 {
-  if(SizeAtCompileTime != EiDynamic && SizeAtCompileTime <= EI_LOOP_UNROLLING_LIMIT)
-    EiCopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
+  assert(IsVector && OtherDerived::IsVector && size() == other.size());
+  Scalar res;
+  if(SizeAtCompileTime != EiDynamic && SizeAtCompileTime <= 16)
+    EiDotUnroller<SizeAtCompileTime, SizeAtCompileTime, Derived, OtherDerived>
+      ::run(*static_cast<const Derived*>(this), other, res);
   else
-    for(int i = 0; i < rows(); i++)
-      for(int j = 0; j < cols(); j++)
-        write(i, j) = other.read(i, j);
+  {
+    res = (*this)[0] * EiConj(other[0]);
+    for(int i = 1; i < size(); i++)
+      res += (*this)[i]* EiConj(other[i]);
+  }
+  return res;
 }
 
-#endif // EI_COPYHELPER_H
+#endif // EI_DOT_H

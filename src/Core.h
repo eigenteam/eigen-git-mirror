@@ -12,3 +12,4 @@
 #include "Core/Transpose.h"
 #include "Core/Conjugate.h"
 #include "Core/Trace.h"
+#include "Core/Dot.h"

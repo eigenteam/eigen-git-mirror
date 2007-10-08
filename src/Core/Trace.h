@@ -1,7 +1,6 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
@@ -27,25 +26,31 @@
 #ifndef EI_TRACE_H
 #define EI_TRACE_H
 
-template<int CurrentRow, int Rows, typename Derived> struct EiTraceUnroller
+template<int Index, int Rows, typename Derived> struct EiTraceUnroller
 {
-  typedef typename Derived::Scalar Scalar;
-
-  static void run(const Derived &mat, Scalar &trace)
+  static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    if(CurrentRow == Rows - 1)
-      trace = mat(CurrentRow, CurrentRow);
+    const int i = Index - 1;
+    if(i == Rows - 1)
+      trace = mat(i, i);
     else
-      trace += mat(CurrentRow, CurrentRow);
-    EiTraceUnroller<CurrentRow-1, Rows, Derived>::run(mat, trace);
+      trace += mat(i, i);
+    EiTraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
   }
 };
 
-template<int Rows, typename Derived> struct EiTraceUnroller<-1, Rows, Derived>
+template<int Rows, typename Derived> struct EiTraceUnroller<0, Rows, Derived>
 {
-  typedef typename Derived::Scalar Scalar;
+  static void run(const Derived &mat, typename Derived::Scalar &trace)
+  {
+    EI_UNUSED(mat);
+    EI_UNUSED(trace);
+  }
+};
 
-  static void run(const Derived &mat, Scalar &trace)
+template<int Rows, typename Derived> struct EiTraceUnroller<EiDynamic, Rows, Derived>
+{
+  static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
     EI_UNUSED(mat);
     EI_UNUSED(trace);
@@ -58,7 +63,7 @@ Scalar EiObject<Scalar, Derived>::trace() const
   assert(rows() == cols());
   Scalar res;
   if(RowsAtCompileTime != EiDynamic && RowsAtCompileTime <= 16)
-    EiTraceUnroller<RowsAtCompileTime - 1, RowsAtCompileTime, Derived>
+    EiTraceUnroller<RowsAtCompileTime, RowsAtCompileTime, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else
   {

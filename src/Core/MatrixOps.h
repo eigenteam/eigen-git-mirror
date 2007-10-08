@@ -105,6 +105,49 @@ template<typename Lhs, typename Rhs> class EiDifference
     const RhsRef m_rhs;
 };
 
+template<int Index, int Size, typename Lhs, typename Rhs>
+struct EiMatrixProductUnroller
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+                  typename Lhs::Scalar &res)
+  {
+    const int i = Index - 1;
+    if(i == Size - 1)
+      res = lhs.read(row, i) * rhs.read(i, col);
+    else
+      res += lhs.read(row, i) * rhs.read(i, col);
+    EiMatrixProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
+  }
+};
+
+template<int Size, typename Lhs, typename Rhs>
+struct EiMatrixProductUnroller<0, Size, Lhs, Rhs>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+                  typename Lhs::Scalar &res)
+  {
+    EI_UNUSED(row);
+    EI_UNUSED(col);
+    EI_UNUSED(lhs);
+    EI_UNUSED(rhs);
+    EI_UNUSED(res);
+  }
+};
+
+template<int Size, typename Lhs, typename Rhs>
+struct EiMatrixProductUnroller<EiDynamic, Size, Lhs, Rhs>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+                  typename Lhs::Scalar &res)
+  {
+    EI_UNUSED(row);
+    EI_UNUSED(col);
+    EI_UNUSED(lhs);
+    EI_UNUSED(rhs);
+    EI_UNUSED(res);
+  }
+};
+
 template<typename Lhs, typename Rhs> class EiMatrixProduct
   : public EiObject<typename Lhs::Scalar, EiMatrixProduct<Lhs, Rhs> >
 {
@@ -136,17 +179,17 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     
     Scalar _read(int row, int col) const
     {
-      if(Lhs::ColsAtCompileTime == 3)
-      {
-        return m_lhs(row,0) * m_rhs(0,col) + m_lhs(row,1) * m_rhs(1,col) + m_lhs(row,2) * m_rhs(2,col);
-      }
+      Scalar res;
+      if(Lhs::ColsAtCompileTime != EiDynamic && Lhs::ColsAtCompileTime <= 16)
+        EiMatrixProductUnroller<Lhs::ColsAtCompileTime, Lhs::ColsAtCompileTime, LhsRef, RhsRef>
+          ::run(row, col, m_lhs, m_rhs, res);
       else
       {
-        Scalar x = static_cast<Scalar>(0);
-        for(int i = 0; i < m_lhs.cols(); i++)
-          x += m_lhs.read(row, i) * m_rhs.read(i, col);
-        return x;
+        res = m_lhs(row, 0) * m_rhs(0, col);
+        for(int i = 1; i < m_lhs.cols(); i++)
+          res += m_lhs(row, i) * m_rhs(i, col);
       }
+      return res;
     }
     
   protected:

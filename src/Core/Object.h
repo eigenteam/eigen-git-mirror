@@ -29,11 +29,11 @@
 template<typename Scalar, typename Derived> class EiObject
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
-                     ColsAtCompileTime = Derived::ColsAtCompileTime;
-    static const bool HasDynamicSize = RowsAtCompileTime != EiDynamic
-                                    && ColsAtCompileTime != EiDynamic;
-    static const int UnrollCount = HasDynamicSize ?
-                                   RowsAtCompileTime * ColsAtCompileTime : 0;
+                     ColsAtCompileTime = Derived::ColsAtCompileTime,
+                     SizeAtCompileTime
+      = RowsAtCompileTime == EiDynamic || ColsAtCompileTime == EiDynamic
+      ? EiDynamic : RowsAtCompileTime * ColsAtCompileTime;
+    static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
     
     template<typename OtherDerived>
     void _copy_helper(const EiObject<Scalar, OtherDerived>& other);
@@ -89,6 +89,9 @@ template<typename Scalar, typename Derived> class EiObject
     Scalar trace() const;
     
     template<typename OtherDerived>
+    Scalar dot(const OtherDerived& other) const;
+    
+    template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>
     lazyMul(const EiObject<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
     
@@ -121,14 +124,14 @@ template<typename Scalar, typename Derived> class EiObject
     
     Scalar operator[](int index) const
     {
-      assert(RowsAtCompileTime == 1 || ColsAtCompileTime == 1);
+      assert(IsVector);
       if(RowsAtCompileTime == 1) return read(0, index);
       else return read(index, 0);
     }
     
     Scalar& operator[](int index)
     {
-      assert(RowsAtCompileTime == 1 || ColsAtCompileTime == 1);
+      assert(IsVector);
       if(RowsAtCompileTime == 1) return write(0, index);
       else return write(index, 0);
     }
