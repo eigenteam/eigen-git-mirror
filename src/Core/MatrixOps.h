@@ -111,12 +111,8 @@ struct EiMatrixProductUnroller
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
-    const int i = Index - 1;
     EiMatrixProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
-    if(i == Size - 1)
-      res = lhs.read(row, i) * rhs.read(i, col);
-    else
-      res += lhs.read(row, i) * rhs.read(i, col);
+    res += lhs.read(row, Index) * rhs.read(Index, col);
   }
 };
 
@@ -126,16 +122,12 @@ struct EiMatrixProductUnroller<0, Size, Lhs, Rhs>
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
-    EI_UNUSED(row);
-    EI_UNUSED(col);
-    EI_UNUSED(lhs);
-    EI_UNUSED(rhs);
-    EI_UNUSED(res);
+    res = lhs.read(row, 0) * rhs.read(0, col);
   }
 };
 
-template<int Size, typename Lhs, typename Rhs>
-struct EiMatrixProductUnroller<EiDynamic, Size, Lhs, Rhs>
+template<int Index, typename Lhs, typename Rhs>
+struct EiMatrixProductUnroller<Index, EiDynamic, Lhs, Rhs>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
@@ -181,7 +173,7 @@ template<typename Lhs, typename Rhs> class EiMatrixProduct
     {
       Scalar res;
       if(Lhs::ColsAtCompileTime != EiDynamic && Lhs::ColsAtCompileTime <= 16)
-        EiMatrixProductUnroller<Lhs::ColsAtCompileTime, Lhs::ColsAtCompileTime, LhsRef, RhsRef>
+        EiMatrixProductUnroller<Lhs::ColsAtCompileTime-1, Lhs::ColsAtCompileTime, LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {

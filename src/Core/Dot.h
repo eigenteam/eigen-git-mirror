@@ -32,12 +32,12 @@ struct EiDotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     EiDotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1[Index-1] * EiConj(v2[Index-1]);
+    dot += v1[Index] * EiConj(v2[Index]);
   }
 };
 
 template<int Size, typename Derived1, typename Derived2>
-struct EiDotUnroller<1, Size, Derived1, Derived2>
+struct EiDotUnroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
@@ -45,8 +45,8 @@ struct EiDotUnroller<1, Size, Derived1, Derived2>
   }
 };
 
-template<int Size, typename Derived1, typename Derived2>
-struct EiDotUnroller<EiDynamic, Size, Derived1, Derived2>
+template<int Index, typename Derived1, typename Derived2>
+struct EiDotUnroller<Index, EiDynamic, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
@@ -63,7 +63,7 @@ Scalar EiObject<Scalar, Derived>::dot(const OtherDerived& other) const
   assert(IsVector && OtherDerived::IsVector && size() == other.size());
   Scalar res;
   if(SizeAtCompileTime != EiDynamic && SizeAtCompileTime <= 16)
-    EiDotUnroller<SizeAtCompileTime, SizeAtCompileTime, Derived, OtherDerived>
+    EiDotUnroller<SizeAtCompileTime-1, SizeAtCompileTime, Derived, OtherDerived>
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {

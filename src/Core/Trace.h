@@ -30,12 +30,8 @@ template<int Index, int Rows, typename Derived> struct EiTraceUnroller
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    const int i = Index - 1;
     EiTraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
-    if(i == Rows - 1)
-      trace = mat(i, i);
-    else
-      trace += mat(i, i);
+    trace += mat(Index, Index);
   }
 };
 
@@ -43,12 +39,11 @@ template<int Rows, typename Derived> struct EiTraceUnroller<0, Rows, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    EI_UNUSED(mat);
-    EI_UNUSED(trace);
+    trace = mat(0, 0);
   }
 };
 
-template<int Rows, typename Derived> struct EiTraceUnroller<EiDynamic, Rows, Derived>
+template<int Index, typename Derived> struct EiTraceUnroller<Index, EiDynamic, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
@@ -63,7 +58,7 @@ Scalar EiObject<Scalar, Derived>::trace() const
   assert(rows() == cols());
   Scalar res;
   if(RowsAtCompileTime != EiDynamic && RowsAtCompileTime <= 16)
-    EiTraceUnroller<RowsAtCompileTime, RowsAtCompileTime, Derived>
+    EiTraceUnroller<RowsAtCompileTime-1, RowsAtCompileTime, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else
   {
