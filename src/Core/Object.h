@@ -42,6 +42,7 @@ template<typename Scalar, typename Derived> class EiObject
     
     typedef typename EiForwardDecl<Derived>::Ref Ref;
     typedef typename EiForwardDecl<Derived>::ConstRef ConstRef;
+    typedef typename EiNumTraits<Scalar>::Real RealScalar;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
@@ -92,8 +93,17 @@ template<typename Scalar, typename Derived> class EiObject
     template<typename OtherDerived>
     Scalar dot(const OtherDerived& other) const;
     
-    Scalar norm2() const { assert(IsVector); return dot(*this); }
-    Scalar norm()  const { assert(IsVector); return EiSqrt(dot(*this)); }
+    RealScalar norm2() const;
+    RealScalar norm()  const;
+    EiScalarProduct<Derived> normalized() const;
+    
+    static EiEval<EiRandom<Derived> >
+    random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    
+    template<typename OtherDerived>
+    bool isApprox(const OtherDerived& other) const;
+    template<typename OtherDerived>
+    bool isNegligible(const OtherDerived& other) const;
     
     template<typename OtherDerived>
     EiMatrixProduct<Derived, OtherDerived>

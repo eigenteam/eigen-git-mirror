@@ -31,23 +31,17 @@ struct EiDotUnroller
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    const int i = Index - 1;
     EiDotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    if(i == Size - 1)
-      dot = v1[i] * EiConj(v2[i]);
-    else
-      dot += v1[i] * EiConj(v2[i]);
+    dot += v1[Index-1] * EiConj(v2[Index-1]);
   }
 };
 
 template<int Size, typename Derived1, typename Derived2>
-struct EiDotUnroller<0, Size, Derived1, Derived2>
+struct EiDotUnroller<1, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    EI_UNUSED(v1);
-    EI_UNUSED(v2);
-    EI_UNUSED(dot);
+    dot = v1[0] * EiConj(v2[0]);
   }
 };
 
@@ -78,6 +72,25 @@ Scalar EiObject<Scalar, Derived>::dot(const OtherDerived& other) const
       res += (*this)[i]* EiConj(other[i]);
   }
   return res;
+}
+
+template<typename Scalar, typename Derived>
+typename EiNumTraits<Scalar>::Real EiObject<Scalar, Derived>::norm2() const
+{
+  assert(IsVector);
+  return EiReal(dot(*this));
+}
+
+template<typename Scalar, typename Derived>
+typename EiNumTraits<Scalar>::Real EiObject<Scalar, Derived>::norm() const
+{
+  return EiSqrt(norm2());
+}
+
+template<typename Scalar, typename Derived>
+EiScalarProduct<Derived> EiObject<Scalar, Derived>::normalized() const
+{
+  return (*this) / norm();
 }
 
 #endif // EI_DOT_H

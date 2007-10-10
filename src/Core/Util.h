@@ -54,6 +54,7 @@ template<typename Lhs, typename Rhs> class EiSum;
 template<typename Lhs, typename Rhs> class EiDifference;
 template<typename Lhs, typename Rhs> class EiMatrixProduct;
 template<typename MatrixType> class EiScalarProduct;
+template<typename MatrixType> class EiRandom;
 template<typename ExpressionType> class EiEval;
 
 template<typename T> struct EiForwardDecl

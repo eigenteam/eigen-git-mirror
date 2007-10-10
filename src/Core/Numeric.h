@@ -27,9 +27,9 @@
 #ifndef EI_NUMERIC_H
 #define EI_NUMERIC_H
 
-template<typename T> struct EiTraits;
+template<typename T> struct EiNumTraits;
 
-template<> struct EiTraits<int>
+template<> struct EiNumTraits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
@@ -45,16 +45,16 @@ template<> struct EiTraits<int>
   static double sqrt(const int& x) { return std::sqrt(static_cast<double>(x)); }
   static int abs(const int& x) { return std::abs(x); }
   static int abs2(const int& x) { return x*x; }
-  static int random()
+  static int rand()
   {
     // "rand()%21" would be bad. always use the high-order bits, not the low-order bits.
     // note: here (gcc 4.1) static_cast<int> seems to round the nearest int.
     // I don't know if that's part of the standard.
-    return -10 + static_cast<int>(rand() / ((RAND_MAX + 1.0)/20.0));
+    return -10 + static_cast<int>(std::rand() / ((RAND_MAX + 1.0)/20.0));
   }
 };
 
-template<> struct EiTraits<float>
+template<> struct EiNumTraits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
@@ -70,13 +70,13 @@ template<> struct EiTraits<float>
   static float sqrt(const float& x) { return std::sqrt(x); }
   static float abs(const float& x) { return std::abs(x); }
   static float abs2(const float& x) { return x*x; }
-  static float random()
+  static float rand()
   {
-    return rand() / (RAND_MAX/20.0f) - 10.0f;
+    return std::rand() / (RAND_MAX/20.0f) - 10.0f;
   }
 };
 
-template<> struct EiTraits<double>
+template<> struct EiNumTraits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
@@ -92,23 +92,23 @@ template<> struct EiTraits<double>
   static double sqrt(const double& x) { return std::sqrt(x); }
   static double abs(const double& x) { return std::abs(x); }
   static double abs2(const double& x) { return x*x; }
-  static double random()
+  static double rand()
   {
-    return rand() / (RAND_MAX/20.0) - 10.0;
+    return std::rand() / (RAND_MAX/20.0) - 10.0;
   }
 };
 
-template<typename _Real> struct EiTraits<std::complex<_Real> >
+template<typename _Real> struct EiNumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<Real> Complex;
   typedef std::complex<double> FloatingPoint;
-  typedef typename EiTraits<Real>::FloatingPoint RealFloatingPoint;
+  typedef typename EiNumTraits<Real>::FloatingPoint RealFloatingPoint;
   
   static const bool IsComplex = true;
-  static const bool HasFloatingPoint = EiTraits<Real>::HasFloatingPoint;
+  static const bool HasFloatingPoint = EiNumTraits<Real>::HasFloatingPoint;
   
-  static Real epsilon() { return EiTraits<Real>::epsilon(); }
+  static Real epsilon() { return EiNumTraits<Real>::epsilon(); }
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
@@ -118,49 +118,49 @@ template<typename _Real> struct EiTraits<std::complex<_Real> >
   { return std::abs(static_cast<FloatingPoint>(x)); }
   static Real abs2(const Complex& x)
   { return std::real(x) * std::real(x) + std::imag(x) * std::imag(x); }
-  static Complex random()
+  static Complex rand()
   {
-    return Complex(EiTraits<Real>::random(), EiTraits<Real>::random());
+    return Complex(EiNumTraits<Real>::rand(), EiNumTraits<Real>::rand());
   }
 };
 
-template<typename T> typename EiTraits<T>::Real EiReal(const T& x)
-{ return EiTraits<T>::real(x); }
+template<typename T> typename EiNumTraits<T>::Real EiReal(const T& x)
+{ return EiNumTraits<T>::real(x); }
 
-template<typename T> typename EiTraits<T>::Real EiImag(const T& x)
-{ return EiTraits<T>::imag(x); }
+template<typename T> typename EiNumTraits<T>::Real EiImag(const T& x)
+{ return EiNumTraits<T>::imag(x); }
 
 template<typename T> T EiConj(const T& x)
-{ return EiTraits<T>::conj(x); }
+{ return EiNumTraits<T>::conj(x); }
 
-template<typename T> typename EiTraits<T>::FloatingPoint EiSqrt(const T& x)
-{ return EiTraits<T>::sqrt(x); }
+template<typename T> typename EiNumTraits<T>::FloatingPoint EiSqrt(const T& x)
+{ return EiNumTraits<T>::sqrt(x); }
 
-template<typename T> typename EiTraits<T>::RealFloatingPoint EiAbs(const T& x)
-{ return EiTraits<T>::abs(x); }
+template<typename T> typename EiNumTraits<T>::RealFloatingPoint EiAbs(const T& x)
+{ return EiNumTraits<T>::abs(x); }
 
-template<typename T> typename EiTraits<T>::Real EiAbs2(const T& x)
-{ return EiTraits<T>::abs2(x); }
+template<typename T> typename EiNumTraits<T>::Real EiAbs2(const T& x)
+{ return EiNumTraits<T>::abs2(x); }
 
-template<typename T> T EiRandom()
-{ return EiTraits<T>::random(); }
+template<typename T> T EiRand()
+{ return EiNumTraits<T>::rand(); }
 
 template<typename T> bool EiNegligible(const T& a, const T& b)
 {
-  return(EiAbs(a) <= EiAbs(b) * EiTraits<T>::epsilon());
+  return(EiAbs(a) <= EiAbs(b) * EiNumTraits<T>::epsilon());
 }
 
 template<typename T> bool EiApprox(const T& a, const T& b)
 {
-  if(EiTraits<T>::IsFloat)
-    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * EiTraits<T>::epsilon());
+  if(EiNumTraits<T>::IsFloat)
+    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * EiNumTraits<T>::epsilon());
   else
     return(a == b);
 }
 
 template<typename T> bool EiLessThanOrApprox(const T& a, const T& b)
 {
-  if(EiTraits<T>::IsFloat)
+  if(EiNumTraits<T>::IsFloat)
     return(a < b || EiApprox(a, b));
   else
     return(a <= b);

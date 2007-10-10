@@ -47,7 +47,7 @@ class EigenTest : public QObject
     void testMatrixManip();
 };
 
-template<typename T> inline typename EiTraits<T>::Real TestEpsilon();
+template<typename T> inline typename EiNumTraits<T>::Real TestEpsilon();
 template<> inline int TestEpsilon<int>() { return 0; }
 template<> inline float TestEpsilon<float>() { return 1e-2f; }
 template<> inline double TestEpsilon<double>() { return 1e-4; }
@@ -62,7 +62,7 @@ template<typename T> bool TestNegligible(const T& a, const T& b)
 
 template<typename T> bool TestApprox(const T& a, const T& b)
 {
-  if(EiTraits<T>::IsFloat)
+  if(EiNumTraits<T>::IsFloat)
     return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * TestEpsilon<T>());
   else
     return(a == b);
@@ -70,7 +70,7 @@ template<typename T> bool TestApprox(const T& a, const T& b)
 
 template<typename T> bool TestLessThanOrApprox(const T& a, const T& b)
 {
-  if(EiTraits<T>::IsFloat)
+  if(EiNumTraits<T>::IsFloat)
     return(a < b || EiApprox(a, b));
   else
     return(a <= b);
