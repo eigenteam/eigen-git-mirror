@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,27 +26,27 @@
 #ifndef EI_TRANSPOSE_H
 #define EI_TRANSPOSE_H
 
-template<typename MatrixType> class EiTranspose
-  : public EiObject<typename MatrixType::Scalar, EiTranspose<MatrixType> >
+template<typename MatrixType> class Transpose
+  : public Object<typename MatrixType::Scalar, Transpose<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EiObject<Scalar, EiTranspose<MatrixType> >;
+    friend class Object<Scalar, Transpose<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
                      ColsAtCompileTime = MatrixType::RowsAtCompileTime;
 
-    EiTranspose(const MatRef& matrix) : m_matrix(matrix) {}
+    Transpose(const MatRef& matrix) : m_matrix(matrix) {}
     
-    EiTranspose(const EiTranspose& other)
+    Transpose(const Transpose& other)
       : m_matrix(other.m_matrix) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiTranspose)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
-    EiTranspose& _ref() { return *this; }
-    const EiTranspose& _constRef() const { return *this; }
+    Transpose& _ref() { return *this; }
+    const Transpose& _constRef() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
     
@@ -65,10 +65,10 @@ template<typename MatrixType> class EiTranspose
 };
 
 template<typename Scalar, typename Derived>
-EiTranspose<Derived>
-EiObject<Scalar, Derived>::transpose()
+Transpose<Derived>
+Object<Scalar, Derived>::transpose()
 {
-  return EiTranspose<Derived>(static_cast<Derived*>(this)->ref());
+  return Transpose<Derived>(static_cast<Derived*>(this)->ref());
 }
 
 #endif // EI_TRANSPOSE_H

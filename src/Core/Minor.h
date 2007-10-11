@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,35 +26,35 @@
 #ifndef EI_MINOR_H
 #define EI_MINOR_H
 
-template<typename MatrixType> class EiMinor
-  : public EiObject<typename MatrixType::Scalar, EiMinor<MatrixType> >
+template<typename MatrixType> class Minor
+  : public Object<typename MatrixType::Scalar, Minor<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EiObject<Scalar, EiMinor<MatrixType> >;
+    friend class Object<Scalar, Minor<MatrixType> >;
     
     static const int
-      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != EiDynamic) ?
-                          MatrixType::RowsAtCompileTime - 1 : EiDynamic,
-      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != EiDynamic) ?
-                          MatrixType::ColsAtCompileTime - 1 : EiDynamic;
+      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
+                          MatrixType::RowsAtCompileTime - 1 : Dynamic,
+      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
+                          MatrixType::ColsAtCompileTime - 1 : Dynamic;
 
-    EiMinor(const MatRef& matrix,
+    Minor(const MatRef& matrix,
                 int row, int col = 0)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
       EI_CHECK_RANGES(matrix, row, col);
     }
     
-    EiMinor(const EiMinor& other)
+    Minor(const Minor& other)
       : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMinor)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:
-    EiMinor& _ref() { return *this; }
-    const EiMinor& _constRef() const { return *this; }
+    Minor& _ref() { return *this; }
+    const Minor& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
     
@@ -74,10 +74,10 @@ template<typename MatrixType> class EiMinor
 };
 
 template<typename Scalar, typename Derived>
-EiMinor<Derived>
-EiObject<Scalar, Derived>::minor(int row, int col)
+Minor<Derived>
+Object<Scalar, Derived>::minor(int row, int col)
 {
-  return EiMinor<Derived>(static_cast<Derived*>(this)->ref(), row, col);
+  return Minor<Derived>(static_cast<Derived*>(this)->ref(), row, col);
 }
 
 #endif // EI_MINOR_H

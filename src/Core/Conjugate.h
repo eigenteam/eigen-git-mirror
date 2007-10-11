@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,33 +26,33 @@
 #ifndef EI_CONJUGATE_H
 #define EI_CONJUGATE_H
 
-template<typename MatrixType> class EiConjugate
-  : public EiObject<typename MatrixType::Scalar, EiConjugate<MatrixType> >
+template<typename MatrixType> class Conjugate
+  : public Object<typename MatrixType::Scalar, Conjugate<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::ConstRef MatRef;
-    friend class EiObject<Scalar, EiConjugate<MatrixType> >;
+    friend class Object<Scalar, Conjugate<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    EiConjugate(const MatRef& matrix) : m_matrix(matrix) {}
+    Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     
-    EiConjugate(const EiConjugate& other)
+    Conjugate(const Conjugate& other)
       : m_matrix(other.m_matrix) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiConjugate)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
     
   private:
-    EiConjugate& _ref() { return *this; }
-    const EiConjugate& _constRef() const { return *this; }
+    Conjugate& _ref() { return *this; }
+    const Conjugate& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
     Scalar _read(int row, int col) const
     {
-      return EiConj(m_matrix.read(row, col));
+      return Conj(m_matrix.read(row, col));
     }
     
   protected:
@@ -60,10 +60,10 @@ template<typename MatrixType> class EiConjugate
 };
 
 template<typename Scalar, typename Derived>
-EiConjugate<Derived>
-EiObject<Scalar, Derived>::conjugate() const
+Conjugate<Derived>
+Object<Scalar, Derived>::conjugate() const
 {
-  return EiConjugate<Derived>(static_cast<const Derived*>(this)->constRef());
+  return Conjugate<Derived>(static_cast<const Derived*>(this)->constRef());
 }
 
 #endif // EI_CONJUGATE_H

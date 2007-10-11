@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,23 +26,23 @@
 #ifndef EI_OBJECT_H
 #define EI_OBJECT_H
 
-template<typename Scalar, typename Derived> class EiObject
+template<typename Scalar, typename Derived> class Object
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime;
     
     template<typename OtherDerived>
-    void _copy_helper(const EiObject<Scalar, OtherDerived>& other);
+    void _copy_helper(const Object<Scalar, OtherDerived>& other);
     
   public:
     static const int SizeAtCompileTime
-      = RowsAtCompileTime == EiDynamic || ColsAtCompileTime == EiDynamic
-      ? EiDynamic : RowsAtCompileTime * ColsAtCompileTime;
+      = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
+      ? Dynamic : RowsAtCompileTime * ColsAtCompileTime;
     static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
     
-    typedef typename EiForwardDecl<Derived>::Ref Ref;
-    typedef typename EiForwardDecl<Derived>::ConstRef ConstRef;
-    typedef typename EiNumTraits<Scalar>::Real RealScalar;
+    typedef typename ForwardDecl<Derived>::Ref Ref;
+    typedef typename ForwardDecl<Derived>::ConstRef ConstRef;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
@@ -65,7 +65,7 @@ template<typename Scalar, typename Derived> class EiObject
     }
     
     template<typename OtherDerived>
-    Derived& operator=(const EiObject<Scalar, OtherDerived>& other)
+    Derived& operator=(const Object<Scalar, OtherDerived>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       _copy_helper(other);
@@ -74,20 +74,20 @@ template<typename Scalar, typename Derived> class EiObject
     
     //special case of the above template operator=. Strangely, g++ 4.1 failed to use
     //that template when OtherDerived == Derived
-    Derived& operator=(const EiObject& other)
+    Derived& operator=(const Object& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       _copy_helper(other);
       return *static_cast<Derived*>(this);
     }
     
-    EiRow<Derived> row(int i);
-    EiColumn<Derived> col(int i);
-    EiMinor<Derived> minor(int row, int col);
-    EiBlock<Derived> block(int startRow, int endRow, int startCol, int endCol);
-    EiTranspose<Derived> transpose();
-    EiConjugate<Derived> conjugate() const;
-    EiTranspose<EiConjugate<Derived> > adjoint() const { return conjugate().transpose(); }
+    Row<Derived> row(int i);
+    Column<Derived> col(int i);
+    Minor<Derived> minor(int row, int col);
+    Block<Derived> block(int startRow, int endRow, int startCol, int endCol);
+    Transpose<Derived> transpose();
+    Conjugate<Derived> conjugate() const;
+    Transpose<Conjugate<Derived> > adjoint() const { return conjugate().transpose(); }
     Scalar trace() const;
     
     template<typename OtherDerived>
@@ -95,9 +95,9 @@ template<typename Scalar, typename Derived> class EiObject
     
     RealScalar norm2() const;
     RealScalar norm()  const;
-    EiScalarProduct<Derived> normalized() const;
+    ScalarProduct<Derived> normalized() const;
     
-    static EiEval<EiRandom<Derived> >
+    static Eval<Random<Derived> >
     random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     
     template<typename OtherDerived>
@@ -106,15 +106,15 @@ template<typename Scalar, typename Derived> class EiObject
     bool isNegligible(const OtherDerived& other) const;
     
     template<typename OtherDerived>
-    EiMatrixProduct<Derived, OtherDerived>
-    lazyMul(const EiObject<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
+    MatrixProduct<Derived, OtherDerived>
+    lazyMul(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
     
     template<typename OtherDerived>
-    Derived& operator+=(const EiObject<Scalar, OtherDerived>& other);
+    Derived& operator+=(const Object<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator-=(const EiObject<Scalar, OtherDerived>& other);
+    Derived& operator-=(const Object<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator*=(const EiObject<Scalar, OtherDerived>& other);
+    Derived& operator*=(const Object<Scalar, OtherDerived>& other);
    
     Derived& operator*=(const int& other);
     Derived& operator*=(const float& other);
@@ -150,13 +150,13 @@ template<typename Scalar, typename Derived> class EiObject
       else return write(index, 0);
     }
     
-    EiEval<Derived> eval() const EI_ALWAYS_INLINE;
+    Eval<Derived> eval() const EI_ALWAYS_INLINE;
 };
 
 template<typename Scalar, typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,
-  const EiObject<Scalar, Derived> & m )
+  const Object<Scalar, Derived> & m )
 {
   for( int i = 0; i < m.rows(); i++ )
   {

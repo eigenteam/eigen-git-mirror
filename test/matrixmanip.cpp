@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -42,12 +42,12 @@ template<typename MatrixType> void matrixManip(const MatrixType& m)
   a.minor(i, j) -= a.block(1, rows-1, 1, cols-1).eval();
 }
 
-void EigenTest::testMatrixManip()
+void genTest::testMatrixManip()
 {
-  matrixManip(EiMatrix<int, 2, 3>());
-  matrixManip(EiMatrix<double, 3, 3>());
-  matrixManip(EiMatrix<complex<float>, 4,3>());
-  matrixManip(EiMatrixXi(2, 2));
-  matrixManip(EiMatrixXd(3, 5));
-  matrixManip(EiMatrixXcf(4, 4));
+  matrixManip(Matrix<int, 2, 3>());
+  matrixManip(Matrix<double, 3, 3>());
+  matrixManip(Matrix<complex<float>, 4,3>());
+  matrixManip(MatrixXi(2, 2));
+  matrixManip(MatrixXd(3, 5));
+  matrixManip(MatrixXcf(4, 4));
 }

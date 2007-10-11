@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,24 +26,24 @@
 #ifndef EI_RANDOM_H
 #define EI_RANDOM_H
 
-template<typename MatrixType> class EiRandom
-  : public EiObject<typename MatrixType::Scalar, EiRandom<MatrixType> >
+template<typename MatrixType> class Random
+  : public Object<typename MatrixType::Scalar, Random<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class EiObject<Scalar, EiRandom<MatrixType> >;
+    friend class Object<Scalar, Random<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    EiRandom(int rows, int cols) : m_rows(rows), m_cols(cols)
+    Random(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0 && cols > 0);
     }
     
   private:
-    EiRandom& _ref() { return *this; }
-    const EiRandom& _constRef() const { return *this; }
+    Random& _ref() { return *this; }
+    const Random& _constRef() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
@@ -51,7 +51,7 @@ template<typename MatrixType> class EiRandom
     {
       EI_UNUSED(row);
       EI_UNUSED(col);
-      return EiRand<Scalar>();
+      return Rand<Scalar>();
     }
     
   protected:
@@ -59,9 +59,9 @@ template<typename MatrixType> class EiRandom
 };
 
 template<typename Scalar, typename Derived>
-EiEval<EiRandom<Derived> > EiObject<Scalar, Derived>::random(int rows, int cols)
+Eval<Random<Derived> > Object<Scalar, Derived>::random(int rows, int cols)
 {
-  return EiRandom<Derived>(rows, cols).eval();
+  return Random<Derived>(rows, cols).eval();
 }
 
 #endif // EI_RANDOM_H

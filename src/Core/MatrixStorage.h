@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -29,7 +29,7 @@
 template<typename Scalar,
          int      RowsAtCompileTime,
          int      ColsAtCompileTime>
-class EiMatrixStorage
+class MatrixStorage
 {
   protected:
     Scalar m_array[RowsAtCompileTime * ColsAtCompileTime];
@@ -44,18 +44,18 @@ class EiMatrixStorage
     { return ColsAtCompileTime; }
 
   public:
-    EiMatrixStorage(int rows, int cols)
+    MatrixStorage(int rows, int cols)
     {
       EI_UNUSED(rows);
       EI_UNUSED(cols);
       assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
     
-    ~EiMatrixStorage() {};
+    ~MatrixStorage() {};
 };
 
 template<typename Scalar, int ColsAtCompileTime>
-class EiMatrixStorage<Scalar, EiDynamic, ColsAtCompileTime>
+class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
 {
   protected:
     int m_rows;
@@ -79,18 +79,18 @@ class EiMatrixStorage<Scalar, EiDynamic, ColsAtCompileTime>
     { return ColsAtCompileTime; }
     
   public:
-    EiMatrixStorage(int rows, int cols) : m_rows(rows)
+    MatrixStorage(int rows, int cols) : m_rows(rows)
     {
       assert(m_rows > 0 && cols == ColsAtCompileTime);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
     
-    ~EiMatrixStorage()
+    ~MatrixStorage()
     { delete[] m_array; }
 };
 
 template<typename Scalar, int RowsAtCompileTime>
-class EiMatrixStorage<Scalar, RowsAtCompileTime, EiDynamic>
+class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
 {
   protected:
     int m_cols;
@@ -114,18 +114,18 @@ class EiMatrixStorage<Scalar, RowsAtCompileTime, EiDynamic>
     { return m_cols; }
     
   public:
-    EiMatrixStorage(int rows, int cols) : m_cols(cols)
+    MatrixStorage(int rows, int cols) : m_cols(cols)
     {
       assert(rows == RowsAtCompileTime && cols > 0);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
-    ~EiMatrixStorage()
+    ~MatrixStorage()
     { delete[] m_array; }
 };
 
 template<typename Scalar>
-class EiMatrixStorage<Scalar, EiDynamic, EiDynamic>
+class MatrixStorage<Scalar, Dynamic, Dynamic>
 {
   protected:
     int m_rows, m_cols;
@@ -150,13 +150,13 @@ class EiMatrixStorage<Scalar, EiDynamic, EiDynamic>
     { return m_cols; }
     
   public:
-    EiMatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
+    MatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(m_rows > 0 && m_cols > 0);
       m_array = new Scalar[m_rows * m_cols];
     }
     
-    ~EiMatrixStorage()
+    ~MatrixStorage()
     { delete[] m_array; }
 };
 

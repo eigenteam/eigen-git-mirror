@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,26 +26,26 @@
 #ifndef EI_EVAL_H
 #define EI_EVAL_H
 
-template<typename Expression> class EiEval
-  : public EiMatrix< typename Expression::Scalar,
+template<typename Expression> class Eval
+  : public Matrix< typename Expression::Scalar,
                      Expression::RowsAtCompileTime,
                      Expression::ColsAtCompileTime >
 {
   public:
     typedef typename Expression::Scalar Scalar;
-    typedef EiMatrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
+    typedef Matrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
-    friend class EiObject<Scalar, Expression>;
+    friend class Object<Scalar, Expression>;
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiEval)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Eval)
     
-    EiEval(const Expression& expression) : MatrixType(expression) {}
+    Eval(const Expression& expression) : MatrixType(expression) {}
 };
 
 template<typename Scalar, typename Derived>
-EiEval<Derived> EiObject<Scalar, Derived>::eval() const
+Eval<Derived> Object<Scalar, Derived>::eval() const
 {
-  return EiEval<Derived>(*static_cast<const Derived*>(this));
+  return Eval<Derived>(*static_cast<const Derived*>(this));
 }
 
 #endif // EI_EVAL_H

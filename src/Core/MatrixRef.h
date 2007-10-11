@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,18 +26,18 @@
 #ifndef EI_MATRIXREF_H
 #define EI_MATRIXREF_H
 
-template<typename MatrixType> class EiMatrixConstRef
- : public EiObject<typename MatrixType::Scalar, EiMatrixConstRef<MatrixType> >
+template<typename MatrixType> class MatrixConstRef
+ : public Object<typename MatrixType::Scalar, MatrixConstRef<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class EiObject<Scalar, EiMatrixConstRef>;
+    friend class Object<Scalar, MatrixConstRef>;
     
-    EiMatrixConstRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    EiMatrixConstRef(const EiMatrixConstRef& other) : m_matrix(other.m_matrix) {}
-    ~EiMatrixConstRef() {}
+    MatrixConstRef(const MatrixType& matrix) : m_matrix(matrix) {}
+    MatrixConstRef(const MatrixConstRef& other) : m_matrix(other.m_matrix) {}
+    ~MatrixConstRef() {}
 
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMatrixConstRef)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(MatrixConstRef)
 
   private:
     int _rows() const { return m_matrix.rows(); }
@@ -51,18 +51,18 @@ template<typename MatrixType> class EiMatrixConstRef
     const MatrixType& m_matrix;
 };
 
-template<typename MatrixType> class EiMatrixRef
- : public EiObject<typename MatrixType::Scalar, EiMatrixRef<MatrixType> >
+template<typename MatrixType> class MatrixRef
+ : public Object<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class EiObject<Scalar, EiMatrixRef>;
+    friend class Object<Scalar, MatrixRef>;
     
-    EiMatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
-    EiMatrixRef(const EiMatrixRef& other) : m_matrix(other.m_matrix) {}
-    ~EiMatrixRef() {}
+    MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
+    MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
+    ~MatrixRef() {}
 
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiMatrixRef)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
   private:
     int _rows() const { return m_matrix.rows(); }

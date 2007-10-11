@@ -1,10 +1,12 @@
 #include "../src/Core.h"
 
+USING_EIGEN_DATA_TYPES
+
 using namespace std;
 
 int main(int, char **)
 {
-  EiMatrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
+  Matrix<double,2,2> m; // 2x2 fixed-size matrix with uninitialized entries
   m(0,0) = 1;
   m(0,1) = 2;
   m(1,0) = 3;
@@ -12,7 +14,7 @@ int main(int, char **)
 
   cout << "Here is a 2x2 matrix m:" << endl << m << endl;
   cout << "Let us now build a 4x4 matrix m2 by assembling together four 2x2 blocks." << endl;
-  EiMatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
+  MatrixXd m2(4,4); // dynamic matrix with initial size 4x4 and uninitialized entries
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;

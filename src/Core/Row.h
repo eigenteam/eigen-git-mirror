@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,37 +26,37 @@
 #ifndef EI_ROW_H
 #define EI_ROW_H
 
-template<typename MatrixType> class EiRow
-  : public EiObject<typename MatrixType::Scalar, EiRow<MatrixType> >
+template<typename MatrixType> class Row
+  : public Object<typename MatrixType::Scalar, Row<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EiObject<Scalar, EiRow<MatrixType> >;
+    friend class Object<Scalar, Row<MatrixType> >;
 
     static const int RowsAtCompileTime = 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    EiRow(const MatRef& matrix, int row)
+    Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
       EI_CHECK_ROW_RANGE(matrix, row);
     }
     
-    EiRow(const EiRow& other)
+    Row(const Row& other)
       : m_matrix(other.m_matrix), m_row(other.m_row) {}
     
     template<typename OtherDerived>
-    EiRow& operator=(const EiObject<Scalar, OtherDerived>& other)
+    Row& operator=(const Object<Scalar, OtherDerived>& other)
     {
-      return EiObject<Scalar, EiRow<MatrixType> >::operator=(other);
+      return Object<Scalar, Row<MatrixType> >::operator=(other);
     }
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiRow)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
   private:
-    EiRow& _ref() { return *this; }
-    const EiRow& _constRef() const { return *this; }
+    Row& _ref() { return *this; }
+    const Row& _constRef() const { return *this; }
     
     int _rows() const { return 1; }
     int _cols() const { return m_matrix.cols(); }
@@ -79,10 +79,10 @@ template<typename MatrixType> class EiRow
 };
 
 template<typename Scalar, typename Derived>
-EiRow<Derived>
-EiObject<Scalar, Derived>::row(int i)
+Row<Derived>
+Object<Scalar, Derived>::row(int i)
 {
-  return EiRow<Derived>(static_cast<Derived*>(this)->ref(), i);
+  return Row<Derived>(static_cast<Derived*>(this)->ref(), i);
 }
 
 #endif // EI_ROW_H

@@ -1,3 +1,10 @@
+
+#include <iostream>
+#include <complex>
+#include <cassert>
+
+namespace Eigen {
+
 #include "Core/Util.h"
 #include "Core/Numeric.h"
 #include "Core/Object.h"
@@ -14,3 +21,5 @@
 #include "Core/Trace.h"
 #include "Core/Dot.h"
 #include "Core/Random.h"
+
+} // namespace Eigen

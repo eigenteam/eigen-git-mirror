@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -33,18 +33,18 @@
 #include "MatrixStorage.h"
 
 template<typename _Scalar, int _Rows, int _Cols>
-class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
-                 public EiMatrixStorage<_Scalar, _Rows, _Cols>
+class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
+                 public MatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
-    friend class EiObject<_Scalar, EiMatrix>;
-    typedef      EiObject<_Scalar, EiMatrix>            Base;
-    typedef      EiMatrixStorage<_Scalar, _Rows, _Cols> Storage;
+    friend class Object<_Scalar, Matrix>;
+    typedef      Object<_Scalar, Matrix>            Base;
+    typedef      MatrixStorage<_Scalar, _Rows, _Cols> Storage;
     typedef      _Scalar                                Scalar;
-    typedef      EiMatrixRef<EiMatrix>                  Ref;
-    typedef      EiMatrixConstRef<EiMatrix>             ConstRef;
-    friend class EiMatrixRef<EiMatrix>;
-    friend class EiMatrixConstRef<EiMatrix>;
+    typedef      MatrixRef<Matrix>                  Ref;
+    typedef      MatrixConstRef<Matrix>             ConstRef;
+    friend class MatrixRef<Matrix>;
+    friend class MatrixConstRef<Matrix>;
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
@@ -72,46 +72,46 @@ class EiMatrix : public EiObject<_Scalar, EiMatrix<_Scalar, _Rows, _Cols> >,
     
   public:
     template<typename OtherDerived> 
-    EiMatrix& operator=(const EiObject<Scalar, OtherDerived>& other)
+    Matrix& operator=(const Object<Scalar, OtherDerived>& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
     
-    EiMatrix& operator=(const EiMatrix& other)
+    Matrix& operator=(const Matrix& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
     
-    EI_INHERIT_ASSIGNMENT_OPERATOR(EiMatrix, +=)
-    EI_INHERIT_ASSIGNMENT_OPERATOR(EiMatrix, -=)
-    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(EiMatrix, *=)
-    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(EiMatrix, /=)
+    EI_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
+    EI_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
+    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
+    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
     
-    explicit EiMatrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
+    explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
     template<typename OtherDerived>
-    EiMatrix(const EiObject<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
+    Matrix(const Object<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
-    EiMatrix(const EiMatrix& other) : Storage(other.rows(), other.cols())
+    Matrix(const Matrix& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
-    ~EiMatrix() {}
+    ~Matrix() {}
 };
 
 #define EI_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
-typedef EiMatrix<Type, Size, Size> EiMatrix##SizeSuffix##TypeSuffix; \
-typedef EiMatrix<Type, Size, 1>    EiVector##SizeSuffix##TypeSuffix; \
-typedef EiMatrix<Type, 1, Size>    EiRowVector##SizeSuffix##TypeSuffix;
+typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix; \
+typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix; \
+typedef Matrix<Type, 1, Size>    RowVector##SizeSuffix##TypeSuffix;
 
 #define EI_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
 EI_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
 EI_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
 EI_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
-EI_MAKE_TYPEDEFS(Type, TypeSuffix, EiDynamic, X)
+EI_MAKE_TYPEDEFS(Type, TypeSuffix, Dynamic, X)
 
 EI_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
 EI_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
@@ -122,6 +122,25 @@ EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 #undef EI_MAKE_TYPEDEFS_ALL_SIZES
 #undef EI_MAKE_TYPEDEFS
+
+#define EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(Type, TypeSuffix, Size, SizeSuffix) \
+using Eigen::Matrix##SizeSuffix##TypeSuffix; \
+using Eigen::Vector##SizeSuffix##TypeSuffix; \
+using Eigen::RowVector##SizeSuffix##TypeSuffix;
+
+#define EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(Type, TypeSuffix) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(Type, TypeSuffix, 2, 2) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(Type, TypeSuffix, 3, 3) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(Type, TypeSuffix, 4, 4) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(Type, TypeSuffix, Dynamic, X)
+
+#define EI_USING_MATRIX_TYPEDEFS \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(int,                  i) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(float,                f) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(double,               d) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(std::complex<int>,    ci) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(std::complex<float>,  cf) \
+EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(std::complex<double>, cd)
 
 #include "Eval.h"
 #include "MatrixOps.h"

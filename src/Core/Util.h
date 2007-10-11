@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,11 +26,11 @@
 #ifndef EI_UTIL_H
 #define EI_UTIL_H
 
-#include <iostream>
-#include <complex>
-#include <cassert>
-
 #undef minor
+
+#define USING_EIGEN_DATA_TYPES \
+EI_USING_MATRIX_TYPEDEFS \
+using Eigen::Matrix;
 
 #define EI_UNUSED(x) (void)x
 #define EI_CHECK_RANGES(matrix, row, col) \
@@ -41,36 +41,36 @@
   assert(col >= 0 && col < (matrix).cols())
 
 //forward declarations
-template<typename _Scalar, int _Rows, int _Cols> class EiMatrix;
-template<typename MatrixType> class EiMatrixRef;
-template<typename MatrixType> class EiMatrixConstRef;
-template<typename MatrixType> class EiRow;
-template<typename MatrixType> class EiColumn;
-template<typename MatrixType> class EiMinor;
-template<typename MatrixType> class EiBlock;
-template<typename MatrixType> class EiTranspose;
-template<typename MatrixType> class EiConjugate;
-template<typename Lhs, typename Rhs> class EiSum;
-template<typename Lhs, typename Rhs> class EiDifference;
-template<typename Lhs, typename Rhs> class EiMatrixProduct;
-template<typename MatrixType> class EiScalarProduct;
-template<typename MatrixType> class EiRandom;
-template<typename ExpressionType> class EiEval;
+template<typename _Scalar, int _Rows, int _Cols> class Matrix;
+template<typename MatrixType> class MatrixRef;
+template<typename MatrixType> class MatrixConstRef;
+template<typename MatrixType> class Row;
+template<typename MatrixType> class Column;
+template<typename MatrixType> class Minor;
+template<typename MatrixType> class Block;
+template<typename MatrixType> class Transpose;
+template<typename MatrixType> class Conjugate;
+template<typename Lhs, typename Rhs> class Sum;
+template<typename Lhs, typename Rhs> class Difference;
+template<typename Lhs, typename Rhs> class MatrixProduct;
+template<typename MatrixType> class ScalarProduct;
+template<typename MatrixType> class Random;
+template<typename ExpressionType> class Eval;
 
-template<typename T> struct EiForwardDecl
+template<typename T> struct ForwardDecl
 {
   typedef T Ref;
   typedef T ConstRef;
 };
 
 template<typename _Scalar, int _Rows, int _Cols>
-struct EiForwardDecl<EiMatrix<_Scalar, _Rows, _Cols> >
+struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 {
-  typedef EiMatrixRef<EiMatrix<_Scalar, _Rows, _Cols> > Ref;
-  typedef EiMatrixConstRef<EiMatrix<_Scalar, _Rows, _Cols> > ConstRef;
+  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols> > Ref;
+  typedef MatrixConstRef<Matrix<_Scalar, _Rows, _Cols> > ConstRef;
 };
 
-const int EiDynamic = -1;
+const int Dynamic = -1;
 
 #define EI_LOOP_UNROLLING_LIMIT 25
 
@@ -86,20 +86,20 @@ const int EiDynamic = -1;
 
 #define EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
-Derived& operator Op(const EiObject<OtherScalar, OtherDerived>& other) \
+Derived& operator Op(const Object<OtherScalar, OtherDerived>& other) \
 { \
-  return EiObject<Scalar, Derived>::operator Op(other); \
+  return Object<Scalar, Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return EiObject<Scalar, Derived>::operator Op(other); \
+  return Object<Scalar, Derived>::operator Op(other); \
 }
 
 #define EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return EiObject<Scalar, Derived>::operator Op(scalar); \
+  return Object<Scalar, Derived>::operator Op(scalar); \
 }
 
 #define EI_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

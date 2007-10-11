@@ -1,20 +1,20 @@
 
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -27,9 +27,9 @@
 #ifndef EI_NUMERIC_H
 #define EI_NUMERIC_H
 
-template<typename T> struct EiNumTraits;
+template<typename T> struct NumTraits;
 
-template<> struct EiNumTraits<int>
+template<> struct NumTraits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
@@ -54,7 +54,7 @@ template<> struct EiNumTraits<int>
   }
 };
 
-template<> struct EiNumTraits<float>
+template<> struct NumTraits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
@@ -76,7 +76,7 @@ template<> struct EiNumTraits<float>
   }
 };
 
-template<> struct EiNumTraits<double>
+template<> struct NumTraits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
@@ -98,17 +98,17 @@ template<> struct EiNumTraits<double>
   }
 };
 
-template<typename _Real> struct EiNumTraits<std::complex<_Real> >
+template<typename _Real> struct NumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<Real> Complex;
   typedef std::complex<double> FloatingPoint;
-  typedef typename EiNumTraits<Real>::FloatingPoint RealFloatingPoint;
+  typedef typename NumTraits<Real>::FloatingPoint RealFloatingPoint;
   
   static const bool IsComplex = true;
-  static const bool HasFloatingPoint = EiNumTraits<Real>::HasFloatingPoint;
+  static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
   
-  static Real epsilon() { return EiNumTraits<Real>::epsilon(); }
+  static Real epsilon() { return NumTraits<Real>::epsilon(); }
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
@@ -120,48 +120,48 @@ template<typename _Real> struct EiNumTraits<std::complex<_Real> >
   { return std::real(x) * std::real(x) + std::imag(x) * std::imag(x); }
   static Complex rand()
   {
-    return Complex(EiNumTraits<Real>::rand(), EiNumTraits<Real>::rand());
+    return Complex(NumTraits<Real>::rand(), NumTraits<Real>::rand());
   }
 };
 
-template<typename T> typename EiNumTraits<T>::Real EiReal(const T& x)
-{ return EiNumTraits<T>::real(x); }
+template<typename T> typename NumTraits<T>::Real Real(const T& x)
+{ return NumTraits<T>::real(x); }
 
-template<typename T> typename EiNumTraits<T>::Real EiImag(const T& x)
-{ return EiNumTraits<T>::imag(x); }
+template<typename T> typename NumTraits<T>::Real Imag(const T& x)
+{ return NumTraits<T>::imag(x); }
 
-template<typename T> T EiConj(const T& x)
-{ return EiNumTraits<T>::conj(x); }
+template<typename T> T Conj(const T& x)
+{ return NumTraits<T>::conj(x); }
 
-template<typename T> typename EiNumTraits<T>::FloatingPoint EiSqrt(const T& x)
-{ return EiNumTraits<T>::sqrt(x); }
+template<typename T> typename NumTraits<T>::FloatingPoint Sqrt(const T& x)
+{ return NumTraits<T>::sqrt(x); }
 
-template<typename T> typename EiNumTraits<T>::RealFloatingPoint EiAbs(const T& x)
-{ return EiNumTraits<T>::abs(x); }
+template<typename T> typename NumTraits<T>::RealFloatingPoint Abs(const T& x)
+{ return NumTraits<T>::abs(x); }
 
-template<typename T> typename EiNumTraits<T>::Real EiAbs2(const T& x)
-{ return EiNumTraits<T>::abs2(x); }
+template<typename T> typename NumTraits<T>::Real Abs2(const T& x)
+{ return NumTraits<T>::abs2(x); }
 
-template<typename T> T EiRand()
-{ return EiNumTraits<T>::rand(); }
+template<typename T> T Rand()
+{ return NumTraits<T>::rand(); }
 
-template<typename T> bool EiNegligible(const T& a, const T& b)
+template<typename T> bool Negligible(const T& a, const T& b)
 {
-  return(EiAbs(a) <= EiAbs(b) * EiNumTraits<T>::epsilon());
+  return(Abs(a) <= Abs(b) * NumTraits<T>::epsilon());
 }
 
-template<typename T> bool EiApprox(const T& a, const T& b)
+template<typename T> bool Approx(const T& a, const T& b)
 {
-  if(EiNumTraits<T>::IsFloat)
-    return(EiAbs(a - b) <= std::min(EiAbs(a), EiAbs(b)) * EiNumTraits<T>::epsilon());
+  if(NumTraits<T>::IsFloat)
+    return(Abs(a - b) <= std::min(Abs(a), Abs(b)) * NumTraits<T>::epsilon());
   else
     return(a == b);
 }
 
-template<typename T> bool EiLessThanOrApprox(const T& a, const T& b)
+template<typename T> bool LessThanOrApprox(const T& a, const T& b)
 {
-  if(EiNumTraits<T>::IsFloat)
-    return(a < b || EiApprox(a, b));
+  if(NumTraits<T>::IsFloat)
+    return(a < b || Approx(a, b));
   else
     return(a <= b);
 }

@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -59,16 +59,16 @@ template<typename MatrixType1,
   QVERIFY( (d * e).rows() == rows1 && (d * e).cols() == cols2 );
 }
 
-void EigenTest::testMatrixOps()
+void genTest::testMatrixOps()
 {
-  matrixOps(EiMatrix<float, 1, 1>(), EiMatrix<float, 1, 1>());
-  matrixOps(EiMatrix<int, 2, 3>(), EiMatrix<int, 3, 1>());
-  matrixOps(EiMatrix<double, 3, 3>(), EiMatrix<double, 3, 3>());
-  matrixOps(EiMatrix<complex<float>, 4,3>(), EiMatrix<complex<float>, 3,4>());
-  matrixOps(EiMatrixXf(1, 1), EiMatrixXf(1, 3));
-  matrixOps(EiMatrixXi(2, 2), EiMatrixXi(2, 2));
-  matrixOps(EiMatrixXd(3, 5), EiMatrixXd(5, 1));
-  matrixOps(EiMatrixXcf(4, 4), EiMatrixXcf(4, 4));
-  matrixOps(EiMatrixXd(3, 5), EiMatrix<double, 5, 1>());
-  matrixOps(EiMatrix4cf(), EiMatrixXcf(4, 4));
+  matrixOps(Matrix<float, 1, 1>(), Matrix<float, 1, 1>());
+  matrixOps(Matrix<int, 2, 3>(), Matrix<int, 3, 1>());
+  matrixOps(Matrix<double, 3, 3>(), Matrix<double, 3, 3>());
+  matrixOps(Matrix<complex<float>, 4,3>(), Matrix<complex<float>, 3,4>());
+  matrixOps(MatrixXf(1, 1), MatrixXf(1, 3));
+  matrixOps(MatrixXi(2, 2), MatrixXi(2, 2));
+  matrixOps(MatrixXd(3, 5), MatrixXd(5, 1));
+  matrixOps(MatrixXcf(4, 4), MatrixXcf(4, 4));
+  matrixOps(MatrixXd(3, 5), Matrix<double, 5, 1>());
+  matrixOps(Matrix4cf(), MatrixXcf(4, 4));
 }

@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,18 +26,18 @@
 #ifndef EI_BLOCK_H
 #define EI_BLOCK_H
 
-template<typename MatrixType> class EiBlock
-  : public EiObject<typename MatrixType::Scalar, EiBlock<MatrixType> >
+template<typename MatrixType> class Block
+  : public Object<typename MatrixType::Scalar, Block<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class EiObject<Scalar, EiBlock<MatrixType> >;
+    friend class Object<Scalar, Block<MatrixType> >;
     
-    static const int RowsAtCompileTime = EiDynamic,
-                     ColsAtCompileTime = EiDynamic;
+    static const int RowsAtCompileTime = Dynamic,
+                     ColsAtCompileTime = Dynamic;
 
-    EiBlock(const MatRef& matrix,
+    Block(const MatRef& matrix,
                 int startRow, int endRow,
                 int startCol = 0, int endCol = 0)
       : m_matrix(matrix), m_startRow(startRow), m_endRow(endRow),
@@ -47,15 +47,15 @@ template<typename MatrixType> class EiBlock
           && startCol >= 0 && startCol <= endCol && endCol < matrix.cols());
     }
     
-    EiBlock(const EiBlock& other)
+    Block(const Block& other)
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiBlock)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:
-    EiBlock& _ref() { return *this; }
-    const EiBlock& _constRef() const { return *this; }
+    Block& _ref() { return *this; }
+    const Block& _constRef() const { return *this; }
     int _rows() const { return m_endRow - m_startRow + 1; }
     int _cols() const { return m_endCol - m_startCol + 1; }
     
@@ -75,10 +75,10 @@ template<typename MatrixType> class EiBlock
 };
 
 template<typename Scalar, typename Derived>
-EiBlock<Derived>
-EiObject<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
+Block<Derived>
+Object<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
 {
-  return EiBlock<Derived>(static_cast<Derived*>(this)->ref(), startRow, endRow, startCol, endCol);
+  return Block<Derived>(static_cast<Derived*>(this)->ref(), startRow, endRow, startCol, endCol);
 }
 
 #endif // EI_BLOCK_H

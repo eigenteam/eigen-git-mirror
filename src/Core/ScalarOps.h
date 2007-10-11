@@ -1,19 +1,19 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// This file is part of gen, a lightweight C++ template library
+// for linear algebra. gen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
 //
-// Eigen is free software; you can redistribute it and/or modify it under the
+// gen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
 // Foundation; either version 2 or (at your option) any later version.
 //
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// gen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
 // details.
 //
 // You should have received a copy of the GNU General Public License along
-// with Eigen; if not, write to the Free Software Foundation, Inc., 51
+// with gen; if not, write to the Free Software Foundation, Inc., 51
 // Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 // As a special exception, if other files instantiate templates or use macros
@@ -26,28 +26,28 @@
 #ifndef EI_SCALAROPS_H
 #define EI_SCALAROPS_H
 
-template<typename MatrixType> class EiScalarProduct
-  : public EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >
+template<typename MatrixType> class ScalarProduct
+  : public Object<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::ConstRef MatRef;
-    friend class EiObject<typename MatrixType::Scalar, EiScalarProduct<MatrixType> >;
+    friend class Object<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    EiScalarProduct(const MatRef& matrix, Scalar scalar)
+    ScalarProduct(const MatRef& matrix, Scalar scalar)
       : m_matrix(matrix), m_scalar(scalar) {}
 
-    EiScalarProduct(const EiScalarProduct& other)
+    ScalarProduct(const ScalarProduct& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
-    EI_INHERIT_ASSIGNMENT_OPERATORS(EiScalarProduct)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(ScalarProduct)
 
   private:
-    const EiScalarProduct& _ref() const { return *this; }
-    const EiScalarProduct& _constRef() const { return *this; }
+    const ScalarProduct& _ref() const { return *this; }
+    const ScalarProduct& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -63,40 +63,40 @@ template<typename MatrixType> class EiScalarProduct
 
 #define EI_MAKE_SCALAR_OPS(OtherScalar)                                \
 template<typename Scalar, typename Derived>                            \
-EiScalarProduct<Derived>                                               \
-operator*(const EiObject<Scalar, Derived>& matrix,                     \
+ScalarProduct<Derived>                                               \
+operator*(const Object<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return EiScalarProduct<Derived>(matrix.constRef(), scalar);          \
+  return ScalarProduct<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-EiScalarProduct<Derived>                                               \
+ScalarProduct<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
-          const EiObject<Scalar, Derived>& matrix)                     \
+          const Object<Scalar, Derived>& matrix)                     \
 {                                                                      \
-  return EiScalarProduct<Derived>(matrix.constRef(), scalar);          \
+  return ScalarProduct<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-EiScalarProduct<Derived>                                               \
-operator/(const EiObject<Scalar, Derived>& matrix,                     \
+ScalarProduct<Derived>                                               \
+operator/(const Object<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  assert(EiNumTraits<Scalar>::HasFloatingPoint);                       \
+  assert(NumTraits<Scalar>::HasFloatingPoint);                       \
   return matrix * (static_cast<Scalar>(1) / scalar);                   \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EiObject<Scalar, Derived>::operator*=(const OtherScalar &other)        \
+Object<Scalar, Derived>::operator*=(const OtherScalar &other)        \
 {                                                                      \
   return *this = *this * other;                                        \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-EiObject<Scalar, Derived>::operator/=(const OtherScalar &other)        \
+Object<Scalar, Derived>::operator/=(const OtherScalar &other)        \
 {                                                                      \
   return *this = *this / other;                                        \
 }
