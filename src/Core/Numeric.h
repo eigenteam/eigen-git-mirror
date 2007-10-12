@@ -39,6 +39,7 @@ template<> struct NumTraits<int>
   static const bool HasFloatingPoint = false;
   
   static int epsilon() { return 0; }
+  static int epsilon2() { return 0; }
   static int real(const int& x) { return x; }
   static int imag(const int& x) { EI_UNUSED(x); return 0; }
   static int conj(const int& x) { return x; }
@@ -47,10 +48,23 @@ template<> struct NumTraits<int>
   static int abs2(const int& x) { return x*x; }
   static int rand()
   {
-    // "rand()%21" would be bad. always use the high-order bits, not the low-order bits.
-    // note: here (gcc 4.1) static_cast<int> seems to round the nearest int.
-    // I don't know if that's part of the standard.
-    return -10 + static_cast<int>(std::rand() / ((RAND_MAX + 1.0)/20.0));
+    // "rand() % n" is bad, they say, because the low-order bits are not random enough.
+    // However here, 21 is odd, so rand() % 21 uses the high-order bits
+    // as well, so there's no problem.
+    return (std::rand() % 21) - 10;
+  }
+  static bool negligible(const int& a, const int& b)
+  {
+    EI_UNUSED(b);
+    return(a == 0);
+  }
+  static bool approx(const int& a, const int& b)
+  {
+    return(a == b);
+  }
+  static bool lessThanOrApprox(const int& a, const int& b)
+  {
+    return(a <= b);
   }
 };
 
@@ -64,6 +78,7 @@ template<> struct NumTraits<float>
   static const bool HasFloatingPoint = true;
   
   static float epsilon() { return 1e-5f; }
+  static float epsilon2() { return epsilon() * epsilon(); }
   static float real(const float& x) { return x; }
   static float imag(const float& x) { EI_UNUSED(x); return 0; }
   static float conj(const float& x) { return x; }
@@ -73,6 +88,18 @@ template<> struct NumTraits<float>
   static float rand()
   {
     return std::rand() / (RAND_MAX/20.0f) - 10.0f;
+  }
+  static bool negligible(const float& a, const float& b)
+  {
+    return(abs(a) <= abs(b) * epsilon());
+  }
+  static bool approx(const float& a, const float& b)
+  {
+    return(abs(a - b) <= std::min(abs(a), abs(b)) * epsilon());
+  }
+  static bool lessThanOrApprox(const float& a, const float& b)
+  {
+    return(a <= b || approx(a, b));
   }
 };
 
@@ -86,6 +113,7 @@ template<> struct NumTraits<double>
   static const bool HasFloatingPoint = true;
   
   static double epsilon() { return 1e-11; }
+  static double epsilon2() { return epsilon() * epsilon(); }
   static double real(const double& x) { return x; }
   static double imag(const double& x) { EI_UNUSED(x); return 0; }
   static double conj(const double& x) { return x; }
@@ -95,6 +123,18 @@ template<> struct NumTraits<double>
   static double rand()
   {
     return std::rand() / (RAND_MAX/20.0) - 10.0;
+  }
+  static bool negligible(const double& a, const double& b)
+  {
+    return(abs(a) <= abs(b) * epsilon());
+  }
+  static bool approx(const double& a, const double& b)
+  {
+    return(abs(a - b) <= std::min(abs(a), abs(b)) * epsilon());
+  }
+  static bool lessThanOrApprox(const double& a, const double& b)
+  {
+    return(a <= b || approx(a, b));
   }
 };
 
@@ -109,6 +149,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
   
   static Real epsilon() { return NumTraits<Real>::epsilon(); }
+  static Real epsilon2() { return epsilon() * epsilon(); }
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
@@ -122,48 +163,16 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   {
     return Complex(NumTraits<Real>::rand(), NumTraits<Real>::rand());
   }
+  static bool negligible(const Complex& a, const Complex& b)
+  {
+    return(abs2(a) <= abs2(b) * epsilon2());
+  }
+  static bool approx(const Complex& a, const Complex& b)
+  {
+    return(NumTraits<Real>::approx(std::real(a), std::real(b))
+        && NumTraits<Real>::approx(std::imag(a), std::imag(b)));
+  }
+  // lessThanOrApprox wouldn't make sense for complex numbers
 };
-
-template<typename T> typename NumTraits<T>::Real Real(const T& x)
-{ return NumTraits<T>::real(x); }
-
-template<typename T> typename NumTraits<T>::Real Imag(const T& x)
-{ return NumTraits<T>::imag(x); }
-
-template<typename T> T Conj(const T& x)
-{ return NumTraits<T>::conj(x); }
-
-template<typename T> typename NumTraits<T>::FloatingPoint Sqrt(const T& x)
-{ return NumTraits<T>::sqrt(x); }
-
-template<typename T> typename NumTraits<T>::RealFloatingPoint Abs(const T& x)
-{ return NumTraits<T>::abs(x); }
-
-template<typename T> typename NumTraits<T>::Real Abs2(const T& x)
-{ return NumTraits<T>::abs2(x); }
-
-template<typename T> T Rand()
-{ return NumTraits<T>::rand(); }
-
-template<typename T> bool Negligible(const T& a, const T& b)
-{
-  return(Abs(a) <= Abs(b) * NumTraits<T>::epsilon());
-}
-
-template<typename T> bool Approx(const T& a, const T& b)
-{
-  if(NumTraits<T>::IsFloat)
-    return(Abs(a - b) <= std::min(Abs(a), Abs(b)) * NumTraits<T>::epsilon());
-  else
-    return(a == b);
-}
-
-template<typename T> bool LessThanOrApprox(const T& a, const T& b)
-{
-  if(NumTraits<T>::IsFloat)
-    return(a < b || Approx(a, b));
-  else
-    return(a <= b);
-}
 
 #endif // EI_NUMERIC_H

@@ -29,7 +29,7 @@
 #include <QtTest/QtTest>
 #include "../src/Core.h"
 
-USING_EIGEN_DATA_TYPES
+using namespace Eigen;
 
 #include <cstdlib>
 #include <ctime>
@@ -61,6 +61,9 @@ template<typename T> bool TestNegligible(const T& a, const T& b)
 {
   return(Abs(a) <= Abs(b) * TestEpsilon<T>());
 }
+
+//template<typename Scalar, typename Derived, typename OtherDerived>
+//bool TestNegligible
 
 template<typename T> bool TestApprox(const T& a, const T& b)
 {

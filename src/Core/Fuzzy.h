@@ -34,7 +34,7 @@ bool Object<Scalar, Derived>::isApprox(const OtherDerived& other) const
   {
     return((*this - other).norm2()
            <= std::min(norm2(), other.norm2())
-            * Abs2(NumTraits<Scalar>::epsilon()));
+            * NumTraits<Scalar>::epsilon2());
   }
   else
   {
@@ -50,7 +50,7 @@ bool Object<Scalar, Derived>::isNegligble(const Scalar& other) const
 {
   if(IsVector)
   {
-    return(norm2() <= Abs2(other) * Abs2(NumTraits<Scalar>::epsilon()));
+    return(norm2() <= NumTraits<Scalar>::abs2(other) * NumTraits<Scalar>::epsilon2());
   }
   else
   {
@@ -67,7 +67,7 @@ bool Object<Scalar, Derived>::isNegligble(const Object<Scalar, OtherDerived>& ot
 {
   if(IsVector)
   {
-    return(norm2() <= other.norm2() * Abs2(NumTraits<Scalar>::epsilon()));
+    return(norm2() <= other.norm2() * NumTraits<Scalar>::epsilon2());
   }
   else
   {

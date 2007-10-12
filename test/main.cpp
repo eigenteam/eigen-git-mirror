@@ -25,7 +25,7 @@
 
 #include "main.h"
 
-genTest::genTest()
+EigenTest::EigenTest()
 {
     unsigned int t = (unsigned int) time( NULL );
     qDebug() << "Initializing random number generator with seed"

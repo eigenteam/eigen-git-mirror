@@ -51,7 +51,7 @@ template<typename MatrixType> class Random
     {
       EI_UNUSED(row);
       EI_UNUSED(col);
-      return Rand<Scalar>();
+      return NumTraits<Scalar>::rand();
     }
     
   protected:
