@@ -1,4 +1,4 @@
-FILE(GLOB gen_SRCS "*.h")
+FILE(GLOB Eigen_SRCS "*.h")
 
 SET(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/eigen2"

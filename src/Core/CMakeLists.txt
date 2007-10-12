@@ -1,4 +1,4 @@
-FILE(GLOB gen_Core_SRCS "*.h")
+FILE(GLOB Eigen_Core_SRCS "*.h")
 
 INSTALL(FILES 
   ${gen_Core_SRCS}
