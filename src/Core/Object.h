@@ -116,7 +116,7 @@ template<typename Scalar, typename Derived> class Object
     ) const;
     
     template<typename OtherDerived>
-    MatrixProduct<Derived, OtherDerived>
+    Product<Derived, OtherDerived>
     lazyProduct(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
     
     template<typename OtherDerived>

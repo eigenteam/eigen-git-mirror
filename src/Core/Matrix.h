@@ -26,12 +26,6 @@
 #ifndef EI_MATRIX_H
 #define EI_MATRIX_H
 
-#include "Util.h"
-#include "Numeric.h"
-#include "Object.h"
-#include "MatrixRef.h"
-#include "MatrixStorage.h"
-
 template<typename _Scalar, int _Rows, int _Cols>
 class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
                  public MatrixStorage<_Scalar, _Rows, _Cols>
@@ -141,10 +135,5 @@ EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(d) \
 EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(ci) \
 EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(cf) \
 EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(cd)
-
-#include "Eval.h"
-#include "MatrixOps.h"
-#include "ScalarOps.h"
-
 
 #endif // EI_MATRIX_H

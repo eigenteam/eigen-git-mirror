@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_SCALAROPS_H
-#define EI_SCALAROPS_H
+#ifndef EI_SCALARMULTIPLE_H
+#define EI_SCALARMULTIPLE_H
 
 template<typename MatrixType> class ScalarMultiple
   : public Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
@@ -110,4 +110,4 @@ EI_MAKE_SCALAR_OPS(std::complex<double>)
 
 #undef EI_MAKE_SCALAR_OPS
 
-#endif // EI_SCALAROPS_H
+#endif // EI_SCALARMULTIPLE_H

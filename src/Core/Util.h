@@ -52,7 +52,7 @@ template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename Lhs, typename Rhs> class Sum;
 template<typename Lhs, typename Rhs> class Difference;
-template<typename Lhs, typename Rhs> class MatrixProduct;
+template<typename Lhs, typename Rhs> class Product;
 template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
 template<typename ExpressionType> class Eval;
