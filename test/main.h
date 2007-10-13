@@ -44,60 +44,7 @@ class EigenTest : public QObject
     EigenTest();
 
   private slots:
-    void testVectorOps();
-    void testMatrixOps();
-    void testMatrixManip();
+    void testBasicStuff();
 };
-
-template<typename T> inline typename Eigen::NumTraits<T>::Real TestEpsilon();
-template<> inline int TestEpsilon<int>() { return 0; }
-template<> inline float TestEpsilon<float>() { return 1e-2f; }
-template<> inline double TestEpsilon<double>() { return 1e-4; }
-template<> inline int TestEpsilon<std::complex<int> >() { return TestEpsilon<int>(); }
-template<> inline float TestEpsilon<std::complex<float> >() { return TestEpsilon<float>(); }
-template<> inline double TestEpsilon<std::complex<double> >() { return TestEpsilon<double>(); }
-
-template<typename T> bool TestMuchSmallerThan(const T& a, const T& b)
-{
-  return NumTraits<T>::isMuchSmallerThan(a, b, TestEpsilon<T>());
-}
-
-template<typename Scalar, typename Derived, typename OtherDerived>
-bool TestMuchSmallerThan(
-  const Object<Scalar, Derived>& a,
-  const Object<Scalar, OtherDerived>& b)
-{
-  return a.isMuchSmallerThan(b, TestEpsilon<Scalar>());
-}
-
-template<typename T> bool TestApprox(const T& a, const T& b)
-{
-  return NumTraits<T>::isApprox(a, b, TestEpsilon<T>());
-}
-
-template<typename Scalar, typename Derived, typename OtherDerived>
-bool TestApprox(
-  const Object<Scalar, Derived>& a,
-  const Object<Scalar, OtherDerived>& b)
-{
-  return a.isApprox(b, TestEpsilon<Scalar>());
-}
-
-template<typename T> bool TestApproxOrLessThan(const T& a, const T& b)
-{
-  return NumTraits<T>::isApproxOrLessThan(a, b, TestEpsilon<T>());
-}
-
-template<typename Scalar, typename Derived, typename OtherDerived>
-bool TestApproxOrLessThan(
-  const Object<Scalar, Derived>& a,
-  const Object<Scalar, OtherDerived>& b)
-{
-  return a.isApproxOrLessThan(b, TestEpsilon<Scalar>());
-}
-
-#define QVERIFY_MUCH_SMALLER_THAN(a, b) QVERIFY(TestMuchSmallerThan(a, b))
-#define QVERIFY_APPROX(a, b) QVERIFY(TestApprox(a, b))
-#define QVERIFY_APPROX_OR_LESS_THAN(a, b) QVERIFY(TestApproxOrLessThan(a, b))
 
 #endif // EI_TEST_MAIN_H

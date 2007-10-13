@@ -45,10 +45,10 @@ template<> struct NumTraits<int>
   static double sqrt(const int& x) { return std::sqrt(static_cast<double>(x)); }
   static int abs(const int& x) { return std::abs(x); }
   static int abs2(const int& x) { return x*x; }
-  static int rand()
+  static int random()
   {
-    // "rand() % n" is bad, they say, because the low-order bits are not random enough.
-    // However here, 21 is odd, so rand() % 21 uses the high-order bits
+    // "random() % n" is bad, they say, because the low-order bits are not random enough.
+    // However here, 21 is odd, so random() % 21 uses the high-order bits
     // as well, so there's no problem.
     return (std::rand() % 21) - 10;
   }
@@ -86,7 +86,7 @@ template<> struct NumTraits<float>
   static float sqrt(const float& x) { return std::sqrt(x); }
   static float abs(const float& x) { return std::abs(x); }
   static float abs2(const float& x) { return x*x; }
-  static float rand()
+  static float random()
   {
     return std::rand() / (RAND_MAX/20.0f) - 10.0f;
   }
@@ -120,7 +120,7 @@ template<> struct NumTraits<double>
   static double sqrt(const double& x) { return std::sqrt(x); }
   static double abs(const double& x) { return std::abs(x); }
   static double abs2(const double& x) { return x*x; }
-  static double rand()
+  static double random()
   {
     return std::rand() / (RAND_MAX/20.0) - 10.0;
   }
@@ -158,9 +158,9 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   { return std::abs(static_cast<FloatingPoint>(x)); }
   static Real abs2(const Complex& x)
   { return std::real(x) * std::real(x) + std::imag(x) * std::imag(x); }
-  static Complex rand()
+  static Complex random()
   {
-    return Complex(NumTraits<Real>::rand(), NumTraits<Real>::rand());
+    return Complex(NumTraits<Real>::random(), NumTraits<Real>::random());
   }
   static bool isMuchSmallerThan(const Complex& a, const Complex& b, const Real& prec = precision())
   {

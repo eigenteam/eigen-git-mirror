@@ -34,6 +34,20 @@ template<typename Scalar, typename Derived> class Object
     template<typename OtherDerived>
     void _copy_helper(const Object<Scalar, OtherDerived>& other);
     
+    template<typename OtherDerived>
+    bool _isApprox_helper(
+      const OtherDerived& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
+    bool _isMuchSmallerThan_helper(
+      const Scalar& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
+    template<typename OtherDerived>
+    bool _isMuchSmallerThan_helper(
+      const Object<Scalar, OtherDerived>& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
   public:
     static const int SizeAtCompileTime
       = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
@@ -81,8 +95,8 @@ template<typename Scalar, typename Derived> class Object
       return *static_cast<Derived*>(this);
     }
     
-    Row<Derived> row(int i);
-    Column<Derived> col(int i);
+    Row<Derived> row(int i) const;
+    Column<Derived> col(int i) const;
     Minor<Derived> minor(int row, int col);
     Block<Derived> block(int startRow, int endRow, int startCol, int endCol);
     Transpose<Derived> transpose();
@@ -111,7 +125,7 @@ template<typename Scalar, typename Derived> class Object
     ) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(
-      const OtherDerived& other,
+      const Object<Scalar, OtherDerived>& other,
       const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
     ) const;
     

@@ -75,9 +75,9 @@ template<typename MatrixType> class Column
 
 template<typename Scalar, typename Derived>
 Column<Derived>
-Object<Scalar, Derived>::col(int i)
+Object<Scalar, Derived>::col(int i) const
 {
-  return Column<Derived>(static_cast<Derived*>(this)->ref(), i);
+  return Column<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
 }
 
 #endif // EI_COLUMN_H

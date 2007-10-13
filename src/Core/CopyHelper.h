@@ -40,7 +40,7 @@ template<int UnrollCount, int Rows> struct CopyHelperUnroller
   }
 };
 
-template<int Rows> struct CopyHelperUnroller<0, Rows>
+template<int Rows> struct CopyHelperUnroller<1, Rows>
 {
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)

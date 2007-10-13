@@ -40,7 +40,8 @@ bool Object<Scalar, Derived>::isApprox(
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isApprox(other.col(i), prec))
+      if((col(i) - other.col(i)).norm2()
+         > std::min(col(i).norm2(), other.col(i).norm2()) * prec * prec)
         return false;
     return true;
   }
@@ -59,7 +60,7 @@ bool Object<Scalar, Derived>::isMuchSmallerThan(
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isMuchSmallerThan(other, prec))
+      if(col(i).norm2() > NumTraits<Scalar>::abs2(other) * prec * prec)
         return false;
     return true;
   }
@@ -79,7 +80,7 @@ bool Object<Scalar, Derived>::isMuchSmallerThan(
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isMuchSmallerThan(other.col(i), prec))
+      if(col(i).norm2() > other.col(i).norm2() * prec * prec)
         return false;
     return true;
   }

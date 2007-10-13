@@ -80,9 +80,9 @@ template<typename MatrixType> class Row
 
 template<typename Scalar, typename Derived>
 Row<Derived>
-Object<Scalar, Derived>::row(int i)
+Object<Scalar, Derived>::row(int i) const
 {
-  return Row<Derived>(static_cast<Derived*>(this)->ref(), i);
+  return Row<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
 }
 
 #endif // EI_ROW_H
