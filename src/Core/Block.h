@@ -76,9 +76,10 @@ template<typename MatrixType> class Block
 
 template<typename Scalar, typename Derived>
 Block<Derived>
-Object<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol)
+Object<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol) const
 {
-  return Block<Derived>(static_cast<Derived*>(this)->ref(), startRow, endRow, startCol, endCol);
+  return Block<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(),
+                        startRow, endRow, startCol, endCol);
 }
 
 #endif // EI_BLOCK_H

@@ -75,9 +75,9 @@ template<typename MatrixType> class Minor
 
 template<typename Scalar, typename Derived>
 Minor<Derived>
-Object<Scalar, Derived>::minor(int row, int col)
+Object<Scalar, Derived>::minor(int row, int col) const
 {
-  return Minor<Derived>(static_cast<Derived*>(this)->ref(), row, col);
+  return Minor<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), row, col);
 }
 
 #endif // EI_MINOR_H

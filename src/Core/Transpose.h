@@ -66,9 +66,9 @@ template<typename MatrixType> class Transpose
 
 template<typename Scalar, typename Derived>
 Transpose<Derived>
-Object<Scalar, Derived>::transpose()
+Object<Scalar, Derived>::transpose() const
 {
-  return Transpose<Derived>(static_cast<Derived*>(this)->ref());
+  return Transpose<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref());
 }
 
 #endif // EI_TRANSPOSE_H
