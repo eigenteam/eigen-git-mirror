@@ -119,6 +119,8 @@ template<typename Scalar, typename Derived> class Object
     Product<Derived, OtherDerived>
     lazyProduct(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
     
+    Opposite<Derived> operator-() const;
+    
     template<typename OtherDerived>
     Derived& operator+=(const Object<Scalar, OtherDerived>& other);
     template<typename OtherDerived>

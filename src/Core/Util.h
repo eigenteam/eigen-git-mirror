@@ -50,6 +50,7 @@ template<typename MatrixType> class Minor;
 template<typename MatrixType> class Block;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
+template<typename MatrixType> class Opposite;
 template<typename Lhs, typename Rhs> class Sum;
 template<typename Lhs, typename Rhs> class Difference;
 template<typename Lhs, typename Rhs> class Product;

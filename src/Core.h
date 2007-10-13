@@ -17,6 +17,7 @@ namespace Eigen {
 #include "Core/Sum.h"
 #include "Core/Difference.h"
 #include "Core/Product.h"
+#include "Core/Opposite.h"
 #include "Core/Row.h"
 #include "Core/Column.h"
 #include "Core/Block.h"
