@@ -95,19 +95,29 @@ template<typename Scalar, typename Derived> class Object
     
     RealScalar norm2() const;
     RealScalar norm()  const;
-    ScalarProduct<Derived> normalized() const;
+    ScalarMultiple<Derived> normalized() const;
     
     static Eval<Random<Derived> >
     random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     
     template<typename OtherDerived>
-    bool isApprox(const OtherDerived& other) const;
+    bool isApprox(
+      const OtherDerived& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
+    bool isMuchSmallerThan(
+      const Scalar& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
     template<typename OtherDerived>
-    bool isNegligible(const OtherDerived& other) const;
+    bool isMuchSmallerThan(
+      const OtherDerived& other,
+      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+    ) const;
     
     template<typename OtherDerived>
     MatrixProduct<Derived, OtherDerived>
-    lazyMul(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
+    lazyProduct(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
     
     template<typename OtherDerived>
     Derived& operator+=(const Object<Scalar, OtherDerived>& other);

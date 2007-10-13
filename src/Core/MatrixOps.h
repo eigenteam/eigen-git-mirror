@@ -206,7 +206,7 @@ operator-(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 MatrixProduct<Derived, OtherDerived>
-Object<Scalar, Derived>::lazyMul(const Object<Scalar, OtherDerived> &other) const
+Object<Scalar, Derived>::lazyProduct(const Object<Scalar, OtherDerived> &other) const
 {
   return MatrixProduct<Derived, OtherDerived>(constRef(), other.constRef());
 }
@@ -215,7 +215,7 @@ template<typename Scalar, typename Derived1, typename Derived2>
 Eval<MatrixProduct<Derived1, Derived2> >
 operator*(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &mat2)
 {
-  return mat1.lazyMul(mat2).eval();
+  return mat1.lazyProduct(mat2).eval();
 }
 
 template<typename Scalar, typename Derived>

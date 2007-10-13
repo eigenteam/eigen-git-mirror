@@ -28,34 +28,38 @@
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-bool Object<Scalar, Derived>::isApprox(const OtherDerived& other) const
+bool Object<Scalar, Derived>::isApprox(
+  const OtherDerived& other,
+  const typename NumTraits<Scalar>::Real& prec
+) const
 {
   if(IsVector)
   {
-    return((*this - other).norm2()
-           <= std::min(norm2(), other.norm2())
-            * NumTraits<Scalar>::epsilon2());
+    return((*this - other).norm2() <= std::min(norm2(), other.norm2()) * prec * prec);
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isApprox(other.col(i)))
+      if(!col(i).isApprox(other.col(i), prec))
         return false;
     return true;
   }
 }
 
 template<typename Scalar, typename Derived>
-bool Object<Scalar, Derived>::isNegligble(const Scalar& other) const
+bool Object<Scalar, Derived>::isMuchSmallerThan(
+  const Scalar& other,
+  const typename NumTraits<Scalar>::Real& prec
+) const
 {
   if(IsVector)
   {
-    return(norm2() <= NumTraits<Scalar>::abs2(other) * NumTraits<Scalar>::epsilon2());
+    return(norm2() <= NumTraits<Scalar>::abs2(other) * prec * prec);
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isNegligible(other))
+      if(!col(i).isMuchSmallerThan(other, prec))
         return false;
     return true;
   }
@@ -63,16 +67,19 @@ bool Object<Scalar, Derived>::isNegligble(const Scalar& other) const
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-bool Object<Scalar, Derived>::isNegligble(const Object<Scalar, OtherDerived>& other) const
+bool Object<Scalar, Derived>::isMuchSmallerThan(
+  const Object<Scalar, OtherDerived>& other,
+  const typename NumTraits<Scalar>::Real& prec
+) const
 {
   if(IsVector)
   {
-    return(norm2() <= other.norm2() * NumTraits<Scalar>::epsilon2());
+    return(norm2() <= other.norm2() * prec * prec);
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(!col(i).isNegligible(other.col(i)))
+      if(!col(i).isMuchSmallerThan(other.col(i), prec))
         return false;
     return true;
   }

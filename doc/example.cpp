@@ -11,7 +11,7 @@ void foo(const Eigen::Object<Scalar, Derived>& m)
 }
 
 template<typename Scalar, typename Derived>
-Eigen::ScalarProduct<Derived>
+Eigen::ScalarMultiple<Derived>
 twice(const Eigen::Object<Scalar, Derived>& m)
 {
 	return 2 * m;

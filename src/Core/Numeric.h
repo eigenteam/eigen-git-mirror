@@ -38,8 +38,7 @@ template<> struct NumTraits<int>
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = false;
   
-  static int epsilon() { return 0; }
-  static int epsilon2() { return 0; }
+  static int precision() { return 0; }
   static int real(const int& x) { return x; }
   static int imag(const int& x) { EI_UNUSED(x); return 0; }
   static int conj(const int& x) { return x; }
@@ -53,18 +52,21 @@ template<> struct NumTraits<int>
     // as well, so there's no problem.
     return (std::rand() % 21) - 10;
   }
-  static bool negligible(const int& a, const int& b)
+  static bool isMuchSmallerThan(const int& a, const int& b, const int& prec = precision())
   {
     EI_UNUSED(b);
-    return(a == 0);
+    EI_UNUSED(prec);
+    return a == 0;
   }
-  static bool approx(const int& a, const int& b)
+  static bool isApprox(const int& a, const int& b, const int& prec = precision())
   {
-    return(a == b);
+    EI_UNUSED(prec);
+    return a == b;
   }
-  static bool lessThanOrApprox(const int& a, const int& b)
+  static bool isApproxOrLessThan(const int& a, const int& b, const int& prec = precision())
   {
-    return(a <= b);
+    EI_UNUSED(prec);
+    return a <= b;
   }
 };
 
@@ -77,8 +79,7 @@ template<> struct NumTraits<float>
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
   
-  static float epsilon() { return 1e-5f; }
-  static float epsilon2() { return epsilon() * epsilon(); }
+  static float precision() { return 1e-5f; }
   static float real(const float& x) { return x; }
   static float imag(const float& x) { EI_UNUSED(x); return 0; }
   static float conj(const float& x) { return x; }
@@ -89,17 +90,17 @@ template<> struct NumTraits<float>
   {
     return std::rand() / (RAND_MAX/20.0f) - 10.0f;
   }
-  static bool negligible(const float& a, const float& b)
+  static bool isMuchSmallerThan(const float& a, const float& b, const float& prec = precision())
   {
-    return(abs(a) <= abs(b) * epsilon());
+    return abs(a) <= abs(b) * prec;
   }
-  static bool approx(const float& a, const float& b)
+  static bool isApprox(const float& a, const float& b, const float& prec = precision())
   {
-    return(abs(a - b) <= std::min(abs(a), abs(b)) * epsilon());
+    return abs(a - b) <= std::min(abs(a), abs(b)) * prec;
   }
-  static bool lessThanOrApprox(const float& a, const float& b)
+  static bool isApproxOrLessThan(const float& a, const float& b, const float& prec = precision())
   {
-    return(a <= b || approx(a, b));
+    return a <= b || isApprox(a, b, prec);
   }
 };
 
@@ -112,8 +113,7 @@ template<> struct NumTraits<double>
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
   
-  static double epsilon() { return 1e-11; }
-  static double epsilon2() { return epsilon() * epsilon(); }
+  static double precision() { return 1e-11; }
   static double real(const double& x) { return x; }
   static double imag(const double& x) { EI_UNUSED(x); return 0; }
   static double conj(const double& x) { return x; }
@@ -124,17 +124,17 @@ template<> struct NumTraits<double>
   {
     return std::rand() / (RAND_MAX/20.0) - 10.0;
   }
-  static bool negligible(const double& a, const double& b)
+  static bool isMuchSmallerThan(const double& a, const double& b, const double& prec = precision())
   {
-    return(abs(a) <= abs(b) * epsilon());
+    return abs(a) <= abs(b) * prec;
   }
-  static bool approx(const double& a, const double& b)
+  static bool isApprox(const double& a, const double& b, const double& prec = precision())
   {
-    return(abs(a - b) <= std::min(abs(a), abs(b)) * epsilon());
+    return abs(a - b) <= std::min(abs(a), abs(b)) * prec;
   }
-  static bool lessThanOrApprox(const double& a, const double& b)
+  static bool isApproxOrLessThan(const double& a, const double& b, const double& prec = precision())
   {
-    return(a <= b || approx(a, b));
+    return a <= b || isApprox(a, b, prec);
   }
 };
 
@@ -148,8 +148,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   static const bool IsComplex = true;
   static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
   
-  static Real epsilon() { return NumTraits<Real>::epsilon(); }
-  static Real epsilon2() { return epsilon() * epsilon(); }
+  static Real precision() { return NumTraits<Real>::precision(); }
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
@@ -163,16 +162,16 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   {
     return Complex(NumTraits<Real>::rand(), NumTraits<Real>::rand());
   }
-  static bool negligible(const Complex& a, const Complex& b)
+  static bool isMuchSmallerThan(const Complex& a, const Complex& b, const Real& prec = precision())
   {
-    return(abs2(a) <= abs2(b) * epsilon2());
+    return abs2(a) <= abs2(b) * prec * prec;
   }
-  static bool approx(const Complex& a, const Complex& b)
+  static bool isApprox(const Complex& a, const Complex& b, const Real& prec = precision())
   {
-    return(NumTraits<Real>::approx(std::real(a), std::real(b))
-        && NumTraits<Real>::approx(std::imag(a), std::imag(b)));
+    return NumTraits<Real>::isApprox(std::real(a), std::real(b), prec)
+        && NumTraits<Real>::isApprox(std::imag(a), std::imag(b), prec);
   }
-  // lessThanOrApprox wouldn't make sense for complex numbers
+  // isApproxOrLessThan wouldn't make sense for complex numbers
 };
 
 #endif // EI_NUMERIC_H

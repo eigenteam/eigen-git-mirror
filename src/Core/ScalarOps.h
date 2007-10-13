@@ -26,28 +26,28 @@
 #ifndef EI_SCALAROPS_H
 #define EI_SCALAROPS_H
 
-template<typename MatrixType> class ScalarProduct
-  : public Object<typename MatrixType::Scalar, ScalarProduct<MatrixType> >
+template<typename MatrixType> class ScalarMultiple
+  : public Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::ConstRef MatRef;
-    friend class Object<typename MatrixType::Scalar, ScalarProduct<MatrixType> >;
+    friend class Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    ScalarProduct(const MatRef& matrix, Scalar scalar)
+    ScalarMultiple(const MatRef& matrix, Scalar scalar)
       : m_matrix(matrix), m_scalar(scalar) {}
 
-    ScalarProduct(const ScalarProduct& other)
+    ScalarMultiple(const ScalarMultiple& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
-    EI_INHERIT_ASSIGNMENT_OPERATORS(ScalarProduct)
+    EI_INHERIT_ASSIGNMENT_OPERATORS(ScalarMultiple)
 
   private:
-    const ScalarProduct& _ref() const { return *this; }
-    const ScalarProduct& _constRef() const { return *this; }
+    const ScalarMultiple& _ref() const { return *this; }
+    const ScalarMultiple& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -63,23 +63,23 @@ template<typename MatrixType> class ScalarProduct
 
 #define EI_MAKE_SCALAR_OPS(OtherScalar)                                \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                               \
+ScalarMultiple<Derived>                                               \
 operator*(const Object<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return ScalarProduct<Derived>(matrix.constRef(), scalar);          \
+  return ScalarMultiple<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                               \
+ScalarMultiple<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
           const Object<Scalar, Derived>& matrix)                     \
 {                                                                      \
-  return ScalarProduct<Derived>(matrix.constRef(), scalar);          \
+  return ScalarMultiple<Derived>(matrix.constRef(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-ScalarProduct<Derived>                                               \
+ScalarMultiple<Derived>                                               \
 operator/(const Object<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \

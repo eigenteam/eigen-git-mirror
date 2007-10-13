@@ -51,7 +51,7 @@ template<typename MatrixType1,
   if(rows1 == cols1)
   {
     a *= b;
-    a.lazyMul(b);
+    a.lazyProduct(b);
   }
   
   MatrixType1 d(rows1, cols1);

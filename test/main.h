@@ -57,32 +57,47 @@ template<> inline int TestEpsilon<std::complex<int> >() { return TestEpsilon<int
 template<> inline float TestEpsilon<std::complex<float> >() { return TestEpsilon<float>(); }
 template<> inline double TestEpsilon<std::complex<double> >() { return TestEpsilon<double>(); }
 
-template<typename T> bool TestNegligible(const T& a, const T& b)
+template<typename T> bool TestMuchSmallerThan(const T& a, const T& b)
 {
-  return(Abs(a) <= Abs(b) * TestEpsilon<T>());
+  return NumTraits<T>::isMuchSmallerThan(a, b, TestEpsilon<T>());
 }
 
-//template<typename Scalar, typename Derived, typename OtherDerived>
-//bool TestNegligible
+template<typename Scalar, typename Derived, typename OtherDerived>
+bool TestMuchSmallerThan(
+  const Object<Scalar, Derived>& a,
+  const Object<Scalar, OtherDerived>& b)
+{
+  return a.isMuchSmallerThan(b, TestEpsilon<Scalar>());
+}
 
 template<typename T> bool TestApprox(const T& a, const T& b)
 {
-  if(Eigen::NumTraits<T>::IsFloat)
-    return(Abs(a - b) <= std::min(Abs(a), Abs(b)) * TestEpsilon<T>());
-  else
-    return(a == b);
+  return NumTraits<T>::isApprox(a, b, TestEpsilon<T>());
 }
 
-template<typename T> bool TestLessThanOrApprox(const T& a, const T& b)
+template<typename Scalar, typename Derived, typename OtherDerived>
+bool TestApprox(
+  const Object<Scalar, Derived>& a,
+  const Object<Scalar, OtherDerived>& b)
 {
-  if(Eigen::NumTraits<T>::IsFloat)
-    return(a < b || Approx(a, b));
-  else
-    return(a <= b);
+  return a.isApprox(b, TestEpsilon<Scalar>());
 }
 
-#define QVERIFY_NEGLIGIBLE(a, b) QVERIFY(TestNegligible(a, b))
+template<typename T> bool TestApproxOrLessThan(const T& a, const T& b)
+{
+  return NumTraits<T>::isApproxOrLessThan(a, b, TestEpsilon<T>());
+}
+
+template<typename Scalar, typename Derived, typename OtherDerived>
+bool TestApproxOrLessThan(
+  const Object<Scalar, Derived>& a,
+  const Object<Scalar, OtherDerived>& b)
+{
+  return a.isApproxOrLessThan(b, TestEpsilon<Scalar>());
+}
+
+#define QVERIFY_MUCH_SMALLER_THAN(a, b) QVERIFY(TestMuchSmallerThan(a, b))
 #define QVERIFY_APPROX(a, b) QVERIFY(TestApprox(a, b))
-#define QVERIFY_LESS_THAN_OR_APPROX(a, b) QVERIFY(TestLessThanOrApprox(a, b))
+#define QVERIFY_APPROX_OR_LESS_THAN(a, b) QVERIFY(TestApproxOrLessThan(a, b))
 
 #endif // EI_TEST_MAIN_H

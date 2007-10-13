@@ -88,7 +88,7 @@ typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm() const
 }
 
 template<typename Scalar, typename Derived>
-ScalarProduct<Derived> Object<Scalar, Derived>::normalized() const
+ScalarMultiple<Derived> Object<Scalar, Derived>::normalized() const
 {
   return (*this) / norm();
 }
