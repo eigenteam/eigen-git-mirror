@@ -116,7 +116,7 @@ template<typename Scalar, typename Derived> class Object
     static Zero<Derived>
     zero(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     static Identity<Derived>
-    identity(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    identity(int rows = RowsAtCompileTime);
     
     template<typename OtherDerived>
     bool isApprox(

@@ -37,7 +37,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              m3,
              mzero = MatrixType::zero(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::identity(rows, rows),
+                              ::identity(rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),

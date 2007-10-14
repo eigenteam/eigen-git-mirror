@@ -36,30 +36,31 @@ template<typename MatrixType> class Identity
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
+    Identity(int rows) : m_rows(rows)
     {
-      assert(rows > 0 && cols > 0);
+      assert(rows > 0);
+      assert(RowsAtCompileTime == ColsAtCompileTime);
     }
     
   private:
     Identity& _ref() { return *this; }
     const Identity& _constRef() const { return *this; }
     int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
+    int _cols() const { return m_rows; }
     
     Scalar _read(int row, int col) const
     {
-      return static_cast<Scalar>(row == col);
+      return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
     }
     
   protected:
-    int m_rows, m_cols;
+    int m_rows;
 };
 
 template<typename Scalar, typename Derived>
-Identity<Derived> Object<Scalar, Derived>::identity(int rows, int cols)
+Identity<Derived> Object<Scalar, Derived>::identity(int rows)
 {
-  return Identity<Derived>(rows, cols);
+  return Identity<Derived>(rows);
 }
 
 #endif // EI_IDENTITY_H
