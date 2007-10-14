@@ -36,10 +36,12 @@ template<typename MatrixType> class FromArray
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    FromArray(int rows, int cols, const Scalar* array) : m_rows(rows), m_cols(cols), m_array(array)
+    FromArray(int rows, int cols, Scalar* array) : m_rows(rows), m_cols(cols), m_array(array)
     {
       assert(rows > 0 && cols > 0);
     }
+    
+    EI_INHERIT_ASSIGNMENT_OPERATORS(FromArray)
     
   private:
     FromArray& _ref() { return *this; }
@@ -52,15 +54,20 @@ template<typename MatrixType> class FromArray
       return m_array[row + col * m_rows];
     }
     
+    Scalar& _write(int row, int col)
+    {
+      return m_array[row + col * m_rows];
+    }
+    
   protected:
     int m_rows, m_cols;
-    const Scalar* m_array;
+    Scalar* m_array;
 };
 
 template<typename Scalar, typename Derived>
 FromArray<Derived> Object<Scalar, Derived>::fromArray(const Scalar* array, int rows, int cols)
 {
-  return FromArray<Derived>(rows, cols, array);
+  return FromArray<Derived>(rows, cols, const_cast<Scalar*>(array));
 }
 
 #endif // EI_FROMARRAY_H

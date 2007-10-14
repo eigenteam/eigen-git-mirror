@@ -87,6 +87,13 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   QVERIFY(v1.isApprox(identity * v1));
   
   QVERIFY((square * (m1 + m2)).isApprox(square * m1 + square * m2));
+  
+  Scalar* array1 = new Scalar[rows];
+  Scalar* array2 = new Scalar[rows];
+  Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
+  Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows) = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
+  bool b = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows).isApprox(Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows));
+  QVERIFY(b);
 }
 
 void EigenTest::testBasicStuff()

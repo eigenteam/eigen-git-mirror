@@ -32,10 +32,5 @@ int main(int, char **)
   cout << "Column 1 of m2 is:" << endl << m2.col(1) << endl;
   cout << "The transpose of m2 is:" << endl << m2.transpose() << endl;
   cout << "The matrix m2 with row 0 and column 1 removed is:" << endl << m2.minor(0,1) << endl;
-  
-  double a1[3] = {1.0, 3.0, 2.0};
-  double a2[3];
-  Vector3d::wrapArray(a2) = 2 * Vector3d::fromArray(a1);
-  cout << Vector3d::fromArray(a2) << endl;
   return 0;
 }

@@ -30,6 +30,5 @@ namespace Eigen {
 #include "Core/Identity.h"
 #include "Core/Fuzzy.h"
 #include "Core/FromArray.h"
-#include "Core/WrapArray.h"
 
 } // namespace Eigen

@@ -60,7 +60,6 @@ template<typename MatrixType> class Zero;
 template<typename MatrixType> class Identity;
 template<typename ExpressionType> class Eval;
 template<typename MatrixType> class FromArray;
-template<typename MatrixType> class WrapArray;
 
 template<typename T> struct ForwardDecl
 {

@@ -119,8 +119,6 @@ template<typename Scalar, typename Derived> class Object
     identity(int rows = RowsAtCompileTime);
     static FromArray<Derived>
     fromArray(const Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
-    static WrapArray<Derived>
-    wrapArray(Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     
     template<typename OtherDerived>
     bool isApprox(
