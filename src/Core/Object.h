@@ -113,6 +113,10 @@ template<typename Scalar, typename Derived> class Object
     
     static Eval<Random<Derived> >
     random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    static Zero<Derived>
+    zero(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    static Identity<Derived>
+    identity(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     
     template<typename OtherDerived>
     bool isApprox(

@@ -56,6 +56,8 @@ template<typename Lhs, typename Rhs> class Difference;
 template<typename Lhs, typename Rhs> class Product;
 template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
+template<typename MatrixType> class Zero;
+template<typename MatrixType> class Identity;
 template<typename ExpressionType> class Eval;
 
 template<typename T> struct ForwardDecl

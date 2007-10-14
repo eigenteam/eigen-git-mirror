@@ -27,6 +27,8 @@ namespace Eigen {
 #include "Core/Trace.h"
 #include "Core/Dot.h"
 #include "Core/Random.h"
+#include "Core/Zero.h"
+#include "Core/Identity.h"
 #include "Core/Fuzzy.h"
 
 } // namespace Eigen

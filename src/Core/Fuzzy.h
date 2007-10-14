@@ -33,6 +33,7 @@ bool Object<Scalar, Derived>::isApprox(
   const typename NumTraits<Scalar>::Real& prec
 ) const
 {
+  assert(rows() == other.rows() && cols() == other.cols());
   if(IsVector)
   {
     return((*this - other).norm2() <= std::min(norm2(), other.norm2()) * prec * prec);
@@ -73,6 +74,7 @@ bool Object<Scalar, Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& prec
 ) const
 {
+  assert(rows() == other.rows() && cols() == other.cols());
   if(IsVector)
   {
     return(norm2() <= other.norm2() * prec * prec);
