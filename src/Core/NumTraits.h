@@ -42,8 +42,6 @@ template<> struct NumTraits<int>
   static int real(const int& x) { return x; }
   static int imag(const int& x) { EI_UNUSED(x); return 0; }
   static int conj(const int& x) { return x; }
-  static double sqrt(const int& x) { return std::sqrt(static_cast<double>(x)); }
-  static int abs(const int& x) { return std::abs(x); }
   static int abs2(const int& x) { return x*x; }
   static int random()
   {
@@ -83,8 +81,6 @@ template<> struct NumTraits<float>
   static float real(const float& x) { return x; }
   static float imag(const float& x) { EI_UNUSED(x); return 0; }
   static float conj(const float& x) { return x; }
-  static float sqrt(const float& x) { return std::sqrt(x); }
-  static float abs(const float& x) { return std::abs(x); }
   static float abs2(const float& x) { return x*x; }
   static float random()
   {
@@ -92,11 +88,11 @@ template<> struct NumTraits<float>
   }
   static bool isMuchSmallerThan(const float& a, const float& b, const float& prec = precision())
   {
-    return abs(a) <= abs(b) * prec;
+    return std::abs(a) <= std::abs(b) * prec;
   }
   static bool isApprox(const float& a, const float& b, const float& prec = precision())
   {
-    return abs(a - b) <= std::min(abs(a), abs(b)) * prec;
+    return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
   }
   static bool isApproxOrLessThan(const float& a, const float& b, const float& prec = precision())
   {
@@ -117,8 +113,6 @@ template<> struct NumTraits<double>
   static double real(const double& x) { return x; }
   static double imag(const double& x) { EI_UNUSED(x); return 0; }
   static double conj(const double& x) { return x; }
-  static double sqrt(const double& x) { return std::sqrt(x); }
-  static double abs(const double& x) { return std::abs(x); }
   static double abs2(const double& x) { return x*x; }
   static double random()
   {
@@ -126,11 +120,11 @@ template<> struct NumTraits<double>
   }
   static bool isMuchSmallerThan(const double& a, const double& b, const double& prec = precision())
   {
-    return abs(a) <= abs(b) * prec;
+    return std::abs(a) <= std::abs(b) * prec;
   }
   static bool isApprox(const double& a, const double& b, const double& prec = precision())
   {
-    return abs(a - b) <= std::min(abs(a), abs(b)) * prec;
+    return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
   }
   static bool isApproxOrLessThan(const double& a, const double& b, const double& prec = precision())
   {
@@ -152,12 +146,8 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   static Real real(const Complex& x) { return std::real(x); }
   static Real imag(const Complex& x) { return std::imag(x); }
   static Complex conj(const Complex& x) { return std::conj(x); }
-  static FloatingPoint sqrt(const Complex& x)
-  { return std::sqrt(static_cast<FloatingPoint>(x)); }
-  static RealFloatingPoint abs(const Complex& x)
-  { return std::abs(static_cast<FloatingPoint>(x)); }
   static Real abs2(const Complex& x)
-  { return std::real(x) * std::real(x) + std::imag(x) * std::imag(x); }
+  { return std::norm(x); }
   static Complex random()
   {
     return Complex(NumTraits<Real>::random(), NumTraits<Real>::random());

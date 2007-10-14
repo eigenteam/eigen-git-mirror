@@ -75,7 +75,6 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 void EigenTest::testBasicStuff()
 {
   basicStuff(Matrix<float, 1, 1>());
-  basicStuff(Matrix<complex<int>, 2, 5>());
   basicStuff(Matrix<complex<double>, 4, 4>());
   basicStuff(MatrixXcf(3, 3));
   basicStuff(MatrixXi(8, 12));

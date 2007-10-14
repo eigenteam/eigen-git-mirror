@@ -104,7 +104,6 @@ Object<Scalar, Derived>::operator/=(const OtherScalar &other)        \
 EI_MAKE_SCALAR_OPS(int)
 EI_MAKE_SCALAR_OPS(float)
 EI_MAKE_SCALAR_OPS(double)
-EI_MAKE_SCALAR_OPS(std::complex<int>)
 EI_MAKE_SCALAR_OPS(std::complex<float>)
 EI_MAKE_SCALAR_OPS(std::complex<double>)
 

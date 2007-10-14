@@ -84,7 +84,7 @@ typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm2() const
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm() const
 {
-  return NumTraits<typename NumTraits<Scalar>::Real>::sqrt(norm2());
+  return std::sqrt(norm2());
 }
 
 template<typename Scalar, typename Derived>

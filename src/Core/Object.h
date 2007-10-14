@@ -145,14 +145,12 @@ template<typename Scalar, typename Derived> class Object
     Derived& operator*=(const int& other);
     Derived& operator*=(const float& other);
     Derived& operator*=(const double& other);
-    Derived& operator*=(const std::complex<int>& other);
     Derived& operator*=(const std::complex<float>& other);
     Derived& operator*=(const std::complex<double>& other);
     
     Derived& operator/=(const int& other);
     Derived& operator/=(const float& other);
     Derived& operator/=(const double& other);
-    Derived& operator/=(const std::complex<int>& other);
     Derived& operator/=(const std::complex<float>& other);
     Derived& operator/=(const std::complex<double>& other);
 
