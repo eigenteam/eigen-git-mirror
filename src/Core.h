@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <complex>
 #include <cassert>
@@ -30,5 +29,7 @@ namespace Eigen {
 #include "Core/Zero.h"
 #include "Core/Identity.h"
 #include "Core/Fuzzy.h"
+#include "Core/FromArray.h"
+#include "Core/WrapArray.h"
 
 } // namespace Eigen
