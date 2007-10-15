@@ -26,31 +26,6 @@
 #ifndef EI_MATRIXREF_H
 #define EI_MATRIXREF_H
 
-template<typename MatrixType> class MatrixConstRef
- : public Object<typename MatrixType::Scalar, MatrixConstRef<MatrixType> >
-{
-  public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, MatrixConstRef>;
-    
-    MatrixConstRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    MatrixConstRef(const MatrixConstRef& other) : m_matrix(other.m_matrix) {}
-    ~MatrixConstRef() {}
-
-    EI_INHERIT_ASSIGNMENT_OPERATORS(MatrixConstRef)
-
-  private:
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
-
-    const Scalar& _read(int row, int col) const
-    {
-      return m_matrix._read(row, col);
-    }
-    
-    const MatrixType& m_matrix;
-};
-
 template<typename MatrixType> class MatrixRef
  : public Object<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
@@ -58,7 +33,7 @@ template<typename MatrixType> class MatrixRef
     typedef typename MatrixType::Scalar Scalar;
     friend class Object<Scalar, MatrixRef>;
     
-    MatrixRef(MatrixType& matrix) : m_matrix(matrix) {}
+    MatrixRef(const MatrixType& matrix) : m_matrix(*const_cast<MatrixType*>(&matrix)) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}
 

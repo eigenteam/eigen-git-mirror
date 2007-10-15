@@ -42,8 +42,7 @@ template<typename MatrixType> class Zero
     }
     
   private:
-    Zero& _ref() { return *this; }
-    const Zero& _constRef() const { return *this; }
+    const Zero& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     

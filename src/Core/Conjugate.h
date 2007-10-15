@@ -31,7 +31,7 @@ template<typename MatrixType> class Conjugate
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::ConstRef MatRef;
+    typedef typename MatrixType::Ref MatRef;
     friend class Object<Scalar, Conjugate<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -45,8 +45,7 @@ template<typename MatrixType> class Conjugate
     EI_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
     
   private:
-    Conjugate& _ref() { return *this; }
-    const Conjugate& _constRef() const { return *this; }
+    const Conjugate& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
@@ -63,7 +62,7 @@ template<typename Scalar, typename Derived>
 Conjugate<Derived>
 Object<Scalar, Derived>::conjugate() const
 {
-  return Conjugate<Derived>(static_cast<const Derived*>(this)->constRef());
+  return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
 }
 
 #endif // EI_CONJUGATE_H

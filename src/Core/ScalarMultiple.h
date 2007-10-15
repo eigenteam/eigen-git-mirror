@@ -31,7 +31,7 @@ template<typename MatrixType> class ScalarMultiple
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::ConstRef MatRef;
+    typedef typename MatrixType::Ref MatRef;
     friend class Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -47,7 +47,6 @@ template<typename MatrixType> class ScalarMultiple
 
   private:
     const ScalarMultiple& _ref() const { return *this; }
-    const ScalarMultiple& _constRef() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -67,7 +66,7 @@ ScalarMultiple<Derived>                                               \
 operator*(const Object<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
-  return ScalarMultiple<Derived>(matrix.constRef(), scalar);          \
+  return ScalarMultiple<Derived>(matrix.ref(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
@@ -75,7 +74,7 @@ ScalarMultiple<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
           const Object<Scalar, Derived>& matrix)                     \
 {                                                                      \
-  return ScalarMultiple<Derived>(matrix.constRef(), scalar);          \
+  return ScalarMultiple<Derived>(matrix.ref(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \

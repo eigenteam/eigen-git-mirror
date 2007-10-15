@@ -31,8 +31,8 @@ template<typename Lhs, typename Rhs> class Difference
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::ConstRef LhsRef;
-    typedef typename Rhs::ConstRef RhsRef;
+    typedef typename Lhs::Ref LhsRef;
+    typedef typename Rhs::Ref RhsRef;
     friend class Object<Scalar, Difference>;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
@@ -51,7 +51,6 @@ template<typename Lhs, typename Rhs> class Difference
 
   private:
     const Difference& _ref() const { return *this; }
-    const Difference& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -69,7 +68,7 @@ template<typename Scalar, typename Derived1, typename Derived2>
 Difference<Derived1, Derived2>
 operator-(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &mat2)
 {
-  return Difference<Derived1, Derived2>(mat1.constRef(), mat2.constRef());
+  return Difference<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
 template<typename Scalar, typename Derived>

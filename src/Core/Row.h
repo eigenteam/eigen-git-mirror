@@ -55,8 +55,7 @@ template<typename MatrixType> class Row
     EI_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
   private:
-    Row& _ref() { return *this; }
-    const Row& _constRef() const { return *this; }
+    const Row& _ref() const { return *this; }
     
     int _rows() const { return 1; }
     int _cols() const { return m_matrix.cols(); }

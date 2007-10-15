@@ -66,8 +66,8 @@ template<typename Lhs, typename Rhs> class Product
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::ConstRef LhsRef;
-    typedef typename Rhs::ConstRef RhsRef;
+    typedef typename Lhs::Ref LhsRef;
+    typedef typename Rhs::Ref RhsRef;
     friend class Object<Scalar, Product>;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
@@ -86,7 +86,6 @@ template<typename Lhs, typename Rhs> class Product
     
   private:
     const Product& _ref() const { return *this; }
-    const Product& _constRef() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
     
@@ -115,7 +114,7 @@ template<typename OtherDerived>
 Product<Derived, OtherDerived>
 Object<Scalar, Derived>::lazyProduct(const Object<Scalar, OtherDerived> &other) const
 {
-  return Product<Derived, OtherDerived>(constRef(), other.constRef());
+  return Product<Derived, OtherDerived>(ref(), other.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>

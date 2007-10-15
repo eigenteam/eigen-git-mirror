@@ -55,18 +55,14 @@ template<typename Scalar, typename Derived> class Object
     static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
     
     typedef typename ForwardDecl<Derived>::Ref Ref;
-    typedef typename ForwardDecl<Derived>::ConstRef ConstRef;
     typedef typename NumTraits<Scalar>::Real RealScalar;
   
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     int size() const { return rows() * cols(); }
     
-    Ref ref()
-    { return static_cast<Derived *>(this)->_ref(); }
-    
-    ConstRef constRef() const
-    { return static_cast<const Derived *>(this)->_constRef(); }
+    Ref ref() const
+    { return static_cast<const Derived *>(this)->_ref(); }
     
     Scalar& write(int row, int col)
     {

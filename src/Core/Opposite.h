@@ -31,7 +31,7 @@ template<typename MatrixType> class Opposite
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::ConstRef MatRef;
+    typedef typename MatrixType::Ref MatRef;
     friend class Object<Scalar, Opposite<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -45,8 +45,7 @@ template<typename MatrixType> class Opposite
     EI_INHERIT_ASSIGNMENT_OPERATORS(Opposite)
     
   private:
-    Opposite& _ref() { return *this; }
-    const Opposite& _constRef() const { return *this; }
+    const Opposite& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
@@ -63,7 +62,7 @@ template<typename Scalar, typename Derived>
 Opposite<Derived>
 Object<Scalar, Derived>::operator-() const
 {
-  return Opposite<Derived>(static_cast<const Derived*>(this)->constRef());
+  return Opposite<Derived>(static_cast<const Derived*>(this)->ref());
 }
 
 #endif // EI_OPPOSITE_H

@@ -54,8 +54,7 @@ template<typename MatrixType> class Block
     EI_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:
-    Block& _ref() { return *this; }
-    const Block& _constRef() const { return *this; }
+    const Block& _ref() const { return *this; }
     int _rows() const { return m_endRow - m_startRow + 1; }
     int _cols() const { return m_endCol - m_startCol + 1; }
     

@@ -45,8 +45,7 @@ template<typename MatrixType> class Transpose
     EI_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
-    Transpose& _ref() { return *this; }
-    const Transpose& _constRef() const { return *this; }
+    const Transpose& _ref() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
     

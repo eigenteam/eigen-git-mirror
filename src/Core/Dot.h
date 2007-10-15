@@ -77,7 +77,6 @@ Scalar Object<Scalar, Derived>::dot(const OtherDerived& other) const
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm2() const
 {
-  assert(IsVector);
   return NumTraits<Scalar>::real(dot(*this));
 }
 

@@ -44,7 +44,7 @@ template<typename MatrixType> class Identity
     
   private:
     Identity& _ref() { return *this; }
-    const Identity& _constRef() const { return *this; }
+    const Identity& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_rows; }
     

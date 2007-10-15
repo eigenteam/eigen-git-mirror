@@ -45,7 +45,7 @@ template<typename MatrixType> class FromArray
     
   private:
     FromArray& _ref() { return *this; }
-    const FromArray& _constRef() const { return *this; }
+    const FromArray& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     

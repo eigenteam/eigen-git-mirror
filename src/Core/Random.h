@@ -42,8 +42,7 @@ template<typename MatrixType> class Random
     }
     
   private:
-    Random& _ref() { return *this; }
-    const Random& _constRef() const { return *this; }
+    const Random& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     

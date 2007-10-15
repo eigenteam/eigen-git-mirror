@@ -32,13 +32,11 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
 {
   public:
     friend class Object<_Scalar, Matrix>;
-    typedef      Object<_Scalar, Matrix>            Base;
-    typedef      MatrixStorage<_Scalar, _Rows, _Cols> Storage;
+    typedef      Object<_Scalar, Matrix>                Base;
+    typedef      MatrixStorage<_Scalar, _Rows, _Cols>   Storage;
     typedef      _Scalar                                Scalar;
-    typedef      MatrixRef<Matrix>                  Ref;
-    typedef      MatrixConstRef<Matrix>             ConstRef;
+    typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
-    friend class MatrixConstRef<Matrix>;
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
@@ -49,8 +47,7 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     { return Storage::m_array; }
     
   private:
-    Ref _ref() { return Ref(*this); }
-    ConstRef _constRef() const { return ConstRef(*this); }
+    Ref _ref() const { return Ref(*this); }
     
     const Scalar& _read(int row, int col) const
     {

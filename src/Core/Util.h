@@ -43,7 +43,6 @@ using Eigen::Matrix;
 //forward declarations
 template<typename _Scalar, int _Rows, int _Cols> class Matrix;
 template<typename MatrixType> class MatrixRef;
-template<typename MatrixType> class MatrixConstRef;
 template<typename MatrixType> class Row;
 template<typename MatrixType> class Column;
 template<typename MatrixType> class Minor;
@@ -64,14 +63,12 @@ template<typename MatrixType> class FromArray;
 template<typename T> struct ForwardDecl
 {
   typedef T Ref;
-  typedef T ConstRef;
 };
 
 template<typename _Scalar, int _Rows, int _Cols>
 struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 {
   typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols> > Ref;
-  typedef MatrixConstRef<Matrix<_Scalar, _Rows, _Cols> > ConstRef;
 };
 
 const int Dynamic = -1;
