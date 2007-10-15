@@ -42,6 +42,7 @@ template<typename MatrixType> class Opposite
     Opposite(const Opposite& other)
       : m_matrix(other.m_matrix) {}
     
+    // assignments are illegal but we still want to intercept them and get clean compile errors
     EI_INHERIT_ASSIGNMENT_OPERATORS(Opposite)
     
   private:

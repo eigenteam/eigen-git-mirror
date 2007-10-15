@@ -41,6 +41,9 @@ template<typename MatrixType> class Zero
       assert(rows > 0 && cols > 0);
     }
     
+    // assignments are illegal but we still want to intercept them and get clean compile errors
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Zero)
+    
   private:
     const Zero& _ref() const { return *this; }
     int _rows() const { return m_rows; }

@@ -40,6 +40,9 @@ template<typename MatrixType> class Random
     {
       assert(rows > 0 && cols > 0);
     }
+   
+    // assignments are illegal but we still want to intercept them and get clean compile errors
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Random)
     
   private:
     const Random& _ref() const { return *this; }

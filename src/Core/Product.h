@@ -82,6 +82,7 @@ template<typename Lhs, typename Rhs> class Product
     Product(const Product& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
+    // assignments are illegal but we still want to intercept them and get clean compile errors
     EI_INHERIT_ASSIGNMENT_OPERATORS(Product)
     
   private:

@@ -42,6 +42,9 @@ template<typename MatrixType> class Identity
       assert(RowsAtCompileTime == ColsAtCompileTime);
     }
     
+    // assignments are illegal but we still want to intercept them and get clean compile errors
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Identity)
+    
   private:
     Identity& _ref() { return *this; }
     const Identity& _ref() const { return *this; }

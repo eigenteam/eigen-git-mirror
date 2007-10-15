@@ -43,6 +43,7 @@ template<typename MatrixType> class ScalarMultiple
     ScalarMultiple(const ScalarMultiple& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
+    // assignments are illegal but we still want to intercept them and get clean compile errors
     EI_INHERIT_ASSIGNMENT_OPERATORS(ScalarMultiple)
 
   private:

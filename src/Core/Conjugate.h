@@ -51,7 +51,7 @@ template<typename MatrixType> class Conjugate
     
     Scalar _read(int row, int col) const
     {
-      return Conj(m_matrix.read(row, col));
+      return NumTraits<Scalar>::conj(m_matrix.read(row, col));
     }
     
   protected:
