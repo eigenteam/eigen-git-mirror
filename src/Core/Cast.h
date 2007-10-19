@@ -23,36 +23,36 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_CONJUGATE_H
-#define EI_CONJUGATE_H
+#ifndef EI_CAST_H
+#define EI_CAST_H
 
-template<typename MatrixType> class Conjugate
-  : public Object<typename MatrixType::Scalar, Conjugate<MatrixType> >
+template<typename NewScalar, typename MatrixType> class Cast
+  : public Object<NewScalar, Cast<NewScalar, MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef NewScalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Conjugate<MatrixType> >;
+    friend class Object<Scalar, Cast<Scalar, MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
+    Cast(const MatRef& matrix) : m_matrix(matrix) {}
     
-    Conjugate(const Conjugate& other)
+    Cast(const Cast& other)
       : m_matrix(other.m_matrix) {}
     
-   // assignments are illegal but we still want to intercept them and get clean compile errors
-   EI_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
+    // assignments are illegal but we still want to intercept them and get clean compile errors
+    EI_INHERIT_ASSIGNMENT_OPERATORS(Cast)
     
   private:
-    const Conjugate& _ref() const { return *this; }
+    const Cast& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
     Scalar _read(int row, int col) const
     {
-      return NumTraits<Scalar>::conj(m_matrix.read(row, col));
+      return static_cast<Scalar>(m_matrix.read(row, col));
     }
     
   protected:
@@ -60,10 +60,11 @@ template<typename MatrixType> class Conjugate
 };
 
 template<typename Scalar, typename Derived>
-Conjugate<Derived>
-Object<Scalar, Derived>::conjugate() const
+template<typename NewScalar>
+Cast<NewScalar, Derived>
+Object<Scalar, Derived>::cast() const
 {
-  return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
+  return Cast<NewScalar, Derived>(static_cast<const Derived*>(this)->ref());
 }
 
-#endif // EI_CONJUGATE_H
+#endif // EI_CAST_H

@@ -91,6 +91,8 @@ template<typename Scalar, typename Derived> class Object
       return *static_cast<Derived*>(this);
     }
     
+    template<typename NewScalar> Cast<NewScalar, Derived> cast() const;
+    
     Row<Derived> row(int i) const;
     Column<Derived> col(int i) const;
     Minor<Derived> minor(int row, int col) const;
@@ -102,7 +104,6 @@ template<typename Scalar, typename Derived> class Object
     
     template<typename OtherDerived>
     Scalar dot(const OtherDerived& other) const;
-    
     RealScalar norm2() const;
     RealScalar norm()  const;
     ScalarMultiple<Derived> normalized() const;

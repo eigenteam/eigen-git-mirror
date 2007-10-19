@@ -28,7 +28,7 @@
 
 template<typename _Scalar, int _Rows, int _Cols>
 class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
-                 public MatrixStorage<_Scalar, _Rows, _Cols>
+               public MatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
     friend class Object<_Scalar, Matrix>;

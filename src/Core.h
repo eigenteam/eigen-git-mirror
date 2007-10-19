@@ -11,6 +11,7 @@ namespace Eigen {
 #include "Core/MatrixRef.h"
 #include "Core/MatrixStorage.h"
 #include "Core/Matrix.h"
+#include "Core/Cast.h"
 #include "Core/Eval.h"
 #include "Core/ScalarMultiple.h"
 #include "Core/Sum.h"

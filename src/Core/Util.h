@@ -43,6 +43,7 @@ using Eigen::Matrix;
 //forward declarations
 template<typename _Scalar, int _Rows, int _Cols> class Matrix;
 template<typename MatrixType> class MatrixRef;
+template<typename NewScalar, typename MatrixType> class Cast;
 template<typename MatrixType> class Row;
 template<typename MatrixType> class Column;
 template<typename MatrixType> class Minor;
