@@ -1,4 +1,4 @@
-project(gen)
+project(Eigen)
 
 OPTION(BUILD_TESTS "Build tests"  OFF)
 OPTION(BUILD_EXAMPLES "Build examples"  OFF)
