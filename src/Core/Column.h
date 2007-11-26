@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_COLUMN_H
-#define EI_COLUMN_H
+#ifndef EIGEN_COLUMN_H
+#define EIGEN_COLUMN_H
 
 template<typename MatrixType> class Column
   : public Object<typename MatrixType::Scalar, Column<MatrixType> >
@@ -40,13 +40,13 @@ template<typename MatrixType> class Column
     Column(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)
     {
-      EI_CHECK_COL_RANGE(matrix, col);
+      EIGEN_CHECK_COL_RANGE(matrix, col);
     }
     
     Column(const Column& other)
       : m_matrix(other.m_matrix), m_col(other.m_col) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Column)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Column)
     
   private:
     const Column& _ref() const { return *this; }
@@ -55,15 +55,15 @@ template<typename MatrixType> class Column
     
     Scalar& _write(int row, int col=0)
     {
-      EI_UNUSED(col);
-      EI_CHECK_ROW_RANGE(*this, row);
+      EIGEN_UNUSED(col);
+      EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.write(row, m_col);
     }
     
     Scalar _read(int row, int col=0) const
     {
-      EI_UNUSED(col);
-      EI_CHECK_ROW_RANGE(*this, row);
+      EIGEN_UNUSED(col);
+      EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.read(row, m_col);
     }
     
@@ -79,4 +79,4 @@ Object<Scalar, Derived>::col(int i) const
   return Column<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
 }
 
-#endif // EI_COLUMN_H
+#endif // EIGEN_COLUMN_H

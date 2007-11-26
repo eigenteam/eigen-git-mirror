@@ -27,14 +27,26 @@
 
 template<typename MatrixType> void basicStuff(const MatrixType& m)
 {
+  /* this test covers the following files:
+     1) Explicitly (see comments below):
+     Random.h Zero.h Identity.h Fuzzy.h Sum.h Difference.h
+     Opposite.h Product.h ScalarMultiple.h FromArray.h
+     
+     2) Implicitly (the core stuff):
+     Object.h Matrix.h MatrixStorage.h CopyHelper.h MatrixRef.h
+     NumTraits.h Util.h
+  */
+
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   int rows = m.rows();
   int cols = m.cols();
   
+  // this test relies a lot on Random.h, and there's not much more that we can do
+  // to test it, hence I consider that we will have tested Random.h
   MatrixType m1 = MatrixType::random(rows, cols),
              m2 = MatrixType::random(rows, cols),
-             m3,
+             m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::identity(rows),
@@ -47,25 +59,31 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   Scalar s1 = NumTraits<Scalar>::random(),
          s2 = NumTraits<Scalar>::random();
   
+  // test Fuzzy.h and Zero.h.
   QVERIFY(v1.isApprox(v1));
   QVERIFY(!v1.isApprox(2*v1));
-
   QVERIFY(vzero.isMuchSmallerThan(v1));
   QVERIFY(vzero.isMuchSmallerThan(v1.norm()));
   QVERIFY(!v1.isMuchSmallerThan(v1));
+  QVERIFY(vzero.isApprox(v1-v1));
   QVERIFY(m1.isApprox(m1));
   QVERIFY(!m1.isApprox(2*m1));
   QVERIFY(mzero.isMuchSmallerThan(m1));
   QVERIFY(!m1.isMuchSmallerThan(m1));
-  
-  QVERIFY(vzero.isApprox(v1-v1));
   QVERIFY(mzero.isApprox(m1-m1));
   
+  // test the linear structure, i.e. the following files:
+  // Sum.h Difference.h Opposite.h ScalarMultiple.h
   QVERIFY((m1+m1).isApprox(2 * m1));
+  QVERIFY((m1+m2-m1).isApprox(m2));
+  QVERIFY((-m2+m1+m2).isApprox(m1));
   QVERIFY((m1 * s1).isApprox(s1 * m1));
   QVERIFY(((m1 + m2) * s1).isApprox(s1 * m1 + s1 * m2));
   QVERIFY(((s1 + s2) * m1).isApprox(m1 * s1 + m1 * s2));
-  
+  QVERIFY(((m1 - m2) * s1).isApprox(s1 * m1 - s1 * m2));
+  QVERIFY(((s1 - s2) * m1).isApprox(m1 * s1 - m1 * s2));
+  QVERIFY(((-m1 + m2) * s1).isApprox(-s1 * m1 + s1 * m2));
+  QVERIFY(((-s1 + s2) * m1).isApprox(-m1 * s1 + m1 * s2));
   m3 = m2;
   QVERIFY((m3 += m1).isApprox(m1 + m2));
   m3 = m2;
@@ -77,23 +95,37 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
      && s1 != static_cast<Scalar>(0))
     QVERIFY((m3 /= s1).isApprox(m2 / s1));
   
+  // begin testing Product.h: only associativity for now
+  // (we use Transpose.h but this doesn't count as a test for it)
   QVERIFY(((m1 * m1.transpose()) * m2).isApprox(m1 * (m1.transpose() * m2)));
   m3 = m1;
   m3 *= (m1.transpose() * m2);
   QVERIFY(m3.isApprox(m1 * (m1.transpose() * m2)));
   QVERIFY(m3.isApprox(m1.lazyProduct(m1.transpose() * m2)));
-
+  
+  // continue testing Product.h: distributivity
+  QVERIFY((square * (m1 + m2)).isApprox(square * m1 + square * m2));
+  QVERIFY((square * (m1 - m2)).isApprox(square * m1 - square * m2));
+  
+  // continue testing Product.h: compatibility with ScalarMultiple.h
+  QVERIFY((s1 * (square * m1)).isApprox((s1 * square) * m1));
+  QVERIFY((s1 * (square * m1)).isApprox(square * (m1 * s1)));
+  
+  // test Product.h together with Identity.h. This does test Identity.h.
   QVERIFY(m1.isApprox(identity * m1));
   QVERIFY(v1.isApprox(identity * v1));
   
-  QVERIFY((square * (m1 + m2)).isApprox(square * m1 + square * m2));
-  
+  // test FromArray.h
   Scalar* array1 = new Scalar[rows];
   Scalar* array2 = new Scalar[rows];
   Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
-  Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows) = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
-  bool b = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows).isApprox(Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows));
+  Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows)
+    = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
+  bool b = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows)
+             .isApprox(Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows));
   QVERIFY(b);
+  delete[] array1;
+  delete[] array2;
 }
 
 void EigenTest::testBasicStuff()

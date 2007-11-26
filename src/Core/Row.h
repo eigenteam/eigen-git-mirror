@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_ROW_H
-#define EI_ROW_H
+#ifndef EIGEN_ROW_H
+#define EIGEN_ROW_H
 
 template<typename MatrixType> class Row
   : public Object<typename MatrixType::Scalar, Row<MatrixType> >
@@ -40,7 +40,7 @@ template<typename MatrixType> class Row
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
-      EI_CHECK_ROW_RANGE(matrix, row);
+      EIGEN_CHECK_ROW_RANGE(matrix, row);
     }
     
     Row(const Row& other)
@@ -52,7 +52,7 @@ template<typename MatrixType> class Row
       return Object<Scalar, Row<MatrixType> >::operator=(other);
     }
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Row)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
   private:
     const Row& _ref() const { return *this; }
@@ -62,13 +62,13 @@ template<typename MatrixType> class Row
     
     Scalar& _write(int row, int col)
     {
-      EI_UNUSED(row);
+      EIGEN_UNUSED(row);
       return m_matrix.write(m_row, col);
     }
     
     Scalar _read(int row, int col) const
     {
-      EI_UNUSED(row);
+      EIGEN_UNUSED(row);
       return m_matrix.read(m_row, col);
     }
     
@@ -84,4 +84,4 @@ Object<Scalar, Derived>::row(int i) const
   return Row<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
 }
 
-#endif // EI_ROW_H
+#endif // EIGEN_ROW_H

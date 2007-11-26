@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_MATRIXREF_H
-#define EI_MATRIXREF_H
+#ifndef EIGEN_MATRIXREF_H
+#define EIGEN_MATRIXREF_H
 
 template<typename MatrixType> class MatrixRef
  : public Object<typename MatrixType::Scalar, MatrixRef<MatrixType> >
@@ -37,7 +37,7 @@ template<typename MatrixType> class MatrixRef
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}
 
-    EI_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
   private:
     int _rows() const { return m_matrix.rows(); }
@@ -57,4 +57,4 @@ template<typename MatrixType> class MatrixRef
     MatrixType& m_matrix;
 };
 
-#endif // EI_MATRIXREF_H
+#endif // EIGEN_MATRIXREF_H

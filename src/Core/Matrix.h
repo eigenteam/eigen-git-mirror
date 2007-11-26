@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_MATRIX_H
-#define EI_MATRIX_H
+#ifndef EIGEN_MATRIX_H
+#define EIGEN_MATRIX_H
 
 template<typename _Scalar, int _Rows, int _Cols>
 class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
@@ -51,13 +51,13 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     const Scalar& _read(int row, int col) const
     {
-      EI_CHECK_RANGES(*this, row, col);
+      EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
     Scalar& _write(int row, int col)
     {
-      EI_CHECK_RANGES(*this, row, col);
+      EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
@@ -75,14 +75,16 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
       return Base::operator=(other);
     }
     
-    EI_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
-    EI_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
-    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
-    EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
+    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
+    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
     
-    explicit Matrix(int rows = 1, int cols = 1) : Storage(rows, cols) {}
+    explicit Matrix(int rows = RowsAtCompileTime,
+                    int cols = ColsAtCompileTime) : Storage(rows, cols) {}
     template<typename OtherDerived>
-    Matrix(const Object<Scalar, OtherDerived>& other) : Storage(other.rows(), other.cols())
+    Matrix(const Object<Scalar, OtherDerived>& other)
+             : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
@@ -93,42 +95,42 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     ~Matrix() {}
 };
 
-#define EI_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
+#define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
 typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix; \
 typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix; \
 typedef Matrix<Type, 1, Size>    RowVector##SizeSuffix##TypeSuffix;
 
-#define EI_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
-EI_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
-EI_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
-EI_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
-EI_MAKE_TYPEDEFS(Type, TypeSuffix, Dynamic, X)
+#define EIGEN_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, 4, 4) \
+EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Dynamic, X)
 
-EI_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
-EI_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
-EI_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
-EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
-EI_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(int,                  i)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(float,                f)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<float>,  cf)
+EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
-#undef EI_MAKE_TYPEDEFS_ALL_SIZES
-#undef EI_MAKE_TYPEDEFS
+#undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
+#undef EIGEN_MAKE_TYPEDEFS
 
-#define EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
+#define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
 using Eigen::Matrix##SizeSuffix##TypeSuffix; \
 using Eigen::Vector##SizeSuffix##TypeSuffix; \
 using Eigen::RowVector##SizeSuffix##TypeSuffix;
 
-#define EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(TypeSuffix) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 2) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 3) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 4) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, X)
+#define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(TypeSuffix) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 2) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 3) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 4) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, X)
 
-#define EI_USING_MATRIX_TYPEDEFS \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(i) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(f) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(d) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(cf) \
-EI_USING_MATRIX_TYPEDEFS_FOR_TYPE(cd)
+#define EIGEN_USING_MATRIX_TYPEDEFS \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(i) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(f) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(d) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(cf) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(cd)
 
-#endif // EI_MATRIX_H
+#endif // EIGEN_MATRIX_H

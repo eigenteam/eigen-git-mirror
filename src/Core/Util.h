@@ -23,21 +23,21 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_UTIL_H
-#define EI_UTIL_H
+#ifndef EIGEN_UTIL_H
+#define EIGEN_UTIL_H
 
 #undef minor
 
 #define USING_EIGEN_DATA_TYPES \
-EI_USING_MATRIX_TYPEDEFS \
+EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix;
 
-#define EI_UNUSED(x) (void)x
-#define EI_CHECK_RANGES(matrix, row, col) \
+#define EIGEN_UNUSED(x) (void)x
+#define EIGEN_CHECK_RANGES(matrix, row, col) \
   assert(row >= 0 && row < (matrix).rows() && col >= 0 && col < (matrix).cols())
-#define EI_CHECK_ROW_RANGE(matrix, row) \
+#define EIGEN_CHECK_ROW_RANGE(matrix, row) \
   assert(row >= 0 && row < (matrix).rows())
-#define EI_CHECK_COL_RANGE(matrix, col) \
+#define EIGEN_CHECK_COL_RANGE(matrix, col) \
   assert(col >= 0 && col < (matrix).cols())
 
 //forward declarations
@@ -74,19 +74,19 @@ struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 
 const int Dynamic = -1;
 
-#define EI_LOOP_UNROLLING_LIMIT 25
+#define EIGEN_LOOP_UNROLLING_LIMIT 25
 
-#define EI_UNUSED(x) (void)x
+#define EIGEN_UNUSED(x) (void)x
 
 #ifdef __GNUC__
-# define EI_ALWAYS_INLINE __attribute__((always_inline))
-# define EI_RESTRICT      /*__restrict__*/
+# define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
+# define EIGEN_RESTRICT      /*__restrict__*/
 #else
-# define EI_ALWAYS_INLINE
-# define EI_RESTRICT
+# define EIGEN_ALWAYS_INLINE
+# define EIGEN_RESTRICT
 #endif
 
-#define EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
 Derived& operator Op(const Object<OtherScalar, OtherDerived>& other) \
 { \
@@ -97,18 +97,18 @@ Derived& operator Op(const Derived& other) \
   return Object<Scalar, Derived>::operator Op(other); \
 }
 
-#define EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
   return Object<Scalar, Derived>::operator Op(scalar); \
 }
 
-#define EI_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EI_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EI_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#endif // EI_UTIL_H
+#endif // EIGEN_UTIL_H

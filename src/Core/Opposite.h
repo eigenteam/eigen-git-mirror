@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_OPPOSITE_H
-#define EI_OPPOSITE_H
+#ifndef EIGEN_OPPOSITE_H
+#define EIGEN_OPPOSITE_H
 
 template<typename MatrixType> class Opposite
   : public Object<typename MatrixType::Scalar, Opposite<MatrixType> >
@@ -43,7 +43,7 @@ template<typename MatrixType> class Opposite
       : m_matrix(other.m_matrix) {}
     
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Opposite)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Opposite)
     
   private:
     const Opposite& _ref() const { return *this; }
@@ -66,4 +66,4 @@ Object<Scalar, Derived>::operator-() const
   return Opposite<Derived>(static_cast<const Derived*>(this)->ref());
 }
 
-#endif // EI_OPPOSITE_H
+#endif // EIGEN_OPPOSITE_H

@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_BLOCK_H
-#define EI_BLOCK_H
+#ifndef EIGEN_BLOCK_H
+#define EIGEN_BLOCK_H
 
 template<typename MatrixType> class Block
   : public Object<typename MatrixType::Scalar, Block<MatrixType> >
@@ -51,7 +51,7 @@ template<typename MatrixType> class Block
       : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
                                   m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Block)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:
     const Block& _ref() const { return *this; }
@@ -81,4 +81,4 @@ Object<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCo
                         startRow, endRow, startCol, endCol);
 }
 
-#endif // EI_BLOCK_H
+#endif // EIGEN_BLOCK_H

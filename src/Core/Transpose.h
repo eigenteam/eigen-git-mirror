@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_TRANSPOSE_H
-#define EI_TRANSPOSE_H
+#ifndef EIGEN_TRANSPOSE_H
+#define EIGEN_TRANSPOSE_H
 
 template<typename MatrixType> class Transpose
   : public Object<typename MatrixType::Scalar, Transpose<MatrixType> >
@@ -42,7 +42,7 @@ template<typename MatrixType> class Transpose
     Transpose(const Transpose& other)
       : m_matrix(other.m_matrix) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
     const Transpose& _ref() const { return *this; }
@@ -70,4 +70,4 @@ Object<Scalar, Derived>::transpose() const
   return Transpose<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref());
 }
 
-#endif // EI_TRANSPOSE_H
+#endif // EIGEN_TRANSPOSE_H

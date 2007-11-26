@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_SCALARMULTIPLE_H
-#define EI_SCALARMULTIPLE_H
+#ifndef EIGEN_SCALARMULTIPLE_H
+#define EIGEN_SCALARMULTIPLE_H
 
 template<typename MatrixType> class ScalarMultiple
   : public Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
@@ -44,7 +44,7 @@ template<typename MatrixType> class ScalarMultiple
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
 
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(ScalarMultiple)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ScalarMultiple)
 
   private:
     const ScalarMultiple& _ref() const { return *this; }
@@ -61,7 +61,7 @@ template<typename MatrixType> class ScalarMultiple
     const Scalar m_scalar;
 };
 
-#define EI_MAKE_SCALAR_OPS(OtherScalar)                                \
+#define EIGEN_MAKE_SCALAR_OPS(OtherScalar)                                \
 template<typename Scalar, typename Derived>                            \
 ScalarMultiple<Derived>                                               \
 operator*(const Object<Scalar, Derived>& matrix,                     \
@@ -101,12 +101,12 @@ Object<Scalar, Derived>::operator/=(const OtherScalar &other)        \
   return *this = *this / other;                                        \
 }
 
-EI_MAKE_SCALAR_OPS(int)
-EI_MAKE_SCALAR_OPS(float)
-EI_MAKE_SCALAR_OPS(double)
-EI_MAKE_SCALAR_OPS(std::complex<float>)
-EI_MAKE_SCALAR_OPS(std::complex<double>)
+EIGEN_MAKE_SCALAR_OPS(int)
+EIGEN_MAKE_SCALAR_OPS(float)
+EIGEN_MAKE_SCALAR_OPS(double)
+EIGEN_MAKE_SCALAR_OPS(std::complex<float>)
+EIGEN_MAKE_SCALAR_OPS(std::complex<double>)
 
-#undef EI_MAKE_SCALAR_OPS
+#undef EIGEN_MAKE_SCALAR_OPS
 
-#endif // EI_SCALARMULTIPLE_H
+#endif // EIGEN_SCALARMULTIPLE_H

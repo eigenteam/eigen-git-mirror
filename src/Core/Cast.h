@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_CAST_H
-#define EI_CAST_H
+#ifndef EIGEN_CAST_H
+#define EIGEN_CAST_H
 
 template<typename NewScalar, typename MatrixType> class Cast
   : public Object<NewScalar, Cast<NewScalar, MatrixType> >
@@ -43,7 +43,7 @@ template<typename NewScalar, typename MatrixType> class Cast
       : m_matrix(other.m_matrix) {}
     
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Cast)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Cast)
     
   private:
     const Cast& _ref() const { return *this; }
@@ -67,4 +67,4 @@ Object<Scalar, Derived>::cast() const
   return Cast<NewScalar, Derived>(static_cast<const Derived*>(this)->ref());
 }
 
-#endif // EI_CAST_H
+#endif // EIGEN_CAST_H

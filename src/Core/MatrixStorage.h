@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_MATRIXSTORAGE_H
-#define EI_MATRIXSTORAGE_H
+#ifndef EIGEN_MATRIXSTORAGE_H
+#define EIGEN_MATRIXSTORAGE_H
 
 template<typename Scalar,
          int      RowsAtCompileTime,
@@ -46,9 +46,10 @@ class MatrixStorage
   public:
     MatrixStorage(int rows, int cols)
     {
-      EI_UNUSED(rows);
-      EI_UNUSED(cols);
-      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+      EIGEN_UNUSED(rows);
+      EIGEN_UNUSED(cols);
+      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0
+          && rows == RowsAtCompileTime && cols == ColsAtCompileTime);
     }
     
     ~MatrixStorage() {};
@@ -81,7 +82,7 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
   public:
     MatrixStorage(int rows, int cols) : m_rows(rows)
     {
-      assert(m_rows > 0 && cols == ColsAtCompileTime);
+      assert(m_rows > 0 && cols == ColsAtCompileTime && ColsAtCompileTime > 0);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
     
@@ -116,7 +117,7 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
   public:
     MatrixStorage(int rows, int cols) : m_cols(cols)
     {
-      assert(rows == RowsAtCompileTime && cols > 0);
+      assert(rows == RowsAtCompileTime && RowsAtCompileTime > 0 && cols > 0);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
@@ -160,4 +161,4 @@ class MatrixStorage<Scalar, Dynamic, Dynamic>
     { delete[] m_array; }
 };
 
-#endif // EI_MATRIXSTORAGE_H
+#endif // EIGEN_MATRIXSTORAGE_H

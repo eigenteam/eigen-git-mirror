@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_OBJECT_H
-#define EI_OBJECT_H
+#ifndef EIGEN_OBJECT_H
+#define EIGEN_OBJECT_H
 
 template<typename Scalar, typename Derived> class Object
 {
@@ -134,7 +134,7 @@ template<typename Scalar, typename Derived> class Object
     
     template<typename OtherDerived>
     Product<Derived, OtherDerived>
-    lazyProduct(const Object<Scalar, OtherDerived>& other) const EI_ALWAYS_INLINE;
+    lazyProduct(const Object<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
     
     Opposite<Derived> operator-() const;
     
@@ -177,7 +177,7 @@ template<typename Scalar, typename Derived> class Object
       else return write(index, 0);
     }
     
-    Eval<Derived> eval() const EI_ALWAYS_INLINE;
+    Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };
 
 template<typename Scalar, typename Derived>
@@ -196,4 +196,4 @@ std::ostream & operator <<
   return s;
 }
 
-#endif // EI_OBJECT_H
+#endif // EIGEN_OBJECT_H

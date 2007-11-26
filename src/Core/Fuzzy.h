@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_FUZZY_H
-#define EI_FUZZY_H
+#ifndef EIGEN_FUZZY_H
+#define EIGEN_FUZZY_H
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
@@ -88,4 +88,4 @@ bool Object<Scalar, Derived>::isMuchSmallerThan(
   }
 }
 
-#endif // EI_FUZZY_H
+#endif // EIGEN_FUZZY_H

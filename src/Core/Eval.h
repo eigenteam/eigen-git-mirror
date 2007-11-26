@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_EVAL_H
-#define EI_EVAL_H
+#ifndef EIGEN_EVAL_H
+#define EIGEN_EVAL_H
 
 template<typename Expression> class Eval
   : public Matrix< typename Expression::Scalar,
@@ -37,7 +37,7 @@ template<typename Expression> class Eval
     typedef Expression Base;
     friend class Object<Scalar, Expression>;
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Eval)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Eval)
     
     Eval(const Expression& expression) : MatrixType(expression) {}
 };
@@ -48,4 +48,4 @@ Eval<Derived> Object<Scalar, Derived>::eval() const
   return Eval<Derived>(*static_cast<const Derived*>(this));
 }
 
-#endif // EI_EVAL_H
+#endif // EIGEN_EVAL_H

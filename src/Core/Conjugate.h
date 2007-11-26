@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_CONJUGATE_H
-#define EI_CONJUGATE_H
+#ifndef EIGEN_CONJUGATE_H
+#define EIGEN_CONJUGATE_H
 
 template<typename MatrixType> class Conjugate
   : public Object<typename MatrixType::Scalar, Conjugate<MatrixType> >
@@ -43,7 +43,7 @@ template<typename MatrixType> class Conjugate
       : m_matrix(other.m_matrix) {}
     
    // assignments are illegal but we still want to intercept them and get clean compile errors
-   EI_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
+   EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
     
   private:
     const Conjugate& _ref() const { return *this; }
@@ -66,4 +66,4 @@ Object<Scalar, Derived>::conjugate() const
   return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
 }
 
-#endif // EI_CONJUGATE_H
+#endif // EIGEN_CONJUGATE_H

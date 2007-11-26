@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_ZERO_H
-#define EI_ZERO_H
+#ifndef EIGEN_ZERO_H
+#define EIGEN_ZERO_H
 
 template<typename MatrixType> class Zero
   : public Object<typename MatrixType::Scalar, Zero<MatrixType> >
@@ -42,7 +42,7 @@ template<typename MatrixType> class Zero
     }
     
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Zero)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Zero)
     
   private:
     const Zero& _ref() const { return *this; }
@@ -51,8 +51,8 @@ template<typename MatrixType> class Zero
     
     Scalar _read(int row, int col) const
     {
-      EI_UNUSED(row);
-      EI_UNUSED(col);
+      EIGEN_UNUSED(row);
+      EIGEN_UNUSED(col);
       return static_cast<Scalar>(0);
     }
     
@@ -66,4 +66,4 @@ Zero<Derived> Object<Scalar, Derived>::zero(int rows, int cols)
   return Zero<Derived>(rows, cols);
 }
 
-#endif // EI_ZERO_H
+#endif // EIGEN_ZERO_H

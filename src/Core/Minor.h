@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_MINOR_H
-#define EI_MINOR_H
+#ifndef EIGEN_MINOR_H
+#define EIGEN_MINOR_H
 
 template<typename MatrixType> class Minor
   : public Object<typename MatrixType::Scalar, Minor<MatrixType> >
@@ -44,13 +44,13 @@ template<typename MatrixType> class Minor
                 int row, int col = 0)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
-      EI_CHECK_RANGES(matrix, row, col);
+      EIGEN_CHECK_RANGES(matrix, row, col);
     }
     
     Minor(const Minor& other)
       : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Minor)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:
     Minor& _ref() { return *this; }
@@ -80,4 +80,4 @@ Object<Scalar, Derived>::minor(int row, int col) const
   return Minor<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), row, col);
 }
 
-#endif // EI_MINOR_H
+#endif // EIGEN_MINOR_H

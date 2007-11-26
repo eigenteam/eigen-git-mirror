@@ -24,8 +24,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_COPYHELPER_H
-#define EI_COPYHELPER_H
+#ifndef EIGEN_COPYHELPER_H
+#define EIGEN_COPYHELPER_H
 
 template<int UnrollCount, int Rows> struct CopyHelperUnroller
 {
@@ -54,8 +54,8 @@ template<int Rows> struct CopyHelperUnroller<Dynamic, Rows>
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    EI_UNUSED(dst);
-    EI_UNUSED(src);
+    EIGEN_UNUSED(dst);
+    EIGEN_UNUSED(src);
   }
 };
 
@@ -63,7 +63,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 void Object<Scalar, Derived>::_copy_helper(const Object<Scalar, OtherDerived>& other)
 {
-  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= EI_LOOP_UNROLLING_LIMIT)
+  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= EIGEN_LOOP_UNROLLING_LIMIT)
     CopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
   else
     for(int i = 0; i < rows(); i++)
@@ -71,4 +71,4 @@ void Object<Scalar, Derived>::_copy_helper(const Object<Scalar, OtherDerived>& o
         write(i, j) = other.read(i, j);
 }
 
-#endif // EI_COPYHELPER_H
+#endif // EIGEN_COPYHELPER_H

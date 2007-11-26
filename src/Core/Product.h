@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_PRODUCT_H
-#define EI_PRODUCT_H
+#ifndef EIGEN_PRODUCT_H
+#define EIGEN_PRODUCT_H
 
 template<int Index, int Size, typename Lhs, typename Rhs>
 struct ProductUnroller
@@ -53,11 +53,11 @@ struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
-    EI_UNUSED(row);
-    EI_UNUSED(col);
-    EI_UNUSED(lhs);
-    EI_UNUSED(rhs);
-    EI_UNUSED(res);
+    EIGEN_UNUSED(row);
+    EIGEN_UNUSED(col);
+    EIGEN_UNUSED(lhs);
+    EIGEN_UNUSED(rhs);
+    EIGEN_UNUSED(res);
   }
 };
 
@@ -83,7 +83,7 @@ template<typename Lhs, typename Rhs> class Product
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Product)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Product)
     
   private:
     const Product& _ref() const { return *this; }
@@ -133,4 +133,4 @@ Object<Scalar, Derived>::operator*=(const Object<Scalar, OtherDerived> &other)
   return *this = *this * other;
 }
 
-#endif // EI_PRODUCT_H
+#endif // EIGEN_PRODUCT_H

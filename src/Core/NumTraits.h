@@ -1,4 +1,3 @@
-
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
@@ -24,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_NUMERIC_H
-#define EI_NUMERIC_H
+#ifndef EIGEN_NUMERIC_H
+#define EIGEN_NUMERIC_H
 
 template<typename T> struct NumTraits;
 
@@ -40,7 +39,7 @@ template<> struct NumTraits<int>
   
   static int precision() { return 0; }
   static int real(const int& x) { return x; }
-  static int imag(const int& x) { EI_UNUSED(x); return 0; }
+  static int imag(const int& x) { EIGEN_UNUSED(x); return 0; }
   static int conj(const int& x) { return x; }
   static int abs2(const int& x) { return x*x; }
   static int random()
@@ -52,18 +51,18 @@ template<> struct NumTraits<int>
   }
   static bool isMuchSmallerThan(const int& a, const int& b, const int& prec = precision())
   {
-    EI_UNUSED(b);
-    EI_UNUSED(prec);
+    EIGEN_UNUSED(b);
+    EIGEN_UNUSED(prec);
     return a == 0;
   }
   static bool isApprox(const int& a, const int& b, const int& prec = precision())
   {
-    EI_UNUSED(prec);
+    EIGEN_UNUSED(prec);
     return a == b;
   }
   static bool isApproxOrLessThan(const int& a, const int& b, const int& prec = precision())
   {
-    EI_UNUSED(prec);
+    EIGEN_UNUSED(prec);
     return a <= b;
   }
 };
@@ -79,7 +78,7 @@ template<> struct NumTraits<float>
   
   static float precision() { return 1e-5f; }
   static float real(const float& x) { return x; }
-  static float imag(const float& x) { EI_UNUSED(x); return 0; }
+  static float imag(const float& x) { EIGEN_UNUSED(x); return 0; }
   static float conj(const float& x) { return x; }
   static float abs2(const float& x) { return x*x; }
   static float random()
@@ -111,7 +110,7 @@ template<> struct NumTraits<double>
   
   static double precision() { return 1e-11; }
   static double real(const double& x) { return x; }
-  static double imag(const double& x) { EI_UNUSED(x); return 0; }
+  static double imag(const double& x) { EIGEN_UNUSED(x); return 0; }
   static double conj(const double& x) { return x; }
   static double abs2(const double& x) { return x*x; }
   static double random()
@@ -164,4 +163,4 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   // isApproxOrLessThan wouldn't make sense for complex numbers
 };
 
-#endif // EI_NUMERIC_H
+#endif // EIGEN_NUMERIC_H

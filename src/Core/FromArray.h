@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_FROMARRAY_H
-#define EI_FROMARRAY_H
+#ifndef EIGEN_FROMARRAY_H
+#define EIGEN_FROMARRAY_H
 
 template<typename MatrixType> class FromArray
   : public Object<typename MatrixType::Scalar, FromArray<MatrixType> >
@@ -41,7 +41,7 @@ template<typename MatrixType> class FromArray
       assert(rows > 0 && cols > 0);
     }
     
-    EI_INHERIT_ASSIGNMENT_OPERATORS(FromArray)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(FromArray)
     
   private:
     FromArray& _ref() { return *this; }
@@ -70,4 +70,4 @@ FromArray<Derived> Object<Scalar, Derived>::fromArray(const Scalar* array, int r
   return FromArray<Derived>(rows, cols, const_cast<Scalar*>(array));
 }
 
-#endif // EI_FROMARRAY_H
+#endif // EIGEN_FROMARRAY_H

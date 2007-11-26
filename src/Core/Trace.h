@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_TRACE_H
-#define EI_TRACE_H
+#ifndef EIGEN_TRACE_H
+#define EIGEN_TRACE_H
 
 template<int Index, int Rows, typename Derived> struct TraceUnroller
 {
@@ -47,8 +47,8 @@ template<int Index, typename Derived> struct TraceUnroller<Index, Dynamic, Deriv
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    EI_UNUSED(mat);
-    EI_UNUSED(trace);
+    EIGEN_UNUSED(mat);
+    EIGEN_UNUSED(trace);
   }
 };
 
@@ -69,4 +69,4 @@ Scalar Object<Scalar, Derived>::trace() const
   return res;
 }
 
-#endif // EI_TRACE_H
+#endif // EIGEN_TRACE_H

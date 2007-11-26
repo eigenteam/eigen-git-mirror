@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_IDENTITY_H
-#define EI_IDENTITY_H
+#ifndef EIGEN_IDENTITY_H
+#define EIGEN_IDENTITY_H
 
 template<typename MatrixType> class Identity
   : public Object<typename MatrixType::Scalar, Identity<MatrixType> >
@@ -43,7 +43,7 @@ template<typename MatrixType> class Identity
     }
     
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Identity)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Identity)
     
   private:
     Identity& _ref() { return *this; }
@@ -66,4 +66,4 @@ Identity<Derived> Object<Scalar, Derived>::identity(int rows)
   return Identity<Derived>(rows);
 }
 
-#endif // EI_IDENTITY_H
+#endif // EIGEN_IDENTITY_H

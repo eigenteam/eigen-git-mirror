@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_DOT_H
-#define EI_DOT_H
+#ifndef EIGEN_DOT_H
+#define EIGEN_DOT_H
 
 template<int Index, int Size, typename Derived1, typename Derived2>
 struct DotUnroller
@@ -50,9 +50,9 @@ struct DotUnroller<Index, Dynamic, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    EI_UNUSED(v1);
-    EI_UNUSED(v2);
-    EI_UNUSED(dot);
+    EIGEN_UNUSED(v1);
+    EIGEN_UNUSED(v2);
+    EIGEN_UNUSED(dot);
   }
 };
 
@@ -92,4 +92,4 @@ ScalarMultiple<Derived> Object<Scalar, Derived>::normalized() const
   return (*this) / norm();
 }
 
-#endif // EI_DOT_H
+#endif // EIGEN_DOT_H

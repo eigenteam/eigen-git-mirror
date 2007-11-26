@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EI_RANDOM_H
-#define EI_RANDOM_H
+#ifndef EIGEN_RANDOM_H
+#define EIGEN_RANDOM_H
 
 template<typename MatrixType> class Random
   : public Object<typename MatrixType::Scalar, Random<MatrixType> >
@@ -42,7 +42,7 @@ template<typename MatrixType> class Random
     }
    
     // assignments are illegal but we still want to intercept them and get clean compile errors
-    EI_INHERIT_ASSIGNMENT_OPERATORS(Random)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Random)
     
   private:
     const Random& _ref() const { return *this; }
@@ -51,8 +51,8 @@ template<typename MatrixType> class Random
     
     Scalar _read(int row, int col) const
     {
-      EI_UNUSED(row);
-      EI_UNUSED(col);
+      EIGEN_UNUSED(row);
+      EIGEN_UNUSED(col);
       return NumTraits<Scalar>::random();
     }
     
@@ -66,4 +66,4 @@ Eval<Random<Derived> > Object<Scalar, Derived>::random(int rows, int cols)
   return Random<Derived>(rows, cols).eval();
 }
 
-#endif // EI_RANDOM_H
+#endif // EIGEN_RANDOM_H
