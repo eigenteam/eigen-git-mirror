@@ -88,7 +88,7 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
   public:
     MatrixStorage(int dim) : m_rows(dim)
     {
-      assert(m_rows > 0 && ColsAtCompileTime > 0);
+      assert(m_rows > 0 && ColsAtCompileTime == 1);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
   
@@ -132,7 +132,7 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
   public:
     MatrixStorage(int dim) : m_cols(dim)
     {
-      assert(m_cols > 0 && RowsAtCompileTime > 0);
+      assert(m_cols > 0 && RowsAtCompileTime == 1);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
