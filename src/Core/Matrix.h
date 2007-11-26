@@ -80,8 +80,9 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
     
-    explicit Matrix(int rows = RowsAtCompileTime,
-                    int cols = ColsAtCompileTime) : Storage(rows, cols) {}
+    explicit Matrix() : Storage() {}
+    explicit Matrix(int dim) : Storage(dim) {}
+    explicit Matrix(int rows, int cols) : Storage(rows, cols) {}
     template<typename OtherDerived>
     Matrix(const Object<Scalar, OtherDerived>& other)
              : Storage(other.rows(), other.cols())

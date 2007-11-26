@@ -44,10 +44,16 @@ class MatrixStorage
     { return ColsAtCompileTime; }
 
   public:
+    MatrixStorage() {}
+    
+    MatrixStorage(int dim)
+    {
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == dim)
+          || (ColsAtCompileTime == 1 && RowsAtCompileTime == dim));
+    }
+    
     MatrixStorage(int rows, int cols)
     {
-      EIGEN_UNUSED(rows);
-      EIGEN_UNUSED(cols);
       assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0
           && rows == RowsAtCompileTime && cols == ColsAtCompileTime);
     }
@@ -80,6 +86,12 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
     { return ColsAtCompileTime; }
     
   public:
+    MatrixStorage(int dim) : m_rows(dim)
+    {
+      assert(m_rows > 0 && ColsAtCompileTime > 0);
+      m_array = new Scalar[m_rows * ColsAtCompileTime];
+    }
+  
     MatrixStorage(int rows, int cols) : m_rows(rows)
     {
       assert(m_rows > 0 && cols == ColsAtCompileTime && ColsAtCompileTime > 0);
@@ -88,6 +100,9 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
     
     ~MatrixStorage()
     { delete[] m_array; }
+    
+  private:
+    MatrixStorage();
 };
 
 template<typename Scalar, int RowsAtCompileTime>
@@ -115,6 +130,12 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
     { return m_cols; }
     
   public:
+    MatrixStorage(int dim) : m_cols(dim)
+    {
+      assert(m_cols > 0 && RowsAtCompileTime > 0);
+      m_array = new Scalar[m_cols * RowsAtCompileTime];
+    }
+    
     MatrixStorage(int rows, int cols) : m_cols(cols)
     {
       assert(rows == RowsAtCompileTime && RowsAtCompileTime > 0 && cols > 0);
@@ -123,6 +144,9 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
     
     ~MatrixStorage()
     { delete[] m_array; }
+    
+  private:
+    MatrixStorage();
 };
 
 template<typename Scalar>
@@ -159,6 +183,10 @@ class MatrixStorage<Scalar, Dynamic, Dynamic>
     
     ~MatrixStorage()
     { delete[] m_array; }
+    
+  private:
+    MatrixStorage();
+    MatrixStorage(int dim);
 };
 
 #endif // EIGEN_MATRIXSTORAGE_H
