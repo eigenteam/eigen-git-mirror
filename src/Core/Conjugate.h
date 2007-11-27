@@ -27,12 +27,12 @@
 #define EIGEN_CONJUGATE_H
 
 template<typename MatrixType> class Conjugate
-  : public Object<typename MatrixType::Scalar, Conjugate<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Conjugate<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Conjugate<MatrixType> >;
+    friend class MatrixBase<Scalar, Conjugate<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -61,7 +61,7 @@ template<typename MatrixType> class Conjugate
 
 template<typename Scalar, typename Derived>
 Conjugate<Derived>
-Object<Scalar, Derived>::conjugate() const
+MatrixBase<Scalar, Derived>::conjugate() const
 {
   return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
 }

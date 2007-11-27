@@ -5,14 +5,14 @@ USING_EIGEN_DATA_TYPES
 using namespace std;
 
 template<typename Scalar, typename Derived>
-void foo(const Eigen::Object<Scalar, Derived>& m)
+void foo(const Eigen::MatrixBase<Scalar, Derived>& m)
 {
   cout << "Here's m:" << endl << m << endl;
 }
 
 template<typename Scalar, typename Derived>
 Eigen::ScalarMultiple<Derived>
-twice(const Eigen::Object<Scalar, Derived>& m)
+twice(const Eigen::MatrixBase<Scalar, Derived>& m)
 {
   return 2 * m;
 }

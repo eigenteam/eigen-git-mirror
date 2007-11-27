@@ -27,11 +27,11 @@
 #define EIGEN_MATRIXREF_H
 
 template<typename MatrixType> class MatrixRef
- : public Object<typename MatrixType::Scalar, MatrixRef<MatrixType> >
+ : public MatrixBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, MatrixRef>;
+    friend class MatrixBase<Scalar, MatrixRef>;
     
     MatrixRef(const MatrixType& matrix) : m_matrix(*const_cast<MatrixType*>(&matrix)) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}

@@ -27,11 +27,11 @@
 #define EIGEN_ZERO_H
 
 template<typename MatrixType> class Zero
-  : public Object<typename MatrixType::Scalar, Zero<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, Zero<MatrixType> >;
+    friend class MatrixBase<Scalar, Zero<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -61,7 +61,7 @@ template<typename MatrixType> class Zero
 };
 
 template<typename Scalar, typename Derived>
-Zero<Derived> Object<Scalar, Derived>::zero(int rows, int cols)
+Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
 {
   return Zero<Derived>(rows, cols);
 }

@@ -88,20 +88,20 @@ const int Dynamic = -1;
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherScalar, typename OtherDerived> \
-Derived& operator Op(const Object<OtherScalar, OtherDerived>& other) \
+Derived& operator Op(const MatrixBase<OtherScalar, OtherDerived>& other) \
 { \
-  return Object<Scalar, Derived>::operator Op(other); \
+  return MatrixBase<Scalar, Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return Object<Scalar, Derived>::operator Op(other); \
+  return MatrixBase<Scalar, Derived>::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return Object<Scalar, Derived>::operator Op(scalar); \
+  return MatrixBase<Scalar, Derived>::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

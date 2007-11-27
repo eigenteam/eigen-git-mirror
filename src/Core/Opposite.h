@@ -27,12 +27,12 @@
 #define EIGEN_OPPOSITE_H
 
 template<typename MatrixType> class Opposite
-  : public Object<typename MatrixType::Scalar, Opposite<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Opposite<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Opposite<MatrixType> >;
+    friend class MatrixBase<Scalar, Opposite<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -61,7 +61,7 @@ template<typename MatrixType> class Opposite
 
 template<typename Scalar, typename Derived>
 Opposite<Derived>
-Object<Scalar, Derived>::operator-() const
+MatrixBase<Scalar, Derived>::operator-() const
 {
   return Opposite<Derived>(static_cast<const Derived*>(this)->ref());
 }

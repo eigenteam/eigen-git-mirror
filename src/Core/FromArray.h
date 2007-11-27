@@ -27,11 +27,11 @@
 #define EIGEN_FROMARRAY_H
 
 template<typename MatrixType> class FromArray
-  : public Object<typename MatrixType::Scalar, FromArray<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, FromArray<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, FromArray<MatrixType> >;
+    friend class MatrixBase<Scalar, FromArray<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -65,7 +65,7 @@ template<typename MatrixType> class FromArray
 };
 
 template<typename Scalar, typename Derived>
-FromArray<Derived> Object<Scalar, Derived>::fromArray(const Scalar* array, int rows, int cols)
+FromArray<Derived> MatrixBase<Scalar, Derived>::fromArray(const Scalar* array, int rows, int cols)
 {
   return FromArray<Derived>(rows, cols, const_cast<Scalar*>(array));
 }

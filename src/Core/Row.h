@@ -27,12 +27,12 @@
 #define EIGEN_ROW_H
 
 template<typename MatrixType> class Row
-  : public Object<typename MatrixType::Scalar, Row<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Row<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Row<MatrixType> >;
+    friend class MatrixBase<Scalar, Row<MatrixType> >;
 
     static const int RowsAtCompileTime = 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -47,9 +47,9 @@ template<typename MatrixType> class Row
       : m_matrix(other.m_matrix), m_row(other.m_row) {}
     
     template<typename OtherDerived>
-    Row& operator=(const Object<Scalar, OtherDerived>& other)
+    Row& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
-      return Object<Scalar, Row<MatrixType> >::operator=(other);
+      return MatrixBase<Scalar, Row<MatrixType> >::operator=(other);
     }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
@@ -79,9 +79,9 @@ template<typename MatrixType> class Row
 
 template<typename Scalar, typename Derived>
 Row<Derived>
-Object<Scalar, Derived>::row(int i) const
+MatrixBase<Scalar, Derived>::row(int i) const
 {
-  return Row<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
+  return Row<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), i);
 }
 
 #endif // EIGEN_ROW_H

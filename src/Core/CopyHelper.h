@@ -61,7 +61,7 @@ template<int Rows> struct CopyHelperUnroller<Dynamic, Rows>
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-void Object<Scalar, Derived>::_copy_helper(const Object<Scalar, OtherDerived>& other)
+void MatrixBase<Scalar, Derived>::_copy_helper(const MatrixBase<Scalar, OtherDerived>& other)
 {
   if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= EIGEN_LOOP_UNROLLING_LIMIT)
     CopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);

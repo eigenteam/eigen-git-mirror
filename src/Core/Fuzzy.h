@@ -28,7 +28,7 @@
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-bool Object<Scalar, Derived>::isApprox(
+bool MatrixBase<Scalar, Derived>::isApprox(
   const OtherDerived& other,
   const typename NumTraits<Scalar>::Real& prec
 ) const
@@ -49,7 +49,7 @@ bool Object<Scalar, Derived>::isApprox(
 }
 
 template<typename Scalar, typename Derived>
-bool Object<Scalar, Derived>::isMuchSmallerThan(
+bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
   const Scalar& other,
   const typename NumTraits<Scalar>::Real& prec
 ) const
@@ -69,8 +69,8 @@ bool Object<Scalar, Derived>::isMuchSmallerThan(
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-bool Object<Scalar, Derived>::isMuchSmallerThan(
-  const Object<Scalar, OtherDerived>& other,
+bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
+  const MatrixBase<Scalar, OtherDerived>& other,
   const typename NumTraits<Scalar>::Real& prec
 ) const
 {

@@ -35,7 +35,7 @@ template<typename Expression> class Eval
     typedef typename Expression::Scalar Scalar;
     typedef Matrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
-    friend class Object<Scalar, Expression>;
+    friend class MatrixBase<Scalar, Expression>;
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Eval)
     
@@ -43,7 +43,7 @@ template<typename Expression> class Eval
 };
 
 template<typename Scalar, typename Derived>
-Eval<Derived> Object<Scalar, Derived>::eval() const
+Eval<Derived> MatrixBase<Scalar, Derived>::eval() const
 {
   return Eval<Derived>(*static_cast<const Derived*>(this));
 }

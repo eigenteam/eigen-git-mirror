@@ -58,7 +58,7 @@ struct DotUnroller<Index, Dynamic, Derived1, Derived2>
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-Scalar Object<Scalar, Derived>::dot(const OtherDerived& other) const
+Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
   assert(IsVector && OtherDerived::IsVector && size() == other.size());
   Scalar res;
@@ -75,19 +75,19 @@ Scalar Object<Scalar, Derived>::dot(const OtherDerived& other) const
 }
 
 template<typename Scalar, typename Derived>
-typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm2() const
+typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm2() const
 {
   return NumTraits<Scalar>::real(dot(*this));
 }
 
 template<typename Scalar, typename Derived>
-typename NumTraits<Scalar>::Real Object<Scalar, Derived>::norm() const
+typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm() const
 {
   return std::sqrt(norm2());
 }
 
 template<typename Scalar, typename Derived>
-ScalarMultiple<Derived> Object<Scalar, Derived>::normalized() const
+ScalarMultiple<Derived> MatrixBase<Scalar, Derived>::normalized() const
 {
   return (*this) / norm();
 }

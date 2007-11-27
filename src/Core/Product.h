@@ -62,13 +62,13 @@ struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
 };
 
 template<typename Lhs, typename Rhs> class Product
-  : public Object<typename Lhs::Scalar, Product<Lhs, Rhs> >
+  : public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class Object<Scalar, Product>;
+    friend class MatrixBase<Scalar, Product>;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -113,14 +113,14 @@ template<typename Lhs, typename Rhs> class Product
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Product<Derived, OtherDerived>
-Object<Scalar, Derived>::lazyProduct(const Object<Scalar, OtherDerived> &other) const
+MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> &other) const
 {
   return Product<Derived, OtherDerived>(ref(), other.ref());
 }
 
 template<typename Scalar, typename Derived1, typename Derived2>
 Eval<Product<Derived1, Derived2> >
-operator*(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &mat2)
+operator*(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
   return mat1.lazyProduct(mat2).eval();
 }
@@ -128,7 +128,7 @@ operator*(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &
-Object<Scalar, Derived>::operator*=(const Object<Scalar, OtherDerived> &other)
+MatrixBase<Scalar, Derived>::operator*=(const MatrixBase<Scalar, OtherDerived> &other)
 {
   return *this = *this * other;
 }

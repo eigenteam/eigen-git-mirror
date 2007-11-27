@@ -27,12 +27,12 @@
 #define EIGEN_MINOR_H
 
 template<typename MatrixType> class Minor
-  : public Object<typename MatrixType::Scalar, Minor<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Minor<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Minor<MatrixType> >;
+    friend class MatrixBase<Scalar, Minor<MatrixType> >;
     
     static const int
       RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
@@ -75,9 +75,9 @@ template<typename MatrixType> class Minor
 
 template<typename Scalar, typename Derived>
 Minor<Derived>
-Object<Scalar, Derived>::minor(int row, int col) const
+MatrixBase<Scalar, Derived>::minor(int row, int col) const
 {
-  return Minor<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), row, col);
+  return Minor<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), row, col);
 }
 
 #endif // EIGEN_MINOR_H

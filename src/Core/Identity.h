@@ -27,11 +27,11 @@
 #define EIGEN_IDENTITY_H
 
 template<typename MatrixType> class Identity
-  : public Object<typename MatrixType::Scalar, Identity<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, Identity<MatrixType> >;
+    friend class MatrixBase<Scalar, Identity<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -61,7 +61,7 @@ template<typename MatrixType> class Identity
 };
 
 template<typename Scalar, typename Derived>
-Identity<Derived> Object<Scalar, Derived>::identity(int rows)
+Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
 {
   return Identity<Derived>(rows);
 }

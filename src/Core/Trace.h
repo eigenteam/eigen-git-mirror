@@ -53,7 +53,7 @@ template<int Index, typename Derived> struct TraceUnroller<Index, Dynamic, Deriv
 };
 
 template<typename Scalar, typename Derived>
-Scalar Object<Scalar, Derived>::trace() const
+Scalar MatrixBase<Scalar, Derived>::trace() const
 {
   assert(rows() == cols());
   Scalar res;

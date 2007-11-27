@@ -27,12 +27,12 @@
 #define EIGEN_SCALARMULTIPLE_H
 
 template<typename MatrixType> class ScalarMultiple
-  : public Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >;
+    friend class MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >;
 
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -64,7 +64,7 @@ template<typename MatrixType> class ScalarMultiple
 #define EIGEN_MAKE_SCALAR_OPS(OtherScalar)                                \
 template<typename Scalar, typename Derived>                            \
 ScalarMultiple<Derived>                                               \
-operator*(const Object<Scalar, Derived>& matrix,                     \
+operator*(const MatrixBase<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
   return ScalarMultiple<Derived>(matrix.ref(), scalar);          \
@@ -73,14 +73,14 @@ operator*(const Object<Scalar, Derived>& matrix,                     \
 template<typename Scalar, typename Derived>                            \
 ScalarMultiple<Derived>                                               \
 operator*(OtherScalar scalar,                                          \
-          const Object<Scalar, Derived>& matrix)                     \
+          const MatrixBase<Scalar, Derived>& matrix)                     \
 {                                                                      \
   return ScalarMultiple<Derived>(matrix.ref(), scalar);          \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 ScalarMultiple<Derived>                                               \
-operator/(const Object<Scalar, Derived>& matrix,                     \
+operator/(const MatrixBase<Scalar, Derived>& matrix,                     \
           OtherScalar scalar)                                          \
 {                                                                      \
   assert(NumTraits<Scalar>::HasFloatingPoint);                       \
@@ -89,14 +89,14 @@ operator/(const Object<Scalar, Derived>& matrix,                     \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-Object<Scalar, Derived>::operator*=(const OtherScalar &other)        \
+MatrixBase<Scalar, Derived>::operator*=(const OtherScalar &other)        \
 {                                                                      \
   return *this = *this * other;                                        \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
-Object<Scalar, Derived>::operator/=(const OtherScalar &other)        \
+MatrixBase<Scalar, Derived>::operator/=(const OtherScalar &other)        \
 {                                                                      \
   return *this = *this / other;                                        \
 }

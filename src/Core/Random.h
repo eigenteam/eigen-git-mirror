@@ -27,11 +27,11 @@
 #define EIGEN_RANDOM_H
 
 template<typename MatrixType> class Random
-  : public Object<typename MatrixType::Scalar, Random<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class Object<Scalar, Random<MatrixType> >;
+    friend class MatrixBase<Scalar, Random<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -61,7 +61,7 @@ template<typename MatrixType> class Random
 };
 
 template<typename Scalar, typename Derived>
-Eval<Random<Derived> > Object<Scalar, Derived>::random(int rows, int cols)
+Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
 {
   return Random<Derived>(rows, cols).eval();
 }

@@ -27,12 +27,12 @@
 #define EIGEN_COLUMN_H
 
 template<typename MatrixType> class Column
-  : public Object<typename MatrixType::Scalar, Column<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Column<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Column<MatrixType> >;
+    friend class MatrixBase<Scalar, Column<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = 1;
@@ -74,9 +74,9 @@ template<typename MatrixType> class Column
 
 template<typename Scalar, typename Derived>
 Column<Derived>
-Object<Scalar, Derived>::col(int i) const
+MatrixBase<Scalar, Derived>::col(int i) const
 {
-  return Column<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(), i);
+  return Column<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), i);
 }
 
 #endif // EIGEN_COLUMN_H

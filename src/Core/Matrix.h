@@ -27,12 +27,12 @@
 #define EIGEN_MATRIX_H
 
 template<typename _Scalar, int _Rows, int _Cols>
-class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
+class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
-    friend class Object<_Scalar, Matrix>;
-    typedef      Object<_Scalar, Matrix>                Base;
+    friend class MatrixBase<_Scalar, Matrix>;
+    typedef      MatrixBase<_Scalar, Matrix>                Base;
     typedef      MatrixStorage<_Scalar, _Rows, _Cols>   Storage;
     typedef      _Scalar                                Scalar;
     typedef      MatrixRef<Matrix>                      Ref;
@@ -63,7 +63,7 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
   public:
     template<typename OtherDerived> 
-    Matrix& operator=(const Object<Scalar, OtherDerived>& other)
+    Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
       resize(other.rows(), other.cols());
       return Base::operator=(other);
@@ -84,7 +84,7 @@ class Matrix : public Object<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     explicit Matrix(int dim) : Storage(dim) {}
     explicit Matrix(int rows, int cols) : Storage(rows, cols) {}
     template<typename OtherDerived>
-    Matrix(const Object<Scalar, OtherDerived>& other)
+    Matrix(const MatrixBase<Scalar, OtherDerived>& other)
              : Storage(other.rows(), other.cols())
     {
       *this = other;

@@ -33,7 +33,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
      Opposite.h Product.h ScalarMultiple.h FromArray.h
      
      2) Implicitly (the core stuff):
-     Object.h Matrix.h MatrixStorage.h CopyHelper.h MatrixRef.h
+     MatrixBase.h Matrix.h MatrixStorage.h CopyHelper.h MatrixRef.h
      NumTraits.h Util.h
   */
 

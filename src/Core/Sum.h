@@ -27,13 +27,13 @@
 #define EIGEN_SUM_H
 
 template<typename Lhs, typename Rhs> class Sum
-  : public Object<typename Lhs::Scalar, Sum<Lhs, Rhs> >
+  : public MatrixBase<typename Lhs::Scalar, Sum<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
-    friend class Object<Scalar, Sum>;
+    friend class MatrixBase<Scalar, Sum>;
     
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
@@ -67,7 +67,7 @@ template<typename Lhs, typename Rhs> class Sum
 
 template<typename Scalar, typename Derived1, typename Derived2>
 Sum<Derived1, Derived2>
-operator+(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &mat2)
+operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
   return Sum<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
@@ -75,7 +75,7 @@ operator+(const Object<Scalar, Derived1> &mat1, const Object<Scalar, Derived2> &
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &
-Object<Scalar, Derived>::operator+=(const Object<Scalar, OtherDerived>& other)
+MatrixBase<Scalar, Derived>::operator+=(const MatrixBase<Scalar, OtherDerived>& other)
 {
   return *this = *this + other;
 }

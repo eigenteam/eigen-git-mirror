@@ -27,12 +27,12 @@
 #define EIGEN_CAST_H
 
 template<typename NewScalar, typename MatrixType> class Cast
-  : public Object<NewScalar, Cast<NewScalar, MatrixType> >
+  : public MatrixBase<NewScalar, Cast<NewScalar, MatrixType> >
 {
   public:
     typedef NewScalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Cast<Scalar, MatrixType> >;
+    friend class MatrixBase<Scalar, Cast<Scalar, MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -62,7 +62,7 @@ template<typename NewScalar, typename MatrixType> class Cast
 template<typename Scalar, typename Derived>
 template<typename NewScalar>
 Cast<NewScalar, Derived>
-Object<Scalar, Derived>::cast() const
+MatrixBase<Scalar, Derived>::cast() const
 {
   return Cast<NewScalar, Derived>(static_cast<const Derived*>(this)->ref());
 }

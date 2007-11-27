@@ -27,12 +27,12 @@
 #define EIGEN_TRANSPOSE_H
 
 template<typename MatrixType> class Transpose
-  : public Object<typename MatrixType::Scalar, Transpose<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Transpose<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Transpose<MatrixType> >;
+    friend class MatrixBase<Scalar, Transpose<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
                      ColsAtCompileTime = MatrixType::RowsAtCompileTime;
@@ -65,9 +65,9 @@ template<typename MatrixType> class Transpose
 
 template<typename Scalar, typename Derived>
 Transpose<Derived>
-Object<Scalar, Derived>::transpose() const
+MatrixBase<Scalar, Derived>::transpose() const
 {
-  return Transpose<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref());
+  return Transpose<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref());
 }
 
 #endif // EIGEN_TRANSPOSE_H

@@ -26,13 +26,13 @@
 #ifndef EIGEN_OBJECT_H
 #define EIGEN_OBJECT_H
 
-template<typename Scalar, typename Derived> class Object
+template<typename Scalar, typename Derived> class MatrixBase
 {
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime;
     
     template<typename OtherDerived>
-    void _copy_helper(const Object<Scalar, OtherDerived>& other);
+    void _copy_helper(const MatrixBase<Scalar, OtherDerived>& other);
     
     template<typename OtherDerived>
     bool _isApprox_helper(
@@ -45,9 +45,10 @@ template<typename Scalar, typename Derived> class Object
     ) const;
     template<typename OtherDerived>
     bool _isMuchSmallerThan_helper(
-      const Object<Scalar, OtherDerived>& other,
+      const MatrixBase<Scalar, OtherDerived>& other,
       const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
     ) const;
+    
   public:
     static const int SizeAtCompileTime
       = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
@@ -75,7 +76,7 @@ template<typename Scalar, typename Derived> class Object
     }
     
     template<typename OtherDerived>
-    Derived& operator=(const Object<Scalar, OtherDerived>& other)
+    Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       _copy_helper(other);
@@ -84,7 +85,7 @@ template<typename Scalar, typename Derived> class Object
     
     //special case of the above template operator=. Strangely, g++ 4.1 failed to use
     //that template when OtherDerived == Derived
-    Derived& operator=(const Object& other)
+    Derived& operator=(const MatrixBase& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
       _copy_helper(other);
@@ -128,22 +129,22 @@ template<typename Scalar, typename Derived> class Object
     ) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(
-      const Object<Scalar, OtherDerived>& other,
+      const MatrixBase<Scalar, OtherDerived>& other,
       const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
     ) const;
     
     template<typename OtherDerived>
     Product<Derived, OtherDerived>
-    lazyProduct(const Object<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
+    lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
     
     Opposite<Derived> operator-() const;
     
     template<typename OtherDerived>
-    Derived& operator+=(const Object<Scalar, OtherDerived>& other);
+    Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator-=(const Object<Scalar, OtherDerived>& other);
+    Derived& operator-=(const MatrixBase<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator*=(const Object<Scalar, OtherDerived>& other);
+    Derived& operator*=(const MatrixBase<Scalar, OtherDerived>& other);
    
     Derived& operator*=(const int& other);
     Derived& operator*=(const float& other);
@@ -183,7 +184,7 @@ template<typename Scalar, typename Derived> class Object
 template<typename Scalar, typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,
-  const Object<Scalar, Derived> & m )
+  const MatrixBase<Scalar, Derived> & m )
 {
   for( int i = 0; i < m.rows(); i++ )
   {

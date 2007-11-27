@@ -27,12 +27,12 @@
 #define EIGEN_BLOCK_H
 
 template<typename MatrixType> class Block
-  : public Object<typename MatrixType::Scalar, Block<MatrixType> >
+  : public MatrixBase<typename MatrixType::Scalar, Block<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class Object<Scalar, Block<MatrixType> >;
+    friend class MatrixBase<Scalar, Block<MatrixType> >;
     
     static const int RowsAtCompileTime = Dynamic,
                      ColsAtCompileTime = Dynamic;
@@ -75,9 +75,9 @@ template<typename MatrixType> class Block
 
 template<typename Scalar, typename Derived>
 Block<Derived>
-Object<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol) const
+MatrixBase<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol) const
 {
-  return Block<Derived>(static_cast<Derived*>(const_cast<Object*>(this))->ref(),
+  return Block<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(),
                         startRow, endRow, startCol, endCol);
 }
 
