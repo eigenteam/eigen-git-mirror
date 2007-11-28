@@ -45,6 +45,7 @@ class EigenTest : public QObject
 
   private slots:
     void testBasicStuff();
+    void testAdjoint();
 };
 
 #endif // EIGEN_TEST_MAIN_H

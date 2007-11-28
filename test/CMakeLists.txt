@@ -7,6 +7,7 @@ INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 SET(test_SRCS
   main.cpp
   basicstuff.cpp
+  adjoint.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 

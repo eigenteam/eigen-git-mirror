@@ -111,6 +111,9 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   QVERIFY((s1 * (square * m1)).isApprox((s1 * square) * m1));
   QVERIFY((s1 * (square * m1)).isApprox(square * (m1 * s1)));
   
+  // continue testing Product.h: lazyProduct
+  QVERIFY(square.lazyProduct(m1).isApprox(square * m1));
+  
   // test Product.h together with Identity.h. This does test Identity.h.
   QVERIFY(m1.isApprox(identity * m1));
   QVERIFY(v1.isApprox(identity * v1));
