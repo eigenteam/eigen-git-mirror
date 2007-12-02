@@ -25,6 +25,8 @@
 
 #include "main.h"
 
+namespace Eigen {
+
 template<typename MatrixType> void basicStuff(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -56,14 +58,15 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = NumTraits<Scalar>::random(),
-         s2 = NumTraits<Scalar>::random();
+  Scalar s1 = random<Scalar>(),
+         s2 = random<Scalar>();
   
   // test Fuzzy.h and Zero.h.
   QVERIFY(v1.isApprox(v1));
   QVERIFY(!v1.isApprox(2*v1));
   QVERIFY(vzero.isMuchSmallerThan(v1));
-  QVERIFY(vzero.isMuchSmallerThan(v1.norm()));
+  if(NumTraits<Scalar>::HasFloatingPoint)
+    QVERIFY(vzero.isMuchSmallerThan(v1.norm()));
   QVERIFY(!v1.isMuchSmallerThan(v1));
   QVERIFY(vzero.isApprox(v1-v1));
   QVERIFY(m1.isApprox(m1));
@@ -134,8 +137,10 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 void EigenTest::testBasicStuff()
 {
   basicStuff(Matrix<float, 1, 1>());
-  basicStuff(Matrix<complex<double>, 4, 4>());
+  basicStuff(Matrix4cd());
   basicStuff(MatrixXcf(3, 3));
   basicStuff(MatrixXi(8, 12));
   basicStuff(MatrixXd(20, 20));
 }
+
+} // namespace Eigen

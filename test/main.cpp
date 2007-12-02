@@ -25,13 +25,14 @@
 
 #include "main.h"
 
-EigenTest::EigenTest()
+Eigen::EigenTest::EigenTest()
 {
-    unsigned int t = (unsigned int) time( NULL );
+    unsigned int t = (unsigned int) time(NULL);
     qDebug() << "Initializing random number generator with seed"
              << t;
     srand(t);
 }
 
-QTEST_APPLESS_MAIN( EigenTest )
+QTEST_APPLESS_MAIN(Eigen::EigenTest)
+
 #include "main.moc"

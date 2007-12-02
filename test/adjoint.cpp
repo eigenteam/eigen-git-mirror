@@ -25,6 +25,8 @@
 
 #include "main.h"
 
+namespace Eigen {
+
 template<typename MatrixType> void adjoint(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -49,8 +51,8 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
              v3 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = NumTraits<Scalar>::random(),
-         s2 = NumTraits<Scalar>::random();
+  Scalar s1 = random<Scalar>(),
+         s2 = random<Scalar>();
   
   // check involutivity of adjoint, transpose, conjugate
   QVERIFY(m1.transpose().transpose().isApprox(m1));
@@ -67,28 +69,32 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   QVERIFY((m1.adjoint() * m2).adjoint().isApprox(m2.adjoint() * m1));
   QVERIFY((m1.transpose() * m2).conjugate().isApprox(m1.adjoint() * m2.conjugate()));
   QVERIFY((s1 * m1).transpose().isApprox(s1 * m1.transpose()));
-  QVERIFY((s1 * m1).conjugate().isApprox(NumTraits<Scalar>::conj(s1) * m1.conjugate()));
-  QVERIFY((s1 * m1).adjoint().isApprox(NumTraits<Scalar>::conj(s1) * m1.adjoint()));
+  QVERIFY((s1 * m1).conjugate().isApprox(conj(s1) * m1.conjugate()));
+  QVERIFY((s1 * m1).adjoint().isApprox(conj(s1) * m1.adjoint()));
   
   // check basic properties of dot, norm, norm2
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  QVERIFY(NumTraits<Scalar>::isApprox((s1 * v1 + s2 * v2).dot(v3), s1 * v1.dot(v3) + s2 * v2.dot(v3)));
-  QVERIFY(NumTraits<Scalar>::isApprox(v3.dot(s1 * v1 + s2 * v2), NumTraits<Scalar>::conj(s1) * v3.dot(v1) + NumTraits<Scalar>::conj(s2) * v3.dot(v2)));
-  QVERIFY(NumTraits<Scalar>::isApprox(NumTraits<Scalar>::conj(v1.dot(v2)), v2.dot(v1)));
-  QVERIFY(NumTraits<RealScalar>::isApprox(abs(v1.dot(v1)), v1.norm2()));
-  if(NumTraits<Scalar>::HasFloatingPoint) QVERIFY(NumTraits<RealScalar>::isApprox(v1.norm2(), v1.norm() * v1.norm()));
-  QVERIFY(NumTraits<RealScalar>::isMuchSmallerThan(abs(vzero.dot(v1)), 1));
-  QVERIFY(NumTraits<RealScalar>::isMuchSmallerThan(vzero.norm(), 1));
+  QVERIFY(isApprox((s1 * v1 + s2 * v2).dot(v3), s1 * v1.dot(v3) + s2 * v2.dot(v3)));
+  QVERIFY(isApprox(v3.dot(s1 * v1 + s2 * v2), conj(s1) * v3.dot(v1) + conj(s2) * v3.dot(v2)));
+  QVERIFY(isApprox(conj(v1.dot(v2)), v2.dot(v1)));
+  QVERIFY(isApprox(abs(v1.dot(v1)), v1.norm2()));
+  if(NumTraits<Scalar>::HasFloatingPoint)
+    QVERIFY(isApprox(v1.norm2(), v1.norm() * v1.norm()));
+  QVERIFY(isMuchSmallerThan(abs(vzero.dot(v1)), static_cast<RealScalar>(1)));
+  if(NumTraits<Scalar>::HasFloatingPoint)
+    QVERIFY(isMuchSmallerThan(vzero.norm(), static_cast<RealScalar>(1)));
   
   // check compatibility of dot and adjoint
-  QVERIFY(NumTraits<Scalar>::isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2)));
+  QVERIFY(isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2)));
 }
 
 void EigenTest::testAdjoint()
 {
   adjoint(Matrix<float, 1, 1>());
-  adjoint(Matrix<complex<double>, 4, 4>());
+  adjoint(Matrix4cd());
   adjoint(MatrixXcf(3, 3));
   adjoint(MatrixXi(8, 12));
   adjoint(MatrixXd(20, 20));
 }
+
+} // namespace Eigen

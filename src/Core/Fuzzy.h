@@ -56,12 +56,12 @@ bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
 {
   if(IsVector)
   {
-    return(norm2() <= NumTraits<Scalar>::abs2(other) * prec * prec);
+    return(norm2() <= abs2(other) * prec * prec);
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(col(i).norm2() > NumTraits<Scalar>::abs2(other) * prec * prec)
+      if(col(i).norm2() > abs2(other) * prec * prec)
         return false;
     return true;
   }

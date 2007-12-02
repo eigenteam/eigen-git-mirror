@@ -53,7 +53,7 @@ template<typename MatrixType> class Random
     {
       EIGEN_UNUSED(row);
       EIGEN_UNUSED(col);
-      return NumTraits<Scalar>::random();
+      return random<Scalar>();
     }
     
   protected:

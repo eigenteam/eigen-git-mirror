@@ -23,144 +23,176 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_NUMERIC_H
-#define EIGEN_NUMERIC_H
+#ifndef EIGEN_NUMTRAITS_H
+#define EIGEN_NUMTRAITS_H
 
 template<typename T> struct NumTraits;
 
 template<> struct NumTraits<int>
 {
   typedef int Real;
-  typedef double FloatingPoint;
-  typedef double RealFloatingPoint;
-  
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = false;
-  
-  static int precision() { return 0; }
-  static int real(const int& x) { return x; }
-  static int imag(const int& x) { EIGEN_UNUSED(x); return 0; }
-  static int conj(const int& x) { return x; }
-  static int abs2(const int& x) { return x*x; }
-  static int random()
-  {
-    // "random() % n" is bad, they say, because the low-order bits are not random enough.
-    // However here, 21 is odd, so random() % 21 uses the high-order bits
-    // as well, so there's no problem.
-    return (std::rand() % 21) - 10;
-  }
-  static bool isMuchSmallerThan(const int& a, const int& b, const int& prec = precision())
-  {
-    EIGEN_UNUSED(b);
-    EIGEN_UNUSED(prec);
-    return a == 0;
-  }
-  static bool isApprox(const int& a, const int& b, const int& prec = precision())
-  {
-    EIGEN_UNUSED(prec);
-    return a == b;
-  }
-  static bool isApproxOrLessThan(const int& a, const int& b, const int& prec = precision())
-  {
-    EIGEN_UNUSED(prec);
-    return a <= b;
-  }
 };
 
 template<> struct NumTraits<float>
 {
   typedef float Real;
-  typedef float FloatingPoint;
-  typedef float RealFloatingPoint;
-  
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
-  
-  static float precision() { return 1e-5f; }
-  static float real(const float& x) { return x; }
-  static float imag(const float& x) { EIGEN_UNUSED(x); return 0; }
-  static float conj(const float& x) { return x; }
-  static float abs2(const float& x) { return x*x; }
-  static float random()
-  {
-    return std::rand() / (RAND_MAX/20.0f) - 10.0f;
-  }
-  static bool isMuchSmallerThan(const float& a, const float& b, const float& prec = precision())
-  {
-    return std::abs(a) <= std::abs(b) * prec;
-  }
-  static bool isApprox(const float& a, const float& b, const float& prec = precision())
-  {
-    return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
-  }
-  static bool isApproxOrLessThan(const float& a, const float& b, const float& prec = precision())
-  {
-    return a <= b || isApprox(a, b, prec);
-  }
 };
 
 template<> struct NumTraits<double>
 {
   typedef double Real;
-  typedef double FloatingPoint;
-  typedef double RealFloatingPoint;
-  
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
-  
-  static double precision() { return 1e-11; }
-  static double real(const double& x) { return x; }
-  static double imag(const double& x) { EIGEN_UNUSED(x); return 0; }
-  static double conj(const double& x) { return x; }
-  static double abs2(const double& x) { return x*x; }
-  static double random()
-  {
-    return std::rand() / (RAND_MAX/20.0) - 10.0;
-  }
-  static bool isMuchSmallerThan(const double& a, const double& b, const double& prec = precision())
-  {
-    return std::abs(a) <= std::abs(b) * prec;
-  }
-  static bool isApprox(const double& a, const double& b, const double& prec = precision())
-  {
-    return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
-  }
-  static bool isApproxOrLessThan(const double& a, const double& b, const double& prec = precision())
-  {
-    return a <= b || isApprox(a, b, prec);
-  }
 };
 
 template<typename _Real> struct NumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
-  typedef std::complex<Real> Complex;
-  typedef std::complex<double> FloatingPoint;
-  typedef typename NumTraits<Real>::FloatingPoint RealFloatingPoint;
-  
   static const bool IsComplex = true;
   static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
-  
-  static Real precision() { return NumTraits<Real>::precision(); }
-  static Real real(const Complex& x) { return std::real(x); }
-  static Real imag(const Complex& x) { return std::imag(x); }
-  static Complex conj(const Complex& x) { return std::conj(x); }
-  static Real abs2(const Complex& x)
-  { return std::norm(x); }
-  static Complex random()
-  {
-    return Complex(NumTraits<Real>::random(), NumTraits<Real>::random());
-  }
-  static bool isMuchSmallerThan(const Complex& a, const Complex& b, const Real& prec = precision())
-  {
-    return abs2(a) <= abs2(b) * prec * prec;
-  }
-  static bool isApprox(const Complex& a, const Complex& b, const Real& prec = precision())
-  {
-    return NumTraits<Real>::isApprox(std::real(a), std::real(b), prec)
-        && NumTraits<Real>::isApprox(std::imag(a), std::imag(b), prec);
-  }
-  // isApproxOrLessThan wouldn't make sense for complex numbers
 };
 
-#endif // EIGEN_NUMERIC_H
+template<typename T> inline typename NumTraits<T>::Real precision();
+template<typename T> inline T random();
+
+template<> inline int precision<int>() { return 0; }
+inline int real(const int& x)  { return x; }
+inline int imag(const int& x)  { EIGEN_UNUSED(x); return 0; }
+inline int conj(const int& x)  { return x; }
+inline int abs(const int& x)   { return std::abs(x); }
+inline int abs2(const int& x)  { return x*x; }
+inline int sqrt(const int& x)
+{
+  EIGEN_UNUSED(x);
+  // Taking the square root of integers is not allowed
+  // (the square root does not always exist within the integers).
+  // Please cast to a floating-point type.
+  assert(false);
+}
+template<> inline int random()
+{
+  // "rand() % n" is bad, they say, because the low-order bits are not random enough.
+  // However here, 21 is odd, so random() % 21 uses the high-order bits
+  // as well, so there's no problem.
+  return (std::rand() % 21) - 10;
+}
+inline bool isMuchSmallerThan(const int& a, const int& b, const int& prec = precision<int>())
+{
+  EIGEN_UNUSED(b);
+  EIGEN_UNUSED(prec);
+  return a == 0;
+}
+inline bool isApprox(const int& a, const int& b, const int& prec = precision<int>())
+{
+  EIGEN_UNUSED(prec);
+  return a == b;
+}
+inline bool isApproxOrLessThan(const int& a, const int& b, const int& prec = precision<int>())
+{
+  EIGEN_UNUSED(prec);
+  return a <= b;
+}
+
+template<> inline float precision<float>() { return 1e-5f; }
+inline float real(const float& x)  { return x; }
+inline float imag(const float& x)  { EIGEN_UNUSED(x); return 0.f; }
+inline float conj(const float& x)  { return x; }
+inline float abs(const float& x)   { return std::abs(x); }
+inline float abs2(const float& x)  { return x*x; }
+inline float sqrt(const float& x)  { return std::sqrt(x); }
+template<> inline float random()
+{
+  return std::rand() / (RAND_MAX/20.0f) - 10.0f;
+}
+inline bool isMuchSmallerThan(const float& a, const float& b, const float& prec = precision<float>())
+{
+  return std::abs(a) <= std::abs(b) * prec;
+}
+inline bool isApprox(const float& a, const float& b, const float& prec = precision<float>())
+{
+  return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
+}
+inline bool isApproxOrLessThan(const float& a, const float& b, const float& prec = precision<float>())
+{
+  return a <= b || isApprox(a, b, prec);
+}
+
+template<> inline double precision<double>() { return 1e-11; }
+inline double real(const double& x)  { return x; }
+inline double imag(const double& x)  { EIGEN_UNUSED(x); return 0.; }
+inline double conj(const double& x)  { return x; }
+inline double abs(const double& x)   { return std::abs(x); }
+inline double abs2(const double& x)  { return x*x; }
+inline double sqrt(const double& x)  { return std::sqrt(x); }
+template<> inline double random()
+{
+  return std::rand() / (RAND_MAX/20.0) - 10.0;
+}
+inline bool isMuchSmallerThan(const double& a, const double& b, const double& prec = precision<double>())
+{
+  return std::abs(a) <= std::abs(b) * prec;
+}
+inline bool isApprox(const double& a, const double& b, const double& prec = precision<double>())
+{
+  return std::abs(a - b) <= std::min(std::abs(a), std::abs(b)) * prec;
+}
+inline bool isApproxOrLessThan(const double& a, const double& b, const double& prec = precision<double>())
+{
+  return a <= b || isApprox(a, b, prec);
+}
+
+template<> inline float precision<std::complex<float> >() { return precision<float>(); }
+inline float real(const std::complex<float>& x) { return std::real(x); }
+inline float imag(const std::complex<float>& x) { return std::imag(x); }
+inline std::complex<float> conj(const std::complex<float>& x) { return std::conj(x); }
+inline float abs(const std::complex<float>& x) { return std::abs(x); }
+inline float abs2(const std::complex<float>& x) { return std::norm(x); }
+inline std::complex<float> sqrt(const std::complex<float>& x)
+{
+  EIGEN_UNUSED(x);
+  // Taking the square roots of complex numbers is not allowed,
+  // as this is ambiguous (there are two square roots).
+  // What were you trying to do?
+  assert(false);
+}
+template<> inline std::complex<float> random()
+{
+  return std::complex<float>(random<float>(), random<float>());
+}
+inline bool isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b, const float& prec = precision<float>())
+{
+  return abs2(a) <= abs2(b) * prec * prec;
+}
+inline bool isApprox(const std::complex<float>& a, const std::complex<float>& b, const float& prec = precision<float>())
+{
+  return isApprox(std::real(a), std::real(b), prec)
+      && isApprox(std::imag(a), std::imag(b), prec);
+}
+// isApproxOrLessThan wouldn't make sense for complex numbers
+
+template<> inline double precision<std::complex<double> >() { return precision<double>(); }
+inline double real(const std::complex<double>& x) { return std::real(x); }
+inline double imag(const std::complex<double>& x) { return std::imag(x); }
+inline std::complex<double> conj(const std::complex<double>& x) { return std::conj(x); }
+inline double abs(const std::complex<double>& x) { return std::abs(x); }
+inline double abs2(const std::complex<double>& x) { return std::norm(x); }
+template<> inline std::complex<double> random()
+{
+  return std::complex<double>(random<double>(), random<double>());
+}
+inline bool isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b, const double& prec = precision<double>())
+{
+  return abs2(a) <= abs2(b) * prec * prec;
+}
+inline bool isApprox(const std::complex<double>& a, const std::complex<double>& b, const double& prec = precision<double>())
+{
+  return isApprox(std::real(a), std::real(b), prec)
+      && isApprox(std::imag(a), std::imag(b), prec);
+}
+// isApproxOrLessThan wouldn't make sense for complex numbers
+
+#endif // EIGEN_NUMTRAITS_H

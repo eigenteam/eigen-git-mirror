@@ -32,7 +32,7 @@ struct DotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     DotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1[Index] * NumTraits<typename Derived1::Scalar>::conj(v2[Index]);
+    dot += v1[Index] * conj(v2[Index]);
   }
 };
 
@@ -41,7 +41,7 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    dot = v1[0] * NumTraits<typename Derived1::Scalar>::conj(v2[0]);
+    dot = v1[0] * conj(v2[0]);
   }
 };
 
@@ -67,9 +67,9 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
-    res = (*this)[0] * NumTraits<Scalar>::conj(other[0]);
+    res = (*this)[0] * conj(other[0]);
     for(int i = 1; i < size(); i++)
-      res += (*this)[i]* NumTraits<Scalar>::conj(other[i]);
+      res += (*this)[i]* conj(other[i]);
   }
   return res;
 }
@@ -77,13 +77,13 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm2() const
 {
-  return NumTraits<Scalar>::real(dot(*this));
+  return real(dot(*this));
 }
 
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm() const
 {
-  return std::sqrt(norm2());
+  return sqrt(norm2());
 }
 
 template<typename Scalar, typename Derived>

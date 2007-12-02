@@ -29,12 +29,10 @@
 #include <QtTest/QtTest>
 #include "../src/Core.h"
 
-using namespace Eigen;
-
 #include <cstdlib>
 #include <ctime>
 
-using namespace std;
+namespace Eigen {
 
 class EigenTest : public QObject
 {
@@ -47,5 +45,7 @@ class EigenTest : public QObject
     void testBasicStuff();
     void testAdjoint();
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_TEST_MAIN_H

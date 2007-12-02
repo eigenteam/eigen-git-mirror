@@ -37,16 +37,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     bool _isApprox_helper(
       const OtherDerived& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     bool _isMuchSmallerThan_helper(
       const Scalar& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     template<typename OtherDerived>
     bool _isMuchSmallerThan_helper(
       const MatrixBase<Scalar, OtherDerived>& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     
   public:
@@ -121,16 +121,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     bool isApprox(
       const OtherDerived& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     bool isMuchSmallerThan(
       const Scalar& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(
       const MatrixBase<Scalar, OtherDerived>& other,
-      const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::precision()
+      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     
     template<typename OtherDerived>
