@@ -136,11 +136,13 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 
 void EigenTest::testBasicStuff()
 {
-  basicStuff(Matrix<float, 1, 1>());
-  basicStuff(Matrix4cd());
-  basicStuff(MatrixXcf(3, 3));
-  basicStuff(MatrixXi(8, 12));
-  basicStuff(MatrixXd(20, 20));
+  REPEAT {
+    basicStuff(Matrix<float, 1, 1>());
+    basicStuff(Matrix4cd());
+    basicStuff(MatrixXcf(3, 3));
+    basicStuff(MatrixXi(8, 12));
+    basicStuff(MatrixXd(20, 20));
+  }
 }
 
 } // namespace Eigen

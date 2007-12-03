@@ -32,6 +32,9 @@
 #include <cstdlib>
 #include <ctime>
 
+#define DEFAULT_REPEAT 50
+#define REPEAT for(int repeat_iteration = 0; repeat_iteration < m_repeat; repeat_iteration++)
+
 namespace Eigen {
 
 class EigenTest : public QObject
@@ -39,11 +42,14 @@ class EigenTest : public QObject
     Q_OBJECT
 
   public:
-    EigenTest();
+    EigenTest(int repeat) : m_repeat(repeat) {}
 
   private slots:
     void testBasicStuff();
     void testAdjoint();
+ 
+  protected:
+    int m_repeat;
 };
 
 } // end namespace Eigen

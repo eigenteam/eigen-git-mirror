@@ -90,11 +90,13 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 
 void EigenTest::testAdjoint()
 {
-  adjoint(Matrix<float, 1, 1>());
-  adjoint(Matrix4cd());
-  adjoint(MatrixXcf(3, 3));
-  adjoint(MatrixXi(8, 12));
-  adjoint(MatrixXd(20, 20));
+  REPEAT {
+    adjoint(Matrix<float, 1, 1>());
+    adjoint(Matrix4cd());
+    adjoint(MatrixXcf(3, 3));
+    adjoint(MatrixXi(8, 12));
+    adjoint(MatrixXd(20, 20));
+  }
 }
 
 } // namespace Eigen

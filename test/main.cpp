@@ -25,14 +25,79 @@
 
 #include "main.h"
 
-Eigen::EigenTest::EigenTest()
+int main(int argc, char *argv[])
 {
-    unsigned int t = (unsigned int) time(NULL);
-    qDebug() << "Initializing random number generator with seed"
-             << t;
-    srand(t);
-}
+    QCoreApplication app(argc, argv);
+    
+    bool has_set_repeat = false;
+    bool has_set_seed = false;
+    bool want_help = false;
+    unsigned int seed;
+    int repeat;
+    
+    QStringList args = QCoreApplication::instance()->arguments();
+    args.takeFirst(); // throw away the first argument (path to executable)
+    foreach(QString arg, args)
+    {
+      if(arg.startsWith("r"))
+      {
+        if(has_set_repeat)
+        {
+          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          return 1;
+        }
+        repeat = arg.remove(0, 1).toInt();
+        has_set_repeat = true;
+        if(repeat <= 0)
+        {
+          qDebug() << "Invalid \'repeat\' value" << arg;
+          return 1;
+        }
+      }
+      else if(arg.startsWith("s"))
+      {
+        if(has_set_seed)
+        {
+          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          return 1;
+        }
+        bool ok;
+        seed = arg.remove(0, 1).toUInt(&ok);
+        has_set_seed = true;
+        if(!ok)
+        {
+          qDebug() << "Invalid \'seed\' value" << arg;
+          return 1;
+        }
+      }
+      else if(arg == "h" || arg == "-h" || arg.contains("help", Qt::CaseInsensitive))
+      {
+        want_help = true;
+      }
+      else
+      {
+        qDebug() << "Invalid command-line argument" << arg;
+        return 1;
+      }
+    }
+    
+    if(want_help)
+    {
+      qDebug() << "This test application takes the following optional arguments:";
+      qDebug() << "  rN     Repeat each test N times (default:" << DEFAULT_REPEAT << ")";
+      qDebug() << "  sN     Use N as seed for random numbers (default: based on current time)";
+      return 0;
+    }
+    
+    if(!has_set_seed) seed = (unsigned int) time(NULL);
+    if(!has_set_repeat) repeat = DEFAULT_REPEAT;
+    
+    qDebug() << "Initializing random number generator with seed" << seed;
+    srand(seed);
+    qDebug() << "Repeating each test" << repeat << "times";
 
-QTEST_APPLESS_MAIN(Eigen::EigenTest)
+    Eigen::EigenTest test(repeat);
+    return QTest::qExec(&test, 1, argv);
+}
 
 #include "main.moc"
