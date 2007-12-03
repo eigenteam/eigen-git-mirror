@@ -50,18 +50,18 @@ bool MatrixBase<Scalar, Derived>::isApprox(
 
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
-  const Scalar& other,
+  const typename NumTraits<Scalar>::Real& other,
   const typename NumTraits<Scalar>::Real& prec
 ) const
 {
   if(IsVector)
   {
-    return(norm2() <= abs2(other) * prec * prec);
+    return(norm2() <= abs2(other * prec));
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(col(i).norm2() > abs2(other) * prec * prec)
+      if(col(i).norm2() > abs2(other * prec))
         return false;
     return true;
   }

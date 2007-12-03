@@ -34,21 +34,6 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     void _copy_helper(const MatrixBase<Scalar, OtherDerived>& other);
     
-    template<typename OtherDerived>
-    bool _isApprox_helper(
-      const OtherDerived& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
-    ) const;
-    bool _isMuchSmallerThan_helper(
-      const Scalar& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
-    ) const;
-    template<typename OtherDerived>
-    bool _isMuchSmallerThan_helper(
-      const MatrixBase<Scalar, OtherDerived>& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
-    ) const;
-    
   public:
     static const int SizeAtCompileTime
       = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
@@ -124,7 +109,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     bool isMuchSmallerThan(
-      const Scalar& other,
+      const typename NumTraits<Scalar>::Real& other,
       const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
     ) const;
     template<typename OtherDerived>

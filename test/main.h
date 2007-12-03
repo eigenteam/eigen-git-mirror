@@ -37,6 +37,74 @@
 
 namespace Eigen {
 
+template<typename T> inline typename NumTraits<T>::Real test_precision();
+template<> inline int test_precision<int>() { return 0; }
+template<> inline float test_precision<float>() { return 1e-2; }
+template<> inline double test_precision<double>() { return 1e-5; }
+template<> inline float test_precision<std::complex<float> >() { return test_precision<float>(); }
+template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
+
+inline bool test_isApprox(const int& a, const int& b)
+{ return isApprox(a, b, test_precision<int>()); }
+inline bool test_isMuchSmallerThan(const int& a, const int& b)
+{ return isMuchSmallerThan(a, b, test_precision<int>()); }
+inline bool test_isApproxOrLessThan(const int& a, const int& b)
+{ return isApproxOrLessThan(a, b, test_precision<int>()); }
+
+inline bool test_isApprox(const float& a, const float& b)
+{ return isApprox(a, b, test_precision<float>()); }
+inline bool test_isMuchSmallerThan(const float& a, const float& b)
+{ return isMuchSmallerThan(a, b, test_precision<float>()); }
+inline bool test_isApproxOrLessThan(const float& a, const float& b)
+{ return isApproxOrLessThan(a, b, test_precision<float>()); }
+
+inline bool test_isApprox(const double& a, const double& b)
+{ return isApprox(a, b, test_precision<double>()); }
+inline bool test_isMuchSmallerThan(const double& a, const double& b)
+{ return isMuchSmallerThan(a, b, test_precision<double>()); }
+inline bool test_isApproxOrLessThan(const double& a, const double& b)
+{ return isApproxOrLessThan(a, b, test_precision<double>()); }
+
+inline bool test_isApprox(const std::complex<float>& a, const std::complex<float>& b)
+{ return isApprox(a, b, test_precision<std::complex<float> >()); }
+inline bool test_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b)
+{ return isMuchSmallerThan(a, b, test_precision<std::complex<float> >()); }
+
+inline bool test_isApprox(const std::complex<double>& a, const std::complex<double>& b)
+{ return isApprox(a, b, test_precision<std::complex<double> >()); }
+inline bool test_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
+{ return isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
+
+template<typename Scalar, typename Derived1, typename Derived2>
+inline bool test_isApprox(const MatrixBase<Scalar, Derived1>& m1,
+                   const MatrixBase<Scalar, Derived2>& m2)
+{
+  return m1.isApprox(m2, test_precision<Scalar>());
+}
+
+template<typename Scalar, typename Derived1, typename Derived2>
+inline bool test_isMuchSmallerThan(const MatrixBase<Scalar, Derived1>& m1,
+                                   const MatrixBase<Scalar, Derived2>& m2)
+{
+  return m1.isMuchSmallerThan(m2, test_precision<Scalar>());
+}
+
+template<typename Scalar, typename Derived>
+inline bool test_isMuchSmallerThan(const MatrixBase<Scalar, Derived>& m,
+                                   const typename NumTraits<Scalar>::Real& s)
+{
+  return m.isMuchSmallerThan(s, test_precision<Scalar>());
+}
+
+
+#define VERIFY(a) QVERIFY(a)
+#define VERIFY_IS_APPROX(a, b) QVERIFY(test_isApprox(a, b))
+#define VERIFY_IS_NOT_APPROX(a, b) QVERIFY(!test_isApprox(a, b))
+#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) QVERIFY(test_isMuchSmallerThan(a, b))
+#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) QVERIFY(!test_isMuchSmallerThan(a, b))
+#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) QVERIFY(test_isApproxOrLessThan(a, b))
+#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) QVERIFY(!test_isApproxOrLessThan(a, b))
+
 class EigenTest : public QObject
 {
     Q_OBJECT

@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     
     bool has_set_repeat = false;
     bool has_set_seed = false;
-    bool want_help = false;
+    bool need_help = false;
     unsigned int seed;
     int repeat;
     
@@ -70,23 +70,18 @@ int main(int argc, char *argv[])
           return 1;
         }
       }
-      else if(arg == "h" || arg == "-h" || arg.contains("help", Qt::CaseInsensitive))
-      {
-        want_help = true;
-      }
       else
       {
-        qDebug() << "Invalid command-line argument" << arg;
-        return 1;
+        need_help = true;
       }
     }
     
-    if(want_help)
+    if(need_help)
     {
       qDebug() << "This test application takes the following optional arguments:";
       qDebug() << "  rN     Repeat each test N times (default:" << DEFAULT_REPEAT << ")";
       qDebug() << "  sN     Use N as seed for random numbers (default: based on current time)";
-      return 0;
+      return 1;
     }
     
     if(!has_set_seed) seed = (unsigned int) time(NULL);

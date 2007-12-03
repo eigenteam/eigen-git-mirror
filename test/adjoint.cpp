@@ -55,37 +55,38 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
          s2 = random<Scalar>();
   
   // check involutivity of adjoint, transpose, conjugate
-  QVERIFY(m1.transpose().transpose().isApprox(m1));
-  QVERIFY(m1.conjugate().conjugate().isApprox(m1));
-  QVERIFY(m1.adjoint().adjoint().isApprox(m1));
+  VERIFY_IS_APPROX(m1.transpose().transpose(),              m1);
+  VERIFY_IS_APPROX(m1.conjugate().conjugate(),              m1);
+  VERIFY_IS_APPROX(m1.adjoint().adjoint(),                  m1);
   
   // check basic compatibility of adjoint, transpose, conjugate
-  QVERIFY(m1.transpose().conjugate().adjoint().isApprox(m1));
-  QVERIFY(m1.adjoint().conjugate().transpose().isApprox(m1));
-  if(!NumTraits<Scalar>::IsComplex) QVERIFY(m1.adjoint().transpose().isApprox(m1));
+  VERIFY_IS_APPROX(m1.transpose().conjugate().adjoint(),    m1);
+  VERIFY_IS_APPROX(m1.adjoint().conjugate().transpose(),    m1);
+  if(!NumTraits<Scalar>::IsComplex)
+    VERIFY_IS_APPROX(m1.adjoint().transpose(),              m1);
   
   // check multiplicative behavior
-  QVERIFY((m1.transpose() * m2).transpose().isApprox(m2.transpose() * m1));
-  QVERIFY((m1.adjoint() * m2).adjoint().isApprox(m2.adjoint() * m1));
-  QVERIFY((m1.transpose() * m2).conjugate().isApprox(m1.adjoint() * m2.conjugate()));
-  QVERIFY((s1 * m1).transpose().isApprox(s1 * m1.transpose()));
-  QVERIFY((s1 * m1).conjugate().isApprox(conj(s1) * m1.conjugate()));
-  QVERIFY((s1 * m1).adjoint().isApprox(conj(s1) * m1.adjoint()));
+  VERIFY_IS_APPROX((m1.transpose() * m2).transpose(),       m2.transpose() * m1);
+  VERIFY_IS_APPROX((m1.adjoint() * m2).adjoint(),           m2.adjoint() * m1);
+  VERIFY_IS_APPROX((m1.transpose() * m2).conjugate(),       m1.adjoint() * m2.conjugate());
+  VERIFY_IS_APPROX((s1 * m1).transpose(),                   s1 * m1.transpose());
+  VERIFY_IS_APPROX((s1 * m1).conjugate(),                   conj(s1) * m1.conjugate());
+  VERIFY_IS_APPROX((s1 * m1).adjoint(),                     conj(s1) * m1.adjoint());
   
   // check basic properties of dot, norm, norm2
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  QVERIFY(isApprox((s1 * v1 + s2 * v2).dot(v3), s1 * v1.dot(v3) + s2 * v2.dot(v3)));
-  QVERIFY(isApprox(v3.dot(s1 * v1 + s2 * v2), conj(s1) * v3.dot(v1) + conj(s2) * v3.dot(v2)));
-  QVERIFY(isApprox(conj(v1.dot(v2)), v2.dot(v1)));
-  QVERIFY(isApprox(abs(v1.dot(v1)), v1.norm2()));
+  VERIFY_IS_APPROX((s1 * v1 + s2 * v2).dot(v3),      s1 * v1.dot(v3) + s2 * v2.dot(v3));
+  VERIFY_IS_APPROX(v3.dot(s1 * v1 + s2 * v2),        conj(s1)*v3.dot(v1)+conj(s2)*v3.dot(v2));
+  VERIFY_IS_APPROX(conj(v1.dot(v2)),                 v2.dot(v1));
+  VERIFY_IS_APPROX(abs(v1.dot(v1)),                  v1.norm2());
   if(NumTraits<Scalar>::HasFloatingPoint)
-    QVERIFY(isApprox(v1.norm2(), v1.norm() * v1.norm()));
-  QVERIFY(isMuchSmallerThan(abs(vzero.dot(v1)), static_cast<RealScalar>(1)));
+    VERIFY_IS_APPROX(v1.norm2(),                     v1.norm() * v1.norm());
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(vzero.dot(v1)),    static_cast<RealScalar>(1));
   if(NumTraits<Scalar>::HasFloatingPoint)
-    QVERIFY(isMuchSmallerThan(vzero.norm(), static_cast<RealScalar>(1)));
+    VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),        static_cast<RealScalar>(1));
   
   // check compatibility of dot and adjoint
-  QVERIFY(isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2)));
+  VERIFY_IS_APPROX(v1.dot(square * v2),              (square.adjoint() * v1).dot(v2));
 }
 
 void EigenTest::testAdjoint()

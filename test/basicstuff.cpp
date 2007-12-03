@@ -62,64 +62,66 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
          s2 = random<Scalar>();
   
   // test Fuzzy.h and Zero.h.
-  QVERIFY(v1.isApprox(v1));
-  QVERIFY(!v1.isApprox(2*v1));
-  QVERIFY(vzero.isMuchSmallerThan(v1));
+  VERIFY_IS_APPROX(               v1,    v1);
+  VERIFY_IS_NOT_APPROX(           v1,    2*v1);
+  VERIFY_IS_MUCH_SMALLER_THAN(    vzero, v1);
   if(NumTraits<Scalar>::HasFloatingPoint)
-    QVERIFY(vzero.isMuchSmallerThan(v1.norm()));
-  QVERIFY(!v1.isMuchSmallerThan(v1));
-  QVERIFY(vzero.isApprox(v1-v1));
-  QVERIFY(m1.isApprox(m1));
-  QVERIFY(!m1.isApprox(2*m1));
-  QVERIFY(mzero.isMuchSmallerThan(m1));
-  QVERIFY(!m1.isMuchSmallerThan(m1));
-  QVERIFY(mzero.isApprox(m1-m1));
+    VERIFY_IS_MUCH_SMALLER_THAN(  vzero, v1.norm());
+  VERIFY_IS_NOT_MUCH_SMALLER_THAN(v1,    v1);
+  VERIFY_IS_APPROX(               vzero, v1-v1);
+  VERIFY_IS_APPROX(               m1,    m1);
+  VERIFY_IS_NOT_APPROX(           m1,    2*m1);
+  VERIFY_IS_MUCH_SMALLER_THAN(    mzero, m1);
+  VERIFY_IS_NOT_MUCH_SMALLER_THAN(m1,    m1);
+  VERIFY_IS_APPROX(               mzero, m1-m1);
   
   // test the linear structure, i.e. the following files:
   // Sum.h Difference.h Opposite.h ScalarMultiple.h
-  QVERIFY((m1+m1).isApprox(2 * m1));
-  QVERIFY((m1+m2-m1).isApprox(m2));
-  QVERIFY((-m2+m1+m2).isApprox(m1));
-  QVERIFY((m1 * s1).isApprox(s1 * m1));
-  QVERIFY(((m1 + m2) * s1).isApprox(s1 * m1 + s1 * m2));
-  QVERIFY(((s1 + s2) * m1).isApprox(m1 * s1 + m1 * s2));
-  QVERIFY(((m1 - m2) * s1).isApprox(s1 * m1 - s1 * m2));
-  QVERIFY(((s1 - s2) * m1).isApprox(m1 * s1 - m1 * s2));
-  QVERIFY(((-m1 + m2) * s1).isApprox(-s1 * m1 + s1 * m2));
-  QVERIFY(((-s1 + s2) * m1).isApprox(-m1 * s1 + m1 * s2));
-  m3 = m2;
-  QVERIFY((m3 += m1).isApprox(m1 + m2));
-  m3 = m2;
-  QVERIFY((m3 -= m1).isApprox(-m1 + m2));
-  m3 = m2;
-  QVERIFY((m3 *= s1).isApprox(s1 * m2));
-  m3 = m2;
-  if(NumTraits<Scalar>::HasFloatingPoint
-     && s1 != static_cast<Scalar>(0))
-    QVERIFY((m3 /= s1).isApprox(m2 / s1));
+  VERIFY_IS_APPROX(-(-m1),                  m1);
+  VERIFY_IS_APPROX(m1+m1,                   2*m1);
+  VERIFY_IS_APPROX(m1+m2-m1,                m2);
+  VERIFY_IS_APPROX(-m2+m1+m2,               m1);
+  VERIFY_IS_APPROX(m1*s1,                   s1*m1);
+  VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
+  VERIFY_IS_APPROX((s1+s2)*m1,              m1*s1+m1*s2);
+  VERIFY_IS_APPROX((m1-m2)*s1,              s1*m1-s1*m2);
+  VERIFY_IS_APPROX((s1-s2)*m1,              m1*s1-m1*s2);
+  VERIFY_IS_APPROX((-m1+m2)*s1,             -s1*m1+s1*m2);
+  VERIFY_IS_APPROX((-s1+s2)*m1,             -m1*s1+m1*s2);
+  m3 = m2; m3 += m1;
+  VERIFY_IS_APPROX(m3,                      m1+m2);
+  m3 = m2; m3 -= m1;
+  VERIFY_IS_APPROX(m3,                      m2-m1);
+  m3 = m2; m3 *= s1;
+  VERIFY_IS_APPROX(m3,                      s1*m2);
+  if(NumTraits<Scalar>::HasFloatingPoint)
+  {
+    m3 = m2; m3 /= s1;
+    VERIFY_IS_APPROX(m3,                    m2/s1);
+  }
   
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)
-  QVERIFY(((m1 * m1.transpose()) * m2).isApprox(m1 * (m1.transpose() * m2)));
+  VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
   m3 = m1;
   m3 *= (m1.transpose() * m2);
-  QVERIFY(m3.isApprox(m1 * (m1.transpose() * m2)));
-  QVERIFY(m3.isApprox(m1.lazyProduct(m1.transpose() * m2)));
+  VERIFY_IS_APPROX(m3,                      m1*(m1.transpose()*m2));
+  VERIFY_IS_APPROX(m3,                      m1.lazyProduct(m1.transpose()*m2));
   
   // continue testing Product.h: distributivity
-  QVERIFY((square * (m1 + m2)).isApprox(square * m1 + square * m2));
-  QVERIFY((square * (m1 - m2)).isApprox(square * m1 - square * m2));
+  VERIFY_IS_APPROX(square*(m1 + m2),        square*m1+square*m2);
+  VERIFY_IS_APPROX(square*(m1 - m2),        square*m1-square*m2);
   
   // continue testing Product.h: compatibility with ScalarMultiple.h
-  QVERIFY((s1 * (square * m1)).isApprox((s1 * square) * m1));
-  QVERIFY((s1 * (square * m1)).isApprox(square * (m1 * s1)));
+  VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
+  VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
   
   // continue testing Product.h: lazyProduct
-  QVERIFY(square.lazyProduct(m1).isApprox(square * m1));
+  VERIFY_IS_APPROX(square.lazyProduct(m1),  square*m1);
   
   // test Product.h together with Identity.h. This does test Identity.h.
-  QVERIFY(m1.isApprox(identity * m1));
-  QVERIFY(v1.isApprox(identity * v1));
+  VERIFY_IS_APPROX(m1,                      identity*m1);
+  VERIFY_IS_APPROX(v1,                      identity*v1);
   
   // test FromArray.h
   Scalar* array1 = new Scalar[rows];
@@ -127,9 +129,9 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
   Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows)
     = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
-  bool b = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows)
-             .isApprox(Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows));
-  QVERIFY(b);
+  Matrix<Scalar, Dynamic, 1> ma1 = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
+  Matrix<Scalar, Dynamic, 1> ma2 = Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows);
+  VERIFY_IS_APPROX(ma1, ma2);
   delete[] array1;
   delete[] array2;
 }
