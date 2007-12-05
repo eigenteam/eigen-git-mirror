@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_BLOCK_H
-#define EIGEN_BLOCK_H
+#ifndef EIGEN_DYNBLOCK_H
+#define EIGEN_DYNBLOCK_H
 
 template<typename MatrixType> class DynBlock
   : public MatrixBase<typename MatrixType::Scalar, DynBlock<MatrixType> >
@@ -82,4 +82,4 @@ DynBlock<Derived> MatrixBase<Scalar, Derived>
                         startRow, startCol, blockRows, blockCols);
 }
 
-#endif // EIGEN_BLOCK_H
+#endif // EIGEN_DYNBLOCK_H

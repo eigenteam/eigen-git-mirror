@@ -85,8 +85,8 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     DynBlock<Derived> dynBlock(int startRow, int startCol,
                                int blockRows, int blockCols) const;
-    //template<int BlockRows, int BlockCols> Block<Derived, BlockRows, BlockCols>
-    //block(int startRow, int startCol) const;
+    template<int BlockRows, int BlockCols>
+    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
     
     Transpose<Derived> transpose() const;
     Conjugate<Derived> conjugate() const;

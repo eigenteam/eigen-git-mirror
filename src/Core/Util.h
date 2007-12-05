@@ -48,6 +48,7 @@ template<typename MatrixType> class Row;
 template<typename MatrixType> class Column;
 template<typename MatrixType> class Minor;
 template<typename MatrixType> class DynBlock;
+template<typename MatrixType, int BlockRows, int BlockCols> class Block;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename MatrixType> class Opposite;
