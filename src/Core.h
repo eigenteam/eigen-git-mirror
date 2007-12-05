@@ -20,7 +20,7 @@ namespace Eigen {
 #include "Core/Opposite.h"
 #include "Core/Row.h"
 #include "Core/Column.h"
-#include "Core/Block.h"
+#include "Core/DynBlock.h"
 #include "Core/Minor.h"
 #include "Core/Transpose.h"
 #include "Core/Conjugate.h"

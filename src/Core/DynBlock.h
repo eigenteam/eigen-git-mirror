@@ -26,37 +26,38 @@
 #ifndef EIGEN_BLOCK_H
 #define EIGEN_BLOCK_H
 
-template<typename MatrixType> class Block
-  : public MatrixBase<typename MatrixType::Scalar, Block<MatrixType> >
+template<typename MatrixType> class DynBlock
+  : public MatrixBase<typename MatrixType::Scalar, DynBlock<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Block<MatrixType> >;
+    friend class MatrixBase<Scalar, DynBlock<MatrixType> >;
     
     static const int RowsAtCompileTime = Dynamic,
                      ColsAtCompileTime = Dynamic;
 
-    Block(const MatRef& matrix,
-                int startRow, int endRow,
-                int startCol = 0, int endCol = 0)
-      : m_matrix(matrix), m_startRow(startRow), m_endRow(endRow),
-                          m_startCol(startCol), m_endCol(endCol)
+    DynBlock(const MatRef& matrix,
+          int startRow, int startCol,
+          int blockRows, int blockCols)
+      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
+                          m_blockRows(blockRows), m_blockCols(blockCols)
     {
-      assert(startRow >= 0 && startRow <= endRow && endRow < matrix.rows()
-          && startCol >= 0 && startCol <= endCol && endCol < matrix.cols());
+      assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
+          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.rows());
     }
     
-    Block(const Block& other)
-      : m_matrix(other.m_matrix), m_startRow(other.m_startRow), m_endRow(other.m_endRow),
-                                  m_startCol(other.m_startCol), m_endCol(other.m_endCol) {}
+    DynBlock(const DynBlock& other)
+      : m_matrix(other.m_matrix),
+        m_startRow(other.m_startRow), m_startCol(other.m_startCol),
+        m_blockRows(other.m_blockRows), m_blockCols(other.m_blockCols) {}
     
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DynBlock)
     
   private:
-    const Block& _ref() const { return *this; }
-    int _rows() const { return m_endRow - m_startRow + 1; }
-    int _cols() const { return m_endCol - m_startCol + 1; }
+    const DynBlock& _ref() const { return *this; }
+    int _rows() const { return m_blockRows; }
+    int _cols() const { return m_blockCols; }
     
     Scalar& _write(int row, int col=0)
     {
@@ -70,15 +71,15 @@ template<typename MatrixType> class Block
     
   protected:
     MatRef m_matrix;
-    const int m_startRow, m_endRow, m_startCol, m_endCol;
+    const int m_startRow, m_startCol, m_blockRows, m_blockCols;
 };
 
 template<typename Scalar, typename Derived>
-Block<Derived>
-MatrixBase<Scalar, Derived>::block(int startRow, int endRow, int startCol, int endCol) const
+DynBlock<Derived> MatrixBase<Scalar, Derived>
+  ::dynBlock(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return Block<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(),
-                        startRow, endRow, startCol, endCol);
+  return DynBlock<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(),
+                        startRow, startCol, blockRows, blockCols);
 }
 
 #endif // EIGEN_BLOCK_H

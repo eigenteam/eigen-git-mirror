@@ -140,10 +140,10 @@ void EigenTest::testBasicStuff()
 {
   REPEAT {
     basicStuff(Matrix<float, 1, 1>());
-    basicStuff(Matrix4cd());
+    basicStuff(Matrix4d());
     basicStuff(MatrixXcf(3, 3));
     basicStuff(MatrixXi(8, 12));
-    basicStuff(MatrixXd(20, 20));
+    basicStuff(MatrixXcd(20, 20));
   }
 }
 

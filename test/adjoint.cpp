@@ -93,10 +93,10 @@ void EigenTest::testAdjoint()
 {
   REPEAT {
     adjoint(Matrix<float, 1, 1>());
-    adjoint(Matrix4cd());
+    adjoint(Matrix4d());
     adjoint(MatrixXcf(3, 3));
     adjoint(MatrixXi(8, 12));
-    adjoint(MatrixXd(20, 20));
+    adjoint(MatrixXcd(20, 20));
   }
 }
 

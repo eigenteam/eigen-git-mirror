@@ -82,7 +82,12 @@ template<typename Scalar, typename Derived> class MatrixBase
     Row<Derived> row(int i) const;
     Column<Derived> col(int i) const;
     Minor<Derived> minor(int row, int col) const;
-    Block<Derived> block(int startRow, int endRow, int startCol, int endCol) const;
+    
+    DynBlock<Derived> dynBlock(int startRow, int startCol,
+                               int blockRows, int blockCols) const;
+    //template<int BlockRows, int BlockCols> Block<Derived, BlockRows, BlockCols>
+    //block(int startRow, int startCol) const;
+    
     Transpose<Derived> transpose() const;
     Conjugate<Derived> conjugate() const;
     Transpose<Conjugate<Derived> > adjoint() const { return conjugate().transpose(); }
