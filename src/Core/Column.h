@@ -53,14 +53,14 @@ template<typename MatrixType> class Column
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return 1; }
     
-    Scalar& _write(int row, int col=0)
+    Scalar& _write(int row, int col)
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.write(row, m_col);
     }
     
-    Scalar _read(int row, int col=0) const
+    Scalar _read(int row, int col) const
     {
       EIGEN_UNUSED(col);
       EIGEN_CHECK_ROW_RANGE(*this, row);

@@ -41,7 +41,7 @@ template<typename MatrixType> class Minor
                           MatrixType::ColsAtCompileTime - 1 : Dynamic;
 
     Minor(const MatRef& matrix,
-                int row, int col = 0)
+                int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
       EIGEN_CHECK_RANGES(matrix, row, col);
@@ -58,12 +58,12 @@ template<typename MatrixType> class Minor
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
     
-    Scalar& _write(int row, int col=0)
+    Scalar& _write(int row, int col)
     {
       return m_matrix.write(row + (row >= m_row), col + (col >= m_col));
     }
     
-    Scalar _read(int row, int col=0) const
+    Scalar _read(int row, int col) const
     {
       return m_matrix.read(row + (row >= m_row), col + (col >= m_col));
     }

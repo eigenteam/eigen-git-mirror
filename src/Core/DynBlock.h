@@ -59,12 +59,12 @@ template<typename MatrixType> class DynBlock
     int _rows() const { return m_blockRows; }
     int _cols() const { return m_blockCols; }
     
-    Scalar& _write(int row, int col=0)
+    Scalar& _write(int row, int col)
     {
       return m_matrix.write(row + m_startRow, col + m_startCol);
     }
     
-    Scalar _read(int row, int col=0) const
+    Scalar _read(int row, int col) const
     {
       return m_matrix.read(row + m_startRow, col + m_startCol);
     }
