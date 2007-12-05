@@ -52,11 +52,19 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     Scalar& write(int row, int col)
     {
+      // from this single point, we can check all writes to all matrix/expression
+      // types. We only want this however for internal testing, as this is very slow.
+      eigen_internal_assert(row >= 0 && row < rows()
+                         && col >= 0 && col < cols());
       return static_cast<Derived *>(this)->_write(row, col);
     }
     
     Scalar read(int row, int col) const
     {
+      // from this single point, we can check all reads to all matrix/expression
+      // types. We only want this however for internal testing, as this is very slow.
+      eigen_internal_assert(row >= 0 && row < rows()
+                         && col >= 0 && col < cols());
       return static_cast<const Derived *>(this)->_read(row, col);
     }
     
@@ -68,8 +76,8 @@ template<typename Scalar, typename Derived> class MatrixBase
       return *static_cast<Derived*>(this);
     }
     
-    //special case of the above template operator=. Strangely, g++ 4.1 failed to use
-    //that template when OtherDerived == Derived
+    //special case of the above template operator=, in order to prevent the compiler
+    //from generating a default operator= (issue hit with g++ 4.1)
     Derived& operator=(const MatrixBase& other)
     {
       assert(rows() == other.rows() && cols() == other.cols());
@@ -149,23 +157,47 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator/=(const std::complex<double>& other);
 
     Scalar operator()(int row, int col) const
-    { return read(row, col); }
+    {
+      assert(row >= 0 && row < rows()
+          && col >= 0 && col < cols());
+      return read(row, col);
+    }
     
     Scalar& operator()(int row, int col)
-    { return write(row, col); }
+    {
+      assert(row >= 0 && row < rows()
+          && col >= 0 && col < cols());
+      return write(row, col);
+    }
     
     Scalar operator[](int index) const
     {
       assert(IsVector);
-      if(RowsAtCompileTime == 1) return read(0, index);
-      else return read(index, 0);
+      if(RowsAtCompileTime == 1)
+      {
+        assert(index >= 0 && index < cols());
+        return read(0, index);
+      }
+      else
+      {
+        assert(index >= 0 && index < rows());
+        return read(index, 0);
+      }
     }
     
     Scalar& operator[](int index)
     {
       assert(IsVector);
-      if(RowsAtCompileTime == 1) return write(0, index);
-      else return write(index, 0);
+      if(RowsAtCompileTime == 1)
+      {
+        assert(index >= 0 && index < cols());
+        return write(0, index);
+      }
+      else
+      {
+        assert(index >= 0 && index < rows());
+        return write(index, 0);
+      }
     }
     
     Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;

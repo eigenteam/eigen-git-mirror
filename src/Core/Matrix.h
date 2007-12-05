@@ -51,13 +51,11 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     const Scalar& _read(int row, int col) const
     {
-      EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
     Scalar& _write(int row, int col)
     {
-      EIGEN_CHECK_RANGES(*this, row, col);
       return array()[row + col * Storage::_rows()];
     }
     
@@ -80,9 +78,23 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
     
-    explicit Matrix() : Storage() {}
-    explicit Matrix(int dim) : Storage(dim) {}
-    explicit Matrix(int rows, int cols) : Storage(rows, cols) {}
+    explicit Matrix() : Storage()
+    {
+      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+    }
+    explicit Matrix(int dim) : Storage(dim)
+    {
+      assert(dim > 0);
+      assert((RowsAtCompileTime == 1
+              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == dim))
+          || (ColsAtCompileTime == 1
+              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
+    }
+    explicit Matrix(int rows, int cols) : Storage(rows, cols)
+    {
+      assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+          && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+    }
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)
              : Storage(other.rows(), other.cols())

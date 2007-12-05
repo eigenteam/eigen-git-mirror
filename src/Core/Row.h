@@ -40,7 +40,7 @@ template<typename MatrixType> class Row
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
-      EIGEN_CHECK_ROW_RANGE(matrix, row);
+      assert(row >= 0 && row < matrix.rows());
     }
     
     Row(const Row& other)

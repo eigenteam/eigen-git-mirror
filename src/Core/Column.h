@@ -40,7 +40,7 @@ template<typename MatrixType> class Column
     Column(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)
     {
-      EIGEN_CHECK_COL_RANGE(matrix, col);
+      assert(col >= 0 && col < matrix.cols());
     }
     
     Column(const Column& other)
@@ -56,14 +56,12 @@ template<typename MatrixType> class Column
     Scalar& _write(int row, int col)
     {
       EIGEN_UNUSED(col);
-      EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.write(row, m_col);
     }
     
     Scalar _read(int row, int col) const
     {
       EIGEN_UNUSED(col);
-      EIGEN_CHECK_ROW_RANGE(*this, row);
       return m_matrix.read(row, m_col);
     }
     

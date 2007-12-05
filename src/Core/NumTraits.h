@@ -72,6 +72,7 @@ inline int sqrt(const int& x)
   // (the square root does not always exist within the integers).
   // Please cast to a floating-point type.
   assert(false);
+  return 0;
 }
 template<> inline int random()
 {
@@ -158,6 +159,7 @@ inline std::complex<float> sqrt(const std::complex<float>& x)
   // as this is ambiguous (there are two square roots).
   // What were you trying to do?
   assert(false);
+  return 0;
 }
 template<> inline std::complex<float> random()
 {

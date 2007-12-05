@@ -63,7 +63,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 void MatrixBase<Scalar, Derived>::_copy_helper(const MatrixBase<Scalar, OtherDerived>& other)
 {
-  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= EIGEN_LOOP_UNROLLING_LIMIT)
+  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
     CopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
   else
     for(int i = 0; i < rows(); i++)

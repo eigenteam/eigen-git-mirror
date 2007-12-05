@@ -32,13 +32,52 @@
 EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix;
 
+#ifdef EIGEN_INTERNAL_DEBUGGING
+#define eigen_internal_assert(x) assert(x)
+#else
+#define eigen_internal_assert(x)
+#endif
+
 #define EIGEN_UNUSED(x) (void)x
-#define EIGEN_CHECK_RANGES(matrix, row, col) \
-  assert(row >= 0 && row < (matrix).rows() && col >= 0 && col < (matrix).cols())
-#define EIGEN_CHECK_ROW_RANGE(matrix, row) \
-  assert(row >= 0 && row < (matrix).rows())
-#define EIGEN_CHECK_COL_RANGE(matrix, col) \
-  assert(col >= 0 && col < (matrix).cols())
+
+#ifdef NDEBUG
+#define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED(x)
+#else
+#define EIGEN_ONLY_USED_FOR_DEBUG(x)
+#endif
+
+#ifdef __GNUC__
+# define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
+# define EIGEN_RESTRICT      /*__restrict__*/
+#else
+# define EIGEN_ALWAYS_INLINE
+# define EIGEN_RESTRICT
+#endif
+
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename OtherScalar, typename OtherDerived> \
+Derived& operator Op(const MatrixBase<OtherScalar, OtherDerived>& other) \
+{ \
+  return MatrixBase<Scalar, Derived>::operator Op(other); \
+} \
+Derived& operator Op(const Derived& other) \
+{ \
+  return MatrixBase<Scalar, Derived>::operator Op(other); \
+}
+
+#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename Other> \
+Derived& operator Op(const Other& scalar) \
+{ \
+  return MatrixBase<Scalar, Derived>::operator Op(scalar); \
+}
+
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 //forward declarations
 template<typename _Scalar, int _Rows, int _Cols> class Matrix;
@@ -74,42 +113,5 @@ struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 };
 
 const int Dynamic = -1;
-
-#define EIGEN_LOOP_UNROLLING_LIMIT 25
-
-#define EIGEN_UNUSED(x) (void)x
-
-#ifdef __GNUC__
-# define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
-# define EIGEN_RESTRICT      /*__restrict__*/
-#else
-# define EIGEN_ALWAYS_INLINE
-# define EIGEN_RESTRICT
-#endif
-
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename OtherScalar, typename OtherDerived> \
-Derived& operator Op(const MatrixBase<OtherScalar, OtherDerived>& other) \
-{ \
-  return MatrixBase<Scalar, Derived>::operator Op(other); \
-} \
-Derived& operator Op(const Derived& other) \
-{ \
-  return MatrixBase<Scalar, Derived>::operator Op(other); \
-}
-
-#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename Other> \
-Derived& operator Op(const Other& scalar) \
-{ \
-  return MatrixBase<Scalar, Derived>::operator Op(scalar); \
-}
-
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #endif // EIGEN_UTIL_H

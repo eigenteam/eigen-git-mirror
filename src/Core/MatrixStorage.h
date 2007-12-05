@@ -35,7 +35,11 @@ class MatrixStorage
     Scalar m_array[RowsAtCompileTime * ColsAtCompileTime];
   
     void resize(int rows, int cols)
-    { assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime); }
+    {
+      EIGEN_ONLY_USED_FOR_DEBUG(rows);
+      EIGEN_ONLY_USED_FOR_DEBUG(cols);
+      assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime);
+    }
     
     int _rows() const
     { return RowsAtCompileTime; }
@@ -46,16 +50,12 @@ class MatrixStorage
   public:
     MatrixStorage() {}
     
-    MatrixStorage(int dim)
-    {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == dim)
-          || (ColsAtCompileTime == 1 && RowsAtCompileTime == dim));
-    }
+    MatrixStorage(int dim) { EIGEN_UNUSED(dim); }
     
     MatrixStorage(int rows, int cols)
     {
-      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0
-          && rows == RowsAtCompileTime && cols == ColsAtCompileTime);
+      EIGEN_UNUSED(rows);
+      EIGEN_UNUSED(cols);
     }
     
     ~MatrixStorage() {};
@@ -70,6 +70,7 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
     
     void resize(int rows, int cols)
     {
+      EIGEN_ONLY_USED_FOR_DEBUG(cols);
       assert(rows > 0 && cols == ColsAtCompileTime);
       if(rows > m_rows)
       {
@@ -88,13 +89,12 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
   public:
     MatrixStorage(int dim) : m_rows(dim)
     {
-      assert(m_rows > 0 && ColsAtCompileTime == 1);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
   
     MatrixStorage(int rows, int cols) : m_rows(rows)
     {
-      assert(m_rows > 0 && cols == ColsAtCompileTime && ColsAtCompileTime > 0);
+      EIGEN_UNUSED(cols);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
     
@@ -114,6 +114,7 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
     
     void resize(int rows, int cols)
     {
+      EIGEN_ONLY_USED_FOR_DEBUG(rows);
       assert(rows == RowsAtCompileTime && cols > 0);
       if(cols > m_cols)
       {
@@ -132,13 +133,12 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
   public:
     MatrixStorage(int dim) : m_cols(dim)
     {
-      assert(m_cols > 0 && RowsAtCompileTime == 1);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
     MatrixStorage(int rows, int cols) : m_cols(cols)
     {
-      assert(rows == RowsAtCompileTime && RowsAtCompileTime > 0 && cols > 0);
+      EIGEN_UNUSED(rows);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
@@ -175,9 +175,9 @@ class MatrixStorage<Scalar, Dynamic, Dynamic>
     { return m_cols; }
     
   public:
+    
     MatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(m_rows > 0 && m_cols > 0);
       m_array = new Scalar[m_rows * m_cols];
     }
     

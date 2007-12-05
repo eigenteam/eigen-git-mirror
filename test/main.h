@@ -27,6 +27,8 @@
 #define EIGEN_TEST_MAIN_H
 
 #include <QtTest/QtTest>
+
+#define EIGEN_INTERNAL_DEBUGGING
 #include "../src/Core.h"
 
 #include <cstdlib>

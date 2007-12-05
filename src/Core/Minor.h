@@ -44,7 +44,8 @@ template<typename MatrixType> class Minor
                 int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
-      EIGEN_CHECK_RANGES(matrix, row, col);
+      assert(row >= 0 && row < matrix.rows()
+          && col >= 0 && col < matrix.cols());
     }
     
     Minor(const Minor& other)
