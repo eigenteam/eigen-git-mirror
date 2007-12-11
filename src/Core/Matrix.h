@@ -40,21 +40,21 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
-    const Scalar* array() const EIGEN_ALWAYS_INLINE
+    const Scalar* array() const
     { return Storage::m_array; }
     
-    Scalar* array() EIGEN_ALWAYS_INLINE
+    Scalar* array()
     { return Storage::m_array; }
     
   private:
     Ref _ref() const { return Ref(*this); }
     
-    const Scalar& _read(int row, int col) const EIGEN_ALWAYS_INLINE
+    const Scalar& _read(int row, int col) const
     {
       return array()[row + col * Storage::_rows()];
     }
     
-    Scalar& _write(int row, int col) EIGEN_ALWAYS_INLINE
+    Scalar& _write(int row, int col)
     {
       return array()[row + col * Storage::_rows()];
     }

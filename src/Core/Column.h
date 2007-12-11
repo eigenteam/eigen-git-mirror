@@ -50,16 +50,16 @@ template<typename MatrixType> class Column
     
   private:
     const Column& _ref() const { return *this; }
-    int _rows() const EIGEN_ALWAYS_INLINE { return m_matrix.rows(); }
-    int _cols() const EIGEN_ALWAYS_INLINE { return 1; }
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return 1; }
     
-    Scalar& _write(int row, int col) EIGEN_ALWAYS_INLINE
+    Scalar& _write(int row, int col)
     {
       EIGEN_UNUSED(col);
       return m_matrix.write(row, m_col);
     }
     
-    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
+    Scalar _read(int row, int col) const
     {
       EIGEN_UNUSED(col);
       return m_matrix.read(row, m_col);

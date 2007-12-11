@@ -57,16 +57,16 @@ template<typename MatrixType> class Row
   private:
     const Row& _ref() const { return *this; }
     
-    int _rows() const EIGEN_ALWAYS_INLINE { return 1; }
-    int _cols() const EIGEN_ALWAYS_INLINE { return m_matrix.cols(); }
+    int _rows() const { return 1; }
+    int _cols() const { return m_matrix.cols(); }
     
-    Scalar& _write(int row, int col) EIGEN_ALWAYS_INLINE
+    Scalar& _write(int row, int col)
     {
       EIGEN_UNUSED(row);
       return m_matrix.write(m_row, col);
     }
     
-    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
+    Scalar _read(int row, int col) const
     {
       EIGEN_UNUSED(row);
       return m_matrix.read(m_row, col);

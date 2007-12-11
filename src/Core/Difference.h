@@ -52,10 +52,10 @@ template<typename Lhs, typename Rhs> class Difference
 
   private:
     const Difference& _ref() const { return *this; }
-    int _rows() const EIGEN_ALWAYS_INLINE { return m_lhs.rows(); }
-    int _cols() const EIGEN_ALWAYS_INLINE { return m_lhs.cols(); }
+    int _rows() const { return m_lhs.rows(); }
+    int _cols() const { return m_lhs.cols(); }
 
-    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
+    Scalar _read(int row, int col) const
     {
       return m_lhs.read(row, col) - m_rhs.read(row, col);
     }

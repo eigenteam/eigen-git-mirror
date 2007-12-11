@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
     bool has_set_repeat = false;
     bool has_set_seed = false;
     bool need_help = false;
-    unsigned int seed = 0;
-    int repeat = 0;
+    unsigned int seed;
+    int repeat;
     
     QStringList args = QCoreApplication::instance()->arguments();
     args.takeFirst(); // throw away the first argument (path to executable)

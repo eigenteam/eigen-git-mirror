@@ -47,10 +47,10 @@ template<typename MatrixType> class Conjugate
     
   private:
     const Conjugate& _ref() const { return *this; }
-    int _rows() const EIGEN_ALWAYS_INLINE { return m_matrix.rows(); }
-    int _cols() const EIGEN_ALWAYS_INLINE { return m_matrix.cols(); }
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return m_matrix.cols(); }
     
-    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
+    Scalar _read(int row, int col) const
     {
       return conj(m_matrix.read(row, col));
     }

@@ -41,10 +41,10 @@ class MatrixStorage
       assert(rows == RowsAtCompileTime && cols == ColsAtCompileTime);
     }
     
-    int _rows() const EIGEN_ALWAYS_INLINE
+    int _rows() const
     { return RowsAtCompileTime; }
     
-    int _cols() const EIGEN_ALWAYS_INLINE
+    int _cols() const
     { return ColsAtCompileTime; }
 
   public:
@@ -80,10 +80,10 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
       m_rows = rows;
     }
     
-    int _rows() const EIGEN_ALWAYS_INLINE
+    int _rows() const
     { return m_rows; }
     
-    int _cols() const EIGEN_ALWAYS_INLINE
+    int _cols() const
     { return ColsAtCompileTime; }
     
   public:
@@ -124,10 +124,10 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
       m_cols = cols;
     }
     
-    int _rows() const EIGEN_ALWAYS_INLINE
+    int _rows() const
     { return RowsAtCompileTime; }
     
-    int _cols() const EIGEN_ALWAYS_INLINE
+    int _cols() const
     { return m_cols; }
     
   public:
@@ -168,10 +168,10 @@ class MatrixStorage<Scalar, Dynamic, Dynamic>
       m_cols = cols;
     }
     
-    int _rows() const EIGEN_ALWAYS_INLINE
+    int _rows() const
     { return m_rows; }
     
-    int _cols() const EIGEN_ALWAYS_INLINE
+    int _cols() const
     { return m_cols; }
     
   public:
