@@ -138,7 +138,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 
 void EigenTest::testBasicStuff()
 {
-  REPEAT {
+  for(int i = 0; i < m_repeat; i++) {
     basicStuff(Matrix<float, 1, 1>());
     basicStuff(Matrix4d());
     basicStuff(MatrixXcf(3, 3));

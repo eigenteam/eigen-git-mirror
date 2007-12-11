@@ -35,7 +35,6 @@
 #include <ctime>
 
 #define DEFAULT_REPEAT 50
-#define REPEAT for(int repeat_iteration = 0; repeat_iteration < m_repeat; repeat_iteration++)
 
 #define VERIFY(a) QVERIFY(a)
 #define VERIFY_IS_APPROX(a, b) QVERIFY(test_isApprox(a, b))
@@ -116,6 +115,7 @@ class EigenTest : public QObject
   private slots:
     void testBasicStuff();
     void testAdjoint();
+    void testSubmatrices();
  
   protected:
     int m_repeat;

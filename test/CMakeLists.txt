@@ -8,6 +8,7 @@ SET(test_SRCS
   main.cpp
   basicstuff.cpp
   adjoint.cpp
+  submatrices.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 

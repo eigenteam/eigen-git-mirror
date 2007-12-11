@@ -91,7 +91,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 
 void EigenTest::testAdjoint()
 {
-  REPEAT {
+  for(int i = 0; i < m_repeat; i++) {
     adjoint(Matrix<float, 1, 1>());
     adjoint(Matrix4d());
     adjoint(MatrixXcf(3, 3));
