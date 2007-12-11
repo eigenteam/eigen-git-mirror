@@ -40,6 +40,17 @@ template<int UnrollCount, int Rows> struct CopyHelperUnroller
   }
 };
 
+// prevent buggy user code from causing an infinite recursion
+template<int UnrollCount> struct CopyHelperUnroller<UnrollCount, 0>
+{
+  template <typename Derived1, typename Derived2>
+  static void run(Derived1 &dst, const Derived2 &src)
+  {
+    EIGEN_UNUSED(dst);
+    EIGEN_UNUSED(src);
+  }
+};
+
 template<int Rows> struct CopyHelperUnroller<1, Rows>
 {
   template <typename Derived1, typename Derived2>
@@ -63,7 +74,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 void MatrixBase<Scalar, Derived>::_copy_helper(const MatrixBase<Scalar, OtherDerived>& other)
 {
-  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
+  if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
     CopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
   else
     for(int i = 0; i < rows(); i++)

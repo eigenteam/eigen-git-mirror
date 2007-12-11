@@ -31,7 +31,7 @@ template<int Index, int Rows, typename Derived> struct TraceUnroller
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
     TraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
-    trace += mat(Index, Index);
+    trace += mat.read(Index, Index);
   }
 };
 
@@ -39,11 +39,21 @@ template<int Rows, typename Derived> struct TraceUnroller<0, Rows, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    trace = mat(0, 0);
+    trace = mat.read(0, 0);
   }
 };
 
 template<int Index, typename Derived> struct TraceUnroller<Index, Dynamic, Derived>
+{
+  static void run(const Derived &mat, typename Derived::Scalar &trace)
+  {
+    EIGEN_UNUSED(mat);
+    EIGEN_UNUSED(trace);
+  }
+};
+
+// prevent buggy user code from causing an infinite recursion
+template<int Index, typename Derived> struct TraceUnroller<Index, 0, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
@@ -57,7 +67,7 @@ Scalar MatrixBase<Scalar, Derived>::trace() const
 {
   assert(rows() == cols());
   Scalar res;
-  if(RowsAtCompileTime != Dynamic && RowsAtCompileTime <= 16)
+  if(EIGEN_UNROLLED_LOOPS && RowsAtCompileTime != Dynamic && RowsAtCompileTime <= 16)
     TraceUnroller<RowsAtCompileTime-1, RowsAtCompileTime, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else

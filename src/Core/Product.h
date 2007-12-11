@@ -61,6 +61,21 @@ struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
   }
 };
 
+// prevent buggy user code from causing an infinite recursion
+template<int Index, typename Lhs, typename Rhs>
+struct ProductUnroller<Index, 0, Lhs, Rhs>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+                  typename Lhs::Scalar &res)
+  {
+    EIGEN_UNUSED(row);
+    EIGEN_UNUSED(col);
+    EIGEN_UNUSED(lhs);
+    EIGEN_UNUSED(rhs);
+    EIGEN_UNUSED(res);
+  }
+};
+
 template<typename Lhs, typename Rhs> class Product
   : public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
 {
@@ -93,14 +108,15 @@ template<typename Lhs, typename Rhs> class Product
     Scalar _read(int row, int col) const
     {
       Scalar res;
-      if(Lhs::ColsAtCompileTime != Dynamic && Lhs::ColsAtCompileTime <= 16)
+      if(EIGEN_UNROLLED_LOOPS
+      && Lhs::ColsAtCompileTime != Dynamic && Lhs::ColsAtCompileTime <= 16)
         ProductUnroller<Lhs::ColsAtCompileTime-1, Lhs::ColsAtCompileTime, LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
-        res = m_lhs(row, 0) * m_rhs(0, col);
+        res = m_lhs.read(row, 0) * m_rhs.read(0, col);
         for(int i = 1; i < m_lhs.cols(); i++)
-          res += m_lhs(row, i) * m_rhs(i, col);
+          res += m_lhs.read(row, i) * m_rhs.read(i, col);
       }
       return res;
     }
@@ -112,7 +128,7 @@ template<typename Lhs, typename Rhs> class Product
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-Product<Derived, OtherDerived>
+const Product<Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> &other) const
 {
   return Product<Derived, OtherDerived>(ref(), other.ref());

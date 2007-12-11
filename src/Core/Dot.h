@@ -32,7 +32,7 @@ struct DotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     DotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1[Index] * conj(v2[Index]);
+    dot += v1.read(Index) * conj(v2.read(Index));
   }
 };
 
@@ -41,12 +41,24 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    dot = v1[0] * conj(v2[0]);
+    dot = v1.read(0) * conj(v2.read(0));
   }
 };
 
 template<int Index, typename Derived1, typename Derived2>
 struct DotUnroller<Index, Dynamic, Derived1, Derived2>
+{
+  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
+  {
+    EIGEN_UNUSED(v1);
+    EIGEN_UNUSED(v2);
+    EIGEN_UNUSED(dot);
+  }
+};
+
+// prevent buggy user code from causing an infinite recursion
+template<int Index, typename Derived1, typename Derived2>
+struct DotUnroller<Index, 0, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
@@ -62,14 +74,14 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
   assert(IsVector && OtherDerived::IsVector && size() == other.size());
   Scalar res;
-  if(SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 16)
+  if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 16)
     DotUnroller<SizeAtCompileTime-1, SizeAtCompileTime, Derived, OtherDerived>
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
-    res = (*this)[0] * conj(other[0]);
+    res = (*this).read(0) * conj(other.read(0));
     for(int i = 1; i < size(); i++)
-      res += (*this)[i]* conj(other[i]);
+      res += (*this).read(i)* conj(other.read(i));
   }
   return res;
 }
