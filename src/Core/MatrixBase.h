@@ -31,9 +31,6 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const int RowsAtCompileTime = Derived::RowsAtCompileTime,
                      ColsAtCompileTime = Derived::ColsAtCompileTime;
     
-    template<typename OtherDerived>
-    void _copy_helper(const MatrixBase<Scalar, OtherDerived>& other);
-    
   public:
     static const int SizeAtCompileTime
       = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
@@ -51,20 +48,13 @@ template<typename Scalar, typename Derived> class MatrixBase
     { return static_cast<const Derived *>(this)->_ref(); }
     
     template<typename OtherDerived>
-    Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other)
-    {
-      assert(rows() == other.rows() && cols() == other.cols());
-      _copy_helper(other);
-      return *static_cast<Derived*>(this);
-    }
+    Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
     
     //special case of the above template operator=, in order to prevent the compiler
     //from generating a default operator= (issue hit with g++ 4.1)
     Derived& operator=(const MatrixBase& other)
     {
-      assert(rows() == other.rows() && cols() == other.cols());
-      _copy_helper(other);
-      return *static_cast<Derived*>(this);
+      return this->operator=<Derived>(other);
     }
     
     template<typename NewScalar> Cast<NewScalar, Derived> cast() const;

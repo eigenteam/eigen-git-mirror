@@ -24,10 +24,10 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_COPYHELPER_H
-#define EIGEN_COPYHELPER_H
+#ifndef EIGEN_OPERATOREQUALS_H
+#define EIGEN_OPERATOREQUALS_H
 
-template<int UnrollCount, int Rows> struct CopyHelperUnroller
+template<int UnrollCount, int Rows> struct OperatorEqualsUnroller
 {
   static const int col = (UnrollCount-1) / Rows;
   static const int row = (UnrollCount-1) % Rows;
@@ -35,13 +35,13 @@ template<int UnrollCount, int Rows> struct CopyHelperUnroller
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    CopyHelperUnroller<UnrollCount-1, Rows>::run(dst, src);
+    OperatorEqualsUnroller<UnrollCount-1, Rows>::run(dst, src);
     dst.write(row, col) = src.read(row, col);
   }
 };
 
 // prevent buggy user code from causing an infinite recursion
-template<int UnrollCount> struct CopyHelperUnroller<UnrollCount, 0>
+template<int UnrollCount> struct OperatorEqualsUnroller<UnrollCount, 0>
 {
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
@@ -51,7 +51,7 @@ template<int UnrollCount> struct CopyHelperUnroller<UnrollCount, 0>
   }
 };
 
-template<int Rows> struct CopyHelperUnroller<1, Rows>
+template<int Rows> struct OperatorEqualsUnroller<1, Rows>
 {
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
@@ -60,7 +60,7 @@ template<int Rows> struct CopyHelperUnroller<1, Rows>
   }
 };
 
-template<int Rows> struct CopyHelperUnroller<Dynamic, Rows>
+template<int Rows> struct OperatorEqualsUnroller<Dynamic, Rows>
 {
   template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
@@ -72,14 +72,17 @@ template<int Rows> struct CopyHelperUnroller<Dynamic, Rows>
 
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Scalar, Derived>::_copy_helper(const MatrixBase<Scalar, OtherDerived>& other)
+Derived& MatrixBase<Scalar, Derived>
+  ::operator=(const MatrixBase<Scalar, OtherDerived>& other)
 {
+  assert(rows() == other.rows() && cols() == other.cols());
   if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
-    CopyHelperUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
+    OperatorEqualsUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
   else
-    for(int i = 0; i < rows(); i++)
-      for(int j = 0; j < cols(); j++)
+    for(int j = 0; j < cols(); j++) //traverse in column-dominant order
+      for(int i = 0; i < rows(); i++)
         write(i, j) = other.read(i, j);
+  return *static_cast<Derived*>(this);
 }
 
-#endif // EIGEN_COPYHELPER_H
+#endif // EIGEN_OPERATOREQUALS_H
