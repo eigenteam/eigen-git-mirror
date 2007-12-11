@@ -57,6 +57,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
 };
 
 template<typename T> inline typename NumTraits<T>::Real precision();
+template<typename T> inline T random(const T& a, const T& b);
 template<typename T> inline T random();
 
 template<> inline int precision<int>() { return 0; }
@@ -74,12 +75,17 @@ inline int sqrt(const int& x)
   assert(false);
   return 0;
 }
+template<> inline int random(const int& a, const int& b)
+{
+  // We can't just do rand()%n as only the high-order bits are really random
+  return a + static_cast<int>((b-a+1) * (rand() / (RAND_MAX + 1.0)));
+}
 template<> inline int random()
 {
   // "rand() % n" is bad, they say, because the low-order bits are not random enough.
   // However here, 21 is odd, so random() % 21 uses the high-order bits
   // as well, so there's no problem.
-  return (std::rand() % 21) - 10;
+  return random<int>(-10, 10);
 }
 inline bool isMuchSmallerThan(const int& a, const int& b, const int& prec = precision<int>())
 {
@@ -105,9 +111,13 @@ inline float conj(const float& x)  { return x; }
 inline float abs(const float& x)   { return std::abs(x); }
 inline float abs2(const float& x)  { return x*x; }
 inline float sqrt(const float& x)  { return std::sqrt(x); }
+template<> inline float random(const float& a, const float& b)
+{
+  return a + (b-a) * std::rand() / RAND_MAX;
+}
 template<> inline float random()
 {
-  return std::rand() / (RAND_MAX/20.0f) - 10.0f;
+  return random<float>(-10.0f, 10.0f);
 }
 inline bool isMuchSmallerThan(const float& a, const float& b, const float& prec = precision<float>())
 {
@@ -129,9 +139,13 @@ inline double conj(const double& x)  { return x; }
 inline double abs(const double& x)   { return std::abs(x); }
 inline double abs2(const double& x)  { return x*x; }
 inline double sqrt(const double& x)  { return std::sqrt(x); }
+template<> inline double random(const double& a, const double& b)
+{
+  return a + (b-a) * std::rand() / RAND_MAX;
+}
 template<> inline double random()
 {
-  return std::rand() / (RAND_MAX/20.0) - 10.0;
+  return random<double>(-10.0, 10.0);
 }
 inline bool isMuchSmallerThan(const double& a, const double& b, const double& prec = precision<double>())
 {
