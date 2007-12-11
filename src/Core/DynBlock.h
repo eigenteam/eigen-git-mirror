@@ -34,8 +34,9 @@ template<typename MatrixType> class DynBlock
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, DynBlock<MatrixType> >;
     
-    static const int RowsAtCompileTime = Dynamic,
-                     ColsAtCompileTime = Dynamic;
+    static const int
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
 
     DynBlock(const MatRef& matrix,
           int startRow, int startCol,
@@ -44,7 +45,7 @@ template<typename MatrixType> class DynBlock
                           m_blockRows(blockRows), m_blockCols(blockCols)
     {
       assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
-          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.rows());
+          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
     
     DynBlock(const DynBlock& other)

@@ -42,7 +42,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {
       assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.rows());
+          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
     
     Block(const Block& other)
