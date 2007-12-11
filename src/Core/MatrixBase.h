@@ -42,31 +42,13 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     typedef typename ForwardDecl<Derived>::Ref Ref;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-  
+    
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     int size() const { return rows() * cols(); }
     
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
-    
-    Scalar& write(int row, int col)
-    {
-      // from this single point, we can check all writes to all matrix/expression
-      // types. We only want this however for internal testing, as this is very slow.
-      eigen_internal_assert(row >= 0 && row < rows()
-                         && col >= 0 && col < cols());
-      return static_cast<Derived *>(this)->_write(row, col);
-    }
-    
-    Scalar read(int row, int col) const
-    {
-      // from this single point, we can check all reads to all matrix/expression
-      // types. We only want this however for internal testing, as this is very slow.
-      eigen_internal_assert(row >= 0 && row < rows()
-                         && col >= 0 && col < cols());
-      return static_cast<const Derived *>(this)->_read(row, col);
-    }
     
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other)
@@ -132,7 +114,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     ) const;
     
     template<typename OtherDerived>
-    Product<Derived, OtherDerived>
+    const Product<Derived, OtherDerived>
     lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
     
     Opposite<Derived> operator-() const;
@@ -156,49 +138,53 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator/=(const std::complex<float>& other);
     Derived& operator/=(const std::complex<double>& other);
 
-    Scalar operator()(int row, int col) const
+    Scalar read(int row, int col, AssertLevel assertLevel = InternalDebugging) const
     {
-      assert(row >= 0 && row < rows()
-          && col >= 0 && col < cols());
-      return read(row, col);
+      eigen_assert(assertLevel, row >= 0 && row < rows()
+                                && col >= 0 && col < cols());
+      return static_cast<const Derived *>(this)->_read(row, col);
     }
+    Scalar operator()(int row, int col) const { return read(row, col, UserDebugging); }
     
-    Scalar& operator()(int row, int col)
+    Scalar& write(int row, int col, AssertLevel assertLevel = InternalDebugging)
     {
-      assert(row >= 0 && row < rows()
-          && col >= 0 && col < cols());
-      return write(row, col);
+      eigen_assert(assertLevel, row >= 0 && row < rows()
+                                && col >= 0 && col < cols());
+      return static_cast<Derived *>(this)->_write(row, col);
     }
+    Scalar& operator()(int row, int col) { return write(row, col, UserDebugging); }
     
-    Scalar operator[](int index) const
+    Scalar read(int index, AssertLevel assertLevel = InternalDebugging) const
     {
-      assert(IsVector);
+      eigen_assert(assertLevel, IsVector);
       if(RowsAtCompileTime == 1)
       {
-        assert(index >= 0 && index < cols());
+        eigen_assert(assertLevel, index >= 0 && index < cols());
         return read(0, index);
       }
       else
       {
-        assert(index >= 0 && index < rows());
+        eigen_assert(assertLevel, index >= 0 && index < rows());
         return read(index, 0);
       }
     }
+    Scalar operator[](int index) const { return read(index, UserDebugging); }
     
-    Scalar& operator[](int index)
+    Scalar& write(int index, AssertLevel assertLevel = InternalDebugging)
     {
-      assert(IsVector);
+      eigen_assert(assertLevel, IsVector);
       if(RowsAtCompileTime == 1)
       {
-        assert(index >= 0 && index < cols());
+        eigen_assert(assertLevel, index >= 0 && index < cols());
         return write(0, index);
       }
       else
       {
-        assert(index >= 0 && index < rows());
+        eigen_assert(assertLevel, index >= 0 && index < rows());
         return write(index, 0);
       }
     }
+    Scalar& operator[](int index) { return write(index, UserDebugging); }
     
     Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };

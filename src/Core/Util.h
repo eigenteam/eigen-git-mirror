@@ -26,6 +26,12 @@
 #ifndef EIGEN_UTIL_H
 #define EIGEN_UTIL_H
 
+#ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
+#define EIGEN_UNROLLED_LOOPS (false)
+#else
+#define EIGEN_UNROLLED_LOOPS (true)
+#endif
+
 #undef minor
 
 #define USING_EIGEN_DATA_TYPES \
@@ -33,10 +39,12 @@ EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix;
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
-#define eigen_internal_assert(x) assert(x)
+#define EIGEN_ASSERT_LEVEL 2
 #else
-#define eigen_internal_assert(x)
+#define EIGEN_ASSERT_LEVEL 1
 #endif
+
+#define eigen_assert(assertLevel, x) if(assertLevel <= EIGEN_ASSERT_LEVEL) assert(x);
 
 #define EIGEN_UNUSED(x) (void)x
 
@@ -48,10 +56,8 @@ using Eigen::Matrix;
 
 #ifdef __GNUC__
 # define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
-# define EIGEN_RESTRICT      /*__restrict__*/
 #else
 # define EIGEN_ALWAYS_INLINE
-# define EIGEN_RESTRICT
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
@@ -113,5 +119,11 @@ struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 };
 
 const int Dynamic = -1;
+
+enum AssertLevel
+{
+  UserDebugging = 1,
+  InternalDebugging = 2
+};
 
 #endif // EIGEN_UTIL_H
