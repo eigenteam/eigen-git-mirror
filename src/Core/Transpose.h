@@ -46,15 +46,15 @@ template<typename MatrixType> class Transpose
     
   private:
     const Transpose& _ref() const { return *this; }
-    int _rows() const { return m_matrix.cols(); }
-    int _cols() const { return m_matrix.rows(); }
+    int _rows() const EIGEN_ALWAYS_INLINE { return m_matrix.cols(); }
+    int _cols() const EIGEN_ALWAYS_INLINE { return m_matrix.rows(); }
     
-    Scalar& _write(int row, int col)
+    Scalar& _write(int row, int col) EIGEN_ALWAYS_INLINE
     {
       return m_matrix.write(col, row);
     }
     
-    Scalar _read(int row, int col) const
+    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
     {
       return m_matrix.read(col, row);
     }

@@ -30,7 +30,7 @@ template<int Index, int Size, typename Lhs, typename Rhs>
 struct ProductUnroller
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
+                         typename Lhs::Scalar &res)
   {
     ProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
     res += lhs.read(row, Index) * rhs.read(Index, col);
@@ -41,7 +41,7 @@ template<int Size, typename Lhs, typename Rhs>
 struct ProductUnroller<0, Size, Lhs, Rhs>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
+                         typename Lhs::Scalar &res)
   {
     res = lhs.read(row, 0) * rhs.read(0, col);
   }
@@ -51,7 +51,7 @@ template<int Index, typename Lhs, typename Rhs>
 struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
+                         typename Lhs::Scalar &res)
   {
     EIGEN_UNUSED(row);
     EIGEN_UNUSED(col);
@@ -66,7 +66,7 @@ template<int Index, typename Lhs, typename Rhs>
 struct ProductUnroller<Index, 0, Lhs, Rhs>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
+                         typename Lhs::Scalar &res)
   {
     EIGEN_UNUSED(row);
     EIGEN_UNUSED(col);

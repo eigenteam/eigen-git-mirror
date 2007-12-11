@@ -40,15 +40,15 @@ template<typename MatrixType> class MatrixRef
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
   private:
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
+    int _rows() const EIGEN_ALWAYS_INLINE { return m_matrix.rows(); }
+    int _cols() const EIGEN_ALWAYS_INLINE { return m_matrix.cols(); }
 
-    const Scalar& _read(int row, int col) const
+    const Scalar& _read(int row, int col) const EIGEN_ALWAYS_INLINE
     {
       return m_matrix._read(row, col);
     }
     
-    Scalar& _write(int row, int col)
+    Scalar& _write(int row, int col) EIGEN_ALWAYS_INLINE
     {
       return m_matrix.write(row, col);
     }

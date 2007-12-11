@@ -47,10 +47,10 @@ template<typename MatrixType> class Opposite
     
   private:
     const Opposite& _ref() const { return *this; }
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
+    int _rows() const EIGEN_ALWAYS_INLINE { return m_matrix.rows(); }
+    int _cols() const EIGEN_ALWAYS_INLINE { return m_matrix.cols(); }
     
-    Scalar _read(int row, int col) const
+    Scalar _read(int row, int col) const EIGEN_ALWAYS_INLINE
     {
       return -(m_matrix.read(row, col));
     }

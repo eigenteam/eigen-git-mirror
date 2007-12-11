@@ -40,9 +40,12 @@ template<typename Scalar, typename Derived> class MatrixBase
     typedef typename ForwardDecl<Derived>::Ref Ref;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     
-    int rows() const { return static_cast<const Derived *>(this)->_rows(); }
-    int cols() const { return static_cast<const Derived *>(this)->_cols(); }
-    int size() const { return rows() * cols(); }
+    int rows() const EIGEN_ALWAYS_INLINE
+    { return static_cast<const Derived *>(this)->_rows(); }
+    int cols() const EIGEN_ALWAYS_INLINE
+    { return static_cast<const Derived *>(this)->_cols(); }
+    int size() const EIGEN_ALWAYS_INLINE
+    { return rows() * cols(); }
     
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
@@ -129,6 +132,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator/=(const std::complex<double>& other);
 
     Scalar read(int row, int col, AssertLevel assertLevel = InternalDebugging) const
+    EIGEN_ALWAYS_INLINE
     {
       eigen_assert(assertLevel, row >= 0 && row < rows()
                                 && col >= 0 && col < cols());
@@ -137,6 +141,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar operator()(int row, int col) const { return read(row, col, UserDebugging); }
     
     Scalar& write(int row, int col, AssertLevel assertLevel = InternalDebugging)
+    EIGEN_ALWAYS_INLINE
     {
       eigen_assert(assertLevel, row >= 0 && row < rows()
                                 && col >= 0 && col < cols());
@@ -145,6 +150,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& operator()(int row, int col) { return write(row, col, UserDebugging); }
     
     Scalar read(int index, AssertLevel assertLevel = InternalDebugging) const
+    EIGEN_ALWAYS_INLINE
     {
       eigen_assert(assertLevel, IsVector);
       if(RowsAtCompileTime == 1)
@@ -161,6 +167,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar operator[](int index) const { return read(index, UserDebugging); }
     
     Scalar& write(int index, AssertLevel assertLevel = InternalDebugging)
+    EIGEN_ALWAYS_INLINE
     {
       eigen_assert(assertLevel, IsVector);
       if(RowsAtCompileTime == 1)

@@ -27,23 +27,23 @@
 #ifndef EIGEN_OPERATOREQUALS_H
 #define EIGEN_OPERATOREQUALS_H
 
-template<int UnrollCount, int Rows> struct OperatorEqualsUnroller
+template<typename Derived1, typename Derived2, int UnrollCount, int Rows>
+struct OperatorEqualsUnroller
 {
   static const int col = (UnrollCount-1) / Rows;
   static const int row = (UnrollCount-1) % Rows;
 
-  template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    OperatorEqualsUnroller<UnrollCount-1, Rows>::run(dst, src);
+    OperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1, Rows>::run(dst, src);
     dst.write(row, col) = src.read(row, col);
   }
 };
 
 // prevent buggy user code from causing an infinite recursion
-template<int UnrollCount> struct OperatorEqualsUnroller<UnrollCount, 0>
+template<typename Derived1, typename Derived2, int UnrollCount>
+struct OperatorEqualsUnroller<Derived1, Derived2, UnrollCount, 0>
 {
-  template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     EIGEN_UNUSED(dst);
@@ -51,18 +51,18 @@ template<int UnrollCount> struct OperatorEqualsUnroller<UnrollCount, 0>
   }
 };
 
-template<int Rows> struct OperatorEqualsUnroller<1, Rows>
+template<typename Derived1, typename Derived2, int Rows>
+struct OperatorEqualsUnroller<Derived1, Derived2, 1, Rows>
 {
-  template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     dst.write(0, 0) = src.read(0, 0);
   }
 };
 
-template<int Rows> struct OperatorEqualsUnroller<Dynamic, Rows>
+template<typename Derived1, typename Derived2, int Rows>
+struct OperatorEqualsUnroller<Derived1, Derived2, Dynamic, Rows>
 {
-  template <typename Derived1, typename Derived2>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     EIGEN_UNUSED(dst);
@@ -77,7 +77,9 @@ Derived& MatrixBase<Scalar, Derived>
 {
   assert(rows() == other.rows() && cols() == other.cols());
   if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
-    OperatorEqualsUnroller<SizeAtCompileTime, RowsAtCompileTime>::run(*this, other);
+    OperatorEqualsUnroller
+      <Derived, OtherDerived, SizeAtCompileTime, RowsAtCompileTime>::run
+        (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
   else
     for(int j = 0; j < cols(); j++) //traverse in column-dominant order
       for(int i = 0; i < rows(); i++)
