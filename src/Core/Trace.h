@@ -45,21 +45,13 @@ template<int Rows, typename Derived> struct TraceUnroller<0, Rows, Derived>
 
 template<int Index, typename Derived> struct TraceUnroller<Index, Dynamic, Derived>
 {
-  static void run(const Derived &mat, typename Derived::Scalar &trace)
-  {
-    EIGEN_UNUSED(mat);
-    EIGEN_UNUSED(trace);
-  }
+  static void run(const Derived&, typename Derived::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Derived> struct TraceUnroller<Index, 0, Derived>
 {
-  static void run(const Derived &mat, typename Derived::Scalar &trace)
-  {
-    EIGEN_UNUSED(mat);
-    EIGEN_UNUSED(trace);
-  }
+  static void run(const Derived&, typename Derived::Scalar&) {}
 };
 
 template<typename Scalar, typename Derived>

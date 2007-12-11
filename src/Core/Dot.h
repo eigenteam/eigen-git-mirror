@@ -48,24 +48,14 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 template<int Index, typename Derived1, typename Derived2>
 struct DotUnroller<Index, Dynamic, Derived1, Derived2>
 {
-  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
-  {
-    EIGEN_UNUSED(v1);
-    EIGEN_UNUSED(v2);
-    EIGEN_UNUSED(dot);
-  }
+  static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Derived1, typename Derived2>
 struct DotUnroller<Index, 0, Derived1, Derived2>
 {
-  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
-  {
-    EIGEN_UNUSED(v1);
-    EIGEN_UNUSED(v2);
-    EIGEN_UNUSED(dot);
-  }
+  static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
 template<typename Scalar, typename Derived>

@@ -46,10 +46,8 @@ using Eigen::Matrix;
 
 #define eigen_assert(assertLevel, x) if(assertLevel <= EIGEN_ASSERT_LEVEL) assert(x);
 
-#define EIGEN_UNUSED(x) (void)x
-
 #ifdef NDEBUG
-#define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED(x)
+#define EIGEN_ONLY_USED_FOR_DEBUG(x) (void)x
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif

@@ -50,30 +50,14 @@ struct ProductUnroller<0, Size, Lhs, Rhs>
 template<int Index, typename Lhs, typename Rhs>
 struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
-  {
-    EIGEN_UNUSED(row);
-    EIGEN_UNUSED(col);
-    EIGEN_UNUSED(lhs);
-    EIGEN_UNUSED(rhs);
-    EIGEN_UNUSED(res);
-  }
+  static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Lhs, typename Rhs>
 struct ProductUnroller<Index, 0, Lhs, Rhs>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
-  {
-    EIGEN_UNUSED(row);
-    EIGEN_UNUSED(col);
-    EIGEN_UNUSED(lhs);
-    EIGEN_UNUSED(rhs);
-    EIGEN_UNUSED(res);
-  }
+  static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
 template<typename Lhs, typename Rhs> class Product

@@ -50,13 +50,9 @@ class MatrixStorage
   public:
     MatrixStorage() {}
     
-    MatrixStorage(int dim) { EIGEN_UNUSED(dim); }
+    MatrixStorage(int) {}
     
-    MatrixStorage(int rows, int cols)
-    {
-      EIGEN_UNUSED(rows);
-      EIGEN_UNUSED(cols);
-    }
+    MatrixStorage(int, int) {}
     
     ~MatrixStorage() {};
 };
@@ -92,9 +88,8 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
   
-    MatrixStorage(int rows, int cols) : m_rows(rows)
+    MatrixStorage(int rows, int) : m_rows(rows)
     {
-      EIGEN_UNUSED(cols);
       m_array = new Scalar[m_rows * ColsAtCompileTime];
     }
     
@@ -136,9 +131,8 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     
-    MatrixStorage(int rows, int cols) : m_cols(cols)
+    MatrixStorage(int, int cols) : m_cols(cols)
     {
-      EIGEN_UNUSED(rows);
       m_array = new Scalar[m_cols * RowsAtCompileTime];
     }
     

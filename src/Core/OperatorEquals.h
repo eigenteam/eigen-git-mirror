@@ -44,11 +44,7 @@ struct OperatorEqualsUnroller
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct OperatorEqualsUnroller<Derived1, Derived2, UnrollCount, 0>
 {
-  static void run(Derived1 &dst, const Derived2 &src)
-  {
-    EIGEN_UNUSED(dst);
-    EIGEN_UNUSED(src);
-  }
+  static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, int Rows>
@@ -63,11 +59,7 @@ struct OperatorEqualsUnroller<Derived1, Derived2, 1, Rows>
 template<typename Derived1, typename Derived2, int Rows>
 struct OperatorEqualsUnroller<Derived1, Derived2, Dynamic, Rows>
 {
-  static void run(Derived1 &dst, const Derived2 &src)
-  {
-    EIGEN_UNUSED(dst);
-    EIGEN_UNUSED(src);
-  }
+  static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Scalar, typename Derived>

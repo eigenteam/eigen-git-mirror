@@ -49,10 +49,8 @@ template<typename MatrixType> class Zero
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
-    Scalar _read(int row, int col) const
+    Scalar _read(int, int) const
     {
-      EIGEN_UNUSED(row);
-      EIGEN_UNUSED(col);
       return static_cast<Scalar>(0);
     }
     
