@@ -57,7 +57,7 @@ template<typename MatrixType> class Conjugate : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived>
-Conjugate<Derived>
+const Conjugate<Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
 {
   return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());

@@ -61,6 +61,9 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   Scalar s1 = random<Scalar>(),
          s2 = random<Scalar>();
   
+  int r = random<int>(0, rows-1),
+      c = random<int>(0, cols-1);
+  
   // test Fuzzy.h and Zero.h.
   VERIFY_IS_APPROX(               v1,    v1);
   VERIFY_IS_NOT_APPROX(           v1,    2*v1);
@@ -74,6 +77,14 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(    mzero, m1);
   VERIFY_IS_NOT_MUCH_SMALLER_THAN(m1,    m1);
   VERIFY_IS_APPROX(               mzero, m1-m1);
+  
+  // always test operator() on each read-only expression class,
+  // in order to check const-qualifiers.
+  // indeed, if an expression class (here Zero) is meant to be read-only,
+  // hence has no _write() method, the corresponding MatrixBase method (here zero())
+  // should return a const-qualified object so that it is the const-qualified
+  // operator() that gets called, which in turn calls _read().
+  VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::zero()(r,c), static_cast<Scalar>(1));
   
   // test the linear structure, i.e. the following files:
   // Sum.h Difference.h Opposite.h ScalarMultiple.h
@@ -100,6 +111,15 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
     VERIFY_IS_APPROX(m3,                    m2/s1);
   }
   
+  // again, test operator() to check const-qualification
+  VERIFY_IS_APPROX((-m1)(r,c), -(m1(r,c)));
+  VERIFY_IS_APPROX((m1-m2)(r,c), (m1(r,c))-(m2(r,c)));
+  VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
+  VERIFY_IS_APPROX((s1*m1)(r,c), s1*(m1(r,c)));
+  VERIFY_IS_APPROX((m1*s1)(r,c), (m1(r,c))*s1);
+  if(NumTraits<Scalar>::HasFloatingPoint)
+    VERIFY_IS_APPROX((m1/s1)(r,c), (m1(r,c))/s1);
+  
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)
   VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
@@ -118,10 +138,14 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   
   // continue testing Product.h: lazyProduct
   VERIFY_IS_APPROX(square.lazyProduct(m1),  square*m1);
+  // again, test operator() to check const-qualification
+  s1 += square.lazyProduct(m1)(r,c);
   
-  // test Product.h together with Identity.h. This does test Identity.h.
+  // test Product.h together with Identity.h
   VERIFY_IS_APPROX(m1,                      identity*m1);
   VERIFY_IS_APPROX(v1,                      identity*v1);
+  // again, test operator() to check const-qualification
+  VERIFY_IS_APPROX(MatrixType::identity()(r,c), static_cast<Scalar>(r==c));
   
   // test FromArray.h
   Scalar* array1 = new Scalar[rows];

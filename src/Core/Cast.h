@@ -58,7 +58,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoDefaultOperator
 
 template<typename Scalar, typename Derived>
 template<typename NewScalar>
-Cast<NewScalar, Derived>
+const Cast<NewScalar, Derived>
 MatrixBase<Scalar, Derived>::cast() const
 {
   return Cast<NewScalar, Derived>(static_cast<const Derived*>(this)->ref());

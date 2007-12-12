@@ -62,7 +62,7 @@ template<typename Lhs, typename Rhs> class Sum : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived1, typename Derived2>
-Sum<Derived1, Derived2>
+const Sum<Derived1, Derived2>
 operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
   return Sum<Derived1, Derived2>(mat1.ref(), mat2.ref());

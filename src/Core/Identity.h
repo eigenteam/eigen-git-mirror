@@ -58,7 +58,7 @@ template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived>
-Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
+const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
 {
   return Identity<Derived>(rows);
 }

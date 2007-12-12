@@ -56,7 +56,7 @@ template<typename MatrixType> class Zero : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived>
-Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
+const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
 {
   return Zero<Derived>(rows, cols);
 }

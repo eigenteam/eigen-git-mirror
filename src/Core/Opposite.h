@@ -57,7 +57,7 @@ template<typename MatrixType> class Opposite : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived>
-Opposite<Derived>
+const Opposite<Derived>
 MatrixBase<Scalar, Derived>::operator-() const
 {
   return Opposite<Derived>(static_cast<const Derived*>(this)->ref());

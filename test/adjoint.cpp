@@ -87,6 +87,13 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   
   // check compatibility of dot and adjoint
   VERIFY_IS_APPROX(v1.dot(square * v2),              (square.adjoint() * v1).dot(v2));
+  
+  // like in testBasicStuff, test operator() to check const-qualification
+  int r = random<int>(0, rows-1),
+      c = random<int>(0, cols-1);
+  VERIFY_IS_APPROX(m1.conjugate()(r,c), conj(m1(r,c)));
+  VERIFY_IS_APPROX(m1.adjoint()(c,r), conj(m1(r,c)));
+  
 }
 
 void EigenTest::testAdjoint()

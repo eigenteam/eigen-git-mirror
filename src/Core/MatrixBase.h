@@ -57,7 +57,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
     
-    template<typename NewScalar> Cast<NewScalar, Derived> cast() const;
+    template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
     
     Row<Derived> row(int i) const;
     Column<Derived> col(int i) const;
@@ -69,8 +69,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
     
     Transpose<Derived> transpose() const;
-    Conjugate<Derived> conjugate() const;
-    Transpose<Conjugate<Derived> > adjoint() const { return conjugate().transpose(); }
+    const Conjugate<Derived> conjugate() const;
+    const Transpose<Conjugate<Derived> > adjoint() const
+    { return conjugate().transpose(); }
     Scalar trace() const;
     
     template<typename OtherDerived>
@@ -81,9 +82,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     static Eval<Random<Derived> >
     random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
-    static Zero<Derived>
+    static const Zero<Derived>
     zero(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
-    static Identity<Derived>
+    static const Identity<Derived>
     identity(int rows = RowsAtCompileTime);
     static FromArray<Derived>
     fromArray(const Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
@@ -107,7 +108,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     const Product<Derived, OtherDerived>
     lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
     
-    Opposite<Derived> operator-() const;
+    const Opposite<Derived> operator-() const;
     
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);

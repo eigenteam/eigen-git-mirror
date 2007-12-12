@@ -63,7 +63,7 @@ template<typename Lhs, typename Rhs> class Difference : NoDefaultOperatorEquals,
 };
 
 template<typename Scalar, typename Derived1, typename Derived2>
-Difference<Derived1, Derived2>
+const Difference<Derived1, Derived2>
 operator-(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
   return Difference<Derived1, Derived2>(mat1.ref(), mat2.ref());
