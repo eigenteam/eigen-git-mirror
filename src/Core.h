@@ -6,6 +6,7 @@ namespace Eigen {
 
 #include "Core/Util.h"
 #include "Core/NumTraits.h"
+#include "Core/MathFunctions.h"
 #include "Core/MatrixBase.h"
 #include "Core/OperatorEquals.h"
 #include "Core/MatrixRef.h"
