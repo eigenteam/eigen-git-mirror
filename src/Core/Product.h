@@ -60,8 +60,8 @@ struct ProductUnroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
-template<typename Lhs, typename Rhs> class Product
-  : public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class Product : NoDefaultOperatorEquals,
+  public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
@@ -80,9 +80,6 @@ template<typename Lhs, typename Rhs> class Product
     
     Product(const Product& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
-    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Product)
     
   private:
     const Product& _ref() const { return *this; }

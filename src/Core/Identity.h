@@ -26,8 +26,8 @@
 #ifndef EIGEN_IDENTITY_H
 #define EIGEN_IDENTITY_H
 
-template<typename MatrixType> class Identity
-  : public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
+template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -41,9 +41,6 @@ template<typename MatrixType> class Identity
       assert(rows > 0);
       assert(RowsAtCompileTime == ColsAtCompileTime);
     }
-    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Identity)
     
   private:
     Identity& _ref() { return *this; }

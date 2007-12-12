@@ -26,8 +26,8 @@
 #ifndef EIGEN_SCALARMULTIPLE_H
 #define EIGEN_SCALARMULTIPLE_H
 
-template<typename MatrixType> class ScalarMultiple
-  : public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
+template<typename MatrixType> class ScalarMultiple : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -42,9 +42,6 @@ template<typename MatrixType> class ScalarMultiple
 
     ScalarMultiple(const ScalarMultiple& other)
       : m_matrix(other.m_matrix), m_scalar(other.m_scalar) {}
-
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ScalarMultiple)
 
   private:
     const ScalarMultiple& _ref() const { return *this; }

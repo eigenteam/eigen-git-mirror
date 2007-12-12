@@ -26,8 +26,8 @@
 #ifndef EIGEN_CONJUGATE_H
 #define EIGEN_CONJUGATE_H
 
-template<typename MatrixType> class Conjugate
-  : public MatrixBase<typename MatrixType::Scalar, Conjugate<MatrixType> >
+template<typename MatrixType> class Conjugate : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Conjugate<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -41,9 +41,6 @@ template<typename MatrixType> class Conjugate
     
     Conjugate(const Conjugate& other)
       : m_matrix(other.m_matrix) {}
-    
-   // assignments are illegal but we still want to intercept them and get clean compile errors
-   EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Conjugate)
     
   private:
     const Conjugate& _ref() const { return *this; }

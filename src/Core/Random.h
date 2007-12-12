@@ -26,8 +26,8 @@
 #ifndef EIGEN_RANDOM_H
 #define EIGEN_RANDOM_H
 
-template<typename MatrixType> class Random
-  : public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
+template<typename MatrixType> class Random : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -41,9 +41,6 @@ template<typename MatrixType> class Random
       assert(rows > 0 && cols > 0);
     }
    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Random)
-    
   private:
     const Random& _ref() const { return *this; }
     int _rows() const { return m_rows; }

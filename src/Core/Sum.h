@@ -26,8 +26,8 @@
 #ifndef EIGEN_SUM_H
 #define EIGEN_SUM_H
 
-template<typename Lhs, typename Rhs> class Sum
-  : public MatrixBase<typename Lhs::Scalar, Sum<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class Sum : NoDefaultOperatorEquals,
+    public MatrixBase<typename Lhs::Scalar, Sum<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
@@ -44,11 +44,7 @@ template<typename Lhs, typename Rhs> class Sum
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    Sum(const Sum& other)
-      : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
-      
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Sum)
+    Sum(const Sum& other) : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
   private:
     const Sum& _ref() const { return *this; }

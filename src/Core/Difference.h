@@ -26,8 +26,8 @@
 #ifndef EIGEN_DIFFERENCE_H
 #define EIGEN_DIFFERENCE_H
 
-template<typename Lhs, typename Rhs> class Difference
-  : public MatrixBase<typename Lhs::Scalar, Difference<Lhs, Rhs> >
+template<typename Lhs, typename Rhs> class Difference : NoDefaultOperatorEquals,
+  public MatrixBase<typename Lhs::Scalar, Difference<Lhs, Rhs> >
 {
   public:
     typedef typename Lhs::Scalar Scalar;
@@ -46,9 +46,6 @@ template<typename Lhs, typename Rhs> class Difference
 
     Difference(const Difference& other)
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
-
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Difference)
 
   private:
     const Difference& _ref() const { return *this; }

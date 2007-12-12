@@ -81,9 +81,6 @@ template<> inline int random(int a, int b)
 }
 template<> inline int random()
 {
-  // "rand() % n" is bad, they say, because the low-order bits are not random enough.
-  // However here, 21 is odd, so random() % 21 uses the high-order bits
-  // as well, so there's no problem.
   return random<int>(-10, 10);
 }
 inline bool isMuchSmallerThan(int a, int, int = precision<int>())

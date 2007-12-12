@@ -26,8 +26,8 @@
 #ifndef EIGEN_ZERO_H
 #define EIGEN_ZERO_H
 
-template<typename MatrixType> class Zero
-  : public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
+template<typename MatrixType> class Zero : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -40,9 +40,6 @@ template<typename MatrixType> class Zero
     {
       assert(rows > 0 && cols > 0);
     }
-    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Zero)
     
   private:
     const Zero& _ref() const { return *this; }

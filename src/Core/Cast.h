@@ -26,8 +26,8 @@
 #ifndef EIGEN_CAST_H
 #define EIGEN_CAST_H
 
-template<typename NewScalar, typename MatrixType> class Cast
-  : public MatrixBase<NewScalar, Cast<NewScalar, MatrixType> >
+template<typename NewScalar, typename MatrixType> class Cast : NoDefaultOperatorEquals,
+  public MatrixBase<NewScalar, Cast<NewScalar, MatrixType> >
 {
   public:
     typedef NewScalar Scalar;
@@ -41,9 +41,6 @@ template<typename NewScalar, typename MatrixType> class Cast
     
     Cast(const Cast& other)
       : m_matrix(other.m_matrix) {}
-    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Cast)
     
   private:
     const Cast& _ref() const { return *this; }

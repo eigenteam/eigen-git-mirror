@@ -26,8 +26,8 @@
 #ifndef EIGEN_OPPOSITE_H
 #define EIGEN_OPPOSITE_H
 
-template<typename MatrixType> class Opposite
-  : public MatrixBase<typename MatrixType::Scalar, Opposite<MatrixType> >
+template<typename MatrixType> class Opposite : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Opposite<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -41,9 +41,6 @@ template<typename MatrixType> class Opposite
     
     Opposite(const Opposite& other)
       : m_matrix(other.m_matrix) {}
-    
-    // assignments are illegal but we still want to intercept them and get clean compile errors
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Opposite)
     
   private:
     const Opposite& _ref() const { return *this; }
