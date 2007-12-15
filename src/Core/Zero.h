@@ -61,4 +61,18 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
   return Zero<Derived>(rows, cols);
 }
 
+template<typename Scalar, typename Derived>
+const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
+{
+  assert(IsVector);
+  if(RowsAtCompileTime == 1) return Zero<Derived>(1, size);
+  else return Zero<Derived>(size, 1);
+}
+
+template<typename Scalar, typename Derived>
+const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
+{
+  return Zero<Derived>(RowsAtCompileTime, ColsAtCompileTime);
+}
+
 #endif // EIGEN_ZERO_H

@@ -23,43 +23,56 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_IDENTITY_H
-#define EIGEN_IDENTITY_H
+#ifndef EIGEN_ONES_H
+#define EIGEN_ONES_H
 
-template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
+template<typename MatrixType> class Ones : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, Ones<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Identity<MatrixType> >;
+    friend class MatrixBase<Scalar, Ones<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Identity(int rows) : m_rows(rows)
+    Ones(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0 && RowsAtCompileTime == ColsAtCompileTime);
+      assert(rows > 0 && cols > 0);
     }
     
   private:
-    Identity& _ref() { return *this; }
-    const Identity& _ref() const { return *this; }
+    const Ones& _ref() const { return *this; }
     int _rows() const { return m_rows; }
-    int _cols() const { return m_rows; }
+    int _cols() const { return m_cols; }
     
-    Scalar _read(int row, int col) const
+    Scalar _read(int, int) const
     {
-      return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
+      return static_cast<Scalar>(1);
     }
     
   protected:
-    int m_rows;
+    int m_rows, m_cols;
 };
 
 template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
+const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
 {
-  return Identity<Derived>(rows);
+  return Ones<Derived>(rows, cols);
 }
 
-#endif // EIGEN_IDENTITY_H
+template<typename Scalar, typename Derived>
+const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
+{
+  assert(IsVector);
+  if(RowsAtCompileTime == 1) return Ones<Derived>(1, size);
+  else return Ones<Derived>(size, 1);
+}
+
+template<typename Scalar, typename Derived>
+const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
+{
+  return Ones<Derived>(RowsAtCompileTime, ColsAtCompileTime);
+}
+
+#endif // EIGEN_ONES_H

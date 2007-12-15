@@ -33,6 +33,9 @@ template<typename MatrixType> class MatrixRef
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, MatrixRef>;
     
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    
     MatrixRef(const MatrixType& matrix) : m_matrix(*const_cast<MatrixType*>(&matrix)) {}
     MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}

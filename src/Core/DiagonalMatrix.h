@@ -23,51 +23,51 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_FROMARRAY_H
-#define EIGEN_FROMARRAY_H
+#ifndef EIGEN_DIAGONALMATRIX_H
+#define EIGEN_DIAGONALMATRIX_H
 
-template<typename MatrixType> class FromArray
-  : public MatrixBase<typename MatrixType::Scalar, FromArray<MatrixType> >
+template<typename MatrixType, typename CoeffsVectorType>
+class DiagonalMatrix : NoDefaultOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar,
+                    DiagonalMatrix<MatrixType, CoeffsVectorType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, FromArray<MatrixType> >;
+    typedef typename CoeffsVectorType::Ref CoeffsVecRef;
+    friend class MatrixBase<Scalar, DiagonalMatrix<MatrixType, CoeffsVectorType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    FromArray(int rows, int cols, Scalar* array) : m_rows(rows), m_cols(cols), m_array(array)
+    DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
-      assert(rows > 0 && cols > 0);
+      assert(CoeffsVectorType::IsVector
+          && RowsAtCompileTime == ColsAtCompileTime
+          && RowsAtCompileTime == CoeffsVectorType::SizeAtCompileTime
+          && coeffs.size() > 0);
     }
-    
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(FromArray)
     
   private:
-    FromArray& _ref() { return *this; }
-    const FromArray& _ref() const { return *this; }
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
+    DiagonalMatrix& _ref() { return *this; }
+    const DiagonalMatrix& _ref() const { return *this; }
+    int _rows() const { return m_coeffs.size(); }
+    int _cols() const { return m_coeffs.size(); }
     
-    const Scalar& _read(int row, int col) const
+    Scalar _read(int row, int col) const
     {
-      return m_array[row + col * m_rows];
-    }
-    
-    Scalar& _write(int row, int col)
-    {
-      return m_array[row + col * m_rows];
+      return row == col ? m_coeffs.read(row) : static_cast<Scalar>(0);
     }
     
   protected:
-    int m_rows, m_cols;
-    Scalar* m_array;
+    CoeffsVecRef m_coeffs;
 };
 
 template<typename Scalar, typename Derived>
-FromArray<Derived> MatrixBase<Scalar, Derived>::fromArray(const Scalar* array, int rows, int cols)
+template<typename OtherDerived>
+const DiagonalMatrix<Derived, OtherDerived>
+MatrixBase<Scalar, Derived>::diagonal(const OtherDerived& coeffs)
 {
-  return FromArray<Derived>(rows, cols, const_cast<Scalar*>(array));
+  return DiagonalMatrix<Derived, OtherDerived>(coeffs);
 }
 
-#endif // EIGEN_FROMARRAY_H
+#endif // EIGEN_DIAGONALMATRIX_H

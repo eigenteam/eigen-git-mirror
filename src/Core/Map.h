@@ -23,43 +23,51 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_IDENTITY_H
-#define EIGEN_IDENTITY_H
+#ifndef EIGEN_FROMARRAY_H
+#define EIGEN_FROMARRAY_H
 
-template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
+template<typename MatrixType> class Map
+  : public MatrixBase<typename MatrixType::Scalar, Map<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Identity<MatrixType> >;
+    friend class MatrixBase<Scalar, Map<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Identity(int rows) : m_rows(rows)
+    Map(int rows, int cols, Scalar* array) : m_rows(rows), m_cols(cols), m_data(array)
     {
-      assert(rows > 0 && RowsAtCompileTime == ColsAtCompileTime);
+      assert(rows > 0 && cols > 0);
     }
     
-  private:
-    Identity& _ref() { return *this; }
-    const Identity& _ref() const { return *this; }
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_rows; }
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     
-    Scalar _read(int row, int col) const
+  private:
+    Map& _ref() { return *this; }
+    const Map& _ref() const { return *this; }
+    int _rows() const { return m_rows; }
+    int _cols() const { return m_cols; }
+    
+    const Scalar& _read(int row, int col) const
     {
-      return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
+      return m_data[row + col * m_rows];
+    }
+    
+    Scalar& _write(int row, int col)
+    {
+      return m_data[row + col * m_rows];
     }
     
   protected:
-    int m_rows;
+    int m_rows, m_cols;
+    Scalar* m_data;
 };
 
 template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
+Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* array, int rows, int cols)
 {
-  return Identity<Derived>(rows);
+  return Map<Derived>(rows, cols, const_cast<Scalar*>(array));
 }
 
-#endif // EIGEN_IDENTITY_H
+#endif // EIGEN_FROMARRAY_H

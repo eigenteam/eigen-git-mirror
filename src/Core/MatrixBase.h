@@ -80,14 +80,24 @@ template<typename Scalar, typename Derived> class MatrixBase
     RealScalar norm()  const;
     ScalarMultiple<Derived> normalized() const;
     
-    static Eval<Random<Derived> >
-    random(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
-    static const Zero<Derived>
-    zero(int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
-    static const Identity<Derived>
-    identity(int rows = RowsAtCompileTime);
-    static FromArray<Derived>
-    fromArray(const Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    static Eval<Random<Derived> > random(int rows, int cols);
+    static Eval<Random<Derived> > random(int size);
+    static Eval<Random<Derived> > random();
+    static const Zero<Derived> zero(int rows, int cols);
+    static const Zero<Derived> zero(int size);
+    static const Zero<Derived> zero();
+    static const Ones<Derived> ones(int rows, int cols);
+    static const Ones<Derived> ones(int size);
+    static const Ones<Derived> ones();
+    static const Identity<Derived> identity(int rows = RowsAtCompileTime);
+    
+    template<typename OtherDerived>
+    static const DiagonalMatrix<Derived, OtherDerived>
+    diagonal(const OtherDerived& coeffs);
+    DiagonalCoeffs<Derived> diagonal() const;
+    
+    static Map<Derived>
+    map(const Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
     
     template<typename OtherDerived>
     bool isApprox(

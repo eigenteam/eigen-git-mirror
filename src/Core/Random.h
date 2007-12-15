@@ -61,4 +61,18 @@ Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
   return Random<Derived>(rows, cols).eval();
 }
 
+template<typename Scalar, typename Derived>
+Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
+{
+  assert(IsVector);
+  if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
+  else return Random<Derived>(size, 1).eval();
+}
+
+template<typename Scalar, typename Derived>
+Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
+{
+  return Random<Derived>(RowsAtCompileTime, ColsAtCompileTime).eval();
+}
+
 #endif // EIGEN_RANDOM_H

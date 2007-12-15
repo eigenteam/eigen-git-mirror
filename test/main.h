@@ -116,7 +116,7 @@ class EigenTest : public QObject
     void testBasicStuff();
     void testAdjoint();
     void testSubmatrices();
- 
+    void testMiscMatrices();
   protected:
     int m_repeat;
 };

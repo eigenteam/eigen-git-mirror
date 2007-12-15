@@ -30,9 +30,9 @@ namespace Eigen {
 template<typename MatrixType> void submatrices(const MatrixType& m)
 {
   /* this test covers the following files:
-     Transpose.h Conjugate.h Dot.h
+     Row.h Column.h Block.h DynBlock.h Minor.h DiagonalCoeffs.h
   */
-
+  
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
@@ -53,10 +53,6 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              vzero = VectorType::zero(rows);
 
   Scalar s1 = random<Scalar>();
-  
-  /* this test covers the following files:
-     Row.h Column.h Block.h DynBlock.h Minor.h
-  */
   
   int r1 = random<int>(0,rows-1);
   int r2 = random<int>(r1,rows-1);
@@ -91,6 +87,12 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
     //check operator(), both constant and non-constant, on minor()
     m1.minor(r1,c1)(0,0) = m1.minor(0,0)(0,0);
   }
+  
+  //check diagonal()
+  VERIFY_IS_APPROX(m1.diagonal(), m1.transpose().diagonal());
+  m2.diagonal() = 2 * m1.diagonal();
+  m2.diagonal()[0] *= 3;
+  VERIFY_IS_APPROX(m2.diagonal()[0], static_cast<Scalar>(6) * m1.diagonal()[0]);
 }
 
 void EigenTest::testSubmatrices()

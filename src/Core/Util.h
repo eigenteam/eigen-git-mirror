@@ -101,9 +101,12 @@ template<typename Lhs, typename Rhs> class Product;
 template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
 template<typename MatrixType> class Zero;
+template<typename MatrixType> class Ones;
+template<typename MatrixType, typename CoeffsVectorType> class DiagonalMatrix;
+template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
 template<typename ExpressionType> class Eval;
-template<typename MatrixType> class FromArray;
+template<typename MatrixType> class Map;
 
 template<typename T> struct ForwardDecl
 {

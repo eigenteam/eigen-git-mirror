@@ -23,43 +23,51 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_IDENTITY_H
-#define EIGEN_IDENTITY_H
+#ifndef EIGEN_DIAGONALCOEFFS_H
+#define EIGEN_DIAGONALCOEFFS_H
 
-template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
+template<typename MatrixType> class DiagonalCoeffs
+  : public MatrixBase<typename MatrixType::Scalar, DiagonalCoeffs<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Identity<MatrixType> >;
+    typedef typename MatrixType::Ref MatRef;
+    friend class MatrixBase<Scalar, DiagonalCoeffs<MatrixType> >;
     
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
-    Identity(int rows) : m_rows(rows)
-    {
-      assert(rows > 0 && RowsAtCompileTime == ColsAtCompileTime);
-    }
+                     ColsAtCompileTime = 1;
+    
+    DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
+    
+    DiagonalCoeffs(const DiagonalCoeffs& other) : m_matrix(other.m_matrix) {}
+    
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
   private:
-    Identity& _ref() { return *this; }
-    const Identity& _ref() const { return *this; }
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_rows; }
+    const DiagonalCoeffs& _ref() const { return *this; }
+    int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
+    int _cols() const { return 1; }
     
-    Scalar _read(int row, int col) const
+    Scalar& _write(int row, int)
     {
-      return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
+      return m_matrix.write(row, row);
+    }
+    
+    Scalar _read(int row, int) const
+    {
+      return m_matrix.read(row, row);
     }
     
   protected:
-    int m_rows;
+    MatRef m_matrix;
 };
 
 template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
+DiagonalCoeffs<Derived>
+MatrixBase<Scalar, Derived>::diagonal() const
 {
-  return Identity<Derived>(rows);
+  return DiagonalCoeffs<Derived>
+           (static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref());
 }
 
-#endif // EIGEN_IDENTITY_H
+#endif // EIGEN_DIAGONALCOEFFS_H

@@ -30,8 +30,11 @@ namespace Eigen {
 #include "Core/Dot.h"
 #include "Core/Random.h"
 #include "Core/Zero.h"
+#include "Core/Ones.h"
+#include "Core/DiagonalMatrix.h"
+#include "Core/DiagonalCoeffs.h"
 #include "Core/Identity.h"
 #include "Core/Fuzzy.h"
-#include "Core/FromArray.h"
+#include "Core/Map.h"
 
 } // namespace Eigen

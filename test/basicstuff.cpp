@@ -32,7 +32,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   /* this test covers the following files:
      1) Explicitly (see comments below):
      Random.h Zero.h Identity.h Fuzzy.h Sum.h Difference.h
-     Opposite.h Product.h ScalarMultiple.h FromArray.h
+     Opposite.h Product.h ScalarMultiple.h Map.h
      
      2) Implicitly (the core stuff):
      MatrixBase.h Matrix.h MatrixStorage.h CopyHelper.h MatrixRef.h
@@ -84,7 +84,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   // hence has no _write() method, the corresponding MatrixBase method (here zero())
   // should return a const-qualified object so that it is the const-qualified
   // operator() that gets called, which in turn calls _read().
-  VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::zero()(r,c), static_cast<Scalar>(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::zero(rows,cols)(r,c), static_cast<Scalar>(1));
   
   // test the linear structure, i.e. the following files:
   // Sum.h Difference.h Opposite.h ScalarMultiple.h
@@ -145,16 +145,16 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   VERIFY_IS_APPROX(m1,                      identity*m1);
   VERIFY_IS_APPROX(v1,                      identity*v1);
   // again, test operator() to check const-qualification
-  VERIFY_IS_APPROX(MatrixType::identity()(r,c), static_cast<Scalar>(r==c));
+  VERIFY_IS_APPROX(MatrixType::identity(std::max(rows,cols))(r,c), static_cast<Scalar>(r==c));
   
-  // test FromArray.h
+  // test Map.h
   Scalar* array1 = new Scalar[rows];
   Scalar* array2 = new Scalar[rows];
-  Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
-  Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows)
-    = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
-  Matrix<Scalar, Dynamic, 1> ma1 = Matrix<Scalar, Dynamic, 1>::fromArray(array1, rows);
-  Matrix<Scalar, Dynamic, 1> ma2 = Matrix<Scalar, Dynamic, 1>::fromArray(array2, rows);
+  Matrix<Scalar, Dynamic, 1>::map(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
+  Matrix<Scalar, Dynamic, 1>::map(array2, rows)
+    = Matrix<Scalar, Dynamic, 1>::map(array1, rows);
+  Matrix<Scalar, Dynamic, 1> ma1 = Matrix<Scalar, Dynamic, 1>::map(array1, rows);
+  Matrix<Scalar, Dynamic, 1> ma2 = Matrix<Scalar, Dynamic, 1>::map(array2, rows);
   VERIFY_IS_APPROX(ma1, ma2);
   delete[] array1;
   delete[] array2;

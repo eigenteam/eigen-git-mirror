@@ -40,23 +40,23 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
     
-    const Scalar* array() const
-    { return Storage::m_array; }
+    const Scalar* data() const
+    { return Storage::m_data; }
     
-    Scalar* array()
-    { return Storage::m_array; }
+    Scalar* data()
+    { return Storage::m_data; }
     
   private:
     Ref _ref() const { return Ref(*this); }
     
     const Scalar& _read(int row, int col) const
     {
-      return array()[row + col * Storage::_rows()];
+      return data()[row + col * Storage::_rows()];
     }
     
     Scalar& _write(int row, int col)
     {
-      return array()[row + col * Storage::_rows()];
+      return data()[row + col * Storage::_rows()];
     }
     
   public:
