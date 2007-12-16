@@ -26,7 +26,7 @@
 #ifndef EIGEN_OPPOSITE_H
 #define EIGEN_OPPOSITE_H
 
-template<typename MatrixType> class Opposite : NoDefaultOperatorEquals,
+template<typename MatrixType> class Opposite : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Opposite<MatrixType> >
 {
   public:

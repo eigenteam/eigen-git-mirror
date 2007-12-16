@@ -127,11 +127,11 @@ enum AssertLevel
   InternalDebugging = 2
 };
 
-//classes inheriting NoDefaultOperatorEquals don't generate a default operator=.
-class NoDefaultOperatorEquals
+//classes inheriting NoOperatorEquals don't generate a default operator=.
+class NoOperatorEquals
 {
   private:
-    NoDefaultOperatorEquals& operator=(const NoDefaultOperatorEquals&);
+    NoOperatorEquals& operator=(const NoOperatorEquals&);
 };
 
 #endif // EIGEN_UTIL_H

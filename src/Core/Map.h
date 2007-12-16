@@ -44,7 +44,6 @@ template<typename MatrixType> class Map
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     
   private:
-    Map& _ref() { return *this; }
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }

@@ -26,7 +26,7 @@
 #ifndef EIGEN_RANDOM_H
 #define EIGEN_RANDOM_H
 
-template<typename MatrixType> class Random : NoDefaultOperatorEquals,
+template<typename MatrixType> class Random : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
 {
   public:

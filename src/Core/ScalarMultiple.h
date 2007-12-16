@@ -26,7 +26,7 @@
 #ifndef EIGEN_SCALARMULTIPLE_H
 #define EIGEN_SCALARMULTIPLE_H
 
-template<typename MatrixType> class ScalarMultiple : NoDefaultOperatorEquals,
+template<typename MatrixType> class ScalarMultiple : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
 {
   public:

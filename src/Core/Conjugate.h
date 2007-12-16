@@ -26,7 +26,7 @@
 #ifndef EIGEN_CONJUGATE_H
 #define EIGEN_CONJUGATE_H
 
-template<typename MatrixType> class Conjugate : NoDefaultOperatorEquals,
+template<typename MatrixType> class Conjugate : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Conjugate<MatrixType> >
 {
   public:

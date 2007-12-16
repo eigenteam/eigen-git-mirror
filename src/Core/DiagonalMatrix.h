@@ -27,7 +27,7 @@
 #define EIGEN_DIAGONALMATRIX_H
 
 template<typename MatrixType, typename CoeffsVectorType>
-class DiagonalMatrix : NoDefaultOperatorEquals,
+class DiagonalMatrix : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar,
                     DiagonalMatrix<MatrixType, CoeffsVectorType> >
 {
@@ -48,7 +48,6 @@ class DiagonalMatrix : NoDefaultOperatorEquals,
     }
     
   private:
-    DiagonalMatrix& _ref() { return *this; }
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }

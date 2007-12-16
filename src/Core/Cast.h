@@ -26,7 +26,7 @@
 #ifndef EIGEN_CAST_H
 #define EIGEN_CAST_H
 
-template<typename NewScalar, typename MatrixType> class Cast : NoDefaultOperatorEquals,
+template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
   public MatrixBase<NewScalar, Cast<NewScalar, MatrixType> >
 {
   public:

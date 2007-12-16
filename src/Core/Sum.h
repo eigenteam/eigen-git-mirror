@@ -26,7 +26,7 @@
 #ifndef EIGEN_SUM_H
 #define EIGEN_SUM_H
 
-template<typename Lhs, typename Rhs> class Sum : NoDefaultOperatorEquals,
+template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     public MatrixBase<typename Lhs::Scalar, Sum<Lhs, Rhs> >
 {
   public:

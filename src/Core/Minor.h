@@ -54,7 +54,6 @@ template<typename MatrixType> class Minor
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:
-    Minor& _ref() { return *this; }
     const Minor& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }

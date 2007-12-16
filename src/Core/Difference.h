@@ -26,7 +26,7 @@
 #ifndef EIGEN_DIFFERENCE_H
 #define EIGEN_DIFFERENCE_H
 
-template<typename Lhs, typename Rhs> class Difference : NoDefaultOperatorEquals,
+template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
   public MatrixBase<typename Lhs::Scalar, Difference<Lhs, Rhs> >
 {
   public:

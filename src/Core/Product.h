@@ -60,7 +60,7 @@ struct ProductUnroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
-template<typename Lhs, typename Rhs> class Product : NoDefaultOperatorEquals,
+template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
   public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
 {
   public:

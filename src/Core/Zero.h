@@ -26,7 +26,7 @@
 #ifndef EIGEN_ZERO_H
 #define EIGEN_ZERO_H
 
-template<typename MatrixType> class Zero : NoDefaultOperatorEquals,
+template<typename MatrixType> class Zero : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
 {
   public:

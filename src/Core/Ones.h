@@ -26,7 +26,7 @@
 #ifndef EIGEN_ONES_H
 #define EIGEN_ONES_H
 
-template<typename MatrixType> class Ones : NoDefaultOperatorEquals,
+template<typename MatrixType> class Ones : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Ones<MatrixType> >
 {
   public:

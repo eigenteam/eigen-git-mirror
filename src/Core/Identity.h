@@ -26,7 +26,7 @@
 #ifndef EIGEN_IDENTITY_H
 #define EIGEN_IDENTITY_H
 
-template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
+template<typename MatrixType> class Identity : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
 {
   public:
@@ -42,7 +42,6 @@ template<typename MatrixType> class Identity : NoDefaultOperatorEquals,
     }
     
   private:
-    Identity& _ref() { return *this; }
     const Identity& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_rows; }
