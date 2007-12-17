@@ -10,6 +10,7 @@ SET(test_SRCS
   adjoint.cpp
   submatrices.cpp
   miscmatrices.cpp
+  smallvectors.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 

@@ -49,11 +49,8 @@ class MatrixStorage
 
   public:
     MatrixStorage() {}
-    
     MatrixStorage(int) {}
-    
     MatrixStorage(int, int) {}
-    
     ~MatrixStorage() {};
 };
 

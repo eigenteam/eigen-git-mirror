@@ -186,6 +186,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     }
     Scalar& operator[](int index) { return coeffRef(index, UserDebugging); }
     
+    Scalar x() const { return coeff(0, UserDebugging); }
+    Scalar y() const { return coeff(1, UserDebugging); }
+    Scalar z() const { return coeff(2, UserDebugging); }
+    Scalar w() const { return coeff(3, UserDebugging); }
+    Scalar& x() { return coeffRef(0, UserDebugging); }
+    Scalar& y() { return coeffRef(1, UserDebugging); }
+    Scalar& z() { return coeffRef(2, UserDebugging); }
+    Scalar& w() { return coeffRef(3, UserDebugging); }
+
+    
     Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };
 

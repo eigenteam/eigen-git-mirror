@@ -90,11 +90,61 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
           || (ColsAtCompileTime == 1
               && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
     }
-    explicit Matrix(int rows, int cols) : Storage(rows, cols)
+    
+    // this constructor is very tricky.
+    // When Matrix is a fixed-size vector type of size 2,
+    // Matrix(x,y) should mean "construct vector with coefficients x,y".
+    // Otherwise, Matrix(x,y) should mean "construct matrix with x rows and y cols".
+    // Note that in the case of fixed-size, Storage::Storage(int,int) does nothing,
+    // so it is harmless to call it and afterwards we just fill the m_data array
+    // with the two coefficients. In the case of dynamic size, Storage::Storage(int,int)
+    // does what we want to, so it only remains to add some asserts.
+    Matrix(int x, int y) : Storage(x, y)
     {
-      assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-          && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+      || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
+      {
+        (Storage::m_data)[0] = x;
+        (Storage::m_data)[1] = y;
+      }
+      else
+      {
+        assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
+            && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
+      }
     }
+    Matrix(const float& x, const float& y)
+    {
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      (Storage::m_data)[0] = x;
+      (Storage::m_data)[1] = y;
+    }
+    Matrix(const double& x, const double& y)
+    {
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      (Storage::m_data)[0] = x;
+      (Storage::m_data)[1] = y;
+    }
+    Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
+    {
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
+          || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
+      (Storage::m_data)[0] = x;
+      (Storage::m_data)[1] = y;
+      (Storage::m_data)[2] = z;
+    }
+    Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    {
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
+          || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
+      (Storage::m_data)[0] = x;
+      (Storage::m_data)[1] = y;
+      (Storage::m_data)[2] = z;
+      (Storage::m_data)[3] = w;
+    }
+    
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)
              : Storage(other.rows(), other.cols())
