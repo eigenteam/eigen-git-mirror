@@ -48,14 +48,14 @@ template<typename MatrixType> class DiagonalCoeffs
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
     int _cols() const { return 1; }
     
-    Scalar& _write(int row, int)
+    Scalar& _coeffRef(int row, int)
     {
-      return m_matrix.write(row, row);
+      return m_matrix.coeffRef(row, row);
     }
     
-    Scalar _read(int row, int) const
+    Scalar _coeff(int row, int) const
     {
-      return m_matrix.read(row, row);
+      return m_matrix.coeff(row, row);
     }
     
   protected:

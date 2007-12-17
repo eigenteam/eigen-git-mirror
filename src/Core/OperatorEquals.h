@@ -36,7 +36,7 @@ struct OperatorEqualsUnroller
   static void run(Derived1 &dst, const Derived2 &src)
   {
     OperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1, Rows>::run(dst, src);
-    dst.write(row, col) = src.read(row, col);
+    dst.coeffRef(row, col) = src.coeff(row, col);
   }
 };
 
@@ -52,7 +52,7 @@ struct OperatorEqualsUnroller<Derived1, Derived2, 1, Rows>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.write(0, 0) = src.read(0, 0);
+    dst.coeffRef(0, 0) = src.coeff(0, 0);
   }
 };
 
@@ -75,7 +75,7 @@ Derived& MatrixBase<Scalar, Derived>
   else
     for(int j = 0; j < cols(); j++) //traverse in column-dominant order
       for(int i = 0; i < rows(); i++)
-        write(i, j) = other.read(i, j);
+        coeffRef(i, j) = other.coeff(i, j);
   return *static_cast<Derived*>(this);
 }
 

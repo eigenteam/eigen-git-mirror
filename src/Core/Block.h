@@ -56,14 +56,14 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     int _rows() const { return BlockRows; }
     int _cols() const { return BlockCols; }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.write(row + m_startRow, col + m_startCol);
+      return m_matrix.coeffRef(row + m_startRow, col + m_startCol);
     }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return m_matrix.read(row + m_startRow, col + m_startCol);
+      return m_matrix.coeff(row + m_startRow, col + m_startCol);
     }
     
   protected:

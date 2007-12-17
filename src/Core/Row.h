@@ -60,14 +60,14 @@ template<typename MatrixType> class Row
     int _rows() const { return 1; }
     int _cols() const { return m_matrix.cols(); }
     
-    Scalar& _write(int, int col)
+    Scalar& _coeffRef(int, int col)
     {
-      return m_matrix.write(m_row, col);
+      return m_matrix.coeffRef(m_row, col);
     }
     
-    Scalar _read(int, int col) const
+    Scalar _coeff(int, int col) const
     {
-      return m_matrix.read(m_row, col);
+      return m_matrix.coeff(m_row, col);
     }
     
   protected:

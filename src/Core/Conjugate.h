@@ -47,9 +47,9 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return conj(m_matrix.read(row, col));
+      return conj(m_matrix.coeff(row, col));
     }
     
   protected:
@@ -61,6 +61,13 @@ const Conjugate<Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
 {
   return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
+}
+
+template<typename Scalar, typename Derived>
+const Transpose<Conjugate<Derived> >
+MatrixBase<Scalar, Derived>::adjoint() const
+{
+  return conjugate().transpose();
 }
 
 #endif // EIGEN_CONJUGATE_H

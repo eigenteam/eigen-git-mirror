@@ -52,9 +52,9 @@ template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return m_lhs.read(row, col) - m_rhs.read(row, col);
+      return m_lhs.coeff(row, col) - m_rhs.coeff(row, col);
     }
     
   protected:

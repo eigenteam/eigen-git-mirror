@@ -32,7 +32,7 @@ struct DotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     DotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1.read(Index) * conj(v2.read(Index));
+    dot += v1.coeff(Index) * conj(v2.coeff(Index));
   }
 };
 
@@ -41,7 +41,7 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    dot = v1.read(0) * conj(v2.read(0));
+    dot = v1.coeff(0) * conj(v2.coeff(0));
   }
 };
 
@@ -69,9 +69,9 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
-    res = (*this).read(0) * conj(other.read(0));
+    res = (*this).coeff(0) * conj(other.coeff(0));
     for(int i = 1; i < size(); i++)
-      res += (*this).read(i)* conj(other.read(i));
+      res += (*this).coeff(i)* conj(other.coeff(i));
   }
   return res;
 }

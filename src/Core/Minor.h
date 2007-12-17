@@ -58,14 +58,14 @@ template<typename MatrixType> class Minor
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.write(row + (row >= m_row), col + (col >= m_col));
+      return m_matrix.coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return m_matrix.read(row + (row >= m_row), col + (col >= m_col));
+      return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }
     
   protected:

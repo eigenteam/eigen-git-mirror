@@ -46,14 +46,14 @@ template<typename MatrixType> class MatrixRef
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
-    const Scalar& _read(int row, int col) const
+    const Scalar& _coeff(int row, int col) const
     {
-      return m_matrix._read(row, col);
+      return m_matrix._coeff(row, col);
     }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.write(row, col);
+      return m_matrix.coeffRef(row, col);
     }
 
   protected:

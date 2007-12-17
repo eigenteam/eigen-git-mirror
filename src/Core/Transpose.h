@@ -49,14 +49,14 @@ template<typename MatrixType> class Transpose
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.write(col, row);
+      return m_matrix.coeffRef(col, row);
     }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return m_matrix.read(col, row);
+      return m_matrix.coeff(col, row);
     }
     
   protected:

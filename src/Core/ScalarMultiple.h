@@ -48,9 +48,9 @@ template<typename MatrixType> class ScalarMultiple : NoOperatorEquals,
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return m_matrix.read(row, col) * m_scalar;
+      return m_matrix.coeff(row, col) * m_scalar;
     }
 
   protected:

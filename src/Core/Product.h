@@ -33,7 +33,7 @@ struct ProductUnroller
                   typename Lhs::Scalar &res)
   {
     ProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
-    res += lhs.read(row, Index) * rhs.read(Index, col);
+    res += lhs.coeff(row, Index) * rhs.coeff(Index, col);
   }
 };
 
@@ -43,7 +43,7 @@ struct ProductUnroller<0, Size, Lhs, Rhs>
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
-    res = lhs.read(row, 0) * rhs.read(0, col);
+    res = lhs.coeff(row, 0) * rhs.coeff(0, col);
   }
 };
 
@@ -86,7 +86,7 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS
@@ -95,9 +95,9 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
-        res = m_lhs.read(row, 0) * m_rhs.read(0, col);
+        res = m_lhs.coeff(row, 0) * m_rhs.coeff(0, col);
         for(int i = 1; i < m_lhs.cols(); i++)
-          res += m_lhs.read(row, i) * m_rhs.read(i, col);
+          res += m_lhs.coeff(row, i) * m_rhs.coeff(i, col);
       }
       return res;
     }

@@ -52,9 +52,9 @@ class DiagonalMatrix : NoOperatorEquals,
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return row == col ? m_coeffs.read(row) : static_cast<Scalar>(0);
+      return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
     
   protected:

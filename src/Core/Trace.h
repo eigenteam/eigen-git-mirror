@@ -31,7 +31,7 @@ template<int Index, int Rows, typename Derived> struct TraceUnroller
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
     TraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
-    trace += mat.read(Index, Index);
+    trace += mat.coeff(Index, Index);
   }
 };
 
@@ -39,7 +39,7 @@ template<int Rows, typename Derived> struct TraceUnroller<0, Rows, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    trace = mat.read(0, 0);
+    trace = mat.coeff(0, 0);
   }
 };
 
@@ -64,9 +64,9 @@ Scalar MatrixBase<Scalar, Derived>::trace() const
       ::run(*static_cast<const Derived*>(this), res);
   else
   {
-    res = read(0, 0);
+    res = coeff(0, 0);
     for(int i = 1; i < rows(); i++)
-      res += read(i, i);
+      res += coeff(i, i);
   }
   return res;
 }

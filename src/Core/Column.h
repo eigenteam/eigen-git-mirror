@@ -53,14 +53,14 @@ template<typename MatrixType> class Column
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return 1; }
     
-    Scalar& _write(int row, int)
+    Scalar& _coeffRef(int row, int)
     {
-      return m_matrix.write(row, m_col);
+      return m_matrix.coeffRef(row, m_col);
     }
     
-    Scalar _read(int row, int) const
+    Scalar _coeff(int row, int) const
     {
-      return m_matrix.read(row, m_col);
+      return m_matrix.coeff(row, m_col);
     }
     
   protected:

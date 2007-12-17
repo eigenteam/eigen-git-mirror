@@ -36,5 +36,6 @@ namespace Eigen {
 #include "Core/Identity.h"
 #include "Core/Fuzzy.h"
 #include "Core/Map.h"
+#include "Core/IO.h"
 
 } // namespace Eigen

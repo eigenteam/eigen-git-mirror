@@ -48,12 +48,12 @@ template<typename MatrixType> class Map
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
-    const Scalar& _read(int row, int col) const
+    const Scalar& _coeff(int row, int col) const
     {
       return m_data[row + col * m_rows];
     }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
       return m_data[row + col * m_rows];
     }

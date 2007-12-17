@@ -49,12 +49,12 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
   private:
     Ref _ref() const { return Ref(*this); }
     
-    const Scalar& _read(int row, int col) const
+    const Scalar& _coeff(int row, int col) const
     {
       return data()[row + col * Storage::_rows()];
     }
     
-    Scalar& _write(int row, int col)
+    Scalar& _coeffRef(int row, int col)
     {
       return data()[row + col * Storage::_rows()];
     }

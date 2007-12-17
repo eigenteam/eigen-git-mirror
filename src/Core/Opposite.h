@@ -47,9 +47,9 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
-      return -(m_matrix.read(row, col));
+      return -(m_matrix.coeff(row, col));
     }
     
   protected:

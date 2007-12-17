@@ -46,7 +46,7 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     int _rows() const { return m_rows; }
     int _cols() const { return m_rows; }
     
-    Scalar _read(int row, int col) const
+    Scalar _coeff(int row, int col) const
     {
       return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
     }

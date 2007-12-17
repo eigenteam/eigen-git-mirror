@@ -46,7 +46,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
-    Scalar _read(int, int) const
+    Scalar _coeff(int, int) const
     {
       return random<Scalar>();
     }
