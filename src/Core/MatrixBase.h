@@ -195,7 +195,6 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& z() { return coeffRef(2, UserDebugging); }
     Scalar& w() { return coeffRef(3, UserDebugging); }
 
-    
     Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };
 

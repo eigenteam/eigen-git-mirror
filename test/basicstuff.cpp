@@ -150,12 +150,14 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   // test Map.h
   Scalar* array1 = new Scalar[rows];
   Scalar* array2 = new Scalar[rows];
-  Matrix<Scalar, Dynamic, 1>::map(array1, rows) = Matrix<Scalar, Dynamic, 1>::random(rows);
-  Matrix<Scalar, Dynamic, 1>::map(array2, rows)
-    = Matrix<Scalar, Dynamic, 1>::map(array1, rows);
-  Matrix<Scalar, Dynamic, 1> ma1 = Matrix<Scalar, Dynamic, 1>::map(array1, rows);
-  Matrix<Scalar, Dynamic, 1> ma2 = Matrix<Scalar, Dynamic, 1>::map(array2, rows);
+  typedef Matrix<Scalar, Dynamic, 1> VectorX;
+  VectorX::map(array1, rows) = VectorX::random(rows);
+  VectorX::map(array2, rows) = VectorX::map(array1, rows);
+  VectorX ma1 = VectorX::map(array1, rows);
+  VectorX ma2 = VectorX::map(array2, rows);
   VERIFY_IS_APPROX(ma1, ma2);
+  VERIFY_IS_APPROX(ma1, VectorX(array2, rows));
+  
   delete[] array1;
   delete[] array2;
 }

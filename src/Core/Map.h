@@ -36,7 +36,7 @@ template<typename MatrixType> class Map
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Map(int rows, int cols, Scalar* array) : m_rows(rows), m_cols(cols), m_data(array)
+    Map(Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
       assert(rows > 0 && cols > 0);
     }
@@ -59,14 +59,22 @@ template<typename MatrixType> class Map
     }
     
   protected:
-    int m_rows, m_cols;
     Scalar* m_data;
+    int m_rows, m_cols;
 };
 
 template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* array, int rows, int cols)
+Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
 {
-  return Map<Derived>(rows, cols, const_cast<Scalar*>(array));
+  return Map<Derived>(const_cast<Scalar*>(data),rows, cols);
+}
+
+template<typename _Scalar, int _Rows, int _Cols>
+Matrix<_Scalar, _Rows, _Cols>
+  ::Matrix(const Scalar *data, int rows, int cols)
+  : Storage(rows, cols)
+{
+  *this = Map<Matrix>(const_cast<Scalar*>(data), rows, cols);
 }
 
 #endif // EIGEN_FROMARRAY_H
