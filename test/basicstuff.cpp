@@ -36,7 +36,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
      
      2) Implicitly (the core stuff):
      MatrixBase.h Matrix.h MatrixStorage.h CopyHelper.h MatrixRef.h
-     NumTraits.h Util.h
+     NumTraits.h Util.h MathFunctions.h OperatorEquals.h Coeffs.h
   */
 
   typedef typename MatrixType::Scalar Scalar;

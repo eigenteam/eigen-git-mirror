@@ -139,62 +139,26 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator/=(const std::complex<float>& other);
     Derived& operator/=(const std::complex<double>& other);
 
-    Scalar coeff(int row, int col, AssertLevel assertLevel = InternalDebugging) const
-    {
-      eigen_assert(assertLevel, row >= 0 && row < rows()
-                                && col >= 0 && col < cols());
-      return static_cast<const Derived *>(this)->_coeff(row, col);
-    }
-    Scalar operator()(int row, int col) const { return coeff(row, col, UserDebugging); }
+    Scalar coeff(int row, int col, AssertLevel assertLevel) const;
+    Scalar operator()(int row, int col) const;
     
-    Scalar& coeffRef(int row, int col, AssertLevel assertLevel = InternalDebugging)
-    {
-      eigen_assert(assertLevel, row >= 0 && row < rows()
-                                && col >= 0 && col < cols());
-      return static_cast<Derived *>(this)->_coeffRef(row, col);
-    }
-    Scalar& operator()(int row, int col) { return coeffRef(row, col, UserDebugging); }
+    Scalar& coeffRef(int row, int col, AssertLevel assertLevel);
+    Scalar& operator()(int row, int col);
     
-    Scalar coeff(int index, AssertLevel assertLevel = InternalDebugging) const
-    {
-      eigen_assert(assertLevel, IsVector);
-      if(RowsAtCompileTime == 1)
-      {
-        eigen_assert(assertLevel, index >= 0 && index < cols());
-        return coeff(0, index);
-      }
-      else
-      {
-        eigen_assert(assertLevel, index >= 0 && index < rows());
-        return coeff(index, 0);
-      }
-    }
-    Scalar operator[](int index) const { return coeff(index, UserDebugging); }
+    Scalar coeff(int index, AssertLevel assertLevel) const;
+    Scalar operator[](int index) const;
     
-    Scalar& coeffRef(int index, AssertLevel assertLevel = InternalDebugging)
-    {
-      eigen_assert(assertLevel, IsVector);
-      if(RowsAtCompileTime == 1)
-      {
-        eigen_assert(assertLevel, index >= 0 && index < cols());
-        return coeffRef(0, index);
-      }
-      else
-      {
-        eigen_assert(assertLevel, index >= 0 && index < rows());
-        return coeffRef(index, 0);
-      }
-    }
-    Scalar& operator[](int index) { return coeffRef(index, UserDebugging); }
+    Scalar& coeffRef(int index, AssertLevel assertLevel);
+    Scalar& operator[](int index);
     
-    Scalar x() const { return coeff(0, UserDebugging); }
-    Scalar y() const { return coeff(1, UserDebugging); }
-    Scalar z() const { return coeff(2, UserDebugging); }
-    Scalar w() const { return coeff(3, UserDebugging); }
-    Scalar& x() { return coeffRef(0, UserDebugging); }
-    Scalar& y() { return coeffRef(1, UserDebugging); }
-    Scalar& z() { return coeffRef(2, UserDebugging); }
-    Scalar& w() { return coeffRef(3, UserDebugging); }
+    Scalar x() const;
+    Scalar y() const;
+    Scalar z() const;
+    Scalar w() const;
+    Scalar& x();
+    Scalar& y();
+    Scalar& z();
+    Scalar& w();
 
     Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };
