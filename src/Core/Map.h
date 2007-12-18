@@ -66,7 +66,23 @@ template<typename MatrixType> class Map
 template<typename Scalar, typename Derived>
 Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
 {
-  return Map<Derived>(const_cast<Scalar*>(data),rows, cols);
+  return Map<Derived>(const_cast<Scalar*>(data), rows, cols);
+}
+
+template<typename Scalar, typename Derived>
+Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
+{
+  assert(IsVector);
+  if(ColsAtCompileTime == 1)
+    return Map<Derived>(const_cast<Scalar*>(data), size, 1);
+  else
+    return Map<Derived>(const_cast<Scalar*>(data), 1, size);
+}
+
+template<typename Scalar, typename Derived>
+Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data)
+{
+  return Map<Derived>(const_cast<Scalar*>(data), RowsAtCompileTime, ColsAtCompileTime);
 }
 
 template<typename _Scalar, int _Rows, int _Cols>
@@ -74,7 +90,23 @@ Matrix<_Scalar, _Rows, _Cols>
   ::Matrix(const Scalar *data, int rows, int cols)
   : Storage(rows, cols)
 {
-  *this = Map<Matrix>(const_cast<Scalar*>(data), rows, cols);
+  *this = map(data, rows, cols);
+}
+
+template<typename _Scalar, int _Rows, int _Cols>
+Matrix<_Scalar, _Rows, _Cols>
+  ::Matrix(const Scalar *data, int size)
+  : Storage(size)
+{
+  *this = map(data, size);
+}
+
+template<typename _Scalar, int _Rows, int _Cols>
+Matrix<_Scalar, _Rows, _Cols>
+  ::Matrix(const Scalar *data)
+  : Storage()
+{
+  *this = map(data);
 }
 
 #endif // EIGEN_FROMARRAY_H

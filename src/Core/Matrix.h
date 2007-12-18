@@ -144,8 +144,9 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
       (Storage::m_data)[2] = z;
       (Storage::m_data)[3] = w;
     }
-    explicit Matrix(const Scalar *data, int rows = RowsAtCompileTime,
-                                        int cols = ColsAtCompileTime);
+    Matrix(const Scalar *data, int rows, int cols);
+    Matrix(const Scalar *data, int size);
+    explicit Matrix(const Scalar *data);
     
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)

@@ -95,8 +95,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     diagonal(const OtherDerived& coeffs);
     DiagonalCoeffs<Derived> diagonal() const;
     
-    static Map<Derived>
-    map(const Scalar* array, int rows = RowsAtCompileTime, int cols = ColsAtCompileTime);
+    static Map<Derived> map(const Scalar* array, int rows, int cols);
+    static Map<Derived> map(const Scalar* array, int size);
+    static Map<Derived> map(const Scalar* array);
     
     template<typename OtherDerived>
     bool isApprox(
