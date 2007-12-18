@@ -26,18 +26,16 @@
 #ifndef EIGEN_EVAL_H
 #define EIGEN_EVAL_H
 
-template<typename Expression> class Eval
-  : public Matrix< typename Expression::Scalar,
-                     Expression::RowsAtCompileTime,
-                     Expression::ColsAtCompileTime >
+template<typename Expression> class Eval : NoOperatorEquals,
+  public Matrix< typename Expression::Scalar,
+                 Expression::RowsAtCompileTime,
+                 Expression::ColsAtCompileTime >
 {
   public:
     typedef typename Expression::Scalar Scalar;
     typedef Matrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
     friend class MatrixBase<Scalar, Expression>;
-    
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Eval)
     
     Eval(const Expression& expression) : MatrixType(expression) {}
 };
