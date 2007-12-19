@@ -34,12 +34,6 @@ template<typename MatrixType> class Minor
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Minor<MatrixType> >;
     
-    static const int
-      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
-                          MatrixType::RowsAtCompileTime - 1 : Dynamic,
-      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
-                          MatrixType::ColsAtCompileTime - 1 : Dynamic;
-
     Minor(const MatRef& matrix,
                 int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
@@ -54,6 +48,12 @@ template<typename MatrixType> class Minor
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:
+    static const int
+      _RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
+                           MatrixType::RowsAtCompileTime - 1 : Dynamic,
+      _ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
+                           MatrixType::ColsAtCompileTime - 1 : Dynamic;
+
     const Minor& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }

@@ -36,18 +36,18 @@ class DiagonalMatrix : NoOperatorEquals,
     typedef typename CoeffsVectorType::Ref CoeffsVecRef;
     friend class MatrixBase<Scalar, DiagonalMatrix<MatrixType, CoeffsVectorType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::IsVector
-          && RowsAtCompileTime == ColsAtCompileTime
-          && RowsAtCompileTime == CoeffsVectorType::SizeAtCompileTime
+          && _RowsAtCompileTime == _ColsAtCompileTime
+          && _RowsAtCompileTime == CoeffsVectorType::SizeAtCompileTime
           && coeffs.size() > 0);
     }
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }

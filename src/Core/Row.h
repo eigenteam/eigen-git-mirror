@@ -34,9 +34,6 @@ template<typename MatrixType> class Row
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Row<MatrixType> >;
 
-    static const int RowsAtCompileTime = 1,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
@@ -55,6 +52,9 @@ template<typename MatrixType> class Row
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
   private:
+    static const int _RowsAtCompileTime = 1,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     const Row& _ref() const { return *this; }
     
     int _rows() const { return 1; }

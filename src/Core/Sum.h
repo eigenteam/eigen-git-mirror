@@ -35,9 +35,6 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Sum>;
     
-    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
-
     Sum(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
@@ -47,6 +44,9 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     Sum(const Sum& other) : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
 
   private:
+    static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     _ColsAtCompileTime = Rhs::ColsAtCompileTime;
+
     const Sum& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }

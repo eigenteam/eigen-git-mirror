@@ -34,10 +34,6 @@ template<typename MatrixType> class DynBlock
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, DynBlock<MatrixType> >;
     
-    static const int
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
-
     DynBlock(const MatRef& matrix,
           int startRow, int startCol,
           int blockRows, int blockCols)
@@ -56,6 +52,10 @@ template<typename MatrixType> class DynBlock
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DynBlock)
     
   private:
+    static const int
+      _RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
+      _ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
+
     const DynBlock& _ref() const { return *this; }
     int _rows() const { return m_blockRows; }
     int _cols() const { return m_blockCols; }

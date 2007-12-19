@@ -23,8 +23,8 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_FROMARRAY_H
-#define EIGEN_FROMARRAY_H
+#ifndef EIGEN_MAP_H
+#define EIGEN_MAP_H
 
 template<typename MatrixType> class Map
   : public MatrixBase<typename MatrixType::Scalar, Map<MatrixType> >
@@ -33,9 +33,6 @@ template<typename MatrixType> class Map
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Map<MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
       assert(rows > 0 && cols > 0);
@@ -44,6 +41,9 @@ template<typename MatrixType> class Map
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
@@ -131,4 +131,4 @@ Matrix<_Scalar, _Rows, _Cols>
   *this = map(data);
 }
 
-#endif // EIGEN_FROMARRAY_H
+#endif // EIGEN_MAP_H

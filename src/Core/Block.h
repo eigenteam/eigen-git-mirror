@@ -35,9 +35,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Block<MatrixType, BlockRows, BlockCols> >;
     
-    static const int RowsAtCompileTime = BlockRows,
-                     ColsAtCompileTime = BlockCols;
-
     Block(const MatRef& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {
@@ -52,6 +49,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:
+    static const int _RowsAtCompileTime = BlockRows,
+                     _ColsAtCompileTime = BlockCols;
+
     const Block& _ref() const { return *this; }
     int _rows() const { return BlockRows; }
     int _cols() const { return BlockCols; }

@@ -34,9 +34,6 @@ template<typename MatrixType> class DiagonalCoeffs
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, DiagonalCoeffs<MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = 1;
-    
     DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
     
     DiagonalCoeffs(const DiagonalCoeffs& other) : m_matrix(other.m_matrix) {}
@@ -44,6 +41,9 @@ template<typename MatrixType> class DiagonalCoeffs
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = 1;
+    
     const DiagonalCoeffs& _ref() const { return *this; }
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
     int _cols() const { return 1; }

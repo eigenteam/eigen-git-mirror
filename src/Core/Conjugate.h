@@ -34,15 +34,15 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Conjugate<MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     
     Conjugate(const Conjugate& other)
       : m_matrix(other.m_matrix) {}
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     const Conjugate& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }

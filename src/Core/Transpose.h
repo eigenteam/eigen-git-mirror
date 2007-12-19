@@ -34,9 +34,6 @@ template<typename MatrixType> class Transpose
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Transpose<MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::RowsAtCompileTime;
-
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
     
     Transpose(const Transpose& other)
@@ -45,6 +42,9 @@ template<typename MatrixType> class Transpose
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::ColsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::RowsAtCompileTime;
+
     const Transpose& _ref() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }

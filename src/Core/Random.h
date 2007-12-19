@@ -33,15 +33,15 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Random<MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     Random(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0 && cols > 0);
     }
    
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
     const Random& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }

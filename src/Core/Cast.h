@@ -34,15 +34,14 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Cast<Scalar, MatrixType> >;
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     Cast(const MatRef& matrix) : m_matrix(matrix) {}
     
     Cast(const Cast& other)
       : m_matrix(other.m_matrix) {}
     
   private:
+    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
     const Cast& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }

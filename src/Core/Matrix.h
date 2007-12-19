@@ -38,8 +38,6 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
     
-    static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
-    
     const Scalar* data() const
     { return Storage::m_data; }
     
@@ -47,6 +45,8 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     { return Storage::m_data; }
     
   private:
+    static const int _RowsAtCompileTime = _Rows, _ColsAtCompileTime = _Cols;
+    
     Ref _ref() const { return Ref(*this); }
     
     const Scalar& _coeff(int row, int col) const
@@ -80,15 +80,15 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     explicit Matrix() : Storage()
     {
-      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+      assert(_RowsAtCompileTime > 0 && _ColsAtCompileTime > 0);
     }
     explicit Matrix(int dim) : Storage(dim)
     {
       assert(dim > 0);
-      assert((RowsAtCompileTime == 1
-              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == dim))
-          || (ColsAtCompileTime == 1
-              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
+      assert((_RowsAtCompileTime == 1
+              && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == dim))
+          || (_ColsAtCompileTime == 1
+              && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == dim)));
     }
     
     // this constructor is very tricky.
@@ -101,44 +101,44 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     // does what we want to, so it only remains to add some asserts.
     Matrix(int x, int y) : Storage(x, y)
     {
-      if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-      || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
+      if((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
+      || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1))
       {
         (Storage::m_data)[0] = x;
         (Storage::m_data)[1] = y;
       }
       else
       {
-        assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
-            && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
+        assert(x > 0 && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == x)
+            && y > 0 && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == y));
       }
     }
     Matrix(const float& x, const float& y)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
+          || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
     Matrix(const double& x, const double& y)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
+          || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
-          || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
+      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 3)
+          || (_RowsAtCompileTime == 3 && _ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
       (Storage::m_data)[2] = z;
     }
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
-          || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
+      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 4)
+          || (_RowsAtCompileTime == 4 && _ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
       (Storage::m_data)[2] = z;

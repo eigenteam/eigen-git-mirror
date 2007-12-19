@@ -69,9 +69,6 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Product>;
     
-    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
-
     Product(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {
@@ -82,6 +79,9 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       : m_lhs(other.m_lhs), m_rhs(other.m_rhs) {}
     
   private:
+    static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     _ColsAtCompileTime = Rhs::ColsAtCompileTime;
+
     const Product& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
