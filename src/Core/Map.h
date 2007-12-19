@@ -36,7 +36,7 @@ template<typename MatrixType> class Map
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    Map(Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
+    Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
       assert(rows > 0 && cols > 0);
     }
@@ -55,22 +55,22 @@ template<typename MatrixType> class Map
     
     Scalar& _coeffRef(int row, int col)
     {
-      return m_data[row + col * m_rows];
+      return const_cast<Scalar*>(m_data)[row + col * m_rows];
     }
     
   protected:
-    Scalar* m_data;
+    const Scalar* m_data;
     int m_rows, m_cols;
 };
 
 template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
+const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
 {
   return Map<Derived>(const_cast<Scalar*>(data), rows, cols);
 }
 
 template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
+const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
 {
   assert(IsVector);
   if(ColsAtCompileTime == 1)
@@ -80,9 +80,31 @@ Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
 }
 
 template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data)
+const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data)
 {
   return Map<Derived>(const_cast<Scalar*>(data), RowsAtCompileTime, ColsAtCompileTime);
+}
+
+template<typename Scalar, typename Derived>
+Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int rows, int cols)
+{
+  return Map<Derived>(data, rows, cols);
+}
+
+template<typename Scalar, typename Derived>
+Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int size)
+{
+  assert(IsVector);
+  if(ColsAtCompileTime == 1)
+    return Map<Derived>(data, size, 1);
+  else
+    return Map<Derived>(data, 1, size);
+}
+
+template<typename Scalar, typename Derived>
+Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data)
+{
+  return Map<Derived>(data, RowsAtCompileTime, ColsAtCompileTime);
 }
 
 template<typename _Scalar, int _Rows, int _Cols>
