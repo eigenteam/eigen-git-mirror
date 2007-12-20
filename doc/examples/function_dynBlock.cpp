@@ -1,4 +1,4 @@
-#include "../src/Core.h"
+#include <Eigen/Core.h>
 USING_EIGEN_DATA_TYPES
 using namespace std;
 int main(int, char**)

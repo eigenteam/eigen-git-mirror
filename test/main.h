@@ -29,7 +29,7 @@
 #include <QtTest/QtTest>
 
 #define EIGEN_INTERNAL_DEBUGGING
-#include "../src/Core.h"
+#include <Eigen/Core.h>
 
 #include <cstdlib>
 #include <ctime>

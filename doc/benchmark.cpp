@@ -1,6 +1,6 @@
 // g++ -O3 -DNDEBUG benchmark.cpp -o benchmark && time ./benchmark
 
-#include "src/Core.h"
+#include <Eigen/Core.h>
 
 using namespace std;
 USING_EIGEN_DATA_TYPES
