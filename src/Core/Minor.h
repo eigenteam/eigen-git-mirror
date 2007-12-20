@@ -73,6 +73,9 @@ template<typename MatrixType> class Minor
     const int m_row, m_col;
 };
 
+/** \return an expression of the (\a row, \a col)-minor of *this,
+  * i.e. an expression constructed from *this by removing the specified
+  * row and column. */
 template<typename Scalar, typename Derived>
 Minor<Derived>
 MatrixBase<Scalar, Derived>::minor(int row, int col) const

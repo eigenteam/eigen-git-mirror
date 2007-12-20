@@ -46,7 +46,7 @@
   *
   * \code
     template<typename Scalar, typename Derived>
-    void printFirstRow(const Eigen::MatrixBase<Scalar, Derived>& m)
+    void printFirstRow(const Eigen::MatrixBase<Scalar, Derived>& x)
     {
       cout << x.row(0) << endl;
     }
@@ -111,21 +111,11 @@ template<typename Scalar, typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
     
-    /** \returns an expression of *this with the \a Scalar type casted to
-      * \a NewScalar. */
     template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
     
-    /** \returns an expression of the \a i-th row of *this.
-      * \sa col(int)*/
     Row<Derived> row(int i) const;
-    /** \returns an expression of the \a i-th column of *this.
-      * \sa row(int) */
     Column<Derived> col(int i) const;
-    /** \return an expression of the (\a row, \a col)-minor of *this,
-      * i.e. an expression constructed from *this by removing the specified
-      * row and column. */
     Minor<Derived> minor(int row, int col) const;
-    
     DynBlock<Derived> dynBlock(int startRow, int startCol,
                                int blockRows, int blockCols) const;
     template<int BlockRows, int BlockCols>

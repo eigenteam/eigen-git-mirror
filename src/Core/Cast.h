@@ -55,6 +55,8 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     MatRef m_matrix;
 };
 
+/** \returns an expression of *this with the \a Scalar type casted to
+  * \a NewScalar. */
 template<typename Scalar, typename Derived>
 template<typename NewScalar>
 const Cast<NewScalar, Derived>

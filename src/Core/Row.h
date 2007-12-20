@@ -75,6 +75,8 @@ template<typename MatrixType> class Row
     const int m_row;
 };
 
+/** \returns an expression of the \a i-th row of *this.
+  * \sa col(int)*/
 template<typename Scalar, typename Derived>
 Row<Derived>
 MatrixBase<Scalar, Derived>::row(int i) const

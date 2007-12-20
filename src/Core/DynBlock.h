@@ -75,6 +75,16 @@ template<typename MatrixType> class DynBlock
     const int m_startRow, m_startCol, m_blockRows, m_blockCols;
 };
 
+/** \returns a dynamic-size expression of a block in *this.
+  *
+  * \param startRow the first row in the block
+  * \param startCol the first column in the block
+  * \param blockRows the number of rows in the block
+  * \param blockCols the number of columns in the block
+  *
+  * Example:
+  * \include MatrixBase_dynBlock.cpp
+  */
 template<typename Scalar, typename Derived>
 DynBlock<Derived> MatrixBase<Scalar, Derived>
   ::dynBlock(int startRow, int startCol, int blockRows, int blockCols) const
