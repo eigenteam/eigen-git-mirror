@@ -26,6 +26,23 @@
 #ifndef EIGEN_DYNBLOCK_H
 #define EIGEN_DYNBLOCK_H
 
+/** \class DynBlock
+  *
+  * \brief Expression of a dynamic-size block
+  *
+  * This class represents an expression of a dynamic-size block. It is the return
+  * type of MatrixBase::dynBlock() and most of the time this is the only way this
+  * class is used.
+  *
+  * However, if you want to directly maniputate dynamic-size block expressions,
+  * for instance if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_DynBlock.cpp
+  * Output:
+  * \verbinclude class_DynBlock.out
+  */
 template<typename MatrixType> class DynBlock
   : public MatrixBase<typename MatrixType::Scalar, DynBlock<MatrixType> >
 {
@@ -84,6 +101,10 @@ template<typename MatrixType> class DynBlock
   *
   * Example:
   * \include MatrixBase_dynBlock.cpp
+  * Output:
+  * \verbinclude MatrixBase_dynBlock.out
+  *
+  * \sa class DynBlock
   */
 template<typename Scalar, typename Derived>
 DynBlock<Derived> MatrixBase<Scalar, Derived>

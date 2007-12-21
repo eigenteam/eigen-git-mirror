@@ -85,7 +85,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then RealScalar is just the same as \a Scalar. If
-      * \Scalar is \a std::complex<T> then RealScalar is \a T. */
+      * \a Scalar is \a std::complex<T> then RealScalar is \a T. */
     typedef typename NumTraits<Scalar>::Real RealScalar;
     
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */

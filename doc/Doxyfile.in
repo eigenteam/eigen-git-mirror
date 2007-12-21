@@ -85,7 +85,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ${CMAKE_SOURCE_DIR}
+INPUT                  = ${CMAKE_SOURCE_DIR}/doc ${CMAKE_SOURCE_DIR}/Eigen
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \
@@ -133,7 +133,9 @@ EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
 EXCLUDE_SYMBOLS        = 
-EXAMPLE_PATH           = ${CMAKE_SOURCE_DIR}/doc/examples \
+EXAMPLE_PATH           = ${CMAKE_SOURCE_DIR}/doc/snippets \
+                         ${CMAKE_BINARY_DIR}/doc/snippets \
+                         ${CMAKE_SOURCE_DIR}/doc/examples \
                          ${CMAKE_BINARY_DIR}/doc/examples
 EXAMPLE_PATTERNS       = *
 EXAMPLE_RECURSIVE      = NO

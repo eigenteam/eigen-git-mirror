@@ -4,4 +4,5 @@ using namespace std;
 int main(int, char**)
 {
 ${snippet_source_code}
+return 0;
 }
