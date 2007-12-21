@@ -8,12 +8,3 @@ int main(int, char**)
     cout << m << endl;
     return 0;
 }
-
-/* Output:
-
-1 0 0 0
-0 1 0 0
-1 0 1 0
-0 1 0 1
-
-*/

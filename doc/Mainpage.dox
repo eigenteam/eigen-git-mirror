@@ -1,0 +1,123 @@
+o /** @mainpage Eigen
+
+<h2>Table of contents</h2>
+<a href="#overview">Overview</a><br/>
+<a href="#license">License</a><br/>
+<a href="#features">Features</a><br/>
+<a href="#news">News</a><br/>
+<a href="#download">Download</a><br/>
+<a href="#kde">Relation to KDE</a><br/>
+<a href="#examples">Examples</a><br/>
+<a href="#applications">Applications using Eigen</a><br/>
+<a href="#authors">Authors</a><br/>
+<a href="#contact">Contact us</a><br/>
+<a href="#mailinglist">Mailing list</a><br/>
+
+<a name="overview"></a>
+<h2>Overview</h2>
+
+Eigen is a C++ template library for vector and matrix math, a.k.a. linear algebra. It aims to concile speed, ease of use, and completeness.
+
+<a name="license"></a>
+<h2>License</h2>
+
+ Eigen is distributed under the GPL, version 2 or later, but with an <a href="#exception">exception allowing any software to use it</a>. Thus, to the question
+"Can my own project use Eigen?", the answer is a definite <b>yes</b>.
+
+Eigen's <a href="#exception">exception</a> is modeled after the one of the GNU C++ Standard Library, but is simpler and more liberal.
+
+This is similar to the LGPL in spirit. The reason why we don't use the LGPL is that, as of version 2, it doesn't make sense for a pure template library like Eigen, where all the code is in headers.
+
+<a name="features"></a>
+<h2>Features</h2>
+
+WARNING: this alpha release is NOT feature complete -- far from it! It contains only the Core module, while several other modules are planned.
+
+<ul>
+  <li>Add items</li>
+  <li>Add more items</li>
+</ul>
+
+<a name="news"></a>
+<h2>News</h2>
+
+If you want to stay informed of Eigen news and releases, please subscribe to our <a href="#mailinglist">mailing list</a>. You can also browse the <a href="http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/">archive</a>.
+
+<a name="download"></a>
+<h2>Download</h2>
+The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha1.tar.gz">eigen-2.0-alpha1.tar.gz</a><br/>
+
+Alternatively, you can checkout the development tree by anonymous svn, by doing:
+<pre>svn co svn://anonsvn.kde.org/home/kde/branches/work/eigen2</pre>
+or view it online at this address:
+<a href="http://websvn.kde.org/branches/work/eigen2">http://websvn.kde.org/branches/work/eigen2</a>
+
+<a name="kde"></a>
+<h2>Relation to KDE</h2>
+
+First of all: Eigen doesn't have any dependency. In particular, it doesn't depend on any part of KDE or on Qt.<br/>
+
+Eigen is part of the KDE project, in the sense that:
+<ul>
+  <li>Its <a href="http://websvn.kde.org/trunk/kdesupport/eigen/">development tree</a> is hosted in the <a href="http://websvn.kde.org">KDE repository</a>.</li>
+  <li>It has been founded by, and is developed by KDE people.</li>
+  <li>It has originally been designed for the needs of KDE applications, especially <a href="http://edu.kde.org/kalzium">Kalzium</a>.</li>
+</ul>
+However, we quickly realized that Eigen could be useful for non-KDE projects, whence our decision to make sure that it has no dependency on KDE or Qt.
+
+Although Eigen itself doesn't have any dependency, the unit-tests require Qt.
+
+<a name="examples"></a>
+<h2>Examples</h2>
+
+TODO: write more examples, update this section.
+
+<a name="applications"></a>
+<h2>Applications using Eigen</h2>
+
+TODO: update this section
+
+Please tell us if you know of other interesting projects using Eigen!
+
+<a name="authors"></a>
+<h2>Authors</h2>
+
+<b>Lead Developer:</b> Benoit Jacob (jacob at math jussieu fr)
+
+<b>Contributors during the Eigen 2 development process:</b>
+<ul>
+  <li>Michael Olbrich (michael olbrich at gmx net) : initial loop-unrolling metaprogram</li>
+  <li>Christian Mayer (mail at christianmayer de) : reviewed the source code, made many useful suggestions</li>
+  <li>and thanks to everyone on the <a href="#mailinglist">mailing list</a> for your input!
+</ul>
+
+<a name="contact"></a>
+<h2>Contact us</h2>
+
+The best way to contact us is by means of our <a href="#mailinglist">mailing list</a>.<br/>
+IRC Channel: \#eigen on Freenode.<br/>
+Website (you're here): <a href="http://eigen.tuxfamily.org">http://eigen.tuxfamily.org</a><br/>
+
+<a name="mailinglist"></a>
+<h2>Mailing list</h2>
+
+The Mailing list for Eigen is: eigen at lists tuxfamily org.<br/>
+
+To subscribe, send a mail with subject "subscribe" to eigen-request at lists tuxfamily org.<br/>
+To unsubscribe, send a mail with subject "unsubscribe" to eigen-request at lists tuxfamily org.<br/>
+
+You can also browse the <a href="http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/">archive</a>.
+
+<a name="exception"></a>
+<h2>Exception to the GPL</h2>
+Eigen is licensed under the GNU GPL, version 2 or later, plus the following exception, which is replicated into each of the source files of Eigen:
+<pre>
+// As a special exception, if other files instantiate templates or use macros
+// or inline functions from this file, or you compile this file and link it
+// with other works to produce a work based on this file, this file does not
+// by itself cause the resulting work to be covered by the GNU General Public
+// License. This exception does not invalidate any other reasons why a work
+// based on this file might be covered by the GNU General Public License.
+</pre>
+
+*/

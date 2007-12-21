@@ -1,3 +1,4 @@
-add_executable(tutorial tutorial.cpp)
-add_executable(example example.cpp)
+FILE(GLOB examples "*.cpp")
+
+FOREACH(example examples)
 
