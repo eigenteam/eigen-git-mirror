@@ -11,6 +11,6 @@ In order to generate the documentation for Eigen, follow these steps:
   <li>now generate the documentaion: <pre>make</pre> or, if you have two CPUs, <pre>make -j2</pre> Note that this will compile the examples, run them, and integrate their output into the documentation. This is why it can take some time.</li>
 </ul>
 
-You will now find in the build directory a 'html' subdirectory containing the HTML documentation for Eigen.
+You will now find the HTML documentation in the doc/html/ subdirectory of the build directory.
 
 */

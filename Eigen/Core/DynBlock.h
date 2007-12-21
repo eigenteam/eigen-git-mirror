@@ -42,6 +42,8 @@
   * \include class_DynBlock.cpp
   * Output:
   * \verbinclude class_DynBlock.out
+  *
+  * \sa MatrixBase::dynBlock()
   */
 template<typename MatrixType> class DynBlock
   : public MatrixBase<typename MatrixType::Scalar, DynBlock<MatrixType> >

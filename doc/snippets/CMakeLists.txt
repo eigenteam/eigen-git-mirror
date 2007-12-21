@@ -1,5 +1,7 @@
 FILE(GLOB snippets_SRCS "*.cpp")
 
+ADD_CUSTOM_TARGET(all_snippets)
+
 FOREACH(snippet_src ${snippets_SRCS})
 GET_FILENAME_COMPONENT(snippet ${snippet_src} NAME_WE)
 SET(compile_snippet_target compile_${snippet})
@@ -17,4 +19,5 @@ ADD_CUSTOM_COMMAND(
   COMMAND ${compile_snippet_executable}
   ARGS >${CMAKE_CURRENT_BINARY_DIR}/${snippet}.out
 )
+ADD_DEPENDENCIES(all_snippets ${compile_snippet_target})
 ENDFOREACH(snippet_src)
