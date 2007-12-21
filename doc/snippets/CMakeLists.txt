@@ -1,14 +1,20 @@
-FILE(GLOB examples_SRCS "*.cpp")
+FILE(GLOB snippets_SRCS "*.cpp")
 
-FOREACH(example_src ${examples_SRCS})
-GET_FILENAME_COMPONENT(example ${example_src} NAME_WE)
-ADD_EXECUTABLE(${example} ${example_src})
-GET_TARGET_PROPERTY(example_executable ${example} LOCATION)
+FOREACH(snippet_src ${snippets_SRCS})
+GET_FILENAME_COMPONENT(snippet ${snippet_src} NAME_WE)
+SET(compile_snippet_target compile_${snippet})
+SET(compile_snippet_src ${compile_snippet_target}.cpp)
+FILE(READ ${snippet_src} snippet_source_code)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/compile_snippet.cpp.in
+               ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})
+ADD_EXECUTABLE(${compile_snippet_target}
+               ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})
+GET_TARGET_PROPERTY(compile_snippet_executable
+                    ${compile_snippet_target} LOCATION)
 ADD_CUSTOM_COMMAND(
-  TARGET ${example}
+  TARGET ${compile_snippet_target}
   POST_BUILD
-  COMMAND ${example_executable}
-  ARGS >${CMAKE_CURRENT_BINARY_DIR}/${example}.out
+  COMMAND ${compile_snippet_executable}
+  ARGS >${CMAKE_CURRENT_BINARY_DIR}/${snippet}.out
 )
-MESSAGE(coucou)
-ENDFOREACH(example_src)
+ENDFOREACH(snippet_src)
