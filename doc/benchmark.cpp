@@ -3,7 +3,7 @@
 #include <Eigen/Core.h>
 
 using namespace std;
-USING_EIGEN_DATA_TYPES
+USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {

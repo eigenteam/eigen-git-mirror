@@ -26,6 +26,26 @@
 #ifndef EIGEN_ROW_H
 #define EIGEN_ROW_H
 
+/** \class Row
+  *
+  * \brief Expression of a row
+  *
+  * \param MatrixType the type of the object in which we are taking a row
+  *
+  * This class represents an expression of a row. It is the return
+  * type of MatrixBase::row() and most of the time this is the only way it
+  * is used.
+  *
+  * However, if you want to directly maniputate row expressions,
+  * for instance if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_Row.cpp
+  * Output: \verbinclude class_Row.out
+  *
+  * \sa MatrixBase::row()
+  */
 template<typename MatrixType> class Row
   : public MatrixBase<typename MatrixType::Scalar, Row<MatrixType> >
 {
@@ -75,8 +95,12 @@ template<typename MatrixType> class Row
     const int m_row;
 };
 
-/** \returns an expression of the \a i-th row of *this.
-  * \sa col(int)*/
+/** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
+  *
+  * Example: \include MatrixBase_row.cpp
+  * Output: \verbinclude MatrixBase_row.out
+  *
+  * \sa col(), class Row */
 template<typename Scalar, typename Derived>
 Row<Derived>
 MatrixBase<Scalar, Derived>::row(int i) const

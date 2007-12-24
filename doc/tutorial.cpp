@@ -1,6 +1,6 @@
 #include <Eigen/Core.h>
 
-USING_EIGEN_DATA_TYPES
+USING_PART_OF_NAMESPACE_EIGEN
 
 using namespace std;
 

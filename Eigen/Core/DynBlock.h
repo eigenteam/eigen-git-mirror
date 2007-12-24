@@ -30,9 +30,11 @@
   *
   * \brief Expression of a dynamic-size block
   *
+  * \param MatrixType the type of the object in which we are taking a block
+  *
   * This class represents an expression of a dynamic-size block. It is the return
-  * type of MatrixBase::dynBlock() and most of the time this is the only way this
-  * class is used.
+  * type of MatrixBase::dynBlock() and most of the time this is the only way it
+  * is used.
   *
   * However, if you want to directly maniputate dynamic-size block expressions,
   * for instance if you want to write a function returning such an expression, you
@@ -40,8 +42,7 @@
   *
   * Here is an example illustrating this:
   * \include class_DynBlock.cpp
-  * Output:
-  * \verbinclude class_DynBlock.out
+  * Output: \verbinclude class_DynBlock.out
   *
   * \sa MatrixBase::dynBlock()
   */
@@ -101,12 +102,10 @@ template<typename MatrixType> class DynBlock
   * \param blockRows the number of rows in the block
   * \param blockCols the number of columns in the block
   *
-  * Example:
-  * \include MatrixBase_dynBlock.cpp
-  * Output:
-  * \verbinclude MatrixBase_dynBlock.out
+  * Example: \include MatrixBase_dynBlock.cpp
+  * Output: \verbinclude MatrixBase_dynBlock.out
   *
-  * \sa class DynBlock
+  * \sa class DynBlock, block()
   */
 template<typename Scalar, typename Derived>
 DynBlock<Derived> MatrixBase<Scalar, Derived>

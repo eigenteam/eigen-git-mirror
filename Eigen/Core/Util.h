@@ -34,17 +34,16 @@
 
 #undef minor
 
-#define USING_EIGEN_DATA_TYPES \
+#define USING_PART_OF_NAMESPACE_EIGEN \
 EIGEN_USING_MATRIX_TYPEDEFS \
-using Eigen::Matrix;
+using Eigen::Matrix; \
+using Eigen::MatrixBase;
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
-#define EIGEN_ASSERT_LEVEL 2
+#define eigen_internal_assert(x) assert(x);
 #else
-#define EIGEN_ASSERT_LEVEL 1
+#define eigen_internal_assert(x)
 #endif
-
-#define eigen_assert(assertLevel, x) if(assertLevel <= EIGEN_ASSERT_LEVEL) assert(x);
 
 #ifdef NDEBUG
 #define EIGEN_ONLY_USED_FOR_DEBUG(x) (void)x
@@ -120,12 +119,6 @@ struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols> >
 };
 
 const int Dynamic = -1;
-
-enum AssertLevel
-{
-  UserDebugging = 1,
-  InternalDebugging = 2
-};
 
 //classes inheriting NoOperatorEquals don't generate a default operator=.
 class NoOperatorEquals

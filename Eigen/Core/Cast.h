@@ -26,6 +26,26 @@
 #ifndef EIGEN_CAST_H
 #define EIGEN_CAST_H
 
+/** \class Cast
+  *
+  * \brief Expression with casted scalar type
+  *
+  * \param NewScalar the new scalar type
+  * \param MatrixType the type of the object in which we are casting the scalar type
+  *
+  * This class represents an expression where we are casting the scalar type to a new
+  * type. It is the return type of MatrixBase::cast() and most of the time this is the
+  * only way it is used.
+  *
+  * However, if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_Cast.cpp
+  * Output: \verbinclude class_Cast.out
+  *
+  * \sa MatrixBase::cast()
+  */
 template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
   public MatrixBase<NewScalar, Cast<NewScalar, MatrixType> >
 {
@@ -56,7 +76,15 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
 };
 
 /** \returns an expression of *this with the \a Scalar type casted to
-  * \a NewScalar. */
+  * \a NewScalar.
+  *
+  * \param NewScalar the type we are casting the scalars to
+  *
+  * Example: \include MatrixBase_cast.cpp
+  * Output: \verbinclude MatrixBase_cast.out
+  *
+  * \sa class Cast
+  */
 template<typename Scalar, typename Derived>
 template<typename NewScalar>
 const Cast<NewScalar, Derived>

@@ -26,6 +26,26 @@
 #ifndef EIGEN_COLUMN_H
 #define EIGEN_COLUMN_H
 
+/** \class Column
+  *
+  * \brief Expression of a column
+  *
+  * \param MatrixType the type of the object in which we are taking a column
+  *
+  * This class represents an expression of a column. It is the return
+  * type of MatrixBase::col() and most of the time this is the only way it
+  * is used.
+  *
+  * However, if you want to directly maniputate column expressions,
+  * for instance if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_Column.cpp
+  * Output: \verbinclude class_Column.out
+  *
+  * \sa MatrixBase::col()
+  */
 template<typename MatrixType> class Column
   : public MatrixBase<typename MatrixType::Scalar, Column<MatrixType> >
 {
@@ -67,8 +87,12 @@ template<typename MatrixType> class Column
     const int m_col;
 };
 
-/** \returns an expression of the \a i-th column of *this.
-  * \sa row(int) */
+/** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
+  *
+  * Example: \include MatrixBase_col.cpp
+  * Output: \verbinclude MatrixBase_col.out
+  *
+  * \sa row(), class Column */
 template<typename Scalar, typename Derived>
 Column<Derived>
 MatrixBase<Scalar, Derived>::col(int i) const

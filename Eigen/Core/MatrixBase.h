@@ -55,12 +55,17 @@
 template<typename Scalar, typename Derived> class MatrixBase
 {
   public:
-    /** The number of rows and of columns at compile-time. These are just
-      * copies of the values provided by the \a Derived type. If a value
-      * is not known at compile-time, it is set to the \a Dynamic constant.
-      * \sa rows(), cols(), SizeAtCompileTime */
-    static const int RowsAtCompileTime = Derived::_RowsAtCompileTime,
-                     ColsAtCompileTime = Derived::_ColsAtCompileTime;
+    /** The number of rows at compile-time. This is just a copy of the value provided
+      * by the \a Derived type. If a value is not known at compile-time,
+      * it is set to the \a Dynamic constant.
+      * \sa rows(), cols(), ColsAtCompileTime, SizeAtCompileTime */
+    static const int RowsAtCompileTime = Derived::_RowsAtCompileTime;
+    
+    /** The number of columns at compile-time. This is just a copy of the value provided
+      * by the \a Derived type. If a value is not known at compile-time,
+      * it is set to the \a Dynamic constant.
+      * \sa rows(), cols(), RowsAtCompileTime, SizeAtCompileTime */
+    static const int ColsAtCompileTime = Derived::_ColsAtCompileTime;
     
     /** This is equal to the number of coefficients, i.e. the number of
       * rows times the number of columns, or to \a Dynamic if this is not
@@ -77,9 +82,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
       * to functions. If this MatrixBase type represents an expression, then \a Ref
       * is just this MatrixBase type itself, i.e. expressions are just passed by value
-      * and the compiler is supposed to be clever enough to optimize that. If, on the
-      * other hand, this MatrixBase type is an actual matrix or vector, then \a Ref is
-      * a typedef MatrixRef, which is like a reference, so that matrices and vectors
+      * and the compiler is usually clever enough to optimize that. If, on the
+      * other hand, this MatrixBase type is an actual matrix or vector type, then \a Ref is
+      * a typedef to MatrixRef, which works as a reference, so that matrices and vectors
       * are passed by reference, not by value. \sa ref()*/
     typedef typename ForwardDecl<Derived>::Ref Ref;
     
@@ -195,16 +200,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator/=(const std::complex<float>& other);
     Derived& operator/=(const std::complex<double>& other);
 
-    Scalar coeff(int row, int col, AssertLevel assertLevel) const;
+    Scalar coeff(int row, int col) const;
     Scalar operator()(int row, int col) const;
     
-    Scalar& coeffRef(int row, int col, AssertLevel assertLevel);
+    Scalar& coeffRef(int row, int col);
     Scalar& operator()(int row, int col);
     
-    Scalar coeff(int index, AssertLevel assertLevel) const;
+    Scalar coeff(int index) const;
     Scalar operator[](int index) const;
     
-    Scalar& coeffRef(int index, AssertLevel assertLevel);
+    Scalar& coeffRef(int index);
     Scalar& operator[](int index);
     
     Scalar x() const;
