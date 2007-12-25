@@ -78,9 +78,17 @@ template<typename MatrixType> class Minor
   * row and column. */
 template<typename Scalar, typename Derived>
 Minor<Derived>
+MatrixBase<Scalar, Derived>::minor(int row, int col)
+{
+  return Minor<Derived>(ref(), row, col);
+}
+
+/** This is the const version of minor(). */
+template<typename Scalar, typename Derived>
+const Minor<Derived>
 MatrixBase<Scalar, Derived>::minor(int row, int col) const
 {
-  return Minor<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), row, col);
+  return Minor<Derived>(ref(), row, col);
 }
 
 #endif // EIGEN_MINOR_H

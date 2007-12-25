@@ -64,10 +64,17 @@ template<typename MatrixType> class DiagonalCoeffs
 
 template<typename Scalar, typename Derived>
 DiagonalCoeffs<Derived>
+MatrixBase<Scalar, Derived>::diagonal()
+{
+  return DiagonalCoeffs<Derived>(ref());
+}
+
+/** This is the const version of diagonal(). */
+template<typename Scalar, typename Derived>
+const DiagonalCoeffs<Derived>
 MatrixBase<Scalar, Derived>::diagonal() const
 {
-  return DiagonalCoeffs<Derived>
-           (static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref());
+  return DiagonalCoeffs<Derived>(ref());
 }
 
 #endif // EIGEN_DIAGONALCOEFFS_H

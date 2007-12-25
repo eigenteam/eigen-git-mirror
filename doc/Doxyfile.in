@@ -37,7 +37,7 @@ SEPARATE_MEMBER_PAGES  = NO
 TAB_SIZE               = 8
 ALIASES                = \
 "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), \
-as determined by \link MatrixBase::IsVector \endlink."
+as determined by \link MatrixBase::IsVectorAtCompileTime \endlink."
 OPTIMIZE_OUTPUT_FOR_C  = NO
 OPTIMIZE_OUTPUT_JAVA   = NO
 BUILTIN_STL_SUPPORT    = NO

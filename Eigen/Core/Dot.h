@@ -62,7 +62,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
-  assert(IsVector && OtherDerived::IsVector && size() == other.size());
+  assert(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime && size() == other.size());
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 16)
     DotUnroller<SizeAtCompileTime-1, SizeAtCompileTime, Derived, OtherDerived>

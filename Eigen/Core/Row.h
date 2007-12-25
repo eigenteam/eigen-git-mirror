@@ -103,9 +103,17 @@ template<typename MatrixType> class Row
   * \sa col(), class Row */
 template<typename Scalar, typename Derived>
 Row<Derived>
+MatrixBase<Scalar, Derived>::row(int i)
+{
+  return Row<Derived>(ref(), i);
+}
+
+/** This is the const version of row(). */
+template<typename Scalar, typename Derived>
+const Row<Derived>
 MatrixBase<Scalar, Derived>::row(int i) const
 {
-  return Row<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), i);
+  return Row<Derived>(ref(), i);
 }
 
 #endif // EIGEN_ROW_H

@@ -95,8 +95,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
 /** \returns a fixed-size expression of a block in *this.
   *
-  * \param blockRows the number of rows in the block
-  * \param blockCols the number of columns in the block
+  * The template parameters \a blockRows and \a blockCols are the number of
+  * rows and columns in the block
+  *
   * \param startRow the first row in the block
   * \param startCol the first column in the block
   *
@@ -108,10 +109,18 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 template<typename Scalar, typename Derived>
 template<int BlockRows, int BlockCols>
 Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
+  ::block(int startRow, int startCol)
+{
+  return Block<Derived, BlockRows, BlockCols>(ref(), startRow, startCol);
+}
+
+/** This is the const version of block(). */
+template<typename Scalar, typename Derived>
+template<int BlockRows, int BlockCols>
+const Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
   ::block(int startRow, int startCol) const
 {
-  return Block<Derived, BlockRows, BlockCols>
-    (static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), startRow, startCol);
+  return Block<Derived, BlockRows, BlockCols>(ref(), startRow, startCol);
 }
 
 #endif // EIGEN_BLOCK_H

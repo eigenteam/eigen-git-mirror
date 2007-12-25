@@ -64,7 +64,7 @@ Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
 template<typename Scalar, typename Derived>
 Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
 {
-  assert(IsVector);
+  assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
   else return Random<Derived>(size, 1).eval();
 }

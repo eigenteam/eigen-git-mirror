@@ -66,23 +66,23 @@ template<typename MatrixType> class Map
 template<typename Scalar, typename Derived>
 const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
 {
-  return Map<Derived>(const_cast<Scalar*>(data), rows, cols);
+  return Map<Derived>(data, rows, cols);
 }
 
 template<typename Scalar, typename Derived>
 const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
 {
-  assert(IsVector);
+  assert(IsVectorAtCompileTime);
   if(ColsAtCompileTime == 1)
-    return Map<Derived>(const_cast<Scalar*>(data), size, 1);
+    return Map<Derived>(data, size, 1);
   else
-    return Map<Derived>(const_cast<Scalar*>(data), 1, size);
+    return Map<Derived>(data, 1, size);
 }
 
 template<typename Scalar, typename Derived>
 const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data)
 {
-  return Map<Derived>(const_cast<Scalar*>(data), RowsAtCompileTime, ColsAtCompileTime);
+  return Map<Derived>(data, RowsAtCompileTime, ColsAtCompileTime);
 }
 
 template<typename Scalar, typename Derived>
@@ -94,7 +94,7 @@ Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int rows, int cols)
 template<typename Scalar, typename Derived>
 Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int size)
 {
-  assert(IsVector);
+  assert(IsVectorAtCompileTime);
   if(ColsAtCompileTime == 1)
     return Map<Derived>(data, size, 1);
   else

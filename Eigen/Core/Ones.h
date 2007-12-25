@@ -64,7 +64,7 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
 {
-  assert(IsVector);
+  assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Ones<Derived>(1, size);
   else return Ones<Derived>(size, 1);
 }

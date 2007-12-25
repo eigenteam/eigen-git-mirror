@@ -109,10 +109,18 @@ template<typename MatrixType> class DynBlock
   */
 template<typename Scalar, typename Derived>
 DynBlock<Derived> MatrixBase<Scalar, Derived>
+  ::dynBlock(int startRow, int startCol, int blockRows, int blockCols)
+{
+  return DynBlock<Derived>(ref(), startRow, startCol, blockRows, blockCols);
+}
+
+/** This is the const version of dynBlock(). */
+template<typename Scalar, typename Derived>
+const DynBlock<Derived> MatrixBase<Scalar, Derived>
   ::dynBlock(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return DynBlock<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(),
-                        startRow, startCol, blockRows, blockCols);
+  return DynBlock<Derived>(ref(), startRow, startCol, blockRows, blockCols);
 }
+
 
 #endif // EIGEN_DYNBLOCK_H

@@ -38,7 +38,7 @@ class DiagonalMatrix : NoOperatorEquals,
     
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
-      assert(CoeffsVectorType::IsVector
+      assert(CoeffsVectorType::IsVectorAtCompileTime
           && _RowsAtCompileTime == _ColsAtCompileTime
           && _RowsAtCompileTime == CoeffsVectorType::SizeAtCompileTime
           && coeffs.size() > 0);

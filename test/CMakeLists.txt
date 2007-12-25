@@ -7,10 +7,13 @@ INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 SET(test_SRCS
   main.cpp
   basicstuff.cpp
+  linearstructure.cpp
+  product.cpp
   adjoint.cpp
   submatrices.cpp
   miscmatrices.cpp
   smallvectors.cpp
+  map.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 

@@ -65,9 +65,17 @@ template<typename MatrixType> class Transpose
 
 template<typename Scalar, typename Derived>
 Transpose<Derived>
+MatrixBase<Scalar, Derived>::transpose()
+{
+  return Transpose<Derived>(ref());
+}
+
+/** This is the const version of transpose(). */
+template<typename Scalar, typename Derived>
+const Transpose<Derived>
 MatrixBase<Scalar, Derived>::transpose() const
 {
-  return Transpose<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref());
+  return Transpose<Derived>(ref());
 }
 
 #endif // EIGEN_TRANSPOSE_H

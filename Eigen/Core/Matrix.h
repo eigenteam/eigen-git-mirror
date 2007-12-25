@@ -63,14 +63,23 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     template<typename OtherDerived> 
     Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
-      resize(other.rows(), other.cols());
+      if(_RowsAtCompileTime == 1)
+      {
+        assert(other.isVector());
+        resize(1, other.size());
+      }
+      else if(_ColsAtCompileTime == 1)
+      {
+        assert(other.isVector());
+        resize(other.size(), 1);
+      }
+      else resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
     
     Matrix& operator=(const Matrix& other)
     {
-      resize(other.rows(), other.cols());
-      return Base::operator=(other);
+      return operator=<Matrix>(other);
     }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)

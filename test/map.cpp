@@ -23,41 +23,38 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIXREF_H
-#define EIGEN_MATRIXREF_H
+#include "main.h"
 
-template<typename MatrixType> class MatrixRef
- : public MatrixBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
+namespace Eigen {
+
+template<typename VectorType> void tmap(const VectorType& m)
 {
-  public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, MatrixRef>;
-    
-    MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
-    ~MatrixRef() {}
+  typedef typename VectorType::Scalar Scalar;
+  
+  int size = m.size();
+  
+  // test Map.h
+  Scalar* array1 = new Scalar[size];
+  Scalar* array2 = new Scalar[size];
+  VectorType::map(array1, size) = VectorType::random(size);
+  VectorType::map(array2, size) = VectorType::map(array1, size);
+  VectorType ma1 = VectorType::map(array1, size);
+  VectorType ma2 = VectorType::map(array2, size);
+  VERIFY_IS_APPROX(ma1, ma2);
+  VERIFY_IS_APPROX(ma1, VectorType(array2, size));
+  delete[] array1;
+  delete[] array2;
+}
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
+void EigenTest::testMap()
+{
+  for(int i = 0; i < m_repeat; i++) {
+    tmap(Matrix<float, 1, 1>());
+    tmap(Vector4d());
+    tmap(RowVector4f());
+    tmap(VectorXcf(8));
+    tmap(VectorXi(12));
+  }
+}
 
-  private:
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-    
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
-
-    const Scalar& _coeff(int row, int col) const
-    {
-      return m_matrix._coeff(row, col);
-    }
-    
-    Scalar& _coeffRef(int row, int col)
-    {
-      return const_cast<MatrixType*>(&m_matrix)->_coeffRef(row, col);
-    }
-
-  protected:
-    const MatrixType& m_matrix;
-};
-
-#endif // EIGEN_MATRIXREF_H
+} // namespace Eigen

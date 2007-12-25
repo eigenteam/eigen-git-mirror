@@ -101,7 +101,7 @@ template<typename OtherDerived>
 Derived& MatrixBase<Scalar, Derived>
   ::operator=(const MatrixBase<Scalar, OtherDerived>& other)
 {
-  if(IsVector && OtherDerived::IsVector) // copying a vector expression into a vector
+  if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime) // copying a vector expression into a vector
   {
     assert(size() == other.size());
     if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)

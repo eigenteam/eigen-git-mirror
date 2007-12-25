@@ -89,15 +89,23 @@ template<typename MatrixType> class Column
 
 /** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
   *
-  * Example: \include MatrixBase_col.cpp
-  * Output: \verbinclude MatrixBase_col.out
+  * Example: \include MatrixBase_column.cpp
+  * Output: \verbinclude MatrixBase_column.out
   *
   * \sa row(), class Column */
 template<typename Scalar, typename Derived>
 Column<Derived>
+MatrixBase<Scalar, Derived>::col(int i)
+{
+  return Column<Derived>(ref(), i);
+}
+
+/** This is the const version of col(). */
+template<typename Scalar, typename Derived>
+const Column<Derived>
 MatrixBase<Scalar, Derived>::col(int i) const
 {
-  return Column<Derived>(static_cast<Derived*>(const_cast<MatrixBase*>(this))->ref(), i);
+  return Column<Derived>(ref(), i);
 }
 
 #endif // EIGEN_COLUMN_H

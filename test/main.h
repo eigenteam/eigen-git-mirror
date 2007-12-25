@@ -114,10 +114,13 @@ class EigenTest : public QObject
 
   private slots:
     void testBasicStuff();
+    void testLinearStructure();
+    void testProduct();
     void testAdjoint();
     void testSubmatrices();
     void testMiscMatrices();
     void testSmallVectors();
+    void testMap();
   protected:
     int m_repeat;
 };

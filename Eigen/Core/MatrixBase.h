@@ -77,7 +77,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       * columns is known at compile-time to be equal to 1. Indeed, in that case,
       * we are dealing with a column-vector (if there is only one column) or with
       * a row-vector (if there is only one row). */
-    static const bool IsVector = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
+    static const bool IsVectorAtCompileTime = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
     
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
       * to functions. If this MatrixBase type represents an expression, then \a Ref
@@ -98,9 +98,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
-      * \sa rows(), cols(). */
+      * \sa rows(), cols(), SizeAtCompileTime. */
     int size() const { return rows() * cols(); }
-    
+    /** \returns true if either the number of rows or the number of columns is equal to 1.
+      * \sa rows(), cols(), IsVectorAtCompileTime. */
+    bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns a Ref to *this. \sa Ref */
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
@@ -118,15 +120,27 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
     
-    Row<Derived> row(int i) const;
-    Column<Derived> col(int i) const;
-    Minor<Derived> minor(int row, int col) const;
-    DynBlock<Derived> dynBlock(int startRow, int startCol,
-                               int blockRows, int blockCols) const;
-    template<int BlockRows, int BlockCols>
-    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
+    Row<Derived> row(int i);
+    const Row<Derived> row(int i) const;
     
-    Transpose<Derived> transpose() const;
+    Column<Derived> col(int i);
+    const Column<Derived> col(int i) const;
+    
+    Minor<Derived> minor(int row, int col);
+    const Minor<Derived> minor(int row, int col) const;
+    
+    DynBlock<Derived> dynBlock(int startRow, int startCol, int blockRows, int blockCols);
+    const DynBlock<Derived>
+    dynBlock(int startRow, int startCol, int blockRows, int blockCols) const;
+    
+    template<int BlockRows, int BlockCols>
+    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
+    template<int BlockRows, int BlockCols>
+    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
+    
+    Transpose<Derived> transpose();
+    const Transpose<Derived> transpose() const;
+    
     const Conjugate<Derived> conjugate() const;
     const Transpose<Conjugate<Derived> > adjoint() const;
     Scalar trace() const;
@@ -151,7 +165,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     static const DiagonalMatrix<Derived, OtherDerived>
     diagonal(const OtherDerived& coeffs);
-    DiagonalCoeffs<Derived> diagonal() const;
+    
+    DiagonalCoeffs<Derived> diagonal();
+    const DiagonalCoeffs<Derived> diagonal() const;
     
     static const Map<Derived> map(const Scalar* array, int rows, int cols);
     static const Map<Derived> map(const Scalar* array, int size);

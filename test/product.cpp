@@ -27,8 +27,12 @@
 
 namespace Eigen {
 
-template<typename MatrixType> void basicStuff(const MatrixType& m)
+template<typename MatrixType> void product(const MatrixType& m)
 {
+  /* this test covers the following files:
+     Identity.h Product.h
+  */
+
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   
@@ -49,47 +53,47 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
+  Scalar s1 = random<Scalar>();
+  
   int r = random<int>(0, rows-1),
       c = random<int>(0, cols-1);
   
-  VERIFY_IS_APPROX(               v1,    v1);
-  VERIFY_IS_NOT_APPROX(           v1,    2*v1);
-  VERIFY_IS_MUCH_SMALLER_THAN(    vzero, v1);
-  if(NumTraits<Scalar>::HasFloatingPoint)
-    VERIFY_IS_MUCH_SMALLER_THAN(  vzero, v1.norm());
-  VERIFY_IS_NOT_MUCH_SMALLER_THAN(v1,    v1);
-  VERIFY_IS_APPROX(               vzero, v1-v1);
-  VERIFY_IS_APPROX(               m1,    m1);
-  VERIFY_IS_NOT_APPROX(           m1,    2*m1);
-  VERIFY_IS_MUCH_SMALLER_THAN(    mzero, m1);
-  VERIFY_IS_NOT_MUCH_SMALLER_THAN(m1,    m1);
-  VERIFY_IS_APPROX(               mzero, m1-m1);
+  // begin testing Product.h: only associativity for now
+  // (we use Transpose.h but this doesn't count as a test for it)
+  VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
+  m3 = m1;
+  m3 *= (m1.transpose() * m2);
+  VERIFY_IS_APPROX(m3,                      m1*(m1.transpose()*m2));
+  VERIFY_IS_APPROX(m3,                      m1.lazyProduct(m1.transpose()*m2));
   
-  // always test operator() on each read-only expression class,
-  // in order to check const-qualifiers.
-  // indeed, if an expression class (here Zero) is meant to be read-only,
-  // hence has no _write() method, the corresponding MatrixBase method (here zero())
-  // should return a const-qualified object so that it is the const-qualified
-  // operator() that gets called, which in turn calls _read().
-  VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::zero(rows,cols)(r,c), static_cast<Scalar>(1));
+  // continue testing Product.h: distributivity
+  VERIFY_IS_APPROX(square*(m1 + m2),        square*m1+square*m2);
+  VERIFY_IS_APPROX(square*(m1 - m2),        square*m1-square*m2);
   
-  // now test copying a row-vector into a (column-)vector and conversely.
-  square.col(r) = square.row(r).eval();
-  Matrix<Scalar, 1, MatrixType::RowsAtCompileTime> rv(rows);
-  Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> cv(rows);
-  rv = square.col(r);
-  cv = square.row(r);
-  VERIFY_IS_APPROX(rv, cv.transpose());
+  // continue testing Product.h: compatibility with ScalarMultiple.h
+  VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
+  VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
+  
+  // continue testing Product.h: lazyProduct
+  VERIFY_IS_APPROX(square.lazyProduct(m1),  square*m1);
+  // again, test operator() to check const-qualification
+  s1 += square.lazyProduct(m1)(r,c);
+  
+  // test Product.h together with Identity.h
+  VERIFY_IS_APPROX(m1,                      identity*m1);
+  VERIFY_IS_APPROX(v1,                      identity*v1);
+  // again, test operator() to check const-qualification
+  VERIFY_IS_APPROX(MatrixType::identity(std::max(rows,cols))(r,c), static_cast<Scalar>(r==c));
 }
 
-void EigenTest::testBasicStuff()
+void EigenTest::testProduct()
 {
   for(int i = 0; i < m_repeat; i++) {
-    basicStuff(Matrix<float, 1, 1>());
-    basicStuff(Matrix4d());
-    basicStuff(MatrixXcf(3, 3));
-    basicStuff(MatrixXi(8, 12));
-    basicStuff(MatrixXcd(20, 20));
+    product(Matrix<float, 1, 1>());
+    product(Matrix4d());
+    product(MatrixXcf(3, 3));
+    product(MatrixXi(8, 12));
+    product(MatrixXcd(20, 20));
   }
 }
 
