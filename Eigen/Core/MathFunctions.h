@@ -172,4 +172,21 @@ inline bool isApprox(const std::complex<double>& a, const std::complex<double>& 
 }
 // isApproxOrLessThan wouldn't make sense for complex numbers
 
+#define EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(T,U) \
+inline std::complex<T> operator*(U a, const std::complex<T>& b) \
+{ \
+  return std::complex<T>(static_cast<T>(a)*b.real(), \
+                         static_cast<T>(a)*b.imag()); \
+} \
+inline std::complex<T> operator*(const std::complex<T>& b, U a) \
+{ \
+  return std::complex<T>(static_cast<T>(a)*b.real(), \
+                         static_cast<T>(a)*b.imag()); \
+}
+
+EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(int,    float)
+EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(int,    double)
+EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(float,  double)
+EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(double, float)
+
 #endif // EIGEN_MATHFUNCTIONS_H

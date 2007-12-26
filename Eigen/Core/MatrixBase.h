@@ -149,7 +149,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar dot(const OtherDerived& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    ScalarMultiple<Derived> normalized() const;
+    const ScalarMultiple<RealScalar, Derived> normalized() const;
     
     static Eval<Random<Derived> > random(int rows, int cols);
     static Eval<Random<Derived> > random(int size);
