@@ -31,6 +31,7 @@ template<typename T> struct NumTraits;
 template<> struct NumTraits<int>
 {
   typedef int Real;
+  typedef double FloatingPoint;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = false;
 };
@@ -38,6 +39,7 @@ template<> struct NumTraits<int>
 template<> struct NumTraits<float>
 {
   typedef float Real;
+  typedef float FloatingPoint;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
 };
@@ -45,6 +47,7 @@ template<> struct NumTraits<float>
 template<> struct NumTraits<double>
 {
   typedef double Real;
+  typedef double FloatingPoint;
   static const bool IsComplex = false;
   static const bool HasFloatingPoint = true;
 };
@@ -52,6 +55,7 @@ template<> struct NumTraits<double>
 template<typename _Real> struct NumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
+  typedef std::complex<_Real> FloatingPoint;
   static const bool IsComplex = true;
   static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
 };

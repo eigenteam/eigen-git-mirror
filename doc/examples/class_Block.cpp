@@ -7,17 +7,20 @@ Eigen::Block<Derived, 2, 2>
 topLeft2x2Corner(MatrixBase<Scalar, Derived>& m)
 {
   return Eigen::Block<Derived, 2, 2>(m.ref(), 0, 0);
-  // note: tempting as it is, writing "m.block<2,2>(0,0)" here
-  // causes a compile error with g++ 4.2, apparently due to
-  // g++ getting confused by the many template types and
-  // template arguments involved.
+}
+
+template<typename Scalar, typename Derived>
+const Eigen::Block<Derived, 2, 2>
+topLeft2x2Corner(const MatrixBase<Scalar, Derived>& m)
+{
+  return Eigen::Block<Derived, 2, 2>(m.ref(), 0, 0);
 }
 
 int main(int, char**)
 {
   Matrix3d m = Matrix3d::identity();
-  cout << topLeft2x2Corner(m) << endl;
-  topLeft2x2Corner(m) *= 2;
+  cout << topLeft2x2Corner(4*m) << endl; // calls the const version
+  topLeft2x2Corner(m) *= 2;              // calls the non-const version
   cout << "Now the matrix m is:" << endl << m << endl;
   return 0;
 }

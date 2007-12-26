@@ -6,14 +6,21 @@ template<typename Scalar, typename Derived>
 Eigen::Row<Derived>
 firstRow(MatrixBase<Scalar, Derived>& m)
 {
-  return m.row(0);
+  return Eigen::Row<Derived>(m.ref(), 0);
+}
+
+template<typename Scalar, typename Derived>
+const Eigen::Row<Derived>
+firstRow(const MatrixBase<Scalar, Derived>& m)
+{
+  return Eigen::Row<Derived>(m.ref(), 0);
 }
 
 int main(int, char**)
 {
   Matrix4d m = Matrix4d::identity();
-  cout << firstRow(m) << endl;
-  firstRow(m) *= 5;
+  cout << firstRow(2*m) << endl; // calls the const version
+  firstRow(m) *= 5;              // calls the non-const version
   cout << "Now the matrix m is:" << endl << m << endl;
   return 0;
 }

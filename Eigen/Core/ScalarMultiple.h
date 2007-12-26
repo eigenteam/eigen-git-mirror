@@ -76,12 +76,14 @@ operator*(FactorType scalar,                                           \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
-const ScalarMultiple<FactorType, Derived>                              \
+const ScalarMultiple<typename NumTraits<FactorType>::FloatingPoint, Derived> \
 operator/(const MatrixBase<Scalar, Derived>& matrix,                   \
           FactorType scalar)                                           \
 {                                                                      \
   assert(NumTraits<Scalar>::HasFloatingPoint);                         \
-  return matrix * (static_cast<Scalar>(1) / scalar);                   \
+  return matrix * (static_cast<                                        \
+                     typename NumTraits<FactorType>::FloatingPoint     \
+                   >(1) / scalar);                                     \
 }                                                                      \
                                                                        \
 template<typename Scalar, typename Derived>                            \
