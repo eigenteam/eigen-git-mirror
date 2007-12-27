@@ -26,6 +26,18 @@
 #ifndef EIGEN_CONJUGATE_H
 #define EIGEN_CONJUGATE_H
 
+/** \class Conjugate
+  *
+  * \brief Expression of the complex conjugate of a matrix
+  *
+  * \param MatrixType the type of the object of which we are taking the complex conjugate
+  *
+  * This class represents an expression of the complex conjugate of a matrix.
+  * It is the return type of MatrixBase::conjugate() and is also used by
+  * MatrixBase::adjoint() and most of the time these are the only ways it is used.
+  *
+  * \sa MatrixBase::conjugate(), MatrixBase::adjoint()
+  */
 template<typename MatrixType> class Conjugate : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Conjugate<MatrixType> >
 {
@@ -56,6 +68,9 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     MatRef m_matrix;
 };
 
+/** \returns an expression of the complex conjugate of *this.
+  *
+  * \sa adjoint(), class Conjugate */
 template<typename Scalar, typename Derived>
 const Conjugate<Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
@@ -63,6 +78,12 @@ MatrixBase<Scalar, Derived>::conjugate() const
   return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
 }
 
+/** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.
+  *
+  * Example: \include MatrixBase_adjoint.cpp
+  * Output: \verbinclude MatrixBase_adjoint.out
+  *
+  * \sa transpose(), conjugate(), class Transpose, class Conjugate */
 template<typename Scalar, typename Derived>
 const Transpose<Conjugate<Derived> >
 MatrixBase<Scalar, Derived>::adjoint() const

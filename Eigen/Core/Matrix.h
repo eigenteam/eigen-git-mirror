@@ -26,13 +26,14 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-template<typename _Scalar, int _Rows, int _Cols>
-class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
+template<typename _Scalar, int _Rows, int _Cols,
+         MatrixStorageOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
+class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
 {
   public:
     friend class MatrixBase<_Scalar, Matrix>;
-    typedef      MatrixBase<_Scalar, Matrix>                Base;
+    typedef      MatrixBase<_Scalar, Matrix>            Base;
     typedef      MatrixStorage<_Scalar, _Rows, _Cols>   Storage;
     typedef      _Scalar                                Scalar;
     typedef      MatrixRef<Matrix>                      Ref;
@@ -44,6 +45,8 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     Scalar* data()
     { return Storage::m_data; }
     
+    static const MatrixStorageOrder StorageOrder = _StorageOrder;
+    
   private:
     static const int _RowsAtCompileTime = _Rows, _ColsAtCompileTime = _Cols;
     
@@ -51,12 +54,18 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     
     const Scalar& _coeff(int row, int col) const
     {
-      return data()[row + col * Storage::_rows()];
+      if(_StorageOrder == ColumnDominant)
+        return (Storage::m_data)[row + col * Storage::_rows()];
+      else // RowDominant
+        return (Storage::m_data)[col + row * Storage::_cols()];
     }
     
     Scalar& _coeffRef(int row, int col)
     {
-      return data()[row + col * Storage::_rows()];
+      if(_StorageOrder == ColumnDominant)
+        return (Storage::m_data)[row + col * Storage::_rows()];
+      else // RowDominant
+        return (Storage::m_data)[col + row * Storage::_cols()];
     }
     
   public:
@@ -86,6 +95,13 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols> >,
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
+    
+    static const Map<Matrix> map(const Scalar* array, int rows, int cols);
+    static const Map<Matrix> map(const Scalar* array, int size);
+    static const Map<Matrix> map(const Scalar* array);
+    static Map<Matrix> map(Scalar* array, int rows, int cols);
+    static Map<Matrix> map(Scalar* array, int size);
+    static Map<Matrix> map(Scalar* array);
     
     explicit Matrix() : Storage()
     {

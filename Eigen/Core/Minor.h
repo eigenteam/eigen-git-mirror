@@ -26,6 +26,18 @@
 #ifndef EIGEN_MINOR_H
 #define EIGEN_MINOR_H
 
+/** \class Minor
+  *
+  * \brief Expression of a minor
+  *
+  * \param MatrixType the type of the object in which we are taking a minor
+  *
+  * This class represents an expression of a minor. It is the return
+  * type of MatrixBase::minor() and most of the time this is the only way it
+  * is used.
+  *
+  * \sa MatrixBase::minor()
+  */
 template<typename MatrixType> class Minor
   : public MatrixBase<typename MatrixType::Scalar, Minor<MatrixType> >
 {
@@ -75,7 +87,13 @@ template<typename MatrixType> class Minor
 
 /** \return an expression of the (\a row, \a col)-minor of *this,
   * i.e. an expression constructed from *this by removing the specified
-  * row and column. */
+  * row and column.
+  *
+  * Example: \include MatrixBase_minor.cpp
+  * Output: \verbinclude MatrixBase_minor.out
+  *
+  * \sa class Minor
+  */
 template<typename Scalar, typename Derived>
 Minor<Derived>
 MatrixBase<Scalar, Derived>::minor(int row, int col)

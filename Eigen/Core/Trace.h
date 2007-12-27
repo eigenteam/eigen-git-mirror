@@ -54,6 +54,9 @@ template<int Index, typename Derived> struct TraceUnroller<Index, 0, Derived>
   static void run(const Derived&, typename Derived::Scalar&) {}
 };
 
+/** \returns the trace of *this, which must be a square matrix.
+  *
+  * \sa diagonal() */
 template<typename Scalar, typename Derived>
 Scalar MatrixBase<Scalar, Derived>::trace() const
 {

@@ -59,6 +59,7 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
 };
 
 #define EIGEN_MAKE_SCALAR_OPS(FactorType)                              \
+/** \relates MatrixBase */                                             \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<FactorType, Derived>                              \
 operator*(const MatrixBase<Scalar, Derived>& matrix,                   \
@@ -67,6 +68,7 @@ operator*(const MatrixBase<Scalar, Derived>& matrix,                   \
   return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
 }                                                                      \
                                                                        \
+/** \relates MatrixBase */                                             \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<FactorType, Derived>                              \
 operator*(FactorType scalar,                                           \
@@ -75,6 +77,7 @@ operator*(FactorType scalar,                                           \
   return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
 }                                                                      \
                                                                        \
+/** \relates MatrixBase */                                             \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<typename NumTraits<FactorType>::FloatingPoint, Derived> \
 operator/(const MatrixBase<Scalar, Derived>& matrix,                   \

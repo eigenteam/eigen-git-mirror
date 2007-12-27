@@ -34,8 +34,10 @@
   * types. Most of the Eigen API is contained in this class.
   *
   * This class takes two template parameters:
-  * \param Scalar the type of the coefficients, e.g. float, double, etc.
-  * \param Derived the derived type, e.g. a matrix type, or an expression, etc.
+  *
+  * \a Scalar is the type of the coefficients, e.g. float, double, etc.
+  *
+  * \a Derived is the derived type, e.g. a matrix type, or an expression, etc.
   * Indeed, a separate MatrixBase type is generated for each derived type
   * so one knows from inside MatrixBase, at compile-time, what the derived type is.
   *
@@ -101,6 +103,8 @@ template<typename Scalar, typename Derived> class MatrixBase
       * \sa rows(), cols(), SizeAtCompileTime. */
     int size() const { return rows() * cols(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
+      * In other words, this function returns
+      * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns a Ref to *this. \sa Ref */
@@ -151,9 +155,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     RealScalar norm()  const;
     const ScalarMultiple<RealScalar, Derived> normalized() const;
     
-    static Eval<Random<Derived> > random(int rows, int cols);
-    static Eval<Random<Derived> > random(int size);
-    static Eval<Random<Derived> > random();
+    static const Eval<Random<Derived> > random(int rows, int cols);
+    static const Eval<Random<Derived> > random(int size);
+    static const Eval<Random<Derived> > random();
     static const Zero<Derived> zero(int rows, int cols);
     static const Zero<Derived> zero(int size);
     static const Zero<Derived> zero();
@@ -168,13 +172,6 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
-    
-    static const Map<Derived> map(const Scalar* array, int rows, int cols);
-    static const Map<Derived> map(const Scalar* array, int size);
-    static const Map<Derived> map(const Scalar* array);
-    static Map<Derived> map(Scalar* array, int rows, int cols);
-    static Map<Derived> map(Scalar* array, int size);
-    static Map<Derived> map(Scalar* array);
     
     template<typename OtherDerived>
     bool isApprox(
@@ -237,7 +234,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& z();
     Scalar& w();
 
-    Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+    const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 };
 
 #endif // EIGEN_MATRIXBASE_H

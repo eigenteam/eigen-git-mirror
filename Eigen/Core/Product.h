@@ -115,6 +115,15 @@ MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> 
   return Product<Derived, OtherDerived>(ref(), other.ref());
 }
 
+/** \relates MatrixBase
+  *
+  * \returns the matrix product of \a mat1 and \a mat2.
+  *
+  * \note This function causes an immediate evaluation. If you want to perform a matrix product
+  * without immediate evaluation, use MatrixBase::lazyProduct() instead.
+  *
+  * \sa MatrixBase::lazyProduct(), MatrixBase::operator*=(const MatrixBase&)
+  */
 template<typename Scalar, typename Derived1, typename Derived2>
 Eval<Product<Derived1, Derived2> >
 operator*(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)

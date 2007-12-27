@@ -26,6 +26,18 @@
 #ifndef EIGEN_DIAGONALCOEFFS_H
 #define EIGEN_DIAGONALCOEFFS_H
 
+/** \class DiagonalCoeffs
+  *
+  * \brief Expression of the main diagonal of a square matrix
+  *
+  * \param MatrixType the type of the object in which we are taking the main diagonal
+  *
+  * This class represents an expression of the main diagonal of a square matrix.
+  * It is the return type of MatrixBase::diagonal() and most of the time this is
+  * the only way it is used.
+  *
+  * \sa MatrixBase::diagonal()
+  */
 template<typename MatrixType> class DiagonalCoeffs
   : public MatrixBase<typename MatrixType::Scalar, DiagonalCoeffs<MatrixType> >
 {
@@ -62,6 +74,12 @@ template<typename MatrixType> class DiagonalCoeffs
     MatRef m_matrix;
 };
 
+/** \returns an expression of the main diagonal of *this, which must be a square matrix.
+  *
+  * Example: \include MatrixBase_diagonal.cpp
+  * Output: \verbinclude MatrixBase_diagonal.out
+  *
+  * \sa class DiagonalCoeffs */
 template<typename Scalar, typename Derived>
 DiagonalCoeffs<Derived>
 MatrixBase<Scalar, Derived>::diagonal()

@@ -56,13 +56,13 @@ template<typename MatrixType> class Random : NoOperatorEquals,
 };
 
 template<typename Scalar, typename Derived>
-Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
+const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
 {
   return Random<Derived>(rows, cols).eval();
 }
 
 template<typename Scalar, typename Derived>
-Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
+const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
 {
   assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
@@ -70,7 +70,7 @@ Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
 }
 
 template<typename Scalar, typename Derived>
-Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
+const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
 {
   return Random<Derived>(RowsAtCompileTime, ColsAtCompileTime).eval();
 }

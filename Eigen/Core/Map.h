@@ -44,18 +44,26 @@ template<typename MatrixType> class Map
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
+    static const MatrixStorageOrder _StorageOrder = MatrixType::StorageOrder;
+
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
     const Scalar& _coeff(int row, int col) const
     {
-      return m_data[row + col * m_rows];
+      if(_StorageOrder == ColumnDominant)
+        return m_data[row + col * m_rows];
+      else // RowDominant
+        return m_data[col + row * m_cols];
     }
     
     Scalar& _coeffRef(int row, int col)
     {
-      return const_cast<Scalar*>(m_data)[row + col * m_rows];
+      if(_StorageOrder == ColumnDominant)
+        return const_cast<Scalar*>(m_data)[row + col * m_rows];
+      else // RowDominant
+        return const_cast<Scalar*>(m_data)[col + row * m_cols];
     }
     
   protected:
@@ -63,68 +71,74 @@ template<typename MatrixType> class Map
     int m_rows, m_cols;
 };
 
-template<typename Scalar, typename Derived>
-const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, int cols)
 {
-  return Map<Derived>(data, rows, cols);
+  return Map<Matrix>(data, rows, cols);
 }
 
-template<typename Scalar, typename Derived>
-const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 {
-  assert(IsVectorAtCompileTime);
-  if(ColsAtCompileTime == 1)
-    return Map<Derived>(data, size, 1);
+  assert(_Cols == 1 || _Rows ==1);
+  if(_Cols == 1)
+    return Map<Matrix>(data, size, 1);
   else
-    return Map<Derived>(data, 1, size);
+    return Map<Matrix>(data, 1, size);
 }
 
-template<typename Scalar, typename Derived>
-const Map<Derived> MatrixBase<Scalar, Derived>::map(const Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
 {
-  return Map<Derived>(data, RowsAtCompileTime, ColsAtCompileTime);
+  return Map<Matrix>(data, _Rows, _Cols);
 }
 
-template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int cols)
 {
-  return Map<Derived>(data, rows, cols);
+  return Map<Matrix>(data, rows, cols);
 }
 
-template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
 {
-  assert(IsVectorAtCompileTime);
-  if(ColsAtCompileTime == 1)
-    return Map<Derived>(data, size, 1);
+  assert(_Cols == 1 || _Rows ==1);
+  if(_Cols == 1)
+    return Map<Matrix>(data, size, 1);
   else
-    return Map<Derived>(data, 1, size);
+    return Map<Matrix>(data, 1, size);
 }
 
-template<typename Scalar, typename Derived>
-Map<Derived> MatrixBase<Scalar, Derived>::map(Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
 {
-  return Map<Derived>(data, RowsAtCompileTime, ColsAtCompileTime);
+  return Map<Matrix>(data, _Rows, _Cols);
 }
 
-template<typename _Scalar, int _Rows, int _Cols>
-Matrix<_Scalar, _Rows, _Cols>
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int rows, int cols)
   : Storage(rows, cols)
 {
   *this = map(data, rows, cols);
 }
 
-template<typename _Scalar, int _Rows, int _Cols>
-Matrix<_Scalar, _Rows, _Cols>
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int size)
   : Storage(size)
 {
   *this = map(data, size);
 }
 
-template<typename _Scalar, int _Rows, int _Cols>
-Matrix<_Scalar, _Rows, _Cols>
+template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data)
   : Storage()
 {

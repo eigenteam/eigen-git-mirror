@@ -26,6 +26,18 @@
 #ifndef EIGEN_TRANSPOSE_H
 #define EIGEN_TRANSPOSE_H
 
+/** \class Transpose
+  *
+  * \brief Expression of the transpose of a matrix
+  *
+  * \param MatrixType the type of the object of which we are taking the transpose
+  *
+  * This class represents an expression of the transpose of a matrix.
+  * It is the return type of MatrixBase::transpose() and MatrixBase::adjoint()
+  * and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::transpose(), MatrixBase::adjoint()
+  */
 template<typename MatrixType> class Transpose
   : public MatrixBase<typename MatrixType::Scalar, Transpose<MatrixType> >
 {
@@ -63,6 +75,12 @@ template<typename MatrixType> class Transpose
     MatRef m_matrix;
 };
 
+/** \returns an expression of the transpose of *this.
+  *
+  * Example: \include MatrixBase_transpose.cpp
+  * Output: \verbinclude MatrixBase_transpose.out
+  *
+  * \sa adjoint(), class DiagonalCoeffs */
 template<typename Scalar, typename Derived>
 Transpose<Derived>
 MatrixBase<Scalar, Derived>::transpose()
@@ -70,7 +88,7 @@ MatrixBase<Scalar, Derived>::transpose()
   return Transpose<Derived>(ref());
 }
 
-/** This is the const version of transpose(). */
+/** This is the const version of transpose(). \sa adjoint() */
 template<typename Scalar, typename Derived>
 const Transpose<Derived>
 MatrixBase<Scalar, Derived>::transpose() const

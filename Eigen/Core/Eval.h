@@ -26,6 +26,25 @@
 #ifndef EIGEN_EVAL_H
 #define EIGEN_EVAL_H
 
+/** \class Eval
+  *
+  * \brief Evaluation of an expression
+  *
+  * The template parameter Expression is the type of the expression that we are evaluating.
+  *
+  * This class is the return
+  * type of MatrixBase::eval() and most of the time this is the only way it
+  * is used.
+  *
+  * However, if you want to write a function returning an evaluation of an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_Eval.cpp
+  * Output: \verbinclude class_Eval.out
+  *
+  * \sa MatrixBase::eval()
+  */
 template<typename Expression> class Eval : NoOperatorEquals,
   public Matrix< typename Expression::Scalar,
                  Expression::RowsAtCompileTime,
@@ -40,8 +59,21 @@ template<typename Expression> class Eval : NoOperatorEquals,
     Eval(const Expression& expression) : MatrixType(expression) {}
 };
 
+/** Evaluates *this, which can be any expression, and returns the obtained matrix.
+  *
+  * A common use case for this is the following. In an expression-templates library
+  * like Eigen, the coefficients of an expression are only computed as they are
+  * accessed, they are not computed when the expression itself is constructed. This is
+  * usually a good thing, as this "lazy evaluation" improves performance, but can also
+  * in certain cases lead to wrong results and/or to redundant computations. In such
+  * cases, one can restore the classical immediate-evaluation behavior by calling eval().
+  *
+  * Example: \include MatrixBase_eval.cpp
+  * Output: \verbinclude MatrixBase_eval.out
+  *
+  * \sa class Eval */
 template<typename Scalar, typename Derived>
-Eval<Derived> MatrixBase<Scalar, Derived>::eval() const
+const Eval<Derived> MatrixBase<Scalar, Derived>::eval() const
 {
   return Eval<Derived>(*static_cast<const Derived*>(this));
 }

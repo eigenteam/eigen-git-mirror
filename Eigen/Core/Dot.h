@@ -58,6 +58,16 @@ struct DotUnroller<Index, 0, Derived1, Derived2>
   static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
+/** \returns the dot product of *this with other.
+  *
+  * \only_for_vectors
+  * 
+  * \note If the scalar type is complex numbers, then this function returns the hermitian
+  * (sesquilinear) dot product, linear in the first variable and anti-linear in the
+  * second variable.
+  *
+  * \sa norm2(), norm()
+  */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
@@ -76,18 +86,36 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
   return res;
 }
 
+/** \returns the squared norm of *this, i.e. the dot product of *this with itself.
+  *
+  * \only_for_vectors
+  *
+  * \sa dot(), norm()
+  */
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm2() const
 {
   return real(dot(*this));
 }
 
+/** \returns the norm of *this, i.e. the square root of the dot product of *this with itself.
+  *
+  * \only_for_vectors
+  *
+  * \sa dot(), norm2()
+  */
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm() const
 {
   return sqrt(norm2());
 }
 
+/** \returns an expression of the quotient of *this by its own norm.
+  *
+  * \only_for_vectors
+  *
+  * \sa norm()
+  */
 template<typename Scalar, typename Derived>
 const ScalarMultiple<typename NumTraits<Scalar>::Real, Derived>
 MatrixBase<Scalar, Derived>::normalized() const
