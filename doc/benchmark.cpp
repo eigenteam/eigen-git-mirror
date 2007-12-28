@@ -1,6 +1,6 @@
 // g++ -O3 -DNDEBUG benchmark.cpp -o benchmark && time ./benchmark
 
-#include <Eigen/Core.h>
+#include <Eigen/Core>
 
 using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN

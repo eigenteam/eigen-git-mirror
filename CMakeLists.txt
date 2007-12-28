@@ -1,18 +1,18 @@
-project(Eigen)
+PROJECT(Eigen)
 
-OPTION(BUILD_TESTS "Build tests"  OFF)
-OPTION(BUILD_EXAMPLES "Build examples"  OFF)
+OPTION(BUILD_TESTS "Build tests" OFF)
+OPTION(BUILD_DOC "Build documentation and examples" OFF)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-   if (CMAKE_SYSTEM_NAME MATCHES Linux)
-     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-exceptions -fno-check-new -fno-common -fstrict-aliasing")
-   endif (CMAKE_SYSTEM_NAME MATCHES Linux)
-endif (CMAKE_COMPILER_IS_GNUCXX)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  IF(CMAKE_SYSTEM_NAME MATCHES Linux)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-exceptions -fno-check-new -fno-common -fstrict-aliasing")
+  ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-include_directories( ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} )
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
-add_subdirectory(Eigen)
-add_subdirectory(test)
-add_subdirectory(doc)
+ADD_SUBDIRECTORY(Eigen)
+ADD_SUBDIRECTORY(test)
+ADD_SUBDIRECTORY(doc)

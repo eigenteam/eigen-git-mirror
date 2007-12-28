@@ -2,5 +2,5 @@ FILE(GLOB Eigen_Core_SRCS "*.h")
 
 INSTALL(FILES 
   ${Eigen_Core_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Core
+  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen/src/Core
   )

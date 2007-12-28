@@ -1,4 +1,4 @@
-#include <Eigen/Core.h>
+#include <Eigen/Core>
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
