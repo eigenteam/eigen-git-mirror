@@ -60,9 +60,6 @@ template<typename MatrixType> class Row
       assert(row >= 0 && row < matrix.rows());
     }
     
-    Row(const Row& other)
-      : m_matrix(other.m_matrix), m_row(other.m_row) {}
-    
     template<typename OtherDerived>
     Row& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {

@@ -64,10 +64,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
     
-    Block(const Block& other)
-      : m_matrix(other.m_matrix),
-        m_startRow(other.m_startRow), m_startCol(other.m_startCol) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:

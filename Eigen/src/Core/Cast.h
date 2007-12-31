@@ -56,9 +56,6 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     
     Cast(const MatRef& matrix) : m_matrix(matrix) {}
     
-    Cast(const Cast& other)
-      : m_matrix(other.m_matrix) {}
-    
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -78,7 +75,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
 /** \returns an expression of *this with the \a Scalar type casted to
   * \a NewScalar.
   *
-  * \param NewScalar the type we are casting the scalars to
+  * The template parameter \a NewScalar is the type we are casting the scalars to.
   *
   * Example: \include MatrixBase_cast.cpp
   * Output: \verbinclude MatrixBase_cast.out
@@ -90,7 +87,7 @@ template<typename NewScalar>
 const Cast<NewScalar, Derived>
 MatrixBase<Scalar, Derived>::cast() const
 {
-  return Cast<NewScalar, Derived>(static_cast<const Derived*>(this)->ref());
+  return Cast<NewScalar, Derived>(ref());
 }
 
 #endif // EIGEN_CAST_H

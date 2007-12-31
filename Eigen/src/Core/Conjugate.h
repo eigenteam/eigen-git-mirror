@@ -48,9 +48,6 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     
     Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     
-    Conjugate(const Conjugate& other)
-      : m_matrix(other.m_matrix) {}
-    
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -75,7 +72,7 @@ template<typename Scalar, typename Derived>
 const Conjugate<Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
 {
-  return Conjugate<Derived>(static_cast<const Derived*>(this)->ref());
+  return Conjugate<Derived>(ref());
 }
 
 /** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.

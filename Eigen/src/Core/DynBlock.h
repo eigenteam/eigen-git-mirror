@@ -64,11 +64,6 @@ template<typename MatrixType> class DynBlock
           && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
     
-    DynBlock(const DynBlock& other)
-      : m_matrix(other.m_matrix),
-        m_startRow(other.m_startRow), m_startCol(other.m_startCol),
-        m_blockRows(other.m_blockRows), m_blockCols(other.m_blockCols) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DynBlock)
     
   private:

@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 		I(i,j) = (i==j);
 		m(i,j) = (i+3*j);
 	}
-	for(int a = 0; a < 100000000; a++)
+	for(int a = 0; a < 400000000; a++)
 	{
 		m = I + 0.00005 * (m + m*m);
 	}

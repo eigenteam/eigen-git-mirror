@@ -32,12 +32,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
   public:
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Random<MatrixType> >;
-    
-    Random(int rows, int cols) : m_rows(rows), m_cols(cols)
-    {
-      assert(rows > 0 && cols > 0);
-    }
-   
+  
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -49,6 +44,15 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     Scalar _coeff(int, int) const
     {
       return random<Scalar>();
+    }
+  
+  public:
+    Random(int rows, int cols) : m_rows(rows), m_cols(cols)
+    {
+      assert(rows > 0
+          && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == rows)
+          && cols > 0
+          && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == cols));
     }
     
   protected:

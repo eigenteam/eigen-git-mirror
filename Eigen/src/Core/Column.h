@@ -60,9 +60,6 @@ template<typename MatrixType> class Column
       assert(col >= 0 && col < matrix.cols());
     }
     
-    Column(const Column& other)
-      : m_matrix(other.m_matrix), m_col(other.m_col) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Column)
     
   private:
@@ -89,8 +86,8 @@ template<typename MatrixType> class Column
 
 /** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
   *
-  * Example: \include MatrixBase_column.cpp
-  * Output: \verbinclude MatrixBase_column.out
+  * Example: \include MatrixBase_col.cpp
+  * Output: \verbinclude MatrixBase_col.out
   *
   * \sa row(), class Column */
 template<typename Scalar, typename Derived>

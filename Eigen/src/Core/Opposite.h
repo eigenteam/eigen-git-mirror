@@ -36,9 +36,6 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     
     Opposite(const MatRef& matrix) : m_matrix(matrix) {}
     
-    Opposite(const Opposite& other)
-      : m_matrix(other.m_matrix) {}
-    
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -60,7 +57,7 @@ template<typename Scalar, typename Derived>
 const Opposite<Derived>
 MatrixBase<Scalar, Derived>::operator-() const
 {
-  return Opposite<Derived>(static_cast<const Derived*>(this)->ref());
+  return Opposite<Derived>(ref());
 }
 
 #endif // EIGEN_OPPOSITE_H

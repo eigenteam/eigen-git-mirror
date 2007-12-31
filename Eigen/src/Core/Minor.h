@@ -54,9 +54,6 @@ template<typename MatrixType> class Minor
           && col >= 0 && col < matrix.cols());
     }
     
-    Minor(const Minor& other)
-      : m_matrix(other.m_matrix), m_row(other.m_row), m_col(other.m_col) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:

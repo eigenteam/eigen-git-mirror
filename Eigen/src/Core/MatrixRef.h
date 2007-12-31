@@ -34,7 +34,6 @@ template<typename MatrixType> class MatrixRef
     friend class MatrixBase<Scalar, MatrixRef>;
     
     MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    MatrixRef(const MatrixRef& other) : m_matrix(other.m_matrix) {}
     ~MatrixRef() {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)

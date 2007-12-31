@@ -48,9 +48,6 @@ template<typename MatrixType> class Transpose
     
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
     
-    Transpose(const Transpose& other)
-      : m_matrix(other.m_matrix) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:

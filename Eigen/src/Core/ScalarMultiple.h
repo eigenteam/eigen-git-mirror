@@ -37,9 +37,6 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
     ScalarMultiple(const MatRef& matrix, FactorType factor)
       : m_matrix(matrix), m_factor(factor) {}
 
-    ScalarMultiple(const ScalarMultiple& other)
-      : m_matrix(other.m_matrix), m_factor(other.m_factor) {}
-
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;

@@ -32,14 +32,7 @@ template<typename MatrixType> class Map
   public:
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Map<MatrixType> >;
-    
-    Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
-    {
-      assert(rows > 0 && cols > 0);
-    }
-    
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
-    
+
   private:
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
@@ -65,6 +58,17 @@ template<typename MatrixType> class Map
       else // RowDominant
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
     }
+  
+  public:
+    Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
+    {
+      assert(rows > 0
+          && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == rows)
+          && cols > 0
+          && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == cols));
+    }
+    
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     
   protected:
     const Scalar* m_data;

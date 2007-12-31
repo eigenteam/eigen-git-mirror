@@ -48,8 +48,6 @@ template<typename MatrixType> class DiagonalCoeffs
     
     DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
     
-    DiagonalCoeffs(const DiagonalCoeffs& other) : m_matrix(other.m_matrix) {}
-    
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
   private:
