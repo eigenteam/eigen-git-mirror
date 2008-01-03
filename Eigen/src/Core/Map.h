@@ -26,6 +26,19 @@
 #ifndef EIGEN_MAP_H
 #define EIGEN_MAP_H
 
+/** \class Map
+  *
+  * \brief A matrix or vector expression mapping an existing array of data.
+  *
+  * This class represents a matrix or vector expression mapping an existing array of data.
+  * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
+  * such as plain C arrays or structures from other libraries.
+  *
+  * This class is the return type of Matrix::map() and most of the time this is the only
+  * way it is used.
+  *
+  * \sa Matrix::map()
+  */
 template<typename MatrixType> class Map
   : public MatrixBase<typename MatrixType::Scalar, Map<MatrixType> >
 {
@@ -75,6 +88,7 @@ template<typename MatrixType> class Map
     int m_rows, m_cols;
 };
 
+/** This is the const version of map(Scalar*,int,int). */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, int cols)
@@ -82,6 +96,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, 
   return Map<Matrix>(data, rows, cols);
 }
 
+/** This is the const version of map(Scalar*,int). */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
@@ -93,6 +108,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
     return Map<Matrix>(data, 1, size);
 }
 
+/** This is the const version of map(Scalar*). */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
@@ -100,6 +116,15 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
   return Map<Matrix>(data, _Rows, _Cols);
 }
 
+/** \returns a expression of a matrix or vector mapping the given data.
+  *
+  * \param data The array of data to map
+  * \param rows The number of rows of the expression to construct
+  * \param cols The number of columns of the expression to construct
+  *
+  * Example: \include MatrixBase_map_int_int.cpp
+  * Output: \verbinclude MatrixBase_map_int_int.out
+  */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int cols)
@@ -107,6 +132,16 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int co
   return Map<Matrix>(data, rows, cols);
 }
 
+/** \returns a expression of a vector mapping the given data.
+  *
+  * \param data The array of data to map
+  * \param rows The size (number of coefficients) of the expression to construct
+  *
+  * \only_for_vectors
+  *
+  * Example: \include MatrixBase_map_int.cpp
+  * Output: \verbinclude MatrixBase_map_int.out
+  */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
@@ -118,6 +153,13 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
     return Map<Matrix>(data, 1, size);
 }
 
+/** \returns a expression of a fixed-size matrix or vector mapping the given data.
+  *
+  * \param data The array of data to map
+  *
+  * Example: \include MatrixBase_map.cpp
+  * Output: \verbinclude MatrixBase_map.out
+  */
 template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)

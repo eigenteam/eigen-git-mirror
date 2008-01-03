@@ -1,6 +1,6 @@
-#include <iostream>
 #include <complex>
 #include <cassert>
+#include <iostream>
 
 namespace Eigen {
 

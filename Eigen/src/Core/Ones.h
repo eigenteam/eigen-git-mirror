@@ -26,6 +26,12 @@
 #ifndef EIGEN_ONES_H
 #define EIGEN_ONES_H
 
+/** \class Ones
+  *
+  * \brief Expression of a matrix where all coefficients equal one.
+  *
+  * \sa MatrixBase::ones(), MatrixBase::ones(int), MatrixBase::ones(int,int)
+  */
 template<typename MatrixType> class Ones : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Ones<MatrixType> >
 {
@@ -59,12 +65,42 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     int m_rows, m_cols;
 };
 
+/** \returns an expression of a matrix where all coefficients equal one.
+  *
+  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * the returned matrix. Must be compatible with this MatrixBase type.
+  *
+  * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
+  * it is redundant to pass \a rows and \a cols as arguments, so ones() should be used
+  * instead.
+  *
+  * Example: \include MatrixBase_ones_int_int.cpp
+  * Output: \verbinclude MatrixBase_ones_int_int.out
+  *
+  * \sa ones(), ones(int)
+  */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
 {
   return Ones<Derived>(rows, cols);
 }
 
+/** \returns an expression of a vector where all coefficients equal one.
+  *
+  * The parameter \a size is the size of the returned vector.
+  * Must be compatible with this MatrixBase type.
+  *
+  * \only_for_vectors
+  *
+  * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
+  * it is redundant to pass \a size as argument, so ones() should be used
+  * instead.
+  *
+  * Example: \include MatrixBase_ones_int.cpp
+  * Output: \verbinclude MatrixBase_ones_int.out
+  *
+  * \sa ones(), ones(int,int)
+  */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
 {
@@ -73,6 +109,16 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
   else return Ones<Derived>(size, 1);
 }
 
+/** \returns an expression of a fixed-size matrix or vector where all coefficients equal one.
+  *
+  * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
+  * need to use the variants taking size arguments.
+  *
+  * Example: \include MatrixBase_ones.cpp
+  * Output: \verbinclude MatrixBase_ones.out
+  *
+  * \sa ones(int), ones(int,int)
+  */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
 {

@@ -26,6 +26,10 @@
 #ifndef EIGEN_IO_H
 #define EIGEN_IO_H
 
+/** \relates MatrixBase
+  *
+  * Outputs the matrix, laid out as an array as usual, to the given stream.
+  */
 template<typename Scalar, typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,

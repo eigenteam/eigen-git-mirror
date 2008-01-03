@@ -26,6 +26,12 @@
 #ifndef EIGEN_ZERO_H
 #define EIGEN_ZERO_H
 
+/** \class Zero
+  *
+  * \brief Expression of a zero matrix or vector.
+  *
+  * \sa MatrixBase::zero(), MatrixBase::zero(int), MatrixBase::zero(int,int)
+  */
 template<typename MatrixType> class Zero : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
 {
@@ -59,12 +65,42 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     int m_rows, m_cols;
 };
 
+/** \returns an expression of a zero matrix.
+  *
+  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * the returned matrix. Must be compatible with this MatrixBase type.
+  *
+  * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
+  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * instead.
+  *
+  * Example: \include MatrixBase_zero_int_int.cpp
+  * Output: \verbinclude MatrixBase_zero_int_int.out
+  *
+  * \sa zero(), zero(int)
+  */
 template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
 {
   return Zero<Derived>(rows, cols);
 }
 
+/** \returns an expression of a zero vector.
+  *
+  * The parameter \a size is the size of the returned vector.
+  * Must be compatible with this MatrixBase type.
+  *
+  * \only_for_vectors
+  *
+  * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
+  * it is redundant to pass \a size as argument, so zero() should be used
+  * instead.
+  *
+  * Example: \include MatrixBase_zero_int.cpp
+  * Output: \verbinclude MatrixBase_zero_int.out
+  *
+  * \sa zero(), zero(int,int)
+  */
 template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
 {
@@ -73,6 +109,16 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
   else return Zero<Derived>(size, 1);
 }
 
+/** \returns an expression of a fixed-size zero matrix or vector.
+  *
+  * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
+  * need to use the variants taking size arguments.
+  *
+  * Example: \include MatrixBase_zero.cpp
+  * Output: \verbinclude MatrixBase_zero.out
+  *
+  * \sa zero(int), zero(int,int)
+  */
 template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
 {

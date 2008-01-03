@@ -26,6 +26,7 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+/** \class Matrix */
 template<typename _Scalar, int _Rows, int _Cols,
          MatrixStorageOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
 class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >,
