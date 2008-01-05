@@ -39,6 +39,7 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
     
   private:
+    static const TraversalOrder _Order = Indifferent;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
@@ -60,5 +61,21 @@ const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
 {
   return Identity<Derived>(rows);
 }
+
+template<typename Scalar, typename Derived>
+bool MatrixBase<Scalar, Derived>::isIdentity
+(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+{
+  for(int j = 0; j < col(); j++)
+  {
+    if(!isApprox(coeff(j, j), static_cast<Scalar>(1)))
+      return false;
+    for(int i = 0; i < j; i++)
+      if(!isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1)))
+        return false;
+  }
+  return true;
+}
+
 
 #endif // EIGEN_IDENTITY_H

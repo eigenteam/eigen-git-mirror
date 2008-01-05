@@ -28,6 +28,7 @@
 
 #include <QtTest/QtTest>
 
+//#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajor
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/Core>
 

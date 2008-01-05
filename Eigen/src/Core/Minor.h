@@ -57,6 +57,7 @@ template<typename MatrixType> class Minor
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
   private:
+    static const TraversalOrder _Order = MatrixType::Order;
     static const int
       _RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
                            MatrixType::RowsAtCompileTime - 1 : Dynamic,

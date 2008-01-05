@@ -40,6 +40,7 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     friend class MatrixBase<Scalar, Zero<MatrixType> >;
   
   private:
+    static const TraversalOrder _Order = Indifferent;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
@@ -123,6 +124,17 @@ template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
 {
   return Zero<Derived>(RowsAtCompileTime, ColsAtCompileTime);
+}
+
+template<typename Scalar, typename Derived>
+bool MatrixBase<Scalar, Derived>::isZero
+(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+{
+  for(int j = 0; j < col(); j++)
+    for(int i = 0; i < row(); i++)
+      if(!isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1)))
+        return false;
+  return true;
 }
 
 #endif // EIGEN_ZERO_H

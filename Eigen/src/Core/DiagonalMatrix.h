@@ -26,27 +26,39 @@
 #ifndef EIGEN_DIAGONALMATRIX_H
 #define EIGEN_DIAGONALMATRIX_H
 
-template<typename MatrixType, typename CoeffsVectorType>
+/** \class DiagonalMatrix
+  *
+  * \brief Expression of a diagonal matrix
+  *
+  * \param CoeffsVectorType the type of the vector of diagonal coefficients
+  *
+  * This class is an expression of a diagonal matrix with given vector of diagonal
+  * coefficients. It is the return
+  * type of MatrixBase::diagonal(const OtherDerived&) and most of the time this is
+  * the only way it is used.
+  *
+  * \sa MatrixBase::diagonal(const OtherDerived&)
+  */
+template<typename CoeffsVectorType>
 class DiagonalMatrix : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar,
-                    DiagonalMatrix<MatrixType, CoeffsVectorType> >
+  public MatrixBase<typename CoeffsVectorType::Scalar,
+                    DiagonalMatrix<CoeffsVectorType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename CoeffsVectorType::Scalar Scalar;
     typedef typename CoeffsVectorType::Ref CoeffsVecRef;
-    friend class MatrixBase<Scalar, DiagonalMatrix<MatrixType, CoeffsVectorType> >;
+    friend class MatrixBase<Scalar, DiagonalMatrix<CoeffsVectorType> >;
     
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::IsVectorAtCompileTime
-          && _RowsAtCompileTime == _ColsAtCompileTime
-          && _RowsAtCompileTime == CoeffsVectorType::SizeAtCompileTime
           && coeffs.size() > 0);
     }
     
   private:
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    static const TraversalOrder _Order = Indifferent;
+    static const int _RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
+                     _ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime;
 
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
@@ -61,12 +73,20 @@ class DiagonalMatrix : NoOperatorEquals,
     CoeffsVecRef m_coeffs;
 };
 
+/** \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients
+  *
+  * \only_for_vectors
+  *
+  * Example: \include MatrixBase_asDiagonal.cpp
+  * Output: \verbinclude MatrixBase_asDiagonal.out
+  *
+  * \sa class DiagonalMatrix
+  **/
 template<typename Scalar, typename Derived>
-template<typename OtherDerived>
-const DiagonalMatrix<Derived, OtherDerived>
-MatrixBase<Scalar, Derived>::diagonal(const OtherDerived& coeffs)
+const DiagonalMatrix<Derived>
+MatrixBase<Scalar, Derived>::asDiagonal() const
 {
-  return DiagonalMatrix<Derived, OtherDerived>(coeffs);
+  return DiagonalMatrix<Derived>(ref());
 }
 
 #endif // EIGEN_DIAGONALMATRIX_H

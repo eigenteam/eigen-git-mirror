@@ -40,6 +40,7 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     friend class MatrixBase<Scalar, Ones<MatrixType> >;
   
   private:
+    static const TraversalOrder _Order = Indifferent;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
@@ -123,6 +124,17 @@ template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
 {
   return Ones<Derived>(RowsAtCompileTime, ColsAtCompileTime);
+}
+
+template<typename Scalar, typename Derived>
+bool MatrixBase<Scalar, Derived>::isOnes
+(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+{
+  for(int j = 0; j < col(); j++)
+    for(int i = 0; i < row(); i++)
+      if(!isApprox(coeff(i, j), static_cast<Scalar>(1)))
+        return false;
+  return true;
 }
 
 #endif // EIGEN_ONES_H

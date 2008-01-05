@@ -26,9 +26,54 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-/** \class Matrix */
+/** \class Matrix
+  *
+  * \brief The matrix class, also used for vectors and row-vectors
+  *
+  * \param _Scalar the scalar type, i.e. the type of the coefficients
+  * \param _Rows the number of rows at compile-time. Use the special value \a Dynamic to specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
+  * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
+  * \param _StorageOrder can be either \a RowMajor or \a ColumnMajor.
+  * This template parameter has a default value (EIGEN_DEFAULT_MATRIX_STORAGE_ORDER)
+  * which, if not predefined, is defined to \a ColumnMajor. You can override this behavior by
+  * predefining it before including Eigen headers.
+  *
+  * This single class template covers all kinds of matrix and vectors that Eigen can handle.
+  * All matrix and vector types are just typedefs to specializations of this class template.
+  *
+  * These typedefs are as follows:
+  * \li \c %Matrix##Size##Type for square matrices
+  * \li \c Vector##Size##Type for vectors (matrices with one column)
+  * \li \c RowVector##Size##Type for row-vectors (matrices with one row)
+  *
+  * where \c Size can be
+  * \li \c 2 for fixed size 2
+  * \li \c 3 for fixed size 3
+  * \li \c 4 for fixed size 4
+  * \li \c X for dynamic size
+  *
+  * and \c Type can be
+  * \li \c i for type \c int
+  * \li \c f for type \c float
+  * \li \c d for type \c double
+  * \li \c cf for type \c std::complex<float>
+  * \li \c cd for type \c std::complex<float>
+  *
+  * Examples:
+  * \li \c Matrix2d is a typedef for \c Matrix<double,2,2>
+  * \li \c VectorXf is a typedef for \c Matrix<float,Dynamic,1>
+  * \li \c RowVector3i is a typedef for \c Matrix<int,1,3>
+  *
+  * Of course these typedefs do not exhaust all the possibilities offered by the Matrix class
+  * template, they only address some of the most common cases. For instance, if you want a
+  * fixed-size matrix with 3 rows and 5 columns, there is no typedef for that, so you should use
+  * \c Matrix<double,3,5>.
+  *
+  * Note that most of the API is in the base class MatrixBase, and that the base class
+  * MatrixStorage also provides the MatrixStorage::resize() public method.
+  */
 template<typename _Scalar, int _Rows, int _Cols,
-         MatrixStorageOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
+         TraversalOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
 class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
 {
@@ -46,30 +91,37 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     Scalar* data()
     { return Storage::m_data; }
     
-    static const MatrixStorageOrder StorageOrder = _StorageOrder;
-    
   private:
+    static const TraversalOrder _Order = _StorageOrder;
     static const int _RowsAtCompileTime = _Rows, _ColsAtCompileTime = _Cols;
     
     Ref _ref() const { return Ref(*this); }
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(_StorageOrder == ColumnDominant)
+      if(_Order == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
-      else // RowDominant
+      else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];
     }
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(_StorageOrder == ColumnDominant)
+      if(_Order == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
-      else // RowDominant
+      else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];
     }
     
   public:
+    /** Copies the value of the expression \a other into *this.
+      *
+      * *this is resized (if possible) to match the dimensions of \a other.
+      *
+      * As a special exception, copying a row-vector into a vector (and conversely)
+      * is allowed. The resizing, if any, is then done in the appropriate way so that
+      * row-vectors remain row-vectors and vectors remain vectors.
+      */
     template<typename OtherDerived> 
     Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
@@ -87,6 +139,9 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       return Base::operator=(other);
     }
     
+    /** This is a special case of the templated operator=. Its purpose is to
+      * prevent a default operator= from hiding the templated operator=.
+      */
     Matrix& operator=(const Matrix& other)
     {
       return operator=<Matrix>(other);
@@ -104,10 +159,21 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     static Map<Matrix> map(Scalar* array, int size);
     static Map<Matrix> map(Scalar* array);
     
+    /** Default constructor, does nothing. Only for fixed-size matrices.
+      * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
+      * an assertion) because it would leave the matrix without an allocated data buffer.
+      */
     explicit Matrix() : Storage()
     {
       assert(_RowsAtCompileTime > 0 && _ColsAtCompileTime > 0);
     }
+    
+    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
+      *
+      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
+      * it is redundant to pass the dimension here, so it makes more sense to use the default
+      * constructor Matrix() instead.
+      */
     explicit Matrix(int dim) : Storage(dim)
     {
       assert(dim > 0);
@@ -117,14 +183,16 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
               && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == dim)));
     }
     
-    // this constructor is very tricky.
-    // When Matrix is a fixed-size vector type of size 2,
-    // Matrix(x,y) should mean "construct vector with coefficients x,y".
-    // Otherwise, Matrix(x,y) should mean "construct matrix with x rows and y cols".
-    // Note that in the case of fixed-size, Storage::Storage(int,int) does nothing,
-    // so it is harmless to call it and afterwards we just fill the m_data array
-    // with the two coefficients. In the case of dynamic size, Storage::Storage(int,int)
-    // does what we want to, so it only remains to add some asserts.
+    /** This constructor has two very different behaviors, depending on the type of *this.
+      *
+      * \li When Matrix is a fixed-size vector type of size 2, this constructor constructs
+      *     an initialized vector. The parameters \a x, \a y are copied into the first and second
+      *     coords of the vector respectively.
+      * \li Otherwise, this constructor constructs an uninitialized matrix with \a x rows and
+      *     \a y columns. This is useful for dynamic-size matrices. For fixed-size matrices,
+      *     it is redundant to pass these parameters, so one should use the default constructor
+      *     Matrix() instead.
+      */
     Matrix(int x, int y) : Storage(x, y)
     {
       if((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
@@ -139,6 +207,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
             && y > 0 && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == y));
       }
     }
+    /** constructs an initialized 2D vector with given coefficients */
     Matrix(const float& x, const float& y)
     {
       assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
@@ -146,6 +215,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
+    /** constructs an initialized 2D vector with given coefficients */
     Matrix(const double& x, const double& y)
     {
       assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
@@ -153,6 +223,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
+    /** constructs an initialized 3D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 3)
@@ -161,6 +232,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       (Storage::m_data)[1] = y;
       (Storage::m_data)[2] = z;
     }
+    /** constructs an initialized 4D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 4)
@@ -174,16 +246,19 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     Matrix(const Scalar *data, int size);
     explicit Matrix(const Scalar *data);
     
+    /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)
              : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
+    /** Copy constructor */
     Matrix(const Matrix& other) : Storage(other.rows(), other.cols())
     {
       *this = other;
     }
+    /** Destructor */
     ~Matrix() {}
 };
 

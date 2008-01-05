@@ -123,4 +123,27 @@ MatrixBase<Scalar, Derived>::normalized() const
   return (*this) / norm();
 }
 
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+bool MatrixBase<Scalar, Derived>::isOrtho
+(const OtherDerived& other,
+ const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+{
+  return abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
+}
+
+template<typename Scalar, typename Derived>
+bool MatrixBase<Scalar, Derived>::isOrtho
+(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+{
+  for(int i = 0; i < cols(); i++)
+  {
+    if(!isApprox(col(i).norm2(), static_cast<Scalar>(1)))
+      return false;
+    for(int j = 0; j < i; j++)
+      if(!isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1)))
+        return false;
+  }
+  return true;
+}
 #endif // EIGEN_DOT_H

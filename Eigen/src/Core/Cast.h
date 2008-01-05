@@ -57,6 +57,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     Cast(const MatRef& matrix) : m_matrix(matrix) {}
     
   private:
+    static const TraversalOrder _Order = MatrixType::Order;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
     const Cast& _ref() const { return *this; }

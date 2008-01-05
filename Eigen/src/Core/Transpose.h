@@ -51,6 +51,8 @@ template<typename MatrixType> class Transpose
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
+    static const TraversalOrder _Order = (MatrixType::Order == ColumnMajor)
+                                       ? RowMajor : ColumnMajor;
     static const int _RowsAtCompileTime = MatrixType::ColsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::RowsAtCompileTime;
 

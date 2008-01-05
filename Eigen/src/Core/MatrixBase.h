@@ -57,6 +57,8 @@
 template<typename Scalar, typename Derived> class MatrixBase
 {
   public:
+    static const TraversalOrder Order = Derived::_Order;
+  
     /** The number of rows at compile-time. This is just a copy of the value provided
       * by the \a Derived type. If a value is not known at compile-time,
       * it is set to the \a Dynamic constant.
@@ -154,6 +156,10 @@ template<typename Scalar, typename Derived> class MatrixBase
     RealScalar norm2() const;
     RealScalar norm()  const;
     const ScalarMultiple<RealScalar, Derived> normalized() const;
+    template<typename OtherDerived>
+    bool isOrtho(const OtherDerived& other,
+                 const typename NumTraits<Scalar>::Real& prec) const;
+    bool isOrtho(const typename NumTraits<Scalar>::Real& prec) const;
     
     static const Eval<Random<Derived> > random(int rows, int cols);
     static const Eval<Random<Derived> > random(int size);
@@ -166,9 +172,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Ones<Derived> ones();
     static const Identity<Derived> identity(int rows = RowsAtCompileTime);
     
-    template<typename OtherDerived>
-    static const DiagonalMatrix<Derived, OtherDerived>
-    diagonal(const OtherDerived& coeffs);
+    bool isZero(const typename NumTraits<Scalar>::Real& prec) const;
+    bool isOnes(const typename NumTraits<Scalar>::Real& prec) const;
+    bool isIdentity(const typename NumTraits<Scalar>::Real& prec) const;
+    
+    const DiagonalMatrix<Derived> asDiagonal() const;
     
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
@@ -176,16 +184,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     bool isApprox(
       const OtherDerived& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+      const typename NumTraits<Scalar>::Real& prec
     ) const;
     bool isMuchSmallerThan(
       const typename NumTraits<Scalar>::Real& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+      const typename NumTraits<Scalar>::Real& prec
     ) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(
       const MatrixBase<Scalar, OtherDerived>& other,
-      const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+      const typename NumTraits<Scalar>::Real& prec
     ) const;
     
     template<typename OtherDerived>

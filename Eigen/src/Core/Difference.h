@@ -42,6 +42,7 @@ template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
     }
 
   private:
+    static const TraversalOrder _Order = Lhs::Order;
     static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      _ColsAtCompileTime = Rhs::ColsAtCompileTime;
     

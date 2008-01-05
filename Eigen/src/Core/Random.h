@@ -40,6 +40,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     friend class MatrixBase<Scalar, Random<MatrixType> >;
   
   private:
+    static const TraversalOrder _Order = Indifferent;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 

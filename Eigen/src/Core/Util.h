@@ -33,7 +33,7 @@
 #endif
 
 #ifndef EIGEN_DEFAULT_MATRIX_STORAGE_ORDER
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER ColumnDominant
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER Indifferent
 #endif
 
 #undef minor
@@ -88,14 +88,15 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 const int Dynamic = -1;
 
-enum MatrixStorageOrder
+enum TraversalOrder
 {
-  ColumnDominant,
-  RowDominant
+  ColumnMajor,
+  RowMajor,
+  Indifferent = ColumnMajor
 };
 
 //forward declarations
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
   class Matrix;
 template<typename MatrixType> class MatrixRef;
 template<typename NewScalar, typename MatrixType> class Cast;
@@ -114,7 +115,7 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
 template<typename MatrixType> class Zero;
 template<typename MatrixType> class Ones;
-template<typename MatrixType, typename CoeffsVectorType> class DiagonalMatrix;
+template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
 template<typename ExpressionType> class Eval;
@@ -125,7 +126,7 @@ template<typename T> struct ForwardDecl
   typedef T Ref;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 {
   typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> > Ref;

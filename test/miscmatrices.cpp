@@ -46,7 +46,7 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   VectorType v1 = VectorType::random(rows);
   v1[0];
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-  square = MatrixType::diagonal(v1);
+  square = v1.asDiagonal();
   if(r==r2) VERIFY_IS_APPROX(square(r,r2), v1[r]);
   else VERIFY_IS_MUCH_SMALLER_THAN(square(r,r2), static_cast<Scalar>(1));
   square = MatrixType::zero(rows, rows);

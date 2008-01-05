@@ -49,6 +49,7 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     
   private:
+    static const TraversalOrder _Order = MatrixType::Order;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 

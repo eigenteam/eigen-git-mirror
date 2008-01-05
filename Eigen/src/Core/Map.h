@@ -47,10 +47,10 @@ template<typename MatrixType> class Map
     friend class MatrixBase<Scalar, Map<MatrixType> >;
 
   private:
+    static const TraversalOrder _Order = MatrixType::Order;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
-    static const MatrixStorageOrder _StorageOrder = MatrixType::StorageOrder;
 
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
@@ -58,17 +58,17 @@ template<typename MatrixType> class Map
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(_StorageOrder == ColumnDominant)
+      if(_Order == ColumnMajor)
         return m_data[row + col * m_rows];
-      else // RowDominant
+      else // RowMajor
         return m_data[col + row * m_cols];
     }
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(_StorageOrder == ColumnDominant)
+      if(_Order == ColumnMajor)
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
-      else // RowDominant
+      else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
     }
   
@@ -89,7 +89,7 @@ template<typename MatrixType> class Map
 };
 
 /** This is the const version of map(Scalar*,int,int). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, int cols)
 {
@@ -97,7 +97,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, 
 }
 
 /** This is the const version of map(Scalar*,int). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 {
@@ -109,7 +109,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 }
 
 /** This is the const version of map(Scalar*). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
 {
@@ -124,8 +124,10 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
   *
   * Example: \include MatrixBase_map_int_int.cpp
   * Output: \verbinclude MatrixBase_map_int_int.out
+  *
+  * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int cols)
 {
@@ -135,14 +137,16 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int co
 /** \returns a expression of a vector mapping the given data.
   *
   * \param data The array of data to map
-  * \param rows The size (number of coefficients) of the expression to construct
+  * \param size The size (number of coefficients) of the expression to construct
   *
   * \only_for_vectors
   *
   * Example: \include MatrixBase_map_int.cpp
   * Output: \verbinclude MatrixBase_map_int.out
+  *
+  * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
 {
@@ -159,15 +163,25 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
   *
   * Example: \include MatrixBase_map.cpp
   * Output: \verbinclude MatrixBase_map.out
+  *
+  * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
 }
 
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+/** Constructor copying an existing array of data. Only useful for dynamic-size matrices:
+  * for fixed-size matrices, it is redundant to pass the \a rows and \a cols parameters.
+  * \param data The array of data to copy
+  * \param rows The number of rows of the matrix to construct
+  * \param cols The number of columns of the matrix to construct
+  *
+  * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
+  */
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int rows, int cols)
   : Storage(rows, cols)
@@ -175,7 +189,17 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   *this = map(data, rows, cols);
 }
 
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+/** Constructor copying an existing array of data. Only useful for dynamic-size vectors:
+  * for fixed-size vectors, it is redundant to pass the \a size parameter.
+  *
+  * \only_for_vectors
+  *
+  * \param data The array of data to copy
+  * \param size The size of the vector to construct
+  *
+  * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
+  */
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int size)
   : Storage(size)
@@ -183,7 +207,17 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   *this = map(data, size);
 }
 
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+/** Constructor copying an existing array of data.
+  * Only for fixed-size matrices and vectors.
+  * \param data The array of data to copy
+  *
+  * For dynamic-size matrices and vectors, see the variants taking additional int parameters
+  * for the dimensions.
+  *
+  * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
+  * Matrix::map(const Scalar *)
+  */
+template<typename _Scalar, int _Rows, int _Cols, TraversalOrder _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data)
   : Storage()
