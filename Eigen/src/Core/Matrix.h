@@ -73,7 +73,7 @@
   * MatrixStorage also provides the MatrixStorage::resize() public method.
   */
 template<typename _Scalar, int _Rows, int _Cols,
-         TraversalOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
+         MatrixStorageOrder _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
 class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >,
                public MatrixStorage<_Scalar, _Rows, _Cols>
 {
@@ -91,7 +91,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     Scalar* data()
     { return Storage::m_data; }
     
-    static const TraversalOrder Order = _StorageOrder;
+    static const MatrixStorageOrder Order = _StorageOrder;
     static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
 
   private:

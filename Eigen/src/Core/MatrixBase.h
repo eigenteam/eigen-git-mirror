@@ -31,8 +31,6 @@
 template <typename Derived>
 struct DerivedTraits
 {
-    static const TraversalOrder Order = Derived::Order;
-    
     /** The number of rows at compile-time. This is just a copy of the value provided
       * by the \a Derived type. If a value is not known at compile-time,
       * it is set to the \a Dynamic constant.

@@ -39,7 +39,6 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Random<MatrixType> >;
   
-    static const TraversalOrder Order = Indifferent;
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
   

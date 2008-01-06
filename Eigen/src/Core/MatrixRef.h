@@ -38,7 +38,6 @@ template<typename MatrixType> class MatrixRef
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
-    static const TraversalOrder Order = MatrixType::Order;
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 

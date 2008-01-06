@@ -68,7 +68,6 @@ template<typename MatrixType> class Row
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
-    static const TraversalOrder Order = RowMajor;
     static const int RowsAtCompileTime = 1,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 

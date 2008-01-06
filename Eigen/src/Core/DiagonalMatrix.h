@@ -55,7 +55,6 @@ class DiagonalMatrix : NoOperatorEquals,
           && coeffs.size() > 0);
     }
     
-    static const TraversalOrder Order = Indifferent;
     static const int RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
                      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime;
 

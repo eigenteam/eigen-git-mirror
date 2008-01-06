@@ -27,25 +27,21 @@
 #ifndef EIGEN_OPERATOREQUALS_H
 #define EIGEN_OPERATOREQUALS_H
 
-template<typename Derived1, typename Derived2, int UnrollCount, TraversalOrder Order>
+template<typename Derived1, typename Derived2, int UnrollCount>
 struct MatrixOperatorEqualsUnroller
 {
-  static const int col = (Order == ColumnMajor)
-                       ? (UnrollCount-1) / Derived1::RowsAtCompileTime
-                       : (UnrollCount-1) % Derived1::ColsAtCompileTime;
-  static const int row = (Order == ColumnMajor)
-                       ? (UnrollCount-1) % Derived1::RowsAtCompileTime
-                       : (UnrollCount-1) / Derived1::ColsAtCompileTime;
+  static const int col = (UnrollCount-1) / Derived1::RowsAtCompileTime;
+  static const int row = (UnrollCount-1) % Derived1::RowsAtCompileTime;
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    MatrixOperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1, Order>::run(dst, src);
+    MatrixOperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
     dst.coeffRef(row, col) = src.coeff(row, col);
   }
 };
 
-template<typename Derived1, typename Derived2, TraversalOrder Order>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 1, Order>
+template<typename Derived1, typename Derived2>
+struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 1>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -54,14 +50,14 @@ struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 1, Order>
 };
 
 // prevent buggy user code from causing an infinite recursion
-template<typename Derived1, typename Derived2, TraversalOrder Order>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 0, Order>
+template<typename Derived1, typename Derived2>
+struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 0>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
 
-template<typename Derived1, typename Derived2, TraversalOrder Order>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, Dynamic, Order>
+template<typename Derived1, typename Derived2>
+struct MatrixOperatorEqualsUnroller<Derived1, Derived2, Dynamic>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
@@ -123,19 +119,12 @@ Derived& MatrixBase<Scalar, Derived>
     assert(rows() == other.rows() && cols() == other.cols());
     if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
       MatrixOperatorEqualsUnroller
-        <Derived, OtherDerived, Traits::SizeAtCompileTime, Traits::Order>::run
+        <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
-    {
-      if(Traits::Order == ColumnMajor)
-        for(int j = 0; j < cols(); j++)
-          for(int i = 0; i < rows(); i++)
-            coeffRef(i, j) = other.coeff(i, j);
-      else // RowMajor
+      for(int j = 0; j < cols(); j++)
         for(int i = 0; i < rows(); i++)
-          for(int j = 0; j < cols(); j++)
-            coeffRef(i, j) = other.coeff(i, j);
-    }
+          coeffRef(i, j) = other.coeff(i, j);
     return *static_cast<Derived*>(this);
   }
 }

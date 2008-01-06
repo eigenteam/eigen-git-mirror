@@ -36,7 +36,6 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     
     Opposite(const MatRef& matrix) : m_matrix(matrix) {}
     
-    static const TraversalOrder Order = MatrixType::Order;
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 

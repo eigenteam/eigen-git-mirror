@@ -50,7 +50,6 @@ template<typename MatrixType> class DiagonalCoeffs
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
-    static const TraversalOrder Order = ColumnMajor;
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = 1;
 

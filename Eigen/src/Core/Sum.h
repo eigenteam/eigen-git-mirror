@@ -41,7 +41,6 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    static const TraversalOrder Order = Lhs::Order;
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 

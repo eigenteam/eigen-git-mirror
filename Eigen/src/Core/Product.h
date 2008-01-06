@@ -75,7 +75,6 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       assert(lhs.cols() == rhs.rows());
     }
     
-    static const TraversalOrder Order = Lhs::Order;
     static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
                      ColsAtCompileTime = Rhs::ColsAtCompileTime;
 

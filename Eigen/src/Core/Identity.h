@@ -33,20 +33,15 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Identity<MatrixType> >;
     
-    Identity(int rows) : m_rows(rows)
-    {
-      assert(rows > 0 && _RowsAtCompileTime == _ColsAtCompileTime);
-    }
-    
-    static const TraversalOrder Order = Indifferent;
     static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
                      ColsAtCompileTime = MatrixType::ColsAtCompileTime;
     
+    Identity(int rows) : m_rows(rows)
+    {
+      assert(rows > 0 && RowsAtCompileTime == ColsAtCompileTime);
+    }
+    
   private:
-    static const TraversalOrder _Order = Indifferent;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
     const Identity& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_rows; }

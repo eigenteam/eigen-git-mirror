@@ -66,7 +66,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
-    static const TraversalOrder Order = MatrixType::Order;
     static const int RowsAtCompileTime = BlockRows,
                      ColsAtCompileTime = BlockCols;
 
