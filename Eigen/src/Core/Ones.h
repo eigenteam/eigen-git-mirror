@@ -135,7 +135,7 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
   */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isOnes
-(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec) const
 {
   for(int j = 0; j < cols(); j++)
     for(int i = 0; i < rows(); i++)

@@ -92,7 +92,7 @@ const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
   */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isIdentity
-(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec) const
 {
   if(cols() != rows()) return false;
   for(int j = 0; j < cols(); j++)

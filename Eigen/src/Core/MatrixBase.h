@@ -59,6 +59,7 @@ template<typename Scalar, typename Derived> class MatrixBase
   public:
   
     /** \brief Some traits provided by the Derived type.
+      *
       * Grouping these in a nested subclass is what was needed for ICC compatibility. */
     struct Traits
     {
@@ -103,17 +104,17 @@ template<typename Scalar, typename Derived> class MatrixBase
       * \a Scalar is \a std::complex<T> then RealScalar is \a T. */
     typedef typename NumTraits<Scalar>::Real RealScalar;
     
-    /** \returns the number of rows. \sa cols(), DerivedTraits::RowsAtCompileTime */
+    /** \returns the number of rows. \sa cols(), Traits::RowsAtCompileTime */
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
-    /** \returns the number of columns. \sa row(), DerivedTraits::ColsAtCompileTime*/
+    /** \returns the number of columns. \sa row(), Traits::ColsAtCompileTime*/
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
-      * \sa rows(), cols(), DerivedTraits::SizeAtCompileTime. */
+      * \sa rows(), cols(), Traits::SizeAtCompileTime. */
     int size() const { return rows() * cols(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
-      * \sa rows(), cols(), DerivedTraits::IsVectorAtCompileTime. */
+      * \sa rows(), cols(), Traits::IsVectorAtCompileTime. */
     bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns a Ref to *this. \sa Ref */
     Ref ref() const
@@ -163,8 +164,8 @@ template<typename Scalar, typename Derived> class MatrixBase
     RealScalar norm()  const;
     const ScalarMultiple<RealScalar, Derived> normalized() const;
     template<typename OtherDerived>
-    bool isOrtho(const OtherDerived& other, RealScalar prec) const;
-    bool isOrtho(RealScalar prec) const;
+    bool isOrtho(const OtherDerived& other, RealScalar prec = precision<Scalar>()) const;
+    bool isOrtho(RealScalar prec = precision<Scalar>()) const;
     
     static const Eval<Random<Derived> > random(int rows, int cols);
     static const Eval<Random<Derived> > random(int size);
@@ -177,10 +178,10 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Ones<Derived> ones();
     static const Identity<Derived> identity(int rows = Derived::RowsAtCompileTime);
     
-    bool isZero(RealScalar prec) const;
-    bool isOnes(RealScalar prec) const;
-    bool isIdentity(RealScalar prec) const;
-    bool isDiagonal(RealScalar prec) const;
+    bool isZero(RealScalar prec = precision<Scalar>()) const;
+    bool isOnes(RealScalar prec = precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = precision<Scalar>()) const;
+    bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
     
     const DiagonalMatrix<Derived> asDiagonal() const;
     
@@ -188,12 +189,13 @@ template<typename Scalar, typename Derived> class MatrixBase
     const DiagonalCoeffs<Derived> diagonal() const;
     
     template<typename OtherDerived>
-    bool isApprox(const OtherDerived& other, RealScalar prec) const;
-    bool isMuchSmallerThan
-    (const typename NumTraits<Scalar>::Real& other, RealScalar prec) const;
+    bool isApprox(const OtherDerived& other,
+                  RealScalar prec = precision<Scalar>()) const;
+    bool isMuchSmallerThan(const typename NumTraits<Scalar>::Real& other,
+                           RealScalar prec = precision<Scalar>()) const;
     template<typename OtherDerived>
-    bool isMuchSmallerThan
-    (const MatrixBase<Scalar, OtherDerived>& other, RealScalar prec) const;
+    bool isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>& other,
+                           RealScalar prec = precision<Scalar>()) const;
     
     template<typename OtherDerived>
     const Product<Derived, OtherDerived>

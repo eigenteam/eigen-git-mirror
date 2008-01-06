@@ -138,7 +138,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Scalar, Derived>::isOrtho
 (const OtherDerived& other,
- typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+ typename NumTraits<Scalar>::Real prec) const
 {
   return abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
 }
@@ -156,7 +156,7 @@ bool MatrixBase<Scalar, Derived>::isOrtho
   */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isOrtho
-(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec) const
 {
   for(int i = 0; i < cols(); i++)
   {
