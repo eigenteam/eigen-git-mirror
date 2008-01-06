@@ -62,8 +62,8 @@ Scalar MatrixBase<Scalar, Derived>::trace() const
 {
   assert(rows() == cols());
   Scalar res;
-  if(EIGEN_UNROLLED_LOOPS && RowsAtCompileTime != Dynamic && RowsAtCompileTime <= 16)
-    TraceUnroller<RowsAtCompileTime-1, RowsAtCompileTime, Derived>
+  if(EIGEN_UNROLLED_LOOPS && Traits::RowsAtCompileTime != Dynamic && Traits::RowsAtCompileTime <= 16)
+    TraceUnroller<Traits::RowsAtCompileTime-1, Traits::RowsAtCompileTime, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else
   {

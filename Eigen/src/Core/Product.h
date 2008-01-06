@@ -75,9 +75,11 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       assert(lhs.cols() == rhs.rows());
     }
     
+    static const TraversalOrder Order = Lhs::Order;
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
+
   private:
-    static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     _ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
     const Product& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }

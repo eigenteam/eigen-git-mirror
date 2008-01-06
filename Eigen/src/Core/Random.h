@@ -39,11 +39,12 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Random<MatrixType> >;
   
+    static const TraversalOrder Order = Indifferent;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+  
   private:
-    static const TraversalOrder _Order = Indifferent;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
+  
     const Random& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
@@ -57,9 +58,9 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     Random(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0
-          && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == rows)
+          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
-          && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == cols));
+          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
     
   protected:
@@ -105,8 +106,8 @@ const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int c
 template<typename Scalar, typename Derived>
 const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
 {
-  assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
+  assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
   else return Random<Derived>(size, 1).eval();
 }
 
@@ -124,7 +125,7 @@ const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
 template<typename Scalar, typename Derived>
 const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
 {
-  return Random<Derived>(RowsAtCompileTime, ColsAtCompileTime).eval();
+  return Random<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime).eval();
 }
 
 #endif // EIGEN_RANDOM_H

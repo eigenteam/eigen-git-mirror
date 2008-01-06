@@ -37,11 +37,11 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
     ScalarMultiple(const MatRef& matrix, FactorType factor)
       : m_matrix(matrix), m_factor(factor) {}
 
-  private:
-    static const TraversalOrder _Order = MatrixType::Order;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    static const TraversalOrder Order = MatrixType::Order;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
+  private:
     const ScalarMultiple& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }

@@ -26,6 +26,39 @@
 #ifndef EIGEN_MATRIXBASE_H
 #define EIGEN_MATRIXBASE_H
 
+#include "Util.h"
+
+template <typename Derived>
+struct DerivedTraits
+{
+    static const TraversalOrder Order = Derived::Order;
+    
+    /** The number of rows at compile-time. This is just a copy of the value provided
+      * by the \a Derived type. If a value is not known at compile-time,
+      * it is set to the \a Dynamic constant.
+      * \sa rows(), cols(), ColsAtCompileTime, SizeAtCompileTime */
+    static const int RowsAtCompileTime = Derived::RowsAtCompileTime;
+    
+    /** The number of columns at compile-time. This is just a copy of the value provided
+      * by the \a Derived type. If a value is not known at compile-time,
+      * it is set to the \a Dynamic constant.
+      * \sa rows(), cols(), RowsAtCompileTime, SizeAtCompileTime */
+    static const int ColsAtCompileTime = Derived::ColsAtCompileTime;
+    
+    /** This is equal to the number of coefficients, i.e. the number of
+      * rows times the number of columns, or to \a Dynamic if this is not
+      * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
+    static const int SizeAtCompileTime
+      = Derived::RowsAtCompileTime == Dynamic || Derived::ColsAtCompileTime == Dynamic
+      ? Dynamic : Derived::RowsAtCompileTime * Derived::ColsAtCompileTime;
+    
+    /** This is set to true if either the number of rows or the number of
+      * columns is known at compile-time to be equal to 1. Indeed, in that case,
+      * we are dealing with a column-vector (if there is only one column) or with
+      * a row-vector (if there is only one row). */
+    static const bool IsVectorAtCompileTime = Derived::RowsAtCompileTime == 1 || Derived::ColsAtCompileTime == 1;
+};
+
 /** \class MatrixBase
   *
   * \brief Base class for all matrices, vectors, and expressions
@@ -57,31 +90,7 @@
 template<typename Scalar, typename Derived> class MatrixBase
 {
   public:
-    static const TraversalOrder Order = Derived::_Order;
-  
-    /** The number of rows at compile-time. This is just a copy of the value provided
-      * by the \a Derived type. If a value is not known at compile-time,
-      * it is set to the \a Dynamic constant.
-      * \sa rows(), cols(), ColsAtCompileTime, SizeAtCompileTime */
-    static const int RowsAtCompileTime = Derived::_RowsAtCompileTime;
-    
-    /** The number of columns at compile-time. This is just a copy of the value provided
-      * by the \a Derived type. If a value is not known at compile-time,
-      * it is set to the \a Dynamic constant.
-      * \sa rows(), cols(), RowsAtCompileTime, SizeAtCompileTime */
-    static const int ColsAtCompileTime = Derived::_ColsAtCompileTime;
-    
-    /** This is equal to the number of coefficients, i.e. the number of
-      * rows times the number of columns, or to \a Dynamic if this is not
-      * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-    static const int SizeAtCompileTime
-      = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
-      ? Dynamic : RowsAtCompileTime * ColsAtCompileTime;
-    /** This is set to true if either the number of rows or the number of
-      * columns is known at compile-time to be equal to 1. Indeed, in that case,
-      * we are dealing with a column-vector (if there is only one column) or with
-      * a row-vector (if there is only one row). */
-    static const bool IsVectorAtCompileTime = RowsAtCompileTime == 1 || ColsAtCompileTime == 1;
+    typedef DerivedTraits<Derived> Traits;
     
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
       * to functions. If this MatrixBase type represents an expression, then \a Ref
@@ -170,7 +179,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Ones<Derived> ones(int rows, int cols);
     static const Ones<Derived> ones(int size);
     static const Ones<Derived> ones();
-    static const Identity<Derived> identity(int rows = RowsAtCompileTime);
+    static const Identity<Derived> identity(int rows = Derived::RowsAtCompileTime);
     
     bool isZero(const typename NumTraits<Scalar>::Real& prec) const;
     bool isOnes(const typename NumTraits<Scalar>::Real& prec) const;

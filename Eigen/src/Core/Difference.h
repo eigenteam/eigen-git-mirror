@@ -41,11 +41,11 @@ template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
+    static const TraversalOrder Order = Lhs::Order;
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
+
   private:
-    static const TraversalOrder _Order = Lhs::Order;
-    static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     _ColsAtCompileTime = Rhs::ColsAtCompileTime;
-    
     const Difference& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }

@@ -51,15 +51,15 @@ class DiagonalMatrix : NoOperatorEquals,
     
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
-      assert(CoeffsVectorType::IsVectorAtCompileTime
+      assert(CoeffsVectorType::Traits::IsVectorAtCompileTime
           && coeffs.size() > 0);
     }
     
-  private:
-    static const TraversalOrder _Order = Indifferent;
-    static const int _RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
-                     _ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime;
+    static const TraversalOrder Order = Indifferent;
+    static const int RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
+                     ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime;
 
+  private:
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }

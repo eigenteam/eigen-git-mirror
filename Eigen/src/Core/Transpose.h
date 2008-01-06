@@ -50,12 +50,12 @@ template<typename MatrixType> class Transpose
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
-  private:
-    static const TraversalOrder _Order = (MatrixType::Order == ColumnMajor)
+    static const TraversalOrder Order = (MatrixType::Order == ColumnMajor)
                                        ? RowMajor : ColumnMajor;
-    static const int _RowsAtCompileTime = MatrixType::ColsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::RowsAtCompileTime;
+    static const int RowsAtCompileTime = MatrixType::ColsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::RowsAtCompileTime;
 
+  private:
     const Transpose& _ref() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }

@@ -39,11 +39,11 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Zero<MatrixType> >;
   
-  private:
-    static const TraversalOrder _Order = Indifferent;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    static const TraversalOrder Order = Indifferent;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
+  private:
     const Zero& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
@@ -57,9 +57,9 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     Zero(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0
-          && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == rows)
+          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
-          && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == cols));
+          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
     
   protected:
@@ -105,8 +105,8 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
 template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
 {
-  assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1) return Zero<Derived>(1, size);
+  assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1) return Zero<Derived>(1, size);
   else return Zero<Derived>(size, 1);
 }
 
@@ -123,7 +123,7 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
 template<typename Scalar, typename Derived>
 const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
 {
-  return Zero<Derived>(RowsAtCompileTime, ColsAtCompileTime);
+  return Zero<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
 
 template<typename Scalar, typename Derived>

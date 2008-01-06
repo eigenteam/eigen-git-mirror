@@ -46,19 +46,18 @@ template<typename MatrixType> class Map
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Map<MatrixType> >;
 
+    static const TraversalOrder Order = MatrixType::Order;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
   private:
-    static const TraversalOrder _Order = MatrixType::Order;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
-
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return m_data[row + col * m_rows];
       else // RowMajor
         return m_data[col + row * m_cols];
@@ -66,7 +65,7 @@ template<typename MatrixType> class Map
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
       else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
@@ -76,9 +75,9 @@ template<typename MatrixType> class Map
     Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
       assert(rows > 0
-          && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == rows)
+          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
-          && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == cols));
+          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)

@@ -38,11 +38,11 @@ template<typename MatrixType> class MatrixRef
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
+    static const TraversalOrder Order = MatrixType::Order;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+
   private:
-    static const TraversalOrder _Order = MatrixType::Order;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-    
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 

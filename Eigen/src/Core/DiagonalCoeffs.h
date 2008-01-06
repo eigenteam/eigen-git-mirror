@@ -50,11 +50,11 @@ template<typename MatrixType> class DiagonalCoeffs
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
+    static const TraversalOrder Order = ColumnMajor;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = 1;
+
   private:
-    static const TraversalOrder _Order = ColumnMajor;
-    static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     _ColsAtCompileTime = 1;
-    
     const DiagonalCoeffs& _ref() const { return *this; }
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
     int _cols() const { return 1; }

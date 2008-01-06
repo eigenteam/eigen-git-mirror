@@ -47,12 +47,12 @@
   */
 template<typename Expression> class Eval : NoOperatorEquals,
   public Matrix< typename Expression::Scalar,
-                 Expression::RowsAtCompileTime,
-                 Expression::ColsAtCompileTime >
+                 Expression::Traits::RowsAtCompileTime,
+                 Expression::Traits::ColsAtCompileTime >
 {
   public:
     typedef typename Expression::Scalar Scalar;
-    typedef Matrix<Scalar, Expression::RowsAtCompileTime, Expression::ColsAtCompileTime> MatrixType;
+    typedef Matrix<Scalar, Expression::Traits::RowsAtCompileTime, Expression::Traits::ColsAtCompileTime> MatrixType;
     typedef Expression Base;
     friend class MatrixBase<Scalar, Expression>;
     

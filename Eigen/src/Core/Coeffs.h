@@ -116,8 +116,8 @@ template<typename Scalar, typename Derived>
 Scalar MatrixBase<Scalar, Derived>
   ::coeff(int index) const
 {
-  eigen_internal_assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1)
+  eigen_internal_assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1)
   {
     eigen_internal_assert(index >= 0 && index < cols());
     return coeff(0, index);
@@ -140,8 +140,8 @@ template<typename Scalar, typename Derived>
 Scalar MatrixBase<Scalar, Derived>
   ::operator[](int index) const
 {
-  assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1)
+  assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1)
   {
     assert(index >= 0 && index < cols());
     return coeff(0, index);
@@ -171,8 +171,8 @@ template<typename Scalar, typename Derived>
 Scalar& MatrixBase<Scalar, Derived>
   ::coeffRef(int index)
 {
-  eigen_internal_assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1)
+  eigen_internal_assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1)
   {
     eigen_internal_assert(index >= 0 && index < cols());
     return coeffRef(0, index);
@@ -194,8 +194,8 @@ template<typename Scalar, typename Derived>
 Scalar& MatrixBase<Scalar, Derived>
   ::operator[](int index)
 {
-  assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1)
+  assert(Traits::IsVectorAtCompileTime);
+  if(Traits::RowsAtCompileTime == 1)
   {
     assert(index >= 0 && index < cols());
     return coeffRef(0, index);

@@ -38,6 +38,10 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
       assert(rows > 0 && _RowsAtCompileTime == _ColsAtCompileTime);
     }
     
+    static const TraversalOrder Order = Indifferent;
+    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    
   private:
     static const TraversalOrder _Order = Indifferent;
     static const int _RowsAtCompileTime = MatrixType::RowsAtCompileTime,

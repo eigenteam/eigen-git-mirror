@@ -91,15 +91,16 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     Scalar* data()
     { return Storage::m_data; }
     
+    static const TraversalOrder Order = _StorageOrder;
+    static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
+
   private:
-    static const TraversalOrder _Order = _StorageOrder;
-    static const int _RowsAtCompileTime = _Rows, _ColsAtCompileTime = _Cols;
-    
+
     Ref _ref() const { return Ref(*this); }
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
       else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];
@@ -107,7 +108,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
       else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];
@@ -125,12 +126,12 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     template<typename OtherDerived> 
     Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
-      if(_RowsAtCompileTime == 1)
+      if(RowsAtCompileTime == 1)
       {
         assert(other.isVector());
         resize(1, other.size());
       }
-      else if(_ColsAtCompileTime == 1)
+      else if(ColsAtCompileTime == 1)
       {
         assert(other.isVector());
         resize(other.size(), 1);
@@ -165,7 +166,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       */
     explicit Matrix() : Storage()
     {
-      assert(_RowsAtCompileTime > 0 && _ColsAtCompileTime > 0);
+      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
     
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -177,10 +178,10 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     explicit Matrix(int dim) : Storage(dim)
     {
       assert(dim > 0);
-      assert((_RowsAtCompileTime == 1
-              && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == dim))
-          || (_ColsAtCompileTime == 1
-              && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == dim)));
+      assert((RowsAtCompileTime == 1
+              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == dim))
+          || (ColsAtCompileTime == 1
+              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
     }
     
     /** This constructor has two very different behaviors, depending on the type of *this.
@@ -195,39 +196,39 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       */
     Matrix(int x, int y) : Storage(x, y)
     {
-      if((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
-      || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1))
+      if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+      || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
       {
         (Storage::m_data)[0] = x;
         (Storage::m_data)[1] = y;
       }
       else
       {
-        assert(x > 0 && (_RowsAtCompileTime == Dynamic || _RowsAtCompileTime == x)
-            && y > 0 && (_ColsAtCompileTime == Dynamic || _ColsAtCompileTime == y));
+        assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
+            && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
       }
     }
     /** constructs an initialized 2D vector with given coefficients */
     Matrix(const float& x, const float& y)
     {
-      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
-          || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1));
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
     Matrix(const double& x, const double& y)
     {
-      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 2)
-          || (_RowsAtCompileTime == 2 && _ColsAtCompileTime == 1));
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
-      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 3)
-          || (_RowsAtCompileTime == 3 && _ColsAtCompileTime == 1));
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
+          || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
       (Storage::m_data)[2] = z;
@@ -235,8 +236,8 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     /** constructs an initialized 4D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
-      assert((_RowsAtCompileTime == 1 && _ColsAtCompileTime == 4)
-          || (_RowsAtCompileTime == 4 && _ColsAtCompileTime == 1));
+      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
+          || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
       (Storage::m_data)[0] = x;
       (Storage::m_data)[1] = y;
       (Storage::m_data)[2] = z;

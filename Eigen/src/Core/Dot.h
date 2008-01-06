@@ -72,10 +72,10 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
-  assert(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime && size() == other.size());
+  assert(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime && size() == other.size());
   Scalar res;
-  if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 16)
-    DotUnroller<SizeAtCompileTime-1, SizeAtCompileTime, Derived, OtherDerived>
+  if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 16)
+    DotUnroller<Traits::SizeAtCompileTime-1, Traits::SizeAtCompileTime, Derived, OtherDerived>
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {

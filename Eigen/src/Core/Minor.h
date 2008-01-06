@@ -56,14 +56,14 @@ template<typename MatrixType> class Minor
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
-  private:
-    static const TraversalOrder _Order = MatrixType::Order;
+    static const TraversalOrder Order = MatrixType::Order;
     static const int
-      _RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
+      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
                            MatrixType::RowsAtCompileTime - 1 : Dynamic,
-      _ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
+      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
                            MatrixType::ColsAtCompileTime - 1 : Dynamic;
 
+  private:
     const Minor& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }

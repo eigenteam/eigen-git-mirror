@@ -68,11 +68,11 @@ template<typename MatrixType> class Row
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
-  private:
-    static const TraversalOrder _Order = RowMajor;
-    static const int _RowsAtCompileTime = 1,
-                     _ColsAtCompileTime = MatrixType::ColsAtCompileTime;
+    static const TraversalOrder Order = RowMajor;
+    static const int RowsAtCompileTime = 1,
+                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
 
+  private:
     const Row& _ref() const { return *this; }
     
     int _rows() const { return 1; }

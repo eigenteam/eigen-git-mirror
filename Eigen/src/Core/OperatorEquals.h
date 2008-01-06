@@ -105,13 +105,13 @@ template<typename OtherDerived>
 Derived& MatrixBase<Scalar, Derived>
   ::operator=(const MatrixBase<Scalar, OtherDerived>& other)
 {
-  if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
+  if(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
     assert(size() == other.size());
-    if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
+    if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
       VectorOperatorEqualsUnroller
-        <Derived, OtherDerived, SizeAtCompileTime>::run
+        <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
       for(int i = 0; i < size(); i++)
@@ -121,13 +121,13 @@ Derived& MatrixBase<Scalar, Derived>
   else // copying a matrix expression into a matrix
   {
     assert(rows() == other.rows() && cols() == other.cols());
-    if(EIGEN_UNROLLED_LOOPS && SizeAtCompileTime != Dynamic && SizeAtCompileTime <= 25)
+    if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
       MatrixOperatorEqualsUnroller
-        <Derived, OtherDerived, SizeAtCompileTime, Order>::run
+        <Derived, OtherDerived, Traits::SizeAtCompileTime, Traits::Order>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
     {
-      if(Order == ColumnMajor)
+      if(Traits::Order == ColumnMajor)
         for(int j = 0; j < cols(); j++)
           for(int i = 0; i < rows(); i++)
             coeffRef(i, j) = other.coeff(i, j);

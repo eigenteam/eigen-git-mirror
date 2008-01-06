@@ -41,11 +41,11 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-  private:
-    static const TraversalOrder _Order = Lhs::Order;
-    static const int _RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     _ColsAtCompileTime = Rhs::ColsAtCompileTime;
+    static const TraversalOrder Order = Lhs::Order;
+    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
 
+  private:
     const Sum& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }

@@ -66,12 +66,12 @@ template<typename MatrixType> class DynBlock
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DynBlock)
     
-  private:
-    static const TraversalOrder _Order = MatrixType::Order;
+    static const TraversalOrder Order = MatrixType::Order;
     static const int
-      _RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
-      _ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
 
+  private:
     const DynBlock& _ref() const { return *this; }
     int _rows() const { return m_blockRows; }
     int _cols() const { return m_blockCols; }
