@@ -56,13 +56,13 @@ template<typename MatrixType> class Minor
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
     
-    static const int
-      RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
-                           MatrixType::RowsAtCompileTime - 1 : Dynamic,
-      ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
-                           MatrixType::ColsAtCompileTime - 1 : Dynamic;
-
   private:
+    static const int
+      RowsAtCompileTime = (MatrixType::Traits::RowsAtCompileTime != Dynamic) ?
+                            MatrixType::Traits::RowsAtCompileTime - 1 : Dynamic,
+      ColsAtCompileTime = (MatrixType::Traits::ColsAtCompileTime != Dynamic) ?
+                            MatrixType::Traits::ColsAtCompileTime - 1 : Dynamic;
+
     const Minor& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }

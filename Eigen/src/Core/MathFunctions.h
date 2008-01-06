@@ -144,6 +144,10 @@ inline bool isMuchSmallerThan(const std::complex<float>& a, const std::complex<f
 {
   return abs2(a) <= abs2(b) * prec * prec;
 }
+inline bool isMuchSmallerThan(const std::complex<float>& a, float b, float prec = precision<float>())
+{
+  return abs2(a) <= abs2(b) * prec * prec;
+}
 inline bool isApprox(const std::complex<float>& a, const std::complex<float>& b, float prec = precision<float>())
 {
   return isApprox(std::real(a), std::real(b), prec)
@@ -162,6 +166,10 @@ template<> inline std::complex<double> random()
   return std::complex<double>(random<double>(), random<double>());
 }
 inline bool isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b, double prec = precision<double>())
+{
+  return abs2(a) <= abs2(b) * prec * prec;
+}
+inline bool isMuchSmallerThan(const std::complex<double>& a, double b, double prec = precision<double>())
 {
   return abs2(a) <= abs2(b) * prec * prec;
 }

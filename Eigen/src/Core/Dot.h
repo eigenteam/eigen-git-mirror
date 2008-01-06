@@ -72,10 +72,15 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
-  assert(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime && size() == other.size());
+  assert(Traits::IsVectorAtCompileTime
+      && OtherDerived::Traits::IsVectorAtCompileTime
+      && size() == other.size());
   Scalar res;
-  if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 16)
-    DotUnroller<Traits::SizeAtCompileTime-1, Traits::SizeAtCompileTime, Derived, OtherDerived>
+  if(EIGEN_UNROLLED_LOOPS
+  && Traits::SizeAtCompileTime != Dynamic
+  && Traits::SizeAtCompileTime <= 16)
+    DotUnroller<Traits::SizeAtCompileTime-1, Traits::SizeAtCompileTime,
+                Derived, OtherDerived>
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
@@ -123,25 +128,42 @@ MatrixBase<Scalar, Derived>::normalized() const
   return (*this) / norm();
 }
 
+/** \returns true if *this is approximately orthogonal to \a other,
+  *          within the precision given by \a prec.
+  *
+  * Example: \include MatrixBase_isOrtho_vector.cpp
+  * Output: \verbinclude MatrixBase_isOrtho_vector.out
+  */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Scalar, Derived>::isOrtho
 (const OtherDerived& other,
- const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+ typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
 {
   return abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
 }
 
+/** \returns true if *this is approximately an unitary matrix,
+  *          within the precision given by \a prec. In the case where the \a Scalar
+  *          type is real numbers, a unitary matrix is an orthogonal matrix, whence the name.
+  *
+  * \note This can be used to check whether a family of vectors forms an orthonormal basis.
+  *       Indeed, \c m.isOrtho() returns true if and only if the columns of m form an
+  *       orthonormal basis.
+  *
+  * Example: \include MatrixBase_isOrtho_matrix.cpp
+  * Output: \verbinclude MatrixBase_isOrtho_matrix.out
+  */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isOrtho
-(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
 {
   for(int i = 0; i < cols(); i++)
   {
-    if(!isApprox(col(i).norm2(), static_cast<Scalar>(1)))
+    if(!Eigen::isApprox(col(i).norm2(), static_cast<Scalar>(1), prec))
       return false;
     for(int j = 0; j < i; j++)
-      if(!isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1)))
+      if(!Eigen::isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1), prec))
         return false;
   }
   return true;

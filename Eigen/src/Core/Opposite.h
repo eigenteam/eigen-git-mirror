@@ -36,10 +36,10 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     
     Opposite(const MatRef& matrix) : m_matrix(matrix) {}
     
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+
     const Opposite& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }

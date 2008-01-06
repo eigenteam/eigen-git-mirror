@@ -39,10 +39,9 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Random<MatrixType> >;
   
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-  
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
   
     const Random& _ref() const { return *this; }
     int _rows() const { return m_rows; }
@@ -50,7 +49,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     
     Scalar _coeff(int, int) const
     {
-      return random<Scalar>();
+      return Eigen::random<Scalar>();
     }
   
   public:

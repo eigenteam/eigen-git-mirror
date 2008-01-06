@@ -79,6 +79,8 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
 {
   public:
     friend class MatrixBase<_Scalar, Matrix>;
+    friend class Map<Matrix>;
+    
     typedef      MatrixBase<_Scalar, Matrix>            Base;
     typedef      MatrixStorage<_Scalar, _Rows, _Cols>   Storage;
     typedef      _Scalar                                Scalar;
@@ -91,16 +93,15 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     Scalar* data()
     { return Storage::m_data; }
     
-    static const MatrixStorageOrder Order = _StorageOrder;
-    static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
-
   private:
+    static const int RowsAtCompileTime = _Rows, ColsAtCompileTime = _Cols;
+    static const MatrixStorageOrder StorageOrder = _StorageOrder;
 
     Ref _ref() const { return Ref(*this); }
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(Order == ColumnMajor)
+      if(_StorageOrder == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
       else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];
@@ -108,7 +109,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(Order == ColumnMajor)
+      if(_StorageOrder == ColumnMajor)
         return (Storage::m_data)[row + col * Storage::_rows()];
       else // RowMajor
         return (Storage::m_data)[col + row * Storage::_cols()];

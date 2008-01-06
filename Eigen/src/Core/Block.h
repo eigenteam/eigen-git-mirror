@@ -66,10 +66,10 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
+  private:
     static const int RowsAtCompileTime = BlockRows,
                      ColsAtCompileTime = BlockCols;
 
-  private:
     const Block& _ref() const { return *this; }
     int _rows() const { return BlockRows; }
     int _cols() const { return BlockCols; }

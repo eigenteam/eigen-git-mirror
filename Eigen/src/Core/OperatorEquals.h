@@ -30,8 +30,8 @@
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct MatrixOperatorEqualsUnroller
 {
-  static const int col = (UnrollCount-1) / Derived1::RowsAtCompileTime;
-  static const int row = (UnrollCount-1) % Derived1::RowsAtCompileTime;
+  static const int col = (UnrollCount-1) / Derived1::Traits::RowsAtCompileTime;
+  static const int row = (UnrollCount-1) % Derived1::Traits::RowsAtCompileTime;
 
   static void run(Derived1 &dst, const Derived2 &src)
   {

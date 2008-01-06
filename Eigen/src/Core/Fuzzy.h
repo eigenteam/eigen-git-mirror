@@ -30,7 +30,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Scalar, Derived>::isApprox(
   const OtherDerived& other,
-  const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+  typename NumTraits<Scalar>::Real prec = precision<Scalar>()
 ) const
 {
   assert(rows() == other.rows() && cols() == other.cols());
@@ -51,7 +51,7 @@ bool MatrixBase<Scalar, Derived>::isApprox(
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
-  const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+  typename NumTraits<Scalar>::Real prec = precision<Scalar>()
 ) const
 {
   if(Traits::IsVectorAtCompileTime)
@@ -71,7 +71,7 @@ template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
   const MatrixBase<Scalar, OtherDerived>& other,
-  const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()
+  typename NumTraits<Scalar>::Real prec = precision<Scalar>()
 ) const
 {
   assert(rows() == other.rows() && cols() == other.cols());

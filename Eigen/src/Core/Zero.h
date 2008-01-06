@@ -39,10 +39,10 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Zero<MatrixType> >;
   
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+
     const Zero& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
@@ -125,13 +125,21 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
   return Zero<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
 
+/** \returns true if *this is approximately equal to the zero matrix,
+  *          within the precision given by \a prec.
+  *
+  * Example: \include MatrixBase_isZero.cpp
+  * Output: \verbinclude MatrixBase_isZero.out
+  *
+  * \sa class Zero, zero()
+  */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isZero
-(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
 {
-  for(int j = 0; j < col(); j++)
-    for(int i = 0; i < row(); i++)
-      if(!isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1)))
+  for(int j = 0; j < cols(); j++)
+    for(int i = 0; i < rows(); i++)
+      if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
 }

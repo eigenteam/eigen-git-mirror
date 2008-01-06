@@ -46,18 +46,18 @@ template<typename MatrixType> class Map
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Map<MatrixType> >;
 
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-    static const MatrixStorageOrder Order = MatrixType::Order;
-
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    static const MatrixStorageOrder _Order = MatrixType::StorageOrder;
+
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(Order == ColumnMajor)
+      if(_Order == ColumnMajor)
         return m_data[row + col * m_rows];
       else // RowMajor
         return m_data[col + row * m_cols];
@@ -65,7 +65,7 @@ template<typename MatrixType> class Map
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(Order == ColumnMajor)
+      if(_Order == ColumnMajor)
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
       else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];

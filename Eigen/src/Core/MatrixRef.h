@@ -38,10 +38,10 @@ template<typename MatrixType> class MatrixRef
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 

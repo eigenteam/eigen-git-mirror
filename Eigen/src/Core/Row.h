@@ -68,10 +68,10 @@ template<typename MatrixType> class Row
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
-    static const int RowsAtCompileTime = 1,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = 1,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+
     const Row& _ref() const { return *this; }
     
     int _rows() const { return 1; }

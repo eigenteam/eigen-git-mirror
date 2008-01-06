@@ -55,10 +55,10 @@ class DiagonalMatrix : NoOperatorEquals,
           && coeffs.size() > 0);
     }
     
+  private:
     static const int RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
                      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime;
-
-  private:
+    
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
@@ -79,13 +79,41 @@ class DiagonalMatrix : NoOperatorEquals,
   * Example: \include MatrixBase_asDiagonal.cpp
   * Output: \verbinclude MatrixBase_asDiagonal.out
   *
-  * \sa class DiagonalMatrix
+  * \sa class DiagonalMatrix, isDiagonal()
   **/
 template<typename Scalar, typename Derived>
 const DiagonalMatrix<Derived>
 MatrixBase<Scalar, Derived>::asDiagonal() const
 {
   return DiagonalMatrix<Derived>(ref());
+}
+
+/** \returns true if *this is approximately equal to a diagonal matrix,
+  *          within the precision given by \a prec.
+  *
+  * Example: \include MatrixBase_isDiagonal.cpp
+  * Output: \verbinclude MatrixBase_isDiagonal.out
+  *
+  * \sa asDiagonal()
+  */
+template<typename Scalar, typename Derived>
+bool MatrixBase<Scalar, Derived>::isDiagonal
+(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+{
+  if(cols() != rows()) return false;
+  RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
+  for(int j = 0; j < cols(); j++)
+  {
+    RealScalar absOnDiagonal = abs(coeff(j,j));
+    if(absOnDiagonal > maxAbsOnDiagonal) maxAbsOnDiagonal = absOnDiagonal;
+  }
+  for(int j = 0; j < cols(); j++)
+    for(int i = 0; i < j; i++)
+    {
+      if(!Eigen::isMuchSmallerThan(coeff(i, j), maxAbsOnDiagonal, prec)) return false;
+      if(!Eigen::isMuchSmallerThan(coeff(j, i), maxAbsOnDiagonal, prec)) return false;
+    }
+  return true;
 }
 
 #endif // EIGEN_DIAGONALMATRIX_H

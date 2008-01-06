@@ -34,8 +34,8 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   */
   
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+  typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, 1, MatrixType::Traits::ColsAtCompileTime> RowVectorType;
   int rows = m.rows();
   int cols = m.cols();
   
@@ -43,9 +43,9 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+             identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::identity(rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+             square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),
              v2 = VectorType::random(rows),

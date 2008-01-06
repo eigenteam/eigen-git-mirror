@@ -41,10 +41,10 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime;
+
     const Sum& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }

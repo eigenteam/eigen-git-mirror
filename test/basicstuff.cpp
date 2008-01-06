@@ -30,7 +30,7 @@ namespace Eigen {
 template<typename MatrixType> void basicStuff(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
   
   int rows = m.rows();
   int cols = m.cols();
@@ -41,9 +41,9 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+             identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::identity(rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+             square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),
              v2 = VectorType::random(rows),
@@ -75,8 +75,8 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   
   // now test copying a row-vector into a (column-)vector and conversely.
   square.col(r) = square.row(r).eval();
-  Matrix<Scalar, 1, MatrixType::RowsAtCompileTime> rv(rows);
-  Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> cv(rows);
+  Matrix<Scalar, 1, MatrixType::Traits::RowsAtCompileTime> rv(rows);
+  Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> cv(rows);
   rv = square.col(r);
   cv = square.row(r);
   VERIFY_IS_APPROX(rv, cv.transpose());

@@ -66,11 +66,11 @@ template<typename MatrixType> class DynBlock
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DynBlock)
     
-    static const int
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : Dynamic,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : Dynamic;
-
   private:
+    static const int
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime == 1 ? 1 : Dynamic,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime == 1 ? 1 : Dynamic;
+
     const DynBlock& _ref() const { return *this; }
     int _rows() const { return m_blockRows; }
     int _cols() const { return m_blockCols; }

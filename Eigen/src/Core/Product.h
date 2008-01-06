@@ -75,10 +75,9 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       assert(lhs.cols() == rhs.rows());
     }
     
-    static const int RowsAtCompileTime = Lhs::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime;
 
     const Product& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
@@ -88,8 +87,10 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     {
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS
-      && Lhs::ColsAtCompileTime != Dynamic && Lhs::ColsAtCompileTime <= 16)
-        ProductUnroller<Lhs::ColsAtCompileTime-1, Lhs::ColsAtCompileTime, LhsRef, RhsRef>
+      && Lhs::Traits::ColsAtCompileTime != Dynamic
+      && Lhs::Traits::ColsAtCompileTime <= 16)
+        ProductUnroller<Lhs::Traits::ColsAtCompileTime-1,
+                        Lhs::Traits::ColsAtCompileTime, LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {

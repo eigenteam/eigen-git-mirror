@@ -39,10 +39,9 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Ones<MatrixType> >;
   
-    static const int RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::ColsAtCompileTime;
-
   private:
+    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
   
     const Ones& _ref() const { return *this; }
     int _rows() const { return m_rows; }
@@ -78,7 +77,7 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
   * Example: \include MatrixBase_ones_int_int.cpp
   * Output: \verbinclude MatrixBase_ones_int_int.out
   *
-  * \sa ones(), ones(int)
+  * \sa ones(), ones(int), isOnes(), class Ones
   */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
@@ -100,7 +99,7 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
   * Example: \include MatrixBase_ones_int.cpp
   * Output: \verbinclude MatrixBase_ones_int.out
   *
-  * \sa ones(), ones(int,int)
+  * \sa ones(), ones(int,int), isOnes(), class Ones
   */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
@@ -118,7 +117,7 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
   * Example: \include MatrixBase_ones.cpp
   * Output: \verbinclude MatrixBase_ones.out
   *
-  * \sa ones(int), ones(int,int)
+  * \sa ones(int), ones(int,int), isOnes(), class Ones
   */
 template<typename Scalar, typename Derived>
 const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
@@ -126,13 +125,21 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
   return Ones<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
 
+/** \returns true if *this is approximately equal to the matrix where all coefficients
+  *          are equal to 1, within the precision given by \a prec.
+  *
+  * Example: \include MatrixBase_isOnes.cpp
+  * Output: \verbinclude MatrixBase_isOnes.out
+  *
+  * \sa class Ones, ones()
+  */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isOnes
-(const typename NumTraits<Scalar>::Real& prec = precision<Scalar>()) const
+(typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
 {
-  for(int j = 0; j < col(); j++)
-    for(int i = 0; i < row(); i++)
-      if(!isApprox(coeff(i, j), static_cast<Scalar>(1)))
+  for(int j = 0; j < cols(); j++)
+    for(int i = 0; i < rows(); i++)
+      if(!Eigen::isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
 }
