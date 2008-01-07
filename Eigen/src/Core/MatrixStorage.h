@@ -80,7 +80,7 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
     { return ColsAtCompileTime; }
     
   public:
-    MatrixStorage(int dim) : m_rows(dim)
+    MatrixStorage(int dim = 1) : m_rows(dim)
     {
       m_data = new Scalar[m_rows * ColsAtCompileTime];
     }
@@ -92,9 +92,6 @@ class MatrixStorage<Scalar, Dynamic, ColsAtCompileTime>
     
     ~MatrixStorage()
     { delete[] m_data; }
-    
-  private:
-    MatrixStorage();
 };
 
 template<typename Scalar, int RowsAtCompileTime>
@@ -123,7 +120,7 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
     { return m_cols; }
     
   public:
-    MatrixStorage(int dim) : m_cols(dim)
+    MatrixStorage(int dim = 1) : m_cols(dim)
     {
       m_data = new Scalar[m_cols * RowsAtCompileTime];
     }
@@ -135,9 +132,6 @@ class MatrixStorage<Scalar, RowsAtCompileTime, Dynamic>
     
     ~MatrixStorage()
     { delete[] m_data; }
-    
-  private:
-    MatrixStorage();
 };
 
 template<typename Scalar>
@@ -167,17 +161,13 @@ class MatrixStorage<Scalar, Dynamic, Dynamic>
     
   public:
     
-    MatrixStorage(int rows, int cols) : m_rows(rows), m_cols(cols)
+    MatrixStorage(int rows = 1, int cols = 1) : m_rows(rows), m_cols(cols)
     {
       m_data = new Scalar[m_rows * m_cols];
     }
     
     ~MatrixStorage()
     { delete[] m_data; }
-    
-  private:
-    MatrixStorage();
-    MatrixStorage(int dim);
 };
 
 #endif // EIGEN_MATRIXSTORAGE_H

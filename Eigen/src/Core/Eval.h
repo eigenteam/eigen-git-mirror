@@ -56,6 +56,7 @@ template<typename Expression> class Eval : NoOperatorEquals,
     typedef Expression Base;
     friend class MatrixBase<Scalar, Expression>;
     
+    Eval() : MatrixType() {}
     Eval(const Expression& expression) : MatrixType(expression) {}
 };
 

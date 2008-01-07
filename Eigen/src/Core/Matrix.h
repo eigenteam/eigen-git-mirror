@@ -42,9 +42,9 @@
   * All matrix and vector types are just typedefs to specializations of this class template.
   *
   * These typedefs are as follows:
-  * \li \c %Matrix##Size##Type for square matrices
-  * \li \c Vector##Size##Type for vectors (matrices with one column)
-  * \li \c RowVector##Size##Type for row-vectors (matrices with one row)
+  * \li \c %Matrix\#\#Size\#\#Type for square matrices
+  * \li \c Vector\#\#Size\#\#Type for vectors (matrices with one column)
+  * \li \c RowVector\#\#Size\#\#Type for row-vectors (matrices with one row)
   *
   * where \c Size can be
   * \li \c 2 for fixed size 2
@@ -57,7 +57,7 @@
   * \li \c f for type \c float
   * \li \c d for type \c double
   * \li \c cf for type \c std::complex<float>
-  * \li \c cd for type \c std::complex<float>
+  * \li \c cd for type \c std::complex<double>
   *
   * Examples:
   * \li \c Matrix2d is a typedef for \c Matrix<double,2,2>
@@ -163,14 +163,13 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     static Map<Matrix> map(Scalar* array, int size);
     static Map<Matrix> map(Scalar* array);
     
-    /** Default constructor, does nothing. Only for fixed-size matrices.
-      * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
-      * an assertion) because it would leave the matrix without an allocated data buffer.
+    /** Default constructor.
+      *
+      * For fixed-size matrices, does nothing.
+      *
+      * For dynamic-size matrices, dynamic dimensions are set to 1.
       */
-    explicit Matrix() : Storage()
-    {
-      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
-    }
+    explicit Matrix() : Storage() {}
     
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
