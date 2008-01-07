@@ -2,7 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software

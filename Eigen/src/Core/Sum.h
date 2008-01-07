@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -26,6 +26,19 @@
 #ifndef EIGEN_SUM_H
 #define EIGEN_SUM_H
 
+/** \class Sum
+  *
+  * \brief Expression of the sum of two matrices or vectors
+  *
+  * \param Lhs the type of the left-hand side
+  * \param Rhs the type of the right-hand side
+  *
+  * This class represents an expression of the sum of two matrices or vectors.
+  * It is the return type of the operator+ between matrices or vectors, and most
+  * of the time this is the only way it is used.
+  *
+  * \sa class Difference
+  */
 template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     public MatrixBase<typename Lhs::Scalar, Sum<Lhs, Rhs> >
 {
@@ -59,7 +72,12 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     const RhsRef m_rhs;
 };
 
-/** \relates MatrixBase */
+/** \relates MatrixBase
+  *
+  * \returns an expression of the sum of \a mat1 and \a mat2
+  *
+  * \sa class Sum, MatrixBase::operator+=()
+  */
 template<typename Scalar, typename Derived1, typename Derived2>
 const Sum<Derived1, Derived2>
 operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
@@ -67,6 +85,10 @@ operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Der
   return Sum<Derived1, Derived2>(mat1.ref(), mat2.ref());
 }
 
+/** replaces \c *this by \c *this + \a other.
+  *
+  * \returns a reference to \c *this
+  */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &

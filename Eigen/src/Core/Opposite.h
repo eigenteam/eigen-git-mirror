@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -26,6 +26,18 @@
 #ifndef EIGEN_OPPOSITE_H
 #define EIGEN_OPPOSITE_H
 
+/** \class Opposite
+  *
+  * \brief Expression of the opposite of a matrix or vector
+  *
+  * \param MatrixType the type of which we are taking the opposite
+  *
+  * This class represents an expression of the opposite of a matrix or vector.
+  * It is the return type of the unary operator- for matrices or vectors, and most
+  * of the time this is the only way it is used.
+  *
+  * \sa class Difference
+  */
 template<typename MatrixType> class Opposite : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Opposite<MatrixType> >
 {
@@ -53,6 +65,8 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     MatRef m_matrix;
 };
 
+/** \returns an expression of the opposite of \c *this
+  */
 template<typename Scalar, typename Derived>
 const Opposite<Derived>
 MatrixBase<Scalar, Derived>::operator-() const

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -26,6 +26,17 @@
 #ifndef EIGEN_SCALARMULTIPLE_H
 #define EIGEN_SCALARMULTIPLE_H
 
+/** \class ScalarMultiple
+  *
+  * \brief Expression of the product of a matrix or vector by a scalar
+  *
+  * \param FactorTye the type of scalar by which to multiply
+  * \param MatrixType the type of the matrix or vector to multiply
+  *
+  * This class represents an expression of the product of a matrix or vector by a scalar.
+  * It is the return type of the operator* between a matrix or vector and a scalar, and most
+  * of the time this is the only way it is used.
+  */
 template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<FactorType, MatrixType> >
 {
@@ -56,7 +67,7 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
 };
 
 #define EIGEN_MAKE_SCALAR_OPS(FactorType)                              \
-/** \relates MatrixBase */                                             \
+/** \relates MatrixBase \sa class ScalarMultiple */                    \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<FactorType, Derived>                              \
 operator*(const MatrixBase<Scalar, Derived>& matrix,                   \
@@ -65,7 +76,7 @@ operator*(const MatrixBase<Scalar, Derived>& matrix,                   \
   return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
 }                                                                      \
                                                                        \
-/** \relates MatrixBase */                                             \
+/** \relates MatrixBase \sa class ScalarMultiple */                    \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<FactorType, Derived>                              \
 operator*(FactorType scalar,                                           \
@@ -74,7 +85,7 @@ operator*(FactorType scalar,                                           \
   return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
 }                                                                      \
                                                                        \
-/** \relates MatrixBase */                                             \
+/** \relates MatrixBase \sa class ScalarMultiple */                    \
 template<typename Scalar, typename Derived>                            \
 const ScalarMultiple<typename NumTraits<FactorType>::FloatingPoint, Derived> \
 operator/(const MatrixBase<Scalar, Derived>& matrix,                   \
@@ -86,6 +97,7 @@ operator/(const MatrixBase<Scalar, Derived>& matrix,                   \
                    >(1) / scalar);                                     \
 }                                                                      \
                                                                        \
+/** \sa class ScalarMultiple */                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
 MatrixBase<Scalar, Derived>::operator*=(const FactorType &other)       \
@@ -93,6 +105,7 @@ MatrixBase<Scalar, Derived>::operator*=(const FactorType &other)       \
   return *this = *this * other;                                        \
 }                                                                      \
                                                                        \
+/** \sa class ScalarMultiple */                                        \
 template<typename Scalar, typename Derived>                            \
 Derived &                                                              \
 MatrixBase<Scalar, Derived>::operator/=(const FactorType &other)       \

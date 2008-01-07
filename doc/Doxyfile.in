@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = Eigen
-PROJECT_NUMBER         = 2.0-alpha1
+PROJECT_NUMBER         = 2.0-alpha2
 OUTPUT_DIRECTORY       = ${CMAKE_BINARY_DIR}/doc
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -152,7 +152,7 @@ LATEX_CMD_NAME         = latex
 MAKEINDEX_CMD_NAME     = makeindex
 COMPACT_LATEX          = NO
 PAPER_TYPE             = a4wide
-EXTRA_PACKAGES         = 
+EXTRA_PACKAGES         = amssymb
 LATEX_HEADER           = 
 PDF_HYPERLINKS         = NO
 USE_PDFLATEX           = NO

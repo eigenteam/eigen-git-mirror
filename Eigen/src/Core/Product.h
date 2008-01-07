@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -60,6 +60,19 @@ struct ProductUnroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
+/** \class Product
+  *
+  * \brief Expression of the product of two matrices
+  *
+  * \param Lhs the type of the left-hand side
+  * \param Rhs the type of the right-hand side
+  *
+  * This class represents an expression of the product of two matrices.
+  * It is the return type of MatrixBase::lazyProduct(), which is used internally by
+  * the operator* between matrices, and most of the time this is the only way it is used.
+  *
+  * \sa class Sum, class Difference
+  */
 template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
   public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
 {
@@ -106,6 +119,15 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     const RhsRef m_rhs;
 };
 
+/** \returns an expression of the matrix product of \c this and \a other, in this order.
+  *
+  * This function is used internally by the operator* between matrices. The difference between
+  * lazyProduct() and that operator* is that lazyProduct() only constructs and returns an
+  * expression without actually computing the matrix product, while the operator* between
+  * matrices immediately evaluates the product and returns the resulting matrix.
+  *
+  * \sa class Product
+  */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 const Product<Derived, OtherDerived>
@@ -116,7 +138,8 @@ MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> 
 
 /** \relates MatrixBase
   *
-  * \returns the matrix product of \a mat1 and \a mat2.
+  * \returns the matrix product of \a mat1 and \a mat2. More precisely, the return statement is:
+  *          \code return mat1.lazyProduct(mat2).eval(); \endcode
   *
   * \note This function causes an immediate evaluation. If you want to perform a matrix product
   * without immediate evaluation, use MatrixBase::lazyProduct() instead.
@@ -124,12 +147,16 @@ MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> 
   * \sa MatrixBase::lazyProduct(), MatrixBase::operator*=(const MatrixBase&)
   */
 template<typename Scalar, typename Derived1, typename Derived2>
-Eval<Product<Derived1, Derived2> >
+const Eval<Product<Derived1, Derived2> >
 operator*(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
   return mat1.lazyProduct(mat2).eval();
 }
 
+/** replaces \c *this by \c *this * \a other.
+  *
+  * \returns a reference to \c *this
+  */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 Derived &

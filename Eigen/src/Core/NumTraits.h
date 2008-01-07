@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -26,6 +26,26 @@
 #ifndef EIGEN_NUMTRAITS_H
 #define EIGEN_NUMTRAITS_H
 
+/** \class NumTraits
+  *
+  * \brief Holds some data about the various numeric (i.e. scalar) types allowed by Eigen.
+  *
+  * \param T the numeric type about which this class provides data. Recall that Eigen allows
+  *          only the following types for \a T: \c int, \c float, \c double,
+  *          \c std::complex<float>, \c std::complex<double>.
+  *
+  * The provided data consists of:
+  * \li A typedef \a Real, giving the "real part" type of \a T. If \a T is already real,
+  *     then \a Real is just a typedef to \a T. If \a T is \c std::complex<U> then \a Real
+  *     is a typedef to \a U.
+  * \li A typedef \a FloatingPoint, giving the "floating-point type" of \a T. If \a T is
+  *     \c int, then \a FloatingPoint is a typedef to \c double. Otherwise, \a FloatingPoint
+  *     is a typedef to \a T.
+  * \li A static const bool \a IsComplex. It is equal to \c true if \a T is a \c std::complex
+  *     type, and to false otherwise.
+  * \li A static const bool \a HasFloatingPoint. It is equal to \c false if \a T is \c int,
+  *     and to \c true otherwise.
+  */
 template<typename T> struct NumTraits;
 
 template<> struct NumTraits<int>

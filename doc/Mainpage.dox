@@ -4,6 +4,7 @@ o /** @mainpage Eigen
 <a href="#overview">Overview</a><br/>
 <a href="#license">License</a><br/>
 <a href="#features">Features</a><br/>
+<a href="#compiler_support">Compiler Support</a><br/>
 <a href="#news">News</a><br/>
 <a href="#download">Download</a><br/>
 <a href="#kde">Relation to KDE</a><br/>
@@ -33,10 +34,24 @@ This is similar to the LGPL in spirit. The reason why we don't use the LGPL is t
 
 WARNING: this alpha release is NOT feature complete -- far from it! It contains only the Core module, while several other modules are planned.
 
+Here are general features of Eigen and more specific features of the Core module:
+
 <ul>
-  <li>Add items</li>
-  <li>Add more items</li>
+  <li><a href="http://ubiety.uwaterloo.ca/~tveldhui/papers/Expression-Templates/exprtmpl.html">Expression templates</a> everywhere. This is an optimization (elimination of temporaries, lazy evaluation), but more importantly this allows for a much nicer API, especially as Eigen supports lvalue expressions. For example, the following is valid with Eigen and compiles to optimized code:
+  \code matrix.row(i) += factor * matrix.row(j); \endcode</li>
+  <li>Both fixed-size and dynamic-size objects are supported, in a way that allows Eigen to make
+      all usual optimizations in the case of fixed size, such as loop unrolling.</li>
+  <li>Both column-vectors and row-vectors are supported, as special cases of matrices.</li>
+  <li>The following scalar types are supported and well tested: \c int, \c float, \c double,
+      \c std::complex<float>, \c std::complex<double>. </li>
 </ul>
+
+<a name="compiler_support"></a>
+<h2>Compiler Support</h2>
+
+Eigen is well tested with recent versions of GCC and gives very good performance with GCC 4.2. For some reason the performance is not so great with GCC 4.1.
+
+Eigen is also well tested on ICC, and gives even better performance with it than with GCC 4.2.
 
 <a name="news"></a>
 <h2>News</h2>
@@ -45,7 +60,7 @@ If you want to stay informed of Eigen news and releases, please subscribe to our
 
 <a name="download"></a>
 <h2>Download</h2>
-The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha1.tar.gz">eigen-2.0-alpha1.tar.gz</a><br/>
+The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha2.tar.gz">eigen-2.0-alpha2.tar.gz</a><br/>
 
 Alternatively, you can checkout the development tree by anonymous svn, by doing:
 <pre>svn co svn://anonsvn.kde.org/home/kde/branches/work/eigen2</pre>
@@ -70,24 +85,29 @@ Although Eigen itself doesn't have any dependency, the unit-tests require Qt.
 <a name="examples"></a>
 <h2>Examples</h2>
 
-TODO: write more examples, update this section.
+There are a lot of small examples throughout the documentation. TODO: write more interesting,
+standalone "demos".
 
 <a name="applications"></a>
 <h2>Applications using Eigen</h2>
 
-TODO: update this section
+TODO: update this section; make web links
+
+Currently: Kalzium, Avogadro, KSpread(a bit), Krita(a bit)
+Planned: much more use in KOffice 2.1, Step (if we make Eigen good enough!)
 
 Please tell us if you know of other interesting projects using Eigen!
 
 <a name="authors"></a>
 <h2>Authors</h2>
 
-<b>Lead Developer:</b> Benoit Jacob (jacob at math jussieu fr)
+<b>Main Developer:</b> Benoit Jacob (jacob at math jussieu fr)
 
 <b>Contributors during the Eigen 2 development process:</b>
 <ul>
-  <li>Michael Olbrich (michael olbrich at gmx net) : initial loop-unrolling metaprogram</li>
+  <li>Gael Guennebaud (gael guennebaud at gmail com) : Intel compiler (ICC) support
   <li>Christian Mayer (mail at christianmayer de) : reviewed the source code, made many useful suggestions</li>
+  <li>Michael Olbrich (michael olbrich at gmx net) : initial loop-unrolling metaprogram</li>
   <li>and thanks to everyone on the <a href="#mailinglist">mailing list</a> for your input!
 </ul>
 

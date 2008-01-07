@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -87,9 +87,11 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
     
+    /** \returns a const pointer to the data array of this matrix */
     const Scalar* data() const
     { return Storage::m_data; }
     
+    /** \returns a pointer to the data array of this matrix */
     Scalar* data()
     { return Storage::m_data; }
     

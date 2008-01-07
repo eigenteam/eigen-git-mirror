@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2007 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or modify it under the
 // terms of the GNU General Public License as published by the Free Software
@@ -33,13 +33,10 @@
   * This class is the base that is inherited by all matrix, vector, and expression
   * types. Most of the Eigen API is contained in this class.
   *
-  * This class takes two template parameters:
-  *
-  * \a Scalar is the type of the coefficients, e.g. float, double, etc.
-  *
-  * \a Derived is the derived type, e.g. a matrix type, or an expression, etc.
-  * Indeed, a separate MatrixBase type is generated for each derived type
-  * so one knows from inside MatrixBase, at compile-time, what the derived type is.
+  * \param Scalar is the type of the coefficients.  Recall that Eigen allows
+  *        only the following types for \a Scalar: \c int, \c float, \c double,
+  *        \c std::complex<float>, \c std::complex<double>.
+  * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *
   * When writing a function taking Eigen objects as argument, if you want your function
   * to take as argument any matrix, vector, or expression, just let it take a
@@ -100,8 +97,14 @@ template<typename Scalar, typename Derived> class MatrixBase
     typedef typename ForwardDecl<Derived>::Ref Ref;
     
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
-      * (e.g. int, float or double) then RealScalar is just the same as \a Scalar. If
-      * \a Scalar is \a std::complex<T> then RealScalar is \a T. */
+      * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
+      * \a Scalar is \a std::complex<T> then RealScalar is \a T.
+      *
+      * In fact, \a RealScalar is defined as follows:
+      * \code typedef typename NumTraits<Scalar>::Real RealScalar; \endcode
+      *
+      * \sa class NumTraits
+      */
     typedef typename NumTraits<Scalar>::Real RealScalar;
     
     /** \returns the number of rows. \sa cols(), Traits::RowsAtCompileTime */
@@ -124,8 +127,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
     
-    // Special case of the above template operator=, in order to prevent the compiler
-    //from generating a default operator= (issue hit with g++ 4.1)
+    /** Special case of the template operator=, in order to prevent the compiler
+      * from generating a default operator= (issue hit with g++ 4.1)
+      */
     Derived& operator=(const MatrixBase& other)
     {
       return this->operator=<Derived>(other);
@@ -191,7 +195,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     bool isApprox(const OtherDerived& other,
                   RealScalar prec = precision<Scalar>()) const;
-    bool isMuchSmallerThan(const typename NumTraits<Scalar>::Real& other,
+    bool isMuchSmallerThan(const RealScalar& other,
                            RealScalar prec = precision<Scalar>()) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>& other,
