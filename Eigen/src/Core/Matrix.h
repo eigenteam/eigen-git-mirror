@@ -163,13 +163,14 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
     static Map<Matrix> map(Scalar* array, int size);
     static Map<Matrix> map(Scalar* array);
     
-    /** Default constructor.
-      *
-      * For fixed-size matrices, does nothing.
-      *
-      * For dynamic-size matrices, dynamic dimensions are set to 1.
+    /** Default constructor, does nothing. Only for fixed-size matrices.
+      * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
+      * an assertion) because it would leave the matrix without an allocated data buffer.
       */
-    explicit Matrix() : Storage() {}
+    explicit Matrix() : Storage()
+    {
+      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+    }
     
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
