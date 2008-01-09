@@ -4,6 +4,7 @@ o /** @mainpage Eigen
 <a href="#overview">Overview</a><br/>
 <a href="#license">License</a><br/>
 <a href="#features">Features</a><br/>
+<a href="#todo">To-do wiki</a><br/>
 <a href="#compiler_support">Compiler Support</a><br/>
 <a href="#news">News</a><br/>
 <a href="#download">Download</a><br/>
@@ -39,15 +40,23 @@ Here are general features of Eigen and more specific features of the Core module
 <ul>
   <li><a href="http://ubiety.uwaterloo.ca/~tveldhui/papers/Expression-Templates/exprtmpl.html">Expression templates</a> everywhere. This is an optimization (elimination of temporaries, lazy evaluation), but more importantly this allows for a much nicer API, especially as Eigen supports lvalue expressions. For example, the following is valid with Eigen and compiles to optimized code:
   \code matrix.row(i) += factor * matrix.row(j); \endcode</li>
-  <li>Both fixed-size and dynamic-size objects are supported, in a way that allows Eigen to make
+  <li>Both fixed-size and dynamic-size objects are supported, with uniform API,
+      in a way that allows Eigen to make
       all usual optimizations in the case of fixed size, such as loop unrolling.</li>
   <li>Both column-vectors and row-vectors are supported, as special cases of matrices.</li>
   <li>The following scalar types are supported and well tested: \c int, \c float, \c double,
       \c std::complex<float>, \c std::complex<double>. </li>
 </ul>
 
+<a name="todo"></a>
+<h2>To-do wiki</h2>
+
+The To-do wiki for Eigen is here: <a href="http://techbase.kde.org/index.php?title=Projects/Eigen/TODO">http://techbase.kde.org/index.php?title=Projects/Eigen/TODO</a>.
+
 <a name="compiler_support"></a>
 <h2>Compiler Support</h2>
+
+Eigen is standard C++98 and so should theoretically be compatible with any compliant compiler. Of course, in practice, things are slightly different.
 
 Eigen is well tested with recent versions of GCC and gives very good performance with GCC 4.2. For some reason the performance is not so great with GCC 4.1.
 
