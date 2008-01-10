@@ -30,8 +30,10 @@
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct MatrixOperatorEqualsUnroller
 {
-  static const int col = (UnrollCount-1) / Derived1::Traits::RowsAtCompileTime;
-  static const int row = (UnrollCount-1) % Derived1::Traits::RowsAtCompileTime;
+  enum {
+    col = (UnrollCount-1) / Derived1::Traits::RowsAtCompileTime,
+    row = (UnrollCount-1) % Derived1::Traits::RowsAtCompileTime
+  };
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -65,7 +67,7 @@ struct MatrixOperatorEqualsUnroller<Derived1, Derived2, Dynamic>
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct VectorOperatorEqualsUnroller
 {
-  static const int index = UnrollCount - 1;
+  enum { index = UnrollCount - 1 };
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -104,13 +106,13 @@ Derived& MatrixBase<Scalar, Derived>
   if(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
-    assert(size() == other.size());
+    assert(coeffs() == other.coeffs());
     if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
       VectorOperatorEqualsUnroller
         <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
-      for(int i = 0; i < size(); i++)
+      for(int i = 0; i < coeffs(); i++)
         coeffRef(i) = other.coeff(i);
     return *static_cast<Derived*>(this);
   }

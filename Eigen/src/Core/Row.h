@@ -69,8 +69,10 @@ template<typename MatrixType> class Row
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
     
   private:
-    static const int RowsAtCompileTime = 1,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = 1,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+    };
 
     const Row& _ref() const { return *this; }
     

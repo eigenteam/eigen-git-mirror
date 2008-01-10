@@ -47,9 +47,11 @@ template<typename MatrixType> class Map
     friend class MatrixBase<Scalar, Map<MatrixType> >;
 
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
-    static const MatrixStorageOrder _Order = MatrixType::StorageOrder;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      Order = MatrixType::StorageOrder
+    };
 
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
@@ -57,7 +59,7 @@ template<typename MatrixType> class Map
     
     const Scalar& _coeff(int row, int col) const
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return m_data[row + col * m_rows];
       else // RowMajor
         return m_data[col + row * m_cols];
@@ -65,7 +67,7 @@ template<typename MatrixType> class Map
     
     Scalar& _coeffRef(int row, int col)
     {
-      if(_Order == ColumnMajor)
+      if(Order == ColumnMajor)
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
       else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
@@ -88,7 +90,7 @@ template<typename MatrixType> class Map
 };
 
 /** This is the const version of map(Scalar*,int,int). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, int cols)
 {
@@ -96,7 +98,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, 
 }
 
 /** This is the const version of map(Scalar*,int). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 {
@@ -108,7 +110,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 }
 
 /** This is the const version of map(Scalar*). */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
 {
@@ -126,7 +128,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
   *
   * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int cols)
 {
@@ -145,7 +147,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int co
   *
   * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
 {
@@ -165,7 +167,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
   *
   * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
 {
@@ -180,7 +182,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int rows, int cols)
   : Storage(rows, cols)
@@ -198,7 +200,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data, int size)
   : Storage(size)
@@ -216,7 +218,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
   * Matrix::map(const Scalar *)
   */
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   ::Matrix(const Scalar *data)
   : Storage()

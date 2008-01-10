@@ -52,16 +52,18 @@ class DiagonalMatrix : NoOperatorEquals,
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::Traits::IsVectorAtCompileTime
-          && coeffs.size() > 0);
+          && coeffs.coeffs() > 0);
     }
     
   private:
-    static const int RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
-                     ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime;
+    enum {
+      RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
+      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime
+    };
     
     const DiagonalMatrix& _ref() const { return *this; }
-    int _rows() const { return m_coeffs.size(); }
-    int _cols() const { return m_coeffs.size(); }
+    int _rows() const { return m_coeffs.coeffs(); }
+    int _cols() const { return m_coeffs.coeffs(); }
     
     Scalar _coeff(int row, int col) const
     {

@@ -64,27 +64,29 @@ template<typename Scalar, typename Derived> class MatrixBase
         * by the \a Derived type. If a value is not known at compile-time,
         * it is set to the \a Dynamic constant.
         * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
-      static const int RowsAtCompileTime = Derived::RowsAtCompileTime;
+      enum { RowsAtCompileTime = Derived::RowsAtCompileTime };
       
       /** The number of columns at compile-time. This is just a copy of the value provided
         * by the \a Derived type. If a value is not known at compile-time,
         * it is set to the \a Dynamic constant.
         * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
-      static const int ColsAtCompileTime = Derived::ColsAtCompileTime;
+      enum { ColsAtCompileTime = Derived::ColsAtCompileTime };
       
       /** This is equal to the number of coefficients, i.e. the number of
         * rows times the number of columns, or to \a Dynamic if this is not
         * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-      static const int SizeAtCompileTime
+      enum { SizeAtCompileTime
         = Derived::RowsAtCompileTime == Dynamic || Derived::ColsAtCompileTime == Dynamic
-        ? Dynamic : Derived::RowsAtCompileTime * Derived::ColsAtCompileTime;
+        ? Dynamic : Derived::RowsAtCompileTime * Derived::ColsAtCompileTime
+      };
       
       /** This is set to true if either the number of rows or the number of
         * columns is known at compile-time to be equal to 1. Indeed, in that case,
         * we are dealing with a column-vector (if there is only one column) or with
         * a row-vector (if there is only one row). */
-      static const bool IsVectorAtCompileTime
-        = Derived::RowsAtCompileTime == 1 || Derived::ColsAtCompileTime == 1;
+      enum { IsVectorAtCompileTime
+        = Derived::RowsAtCompileTime == 1 || Derived::ColsAtCompileTime == 1
+      };
     };
     
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
@@ -113,7 +115,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), Traits::SizeAtCompileTime. */
-    int size() const { return rows() * cols(); }
+    int coeffs() const { return rows() * cols(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode

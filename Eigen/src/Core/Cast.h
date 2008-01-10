@@ -57,8 +57,10 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     Cast(const MatRef& matrix) : m_matrix(matrix) {}
     
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+    };
     const Cast& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }

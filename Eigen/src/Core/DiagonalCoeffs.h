@@ -51,8 +51,10 @@ template<typename MatrixType> class DiagonalCoeffs
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
     
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = 1;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = 1
+    };
 
     const DiagonalCoeffs& _ref() const { return *this; }
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }

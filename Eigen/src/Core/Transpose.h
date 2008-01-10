@@ -51,8 +51,10 @@ template<typename MatrixType> class Transpose
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
     
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime
+    };
 
     const Transpose& _ref() const { return *this; }
     int _rows() const { return m_matrix.cols(); }

@@ -55,8 +55,10 @@ template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
     }
 
   private:
-    static const int RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime
+    };
 
     const Difference& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }

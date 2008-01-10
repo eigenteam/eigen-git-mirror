@@ -74,7 +74,7 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 {
   assert(Traits::IsVectorAtCompileTime
       && OtherDerived::Traits::IsVectorAtCompileTime
-      && size() == other.size());
+      && coeffs() == other.coeffs());
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
   && Traits::SizeAtCompileTime != Dynamic
@@ -85,7 +85,7 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
   else
   {
     res = (*this).coeff(0) * conj(other.coeff(0));
-    for(int i = 1; i < size(); i++)
+    for(int i = 1; i < coeffs(); i++)
       res += (*this).coeff(i)* conj(other.coeff(i));
   }
   return res;

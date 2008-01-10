@@ -55,8 +55,10 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     }
 
   private:
-    static const int RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime
+    };
 
     const Sum& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }

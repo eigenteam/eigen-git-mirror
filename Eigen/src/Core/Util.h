@@ -32,7 +32,9 @@
 #define EIGEN_UNROLLED_LOOPS (true)
 #endif
 
-#ifndef EIGEN_DEFAULT_MATRIX_STORAGE_ORDER
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajor
+#else
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER ColumnMajor
 #endif
 
@@ -87,15 +89,12 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 const int Dynamic = -1;
-
-enum MatrixStorageOrder
-{
-  ColumnMajor,
-  RowMajor
-};
+const int Generic = -2;
+const int ColumnMajor = 0;
+const int RowMajor = 1;
 
 //forward declarations
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
   class Matrix;
 template<typename MatrixType> class MatrixRef;
 template<typename NewScalar, typename MatrixType> class Cast;
@@ -125,7 +124,7 @@ template<typename T> struct ForwardDecl
   typedef T Ref;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, MatrixStorageOrder _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
 struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
 {
   typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> > Ref;

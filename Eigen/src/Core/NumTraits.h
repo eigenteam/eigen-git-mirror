@@ -41,10 +41,10 @@
   * \li A typedef \a FloatingPoint, giving the "floating-point type" of \a T. If \a T is
   *     \c int, then \a FloatingPoint is a typedef to \c double. Otherwise, \a FloatingPoint
   *     is a typedef to \a T.
-  * \li A static const bool \a IsComplex. It is equal to \c true if \a T is a \c std::complex
-  *     type, and to false otherwise.
-  * \li A static const bool \a HasFloatingPoint. It is equal to \c false if \a T is \c int,
-  *     and to \c true otherwise.
+  * \li An enum value \a IsComplex. It is equal to 1 if \a T is a \c std::complex
+  *     type, and to 0 otherwise.
+  * \li An enum \a HasFloatingPoint. It is equal to \c 0 if \a T is \c int,
+  *     and to \c 1 otherwise.
   */
 template<typename T> struct NumTraits;
 
@@ -52,32 +52,40 @@ template<> struct NumTraits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
-  static const bool IsComplex = false;
-  static const bool HasFloatingPoint = false;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 0
+  };
 };
 
 template<> struct NumTraits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
-  static const bool IsComplex = false;
-  static const bool HasFloatingPoint = true;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1
+  };
 };
 
 template<> struct NumTraits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
-  static const bool IsComplex = false;
-  static const bool HasFloatingPoint = true;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1
+  };
 };
 
 template<typename _Real> struct NumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<_Real> FloatingPoint;
-  static const bool IsComplex = true;
-  static const bool HasFloatingPoint = NumTraits<Real>::HasFloatingPoint;
+  enum {
+    IsComplex = 1,
+    HasFloatingPoint = 1 // anyway we don't allow std::complex<int>
+  };
 };
 
 #endif // EIGEN_NUMTRAITS_H

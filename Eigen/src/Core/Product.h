@@ -89,8 +89,10 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     }
     
   private:
-    static const int RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime
+    };
 
     const Product& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }

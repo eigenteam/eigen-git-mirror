@@ -49,8 +49,10 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+    };
 
     const Conjugate& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }

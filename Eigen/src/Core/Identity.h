@@ -45,8 +45,10 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
     
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+    };
     
     const Identity& _ref() const { return *this; }
     int _rows() const { return m_rows; }

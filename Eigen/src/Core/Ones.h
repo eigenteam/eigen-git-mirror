@@ -40,8 +40,10 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     friend class MatrixBase<Scalar, Ones<MatrixType> >;
   
   private:
-    static const int RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-                     ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime;
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+    };
   
     const Ones& _ref() const { return *this; }
     int _rows() const { return m_rows; }
