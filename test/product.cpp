@@ -46,7 +46,7 @@ template<typename MatrixType> void product(const MatrixType& m)
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
              identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
-                              ::identity(rows),
+                              ::identity(rows, rows),
              square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),
@@ -83,7 +83,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(m1,                      identity*m1);
   VERIFY_IS_APPROX(v1,                      identity*v1);
   // again, test operator() to check const-qualification
-  VERIFY_IS_APPROX(MatrixType::identity(std::max(rows,cols))(r,c), static_cast<Scalar>(r==c));
+  VERIFY_IS_APPROX(MatrixType::identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
 }
 
 void EigenTest::testProduct()

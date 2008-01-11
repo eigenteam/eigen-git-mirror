@@ -44,7 +44,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
              identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
-                              ::identity(rows),
+                              ::identity(rows, rows),
              square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),

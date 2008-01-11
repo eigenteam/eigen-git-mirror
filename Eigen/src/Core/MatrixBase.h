@@ -182,7 +182,8 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Ones<Derived> ones(int rows, int cols);
     static const Ones<Derived> ones(int size);
     static const Ones<Derived> ones();
-    static const Identity<Derived> identity(int rows = Derived::RowsAtCompileTime);
+    static const Identity<Derived> identity();
+    static const Identity<Derived> identity(int rows, int cols);
     
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;

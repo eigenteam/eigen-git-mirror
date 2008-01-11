@@ -30,7 +30,7 @@
   *
   * \brief Expression of the identity matrix of some size.
   *
-  * \sa MatrixBase::identity(int)
+  * \sa MatrixBase::identity(), MatrixBase::identity(int,int), MatrixBase::setIdentity()
   */
 template<typename MatrixType> class Identity : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
@@ -39,9 +39,12 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Identity<MatrixType> >;
     
-    Identity(int rows) : m_rows(rows)
+    Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0 && RowsAtCompileTime == ColsAtCompileTime);
+      assert(rows > 0
+          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+          && cols > 0
+          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
     
   private:
@@ -52,7 +55,7 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     
     const Identity& _ref() const { return *this; }
     int _rows() const { return m_rows; }
-    int _cols() const { return m_rows; }
+    int _cols() const { return m_cols; }
     
     Scalar _coeff(int row, int col) const
     {
@@ -60,65 +63,84 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
     
   protected:
-    const int m_rows;
+    const int m_rows, m_cols;
 };
 
-/** \returns an expression of the identity matrix of given type and size.
+/** \returns an expression of the identity matrix (not necessarily square).
   *
-  * \param rows The number of rows of the identity matrix to return. If *this has
-  *             fixed size, that size is used as the default argument for \a rows
-  *             and is then the only allowed value. If *this has dynamic size,
-  *             you can use any positive value for \a rows.
+  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * the returned matrix. Must be compatible with this MatrixBase type.
   *
-  * \note An identity matrix is a square matrix, so it is required that the type of *this
-  *       allows being a square matrix.
+  * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
+  * it is redundant to pass \a rows and \a cols as arguments, so identity() should be used
+  * instead.
   *
-  * Example: \include MatrixBase_identity_int.cpp
-  * Output: \verbinclude MatrixBase_identity_int.out
+  * Example: \include MatrixBase_identity_int_int.cpp
+  * Output: \verbinclude MatrixBase_identity_int_int.out
   *
-  * \sa class Identity, isIdentity()
+  * \sa identity(), setIdentity(), isIdentity()
   */
 template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows)
+const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows, int cols)
 {
-  return Identity<Derived>(rows);
+  return Identity<Derived>(rows, cols);
 }
 
-/** \returns true if *this is approximately equal to the identity matrix,
+/** \returns an expression of the identity matrix (not necessarily square).
+  *
+  * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
+  * need to use the variant taking size arguments.
+  *
+  * Example: \include MatrixBase_identity.cpp
+  * Output: \verbinclude MatrixBase_identity.out
+  *
+  * \sa identity(int,int), setIdentity(), isIdentity()
+  */
+template<typename Scalar, typename Derived>
+const Identity<Derived> MatrixBase<Scalar, Derived>::identity()
+{
+  return Identity<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
+}
+
+/** \returns true if *this is approximately equal to the identity matrix
+  *          (not necessarily square),
   *          within the precision given by \a prec.
   *
   * Example: \include MatrixBase_isIdentity.cpp
   * Output: \verbinclude MatrixBase_isIdentity.out
   *
-  * \sa class Identity, identity(int)
+  * \sa class Identity, identity(), identity(int,int), setIdentity()
   */
 template<typename Scalar, typename Derived>
 bool MatrixBase<Scalar, Derived>::isIdentity
 (typename NumTraits<Scalar>::Real prec) const
 {
-  if(cols() != rows()) return false;
   for(int j = 0; j < cols(); j++)
   {
-    if(!Eigen::isApprox(coeff(j, j), static_cast<Scalar>(1), prec))
-      return false;
-    for(int i = 0; i < j; i++)
-      if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
-        return false;
+    for(int i = 0; i < rows(); i++)
+    {
+      if(i == j)
+        if(!Eigen::isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
+          return false;
+      else
+        if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
+          return false;
+    }
   }
   return true;
 }
 
-/** Writes the identity expression into *this.
+/** Writes the identity expression (not necessarily square) into *this.
   *
   * Example: \include MatrixBase_setIdentity.cpp
   * Output: \verbinclude MatrixBase_setIdentity.out
   *
-  * \sa class Identity, identity()
+  * \sa class Identity, identity(), identity(int,int), isIdentity()
   */
 template<typename Scalar, typename Derived>
 Derived& MatrixBase<Scalar, Derived>::setIdentity()
 {
-  return *this = Identity<Derived>(rows());
+  return *this = Identity<Derived>(rows(), cols());
 }
 
 

@@ -30,7 +30,8 @@
   *
   * \brief Expression of a zero matrix or vector.
   *
-  * \sa MatrixBase::zero(), MatrixBase::zero(int), MatrixBase::zero(int,int)
+  * \sa MatrixBase::zero(), MatrixBase::zero(int), MatrixBase::zero(int,int),
+  *     MatrixBase::setZero(), MatrixBase::isZero()
   */
 template<typename MatrixType> class Zero : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >

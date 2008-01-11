@@ -51,7 +51,7 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   else VERIFY_IS_MUCH_SMALLER_THAN(square(r,r2), static_cast<Scalar>(1));
   square = MatrixType::zero(rows, rows);
   square.diagonal() = VectorType::ones(rows);
-  VERIFY_IS_APPROX(square, MatrixType::identity(rows));
+  VERIFY_IS_APPROX(square, MatrixType::identity(rows, rows));
 }
 
 void EigenTest::testMiscMatrices()

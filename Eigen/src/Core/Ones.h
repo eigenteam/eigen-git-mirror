@@ -30,7 +30,8 @@
   *
   * \brief Expression of a matrix where all coefficients equal one.
   *
-  * \sa MatrixBase::ones(), MatrixBase::ones(int), MatrixBase::ones(int,int)
+  * \sa MatrixBase::ones(), MatrixBase::ones(int), MatrixBase::ones(int,int),
+  *     MatrixBase::setOnes(), MatrixBase::isOnes()
   */
 template<typename MatrixType> class Ones : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Ones<MatrixType> >

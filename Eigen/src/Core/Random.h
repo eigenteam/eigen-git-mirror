@@ -30,7 +30,8 @@
   *
   * \brief Expression of a random matrix or vector.
   *
-  * \sa MatrixBase::random(), MatrixBase::random(int), MatrixBase::random(int,int)
+  * \sa MatrixBase::random(), MatrixBase::random(int), MatrixBase::random(int,int),
+  *     MatrixBase::setRandom()
   */
 template<typename MatrixType> class Random : NoOperatorEquals,
   public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
