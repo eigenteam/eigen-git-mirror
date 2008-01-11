@@ -64,7 +64,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     }
     
   protected:
-    int m_rows, m_cols;
+    const int m_rows, m_cols;
 };
 
 /** \returns a random matrix (not an expression, the matrix is immediately evaluated).
@@ -126,6 +126,19 @@ template<typename Scalar, typename Derived>
 const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
 {
   return Random<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime).eval();
+}
+
+/** Sets all coefficients in this expression to random values.
+  *
+  * Example: \include MatrixBase_setRandom.cpp
+  * Output: \verbinclude MatrixBase_setRandom.out
+  *
+  * \sa class Random, random()
+  */
+template<typename Scalar, typename Derived>
+Derived& MatrixBase<Scalar, Derived>::setRandom()
+{
+  return *this = Random<Derived>(rows(), cols());
 }
 
 #endif // EIGEN_RANDOM_H

@@ -106,27 +106,45 @@ Derived& MatrixBase<Scalar, Derived>
   if(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
-    assert(coeffs() == other.coeffs());
+    assert(size() == other.size());
     if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
       VectorOperatorEqualsUnroller
         <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
-      for(int i = 0; i < coeffs(); i++)
+      for(int i = 0; i < size(); i++)
         coeffRef(i) = other.coeff(i);
     return *static_cast<Derived*>(this);
   }
   else // copying a matrix expression into a matrix
   {
     assert(rows() == other.rows() && cols() == other.cols());
-    if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
+    if(EIGEN_UNROLLED_LOOPS
+    && Traits::SizeAtCompileTime != Dynamic
+    && Traits::SizeAtCompileTime <= 25)
+    {
       MatrixOperatorEqualsUnroller
         <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
+    }
     else
-      for(int j = 0; j < cols(); j++)
+    {
+      if(Traits::ColsAtCompileTime == Dynamic || Traits::RowsAtCompileTime != Dynamic)
+      {
+        // traverse in column-major order
+        for(int j = 0; j < cols(); j++)
+          for(int i = 0; i < rows(); i++)
+            coeffRef(i, j) = other.coeff(i, j);
+      }
+      else
+      {
+        // traverse in row-major order
+        // in order to allow the compiler to unroll the inner loop
         for(int i = 0; i < rows(); i++)
-          coeffRef(i, j) = other.coeff(i, j);
+          for(int j = 0; j < cols(); j++)
+            coeffRef(i, j) = other.coeff(i, j);
+      }
+    }
     return *static_cast<Derived*>(this);
   }
 }

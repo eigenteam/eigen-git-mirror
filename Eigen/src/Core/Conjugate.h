@@ -64,7 +64,7 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     }
     
   protected:
-    MatRef m_matrix;
+    const MatRef m_matrix;
 };
 
 /** \returns an expression of the complex conjugate of *this.

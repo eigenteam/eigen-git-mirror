@@ -115,7 +115,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     int cols() const { return static_cast<const Derived *>(this)->_cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), Traits::SizeAtCompileTime. */
-    int coeffs() const { return rows() * cols(); }
+    int size() const { return rows() * cols(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -188,6 +188,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
+    
+    Derived& setZero();
+    Derived& setOnes();
+    Derived& setRandom();
+    Derived& setIdentity();
     
     const DiagonalMatrix<Derived> asDiagonal() const;
     

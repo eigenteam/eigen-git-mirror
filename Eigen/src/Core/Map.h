@@ -86,7 +86,7 @@ template<typename MatrixType> class Map
     
   protected:
     const Scalar* m_data;
-    int m_rows, m_cols;
+    const int m_rows, m_cols;
 };
 
 /** This is the const version of map(Scalar*,int,int). */

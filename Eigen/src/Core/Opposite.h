@@ -64,7 +64,7 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
     }
     
   protected:
-    MatRef m_matrix;
+    const MatRef m_matrix;
 };
 
 /** \returns an expression of the opposite of \c *this

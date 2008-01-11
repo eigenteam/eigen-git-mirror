@@ -31,7 +31,7 @@ template<typename VectorType> void tmap(const VectorType& m)
 {
   typedef typename VectorType::Scalar Scalar;
   
-  int size = m.coeffs();
+  int size = m.size();
   
   // test Map.h
   Scalar* array1 = new Scalar[size];

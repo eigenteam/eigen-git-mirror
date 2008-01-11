@@ -89,7 +89,6 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 const int Dynamic = -10;
-const int Generic = -20;
 const int ColumnMajor = 0;
 const int RowMajor = 1;
 

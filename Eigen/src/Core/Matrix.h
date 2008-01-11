@@ -70,7 +70,7 @@
   * \c Matrix<double,3,5>.
   *
   * Note that most of the API is in the base class MatrixBase, and that the base class
-  * MatrixStorage also provides the MatrixStorage::recoeffs() public method.
+  * MatrixStorage also provides the MatrixStorage::resize() public method.
   */
 template<typename _Scalar, int _Rows, int _Cols,
          int _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER>
@@ -135,12 +135,12 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols, _Storage
       if(RowsAtCompileTime == 1)
       {
         assert(other.isVector());
-        resize(1, other.coeffs());
+        resize(1, other.size());
       }
       else if(ColsAtCompileTime == 1)
       {
         assert(other.isVector());
-        resize(other.coeffs(), 1);
+        resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
       return Base::operator=(other);

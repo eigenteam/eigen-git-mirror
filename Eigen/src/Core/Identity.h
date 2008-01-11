@@ -60,7 +60,7 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
     
   protected:
-    int m_rows;
+    const int m_rows;
 };
 
 /** \returns an expression of the identity matrix of given type and size.
@@ -106,6 +106,19 @@ bool MatrixBase<Scalar, Derived>::isIdentity
         return false;
   }
   return true;
+}
+
+/** Writes the identity expression into *this.
+  *
+  * Example: \include MatrixBase_setIdentity.cpp
+  * Output: \verbinclude MatrixBase_setIdentity.out
+  *
+  * \sa class Identity, identity()
+  */
+template<typename Scalar, typename Derived>
+Derived& MatrixBase<Scalar, Derived>::setIdentity()
+{
+  return *this = Identity<Derived>(rows());
 }
 
 

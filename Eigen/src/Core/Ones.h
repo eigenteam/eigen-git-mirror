@@ -64,7 +64,7 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     }
     
   protected:
-    int m_rows, m_cols;
+    const int m_rows, m_cols;
 };
 
 /** \returns an expression of a matrix where all coefficients equal one.
@@ -144,6 +144,19 @@ bool MatrixBase<Scalar, Derived>::isOnes
       if(!Eigen::isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
+}
+
+/** Sets all coefficients in this expression to one.
+  *
+  * Example: \include MatrixBase_setOnes.cpp
+  * Output: \verbinclude MatrixBase_setOnes.out
+  *
+  * \sa class Ones, ones()
+  */
+template<typename Scalar, typename Derived>
+Derived& MatrixBase<Scalar, Derived>::setOnes()
+{
+  return *this = Ones<Derived>(rows(), cols());
 }
 
 #endif // EIGEN_ONES_H

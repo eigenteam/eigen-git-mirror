@@ -52,7 +52,7 @@ class DiagonalMatrix : NoOperatorEquals,
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::Traits::IsVectorAtCompileTime
-          && coeffs.coeffs() > 0);
+          && coeffs.size() > 0);
     }
     
   private:
@@ -62,8 +62,8 @@ class DiagonalMatrix : NoOperatorEquals,
     };
     
     const DiagonalMatrix& _ref() const { return *this; }
-    int _rows() const { return m_coeffs.coeffs(); }
-    int _cols() const { return m_coeffs.coeffs(); }
+    int _rows() const { return m_coeffs.size(); }
+    int _cols() const { return m_coeffs.size(); }
     
     Scalar _coeff(int row, int col) const
     {
@@ -71,7 +71,7 @@ class DiagonalMatrix : NoOperatorEquals,
     }
     
   protected:
-    CoeffsVecRef m_coeffs;
+    const CoeffsVecRef m_coeffs;
 };
 
 /** \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients

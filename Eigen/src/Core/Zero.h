@@ -64,7 +64,7 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     }
     
   protected:
-    int m_rows, m_cols;
+    const int m_rows, m_cols;
 };
 
 /** \returns an expression of a zero matrix.
@@ -144,6 +144,19 @@ bool MatrixBase<Scalar, Derived>::isZero
       if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
+}
+
+/** Sets all coefficients in this expression to zero.
+  *
+  * Example: \include MatrixBase_setZero.cpp
+  * Output: \verbinclude MatrixBase_setZero.out
+  *
+  * \sa class Zero, zero()
+  */
+template<typename Scalar, typename Derived>
+Derived& MatrixBase<Scalar, Derived>::setZero()
+{
+  return *this = Zero<Derived>(rows(), cols());
 }
 
 #endif // EIGEN_ZERO_H

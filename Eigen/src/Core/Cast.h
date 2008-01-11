@@ -71,7 +71,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     }
     
   protected:
-    MatRef m_matrix;
+    const MatRef m_matrix;
 };
 
 /** \returns an expression of *this with the \a Scalar type casted to
