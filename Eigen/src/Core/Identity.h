@@ -120,11 +120,15 @@ bool MatrixBase<Scalar, Derived>::isIdentity
     for(int i = 0; i < rows(); i++)
     {
       if(i == j)
+      {
         if(!Eigen::isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
           return false;
+      }
       else
-        if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
+      {
+        if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<RealScalar>(1), prec))
           return false;
+      }
     }
   }
   return true;
