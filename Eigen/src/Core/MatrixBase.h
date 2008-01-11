@@ -96,7 +96,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       * other hand, this MatrixBase type is an actual matrix or vector type, then \a Ref is
       * a typedef to MatrixRef, which works as a reference, so that matrices and vectors
       * are passed by reference, not by value. \sa ref()*/
-    typedef typename ForwardDecl<Derived>::Ref Ref;
+    typedef typename Reference<Derived>::Type Ref;
     
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If

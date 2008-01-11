@@ -58,9 +58,9 @@ using Eigen::MatrixBase;
 #endif
 
 #ifdef __GNUC__
-# define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
+#define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
 #else
-# define EIGEN_ALWAYS_INLINE
+#define EIGEN_ALWAYS_INLINE
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
@@ -88,47 +88,10 @@ EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-const int Dynamic = -1;
-const int Generic = -2;
+const int Dynamic = -10;
+const int Generic = -20;
 const int ColumnMajor = 0;
 const int RowMajor = 1;
-
-//forward declarations
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-  class Matrix;
-template<typename MatrixType> class MatrixRef;
-template<typename NewScalar, typename MatrixType> class Cast;
-template<typename MatrixType> class Row;
-template<typename MatrixType> class Column;
-template<typename MatrixType> class Minor;
-template<typename MatrixType> class DynBlock;
-template<typename MatrixType, int BlockRows, int BlockCols> class Block;
-template<typename MatrixType> class Transpose;
-template<typename MatrixType> class Conjugate;
-template<typename MatrixType> class Opposite;
-template<typename Lhs, typename Rhs> class Sum;
-template<typename Lhs, typename Rhs> class Difference;
-template<typename Lhs, typename Rhs> class Product;
-template<typename FactorType, typename MatrixType> class ScalarMultiple;
-template<typename MatrixType> class Random;
-template<typename MatrixType> class Zero;
-template<typename MatrixType> class Ones;
-template<typename CoeffsVectorType> class DiagonalMatrix;
-template<typename MatrixType> class DiagonalCoeffs;
-template<typename MatrixType> class Identity;
-template<typename ExpressionType> class Eval;
-template<typename MatrixType> class Map;
-
-template<typename T> struct ForwardDecl
-{
-  typedef T Ref;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-struct ForwardDecl<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-{
-  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> > Ref;
-};
 
 //classes inheriting NoOperatorEquals don't generate a default operator=.
 class NoOperatorEquals
