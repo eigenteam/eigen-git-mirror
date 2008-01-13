@@ -268,10 +268,13 @@ template<typename Scalar, typename Derived>
 Block<Derived> MatrixBase<Scalar, Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
-  if(type == TopLeft) return Block<Derived>(ref(), 0, 0, cRows, cCols);
-  else if(type == TopRight) return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
-  else if(type == BottomLeft) return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
-  else if(type == BottomRight)
+  if(type == TopLeft)
+    return Block<Derived>(ref(), 0, 0, cRows, cCols);
+  else if(type == TopRight)
+    return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
+  else if(type == BottomLeft)
+    return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
+  else
     return Block<Derived>(ref(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
 
@@ -280,10 +283,13 @@ template<typename Scalar, typename Derived>
 const Block<Derived> MatrixBase<Scalar, Derived>
   ::corner(CornerType type, int cRows, int cCols) const
 {
-  if(type == TopLeft) return Block<Derived>(ref(), 0, 0, cRows, cCols);
-  else if(type == TopRight) return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
-  else if(type == BottomLeft) return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
-  else if(type == BottomRight)
+  if(type == TopLeft)
+    return Block<Derived>(ref(), 0, 0, cRows, cCols);
+  else if(type == TopRight)
+    return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
+  else if(type == BottomLeft)
+    return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
+  else
     return Block<Derived>(ref(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
 

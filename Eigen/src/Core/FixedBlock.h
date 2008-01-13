@@ -46,7 +46,7 @@
   * \include class_FixedBlock.cpp
   * Output: \verbinclude class_FixedBlock.out
   *
-  * \sa MatrixBase::fixedBlock(int,int), MatrixBase::fixedBlock(int), class Block
+  * \sa MatrixBase::fixedBlock(int,int), class Block
   */
 template<typename MatrixType, int BlockRows, int BlockCols> class FixedBlock
   : public MatrixBase<typename MatrixType::Scalar,
@@ -107,7 +107,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class FixedBlock
   * Example: \include MatrixBase_fixedBlock_int_int.cpp
   * Output: \verbinclude MatrixBase_fixedBlock_int_int.out
   *
-  * \sa class FixedBlock, fixedBlock(int), block(int,int,int,int)
+  * \sa class FixedBlock, block(int,int,int,int)
   */
 template<typename Scalar, typename Derived>
 template<int BlockRows, int BlockCols>

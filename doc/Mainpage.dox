@@ -42,7 +42,11 @@ Here are general features of Eigen and more specific features of the Core module
   \code matrix.row(i) += factor * matrix.row(j); \endcode</li>
   <li>Both fixed-size and dynamic-size objects are supported, with uniform API,
       in a way that allows Eigen to make
-      all usual optimizations in the case of fixed size, such as loop unrolling.</li>
+      all usual optimizations in the case of fixed size, such as loop unrolling. Moreover
+      special care is used to ensure that the fixed-size types never cause dynamic memory
+      allocations. Even when the dimensions of an expression at not known at compile-time,
+      if a fixed bound is known (e.g. when taking a block in a fixed-size matrix) then
+      Eigen uses it to allocate a static array instead of a dynamic one.</li>
   <li>Both column-vectors and row-vectors are supported, as special cases of matrices.</li>
   <li>The following scalar types are supported and well tested: \c int, \c float, \c double,
       \c std::complex<float>, \c std::complex<double>. </li>
@@ -69,7 +73,7 @@ If you want to stay informed of Eigen news and releases, please subscribe to our
 
 <a name="download"></a>
 <h2>Download</h2>
-The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha2.tar.gz">eigen-2.0-alpha2.tar.gz</a><br/>
+The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha3.tar.gz">eigen-2.0-alpha3.tar.gz</a><br/>
 
 Alternatively, you can checkout the development tree by anonymous svn, by doing:
 <pre>svn co svn://anonsvn.kde.org/home/kde/branches/work/eigen2</pre>
