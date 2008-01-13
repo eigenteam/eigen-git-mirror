@@ -44,7 +44,7 @@
   * \include class_Block.cpp
   * Output: \verbinclude class_Block.out
   *
-  * \note Even though this expression has dynamic size, in the case where the \a MatrixType
+  * \note Even though this expression has dynamic size, in the case where \a MatrixType
   * has fixed size, this expression inherits a fixed maximal size which means that evaluating
   * it does not cause a dynamic memory allocation.
   *
@@ -112,6 +112,10 @@ template<typename MatrixType> class Block
   * Example: \include MatrixBase_block_int_int_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int_int_int.out
   *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
+  *
   * \sa class Block, fixedBlock(int,int)
   */
 template<typename Scalar, typename Derived>
@@ -138,6 +142,10 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * Example: \include MatrixBase_block_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int.out
+  *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
   *
   * \sa class Block, fixedBlock(int)
   */
@@ -173,6 +181,10 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   * Example: \include MatrixBase_start_int.cpp
   * Output: \verbinclude MatrixBase_start_int.out
   *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
+  *
   * \sa class Block, block(int,int)
   */
 template<typename Scalar, typename Derived>
@@ -205,6 +217,10 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   * Example: \include MatrixBase_end_int.cpp
   * Output: \verbinclude MatrixBase_end_int.out
   *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
+  *
   * \sa class Block, block(int,int)
   */
 template<typename Scalar, typename Derived>
@@ -234,12 +250,17 @@ const Block<Derived> MatrixBase<Scalar, Derived>
 
 /** \returns a dynamic-size expression of a corner of *this.
   *
-  * \param type the type of corner. Can be \a TopLeft, \a TopRight, \a BottomLeft, \a BottomRight.
+  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
+  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
   * \param cRows the number of rows in the corner
   * \param cCols the number of columns in the corner
   *
   * Example: \include MatrixBase_corner_enum_int_int.cpp
   * Output: \verbinclude MatrixBase_corner_enum_int_int.out
+  *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
   *
   * \sa class Block, block(int,int,int,int)
   */
