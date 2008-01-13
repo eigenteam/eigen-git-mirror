@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	}
 	for(int a = 0; a < 400000000; a++)
 	{
-		m = Matrix3d::identity() + 0.00005 * (m + m*m);
+		m = I + 0.00005 * (m + m*m);
 	}
 	cout << m << endl;
 	return 0;

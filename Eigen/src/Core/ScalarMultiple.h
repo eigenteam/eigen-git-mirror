@@ -51,7 +51,9 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const ScalarMultiple& _ref() const { return *this; }

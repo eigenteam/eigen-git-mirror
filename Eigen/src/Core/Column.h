@@ -65,7 +65,9 @@ template<typename MatrixType> class Column
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = 1
+      ColsAtCompileTime = 1,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = 1
     };
     
     const Column& _ref() const { return *this; }

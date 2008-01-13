@@ -69,7 +69,9 @@ template<typename MatrixType> class DynBlock
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime == 1 ? 1 : Dynamic,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime == 1 ? 1 : Dynamic
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime == 1 ? 1 : Dynamic,
+      MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1 : MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1 : MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const DynBlock& _ref() const { return *this; }

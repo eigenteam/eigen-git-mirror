@@ -52,8 +52,14 @@ template<typename MatrixType> class DiagonalCoeffs
     
   private:
     enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = 1
+      RowsAtCompileTime = MatrixType::Traits::SizeAtCompileTime == Dynamic ? Dynamic
+                        : EIGEN_ENUM_MIN(MatrixType::Traits::RowsAtCompileTime,
+                                         MatrixType::Traits::ColsAtCompileTime),
+      ColsAtCompileTime = 1,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxSizeAtCompileTime == Dynamic ? Dynamic
+                             : EIGEN_ENUM_MIN(MatrixType::Traits::MaxRowsAtCompileTime,
+                                              MatrixType::Traits::MaxColsAtCompileTime),
+      MaxColsAtCompileTime = 1
     };
 
     const DiagonalCoeffs& _ref() const { return *this; }

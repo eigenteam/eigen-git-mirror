@@ -61,7 +61,11 @@ template<typename MatrixType> class Minor
       RowsAtCompileTime = (MatrixType::Traits::RowsAtCompileTime != Dynamic) ?
                             MatrixType::Traits::RowsAtCompileTime - 1 : Dynamic,
       ColsAtCompileTime = (MatrixType::Traits::ColsAtCompileTime != Dynamic) ?
-                            MatrixType::Traits::ColsAtCompileTime - 1 : Dynamic
+                            MatrixType::Traits::ColsAtCompileTime - 1 : Dynamic,
+      MaxRowsAtCompileTime = (MatrixType::Traits::MaxRowsAtCompileTime != Dynamic) ?
+                                 MatrixType::Traits::MaxRowsAtCompileTime - 1 : Dynamic,
+      MaxColsAtCompileTime = (MatrixType::Traits::MaxColsAtCompileTime != Dynamic) ?
+                                 MatrixType::Traits::MaxColsAtCompileTime - 1 : Dynamic
     };
 
     const Minor& _ref() const { return *this; }

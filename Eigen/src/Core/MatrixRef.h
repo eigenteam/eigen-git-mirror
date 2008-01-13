@@ -41,7 +41,9 @@ template<typename MatrixType> class MatrixRef
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     int _rows() const { return m_matrix.rows(); }

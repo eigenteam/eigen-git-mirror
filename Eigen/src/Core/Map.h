@@ -50,7 +50,9 @@ template<typename MatrixType> class Map
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      Order = MatrixType::StorageOrder
+      Order = MatrixType::StorageOrder,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const Map& _ref() const { return *this; }
@@ -90,17 +92,17 @@ template<typename MatrixType> class Map
 };
 
 /** This is the const version of map(Scalar*,int,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
 }
 
 /** This is the const version of map(Scalar*,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data, int size)
 {
   assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
@@ -110,9 +112,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data, int size)
 }
 
 /** This is the const version of map(Scalar*). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
 }
@@ -128,9 +130,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(const Scalar* data)
   *
   * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
 }
@@ -147,9 +149,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int rows, int co
   *
   * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data, int size)
 {
   assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
@@ -167,9 +169,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data, int size)
   *
   * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
 }
@@ -182,10 +184,10 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>::map(Scalar* data)
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int rows, int cols)
-  : Storage(rows, cols)
+  : m_rows(rows), m_cols(cols), m_array(rows*cols)
 {
   *this = map(data, rows, cols);
 }
@@ -200,10 +202,12 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int size)
-  : Storage(size)
+  : m_rows(RowsAtCompileTime == 1 ? 1 : size),
+    m_cols(ColsAtCompileTime == 1 ? 1 : size),
+    m_array(size)
 {
   *this = map(data, size);
 }
@@ -218,10 +222,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
   * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
   * Matrix::map(const Scalar *)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
-  : Storage()
 {
   *this = map(data);
 }

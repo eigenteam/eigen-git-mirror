@@ -88,6 +88,8 @@ EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
+#define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
+
 const int Dynamic = -10;
 const int ColumnMajor = 0;
 const int RowMajor = 1;
@@ -97,6 +99,26 @@ class NoOperatorEquals
 {
   private:
     NoOperatorEquals& operator=(const NoOperatorEquals&);
+};
+
+template<int Value> class IntAtRunTimeIfDynamic
+{
+  public:
+    IntAtRunTimeIfDynamic() {}
+    explicit IntAtRunTimeIfDynamic(int) {}
+    static int value() { return Value; }
+    void setValue(int) {}
+};
+
+template<> class IntAtRunTimeIfDynamic<Dynamic>
+{
+    int m_value;
+  public:
+    explicit IntAtRunTimeIfDynamic(int value) : m_value(value) {}
+    int value() const { return m_value; }
+    void setValue(int value) { m_value = value; }
+  private:
+    IntAtRunTimeIfDynamic() {}
 };
 
 #endif // EIGEN_UTIL_H

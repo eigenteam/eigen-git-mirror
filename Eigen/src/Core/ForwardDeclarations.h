@@ -26,7 +26,7 @@
 #ifndef EIGEN_FORWARDDECLARATIONS_H
 #define EIGEN_FORWARDDECLARATIONS_H
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder> class Matrix;
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols> class Matrix;
 template<typename MatrixType> class MatrixRef;
 template<typename NewScalar, typename MatrixType> class Cast;
 template<typename MatrixType> class Row;
@@ -55,10 +55,10 @@ template<typename T> struct Reference
   typedef T Type;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder>
-struct Reference<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> >
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+struct Reference<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 {
-  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder> > Type;
+  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> > Type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

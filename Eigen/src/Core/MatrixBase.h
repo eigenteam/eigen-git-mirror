@@ -79,7 +79,43 @@ template<typename Scalar, typename Derived> class MatrixBase
         = Derived::RowsAtCompileTime == Dynamic || Derived::ColsAtCompileTime == Dynamic
         ? Dynamic : Derived::RowsAtCompileTime * Derived::ColsAtCompileTime
       };
+
+      /** This value is equal to the maximum possible number of rows that this expression
+        * might have. If this expression might have an arbitrarily high number of rows,
+        * this value is set to \a Dynamic.
+        *
+        * This value is useful to know when evaluating an expression, in order to determine
+        * whether it is possible to avoid doing a dynamic memory allocation.
+        *
+        * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
+        */
+      enum { MaxRowsAtCompileTime = Derived::MaxRowsAtCompileTime };
       
+      /** This value is equal to the maximum possible number of columns that this expression
+        * might have. If this expression might have an arbitrarily high number of columns,
+        * this value is set to \a Dynamic.
+        *
+        * This value is useful to know when evaluating an expression, in order to determine
+        * whether it is possible to avoid doing a dynamic memory allocation.
+        *
+        * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
+        */
+      enum { MaxColsAtCompileTime = Derived::MaxColsAtCompileTime };
+      
+      /** This value is equal to the maximum possible number of coefficients that this expression
+        * might have. If this expression might have an arbitrarily high number of coefficients,
+        * this value is set to \a Dynamic.
+        *
+        * This value is useful to know when evaluating an expression, in order to determine
+        * whether it is possible to avoid doing a dynamic memory allocation.
+        *
+        * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
+        */
+      enum { MaxSizeAtCompileTime
+        = Derived::MaxRowsAtCompileTime == Dynamic || Derived::MaxColsAtCompileTime == Dynamic
+        ? Dynamic : Derived::MaxRowsAtCompileTime * Derived::MaxColsAtCompileTime
+      };
+
       /** This is set to true if either the number of rows or the number of
         * columns is known at compile-time to be equal to 1. Indeed, in that case,
         * we are dealing with a column-vector (if there is only one column) or with

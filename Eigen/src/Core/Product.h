@@ -91,7 +91,9 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
   private:
     enum {
       RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime
+      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = Lhs::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = Rhs::Traits::MaxColsAtCompileTime
     };
 
     const Product& _ref() const { return *this; }

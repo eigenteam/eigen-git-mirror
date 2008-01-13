@@ -59,7 +59,9 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
     const Cast& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows(); }

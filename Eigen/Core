@@ -12,7 +12,6 @@ namespace Eigen {
 #include "src/Core/Coeffs.h"
 #include "src/Core/OperatorEquals.h"
 #include "src/Core/MatrixRef.h"
-#include "src/Core/MatrixStorage.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Cast.h"
 #include "src/Core/Eval.h"

@@ -51,7 +51,9 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const Conjugate& _ref() const { return *this; }

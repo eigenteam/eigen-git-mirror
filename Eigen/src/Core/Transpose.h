@@ -53,7 +53,9 @@ template<typename MatrixType> class Transpose
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const Transpose& _ref() const { return *this; }

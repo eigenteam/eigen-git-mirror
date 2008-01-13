@@ -69,7 +69,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
   private:
     enum{
       RowsAtCompileTime = BlockRows,
-      ColsAtCompileTime = BlockCols
+      ColsAtCompileTime = BlockCols,
+      MaxRowsAtCompileTime = BlockRows,
+      MaxColsAtCompileTime = BlockCols
     };
 
     const Block& _ref() const { return *this; }

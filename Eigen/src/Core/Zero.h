@@ -43,12 +43,14 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const Zero& _ref() const { return *this; }
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
+    int _rows() const { return m_rows.value(); }
+    int _cols() const { return m_cols.value(); }
     
     Scalar _coeff(int, int) const
     {
@@ -65,7 +67,8 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     }
     
   protected:
-    const int m_rows, m_cols;
+    const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
+    const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
 };
 
 /** \returns an expression of a zero matrix.

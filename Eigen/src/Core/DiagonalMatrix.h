@@ -58,7 +58,9 @@ class DiagonalMatrix : NoOperatorEquals,
   private:
     enum {
       RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
-      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime
+      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
+      MaxRowsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime,
+      MaxColsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime
     };
     
     const DiagonalMatrix& _ref() const { return *this; }
