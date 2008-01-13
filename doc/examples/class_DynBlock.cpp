@@ -3,17 +3,17 @@ USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
 template<typename Scalar, typename Derived>
-Eigen::DynBlock<Derived>
+Eigen::Block<Derived>
 topLeftCorner(MatrixBase<Scalar, Derived>& m, int rows, int cols)
 {
-  return Eigen::DynBlock<Derived>(m.ref(), 0, 0, rows, cols);
+  return Eigen::Block<Derived>(m.ref(), 0, 0, rows, cols);
 }
 
 template<typename Scalar, typename Derived>
-const Eigen::DynBlock<Derived>
+const Eigen::Block<Derived>
 topLeftCorner(const MatrixBase<Scalar, Derived>& m, int rows, int cols)
 {
-  return Eigen::DynBlock<Derived>(m.ref(), 0, 0, rows, cols);
+  return Eigen::Block<Derived>(m.ref(), 0, 0, rows, cols);
 }
 
 int main(int, char**)

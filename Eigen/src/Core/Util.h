@@ -113,12 +113,11 @@ template<int Value> class IntAtRunTimeIfDynamic
 template<> class IntAtRunTimeIfDynamic<Dynamic>
 {
     int m_value;
+    IntAtRunTimeIfDynamic() {}
   public:
     explicit IntAtRunTimeIfDynamic(int value) : m_value(value) {}
     int value() const { return m_value; }
     void setValue(int value) { m_value = value; }
-  private:
-    IntAtRunTimeIfDynamic() {}
 };
 
 #endif // EIGEN_UTIL_H

@@ -28,17 +28,15 @@
 
 /** \class Block
   *
-  * \brief Expression of a fixed-size block
+  * \brief Expression of a dynamic-size block
   *
   * \param MatrixType the type of the object in which we are taking a block
-  * \param BlockRows the number of rows of the block we are taking
-  * \param BlockCols the number of columns of the block we are taking
   *
-  * This class represents an expression of a fixed-size block. It is the return
+  * This class represents an expression of a dynamic-size block. It is the return
   * type of MatrixBase::block() and most of the time this is the only way it
   * is used.
   *
-  * However, if you want to directly maniputate fixed-size block expressions,
+  * However, if you want to directly maniputate dynamic-size block expressions,
   * for instance if you want to write a function returning such an expression, you
   * will need to use this class.
   *
@@ -46,37 +44,39 @@
   * \include class_Block.cpp
   * Output: \verbinclude class_Block.out
   *
-  * \sa MatrixBase::block(), class DynBlock
+  * \sa MatrixBase::block()
   */
-template<typename MatrixType, int BlockRows, int BlockCols> class Block
-  : public MatrixBase<typename MatrixType::Scalar,
-                      Block<MatrixType, BlockRows, BlockCols> >
+template<typename MatrixType> class Block
+  : public MatrixBase<typename MatrixType::Scalar, Block<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Block<MatrixType, BlockRows, BlockCols> >;
+    friend class MatrixBase<Scalar, Block<MatrixType> >;
     
-    Block(const MatRef& matrix, int startRow, int startCol)
-      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
+    Block(const MatRef& matrix,
+          int startRow, int startCol,
+          int blockRows, int blockCols)
+      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
+                          m_blockRows(blockRows), m_blockCols(blockCols)
     {
-      assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+      assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
+          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
     
   private:
-    enum{
-      RowsAtCompileTime = BlockRows,
-      ColsAtCompileTime = BlockCols,
-      MaxRowsAtCompileTime = BlockRows,
-      MaxColsAtCompileTime = BlockCols
+    enum {
+      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime == 1 ? 1 : Dynamic,
+      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime == 1 ? 1 : Dynamic,
+      MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1 : MatrixType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1 : MatrixType::Traits::MaxColsAtCompileTime
     };
 
     const Block& _ref() const { return *this; }
-    int _rows() const { return BlockRows; }
-    int _cols() const { return BlockCols; }
+    int _rows() const { return m_blockRows; }
+    int _cols() const { return m_blockCols; }
     
     Scalar& _coeffRef(int row, int col)
     {
@@ -90,37 +90,35 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     
   protected:
     MatRef m_matrix;
-    const int m_startRow, m_startCol;
+    const int m_startRow, m_startCol, m_blockRows, m_blockCols;
 };
 
-/** \returns a fixed-size expression of a block in *this.
-  *
-  * The template parameters \a blockRows and \a blockCols are the number of
-  * rows and columns in the block
+/** \returns a dynamic-size expression of a block in *this.
   *
   * \param startRow the first row in the block
   * \param startCol the first column in the block
+  * \param blockRows the number of rows in the block
+  * \param blockCols the number of columns in the block
   *
   * Example: \include MatrixBase_block.cpp
   * Output: \verbinclude MatrixBase_block.out
   *
-  * \sa class Block, dynBlock()
+  * \sa class Block, fixedBlock()
   */
 template<typename Scalar, typename Derived>
-template<int BlockRows, int BlockCols>
-Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
-  ::block(int startRow, int startCol)
+Block<Derived> MatrixBase<Scalar, Derived>
+  ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
-  return Block<Derived, BlockRows, BlockCols>(ref(), startRow, startCol);
+  return Block<Derived>(ref(), startRow, startCol, blockRows, blockCols);
 }
 
 /** This is the const version of block(). */
 template<typename Scalar, typename Derived>
-template<int BlockRows, int BlockCols>
-const Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
-  ::block(int startRow, int startCol) const
+const Block<Derived> MatrixBase<Scalar, Derived>
+  ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return Block<Derived, BlockRows, BlockCols>(ref(), startRow, startCol);
+  return Block<Derived>(ref(), startRow, startCol, blockRows, blockCols);
 }
+
 
 #endif // EIGEN_BLOCK_H

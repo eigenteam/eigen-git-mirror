@@ -3,17 +3,17 @@ USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
 template<typename Scalar, typename Derived>
-Eigen::Block<Derived, 2, 2>
+Eigen::FixedBlock<Derived, 2, 2>
 topLeft2x2Corner(MatrixBase<Scalar, Derived>& m)
 {
-  return Eigen::Block<Derived, 2, 2>(m.ref(), 0, 0);
+  return Eigen::FixedBlock<Derived, 2, 2>(m.ref(), 0, 0);
 }
 
 template<typename Scalar, typename Derived>
-const Eigen::Block<Derived, 2, 2>
+const Eigen::FixedBlock<Derived, 2, 2>
 topLeft2x2Corner(const MatrixBase<Scalar, Derived>& m)
 {
-  return Eigen::Block<Derived, 2, 2>(m.ref(), 0, 0);
+  return Eigen::FixedBlock<Derived, 2, 2>(m.ref(), 0, 0);
 }
 
 int main(int, char**)

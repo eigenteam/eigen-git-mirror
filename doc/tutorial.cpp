@@ -18,13 +18,13 @@ int main(int, char **)
   // notice how we are mixing fixed-size and dynamic-size types.
   
   cout << "In the top-left block, we put the matrix m shown above." << endl;
-  m2.block<2,2>(0,0) = m;
+  m2.fixedBlock<2,2>(0,0) = m;
   cout << "In the bottom-left block, we put the matrix m*m, which is:" << endl << m*m << endl;
-  m2.block<2,2>(2,0) = m * m;
+  m2.fixedBlock<2,2>(2,0) = m * m;
   cout << "In the top-right block, we put the matrix m+m, which is:" << endl << m+m << endl;
-  m2.block<2,2>(0,2) = m + m;
+  m2.fixedBlock<2,2>(0,2) = m + m;
   cout << "In the bottom-right block, we put the matrix m-m, which is:" << endl << m-m << endl;
-  m2.block<2,2>(2,2) = m - m;
+  m2.fixedBlock<2,2>(2,2) = m - m;
   cout << "Now the 4x4 matrix m2 is:" << endl << m2 << endl;
   
   cout << "Row 0 of m2 is:" << endl << m2.row(0) << endl;

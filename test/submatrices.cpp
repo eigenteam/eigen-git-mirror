@@ -30,7 +30,7 @@ namespace Eigen {
 template<typename MatrixType> void submatrices(const MatrixType& m)
 {
   /* this test covers the following files:
-     Row.h Column.h Block.h DynBlock.h Minor.h DiagonalCoeffs.h
+     Row.h Column.h FixedBlock.h Block.h Minor.h DiagonalCoeffs.h
   */
   
   typedef typename MatrixType::Scalar Scalar;
@@ -66,22 +66,22 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   m1.row(r1) += s1 * m1.row(r2);
   m1.col(c1) += s1 * m1.col(c2);
   
-  //check dynBlock()
+  //check block()
   Matrix<Scalar,Dynamic,Dynamic> b1(1,1); b1(0,0) = m1(r1,c1);
-  RowVectorType br1(m1.dynBlock(r1,0,1,cols));
-  VectorType bc1(m1.dynBlock(0,c1,rows,1));
-  VERIFY_IS_APPROX(b1, m1.dynBlock(r1,c1,1,1));
+  RowVectorType br1(m1.block(r1,0,1,cols));
+  VectorType bc1(m1.block(0,c1,rows,1));
+  VERIFY_IS_APPROX(b1, m1.block(r1,c1,1,1));
   VERIFY_IS_APPROX(m1.row(r1), br1);
   VERIFY_IS_APPROX(m1.col(c1), bc1);
-  //check operator(), both constant and non-constant, on dynBlock()
-  m1.dynBlock(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.dynBlock(0, 0, r2-r1+1,c2-c1+1);
-  m1.dynBlock(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.dynBlock(0, 0, r2-r1+1,c2-c1+1)(0,0);
+  //check operator(), both constant and non-constant, on block()
+  m1.block(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.block(0, 0, r2-r1+1,c2-c1+1);
+  m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
   
   //check minor()
   if(rows > 1 && cols > 1)
   {
     Matrix<Scalar, Dynamic, Dynamic> mi = m1.minor(0,0).eval();
-    VERIFY_IS_APPROX(mi, m1.dynBlock(1,1,rows-1,cols-1));
+    VERIFY_IS_APPROX(mi, m1.block(1,1,rows-1,cols-1));
     mi = m1.minor(r1,c1);
     VERIFY_IS_APPROX(mi.transpose(), m1.transpose().minor(c1,r1));
     //check operator(), both constant and non-constant, on minor()
@@ -104,18 +104,18 @@ void EigenTest::testSubmatrices()
     submatrices(MatrixXi(8, 12));
     submatrices(MatrixXcd(20, 20));
     
-    // test block() separately as it is a template method so doesn't support
+    // test fixedBlock() separately as it is a template method so doesn't support
     // being called as a member of a class that is itself a template parameter
     // (at least as of g++ 4.2)
     Matrix<float, 6, 8> m = Matrix<float, 6, 8>::random();
     float s = random<float>();
-    // test block() as lvalue
-    m.block<2,5>(1,1) *= s;
-    // test operator() on block() both as constant and non-constant
-    m.block<2,5>(1,1)(0, 3) = m.block<2,5>(1,1)(1,2);
-    // check that block() and dynBlock() agree
-    MatrixXf b = m.block<3,2>(3,3);
-    VERIFY_IS_APPROX(b, m.dynBlock(3,3,3,2));
+    // test fixedBlock() as lvalue
+    m.fixedBlock<2,5>(1,1) *= s;
+    // test operator() on fixedBlock() both as constant and non-constant
+    m.fixedBlock<2,5>(1,1)(0, 3) = m.fixedBlock<2,5>(1,1)(1,2);
+    // check that fixedBlock() and block() agree
+    MatrixXf b = m.fixedBlock<3,2>(3,3);
+    VERIFY_IS_APPROX(b, m.block(3,3,3,2));
   }
 }
 

@@ -184,14 +184,14 @@ template<typename Scalar, typename Derived> class MatrixBase
     Minor<Derived> minor(int row, int col);
     const Minor<Derived> minor(int row, int col) const;
     
-    DynBlock<Derived> dynBlock(int startRow, int startCol, int blockRows, int blockCols);
-    const DynBlock<Derived>
-    dynBlock(int startRow, int startCol, int blockRows, int blockCols) const;
+    Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols);
+    const Block<Derived>
+    block(int startRow, int startCol, int blockRows, int blockCols) const;
     
     template<int BlockRows, int BlockCols>
-    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
+    FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol);
     template<int BlockRows, int BlockCols>
-    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
+    const FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol) const;
     
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
