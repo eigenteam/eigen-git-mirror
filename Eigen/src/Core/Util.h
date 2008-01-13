@@ -94,6 +94,8 @@ const int Dynamic = -10;
 const int ColumnMajor = 0;
 const int RowMajor = 1;
 
+enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
+
 //classes inheriting NoOperatorEquals don't generate a default operator=.
 class NoOperatorEquals
 {

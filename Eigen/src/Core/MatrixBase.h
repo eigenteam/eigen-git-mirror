@@ -188,11 +188,23 @@ template<typename Scalar, typename Derived> class MatrixBase
     const Block<Derived>
     block(int startRow, int startCol, int blockRows, int blockCols) const;
     
+    Block<Derived> block(int start, int size);
+    const Block<Derived> block(int start, int size) const;
+
+    Block<Derived> start(int size);
+    const Block<Derived> start(int size) const;
+
+    Block<Derived> end(int size);
+    const Block<Derived> end(int size) const;
+
+    Block<Derived> corner(CornerType type, int cRows, int cCols);
+    const Block<Derived> corner(CornerType type, int cRows, int cCols) const;
+
     template<int BlockRows, int BlockCols>
     FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol);
     template<int BlockRows, int BlockCols>
     const FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol) const;
-    
+
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
     

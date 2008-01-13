@@ -46,7 +46,7 @@
   * \include class_FixedBlock.cpp
   * Output: \verbinclude class_FixedBlock.out
   *
-  * \sa MatrixBase::fixedBlock(), class Block
+  * \sa MatrixBase::fixedBlock(int,int), MatrixBase::fixedBlock(int), class Block
   */
 template<typename MatrixType, int BlockRows, int BlockCols> class FixedBlock
   : public MatrixBase<typename MatrixType::Scalar,
@@ -75,36 +75,39 @@ template<typename MatrixType, int BlockRows, int BlockCols> class FixedBlock
     };
 
     const FixedBlock& _ref() const { return *this; }
-    int _rows() const { return BlockRows; }
-    int _cols() const { return BlockCols; }
+    static int _rows() { return BlockRows; }
+    static int _cols() { return BlockCols; }
     
     Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.coeffRef(row + m_startRow, col + m_startCol);
+      return m_matrix.coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
     
     Scalar _coeff(int row, int col) const
     {
-      return m_matrix.coeff(row + m_startRow, col + m_startCol);
+      return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
     
   protected:
     MatRef m_matrix;
-    const int m_startRow, m_startCol;
+    IntAtRunTimeIfDynamic<MatrixType::Traits::RowsAtCompileTime == 1 ? 0 : Dynamic>
+      m_startRow;
+    IntAtRunTimeIfDynamic<MatrixType::Traits::ColsAtCompileTime == 1 ? 0 : Dynamic>
+      m_startCol;
 };
 
 /** \returns a fixed-size expression of a block in *this.
   *
-  * The template parameters \a blockRows and \a blockCols are the number of
-  * rows and columns in the block
+  * The template parameters \a BlockRows and \a BlockCols are the number of
+  * rows and columns in the block.
   *
   * \param startRow the first row in the block
   * \param startCol the first column in the block
   *
-  * Example: \include MatrixBase_block.cpp
-  * Output: \verbinclude MatrixBase_block.out
+  * Example: \include MatrixBase_fixedBlock_int_int.cpp
+  * Output: \verbinclude MatrixBase_fixedBlock_int_int.out
   *
-  * \sa class FixedBlock, block()
+  * \sa class FixedBlock, fixedBlock(int), block(int,int,int,int)
   */
 template<typename Scalar, typename Derived>
 template<int BlockRows, int BlockCols>
@@ -114,7 +117,7 @@ FixedBlock<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
   return FixedBlock<Derived, BlockRows, BlockCols>(ref(), startRow, startCol);
 }
 
-/** This is the const version of fixedBlock(). */
+/** This is the const version of fixedBlock(int, int). */
 template<typename Scalar, typename Derived>
 template<int BlockRows, int BlockCols>
 const FixedBlock<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>

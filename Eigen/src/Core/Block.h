@@ -33,7 +33,7 @@
   * \param MatrixType the type of the object in which we are taking a block
   *
   * This class represents an expression of a dynamic-size block. It is the return
-  * type of MatrixBase::block() and most of the time this is the only way it
+  * type of MatrixBase::block(int,int,int,int) and most of the time this is the only way it
   * is used.
   *
   * However, if you want to directly maniputate dynamic-size block expressions,
@@ -44,7 +44,11 @@
   * \include class_Block.cpp
   * Output: \verbinclude class_Block.out
   *
-  * \sa MatrixBase::block()
+  * \note Even though this expression has dynamic size, in the case where the \a MatrixType
+  * has fixed size, this expression inherits a fixed maximal size which means that evaluating
+  * it does not cause a dynamic memory allocation.
+  *
+  * \sa MatrixBase::block(int,int,int,int), class VectorBlock
   */
 template<typename MatrixType> class Block
   : public MatrixBase<typename MatrixType::Scalar, Block<MatrixType> >
@@ -75,22 +79,27 @@ template<typename MatrixType> class Block
     };
 
     const Block& _ref() const { return *this; }
-    int _rows() const { return m_blockRows; }
-    int _cols() const { return m_blockCols; }
+    int _rows() const { return m_blockRows.value(); }
+    int _cols() const { return m_blockCols.value(); }
     
     Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.coeffRef(row + m_startRow, col + m_startCol);
+      return m_matrix.coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
     
     Scalar _coeff(int row, int col) const
     {
-      return m_matrix.coeff(row + m_startRow, col + m_startCol);
+      return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
     
   protected:
     MatRef m_matrix;
-    const int m_startRow, m_startCol, m_blockRows, m_blockCols;
+    IntAtRunTimeIfDynamic<MatrixType::Traits::RowsAtCompileTime == 1 ? 0 : Dynamic>
+      m_startRow;
+    IntAtRunTimeIfDynamic<MatrixType::Traits::ColsAtCompileTime == 1 ? 0 : Dynamic>
+      m_startCol;
+    IntAtRunTimeIfDynamic<RowsAtCompileTime> m_blockRows;
+    IntAtRunTimeIfDynamic<ColsAtCompileTime> m_blockCols;
 };
 
 /** \returns a dynamic-size expression of a block in *this.
@@ -100,10 +109,10 @@ template<typename MatrixType> class Block
   * \param blockRows the number of rows in the block
   * \param blockCols the number of columns in the block
   *
-  * Example: \include MatrixBase_block.cpp
-  * Output: \verbinclude MatrixBase_block.out
+  * Example: \include MatrixBase_block_int_int_int_int.cpp
+  * Output: \verbinclude MatrixBase_block_int_int_int_int.out
   *
-  * \sa class Block, fixedBlock()
+  * \sa class Block, fixedBlock(int,int)
   */
 template<typename Scalar, typename Derived>
 Block<Derived> MatrixBase<Scalar, Derived>
@@ -112,7 +121,7 @@ Block<Derived> MatrixBase<Scalar, Derived>
   return Block<Derived>(ref(), startRow, startCol, blockRows, blockCols);
 }
 
-/** This is the const version of block(). */
+/** This is the const version of block(int,int,int,int). */
 template<typename Scalar, typename Derived>
 const Block<Derived> MatrixBase<Scalar, Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
@@ -120,5 +129,141 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   return Block<Derived>(ref(), startRow, startCol, blockRows, blockCols);
 }
 
+/** \returns a dynamic-size expression of a block in *this.
+  *
+  * \only_for_vectors
+  *
+  * \param start the first coefficient in the block
+  * \param size the number of coefficients in the block
+  *
+  * Example: \include MatrixBase_block_int_int.cpp
+  * Output: \verbinclude MatrixBase_block_int_int.out
+  *
+  * \sa class Block, fixedBlock(int)
+  */
+template<typename Scalar, typename Derived>
+Block<Derived> MatrixBase<Scalar, Derived>
+  ::block(int start, int size)
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(), Traits::RowsAtCompileTime == 1 ? 0 : start,
+                               Traits::ColsAtCompileTime == 1 ? 0 : start,
+                               Traits::RowsAtCompileTime == 1 ? 1 : size,
+                               Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** This is the const version of block(int,int).*/
+template<typename Scalar, typename Derived>
+const Block<Derived> MatrixBase<Scalar, Derived>
+  ::block(int start, int size) const
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(), Traits::RowsAtCompileTime == 1 ? 0 : start,
+                               Traits::ColsAtCompileTime == 1 ? 0 : start,
+                               Traits::RowsAtCompileTime == 1 ? 1 : size,
+                               Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** \returns a dynamic-size expression of the first coefficients of *this.
+  *
+  * \only_for_vectors
+  *
+  * \param size the number of coefficients in the block
+  *
+  * Example: \include MatrixBase_start_int.cpp
+  * Output: \verbinclude MatrixBase_start_int.out
+  *
+  * \sa class Block, block(int,int)
+  */
+template<typename Scalar, typename Derived>
+Block<Derived> MatrixBase<Scalar, Derived>
+  ::start(int size)
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(), 0, 0,
+                        Traits::RowsAtCompileTime == 1 ? 1 : size,
+                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** This is the const version of start(int).*/
+template<typename Scalar, typename Derived>
+const Block<Derived> MatrixBase<Scalar, Derived>
+  ::start(int size) const
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(), 0, 0,
+                        Traits::RowsAtCompileTime == 1 ? 1 : size,
+                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** \returns a dynamic-size expression of the last coefficients of *this.
+  *
+  * \only_for_vectors
+  *
+  * \param size the number of coefficients in the block
+  *
+  * Example: \include MatrixBase_end_int.cpp
+  * Output: \verbinclude MatrixBase_end_int.out
+  *
+  * \sa class Block, block(int,int)
+  */
+template<typename Scalar, typename Derived>
+Block<Derived> MatrixBase<Scalar, Derived>
+  ::end(int size)
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(),
+                        Traits::RowsAtCompileTime == 1 ? 0 : rows() - size,
+                        Traits::ColsAtCompileTime == 1 ? 0 : cols() - size,
+                        Traits::RowsAtCompileTime == 1 ? 1 : size,
+                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** This is the const version of end(int).*/
+template<typename Scalar, typename Derived>
+const Block<Derived> MatrixBase<Scalar, Derived>
+  ::end(int size) const
+{
+  assert(Traits::IsVectorAtCompileTime);
+  return Block<Derived>(ref(),
+                        Traits::RowsAtCompileTime == 1 ? 0 : rows() - size,
+                        Traits::ColsAtCompileTime == 1 ? 0 : cols() - size,
+                        Traits::RowsAtCompileTime == 1 ? 1 : size,
+                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** \returns a dynamic-size expression of a corner of *this.
+  *
+  * \param type the type of corner. Can be \a TopLeft, \a TopRight, \a BottomLeft, \a BottomRight.
+  * \param cRows the number of rows in the corner
+  * \param cCols the number of columns in the corner
+  *
+  * Example: \include MatrixBase_corner_enum_int_int.cpp
+  * Output: \verbinclude MatrixBase_corner_enum_int_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Scalar, typename Derived>
+Block<Derived> MatrixBase<Scalar, Derived>
+  ::corner(CornerType type, int cRows, int cCols)
+{
+  if(type == TopLeft) return Block<Derived>(ref(), 0, 0, cRows, cCols);
+  else if(type == TopRight) return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
+  else if(type == BottomLeft) return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
+  else if(type == BottomRight)
+    return Block<Derived>(ref(), rows() - cRows, cols() - cCols, cRows, cCols);
+}
+
+/** This is the const version of corner(CornerType, int, int).*/
+template<typename Scalar, typename Derived>
+const Block<Derived> MatrixBase<Scalar, Derived>
+  ::corner(CornerType type, int cRows, int cCols) const
+{
+  if(type == TopLeft) return Block<Derived>(ref(), 0, 0, cRows, cCols);
+  else if(type == TopRight) return Block<Derived>(ref(), 0, cols() - cCols, cRows, cCols);
+  else if(type == BottomLeft) return Block<Derived>(ref(), rows() - cRows, 0, cRows, cCols);
+  else if(type == BottomRight)
+    return Block<Derived>(ref(), rows() - cRows, cols() - cCols, cRows, cCols);
+}
 
 #endif // EIGEN_BLOCK_H
