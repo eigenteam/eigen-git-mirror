@@ -55,13 +55,15 @@ template<typename Expression> class Eval : NoOperatorEquals,
 {
   public:
     typedef typename Expression::Scalar Scalar;
-    typedef Matrix<Scalar, Expression::Traits::RowsAtCompileTime, Expression::Traits::ColsAtCompileTime, EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                 Expression::Traits::MaxRowsAtCompileTime,
-                 Expression::Traits::MaxColsAtCompileTime> MatrixType;
-    typedef Expression Base;
-    friend class MatrixBase<Scalar, Expression>;
-    
-    Eval(const Expression& expression) : MatrixType(expression) {}
+    typedef Matrix<Scalar,
+                   Expression::Traits::RowsAtCompileTime,
+                   Expression::Traits::ColsAtCompileTime,
+                   EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
+                   Expression::Traits::MaxRowsAtCompileTime,
+                   Expression::Traits::MaxColsAtCompileTime> Base;
+
+    Eval() : Base() {}
+    explicit Eval(const Expression& other) : Base(other) {}
 };
 
 /** Evaluates *this, which can be any expression, and returns the obtained matrix.

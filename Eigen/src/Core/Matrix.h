@@ -149,6 +149,19 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     }
     
   public:
+    typedef Matrix<
+      Scalar,
+      RowsAtCompileTime == 1 ? 1 : Dynamic,
+      ColsAtCompileTime == 1 ? 1 : Dynamic,
+      StorageOrder,
+      RowsAtCompileTime == 1 ? 1 : MaxRowsAtCompileTime,
+      ColsAtCompileTime == 1 ? 1 : MaxColsAtCompileTime
+    > BlockType;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1,
+                   StorageOrder, MaxRowsAtCompileTime, 1> ColumnType;
+    typedef Matrix<Scalar, 1, ColsAtCompileTime,
+                   StorageOrder, 1, MaxColsAtCompileTime> RowType;
+
     /** \returns a const pointer to the data array of this matrix */
     const Scalar *data() const
     { return m_array.data(); }
