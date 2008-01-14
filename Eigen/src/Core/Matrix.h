@@ -111,6 +111,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     typedef      _Scalar                                Scalar;
     typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
+    template<typename ExpressionType> friend class Eval;
         
   private:
     enum {
@@ -150,24 +151,6 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     }
     
   public:
-    /** This type can be used to declare any matrix with smaller dimensions.
-      */
-    typedef Matrix<
-      Scalar,
-      RowsAtCompileTime == 1 ? 1 : Dynamic,
-      ColsAtCompileTime == 1 ? 1 : Dynamic,
-      StorageOrder,
-      RowsAtCompileTime == 1 ? 1 : MaxRowsAtCompileTime,
-      ColsAtCompileTime == 1 ? 1 : MaxColsAtCompileTime
-    > BlockType;
-
-    /** This type can be used to declare a column-vector */
-    typedef Matrix<Scalar, RowsAtCompileTime, 1,
-                   StorageOrder, MaxRowsAtCompileTime, 1> ColumnType;
-    /** This type can be used to declare a row-vector */
-    typedef Matrix<Scalar, 1, ColsAtCompileTime,
-                   StorageOrder, 1, MaxColsAtCompileTime> RowType;
-
     /** \returns a const pointer to the data array of this matrix */
     const Scalar *data() const
     { return m_array.data(); }

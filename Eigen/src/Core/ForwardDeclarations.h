@@ -61,4 +61,10 @@ struct Reference<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols
   typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> > Type;
 };
 
+template<typename ExpressionType>
+struct Reference<Eval<ExpressionType> >
+{
+  typedef MatrixRef<Eval<ExpressionType> > Type;
+};
+
 #endif // EIGEN_FORWARDDECLARATIONS_H

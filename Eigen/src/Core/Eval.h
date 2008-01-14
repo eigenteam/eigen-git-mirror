@@ -45,25 +45,53 @@
   *
   * \sa MatrixBase::eval()
   */
-template<typename Expression> class Eval : NoOperatorEquals,
-  public Matrix< typename Expression::Scalar,
-                 Expression::Traits::RowsAtCompileTime,
-                 Expression::Traits::ColsAtCompileTime,
-                 EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                 Expression::Traits::MaxRowsAtCompileTime,
-                 Expression::Traits::MaxColsAtCompileTime>
+template<typename ExpressionType> class Eval
+ : public MatrixBase<typename ExpressionType::Scalar, Eval<ExpressionType> >
 {
   public:
-    typedef typename Expression::Scalar Scalar;
-    typedef Matrix<Scalar,
-                   Expression::Traits::RowsAtCompileTime,
-                   Expression::Traits::ColsAtCompileTime,
+    typedef typename ExpressionType::Scalar Scalar;
+    friend class MatrixBase<Scalar, Eval>;
+    typedef MatrixBase<Scalar, Eval> Base;
+    friend class MatrixRef<Eval>;
+    typedef MatrixRef<Eval> Ref;
+    
+  private:
+    enum {
+      RowsAtCompileTime = ExpressionType::Traits::RowsAtCompileTime,
+      ColsAtCompileTime = ExpressionType::Traits::ColsAtCompileTime,
+      MaxRowsAtCompileTime = ExpressionType::Traits::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = ExpressionType::Traits::MaxColsAtCompileTime
+    };
+    typedef Matrix<typename ExpressionType::Scalar,
+                   ExpressionType::Traits::RowsAtCompileTime,
+                   ExpressionType::Traits::ColsAtCompileTime,
                    EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                   Expression::Traits::MaxRowsAtCompileTime,
-                   Expression::Traits::MaxColsAtCompileTime> Base;
+                   ExpressionType::Traits::MaxRowsAtCompileTime,
+                   ExpressionType::Traits::MaxColsAtCompileTime> MatrixType;
 
-    Eval() : Base() {}
-    explicit Eval(const Expression& other) : Base(other) {}
+    int _rows() const { return m_matrix.rows(); }
+    int _cols() const { return m_matrix.cols(); }
+    Ref _ref() const { return Ref(*this); }
+
+    const Scalar& _coeff(int row, int col) const
+    {
+      return m_matrix._coeff(row, col);
+    }
+    
+    Scalar& _coeffRef(int row, int col)
+    {
+      return m_matrix._coeffRef(row, col);
+    }
+
+  public:
+    template<typename Derived>
+    Eval(const MatrixBase<Scalar, Derived>& other) : m_matrix(other) {}
+    ~Eval() {}
+
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Eval)
+
+  protected:
+    MatrixType m_matrix;
 };
 
 /** Evaluates *this, which can be any expression, and returns the obtained matrix.
@@ -82,7 +110,7 @@ template<typename Expression> class Eval : NoOperatorEquals,
 template<typename Scalar, typename Derived>
 const Eval<Derived> MatrixBase<Scalar, Derived>::eval() const
 {
-  return Eval<Derived>(*static_cast<const Derived*>(this));
+  return Eval<Derived>(ref());
 }
 
 #endif // EIGEN_EVAL_H
