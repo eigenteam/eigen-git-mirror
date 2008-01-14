@@ -116,6 +116,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     enum {
       RowsAtCompileTime = _Rows,
       ColsAtCompileTime = _Cols,
+      SizeAtCompileTime = _Rows == Dynamic || _Cols == Dynamic ? Dynamic : _Rows * _Cols,
       StorageOrder = _StorageOrder,
       MaxRowsAtCompileTime = _MaxRows,
       MaxColsAtCompileTime = _MaxCols,
@@ -149,6 +150,8 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     }
     
   public:
+    /** This type can be used to declare any matrix with smaller dimensions.
+      */
     typedef Matrix<
       Scalar,
       RowsAtCompileTime == 1 ? 1 : Dynamic,
@@ -157,8 +160,11 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       RowsAtCompileTime == 1 ? 1 : MaxRowsAtCompileTime,
       ColsAtCompileTime == 1 ? 1 : MaxColsAtCompileTime
     > BlockType;
+
+    /** This type can be used to declare a column-vector */
     typedef Matrix<Scalar, RowsAtCompileTime, 1,
                    StorageOrder, MaxRowsAtCompileTime, 1> ColumnType;
+    /** This type can be used to declare a row-vector */
     typedef Matrix<Scalar, 1, ColsAtCompileTime,
                    StorageOrder, 1, MaxColsAtCompileTime> RowType;
 
@@ -178,9 +184,14 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
           && cols > 0
           && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-      m_rows.setValue(rows);
-      m_cols.setValue(cols);
-      m_array.resize(rows * cols);
+      if(SizeAtCompileTime == Dynamic)
+      {
+        const int size = rows * cols;
+        if(size > m_rows.value() * m_cols.value())
+          m_array.resize(size);
+        m_rows.setValue(rows);
+        m_cols.setValue(cols);
+      }
     }
 
     /** Copies the value of the expression \a other into *this.
