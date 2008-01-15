@@ -52,7 +52,8 @@ template<typename MatrixType> class Row
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Row<MatrixType> >;
+    friend class MatrixBase<Scalar, Row>;
+    typedef MatrixBase<Scalar, Row> Base;
 
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)

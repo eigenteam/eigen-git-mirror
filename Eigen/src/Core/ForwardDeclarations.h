@@ -47,8 +47,8 @@ template<typename MatrixType> class Ones;
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
-template<typename ExpressionType> class Eval;
 template<typename MatrixType> class Map;
+template<typename Derived> class Eval;
 
 template<typename T> struct Reference
 {
@@ -59,12 +59,6 @@ template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows
 struct Reference<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 {
   typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> > Type;
-};
-
-template<typename ExpressionType>
-struct Reference<Eval<ExpressionType> >
-{
-  typedef MatrixRef<Eval<ExpressionType> > Type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

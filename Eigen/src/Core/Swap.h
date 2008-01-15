@@ -23,45 +23,42 @@
 // License. This exception does not invalidate any other reasons why a work
 // based on this file might be covered by the GNU General Public License.
 
-#ifndef EIGEN_MATRIXREF_H
-#define EIGEN_MATRIXREF_H
+#ifndef EIGEN_SWAP_H
+#define EIGEN_SWAP_H
 
-template<typename MatrixType> class MatrixRef
- : public MatrixBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+void MatrixBase<Scalar, Derived>::swap(const MatrixBase<Scalar, OtherDerived>& other)
 {
-  public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, MatrixRef>;
-    typedef MatrixBase<Scalar, MatrixRef> Base;
-    
-    MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
-    ~MatrixRef() {}
-
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
-
-  private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
-
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
-
-    const Scalar& _coeff(int row, int col) const
+  MatrixBase<Scalar, OtherDerived> *_other = const_cast<MatrixBase<Scalar, OtherDerived>*>(&other);
+  if(Traits::SizeAtCompileTime == Dynamic)
+  {
+    Scalar tmp;
+    if(Traits::IsVectorAtCompileTime)
     {
-      return m_matrix._coeff(row, col);
+      assert(OtherDerived::Traits::IsVectorAtCompileTime && size() == _other->size());
+      for(int i = 0; i < size(); i++)
+      {
+        tmp = coeff(i);
+        coeffRef(i) = _other->coeff(i);
+        _other->coeffRef(i) = tmp;
+      }
     }
-    
-    Scalar& _coeffRef(int row, int col)
-    {
-      return const_cast<MatrixType*>(&m_matrix)->_coeffRef(row, col);
-    }
+    else
+      for(int j = 0; j < cols(); j++)
+        for(int i = 0; i < rows(); i++)
+        {
+          tmp = coeff(i, j);
+          coeffRef(i, j) = _other->coeff(i, j);
+          _other->coeffRef(i, j) = tmp;
+        }
+  }
+  else // SizeAtCompileTime != Dynamic
+  {
+    typename Eval<Derived>::MatrixType buf(*this);
+    *this = other;
+    *_other = buf;
+  }
+}
 
-  protected:
-    const MatrixType& m_matrix;
-};
-
-#endif // EIGEN_MATRIXREF_H
+#endif // EIGEN_SWAP_H

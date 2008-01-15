@@ -52,7 +52,8 @@ template<typename MatrixType> class Column
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Column<MatrixType> >;
+    friend class MatrixBase<Scalar, Column>;
+    typedef MatrixBase<Scalar, Column> Base;
     
     Column(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)

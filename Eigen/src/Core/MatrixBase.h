@@ -304,6 +304,34 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& w();
 
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+
+    /** puts in *row and *col the location of the coefficient of *this
+      * which has the biggest absolute value.
+      */
+    void findBiggestCoeff(int *row, int *col) const
+    {
+      RealScalar biggest = 0;
+      for(int j = 0; j < cols(); j++)
+        for(int i = 0; i < rows(); i++)
+        {
+          RealScalar x = abs(coeff(i,j));
+          if(x > biggest)
+          {
+            biggest = x;
+            *row = i;
+            *col = j;
+          }
+        }
+    }
+
+    /** swaps *this with the expression \a other.
+      *
+      * \note \a other is only marked const because I couln't find another way
+      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
+      * of course. TODO: get rid of const here.
+      */
+    template<typename OtherDerived>
+    void swap(const MatrixBase<Scalar, OtherDerived>& other);
 };
 
 #endif // EIGEN_MATRIXBASE_H

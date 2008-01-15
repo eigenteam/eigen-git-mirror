@@ -38,8 +38,9 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Ones<MatrixType> >;
-  
+    friend class MatrixBase<Scalar, Ones>;
+    typedef MatrixBase<Scalar, Ones> Base;
+
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,

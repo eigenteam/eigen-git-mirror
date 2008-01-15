@@ -44,7 +44,8 @@ template<typename MatrixType> class Transpose
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Transpose<MatrixType> >;
+    friend class MatrixBase<Scalar, Transpose>;
+    typedef MatrixBase<Scalar, Transpose> Base;
     
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
     
@@ -54,8 +55,8 @@ template<typename MatrixType> class Transpose
     enum {
       RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
       ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
+      MaxRowsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime
     };
 
     const Transpose& _ref() const { return *this; }

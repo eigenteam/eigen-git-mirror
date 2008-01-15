@@ -38,7 +38,8 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Zero<MatrixType> >;
+    friend class MatrixBase<Scalar, Zero>;
+    typedef MatrixBase<Scalar, Zero> Base;
   
   private:
     enum {

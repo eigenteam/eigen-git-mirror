@@ -1,4 +1,4 @@
-// This file is part of Eigen, a lightweight C++ template library
+// // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
@@ -81,7 +81,8 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Product>;
-    
+    typedef MatrixBase<Scalar, Product> Base;
+
     Product(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs) 
     {

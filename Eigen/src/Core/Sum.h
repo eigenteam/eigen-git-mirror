@@ -47,6 +47,7 @@ template<typename Lhs, typename Rhs> class Sum : NoOperatorEquals,
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Sum>;
+    typedef MatrixBase<Scalar, Sum> Base;
     
     Sum(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)

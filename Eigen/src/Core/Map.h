@@ -44,7 +44,8 @@ template<typename MatrixType> class Map
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Map<MatrixType> >;
+    friend class MatrixBase<Scalar, Map>;
+    typedef MatrixBase<Scalar, Map> Base;
 
   private:
     enum {

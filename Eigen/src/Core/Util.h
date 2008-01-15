@@ -67,18 +67,18 @@ using Eigen::MatrixBase;
 template<typename OtherScalar, typename OtherDerived> \
 Derived& operator Op(const MatrixBase<OtherScalar, OtherDerived>& other) \
 { \
-  return MatrixBase<Scalar, Derived>::operator Op(other); \
+  return Base::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return MatrixBase<Scalar, Derived>::operator Op(other); \
+  return Base::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return MatrixBase<Scalar, Derived>::operator Op(scalar); \
+  return Base::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

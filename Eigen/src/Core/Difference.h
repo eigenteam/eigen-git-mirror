@@ -47,7 +47,8 @@ template<typename Lhs, typename Rhs> class Difference : NoOperatorEquals,
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Difference>;
-    
+    typedef MatrixBase<Scalar, Difference> Base;
+
     Difference(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {

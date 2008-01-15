@@ -44,7 +44,8 @@ template<typename MatrixType> class Minor
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Minor<MatrixType> >;
+    friend class MatrixBase<Scalar, Minor>;
+    typedef MatrixBase<Scalar, Minor> Base;
     
     Minor(const MatRef& matrix,
                 int row, int col)

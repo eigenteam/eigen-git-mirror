@@ -44,8 +44,9 @@ template<typename MatrixType> class DiagonalCoeffs
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, DiagonalCoeffs<MatrixType> >;
-    
+    friend class MatrixBase<Scalar, DiagonalCoeffs>;
+    typedef MatrixBase<Scalar, DiagonalCoeffs> Base;
+
     DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)

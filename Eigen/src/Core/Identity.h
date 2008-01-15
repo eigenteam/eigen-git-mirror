@@ -37,8 +37,9 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Identity<MatrixType> >;
-    
+    friend class MatrixBase<Scalar, Identity>;
+    typedef MatrixBase<Scalar, Identity> Base;
+
     Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0

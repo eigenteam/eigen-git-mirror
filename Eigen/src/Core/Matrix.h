@@ -111,13 +111,11 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     typedef      _Scalar                                Scalar;
     typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
-    template<typename ExpressionType> friend class Eval;
         
   private:
     enum {
       RowsAtCompileTime = _Rows,
       ColsAtCompileTime = _Cols,
-      SizeAtCompileTime = _Rows == Dynamic || _Cols == Dynamic ? Dynamic : _Rows * _Cols,
       StorageOrder = _StorageOrder,
       MaxRowsAtCompileTime = _MaxRows,
       MaxColsAtCompileTime = _MaxCols,
@@ -167,14 +165,9 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
           && cols > 0
           && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-      if(SizeAtCompileTime == Dynamic)
-      {
-        const int size = rows * cols;
-        if(size > m_rows.value() * m_cols.value())
-          m_array.resize(size);
-        m_rows.setValue(rows);
-        m_cols.setValue(cols);
-      }
+      m_rows.setValue(rows);
+      m_cols.setValue(cols);
+      m_array.resize(rows * cols);
     }
 
     /** Copies the value of the expression \a other into *this.

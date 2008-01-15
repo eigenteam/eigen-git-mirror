@@ -47,8 +47,9 @@ class DiagonalMatrix : NoOperatorEquals,
   public:
     typedef typename CoeffsVectorType::Scalar Scalar;
     typedef typename CoeffsVectorType::Ref CoeffsVecRef;
-    friend class MatrixBase<Scalar, DiagonalMatrix<CoeffsVectorType> >;
-    
+    friend class MatrixBase<Scalar, DiagonalMatrix>;
+    typedef MatrixBase<Scalar, DiagonalMatrix> Base;
+
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::Traits::IsVectorAtCompileTime

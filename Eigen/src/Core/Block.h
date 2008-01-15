@@ -56,8 +56,9 @@ template<typename MatrixType> class Block
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Block<MatrixType> >;
-    
+    friend class MatrixBase<Scalar, Block>;
+    typedef MatrixBase<Scalar, Block> Base;
+
     Block(const MatRef& matrix,
           int startRow, int startCol,
           int blockRows, int blockCols)

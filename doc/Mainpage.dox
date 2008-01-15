@@ -73,7 +73,7 @@ If you want to stay informed of Eigen news and releases, please subscribe to our
 
 <a name="download"></a>
 <h2>Download</h2>
-The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha3.tar.gz">eigen-2.0-alpha3.tar.gz</a><br/>
+The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha3.1.tar.gz">eigen-2.0-alpha3.1.tar.gz</a><br/>
 
 Alternatively, you can checkout the development tree by anonymous svn, by doing:
 <pre>svn co svn://anonsvn.kde.org/home/kde/branches/work/eigen2</pre>

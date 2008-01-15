@@ -4,8 +4,8 @@
 
 namespace Eigen {
 
-#include "src/Core/Util.h"
 #include "src/Core/ForwardDeclarations.h"
+#include "src/Core/Util.h"
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/MatrixBase.h"
@@ -38,5 +38,6 @@ namespace Eigen {
 #include "src/Core/Fuzzy.h"
 #include "src/Core/Map.h"
 #include "src/Core/IO.h"
+#include "src/Core/Swap.h"
 
 } // namespace Eigen

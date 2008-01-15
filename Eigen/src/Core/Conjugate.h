@@ -44,7 +44,8 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Conjugate<MatrixType> >;
+    friend class MatrixBase<Scalar, Conjugate>;
+    typedef MatrixBase<Scalar, Conjugate> Base;
     
     Conjugate(const MatRef& matrix) : m_matrix(matrix) {}
     

@@ -55,8 +55,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class FixedBlock
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, FixedBlock<MatrixType, BlockRows, BlockCols> >;
-    
+    friend class MatrixBase<Scalar, FixedBlock>;
+    typedef MatrixBase<Scalar, FixedBlock> Base;
+
     FixedBlock(const MatRef& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {

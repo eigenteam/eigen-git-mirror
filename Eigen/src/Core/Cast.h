@@ -52,7 +52,8 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
   public:
     typedef NewScalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Cast<Scalar, MatrixType> >;
+    friend class MatrixBase<Scalar, Cast>;
+    typedef MatrixBase<Scalar, Cast> Base;
     
     Cast(const MatRef& matrix) : m_matrix(matrix) {}
     

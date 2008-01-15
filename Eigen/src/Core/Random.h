@@ -38,7 +38,8 @@ template<typename MatrixType> class Random : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Random<MatrixType> >;
+    friend class MatrixBase<Scalar, Random>;
+    typedef MatrixBase<Scalar, Random> Base;
   
   private:
     enum {
@@ -86,7 +87,8 @@ template<typename MatrixType> class Random : NoOperatorEquals,
   * \sa random(), random(int)
   */
 template<typename Scalar, typename Derived>
-const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int cols)
+const Eval<Random<Derived> >
+MatrixBase<Scalar, Derived>::random(int rows, int cols)
 {
   return Random<Derived>(rows, cols).eval();
 }
@@ -108,7 +110,8 @@ const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int rows, int c
   * \sa random(), random(int,int)
   */
 template<typename Scalar, typename Derived>
-const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
+const Eval<Random<Derived> >
+MatrixBase<Scalar, Derived>::random(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
   if(Traits::RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
@@ -127,7 +130,8 @@ const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random(int size)
   * \sa random(int), random(int,int)
   */
 template<typename Scalar, typename Derived>
-const Eval<Random<Derived> > MatrixBase<Scalar, Derived>::random()
+const Eval<Random<Derived> >
+MatrixBase<Scalar, Derived>::random()
 {
   return Random<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime).eval();
 }

@@ -43,7 +43,8 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, ScalarMultiple<FactorType, MatrixType> >;
+    friend class MatrixBase<Scalar, ScalarMultiple>;
+    typedef MatrixBase<Scalar, ScalarMultiple> Base;
 
     ScalarMultiple(const MatRef& matrix, FactorType factor)
       : m_matrix(matrix), m_factor(factor) {}

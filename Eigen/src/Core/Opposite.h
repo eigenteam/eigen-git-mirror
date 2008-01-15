@@ -44,8 +44,9 @@ template<typename MatrixType> class Opposite : NoOperatorEquals,
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
-    friend class MatrixBase<Scalar, Opposite<MatrixType> >;
-    
+    friend class MatrixBase<Scalar, Opposite>;
+    typedef MatrixBase<Scalar, Opposite> Base;
+
     Opposite(const MatRef& matrix) : m_matrix(matrix) {}
     
   private:
