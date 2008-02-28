@@ -37,10 +37,10 @@
   * \note Because of the multiplicativeness of this comparison, one can't use this function
   * to check whether \c *this is approximately equal to the zero matrix or vector.
   * Indeed, \c isApprox(zero) returns false unless \c *this itself is exactly the zero matrix
-  * or vector. If you want to test whether \c *this is zero, use isMuchSmallerThan(const
+  * or vector. If you want to test whether \c *this is zero, use ei_isMuchSmallerThan(const
   * RealScalar&, RealScalar) instead.
   *
-  * \sa isMuchSmallerThan(const RealScalar&, RealScalar) const
+  * \sa ei_isMuchSmallerThan(const RealScalar&, RealScalar) const
   */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
@@ -82,12 +82,12 @@ bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
 {
   if(Traits::IsVectorAtCompileTime)
   {
-    return(norm2() <= abs2(other * prec));
+    return(norm2() <= ei_abs2(other * prec));
   }
   else
   {
     for(int i = 0; i < cols(); i++)
-      if(col(i).norm2() > abs2(other * prec))
+      if(col(i).norm2() > ei_abs2(other * prec))
         return false;
     return true;
   }

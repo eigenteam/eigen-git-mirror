@@ -55,7 +55,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     
     Scalar _coeff(int, int) const
     {
-      return Eigen::random<Scalar>();
+      return ei_random<Scalar>();
     }
   
   public:
@@ -78,13 +78,13 @@ template<typename MatrixType> class Random : NoOperatorEquals,
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so random() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so ei_random() should be used
   * instead.
   *
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
   *
-  * \sa random(), random(int)
+  * \sa ei_random(), ei_random(int)
   */
 template<typename Scalar, typename Derived>
 const Eval<Random<Derived> >
@@ -101,13 +101,13 @@ MatrixBase<Scalar, Derived>::random(int rows, int cols)
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so random() should be used
+  * it is redundant to pass \a size as argument, so ei_random() should be used
   * instead.
   *
   * Example: \include MatrixBase_random_int.cpp
   * Output: \verbinclude MatrixBase_random_int.out
   *
-  * \sa random(), random(int,int)
+  * \sa ei_random(), ei_random(int,int)
   */
 template<typename Scalar, typename Derived>
 const Eval<Random<Derived> >
@@ -127,7 +127,7 @@ MatrixBase<Scalar, Derived>::random(int size)
   * Example: \include MatrixBase_random.cpp
   * Output: \verbinclude MatrixBase_random.out
   *
-  * \sa random(int), random(int,int)
+  * \sa ei_random(int), ei_random(int,int)
   */
 template<typename Scalar, typename Derived>
 const Eval<Random<Derived> >
@@ -141,7 +141,7 @@ MatrixBase<Scalar, Derived>::random()
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
-  * \sa class Random, random()
+  * \sa class Random, ei_random()
   */
 template<typename Scalar, typename Derived>
 Derived& MatrixBase<Scalar, Derived>::setRandom()

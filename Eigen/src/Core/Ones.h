@@ -146,7 +146,7 @@ bool MatrixBase<Scalar, Derived>::isOnes
 {
   for(int j = 0; j < cols(); j++)
     for(int i = 0; i < rows(); i++)
-      if(!Eigen::isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
+      if(!ei_isApprox(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
 }

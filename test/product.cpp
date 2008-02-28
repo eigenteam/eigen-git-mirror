@@ -53,10 +53,10 @@ template<typename MatrixType> void product(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = random<Scalar>();
+  Scalar s1 = ei_random<Scalar>();
   
-  int r = random<int>(0, rows-1),
-      c = random<int>(0, cols-1);
+  int r = ei_random<int>(0, rows-1),
+      c = ei_random<int>(0, cols-1);
   
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)

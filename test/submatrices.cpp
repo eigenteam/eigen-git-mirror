@@ -52,12 +52,12 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              v3 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = random<Scalar>();
+  Scalar s1 = ei_random<Scalar>();
   
-  int r1 = random<int>(0,rows-1);
-  int r2 = random<int>(r1,rows-1);
-  int c1 = random<int>(0,cols-1);
-  int c2 = random<int>(c1,cols-1);
+  int r1 = ei_random<int>(0,rows-1);
+  int r2 = ei_random<int>(r1,rows-1);
+  int c1 = ei_random<int>(0,cols-1);
+  int c2 = ei_random<int>(c1,cols-1);
   
   //check row() and col()
   VERIFY_IS_APPROX(m1.col(c1).transpose(), m1.transpose().row(c1));
@@ -108,7 +108,7 @@ void EigenTest::testSubmatrices()
     // being called as a member of a class that is itself a template parameter
     // (at least as of g++ 4.2)
     Matrix<float, 6, 8> m = Matrix<float, 6, 8>::random();
-    float s = random<float>();
+    float s = ei_random<float>();
     // test fixedBlock() as lvalue
     m.fixedBlock<2,5>(1,1) *= s;
     // test operator() on fixedBlock() both as constant and non-constant

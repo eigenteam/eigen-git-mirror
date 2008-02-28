@@ -32,7 +32,7 @@ struct DotUnroller
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     DotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1.coeff(Index) * conj(v2.coeff(Index));
+    dot += v1.coeff(Index) * ei_conj(v2.coeff(Index));
   }
 };
 
@@ -41,7 +41,7 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    dot = v1.coeff(0) * conj(v2.coeff(0));
+    dot = v1.coeff(0) * ei_conj(v2.coeff(0));
   }
 };
 
@@ -84,9 +84,9 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
-    res = (*this).coeff(0) * conj(other.coeff(0));
+    res = (*this).coeff(0) * ei_conj(other.coeff(0));
     for(int i = 1; i < size(); i++)
-      res += (*this).coeff(i)* conj(other.coeff(i));
+      res += (*this).coeff(i)* ei_conj(other.coeff(i));
   }
   return res;
 }
@@ -100,7 +100,7 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm2() const
 {
-  return real(dot(*this));
+  return ei_real(dot(*this));
 }
 
 /** \returns the norm of *this, i.e. the square root of the dot product of *this with itself.
@@ -112,7 +112,7 @@ typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm2() const
 template<typename Scalar, typename Derived>
 typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm() const
 {
-  return sqrt(norm2());
+  return ei_sqrt(norm2());
 }
 
 /** \returns an expression of the quotient of *this by its own norm.
@@ -140,7 +140,7 @@ bool MatrixBase<Scalar, Derived>::isOrtho
 (const OtherDerived& other,
  typename NumTraits<Scalar>::Real prec) const
 {
-  return abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
+  return ei_abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
 }
 
 /** \returns true if *this is approximately an unitary matrix,
@@ -160,10 +160,10 @@ bool MatrixBase<Scalar, Derived>::isOrtho
 {
   for(int i = 0; i < cols(); i++)
   {
-    if(!Eigen::isApprox(col(i).norm2(), static_cast<Scalar>(1), prec))
+    if(!ei_isApprox(col(i).norm2(), static_cast<Scalar>(1), prec))
       return false;
     for(int j = 0; j < i; j++)
-      if(!Eigen::isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1), prec))
+      if(!ei_isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1), prec))
         return false;
   }
   return true;

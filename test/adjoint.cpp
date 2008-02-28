@@ -51,8 +51,8 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
              v3 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = random<Scalar>(),
-         s2 = random<Scalar>();
+  Scalar s1 = ei_random<Scalar>(),
+         s2 = ei_random<Scalar>();
   
   // check involutivity of adjoint, transpose, conjugate
   VERIFY_IS_APPROX(m1.transpose().transpose(),              m1);
@@ -70,18 +70,18 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX((m1.adjoint() * m2).adjoint(),           m2.adjoint() * m1);
   VERIFY_IS_APPROX((m1.transpose() * m2).conjugate(),       m1.adjoint() * m2.conjugate());
   VERIFY_IS_APPROX((s1 * m1).transpose(),                   s1 * m1.transpose());
-  VERIFY_IS_APPROX((s1 * m1).conjugate(),                   conj(s1) * m1.conjugate());
-  VERIFY_IS_APPROX((s1 * m1).adjoint(),                     conj(s1) * m1.adjoint());
+  VERIFY_IS_APPROX((s1 * m1).conjugate(),                   ei_conj(s1) * m1.conjugate());
+  VERIFY_IS_APPROX((s1 * m1).adjoint(),                     ei_conj(s1) * m1.adjoint());
   
   // check basic properties of dot, norm, norm2
   typedef typename NumTraits<Scalar>::Real RealScalar;
   VERIFY_IS_APPROX((s1 * v1 + s2 * v2).dot(v3),      s1 * v1.dot(v3) + s2 * v2.dot(v3));
-  VERIFY_IS_APPROX(v3.dot(s1 * v1 + s2 * v2),        conj(s1)*v3.dot(v1)+conj(s2)*v3.dot(v2));
-  VERIFY_IS_APPROX(conj(v1.dot(v2)),                 v2.dot(v1));
-  VERIFY_IS_APPROX(abs(v1.dot(v1)),                  v1.norm2());
+  VERIFY_IS_APPROX(v3.dot(s1 * v1 + s2 * v2),        ei_conj(s1)*v3.dot(v1)+ei_conj(s2)*v3.dot(v2));
+  VERIFY_IS_APPROX(ei_conj(v1.dot(v2)),                 v2.dot(v1));
+  VERIFY_IS_APPROX(ei_abs(v1.dot(v1)),                  v1.norm2());
   if(NumTraits<Scalar>::HasFloatingPoint)
     VERIFY_IS_APPROX(v1.norm2(),                     v1.norm() * v1.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(abs(vzero.dot(v1)),    static_cast<RealScalar>(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.dot(v1)),    static_cast<RealScalar>(1));
   if(NumTraits<Scalar>::HasFloatingPoint)
     VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),        static_cast<RealScalar>(1));
   
@@ -89,10 +89,10 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(v1.dot(square * v2),              (square.adjoint() * v1).dot(v2));
   
   // like in testBasicStuff, test operator() to check const-qualification
-  int r = random<int>(0, rows-1),
-      c = random<int>(0, cols-1);
-  VERIFY_IS_APPROX(m1.conjugate()(r,c), conj(m1(r,c)));
-  VERIFY_IS_APPROX(m1.adjoint()(c,r), conj(m1(r,c)));
+  int r = ei_random<int>(0, rows-1),
+      c = ei_random<int>(0, cols-1);
+  VERIFY_IS_APPROX(m1.conjugate()(r,c), ei_conj(m1(r,c)));
+  VERIFY_IS_APPROX(m1.adjoint()(c,r), ei_conj(m1(r,c)));
   
 }
 

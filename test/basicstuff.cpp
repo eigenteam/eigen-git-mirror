@@ -49,8 +49,8 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  int r = random<int>(0, rows-1),
-      c = random<int>(0, cols-1);
+  int r = ei_random<int>(0, rows-1),
+      c = ei_random<int>(0, cols-1);
   
   VERIFY_IS_APPROX(               v1,    v1);
   VERIFY_IS_NOT_APPROX(           v1,    2*v1);

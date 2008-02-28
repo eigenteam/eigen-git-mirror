@@ -146,7 +146,7 @@ bool MatrixBase<Scalar, Derived>::isZero
 {
   for(int j = 0; j < cols(); j++)
     for(int i = 0; i < rows(); i++)
-      if(!Eigen::isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
+      if(!ei_isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
 }

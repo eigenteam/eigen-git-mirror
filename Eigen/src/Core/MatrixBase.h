@@ -314,7 +314,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       for(int j = 0; j < cols(); j++)
         for(int i = 0; i < rows(); i++)
         {
-          RealScalar x = abs(coeff(i,j));
+          RealScalar x = ei_abs(coeff(i,j));
           if(x > biggest)
           {
             biggest = x;

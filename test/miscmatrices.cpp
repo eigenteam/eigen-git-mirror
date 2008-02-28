@@ -39,7 +39,7 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
   
-  int r = random<int>(0, rows-1), r2 = random<int>(0, rows-1), c = random<int>(0, cols-1);
+  int r = ei_random<int>(0, rows-1), r2 = ei_random<int>(0, rows-1), c = ei_random<int>(0, cols-1);
   VERIFY_IS_APPROX(MatrixType::ones(rows,cols)(r,c), static_cast<Scalar>(1));
   MatrixType m1 = MatrixType::ones(rows,cols);
   VERIFY_IS_APPROX(m1(r,c), static_cast<Scalar>(1));

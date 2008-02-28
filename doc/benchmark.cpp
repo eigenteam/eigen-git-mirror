@@ -1,8 +1,9 @@
 // g++ -O3 -DNDEBUG benchmark.cpp -o benchmark && time ./benchmark
-
+#include <cstdlib>
+#include <cmath>
 #include <Eigen/Core>
 
-using namespace std;
+//using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
@@ -18,6 +19,6 @@ int main(int argc, char *argv[])
 	{
 		m = I + 0.00005 * (m + m*m);
 	}
-	cout << m << endl;
+	std::cout << m << std::endl;
 	return 0;
 }

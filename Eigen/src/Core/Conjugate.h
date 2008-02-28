@@ -63,7 +63,7 @@ template<typename MatrixType> class Conjugate : NoOperatorEquals,
     
     Scalar _coeff(int row, int col) const
     {
-      return conj(m_matrix.coeff(row, col));
+      return ei_conj(m_matrix.coeff(row, col));
     }
     
   protected:
