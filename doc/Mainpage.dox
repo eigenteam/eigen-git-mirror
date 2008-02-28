@@ -23,12 +23,21 @@ Eigen is a C++ template library for vector and matrix math, a.k.a. linear algebr
 <a name="license"></a>
 <h2>License</h2>
 
- Eigen is distributed under the GPL, version 2 or later, but with an <a href="#exception">exception allowing any software to use it</a>. Thus, to the question
-"Can my own project use Eigen?", the answer is a definite <b>yes</b>.
+Eigen is dual-licensed: it can be redistributed and/or modified, at your choice,
+<ul>
+  <li> either under the <a href="http://www.gnu.org/copyleft/lgpl.html">LGPL</a>, version 3 or later,</li>
+  <li> or under the <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a>, version 2 or later.</li>
+</ul>
 
-Eigen's <a href="#exception">exception</a> is modeled after the one of the GNU C++ Standard Library, but is simpler and more liberal.
+Note that this is an OR, not an AND. You do not need to conform to both licenses, you just pick the one that you prefer. Typically, GPL projects will regard Eigen as GPL-licensed while non-GPL projects will regard Eigen as LGPL-licensed.
 
-This is similar to the LGPL in spirit. The reason why we don't use the LGPL is that, as of version 2, it doesn't make sense for a pure template library like Eigen, where all the code is in headers.
+Short licensing FAQ:
+
+<b>Question:</b> Why not just license under the LGPL, since anyway it is more liberal than the GPL?<br>
+<b>Answer:</b> A library licensed under the LGPL3 cannot be used by a program licensed under the GPL2 (<a href="http://www.fsf.org/licensing/licenses/gpl-faq.html#AllCompatibility">see here for details</a>). Therefore, we offer the GPL2 as an alternative license choice for Eigen, in order to allow GPL2 programs to use it.
+
+<b>Question:</b> Why require the LGPL version to be at least 3?<br>
+<b>Answer:</b> Because up to version 2.1, the LGPL does not handle the case of C++ template libraries, where all the code is in headers. This problem was solved in version 3 of the LGPL.
 
 <a name="features"></a>
 <h2>Features</h2>
@@ -140,17 +149,5 @@ To subscribe, send a mail with subject "subscribe" to eigen-request at lists tux
 To unsubscribe, send a mail with subject "unsubscribe" to eigen-request at lists tuxfamily org.<br/>
 
 You can also browse the <a href="http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/">archive</a>.
-
-<a name="exception"></a>
-<h2>Exception to the GPL</h2>
-Eigen is licensed under the GNU GPL, version 2 or later, plus the following exception, which is replicated into each of the source files of Eigen:
-<pre>
-// As a special exception, if other files instantiate templates or use macros
-// or inline functions from this file, or you compile this file and link it
-// with other works to produce a work based on this file, this file does not
-// by itself cause the resulting work to be covered by the GNU General Public
-// License. This exception does not invalidate any other reasons why a work
-// based on this file might be covered by the GNU General Public License.
-</pre>
 
 */
