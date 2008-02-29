@@ -187,7 +187,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* da
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int rows, int cols)
-  : m_rows(rows), m_cols(cols), m_array(rows*cols)
+  : m_storage(rows*cols, rows, cols)
 {
   *this = map(data, rows, cols);
 }
@@ -205,9 +205,7 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int size)
-  : m_rows(RowsAtCompileTime == 1 ? 1 : size),
-    m_cols(ColsAtCompileTime == 1 ? 1 : size),
-    m_array(size)
+  : m_storage(size, RowsAtCompileTime == 1 ? 1 : size, ColsAtCompileTime == 1 ? 1 : size)
 {
   *this = map(data, size);
 }

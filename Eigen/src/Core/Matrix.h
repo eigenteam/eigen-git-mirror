@@ -25,31 +25,6 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-template<typename T, int Size> class Array
-{
-    T m_data[Size];
-  public:
-    Array() {}
-    explicit Array(int) {}
-    void resize(int) {}
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
-};
-
-template<typename T> class Array<T, Dynamic>
-{
-    T *m_data;
-  public:
-    explicit Array(int size) : m_data(new T[size]) {}
-    ~Array() { delete[] m_data; }
-    void resize(int size)
-    {
-      delete[] m_data;
-      m_data = new T[size];
-    }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
-};
 
 /** \class Matrix
   *
@@ -123,38 +98,36 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
                                : _MaxRows * _MaxCols
     };
 
-    IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
-    IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
-    Array<Scalar, MaxSizeAtCompileTime> m_array;
+    MatrixStorage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
     Ref _ref() const { return Ref(*this); }
-    int _rows() const { return m_rows.value(); }
-    int _cols() const { return m_cols.value(); }
+    int _rows() const { return m_storage.rows(); }
+    int _cols() const { return m_storage.cols(); }
     
     const Scalar& _coeff(int row, int col) const
     {
       if(StorageOrder == ColumnMajor)
-        return m_array.data()[row + col * m_rows.value()];
+        return m_storage.data()[row + col * m_storage.rows()];
       else // RowMajor
-        return m_array.data()[col + row * m_cols.value()];
+        return m_storage.data()[col + row * m_storage.cols()];
     }
     
     Scalar& _coeffRef(int row, int col)
     {
       if(StorageOrder == ColumnMajor)
-        return m_array.data()[row + col * m_rows.value()];
+        return m_storage.data()[row + col * m_storage.rows()];
       else // RowMajor
-        return m_array.data()[col + row * m_cols.value()];
+        return m_storage.data()[col + row * m_storage.cols()];
     }
     
   public:
     /** \returns a const pointer to the data array of this matrix */
     const Scalar *data() const
-    { return m_array.data(); }
+    { return m_storage.data(); }
     
     /** \returns a pointer to the data array of this matrix */
     Scalar *data()
-    { return m_array.data(); }
+    { return m_storage.data(); }
 
     void resize(int rows, int cols)
     {
@@ -164,9 +137,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
           && cols > 0
           && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-      m_rows.setValue(rows);
-      m_cols.setValue(cols);
-      m_array.resize(rows * cols);
+      m_storage.resize(rows * cols, rows, cols);
     }
 
     /** Copies the value of the expression \a other into *this.
@@ -229,9 +200,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       * it is redundant to pass the dimension here, so it makes more sense to use the default
       * constructor Matrix() instead.
       */
-    explicit Matrix(int dim) : m_rows(RowsAtCompileTime == 1 ? 1 : dim),
-                               m_cols(ColsAtCompileTime == 1 ? 1 : dim),
-                               m_array(dim)
+    explicit Matrix(int dim) : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
       assert(dim > 0);
       assert((RowsAtCompileTime == 1
@@ -250,13 +219,13 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       *     it is redundant to pass these parameters, so one should use the default constructor
       *     Matrix() instead.
       */
-    Matrix(int x, int y) : m_rows(x), m_cols(y), m_array(x*y)
+    Matrix(int x, int y) : m_storage(x*y, x, y)
     {
       if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
       || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
       {
-        m_array.data()[0] = x;
-        m_array.data()[1] = y;
+        m_storage.data()[0] = x;
+        m_storage.data()[1] = y;
       }
       else
       {
@@ -269,35 +238,35 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     {
       assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
-      m_array.data()[0] = x;
-      m_array.data()[1] = y;
+      m_storage.data()[0] = x;
+      m_storage.data()[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
     Matrix(const double& x, const double& y)
     {
       assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
-      m_array.data()[0] = x;
-      m_array.data()[1] = y;
+      m_storage.data()[0] = x;
+      m_storage.data()[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
           || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
-      m_array.data()[0] = x;
-      m_array.data()[1] = y;
-      m_array.data()[2] = z;
+      m_storage.data()[0] = x;
+      m_storage.data()[1] = y;
+      m_storage.data()[2] = z;
     }
     /** constructs an initialized 4D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
           || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
-      m_array.data()[0] = x;
-      m_array.data()[1] = y;
-      m_array.data()[2] = z;
-      m_array.data()[3] = w;
+      m_storage.data()[0] = x;
+      m_storage.data()[1] = y;
+      m_storage.data()[2] = z;
+      m_storage.data()[3] = w;
     }
     Matrix(const Scalar *data, int rows, int cols);
     Matrix(const Scalar *data, int size);
@@ -306,17 +275,13 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)
-             : m_rows(other.rows()),
-               m_cols(other.cols()),
-               m_array(other.rows() * other.cols())
+             : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       *this = other;
     }
     /** Copy constructor */
     Matrix(const Matrix& other)
-             : m_rows(other.rows()),
-               m_cols(other.cols()),
-               m_array(other.rows() * other.cols())
+             : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       *this = other;
     }
