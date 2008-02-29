@@ -6,8 +6,8 @@
 
 namespace Eigen {
 
-#include "src/Core/ForwardDeclarations.h"
 #include "src/Core/Util.h"
+#include "src/Core/ForwardDeclarations.h"
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/MatrixBase.h"
@@ -25,7 +25,6 @@ namespace Eigen {
 #include "src/Core/Product.h"
 #include "src/Core/Row.h"
 #include "src/Core/Column.h"
-#include "src/Core/FixedBlock.h"
 #include "src/Core/Block.h"
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"

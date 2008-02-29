@@ -200,9 +200,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     const Block<Derived> corner(CornerType type, int cRows, int cCols) const;
 
     template<int BlockRows, int BlockCols>
-    FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol);
+    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
     template<int BlockRows, int BlockCols>
-    const FixedBlock<Derived, BlockRows, BlockCols> fixedBlock(int startRow, int startCol) const;
+    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;

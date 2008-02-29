@@ -29,7 +29,7 @@ namespace Eigen {
 template<typename MatrixType> void submatrices(const MatrixType& m)
 {
   /* this test covers the following files:
-     Row.h Column.h FixedBlock.h Block.h Minor.h DiagonalCoeffs.h
+     Row.h Column.h Block.h Minor.h DiagonalCoeffs.h
   */
   
   typedef typename MatrixType::Scalar Scalar;
@@ -103,17 +103,17 @@ void EigenTest::testSubmatrices()
     submatrices(MatrixXi(8, 12));
     submatrices(MatrixXcd(20, 20));
     
-    // test fixedBlock() separately as it is a template method so doesn't support
+    // test fixed block() separately as it is a template method so doesn't support
     // being called as a member of a class that is itself a template parameter
     // (at least as of g++ 4.2)
     Matrix<float, 6, 8> m = Matrix<float, 6, 8>::random();
     float s = ei_random<float>();
-    // test fixedBlock() as lvalue
-    m.fixedBlock<2,5>(1,1) *= s;
-    // test operator() on fixedBlock() both as constant and non-constant
-    m.fixedBlock<2,5>(1,1)(0, 3) = m.fixedBlock<2,5>(1,1)(1,2);
-    // check that fixedBlock() and block() agree
-    MatrixXf b = m.fixedBlock<3,2>(3,3);
+    // test fixed block() as lvalue
+    m.block<2,5>(1,1) *= s;
+    // test operator() on fixed block() both as constant and non-constant
+    m.block<2,5>(1,1)(0, 3) = m.block<2,5>(1,1)(1,2);
+    // check that fixed block() and block() agree
+    MatrixXf b = m.block<3,2>(3,3);
     VERIFY_IS_APPROX(b, m.block(3,3,3,2));
   }
 }
