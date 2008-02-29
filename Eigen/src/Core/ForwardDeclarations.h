@@ -39,7 +39,7 @@ template<typename MatrixType> class Opposite;
 template<typename Lhs, typename Rhs> class Sum;
 template<typename Lhs, typename Rhs> class Difference;
 template<typename Lhs, typename Rhs> class Product;
-template<typename FactorType, typename MatrixType> class ScalarMultiple;
+template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
 template<typename MatrixType> class Zero;
 template<typename MatrixType> class Ones;

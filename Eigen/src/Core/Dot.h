@@ -121,7 +121,7 @@ typename NumTraits<Scalar>::Real MatrixBase<Scalar, Derived>::norm() const
   * \sa norm()
   */
 template<typename Scalar, typename Derived>
-const ScalarMultiple<typename NumTraits<Scalar>::Real, Derived>
+const ScalarMultiple<Derived>
 MatrixBase<Scalar, Derived>::normalized() const
 {
   return (*this) / norm();

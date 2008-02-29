@@ -61,14 +61,14 @@ template<typename T, int Size> class MatrixStorage<T, Size, Dynamic, Dynamic>
     int m_rows;
     int m_cols;
   public:
-    MatrixStorage(int, int nbRows, int nbCols) : m_rows(nbRows), m_cols(nbCols) {}
+    MatrixStorage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
     ~MatrixStorage() {}
     int rows(void) const {return m_rows;}
     int cols(void) const {return m_cols;}
-    void resize(int, int nbRows, int nbCols)
+    void resize(int, int rows, int cols)
     {
-      m_rows = nbRows;
-      m_cols = nbCols;
+      m_rows = rows;
+      m_cols = cols;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
@@ -80,13 +80,13 @@ template<typename T, int Size, int _Cols> class MatrixStorage<T, Size, Dynamic, 
     T m_data[Size];
     int m_rows;
   public:
-    MatrixStorage(int, int nbRows, int) : m_rows(nbRows) {}
+    MatrixStorage(int, int rows, int) : m_rows(rows) {}
     ~MatrixStorage() {}
     int rows(void) const {return m_rows;}
     int cols(void) const {return _Cols;}
-    void resize(int size, int nbRows, int)
+    void resize(int size, int rows, int)
     {
-      m_rows = nbRows;
+      m_rows = rows;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
@@ -98,13 +98,13 @@ template<typename T, int Size, int _Rows> class MatrixStorage<T, Size, _Rows, Dy
     T m_data[Size];
     int m_cols;
   public:
-    MatrixStorage(int, int nbRows, int nbCols) : m_cols(nbCols) {}
+    MatrixStorage(int, int, int cols) : m_cols(cols) {}
     ~MatrixStorage() {}
     int rows(void) const {return _Rows;}
     int cols(void) const {return m_cols;}
-    void resize(int size, int, int nbCols)
+    void resize(int size, int, int cols)
     {
-      m_cols = nbCols;
+      m_cols = cols;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
@@ -117,19 +117,20 @@ template<typename T> class MatrixStorage<T, Dynamic, Dynamic, Dynamic>
     int m_rows;
     int m_cols;
   public:
-    MatrixStorage(int size, int nbRows, int nbCols) : m_data(new T[size]), m_rows(nbRows), m_cols(nbCols) {}
+    MatrixStorage(int size, int rows, int cols)
+      : m_data(new T[size]), m_rows(rows), m_cols(cols) {}
     ~MatrixStorage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     int cols(void) const {return m_cols;}
-    void resize(int size, int nbRows, int nbCols)
+    void resize(int size, int rows, int cols)
     {
       if(size != m_rows*m_cols)
       {
         delete[] m_data;
         m_data = new T[size];
       }
-      m_rows = nbRows;
-      m_cols = nbCols;
+      m_rows = rows;
+      m_cols = cols;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
@@ -141,18 +142,18 @@ template<typename T, int _Rows> class MatrixStorage<T, Dynamic, _Rows, Dynamic>
     T *m_data;
     int m_cols;
   public:
-    MatrixStorage(int size, int, int nbCols) : m_data(new T[size]), m_cols(nbCols) {}
+    MatrixStorage(int size, int, int cols) : m_data(new T[size]), m_cols(cols) {}
     ~MatrixStorage() { delete[] m_data; }
     static int rows(void) {return _Rows;}
     int cols(void) const {return m_cols;}
-    void resize(int size, int, int nbCols)
+    void resize(int size, int, int cols)
     {
       if(size != _Rows*m_cols)
       {
         delete[] m_data;
         m_data = new T[size];
       }
-      m_cols = nbCols;
+      m_cols = cols;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
@@ -164,18 +165,18 @@ template<typename T, int _Cols> class MatrixStorage<T, Dynamic, Dynamic, _Cols>
     T *m_data;
     int m_rows;
   public:
-    MatrixStorage(int size, int nbRows, int) : m_data(new T[size]), m_rows(nbRows) {}
+    MatrixStorage(int size, int rows, int) : m_data(new T[size]), m_rows(rows) {}
     ~MatrixStorage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     static int cols(void) {return _Cols;}
-    void resize(int size, int nbRows, int)
+    void resize(int size, int rows, int)
     {
       if(size != m_rows*_Cols)
       {
         delete[] m_data;
         m_data = new T[size];
       }
-      m_rows = nbRows;
+      m_rows = rows;
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }

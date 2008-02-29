@@ -36,8 +36,8 @@
   * It is the return type of the operator* between a matrix or vector and a scalar, and most
   * of the time this is the only way it is used.
   */
-template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<FactorType, MatrixType> >
+template<typename MatrixType> class ScalarMultiple : NoOperatorEquals,
+  public MatrixBase<typename MatrixType::Scalar, ScalarMultiple<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
@@ -45,7 +45,7 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
     friend class MatrixBase<Scalar, ScalarMultiple>;
     typedef MatrixBase<Scalar, ScalarMultiple> Base;
 
-    ScalarMultiple(const MatRef& matrix, FactorType factor)
+    ScalarMultiple(const MatRef& matrix, Scalar factor)
       : m_matrix(matrix), m_factor(factor) {}
 
   private:
@@ -67,62 +67,40 @@ template<typename FactorType, typename MatrixType> class ScalarMultiple : NoOper
 
   protected:
     const MatRef m_matrix;
-    const FactorType m_factor;
+    const Scalar m_factor;
 };
 
-#define EIGEN_MAKE_SCALAR_OPS(FactorType)                              \
-/** \relates MatrixBase \sa class ScalarMultiple */                    \
-template<typename Scalar, typename Derived>                            \
-const ScalarMultiple<FactorType, Derived>                              \
-operator*(const MatrixBase<Scalar, Derived>& matrix,                   \
-          FactorType scalar)                                           \
-{                                                                      \
-  return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
-}                                                                      \
-                                                                       \
-/** \relates MatrixBase \sa class ScalarMultiple */                    \
-template<typename Scalar, typename Derived>                            \
-const ScalarMultiple<FactorType, Derived>                              \
-operator*(FactorType scalar,                                           \
-          const MatrixBase<Scalar, Derived>& matrix)                   \
-{                                                                      \
-  return ScalarMultiple<FactorType, Derived>(matrix.ref(), scalar);    \
-}                                                                      \
-                                                                       \
-/** \relates MatrixBase \sa class ScalarMultiple */                    \
-template<typename Scalar, typename Derived>                            \
-const ScalarMultiple<typename NumTraits<FactorType>::FloatingPoint, Derived> \
-operator/(const MatrixBase<Scalar, Derived>& matrix,                   \
-          FactorType scalar)                                           \
-{                                                                      \
-  assert(NumTraits<Scalar>::HasFloatingPoint);                         \
-  return matrix * (static_cast<                                        \
-                     typename NumTraits<FactorType>::FloatingPoint     \
-                   >(1) / scalar);                                     \
-}                                                                      \
-                                                                       \
-/** \sa class ScalarMultiple */                                        \
-template<typename Scalar, typename Derived>                            \
-Derived &                                                              \
-MatrixBase<Scalar, Derived>::operator*=(const FactorType &other)       \
-{                                                                      \
-  return *this = *this * other;                                        \
-}                                                                      \
-                                                                       \
-/** \sa class ScalarMultiple */                                        \
-template<typename Scalar, typename Derived>                            \
-Derived &                                                              \
-MatrixBase<Scalar, Derived>::operator/=(const FactorType &other)       \
-{                                                                      \
-  return *this = *this / other;                                        \
+/** relates MatrixBase sa class ScalarMultiple */                    
+template<typename Scalar, typename Derived>                            
+const ScalarMultiple<Derived>                              
+MatrixBase<Scalar, Derived>::operator*(const Scalar& scalar) const                                          
+{                                                                      
+  return ScalarMultiple<Derived>(ref(), scalar);    
+}                                                                      
+                                                                                                                                              
+/** \relates MatrixBase \sa class ScalarMultiple */                    
+template<typename Scalar, typename Derived>                            
+const ScalarMultiple<Derived> 
+MatrixBase<Scalar, Derived>::operator/(const Scalar& scalar) const                                          
+{                                                                      
+  assert(NumTraits<Scalar>::HasFloatingPoint);                         
+  return ScalarMultiple<Derived>(ref(), static_cast<Scalar>(1) / scalar);                                     
 }
-
-EIGEN_MAKE_SCALAR_OPS(int)
-EIGEN_MAKE_SCALAR_OPS(float)
-EIGEN_MAKE_SCALAR_OPS(double)
-EIGEN_MAKE_SCALAR_OPS(std::complex<float>)
-EIGEN_MAKE_SCALAR_OPS(std::complex<double>)
-
-#undef EIGEN_MAKE_SCALAR_OPS
+                                                                       
+/** \sa ScalarMultiple */                                        
+template<typename Scalar, typename Derived>                            
+Derived&                                                              
+MatrixBase<Scalar, Derived>::operator*=(const Scalar& other)       
+{                                                                      
+  return *this = *this * other;                                        
+}                                                                      
+                                                                       
+/** \sa ScalarMultiple */                                        
+template<typename Scalar, typename Derived>                            
+Derived&                                                              
+MatrixBase<Scalar, Derived>::operator/=(const Scalar& other)       
+{                                                                      
+  return *this = *this / other;                                        
+}
 
 #endif // EIGEN_SCALARMULTIPLE_H

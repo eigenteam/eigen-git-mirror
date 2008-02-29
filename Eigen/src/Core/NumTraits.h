@@ -87,4 +87,24 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   };
 };
 
+template<> struct NumTraits<long long int>
+{
+  typedef long long int Real;
+  typedef long double FloatingPoint;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 0
+  };
+};
+
+template<> struct NumTraits<long double>
+{
+  typedef long double Real;
+  typedef long double FloatingPoint;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1
+  };
+};
+
 #endif // EIGEN_NUMTRAITS_H

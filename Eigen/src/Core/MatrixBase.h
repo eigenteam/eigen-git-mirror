@@ -215,7 +215,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar dot(const OtherDerived& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const ScalarMultiple<RealScalar, Derived> normalized() const;
+    const ScalarMultiple<Derived> normalized() const;
     template<typename OtherDerived>
     bool isOrtho(const OtherDerived& other, RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
@@ -269,17 +269,16 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator*=(const MatrixBase<Scalar, OtherDerived>& other);
    
-    Derived& operator*=(const int& other);
-    Derived& operator*=(const float& other);
-    Derived& operator*=(const double& other);
-    Derived& operator*=(const std::complex<float>& other);
-    Derived& operator*=(const std::complex<double>& other);
-    
-    Derived& operator/=(const int& other);
-    Derived& operator/=(const float& other);
-    Derived& operator/=(const double& other);
-    Derived& operator/=(const std::complex<float>& other);
-    Derived& operator/=(const std::complex<double>& other);
+    Derived& operator*=(const Scalar& other);
+    Derived& operator/=(const Scalar& other);
+
+    const ScalarMultiple<Derived> operator*(const Scalar& scalar) const;
+    const ScalarMultiple<Derived> operator/(const Scalar& scalar) const;
+
+    friend
+    const ScalarMultiple<Derived> operator*(const Scalar& scalar,
+                                            const MatrixBase& matrix) 
+    { return matrix*scalar; }    
 
     Scalar coeff(int row, int col) const;
     Scalar operator()(int row, int col) const;
