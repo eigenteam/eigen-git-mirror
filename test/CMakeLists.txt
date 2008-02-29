@@ -5,6 +5,7 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 
 SET(test_SRCS
+  cwiseop.cpp
   main.cpp
   basicstuff.cpp
   linearstructure.cpp

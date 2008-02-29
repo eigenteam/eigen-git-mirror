@@ -69,7 +69,7 @@ struct DotUnroller<Index, 0, Derived1, Derived2>
   */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
+Scalar MatrixBase<Scalar, Derived>::dot(const MatrixBase<Scalar, OtherDerived>& other) const
 {
   assert(Traits::IsVectorAtCompileTime
       && OtherDerived::Traits::IsVectorAtCompileTime
@@ -79,7 +79,7 @@ Scalar MatrixBase<Scalar, Derived>::dot(const OtherDerived& other) const
   && Traits::SizeAtCompileTime != Dynamic
   && Traits::SizeAtCompileTime <= 16)
     DotUnroller<Traits::SizeAtCompileTime-1, Traits::SizeAtCompileTime,
-                Derived, OtherDerived>
+                Derived, MatrixBase<Scalar, OtherDerived> >
       ::run(*static_cast<const Derived*>(this), other, res);
   else
   {
@@ -136,7 +136,7 @@ MatrixBase<Scalar, Derived>::normalized() const
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Scalar, Derived>::isOrtho
-(const OtherDerived& other,
+(const MatrixBase<Scalar, OtherDerived>& other,
  typename NumTraits<Scalar>::Real prec) const
 {
   return ei_abs2(dot(other)) <= prec * prec * norm2() * other.norm2();

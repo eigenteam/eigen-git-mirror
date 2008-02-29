@@ -35,8 +35,9 @@ template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> clas
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename MatrixType> class Opposite;
-template<typename Lhs, typename Rhs> class Sum;
-template<typename Lhs, typename Rhs> class Difference;
+template<template<typename BinaryOpScalar> class BinaryOp, typename Lhs, typename Rhs> class CwiseBinaryOp;
+template<typename Scalar> struct CwiseProductOp;
+template<typename Scalar> struct CwiseQuotientOp;
 template<typename Lhs, typename Rhs> class Product;
 template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;

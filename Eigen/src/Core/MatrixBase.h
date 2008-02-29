@@ -212,12 +212,13 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar trace() const;
     
     template<typename OtherDerived>
-    Scalar dot(const OtherDerived& other) const;
+    Scalar dot(const MatrixBase<Scalar, OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
     const ScalarMultiple<Derived> normalized() const;
     template<typename OtherDerived>
-    bool isOrtho(const OtherDerived& other, RealScalar prec = precision<Scalar>()) const;
+    bool isOrtho(const MatrixBase<Scalar, OtherDerived>& other,
+                 RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
     
     static const Eval<Random<Derived> > random(int rows, int cols);
@@ -262,6 +263,18 @@ template<typename Scalar, typename Derived> class MatrixBase
     
     const Opposite<Derived> operator-() const;
     
+    template<typename OtherDerived>
+    const CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>
+    cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const;
+   
+    template<typename OtherDerived>
+    const CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>
+    cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const;
+ 
+    template<template<typename BinaryOpScalar> class CustomBinaryOp, typename OtherDerived>
+    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
+    cwise(const MatrixBase<Scalar, OtherDerived> &other) const;  
+
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);
     template<typename OtherDerived>

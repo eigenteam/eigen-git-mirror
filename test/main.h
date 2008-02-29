@@ -121,6 +121,7 @@ class EigenTest : public QObject
     void testMiscMatrices();
     void testSmallVectors();
     void testMap();
+    void testCwiseops();
   protected:
     int m_repeat;
 };
