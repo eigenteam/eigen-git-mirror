@@ -11,7 +11,7 @@ o /** @mainpage Eigen
 <a href="#kde">Relation to KDE</a><br/>
 <a href="#examples">Examples</a><br/>
 <a href="#applications">Applications using Eigen</a><br/>
-<a href="#authors">Authors</a><br/>
+<a href="#credits">Credits</a><br/>
 <a href="#contact">Contact us</a><br/>
 <a href="#mailinglist">Mailing list</a><br/>
 
@@ -82,7 +82,7 @@ If you want to stay informed of Eigen news and releases, please subscribe to our
 
 <a name="download"></a>
 <h2>Download</h2>
-The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha3.1.tar.gz">eigen-2.0-alpha3.1.tar.gz</a><br/>
+The source code of the latest release is here: <a href="http://download.tuxfamily.org/eigen/eigen-2.0-alpha4.tar.gz">eigen-2.0-alpha4.tar.gz</a><br/>
 
 Alternatively, you can checkout the development tree by anonymous svn, by doing:
 <pre>svn co svn://anonsvn.kde.org/home/kde/branches/work/eigen2</pre>
@@ -120,14 +120,12 @@ Planned: much more use in KOffice 2.1, Step (if we make Eigen good enough!)
 
 Please tell us if you know of other interesting projects using Eigen!
 
-<a name="authors"></a>
-<h2>Authors</h2>
+<a name="credits"></a>
+<h2>Credits</h2>
 
-<b>Main Developer:</b> Benoit Jacob (jacob at math jussieu fr)
-
-<b>Contributors during the Eigen 2 development process:</b>
 <ul>
-  <li>Gael Guennebaud (gael guennebaud at gmail com) : Intel compiler (ICC) support
+  <li>Benoit Jacob (jacob at math jussieu fr) : Main developer</li>
+  <li>Gael Guennebaud (gael guennebaud at gmail com) : Large contributions</li>
   <li>Christian Mayer (mail at christianmayer de) : reviewed the source code, made many useful suggestions</li>
   <li>Michael Olbrich (michael olbrich at gmx net) : initial loop-unrolling metaprogram</li>
   <li>and thanks to everyone on the <a href="#mailinglist">mailing list</a> for your input!
