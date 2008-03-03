@@ -56,7 +56,11 @@ using Eigen::MatrixBase;
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
-#ifdef __GNUC__
+// FIXME with the always_inline attribute,
+// gcc 3.4.x reports the following compilation error:
+//   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
+//    : function body not available
+#if (defined __GNUC__) && (__GNUC__!=3)
 #define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
 #else
 #define EIGEN_ALWAYS_INLINE

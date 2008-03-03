@@ -67,9 +67,9 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
     
-    Scalar _coeff(int row, int col) const
+    NewScalar _coeff(int row, int col) const
     {
-      return static_cast<Scalar>(m_matrix.coeff(row, col));
+      return static_cast<NewScalar>(m_matrix.coeff(row, col));
     }
     
   protected:

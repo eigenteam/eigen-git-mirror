@@ -29,8 +29,8 @@
 
 namespace Eigen {
 
-template<typename Scalar> struct AddIfNull {
-    static Scalar op(const Scalar a, const Scalar b) {return a<1e-3 ? b : a;}
+struct AddIfNull {
+    template<typename Scalar> static Scalar op(const Scalar a, const Scalar b) {return a<=1e-3 ? b : a;}
 };
 
 template<typename MatrixType> void cwiseops(const MatrixType& m)
@@ -54,10 +54,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-   
-   m2 = m2.cwise<AddIfNull>(mones);
-   //m2 = cwise<AddIfNull>(m2,mones);
-  std::cout << m2 << "\n";
+  m2 = m2.template cwise<AddIfNull>(mones);
   
   VERIFY_IS_APPROX(               mzero,    m1-m1);
   VERIFY_IS_APPROX(               m2,       m1+m2-m1);
@@ -72,12 +69,12 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 
 void EigenTest::testCwiseops()
 {
-  for(int i = 0; i < 1/*m_repeat*/ ; i++) {
-//     cwiseops(Matrix<float, 1, 1>());
-//     cwiseops(Matrix4d());
-//     cwiseops(MatrixXcf(3, 3));
+  for(int i = 0; i < m_repeat ; i++) {
+    cwiseops(Matrix<float, 1, 1>());
+    cwiseops(Matrix4d());
+    cwiseops(MatrixXf(3, 3));
     cwiseops(MatrixXi(8, 12));
-//     cwiseops(MatrixXcd(20, 20));
+    cwiseops(MatrixXd(20, 20));
   }
 }
 

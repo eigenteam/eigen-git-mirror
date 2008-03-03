@@ -144,6 +144,8 @@ template<typename Scalar, typename Derived> class MatrixBase
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
     
+    /// \name a - matrix properties
+    //@{
     /** \returns the number of rows. \sa cols(), Traits::RowsAtCompileTime */
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
     /** \returns the number of columns. \sa row(), Traits::ColsAtCompileTime*/
@@ -156,10 +158,13 @@ template<typename Scalar, typename Derived> class MatrixBase
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), Traits::IsVectorAtCompileTime. */
     bool isVector() const { return rows()==1 || cols()==1; }
+    //@}
+
     /** \returns a Ref to *this. \sa Ref */
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
     
+    //@{
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
@@ -172,8 +177,18 @@ template<typename Scalar, typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
     
-    template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
+    /** swaps *this with the expression \a other.
+      *
+      * \note \a other is only marked const because I couln't find another way
+      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
+      * of course. TODO: get rid of const here.
+      */
+    template<typename OtherDerived>
+    void swap(const MatrixBase<Scalar, OtherDerived>& other);
+    //@}
     
+    /// \name c - sub-matrices
+    //@{
     Row<Derived> row(int i);
     const Row<Derived> row(int i) const;
     
@@ -204,22 +219,34 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<int BlockRows, int BlockCols>
     const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
 
+    DiagonalCoeffs<Derived> diagonal();
+    const DiagonalCoeffs<Derived> diagonal() const;
+    //@}
+
+    /// \name d - matrix transformation
+    //@{
+    template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
+
+    const DiagonalMatrix<Derived> asDiagonal() const;
+
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
     
-    const Conjugate<Derived> conjugate() const;
-    const Transpose<Conjugate<Derived> > adjoint() const;
+    const CwiseUnaryOp<ConjugateOp, Derived> conjugate() const;
+    const Transpose<CwiseUnaryOp<ConjugateOp, Derived> > adjoint() const;
+
+    const ScalarMultiple<Derived> normalized() const;
+    //@}
+
+    /// \name f - metrics (??)
+    //@{
     Scalar trace() const;
     
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<Scalar, OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const ScalarMultiple<Derived> normalized() const;
-    template<typename OtherDerived>
-    bool isOrtho(const MatrixBase<Scalar, OtherDerived>& other,
-                 RealScalar prec = precision<Scalar>()) const;
-    bool isOrtho(RealScalar prec = precision<Scalar>()) const;
+    //@}
     
     static const Eval<Random<Derived> > random(int rows, int cols);
     static const Eval<Random<Derived> > random(int size);
@@ -233,20 +260,22 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Identity<Derived> identity();
     static const Identity<Derived> identity(int rows, int cols);
     
-    bool isZero(RealScalar prec = precision<Scalar>()) const;
-    bool isOnes(RealScalar prec = precision<Scalar>()) const;
-    bool isIdentity(RealScalar prec = precision<Scalar>()) const;
-    bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
-    
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
     Derived& setIdentity();
     
-    const DiagonalMatrix<Derived> asDiagonal() const;
+    /// \name g - matrix diagnostic and comparison
+    //@{
+    bool isZero(RealScalar prec = precision<Scalar>()) const;
+    bool isOnes(RealScalar prec = precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = precision<Scalar>()) const;
+    bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
     
-    DiagonalCoeffs<Derived> diagonal();
-    const DiagonalCoeffs<Derived> diagonal() const;
+    template<typename OtherDerived>
+    bool isOrtho(const MatrixBase<Scalar, OtherDerived>& other,
+                 RealScalar prec = precision<Scalar>()) const;
+    bool isOrtho(RealScalar prec = precision<Scalar>()) const;
     
     template<typename OtherDerived>
     bool isApprox(const OtherDerived& other,
@@ -256,24 +285,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     bool isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>& other,
                            RealScalar prec = precision<Scalar>()) const;
+    //@}
     
-    template<typename OtherDerived>
-    const Product<Derived, OtherDerived>
-    lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
-    
-    const Opposite<Derived> operator-() const;
-    
-    template<typename OtherDerived>
-    const CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>
-    cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const;
-   
-    template<typename OtherDerived>
-    const CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>
-    cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const;
- 
-    template<template<typename BinaryOpScalar> class CustomBinaryOp, typename OtherDerived>
-    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<Scalar, OtherDerived> &other) const;  
+    /// \name e - arithemetic operators
+    //@{
+    const CwiseUnaryOp<CwiseOppositeOp,Derived> operator-() const;
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);
@@ -293,6 +309,23 @@ template<typename Scalar, typename Derived> class MatrixBase
                                             const MatrixBase& matrix) 
     { return matrix*scalar; }    
 
+    template<typename OtherDerived>
+    const Product<Derived, OtherDerived>
+    lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
+
+    const CwiseUnaryOp<CwiseAbsOp,Derived> cwiseAbs() const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>
+    cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>
+    cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const;
+    //@}
+
+    /// \name b - coefficient accessors
+    //@{
     Scalar coeff(int row, int col) const;
     Scalar operator()(int row, int col) const;
     
@@ -313,8 +346,19 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& y();
     Scalar& z();
     Scalar& w();
+    //@}
 
+    /// \name h - special functions
+    //@{
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+
+    template<typename CustomUnaryOp>
+    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise() const;
+
+    template<typename CustomBinaryOp, typename OtherDerived>
+    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
+    cwise(const MatrixBase<Scalar, OtherDerived> &other) const;
+    //@}
 
     /** puts in *row and *col the location of the coefficient of *this
       * which has the biggest absolute value.
@@ -335,14 +379,6 @@ template<typename Scalar, typename Derived> class MatrixBase
         }
     }
 
-    /** swaps *this with the expression \a other.
-      *
-      * \note \a other is only marked const because I couln't find another way
-      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
-      * of course. TODO: get rid of const here.
-      */
-    template<typename OtherDerived>
-    void swap(const MatrixBase<Scalar, OtherDerived>& other);
 };
 
 #endif // EIGEN_MATRIXBASE_H

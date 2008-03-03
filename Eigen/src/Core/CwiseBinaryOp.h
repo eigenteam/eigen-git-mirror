@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@gmail.com>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -35,12 +35,18 @@
   * \param Rhs the type of the right-hand side
   *
   * This class represents an expression of a generic binary operator of two matrices or vectors.
-  * It is the return type of the operator+, operator-, cwiseiseProduct, cwiseQuotient between matrices or vectors, and most
+  * It is the return type of the operator+, operator-, cwiseProduct, cwiseQuotient between matrices or vectors, and most
   * of the time this is the only way it is used.
+  *
+  * However, if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating this:
+  * \include class_CwiseBinaryOp.cpp
   *
   * \sa class CwiseProductOp, class CwiseQuotientOp
   */
-template<template<typename BinaryOpScalar> class BinaryOp, typename Lhs, typename Rhs>
+template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : NoOperatorEquals,
   public MatrixBase<typename Lhs::Scalar, CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
@@ -71,7 +77,7 @@ class CwiseBinaryOp : NoOperatorEquals,
 
     Scalar _coeff(int row, int col) const
     {
-      return BinaryOp<Scalar>::op(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
+      return BinaryOp::template op<Scalar>(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }
     
   protected:
@@ -83,32 +89,32 @@ class CwiseBinaryOp : NoOperatorEquals,
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+
   */
-template<typename Scalar> struct CwiseSumOp {
-    static Scalar op(const Scalar& a, const Scalar& b) { return a + b; }
+struct CwiseSumOp {
+    template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a + b; }
 };
 
 /** \brief Template functor to compute the difference of two scalars
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
-template<typename Scalar> struct CwiseDifferenceOp {
-    static Scalar op(const Scalar& a, const Scalar& b) { return a - b; }
+struct CwiseDifferenceOp {
+    template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a - b; }
 };
 
 /** \brief Template functor to compute the product of two scalars
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct()
   */
-template<typename Scalar> struct CwiseProductOp {
-    static Scalar op(const Scalar& a, const Scalar& b) { return a * b; }
+struct CwiseProductOp {
+    template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a * b; }
 };
 
 /** \brief Template functor to compute the quotient of two scalars
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
-template<typename Scalar> struct CwiseQuotientOp {
-    static Scalar op(const Scalar& a, const Scalar& b) { return a / b; }
+struct CwiseQuotientOp {
+    template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a / b; }
 };
 
 /** \relates MatrixBase
@@ -193,11 +199,12 @@ MatrixBase<Scalar, Derived>::cwiseQuotient(const MatrixBase<Scalar, OtherDerived
   *
   * \returns an expression of a custom coefficient-wise operator of \a mat1 and \a mat2
   *
-  * \param CustomBinaryOp template functor of the custom operator
+  * The template parameter \a CustomBinaryOp is the template functor
+  * of the custom operator (see class CwiseBinaryOp for an example)
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
   */
-template<template<typename BinaryOpScalar> class CustomBinaryOp, typename Scalar, typename Derived1, typename Derived2>
+template<typename CustomBinaryOp, typename Scalar, typename Derived1, typename Derived2>
 const CwiseBinaryOp<CustomBinaryOp, Derived1, Derived2>
 cwise(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
@@ -206,12 +213,21 @@ cwise(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived
 
 /** \returns an expression of a custom coefficient-wise operator of *this and \a other
   *
-  * \param CustomBinaryOp template functor of the custom operator
+  * The template parameter \a CustomBinaryOp is the template functor
+  * of the custom operator (see class CwiseBinaryOp for an example)
+  *
+  * \note since cwise is a templated member with a mandatory template parameter,
+  * the keyword template as to be used if the matrix type is also a template parameter:
+  * \code
+  * template <typename MatrixType> void foo(const MatrixType& m1, const MatrixType& m2) {
+  *   m1.template cwise<CwiseProductOp>(m2);
+  * }
+  * \endcode
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
   */
 template<typename Scalar, typename Derived>
-template<template<typename BinaryOpScalar> class CustomBinaryOp, typename OtherDerived>
+template<typename CustomBinaryOp, typename OtherDerived>
 const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwise(const MatrixBase<Scalar, OtherDerived> &other) const
 {

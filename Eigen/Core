@@ -4,6 +4,14 @@
 #include <cassert>
 #include <iostream>
 
+#if ((defined __GNUC__) && ( (__GNUC__==3) || (__GNUC__==4) && __GNUC_MINOR__==0))
+/* This very ugly hack to fix a bug of gcc <4.1 with the Curiously recurring template pattern and friend class.
+   Note that gcc-4.0.1 is still the default compiler on MACOSX Leopard.
+*/
+#define private public
+#warning "Your compiler (gcc<4.1) has issue with friend and CRT, all private members of Eigen's classes are made public"
+#endif
+
 namespace Eigen {
 
 #include "src/Core/Util.h"
@@ -19,7 +27,7 @@ namespace Eigen {
 #include "src/Core/Cast.h"
 #include "src/Core/Eval.h"
 #include "src/Core/CwiseBinaryOp.h"
-#include "src/Core/Opposite.h"
+#include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/ScalarMultiple.h"
 #include "src/Core/Product.h"
 #include "src/Core/Row.h"
@@ -27,7 +35,6 @@ namespace Eigen {
 #include "src/Core/Block.h"
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
-#include "src/Core/Conjugate.h"
 #include "src/Core/Trace.h"
 #include "src/Core/Dot.h"
 #include "src/Core/Random.h"
@@ -42,3 +49,7 @@ namespace Eigen {
 #include "src/Core/Swap.h"
 
 } // namespace Eigen
+
+#if ((defined __GNUC__) && (__GNUC_MINOR__==0))
+#undef private
+#endif

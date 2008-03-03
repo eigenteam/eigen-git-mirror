@@ -97,4 +97,17 @@ MatrixBase<Scalar, Derived>::transpose() const
   return Transpose<Derived>(ref());
 }
 
+/** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.
+  *
+  * Example: \include MatrixBase_adjoint.cpp
+  * Output: \verbinclude MatrixBase_adjoint.out
+  *
+  * \sa transpose(), conjugate(), class Transpose, class ConjugateOp */
+template<typename Scalar, typename Derived>
+const Transpose<CwiseUnaryOp<ConjugateOp, Derived> >
+MatrixBase<Scalar, Derived>::adjoint() const
+{
+  return conjugate().transpose();
+}
+
 #endif // EIGEN_TRANSPOSE_H

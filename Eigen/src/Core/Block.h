@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@gmail.com>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -327,6 +327,9 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * Example: \include MatrixBase_block_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int.out
+  *
+  * \note since block is a templated member, the keyword template as to be used
+  * if the matrix type is also a template parameter: \code m.template block<3,3>(1,1); \endcode
   *
   * \sa class Block, block(int,int,int,int)
   */
