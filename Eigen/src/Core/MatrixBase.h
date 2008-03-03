@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -53,7 +53,7 @@
 template<typename Scalar, typename Derived> class MatrixBase
 {
   public:
-  
+
     /** \brief Some traits provided by the Derived type.
       *
       * Grouping these in a nested subclass is what was needed for ICC compatibility. */
@@ -64,13 +64,13 @@ template<typename Scalar, typename Derived> class MatrixBase
         * it is set to the \a Dynamic constant.
         * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
       enum { RowsAtCompileTime = Derived::RowsAtCompileTime };
-      
+
       /** The number of columns at compile-time. This is just a copy of the value provided
         * by the \a Derived type. If a value is not known at compile-time,
         * it is set to the \a Dynamic constant.
         * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
       enum { ColsAtCompileTime = Derived::ColsAtCompileTime };
-      
+
       /** This is equal to the number of coefficients, i.e. the number of
         * rows times the number of columns, or to \a Dynamic if this is not
         * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
@@ -89,7 +89,7 @@ template<typename Scalar, typename Derived> class MatrixBase
         * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
         */
       enum { MaxRowsAtCompileTime = Derived::MaxRowsAtCompileTime };
-      
+
       /** This value is equal to the maximum possible number of columns that this expression
         * might have. If this expression might have an arbitrarily high number of columns,
         * this value is set to \a Dynamic.
@@ -100,7 +100,7 @@ template<typename Scalar, typename Derived> class MatrixBase
         * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
         */
       enum { MaxColsAtCompileTime = Derived::MaxColsAtCompileTime };
-      
+
       /** This value is equal to the maximum possible number of coefficients that this expression
         * might have. If this expression might have an arbitrarily high number of coefficients,
         * this value is set to \a Dynamic.
@@ -123,7 +123,7 @@ template<typename Scalar, typename Derived> class MatrixBase
         = Derived::RowsAtCompileTime == 1 || Derived::ColsAtCompileTime == 1
       };
     };
-    
+
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
       * to functions. If this MatrixBase type represents an expression, then \a Ref
       * is just this MatrixBase type itself, i.e. expressions are just passed by value
@@ -132,7 +132,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       * a typedef to MatrixRef, which works as a reference, so that matrices and vectors
       * are passed by reference, not by value. \sa ref()*/
     typedef typename Reference<Derived>::Type Ref;
-    
+
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
       * \a Scalar is \a std::complex<T> then RealScalar is \a T.
@@ -297,7 +297,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator-=(const MatrixBase<Scalar, OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator*=(const MatrixBase<Scalar, OtherDerived>& other);
-   
+
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 

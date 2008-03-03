@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -78,19 +78,19 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              vzero = VectorType::zero(rows);
 
   Scalar s1 = ei_random<Scalar>();
-  
+
   int r1 = ei_random<int>(0,rows-1);
   int r2 = ei_random<int>(r1,rows-1);
   int c1 = ei_random<int>(0,cols-1);
   int c2 = ei_random<int>(c1,cols-1);
-  
+
   //check row() and col()
   VERIFY_IS_APPROX(m1.col(c1).transpose(), m1.transpose().row(c1));
   VERIFY_IS_APPROX(square.row(r1).dot(m1.col(c1)), square.lazyProduct(m1.conjugate())(r1,c1));
   //check operator(), both constant and non-constant, on row() and col()
   m1.row(r1) += s1 * m1.row(r2);
   m1.col(c1) += s1 * m1.col(c2);
-  
+
   //check block()
   Matrix<Scalar,Dynamic,Dynamic> b1(1,1); b1(0,0) = m1(r1,c1);
   RowVectorType br1(m1.block(r1,0,1,cols));
@@ -120,7 +120,7 @@ void EigenTest::testSubmatrices()
     submatrices(MatrixXcf(3, 3));
     submatrices(MatrixXi(8, 12));
     submatrices(MatrixXcd(20, 20));
-    
+
     // test fixed block() separately as it is a template method so doesn't support
     // being called as a member of a class that is itself a template parameter
     // (at least as of g++ 4.2)

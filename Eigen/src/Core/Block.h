@@ -19,7 +19,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -76,7 +76,7 @@ template<typename MatrixType,
       assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
-    
+
     /** Dynamic-size constructor
       */
     Block(const MatRef& matrix,
@@ -90,9 +90,9 @@ template<typename MatrixType,
       assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
           && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
-    
+
   private:
     enum{
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime == 1 ? 1 : BlockRows,
@@ -106,17 +106,17 @@ template<typename MatrixType,
     const Block& _ref() const { return *this; }
     int _rows() const { return m_blockRows.value(); }
     int _cols() const { return m_blockCols.value(); }
-    
+
     Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
-    
+
     Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
-    
+
   protected:
 
     MatRef m_matrix;
