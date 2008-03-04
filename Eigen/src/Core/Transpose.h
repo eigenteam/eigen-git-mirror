@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,12 +44,13 @@ template<typename MatrixType> class Transpose
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Transpose>;
+    friend class MatrixBase<Scalar, Transpose>::Traits;
     typedef MatrixBase<Scalar, Transpose> Base;
-    
+
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
-    
+
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
@@ -61,17 +62,17 @@ template<typename MatrixType> class Transpose
     const Transpose& _ref() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
-    
+
     Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.coeffRef(col, row);
     }
-    
+
     Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(col, row);
     }
-    
+
   protected:
     MatRef m_matrix;
 };
@@ -102,9 +103,9 @@ MatrixBase<Scalar, Derived>::transpose() const
   * Example: \include MatrixBase_adjoint.cpp
   * Output: \verbinclude MatrixBase_adjoint.out
   *
-  * \sa transpose(), conjugate(), class Transpose, class ConjugateOp */
+  * \sa transpose(), conjugate(), class Transpose, class ScalarConjugateOp */
 template<typename Scalar, typename Derived>
-const Transpose<CwiseUnaryOp<ConjugateOp, Derived> >
+const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> >
 MatrixBase<Scalar, Derived>::adjoint() const
 {
   return conjugate().transpose();

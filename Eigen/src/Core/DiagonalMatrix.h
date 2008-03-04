@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -47,6 +47,7 @@ class DiagonalMatrix : NoOperatorEquals,
     typedef typename CoeffsVectorType::Scalar Scalar;
     typedef typename CoeffsVectorType::Ref CoeffsVecRef;
     friend class MatrixBase<Scalar, DiagonalMatrix>;
+    friend class MatrixBase<Scalar, DiagonalMatrix>::Traits;
     typedef MatrixBase<Scalar, DiagonalMatrix> Base;
 
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
@@ -54,7 +55,7 @@ class DiagonalMatrix : NoOperatorEquals,
       assert(CoeffsVectorType::Traits::IsVectorAtCompileTime
           && coeffs.size() > 0);
     }
-    
+
   private:
     enum {
       RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
@@ -62,16 +63,16 @@ class DiagonalMatrix : NoOperatorEquals,
       MaxRowsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime,
       MaxColsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime
     };
-    
+
     const DiagonalMatrix& _ref() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
-    
+
     Scalar _coeff(int row, int col) const
     {
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
-    
+
   protected:
     const CoeffsVecRef m_coeffs;
 };

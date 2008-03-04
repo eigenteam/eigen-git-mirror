@@ -6,12 +6,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -44,7 +44,7 @@
   * Here is an example illustrating this:
   * \include class_CwiseBinaryOp.cpp
   *
-  * \sa class CwiseProductOp, class CwiseQuotientOp
+  * \sa class ScalarProductOp, class ScalarQuotientOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : NoOperatorEquals,
@@ -55,6 +55,7 @@ class CwiseBinaryOp : NoOperatorEquals,
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, CwiseBinaryOp>;
+    friend class MatrixBase<Scalar, CwiseBinaryOp>::Traits;
     typedef MatrixBase<Scalar, CwiseBinaryOp> Base;
 
     CwiseBinaryOp(const LhsRef& lhs, const RhsRef& rhs)
@@ -79,7 +80,7 @@ class CwiseBinaryOp : NoOperatorEquals,
     {
       return BinaryOp::template op<Scalar>(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }
-    
+
   protected:
     const LhsRef m_lhs;
     const RhsRef m_rhs;
@@ -105,7 +106,7 @@ struct CwiseDifferenceOp {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct()
   */
-struct CwiseProductOp {
+struct ScalarProductOp {
     template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a * b; }
 };
 
@@ -113,7 +114,7 @@ struct CwiseProductOp {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
-struct CwiseQuotientOp {
+struct ScalarQuotientOp {
     template<typename Scalar> static Scalar op(const Scalar& a, const Scalar& b) { return a / b; }
 };
 
@@ -175,10 +176,10 @@ MatrixBase<Scalar, Derived>::operator+=(const MatrixBase<Scalar, OtherDerived>& 
   */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>
+const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>(ref(), other.ref());
+  return CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>(ref(), other.ref());
 }
 
 
@@ -188,10 +189,10 @@ MatrixBase<Scalar, Derived>::cwiseProduct(const MatrixBase<Scalar, OtherDerived>
   */
 template<typename Scalar, typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>
+const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>(ref(), other.ref());
+  return CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>(ref(), other.ref());
 }
 
 
@@ -220,7 +221,7 @@ cwise(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived
   * the keyword template as to be used if the matrix type is also a template parameter:
   * \code
   * template <typename MatrixType> void foo(const MatrixType& m1, const MatrixType& m2) {
-  *   m1.template cwise<CwiseProductOp>(m2);
+  *   m1.template cwise<ScalarProductOp>(m2);
   * }
   * \endcode
   *

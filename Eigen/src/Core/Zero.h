@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -38,8 +38,9 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
   public:
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Zero>;
+    friend class MatrixBase<Scalar, Zero>::Traits;
     typedef MatrixBase<Scalar, Zero> Base;
-  
+
   private:
     enum {
       RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
@@ -51,12 +52,12 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     const Zero& _ref() const { return *this; }
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
-    
+
     Scalar _coeff(int, int) const
     {
       return static_cast<Scalar>(0);
     }
-    
+
   public:
     Zero(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
@@ -65,7 +66,7 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
-    
+
   protected:
     const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
     const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;

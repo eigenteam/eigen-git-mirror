@@ -69,11 +69,9 @@ The To-do wiki for Eigen is here: <a href="http://techbase.kde.org/index.php?tit
 <a name="compiler_support"></a>
 <h2>Compiler Support</h2>
 
-Eigen is standard C++98 and so should theoretically be compatible with any compliant compiler. Of course, in practice, things are slightly different.
+Eigen is standard C++98 and so should theoretically be compatible with any compliant compiler. Of course, in practice, things might be slightly different. At least, Eigen is known to compile with any version of GCC from 3.3 to 4.3 as well as with recent versions of ICC.
 
 Eigen is well tested with recent versions of GCC and ICC. Both GCC 4.2 and ICC gives very good performance. ICC might provide even better performance when the auto-vectorization makes sense. For some reason the performance is not so great with GCC 4.1.
-
-Eigen is also known to compile with GCC 3.4 and 4.0. However, these later ones seems to not correctly handle friend class with the CRT design pattern. Therefore, at the moment, for any GCC versions earlier than 4.1, all private members of Eigen's classes are made public. It is up to the user to take care to access public members only.
 
 For best performance, we recommend the following compilation flags:
 <ul>

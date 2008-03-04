@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,6 +44,7 @@ template<typename MatrixType> class Map
   public:
     typedef typename MatrixType::Scalar Scalar;
     friend class MatrixBase<Scalar, Map>;
+    friend class MatrixBase<Scalar, Map>::Traits;
     typedef MatrixBase<Scalar, Map> Base;
 
   private:
@@ -58,7 +59,7 @@ template<typename MatrixType> class Map
     const Map& _ref() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
-    
+
     const Scalar& _coeff(int row, int col) const
     {
       if(Order == ColumnMajor)
@@ -66,7 +67,7 @@ template<typename MatrixType> class Map
       else // RowMajor
         return m_data[col + row * m_cols];
     }
-    
+
     Scalar& _coeffRef(int row, int col)
     {
       if(Order == ColumnMajor)
@@ -74,7 +75,7 @@ template<typename MatrixType> class Map
       else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
     }
-  
+
   public:
     Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
@@ -83,9 +84,9 @@ template<typename MatrixType> class Map
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
-    
+
   protected:
     const Scalar* m_data;
     const int m_rows, m_cols;

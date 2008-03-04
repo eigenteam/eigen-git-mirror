@@ -35,12 +35,7 @@ template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> clas
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename BinaryOp, typename Lhs, typename Rhs> class CwiseBinaryOp;
-struct CwiseProductOp;
-struct CwiseQuotientOp;
 template<typename UnaryOp, typename MatrixType> class CwiseUnaryOp;
-struct CwiseOppositeOp;
-struct ConjugateOp;
-struct CwiseAbsOp;
 template<typename Lhs, typename Rhs> class Product;
 template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
@@ -51,6 +46,12 @@ template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
 template<typename MatrixType> class Map;
 template<typename Derived> class Eval;
+
+struct ScalarProductOp;
+struct ScalarQuotientOp;
+struct ScalarOppositeOp;
+struct ScalarConjugateOp;
+struct ScalarAbsOp;
 
 template<typename T> struct Reference
 {

@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -44,8 +44,9 @@ template<typename MatrixType> class Minor
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, Minor>;
+    friend class MatrixBase<Scalar, Minor>::Traits;
     typedef MatrixBase<Scalar, Minor> Base;
-    
+
     Minor(const MatRef& matrix,
                 int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
@@ -53,9 +54,9 @@ template<typename MatrixType> class Minor
       assert(row >= 0 && row < matrix.rows()
           && col >= 0 && col < matrix.cols());
     }
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
-    
+
   private:
     enum {
       RowsAtCompileTime = (MatrixType::Traits::RowsAtCompileTime != Dynamic) ?
@@ -71,17 +72,17 @@ template<typename MatrixType> class Minor
     const Minor& _ref() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
-    
+
     Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
-    
+
     Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }
-    
+
   protected:
     MatRef m_matrix;
     const int m_row, m_col;

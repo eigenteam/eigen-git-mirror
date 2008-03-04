@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -79,13 +79,14 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
 {
   public:
     friend class MatrixBase<_Scalar, Matrix>;
+    friend class MatrixBase<_Scalar, Matrix>::Traits;
     friend class Map<Matrix>;
-    
+
     typedef      MatrixBase<_Scalar, Matrix>            Base;
     typedef      _Scalar                                Scalar;
     typedef      MatrixRef<Matrix>                      Ref;
     friend class MatrixRef<Matrix>;
-        
+
   private:
     enum {
       RowsAtCompileTime = _Rows,
@@ -103,7 +104,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     Ref _ref() const { return Ref(*this); }
     int _rows() const { return m_storage.rows(); }
     int _cols() const { return m_storage.cols(); }
-    
+
     const Scalar& _coeff(int row, int col) const
     {
       if(StorageOrder == ColumnMajor)
@@ -111,7 +112,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       else // RowMajor
         return m_storage.data()[col + row * m_storage.cols()];
     }
-    
+
     Scalar& _coeffRef(int row, int col)
     {
       if(StorageOrder == ColumnMajor)
@@ -119,12 +120,12 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       else // RowMajor
         return m_storage.data()[col + row * m_storage.cols()];
     }
-    
+
   public:
     /** \returns a const pointer to the data array of this matrix */
     const Scalar *data() const
     { return m_storage.data(); }
-    
+
     /** \returns a pointer to the data array of this matrix */
     Scalar *data()
     { return m_storage.data(); }
@@ -148,7 +149,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       * is allowed. The resizing, if any, is then done in the appropriate way so that
       * row-vectors remain row-vectors and vectors remain vectors.
       */
-    template<typename OtherDerived> 
+    template<typename OtherDerived>
     Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
     {
       if(RowsAtCompileTime == 1)
@@ -164,7 +165,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       else resize(other.rows(), other.cols());
       return Base::operator=(other);
     }
-    
+
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
@@ -172,19 +173,19 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     {
       return operator=<Matrix>(other);
     }
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
-    
+
     static const Map<Matrix> map(const Scalar* array, int rows, int cols);
     static const Map<Matrix> map(const Scalar* array, int size);
     static const Map<Matrix> map(const Scalar* array);
     static Map<Matrix> map(Scalar* array, int rows, int cols);
     static Map<Matrix> map(Scalar* array, int size);
     static Map<Matrix> map(Scalar* array);
-    
+
     /** Default constructor, does nothing. Only for fixed-size matrices.
       * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
       * an assertion) because it would leave the matrix without an allocated data buffer.
@@ -193,7 +194,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     {
       assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
-    
+
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
       * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
@@ -208,7 +209,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
           || (ColsAtCompileTime == 1
               && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
     }
-    
+
     /** This constructor has two very different behaviors, depending on the type of *this.
       *
       * \li When Matrix is a fixed-size vector type of size 2, this constructor constructs
@@ -271,7 +272,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
     Matrix(const Scalar *data, int rows, int cols);
     Matrix(const Scalar *data, int size);
     explicit Matrix(const Scalar *data);
-    
+
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
     Matrix(const MatrixBase<Scalar, OtherDerived>& other)

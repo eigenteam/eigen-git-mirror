@@ -47,6 +47,7 @@ class CwiseUnaryOp : NoOperatorEquals,
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Ref MatRef;
     friend class MatrixBase<Scalar, CwiseUnaryOp>;
+    friend class MatrixBase<Scalar, CwiseUnaryOp>::Traits;
     typedef MatrixBase<Scalar, CwiseUnaryOp> Base;
 
     CwiseUnaryOp(const MatRef& mat) : m_matrix(mat) {}
@@ -76,7 +77,7 @@ class CwiseUnaryOp : NoOperatorEquals,
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator-
   */
-struct CwiseOppositeOp {
+struct ScalarOppositeOp {
   template<typename Scalar> static Scalar op(const Scalar& a) { return -a; }
 };
 
@@ -84,7 +85,7 @@ struct CwiseOppositeOp {
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
   */
-struct CwiseAbsOp {
+struct ScalarAbsOp {
   template<typename Scalar> static Scalar op(const Scalar& a) { return ei_abs(a); }
 };
 
@@ -92,19 +93,19 @@ struct CwiseAbsOp {
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Scalar, typename Derived>
-const CwiseUnaryOp<CwiseOppositeOp,Derived>
+const CwiseUnaryOp<ScalarOppositeOp,Derived>
 MatrixBase<Scalar, Derived>::operator-() const
 {
-  return CwiseUnaryOp<CwiseOppositeOp,Derived>(ref());
+  return CwiseUnaryOp<ScalarOppositeOp,Derived>(ref());
 }
 
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Scalar, typename Derived>
-const CwiseUnaryOp<CwiseAbsOp,Derived>
+const CwiseUnaryOp<ScalarAbsOp,Derived>
 MatrixBase<Scalar, Derived>::cwiseAbs() const
 {
-  return CwiseUnaryOp<CwiseAbsOp,Derived>(ref());
+  return CwiseUnaryOp<ScalarAbsOp,Derived>(ref());
 }
 
 
@@ -133,7 +134,7 @@ cwise(const MatrixBase<Scalar, Derived> &mat)
   * the keyword template as to be used if the matrix type is also a template parameter:
   * \code
   * template <typename MatrixType> void foo(const MatrixType& m) {
-  *   m.template cwise<CwiseAbsOp>();
+  *   m.template cwise<ScalarAbsOp>();
   * }
   * \endcode
   *
@@ -152,7 +153,7 @@ MatrixBase<Scalar, Derived>::cwise() const
   *
   * \sa class CwiseUnaryOp, MatrixBase::conjugate()
   */
-struct ConjugateOp {
+struct ScalarConjugateOp {
     template<typename Scalar> static Scalar op(const Scalar& a) { return ei_conj(a); }
 };
 
@@ -160,10 +161,10 @@ struct ConjugateOp {
   *
   * \sa adjoint(), class Conjugate */
 template<typename Scalar, typename Derived>
-const CwiseUnaryOp<ConjugateOp, Derived>
+const CwiseUnaryOp<ScalarConjugateOp, Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
 {
-  return CwiseUnaryOp<ConjugateOp, Derived>(ref());
+  return CwiseUnaryOp<ScalarConjugateOp, Derived>(ref());
 }
 
 

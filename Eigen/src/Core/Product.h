@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -80,14 +80,15 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     typedef typename Lhs::Ref LhsRef;
     typedef typename Rhs::Ref RhsRef;
     friend class MatrixBase<Scalar, Product>;
+    friend class MatrixBase<Scalar, Product>::Traits;
     typedef MatrixBase<Scalar, Product> Base;
 
     Product(const LhsRef& lhs, const RhsRef& rhs)
-      : m_lhs(lhs), m_rhs(rhs) 
+      : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.cols() == rhs.rows());
     }
-    
+
   private:
     enum {
       RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
@@ -99,7 +100,7 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     const Product& _ref() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
-    
+
     Scalar _coeff(int row, int col) const
     {
       Scalar res;
@@ -117,7 +118,7 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       }
       return res;
     }
-    
+
   protected:
     const LhsRef m_lhs;
     const RhsRef m_rhs;

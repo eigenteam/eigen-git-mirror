@@ -143,8 +143,8 @@ template<typename Scalar, typename Derived> class MatrixBase
       * \sa class NumTraits
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    
-    /// \name a - matrix properties
+
+    /// \name matrix properties
     //@{
     /** \returns the number of rows. \sa cols(), Traits::RowsAtCompileTime */
     int rows() const { return static_cast<const Derived *>(this)->_rows(); }
@@ -163,12 +163,12 @@ template<typename Scalar, typename Derived> class MatrixBase
     /** \returns a Ref to *this. \sa Ref */
     Ref ref() const
     { return static_cast<const Derived *>(this)->_ref(); }
-    
+
     //@{
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
-    
+
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
@@ -176,7 +176,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     {
       return this->operator=<Derived>(other);
     }
-    
+
     /** swaps *this with the expression \a other.
       *
       * \note \a other is only marked const because I couln't find another way
@@ -186,22 +186,22 @@ template<typename Scalar, typename Derived> class MatrixBase
     template<typename OtherDerived>
     void swap(const MatrixBase<Scalar, OtherDerived>& other);
     //@}
-    
-    /// \name c - sub-matrices
+
+    /// \name sub-matrices
     //@{
     Row<Derived> row(int i);
     const Row<Derived> row(int i) const;
-    
+
     Column<Derived> col(int i);
     const Column<Derived> col(int i) const;
-    
+
     Minor<Derived> minor(int row, int col);
     const Minor<Derived> minor(int row, int col) const;
-    
+
     Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols);
     const Block<Derived>
     block(int startRow, int startCol, int blockRows, int blockCols) const;
-    
+
     Block<Derived> block(int start, int size);
     const Block<Derived> block(int start, int size) const;
 
@@ -223,7 +223,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     const DiagonalCoeffs<Derived> diagonal() const;
     //@}
 
-    /// \name d - matrix transformation
+    /// \name matrix transformation
     //@{
     template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
 
@@ -231,23 +231,24 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
-    
-    const CwiseUnaryOp<ConjugateOp, Derived> conjugate() const;
-    const Transpose<CwiseUnaryOp<ConjugateOp, Derived> > adjoint() const;
+
+    const CwiseUnaryOp<ScalarConjugateOp, Derived> conjugate() const;
+    const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> > adjoint() const;
 
     const ScalarMultiple<Derived> normalized() const;
     //@}
 
-    /// \name f - metrics (??)
+    // FIXME not sure about the following name
+    /// \name metrics
     //@{
     Scalar trace() const;
-    
+
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<Scalar, OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
     //@}
-    
+
     static const Eval<Random<Derived> > random(int rows, int cols);
     static const Eval<Random<Derived> > random(int size);
     static const Eval<Random<Derived> > random();
@@ -259,24 +260,24 @@ template<typename Scalar, typename Derived> class MatrixBase
     static const Ones<Derived> ones();
     static const Identity<Derived> identity();
     static const Identity<Derived> identity(int rows, int cols);
-    
+
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
     Derived& setIdentity();
-    
-    /// \name g - matrix diagnostic and comparison
+
+    /// \name matrix diagnostic and comparison
     //@{
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
-    
+
     template<typename OtherDerived>
     bool isOrtho(const MatrixBase<Scalar, OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
-    
+
     template<typename OtherDerived>
     bool isApprox(const OtherDerived& other,
                   RealScalar prec = precision<Scalar>()) const;
@@ -286,10 +287,10 @@ template<typename Scalar, typename Derived> class MatrixBase
     bool isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>& other,
                            RealScalar prec = precision<Scalar>()) const;
     //@}
-    
-    /// \name e - arithemetic operators
+
+    /// \name arithemetic operators
     //@{
-    const CwiseUnaryOp<CwiseOppositeOp,Derived> operator-() const;
+    const CwiseUnaryOp<ScalarOppositeOp,Derived> operator-() const;
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);
@@ -306,38 +307,38 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     friend
     const ScalarMultiple<Derived> operator*(const Scalar& scalar,
-                                            const MatrixBase& matrix) 
-    { return matrix*scalar; }    
+                                            const MatrixBase& matrix)
+    { return matrix*scalar; }
 
     template<typename OtherDerived>
     const Product<Derived, OtherDerived>
     lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
 
-    const CwiseUnaryOp<CwiseAbsOp,Derived> cwiseAbs() const;
+    const CwiseUnaryOp<ScalarAbsOp,Derived> cwiseAbs() const;
 
     template<typename OtherDerived>
-    const CwiseBinaryOp<CwiseProductOp, Derived, OtherDerived>
+    const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
     cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const CwiseBinaryOp<CwiseQuotientOp, Derived, OtherDerived>
+    const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
     cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const;
     //@}
 
-    /// \name b - coefficient accessors
+    /// \name coefficient accessors
     //@{
     Scalar coeff(int row, int col) const;
     Scalar operator()(int row, int col) const;
-    
+
     Scalar& coeffRef(int row, int col);
     Scalar& operator()(int row, int col);
-    
+
     Scalar coeff(int index) const;
     Scalar operator[](int index) const;
-    
+
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
-    
+
     Scalar x() const;
     Scalar y() const;
     Scalar z() const;
@@ -348,7 +349,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar& w();
     //@}
 
-    /// \name h - special functions
+    /// \name special functions
     //@{
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 
