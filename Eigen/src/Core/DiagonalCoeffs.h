@@ -42,7 +42,7 @@ template<typename MatrixType> class DiagonalCoeffs
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, DiagonalCoeffs>;
     friend class MatrixBase<Scalar, DiagonalCoeffs>::Traits;
     typedef MatrixBase<Scalar, DiagonalCoeffs> Base;
@@ -63,7 +63,7 @@ template<typename MatrixType> class DiagonalCoeffs
       MaxColsAtCompileTime = 1
     };
 
-    const DiagonalCoeffs& _ref() const { return *this; }
+    const DiagonalCoeffs& _asArg() const { return *this; }
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
     int _cols() const { return 1; }
 
@@ -91,7 +91,7 @@ template<typename Scalar, typename Derived>
 DiagonalCoeffs<Derived>
 MatrixBase<Scalar, Derived>::diagonal()
 {
-  return DiagonalCoeffs<Derived>(ref());
+  return DiagonalCoeffs<Derived>(asArg());
 }
 
 /** This is the const version of diagonal(). */
@@ -99,7 +99,7 @@ template<typename Scalar, typename Derived>
 const DiagonalCoeffs<Derived>
 MatrixBase<Scalar, Derived>::diagonal() const
 {
-  return DiagonalCoeffs<Derived>(ref());
+  return DiagonalCoeffs<Derived>(asArg());
 }
 
 #endif // EIGEN_DIAGONALCOEFFS_H

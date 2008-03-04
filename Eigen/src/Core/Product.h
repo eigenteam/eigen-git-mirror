@@ -77,8 +77,8 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::Ref LhsRef;
-    typedef typename Rhs::Ref RhsRef;
+    typedef typename Lhs::AsArg LhsRef;
+    typedef typename Rhs::AsArg RhsRef;
     friend class MatrixBase<Scalar, Product>;
     friend class MatrixBase<Scalar, Product>::Traits;
     typedef MatrixBase<Scalar, Product> Base;
@@ -97,7 +97,7 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       MaxColsAtCompileTime = Rhs::Traits::MaxColsAtCompileTime
     };
 
-    const Product& _ref() const { return *this; }
+    const Product& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
 
@@ -138,7 +138,7 @@ template<typename OtherDerived>
 const Product<Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return Product<Derived, OtherDerived>(ref(), other.ref());
+  return Product<Derived, OtherDerived>(asArg(), other.asArg());
 }
 
 /** \relates MatrixBase

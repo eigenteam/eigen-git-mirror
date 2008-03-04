@@ -6,14 +6,14 @@ template<typename Scalar, typename Derived>
 Eigen::Row<Derived>
 firstRow(MatrixBase<Scalar, Derived>& m)
 {
-  return Eigen::Row<Derived>(m.ref(), 0);
+  return Eigen::Row<Derived>(m.asArg(), 0);
 }
 
 template<typename Scalar, typename Derived>
 const Eigen::Row<Derived>
 firstRow(const MatrixBase<Scalar, Derived>& m)
 {
-  return Eigen::Row<Derived>(m.ref(), 0);
+  return Eigen::Row<Derived>(m.asArg(), 0);
 }
 
 int main(int, char**)

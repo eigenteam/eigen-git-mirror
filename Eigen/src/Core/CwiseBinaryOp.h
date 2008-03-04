@@ -52,8 +52,8 @@ class CwiseBinaryOp : NoOperatorEquals,
 {
   public:
     typedef typename Lhs::Scalar Scalar;
-    typedef typename Lhs::Ref LhsRef;
-    typedef typename Rhs::Ref RhsRef;
+    typedef typename Lhs::AsArg LhsRef;
+    typedef typename Rhs::AsArg RhsRef;
     friend class MatrixBase<Scalar, CwiseBinaryOp>;
     friend class MatrixBase<Scalar, CwiseBinaryOp>::Traits;
     typedef MatrixBase<Scalar, CwiseBinaryOp> Base;
@@ -72,7 +72,7 @@ class CwiseBinaryOp : NoOperatorEquals,
       MaxColsAtCompileTime = Lhs::Traits::MaxColsAtCompileTime
     };
 
-    const CwiseBinaryOp& _ref() const { return *this; }
+    const CwiseBinaryOp& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -128,7 +128,7 @@ template<typename Scalar, typename Derived1, typename Derived2>
 const CwiseBinaryOp<CwiseDifferenceOp, Derived1, Derived2>
 operator-(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
-  return CwiseBinaryOp<CwiseDifferenceOp, Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return CwiseBinaryOp<CwiseDifferenceOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
 
 /** replaces \c *this by \c *this - \a other.
@@ -154,7 +154,7 @@ template<typename Scalar, typename Derived1, typename Derived2>
 const CwiseBinaryOp<CwiseSumOp, Derived1, Derived2>
 operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
-  return CwiseBinaryOp<CwiseSumOp, Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return CwiseBinaryOp<CwiseSumOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
 
 /** replaces \c *this by \c *this + \a other.
@@ -179,7 +179,7 @@ template<typename OtherDerived>
 const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>(ref(), other.ref());
+  return CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>(asArg(), other.asArg());
 }
 
 
@@ -192,7 +192,7 @@ template<typename OtherDerived>
 const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>(ref(), other.ref());
+  return CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>(asArg(), other.asArg());
 }
 
 
@@ -209,7 +209,7 @@ template<typename CustomBinaryOp, typename Scalar, typename Derived1, typename D
 const CwiseBinaryOp<CustomBinaryOp, Derived1, Derived2>
 cwise(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
 {
-  return CwiseBinaryOp<CustomBinaryOp, Derived1, Derived2>(mat1.ref(), mat2.ref());
+  return CwiseBinaryOp<CustomBinaryOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
 
 /** \returns an expression of a custom coefficient-wise operator of *this and \a other
@@ -232,7 +232,7 @@ template<typename CustomBinaryOp, typename OtherDerived>
 const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
 MatrixBase<Scalar, Derived>::cwise(const MatrixBase<Scalar, OtherDerived> &other) const
 {
-  return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(ref(), other.ref());
+  return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(asArg(), other.asArg());
 }
 
 

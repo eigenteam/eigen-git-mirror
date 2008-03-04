@@ -50,7 +50,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
 {
   public:
     typedef NewScalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, Cast>;
     friend class MatrixBase<Scalar, Cast>::Traits;
     typedef MatrixBase<Scalar, Cast> Base;
@@ -64,7 +64,7 @@ template<typename NewScalar, typename MatrixType> class Cast : NoOperatorEquals,
       MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
-    const Cast& _ref() const { return *this; }
+    const Cast& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -92,7 +92,7 @@ template<typename NewScalar>
 const Cast<NewScalar, Derived>
 MatrixBase<Scalar, Derived>::cast() const
 {
-  return Cast<NewScalar, Derived>(ref());
+  return Cast<NewScalar, Derived>(asArg());
 }
 
 #endif // EIGEN_CAST_H

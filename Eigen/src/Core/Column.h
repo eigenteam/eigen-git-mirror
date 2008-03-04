@@ -50,7 +50,7 @@ template<typename MatrixType> class Column
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, Column>;
     friend class MatrixBase<Scalar, Column>::Traits;
     typedef MatrixBase<Scalar, Column> Base;
@@ -71,7 +71,7 @@ template<typename MatrixType> class Column
       MaxColsAtCompileTime = 1
     };
 
-    const Column& _ref() const { return *this; }
+    const Column& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return 1; }
 
@@ -100,7 +100,7 @@ template<typename Scalar, typename Derived>
 Column<Derived>
 MatrixBase<Scalar, Derived>::col(int i)
 {
-  return Column<Derived>(ref(), i);
+  return Column<Derived>(asArg(), i);
 }
 
 /** This is the const version of col(). */
@@ -108,7 +108,7 @@ template<typename Scalar, typename Derived>
 const Column<Derived>
 MatrixBase<Scalar, Derived>::col(int i) const
 {
-  return Column<Derived>(ref(), i);
+  return Column<Derived>(asArg(), i);
 }
 
 #endif // EIGEN_COLUMN_H

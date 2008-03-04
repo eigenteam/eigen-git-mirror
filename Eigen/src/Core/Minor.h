@@ -42,7 +42,7 @@ template<typename MatrixType> class Minor
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, Minor>;
     friend class MatrixBase<Scalar, Minor>::Traits;
     typedef MatrixBase<Scalar, Minor> Base;
@@ -69,7 +69,7 @@ template<typename MatrixType> class Minor
                                  MatrixType::Traits::MaxColsAtCompileTime - 1 : Dynamic
     };
 
-    const Minor& _ref() const { return *this; }
+    const Minor& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
     int _cols() const { return m_matrix.cols() - 1; }
 
@@ -101,7 +101,7 @@ template<typename Scalar, typename Derived>
 Minor<Derived>
 MatrixBase<Scalar, Derived>::minor(int row, int col)
 {
-  return Minor<Derived>(ref(), row, col);
+  return Minor<Derived>(asArg(), row, col);
 }
 
 /** This is the const version of minor(). */
@@ -109,7 +109,7 @@ template<typename Scalar, typename Derived>
 const Minor<Derived>
 MatrixBase<Scalar, Derived>::minor(int row, int col) const
 {
-  return Minor<Derived>(ref(), row, col);
+  return Minor<Derived>(asArg(), row, col);
 }
 
 #endif // EIGEN_MINOR_H

@@ -49,7 +49,7 @@ template<typename MatrixType> class Random : NoOperatorEquals,
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const Random& _ref() const { return *this; }
+    const Random& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 

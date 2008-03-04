@@ -47,7 +47,7 @@ template<typename MatrixType> class MatrixRef
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    MatrixRef _ref() const { return *this; }
+    MatrixRef _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 

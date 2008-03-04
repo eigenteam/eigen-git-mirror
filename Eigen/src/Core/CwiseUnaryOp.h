@@ -45,7 +45,7 @@ class CwiseUnaryOp : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, CwiseUnaryOp>;
     friend class MatrixBase<Scalar, CwiseUnaryOp>::Traits;
     typedef MatrixBase<Scalar, CwiseUnaryOp> Base;
@@ -60,7 +60,7 @@ class CwiseUnaryOp : NoOperatorEquals,
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const CwiseUnaryOp& _ref() const { return *this; }
+    const CwiseUnaryOp& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -96,7 +96,7 @@ template<typename Scalar, typename Derived>
 const CwiseUnaryOp<ScalarOppositeOp,Derived>
 MatrixBase<Scalar, Derived>::operator-() const
 {
-  return CwiseUnaryOp<ScalarOppositeOp,Derived>(ref());
+  return CwiseUnaryOp<ScalarOppositeOp,Derived>(asArg());
 }
 
 /** \returns an expression of the opposite of \c *this
@@ -105,7 +105,7 @@ template<typename Scalar, typename Derived>
 const CwiseUnaryOp<ScalarAbsOp,Derived>
 MatrixBase<Scalar, Derived>::cwiseAbs() const
 {
-  return CwiseUnaryOp<ScalarAbsOp,Derived>(ref());
+  return CwiseUnaryOp<ScalarAbsOp,Derived>(asArg());
 }
 
 
@@ -122,7 +122,7 @@ template<typename CustomUnaryOp, typename Scalar, typename Derived>
 const CwiseUnaryOp<CustomUnaryOp, Derived>
 cwise(const MatrixBase<Scalar, Derived> &mat)
 {
-  return CwiseUnaryOp<CustomUnaryOp, Derived>(mat.ref());
+  return CwiseUnaryOp<CustomUnaryOp, Derived>(mat.asArg());
 }
 
 /** \returns an expression of a custom coefficient-wise unary operator of *this
@@ -145,7 +145,7 @@ template<typename CustomUnaryOp>
 const CwiseUnaryOp<CustomUnaryOp, Derived>
 MatrixBase<Scalar, Derived>::cwise() const
 {
-  return CwiseUnaryOp<CustomUnaryOp, Derived>(ref());
+  return CwiseUnaryOp<CustomUnaryOp, Derived>(asArg());
 }
 
 
@@ -164,7 +164,7 @@ template<typename Scalar, typename Derived>
 const CwiseUnaryOp<ScalarConjugateOp, Derived>
 MatrixBase<Scalar, Derived>::conjugate() const
 {
-  return CwiseUnaryOp<ScalarConjugateOp, Derived>(ref());
+  return CwiseUnaryOp<ScalarConjugateOp, Derived>(asArg());
 }
 
 

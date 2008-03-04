@@ -125,13 +125,13 @@ template<typename Scalar, typename Derived> class MatrixBase
     };
 
     /** This is the "reference type" used to pass objects of type MatrixBase as arguments
-      * to functions. If this MatrixBase type represents an expression, then \a Ref
+      * to functions. If this MatrixBase type represents an expression, then \a AsArg
       * is just this MatrixBase type itself, i.e. expressions are just passed by value
       * and the compiler is usually clever enough to optimize that. If, on the
-      * other hand, this MatrixBase type is an actual matrix or vector type, then \a Ref is
+      * other hand, this MatrixBase type is an actual matrix or vector type, then \a AsArg is
       * a typedef to MatrixRef, which works as a reference, so that matrices and vectors
-      * are passed by reference, not by value. \sa ref()*/
-    typedef typename Reference<Derived>::Type Ref;
+      * are passed by reference, not by value. \sa asArg()*/
+    typedef typename Reference<Derived>::Type AsArg;
 
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
@@ -160,9 +160,9 @@ template<typename Scalar, typename Derived> class MatrixBase
     bool isVector() const { return rows()==1 || cols()==1; }
     //@}
 
-    /** \returns a Ref to *this. \sa Ref */
-    Ref ref() const
-    { return static_cast<const Derived *>(this)->_ref(); }
+    /** \returns a AsArg to *this. \sa AsArg */
+    AsArg asArg() const
+    { return static_cast<const Derived *>(this)->_asArg(); }
 
     //@{
     /** Copies \a other into *this. \returns a reference to *this. */

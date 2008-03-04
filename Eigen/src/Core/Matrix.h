@@ -84,7 +84,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
 
     typedef      MatrixBase<_Scalar, Matrix>            Base;
     typedef      _Scalar                                Scalar;
-    typedef      MatrixRef<Matrix>                      Ref;
+    typedef      MatrixRef<Matrix>                      AsArg;
     friend class MatrixRef<Matrix>;
 
   private:
@@ -101,7 +101,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
 
     MatrixStorage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
-    Ref _ref() const { return Ref(*this); }
+    AsArg _asArg() const { return AsArg(*this); }
     int _rows() const { return m_storage.rows(); }
     int _cols() const { return m_storage.cols(); }
 

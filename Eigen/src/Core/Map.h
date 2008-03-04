@@ -56,7 +56,7 @@ template<typename MatrixType> class Map
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const Map& _ref() const { return *this; }
+    const Map& _asArg() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
 

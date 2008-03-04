@@ -56,7 +56,7 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const Identity& _ref() const { return *this; }
+    const Identity& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 

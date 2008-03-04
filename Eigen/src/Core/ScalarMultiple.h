@@ -41,7 +41,7 @@ template<typename MatrixType> class ScalarMultiple : NoOperatorEquals,
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, ScalarMultiple>;
     friend class MatrixBase<Scalar, ScalarMultiple>::Traits;
     typedef MatrixBase<Scalar, ScalarMultiple> Base;
@@ -57,7 +57,7 @@ template<typename MatrixType> class ScalarMultiple : NoOperatorEquals,
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const ScalarMultiple& _ref() const { return *this; }
+    const ScalarMultiple& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -76,7 +76,7 @@ template<typename Scalar, typename Derived>
 const ScalarMultiple<Derived>
 MatrixBase<Scalar, Derived>::operator*(const Scalar& scalar) const
 {
-  return ScalarMultiple<Derived>(ref(), scalar);
+  return ScalarMultiple<Derived>(asArg(), scalar);
 }
 
 /** \relates MatrixBase \sa class ScalarMultiple */
@@ -85,7 +85,7 @@ const ScalarMultiple<Derived>
 MatrixBase<Scalar, Derived>::operator/(const Scalar& scalar) const
 {
   assert(NumTraits<Scalar>::HasFloatingPoint);
-  return ScalarMultiple<Derived>(ref(), static_cast<Scalar>(1) / scalar);
+  return ScalarMultiple<Derived>(asArg(), static_cast<Scalar>(1) / scalar);
 }
 
 /** \sa ScalarMultiple */

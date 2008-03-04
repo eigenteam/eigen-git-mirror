@@ -42,7 +42,7 @@ template<typename MatrixType> class Transpose
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, Transpose>;
     friend class MatrixBase<Scalar, Transpose>::Traits;
     typedef MatrixBase<Scalar, Transpose> Base;
@@ -59,7 +59,7 @@ template<typename MatrixType> class Transpose
       MaxColsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime
     };
 
-    const Transpose& _ref() const { return *this; }
+    const Transpose& _asArg() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
 
@@ -87,7 +87,7 @@ template<typename Scalar, typename Derived>
 Transpose<Derived>
 MatrixBase<Scalar, Derived>::transpose()
 {
-  return Transpose<Derived>(ref());
+  return Transpose<Derived>(asArg());
 }
 
 /** This is the const version of transpose(). \sa adjoint() */
@@ -95,7 +95,7 @@ template<typename Scalar, typename Derived>
 const Transpose<Derived>
 MatrixBase<Scalar, Derived>::transpose() const
 {
-  return Transpose<Derived>(ref());
+  return Transpose<Derived>(asArg());
 }
 
 /** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.

@@ -45,7 +45,7 @@ class DiagonalMatrix : NoOperatorEquals,
 {
   public:
     typedef typename CoeffsVectorType::Scalar Scalar;
-    typedef typename CoeffsVectorType::Ref CoeffsVecRef;
+    typedef typename CoeffsVectorType::AsArg CoeffsVecRef;
     friend class MatrixBase<Scalar, DiagonalMatrix>;
     friend class MatrixBase<Scalar, DiagonalMatrix>::Traits;
     typedef MatrixBase<Scalar, DiagonalMatrix> Base;
@@ -64,7 +64,7 @@ class DiagonalMatrix : NoOperatorEquals,
       MaxColsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime
     };
 
-    const DiagonalMatrix& _ref() const { return *this; }
+    const DiagonalMatrix& _asArg() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
 
@@ -90,7 +90,7 @@ template<typename Scalar, typename Derived>
 const DiagonalMatrix<Derived>
 MatrixBase<Scalar, Derived>::asDiagonal() const
 {
-  return DiagonalMatrix<Derived>(ref());
+  return DiagonalMatrix<Derived>(asArg());
 }
 
 /** \returns true if *this is approximately equal to a diagonal matrix,

@@ -50,7 +50,7 @@ template<typename MatrixType> class Row
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Ref MatRef;
+    typedef typename MatrixType::AsArg MatRef;
     friend class MatrixBase<Scalar, Row>;
     friend class MatrixBase<Scalar, Row>::Traits;
     typedef MatrixBase<Scalar, Row> Base;
@@ -77,7 +77,7 @@ template<typename MatrixType> class Row
       MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
     };
 
-    const Row& _ref() const { return *this; }
+    const Row& _asArg() const { return *this; }
 
     int _rows() const { return 1; }
     int _cols() const { return m_matrix.cols(); }
@@ -107,7 +107,7 @@ template<typename Scalar, typename Derived>
 Row<Derived>
 MatrixBase<Scalar, Derived>::row(int i)
 {
-  return Row<Derived>(ref(), i);
+  return Row<Derived>(asArg(), i);
 }
 
 /** This is the const version of row(). */
@@ -115,7 +115,7 @@ template<typename Scalar, typename Derived>
 const Row<Derived>
 MatrixBase<Scalar, Derived>::row(int i) const
 {
-  return Row<Derived>(ref(), i);
+  return Row<Derived>(asArg(), i);
 }
 
 #endif // EIGEN_ROW_H

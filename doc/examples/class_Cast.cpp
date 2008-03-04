@@ -12,7 +12,7 @@ castToFloatingPoint(const MatrixBase<Scalar, Derived>& m)
   return Eigen::Cast<
     typename Eigen::NumTraits<Scalar>::FloatingPoint,
     Derived
-  >(m.ref());
+  >(m.asArg());
 }
 
 int main(int, char**)

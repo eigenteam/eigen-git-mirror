@@ -6,14 +6,14 @@ template<typename Scalar, typename Derived>
 Eigen::Block<Derived>
 topLeftCorner(MatrixBase<Scalar, Derived>& m, int rows, int cols)
 {
-  return Eigen::Block<Derived>(m.ref(), 0, 0, rows, cols);
+  return Eigen::Block<Derived>(m.asArg(), 0, 0, rows, cols);
 }
 
 template<typename Scalar, typename Derived>
 const Eigen::Block<Derived>
 topLeftCorner(const MatrixBase<Scalar, Derived>& m, int rows, int cols)
 {
-  return Eigen::Block<Derived>(m.ref(), 0, 0, rows, cols);
+  return Eigen::Block<Derived>(m.asArg(), 0, 0, rows, cols);
 }
 
 int main(int, char**)
