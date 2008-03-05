@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -60,7 +60,7 @@ struct DotUnroller<Index, 0, Derived1, Derived2>
 /** \returns the dot product of *this with other.
   *
   * \only_for_vectors
-  * 
+  *
   * \note If the scalar type is complex numbers, then this function returns the hermitian
   * (sesquilinear) dot product, linear in the first variable and anti-linear in the
   * second variable.
@@ -77,8 +77,9 @@ Scalar MatrixBase<Scalar, Derived>::dot(const MatrixBase<Scalar, OtherDerived>& 
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
   && Traits::SizeAtCompileTime != Dynamic
-  && Traits::SizeAtCompileTime <= 16)
-    DotUnroller<Traits::SizeAtCompileTime-1, Traits::SizeAtCompileTime,
+  && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
+    DotUnroller<Traits::SizeAtCompileTime-1,
+                Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Traits::SizeAtCompileTime : Dynamic,
                 Derived, MatrixBase<Scalar, OtherDerived> >
       ::run(*static_cast<const Derived*>(this), other, res);
   else

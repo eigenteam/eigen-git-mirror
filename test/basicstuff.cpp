@@ -89,6 +89,7 @@ void EigenTest::testBasicStuff()
     basicStuff(MatrixXcf(3, 3));
     basicStuff(MatrixXi(8, 12));
     basicStuff(MatrixXcd(20, 20));
+    basicStuff(Matrix<float, 100, 100>());
   }
 }
 

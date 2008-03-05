@@ -6,12 +6,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -19,7 +19,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -106,9 +106,12 @@ Derived& MatrixBase<Scalar, Derived>
     // copying a vector expression into a vector
   {
     assert(size() == other.size());
-    if(EIGEN_UNROLLED_LOOPS && Traits::SizeAtCompileTime != Dynamic && Traits::SizeAtCompileTime <= 25)
+    if(EIGEN_UNROLLED_LOOPS
+    && Traits::SizeAtCompileTime != Dynamic
+    && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
       VectorOperatorEqualsUnroller
-        <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
+        <Derived, OtherDerived,
+          Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? Traits::SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
       for(int i = 0; i < size(); i++)
@@ -120,10 +123,11 @@ Derived& MatrixBase<Scalar, Derived>
     assert(rows() == other.rows() && cols() == other.cols());
     if(EIGEN_UNROLLED_LOOPS
     && Traits::SizeAtCompileTime != Dynamic
-    && Traits::SizeAtCompileTime <= 25)
+    && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
     {
       MatrixOperatorEqualsUnroller
-        <Derived, OtherDerived, Traits::SizeAtCompileTime>::run
+        <Derived, OtherDerived,
+          Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? Traits::SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     }
     else

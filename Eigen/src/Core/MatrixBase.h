@@ -49,6 +49,8 @@
       cout << x.row(0) << endl;
     }
   * \endcode
+  *
+  * \nosubgrouping
   */
 template<typename Scalar, typename Derived> class MatrixBase
 {

@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -34,10 +34,10 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
-  
+
   int rows = m.rows();
   int cols = m.cols();
-  
+
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h
   MatrixType m1 = MatrixType::random(rows, cols),
@@ -53,10 +53,10 @@ template<typename MatrixType> void product(const MatrixType& m)
              vzero = VectorType::zero(rows);
 
   Scalar s1 = ei_random<Scalar>();
-  
+
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
-  
+
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)
   VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
@@ -64,20 +64,20 @@ template<typename MatrixType> void product(const MatrixType& m)
   m3 *= (m1.transpose() * m2);
   VERIFY_IS_APPROX(m3,                      m1*(m1.transpose()*m2));
   VERIFY_IS_APPROX(m3,                      m1.lazyProduct(m1.transpose()*m2));
-  
+
   // continue testing Product.h: distributivity
   VERIFY_IS_APPROX(square*(m1 + m2),        square*m1+square*m2);
   VERIFY_IS_APPROX(square*(m1 - m2),        square*m1-square*m2);
-  
+
   // continue testing Product.h: compatibility with ScalarMultiple.h
   VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
   VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
-  
+
   // continue testing Product.h: lazyProduct
   VERIFY_IS_APPROX(square.lazyProduct(m1),  square*m1);
   // again, test operator() to check const-qualification
   s1 += square.lazyProduct(m1)(r,c);
-  
+
   // test Product.h together with Identity.h
   VERIFY_IS_APPROX(m1,                      identity*m1);
   VERIFY_IS_APPROX(v1,                      identity*v1);
@@ -94,6 +94,9 @@ void EigenTest::testProduct()
     product(MatrixXi(8, 12));
     product(MatrixXcd(20, 20));
   }
+
+  // test a large matrix only once
+  product(Matrix<float, 100, 100>());
 }
 
 } // namespace Eigen

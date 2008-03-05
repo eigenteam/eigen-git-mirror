@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,6 +29,20 @@
 #define EIGEN_UNROLLED_LOOPS (false)
 #else
 #define EIGEN_UNROLLED_LOOPS (true)
+#endif
+
+/** Defines the maximal loop size (i.e., the matrix size NxM) to enable
+  * meta unrolling of operator=.
+  */
+#ifndef EIGEN_UNROLLING_LIMIT_OPEQUAL
+#define EIGEN_UNROLLING_LIMIT_OPEQUAL 25
+#endif
+
+/** Defines the maximal loop size to enable meta unrolling
+  * of the matrix product, dot product and trace.
+  */
+#ifndef EIGEN_UNROLLING_LIMIT_PRODUCT
+#define EIGEN_UNROLLING_LIMIT_PRODUCT 16
 #endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR

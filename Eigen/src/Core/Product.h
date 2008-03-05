@@ -106,9 +106,10 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS
       && Lhs::Traits::ColsAtCompileTime != Dynamic
-      && Lhs::Traits::ColsAtCompileTime <= 16)
+      && Lhs::Traits::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
         ProductUnroller<Lhs::Traits::ColsAtCompileTime-1,
-                        Lhs::Traits::ColsAtCompileTime, LhsRef, RhsRef>
+                        Lhs::Traits::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Lhs::Traits::ColsAtCompileTime : Dynamic,
+                        LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
