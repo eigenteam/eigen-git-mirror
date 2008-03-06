@@ -227,7 +227,8 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     /// \name matrix transformation
     //@{
-    template<typename NewScalar> const Cast<NewScalar, Derived> cast() const;
+    template<typename NewType>
+    const CwiseUnaryOp<ScalarCastOp<NewType>, Derived> cast() const;
 
     const DiagonalMatrix<Derived> asDiagonal() const;
 
@@ -237,7 +238,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     const CwiseUnaryOp<ScalarConjugateOp, Derived> conjugate() const;
     const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> > adjoint() const;
 
-    const ScalarMultiple<Derived> normalized() const;
+    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> normalized() const;
     //@}
 
     // FIXME not sure about the following name
@@ -304,12 +305,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    const ScalarMultiple<Derived> operator*(const Scalar& scalar) const;
-    const ScalarMultiple<Derived> operator/(const Scalar& scalar) const;
+    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> operator*(const Scalar& scalar) const;
+    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> operator/(const Scalar& scalar) const;
 
-    friend
-    const ScalarMultiple<Derived> operator*(const Scalar& scalar,
-                                            const MatrixBase& matrix)
+    friend const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
+    operator*(const Scalar& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
 
     template<typename OtherDerived>
@@ -356,11 +356,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
 
     template<typename CustomUnaryOp>
-    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise() const;
+    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
 
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<Scalar, OtherDerived> &other) const;
+    cwise(const MatrixBase<Scalar, OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
     //@}
 
     /** puts in *row and *col the location of the coefficient of *this

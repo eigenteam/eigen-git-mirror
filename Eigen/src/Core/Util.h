@@ -113,6 +113,14 @@ const int RowMajor = 1;
 
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 
+// just a workaround because GCC seems to not really like empty structs
+#ifdef __GNUG__
+  struct EiEmptyStruct{char _ei_dummy_;};
+  #define EIGEN_EMPTY_STRUCT : Eigen::EiEmptyStruct
+#else
+  #define EIGEN_EMPTY_STRUCT
+#endif
+
 //classes inheriting NoOperatorEquals don't generate a default operator=.
 class NoOperatorEquals
 {
@@ -120,7 +128,7 @@ class NoOperatorEquals
     NoOperatorEquals& operator=(const NoOperatorEquals&);
 };
 
-template<int Value> class IntAtRunTimeIfDynamic
+template<int Value> class IntAtRunTimeIfDynamic EIGEN_EMPTY_STRUCT
 {
   public:
     IntAtRunTimeIfDynamic() {}
@@ -137,6 +145,60 @@ template<> class IntAtRunTimeIfDynamic<Dynamic>
     explicit IntAtRunTimeIfDynamic(int value) : m_value(value) {}
     int value() const { return m_value; }
     void setValue(int value) { m_value = value; }
+};
+
+struct ei_has_nothing {int a[1];};
+struct ei_has_std_result_type {int a[2];};
+struct ei_has_tr1_result {int a[3];};
+
+/** Convenient struct to get the result type of a unary or binary functor.
+  * 
+  * It supports both the current STL mechanism (using the result_type member) as well as
+  * upcoming next STL generation (using a templated result member).
+  * If none of these member is provided, then the type of the first argument is returned.
+  */
+template<typename T> struct ei_result_of {};
+
+template<typename Func, typename ArgType, int SizeOf=sizeof(ei_has_nothing)>
+struct ei_unary_result_of_select {typedef ArgType type;};
+
+template<typename Func, typename ArgType>
+struct ei_unary_result_of_select<Func, ArgType, sizeof(ei_has_std_result_type)> {typedef typename Func::result_type type;};
+
+template<typename Func, typename ArgType>
+struct ei_unary_result_of_select<Func, ArgType, sizeof(ei_has_tr1_result)> {typedef typename Func::template result<Func(ArgType)>::type type;};
+
+template<typename Func, typename ArgType>
+struct ei_result_of<Func(ArgType)> {
+    template<typename T>
+    static ei_has_std_result_type testFunctor(T const *, typename T::result_type const * = 0);
+    template<typename T>
+    static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
+    static ei_has_nothing         testFunctor(...);
+    
+    typedef typename ei_unary_result_of_select<Func, ArgType, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
+};
+
+template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(ei_has_nothing)>
+struct ei_binary_result_of_select {typedef ArgType0 type;};
+
+template<typename Func, typename ArgType0, typename ArgType1>
+struct ei_binary_result_of_select<Func, ArgType0, ArgType1, sizeof(ei_has_std_result_type)>
+{typedef typename Func::result_type type;};
+
+template<typename Func, typename ArgType0, typename ArgType1>
+struct ei_binary_result_of_select<Func, ArgType0, ArgType1, sizeof(ei_has_tr1_result)>
+{typedef typename Func::template result<Func(ArgType0,ArgType1)>::type type;};
+
+template<typename Func, typename ArgType0, typename ArgType1>
+struct ei_result_of<Func(ArgType0,ArgType1)> {
+    template<typename T>
+    static ei_has_std_result_type testFunctor(T const *, typename T::result_type const * = 0);
+    template<typename T>
+    static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
+    static ei_has_nothing         testFunctor(...);
+    
+    typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
 };
 
 #endif // EIGEN_UTIL_H

@@ -3,16 +3,13 @@ USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
 template<typename Scalar, typename Derived>
-const Eigen::Cast<
-  typename Eigen::NumTraits<Scalar>::FloatingPoint,
+const Eigen::CwiseUnaryOp<
+  Eigen::ScalarCastOp<typename Eigen::NumTraits<Scalar>::FloatingPoint>,
   Derived
 >
 castToFloatingPoint(const MatrixBase<Scalar, Derived>& m)
 {
-  return Eigen::Cast<
-    typename Eigen::NumTraits<Scalar>::FloatingPoint,
-    Derived
-  >(m.asArg());
+  return m.template cast<typename Eigen::NumTraits<Scalar>::FloatingPoint>();
 }
 
 int main(int, char**)

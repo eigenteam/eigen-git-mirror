@@ -27,7 +27,6 @@
 
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols> class Matrix;
 template<typename MatrixType> class MatrixRef;
-template<typename NewScalar, typename MatrixType> class Cast;
 template<typename MatrixType> class Row;
 template<typename MatrixType> class Column;
 template<typename MatrixType> class Minor;
@@ -37,7 +36,6 @@ template<typename MatrixType> class Conjugate;
 template<typename BinaryOp, typename Lhs, typename Rhs> class CwiseBinaryOp;
 template<typename UnaryOp, typename MatrixType> class CwiseUnaryOp;
 template<typename Lhs, typename Rhs> class Product;
-template<typename MatrixType> class ScalarMultiple;
 template<typename MatrixType> class Random;
 template<typename MatrixType> class Zero;
 template<typename MatrixType> class Ones;
@@ -52,6 +50,8 @@ struct ScalarQuotientOp;
 struct ScalarOppositeOp;
 struct ScalarConjugateOp;
 struct ScalarAbsOp;
+template<typename NewType> struct ScalarCastOp;
+template<typename Scalar>  struct ScalarMultipleOp;
 
 template<typename T> struct Reference
 {

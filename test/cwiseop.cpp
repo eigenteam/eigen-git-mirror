@@ -31,7 +31,7 @@
 namespace Eigen {
 
 struct AddIfNull {
-    template<typename Scalar> static Scalar op(const Scalar a, const Scalar b) {return a<=1e-3 ? b : a;}
+    template<typename Scalar> Scalar operator() (const Scalar a, const Scalar b) const {return a<=1e-3 ? b : a;}
 };
 
 template<typename MatrixType> void cwiseops(const MatrixType& m)
