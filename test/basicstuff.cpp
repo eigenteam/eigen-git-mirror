@@ -79,6 +79,11 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   rv = square.col(r);
   cv = square.row(r);
   VERIFY_IS_APPROX(rv, cv.transpose());
+
+  if(cols!=1 && rows!=1 && MatrixType::Traits::SizeAtCompileTime!=Dynamic)
+  {
+    VERIFY_RAISES_ASSERT(m1 = (m2.block(0,0, rows-1, cols-1)));
+  }
 }
 
 void EigenTest::testBasicStuff()
@@ -90,6 +95,19 @@ void EigenTest::testBasicStuff()
     basicStuff(MatrixXi(8, 12));
     basicStuff(MatrixXcd(20, 20));
     basicStuff(Matrix<float, 100, 100>());
+  }
+
+  // some additional basic tests
+  {
+    Matrix3d m3;
+    Matrix4d m4;
+    VERIFY_RAISES_ASSERT(m4 = m3);
+
+    VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8) );
+    VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) );
+    m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+    double data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajor>::map(data)) );
   }
 }
 

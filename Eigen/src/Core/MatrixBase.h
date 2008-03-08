@@ -54,6 +54,8 @@
   */
 template<typename Scalar, typename Derived> class MatrixBase
 {
+    struct CommaInitializer;
+
   public:
 
     /** \brief Some traits provided by the Derived type.
@@ -166,7 +168,6 @@ template<typename Scalar, typename Derived> class MatrixBase
     AsArg asArg() const
     { return static_cast<const Derived *>(this)->_asArg(); }
 
-    //@{
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
@@ -179,6 +180,8 @@ template<typename Scalar, typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
 
+    CommaInitializer operator<< (const Scalar& s);
+
     /** swaps *this with the expression \a other.
       *
       * \note \a other is only marked const because I couln't find another way
@@ -187,7 +190,6 @@ template<typename Scalar, typename Derived> class MatrixBase
       */
     template<typename OtherDerived>
     void swap(const MatrixBase<Scalar, OtherDerived>& other);
-    //@}
 
     /// \name sub-matrices
     //@{

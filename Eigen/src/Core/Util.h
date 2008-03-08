@@ -151,8 +151,9 @@ struct ei_has_nothing {int a[1];};
 struct ei_has_std_result_type {int a[2];};
 struct ei_has_tr1_result {int a[3];};
 
-/** Convenient struct to get the result type of a unary or binary functor.
-  * 
+/** \internal
+  * Convenient struct to get the result type of a unary or binary functor.
+  *
   * It supports both the current STL mechanism (using the result_type member) as well as
   * upcoming next STL generation (using a templated result member).
   * If none of these member is provided, then the type of the first argument is returned.
@@ -175,7 +176,7 @@ struct ei_result_of<Func(ArgType)> {
     template<typename T>
     static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
     static ei_has_nothing         testFunctor(...);
-    
+
     typedef typename ei_unary_result_of_select<Func, ArgType, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
 };
 
@@ -197,7 +198,7 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
     template<typename T>
     static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
     static ei_has_nothing         testFunctor(...);
-    
+
     typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
 };
 

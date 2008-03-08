@@ -83,6 +83,9 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(v1,                      identity*v1);
   // again, test operator() to check const-qualification
   VERIFY_IS_APPROX(MatrixType::identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
+
+  if (rows!=cols)
+    VERIFY_RAISES_ASSERT(m3 = m1*m1);
 }
 
 void EigenTest::testProduct()

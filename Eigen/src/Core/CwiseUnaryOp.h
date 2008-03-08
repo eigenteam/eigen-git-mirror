@@ -76,7 +76,8 @@ class CwiseUnaryOp : NoOperatorEquals,
     const UnaryOp m_functor;
 };
 
-/** \brief Template functor to compute the opposite of a scalar
+/** \internal
+  * \brief Template functor to compute the opposite of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator-
   */
@@ -84,7 +85,8 @@ struct ScalarOppositeOp EIGEN_EMPTY_STRUCT {
   template<typename Scalar> Scalar operator() (const Scalar& a) const { return -a; }
 };
 
-/** \brief Template functor to compute the absolute value of a scalar
+/** \internal
+  * \brief Template functor to compute the absolute value of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
   */
@@ -116,7 +118,7 @@ MatrixBase<Scalar, Derived>::cwiseAbs() const
   *
   * The template parameter \a CustomUnaryOp is the type of the functor
   * of the custom unary operator.
-  * 
+  *
   * Here is an example:
   * \include class_CwiseUnaryOp.cpp
   *
@@ -131,7 +133,8 @@ MatrixBase<Scalar, Derived>::cwise(const CustomUnaryOp& func) const
 }
 
 
-/** \brief Template functor to compute the conjugate of a complex value
+/** \internal
+  * \brief Template functor to compute the conjugate of a complex value
   *
   * \sa class CwiseUnaryOp, MatrixBase::conjugate()
   */
@@ -149,7 +152,8 @@ MatrixBase<Scalar, Derived>::conjugate() const
   return CwiseUnaryOp<ScalarConjugateOp, Derived>(asArg());
 }
 
-/** \brief Template functor to cast a scalar to another
+/** \internal
+  * \brief Template functor to cast a scalar to another
   *
   * \sa class CwiseUnaryOp, MatrixBase::cast()
   */
@@ -178,7 +182,8 @@ MatrixBase<Scalar, Derived>::cast() const
 }
 
 
-/** \brief Template functor to multiply a scalar by a fixed another one
+/** \internal
+  * \brief Template functor to multiply a scalar by a fixed another one
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */

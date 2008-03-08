@@ -1,7 +1,9 @@
 #include <cstdlib>
 #include <cmath>
 #include <complex>
+#ifndef EIGEN_CUSTOM_ASSERT
 #include <cassert>
+#endif
 #include <iostream>
 
 namespace Eigen {
@@ -37,6 +39,7 @@ namespace Eigen {
 #include "src/Core/Map.h"
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
+#include "src/Core/CommaInitializer.h"
 
 } // namespace Eigen
 
