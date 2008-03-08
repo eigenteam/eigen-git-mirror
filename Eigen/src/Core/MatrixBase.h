@@ -182,6 +182,9 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     CommaInitializer operator<< (const Scalar& s);
 
+    template<typename OtherDerived>
+    CommaInitializer operator<< (const MatrixBase<Scalar, OtherDerived>& other);
+
     /** swaps *this with the expression \a other.
       *
       * \note \a other is only marked const because I couln't find another way

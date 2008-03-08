@@ -26,27 +26,65 @@
 #ifndef EIGEN_COMMA_INITIALIZER_H
 #define EIGEN_COMMA_INITIALIZER_H
 
+/** \internal
+  * Helper class to define the MatrixBase::operator<<
+  */
 template<typename Scalar, typename Derived>
 struct MatrixBase<Scalar, Derived>::CommaInitializer
 {
-  CommaInitializer(Derived& mat) : m_matrix(mat), m_count(1) {}
+  CommaInitializer(Derived& mat, const Scalar& s)
+    : m_matrix(mat), m_row(0), m_col(1), m_currentBlockRows(1)
+  {
+    m_matrix.coeffRef(0,0) = s;
+  }
 
-  CommaInitializer& operator,(const Scalar& s) {
-    assert(m_count<m_matrix.size() && "Too many coefficients passed to Matrix::operator<<");
-    m_matrix._coeffRef(m_count/m_matrix.cols(), m_count%m_matrix.cols()) = s;
-    m_count++;
+  template<typename OtherDerived>
+  CommaInitializer(Derived& mat, const MatrixBase<Scalar, OtherDerived>& other)
+    : m_matrix(mat), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
+  {
+    m_matrix.block(0, 0, other.rows(), other.cols()) = other;
+  }
+
+  CommaInitializer& operator,(const Scalar& s)
+  {
+    if (m_col==m_matrix.cols())
+    {
+      m_row+=m_currentBlockRows;
+      m_col = 0;
+      m_currentBlockRows = 1;
+    }
+    assert(m_col<m_matrix.cols() && "Too many coefficients passed to Matrix::operator<<");
+    assert(m_currentBlockRows==1);
+    m_matrix._coeffRef(m_row, m_col++) = s;
+    return *this;
+  }
+
+  template<typename OtherDerived>
+  CommaInitializer& operator,(const MatrixBase<Scalar, OtherDerived>& other)
+  {
+    if (m_col==m_matrix.cols())
+    {
+      m_row+=m_currentBlockRows;
+      m_col = 0;
+      m_currentBlockRows = other.rows();
+    }
+    assert(m_col<m_matrix.cols() && "Too many coefficients passed to Matrix::operator<<");
+    assert(m_currentBlockRows==other.rows());
+    m_matrix.block(m_row, m_col, other.rows(), other.cols()) = other;
+    m_col += other.cols();
     return *this;
   }
 
   ~CommaInitializer(void)
   {
-    assert(m_count==m_matrix.size() && "Too few coefficients passed to Matrix::operator<<");
+    assert((m_row+m_currentBlockRows)==m_matrix.rows() && m_col==m_matrix.cols() && "Too few coefficients passed to Matrix::operator<<");
   }
 
   Derived& m_matrix;
-  int m_count;
+  int m_row; // current row id
+  int m_col; // current col id
+  int m_currentBlockRows; // current block height
 };
-
 
 /** Convenient operator to set the coefficients of a matrix.
   *
@@ -59,9 +97,14 @@ struct MatrixBase<Scalar, Derived>::CommaInitializer
 template<typename Scalar, typename Derived>
 typename MatrixBase<Scalar, Derived>::CommaInitializer MatrixBase<Scalar, Derived>::operator<< (const Scalar& s)
 {
-  coeffRef(0,0) = s;
-  return CommaInitializer(*static_cast<Derived *>(this));
+  return CommaInitializer(*static_cast<Derived *>(this), s);
 }
 
+template<typename Scalar, typename Derived>
+template<typename OtherDerived>
+typename MatrixBase<Scalar, Derived>::CommaInitializer MatrixBase<Scalar, Derived>::operator<< (const MatrixBase<Scalar, OtherDerived>& other)
+{
+  return CommaInitializer(*static_cast<Derived *>(this), other);
+}
 
 #endif // EIGEN_COMMA_INITIALIZER_H
