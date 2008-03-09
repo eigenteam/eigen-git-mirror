@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	{
 		m(i,j) = 0.1 * (i+20*j);
 	}
-	for(int a = 0; a < 1000000; a++)
+	for(int a = 0; a < 100000; a++)
 	{
 		m = I + 0.00005 * (m + m*m);
 	}

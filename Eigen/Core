@@ -40,6 +40,7 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
+#include "src/Core/EvalOMP.h"
 
 } // namespace Eigen
 

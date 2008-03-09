@@ -359,6 +359,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     /// \name special functions
     //@{
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+    const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
 
     template<typename CustomUnaryOp>
     const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;

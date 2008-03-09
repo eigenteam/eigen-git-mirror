@@ -44,6 +44,7 @@ template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
 template<typename MatrixType> class Map;
 template<typename Derived> class Eval;
+template<typename Derived> class EvalOMP;
 
 struct ScalarProductOp;
 struct ScalarQuotientOp;
