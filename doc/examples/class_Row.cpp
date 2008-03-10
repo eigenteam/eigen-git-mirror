@@ -2,16 +2,16 @@
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Eigen::Row<Derived>
-firstRow(MatrixBase<Scalar, Derived>& m)
+firstRow(MatrixBase<Derived>& m)
 {
   return Eigen::Row<Derived>(m.asArg(), 0);
 }
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eigen::Row<Derived>
-firstRow(const MatrixBase<Scalar, Derived>& m)
+firstRow(const MatrixBase<Derived>& m)
 {
   return Eigen::Row<Derived>(m.asArg(), 0);
 }

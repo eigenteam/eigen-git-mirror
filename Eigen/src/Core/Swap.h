@@ -25,11 +25,11 @@
 #ifndef EIGEN_SWAP_H
 #define EIGEN_SWAP_H
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Scalar, Derived>::swap(const MatrixBase<Scalar, OtherDerived>& other)
+void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
 {
-  MatrixBase<Scalar, OtherDerived> *_other = const_cast<MatrixBase<Scalar, OtherDerived>*>(&other);
+  MatrixBase<OtherDerived> *_other = const_cast<MatrixBase<OtherDerived>*>(&other);
   if(Traits::SizeAtCompileTime == Dynamic)
   {
     Scalar tmp;

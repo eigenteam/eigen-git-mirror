@@ -25,14 +25,18 @@
 #ifndef EIGEN_MATRIXREF_H
 #define EIGEN_MATRIXREF_H
 
+template<typename MatrixType>
+struct Scalar<MatrixRef<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class MatrixRef
- : public MatrixBase<typename MatrixType::Scalar, MatrixRef<MatrixType> >
+ : public MatrixBase<MatrixRef<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, MatrixRef>;
-    friend class MatrixBase<Scalar, MatrixRef>::Traits;
-    typedef MatrixBase<Scalar, MatrixRef> Base;
+    typedef typename Scalar<MatrixRef>::Type Scalar;
+    friend class MatrixBase<MatrixRef>;
+    friend class MatrixBase<MatrixRef>::Traits;
+    typedef MatrixBase<MatrixRef> Base;
 
     MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
     ~MatrixRef() {}

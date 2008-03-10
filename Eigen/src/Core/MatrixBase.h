@@ -32,9 +32,6 @@
   * This class is the base that is inherited by all matrix, vector, and expression
   * types. Most of the Eigen API is contained in this class.
   *
-  * \param Scalar is the type of the coefficients.  Recall that Eigen allows
-  *        only the following types for \a Scalar: \c int, \c float, \c double,
-  *        \c std::complex<float>, \c std::complex<double>.
   * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *
   * When writing a function taking Eigen objects as argument, if you want your function
@@ -43,8 +40,8 @@
   * a matrix, vector, or expression \a x, prints the first row of \a x.
   *
   * \code
-    template<typename Scalar, typename Derived>
-    void printFirstRow(const Eigen::MatrixBase<Scalar, Derived>& x)
+    template<typename Derived>
+    void printFirstRow(const Eigen::MatrixBase<Derived>& x)
     {
       cout << x.row(0) << endl;
     }
@@ -52,11 +49,13 @@
   *
   * \nosubgrouping
   */
-template<typename Scalar, typename Derived> class MatrixBase
+template<typename Derived> class MatrixBase
 {
     struct CommaInitializer;
 
   public:
+
+    typedef typename Scalar<Derived>::Type Scalar;
 
     /** \brief Some traits provided by the Derived type.
       *
@@ -170,7 +169,7 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
-    Derived& operator=(const MatrixBase<Scalar, OtherDerived>& other);
+    Derived& operator=(const MatrixBase<OtherDerived>& other);
 
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
@@ -183,7 +182,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     CommaInitializer operator<< (const Scalar& s);
 
     template<typename OtherDerived>
-    CommaInitializer operator<< (const MatrixBase<Scalar, OtherDerived>& other);
+    CommaInitializer operator<< (const MatrixBase<OtherDerived>& other);
 
     /** swaps *this with the expression \a other.
       *
@@ -192,7 +191,7 @@ template<typename Scalar, typename Derived> class MatrixBase
       * of course. TODO: get rid of const here.
       */
     template<typename OtherDerived>
-    void swap(const MatrixBase<Scalar, OtherDerived>& other);
+    void swap(const MatrixBase<OtherDerived>& other);
 
     /// \name sub-matrices
     //@{
@@ -252,7 +251,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     Scalar trace() const;
 
     template<typename OtherDerived>
-    Scalar dot(const MatrixBase<Scalar, OtherDerived>& other) const;
+    Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
     //@}
@@ -282,7 +281,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
 
     template<typename OtherDerived>
-    bool isOrtho(const MatrixBase<Scalar, OtherDerived>& other,
+    bool isOrtho(const MatrixBase<OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
 
@@ -292,7 +291,7 @@ template<typename Scalar, typename Derived> class MatrixBase
     bool isMuchSmallerThan(const RealScalar& other,
                            RealScalar prec = precision<Scalar>()) const;
     template<typename OtherDerived>
-    bool isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>& other,
+    bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
                            RealScalar prec = precision<Scalar>()) const;
     //@}
 
@@ -301,11 +300,11 @@ template<typename Scalar, typename Derived> class MatrixBase
     const CwiseUnaryOp<ScalarOppositeOp,Derived> operator-() const;
 
     template<typename OtherDerived>
-    Derived& operator+=(const MatrixBase<Scalar, OtherDerived>& other);
+    Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator-=(const MatrixBase<Scalar, OtherDerived>& other);
+    Derived& operator-=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
-    Derived& operator*=(const MatrixBase<Scalar, OtherDerived>& other);
+    Derived& operator*=(const MatrixBase<OtherDerived>& other);
 
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
@@ -319,17 +318,17 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     const Product<Derived, OtherDerived>
-    lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
+    lazyProduct(const MatrixBase<OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
 
     const CwiseUnaryOp<ScalarAbsOp,Derived> cwiseAbs() const;
 
     template<typename OtherDerived>
     const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
-    cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const;
+    cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
-    cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const;
+    cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
     //@}
 
     /// \name coefficient accessors
@@ -366,7 +365,7 @@ template<typename Scalar, typename Derived> class MatrixBase
 
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<Scalar, OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
+    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
     //@}
 
     /** puts in *row and *col the location of the coefficient of *this

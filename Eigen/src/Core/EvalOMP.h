@@ -109,8 +109,8 @@ template<typename ExpressionType> class EvalOMP : NoOperatorEquals,
   *
   * \sa class EvalOMP, eval()
   */
-template<typename Scalar, typename Derived>
-const EvalOMP<Derived> MatrixBase<Scalar, Derived>::evalOMP() const
+template<typename Derived>
+const EvalOMP<Derived> MatrixBase<Derived>::evalOMP() const
 {
   return EvalOMP<Derived>(*static_cast<const Derived*>(this));
 }

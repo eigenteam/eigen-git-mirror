@@ -2,16 +2,16 @@
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Eigen::Block<Derived>
-topLeftCorner(MatrixBase<Scalar, Derived>& m, int rows, int cols)
+topLeftCorner(MatrixBase<Derived>& m, int rows, int cols)
 {
   return Eigen::Block<Derived>(m.asArg(), 0, 0, rows, cols);
 }
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eigen::Block<Derived>
-topLeftCorner(const MatrixBase<Scalar, Derived>& m, int rows, int cols)
+topLeftCorner(const MatrixBase<Derived>& m, int rows, int cols)
 {
   return Eigen::Block<Derived>(m.asArg(), 0, 0, rows, cols);
 }

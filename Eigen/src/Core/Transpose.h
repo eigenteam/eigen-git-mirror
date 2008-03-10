@@ -37,15 +37,19 @@
   *
   * \sa MatrixBase::transpose(), MatrixBase::adjoint()
   */
+template<typename MatrixType>
+struct Scalar<Transpose<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Transpose
-  : public MatrixBase<typename MatrixType::Scalar, Transpose<MatrixType> >
+  : public MatrixBase<Transpose<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, Transpose>;
-    friend class MatrixBase<Scalar, Transpose>::Traits;
-    typedef MatrixBase<Scalar, Transpose> Base;
+    friend class MatrixBase<Transpose>;
+    friend class MatrixBase<Transpose>::Traits;
+    typedef MatrixBase<Transpose> Base;
 
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
 
@@ -83,17 +87,17 @@ template<typename MatrixType> class Transpose
   * Output: \verbinclude MatrixBase_transpose.out
   *
   * \sa adjoint(), class DiagonalCoeffs */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Transpose<Derived>
-MatrixBase<Scalar, Derived>::transpose()
+MatrixBase<Derived>::transpose()
 {
   return Transpose<Derived>(asArg());
 }
 
 /** This is the const version of transpose(). \sa adjoint() */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Transpose<Derived>
-MatrixBase<Scalar, Derived>::transpose() const
+MatrixBase<Derived>::transpose() const
 {
   return Transpose<Derived>(asArg());
 }
@@ -104,9 +108,9 @@ MatrixBase<Scalar, Derived>::transpose() const
   * Output: \verbinclude MatrixBase_adjoint.out
   *
   * \sa transpose(), conjugate(), class Transpose, class ScalarConjugateOp */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> >
-MatrixBase<Scalar, Derived>::adjoint() const
+MatrixBase<Derived>::adjoint() const
 {
   return conjugate().transpose();
 }

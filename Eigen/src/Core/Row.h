@@ -45,26 +45,24 @@
   *
   * \sa MatrixBase::row()
   */
+template<typename MatrixType>
+struct Scalar<Row<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Row
-  : public MatrixBase<typename MatrixType::Scalar, Row<MatrixType> >
+  : public MatrixBase<Row<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, Row>;
-    friend class MatrixBase<Scalar, Row>::Traits;
-    typedef MatrixBase<Scalar, Row> Base;
+    friend class MatrixBase<Row>;
+    friend class MatrixBase<Row>::Traits;
+    typedef MatrixBase<Row> Base;
 
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
     {
       assert(row >= 0 && row < matrix.rows());
-    }
-
-    template<typename OtherDerived>
-    Row& operator=(const MatrixBase<Scalar, OtherDerived>& other)
-    {
-      return MatrixBase<Scalar, Row<MatrixType> >::operator=(other);
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
@@ -103,17 +101,17 @@ template<typename MatrixType> class Row
   * Output: \verbinclude MatrixBase_row.out
   *
   * \sa col(), class Row */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Row<Derived>
-MatrixBase<Scalar, Derived>::row(int i)
+MatrixBase<Derived>::row(int i)
 {
   return Row<Derived>(asArg(), i);
 }
 
 /** This is the const version of row(). */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Row<Derived>
-MatrixBase<Scalar, Derived>::row(int i) const
+MatrixBase<Derived>::row(int i) const
 {
   return Row<Derived>(asArg(), i);
 }

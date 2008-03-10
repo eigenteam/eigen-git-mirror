@@ -2,9 +2,9 @@
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eigen::Eval<Eigen::Transpose<Derived> >
-evaluatedTranspose(const MatrixBase<Scalar, Derived>& m)
+evaluatedTranspose(const MatrixBase<Derived>& m)
 {
   return m.transpose().eval();
 }

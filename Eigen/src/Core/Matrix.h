@@ -71,20 +71,24 @@
   *
   * Note that most of the API is in the base class MatrixBase.
   */
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+struct Scalar<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+{ typedef _Scalar Type; };
+
 template<typename _Scalar, int _Rows, int _Cols,
          int _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
          int _MaxRows = _Rows, int _MaxCols = _Cols>
-class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
-                                                 _StorageOrder, _MaxRows, _MaxCols> >
+class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
+                                        _StorageOrder, _MaxRows, _MaxCols> >
 {
   public:
-    friend class MatrixBase<_Scalar, Matrix>;
-    friend class MatrixBase<_Scalar, Matrix>::Traits;
+    friend class MatrixBase<Matrix>;
+    friend class MatrixBase<Matrix>::Traits;
     friend class Map<Matrix>;
 
-    typedef      MatrixBase<_Scalar, Matrix>            Base;
-    typedef      _Scalar                                Scalar;
-    typedef      MatrixRef<Matrix>                      AsArg;
+    typedef MatrixBase<Matrix> Base;
+    typedef typename Scalar<Matrix>::Type Scalar;
+    typedef MatrixRef<Matrix> AsArg;
     friend class MatrixRef<Matrix>;
 
   private:
@@ -150,7 +154,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
       * row-vectors remain row-vectors and vectors remain vectors.
       */
     template<typename OtherDerived>
-    Matrix& operator=(const MatrixBase<Scalar, OtherDerived>& other)
+    Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
       if(RowsAtCompileTime == 1)
       {
@@ -275,7 +279,7 @@ class Matrix : public MatrixBase<_Scalar, Matrix<_Scalar, _Rows, _Cols,
 
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
-    Matrix(const MatrixBase<Scalar, OtherDerived>& other)
+    Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       *this = other;

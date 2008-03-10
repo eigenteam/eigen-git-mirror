@@ -149,25 +149,25 @@ inline bool test_ei_isApprox(const std::complex<double>& a, const std::complex<d
 inline bool test_ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
 { return ei_isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
 
-template<typename Scalar, typename Derived1, typename Derived2>
-inline bool test_ei_isApprox(const MatrixBase<Scalar, Derived1>& m1,
-                   const MatrixBase<Scalar, Derived2>& m2)
+template<typename Derived1, typename Derived2>
+inline bool test_ei_isApprox(const MatrixBase<Derived1>& m1,
+                   const MatrixBase<Derived2>& m2)
 {
-  return m1.isApprox(m2, test_precision<Scalar>());
+  return m1.isApprox(m2, test_precision<typename Scalar<Derived1>::Type>());
 }
 
-template<typename Scalar, typename Derived1, typename Derived2>
-inline bool test_ei_isMuchSmallerThan(const MatrixBase<Scalar, Derived1>& m1,
-                                   const MatrixBase<Scalar, Derived2>& m2)
+template<typename Derived1, typename Derived2>
+inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
+                                   const MatrixBase<Derived2>& m2)
 {
-  return m1.isMuchSmallerThan(m2, test_precision<Scalar>());
+  return m1.isMuchSmallerThan(m2, test_precision<typename Scalar<Derived1>::Type>());
 }
 
-template<typename Scalar, typename Derived>
-inline bool test_ei_isMuchSmallerThan(const MatrixBase<Scalar, Derived>& m,
-                                   const typename NumTraits<Scalar>::Real& s)
+template<typename Derived>
+inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
+                                   const typename NumTraits<typename Scalar<Derived>::Type>::Real& s)
 {
-  return m.isMuchSmallerThan(s, test_precision<Scalar>());
+  return m.isMuchSmallerThan(s, test_precision<typename Scalar<Derived>::Type>());
 }
 
 class EigenTest : public QObject

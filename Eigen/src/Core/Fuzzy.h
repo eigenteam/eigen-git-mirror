@@ -41,9 +41,9 @@
   *
   * \sa ei_isMuchSmallerThan(const RealScalar&, RealScalar) const
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Scalar, Derived>::isApprox(
+bool MatrixBase<Derived>::isApprox(
   const OtherDerived& other,
   typename NumTraits<Scalar>::Real prec
 ) const
@@ -71,10 +71,10 @@ bool MatrixBase<Scalar, Derived>::isApprox(
   * \f[ \Vert v \Vert \leqslant p\,\vert x\vert. \f]
   * For matrices, the comparison is done on all columns.
   *
-  * \sa isApprox(), isMuchSmallerThan(const MatrixBase<Scalar, OtherDerived>&, RealScalar) const
+  * \sa isApprox(), isMuchSmallerThan(const MatrixBase<OtherDerived>&, RealScalar) const
   */
-template<typename Scalar, typename Derived>
-bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
+template<typename Derived>
+bool MatrixBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
   typename NumTraits<Scalar>::Real prec
 ) const
@@ -102,10 +102,10 @@ bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
   *
   * \sa isApprox(), isMuchSmallerThan(const RealScalar&, RealScalar) const
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Scalar, Derived>::isMuchSmallerThan(
-  const MatrixBase<Scalar, OtherDerived>& other,
+bool MatrixBase<Derived>::isMuchSmallerThan(
+  const MatrixBase<OtherDerived>& other,
   typename NumTraits<Scalar>::Real prec
 ) const
 {

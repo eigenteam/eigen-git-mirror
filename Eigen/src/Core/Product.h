@@ -72,16 +72,20 @@ struct ProductUnroller<Index, 0, Lhs, Rhs>
   *
   * \sa class Sum, class Difference
   */
+template<typename Lhs, typename Rhs>
+struct Scalar<Product<Lhs, Rhs> >
+{ typedef typename Scalar<Lhs>::Type Type; };
+
 template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
-  public MatrixBase<typename Lhs::Scalar, Product<Lhs, Rhs> >
+  public MatrixBase<Product<Lhs, Rhs> >
 {
   public:
-    typedef typename Lhs::Scalar Scalar;
+    typedef typename Scalar<Lhs>::Type Scalar;
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
-    friend class MatrixBase<Scalar, Product>;
-    friend class MatrixBase<Scalar, Product>::Traits;
-    typedef MatrixBase<Scalar, Product> Base;
+    friend class MatrixBase<Product>;
+    friend class MatrixBase<Product>::Traits;
+    typedef MatrixBase<Product> Base;
 
     Product(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -134,10 +138,10 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
   *
   * \sa class Product
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 const Product<Derived, OtherDerived>
-MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> &other) const
+MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 {
   return Product<Derived, OtherDerived>(asArg(), other.asArg());
 }
@@ -152,9 +156,9 @@ MatrixBase<Scalar, Derived>::lazyProduct(const MatrixBase<Scalar, OtherDerived> 
   *
   * \sa MatrixBase::lazyProduct(), MatrixBase::operator*=(const MatrixBase&)
   */
-template<typename Scalar, typename Derived1, typename Derived2>
+template<typename Derived1, typename Derived2>
 const Eval<Product<Derived1, Derived2> >
-operator*(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
+operator*(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
   return mat1.lazyProduct(mat2).eval();
 }
@@ -163,10 +167,10 @@ operator*(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Der
   *
   * \returns a reference to \c *this
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 Derived &
-MatrixBase<Scalar, Derived>::operator*=(const MatrixBase<Scalar, OtherDerived> &other)
+MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 {
   return *this = *this * other;
 }

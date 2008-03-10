@@ -81,8 +81,8 @@ using Eigen::MatrixBase;
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename OtherScalar, typename OtherDerived> \
-Derived& operator Op(const MatrixBase<OtherScalar, OtherDerived>& other) \
+template<typename OtherDerived> \
+Derived& operator Op(const MatrixBase<OtherDerived>& other) \
 { \
   return Base::operator Op(other); \
 } \

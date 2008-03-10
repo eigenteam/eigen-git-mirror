@@ -32,14 +32,18 @@
   * \sa MatrixBase::zero(), MatrixBase::zero(int), MatrixBase::zero(int,int),
   *     MatrixBase::setZero(), MatrixBase::isZero()
   */
+template<typename MatrixType>
+struct Scalar<Zero<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Zero : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Zero<MatrixType> >
+  public MatrixBase<Zero<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Zero>;
-    friend class MatrixBase<Scalar, Zero>::Traits;
-    typedef MatrixBase<Scalar, Zero> Base;
+    typedef typename Scalar<MatrixType>::Type Scalar;
+    friend class MatrixBase<Zero>;
+    friend class MatrixBase<Zero>::Traits;
+    typedef MatrixBase<Zero> Base;
 
   private:
     enum {
@@ -86,8 +90,8 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
   *
   * \sa zero(), zero(int)
   */
-template<typename Scalar, typename Derived>
-const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
+template<typename Derived>
+const Zero<Derived> MatrixBase<Derived>::zero(int rows, int cols)
 {
   return Zero<Derived>(rows, cols);
 }
@@ -108,8 +112,8 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int rows, int cols)
   *
   * \sa zero(), zero(int,int)
   */
-template<typename Scalar, typename Derived>
-const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
+template<typename Derived>
+const Zero<Derived> MatrixBase<Derived>::zero(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
   if(Traits::RowsAtCompileTime == 1) return Zero<Derived>(1, size);
@@ -126,8 +130,8 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero(int size)
   *
   * \sa zero(int), zero(int,int)
   */
-template<typename Scalar, typename Derived>
-const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
+template<typename Derived>
+const Zero<Derived> MatrixBase<Derived>::zero()
 {
   return Zero<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
@@ -140,8 +144,8 @@ const Zero<Derived> MatrixBase<Scalar, Derived>::zero()
   *
   * \sa class Zero, zero()
   */
-template<typename Scalar, typename Derived>
-bool MatrixBase<Scalar, Derived>::isZero
+template<typename Derived>
+bool MatrixBase<Derived>::isZero
 (typename NumTraits<Scalar>::Real prec) const
 {
   for(int j = 0; j < cols(); j++)
@@ -158,8 +162,8 @@ bool MatrixBase<Scalar, Derived>::isZero
   *
   * \sa class Zero, zero()
   */
-template<typename Scalar, typename Derived>
-Derived& MatrixBase<Scalar, Derived>::setZero()
+template<typename Derived>
+Derived& MatrixBase<Derived>::setZero()
 {
   return *this = Zero<Derived>(rows(), cols());
 }

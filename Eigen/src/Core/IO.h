@@ -29,10 +29,10 @@
   *
   * Outputs the matrix, laid out as an array as usual, to the given stream.
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 std::ostream & operator <<
 ( std::ostream & s,
-  const MatrixBase<Scalar, Derived> & m )
+  const MatrixBase<Derived> & m )
 {
   for( int i = 0; i < m.rows(); i++ )
   {

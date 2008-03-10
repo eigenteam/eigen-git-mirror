@@ -32,14 +32,18 @@
   * \sa MatrixBase::random(), MatrixBase::random(int), MatrixBase::random(int,int),
   *     MatrixBase::setRandom()
   */
+template<typename MatrixType>
+struct Scalar<Random<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Random : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Random<MatrixType> >
+  public MatrixBase<Random<MatrixType> >
 {
   public:
     typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Random>;
-    friend class MatrixBase<Scalar, Random>::Traits;
-    typedef MatrixBase<Scalar, Random> Base;
+    friend class MatrixBase<Random>;
+    friend class MatrixBase<Random>::Traits;
+    typedef MatrixBase<Random> Base;
 
   private:
     enum {
@@ -86,9 +90,9 @@ template<typename MatrixType> class Random : NoOperatorEquals,
   *
   * \sa ei_random(), ei_random(int)
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eval<Random<Derived> >
-MatrixBase<Scalar, Derived>::random(int rows, int cols)
+MatrixBase<Derived>::random(int rows, int cols)
 {
   return Random<Derived>(rows, cols).eval();
 }
@@ -109,9 +113,9 @@ MatrixBase<Scalar, Derived>::random(int rows, int cols)
   *
   * \sa ei_random(), ei_random(int,int)
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eval<Random<Derived> >
-MatrixBase<Scalar, Derived>::random(int size)
+MatrixBase<Derived>::random(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
   if(Traits::RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
@@ -129,9 +133,9 @@ MatrixBase<Scalar, Derived>::random(int size)
   *
   * \sa ei_random(int), ei_random(int,int)
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eval<Random<Derived> >
-MatrixBase<Scalar, Derived>::random()
+MatrixBase<Derived>::random()
 {
   return Random<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime).eval();
 }
@@ -143,8 +147,8 @@ MatrixBase<Scalar, Derived>::random()
   *
   * \sa class Random, ei_random()
   */
-template<typename Scalar, typename Derived>
-Derived& MatrixBase<Scalar, Derived>::setRandom()
+template<typename Derived>
+Derived& MatrixBase<Derived>::setRandom()
 {
   return *this = Random<Derived>(rows(), cols());
 }

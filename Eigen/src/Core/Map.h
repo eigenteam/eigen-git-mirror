@@ -38,14 +38,18 @@
   *
   * \sa Matrix::map()
   */
+template<typename MatrixType>
+struct Scalar<Map<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Map
-  : public MatrixBase<typename MatrixType::Scalar, Map<MatrixType> >
+  : public MatrixBase<Map<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Map>;
-    friend class MatrixBase<Scalar, Map>::Traits;
-    typedef MatrixBase<Scalar, Map> Base;
+    typedef typename Scalar<MatrixType>::Type Scalar;
+    friend class MatrixBase<Map>;
+    friend class MatrixBase<Map>::Traits;
+    typedef MatrixBase<Map> Base;
 
   private:
     enum {

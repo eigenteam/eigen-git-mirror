@@ -56,17 +56,19 @@
   *
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
-template<typename MatrixType,
-    int BlockRows/*=Dynamic*/, int BlockCols/*=Dynamic*/> class Block
-  : public MatrixBase<typename MatrixType::Scalar,
-                      Block<MatrixType, BlockRows, BlockCols> >
+template<typename MatrixType, int BlockRows, int BlockCols>
+struct Scalar<Block<MatrixType, BlockRows, BlockCols> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
+template<typename MatrixType, int BlockRows, int BlockCols> class Block
+  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, Block>;
-    friend class MatrixBase<Scalar, Block>::Traits;
-    typedef MatrixBase<Scalar, Block> Base;
+    friend class MatrixBase<Block>;
+    friend class MatrixBase<Block>::Traits;
+    typedef MatrixBase<Block> Base;
 
     /** Fixed-size constructor
       */
@@ -143,16 +145,16 @@ template<typename MatrixType,
   *
   * \sa class Block, block(int,int)
   */
-template<typename Scalar, typename Derived>
-Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
   return Block<Derived>(asArg(), startRow, startCol, blockRows, blockCols);
 }
 
 /** This is the const version of block(int,int,int,int). */
-template<typename Scalar, typename Derived>
-const Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+const Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
   return Block<Derived>(asArg(), startRow, startCol, blockRows, blockCols);
@@ -174,8 +176,8 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * \sa class Block, block(int)
   */
-template<typename Scalar, typename Derived>
-Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -186,8 +188,8 @@ Block<Derived> MatrixBase<Scalar, Derived>
 }
 
 /** This is the const version of block(int,int).*/
-template<typename Scalar, typename Derived>
-const Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -212,8 +214,8 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * \sa class Block, block(int,int)
   */
-template<typename Scalar, typename Derived>
-Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+Block<Derived> MatrixBase<Derived>
   ::start(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -223,8 +225,8 @@ Block<Derived> MatrixBase<Scalar, Derived>
 }
 
 /** This is the const version of start(int).*/
-template<typename Scalar, typename Derived>
-const Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+const Block<Derived> MatrixBase<Derived>
   ::start(int size) const
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -248,8 +250,8 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * \sa class Block, block(int,int)
   */
-template<typename Scalar, typename Derived>
-Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+Block<Derived> MatrixBase<Derived>
   ::end(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -261,8 +263,8 @@ Block<Derived> MatrixBase<Scalar, Derived>
 }
 
 /** This is the const version of end(int).*/
-template<typename Scalar, typename Derived>
-const Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+const Block<Derived> MatrixBase<Derived>
   ::end(int size) const
 {
   assert(Traits::IsVectorAtCompileTime);
@@ -289,8 +291,8 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * \sa class Block, block(int,int,int,int)
   */
-template<typename Scalar, typename Derived>
-Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
   if(type == TopLeft)
@@ -304,8 +306,8 @@ Block<Derived> MatrixBase<Scalar, Derived>
 }
 
 /** This is the const version of corner(CornerType, int, int).*/
-template<typename Scalar, typename Derived>
-const Block<Derived> MatrixBase<Scalar, Derived>
+template<typename Derived>
+const Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols) const
 {
   if(type == TopLeft)
@@ -334,18 +336,18 @@ const Block<Derived> MatrixBase<Scalar, Derived>
   *
   * \sa class Block, block(int,int,int,int)
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<int BlockRows, int BlockCols>
-Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
+Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(asArg(), startRow, startCol);
 }
 
 /** This is the const version of block<>(int, int). */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<int BlockRows, int BlockCols>
-const Block<Derived, BlockRows, BlockCols> MatrixBase<Scalar, Derived>
+const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(asArg(), startRow, startCol);

@@ -37,15 +37,19 @@
   *
   * \sa MatrixBase::minor()
   */
+template<typename MatrixType>
+struct Scalar<Minor<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Minor
-  : public MatrixBase<typename MatrixType::Scalar, Minor<MatrixType> >
+  : public MatrixBase<Minor<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, Minor>;
-    friend class MatrixBase<Scalar, Minor>::Traits;
-    typedef MatrixBase<Scalar, Minor> Base;
+    friend class MatrixBase<Minor>;
+    friend class MatrixBase<Minor>::Traits;
+    typedef MatrixBase<Minor> Base;
 
     Minor(const MatRef& matrix,
                 int row, int col)
@@ -97,17 +101,17 @@ template<typename MatrixType> class Minor
   *
   * \sa class Minor
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Minor<Derived>
-MatrixBase<Scalar, Derived>::minor(int row, int col)
+MatrixBase<Derived>::minor(int row, int col)
 {
   return Minor<Derived>(asArg(), row, col);
 }
 
 /** This is the const version of minor(). */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Minor<Derived>
-MatrixBase<Scalar, Derived>::minor(int row, int col) const
+MatrixBase<Derived>::minor(int row, int col) const
 {
   return Minor<Derived>(asArg(), row, col);
 }

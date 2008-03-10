@@ -9,9 +9,9 @@ struct CwiseMinOp EIGEN_EMPTY_STRUCT {
 };
 
 // define a custom binary operator between two matrices
-template<typename Scalar, typename Derived1, typename Derived2>
+template<typename Derived1, typename Derived2>
 const Eigen::CwiseBinaryOp<CwiseMinOp, Derived1, Derived2>
-cwiseMin(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
+cwiseMin(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
   return Eigen::CwiseBinaryOp<CwiseMinOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }

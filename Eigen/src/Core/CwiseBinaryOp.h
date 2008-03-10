@@ -47,18 +47,20 @@
   * \sa class ScalarProductOp, class ScalarQuotientOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
+struct Scalar<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+{ typedef typename ei_result_of<BinaryOp(typename Lhs::Scalar,typename Rhs::Scalar)>::type Type; };
+
+template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : NoOperatorEquals,
-  public MatrixBase<
-            typename ei_result_of<BinaryOp(typename Lhs::Scalar,typename Rhs::Scalar)>::type,
-            CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+  public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   public:
-    typedef typename ei_result_of<BinaryOp(typename Lhs::Scalar,typename Rhs::Scalar)>::type Scalar;
+    typedef typename Scalar<CwiseBinaryOp>::Type Scalar;
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
-    friend class MatrixBase<Scalar, CwiseBinaryOp>;
-    friend class MatrixBase<Scalar, CwiseBinaryOp>::Traits;
-    typedef MatrixBase<Scalar, CwiseBinaryOp> Base;
+    friend class MatrixBase<CwiseBinaryOp>;
+    friend class MatrixBase<CwiseBinaryOp>::Traits;
+    typedef MatrixBase<CwiseBinaryOp> Base;
 
     CwiseBinaryOp(const LhsRef& lhs, const RhsRef& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
@@ -131,9 +133,9 @@ struct ScalarQuotientOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-=()
   */
-template<typename Scalar, typename Derived1, typename Derived2>
+template<typename Derived1, typename Derived2>
 const CwiseBinaryOp<ScalarDifferenceOp, Derived1, Derived2>
-operator-(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
+operator-(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
   return CwiseBinaryOp<ScalarDifferenceOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
@@ -142,10 +144,10 @@ operator-(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Der
   *
   * \returns a reference to \c *this
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 Derived &
-MatrixBase<Scalar, Derived>::operator-=(const MatrixBase<Scalar, OtherDerived> &other)
+MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
   return *this = *this - other;
 }
@@ -157,9 +159,9 @@ MatrixBase<Scalar, Derived>::operator-=(const MatrixBase<Scalar, OtherDerived> &
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+=()
   */
-template<typename Scalar, typename Derived1, typename Derived2>
+template<typename Derived1, typename Derived2>
 const CwiseBinaryOp<ScalarSumOp, Derived1, Derived2>
-operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Derived2> &mat2)
+operator+(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
   return CwiseBinaryOp<ScalarSumOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
@@ -168,10 +170,10 @@ operator+(const MatrixBase<Scalar, Derived1> &mat1, const MatrixBase<Scalar, Der
   *
   * \returns a reference to \c *this
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 Derived &
-MatrixBase<Scalar, Derived>::operator+=(const MatrixBase<Scalar, OtherDerived>& other)
+MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
   return *this = *this + other;
 }
@@ -181,10 +183,10 @@ MatrixBase<Scalar, Derived>::operator+=(const MatrixBase<Scalar, OtherDerived>& 
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
-MatrixBase<Scalar, Derived>::cwiseProduct(const MatrixBase<Scalar, OtherDerived> &other) const
+MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
   return CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>(asArg(), other.asArg());
 }
@@ -194,10 +196,10 @@ MatrixBase<Scalar, Derived>::cwiseProduct(const MatrixBase<Scalar, OtherDerived>
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
 const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
-MatrixBase<Scalar, Derived>::cwiseQuotient(const MatrixBase<Scalar, OtherDerived> &other) const
+MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
 {
   return CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>(asArg(), other.asArg());
 }
@@ -210,10 +212,10 @@ MatrixBase<Scalar, Derived>::cwiseQuotient(const MatrixBase<Scalar, OtherDerived
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename CustomBinaryOp, typename OtherDerived>
 const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-MatrixBase<Scalar, Derived>::cwise(const MatrixBase<Scalar, OtherDerived> &other, const CustomBinaryOp& func) const
+MatrixBase<Derived>::cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
 {
   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(asArg(), other.asArg(), func);
 }

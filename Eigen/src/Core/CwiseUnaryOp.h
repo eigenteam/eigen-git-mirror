@@ -40,17 +40,19 @@
   * \sa class CwiseBinaryOp
   */
 template<typename UnaryOp, typename MatrixType>
+struct Scalar<CwiseUnaryOp<UnaryOp, MatrixType> >
+{ typedef typename ei_result_of<UnaryOp(typename MatrixType::Scalar)>::type Type; };
+
+template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOp : NoOperatorEquals,
-  public MatrixBase<
-    typename ei_result_of<UnaryOp(typename MatrixType::Scalar)>::type,
-    CwiseUnaryOp<UnaryOp, MatrixType> >
+  public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
 {
   public:
     typedef typename ei_result_of<UnaryOp(typename MatrixType::Scalar)>::type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, CwiseUnaryOp>;
-    friend class MatrixBase<Scalar, CwiseUnaryOp>::Traits;
-    typedef MatrixBase<Scalar, CwiseUnaryOp> Base;
+    friend class MatrixBase<CwiseUnaryOp>;
+    friend class MatrixBase<CwiseUnaryOp>::Traits;
+    typedef MatrixBase<CwiseUnaryOp> Base;
 
     CwiseUnaryOp(const MatRef& mat, const UnaryOp& func = UnaryOp()) : m_matrix(mat), m_functor(func) {}
 
@@ -97,18 +99,18 @@ struct ScalarAbsOp EIGEN_EMPTY_STRUCT {
 
 /** \returns an expression of the opposite of \c *this
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const CwiseUnaryOp<ScalarOppositeOp,Derived>
-MatrixBase<Scalar, Derived>::operator-() const
+MatrixBase<Derived>::operator-() const
 {
   return CwiseUnaryOp<ScalarOppositeOp,Derived>(asArg());
 }
 
 /** \returns an expression of the opposite of \c *this
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const CwiseUnaryOp<ScalarAbsOp,Derived>
-MatrixBase<Scalar, Derived>::cwiseAbs() const
+MatrixBase<Derived>::cwiseAbs() const
 {
   return CwiseUnaryOp<ScalarAbsOp,Derived>(asArg());
 }
@@ -124,10 +126,10 @@ MatrixBase<Scalar, Derived>::cwiseAbs() const
   *
   * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, MatrixBase::cwiseAbs
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename CustomUnaryOp>
 const CwiseUnaryOp<CustomUnaryOp, Derived>
-MatrixBase<Scalar, Derived>::cwise(const CustomUnaryOp& func) const
+MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
 {
   return CwiseUnaryOp<CustomUnaryOp, Derived>(asArg(), func);
 }
@@ -145,9 +147,9 @@ struct ScalarConjugateOp EIGEN_EMPTY_STRUCT {
 /** \returns an expression of the complex conjugate of *this.
   *
   * \sa adjoint() */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const CwiseUnaryOp<ScalarConjugateOp, Derived>
-MatrixBase<Scalar, Derived>::conjugate() const
+MatrixBase<Derived>::conjugate() const
 {
   return CwiseUnaryOp<ScalarConjugateOp, Derived>(asArg());
 }
@@ -173,10 +175,10 @@ struct ScalarCastOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseUnaryOp, class ScalarCastOp
   */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename NewType>
 const CwiseUnaryOp<ScalarCastOp<NewType>, Derived>
-MatrixBase<Scalar, Derived>::cast() const
+MatrixBase<Derived>::cast() const
 {
   return CwiseUnaryOp<ScalarCastOp<NewType>, Derived>(asArg());
 }
@@ -195,34 +197,35 @@ struct ScalarMultipleOp {
 };
 
 /** \relates MatrixBase \sa class ScalarMultipleOp */
-template<typename Scalar, typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
-MatrixBase<Scalar, Derived>::operator*(const Scalar& scalar) const
+template<typename Derived>
+const CwiseUnaryOp<ScalarMultipleOp<typename Scalar<Derived>::Type>, Derived>
+MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>(asArg(), ScalarMultipleOp<Scalar>(scalar));
 }
 
 /** \relates MatrixBase \sa class ScalarMultipleOp */
-template<typename Scalar, typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
-MatrixBase<Scalar, Derived>::operator/(const Scalar& scalar) const
+template<typename Derived>
+const CwiseUnaryOp<ScalarMultipleOp<typename Scalar<Derived>::Type>, Derived>
+MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
   assert(NumTraits<Scalar>::HasFloatingPoint);
-  return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>(asArg(), ScalarMultipleOp<Scalar>(static_cast<Scalar>(1) / scalar));
+  return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
+    (asArg(), ScalarMultipleOp<Scalar>(static_cast<Scalar>(1) / scalar));
 }
 
 /** \sa ScalarMultipleOp */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Derived&
-MatrixBase<Scalar, Derived>::operator*=(const Scalar& other)
+MatrixBase<Derived>::operator*=(const Scalar& other)
 {
   return *this = *this * other;
 }
 
 /** \sa ScalarMultipleOp */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Derived&
-MatrixBase<Scalar, Derived>::operator/=(const Scalar& other)
+MatrixBase<Derived>::operator/=(const Scalar& other)
 {
   return *this = *this / other;
 }

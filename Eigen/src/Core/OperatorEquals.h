@@ -97,10 +97,10 @@ struct VectorOperatorEqualsUnroller<Derived1, Derived2, Dynamic>
   static void run(Derived1 &, const Derived2 &) {}
 };
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Scalar, Derived>
-  ::operator=(const MatrixBase<Scalar, OtherDerived>& other)
+Derived& MatrixBase<Derived>
+  ::operator=(const MatrixBase<OtherDerived>& other)
 {
   if(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime)
     // copying a vector expression into a vector

@@ -32,14 +32,18 @@
   * \sa MatrixBase::ones(), MatrixBase::ones(int), MatrixBase::ones(int,int),
   *     MatrixBase::setOnes(), MatrixBase::isOnes()
   */
+template<typename MatrixType>
+struct Scalar<Ones<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Ones : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Ones<MatrixType> >
+  public MatrixBase<Ones<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Ones>;
-    friend class MatrixBase<Scalar, Ones>::Traits;
-    typedef MatrixBase<Scalar, Ones> Base;
+    typedef typename Scalar<MatrixType>::Type Scalar;
+    friend class MatrixBase<Ones>;
+    friend class MatrixBase<Ones>::Traits;
+    typedef MatrixBase<Ones> Base;
 
   private:
     enum {
@@ -86,8 +90,8 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
   *
   * \sa ones(), ones(int), isOnes(), class Ones
   */
-template<typename Scalar, typename Derived>
-const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
+template<typename Derived>
+const Ones<Derived> MatrixBase<Derived>::ones(int rows, int cols)
 {
   return Ones<Derived>(rows, cols);
 }
@@ -108,8 +112,8 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int rows, int cols)
   *
   * \sa ones(), ones(int,int), isOnes(), class Ones
   */
-template<typename Scalar, typename Derived>
-const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
+template<typename Derived>
+const Ones<Derived> MatrixBase<Derived>::ones(int size)
 {
   assert(Traits::IsVectorAtCompileTime);
   if(Traits::RowsAtCompileTime == 1) return Ones<Derived>(1, size);
@@ -126,8 +130,8 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones(int size)
   *
   * \sa ones(int), ones(int,int), isOnes(), class Ones
   */
-template<typename Scalar, typename Derived>
-const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
+template<typename Derived>
+const Ones<Derived> MatrixBase<Derived>::ones()
 {
   return Ones<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
@@ -140,8 +144,8 @@ const Ones<Derived> MatrixBase<Scalar, Derived>::ones()
   *
   * \sa class Ones, ones()
   */
-template<typename Scalar, typename Derived>
-bool MatrixBase<Scalar, Derived>::isOnes
+template<typename Derived>
+bool MatrixBase<Derived>::isOnes
 (typename NumTraits<Scalar>::Real prec) const
 {
   for(int j = 0; j < cols(); j++)
@@ -158,8 +162,8 @@ bool MatrixBase<Scalar, Derived>::isOnes
   *
   * \sa class Ones, ones()
   */
-template<typename Scalar, typename Derived>
-Derived& MatrixBase<Scalar, Derived>::setOnes()
+template<typename Derived>
+Derived& MatrixBase<Derived>::setOnes()
 {
   return *this = Ones<Derived>(rows(), cols());
 }

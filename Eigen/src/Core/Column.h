@@ -45,15 +45,19 @@
   *
   * \sa MatrixBase::col()
   */
+template<typename MatrixType>
+struct Scalar<Column<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Column
-  : public MatrixBase<typename MatrixType::Scalar, Column<MatrixType> >
+  : public MatrixBase<Column<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, Column>;
-    friend class MatrixBase<Scalar, Column>::Traits;
-    typedef MatrixBase<Scalar, Column> Base;
+    friend class MatrixBase<Column>;
+    friend class MatrixBase<Column>::Traits;
+    typedef MatrixBase<Column> Base;
 
     Column(const MatRef& matrix, int col)
       : m_matrix(matrix), m_col(col)
@@ -96,17 +100,17 @@ template<typename MatrixType> class Column
   * Output: \verbinclude MatrixBase_col.out
   *
   * \sa row(), class Column */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 Column<Derived>
-MatrixBase<Scalar, Derived>::col(int i)
+MatrixBase<Derived>::col(int i)
 {
   return Column<Derived>(asArg(), i);
 }
 
 /** This is the const version of col(). */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Column<Derived>
-MatrixBase<Scalar, Derived>::col(int i) const
+MatrixBase<Derived>::col(int i) const
 {
   return Column<Derived>(asArg(), i);
 }

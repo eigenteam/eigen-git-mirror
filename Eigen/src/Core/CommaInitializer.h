@@ -29,8 +29,8 @@
 /** \internal
   * Helper class to define the MatrixBase::operator<<
   */
-template<typename Scalar, typename Derived>
-struct MatrixBase<Scalar, Derived>::CommaInitializer
+template<typename Derived>
+struct MatrixBase<Derived>::CommaInitializer
 {
   CommaInitializer(Derived& mat, const Scalar& s)
     : m_matrix(mat), m_row(0), m_col(1), m_currentBlockRows(1)
@@ -39,7 +39,7 @@ struct MatrixBase<Scalar, Derived>::CommaInitializer
   }
 
   template<typename OtherDerived>
-  CommaInitializer(Derived& mat, const MatrixBase<Scalar, OtherDerived>& other)
+  CommaInitializer(Derived& mat, const MatrixBase<OtherDerived>& other)
     : m_matrix(mat), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
     m_matrix.block(0, 0, other.rows(), other.cols()) = other;
@@ -60,7 +60,7 @@ struct MatrixBase<Scalar, Derived>::CommaInitializer
   }
 
   template<typename OtherDerived>
-  CommaInitializer& operator,(const MatrixBase<Scalar, OtherDerived>& other)
+  CommaInitializer& operator,(const MatrixBase<OtherDerived>& other)
   {
     if (m_col==m_matrix.cols())
     {
@@ -94,15 +94,16 @@ struct MatrixBase<Scalar, Derived>::CommaInitializer
   * Example: \include MatrixBase_set.cpp
   * Output: \verbinclude MatrixBase_set.out
   */
-template<typename Scalar, typename Derived>
-typename MatrixBase<Scalar, Derived>::CommaInitializer MatrixBase<Scalar, Derived>::operator<< (const Scalar& s)
+template<typename Derived>
+typename MatrixBase<Derived>::CommaInitializer MatrixBase<Derived>::operator<< (const Scalar& s)
 {
-  return CommaInitializer(*static_cast<Derived *>(this), s);
+  return CommaInitializer(*static_cast<Derived*>(this), s);
 }
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 template<typename OtherDerived>
-typename MatrixBase<Scalar, Derived>::CommaInitializer MatrixBase<Scalar, Derived>::operator<< (const MatrixBase<Scalar, OtherDerived>& other)
+typename MatrixBase<Derived>::CommaInitializer
+MatrixBase<Derived>::operator<<(const MatrixBase<OtherDerived>& other)
 {
   return CommaInitializer(*static_cast<Derived *>(this), other);
 }

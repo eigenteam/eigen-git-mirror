@@ -39,16 +39,19 @@
   * \sa MatrixBase::diagonal(const OtherDerived&)
   */
 template<typename CoeffsVectorType>
+struct Scalar<DiagonalMatrix<CoeffsVectorType> >
+{ typedef typename Scalar<CoeffsVectorType>::Type Type; };
+
+template<typename CoeffsVectorType>
 class DiagonalMatrix : NoOperatorEquals,
-  public MatrixBase<typename CoeffsVectorType::Scalar,
-                    DiagonalMatrix<CoeffsVectorType> >
+  public MatrixBase<DiagonalMatrix<CoeffsVectorType> >
 {
   public:
-    typedef typename CoeffsVectorType::Scalar Scalar;
+    typedef typename Scalar<CoeffsVectorType>::Type Scalar;
     typedef typename CoeffsVectorType::AsArg CoeffsVecRef;
-    friend class MatrixBase<Scalar, DiagonalMatrix>;
-    friend class MatrixBase<Scalar, DiagonalMatrix>::Traits;
-    typedef MatrixBase<Scalar, DiagonalMatrix> Base;
+    friend class MatrixBase<DiagonalMatrix>;
+    friend class MatrixBase<DiagonalMatrix>::Traits;
+    typedef MatrixBase<DiagonalMatrix> Base;
 
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
@@ -86,9 +89,9 @@ class DiagonalMatrix : NoOperatorEquals,
   *
   * \sa class DiagonalMatrix, isDiagonal()
   **/
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const DiagonalMatrix<Derived>
-MatrixBase<Scalar, Derived>::asDiagonal() const
+MatrixBase<Derived>::asDiagonal() const
 {
   return DiagonalMatrix<Derived>(asArg());
 }
@@ -101,8 +104,8 @@ MatrixBase<Scalar, Derived>::asDiagonal() const
   *
   * \sa asDiagonal()
   */
-template<typename Scalar, typename Derived>
-bool MatrixBase<Scalar, Derived>::isDiagonal
+template<typename Derived>
+bool MatrixBase<Derived>::isDiagonal
 (typename NumTraits<Scalar>::Real prec) const
 {
   if(cols() != rows()) return false;

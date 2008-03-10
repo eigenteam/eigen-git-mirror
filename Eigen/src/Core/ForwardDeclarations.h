@@ -25,6 +25,8 @@
 #ifndef EIGEN_FORWARDDECLARATIONS_H
 #define EIGEN_FORWARDDECLARATIONS_H
 
+template<typename T> struct Scalar;
+
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols> class Matrix;
 template<typename MatrixType> class MatrixRef;
 template<typename MatrixType> class Row;

@@ -13,6 +13,6 @@ struct CwiseClampOp EIGEN_EMPTY_STRUCT {
 int main(int, char**)
 {
   Matrix4d m1 = Matrix4d::random();
-  cout << m1.cwise(CwiseClampOp<Matrix4d::Scalar>(-0.5,0.5)) << endl;
+  cout << m1.cwise(CwiseClampOp<double>(-0.5,0.5)) << endl;
   return 0;
 }

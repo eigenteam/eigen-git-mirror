@@ -2,14 +2,17 @@
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const Eigen::CwiseUnaryOp<
-  Eigen::ScalarCastOp<typename Eigen::NumTraits<Scalar>::FloatingPoint>,
-  Derived
+  Eigen::ScalarCastOp<
+    typename Eigen::NumTraits< typename Eigen::Scalar<Derived>::Type >::FloatingPoint
+  >, Derived
 >
-castToFloatingPoint(const MatrixBase<Scalar, Derived>& m)
+castToFloatingPoint(const MatrixBase<Derived>& m)
 {
-  return m.template cast<typename Eigen::NumTraits<Scalar>::FloatingPoint>();
+  return m.template cast<typename Eigen::NumTraits<
+    typename Eigen::Scalar<Derived>::Type>::FloatingPoint
+  >();
 }
 
 int main(int, char**)

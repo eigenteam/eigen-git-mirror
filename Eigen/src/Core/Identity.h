@@ -31,14 +31,18 @@
   *
   * \sa MatrixBase::identity(), MatrixBase::identity(int,int), MatrixBase::setIdentity()
   */
+template<typename MatrixType>
+struct Scalar<Identity<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class Identity : NoOperatorEquals,
-  public MatrixBase<typename MatrixType::Scalar, Identity<MatrixType> >
+  public MatrixBase<Identity<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Scalar, Identity>;
-    friend class MatrixBase<Scalar, Identity>::Traits;
-    typedef MatrixBase<Scalar, Identity> Base;
+    typedef typename Scalar<MatrixType>::Type Scalar;
+    friend class MatrixBase<Identity>;
+    friend class MatrixBase<Identity>::Traits;
+    typedef MatrixBase<Identity> Base;
 
     Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
@@ -84,8 +88,8 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
   *
   * \sa identity(), setIdentity(), isIdentity()
   */
-template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows, int cols)
+template<typename Derived>
+const Identity<Derived> MatrixBase<Derived>::identity(int rows, int cols)
 {
   return Identity<Derived>(rows, cols);
 }
@@ -100,8 +104,8 @@ const Identity<Derived> MatrixBase<Scalar, Derived>::identity(int rows, int cols
   *
   * \sa identity(int,int), setIdentity(), isIdentity()
   */
-template<typename Scalar, typename Derived>
-const Identity<Derived> MatrixBase<Scalar, Derived>::identity()
+template<typename Derived>
+const Identity<Derived> MatrixBase<Derived>::identity()
 {
   return Identity<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
 }
@@ -115,8 +119,8 @@ const Identity<Derived> MatrixBase<Scalar, Derived>::identity()
   *
   * \sa class Identity, identity(), identity(int,int), setIdentity()
   */
-template<typename Scalar, typename Derived>
-bool MatrixBase<Scalar, Derived>::isIdentity
+template<typename Derived>
+bool MatrixBase<Derived>::isIdentity
 (typename NumTraits<Scalar>::Real prec) const
 {
   for(int j = 0; j < cols(); j++)
@@ -145,8 +149,8 @@ bool MatrixBase<Scalar, Derived>::isIdentity
   *
   * \sa class Identity, identity(), identity(int,int), isIdentity()
   */
-template<typename Scalar, typename Derived>
-Derived& MatrixBase<Scalar, Derived>::setIdentity()
+template<typename Derived>
+Derived& MatrixBase<Derived>::setIdentity()
 {
   return *this = Identity<Derived>(rows(), cols());
 }

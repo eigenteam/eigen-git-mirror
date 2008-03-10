@@ -44,6 +44,10 @@
   *
   * \sa MatrixBase::eval()
   */
+template<typename ExpressionType>
+struct Scalar<Eval<ExpressionType> >
+{ typedef typename Scalar<ExpressionType>::Type Type; };
+
 template<typename ExpressionType> class Eval : NoOperatorEquals,
   public Matrix< typename ExpressionType::Scalar,
                  ExpressionType::Traits::RowsAtCompileTime,
@@ -53,7 +57,7 @@ template<typename ExpressionType> class Eval : NoOperatorEquals,
                  ExpressionType::Traits::MaxColsAtCompileTime>
 {
   public:
-    typedef typename ExpressionType::Scalar Scalar;
+    typedef typename Scalar<ExpressionType>::Type Scalar;
 
     /** The actual matrix type to evaluate to. This type can be used independently
       * of the rest of this class to get the actual matrix type to evaluate and store
@@ -86,8 +90,8 @@ template<typename ExpressionType> class Eval : NoOperatorEquals,
   * Output: \verbinclude MatrixBase_eval.out
   *
   * \sa class Eval */
-template<typename Scalar, typename Derived>
-const Eval<Derived> MatrixBase<Scalar, Derived>::eval() const
+template<typename Derived>
+const Eval<Derived> MatrixBase<Derived>::eval() const
 {
   return Eval<Derived>(*static_cast<const Derived*>(this));
 }

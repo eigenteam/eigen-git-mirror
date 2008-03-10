@@ -37,15 +37,19 @@
   *
   * \sa MatrixBase::diagonal()
   */
+template<typename MatrixType>
+struct Scalar<DiagonalCoeffs<MatrixType> >
+{ typedef typename Scalar<MatrixType>::Type Type; };
+
 template<typename MatrixType> class DiagonalCoeffs
-  : public MatrixBase<typename MatrixType::Scalar, DiagonalCoeffs<MatrixType> >
+  : public MatrixBase<DiagonalCoeffs<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
+    typedef typename Scalar<MatrixType>::Type Scalar;
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Scalar, DiagonalCoeffs>;
-    friend class MatrixBase<Scalar, DiagonalCoeffs>::Traits;
-    typedef MatrixBase<Scalar, DiagonalCoeffs> Base;
+    friend class MatrixBase<DiagonalCoeffs>;
+    friend class MatrixBase<DiagonalCoeffs>::Traits;
+    typedef MatrixBase<DiagonalCoeffs> Base;
 
     DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
 
@@ -87,17 +91,17 @@ template<typename MatrixType> class DiagonalCoeffs
   * Output: \verbinclude MatrixBase_diagonal.out
   *
   * \sa class DiagonalCoeffs */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 DiagonalCoeffs<Derived>
-MatrixBase<Scalar, Derived>::diagonal()
+MatrixBase<Derived>::diagonal()
 {
   return DiagonalCoeffs<Derived>(asArg());
 }
 
 /** This is the const version of diagonal(). */
-template<typename Scalar, typename Derived>
+template<typename Derived>
 const DiagonalCoeffs<Derived>
-MatrixBase<Scalar, Derived>::diagonal() const
+MatrixBase<Derived>::diagonal() const
 {
   return DiagonalCoeffs<Derived>(asArg());
 }
