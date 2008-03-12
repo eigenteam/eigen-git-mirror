@@ -44,7 +44,11 @@
     // This may happen when a second exceptions is raise in a destructor.
     static bool no_more_assert = false;
 
-    struct ei_assert_exception {};
+    struct ei_assert_exception
+    {
+      ei_assert_exception(void) {}
+      ~ei_assert_exception() { Eigen::no_more_assert = false; }
+    };
   }
 
   #define EI_PP_MAKE_STRING2(S) #S
@@ -88,7 +92,7 @@
 
     #define assert(a) if( (!(a)) && (!no_more_assert) ) { \
         Eigen::no_more_assert = true; \
-        throw Eigen::ei_assert_exception(); \
+        throw Eigen::ei_assert_exception(""); \
       }
 
     #define VERIFY_RAISES_ASSERT(a) {\
