@@ -32,17 +32,23 @@
   * \sa MatrixBase::identity(), MatrixBase::identity(int,int), MatrixBase::setIdentity()
   */
 template<typename MatrixType>
-struct Scalar<Identity<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Identity<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Identity : NoOperatorEquals,
   public MatrixBase<Identity<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
-    friend class MatrixBase<Identity>;
-    friend class MatrixBase<Identity>::Traits;
-    typedef MatrixBase<Identity> Base;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Identity)
 
     Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
@@ -53,12 +59,6 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const Identity& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
@@ -107,7 +107,7 @@ const Identity<Derived> MatrixBase<Derived>::identity(int rows, int cols)
 template<typename Derived>
 const Identity<Derived> MatrixBase<Derived>::identity()
 {
-  return Identity<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
+  return Identity<Derived>(RowsAtCompileTime, ColsAtCompileTime);
 }
 
 /** \returns true if *this is approximately equal to the identity matrix

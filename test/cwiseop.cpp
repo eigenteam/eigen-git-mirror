@@ -37,7 +37,7 @@ struct AddIfNull {
 template<typename MatrixType> void cwiseops(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   
   int rows = m.rows();
   int cols = m.cols();
@@ -47,9 +47,9 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
              mones = MatrixType::ones(rows, cols),
-             identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
+             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
+             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),
              v2 = VectorType::random(rows),

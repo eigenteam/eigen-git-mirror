@@ -84,18 +84,18 @@ using Eigen::MatrixBase;
 template<typename OtherDerived> \
 Derived& operator Op(const MatrixBase<OtherDerived>& other) \
 { \
-  return Base::operator Op(other); \
+  return MatrixBase<Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return Base::operator Op(other); \
+  return MatrixBase<Derived>::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return Base::operator Op(scalar); \
+  return MatrixBase<Derived>::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
@@ -104,6 +104,21 @@ EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
 EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+
+#define _EIGEN_BASIC_PUBLIC_INTERFACE(Derived, BaseClass) \
+friend class MatrixBase<Derived>; \
+typedef BaseClass Base; \
+typedef typename ei_traits<Derived>::Scalar Scalar; \
+enum { RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime, \
+       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime, \
+       MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime, \
+       MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime }; \
+using Base::SizeAtCompileTime; \
+using Base::MaxSizeAtCompileTime; \
+using Base::IsVectorAtCompileTime;
+
+#define EIGEN_BASIC_PUBLIC_INTERFACE(Derived) \
+_EIGEN_BASIC_PUBLIC_INTERFACE(Derived, MatrixBase<Derived>)
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 

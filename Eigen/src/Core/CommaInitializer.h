@@ -55,7 +55,7 @@ struct MatrixBase<Derived>::CommaInitializer
     }
     assert(m_col<m_matrix.cols() && "Too many coefficients passed to Matrix::operator<<");
     assert(m_currentBlockRows==1);
-    m_matrix._coeffRef(m_row, m_col++) = s;
+    m_matrix.coeffRef(m_row, m_col++) = s;
     return *this;
   }
 
@@ -77,7 +77,9 @@ struct MatrixBase<Derived>::CommaInitializer
 
   ~CommaInitializer(void)
   {
-    assert((m_row+m_currentBlockRows)==m_matrix.rows() && m_col==m_matrix.cols() && "Too few coefficients passed to Matrix::operator<<");
+    assert((m_row+m_currentBlockRows) == m_matrix.rows()
+         && m_col == m_matrix.cols()
+         && "Too few coefficients passed to Matrix::operator<<");
   }
 
   Derived& m_matrix;

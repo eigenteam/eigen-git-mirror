@@ -57,16 +57,16 @@ template<int Index, typename Derived> struct TraceUnroller<Index, 0, Derived>
   *
   * \sa diagonal() */
 template<typename Derived>
-typename Scalar<Derived>::Type
+typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::trace() const
 {
   assert(rows() == cols());
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
-  && Traits::RowsAtCompileTime != Dynamic
-  && Traits::RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-    TraceUnroller<Traits::RowsAtCompileTime-1,
-      Traits::RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Traits::RowsAtCompileTime : Dynamic, Derived>
+  && RowsAtCompileTime != Dynamic
+  && RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
+    TraceUnroller<RowsAtCompileTime-1,
+      RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? RowsAtCompileTime : Dynamic, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else
   {

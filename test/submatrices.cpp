@@ -59,8 +59,8 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
      Row.h Column.h Block.h Minor.h DiagonalCoeffs.h
   */
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, 1, MatrixType::Traits::ColsAtCompileTime> RowVectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
   int rows = m.rows();
   int cols = m.cols();
   
@@ -68,9 +68,9 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
-             identity = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
+             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
+             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::random(rows, rows);
   VectorType v1 = VectorType::random(rows),
              v2 = VectorType::random(rows),
@@ -103,7 +103,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
   
   //check minor()
-  CheckMinor<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::ColsAtCompileTime> checkminor(m1,r1,c1);
+  CheckMinor<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> checkminor(m1,r1,c1);
   
   //check diagonal()
   VERIFY_IS_APPROX(m1.diagonal(), m1.transpose().diagonal());

@@ -26,17 +26,23 @@
 #define EIGEN_MATRIXREF_H
 
 template<typename MatrixType>
-struct Scalar<MatrixRef<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<MatrixRef<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class MatrixRef
  : public MatrixBase<MatrixRef<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixRef>::Type Scalar;
-    friend class MatrixBase<MatrixRef>;
-    friend class MatrixBase<MatrixRef>::Traits;
-    typedef MatrixBase<MatrixRef> Base;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(MatrixRef)
 
     MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
     ~MatrixRef() {}
@@ -44,12 +50,6 @@ template<typename MatrixType> class MatrixRef
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixRef)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     MatrixRef _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }

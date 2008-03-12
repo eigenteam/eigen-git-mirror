@@ -33,25 +33,23 @@
   *     MatrixBase::setRandom()
   */
 template<typename MatrixType>
-struct Scalar<Random<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Random<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Random : NoOperatorEquals,
   public MatrixBase<Random<MatrixType> >
 {
   public:
-    typedef typename MatrixType::Scalar Scalar;
-    friend class MatrixBase<Random>;
-    friend class MatrixBase<Random>::Traits;
-    typedef MatrixBase<Random> Base;
 
-  private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
+    EIGEN_BASIC_PUBLIC_INTERFACE(Random)
 
     const Random& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
@@ -117,8 +115,8 @@ template<typename Derived>
 const Eval<Random<Derived> >
 MatrixBase<Derived>::random(int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
+  assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
   else return Random<Derived>(size, 1).eval();
 }
 
@@ -137,7 +135,7 @@ template<typename Derived>
 const Eval<Random<Derived> >
 MatrixBase<Derived>::random()
 {
-  return Random<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime).eval();
+  return Random<Derived>(RowsAtCompileTime, ColsAtCompileTime).eval();
 }
 
 /** Sets all coefficients in this expression to random values.

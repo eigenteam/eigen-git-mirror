@@ -57,18 +57,27 @@
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
 template<typename MatrixType, int BlockRows, int BlockCols>
-struct Scalar<Block<MatrixType, BlockRows, BlockCols> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum{
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : BlockRows,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : BlockCols,
+    MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1
+      : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
+    MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
+      : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols)
+  };
+};
 
 template<typename MatrixType, int BlockRows, int BlockCols> class Block
   : public MatrixBase<Block<MatrixType, BlockRows, BlockCols> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Block)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Block>;
-    friend class MatrixBase<Block>::Traits;
-    typedef MatrixBase<Block> Base;
 
     /** Fixed-size constructor
       */
@@ -97,14 +106,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
   private:
-    enum{
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime == 1 ? 1 : BlockRows,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime == 1 ? 1 : BlockCols,
-      MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1
-        : (BlockRows==Dynamic ? MatrixType::Traits::MaxRowsAtCompileTime : BlockRows),
-      MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
-        : (BlockCols==Dynamic ? MatrixType::Traits::MaxColsAtCompileTime : BlockCols)
-    };
 
     const Block& _asArg() const { return *this; }
     int _rows() const { return m_blockRows.value(); }
@@ -123,8 +124,8 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
   protected:
 
     MatRef m_matrix;
-    IntAtRunTimeIfDynamic<MatrixType::Traits::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    IntAtRunTimeIfDynamic<MatrixType::Traits::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    IntAtRunTimeIfDynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
+    IntAtRunTimeIfDynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     IntAtRunTimeIfDynamic<RowsAtCompileTime> m_blockRows;
     IntAtRunTimeIfDynamic<ColsAtCompileTime> m_blockCols;
 };
@@ -180,11 +181,11 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), Traits::RowsAtCompileTime == 1 ? 0 : start,
-                               Traits::ColsAtCompileTime == 1 ? 0 : start,
-                               Traits::RowsAtCompileTime == 1 ? 1 : size,
-                               Traits::ColsAtCompileTime == 1 ? 1 : size);
+  assert(IsVectorAtCompileTime);
+  return Block<Derived>(asArg(), RowsAtCompileTime == 1 ? 0 : start,
+                               ColsAtCompileTime == 1 ? 0 : start,
+                               RowsAtCompileTime == 1 ? 1 : size,
+                               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of block(int,int).*/
@@ -192,11 +193,11 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
-  assert(Traits::IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), Traits::RowsAtCompileTime == 1 ? 0 : start,
-                               Traits::ColsAtCompileTime == 1 ? 0 : start,
-                               Traits::RowsAtCompileTime == 1 ? 1 : size,
-                               Traits::ColsAtCompileTime == 1 ? 1 : size);
+  assert(IsVectorAtCompileTime);
+  return Block<Derived>(asArg(), RowsAtCompileTime == 1 ? 0 : start,
+                               ColsAtCompileTime == 1 ? 0 : start,
+                               RowsAtCompileTime == 1 ? 1 : size,
+                               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a dynamic-size expression of the first coefficients of *this.
@@ -218,10 +219,10 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::start(int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
+  assert(IsVectorAtCompileTime);
   return Block<Derived>(asArg(), 0, 0,
-                        Traits::RowsAtCompileTime == 1 ? 1 : size,
-                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+                        RowsAtCompileTime == 1 ? 1 : size,
+                        ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of start(int).*/
@@ -229,10 +230,10 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::start(int size) const
 {
-  assert(Traits::IsVectorAtCompileTime);
+  assert(IsVectorAtCompileTime);
   return Block<Derived>(asArg(), 0, 0,
-                        Traits::RowsAtCompileTime == 1 ? 1 : size,
-                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+                        RowsAtCompileTime == 1 ? 1 : size,
+                        ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a dynamic-size expression of the last coefficients of *this.
@@ -254,12 +255,12 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::end(int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
+  assert(IsVectorAtCompileTime);
   return Block<Derived>(asArg(),
-                        Traits::RowsAtCompileTime == 1 ? 0 : rows() - size,
-                        Traits::ColsAtCompileTime == 1 ? 0 : cols() - size,
-                        Traits::RowsAtCompileTime == 1 ? 1 : size,
-                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+                        RowsAtCompileTime == 1 ? 0 : rows() - size,
+                        ColsAtCompileTime == 1 ? 0 : cols() - size,
+                        RowsAtCompileTime == 1 ? 1 : size,
+                        ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of end(int).*/
@@ -267,12 +268,12 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::end(int size) const
 {
-  assert(Traits::IsVectorAtCompileTime);
+  assert(IsVectorAtCompileTime);
   return Block<Derived>(asArg(),
-                        Traits::RowsAtCompileTime == 1 ? 0 : rows() - size,
-                        Traits::ColsAtCompileTime == 1 ? 0 : cols() - size,
-                        Traits::RowsAtCompileTime == 1 ? 1 : size,
-                        Traits::ColsAtCompileTime == 1 ? 1 : size);
+                        RowsAtCompileTime == 1 ? 0 : rows() - size,
+                        ColsAtCompileTime == 1 ? 0 : cols() - size,
+                        RowsAtCompileTime == 1 ? 1 : size,
+                        ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a dynamic-size expression of a corner of *this.

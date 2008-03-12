@@ -153,21 +153,21 @@ template<typename Derived1, typename Derived2>
 inline bool test_ei_isApprox(const MatrixBase<Derived1>& m1,
                    const MatrixBase<Derived2>& m2)
 {
-  return m1.isApprox(m2, test_precision<typename Scalar<Derived1>::Type>());
+  return m1.isApprox(m2, test_precision<typename ei_traits<Derived1>::Scalar>());
 }
 
 template<typename Derived1, typename Derived2>
 inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
                                    const MatrixBase<Derived2>& m2)
 {
-  return m1.isMuchSmallerThan(m2, test_precision<typename Scalar<Derived1>::Type>());
+  return m1.isMuchSmallerThan(m2, test_precision<typename ei_traits<Derived1>::Scalar>());
 }
 
 template<typename Derived>
 inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
-                                   const typename NumTraits<typename Scalar<Derived>::Type>::Real& s)
+                                   const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
 {
-  return m.isMuchSmallerThan(s, test_precision<typename Scalar<Derived>::Type>());
+  return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
 class EigenTest : public QObject

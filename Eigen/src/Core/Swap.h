@@ -30,12 +30,12 @@ template<typename OtherDerived>
 void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
 {
   MatrixBase<OtherDerived> *_other = const_cast<MatrixBase<OtherDerived>*>(&other);
-  if(Traits::SizeAtCompileTime == Dynamic)
+  if(SizeAtCompileTime == Dynamic)
   {
     Scalar tmp;
-    if(Traits::IsVectorAtCompileTime)
+    if(IsVectorAtCompileTime)
     {
-      assert(OtherDerived::Traits::IsVectorAtCompileTime && size() == _other->size());
+      assert(OtherDerived::IsVectorAtCompileTime && size() == _other->size());
       for(int i = 0; i < size(); i++)
       {
         tmp = coeff(i);

@@ -30,8 +30,8 @@ template<typename Derived1, typename Derived2, int UnrollCount>
 struct MatrixOperatorEqualsUnroller
 {
   enum {
-    col = (UnrollCount-1) / Derived1::Traits::RowsAtCompileTime,
-    row = (UnrollCount-1) % Derived1::Traits::RowsAtCompileTime
+    col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
+    row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
 
   static void run(Derived1 &dst, const Derived2 &src)
@@ -102,16 +102,16 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
-  if(Traits::IsVectorAtCompileTime && OtherDerived::Traits::IsVectorAtCompileTime)
+  if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
     assert(size() == other.size());
     if(EIGEN_UNROLLED_LOOPS
-    && Traits::SizeAtCompileTime != Dynamic
-    && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
+    && SizeAtCompileTime != Dynamic
+    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
       VectorOperatorEqualsUnroller
         <Derived, OtherDerived,
-          Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? Traits::SizeAtCompileTime : Dynamic>::run
+          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
       for(int i = 0; i < size(); i++)
@@ -122,17 +122,17 @@ Derived& MatrixBase<Derived>
   {
     assert(rows() == other.rows() && cols() == other.cols());
     if(EIGEN_UNROLLED_LOOPS
-    && Traits::SizeAtCompileTime != Dynamic
-    && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
+    && SizeAtCompileTime != Dynamic
+    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
     {
       MatrixOperatorEqualsUnroller
         <Derived, OtherDerived,
-          Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? Traits::SizeAtCompileTime : Dynamic>::run
+          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     }
     else
     {
-      if(Traits::ColsAtCompileTime == Dynamic || Traits::RowsAtCompileTime != Dynamic)
+      if(ColsAtCompileTime == Dynamic || RowsAtCompileTime != Dynamic)
       {
         // traverse in column-major order
         for(int j = 0; j < cols(); j++)

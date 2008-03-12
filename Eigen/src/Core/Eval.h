@@ -45,19 +45,26 @@
   * \sa MatrixBase::eval()
   */
 template<typename ExpressionType>
-struct Scalar<Eval<ExpressionType> >
-{ typedef typename Scalar<ExpressionType>::Type Type; };
+struct ei_traits<Eval<ExpressionType> >
+{
+  typedef typename ExpressionType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
+    ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime
+  };
+};
 
 template<typename ExpressionType> class Eval : NoOperatorEquals,
   public Matrix< typename ExpressionType::Scalar,
-                 ExpressionType::Traits::RowsAtCompileTime,
-                 ExpressionType::Traits::ColsAtCompileTime,
+                 ExpressionType::RowsAtCompileTime,
+                 ExpressionType::ColsAtCompileTime,
                  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                 ExpressionType::Traits::MaxRowsAtCompileTime,
-                 ExpressionType::Traits::MaxColsAtCompileTime>
+                 ExpressionType::MaxRowsAtCompileTime,
+                 ExpressionType::MaxColsAtCompileTime>
 {
   public:
-    typedef typename Scalar<ExpressionType>::Type Scalar;
 
     /** The actual matrix type to evaluate to. This type can be used independently
       * of the rest of this class to get the actual matrix type to evaluate and store
@@ -67,12 +74,14 @@ template<typename ExpressionType> class Eval : NoOperatorEquals,
       * \include Eval_MatrixType.cpp
       * Output: \verbinclude Eval_MatrixType.out
       */
-    typedef Matrix<Scalar,
-                   ExpressionType::Traits::RowsAtCompileTime,
-                   ExpressionType::Traits::ColsAtCompileTime,
+    typedef Matrix<typename ExpressionType::Scalar,
+                   ExpressionType::RowsAtCompileTime,
+                   ExpressionType::ColsAtCompileTime,
                    EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                   ExpressionType::Traits::MaxRowsAtCompileTime,
-                   ExpressionType::Traits::MaxColsAtCompileTime> MatrixType;
+                   ExpressionType::MaxRowsAtCompileTime,
+                   ExpressionType::MaxColsAtCompileTime> MatrixType;
+
+    _EIGEN_BASIC_PUBLIC_INTERFACE(Eval, MatrixType)
 
     explicit Eval(const ExpressionType& expr) : MatrixType(expr) {}
 };

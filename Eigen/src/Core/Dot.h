@@ -69,18 +69,18 @@ struct DotUnroller<Index, 0, Derived1, Derived2>
   */
 template<typename Derived>
 template<typename OtherDerived>
-typename Scalar<Derived>::Type
+typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
-  assert(Traits::IsVectorAtCompileTime
-      && OtherDerived::Traits::IsVectorAtCompileTime
+  assert(IsVectorAtCompileTime
+      && OtherDerived::IsVectorAtCompileTime
       && size() == other.size());
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
-  && Traits::SizeAtCompileTime != Dynamic
-  && Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-    DotUnroller<Traits::SizeAtCompileTime-1,
-                Traits::SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Traits::SizeAtCompileTime : Dynamic,
+  && SizeAtCompileTime != Dynamic
+  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
+    DotUnroller<SizeAtCompileTime-1,
+                SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? SizeAtCompileTime : Dynamic,
                 Derived, MatrixBase<OtherDerived> >
       ::run(*static_cast<const Derived*>(this), other, res);
   else
@@ -99,7 +99,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   * \sa dot(), norm()
   */
 template<typename Derived>
-typename NumTraits<typename Scalar<Derived>::Type>::Real MatrixBase<Derived>::norm2() const
+typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm2() const
 {
   return ei_real(dot(*this));
 }
@@ -111,7 +111,7 @@ typename NumTraits<typename Scalar<Derived>::Type>::Real MatrixBase<Derived>::no
   * \sa dot(), norm2()
   */
 template<typename Derived>
-typename NumTraits<typename Scalar<Derived>::Type>::Real MatrixBase<Derived>::norm() const
+typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
   return ei_sqrt(norm2());
 }
@@ -123,7 +123,7 @@ typename NumTraits<typename Scalar<Derived>::Type>::Real MatrixBase<Derived>::no
   * \sa norm()
   */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename Scalar<Derived>::Type>, Derived>
+const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::normalized() const
 {
   return (*this) / norm();

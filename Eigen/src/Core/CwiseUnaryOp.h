@@ -40,29 +40,32 @@
   * \sa class CwiseBinaryOp
   */
 template<typename UnaryOp, typename MatrixType>
-struct Scalar<CwiseUnaryOp<UnaryOp, MatrixType> >
-{ typedef typename ei_result_of<UnaryOp(typename MatrixType::Scalar)>::type Type; };
+struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
+{
+  typedef typename ei_result_of<
+                     UnaryOp(typename MatrixType::Scalar)
+                   >::type Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOp : NoOperatorEquals,
   public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
 {
   public:
-    typedef typename ei_result_of<UnaryOp(typename MatrixType::Scalar)>::type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<CwiseUnaryOp>;
-    friend class MatrixBase<CwiseUnaryOp>::Traits;
-    typedef MatrixBase<CwiseUnaryOp> Base;
 
     CwiseUnaryOp(const MatRef& mat, const UnaryOp& func = UnaryOp()) : m_matrix(mat), m_functor(func) {}
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const CwiseUnaryOp& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
@@ -155,7 +158,7 @@ MatrixBase<Derived>::conjugate() const
 }
 
 /** \internal
-  * \brief Template functor to cast a scalar to another
+  * \brief Template functor to cast a scalar to another type
   *
   * \sa class CwiseUnaryOp, MatrixBase::cast()
   */
@@ -183,9 +186,8 @@ MatrixBase<Derived>::cast() const
   return CwiseUnaryOp<ScalarCastOp<NewType>, Derived>(asArg());
 }
 
-
 /** \internal
-  * \brief Template functor to multiply a scalar by a fixed another one
+  * \brief Template functor to multiply a scalar by a fixed other one
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
@@ -198,7 +200,7 @@ struct ScalarMultipleOp {
 
 /** \relates MatrixBase \sa class ScalarMultipleOp */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename Scalar<Derived>::Type>, Derived>
+const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>(asArg(), ScalarMultipleOp<Scalar>(scalar));
@@ -206,7 +208,7 @@ MatrixBase<Derived>::operator*(const Scalar& scalar) const
 
 /** \relates MatrixBase \sa class ScalarMultipleOp */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename Scalar<Derived>::Type>, Derived>
+const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
   assert(NumTraits<Scalar>::HasFloatingPoint);

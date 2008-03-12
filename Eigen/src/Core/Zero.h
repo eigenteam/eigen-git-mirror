@@ -33,25 +33,25 @@
   *     MatrixBase::setZero(), MatrixBase::isZero()
   */
 template<typename MatrixType>
-struct Scalar<Zero<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Zero<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Zero : NoOperatorEquals,
   public MatrixBase<Zero<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
-    friend class MatrixBase<Zero>;
-    friend class MatrixBase<Zero>::Traits;
-    typedef MatrixBase<Zero> Base;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Zero)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const Zero& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
@@ -63,6 +63,7 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     }
 
   public:
+
     Zero(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0
@@ -115,8 +116,8 @@ const Zero<Derived> MatrixBase<Derived>::zero(int rows, int cols)
 template<typename Derived>
 const Zero<Derived> MatrixBase<Derived>::zero(int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1) return Zero<Derived>(1, size);
+  assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1) return Zero<Derived>(1, size);
   else return Zero<Derived>(size, 1);
 }
 
@@ -133,7 +134,7 @@ const Zero<Derived> MatrixBase<Derived>::zero(int size)
 template<typename Derived>
 const Zero<Derived> MatrixBase<Derived>::zero()
 {
-  return Zero<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
+  return Zero<Derived>(RowsAtCompileTime, ColsAtCompileTime);
 }
 
 /** \returns true if *this is approximately equal to the zero matrix,

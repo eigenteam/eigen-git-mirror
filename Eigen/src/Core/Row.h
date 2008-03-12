@@ -46,18 +46,25 @@
   * \sa MatrixBase::row()
   */
 template<typename MatrixType>
-struct Scalar<Row<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Row<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = 1,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = 1,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Row
   : public MatrixBase<Row<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Row)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Row>;
-    friend class MatrixBase<Row>::Traits;
-    typedef MatrixBase<Row> Base;
 
     Row(const MatRef& matrix, int row)
       : m_matrix(matrix), m_row(row)
@@ -68,12 +75,6 @@ template<typename MatrixType> class Row
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Row)
 
   private:
-    enum {
-      RowsAtCompileTime = 1,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = 1,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const Row& _asArg() const { return *this; }
 

@@ -39,26 +39,25 @@
   * \sa Matrix::map()
   */
 template<typename MatrixType>
-struct Scalar<Map<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Map<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Map
   : public MatrixBase<Map<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
-    friend class MatrixBase<Map>;
-    friend class MatrixBase<Map>::Traits;
-    typedef MatrixBase<Map> Base;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Map)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      Order = MatrixType::StorageOrder,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const Map& _asArg() const { return *this; }
     int _rows() const { return m_rows; }
@@ -66,7 +65,7 @@ template<typename MatrixType> class Map
 
     const Scalar& _coeff(int row, int col) const
     {
-      if(Order == ColumnMajor)
+      if(MatrixType::StorageOrder == ColumnMajor)
         return m_data[row + col * m_rows];
       else // RowMajor
         return m_data[col + row * m_cols];
@@ -74,7 +73,7 @@ template<typename MatrixType> class Map
 
     Scalar& _coeffRef(int row, int col)
     {
-      if(Order == ColumnMajor)
+      if(MatrixType::StorageOrder == ColumnMajor)
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
       else // RowMajor
         return const_cast<Scalar*>(m_data)[col + row * m_cols];

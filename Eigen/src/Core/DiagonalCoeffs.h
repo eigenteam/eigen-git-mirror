@@ -38,34 +38,35 @@
   * \sa MatrixBase::diagonal()
   */
 template<typename MatrixType>
-struct Scalar<DiagonalCoeffs<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<DiagonalCoeffs<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::SizeAtCompileTime == Dynamic ? Dynamic
+                      : EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
+                                       MatrixType::ColsAtCompileTime),
+    ColsAtCompileTime = 1,
+    MaxRowsAtCompileTime = MatrixType::MaxSizeAtCompileTime == Dynamic ? Dynamic
+                            : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
+                                             MatrixType::MaxColsAtCompileTime),
+    MaxColsAtCompileTime = 1
+  };
+};
 
 template<typename MatrixType> class DiagonalCoeffs
   : public MatrixBase<DiagonalCoeffs<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(DiagonalCoeffs)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<DiagonalCoeffs>;
-    friend class MatrixBase<DiagonalCoeffs>::Traits;
-    typedef MatrixBase<DiagonalCoeffs> Base;
 
     DiagonalCoeffs(const MatRef& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::SizeAtCompileTime == Dynamic ? Dynamic
-                        : EIGEN_ENUM_MIN(MatrixType::Traits::RowsAtCompileTime,
-                                         MatrixType::Traits::ColsAtCompileTime),
-      ColsAtCompileTime = 1,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxSizeAtCompileTime == Dynamic ? Dynamic
-                             : EIGEN_ENUM_MIN(MatrixType::Traits::MaxRowsAtCompileTime,
-                                              MatrixType::Traits::MaxColsAtCompileTime),
-      MaxColsAtCompileTime = 1
-    };
 
     const DiagonalCoeffs& _asArg() const { return *this; }
     int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }

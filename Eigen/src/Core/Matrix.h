@@ -72,8 +72,16 @@
   * Note that most of the API is in the base class MatrixBase.
   */
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct Scalar<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-{ typedef _Scalar Type; };
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+{
+  typedef _Scalar Scalar;
+  enum {
+    RowsAtCompileTime = _Rows,
+    ColsAtCompileTime = _Cols,
+    MaxRowsAtCompileTime = _MaxRows,
+    MaxColsAtCompileTime = _MaxCols,
+  };
+};
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
@@ -82,26 +90,17 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
                                         _StorageOrder, _MaxRows, _MaxCols> >
 {
   public:
-    friend class MatrixBase<Matrix>;
-    friend class MatrixBase<Matrix>::Traits;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Matrix)
+
+    enum { StorageOrder = _StorageOrder };
+
     friend class Map<Matrix>;
 
-    typedef MatrixBase<Matrix> Base;
-    typedef typename Scalar<Matrix>::Type Scalar;
     typedef MatrixRef<Matrix> AsArg;
     friend class MatrixRef<Matrix>;
 
   private:
-    enum {
-      RowsAtCompileTime = _Rows,
-      ColsAtCompileTime = _Cols,
-      StorageOrder = _StorageOrder,
-      MaxRowsAtCompileTime = _MaxRows,
-      MaxColsAtCompileTime = _MaxCols,
-      MaxSizeAtCompileTime = _MaxRows == Dynamic || _MaxCols == Dynamic
-                               ? Dynamic
-                               : _MaxRows * _MaxCols
-    };
 
     MatrixStorage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
@@ -167,7 +166,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
         resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
-      return Base::operator=(other);
+      return MatrixBase<Matrix>::operator=(other);
     }
 
     /** This is a special case of the templated operator=. Its purpose is to

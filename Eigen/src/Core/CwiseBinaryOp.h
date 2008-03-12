@@ -47,20 +47,32 @@
   * \sa class ScalarProductOp, class ScalarQuotientOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
-struct Scalar<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
-{ typedef typename ei_result_of<BinaryOp(typename Lhs::Scalar,typename Rhs::Scalar)>::type Type; };
+struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+{
+  typedef typename ei_result_of<
+                     BinaryOp(
+                       typename Lhs::Scalar,
+                       typename Rhs::Scalar
+                     )
+                   >::type Scalar;
+  enum {
+    RowsAtCompileTime = Lhs::RowsAtCompileTime,
+    ColsAtCompileTime = Lhs::ColsAtCompileTime,
+    MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime
+  };
+};
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : NoOperatorEquals,
   public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   public:
-    typedef typename Scalar<CwiseBinaryOp>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(CwiseBinaryOp)
+
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
-    friend class MatrixBase<CwiseBinaryOp>;
-    friend class MatrixBase<CwiseBinaryOp>::Traits;
-    typedef MatrixBase<CwiseBinaryOp> Base;
 
     CwiseBinaryOp(const LhsRef& lhs, const RhsRef& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
@@ -69,12 +81,6 @@ class CwiseBinaryOp : NoOperatorEquals,
     }
 
   private:
-    enum {
-      RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = Lhs::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = Lhs::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = Lhs::Traits::MaxColsAtCompileTime
-    };
 
     const CwiseBinaryOp& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }

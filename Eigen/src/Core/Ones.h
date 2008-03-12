@@ -33,25 +33,25 @@
   *     MatrixBase::setOnes(), MatrixBase::isOnes()
   */
 template<typename MatrixType>
-struct Scalar<Ones<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Ones<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Ones : NoOperatorEquals,
   public MatrixBase<Ones<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
-    friend class MatrixBase<Ones>;
-    friend class MatrixBase<Ones>::Traits;
-    typedef MatrixBase<Ones> Base;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Ones)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime
-    };
 
     const Ones& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
@@ -115,8 +115,8 @@ const Ones<Derived> MatrixBase<Derived>::ones(int rows, int cols)
 template<typename Derived>
 const Ones<Derived> MatrixBase<Derived>::ones(int size)
 {
-  assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1) return Ones<Derived>(1, size);
+  assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1) return Ones<Derived>(1, size);
   else return Ones<Derived>(size, 1);
 }
 
@@ -133,7 +133,7 @@ const Ones<Derived> MatrixBase<Derived>::ones(int size)
 template<typename Derived>
 const Ones<Derived> MatrixBase<Derived>::ones()
 {
-  return Ones<Derived>(Traits::RowsAtCompileTime, Traits::ColsAtCompileTime);
+  return Ones<Derived>(RowsAtCompileTime, ColsAtCompileTime);
 }
 
 /** \returns true if *this is approximately equal to the matrix where all coefficients

@@ -40,7 +40,7 @@
   * \sa operator()(int,int) const, coeffRef(int,int), coeff(int) const
   */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int row, int col) const
 {
   eigen_internal_assert(row >= 0 && row < rows()
@@ -53,7 +53,7 @@ typename Scalar<Derived>::Type MatrixBase<Derived>
   * \sa operator()(int,int), operator[](int) const
   */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator()(int row, int col) const
 {
   assert(row >= 0 && row < rows()
@@ -76,7 +76,7 @@ typename Scalar<Derived>::Type MatrixBase<Derived>
   * \sa operator()(int,int), coeff(int, int) const, coeffRef(int)
   */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int row, int col)
 {
   eigen_internal_assert(row >= 0 && row < rows()
@@ -89,7 +89,7 @@ typename Scalar<Derived>::Type& MatrixBase<Derived>
   * \sa operator()(int,int) const, operator[](int)
   */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator()(int row, int col)
 {
   assert(row >= 0 && row < rows()
@@ -112,11 +112,11 @@ typename Scalar<Derived>::Type& MatrixBase<Derived>
   * \sa operator[](int) const, coeffRef(int), coeff(int,int) const
   */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
-  eigen_internal_assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1)
+  eigen_internal_assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1)
   {
     eigen_internal_assert(index >= 0 && index < cols());
     return coeff(0, index);
@@ -136,11 +136,11 @@ typename Scalar<Derived>::Type MatrixBase<Derived>
   * z() const, w() const
   */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
-  assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1)
+  assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1)
   {
     assert(index >= 0 && index < cols());
     return coeff(0, index);
@@ -167,11 +167,11 @@ typename Scalar<Derived>::Type MatrixBase<Derived>
   * \sa operator[](int), coeff(int) const, coeffRef(int,int)
   */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int index)
 {
-  eigen_internal_assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1)
+  eigen_internal_assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1)
   {
     eigen_internal_assert(index >= 0 && index < cols());
     return coeffRef(0, index);
@@ -190,11 +190,11 @@ typename Scalar<Derived>::Type& MatrixBase<Derived>
   * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
   */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator[](int index)
 {
-  assert(Traits::IsVectorAtCompileTime);
-  if(Traits::RowsAtCompileTime == 1)
+  assert(IsVectorAtCompileTime);
+  if(RowsAtCompileTime == 1)
   {
     assert(index >= 0 && index < cols());
     return coeffRef(0, index);
@@ -208,42 +208,42 @@ typename Scalar<Derived>::Type& MatrixBase<Derived>
 
 /** equivalent to operator[](0). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::x() const { return (*this)[0]; }
 
 /** equivalent to operator[](1). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::y() const { return (*this)[1]; }
 
 /** equivalent to operator[](2). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::z() const { return (*this)[2]; }
 
 /** equivalent to operator[](3). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::w() const { return (*this)[3]; }
 
 /** equivalent to operator[](0). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::x() { return (*this)[0]; }
 
 /** equivalent to operator[](1). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::y() { return (*this)[1]; }
 
 /** equivalent to operator[](2). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::z() { return (*this)[2]; }
 
 /** equivalent to operator[](3). \only_for_vectors */
 template<typename Derived>
-typename Scalar<Derived>::Type& MatrixBase<Derived>
+typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::w() { return (*this)[3]; }
 
 #endif // EIGEN_COEFFS_H

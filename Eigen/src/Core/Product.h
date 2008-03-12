@@ -1,4 +1,4 @@
-// // This file is part of Eigen, a lightweight C++ template library
+// This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
@@ -73,19 +73,26 @@ struct ProductUnroller<Index, 0, Lhs, Rhs>
   * \sa class Sum, class Difference
   */
 template<typename Lhs, typename Rhs>
-struct Scalar<Product<Lhs, Rhs> >
-{ typedef typename Scalar<Lhs>::Type Type; };
+struct ei_traits<Product<Lhs, Rhs> >
+{
+  typedef typename Lhs::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = Lhs::RowsAtCompileTime,
+    ColsAtCompileTime = Rhs::ColsAtCompileTime,
+    MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime
+  };
+};
 
 template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
   public MatrixBase<Product<Lhs, Rhs> >
 {
   public:
-    typedef typename Scalar<Lhs>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Product)
+
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
-    friend class MatrixBase<Product>;
-    friend class MatrixBase<Product>::Traits;
-    typedef MatrixBase<Product> Base;
 
     Product(const LhsRef& lhs, const RhsRef& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -94,12 +101,6 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     }
 
   private:
-    enum {
-      RowsAtCompileTime = Lhs::Traits::RowsAtCompileTime,
-      ColsAtCompileTime = Rhs::Traits::ColsAtCompileTime,
-      MaxRowsAtCompileTime = Lhs::Traits::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = Rhs::Traits::MaxColsAtCompileTime
-    };
 
     const Product& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
@@ -109,10 +110,10 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
     {
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS
-      && Lhs::Traits::ColsAtCompileTime != Dynamic
-      && Lhs::Traits::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-        ProductUnroller<Lhs::Traits::ColsAtCompileTime-1,
-                        Lhs::Traits::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Lhs::Traits::ColsAtCompileTime : Dynamic,
+      && Lhs::ColsAtCompileTime != Dynamic
+      && Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
+        ProductUnroller<Lhs::ColsAtCompileTime-1,
+                        Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Lhs::ColsAtCompileTime : Dynamic,
                         LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else

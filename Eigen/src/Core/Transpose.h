@@ -38,30 +38,31 @@
   * \sa MatrixBase::transpose(), MatrixBase::adjoint()
   */
 template<typename MatrixType>
-struct Scalar<Transpose<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Transpose<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = MatrixType::ColsAtCompileTime,
+    ColsAtCompileTime = MatrixType::RowsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime
+  };
+};
 
 template<typename MatrixType> class Transpose
   : public MatrixBase<Transpose<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Transpose)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Transpose>;
-    friend class MatrixBase<Transpose>::Traits;
-    typedef MatrixBase<Transpose> Base;
 
     Transpose(const MatRef& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::Traits::ColsAtCompileTime,
-      ColsAtCompileTime = MatrixType::Traits::RowsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::Traits::MaxColsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::Traits::MaxRowsAtCompileTime
-    };
 
     const Transpose& _asArg() const { return *this; }
     int _rows() const { return m_matrix.cols(); }

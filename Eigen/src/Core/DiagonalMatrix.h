@@ -39,33 +39,34 @@
   * \sa MatrixBase::diagonal(const OtherDerived&)
   */
 template<typename CoeffsVectorType>
-struct Scalar<DiagonalMatrix<CoeffsVectorType> >
-{ typedef typename Scalar<CoeffsVectorType>::Type Type; };
+struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
+{
+  typedef typename CoeffsVectorType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
+    ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
+    MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
+    MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime
+  };
+};
 
 template<typename CoeffsVectorType>
 class DiagonalMatrix : NoOperatorEquals,
   public MatrixBase<DiagonalMatrix<CoeffsVectorType> >
 {
   public:
-    typedef typename Scalar<CoeffsVectorType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(DiagonalMatrix)
+
     typedef typename CoeffsVectorType::AsArg CoeffsVecRef;
-    friend class MatrixBase<DiagonalMatrix>;
-    friend class MatrixBase<DiagonalMatrix>::Traits;
-    typedef MatrixBase<DiagonalMatrix> Base;
 
     DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
     {
-      assert(CoeffsVectorType::Traits::IsVectorAtCompileTime
+      assert(CoeffsVectorType::IsVectorAtCompileTime
           && coeffs.size() > 0);
     }
 
   private:
-    enum {
-      RowsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
-      ColsAtCompileTime = CoeffsVectorType::Traits::SizeAtCompileTime,
-      MaxRowsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime,
-      MaxColsAtCompileTime = CoeffsVectorType::Traits::MaxSizeAtCompileTime
-    };
 
     const DiagonalMatrix& _asArg() const { return *this; }
     int _rows() const { return m_coeffs.size(); }

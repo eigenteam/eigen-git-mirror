@@ -39,27 +39,40 @@
   *
   * \sa MatrixBase::evalOMP(), class Eval, MatrixBase::eval()
   */
+template<typename ExpressionType>
+struct ei_traits<EvalOMP<ExpressionType> >
+{
+  typedef typename ExpressionType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
+    ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime
+  };
+};
+
 template<typename ExpressionType> class EvalOMP : NoOperatorEquals,
   public Matrix< typename ExpressionType::Scalar,
-                 ExpressionType::Traits::RowsAtCompileTime,
-                 ExpressionType::Traits::ColsAtCompileTime,
+                 ExpressionType::RowsAtCompileTime,
+                 ExpressionType::ColsAtCompileTime,
                  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                 ExpressionType::Traits::MaxRowsAtCompileTime,
-                 ExpressionType::Traits::MaxColsAtCompileTime>
+                 ExpressionType::MaxRowsAtCompileTime,
+                 ExpressionType::MaxColsAtCompileTime>
 {
   public:
-    typedef typename ExpressionType::Scalar Scalar;
 
     /** The actual matrix type to evaluate to. This type can be used independently
       * of the rest of this class to get the actual matrix type to evaluate and store
       * the value of an expression.
       */
-    typedef Matrix<Scalar,
-                   ExpressionType::Traits::RowsAtCompileTime,
-                   ExpressionType::Traits::ColsAtCompileTime,
+    typedef Matrix<typename ExpressionType::Scalar,
+                   ExpressionType::RowsAtCompileTime,
+                   ExpressionType::ColsAtCompileTime,
                    EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
-                   ExpressionType::Traits::MaxRowsAtCompileTime,
-                   ExpressionType::Traits::MaxColsAtCompileTime> MatrixType;
+                   ExpressionType::MaxRowsAtCompileTime,
+                   ExpressionType::MaxColsAtCompileTime> MatrixType;
+
+    _EIGEN_BASIC_PUBLIC_INTERFACE(EvalOMP, MatrixType)
 
     #ifdef _OPENMP
     explicit EvalOMP(const ExpressionType& other)

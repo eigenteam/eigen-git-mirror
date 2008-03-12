@@ -33,8 +33,8 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   */
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, 1, MatrixType::Traits::ColsAtCompileTime> RowVectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
   int rows = m.rows();
   int cols = m.cols();
   
@@ -44,7 +44,7 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   VERIFY_IS_APPROX(m1(r,c), static_cast<Scalar>(1));
   VectorType v1 = VectorType::random(rows);
   v1[0];
-  Matrix<Scalar, MatrixType::Traits::RowsAtCompileTime, MatrixType::Traits::RowsAtCompileTime>
+  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
   square = v1.asDiagonal();
   if(r==r2) VERIFY_IS_APPROX(square(r,r2), v1[r]);
   else VERIFY_IS_MUCH_SMALLER_THAN(square(r,r2), static_cast<Scalar>(1));

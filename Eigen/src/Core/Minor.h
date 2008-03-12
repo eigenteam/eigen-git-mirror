@@ -38,18 +38,29 @@
   * \sa MatrixBase::minor()
   */
 template<typename MatrixType>
-struct Scalar<Minor<MatrixType> >
-{ typedef typename Scalar<MatrixType>::Type Type; };
+struct ei_traits<Minor<MatrixType> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
+                          MatrixType::RowsAtCompileTime - 1 : Dynamic,
+    ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
+                          MatrixType::ColsAtCompileTime - 1 : Dynamic,
+    MaxRowsAtCompileTime = (MatrixType::MaxRowsAtCompileTime != Dynamic) ?
+                                MatrixType::MaxRowsAtCompileTime - 1 : Dynamic,
+    MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
+                                MatrixType::MaxColsAtCompileTime - 1 : Dynamic
+  };
+};
 
 template<typename MatrixType> class Minor
   : public MatrixBase<Minor<MatrixType> >
 {
   public:
-    typedef typename Scalar<MatrixType>::Type Scalar;
+
+    EIGEN_BASIC_PUBLIC_INTERFACE(Minor)
+
     typedef typename MatrixType::AsArg MatRef;
-    friend class MatrixBase<Minor>;
-    friend class MatrixBase<Minor>::Traits;
-    typedef MatrixBase<Minor> Base;
 
     Minor(const MatRef& matrix,
                 int row, int col)
@@ -62,16 +73,6 @@ template<typename MatrixType> class Minor
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
 
   private:
-    enum {
-      RowsAtCompileTime = (MatrixType::Traits::RowsAtCompileTime != Dynamic) ?
-                            MatrixType::Traits::RowsAtCompileTime - 1 : Dynamic,
-      ColsAtCompileTime = (MatrixType::Traits::ColsAtCompileTime != Dynamic) ?
-                            MatrixType::Traits::ColsAtCompileTime - 1 : Dynamic,
-      MaxRowsAtCompileTime = (MatrixType::Traits::MaxRowsAtCompileTime != Dynamic) ?
-                                 MatrixType::Traits::MaxRowsAtCompileTime - 1 : Dynamic,
-      MaxColsAtCompileTime = (MatrixType::Traits::MaxColsAtCompileTime != Dynamic) ?
-                                 MatrixType::Traits::MaxColsAtCompileTime - 1 : Dynamic
-    };
 
     const Minor& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows() - 1; }
