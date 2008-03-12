@@ -3,17 +3,17 @@ USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
 template<typename Derived>
-Eigen::Row<Derived>
+Eigen::Block<Derived,1,Derived::ColsAtCompileTime>
 firstRow(MatrixBase<Derived>& m)
 {
-  return Eigen::Row<Derived>(m.asArg(), 0);
+  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m.asArg(), 0);
 }
 
 template<typename Derived>
-const Eigen::Row<Derived>
+const Eigen::Block<Derived,1,Derived::ColsAtCompileTime>
 firstRow(const MatrixBase<Derived>& m)
 {
-  return Eigen::Row<Derived>(m.asArg(), 0);
+  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m.asArg(), 0);
 }
 
 int main(int, char**)

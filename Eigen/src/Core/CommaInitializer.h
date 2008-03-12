@@ -52,8 +52,11 @@ struct MatrixBase<Derived>::CommaInitializer
       m_row+=m_currentBlockRows;
       m_col = 0;
       m_currentBlockRows = 1;
+      assert(m_row<m_matrix.rows()
+        && "Too many rows passed to MatrixBase::operator<<");
     }
-    assert(m_col<m_matrix.cols() && "Too many coefficients passed to Matrix::operator<<");
+    assert(m_col<m_matrix.cols()
+      && "Too many coefficients passed to MatrixBase::operator<<");
     assert(m_currentBlockRows==1);
     m_matrix.coeffRef(m_row, m_col++) = s;
     return *this;
@@ -67,10 +70,17 @@ struct MatrixBase<Derived>::CommaInitializer
       m_row+=m_currentBlockRows;
       m_col = 0;
       m_currentBlockRows = other.rows();
+      assert(m_row+m_currentBlockRows<=m_matrix.rows()
+        && "Too many rows passed to MatrixBase::operator<<");
     }
-    assert(m_col<m_matrix.cols() && "Too many coefficients passed to Matrix::operator<<");
+    assert(m_col<m_matrix.cols()
+      && "Too many coefficients passed to MatrixBase::operator<<");
     assert(m_currentBlockRows==other.rows());
-    m_matrix.block(m_row, m_col, other.rows(), other.cols()) = other;
+    if (OtherDerived::RowsAtCompileTime>0 && OtherDerived::ColsAtCompileTime>0)
+      m_matrix.block< (OtherDerived::RowsAtCompileTime>0?OtherDerived::RowsAtCompileTime:1) ,
+                      (OtherDerived::ColsAtCompileTime>0?OtherDerived::ColsAtCompileTime:1) >(m_row, m_col) = other;
+    else
+      m_matrix.block(m_row, m_col, other.rows(), other.cols()) = other;
     m_col += other.cols();
     return *this;
   }

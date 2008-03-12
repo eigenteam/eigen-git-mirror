@@ -79,6 +79,24 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     typedef typename MatrixType::AsArg MatRef;
 
+    /** Column or Row constructor
+      */
+    Block(const MatRef& matrix, int i)
+      : m_matrix(matrix),
+        // It is a row if and only if BlockRows==1 and BlockCols==MatrixType::ColsAtCompileTime,
+        // and it is a column if and only if BlockRows==MatrixType::RowsAtCompileTime and BlockCols==1,
+        // all other cases are invalid.
+        // The case a 1x1 matrix looks ambibuous, but the result is the same anyway.
+        m_startRow( (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0),
+        m_startCol( (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
+        m_blockRows(matrix.rows()), // if it is a row, then m_blockRows has a fixed-size of 1, so no pb to try to overwrite it
+        m_blockCols(matrix.cols())  // same for m_blockCols
+    {
+      assert( (i>=0) && (
+          ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
+        ||((BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) && i<matrix.cols())));
+    }
+
     /** Fixed-size constructor
       */
     Block(const MatRef& matrix, int startRow, int startCol)
@@ -352,6 +370,48 @@ const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(asArg(), startRow, startCol);
+}
+
+/** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
+  *
+  * Example: \include MatrixBase_col.cpp
+  * Output: \verbinclude MatrixBase_col.out
+  *
+  * \sa row(), class Block */
+template<typename Derived>
+Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+MatrixBase<Derived>::col(int i)
+{
+  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(asArg(), i);
+}
+
+/** This is the const version of col(). */
+template<typename Derived>
+const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+MatrixBase<Derived>::col(int i) const
+{
+  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(asArg(), i);
+}
+
+/** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
+  *
+  * Example: \include MatrixBase_row.cpp
+  * Output: \verbinclude MatrixBase_row.out
+  *
+  * \sa col(), class Block */
+template<typename Derived>
+Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+MatrixBase<Derived>::row(int i)
+{
+  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(asArg(), i);
+}
+
+/** This is the const version of row(). */
+template<typename Derived>
+const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+MatrixBase<Derived>::row(int i) const
+{
+  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(asArg(), i);
 }
 
 #endif // EIGEN_BLOCK_H

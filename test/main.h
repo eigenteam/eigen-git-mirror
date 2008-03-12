@@ -29,6 +29,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 #define DEFAULT_REPEAT 50
 
@@ -36,9 +37,14 @@
 
   namespace Eigen
   {
-    struct ei_assert_exception
-    {};
     static const bool should_raise_an_assert = false;
+
+    // Used to avoid to raise two exceptions at the time in which
+    // case the exception is not properly catched.
+    // This may happen when a second exceptions is raise in a destructor.
+    static bool no_more_assert = false;
+
+    struct ei_assert_exception {};
   }
 
   #define EI_PP_MAKE_STRING2(S) #S
@@ -64,7 +70,7 @@
     }
 
     #define assert(a) if (!(a)) { throw Eigen::ei_assert_exception();} \
-      else if (Eigen::ei_push_assert) {ei_assert_list.push_back( std::string(EI_PP_MAKE_STRING(__FILE__)) + " (" + EI_PP_MAKE_STRING(__LINE__) + ") : " + #a );}
+      else if (Eigen::ei_push_assert) {ei_assert_list.push_back( std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) );}
 
     #define VERIFY_RAISES_ASSERT(a) {\
       try { \
@@ -80,10 +86,13 @@
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #define assert(a) if (!(a)) { throw Eigen::ei_assert_exception();}
+    #define assert(a) if( (!(a)) && (!no_more_assert) ) { \
+        Eigen::no_more_assert = true; \
+        throw Eigen::ei_assert_exception(); \
+      }
 
     #define VERIFY_RAISES_ASSERT(a) {\
-      try {a; QVERIFY(Eigen::should_raise_an_assert && # a); } \
+      try { a; QVERIFY(Eigen::should_raise_an_assert && # a); } \
       catch (Eigen::ei_assert_exception e) { QVERIFY(true);} }
 
   #endif // EIGEN_DEBUG_ASSERTS

@@ -17,7 +17,7 @@ for (( i=0 ; i<g ; ++i )) ; do
   if [ -e `which $compiler` ]; then
     echo "${CLIST[$i]}"
 #     echo "${CLIST[$i]} $benchfile -I.. -o bench~"
-    if [ -e ./.bench ] ; then rm .bench; fi
+#     if [ -e ./.bench ] ; then rm .bench; fi
     ${CLIST[$i]} $benchfile -I.. -o .bench && ./.bench 2> /dev/null
     echo ""
   else

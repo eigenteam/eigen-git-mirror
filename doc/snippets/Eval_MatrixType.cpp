@@ -1,7 +1,7 @@
 typedef Matrix3i MyMatrixType;
 MyMatrixType m = MyMatrixType::random(3, 3);
 cout << "Here's the matrix m:" << endl << m << endl;
-typedef Eigen::Eval<Eigen::Row<MyMatrixType> >::MatrixType MyRowType;
+typedef Eigen::Eval<Eigen::Block<MyMatrixType,1,MyMatrixType::ColsAtCompileTime> >::MatrixType MyRowType;
 // now MyRowType is just the same typedef as RowVector3i
 MyRowType r = m.row(0);
 cout << "Here's r:" << endl << r << endl;

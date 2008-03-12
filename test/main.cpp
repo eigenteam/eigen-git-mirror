@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -27,13 +27,13 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    
+
     bool has_set_repeat = false;
     bool has_set_seed = false;
     bool need_help = false;
     unsigned int seed;
     int repeat;
-    
+
     QStringList args = QCoreApplication::instance()->arguments();
     args.takeFirst(); // throw away the first argument (path to executable)
     foreach(QString arg, args)
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
         need_help = true;
       }
     }
-    
+
     if(need_help)
     {
       qDebug() << "This test application takes the following optional arguments:";
@@ -82,10 +82,10 @@ int main(int argc, char *argv[])
       qDebug() << "  sN     Use N as seed for random numbers (default: based on current time)";
       return 1;
     }
-    
+
     if(!has_set_seed) seed = (unsigned int) time(NULL);
     if(!has_set_repeat) repeat = DEFAULT_REPEAT;
-    
+
     qDebug() << "Initializing random number generator with seed" << seed;
     srand(seed);
     qDebug() << "Repeating each test" << repeat << "times";

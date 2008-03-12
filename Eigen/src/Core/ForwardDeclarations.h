@@ -29,8 +29,6 @@ template<typename T> struct ei_traits;
 
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols> class Matrix;
 template<typename MatrixType> class MatrixRef;
-template<typename MatrixType> class Row;
-template<typename MatrixType> class Column;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
 template<typename MatrixType> class Transpose;

@@ -193,11 +193,11 @@ template<typename Derived> class MatrixBase
 
     /// \name sub-matrices
     //@{
-    Row<Derived> row(int i);
-    const Row<Derived> row(int i) const;
+    Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i);
+    const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i) const;
 
-    Column<Derived> col(int i);
-    const Column<Derived> col(int i) const;
+    Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> col(int i);
+    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> col(int i) const;
 
     Minor<Derived> minor(int row, int col);
     const Minor<Derived> minor(int row, int col) const;
