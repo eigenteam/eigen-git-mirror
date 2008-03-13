@@ -73,31 +73,47 @@
       static std::vector<std::string> ei_assert_list;
     }
 
-    #define assert(a) if (!(a)) { throw Eigen::ei_assert_exception();} \
-      else if (Eigen::ei_push_assert) {ei_assert_list.push_back( std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) );}
+    #define assert(a)                       \
+      if( (!(a)) && (!no_more_assert) )     \
+      {                                     \
+        Eigen::no_more_assert = true;       \
+        throw Eigen::ei_assert_exception(); \
+      }                                     \
+      else if (Eigen::ei_push_assert)       \
+      {                                     \
+        ei_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
+      }
 
-    #define VERIFY_RAISES_ASSERT(a) {\
-      try { \
-        Eigen::ei_assert_list.clear(); \
-        Eigen::ei_push_assert = true; \
-        a; \
-        Eigen::ei_push_assert = false; \
-        std::cout << "One of the following asserts should have been raised:\n"; \
-        for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai) \
-          std::cout << "  " << ei_assert_list[ai] << "\n"; \
-        QVERIFY(Eigen::should_raise_an_assert && # a); \
-      } catch (Eigen::ei_assert_exception e) { Eigen::ei_push_assert = false; QVERIFY(true);} }
+    #define VERIFY_RAISES_ASSERT(a)                                               \
+      {                                                                           \
+        try {                                                                     \
+          Eigen::ei_assert_list.clear();                                          \
+          Eigen::ei_push_assert = true;                                           \
+          a;                                                                      \
+          Eigen::ei_push_assert = false;                                          \
+          std::cout << "One of the following asserts should have been raised:\n"; \
+          for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
+            std::cout << "  " << ei_assert_list[ai] << "\n";                      \
+          QVERIFY(Eigen::should_raise_an_assert && # a);                          \
+        } catch (Eigen::ei_assert_exception e) {                                  \
+          Eigen::ei_push_assert = false; QVERIFY(true);                           \
+        }                                                                         \
+      }
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #define assert(a) if( (!(a)) && (!no_more_assert) ) { \
-        Eigen::no_more_assert = true; \
-        throw Eigen::ei_assert_exception(""); \
+    #define assert(a)                       \
+      if( (!(a)) && (!no_more_assert) )     \
+      {                                     \
+        Eigen::no_more_assert = true;       \
+        throw Eigen::ei_assert_exception(); \
       }
 
-    #define VERIFY_RAISES_ASSERT(a) {\
-      try { a; QVERIFY(Eigen::should_raise_an_assert && # a); } \
-      catch (Eigen::ei_assert_exception e) { QVERIFY(true);} }
+    #define VERIFY_RAISES_ASSERT(a)                                 \
+      {                                                             \
+        try { a; QVERIFY(Eigen::should_raise_an_assert && # a); }   \
+        catch (Eigen::ei_assert_exception e) { QVERIFY(true); }     \
+      }
 
   #endif // EIGEN_DEBUG_ASSERTS
 
