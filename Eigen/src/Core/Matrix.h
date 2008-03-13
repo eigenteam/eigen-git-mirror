@@ -97,14 +97,10 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
     friend class Map<Matrix>;
 
-    typedef MatrixRef<Matrix> AsArg;
-    friend class MatrixRef<Matrix>;
-
   private:
 
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
-    AsArg _asArg() const { return AsArg(*this); }
     int _rows() const { return m_storage.rows(); }
     int _cols() const { return m_storage.cols(); }
 

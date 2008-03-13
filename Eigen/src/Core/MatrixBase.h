@@ -57,6 +57,12 @@ template<typename Derived> class MatrixBase
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
 
+    const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    Derived& derived() { return *static_cast<Derived*>(this); }
+    Derived& const_cast_derived() const
+    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+
+
     /** The number of rows at compile-time. This is just a copy of the value provided
       * by the \a Derived type. If a value is not known at compile-time,
       * it is set to the \a Dynamic constant.
@@ -125,15 +131,6 @@ template<typename Derived> class MatrixBase
       = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1
     };
 
-    /** This is the "reference type" used to pass objects of type MatrixBase as arguments
-      * to functions. If this MatrixBase type represents an expression, then \a AsArg
-      * is just this MatrixBase type itself, i.e. expressions are just passed by value
-      * and the compiler is usually clever enough to optimize that. If, on the
-      * other hand, this MatrixBase type is an actual matrix or vector type, then \a AsArg is
-      * a typedef to MatrixRef, which works as a reference, so that matrices and vectors
-      * are passed by reference, not by value. \sa asArg()*/
-    typedef typename Reference<Derived>::Type AsArg;
-
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
       * \a Scalar is \a std::complex<T> then RealScalar is \a T.
@@ -160,10 +157,6 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     bool isVector() const { return rows()==1 || cols()==1; }
     //@}
-
-    /** \returns a AsArg to *this. \sa AsArg */
-    AsArg asArg() const
-    { return static_cast<const Derived *>(this)->_asArg(); }
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>

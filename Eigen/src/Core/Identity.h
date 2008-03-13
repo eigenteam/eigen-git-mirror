@@ -60,7 +60,6 @@ template<typename MatrixType> class Identity : ei_no_assignment_operator,
 
   private:
 
-    const Identity& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 
@@ -70,6 +69,7 @@ template<typename MatrixType> class Identity : ei_no_assignment_operator,
     }
 
   protected:
+
     const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };

@@ -56,21 +56,18 @@ template<typename MatrixType> class Transpose
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
-    typedef typename MatrixType::AsArg MatRef;
-
-    Transpose(const MatRef& matrix) : m_matrix(matrix) {}
+    Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
   private:
 
-    const Transpose& _asArg() const { return *this; }
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
 
     Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.coeffRef(col, row);
+      return m_matrix.const_cast_derived().coeffRef(col, row);
     }
 
     Scalar _coeff(int row, int col) const
@@ -79,7 +76,7 @@ template<typename MatrixType> class Transpose
     }
 
   protected:
-    MatRef m_matrix;
+    const typename MatrixType::XprCopy m_matrix;
 };
 
 /** \returns an expression of the transpose of *this.
@@ -92,7 +89,7 @@ template<typename Derived>
 Transpose<Derived>
 MatrixBase<Derived>::transpose()
 {
-  return Transpose<Derived>(asArg());
+  return Transpose<Derived>(derived());
 }
 
 /** This is the const version of transpose(). \sa adjoint() */
@@ -100,7 +97,7 @@ template<typename Derived>
 const Transpose<Derived>
 MatrixBase<Derived>::transpose() const
 {
-  return Transpose<Derived>(asArg());
+  return Transpose<Derived>(derived());
 }
 
 /** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.

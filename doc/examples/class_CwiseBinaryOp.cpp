@@ -13,7 +13,7 @@ template<typename Derived1, typename Derived2>
 const Eigen::CwiseBinaryOp<CwiseMinOp, Derived1, Derived2>
 cwiseMin(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
-  return Eigen::CwiseBinaryOp<CwiseMinOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
+  return Eigen::CwiseBinaryOp<CwiseMinOp, Derived1, Derived2>(mat1, mat2);
 }
 
 int main(int, char**)

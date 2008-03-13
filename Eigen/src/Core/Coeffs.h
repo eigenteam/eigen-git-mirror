@@ -45,7 +45,7 @@ typename ei_traits<Derived>::Scalar MatrixBase<Derived>
 {
   eigen_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  return static_cast<const Derived *>(this)->_coeff(row, col);
+  return derived()._coeff(row, col);
 }
 
 /** \returns the coefficient at given the given row and column.
@@ -58,7 +58,7 @@ typename ei_traits<Derived>::Scalar MatrixBase<Derived>
 {
   assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
-  return static_cast<const Derived *>(this)->_coeff(row, col);
+  return derived()._coeff(row, col);
 }
 
 /** Short version: don't use this function, use
@@ -81,7 +81,7 @@ typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 {
   eigen_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  return static_cast<Derived *>(this)->_coeffRef(row, col);
+  return derived()._coeffRef(row, col);
 }
 
 /** \returns a reference to the coefficient at given the given row and column.
@@ -94,7 +94,7 @@ typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 {
   assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
-  return static_cast<Derived *>(this)->_coeffRef(row, col);
+  return derived()._coeffRef(row, col);
 }
 
 /** Short version: don't use this function, use

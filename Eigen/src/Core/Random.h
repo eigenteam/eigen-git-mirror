@@ -51,7 +51,8 @@ template<typename MatrixType> class Random : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Random)
 
-    const Random& _asArg() const { return *this; }
+  private:
+
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 
@@ -61,6 +62,7 @@ template<typename MatrixType> class Random : ei_no_assignment_operator,
     }
 
   public:
+
     Random(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
       assert(rows > 0

@@ -6,14 +6,14 @@ template<typename Derived>
 Eigen::Block<Derived,1,Derived::ColsAtCompileTime>
 firstRow(MatrixBase<Derived>& m)
 {
-  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m.asArg(), 0);
+  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m, 0);
 }
 
 template<typename Derived>
 const Eigen::Block<Derived,1,Derived::ColsAtCompileTime>
 firstRow(const MatrixBase<Derived>& m)
 {
-  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m.asArg(), 0);
+  return Eigen::Block<Derived,1,Derived::ColsAtCompileTime>(m, 0);
 }
 
 int main(int, char**)

@@ -91,10 +91,7 @@ template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
-    typedef typename Lhs::AsArg LhsRef;
-    typedef typename Rhs::AsArg RhsRef;
-
-    Product(const LhsRef& lhs, const RhsRef& rhs)
+    Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       assert(lhs.cols() == rhs.rows());
@@ -102,7 +99,6 @@ template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
 
   private:
 
-    const Product& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
 
@@ -113,8 +109,9 @@ template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
       && Lhs::ColsAtCompileTime != Dynamic
       && Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
-                        Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT ? Lhs::ColsAtCompileTime : Dynamic,
-                        LhsRef, RhsRef>
+                            Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
+                              ? Lhs::ColsAtCompileTime : Dynamic,
+                            Lhs, Rhs>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
@@ -126,8 +123,8 @@ template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
     }
 
   protected:
-    const LhsRef m_lhs;
-    const RhsRef m_rhs;
+    const typename Lhs::XprCopy m_lhs;
+    const typename Rhs::XprCopy m_rhs;
 };
 
 /** \returns an expression of the matrix product of \c this and \a other, in this order.
@@ -144,7 +141,7 @@ template<typename OtherDerived>
 const Product<Derived, OtherDerived>
 MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 {
-  return Product<Derived, OtherDerived>(asArg(), other.asArg());
+  return Product<Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \relates MatrixBase

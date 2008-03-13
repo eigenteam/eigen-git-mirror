@@ -1,6 +1,4 @@
 // g++ -O3 -DNDEBUG -DMATSIZE=<x> benchmark.cpp -o benchmark && time ./benchmark
-#include <cstdlib>
-#include <cmath>
 #include <Eigen/Core>
 
 #ifndef MATSIZE

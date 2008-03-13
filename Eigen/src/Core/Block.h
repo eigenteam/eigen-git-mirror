@@ -77,11 +77,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
 
-    typedef typename MatrixType::AsArg MatRef;
-
     /** Column or Row constructor
       */
-    Block(const MatRef& matrix, int i)
+    Block(const MatrixType& matrix, int i)
       : m_matrix(matrix),
         // It is a row if and only if BlockRows==1 and BlockCols==MatrixType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==MatrixType::RowsAtCompileTime and BlockCols==1,
@@ -99,7 +97,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     /** Fixed-size constructor
       */
-    Block(const MatRef& matrix, int startRow, int startCol)
+    Block(const MatrixType& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {
       assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
@@ -109,7 +107,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     /** Dynamic-size constructor
       */
-    Block(const MatRef& matrix,
+    Block(const MatrixType& matrix,
           int startRow, int startCol,
           int blockRows, int blockCols)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
@@ -125,13 +123,13 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
   private:
 
-    const Block& _asArg() const { return *this; }
     int _rows() const { return m_blockRows.value(); }
     int _cols() const { return m_blockCols.value(); }
 
     Scalar& _coeffRef(int row, int col)
     {
-      return m_matrix.coeffRef(row + m_startRow.value(), col + m_startCol.value());
+      return m_matrix.const_cast_derived()
+               .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
     Scalar _coeff(int row, int col) const
@@ -141,7 +139,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
   protected:
 
-    MatRef m_matrix;
+    const typename MatrixType::XprCopy m_matrix;
     ei_int_if_dynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
     ei_int_if_dynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
@@ -168,7 +166,7 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
-  return Block<Derived>(asArg(), startRow, startCol, blockRows, blockCols);
+  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
 
 /** This is the const version of block(int,int,int,int). */
@@ -176,7 +174,7 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return Block<Derived>(asArg(), startRow, startCol, blockRows, blockCols);
+  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
 
 /** \returns a dynamic-size expression of a block in *this.
@@ -200,10 +198,10 @@ Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), RowsAtCompileTime == 1 ? 0 : start,
-                               ColsAtCompileTime == 1 ? 0 : start,
-                               RowsAtCompileTime == 1 ? 1 : size,
-                               ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
+                                   ColsAtCompileTime == 1 ? 0 : start,
+                                   RowsAtCompileTime == 1 ? 1 : size,
+                                   ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of block(int,int).*/
@@ -212,10 +210,10 @@ const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), RowsAtCompileTime == 1 ? 0 : start,
-                               ColsAtCompileTime == 1 ? 0 : start,
-                               RowsAtCompileTime == 1 ? 1 : size,
-                               ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
+                                   ColsAtCompileTime == 1 ? 0 : start,
+                                   RowsAtCompileTime == 1 ? 1 : size,
+                                   ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a dynamic-size expression of the first coefficients of *this.
@@ -238,7 +236,7 @@ Block<Derived> MatrixBase<Derived>
   ::start(int size)
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), 0, 0,
+  return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
 }
@@ -249,7 +247,7 @@ const Block<Derived> MatrixBase<Derived>
   ::start(int size) const
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(), 0, 0,
+  return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
 }
@@ -274,7 +272,7 @@ Block<Derived> MatrixBase<Derived>
   ::end(int size)
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(),
+  return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
                         RowsAtCompileTime == 1 ? 1 : size,
@@ -287,7 +285,7 @@ const Block<Derived> MatrixBase<Derived>
   ::end(int size) const
 {
   assert(IsVectorAtCompileTime);
-  return Block<Derived>(asArg(),
+  return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
                         RowsAtCompileTime == 1 ? 1 : size,
@@ -315,13 +313,13 @@ Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
   if(type == TopLeft)
-    return Block<Derived>(asArg(), 0, 0, cRows, cCols);
+    return Block<Derived>(derived(), 0, 0, cRows, cCols);
   else if(type == TopRight)
-    return Block<Derived>(asArg(), 0, cols() - cCols, cRows, cCols);
+    return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
   else if(type == BottomLeft)
-    return Block<Derived>(asArg(), rows() - cRows, 0, cRows, cCols);
+    return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
   else
-    return Block<Derived>(asArg(), rows() - cRows, cols() - cCols, cRows, cCols);
+    return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
 
 /** This is the const version of corner(CornerType, int, int).*/
@@ -330,13 +328,13 @@ const Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols) const
 {
   if(type == TopLeft)
-    return Block<Derived>(asArg(), 0, 0, cRows, cCols);
+    return Block<Derived>(derived(), 0, 0, cRows, cCols);
   else if(type == TopRight)
-    return Block<Derived>(asArg(), 0, cols() - cCols, cRows, cCols);
+    return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
   else if(type == BottomLeft)
-    return Block<Derived>(asArg(), rows() - cRows, 0, cRows, cCols);
+    return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
   else
-    return Block<Derived>(asArg(), rows() - cRows, cols() - cCols, cRows, cCols);
+    return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
 
 /** \returns a fixed-size expression of a block in *this.
@@ -360,7 +358,7 @@ template<int BlockRows, int BlockCols>
 Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol)
 {
-  return Block<Derived, BlockRows, BlockCols>(asArg(), startRow, startCol);
+  return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
 
 /** This is the const version of block<>(int, int). */
@@ -369,7 +367,7 @@ template<int BlockRows, int BlockCols>
 const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol) const
 {
-  return Block<Derived, BlockRows, BlockCols>(asArg(), startRow, startCol);
+  return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
 
 /** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
@@ -382,7 +380,7 @@ template<typename Derived>
 Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
 MatrixBase<Derived>::col(int i)
 {
-  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(asArg(), i);
+  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
 }
 
 /** This is the const version of col(). */
@@ -390,7 +388,7 @@ template<typename Derived>
 const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
 MatrixBase<Derived>::col(int i) const
 {
-  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(asArg(), i);
+  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
 }
 
 /** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
@@ -403,7 +401,7 @@ template<typename Derived>
 Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
 MatrixBase<Derived>::row(int i)
 {
-  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(asArg(), i);
+  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);
 }
 
 /** This is the const version of row(). */
@@ -411,7 +409,7 @@ template<typename Derived>
 const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
 MatrixBase<Derived>::row(int i) const
 {
-  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(asArg(), i);
+  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);
 }
 
 #endif // EIGEN_BLOCK_H

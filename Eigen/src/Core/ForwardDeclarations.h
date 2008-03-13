@@ -56,15 +56,15 @@ struct ei_scalar_abs_op;
 template<typename NewType> struct ei_scalar_cast_op;
 template<typename Scalar>  struct ei_scalar_multiple_op;
 
-template<typename T> struct Reference
+template<typename T> struct ei_xpr_copy
 {
   typedef T Type;
 };
 
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct Reference<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 {
-  typedef MatrixRef<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> > Type;
+  typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> & Type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

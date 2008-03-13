@@ -53,7 +53,6 @@ template<typename MatrixType> class Zero : ei_no_assignment_operator,
 
   private:
 
-    const Zero& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 

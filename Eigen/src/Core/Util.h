@@ -105,7 +105,8 @@ using Base::MaxRowsAtCompileTime; \
 using Base::MaxColsAtCompileTime; \
 using Base::SizeAtCompileTime; \
 using Base::MaxSizeAtCompileTime; \
-using Base::IsVectorAtCompileTime;
+using Base::IsVectorAtCompileTime; \
+typedef typename ei_xpr_copy<Derived>::Type XprCopy;
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, MatrixBase<Derived>) \

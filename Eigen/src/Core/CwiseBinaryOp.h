@@ -71,10 +71,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
-    typedef typename Lhs::AsArg LhsRef;
-    typedef typename Rhs::AsArg RhsRef;
-
-    CwiseBinaryOp(const LhsRef& lhs, const RhsRef& rhs, const BinaryOp& func = BinaryOp())
+    CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
       assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -82,7 +79,6 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
   private:
 
-    const CwiseBinaryOp& _asArg() const { return *this; }
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
@@ -92,8 +88,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     }
 
   protected:
-    const LhsRef m_lhs;
-    const RhsRef m_rhs;
+    const typename Lhs::XprCopy m_lhs;
+    const typename Rhs::XprCopy m_rhs;
     const BinaryOp m_functor;
 };
 
@@ -143,7 +139,7 @@ template<typename Derived1, typename Derived2>
 const CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>
 operator-(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
-  return CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
+  return CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>(mat1.derived(), mat2.derived());
 }
 
 /** replaces \c *this by \c *this - \a other.
@@ -168,7 +164,7 @@ template<typename Derived1, typename Derived2>
 const CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>
 operator+(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
-  return CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
+  return CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>(mat1.derived(), mat2.derived());
 }
 
 /** replaces \c *this by \c *this + \a other.
@@ -192,7 +188,7 @@ template<typename OtherDerived>
 const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>(asArg(), other.asArg());
+  return CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
@@ -204,7 +200,7 @@ template<typename OtherDerived>
 const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>(asArg(), other.asArg());
+  return CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
@@ -219,7 +215,7 @@ template<typename CustomBinaryOp, typename OtherDerived>
 const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
 MatrixBase<Derived>::cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
 {
-  return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(asArg(), other.asArg(), func);
+  return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);
 }
 
 #endif // EIGEN_CWISE_BINARY_OP_H

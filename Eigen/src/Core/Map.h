@@ -59,7 +59,6 @@ template<typename MatrixType> class Map
 
   private:
 
-    const Map& _asArg() const { return *this; }
     int _rows() const { return m_rows; }
     int _cols() const { return m_cols; }
 

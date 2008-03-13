@@ -61,13 +61,11 @@ class CwiseUnaryOp : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
 
-    typedef typename MatrixType::AsArg MatRef;
-
-    CwiseUnaryOp(const MatRef& mat, const UnaryOp& func = UnaryOp()) : m_matrix(mat), m_functor(func) {}
+    CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())
+      : m_matrix(mat), m_functor(func) {}
 
   private:
 
-    const CwiseUnaryOp& _asArg() const { return *this; }
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
@@ -77,7 +75,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     }
 
   protected:
-    const MatRef m_matrix;
+    const typename MatrixType::XprCopy m_matrix;
     const UnaryOp m_functor;
 };
 
@@ -106,7 +104,7 @@ template<typename Derived>
 const CwiseUnaryOp<ei_scalar_opposite_op,Derived>
 MatrixBase<Derived>::operator-() const
 {
-  return CwiseUnaryOp<ei_scalar_opposite_op,Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_opposite_op, Derived>(derived());
 }
 
 /** \returns an expression of the opposite of \c *this
@@ -115,9 +113,8 @@ template<typename Derived>
 const CwiseUnaryOp<ei_scalar_abs_op,Derived>
 MatrixBase<Derived>::cwiseAbs() const
 {
-  return CwiseUnaryOp<ei_scalar_abs_op,Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_abs_op,Derived>(derived());
 }
-
 
 /** \returns an expression of a custom coefficient-wise unary operator \a func of *this
   *
@@ -134,9 +131,8 @@ template<typename CustomUnaryOp>
 const CwiseUnaryOp<CustomUnaryOp, Derived>
 MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
 {
-  return CwiseUnaryOp<CustomUnaryOp, Derived>(asArg(), func);
+  return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
 }
-
 
 /** \internal
   * \brief Template functor to compute the conjugate of a complex value
@@ -154,7 +150,7 @@ template<typename Derived>
 const CwiseUnaryOp<ei_scalar_conjugate_op, Derived>
 MatrixBase<Derived>::conjugate() const
 {
-  return CwiseUnaryOp<ei_scalar_conjugate_op, Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_conjugate_op, Derived>(derived());
 }
 
 /** \internal
@@ -183,7 +179,7 @@ template<typename NewType>
 const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived>
 MatrixBase<Derived>::cast() const
 {
-  return CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived>(derived());
 }
 
 /** \internal
@@ -203,7 +199,8 @@ template<typename Derived>
 const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
-  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>(asArg(), ei_scalar_multiple_op<Scalar>(scalar));
+  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
+    (derived(), ei_scalar_multiple_op<Scalar>(scalar));
 }
 
 /** \relates MatrixBase \sa class ei_scalar_multiple_op */
@@ -213,7 +210,7 @@ MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
   assert(NumTraits<Scalar>::HasFloatingPoint);
   return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
-    (asArg(), ei_scalar_multiple_op<Scalar>(static_cast<Scalar>(1) / scalar));
+    (derived(), ei_scalar_multiple_op<Scalar>(static_cast<Scalar>(1) / scalar));
 }
 
 /** \sa ei_scalar_multiple_op */

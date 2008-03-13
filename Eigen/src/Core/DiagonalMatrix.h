@@ -58,9 +58,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
 
-    typedef typename CoeffsVectorType::AsArg CoeffsVecRef;
-
-    DiagonalMatrix(const CoeffsVecRef& coeffs) : m_coeffs(coeffs)
+    DiagonalMatrix(const CoeffsVectorType& coeffs) : m_coeffs(coeffs)
     {
       assert(CoeffsVectorType::IsVectorAtCompileTime
           && coeffs.size() > 0);
@@ -68,7 +66,6 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
   private:
 
-    const DiagonalMatrix& _asArg() const { return *this; }
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
 
@@ -78,7 +75,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
     }
 
   protected:
-    const CoeffsVecRef m_coeffs;
+    const typename CoeffsVectorType::XprCopy m_coeffs;
 };
 
 /** \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients
@@ -94,7 +91,7 @@ template<typename Derived>
 const DiagonalMatrix<Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
-  return DiagonalMatrix<Derived>(asArg());
+  return DiagonalMatrix<Derived>(derived());
 }
 
 /** \returns true if *this is approximately equal to a diagonal matrix,
