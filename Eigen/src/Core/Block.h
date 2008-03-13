@@ -75,7 +75,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Block)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
 
     typedef typename MatrixType::AsArg MatRef;
 
@@ -142,10 +142,10 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
   protected:
 
     MatRef m_matrix;
-    IntAtRunTimeIfDynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    IntAtRunTimeIfDynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
-    IntAtRunTimeIfDynamic<RowsAtCompileTime> m_blockRows;
-    IntAtRunTimeIfDynamic<ColsAtCompileTime> m_blockCols;
+    ei_int_if_dynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
+    ei_int_if_dynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
+    ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 };
 
 /** \returns a dynamic-size expression of a block in *this.

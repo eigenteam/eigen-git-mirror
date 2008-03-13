@@ -46,13 +46,15 @@ template<typename MatrixType> class Map;
 template<typename Derived> class Eval;
 template<typename Derived> class EvalOMP;
 
-struct ScalarProductOp;
-struct ScalarQuotientOp;
-struct ScalarOppositeOp;
-struct ScalarConjugateOp;
-struct ScalarAbsOp;
-template<typename NewType> struct ScalarCastOp;
-template<typename Scalar>  struct ScalarMultipleOp;
+struct ei_scalar_sum_op;
+struct ei_scalar_difference_op;
+struct ei_scalar_product_op;
+struct ei_scalar_quotient_op;
+struct ei_scalar_opposite_op;
+struct ei_scalar_conjugate_op;
+struct ei_scalar_abs_op;
+template<typename NewType> struct ei_scalar_cast_op;
+template<typename Scalar>  struct ei_scalar_multiple_op;
 
 template<typename T> struct Reference
 {

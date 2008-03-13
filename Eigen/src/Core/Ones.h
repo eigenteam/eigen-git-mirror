@@ -44,12 +44,12 @@ struct ei_traits<Ones<MatrixType> >
   };
 };
 
-template<typename MatrixType> class Ones : NoOperatorEquals,
+template<typename MatrixType> class Ones : ei_no_assignment_operator,
   public MatrixBase<Ones<MatrixType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Ones)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Ones)
 
   private:
 
@@ -72,8 +72,8 @@ template<typename MatrixType> class Ones : NoOperatorEquals,
     }
 
   protected:
-    const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
-    const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
 
 /** \returns an expression of a matrix where all coefficients equal one.

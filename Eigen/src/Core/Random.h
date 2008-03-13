@@ -44,12 +44,12 @@ struct ei_traits<Random<MatrixType> >
   };
 };
 
-template<typename MatrixType> class Random : NoOperatorEquals,
+template<typename MatrixType> class Random : ei_no_assignment_operator,
   public MatrixBase<Random<MatrixType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Random)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Random)
 
     const Random& _asArg() const { return *this; }
     int _rows() const { return m_rows.value(); }
@@ -70,8 +70,8 @@ template<typename MatrixType> class Random : NoOperatorEquals,
     }
 
   protected:
-    const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
-    const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
 
 /** \returns a random matrix (not an expression, the matrix is immediately evaluated).

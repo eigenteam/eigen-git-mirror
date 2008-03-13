@@ -91,7 +91,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Matrix)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
     enum { StorageOrder = _StorageOrder };
 
@@ -102,7 +102,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
   private:
 
-    MatrixStorage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
+    ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
     AsArg _asArg() const { return AsArg(*this); }
     int _rows() const { return m_storage.rows(); }

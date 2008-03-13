@@ -26,17 +26,17 @@
 #define EIGEN_DOT_H
 
 template<int Index, int Size, typename Derived1, typename Derived2>
-struct DotUnroller
+struct ei_dot_unroller
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    DotUnroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
+    ei_dot_unroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
     dot += v1.coeff(Index) * ei_conj(v2.coeff(Index));
   }
 };
 
 template<int Size, typename Derived1, typename Derived2>
-struct DotUnroller<0, Size, Derived1, Derived2>
+struct ei_dot_unroller<0, Size, Derived1, Derived2>
 {
   static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
@@ -45,14 +45,14 @@ struct DotUnroller<0, Size, Derived1, Derived2>
 };
 
 template<int Index, typename Derived1, typename Derived2>
-struct DotUnroller<Index, Dynamic, Derived1, Derived2>
+struct ei_dot_unroller<Index, Dynamic, Derived1, Derived2>
 {
   static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Derived1, typename Derived2>
-struct DotUnroller<Index, 0, Derived1, Derived2>
+struct ei_dot_unroller<Index, 0, Derived1, Derived2>
 {
   static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
@@ -78,9 +78,9 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
   && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-    DotUnroller<SizeAtCompileTime-1,
-                SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? SizeAtCompileTime : Dynamic,
+  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    ei_dot_unroller<SizeAtCompileTime-1,
+                SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic,
                 Derived, MatrixBase<OtherDerived> >
       ::run(*static_cast<const Derived*>(this), other, res);
   else
@@ -123,7 +123,7 @@ typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived
   * \sa norm()
   */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
+const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::normalized() const
 {
   return (*this) / norm();

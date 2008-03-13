@@ -4,14 +4,14 @@ using namespace std;
 
 template<typename Derived>
 const Eigen::CwiseUnaryOp<
-  Eigen::ScalarCastOp<
-    typename Eigen::NumTraits<typename Derived::Scalar>::FloatingPoint
+  Eigen::ei_scalar_cast_op<
+    typename Eigen::ei_traits<typename Derived::Scalar>::FloatingPoint
   >, Derived
 >
 castToFloatingPoint(const MatrixBase<Derived>& m)
 {
   return m.template cast<
-    typename Eigen::NumTraits<
+    typename Eigen::ei_traits<
       typename Derived::Scalar
     >::FloatingPoint
   >();

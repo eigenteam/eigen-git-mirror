@@ -43,12 +43,12 @@ struct ei_traits<Identity<MatrixType> >
   };
 };
 
-template<typename MatrixType> class Identity : NoOperatorEquals,
+template<typename MatrixType> class Identity : ei_no_assignment_operator,
   public MatrixBase<Identity<MatrixType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Identity)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Identity)
 
     Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
@@ -70,8 +70,8 @@ template<typename MatrixType> class Identity : NoOperatorEquals,
     }
 
   protected:
-    const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
-    const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
 
 /** \returns an expression of the identity matrix (not necessarily square).

@@ -54,7 +54,7 @@ template<typename MatrixType> class Transpose
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Transpose)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
     typedef typename MatrixType::AsArg MatRef;
 
@@ -108,9 +108,9 @@ MatrixBase<Derived>::transpose() const
   * Example: \include MatrixBase_adjoint.cpp
   * Output: \verbinclude MatrixBase_adjoint.out
   *
-  * \sa transpose(), conjugate(), class Transpose, class ScalarConjugateOp */
+  * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
-const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> >
+const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op, Derived> >
 MatrixBase<Derived>::adjoint() const
 {
   return conjugate().transpose();

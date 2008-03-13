@@ -54,12 +54,12 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
 };
 
 template<typename UnaryOp, typename MatrixType>
-class CwiseUnaryOp : NoOperatorEquals,
+class CwiseUnaryOp : ei_no_assignment_operator,
   public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
 
     typedef typename MatrixType::AsArg MatRef;
 
@@ -86,7 +86,7 @@ class CwiseUnaryOp : NoOperatorEquals,
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator-
   */
-struct ScalarOppositeOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
   template<typename Scalar> Scalar operator() (const Scalar& a) const { return -a; }
 };
 
@@ -95,7 +95,7 @@ struct ScalarOppositeOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
   */
-struct ScalarAbsOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
   template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_abs(a); }
 };
 
@@ -103,19 +103,19 @@ struct ScalarAbsOp EIGEN_EMPTY_STRUCT {
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Derived>
-const CwiseUnaryOp<ScalarOppositeOp,Derived>
+const CwiseUnaryOp<ei_scalar_opposite_op,Derived>
 MatrixBase<Derived>::operator-() const
 {
-  return CwiseUnaryOp<ScalarOppositeOp,Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_opposite_op,Derived>(asArg());
 }
 
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Derived>
-const CwiseUnaryOp<ScalarAbsOp,Derived>
+const CwiseUnaryOp<ei_scalar_abs_op,Derived>
 MatrixBase<Derived>::cwiseAbs() const
 {
-  return CwiseUnaryOp<ScalarAbsOp,Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_abs_op,Derived>(asArg());
 }
 
 
@@ -143,7 +143,7 @@ MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
   *
   * \sa class CwiseUnaryOp, MatrixBase::conjugate()
   */
-struct ScalarConjugateOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_conj(a); }
 };
 
@@ -151,10 +151,10 @@ struct ScalarConjugateOp EIGEN_EMPTY_STRUCT {
   *
   * \sa adjoint() */
 template<typename Derived>
-const CwiseUnaryOp<ScalarConjugateOp, Derived>
+const CwiseUnaryOp<ei_scalar_conjugate_op, Derived>
 MatrixBase<Derived>::conjugate() const
 {
-  return CwiseUnaryOp<ScalarConjugateOp, Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_conjugate_op, Derived>(asArg());
 }
 
 /** \internal
@@ -163,7 +163,7 @@ MatrixBase<Derived>::conjugate() const
   * \sa class CwiseUnaryOp, MatrixBase::cast()
   */
 template<typename NewType>
-struct ScalarCastOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
     typedef NewType result_type;
     template<typename Scalar> NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
 };
@@ -176,14 +176,14 @@ struct ScalarCastOp EIGEN_EMPTY_STRUCT {
   * Example: \include MatrixBase_cast.cpp
   * Output: \verbinclude MatrixBase_cast.out
   *
-  * \sa class CwiseUnaryOp, class ScalarCastOp
+  * \sa class CwiseUnaryOp, class ei_scalar_cast_op
   */
 template<typename Derived>
 template<typename NewType>
-const CwiseUnaryOp<ScalarCastOp<NewType>, Derived>
+const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived>
 MatrixBase<Derived>::cast() const
 {
-  return CwiseUnaryOp<ScalarCastOp<NewType>, Derived>(asArg());
+  return CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived>(asArg());
 }
 
 /** \internal
@@ -192,31 +192,31 @@ MatrixBase<Derived>::cast() const
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
 template<typename Scalar>
-struct ScalarMultipleOp {
-    ScalarMultipleOp(const Scalar& other) : m_other(other) {}
+struct ei_scalar_multiple_op {
+    ei_scalar_multiple_op(const Scalar& other) : m_other(other) {}
     Scalar operator() (const Scalar& a) const { return a * m_other; }
     const Scalar m_other;
 };
 
-/** \relates MatrixBase \sa class ScalarMultipleOp */
+/** \relates MatrixBase \sa class ei_scalar_multiple_op */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
+const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
-  return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>(asArg(), ScalarMultipleOp<Scalar>(scalar));
+  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>(asArg(), ei_scalar_multiple_op<Scalar>(scalar));
 }
 
-/** \relates MatrixBase \sa class ScalarMultipleOp */
+/** \relates MatrixBase \sa class ei_scalar_multiple_op */
 template<typename Derived>
-const CwiseUnaryOp<ScalarMultipleOp<typename ei_traits<Derived>::Scalar>, Derived>
+const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
   assert(NumTraits<Scalar>::HasFloatingPoint);
-  return CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
-    (asArg(), ScalarMultipleOp<Scalar>(static_cast<Scalar>(1) / scalar));
+  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
+    (asArg(), ei_scalar_multiple_op<Scalar>(static_cast<Scalar>(1) / scalar));
 }
 
-/** \sa ScalarMultipleOp */
+/** \sa ei_scalar_multiple_op */
 template<typename Derived>
 Derived&
 MatrixBase<Derived>::operator*=(const Scalar& other)
@@ -224,7 +224,7 @@ MatrixBase<Derived>::operator*=(const Scalar& other)
   return *this = *this * other;
 }
 
-/** \sa ScalarMultipleOp */
+/** \sa ei_scalar_multiple_op */
 template<typename Derived>
 Derived&
 MatrixBase<Derived>::operator/=(const Scalar& other)

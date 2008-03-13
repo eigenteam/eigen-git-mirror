@@ -51,7 +51,7 @@ struct ei_traits<EvalOMP<ExpressionType> >
   };
 };
 
-template<typename ExpressionType> class EvalOMP : NoOperatorEquals,
+template<typename ExpressionType> class EvalOMP : ei_no_assignment_operator,
   public Matrix< typename ExpressionType::Scalar,
                  ExpressionType::RowsAtCompileTime,
                  ExpressionType::ColsAtCompileTime,
@@ -72,7 +72,7 @@ template<typename ExpressionType> class EvalOMP : NoOperatorEquals,
                    ExpressionType::MaxRowsAtCompileTime,
                    ExpressionType::MaxColsAtCompileTime> MatrixType;
 
-    _EIGEN_BASIC_PUBLIC_INTERFACE(EvalOMP, MatrixType)
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(EvalOMP, MatrixType)
 
     #ifdef _OPENMP
     explicit EvalOMP(const ExpressionType& other)

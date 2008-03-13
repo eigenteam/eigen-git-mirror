@@ -230,17 +230,17 @@ template<typename Derived> class MatrixBase
     /// \name matrix transformation
     //@{
     template<typename NewType>
-    const CwiseUnaryOp<ScalarCastOp<NewType>, Derived> cast() const;
+    const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived> cast() const;
 
     const DiagonalMatrix<Derived> asDiagonal() const;
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
 
-    const CwiseUnaryOp<ScalarConjugateOp, Derived> conjugate() const;
-    const Transpose<CwiseUnaryOp<ScalarConjugateOp, Derived> > adjoint() const;
+    const CwiseUnaryOp<ei_scalar_conjugate_op, Derived> conjugate() const;
+    const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op, Derived> > adjoint() const;
 
-    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> normalized() const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> normalized() const;
     //@}
 
     // FIXME not sure about the following name
@@ -295,7 +295,7 @@ template<typename Derived> class MatrixBase
 
     /// \name arithemetic operators
     //@{
-    const CwiseUnaryOp<ScalarOppositeOp,Derived> operator-() const;
+    const CwiseUnaryOp<ei_scalar_opposite_op,Derived> operator-() const;
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
@@ -307,10 +307,10 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> operator*(const Scalar& scalar) const;
-    const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived> operator/(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator*(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator/(const Scalar& scalar) const;
 
-    friend const CwiseUnaryOp<ScalarMultipleOp<Scalar>, Derived>
+    friend const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
     operator*(const Scalar& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
 
@@ -318,14 +318,14 @@ template<typename Derived> class MatrixBase
     const Product<Derived, OtherDerived>
     lazyProduct(const MatrixBase<OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
 
-    const CwiseUnaryOp<ScalarAbsOp,Derived> cwiseAbs() const;
+    const CwiseUnaryOp<ei_scalar_abs_op,Derived> cwiseAbs() const;
 
     template<typename OtherDerived>
-    const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
+    const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
+    const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
     cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
     //@}
 

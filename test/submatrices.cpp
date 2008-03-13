@@ -28,7 +28,7 @@ namespace Eigen {
 
 // check minor separately in order to avoid the possible creation of a zero-sized
 // array. Comes from a compilation error with gcc-3.4 or gcc-4 with -ansi -pedantic.
-// Another solution would be to declare the array like this: T m_data[Size==0?1:Size]; in MatrixStorage
+// Another solution would be to declare the array like this: T m_data[Size==0?1:Size]; in ei_matrix_storage
 // but this is probably not bad to raise such an error at compile time...
 template<typename Scalar, int _Rows, int _Cols> struct CheckMinor
 {

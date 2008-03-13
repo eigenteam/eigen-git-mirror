@@ -26,8 +26,7 @@
 #ifndef EIGEN_MATRIXSTORAGE_H
 #define EIGEN_MATRIXSTORAGE_H
 
-
-/** \class MatrixStorage
+/** \class ei_matrix_storage
   *
   * \brief Stores the data of a matrix
   *
@@ -38,15 +37,15 @@
   *
   * \sa Matrix
   */
-template<typename T, int Size, int _Rows, int _Cols> class MatrixStorage;
+template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage;
 
 // purely fixed-size matrix.
-template<typename T, int Size, int _Rows, int _Cols> class MatrixStorage
+template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 {
     T m_data[Size];
   public:
-    MatrixStorage() {}
-    MatrixStorage(int,int,int) {}
+    ei_matrix_storage() {}
+    ei_matrix_storage(int,int,int) {}
     static int rows(void) {return _Rows;}
     static int cols(void) {return _Cols;}
     void resize(int,int,int) {}
@@ -55,14 +54,14 @@ template<typename T, int Size, int _Rows, int _Cols> class MatrixStorage
 };
 
 // dynamic-size matrix with fixed-size storage
-template<typename T, int Size> class MatrixStorage<T, Size, Dynamic, Dynamic>
+template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic>
 {
     T m_data[Size];
     int m_rows;
     int m_cols;
   public:
-    MatrixStorage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
-    ~MatrixStorage() {}
+    ei_matrix_storage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
+    ~ei_matrix_storage() {}
     int rows(void) const {return m_rows;}
     int cols(void) const {return m_cols;}
     void resize(int, int rows, int cols)
@@ -75,13 +74,13 @@ template<typename T, int Size> class MatrixStorage<T, Size, Dynamic, Dynamic>
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
-template<typename T, int Size, int _Cols> class MatrixStorage<T, Size, Dynamic, _Cols>
+template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynamic, _Cols>
 {
     T m_data[Size];
     int m_rows;
   public:
-    MatrixStorage(int, int rows, int) : m_rows(rows) {}
-    ~MatrixStorage() {}
+    ei_matrix_storage(int, int rows, int) : m_rows(rows) {}
+    ~ei_matrix_storage() {}
     int rows(void) const {return m_rows;}
     int cols(void) const {return _Cols;}
     void resize(int size, int rows, int)
@@ -93,13 +92,13 @@ template<typename T, int Size, int _Cols> class MatrixStorage<T, Size, Dynamic, 
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
-template<typename T, int Size, int _Rows> class MatrixStorage<T, Size, _Rows, Dynamic>
+template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows, Dynamic>
 {
     T m_data[Size];
     int m_cols;
   public:
-    MatrixStorage(int, int, int cols) : m_cols(cols) {}
-    ~MatrixStorage() {}
+    ei_matrix_storage(int, int, int cols) : m_cols(cols) {}
+    ~ei_matrix_storage() {}
     int rows(void) const {return _Rows;}
     int cols(void) const {return m_cols;}
     void resize(int size, int, int cols)
@@ -111,15 +110,15 @@ template<typename T, int Size, int _Rows> class MatrixStorage<T, Size, _Rows, Dy
 };
 
 // purely dynamic matrix.
-template<typename T> class MatrixStorage<T, Dynamic, Dynamic, Dynamic>
+template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
 {
     T *m_data;
     int m_rows;
     int m_cols;
   public:
-    MatrixStorage(int size, int rows, int cols)
+    ei_matrix_storage(int size, int rows, int cols)
       : m_data(new T[size]), m_rows(rows), m_cols(cols) {}
-    ~MatrixStorage() { delete[] m_data; }
+    ~ei_matrix_storage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     int cols(void) const {return m_cols;}
     void resize(int size, int rows, int cols)
@@ -137,13 +136,13 @@ template<typename T> class MatrixStorage<T, Dynamic, Dynamic, Dynamic>
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
-template<typename T, int _Rows> class MatrixStorage<T, Dynamic, _Rows, Dynamic>
+template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic>
 {
     T *m_data;
     int m_cols;
   public:
-    MatrixStorage(int size, int, int cols) : m_data(new T[size]), m_cols(cols) {}
-    ~MatrixStorage() { delete[] m_data; }
+    ei_matrix_storage(int size, int, int cols) : m_data(new T[size]), m_cols(cols) {}
+    ~ei_matrix_storage() { delete[] m_data; }
     static int rows(void) {return _Rows;}
     int cols(void) const {return m_cols;}
     void resize(int size, int, int cols)
@@ -160,13 +159,13 @@ template<typename T, int _Rows> class MatrixStorage<T, Dynamic, _Rows, Dynamic>
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
-template<typename T, int _Cols> class MatrixStorage<T, Dynamic, Dynamic, _Cols>
+template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols>
 {
     T *m_data;
     int m_rows;
   public:
-    MatrixStorage(int size, int rows, int) : m_data(new T[size]), m_rows(rows) {}
-    ~MatrixStorage() { delete[] m_data; }
+    ei_matrix_storage(int size, int rows, int) : m_data(new T[size]), m_rows(rows) {}
+    ~ei_matrix_storage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     static int cols(void) {return _Cols;}
     void resize(int size, int rows, int)

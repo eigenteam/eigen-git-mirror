@@ -58,7 +58,7 @@ template<typename MatrixType> class DiagonalCoeffs
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(DiagonalCoeffs)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalCoeffs)
 
     typedef typename MatrixType::AsArg MatRef;
 

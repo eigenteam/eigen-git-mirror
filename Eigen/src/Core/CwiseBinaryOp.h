@@ -44,7 +44,7 @@
   * Here is an example illustrating this:
   * \include class_CwiseBinaryOp.cpp
   *
-  * \sa class ScalarProductOp, class ScalarQuotientOp
+  * \sa class ei_scalar_product_op, class ei_scalar_quotient_op
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -64,12 +64,12 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
-class CwiseBinaryOp : NoOperatorEquals,
+class CwiseBinaryOp : ei_no_assignment_operator,
   public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(CwiseBinaryOp)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
@@ -102,7 +102,7 @@ class CwiseBinaryOp : NoOperatorEquals,
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+
   */
-struct ScalarSumOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
 };
 
@@ -111,7 +111,7 @@ struct ScalarSumOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
-struct ScalarDifferenceOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
 };
 
@@ -120,7 +120,7 @@ struct ScalarDifferenceOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct()
   */
-struct ScalarProductOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
 };
 
@@ -129,7 +129,7 @@ struct ScalarProductOp EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
-struct ScalarQuotientOp EIGEN_EMPTY_STRUCT {
+struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
 };
 
@@ -140,10 +140,10 @@ struct ScalarQuotientOp EIGEN_EMPTY_STRUCT {
   * \sa class CwiseBinaryOp, MatrixBase::operator-=()
   */
 template<typename Derived1, typename Derived2>
-const CwiseBinaryOp<ScalarDifferenceOp, Derived1, Derived2>
+const CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>
 operator-(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
-  return CwiseBinaryOp<ScalarDifferenceOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
+  return CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
 
 /** replaces \c *this by \c *this - \a other.
@@ -158,7 +158,6 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
   return *this = *this - other;
 }
 
-
 /** \relates MatrixBase
   *
   * \returns an expression of the sum of \a mat1 and \a mat2
@@ -166,10 +165,10 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
   * \sa class CwiseBinaryOp, MatrixBase::operator+=()
   */
 template<typename Derived1, typename Derived2>
-const CwiseBinaryOp<ScalarSumOp, Derived1, Derived2>
+const CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>
 operator+(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
 {
-  return CwiseBinaryOp<ScalarSumOp, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
+  return CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>(mat1.asArg(), mat2.asArg());
 }
 
 /** replaces \c *this by \c *this + \a other.
@@ -184,19 +183,17 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   return *this = *this + other;
 }
 
-
 /** \returns an expression of the Schur product (coefficient wise product) of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ScalarProductOp, Derived, OtherDerived>(asArg(), other.asArg());
+  return CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>(asArg(), other.asArg());
 }
-
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
   *
@@ -204,12 +201,11 @@ MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ScalarQuotientOp, Derived, OtherDerived>(asArg(), other.asArg());
+  return CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>(asArg(), other.asArg());
 }
-
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
   *
@@ -225,6 +221,5 @@ MatrixBase<Derived>::cwise(const MatrixBase<OtherDerived> &other, const CustomBi
 {
   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(asArg(), other.asArg(), func);
 }
-
 
 #endif // EIGEN_CWISE_BINARY_OP_H

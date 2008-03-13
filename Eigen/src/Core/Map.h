@@ -55,7 +55,7 @@ template<typename MatrixType> class Map
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Map)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
 
   private:
 

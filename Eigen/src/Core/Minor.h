@@ -58,7 +58,7 @@ template<typename MatrixType> class Minor
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Minor)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Minor)
 
     typedef typename MatrixType::AsArg MatRef;
 

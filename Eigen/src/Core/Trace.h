@@ -25,16 +25,16 @@
 #ifndef EIGEN_TRACE_H
 #define EIGEN_TRACE_H
 
-template<int Index, int Rows, typename Derived> struct TraceUnroller
+template<int Index, int Rows, typename Derived> struct ei_trace_unroller
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
-    TraceUnroller<Index-1, Rows, Derived>::run(mat, trace);
+    ei_trace_unroller<Index-1, Rows, Derived>::run(mat, trace);
     trace += mat.coeff(Index, Index);
   }
 };
 
-template<int Rows, typename Derived> struct TraceUnroller<0, Rows, Derived>
+template<int Rows, typename Derived> struct ei_trace_unroller<0, Rows, Derived>
 {
   static void run(const Derived &mat, typename Derived::Scalar &trace)
   {
@@ -42,13 +42,13 @@ template<int Rows, typename Derived> struct TraceUnroller<0, Rows, Derived>
   }
 };
 
-template<int Index, typename Derived> struct TraceUnroller<Index, Dynamic, Derived>
+template<int Index, typename Derived> struct ei_trace_unroller<Index, Dynamic, Derived>
 {
   static void run(const Derived&, typename Derived::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
-template<int Index, typename Derived> struct TraceUnroller<Index, 0, Derived>
+template<int Index, typename Derived> struct ei_trace_unroller<Index, 0, Derived>
 {
   static void run(const Derived&, typename Derived::Scalar&) {}
 };
@@ -64,9 +64,9 @@ MatrixBase<Derived>::trace() const
   Scalar res;
   if(EIGEN_UNROLLED_LOOPS
   && RowsAtCompileTime != Dynamic
-  && RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-    TraceUnroller<RowsAtCompileTime-1,
-      RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? RowsAtCompileTime : Dynamic, Derived>
+  && RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    ei_trace_unroller<RowsAtCompileTime-1,
+      RowsAtCompileTime <= EIGEN_UNROLLING_LIMIT ? RowsAtCompileTime : Dynamic, Derived>
       ::run(*static_cast<const Derived*>(this), res);
   else
   {

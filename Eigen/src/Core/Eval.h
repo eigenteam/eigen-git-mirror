@@ -56,7 +56,7 @@ struct ei_traits<Eval<ExpressionType> >
   };
 };
 
-template<typename ExpressionType> class Eval : NoOperatorEquals,
+template<typename ExpressionType> class Eval : ei_no_assignment_operator,
   public Matrix< typename ExpressionType::Scalar,
                  ExpressionType::RowsAtCompileTime,
                  ExpressionType::ColsAtCompileTime,
@@ -81,7 +81,7 @@ template<typename ExpressionType> class Eval : NoOperatorEquals,
                    ExpressionType::MaxRowsAtCompileTime,
                    ExpressionType::MaxColsAtCompileTime> MatrixType;
 
-    _EIGEN_BASIC_PUBLIC_INTERFACE(Eval, MatrixType)
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Eval, MatrixType)
 
     explicit Eval(const ExpressionType& expr) : MatrixType(expr) {}
 };

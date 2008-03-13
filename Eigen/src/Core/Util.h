@@ -31,18 +31,9 @@
 #define EIGEN_UNROLLED_LOOPS (true)
 #endif
 
-/** Defines the maximal loop size (i.e., the matrix size NxM) to enable
-  * meta unrolling of operator=.
-  */
-#ifndef EIGEN_UNROLLING_LIMIT_OPEQUAL
-#define EIGEN_UNROLLING_LIMIT_OPEQUAL 25
-#endif
-
-/** Defines the maximal loop size to enable meta unrolling
-  * of the matrix product, dot product and trace.
-  */
-#ifndef EIGEN_UNROLLING_LIMIT_PRODUCT
-#define EIGEN_UNROLLING_LIMIT_PRODUCT 16
+/** Defines the maximal loop size to enable meta unrolling of loops */
+#ifndef EIGEN_UNROLLING_LIMIT
+#define EIGEN_UNROLLING_LIMIT 16
 #endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
@@ -105,20 +96,20 @@ EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#define _EIGEN_BASIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-friend class MatrixBase<Derived>; \
+#define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
 typedef typename ei_traits<Derived>::Scalar Scalar; \
-enum { RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime, \
-       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime, \
-       MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime, \
-       MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime }; \
+using Base::RowsAtCompileTime; \
+using Base::ColsAtCompileTime; \
+using Base::MaxRowsAtCompileTime; \
+using Base::MaxColsAtCompileTime; \
 using Base::SizeAtCompileTime; \
 using Base::MaxSizeAtCompileTime; \
 using Base::IsVectorAtCompileTime;
 
-#define EIGEN_BASIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_BASIC_PUBLIC_INTERFACE(Derived, MatrixBase<Derived>)
+#define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
+_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, MatrixBase<Derived>) \
+friend class MatrixBase<Derived>;
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 
@@ -130,34 +121,34 @@ enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 
 // just a workaround because GCC seems to not really like empty structs
 #ifdef __GNUG__
-  struct EiEmptyStruct{char _ei_dummy_;};
-  #define EIGEN_EMPTY_STRUCT : Eigen::EiEmptyStruct
+  struct ei_empty_struct{char _ei_dummy_;};
+  #define EIGEN_EMPTY_STRUCT : Eigen::ei_empty_struct
 #else
   #define EIGEN_EMPTY_STRUCT
 #endif
 
-//classes inheriting NoOperatorEquals don't generate a default operator=.
-class NoOperatorEquals
+//classes inheriting ei_no_assignment_operator don't generate a default operator=.
+class ei_no_assignment_operator
 {
   private:
-    NoOperatorEquals& operator=(const NoOperatorEquals&);
+    ei_no_assignment_operator& operator=(const ei_no_assignment_operator&);
 };
 
-template<int Value> class IntAtRunTimeIfDynamic EIGEN_EMPTY_STRUCT
+template<int Value> class ei_int_if_dynamic EIGEN_EMPTY_STRUCT
 {
   public:
-    IntAtRunTimeIfDynamic() {}
-    explicit IntAtRunTimeIfDynamic(int) {}
+    ei_int_if_dynamic() {}
+    explicit ei_int_if_dynamic(int) {}
     static int value() { return Value; }
     void setValue(int) {}
 };
 
-template<> class IntAtRunTimeIfDynamic<Dynamic>
+template<> class ei_int_if_dynamic<Dynamic>
 {
     int m_value;
-    IntAtRunTimeIfDynamic() {}
+    ei_int_if_dynamic() {}
   public:
-    explicit IntAtRunTimeIfDynamic(int value) : m_value(value) {}
+    explicit ei_int_if_dynamic(int value) : m_value(value) {}
     int value() const { return m_value; }
     void setValue(int value) { m_value = value; }
 };

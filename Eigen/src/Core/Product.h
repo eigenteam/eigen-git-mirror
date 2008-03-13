@@ -26,18 +26,18 @@
 #define EIGEN_PRODUCT_H
 
 template<int Index, int Size, typename Lhs, typename Rhs>
-struct ProductUnroller
+struct ei_product_unroller
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
-    ProductUnroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
+    ei_product_unroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
     res += lhs.coeff(row, Index) * rhs.coeff(Index, col);
   }
 };
 
 template<int Size, typename Lhs, typename Rhs>
-struct ProductUnroller<0, Size, Lhs, Rhs>
+struct ei_product_unroller<0, Size, Lhs, Rhs>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
@@ -47,14 +47,14 @@ struct ProductUnroller<0, Size, Lhs, Rhs>
 };
 
 template<int Index, typename Lhs, typename Rhs>
-struct ProductUnroller<Index, Dynamic, Lhs, Rhs>
+struct ei_product_unroller<Index, Dynamic, Lhs, Rhs>
 {
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Lhs, typename Rhs>
-struct ProductUnroller<Index, 0, Lhs, Rhs>
+struct ei_product_unroller<Index, 0, Lhs, Rhs>
 {
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
@@ -84,12 +84,12 @@ struct ei_traits<Product<Lhs, Rhs> >
   };
 };
 
-template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
+template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
   public MatrixBase<Product<Lhs, Rhs> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Product)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
     typedef typename Lhs::AsArg LhsRef;
     typedef typename Rhs::AsArg RhsRef;
@@ -111,9 +111,9 @@ template<typename Lhs, typename Rhs> class Product : NoOperatorEquals,
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS
       && Lhs::ColsAtCompileTime != Dynamic
-      && Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT)
-        ProductUnroller<Lhs::ColsAtCompileTime-1,
-                        Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT_PRODUCT ? Lhs::ColsAtCompileTime : Dynamic,
+      && Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+        ei_product_unroller<Lhs::ColsAtCompileTime-1,
+                        Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT ? Lhs::ColsAtCompileTime : Dynamic,
                         LhsRef, RhsRef>
           ::run(row, col, m_lhs, m_rhs, res);
       else

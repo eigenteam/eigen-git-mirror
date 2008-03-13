@@ -44,12 +44,12 @@ struct ei_traits<Zero<MatrixType> >
   };
 };
 
-template<typename MatrixType> class Zero : NoOperatorEquals,
+template<typename MatrixType> class Zero : ei_no_assignment_operator,
   public MatrixBase<Zero<MatrixType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(Zero)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Zero)
 
   private:
 
@@ -73,8 +73,8 @@ template<typename MatrixType> class Zero : NoOperatorEquals,
     }
 
   protected:
-    const IntAtRunTimeIfDynamic<RowsAtCompileTime> m_rows;
-    const IntAtRunTimeIfDynamic<ColsAtCompileTime> m_cols;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
 
 /** \returns an expression of a zero matrix.

@@ -51,12 +51,12 @@ struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
 };
 
 template<typename CoeffsVectorType>
-class DiagonalMatrix : NoOperatorEquals,
+class DiagonalMatrix : ei_no_assignment_operator,
   public MatrixBase<DiagonalMatrix<CoeffsVectorType> >
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(DiagonalMatrix)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
 
     typedef typename CoeffsVectorType::AsArg CoeffsVecRef;
 

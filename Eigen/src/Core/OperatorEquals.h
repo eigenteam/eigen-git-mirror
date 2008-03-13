@@ -27,7 +27,7 @@
 #define EIGEN_OPERATOREQUALS_H
 
 template<typename Derived1, typename Derived2, int UnrollCount>
-struct MatrixOperatorEqualsUnroller
+struct ei_matrix_operator_equals_unroller
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -36,13 +36,13 @@ struct MatrixOperatorEqualsUnroller
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    MatrixOperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
+    ei_matrix_operator_equals_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
     dst.coeffRef(row, col) = src.coeff(row, col);
   }
 };
 
 template<typename Derived1, typename Derived2>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 1>
+struct ei_matrix_operator_equals_unroller<Derived1, Derived2, 1>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -52,38 +52,38 @@ struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 1>
 
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, 0>
+struct ei_matrix_operator_equals_unroller<Derived1, Derived2, 0>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2>
-struct MatrixOperatorEqualsUnroller<Derived1, Derived2, Dynamic>
+struct ei_matrix_operator_equals_unroller<Derived1, Derived2, Dynamic>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, int UnrollCount>
-struct VectorOperatorEqualsUnroller
+struct ei_vector_operator_equals_unroller
 {
   enum { index = UnrollCount - 1 };
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    VectorOperatorEqualsUnroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
+    ei_vector_operator_equals_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
     dst.coeffRef(index) = src.coeff(index);
   }
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2>
-struct VectorOperatorEqualsUnroller<Derived1, Derived2, 0>
+struct ei_vector_operator_equals_unroller<Derived1, Derived2, 0>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2>
-struct VectorOperatorEqualsUnroller<Derived1, Derived2, 1>
+struct ei_vector_operator_equals_unroller<Derived1, Derived2, 1>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -92,7 +92,7 @@ struct VectorOperatorEqualsUnroller<Derived1, Derived2, 1>
 };
 
 template<typename Derived1, typename Derived2>
-struct VectorOperatorEqualsUnroller<Derived1, Derived2, Dynamic>
+struct ei_vector_operator_equals_unroller<Derived1, Derived2, Dynamic>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
@@ -108,10 +108,10 @@ Derived& MatrixBase<Derived>
     assert(size() == other.size());
     if(EIGEN_UNROLLED_LOOPS
     && SizeAtCompileTime != Dynamic
-    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
-      VectorOperatorEqualsUnroller
+    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+      ei_vector_operator_equals_unroller
         <Derived, OtherDerived,
-          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? SizeAtCompileTime : Dynamic>::run
+          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     else
       for(int i = 0; i < size(); i++)
@@ -123,11 +123,11 @@ Derived& MatrixBase<Derived>
     assert(rows() == other.rows() && cols() == other.cols());
     if(EIGEN_UNROLLED_LOOPS
     && SizeAtCompileTime != Dynamic
-    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL)
+    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     {
-      MatrixOperatorEqualsUnroller
+      ei_matrix_operator_equals_unroller
         <Derived, OtherDerived,
-          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT_OPEQUAL ? SizeAtCompileTime : Dynamic>::run
+          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic>::run
           (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
     }
     else

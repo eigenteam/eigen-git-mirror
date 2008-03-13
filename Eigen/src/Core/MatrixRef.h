@@ -42,7 +42,7 @@ template<typename MatrixType> class MatrixRef
 {
   public:
 
-    EIGEN_BASIC_PUBLIC_INTERFACE(MatrixRef)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(MatrixRef)
 
     MatrixRef(const MatrixType& matrix) : m_matrix(matrix) {}
     ~MatrixRef() {}
