@@ -55,80 +55,76 @@ template<typename Derived> class MatrixBase
 
   public:
 
+    /// \name Compile-time traits
+    //@{
     typedef typename ei_traits<Derived>::Scalar Scalar;
 
-    const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    Derived& const_cast_derived() const
-    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+    enum {
 
+      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
+        /**< The number of rows at compile-time. This is just a copy of the value provided
+          * by the \a Derived type. If a value is not known at compile-time,
+          * it is set to the \a Dynamic constant.
+          * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
 
-    /** The number of rows at compile-time. This is just a copy of the value provided
-      * by the \a Derived type. If a value is not known at compile-time,
-      * it is set to the \a Dynamic constant.
-      * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
-    enum { RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime };
+     ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
+        /**< The number of columns at compile-time. This is just a copy of the value provided
+          * by the \a Derived type. If a value is not known at compile-time,
+          * it is set to the \a Dynamic constant.
+          * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
 
-    /** The number of columns at compile-time. This is just a copy of the value provided
-      * by the \a Derived type. If a value is not known at compile-time,
-      * it is set to the \a Dynamic constant.
-      * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
-    enum { ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime };
+      SizeAtCompileTime
+        = ei_traits<Derived>::RowsAtCompileTime == Dynamic
+        || ei_traits<Derived>::ColsAtCompileTime == Dynamic
+        ? Dynamic
+        : ei_traits<Derived>::RowsAtCompileTime * ei_traits<Derived>::ColsAtCompileTime,
+        /**< This is equal to the number of coefficients, i.e. the number of
+          * rows times the number of columns, or to \a Dynamic if this is not
+          * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
+        
+      MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
+        /**< This value is equal to the maximum possible number of rows that this expression
+          * might have. If this expression might have an arbitrarily high number of rows,
+          * this value is set to \a Dynamic.
+          *
+          * This value is useful to know when evaluating an expression, in order to determine
+          * whether it is possible to avoid doing a dynamic memory allocation.
+          *
+          * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
+          */
 
-    /** This is equal to the number of coefficients, i.e. the number of
-      * rows times the number of columns, or to \a Dynamic if this is not
-      * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-    enum { SizeAtCompileTime
-      = ei_traits<Derived>::RowsAtCompileTime == Dynamic
-      || ei_traits<Derived>::ColsAtCompileTime == Dynamic
-      ? Dynamic
-      : ei_traits<Derived>::RowsAtCompileTime * ei_traits<Derived>::ColsAtCompileTime
-    };
+      MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime,
+        /**< This value is equal to the maximum possible number of columns that this expression
+          * might have. If this expression might have an arbitrarily high number of columns,
+          * this value is set to \a Dynamic.
+          *
+          * This value is useful to know when evaluating an expression, in order to determine
+          * whether it is possible to avoid doing a dynamic memory allocation.
+          *
+          * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
+          */
 
-    /** This value is equal to the maximum possible number of rows that this expression
-      * might have. If this expression might have an arbitrarily high number of rows,
-      * this value is set to \a Dynamic.
-      *
-      * This value is useful to know when evaluating an expression, in order to determine
-      * whether it is possible to avoid doing a dynamic memory allocation.
-      *
-      * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
-      */
-    enum { MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime };
+      MaxSizeAtCompileTime
+        = ei_traits<Derived>::MaxRowsAtCompileTime == Dynamic
+        || ei_traits<Derived>::MaxColsAtCompileTime == Dynamic
+        ? Dynamic
+        : ei_traits<Derived>::MaxRowsAtCompileTime * ei_traits<Derived>::MaxColsAtCompileTime,
+        /**< This value is equal to the maximum possible number of coefficients that this expression
+          * might have. If this expression might have an arbitrarily high number of coefficients,
+          * this value is set to \a Dynamic.
+          *
+          * This value is useful to know when evaluating an expression, in order to determine
+          * whether it is possible to avoid doing a dynamic memory allocation.
+          *
+          * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
+          */
 
-    /** This value is equal to the maximum possible number of columns that this expression
-      * might have. If this expression might have an arbitrarily high number of columns,
-      * this value is set to \a Dynamic.
-      *
-      * This value is useful to know when evaluating an expression, in order to determine
-      * whether it is possible to avoid doing a dynamic memory allocation.
-      *
-      * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
-      */
-    enum { MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime };
-
-    /** This value is equal to the maximum possible number of coefficients that this expression
-      * might have. If this expression might have an arbitrarily high number of coefficients,
-      * this value is set to \a Dynamic.
-      *
-      * This value is useful to know when evaluating an expression, in order to determine
-      * whether it is possible to avoid doing a dynamic memory allocation.
-      *
-      * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
-      */
-    enum { MaxSizeAtCompileTime
-      = ei_traits<Derived>::MaxRowsAtCompileTime == Dynamic
-      || ei_traits<Derived>::MaxColsAtCompileTime == Dynamic
-      ? Dynamic
-      : ei_traits<Derived>::MaxRowsAtCompileTime * ei_traits<Derived>::MaxColsAtCompileTime
-    };
-
-    /** This is set to true if either the number of rows or the number of
-      * columns is known at compile-time to be equal to 1. Indeed, in that case,
-      * we are dealing with a column-vector (if there is only one column) or with
-      * a row-vector (if there is only one row). */
-    enum { IsVectorAtCompileTime
-      = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1
+      IsVectorAtCompileTime
+        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1
+        /**< This is set to true if either the number of rows or the number of
+          * columns is known at compile-time to be equal to 1. Indeed, in that case,
+          * we are dealing with a column-vector (if there is only one column) or with
+          * a row-vector (if there is only one row). */
     };
 
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -141,13 +137,14 @@ template<typename Derived> class MatrixBase
       * \sa class NumTraits
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    //@}
 
-    /// \name matrix properties
+    /// \name Run-time traits
     //@{
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    int rows() const { return static_cast<const Derived *>(this)->_rows(); }
+    int rows() const { return derived()._rows(); }
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
-    int cols() const { return static_cast<const Derived *>(this)->_cols(); }
+    int cols() const { return derived()._cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
     int size() const { return rows() * cols(); }
@@ -157,6 +154,9 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     bool isVector() const { return rows()==1 || cols()==1; }
     //@}
+
+    /// \name Copying and initialization
+    //@{
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -174,17 +174,96 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     CommaInitializer operator<< (const MatrixBase<OtherDerived>& other);
+    //@}
 
-    /** swaps *this with the expression \a other.
-      *
-      * \note \a other is only marked const because I couln't find another way
-      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
-      * of course. TODO: get rid of const here.
+    /// \name Coefficient accessors
+    //@{
+    Scalar coeff(int row, int col) const;
+    Scalar operator()(int row, int col) const;
+
+    Scalar& coeffRef(int row, int col);
+    Scalar& operator()(int row, int col);
+
+    Scalar coeff(int index) const;
+    Scalar operator[](int index) const;
+
+    Scalar& coeffRef(int index);
+    Scalar& operator[](int index);
+
+    Scalar x() const;
+    Scalar y() const;
+    Scalar z() const;
+    Scalar w() const;
+    Scalar& x();
+    Scalar& y();
+    Scalar& z();
+    Scalar& w();
+    //@}
+
+    /** \name Linear structure
+      * sum, scalar multiple, ...
       */
-    template<typename OtherDerived>
-    void swap(const MatrixBase<OtherDerived>& other);
+    //@{
+    const CwiseUnaryOp<ei_scalar_opposite_op,Derived> operator-() const;
 
-    /// \name sub-matrices
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_sum_op, Derived, OtherDerived>
+    operator+(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_difference_op, Derived, OtherDerived>
+    operator-(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    Derived& operator+=(const MatrixBase<OtherDerived>& other);
+    template<typename OtherDerived>
+    Derived& operator-=(const MatrixBase<OtherDerived>& other);
+
+    Derived& operator*=(const Scalar& other);
+    Derived& operator/=(const Scalar& other);
+
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator*(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator/(const Scalar& scalar) const;
+
+    friend const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
+    operator*(const Scalar& scalar, const MatrixBase& matrix)
+    { return matrix*scalar; }
+    //@}
+
+    /** \name Matrix product and related notions
+      * including the trace...
+      */
+    //@{
+    template<typename OtherDerived>
+    const Product<Derived, OtherDerived>
+    lazyProduct(const MatrixBase<OtherDerived>& other) const;
+
+    template<typename OtherDerived>
+    const Eval<Product<Derived, OtherDerived> >
+    operator*(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    Derived& operator*=(const MatrixBase<OtherDerived>& other);
+
+    Scalar trace() const;
+    //@}
+
+    /** \name Dot product and related notions
+      * including vector norm, adjoint, transpose ...
+      */
+    //@{
+    template<typename OtherDerived>
+    Scalar dot(const MatrixBase<OtherDerived>& other) const;
+    RealScalar norm2() const;
+    RealScalar norm()  const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> normalized() const;
+
+    Transpose<Derived> transpose();
+    const Transpose<Derived> transpose() const;
+    const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op, Derived> > adjoint() const;
+    //@}
+
+    /// \name Sub-matrices
     //@{
     Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i);
     const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i) const;
@@ -220,33 +299,8 @@ template<typename Derived> class MatrixBase
     const DiagonalCoeffs<Derived> diagonal() const;
     //@}
 
-    /// \name matrix transformation
+    /// \name Generating special matrices
     //@{
-    template<typename NewType>
-    const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived> cast() const;
-
-    const DiagonalMatrix<Derived> asDiagonal() const;
-
-    Transpose<Derived> transpose();
-    const Transpose<Derived> transpose() const;
-
-    const CwiseUnaryOp<ei_scalar_conjugate_op, Derived> conjugate() const;
-    const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op, Derived> > adjoint() const;
-
-    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> normalized() const;
-    //@}
-
-    // FIXME not sure about the following name
-    /// \name metrics
-    //@{
-    Scalar trace() const;
-
-    template<typename OtherDerived>
-    Scalar dot(const MatrixBase<OtherDerived>& other) const;
-    RealScalar norm2() const;
-    RealScalar norm()  const;
-    //@}
-
     static const Eval<Random<Derived> > random(int rows, int cols);
     static const Eval<Random<Derived> > random(int size);
     static const Eval<Random<Derived> > random();
@@ -259,13 +313,25 @@ template<typename Derived> class MatrixBase
     static const Identity<Derived> identity();
     static const Identity<Derived> identity(int rows, int cols);
 
+    const DiagonalMatrix<Derived> asDiagonal() const;
+
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
     Derived& setIdentity();
+    //@}
 
-    /// \name matrix diagnostic and comparison
+    /// \name Comparison and diagnostic
     //@{
+    template<typename OtherDerived>
+    bool isApprox(const OtherDerived& other,
+                  RealScalar prec = precision<Scalar>()) const;
+    bool isMuchSmallerThan(const RealScalar& other,
+                           RealScalar prec = precision<Scalar>()) const;
+    template<typename OtherDerived>
+    bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
+                           RealScalar prec = precision<Scalar>()) const;
+
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
@@ -275,89 +341,6 @@ template<typename Derived> class MatrixBase
     bool isOrtho(const MatrixBase<OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
-
-    template<typename OtherDerived>
-    bool isApprox(const OtherDerived& other,
-                  RealScalar prec = precision<Scalar>()) const;
-    bool isMuchSmallerThan(const RealScalar& other,
-                           RealScalar prec = precision<Scalar>()) const;
-    template<typename OtherDerived>
-    bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
-                           RealScalar prec = precision<Scalar>()) const;
-    //@}
-
-    /// \name arithemetic operators
-    //@{
-    const CwiseUnaryOp<ei_scalar_opposite_op,Derived> operator-() const;
-
-    template<typename OtherDerived>
-    Derived& operator+=(const MatrixBase<OtherDerived>& other);
-    template<typename OtherDerived>
-    Derived& operator-=(const MatrixBase<OtherDerived>& other);
-    template<typename OtherDerived>
-    Derived& operator*=(const MatrixBase<OtherDerived>& other);
-
-    Derived& operator*=(const Scalar& other);
-    Derived& operator/=(const Scalar& other);
-
-    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator*(const Scalar& scalar) const;
-    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator/(const Scalar& scalar) const;
-
-    friend const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
-    operator*(const Scalar& scalar, const MatrixBase& matrix)
-    { return matrix*scalar; }
-
-    template<typename OtherDerived>
-    const Product<Derived, OtherDerived>
-    lazyProduct(const MatrixBase<OtherDerived>& other) const EIGEN_ALWAYS_INLINE;
-
-    const CwiseUnaryOp<ei_scalar_abs_op,Derived> cwiseAbs() const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
-    cwiseProduct(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
-    cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
-    //@}
-
-    /// \name coefficient accessors
-    //@{
-    Scalar coeff(int row, int col) const;
-    Scalar operator()(int row, int col) const;
-
-    Scalar& coeffRef(int row, int col);
-    Scalar& operator()(int row, int col);
-
-    Scalar coeff(int index) const;
-    Scalar operator[](int index) const;
-
-    Scalar& coeffRef(int index);
-    Scalar& operator[](int index);
-
-    Scalar x() const;
-    Scalar y() const;
-    Scalar z() const;
-    Scalar w() const;
-    Scalar& x();
-    Scalar& y();
-    Scalar& z();
-    Scalar& w();
-    //@}
-
-    /// \name special functions
-    //@{
-    const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
-    const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
-
-    template<typename CustomUnaryOp>
-    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
-
-    template<typename CustomBinaryOp, typename OtherDerived>
-    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
-    //@}
 
     /** puts in *row and *col the location of the coefficient of *this
       * which has the biggest absolute value.
@@ -377,6 +360,63 @@ template<typename Derived> class MatrixBase
           }
         }
     }
+    //@}
+
+    /// \name Special functions
+    //@{
+    template<typename NewType>
+    const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived> cast() const;
+
+    const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+    const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
+
+    /** swaps *this with the expression \a other.
+      *
+      * \note \a other is only marked const because I couln't find another way
+      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
+      * of course. TODO: get rid of const here.
+      */
+    template<typename OtherDerived>
+    void swap(const MatrixBase<OtherDerived>& other);
+    //@}
+
+    /// \name Coefficient-wise operations
+    //@{
+    const CwiseUnaryOp<ei_scalar_conjugate_op, Derived> conjugate() const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
+    cwiseProduct(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
+    cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
+
+    const CwiseUnaryOp<ei_scalar_abs_op, Derived> cwiseAbs() const;
+    const CwiseUnaryOp<ei_scalar_abs2_op, Derived> cwiseAbs2() const;
+    const CwiseUnaryOp<ei_scalar_sqrt_op, Derived> cwiseSqrt() const;
+    const CwiseUnaryOp<ei_scalar_exp_op, Derived> cwiseExp() const;
+    const CwiseUnaryOp<ei_scalar_log_op, Derived> cwiseLog() const;
+    const CwiseUnaryOp<ei_scalar_cos_op, Derived> cwiseCos() const;
+    const CwiseUnaryOp<ei_scalar_sin_op, Derived> cwiseSin() const;
+    const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
+    cwisePow(const Scalar& exponent) const;
+
+    template<typename CustomUnaryOp>
+    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
+
+    template<typename CustomBinaryOp, typename OtherDerived>
+    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
+    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
+    //@}
+
+    /// \name Casting to the derived type
+    //@{
+    const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    Derived& derived() { return *static_cast<Derived*>(this); }
+    Derived& const_cast_derived() const
+    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+    //@}
 
 };
 

@@ -53,6 +53,13 @@ struct ei_scalar_quotient_op;
 struct ei_scalar_opposite_op;
 struct ei_scalar_conjugate_op;
 struct ei_scalar_abs_op;
+struct ei_scalar_abs2_op;
+struct ei_scalar_sqrt_op;
+struct ei_scalar_exp_op;
+struct ei_scalar_log_op;
+struct ei_scalar_cos_op;
+struct ei_scalar_sin_op;
+template<typename Scalar> struct ei_scalar_pow_op;
 template<typename NewType> struct ei_scalar_cast_op;
 template<typename Scalar>  struct ei_scalar_multiple_op;
 

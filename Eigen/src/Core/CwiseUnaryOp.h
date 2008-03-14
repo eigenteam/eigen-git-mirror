@@ -79,43 +79,6 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     const UnaryOp m_functor;
 };
 
-/** \internal
-  * \brief Template functor to compute the opposite of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::operator-
-  */
-struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
-  template<typename Scalar> Scalar operator() (const Scalar& a) const { return -a; }
-};
-
-/** \internal
-  * \brief Template functor to compute the absolute value of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
-  */
-struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
-  template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_abs(a); }
-};
-
-
-/** \returns an expression of the opposite of \c *this
-  */
-template<typename Derived>
-const CwiseUnaryOp<ei_scalar_opposite_op,Derived>
-MatrixBase<Derived>::operator-() const
-{
-  return CwiseUnaryOp<ei_scalar_opposite_op, Derived>(derived());
-}
-
-/** \returns an expression of the opposite of \c *this
-  */
-template<typename Derived>
-const CwiseUnaryOp<ei_scalar_abs_op,Derived>
-MatrixBase<Derived>::cwiseAbs() const
-{
-  return CwiseUnaryOp<ei_scalar_abs_op,Derived>(derived());
-}
-
 /** \returns an expression of a custom coefficient-wise unary operator \a func of *this
   *
   * The template parameter \a CustomUnaryOp is the type of the functor
@@ -132,6 +95,60 @@ const CwiseUnaryOp<CustomUnaryOp, Derived>
 MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
 {
   return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
+}
+
+/** \internal
+  * \brief Template functor to compute the opposite of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::operator-
+  */
+struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
+  template<typename Scalar> Scalar operator() (const Scalar& a) const { return -a; }
+};
+
+/** \returns an expression of the opposite of \c *this
+  */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_opposite_op,Derived>
+MatrixBase<Derived>::operator-() const
+{
+  return CwiseUnaryOp<ei_scalar_opposite_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the absolute value of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
+  */
+struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
+  template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_abs(a); }
+};
+
+/** \returns an expression of the coefficient-wise absolute value of \c *this
+  */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_abs_op,Derived>
+MatrixBase<Derived>::cwiseAbs() const
+{
+  return CwiseUnaryOp<ei_scalar_abs_op,Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the squared absolute value of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs2
+  */
+struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
+  template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_abs2(a); }
+};
+
+/** \returns an expression of the coefficient-wise squared absolute value of \c *this
+  */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_abs2_op,Derived>
+MatrixBase<Derived>::cwiseAbs2() const
+{
+  return CwiseUnaryOp<ei_scalar_abs2_op,Derived>(derived());
 }
 
 /** \internal
@@ -169,10 +186,7 @@ struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
   *
   * The template parameter \a NewScalar is the type we are casting the scalars to.
   *
-  * Example: \include MatrixBase_cast.cpp
-  * Output: \verbinclude MatrixBase_cast.out
-  *
-  * \sa class CwiseUnaryOp, class ei_scalar_cast_op
+  * \sa class CwiseUnaryOp
   */
 template<typename Derived>
 template<typename NewType>
@@ -194,7 +208,7 @@ struct ei_scalar_multiple_op {
     const Scalar m_other;
 };
 
-/** \relates MatrixBase \sa class ei_scalar_multiple_op */
+/** \relates MatrixBase */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
@@ -203,7 +217,7 @@ MatrixBase<Derived>::operator*(const Scalar& scalar) const
     (derived(), ei_scalar_multiple_op<Scalar>(scalar));
 }
 
-/** \relates MatrixBase \sa class ei_scalar_multiple_op */
+/** \relates MatrixBase */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const
@@ -213,7 +227,6 @@ MatrixBase<Derived>::operator/(const Scalar& scalar) const
     (derived(), ei_scalar_multiple_op<Scalar>(static_cast<Scalar>(1) / scalar));
 }
 
-/** \sa ei_scalar_multiple_op */
 template<typename Derived>
 Derived&
 MatrixBase<Derived>::operator*=(const Scalar& other)
@@ -221,12 +234,117 @@ MatrixBase<Derived>::operator*=(const Scalar& other)
   return *this = *this * other;
 }
 
-/** \sa ei_scalar_multiple_op */
 template<typename Derived>
 Derived&
 MatrixBase<Derived>::operator/=(const Scalar& other)
 {
   return *this = *this / other;
+}
+
+/** \internal
+  * \brief Template functor to compute the square root of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
+  */
+struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
+    template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
+};
+
+/** \returns an expression of the coefficient-wise square root of *this. */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_sqrt_op, Derived>
+MatrixBase<Derived>::cwiseSqrt() const
+{
+  return CwiseUnaryOp<ei_scalar_sqrt_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the exponential of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
+  */
+struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
+    template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_exp(a); }
+};
+
+/** \returns an expression of the coefficient-wise exponential of *this. */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_exp_op, Derived>
+MatrixBase<Derived>::cwiseExp() const
+{
+  return CwiseUnaryOp<ei_scalar_exp_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the logarithm of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
+  */
+struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
+    template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_log(a); }
+};
+
+/** \returns an expression of the coefficient-wise logarithm of *this. */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_log_op, Derived>
+MatrixBase<Derived>::cwiseLog() const
+{
+  return CwiseUnaryOp<ei_scalar_log_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the cosine of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
+  */
+struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
+    template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_cos(a); }
+};
+
+/** \returns an expression of the coefficient-wise cosine of *this. */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_cos_op, Derived>
+MatrixBase<Derived>::cwiseCos() const
+{
+  return CwiseUnaryOp<ei_scalar_cos_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to compute the sine of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
+  */
+struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
+    template<typename Scalar> Scalar operator() (const Scalar& a) const { return ei_sin(a); }
+};
+
+/** \returns an expression of the coefficient-wise sine of *this. */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_sin_op, Derived>
+MatrixBase<Derived>::cwiseSin() const
+{
+  return CwiseUnaryOp<ei_scalar_sin_op, Derived>(derived());
+}
+
+/** \internal
+  * \brief Template functor to raise a scalar to a power
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwisePow
+  */
+template<typename Scalar>
+struct ei_scalar_pow_op {
+    ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
+    Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
+    const Scalar m_exponent;
+};
+
+/** \relates MatrixBase */
+template<typename Derived>
+const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
+MatrixBase<Derived>::cwisePow(const Scalar& exponent) const
+{
+  return CwiseUnaryOp<ei_scalar_pow_op<Scalar>, Derived>
+    (derived(), ei_scalar_pow_op<Scalar>(exponent));
 }
 
 #endif // EIGEN_CWISE_UNARY_OP_H

@@ -144,21 +144,19 @@ MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
   return Product<Derived, OtherDerived>(derived(), other.derived());
 }
 
-/** \relates MatrixBase
-  *
-  * \returns the matrix product of \a mat1 and \a mat2. More precisely, the return statement is:
-  *          \code return mat1.lazyProduct(mat2).eval(); \endcode
+/** \returns the matrix product of \c *this and \a other.
   *
   * \note This function causes an immediate evaluation. If you want to perform a matrix product
   * without immediate evaluation, use MatrixBase::lazyProduct() instead.
   *
-  * \sa MatrixBase::lazyProduct(), MatrixBase::operator*=(const MatrixBase&)
+  * \sa lazyProduct(), operator*=(const MatrixBase&)
   */
-template<typename Derived1, typename Derived2>
-const Eval<Product<Derived1, Derived2> >
-operator*(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
+template<typename Derived>
+template<typename OtherDerived>
+const Eval<Product<Derived, OtherDerived> >
+MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return mat1.lazyProduct(mat2).eval();
+  return lazyProduct(other).eval();
 }
 
 /** replaces \c *this by \c *this * \a other.

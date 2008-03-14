@@ -129,17 +129,16 @@ struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
 };
 
-/** \relates MatrixBase
-  *
-  * \returns an expression of the difference of \a mat1 and \a mat2
+/**\returns an expression of the difference of \c *this and \a other
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-=()
   */
-template<typename Derived1, typename Derived2>
-const CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>
-operator-(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<ei_scalar_difference_op, Derived, OtherDerived>
+MatrixBase<Derived>::operator-(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_difference_op, Derived1, Derived2>(mat1.derived(), mat2.derived());
+  return CwiseBinaryOp<ei_scalar_difference_op, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this - \a other.
@@ -156,15 +155,16 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 
 /** \relates MatrixBase
   *
-  * \returns an expression of the sum of \a mat1 and \a mat2
+  * \returns an expression of the sum of \c *this and \a other
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+=()
   */
-template<typename Derived1, typename Derived2>
-const CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>
-operator+(const MatrixBase<Derived1> &mat1, const MatrixBase<Derived2> &mat2)
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<ei_scalar_sum_op, Derived, OtherDerived>
+MatrixBase<Derived>::operator+(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_sum_op, Derived1, Derived2>(mat1.derived(), mat2.derived());
+  return CwiseBinaryOp<ei_scalar_sum_op, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this + \a other.

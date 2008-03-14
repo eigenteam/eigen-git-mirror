@@ -35,14 +35,13 @@ inline int ei_imag(int)    { return 0; }
 inline int ei_conj(int x)  { return x; }
 inline int ei_abs(int x)   { return abs(x); }
 inline int ei_abs2(int x)  { return x*x; }
-inline int ei_sqrt(int)
-{
-  // Taking the square root of integers is not allowed
-  // (the square root does not always exist within the integers).
-  // Please cast to a floating-point type.
-  assert(false);
-  return 0;
-}
+inline int ei_sqrt(int)  { assert(false); return 0; }
+inline int ei_exp(int)  { assert(false); return 0; }
+inline int ei_log(int)  { assert(false); return 0; }
+inline int ei_sin(int)  { assert(false); return 0; }
+inline int ei_cos(int)  { assert(false); return 0; }
+inline int ei_pow(int x, int y) { return std::pow(x, y); }
+
 template<> inline int ei_random(int a, int b)
 {
   // We can't just do rand()%n as only the high-order bits are really random
@@ -72,6 +71,12 @@ inline float ei_conj(float x)  { return x; }
 inline float ei_abs(float x)   { return std::abs(x); }
 inline float ei_abs2(float x)  { return x*x; }
 inline float ei_sqrt(float x)  { return std::sqrt(x); }
+inline float ei_exp(float x)  { return std::exp(x); }
+inline float ei_log(float x)  { return std::log(x); }
+inline float ei_sin(float x)  { return std::sin(x); }
+inline float ei_cos(float x)  { return std::cos(x); }
+inline float ei_pow(float x, float y)  { return std::pow(x, y); }
+
 template<> inline float ei_random(float a, float b)
 {
   return a + (b-a) * std::rand() / RAND_MAX;
@@ -100,6 +105,12 @@ inline double ei_conj(double x)  { return x; }
 inline double ei_abs(double x)   { return std::abs(x); }
 inline double ei_abs2(double x)  { return x*x; }
 inline double ei_sqrt(double x)  { return std::sqrt(x); }
+inline double ei_exp(double x)  { return std::exp(x); }
+inline double ei_log(double x)  { return std::log(x); }
+inline double ei_sin(double x)  { return std::sin(x); }
+inline double ei_cos(double x)  { return std::cos(x); }
+inline double ei_pow(double x, double y)  { return std::pow(x, y); }
+
 template<> inline double ei_random(double a, double b)
 {
   return a + (b-a) * std::rand() / RAND_MAX;
@@ -127,14 +138,10 @@ inline float ei_imag(const std::complex<float>& x) { return std::imag(x); }
 inline std::complex<float> ei_conj(const std::complex<float>& x) { return std::conj(x); }
 inline float ei_abs(const std::complex<float>& x) { return std::abs(x); }
 inline float ei_abs2(const std::complex<float>& x) { return std::norm(x); }
-inline std::complex<float> ei_sqrt(const std::complex<float>&)
-{
-  // Taking the square roots of complex numbers is not allowed,
-  // as this is ambiguous (there are two square roots).
-  // What were you trying to do?
-  assert(false);
-  return 0;
-}
+inline std::complex<float> ei_exp(std::complex<float> x)  { return std::exp(x); }
+inline std::complex<float> ei_sin(std::complex<float> x)  { return std::sin(x); }
+inline std::complex<float> ei_cos(std::complex<float> x)  { return std::cos(x); }
+
 template<> inline std::complex<float> ei_random()
 {
   return std::complex<float>(ei_random<float>(), ei_random<float>());
@@ -160,6 +167,10 @@ inline double ei_imag(const std::complex<double>& x) { return std::imag(x); }
 inline std::complex<double> ei_conj(const std::complex<double>& x) { return std::conj(x); }
 inline double ei_abs(const std::complex<double>& x) { return std::abs(x); }
 inline double ei_abs2(const std::complex<double>& x) { return std::norm(x); }
+inline std::complex<double> ei_exp(std::complex<double> x)  { return std::exp(x); }
+inline std::complex<double> ei_sin(std::complex<double> x)  { return std::sin(x); }
+inline std::complex<double> ei_cos(std::complex<double> x)  { return std::cos(x); }
+
 template<> inline std::complex<double> ei_random()
 {
   return std::complex<double>(ei_random<double>(), ei_random<double>());
@@ -178,22 +189,5 @@ inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double
       && ei_isApprox(ei_imag(a), ei_imag(b), prec);
 }
 // ei_isApproxOrLessThan wouldn't make sense for complex numbers
-
-#define EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(T,U) \
-inline std::complex<T> operator*(U a, const std::complex<T>& b) \
-{ \
-  return std::complex<T>(static_cast<T>(a)*b.real(), \
-                         static_cast<T>(a)*b.imag()); \
-} \
-inline std::complex<T> operator*(const std::complex<T>& b, U a) \
-{ \
-  return std::complex<T>(static_cast<T>(a)*b.real(), \
-                         static_cast<T>(a)*b.imag()); \
-}
-
-EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(int,    float)
-EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(int,    double)
-EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(float,  double)
-EIGEN_MAKE_MORE_OVERLOADED_COMPLEX_OPERATOR_STAR(double, float)
 
 #endif // EIGEN_MATHFUNCTIONS_H
