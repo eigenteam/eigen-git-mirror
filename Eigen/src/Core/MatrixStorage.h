@@ -26,11 +26,11 @@
 #ifndef EIGEN_MATRIXSTORAGE_H
 #define EIGEN_MATRIXSTORAGE_H
 
-/** \class ei_matrix_storage
+/** \internal
+  *
+  * \class ei_matrix_storage
   *
   * \brief Stores the data of a matrix
-  *
-  * \internal
   *
   * This class stores the data of fixed-size, dynamic-size or mixed matrices
   * in a way as compact as possible.

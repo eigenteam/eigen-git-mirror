@@ -27,9 +27,11 @@
 
 /** \class DiagonalCoeffs
   *
-  * \brief Expression of the main diagonal of a square matrix
+  * \brief Expression of the main diagonal of a matrix
   *
   * \param MatrixType the type of the object in which we are taking the main diagonal
+  *
+  * The matrix is not required to be square.
   *
   * This class represents an expression of the main diagonal of a square matrix.
   * It is the return type of MatrixBase::diagonal() and most of the time this is
@@ -84,7 +86,9 @@ template<typename MatrixType> class DiagonalCoeffs
     const typename MatrixType::XprCopy m_matrix;
 };
 
-/** \returns an expression of the main diagonal of *this, which must be a square matrix.
+/** \returns an expression of the main diagonal of the matrix \c *this
+  *
+  * \c *this is not required to be square.
   *
   * Example: \include MatrixBase_diagonal.cpp
   * Output: \verbinclude MatrixBase_diagonal.out

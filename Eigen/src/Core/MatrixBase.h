@@ -230,8 +230,7 @@ template<typename Derived> class MatrixBase
     { return matrix*scalar; }
     //@}
 
-    /** \name Matrix product and related notions
-      * including the trace...
+    /** \name Matrix product
       */
     //@{
     template<typename OtherDerived>
@@ -244,7 +243,12 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
+    //@}
 
+    /** \name Sums of coefficients
+      */
+    //@{
+    Scalar sum() const;
     Scalar trace() const;
     //@}
 

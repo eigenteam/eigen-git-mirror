@@ -82,12 +82,12 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
     ei_dot_unroller<SizeAtCompileTime-1,
                 SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic,
                 Derived, MatrixBase<OtherDerived> >
-      ::run(*static_cast<const Derived*>(this), other, res);
+      ::run(derived(), other, res);
   else
   {
-    res = (*this).coeff(0) * ei_conj(other.coeff(0));
+    res = coeff(0) * ei_conj(other.coeff(0));
     for(int i = 1; i < size(); i++)
-      res += (*this).coeff(i)* ei_conj(other.coeff(i));
+      res += coeff(i)* ei_conj(other.coeff(i));
   }
   return res;
 }
