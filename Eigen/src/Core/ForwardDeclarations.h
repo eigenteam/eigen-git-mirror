@@ -45,6 +45,7 @@ template<typename MatrixType> class Identity;
 template<typename MatrixType> class Map;
 template<typename Derived> class Eval;
 template<typename Derived> class EvalOMP;
+template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 
 struct ei_scalar_sum_op;
 struct ei_scalar_difference_op;
@@ -62,6 +63,8 @@ struct ei_scalar_sin_op;
 template<typename Scalar> struct ei_scalar_pow_op;
 template<typename NewType> struct ei_scalar_cast_op;
 template<typename Scalar>  struct ei_scalar_multiple_op;
+struct ei_scalar_min_op;
+struct ei_scalar_max_op;
 
 template<typename T> struct ei_xpr_copy
 {

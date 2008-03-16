@@ -120,6 +120,8 @@ const int RowMajor = 1;
 
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 
+enum DirectionType { Vertical, Horizontal };
+
 // just a workaround because GCC seems to not really like empty structs
 #ifdef __GNUG__
   struct ei_empty_struct{char _ei_dummy_;};

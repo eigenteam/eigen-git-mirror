@@ -94,30 +94,12 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 };
 
 /** \internal
-  * \brief Template functor to compute the sum of two scalars
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+
-  */
-struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
-};
-
-/** \internal
   * \brief Template functor to compute the difference of two scalars
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
 struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
     template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
-};
-
-/** \internal
-  * \brief Template functor to compute the product of two scalars
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct()
-  */
-struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
 };
 
 /** \internal
@@ -201,6 +183,30 @@ const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
 {
   return CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>(derived(), other.derived());
+}
+
+/** \returns an expression of the coefficient-wise min of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<ei_scalar_min_op, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseMin(const MatrixBase<OtherDerived> &other) const
+{
+  return CwiseBinaryOp<ei_scalar_min_op, Derived, OtherDerived>(derived(), other.derived());
+}
+
+/** \returns an expression of the coefficient-wise max of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<ei_scalar_max_op, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseMax(const MatrixBase<OtherDerived> &other) const
+{
+  return CwiseBinaryOp<ei_scalar_max_op, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other

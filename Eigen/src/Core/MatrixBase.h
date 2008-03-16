@@ -81,7 +81,7 @@ template<typename Derived> class MatrixBase
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-        
+
       MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
         /**< This value is equal to the maximum possible number of rows that this expression
           * might have. If this expression might have an arbitrarily high number of rows,
@@ -245,13 +245,6 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
     //@}
 
-    /** \name Sums of coefficients
-      */
-    //@{
-    Scalar sum() const;
-    Scalar trace() const;
-    //@}
-
     /** \name Dot product and related notions
       * including vector norm, adjoint, transpose ...
       */
@@ -350,20 +343,7 @@ template<typename Derived> class MatrixBase
       * which has the biggest absolute value.
       */
     void findBiggestCoeff(int *row, int *col) const
-    {
-      RealScalar biggest = 0;
-      for(int j = 0; j < cols(); j++)
-        for(int i = 0; i < rows(); i++)
-        {
-          RealScalar x = ei_abs(coeff(i,j));
-          if(x > biggest)
-          {
-            biggest = x;
-            *row = i;
-            *col = j;
-          }
-        }
-    }
+    { (*this).cwiseAbs().maxCoeff(row, col); }
     //@}
 
     /// \name Special functions
@@ -396,6 +376,14 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
     cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
 
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_min_op, Derived, OtherDerived>
+    cwiseMin(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<ei_scalar_max_op, Derived, OtherDerived>
+    cwiseMax(const MatrixBase<OtherDerived> &other) const;
+
     const CwiseUnaryOp<ei_scalar_abs_op, Derived> cwiseAbs() const;
     const CwiseUnaryOp<ei_scalar_abs2_op, Derived> cwiseAbs2() const;
     const CwiseUnaryOp<ei_scalar_sqrt_op, Derived> cwiseSqrt() const;
@@ -412,6 +400,33 @@ template<typename Derived> class MatrixBase
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
+    //@}
+
+    /// \name Redux and visitor
+    //@{
+    Scalar sum() const;
+    Scalar trace() const;
+
+    typename ei_traits<Derived>::Scalar minCoeff() const;
+    typename ei_traits<Derived>::Scalar maxCoeff() const;
+
+    typename ei_traits<Derived>::Scalar minCoeff(int* row, int* col = 0) const;
+    typename ei_traits<Derived>::Scalar maxCoeff(int* row, int* col = 0) const;
+
+    template<typename BinaryOp>
+    const PartialRedux<Vertical, BinaryOp, Derived>
+    verticalRedux(const BinaryOp& func) const;
+
+    template<typename BinaryOp>
+    const PartialRedux<Horizontal, BinaryOp, Derived>
+    horizontalRedux(const BinaryOp& func) const;
+
+    template<typename BinaryOp>
+    typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
+    redux(const BinaryOp& func) const;
+
+    template<typename Visitor>
+    void visit(Visitor& func) const;
     //@}
 
     /// \name Casting to the derived type
