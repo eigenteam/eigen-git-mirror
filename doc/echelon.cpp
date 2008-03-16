@@ -4,8 +4,8 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 namespace Eigen {
 
-template<typename Scalar, typename Derived>
-void echelon(MatrixBase<Scalar, Derived>& m)
+template<typename Derived>
+void echelon(MatrixBase<Derived>& m)
 {
   const int N = std::min(m.rows(), m.cols());
 
@@ -23,22 +23,22 @@ void echelon(MatrixBase<Scalar, Derived>& m)
   }
 }
 
-template<typename Scalar, typename Derived>
-void doSomeRankPreservingOperations(MatrixBase<Scalar, Derived>& m)
+template<typename Derived>
+void doSomeRankPreservingOperations(MatrixBase<Derived>& m)
 {
   for(int a = 0; a < 3*(m.rows()+m.cols()); a++)
   {
-    double d = Eigen::random<double>(-1,1);
-    int i = Eigen::random<int>(0,m.rows()-1); // i is a random row number
+    double d = Eigen::ei_random<double>(-1,1);
+    int i = Eigen::ei_random<int>(0,m.rows()-1); // i is a random row number
     int j;
     do {
-      j = Eigen::random<int>(0,m.rows()-1);
+      j = Eigen::ei_random<int>(0,m.rows()-1);
     } while (i==j); // j is another one (must be different)
     m.row(i) += d * m.row(j);
 
-    i = Eigen::random<int>(0,m.cols()-1); // i is a random column number
+    i = Eigen::ei_random<int>(0,m.cols()-1); // i is a random column number
     do {
-      j = Eigen::random<int>(0,m.cols()-1);
+      j = Eigen::ei_random<int>(0,m.cols()-1);
     } while (i==j); // j is another one (must be different)
     m.col(i) += d * m.col(j);
   }
