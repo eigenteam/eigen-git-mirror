@@ -75,7 +75,7 @@ Eigen is well tested with recent versions of GCC and ICC. Both GCC 4.2 and ICC g
 
 For best performance, we recommend the following compilation flags:
 <ul>
-  <li>\b GCC: \c -O3 \c -DNDEBUG \c -finline-limit=10000  </li>
+  <li>\b GCC: \c -O3 \c -DNDEBUG \c -finline-limit=1000  </li>
   <li>\b ICC: \c -O3 \c -DNDEBUG \c -xT \c -ipo \c -no-prec-div \c -no-inline-max-size </li>
 </ul>
 
@@ -120,8 +120,8 @@ standalone "demos".
 
 TODO: update this section; make web links
 
-Currently: Kalzium, Avogadro, KSpread(a bit), Krita(a bit)
-Planned: much more use in KOffice 2.1, Step (if we make Eigen good enough!)
+Currently: Kalzium, Avogadro, KSpread(a bit), Krita(a bit), KGLLib<br>
+Planned: much more use in KOffice 2.1, Step (if we make Eigen good enough!), OpenBabel (maybe)
 
 Please tell us if you know of other interesting projects using Eigen!
 

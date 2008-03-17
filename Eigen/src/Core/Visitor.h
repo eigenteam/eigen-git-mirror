@@ -111,7 +111,7 @@ struct ei_coeff_visitor
 /** \internal
   * \brief Visitor computing the min coefficient with its value and coordinates
   *
-  * \sa ei_coeff_visitor, ei_max_coeff_visitor, MatrixBase::minCoeff(int*, int*)
+  * \sa MatrixBase::minCoeff(int*, int*)
   */
 template <typename Scalar>
 struct ei_min_coeff_visitor : ei_coeff_visitor<Scalar>
@@ -130,7 +130,7 @@ struct ei_min_coeff_visitor : ei_coeff_visitor<Scalar>
 /** \internal
   * \brief Visitor computing the max coefficient with its value and coordinates
   *
-  * \sa ei_coeff_visitor, ei_min_coeff_visitor, MatrixBase::maxCoeff(int*, int*)
+  * \sa MatrixBase::maxCoeff(int*, int*)
   */
 template <typename Scalar>
 struct ei_max_coeff_visitor : ei_coeff_visitor<Scalar>
