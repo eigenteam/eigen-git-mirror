@@ -148,7 +148,7 @@ Derived& MatrixBase<Derived>
             coeffRef(i, j) = other.coeff(i, j);
       }
     }
-    return *static_cast<Derived*>(this);
+    return (*this).derived();
   }
 }
 

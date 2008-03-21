@@ -170,6 +170,10 @@ template<typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
 
+    /** Overloaded for optimal product evaluation */
+    template<typename Derived1, typename Derived2>
+    Derived& operator=(const Product<Derived1,Derived2,CacheOptimal>& product);
+
     CommaInitializer operator<< (const Scalar& s);
 
     template<typename OtherDerived>
@@ -223,7 +227,7 @@ template<typename Derived> class MatrixBase
     Derived& operator/=(const Scalar& other);
 
     const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator*(const Scalar& scalar) const;
-    const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> operator/(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> operator/(const Scalar& scalar) const;
 
     friend const CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
     operator*(const Scalar& scalar, const MatrixBase& matrix)

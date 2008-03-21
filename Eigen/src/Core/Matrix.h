@@ -162,7 +162,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
         resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
-      return MatrixBase<Matrix>::operator=(other);
+      return Base::operator=(other.derived());
     }
 
     /** This is a special case of the templated operator=. Its purpose is to

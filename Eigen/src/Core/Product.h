@@ -65,6 +65,7 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   *
   * \param Lhs the type of the left-hand side
   * \param Rhs the type of the right-hand side
+  * \param EvalMode internal use only
   *
   * This class represents an expression of the product of two matrices.
   * It is the return type of MatrixBase::lazyProduct(), which is used internally by
@@ -72,8 +73,8 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   *
   * \sa class Sum, class Difference
   */
-template<typename Lhs, typename Rhs>
-struct ei_traits<Product<Lhs, Rhs> >
+template<typename Lhs, typename Rhs, int EvalMode>
+struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
   enum {
@@ -84,8 +85,19 @@ struct ei_traits<Product<Lhs, Rhs> >
   };
 };
 
-template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
-  public MatrixBase<Product<Lhs, Rhs> >
+template<typename Lhs, typename Rhs>
+struct ei_product_eval_mode
+{
+  enum {
+    SizeAtCompileTime = MatrixBase<Product<Lhs,Rhs,UnrolledDotProduct> >::SizeAtCompileTime,
+    EvalMode = ( EIGEN_UNROLLED_LOOPS
+              && SizeAtCompileTime != Dynamic
+              && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ? UnrolledDotProduct : CacheOptimal,
+  };
+};
+
+template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignment_operator,
+  public MatrixBase<Product<Lhs, Rhs, EvalMode> >
 {
   public:
 
@@ -96,6 +108,10 @@ template<typename Lhs, typename Rhs> class Product : ei_no_assignment_operator,
     {
       assert(lhs.cols() == rhs.rows());
     }
+
+    /** \internal */
+    template<typename DestDerived>
+    void _cacheOptimalEval(DestDerived& res) const;
 
   private:
 
@@ -156,7 +172,7 @@ template<typename OtherDerived>
 const Eval<Product<Derived, OtherDerived> >
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return lazyProduct(other).eval();
+  return (*this).lazyProduct(other).eval();
 }
 
 /** replaces \c *this by \c *this * \a other.
@@ -169,6 +185,41 @@ Derived &
 MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 {
   return *this = *this * other;
+}
+
+template<typename Derived>
+template<typename Derived1, typename Derived2>
+Derived& MatrixBase<Derived>::operator=(const Product<Derived1,Derived2,CacheOptimal>& product)
+{
+  product._cacheOptimalEval(*this);
+  return (*this).derived();
+}
+
+template<typename Lhs, typename Rhs, int EvalMode>
+template<typename DestDerived>
+void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
+{
+  res.setZero();
+  const int cols4 = m_lhs.cols()&0xfffffffC;
+  for (int k=0; k<m_rhs.cols(); ++k)
+  {
+    int j=0;
+    for (; j<cols4; j+=4)
+    {
+      const Scalar tmp0 = m_rhs.coeff(j  ,k);
+      const Scalar tmp1 = m_rhs.coeff(j+1,k);
+      const Scalar tmp2 = m_rhs.coeff(j+2,k);
+      const Scalar tmp3 = m_rhs.coeff(j+3,k);
+      for (int i=0; i<m_lhs.rows(); ++i)
+        res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1) + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+    }
+    for (; j<m_lhs.cols(); ++j)
+    {
+      const Scalar tmp = m_rhs.coeff(j,k);
+      for (int i=0; i<m_lhs.rows(); ++i)
+        res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j);
+    }
+  }
 }
 
 #endif // EIGEN_PRODUCT_H

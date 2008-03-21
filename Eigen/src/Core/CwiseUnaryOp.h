@@ -208,6 +208,34 @@ struct ei_scalar_multiple_op {
     const Scalar m_other;
 };
 
+template<typename Scalar, bool HasFloatingPoint>
+struct ei_scalar_quotient1_impl {
+    ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
+    Scalar operator() (const Scalar& a) const { return a * m_other; }
+    const Scalar m_other;
+};
+
+template<typename Scalar>
+struct ei_scalar_quotient1_impl<Scalar,false> {
+    ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
+    Scalar operator() (const Scalar& a) const { return a / m_other; }
+    const Scalar m_other;
+};
+
+/** \internal
+  * \brief Template functor to divide a scalar by a fixed other one
+  *
+  * This functor is used to implement the quotient of a matrix by
+  * a scalar where the scalar type is not a floating point type.
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::operator/
+  */
+template<typename Scalar>
+struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint > {
+  ei_scalar_quotient1_op(const Scalar& other)
+    : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
+};
+
 /** \relates MatrixBase */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -219,12 +247,11 @@ MatrixBase<Derived>::operator*(const Scalar& scalar) const
 
 /** \relates MatrixBase */
 template<typename Derived>
-const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
-  assert(NumTraits<Scalar>::HasFloatingPoint);
-  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
-    (derived(), ei_scalar_multiple_op<Scalar>(static_cast<Scalar>(1) / scalar));
+  return CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived>
+    (derived(), ei_scalar_quotient1_op<Scalar>(scalar));
 }
 
 template<typename Derived>
