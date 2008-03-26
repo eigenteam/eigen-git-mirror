@@ -68,7 +68,6 @@ int main(int, char **)
   cout << "Here's the matrix m:" << endl << m << endl;
 
   cout << "Now let's echelon m:" << endl;
-  for(int i = 0; i < 1000000; i++)
   echelon(m);
 
   cout << "Now m is:" << endl << m << endl;

@@ -1,7 +1,10 @@
+#ifndef EIGEN_CORE_H
+#define EIGEN_CORE_H
+
 #include <cstdlib>
 #include <cmath>
 #include <complex>
-#ifndef EIGEN_CUSTOM_ASSERT
+#ifndef EIGEN_USE_CUSTOM_ASSERT
 #include <cassert>
 #endif
 #include <iostream>
@@ -43,3 +46,4 @@ namespace Eigen {
 
 } // namespace Eigen
 
+#endif // EIGEN_CORE_H

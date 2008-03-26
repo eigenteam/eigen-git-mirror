@@ -49,7 +49,11 @@ EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix; \
 using Eigen::MatrixBase;
 
-#ifdef EIGEN_NDEBUG
+#ifdef NDEBUG
+#define EIGEN_NO_DEBUG
+#endif
+
+#ifdef EIGEN_NO_DEBUG
 #define ei_assert(x)
 #else
 #define ei_assert(x) assert(x)
@@ -61,7 +65,7 @@ using Eigen::MatrixBase;
 #define ei_internal_assert(x)
 #endif
 
-#ifdef NDEBUG
+#ifdef EIGEN_NO_DEBUG
 #define EIGEN_ONLY_USED_FOR_DEBUG(x) (void)x
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
