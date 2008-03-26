@@ -52,7 +52,7 @@ template<typename MatrixType> class Identity : ei_no_assignment_operator,
 
     Identity(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));

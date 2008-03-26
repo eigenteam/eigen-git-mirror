@@ -25,6 +25,15 @@
 #ifndef EIGEN_SWAP_H
 #define EIGEN_SWAP_H
 
+/** swaps *this with the expression \a other.
+  *
+  * \note \a other is only marked const because I couln't find another way
+  * to get g++ (4.2 and 4.3) to accept that template parameter resolution.
+  * The problem seems to be that when swapping expressions as in
+  * m.row(i).swap(m.row(j)); the Row object returned by row(j) is a temporary
+  * and g++ doesn't dare to pass it by non-constant reference.
+  * It gets const_cast'd of course. TODO: get rid of const here.
+  */
 template<typename Derived>
 template<typename OtherDerived>
 void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
@@ -35,7 +44,7 @@ void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
     Scalar tmp;
     if(IsVectorAtCompileTime)
     {
-      assert(OtherDerived::IsVectorAtCompileTime && size() == _other->size());
+      ei_assert(OtherDerived::IsVectorAtCompileTime && size() == _other->size());
       for(int i = 0; i < size(); i++)
       {
         tmp = coeff(i);

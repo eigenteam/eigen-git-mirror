@@ -7,19 +7,22 @@ namespace Eigen {
 template<typename Derived>
 void echelon(MatrixBase<Derived>& m)
 {
-  const int N = std::min(m.rows(), m.cols());
-
-  for(int k = 0; k < N; k++)
+  for(int k = 0; k < m.diagonal().size(); k++)
   {
     int rowOfBiggest, colOfBiggest;
-    int cornerRows = m.rows()-k;
-    int cornerCols = m.cols()-k;
+    int cornerRows = m.rows()-k, cornerCols = m.cols()-k;
     m.corner(BottomRight, cornerRows, cornerCols)
-     .findBiggestCoeff(&rowOfBiggest, &colOfBiggest);
+     .cwiseAbs()
+     .maxCoeff(&rowOfBiggest, &colOfBiggest);
     m.row(k).swap(m.row(k+rowOfBiggest));
     m.col(k).swap(m.col(k+colOfBiggest));
-    for(int r = k+1; r < m.rows(); r++)
-      m.row(r).end(cornerCols) -= m.row(k).end(cornerCols) * m(r,k) / m(k,k);
+    // important performance tip:
+    // in a complex expression such as below it can be very important to fine-tune
+    // exactly where evaluation occurs. The parentheses and .eval() below ensure
+    // that the quotient is computed only once, and that the evaluation caused
+    // by operator* occurs last.
+    m.corner(BottomRight, cornerRows-1, cornerCols)
+      -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k)).eval();
   }
 }
 
@@ -65,6 +68,7 @@ int main(int, char **)
   cout << "Here's the matrix m:" << endl << m << endl;
 
   cout << "Now let's echelon m:" << endl;
+  for(int i = 0; i < 1000000; i++)
   echelon(m);
 
   cout << "Now m is:" << endl << m << endl;

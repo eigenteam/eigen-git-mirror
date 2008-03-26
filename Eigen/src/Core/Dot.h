@@ -72,7 +72,7 @@ template<typename OtherDerived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
-  assert(IsVectorAtCompileTime
+  ei_assert(IsVectorAtCompileTime
       && OtherDerived::IsVectorAtCompileTime
       && size() == other.size());
   Scalar res;

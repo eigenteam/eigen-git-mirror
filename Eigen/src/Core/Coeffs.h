@@ -43,7 +43,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int row, int col) const
 {
-  eigen_internal_assert(row >= 0 && row < rows()
+  ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
   return derived()._coeff(row, col);
 }
@@ -56,7 +56,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator()(int row, int col) const
 {
-  assert(row >= 0 && row < rows()
+  ei_assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
   return derived()._coeff(row, col);
 }
@@ -79,7 +79,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int row, int col)
 {
-  eigen_internal_assert(row >= 0 && row < rows()
+  ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
   return derived()._coeffRef(row, col);
 }
@@ -92,7 +92,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator()(int row, int col)
 {
-  assert(row >= 0 && row < rows()
+  ei_assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
   return derived()._coeffRef(row, col);
 }
@@ -115,15 +115,15 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
-  eigen_internal_assert(IsVectorAtCompileTime);
+  ei_internal_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1)
   {
-    eigen_internal_assert(index >= 0 && index < cols());
+    ei_internal_assert(index >= 0 && index < cols());
     return coeff(0, index);
   }
   else
   {
-    eigen_internal_assert(index >= 0 && index < rows());
+    ei_internal_assert(index >= 0 && index < rows());
     return coeff(index, 0);
   }
 }
@@ -139,15 +139,15 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1)
   {
-    assert(index >= 0 && index < cols());
+    ei_assert(index >= 0 && index < cols());
     return coeff(0, index);
   }
   else
   {
-    assert(index >= 0 && index < rows());
+    ei_assert(index >= 0 && index < rows());
     return coeff(index, 0);
   }
 }
@@ -170,15 +170,15 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int index)
 {
-  eigen_internal_assert(IsVectorAtCompileTime);
+  ei_internal_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1)
   {
-    eigen_internal_assert(index >= 0 && index < cols());
+    ei_internal_assert(index >= 0 && index < cols());
     return coeffRef(0, index);
   }
   else
   {
-    eigen_internal_assert(index >= 0 && index < rows());
+    ei_internal_assert(index >= 0 && index < rows());
     return coeffRef(index, 0);
   }
 }
@@ -193,15 +193,15 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator[](int index)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1)
   {
-    assert(index >= 0 && index < cols());
+    ei_assert(index >= 0 && index < cols());
     return coeffRef(0, index);
   }
   else
   {
-    assert(index >= 0 && index < rows());
+    ei_assert(index >= 0 && index < rows());
     return coeffRef(index, 0);
   }
 }

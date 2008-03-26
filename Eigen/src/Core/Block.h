@@ -90,7 +90,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
         m_blockRows(matrix.rows()), // if it is a row, then m_blockRows has a fixed-size of 1, so no pb to try to overwrite it
         m_blockCols(matrix.cols())  // same for m_blockCols
     {
-      assert( (i>=0) && (
+      ei_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
         ||((BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) && i<matrix.cols())));
     }
@@ -100,8 +100,8 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     Block(const MatrixType& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {
-      assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
-      assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
+      ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
+      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
 
@@ -113,9 +113,9 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
                           m_blockRows(blockRows), m_blockCols(blockCols)
     {
-      assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==1)
+      ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==1)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==1));
-      assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
+      ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
           && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
 
@@ -197,7 +197,7 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -209,7 +209,7 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -235,7 +235,7 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::start(int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
@@ -246,7 +246,7 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::start(int size) const
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
@@ -271,7 +271,7 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::end(int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
@@ -284,7 +284,7 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::end(int size) const
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,

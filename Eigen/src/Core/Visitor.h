@@ -82,13 +82,12 @@ void MatrixBase<Derived>::visit(Visitor& visitor) const
         SizeAtCompileTime : Dynamic>::run(derived(), visitor);
   else
   {
-    Scalar res;
     visitor.init(coeff(0,0), 0, 0);
     for(int i = 1; i < rows(); i++)
-      visitor(res, coeff(i, 0), i, 0);
+      visitor(coeff(i, 0), i, 0);
     for(int j = 1; j < cols(); j++)
       for(int i = 0; i < rows(); i++)
-        visitor(res, coeff(i, j), i, j);
+        visitor(coeff(i, j), i, j);
   }
 }
 

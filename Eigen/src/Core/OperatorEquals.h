@@ -105,7 +105,7 @@ Derived& MatrixBase<Derived>
   if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
-    assert(size() == other.size());
+    ei_assert(size() == other.size());
     if(EIGEN_UNROLLED_LOOPS
     && SizeAtCompileTime != Dynamic
     && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
@@ -120,7 +120,7 @@ Derived& MatrixBase<Derived>
   }
   else // copying a matrix expression into a matrix
   {
-    assert(rows() == other.rows() && cols() == other.cols());
+    ei_assert(rows() == other.rows() && cols() == other.cols());
     if(EIGEN_UNROLLED_LOOPS
     && SizeAtCompileTime != Dynamic
     && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
@@ -148,7 +148,7 @@ Derived& MatrixBase<Derived>
             coeffRef(i, j) = other.coeff(i, j);
       }
     }
-    return (*this).derived();
+    return derived();
   }
 }
 

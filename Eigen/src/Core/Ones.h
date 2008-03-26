@@ -64,7 +64,7 @@ template<typename MatrixType> class Ones : ei_no_assignment_operator,
   public:
     Ones(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
@@ -114,7 +114,7 @@ const Ones<Derived> MatrixBase<Derived>::ones(int rows, int cols)
 template<typename Derived>
 const Ones<Derived> MatrixBase<Derived>::ones(int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Ones<Derived>(1, size);
   else return Ones<Derived>(size, 1);
 }

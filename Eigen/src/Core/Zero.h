@@ -65,7 +65,7 @@ template<typename MatrixType> class Zero : ei_no_assignment_operator,
 
     Zero(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
@@ -115,7 +115,7 @@ const Zero<Derived> MatrixBase<Derived>::zero(int rows, int cols)
 template<typename Derived>
 const Zero<Derived> MatrixBase<Derived>::zero(int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Zero<Derived>(1, size);
   else return Zero<Derived>(size, 1);
 }

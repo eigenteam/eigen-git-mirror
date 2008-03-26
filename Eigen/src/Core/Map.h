@@ -81,7 +81,7 @@ template<typename MatrixType> class Map
   public:
     Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
@@ -107,7 +107,7 @@ template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows
 const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data, int size)
 {
-  assert(_Cols == 1 || _Rows ==1);
+  ei_assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
     return Map<Matrix>(data, size, 1);
   else
@@ -156,7 +156,7 @@ template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows
 Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data, int size)
 {
-  assert(_Cols == 1 || _Rows ==1);
+  ei_assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
     return Map<Matrix>(data, size, 1);
   else

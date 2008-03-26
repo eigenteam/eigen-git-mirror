@@ -131,7 +131,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
     void resize(int rows, int cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
@@ -153,12 +153,12 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
     {
       if(RowsAtCompileTime == 1)
       {
-        assert(other.isVector());
+        ei_assert(other.isVector());
         resize(1, other.size());
       }
       else if(ColsAtCompileTime == 1)
       {
-        assert(other.isVector());
+        ei_assert(other.isVector());
         resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
@@ -191,7 +191,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
       */
     explicit Matrix()
     {
-      assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+      ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -202,8 +202,8 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
       */
     explicit Matrix(int dim) : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
-      assert(dim > 0);
-      assert((RowsAtCompileTime == 1
+      ei_assert(dim > 0);
+      ei_assert((RowsAtCompileTime == 1
               && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == dim))
           || (ColsAtCompileTime == 1
               && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
@@ -229,14 +229,14 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
       }
       else
       {
-        assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
+        ei_assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
             && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
       }
     }
     /** constructs an initialized 2D vector with given coefficients */
     Matrix(const float& x, const float& y)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -244,7 +244,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
     /** constructs an initialized 2D vector with given coefficients */
     Matrix(const double& x, const double& y)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
+      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -252,7 +252,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
     /** constructs an initialized 3D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
+      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
           || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -261,7 +261,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
     /** constructs an initialized 4D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
-      assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
+      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
           || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;

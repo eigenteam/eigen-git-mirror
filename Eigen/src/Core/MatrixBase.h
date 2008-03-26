@@ -343,13 +343,6 @@ template<typename Derived> class MatrixBase
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
 
-    /** puts in *row and *col the location of the coefficient of *this
-      * which has the biggest absolute value.
-      */
-    void findBiggestCoeff(int *row, int *col) const
-    { (*this).cwiseAbs().maxCoeff(row, col); }
-    //@}
-
     /// \name Special functions
     //@{
     template<typename NewType>
@@ -358,12 +351,6 @@ template<typename Derived> class MatrixBase
     const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
     const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
 
-    /** swaps *this with the expression \a other.
-      *
-      * \note \a other is only marked const because I couln't find another way
-      * to get g++ 4.2 to accept that template parameter resolution. It gets const_cast'd
-      * of course. TODO: get rid of const here.
-      */
     template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other);
     //@}

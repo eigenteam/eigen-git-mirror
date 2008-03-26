@@ -106,7 +106,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
-      assert(lhs.cols() == rhs.rows());
+      ei_assert(lhs.cols() == rhs.rows());
     }
 
     /** \internal */
@@ -172,7 +172,7 @@ template<typename OtherDerived>
 const Eval<Product<Derived, OtherDerived> >
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return (*this).lazyProduct(other).eval();
+  return lazyProduct(other).eval();
 }
 
 /** replaces \c *this by \c *this * \a other.
@@ -192,7 +192,7 @@ template<typename Derived1, typename Derived2>
 Derived& MatrixBase<Derived>::operator=(const Product<Derived1,Derived2,CacheOptimal>& product)
 {
   product._cacheOptimalEval(*this);
-  return (*this).derived();
+  return derived();
 }
 
 template<typename Lhs, typename Rhs, int EvalMode>

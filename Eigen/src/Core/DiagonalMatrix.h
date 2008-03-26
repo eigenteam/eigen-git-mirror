@@ -60,7 +60,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
     DiagonalMatrix(const CoeffsVectorType& coeffs) : m_coeffs(coeffs)
     {
-      assert(CoeffsVectorType::IsVectorAtCompileTime
+      ei_assert(CoeffsVectorType::IsVectorAtCompileTime
           && coeffs.size() > 0);
     }
 

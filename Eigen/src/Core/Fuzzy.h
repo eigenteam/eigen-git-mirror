@@ -48,7 +48,7 @@ bool MatrixBase<Derived>::isApprox(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  assert(rows() == other.rows() && cols() == other.cols());
+  ei_assert(rows() == other.rows() && cols() == other.cols());
   if(IsVectorAtCompileTime)
   {
     return((*this - other).norm2() <= std::min(norm2(), other.norm2()) * prec * prec);
@@ -109,7 +109,7 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  assert(rows() == other.rows() && cols() == other.cols());
+  ei_assert(rows() == other.rows() && cols() == other.cols());
   if(IsVectorAtCompileTime)
   {
     return(norm2() <= other.norm2() * prec * prec);

@@ -35,11 +35,11 @@ inline int ei_imag(int)    { return 0; }
 inline int ei_conj(int x)  { return x; }
 inline int ei_abs(int x)   { return abs(x); }
 inline int ei_abs2(int x)  { return x*x; }
-inline int ei_sqrt(int)  { assert(false); return 0; }
-inline int ei_exp(int)  { assert(false); return 0; }
-inline int ei_log(int)  { assert(false); return 0; }
-inline int ei_sin(int)  { assert(false); return 0; }
-inline int ei_cos(int)  { assert(false); return 0; }
+inline int ei_sqrt(int)  { ei_assert(false); return 0; }
+inline int ei_exp(int)  { ei_assert(false); return 0; }
+inline int ei_log(int)  { ei_assert(false); return 0; }
+inline int ei_sin(int)  { ei_assert(false); return 0; }
+inline int ei_cos(int)  { ei_assert(false); return 0; }
 #if (defined __ICC) || (defined __GNUC__ && (__GNUC__<4 || __GNUC_MINOR__<3))
 inline int ei_pow(int x, int y) { return int(std::pow(double(x), y)); }
 #else

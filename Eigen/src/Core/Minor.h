@@ -64,7 +64,7 @@ template<typename MatrixType> class Minor
                 int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
-      assert(row >= 0 && row < matrix.rows()
+      ei_assert(row >= 0 && row < matrix.rows()
           && col >= 0 && col < matrix.cols());
     }
 

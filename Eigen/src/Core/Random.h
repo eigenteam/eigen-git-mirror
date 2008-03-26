@@ -65,7 +65,7 @@ template<typename MatrixType> class Random : ei_no_assignment_operator,
 
     Random(int rows, int cols) : m_rows(rows), m_cols(cols)
     {
-      assert(rows > 0
+      ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
           && cols > 0
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
@@ -117,7 +117,7 @@ template<typename Derived>
 const Eval<Random<Derived> >
 MatrixBase<Derived>::random(int size)
 {
-  assert(IsVectorAtCompileTime);
+  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return Random<Derived>(1, size).eval();
   else return Random<Derived>(size, 1).eval();
 }

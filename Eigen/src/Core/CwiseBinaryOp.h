@@ -74,7 +74,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
-      assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
+      ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
   private:
