@@ -67,8 +67,8 @@ int main(int, char **)
   // now m is still a matrix of rank N-1
   cout << "Here's the matrix m:" << endl << m << endl;
 
-  cout << "Now let's echelon m:" << endl;
-  echelon(m);
+  cout << "Now let's echelon m (repeating many times for benchmarking purposes):" << endl;
+  for(int i = 0; i < 1000000; i++) echelon(m);
 
   cout << "Now m is:" << endl << m << endl;
 }

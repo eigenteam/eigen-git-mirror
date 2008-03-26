@@ -91,8 +91,9 @@ struct ei_product_eval_mode
 {
   enum {
     SizeAtCompileTime = MatrixBase<Product<Lhs,Rhs,UnrolledDotProduct> >::SizeAtCompileTime,
+    MaxSizeAtCompileTime = MatrixBase<Product<Lhs,Rhs,UnrolledDotProduct> >::MaxSizeAtCompileTime,
     EvalMode = ( EIGEN_UNROLLED_LOOPS
-              && SizeAtCompileTime != Dynamic
+              && MaxSizeAtCompileTime != Dynamic
               && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ? UnrolledDotProduct : CacheOptimal,
   };
 };
