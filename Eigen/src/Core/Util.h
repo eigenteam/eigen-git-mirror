@@ -85,18 +85,18 @@ using Eigen::MatrixBase;
 template<typename OtherDerived> \
 Derived& operator Op(const MatrixBase<OtherDerived>& other) \
 { \
-  return MatrixBase<Derived>::operator Op(other); \
+  return Eigen::MatrixBase<Derived>::operator Op(other); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
-  return MatrixBase<Derived>::operator Op(other); \
+  return Eigen::MatrixBase<Derived>::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 Derived& operator Op(const Other& scalar) \
 { \
-  return MatrixBase<Derived>::operator Op(scalar); \
+  return Eigen::MatrixBase<Derived>::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
@@ -108,19 +108,19 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
-typedef typename ei_traits<Derived>::Scalar Scalar; \
-using Base::RowsAtCompileTime; \
-using Base::ColsAtCompileTime; \
-using Base::MaxRowsAtCompileTime; \
-using Base::MaxColsAtCompileTime; \
-using Base::SizeAtCompileTime; \
-using Base::MaxSizeAtCompileTime; \
-using Base::IsVectorAtCompileTime; \
-typedef typename ei_xpr_copy<Derived>::Type XprCopy;
+typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+typedef typename Eigen::ei_xpr_copy<Derived>::Type XprCopy; \
+enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
+       ColsAtCompileTime = Base::ColsAtCompileTime, \
+       MaxRowsAtCompileTime = Base::MaxRowsAtCompileTime, \
+       MaxColsAtCompileTime = Base::MaxColsAtCompileTime, \
+       SizeAtCompileTime = Base::SizeAtCompileTime, \
+       MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
+       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, MatrixBase<Derived>) \
-friend class MatrixBase<Derived>;
+_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
+friend class Eigen::MatrixBase<Derived>;
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 
