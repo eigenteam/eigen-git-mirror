@@ -39,7 +39,7 @@
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajor
 #else
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER ColumnMajor
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER 0
 #endif
 
 #undef minor
@@ -116,7 +116,8 @@ enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        MaxColsAtCompileTime = Base::MaxColsAtCompileTime, \
        SizeAtCompileTime = Base::SizeAtCompileTime, \
        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+       IsVectorAtCompileTime = Base::IsVectorAtCompileTime, \
+       Flags = Base::Flags };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
@@ -125,8 +126,11 @@ friend class Eigen::MatrixBase<Derived>;
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 
 const int Dynamic = -10;
-const int ColumnMajor = 0;
-const int RowMajor = 1;
+
+// matrix/expression flags
+const unsigned int RowMajor = 0x1;
+const unsigned int Lazy = 0x2;
+const unsigned int Large = 0x4;
 
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 

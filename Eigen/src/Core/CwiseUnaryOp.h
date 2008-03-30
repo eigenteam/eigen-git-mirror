@@ -49,7 +49,8 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = MatrixType::Flags
   };
 };
 
@@ -69,7 +70,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     int _rows() const { return m_matrix.rows(); }
     int _cols() const { return m_matrix.cols(); }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return m_functor(m_matrix.coeff(row, col));
     }

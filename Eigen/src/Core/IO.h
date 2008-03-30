@@ -40,7 +40,7 @@ std::ostream & operator <<
     for (int j = 1; j < m.cols(); j++ )
       s << " " << m( i, j );
     if( i < m.rows() - 1)
-      s << std::endl;
+      s << "\n";
   }
   return s;
 }

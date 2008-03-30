@@ -40,7 +40,8 @@ struct ei_traits<Ones<MatrixType> >
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = MatrixType::Flags
   };
 };
 
@@ -56,7 +57,7 @@ template<typename MatrixType> class Ones : ei_no_assignment_operator,
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 
-    Scalar _coeff(int, int) const
+    const Scalar _coeff(int, int) const
     {
       return static_cast<Scalar>(1);
     }

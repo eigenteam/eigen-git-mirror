@@ -120,11 +120,22 @@ template<typename Derived> class MatrixBase
           */
 
       IsVectorAtCompileTime
-        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1
+        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
+
+      Flags = ei_traits<Derived>::Flags
+        /**< This stores expression metadata which typically is inherited by new expressions
+          * constructed from this one. The available flags are:
+          * \li \c RowMajor: if this bit is set, the preferred storage order for an evaluation
+          *                  of this expression is row-major. Otherwise, it is column-major.
+          * \li \c Lazy: if this bit is set, the next evaluation of this expression will be canceled.
+          *              This can be used, with care, to achieve lazy evaluation.
+          * \li \c Large: if this bit is set, optimization will be tuned for large matrices (typically,
+          *               at least 32x32).
+          */
     };
 
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -182,22 +193,22 @@ template<typename Derived> class MatrixBase
 
     /// \name Coefficient accessors
     //@{
-    Scalar coeff(int row, int col) const;
-    Scalar operator()(int row, int col) const;
+    const Scalar coeff(int row, int col) const;
+    const Scalar operator()(int row, int col) const;
 
     Scalar& coeffRef(int row, int col);
     Scalar& operator()(int row, int col);
 
-    Scalar coeff(int index) const;
-    Scalar operator[](int index) const;
+    const Scalar coeff(int index) const;
+    const Scalar operator[](int index) const;
 
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
 
-    Scalar x() const;
-    Scalar y() const;
-    Scalar z() const;
-    Scalar w() const;
+    const Scalar x() const;
+    const Scalar y() const;
+    const Scalar z() const;
+    const Scalar w() const;
     Scalar& x();
     Scalar& y();
     Scalar& z();

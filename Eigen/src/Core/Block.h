@@ -66,7 +66,10 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
     MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1
       : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
-      : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols)
+      : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols),
+    Flags = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
+            ? (unsigned int)MatrixType::Flags
+            : (unsigned int)MatrixType::Flags &~ Large
   };
 };
 
@@ -132,7 +135,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }

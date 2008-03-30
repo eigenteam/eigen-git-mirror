@@ -49,7 +49,7 @@ struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class PartialRedux, MatrixBase::minCoeff()
   */
 struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return ei_min(a, b); }
+    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
 };
 
 /** \internal
@@ -58,7 +58,7 @@ struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class PartialRedux, MatrixBase::maxCoeff()
   */
 struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return ei_max(a, b); }
+    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
 };
 
 #endif // EIGEN_ASSOCIATIVE_FUNCTORS_H

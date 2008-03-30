@@ -31,12 +31,11 @@
   * \brief The matrix class, also used for vectors and row-vectors
   *
   * \param _Scalar the scalar type, i.e. the type of the coefficients
-  * \param _Rows the number of rows at compile-time. Use the special value \a Dynamic to specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
-  * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
-  * \param _StorageOrder can be either \a RowMajor or \a ColumnMajor.
-  * This template parameter has a default value (EIGEN_DEFAULT_MATRIX_STORAGE_ORDER)
-  * which, if not predefined, is defined to \a ColumnMajor. You can override this behavior by
-  * predefining it before including Eigen headers.
+  * \param _Rows the number of rows at compile-time. Use the special value \a Dynamic to
+  *              specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
+  * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to
+  *              specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
+  * \param _Flags allows to control certain features such as storage order. See MatrixBase::Flags.
   *
   * This single class template covers all kinds of matrix and vectors that Eigen can handle.
   * All matrix and vector types are just typedefs to specializations of this class template.
@@ -71,8 +70,8 @@
   *
   * Note that most of the API is in the base class MatrixBase.
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -80,20 +79,19 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
+    Flags = _Flags
   };
 };
 
 template<typename _Scalar, int _Rows, int _Cols,
-         int _StorageOrder = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
+         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
          int _MaxRows = _Rows, int _MaxCols = _Cols>
 class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
-                                        _StorageOrder, _MaxRows, _MaxCols> >
+                                        _Flags, _MaxRows, _MaxCols> >
 {
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
-
-    enum { StorageOrder = _StorageOrder };
 
     friend class Map<Matrix>;
 
@@ -106,18 +104,18 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
     const Scalar& _coeff(int row, int col) const
     {
-      if(StorageOrder == ColumnMajor)
-        return m_storage.data()[row + col * m_storage.rows()];
-      else // RowMajor
+      if(Flags & RowMajor)
         return m_storage.data()[col + row * m_storage.cols()];
+      else // column-major
+        return m_storage.data()[row + col * m_storage.rows()];
     }
 
     Scalar& _coeffRef(int row, int col)
     {
-      if(StorageOrder == ColumnMajor)
-        return m_storage.data()[row + col * m_storage.rows()];
-      else // RowMajor
+      if(Flags & RowMajor)
         return m_storage.data()[col + row * m_storage.cols()];
+      else // column-major
+        return m_storage.data()[row + col * m_storage.rows()];
     }
 
   public:

@@ -45,7 +45,8 @@ struct ei_traits<Transpose<MatrixType> >
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    Flags = MatrixType::Flags ^ RowMajor
   };
 };
 
@@ -70,7 +71,7 @@ template<typename MatrixType> class Transpose
       return m_matrix.const_cast_derived().coeffRef(col, row);
     }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(col, row);
     }

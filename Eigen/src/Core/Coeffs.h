@@ -40,7 +40,7 @@
   * \sa operator()(int,int) const, coeffRef(int,int), coeff(int) const
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int row, int col) const
 {
   ei_internal_assert(row >= 0 && row < rows()
@@ -53,7 +53,7 @@ typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   * \sa operator()(int,int), operator[](int) const
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator()(int row, int col) const
 {
   ei_assert(row >= 0 && row < rows()
@@ -112,7 +112,7 @@ typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \sa operator[](int) const, coeffRef(int), coeff(int,int) const
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
   ei_internal_assert(IsVectorAtCompileTime);
@@ -136,7 +136,7 @@ typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   * z() const, w() const
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
   ei_assert(IsVectorAtCompileTime);
@@ -208,22 +208,22 @@ typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 
 /** equivalent to operator[](0). \only_for_vectors */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::x() const { return (*this)[0]; }
 
 /** equivalent to operator[](1). \only_for_vectors */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::y() const { return (*this)[1]; }
 
 /** equivalent to operator[](2). \only_for_vectors */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::z() const { return (*this)[2]; }
 
 /** equivalent to operator[](3). \only_for_vectors */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::w() const { return (*this)[3]; }
 
 /** equivalent to operator[](0). \only_for_vectors */

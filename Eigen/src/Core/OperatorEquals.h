@@ -111,12 +111,12 @@ Derived& MatrixBase<Derived>
     && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
       ei_vector_operator_equals_unroller
         <Derived, OtherDerived,
-          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic>::run
-          (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
+         SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        >::run(derived(), other.derived());
     else
       for(int i = 0; i < size(); i++)
         coeffRef(i) = other.coeff(i);
-    return *static_cast<Derived*>(this);
+    return derived();
   }
   else // copying a matrix expression into a matrix
   {
@@ -127,8 +127,8 @@ Derived& MatrixBase<Derived>
     {
       ei_matrix_operator_equals_unroller
         <Derived, OtherDerived,
-          SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic>::run
-          (*static_cast<Derived*>(this), *static_cast<const OtherDerived*>(&other));
+         SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        >::run(derived(), other.derived());
     }
     else
     {

@@ -92,7 +92,10 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+          ? (unsigned int)MatrixType::Flags
+          : (unsigned int)MatrixType::Flags & ~Large
   };
 };
 
@@ -112,7 +115,7 @@ class PartialRedux : ei_no_assignment_operator,
     int _rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
     int _cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    Scalar _coeff(int i, int j) const
+    const Scalar _coeff(int i, int j) const
     {
       if (Direction==Vertical)
         return this->col(j).redux(m_functor);

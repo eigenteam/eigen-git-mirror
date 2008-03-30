@@ -47,7 +47,8 @@ struct ei_traits<EvalOMP<ExpressionType> >
     RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
+    Flags = ExpressionType::Flags & ~Lazy
   };
 };
 
@@ -55,7 +56,7 @@ template<typename ExpressionType> class EvalOMP : ei_no_assignment_operator,
   public Matrix< typename ExpressionType::Scalar,
                  ExpressionType::RowsAtCompileTime,
                  ExpressionType::ColsAtCompileTime,
-                 EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
+                 ExpressionType::Flags,
                  ExpressionType::MaxRowsAtCompileTime,
                  ExpressionType::MaxColsAtCompileTime>
 {
@@ -68,7 +69,7 @@ template<typename ExpressionType> class EvalOMP : ei_no_assignment_operator,
     typedef Matrix<typename ExpressionType::Scalar,
                    ExpressionType::RowsAtCompileTime,
                    ExpressionType::ColsAtCompileTime,
-                   EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
+                   ExpressionType::Flags,
                    ExpressionType::MaxRowsAtCompileTime,
                    ExpressionType::MaxColsAtCompileTime> MatrixType;
 

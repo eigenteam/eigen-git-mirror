@@ -39,7 +39,8 @@ struct ei_traits<Identity<MatrixType> >
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = MatrixType::Flags
   };
 };
 
@@ -63,7 +64,7 @@ template<typename MatrixType> class Identity : ei_no_assignment_operator,
     int _rows() const { return m_rows.value(); }
     int _cols() const { return m_cols.value(); }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return row == col ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
     }

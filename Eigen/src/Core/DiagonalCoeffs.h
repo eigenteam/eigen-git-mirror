@@ -51,7 +51,10 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxSizeAtCompileTime == Dynamic ? Dynamic
                             : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
                                              MatrixType::MaxColsAtCompileTime),
-    MaxColsAtCompileTime = 1
+    MaxColsAtCompileTime = 1,
+    Flags = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
+            ? (unsigned int)MatrixType::Flags
+            : (unsigned int)MatrixType::Flags &~ Large
   };
 };
 
@@ -76,7 +79,7 @@ template<typename MatrixType> class DiagonalCoeffs
       return m_matrix.const_cast_derived().coeffRef(row, row);
     }
 
-    Scalar _coeff(int row, int) const
+    const Scalar _coeff(int row, int) const
     {
       return m_matrix.coeff(row, row);
     }

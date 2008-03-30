@@ -28,7 +28,7 @@
 template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols> class Matrix;
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols> class Matrix;
 template<typename MatrixType> class MatrixRef;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
@@ -73,10 +73,10 @@ template<typename T> struct ei_xpr_copy
   typedef T Type;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 {
-  typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> & Type;
+  typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & Type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

@@ -82,7 +82,10 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime
+    MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
+    Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+          ? (unsigned int)(Lhs::Flags | Rhs::Flags)
+          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~Large
   };
 };
 
@@ -120,7 +123,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_rhs.cols(); }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       Scalar res;
       if(EIGEN_UNROLLED_LOOPS

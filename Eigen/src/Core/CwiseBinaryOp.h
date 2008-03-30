@@ -59,7 +59,8 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime
+    MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
+    Flags = Lhs::Flags | Rhs::Flags
   };
 };
 
@@ -82,7 +83,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     int _rows() const { return m_lhs.rows(); }
     int _cols() const { return m_lhs.cols(); }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }

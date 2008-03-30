@@ -40,7 +40,8 @@ struct ei_traits<Zero<MatrixType> >
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = MatrixType::Flags
   };
 };
 

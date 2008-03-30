@@ -46,7 +46,8 @@ struct ei_traits<Map<MatrixType> >
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = MatrixType::Flags
   };
 };
 
@@ -64,18 +65,18 @@ template<typename MatrixType> class Map
 
     const Scalar& _coeff(int row, int col) const
     {
-      if(MatrixType::StorageOrder == ColumnMajor)
-        return m_data[row + col * m_rows];
-      else // RowMajor
+      if(Flags & RowMajor)
         return m_data[col + row * m_cols];
+      else // column-major
+        return m_data[row + col * m_rows];
     }
 
     Scalar& _coeffRef(int row, int col)
     {
-      if(MatrixType::StorageOrder == ColumnMajor)
-        return const_cast<Scalar*>(m_data)[row + col * m_rows];
-      else // RowMajor
+      if(Flags & RowMajor)
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
+      else // column-major
+        return const_cast<Scalar*>(m_data)[row + col * m_rows];
     }
 
   public:
@@ -95,17 +96,17 @@ template<typename MatrixType> class Map
 };
 
 /** This is the const version of map(Scalar*,int,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
 }
 
 /** This is the const version of map(Scalar*,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data, int size)
 {
   ei_assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
@@ -115,9 +116,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scal
 }
 
 /** This is the const version of map(Scalar*). */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
 }
@@ -133,9 +134,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(const Scal
   *
   * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data, int rows, int cols)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
 }
@@ -152,9 +153,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* da
   *
   * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data, int size)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int size)
 {
   ei_assert(_Cols == 1 || _Rows ==1);
   if(_Cols == 1)
@@ -172,9 +173,9 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* da
   *
   * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* data)
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
 }
@@ -187,8 +188,8 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::map(Scalar* da
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int rows, int cols)
   : m_storage(rows*cols, rows, cols)
 {
@@ -205,8 +206,8 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   *
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int size)
   : m_storage(size, RowsAtCompileTime == 1 ? 1 : size, ColsAtCompileTime == 1 ? 1 : size)
 {
@@ -223,8 +224,8 @@ Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
   * Matrix::map(const Scalar *)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
   *this = map(data);

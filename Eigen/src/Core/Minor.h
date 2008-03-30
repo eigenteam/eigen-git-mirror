@@ -49,7 +49,8 @@ struct ei_traits<Minor<MatrixType> >
     MaxRowsAtCompileTime = (MatrixType::MaxRowsAtCompileTime != Dynamic) ?
                                 MatrixType::MaxRowsAtCompileTime - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
-                                MatrixType::MaxColsAtCompileTime - 1 : Dynamic
+                                MatrixType::MaxColsAtCompileTime - 1 : Dynamic,
+    Flags = MatrixType::Flags
   };
 };
 
@@ -80,7 +81,7 @@ template<typename MatrixType> class Minor
       return m_matrix.const_cast_derived().coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }

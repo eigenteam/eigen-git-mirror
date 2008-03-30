@@ -46,7 +46,8 @@ struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
     RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime
+    MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
+    Flags = CoeffsVectorType::Flags
   };
 };
 
@@ -69,7 +70,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
     int _rows() const { return m_coeffs.size(); }
     int _cols() const { return m_coeffs.size(); }
 
-    Scalar _coeff(int row, int col) const
+    const Scalar _coeff(int row, int col) const
     {
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
