@@ -86,11 +86,17 @@ template<typename T, bool value> struct ei_conditional_eval
 
 template<typename T> struct ei_conditional_eval<T, true>
 {
-  typedef Eval<T> Type;
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                 ei_traits<T>::RowsAtCompileTime,
+                 ei_traits<T>::ColsAtCompileTime,
+                 ei_traits<T>::Flags,
+                 ei_traits<T>::MaxRowsAtCompileTime,
+                 ei_traits<T>::MaxColsAtCompileTime> Type;
 };
 
 template<typename T> struct ei_eval_unless_lazy
 {
   typedef typename ei_conditional_eval<T, !(ei_traits<T>::Flags & LazyBit)>::Type Type;
 };
+
 #endif // EIGEN_FORWARDDECLARATIONS_H

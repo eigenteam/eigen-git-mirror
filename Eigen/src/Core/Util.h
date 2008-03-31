@@ -117,7 +117,13 @@ enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        SizeAtCompileTime = Base::SizeAtCompileTime, \
        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
        IsVectorAtCompileTime = Base::IsVectorAtCompileTime, \
-       Flags = Base::Flags };
+       Flags = Base::Flags }; \
+typedef Matrix<Scalar, \
+               RowsAtCompileTime, \
+               ColsAtCompileTime, \
+               Flags, \
+               MaxRowsAtCompileTime, \
+               MaxColsAtCompileTime> Eval;
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \

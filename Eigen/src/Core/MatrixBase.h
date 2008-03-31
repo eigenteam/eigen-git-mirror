@@ -356,8 +356,10 @@ template<typename Derived> class MatrixBase
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived> cast() const;
 
-    const typename ei_eval_unless_lazy<Derived>::Type eval() const EIGEN_ALWAYS_INLINE;
-    const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
+    const typename ei_eval_unless_lazy<Derived>::Type eval() const EIGEN_ALWAYS_INLINE
+    {
+      return typename ei_eval_unless_lazy<Derived>::Type(derived());
+    }
 
     template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other);
