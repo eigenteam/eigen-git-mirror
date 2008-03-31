@@ -104,7 +104,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
     const Scalar& _coeff(int row, int col) const
     {
-      if(Flags & RowMajor)
+      if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
       else // column-major
         return m_storage.data()[row + col * m_storage.rows()];
@@ -112,7 +112,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
 
     Scalar& _coeffRef(int row, int col)
     {
-      if(Flags & RowMajor)
+      if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
       else // column-major
         return m_storage.data()[row + col * m_storage.rows()];

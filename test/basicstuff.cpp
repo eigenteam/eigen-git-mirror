@@ -110,7 +110,7 @@ void EigenTest::testBasicStuff()
 
     m3 = Matrix3d::random();
     m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajor>::map(data)) );
+    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
 
     Vector3d vec[3];
     vec[0] << 1, 4, 7;
@@ -118,7 +118,7 @@ void EigenTest::testBasicStuff()
     vec[2] << 3, 6, 9;
     m3 = Matrix3d::random();
     m3 << vec[0], vec[1], vec[2];
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajor>::map(data)) );
+    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
 
     vec[0] << 1, 2, 3;
     vec[1] << 4, 5, 6;
@@ -127,7 +127,7 @@ void EigenTest::testBasicStuff()
     m3 << vec[0].transpose(),
           4, 5, 6,
           vec[2].transpose();
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajor>::map(data)) );
+    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
   }
 }
 

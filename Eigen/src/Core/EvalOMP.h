@@ -48,7 +48,7 @@ struct ei_traits<EvalOMP<ExpressionType> >
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = ExpressionType::Flags & ~Lazy
+    Flags = ExpressionType::Flags & ~LazyBit
   };
 };
 

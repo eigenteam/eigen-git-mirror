@@ -37,7 +37,7 @@
 #endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajor
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajorBit
 #else
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER 0
 #endif
@@ -128,9 +128,9 @@ friend class Eigen::MatrixBase<Derived>;
 const int Dynamic = -10;
 
 // matrix/expression flags
-const unsigned int RowMajor = 0x1;
-const unsigned int Lazy = 0x2;
-const unsigned int Large = 0x4;
+const unsigned int RowMajorBit = 0x1;
+const unsigned int LazyBit = 0x2;
+const unsigned int LargeBit = 0x4;
 
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 

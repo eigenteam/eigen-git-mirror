@@ -69,8 +69,8 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   * \param EvalMode internal use only
   *
   * This class represents an expression of the product of two matrices.
-  * It is the return type of MatrixBase::lazyProduct(), which is used internally by
-  * the operator* between matrices, and most of the time this is the only way it is used.
+  * It is the return type of the operator* between matrices, and most of the time
+  * this is the only way it is used.
   *
   * \sa class Sum, class Difference
   */
@@ -85,7 +85,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
     Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)(Lhs::Flags | Rhs::Flags)
-          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~Large
+          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit
   };
 };
 
@@ -148,36 +148,19 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     const typename Rhs::XprCopy m_rhs;
 };
 
-/** \returns an expression of the matrix product of \c this and \a other, in this order.
-  *
-  * This function is used internally by the operator* between matrices. The difference between
-  * lazyProduct() and that operator* is that lazyProduct() only constructs and returns an
-  * expression without actually computing the matrix product, while the operator* between
-  * matrices immediately evaluates the product and returns the resulting matrix.
-  *
-  * \sa class Product
-  */
-template<typename Derived>
-template<typename OtherDerived>
-const Product<Derived, OtherDerived>
-MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
-{
-  return Product<Derived, OtherDerived>(derived(), other.derived());
-}
-
 /** \returns the matrix product of \c *this and \a other.
   *
   * \note This function causes an immediate evaluation. If you want to perform a matrix product
-  * without immediate evaluation, use MatrixBase::lazyProduct() instead.
+  * without immediate evaluation, call .lazy() on one of the matrices before taking the product.
   *
-  * \sa lazyProduct(), operator*=(const MatrixBase&)
+  * \sa lazy(), operator*=(const MatrixBase&)
   */
 template<typename Derived>
 template<typename OtherDerived>
-const Eval<Product<Derived, OtherDerived> >
+const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return lazyProduct(other).eval();
+  return Product<Derived, OtherDerived>(derived(), other.derived()).eval();
 }
 
 /** replaces \c *this by \c *this * \a other.

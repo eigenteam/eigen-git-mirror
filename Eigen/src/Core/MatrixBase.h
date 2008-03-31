@@ -129,11 +129,11 @@ template<typename Derived> class MatrixBase
       Flags = ei_traits<Derived>::Flags
         /**< This stores expression metadata which typically is inherited by new expressions
           * constructed from this one. The available flags are:
-          * \li \c RowMajor: if this bit is set, the preferred storage order for an evaluation
+          * \li \c RowMajorBit: if this bit is set, the preferred storage order for an evaluation
           *                  of this expression is row-major. Otherwise, it is column-major.
-          * \li \c Lazy: if this bit is set, the next evaluation of this expression will be canceled.
+          * \li \c LazyBit: if this bit is set, the next evaluation of this expression will be canceled.
           *              This can be used, with care, to achieve lazy evaluation.
-          * \li \c Large: if this bit is set, optimization will be tuned for large matrices (typically,
+          * \li \c LargeBit: if this bit is set, optimization will be tuned for large matrices (typically,
           *               at least 32x32).
           */
     };
@@ -246,14 +246,11 @@ template<typename Derived> class MatrixBase
     //@}
 
     /** \name Matrix product
+      * and, as a special case, matrix-vector product
       */
     //@{
     template<typename OtherDerived>
-    const Product<Derived, OtherDerived>
-    lazyProduct(const MatrixBase<OtherDerived>& other) const;
-
-    template<typename OtherDerived>
-    const Eval<Product<Derived, OtherDerived> >
+    const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -313,9 +310,9 @@ template<typename Derived> class MatrixBase
 
     /// \name Generating special matrices
     //@{
-    static const Eval<Random<Derived> > random(int rows, int cols);
-    static const Eval<Random<Derived> > random(int size);
-    static const Eval<Random<Derived> > random();
+    static const typename ei_eval_unless_lazy<Random<Derived> >::Type random(int rows, int cols);
+    static const typename ei_eval_unless_lazy<Random<Derived> >::Type random(int size);
+    static const typename ei_eval_unless_lazy<Random<Derived> >::Type random();
     static const Zero<Derived> zero(int rows, int cols);
     static const Zero<Derived> zero(int size);
     static const Zero<Derived> zero();
@@ -359,11 +356,13 @@ template<typename Derived> class MatrixBase
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<NewType>, Derived> cast() const;
 
-    const Eval<Derived> eval() const EIGEN_ALWAYS_INLINE;
+    const typename ei_eval_unless_lazy<Derived>::Type eval() const EIGEN_ALWAYS_INLINE;
     const EvalOMP<Derived> evalOMP() const EIGEN_ALWAYS_INLINE;
 
     template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other);
+
+    const Lazy<Derived> lazy() const;
     //@}
 
     /// \name Coefficient-wise operations

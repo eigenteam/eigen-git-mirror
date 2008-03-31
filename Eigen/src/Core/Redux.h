@@ -95,7 +95,7 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)MatrixType::Flags
-          : (unsigned int)MatrixType::Flags & ~Large
+          : (unsigned int)MatrixType::Flags & ~LargeBit
   };
 };
 

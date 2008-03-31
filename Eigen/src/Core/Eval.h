@@ -53,7 +53,7 @@ struct ei_traits<Eval<ExpressionType> >
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = ExpressionType::Flags & ~Lazy
+    Flags = ExpressionType::Flags & ~LazyBit
   };
 };
 
@@ -101,9 +101,9 @@ template<typename ExpressionType> class Eval : ei_no_assignment_operator,
   *
   * \sa class Eval */
 template<typename Derived>
-const Eval<Derived> MatrixBase<Derived>::eval() const
+const typename ei_eval_unless_lazy<Derived>::Type MatrixBase<Derived>::eval() const
 {
-  return Eval<Derived>(*static_cast<const Derived*>(this));
+  return typename ei_eval_unless_lazy<Derived>::Type(derived());
 }
 
 #endif // EIGEN_EVAL_H

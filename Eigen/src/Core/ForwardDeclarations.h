@@ -29,7 +29,7 @@ template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols> class Matrix;
-template<typename MatrixType> class MatrixRef;
+template<typename ExpressionType> class Lazy;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
 template<typename MatrixType> class Transpose;
@@ -79,4 +79,18 @@ struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
   typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & Type;
 };
 
+template<typename T, bool value> struct ei_conditional_eval
+{
+  typedef T Type;
+};
+
+template<typename T> struct ei_conditional_eval<T, true>
+{
+  typedef Eval<T> Type;
+};
+
+template<typename T> struct ei_eval_unless_lazy
+{
+  typedef typename ei_conditional_eval<T, !(ei_traits<T>::Flags & LazyBit)>::Type Type;
+};
 #endif // EIGEN_FORWARDDECLARATIONS_H

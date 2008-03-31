@@ -63,7 +63,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   m3 = m1;
   m3 *= (m1.transpose() * m2);
   VERIFY_IS_APPROX(m3,                      m1*(m1.transpose()*m2));
-  VERIFY_IS_APPROX(m3,                      m1.lazyProduct(m1.transpose()*m2));
+  VERIFY_IS_APPROX(m3,                      m1.lazy() * (m1.transpose()*m2));
 
   // continue testing Product.h: distributivity
   VERIFY_IS_APPROX(square*(m1 + m2),        square*m1+square*m2);
@@ -73,10 +73,11 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
   VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
 
-  // continue testing Product.h: lazyProduct
-  VERIFY_IS_APPROX(square.lazyProduct(m1),  square*m1);
+  // continue testing Product.h: lazy product
+  VERIFY_IS_APPROX(square.lazy() * m1,  square*m1);
+  VERIFY_IS_APPROX(square * m1.lazy(),  square*m1);
   // again, test operator() to check const-qualification
-  s1 += square.lazyProduct(m1)(r,c);
+  s1 += (square.lazy() * m1)(r,c);
 
   // test Product.h together with Identity.h
   VERIFY_IS_APPROX(m1,                      identity*m1);

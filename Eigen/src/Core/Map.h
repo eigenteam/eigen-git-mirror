@@ -65,7 +65,7 @@ template<typename MatrixType> class Map
 
     const Scalar& _coeff(int row, int col) const
     {
-      if(Flags & RowMajor)
+      if(Flags & RowMajorBit)
         return m_data[col + row * m_cols];
       else // column-major
         return m_data[row + col * m_rows];
@@ -73,7 +73,7 @@ template<typename MatrixType> class Map
 
     Scalar& _coeffRef(int row, int col)
     {
-      if(Flags & RowMajor)
+      if(Flags & RowMajorBit)
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
       else // column-major
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
