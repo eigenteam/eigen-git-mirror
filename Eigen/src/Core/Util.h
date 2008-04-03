@@ -217,7 +217,9 @@ struct ei_result_of<Func(ArgType)> {
     static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
     static ei_has_none            testFunctor(...);
 
-    typedef typename ei_unary_result_of_select<Func, ArgType, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
+    // note that the following indirection is needed for gcc-3.3
+    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
+    typedef typename ei_unary_result_of_select<Func, ArgType, FunctorType>::type type;
 };
 
 template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(ei_has_none)>
@@ -239,7 +241,9 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
     static ei_has_tr1_result      testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
     static ei_has_none            testFunctor(...);
 
-    typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, sizeof(testFunctor(static_cast<Func*>(0)))>::type type;
+    // note that the following indirection is needed for gcc-3.3
+    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
+    typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
 
 #endif // EIGEN_UTIL_H
