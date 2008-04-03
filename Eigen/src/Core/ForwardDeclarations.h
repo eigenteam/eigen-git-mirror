@@ -27,6 +27,7 @@
 
 template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
+template<typename T> struct NumTraits;
 
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols> class Matrix;
 template<typename ExpressionType> class Lazy;
@@ -87,6 +88,13 @@ template<typename T> struct ei_eval
                  ei_traits<T>::Flags & ~LazyBit, // unset lazy bit after evaluation
                  ei_traits<T>::MaxRowsAtCompileTime,
                  ei_traits<T>::MaxColsAtCompileTime> type;
+};
+
+template<typename T, int n> struct ei_eval_if_expensive
+{
+  enum { eval = n * NumTraits<typename T::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
+  typedef typename ei_meta_if<eval, typename T::Eval, T>::ret type;
+  typedef typename ei_meta_if<eval, typename T::Eval, T&>::ret reftype;
 };
 
 template<typename T> struct ei_eval_unless_lazy
