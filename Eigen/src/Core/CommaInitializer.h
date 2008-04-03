@@ -76,9 +76,10 @@ struct MatrixBase<Derived>::CommaInitializer
     ei_assert(m_col<m_matrix.cols()
       && "Too many coefficients passed to MatrixBase::operator<<");
     ei_assert(m_currentBlockRows==other.rows());
-    if (OtherDerived::RowsAtCompileTime>0 && OtherDerived::ColsAtCompileTime>0)
-      m_matrix.block< (OtherDerived::RowsAtCompileTime>0?OtherDerived::RowsAtCompileTime:1) ,
-                      (OtherDerived::ColsAtCompileTime>0?OtherDerived::ColsAtCompileTime:1) >(m_row, m_col) = other;
+    if (OtherDerived::SizeAtCompileTime != Dynamic)
+      m_matrix.block<OtherDerived::RowsAtCompileTime != Dynamic ? OtherDerived::RowsAtCompileTime : 1,
+                     OtherDerived::ColsAtCompileTime != Dynamic ? OtherDerived::ColsAtCompileTime : 1>
+                    (m_row, m_col) = other;
     else
       m_matrix.block(m_row, m_col, other.rows(), other.cols()) = other;
     m_col += other.cols();

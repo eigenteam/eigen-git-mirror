@@ -252,7 +252,8 @@ template<typename Derived> class MatrixBase
       */
     //@{
     template<typename OtherDerived>
-    const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::type
+    const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type, 
+                  typename ei_eval_if_needed_before_nesting<OtherDerived, ei_traits<Derived>::ColsAtCompileTime>::type>
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -312,9 +313,9 @@ template<typename Derived> class MatrixBase
 
     /// \name Generating special matrices
     //@{
-    static const typename ei_eval_unless_lazy<Random<Derived> >::type random(int rows, int cols);
-    static const typename ei_eval_unless_lazy<Random<Derived> >::type random(int size);
-    static const typename ei_eval_unless_lazy<Random<Derived> >::type random();
+    static const Random<Derived> random(int rows, int cols);
+    static const Random<Derived> random(int size);
+    static const Random<Derived> random();
     static const Zero<Derived> zero(int rows, int cols);
     static const Zero<Derived> zero(int size);
     static const Zero<Derived> zero();
@@ -358,9 +359,9 @@ template<typename Derived> class MatrixBase
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
-    const typename ei_eval_unless_lazy<Derived>::type eval() const EIGEN_ALWAYS_INLINE
+    const typename ei_eval<Derived>::type eval() const EIGEN_ALWAYS_INLINE
     {
-      return typename ei_eval_unless_lazy<Derived>::type(derived());
+      return typename ei_eval<Derived>::type(derived());
     }
 
     template<typename OtherDerived>

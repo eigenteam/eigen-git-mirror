@@ -46,7 +46,7 @@ struct ei_traits<Lazy<ExpressionType> >
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = ExpressionType::Flags | LazyBit,
+    Flags = ExpressionType::Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
     CoeffReadCost = ExpressionType::CoeffReadCost
   };
 };

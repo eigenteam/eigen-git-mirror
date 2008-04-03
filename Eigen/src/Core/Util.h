@@ -127,12 +127,15 @@ friend class Eigen::MatrixBase<Derived>;
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 
-const int Dynamic = -10;
+const int Dynamic = 10000;
 
 // matrix/expression flags
 const unsigned int RowMajorBit = 0x1;
-const unsigned int LazyBit = 0x2;
-const unsigned int LargeBit = 0x4;
+const unsigned int EvalBeforeNestingBit = 0x2;
+const unsigned int EvalBeforeAssigningBit = 0x4;
+const unsigned int LargeBit = 0x8;
+const unsigned int TemporaryBit = 0x10;
+
 
 enum { ConditionalJumpCost = 5 };
 

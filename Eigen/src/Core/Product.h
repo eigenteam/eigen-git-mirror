@@ -74,37 +74,26 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   *
   * \sa class Sum, class Difference
   */
+template<typename Lhs, typename Rhs> struct ei_product_eval_mode
+{
+  enum{ value = Lhs::MaxRowsAtCompileTime >= 8 && Rhs::MaxColsAtCompileTime >= 8
+              ? CacheOptimal : UnrolledDotProduct };
+};
+
 template<typename Lhs, typename Rhs, int EvalMode>
 struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
-#if 0
-  typedef typename ei_meta_if<
-                     (int)NumTraits<Scalar>::ReadCost < (int)Lhs::CoeffReadCost,
-                     typename Lhs::Eval,
-                     Lhs>::ret ActualLhs;
-  typedef typename ei_meta_if<
-                     (int)NumTraits<Scalar>::ReadCost < (int)Lhs::CoeffReadCost,
-                     typename Lhs::Eval,
-                     typename Lhs::XprCopy>::ret ActualLhsXprCopy;
-
-  typedef typename ei_meta_if<
-                     (int)NumTraits<Scalar>::ReadCost < (int)Rhs::CoeffReadCost,
-                     typename Rhs::Eval,
-                     Rhs>::ret ActualRhs;
-  typedef typename ei_meta_if<
-                     (int)NumTraits<Scalar>::ReadCost < (int)Rhs::CoeffReadCost,
-                     typename Rhs::Eval,
-                     typename Rhs::XprCopy>::ret ActualRhsXprCopy;
-#endif
   enum {
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
-    Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
-          ? (unsigned int)(Lhs::Flags | Rhs::Flags)
-          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit,
+    Flags = ( (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+              ? (unsigned int)(Lhs::Flags | Rhs::Flags)
+              : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit )
+          | EvalBeforeAssigningBit
+          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
@@ -114,25 +103,15 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
   };
 };
 
-template<typename Lhs, typename Rhs> struct ei_product_eval_mode
-{
-  enum{ value = Lhs::MaxRowsAtCompileTime == Dynamic || Rhs::MaxColsAtCompileTime == Dynamic
-              ? CacheOptimal : UnrolledDotProduct };
-};
-
 template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignment_operator,
   public MatrixBase<Product<Lhs, Rhs, EvalMode> >
 {
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
-#if 0
-    typedef typename ei_traits<Product>::ActualLhs ActualLhs;
-    typedef typename ei_traits<Product>::ActualRhs ActualRhs;
-    typedef typename ei_traits<Product>::ActualLhsXprCopy ActualLhsXprCopy;
-    typedef typename ei_traits<Product>::ActualRhsXprCopy ActualRhsXprCopy;
-#endif
-    Product(const Lhs& lhs, const Rhs& rhs)
+
+    template<typename ArgLhs, typename ArgRhs>
+    Product(const ArgLhs& lhs, const ArgRhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows());
@@ -181,13 +160,14 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   */
 template<typename Derived>
 template<typename OtherDerived>
-const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::type
+const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type, 
+              typename ei_eval_if_needed_before_nesting<OtherDerived, ei_traits<Derived>::ColsAtCompileTime>::type>
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  typedef ei_eval_if_expensive<Derived, OtherDerived::ColsAtCompileTime> Lhs;
-  typedef ei_eval_if_expensive<OtherDerived, Derived::RowsAtCompileTime> Rhs;
+  typedef ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime> Lhs;
+  typedef ei_eval_if_needed_before_nesting<OtherDerived, Derived::RowsAtCompileTime> Rhs;
   return Product<typename Lhs::type, typename Rhs::type>
-           (typename Lhs::reftype(derived()), typename Rhs::reftype(other.derived())).eval();
+           (derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this * \a other.

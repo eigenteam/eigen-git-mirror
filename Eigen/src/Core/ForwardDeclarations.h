@@ -69,15 +69,23 @@ template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
 
-template<typename T> struct ei_xpr_copy
+template<typename T> struct ei_copy_unless_matrix
 {
   typedef T type;
 };
 
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+struct ei_copy_unless_matrix<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 {
   typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & type;
+};
+
+template<typename T> struct ei_xpr_copy
+{
+  typedef typename ei_meta_if<T::Flags & TemporaryBit, 
+                              T,
+                              typename ei_copy_unless_matrix<T>::type
+                             >::ret type;
 };
 
 template<typename T> struct ei_eval
@@ -85,24 +93,26 @@ template<typename T> struct ei_eval
   typedef Matrix<typename ei_traits<T>::Scalar,
                  ei_traits<T>::RowsAtCompileTime,
                  ei_traits<T>::ColsAtCompileTime,
-                 ei_traits<T>::Flags & ~LazyBit, // unset lazy bit after evaluation
+                 ei_traits<T>::Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
                  ei_traits<T>::MaxRowsAtCompileTime,
                  ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
-template<typename T, int n> struct ei_eval_if_expensive
+template<typename T> struct ei_eval_temporary
 {
-  enum { eval = n * NumTraits<typename T::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
-  typedef typename ei_meta_if<eval, typename T::Eval, T>::ret type;
-  typedef typename ei_meta_if<eval, typename T::Eval, T&>::ret reftype;
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                 ei_traits<T>::RowsAtCompileTime,
+                 ei_traits<T>::ColsAtCompileTime,
+                 (ei_traits<T>::Flags | TemporaryBit) & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
+                 ei_traits<T>::MaxRowsAtCompileTime,
+                 ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
-template<typename T> struct ei_eval_unless_lazy
+template<typename T, int n=1> struct ei_eval_if_needed_before_nesting
 {
-  typedef typename ei_meta_if<ei_traits<T>::Flags & LazyBit,
-                              T,
-                              typename ei_eval<T>::type
-                             >::ret type;
+  enum { eval = T::Flags & EvalBeforeNestingBit
+             || n * NumTraits<typename T::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
+  typedef typename ei_meta_if<eval, typename ei_eval_temporary<T>::type, T>::ret type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H
