@@ -232,4 +232,102 @@ MatrixBase<Derived>::maxCoeff() const
   return this->redux(Eigen::ei_scalar_max_op<Scalar>());
 }
 
+
+
+template<typename Derived, int UnrollCount>
+struct ei_all_unroller
+{
+  enum {
+    col = (UnrollCount-1) / Derived::RowsAtCompileTime,
+    row = (UnrollCount-1) % Derived::RowsAtCompileTime
+  };
+
+  static bool run(const Derived &mat)
+  {
+    return ei_all_unroller<Derived, UnrollCount-1>::run(mat) && mat.coeff(row, col);
+  }
+};
+
+template<typename Derived>
+struct ei_all_unroller<Derived, 1>
+{
+  static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+};
+
+template<typename Derived>
+struct ei_all_unroller<Derived, Dynamic>
+{
+  static bool run(const Derived &) { return false; }
+};
+
+template<typename Derived, int UnrollCount>
+struct ei_any_unroller
+{
+  enum {
+    col = (UnrollCount-1) / Derived::RowsAtCompileTime,
+    row = (UnrollCount-1) % Derived::RowsAtCompileTime
+  };
+
+  static bool run(const Derived &mat)
+  {
+    return ei_any_unroller<Derived, UnrollCount-1>::run(mat) || mat.coeff(row, col);
+  }
+};
+
+template<typename Derived>
+struct ei_any_unroller<Derived, 1>
+{
+  static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+};
+
+template<typename Derived>
+struct ei_any_unroller<Derived, Dynamic>
+{
+  static bool run(const Derived &) { return false; }
+};
+
+/** \returns true if all coefficients are true
+  *
+  * \sa MatrixBase::any()
+  */
+template<typename Derived>
+bool MatrixBase<Derived>::all(void) const
+{
+  if(EIGEN_UNROLLED_LOOPS
+  && SizeAtCompileTime != Dynamic
+  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    return ei_all_unroller<Derived,
+       (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
+        SizeAtCompileTime : Dynamic>::run(derived());
+  else
+  {
+    for(int j = 0; j < cols(); j++)
+      for(int i = 0; i < rows(); i++)
+        if (!coeff(i, j)) return false;
+    return true;
+  }
+}
+
+/** \returns true if at least one coefficient is true
+  *
+  * \sa MatrixBase::any()
+  */
+template<typename Derived>
+bool MatrixBase<Derived>::any(void) const
+{
+  if(EIGEN_UNROLLED_LOOPS
+  && SizeAtCompileTime != Dynamic
+  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    return ei_any_unroller<Derived,
+       (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
+        SizeAtCompileTime : Dynamic>::run(derived());
+  else
+  {
+    for(int j = 0; j < cols(); j++)
+      for(int i = 0; i < rows(); i++)
+        if (coeff(i, j)) return true;
+    return false;
+  }
+}
+
 #endif // EIGEN_REDUX_H

@@ -27,6 +27,9 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <functional>
+
+using namespace std;
 
 namespace Eigen {
 
@@ -39,10 +42,10 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  
+
   int rows = m.rows();
   int cols = m.cols();
-  
+
   MatrixType m1 = MatrixType::random(rows, cols),
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
@@ -57,13 +60,17 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              vzero = VectorType::zero(rows);
 
   m2 = m2.template cwise<AddIfNull<Scalar> >(mones);
-  
+
   VERIFY_IS_APPROX(               mzero,    m1-m1);
   VERIFY_IS_APPROX(               m2,       m1+m2-m1);
   VERIFY_IS_APPROX(               mones,    m2.cwiseQuotient(m2));
   VERIFY_IS_APPROX(               m1.cwiseProduct(m2),    m2.cwiseProduct(m1));
+
+  VERIFY( m1.cwiseLessThan(m1.cwise(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !m1.cwiseLessThan(m1.cwise(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !m1.cwiseGreaterThan(m1.cwise(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
   //VERIFY_IS_APPROX(               m1,       m2.cwiseProduct(m1).cwiseQuotient(m2));
-  
+
 //   VERIFY_IS_APPROX( cwiseMin(m1,m2), cwiseMin(m2,m1) );
 //   VERIFY_IS_APPROX( cwiseMin(m1,m1+mones), m1 );
 //   VERIFY_IS_APPROX( cwiseMin(m1,m1-mones), m1-mones );

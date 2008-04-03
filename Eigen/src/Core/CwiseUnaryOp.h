@@ -51,7 +51,7 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = MatrixType::Flags,
-    CoeffReadCost = MatrixType::CoeffReadCost + UnaryOp::Cost
+    CoeffReadCost = MatrixType::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
 

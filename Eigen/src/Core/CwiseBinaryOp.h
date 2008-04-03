@@ -61,7 +61,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
     Flags = Lhs::Flags | Rhs::Flags,
-    CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + BinaryOp::Cost
+    CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
 
@@ -228,6 +228,78 @@ const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
 MatrixBase<Derived>::cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
 {
   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);
+}
+
+/** \returns an expression of the coefficient-wise \< operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseLessThan(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::less<Scalar>());
+}
+
+/** \returns an expression of the coefficient-wise \<= operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::less_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseLessEqual(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::less_equal<Scalar>());
+}
+
+/** \returns an expression of the coefficient-wise \> operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::greater<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseGreaterThan(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::greater<Scalar>());
+}
+
+/** \returns an expression of the coefficient-wise \>= operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::greater_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::greater_equal<Scalar>());
+}
+
+/** \returns an expression of the coefficient-wise == operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseEqualTo(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::equal_to<Scalar>());
+}
+
+/** \returns an expression of the coefficient-wise != operator of *this and \a other
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const CwiseBinaryOp<std::not_equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+MatrixBase<Derived>::cwiseNotEqualTo(const MatrixBase<OtherDerived> &other) const
+{
+  return cwise(other, std::not_equal_to<Scalar>());
 }
 
 #endif // EIGEN_CWISE_BINARY_OP_H

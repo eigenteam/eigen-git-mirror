@@ -252,7 +252,7 @@ template<typename Derived> class MatrixBase
       */
     //@{
     template<typename OtherDerived>
-    const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type, 
+    const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type,
                   typename ei_eval_if_needed_before_nesting<OtherDerived, ei_traits<Derived>::ColsAtCompileTime>::type>
     operator*(const MatrixBase<OtherDerived> &other) const;
 
@@ -354,6 +354,15 @@ template<typename Derived> class MatrixBase
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
 
+    template<typename OtherDerived>
+    bool operator==(const MatrixBase<OtherDerived>& other) const
+    { return derived().cwiseEqualTo(other.derived()).all(); }
+
+    template<typename OtherDerived>
+    bool operator!=(const MatrixBase<OtherDerived>& other) const
+    { return derived().cwiseNotEqualTo(other.derived()).all(); }
+    //@}
+
     /// \name Special functions
     //@{
     template<typename NewType>
@@ -390,6 +399,30 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<ei_scalar_max_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     cwiseMax(const MatrixBase<OtherDerived> &other) const;
 
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseLessThan(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::less_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseLessEqual(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::greater<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseGreaterThan(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::greater_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseEqualTo(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
+    const CwiseBinaryOp<std::not_equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    cwiseNotEqualTo(const MatrixBase<OtherDerived> &other) const;
+
     const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs() const;
     const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs2() const;
     const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
@@ -418,6 +451,9 @@ template<typename Derived> class MatrixBase
 
     typename ei_traits<Derived>::Scalar minCoeff(int* row, int* col = 0) const;
     typename ei_traits<Derived>::Scalar maxCoeff(int* row, int* col = 0) const;
+
+    bool all(void) const;
+    bool any(void) const;
 
     template<typename BinaryOp>
     const PartialRedux<Vertical, BinaryOp, Derived>

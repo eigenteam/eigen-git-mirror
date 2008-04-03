@@ -65,4 +65,42 @@ template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
   enum { Cost = ConditionalJumpCost + NumTraits<Scalar>::AddCost };
 };
 
+// default ei_functor_traits for STL functors:
+
+template<typename Result, typename Arg0, typename Arg1>
+struct ei_functor_traits<std::binary_function<Result,Arg0,Arg1> >
+{ enum { Cost = 10 }; };
+
+template<typename Result, typename Arg0>
+struct ei_functor_traits<std::unary_function<Result,Arg0> >
+{ enum { Cost = 5 }; };
+
+template<typename T>
+struct ei_functor_traits<std::binder2nd<T> >
+{ enum { Cost = 5 }; };
+
+template<typename T>
+struct ei_functor_traits<std::binder1st<T> >
+{ enum { Cost = 5 }; };
+
+template<typename T>
+struct ei_functor_traits<std::greater<T> >
+{ enum { Cost = 1 }; };
+
+template<typename T>
+struct ei_functor_traits<std::less<T> >
+{ enum { Cost = 1 }; };
+
+template<typename T>
+struct ei_functor_traits<std::greater_equal<T> >
+{ enum { Cost = 1 }; };
+
+template<typename T>
+struct ei_functor_traits<std::less_equal<T> >
+{ enum { Cost = 1 }; };
+
+template<typename T>
+struct ei_functor_traits<std::equal_to<T> >
+{ enum { Cost = 1 }; };
+
 #endif // EIGEN_ASSOCIATIVE_FUNCTORS_H

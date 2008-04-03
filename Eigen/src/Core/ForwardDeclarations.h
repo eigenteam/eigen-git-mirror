@@ -82,7 +82,7 @@ struct ei_copy_unless_matrix<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _Ma
 
 template<typename T> struct ei_xpr_copy
 {
-  typedef typename ei_meta_if<T::Flags & TemporaryBit, 
+  typedef typename ei_meta_if<T::Flags & TemporaryBit,
                               T,
                               typename ei_copy_unless_matrix<T>::type
                              >::ret type;
@@ -114,5 +114,12 @@ template<typename T, int n=1> struct ei_eval_if_needed_before_nesting
              || n * NumTraits<typename T::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
   typedef typename ei_meta_if<eval, typename ei_eval_temporary<T>::type, T>::ret type;
 };
+
+
+template<typename T> struct ei_functor_traits
+{
+  enum { Cost = T::Cost };
+};
+
 
 #endif // EIGEN_FORWARDDECLARATIONS_H
