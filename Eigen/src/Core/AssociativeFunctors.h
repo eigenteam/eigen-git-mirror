@@ -30,8 +30,9 @@
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, class PartialRedux, MatrixBase::sum()
   */
-struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
+  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+  enum { Cost = NumTraits<Scalar>::AddCost };
 };
 
 /** \internal
@@ -39,8 +40,9 @@ struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct(), class PartialRedux, MatrixBase::redux()
   */
-struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
+  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+  enum { Cost = NumTraits<Scalar>::MulCost };
 };
 
 /** \internal
@@ -48,8 +50,9 @@ struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class PartialRedux, MatrixBase::minCoeff()
   */
-struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
+template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
+  const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
+  enum { Cost = ConditionalJumpCost + NumTraits<Scalar>::AddCost };
 };
 
 /** \internal
@@ -57,8 +60,9 @@ struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class PartialRedux, MatrixBase::maxCoeff()
   */
-struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
+template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
+  const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
+  enum { Cost = ConditionalJumpCost + NumTraits<Scalar>::AddCost };
 };
 
 #endif // EIGEN_ASSOCIATIVE_FUNCTORS_H

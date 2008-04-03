@@ -5,9 +5,10 @@ using namespace std;
 // define a custom template binary functor
 template<typename Scalar>
 struct CwiseClampOp EIGEN_EMPTY_STRUCT {
-    CwiseClampOp(const Scalar& inf, const Scalar& sup) : m_inf(inf), m_sup(sup) {}
-    Scalar operator()(const Scalar& x) const { return x<m_inf ? m_inf : (x>m_sup ? m_sup : x); }
-    Scalar m_inf, m_sup;
+  CwiseClampOp(const Scalar& inf, const Scalar& sup) : m_inf(inf), m_sup(sup) {}
+  const Scalar operator()(const Scalar& x) const { return x<m_inf ? m_inf : (x>m_sup ? m_sup : x); }
+  Scalar m_inf, m_sup;
+  enum { Cost = Eigen::ConditionalJumpCost + Eigen::NumTraits<Scalar>::AddCost };
 };
 
 int main(int, char**)

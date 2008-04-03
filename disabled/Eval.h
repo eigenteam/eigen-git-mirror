@@ -101,9 +101,9 @@ template<typename ExpressionType> class Eval : ei_no_assignment_operator,
   *
   * \sa class Eval */
 template<typename Derived>
-const typename ei_eval_unless_lazy<Derived>::Type MatrixBase<Derived>::eval() const
+const typename ei_eval_unless_lazy<Derived>::type MatrixBase<Derived>::eval() const
 {
-  return typename ei_eval_unless_lazy<Derived>::Type(derived());
+  return typename ei_eval_unless_lazy<Derived>::type(derived());
 }
 
 #endif // EIGEN_EVAL_H

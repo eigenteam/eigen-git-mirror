@@ -63,7 +63,7 @@ void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
   }
   else // SizeAtCompileTime != Dynamic
   {
-    typename Eval<Derived>::MatrixType buf(*this);
+    typename Derived::Eval buf(*this);
     *this = other;
     *_other = buf;
   }

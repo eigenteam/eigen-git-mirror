@@ -109,7 +109,8 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
 typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-typedef typename Eigen::ei_xpr_copy<Derived>::Type XprCopy; \
+typedef typename Eigen::ei_xpr_copy<Derived>::type XprCopy; \
+typedef typename Eigen::ei_eval<Derived>::type Eval; \
 enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        ColsAtCompileTime = Base::ColsAtCompileTime, \
        MaxRowsAtCompileTime = Base::MaxRowsAtCompileTime, \
@@ -117,13 +118,8 @@ enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        SizeAtCompileTime = Base::SizeAtCompileTime, \
        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
        IsVectorAtCompileTime = Base::IsVectorAtCompileTime, \
-       Flags = Base::Flags }; \
-typedef Matrix<Scalar, \
-               RowsAtCompileTime, \
-               ColsAtCompileTime, \
-               Flags, \
-               MaxRowsAtCompileTime, \
-               MaxColsAtCompileTime> Eval;
+       Flags = Base::Flags, \
+       CoeffReadCost = Base::CoeffReadCost };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
@@ -137,6 +133,8 @@ const int Dynamic = -10;
 const unsigned int RowMajorBit = 0x1;
 const unsigned int LazyBit = 0x2;
 const unsigned int LargeBit = 0x4;
+
+enum { ConditionalJumpCost = 5 };
 
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 
@@ -184,6 +182,9 @@ struct ei_meta_if { typedef Then ret; };
 
 template <class Then, class Else>
 struct ei_meta_if <false, Then, Else> { typedef Else ret; };
+
+template<typename T, typename U> struct ei_is_same_type { enum { ret = 0 }; };
+template<typename T> struct ei_is_same_type<T,T> { enum { ret = 1 }; };
 
 
 /** \internal

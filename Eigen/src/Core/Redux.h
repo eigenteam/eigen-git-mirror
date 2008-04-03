@@ -26,7 +26,6 @@
 #ifndef EIGEN_REDUX_H
 #define EIGEN_REDUX_H
 
-
 template<typename BinaryOp, typename Derived, int Start, int Length>
 struct ei_redux_unroller
 {
@@ -95,7 +94,8 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)MatrixType::Flags
-          : (unsigned int)MatrixType::Flags & ~LargeBit
+          : (unsigned int)MatrixType::Flags & ~LargeBit,
+    CoeffReadCost = 1 //FIXME -- unimplemented!
   };
 };
 
@@ -198,7 +198,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::sum() const
 {
-  return this->redux(Eigen::ei_scalar_sum_op());
+  return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
 
 /** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.
@@ -220,7 +220,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::minCoeff() const
 {
-  return this->redux(Eigen::ei_scalar_min_op());
+  return this->redux(Eigen::ei_scalar_min_op<Scalar>());
 }
 
 /** \returns the maximum of all coefficients of *this
@@ -229,7 +229,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::maxCoeff() const
 {
-  return this->redux(Eigen::ei_scalar_max_op());
+  return this->redux(Eigen::ei_scalar_max_op<Scalar>());
 }
 
 #endif // EIGEN_REDUX_H

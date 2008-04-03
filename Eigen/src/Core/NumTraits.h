@@ -53,7 +53,10 @@ template<> struct NumTraits<int>
   typedef double FloatingPoint;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 0
+    HasFloatingPoint = 0,
+    ReadCost = 1,
+    AddCost = 1,
+    MulCost = 3
   };
 };
 
@@ -63,7 +66,10 @@ template<> struct NumTraits<float>
   typedef float FloatingPoint;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 1
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 2,
+    MulCost = 6
   };
 };
 
@@ -73,7 +79,10 @@ template<> struct NumTraits<double>
   typedef double FloatingPoint;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 1
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 2,
+    MulCost = 6
   };
 };
 
@@ -83,7 +92,10 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   typedef std::complex<_Real> FloatingPoint;
   enum {
     IsComplex = 1,
-    HasFloatingPoint = 1 // anyway we don't allow std::complex<int>
+    HasFloatingPoint = NumTraits<Real>::HasFloatingPoint,
+    ReadCost = 2,
+    AddCost = 2 * NumTraits<Real>::AddCost,
+    MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
 };
 
@@ -93,7 +105,10 @@ template<> struct NumTraits<long long int>
   typedef long double FloatingPoint;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 0
+    HasFloatingPoint = 0,
+    ReadCost = 1,
+    AddCost = 2,
+    MulCost = 6
   };
 };
 
@@ -103,7 +118,10 @@ template<> struct NumTraits<long double>
   typedef long double FloatingPoint;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 1
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 2,
+    MulCost = 6
   };
 };
 

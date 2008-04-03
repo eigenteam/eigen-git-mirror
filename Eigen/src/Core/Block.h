@@ -69,7 +69,8 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
       : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols),
     Flags = RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
             ? (unsigned int)MatrixType::Flags
-            : (unsigned int)MatrixType::Flags &~ LargeBit
+            : (unsigned int)MatrixType::Flags &~ LargeBit,
+    CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
 

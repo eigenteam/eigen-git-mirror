@@ -46,7 +46,8 @@ struct ei_traits<Transpose<MatrixType> >
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = MatrixType::Flags ^ RowMajorBit
+    Flags = MatrixType::Flags ^ RowMajorBit,
+    CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
 
@@ -108,7 +109,7 @@ MatrixBase<Derived>::transpose() const
   *
   * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
-const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op, Derived> >
+const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> >
 MatrixBase<Derived>::adjoint() const
 {
   return conjugate().transpose();

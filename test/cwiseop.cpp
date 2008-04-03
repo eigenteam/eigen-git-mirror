@@ -30,8 +30,9 @@
 
 namespace Eigen {
 
-struct AddIfNull {
-    template<typename Scalar> Scalar operator() (const Scalar a, const Scalar b) const {return a<=1e-3 ? b : a;}
+template<typename Scalar> struct AddIfNull {
+    const Scalar operator() (const Scalar a, const Scalar b) const {return a<=1e-3 ? b : a;}
+    enum { Cost = NumTraits<Scalar>::AddCost };
 };
 
 template<typename MatrixType> void cwiseops(const MatrixType& m)
@@ -55,7 +56,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  m2 = m2.template cwise<AddIfNull>(mones);
+  m2 = m2.template cwise<AddIfNull<Scalar> >(mones);
   
   VERIFY_IS_APPROX(               mzero,    m1-m1);
   VERIFY_IS_APPROX(               m2,       m1+m2-m1);

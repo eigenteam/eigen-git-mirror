@@ -47,7 +47,8 @@ struct ei_traits<Map<MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags
+    Flags = MatrixType::Flags,
+    CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 

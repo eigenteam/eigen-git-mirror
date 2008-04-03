@@ -50,7 +50,8 @@ struct ei_traits<Minor<MatrixType> >
                                 MatrixType::MaxRowsAtCompileTime - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
                                 MatrixType::MaxColsAtCompileTime - 1 : Dynamic,
-    Flags = MatrixType::Flags
+    Flags = MatrixType::Flags,
+    CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
 

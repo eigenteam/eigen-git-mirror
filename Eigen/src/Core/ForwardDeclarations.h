@@ -36,7 +36,7 @@ template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename BinaryOp, typename Lhs, typename Rhs> class CwiseBinaryOp;
 template<typename UnaryOp, typename MatrixType> class CwiseUnaryOp;
-template<typename Lhs, typename Rhs, int EvalMode=ei_product_eval_mode<Lhs,Rhs>::EvalMode > class Product;
+template<typename Lhs, typename Rhs, int EvalMode=ei_product_eval_mode<Lhs,Rhs>::value> class Product;
 template<typename MatrixType> class Random;
 template<typename MatrixType> class Zero;
 template<typename MatrixType> class Ones;
@@ -48,55 +48,53 @@ template<typename Derived> class Eval;
 template<typename Derived> class EvalOMP;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 
-struct ei_scalar_sum_op;
-struct ei_scalar_difference_op;
-struct ei_scalar_product_op;
-struct ei_scalar_quotient_op;
-struct ei_scalar_opposite_op;
-struct ei_scalar_conjugate_op;
-struct ei_scalar_abs_op;
-struct ei_scalar_abs2_op;
-struct ei_scalar_sqrt_op;
-struct ei_scalar_exp_op;
-struct ei_scalar_log_op;
-struct ei_scalar_cos_op;
-struct ei_scalar_sin_op;
-template<typename Scalar>  struct ei_scalar_pow_op;
-template<typename NewType> struct ei_scalar_cast_op;
-template<typename Scalar>  struct ei_scalar_multiple_op;
-template<typename Scalar>  struct ei_scalar_quotient1_op;
-struct ei_scalar_min_op;
-struct ei_scalar_max_op;
+template<typename Scalar> struct ei_scalar_sum_op;
+template<typename Scalar> struct ei_scalar_difference_op;
+template<typename Scalar> struct ei_scalar_product_op;
+template<typename Scalar> struct ei_scalar_quotient_op;
+template<typename Scalar> struct ei_scalar_opposite_op;
+template<typename Scalar> struct ei_scalar_conjugate_op;
+template<typename Scalar> struct ei_scalar_abs_op;
+template<typename Scalar> struct ei_scalar_abs2_op;
+template<typename Scalar> struct ei_scalar_sqrt_op;
+template<typename Scalar> struct ei_scalar_exp_op;
+template<typename Scalar> struct ei_scalar_log_op;
+template<typename Scalar> struct ei_scalar_cos_op;
+template<typename Scalar> struct ei_scalar_sin_op;
+template<typename Scalar> struct ei_scalar_pow_op;
+template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
+template<typename Scalar> struct ei_scalar_multiple_op;
+template<typename Scalar> struct ei_scalar_quotient1_op;
+template<typename Scalar> struct ei_scalar_min_op;
+template<typename Scalar> struct ei_scalar_max_op;
 
 template<typename T> struct ei_xpr_copy
 {
-  typedef T Type;
+  typedef T type;
 };
 
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
 struct ei_xpr_copy<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 {
-  typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & Type;
+  typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & type;
 };
 
-template<typename T, bool value> struct ei_conditional_eval
-{
-  typedef T Type;
-};
-
-template<typename T> struct ei_conditional_eval<T, true>
+template<typename T> struct ei_eval
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                  ei_traits<T>::RowsAtCompileTime,
                  ei_traits<T>::ColsAtCompileTime,
-                 ei_traits<T>::Flags,
+                 ei_traits<T>::Flags & ~LazyBit, // unset lazy bit after evaluation
                  ei_traits<T>::MaxRowsAtCompileTime,
-                 ei_traits<T>::MaxColsAtCompileTime> Type;
+                 ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
 template<typename T> struct ei_eval_unless_lazy
 {
-  typedef typename ei_conditional_eval<T, !(ei_traits<T>::Flags & LazyBit)>::Type Type;
+  typedef typename ei_meta_if<ei_traits<T>::Flags & LazyBit,
+                              T,
+                              typename ei_eval<T>::type
+                             >::ret type;
 };
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

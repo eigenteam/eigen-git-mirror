@@ -16,13 +16,8 @@ void echelon(MatrixBase<Derived>& m)
      .maxCoeff(&rowOfBiggest, &colOfBiggest);
     m.row(k).swap(m.row(k+rowOfBiggest));
     m.col(k).swap(m.col(k+colOfBiggest));
-    // important performance tip:
-    // in a complex expression such as below it can be very important to fine-tune
-    // exactly where evaluation occurs. The parentheses and .eval() below ensure
-    // that the quotient is computed only once, and that the evaluation caused
-    // by operator* occurs last.
     m.corner(BottomRight, cornerRows-1, cornerCols)
-      -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k)).eval();
+      -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k));
   }
 }
 

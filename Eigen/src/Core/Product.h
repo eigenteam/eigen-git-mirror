@@ -78,6 +78,23 @@ template<typename Lhs, typename Rhs, int EvalMode>
 struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
+  typedef typename ei_meta_if<
+                     (int)NumTraits<Scalar>::ReadCost < (int)Lhs::CoeffReadCost,
+                     typename Lhs::Eval,
+                     Lhs>::ret ActualLhs;
+  typedef typename ei_meta_if<
+                     (int)NumTraits<Scalar>::ReadCost < (int)Lhs::CoeffReadCost,
+                     typename Lhs::Eval,
+                     typename Lhs::XprCopy>::ret ActualLhsXprCopy;
+
+  typedef typename ei_meta_if<
+                     (int)NumTraits<Scalar>::ReadCost < (int)Rhs::CoeffReadCost,
+                     typename Rhs::Eval,
+                     Rhs>::ret ActualRhs;
+  typedef typename ei_meta_if<
+                     (int)NumTraits<Scalar>::ReadCost < (int)Rhs::CoeffReadCost,
+                     typename Rhs::Eval,
+                     typename Rhs::XprCopy>::ret ActualRhsXprCopy;
   enum {
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
@@ -85,20 +102,20 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
     Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)(Lhs::Flags | Rhs::Flags)
-          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit
+          : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit,
+    CoeffReadCost
+      = Lhs::ColsAtCompileTime == Dynamic
+      ? Dynamic
+      : Lhs::ColsAtCompileTime
+        * (NumTraits<Scalar>::MulCost + ActualLhs::CoeffReadCost + ActualRhs::CoeffReadCost)
+        + (Lhs::ColsAtCompileTime - 1) * NumTraits<Scalar>::AddCost
   };
 };
 
-template<typename Lhs, typename Rhs>
-struct ei_product_eval_mode
+template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
-  enum {
-    SizeAtCompileTime = MatrixBase<Product<Lhs,Rhs,UnrolledDotProduct> >::SizeAtCompileTime,
-    MaxSizeAtCompileTime = MatrixBase<Product<Lhs,Rhs,UnrolledDotProduct> >::MaxSizeAtCompileTime,
-    EvalMode = ( EIGEN_UNROLLED_LOOPS
-              && MaxSizeAtCompileTime != Dynamic
-              && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ? UnrolledDotProduct : CacheOptimal,
-  };
+  enum{ value = Lhs::MaxRowsAtCompileTime == Dynamic || Rhs::MaxColsAtCompileTime == Dynamic
+                  ? CacheOptimal : UnrolledDotProduct };
 };
 
 template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignment_operator,
@@ -107,6 +124,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    typedef typename ei_traits<Product>::ActualLhs ActualLhs;
+    typedef typename ei_traits<Product>::ActualRhs ActualRhs;
+    typedef typename ei_traits<Product>::ActualLhsXprCopy ActualLhsXprCopy;
+    typedef typename ei_traits<Product>::ActualRhsXprCopy ActualRhsXprCopy;
 
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -132,7 +153,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
                             Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
                               ? Lhs::ColsAtCompileTime : Dynamic,
-                            Lhs, Rhs>
+                            ActualLhs, ActualRhs>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
@@ -144,8 +165,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
   protected:
-    const typename Lhs::XprCopy m_lhs;
-    const typename Rhs::XprCopy m_rhs;
+    const ActualLhsXprCopy m_lhs;
+    const ActualRhsXprCopy m_rhs;
 };
 
 /** \returns the matrix product of \c *this and \a other.
@@ -157,7 +178,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   */
 template<typename Derived>
 template<typename OtherDerived>
-const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::Type
+const typename ei_eval_unless_lazy<Product<Derived, OtherDerived> >::type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return Product<Derived, OtherDerived>(derived(), other.derived()).eval();
@@ -199,7 +220,8 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
       const Scalar tmp2 = m_rhs.coeff(j+2,k);
       const Scalar tmp3 = m_rhs.coeff(j+3,k);
       for (int i=0; i<m_lhs.rows(); ++i)
-        res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1) + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+        res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
+                             + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
     }
     for (; j<m_lhs.cols(); ++j)
     {

@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_COMMA_INITIALIZER_H
-#define EIGEN_COMMA_INITIALIZER_H
+#ifndef EIGEN_COMMAINITIALIZER_H
+#define EIGEN_COMMAINITIALIZER_H
 
 /** \internal
   * Helper class to define the MatrixBase::operator<<
@@ -120,4 +120,4 @@ MatrixBase<Derived>::operator<<(const MatrixBase<OtherDerived>& other)
   return CommaInitializer(*static_cast<Derived *>(this), other);
 }
 
-#endif // EIGEN_COMMA_INITIALIZER_H
+#endif // EIGEN_COMMAINITIALIZER_H

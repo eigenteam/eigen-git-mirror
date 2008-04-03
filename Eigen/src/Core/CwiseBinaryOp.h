@@ -60,7 +60,8 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-    Flags = Lhs::Flags | Rhs::Flags
+    Flags = Lhs::Flags | Rhs::Flags,
+    CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + BinaryOp::Cost
   };
 };
 
@@ -99,8 +100,9 @@ class CwiseBinaryOp : ei_no_assignment_operator,
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
-struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+template<typename Scalar> struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
+    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+    enum { Cost = NumTraits<Scalar>::AddCost };
 };
 
 /** \internal
@@ -108,8 +110,9 @@ struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
-struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
-    template<typename Scalar> Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
+    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+    enum { Cost = 2 * NumTraits<Scalar>::MulCost };
 };
 
 /**\returns an expression of the difference of \c *this and \a other
@@ -118,10 +121,12 @@ struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_difference_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
+                    Derived, OtherDerived>
 MatrixBase<Derived>::operator-(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_difference_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+                       Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this - \a other.
@@ -144,10 +149,10 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_sum_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::operator+(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_sum_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this + \a other.
@@ -168,10 +173,10 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_product_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
@@ -180,10 +185,10 @@ MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_quotient_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise min of *this and \a other
@@ -192,10 +197,10 @@ MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_min_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_min_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseMin(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_min_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_min_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise max of *this and \a other
@@ -204,10 +209,10 @@ MatrixBase<Derived>::cwiseMin(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-const CwiseBinaryOp<ei_scalar_max_op, Derived, OtherDerived>
+const CwiseBinaryOp<ei_scalar_max_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::cwiseMax(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_max_op, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_max_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other

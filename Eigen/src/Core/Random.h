@@ -41,7 +41,8 @@ struct ei_traits<Random<MatrixType> >
     ColsAtCompileTime = ei_traits<MatrixType>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<MatrixType>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<MatrixType>::MaxColsAtCompileTime,
-    Flags = ei_traits<MatrixType>::Flags
+    Flags = ei_traits<MatrixType>::Flags,
+    CoeffReadCost = 2 * NumTraits<Scalar>::MulCost // FIXME: arbitrary value
   };
 };
 
@@ -92,7 +93,7 @@ template<typename MatrixType> class Random : ei_no_assignment_operator,
   * \sa ei_random(), ei_random(int)
   */
 template<typename Derived>
-const typename ei_eval_unless_lazy<Random<Derived> >::Type
+const typename ei_eval_unless_lazy<Random<Derived> >::type
 MatrixBase<Derived>::random(int rows, int cols)
 {
   return Random<Derived>(rows, cols).eval();
@@ -115,7 +116,7 @@ MatrixBase<Derived>::random(int rows, int cols)
   * \sa ei_random(), ei_random(int,int)
   */
 template<typename Derived>
-const typename ei_eval_unless_lazy<Random<Derived> >::Type
+const typename ei_eval_unless_lazy<Random<Derived> >::type
 MatrixBase<Derived>::random(int size)
 {
   ei_assert(IsVectorAtCompileTime);
@@ -135,7 +136,7 @@ MatrixBase<Derived>::random(int size)
   * \sa ei_random(int), ei_random(int,int)
   */
 template<typename Derived>
-const typename ei_eval_unless_lazy<Random<Derived> >::Type
+const typename ei_eval_unless_lazy<Random<Derived> >::type
 MatrixBase<Derived>::random()
 {
   return Random<Derived>(RowsAtCompileTime, ColsAtCompileTime).eval();
