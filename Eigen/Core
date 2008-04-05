@@ -21,6 +21,7 @@ namespace Eigen {
 #include "src/Core/MatrixStorage.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Lazy.h"
+#include "src/Core/Temporary.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/Product.h"
@@ -41,7 +42,7 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/AssociativeFunctors.h"
+#include "src/Core/Functors.h"
 
 } // namespace Eigen
 

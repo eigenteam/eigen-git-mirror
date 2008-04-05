@@ -100,7 +100,7 @@ struct ei_vector_operator_equals_unroller<Derived1, Derived2, Dynamic>
 template<typename Derived>
 template<typename OtherDerived>
 Derived& MatrixBase<Derived>
-  ::operator=(const MatrixBase<OtherDerived>& other)
+  ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
   if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
     // copying a vector expression into a vector
@@ -111,12 +111,11 @@ Derived& MatrixBase<Derived>
     && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
       ei_vector_operator_equals_unroller
         <Derived, OtherDerived,
-         SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
         >::run(derived(), other.derived());
     else
       for(int i = 0; i < size(); i++)
         coeffRef(i) = other.coeff(i);
-    return derived();
   }
   else // copying a matrix expression into a matrix
   {
@@ -127,7 +126,7 @@ Derived& MatrixBase<Derived>
     {
       ei_matrix_operator_equals_unroller
         <Derived, OtherDerived,
-         SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
         >::run(derived(), other.derived());
     }
     else
@@ -148,8 +147,21 @@ Derived& MatrixBase<Derived>
             coeffRef(i, j) = other.coeff(i, j);
       }
     }
-    return derived();
   }
+  return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+Derived& MatrixBase<Derived>
+  ::operator=(const MatrixBase<OtherDerived>& other)
+{
+  if (OtherDerived::Flags & EvalBeforeAssigningBit)
+  {
+    return lazyAssign(other.derived().eval());
+  }
+  else
+    return lazyAssign(other.derived());
 }
 
 #endif // EIGEN_OPERATOREQUALS_H

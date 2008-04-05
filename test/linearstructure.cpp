@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,7 +18,7 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
@@ -34,10 +34,10 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  
+
   int rows = m.rows();
   int cols = m.cols();
-  
+
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h
   MatrixType m1 = MatrixType::random(rows, cols),
@@ -54,10 +54,10 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
 
   Scalar s1 = ei_random<Scalar>(),
          s2 = ei_random<Scalar>();
-  
+
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
-  
+
   VERIFY_IS_APPROX(-(-m1),                  m1);
   VERIFY_IS_APPROX(m1+m1,                   2*m1);
   VERIFY_IS_APPROX(m1+m2-m1,                m2);
@@ -80,7 +80,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
     m3 = m2; m3 /= s1;
     VERIFY_IS_APPROX(m3,                    m2/s1);
   }
-  
+
   // again, test operator() to check const-qualification
   VERIFY_IS_APPROX((-m1)(r,c), -(m1(r,c)));
   VERIFY_IS_APPROX((m1-m2)(r,c), (m1(r,c))-(m2(r,c)));

@@ -134,7 +134,7 @@ const unsigned int RowMajorBit = 0x1;
 const unsigned int EvalBeforeNestingBit = 0x2;
 const unsigned int EvalBeforeAssigningBit = 0x4;
 const unsigned int LargeBit = 0x8;
-const unsigned int TemporaryBit = 0x10;
+const unsigned int VectorizableBit = 0x10;
 
 
 enum { ConditionalJumpCost = 5 };

@@ -109,10 +109,10 @@ MatrixBase<Derived>::transpose() const
   *
   * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
-const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> >
+const Transpose<Temporary<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived > > >
 MatrixBase<Derived>::adjoint() const
 {
-  return conjugate().transpose();
+  return conjugate().temporary().transpose();
 }
 
 #endif // EIGEN_TRANSPOSE_H

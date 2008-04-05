@@ -110,8 +110,12 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
-    template<typename ArgLhs, typename ArgRhs>
-    Product(const ArgLhs& lhs, const ArgRhs& rhs)
+    typedef typename ei_eval_if_needed_before_nesting<Lhs,Rhs::ColsAtCompileTime>::CopyType CopyLhs;
+    typedef typename ei_eval_if_needed_before_nesting<Rhs,Lhs::RowsAtCompileTime>::CopyType CopyRhs;
+    typedef typename ei_eval_if_needed_before_nesting<Lhs,Rhs::ColsAtCompileTime>::XprType XprLhs;
+    typedef typename ei_eval_if_needed_before_nesting<Rhs,Lhs::RowsAtCompileTime>::XprType XprRhs;
+
+    Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows());
@@ -135,7 +139,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
                             Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
                               ? Lhs::ColsAtCompileTime : Dynamic,
-                            Lhs, Rhs>
+                            XprLhs, XprRhs>
           ::run(row, col, m_lhs, m_rhs, res);
       else
       {
@@ -147,8 +151,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
   protected:
-    const typename Lhs::XprCopy m_lhs;
-    const typename Rhs::XprCopy m_rhs;
+    const CopyLhs m_lhs;
+    const CopyRhs m_rhs;
 };
 
 /** \returns the matrix product of \c *this and \a other.
@@ -160,14 +164,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   */
 template<typename Derived>
 template<typename OtherDerived>
-const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type, 
-              typename ei_eval_if_needed_before_nesting<OtherDerived, ei_traits<Derived>::ColsAtCompileTime>::type>
+const Product<Derived,OtherDerived>
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  typedef ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime> Lhs;
-  typedef ei_eval_if_needed_before_nesting<OtherDerived, Derived::RowsAtCompileTime> Rhs;
-  return Product<typename Lhs::type, typename Rhs::type>
-           (derived(), other.derived());
+  return Product<Derived,OtherDerived>(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this * \a other.
@@ -184,7 +184,7 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 
 template<typename Derived>
 template<typename Derived1, typename Derived2>
-Derived& MatrixBase<Derived>::operator=(const Product<Derived1,Derived2,CacheOptimal>& product)
+Derived& MatrixBase<Derived>::lazyAssign(const Product<Derived1,Derived2,CacheOptimal>& product)
 {
   product._cacheOptimalEval(*this);
   return derived();
@@ -207,7 +207,7 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
       const Scalar tmp3 = m_rhs.coeff(j+3,k);
       for (int i=0; i<m_lhs.rows(); ++i)
         res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
-                             + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+                           + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
     }
     for (; j<m_lhs.cols(); ++j)
     {

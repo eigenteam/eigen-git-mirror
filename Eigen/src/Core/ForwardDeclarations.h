@@ -31,6 +31,7 @@ template<typename T> struct NumTraits;
 
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols> class Matrix;
 template<typename ExpressionType> class Lazy;
+template<typename ExpressionType> class Temporary;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
 template<typename MatrixType> class Transpose;
@@ -69,25 +70,6 @@ template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
 
-template<typename T> struct ei_copy_unless_matrix
-{
-  typedef T type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-struct ei_copy_unless_matrix<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
-{
-  typedef const Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> & type;
-};
-
-template<typename T> struct ei_xpr_copy
-{
-  typedef typename ei_meta_if<T::Flags & TemporaryBit,
-                              T,
-                              typename ei_copy_unless_matrix<T>::type
-                             >::ret type;
-};
-
 template<typename T> struct ei_eval
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
@@ -98,27 +80,34 @@ template<typename T> struct ei_eval
                  ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
-template<typename T> struct ei_eval_temporary
+template<typename T> struct ei_xpr_copy
 {
-  typedef Matrix<typename ei_traits<T>::Scalar,
-                 ei_traits<T>::RowsAtCompileTime,
-                 ei_traits<T>::ColsAtCompileTime,
-                 (ei_traits<T>::Flags | TemporaryBit) & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
-                 ei_traits<T>::MaxRowsAtCompileTime,
-                 ei_traits<T>::MaxColsAtCompileTime> type;
+  typedef typename ei_meta_if< ei_traits<T>::Flags & EvalBeforeNestingBit,
+      typename ei_eval<T>::type, const T&>::ret type;
+};
+
+template<typename T> struct ei_xpr_copy<Temporary<T> >
+{
+  typedef Temporary<T> type;
 };
 
 template<typename T, int n=1> struct ei_eval_if_needed_before_nesting
 {
+  // FIXME should we consider the additional store as well as the creation cost of the temporary ?
   enum { eval = T::Flags & EvalBeforeNestingBit
-             || n * NumTraits<typename T::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
-  typedef typename ei_meta_if<eval, typename ei_eval_temporary<T>::type, T>::ret type;
+             || n * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
+  typedef typename ei_meta_if<eval, typename ei_eval<T>::type, T>::ret XprType;
+  typedef typename ei_meta_if<eval, typename ei_eval<T>::type, typename T::XprCopy>::ret CopyType;
 };
 
 
 template<typename T> struct ei_functor_traits
 {
-  enum { Cost = T::Cost };
+  enum
+  {
+    Cost = 10,
+    IsVectorizable = false
+  };
 };
 
 

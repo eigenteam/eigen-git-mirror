@@ -99,16 +99,6 @@ MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
   return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
 }
 
-/** \internal
-  * \brief Template functor to compute the opposite of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::operator-
-  */
-template<typename Scalar> struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return -a; }
-  enum { Cost = NumTraits<Scalar>::AddCost };
-};
-
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Derived>
@@ -117,16 +107,6 @@ MatrixBase<Derived>::operator-() const
 {
   return CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to compute the absolute value of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
-  */
-template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_abs(a); }
-  enum { Cost = NumTraits<Scalar>::AddCost };
-};
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   */
@@ -137,16 +117,6 @@ MatrixBase<Derived>::cwiseAbs() const
   return CwiseUnaryOp<ei_scalar_abs_op<Scalar>,Derived>(derived());
 }
 
-/** \internal
-  * \brief Template functor to compute the squared absolute value of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs2
-  */
-template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_abs2(a); }
-  enum { Cost = NumTraits<Scalar>::MulCost };
-};
-
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   */
 template<typename Derived>
@@ -155,16 +125,6 @@ MatrixBase<Derived>::cwiseAbs2() const
 {
   return CwiseUnaryOp<ei_scalar_abs2_op<Scalar>,Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to compute the conjugate of a complex value
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::conjugate()
-  */
-template<typename Scalar> struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
-  enum { Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0 };
-};
 
 /** \returns an expression of the complex conjugate of *this.
   *
@@ -175,18 +135,6 @@ MatrixBase<Derived>::conjugate() const
 {
   return CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to cast a scalar to another type
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cast()
-  */
-template<typename Scalar, typename NewType>
-struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
-  typedef NewType result_type;
-  const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
-  enum { Cost = ei_is_same_type<Scalar, NewType>::ret ? 0 : NumTraits<NewType>::AddCost };
-};
 
 /** \returns an expression of *this with the \a Scalar type casted to
   * \a NewScalar.
@@ -202,49 +150,6 @@ MatrixBase<Derived>::cast() const
 {
   return CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to multiply a scalar by a fixed other one
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
-  */
-template<typename Scalar>
-struct ei_scalar_multiple_op {
-  ei_scalar_multiple_op(const Scalar& other) : m_other(other) {}
-  Scalar operator() (const Scalar& a) const { return a * m_other; }
-  const Scalar m_other;
-  enum { Cost = NumTraits<Scalar>::MulCost };
-};
-
-template<typename Scalar, bool HasFloatingPoint>
-struct ei_scalar_quotient1_impl {
-  ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
-  Scalar operator() (const Scalar& a) const { return a * m_other; }
-  const Scalar m_other;
-  enum { Cost = NumTraits<Scalar>::MulCost };
-};
-
-template<typename Scalar>
-struct ei_scalar_quotient1_impl<Scalar,false> {
-  ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
-  Scalar operator() (const Scalar& a) const { return a / m_other; }
-  const Scalar m_other;
-  enum { Cost = 2 * NumTraits<Scalar>::MulCost };
-};
-
-/** \internal
-  * \brief Template functor to divide a scalar by a fixed other one
-  *
-  * This functor is used to implement the quotient of a matrix by
-  * a scalar where the scalar type is not a floating point type.
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::operator/
-  */
-template<typename Scalar>
-struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint > {
-  ei_scalar_quotient1_op(const Scalar& other)
-    : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
-};
 
 /** \relates MatrixBase */
 template<typename Derived>
@@ -278,16 +183,6 @@ MatrixBase<Derived>::operator/=(const Scalar& other)
   return *this = *this / other;
 }
 
-/** \internal
-  * \brief Template functor to compute the square root of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
-  */
-template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
-
 /** \returns an expression of the coefficient-wise square root of *this. */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -295,16 +190,6 @@ MatrixBase<Derived>::cwiseSqrt() const
 {
   return CwiseUnaryOp<ei_scalar_sqrt_op<Scalar>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to compute the exponential of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
-  */
-template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
 
 /** \returns an expression of the coefficient-wise exponential of *this. */
 template<typename Derived>
@@ -314,16 +199,6 @@ MatrixBase<Derived>::cwiseExp() const
   return CwiseUnaryOp<ei_scalar_exp_op<Scalar>, Derived>(derived());
 }
 
-/** \internal
-  * \brief Template functor to compute the logarithm of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
-  */
-template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_log(a); }
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
-
 /** \returns an expression of the coefficient-wise logarithm of *this. */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -331,16 +206,6 @@ MatrixBase<Derived>::cwiseLog() const
 {
   return CwiseUnaryOp<ei_scalar_log_op<Scalar>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to compute the cosine of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
-  */
-template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_cos(a); }
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
 
 /** \returns an expression of the coefficient-wise cosine of *this. */
 template<typename Derived>
@@ -350,16 +215,6 @@ MatrixBase<Derived>::cwiseCos() const
   return CwiseUnaryOp<ei_scalar_cos_op<Scalar>, Derived>(derived());
 }
 
-/** \internal
-  * \brief Template functor to compute the sine of a scalar
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
-  */
-template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
-
 /** \returns an expression of the coefficient-wise sine of *this. */
 template<typename Derived>
 const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -367,19 +222,6 @@ MatrixBase<Derived>::cwiseSin() const
 {
   return CwiseUnaryOp<ei_scalar_sin_op<Scalar>, Derived>(derived());
 }
-
-/** \internal
-  * \brief Template functor to raise a scalar to a power
-  *
-  * \sa class CwiseUnaryOp, MatrixBase::cwisePow
-  */
-template<typename Scalar>
-struct ei_scalar_pow_op {
-  ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
-  Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
-  const Scalar m_exponent;
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
-};
 
 /** \relates MatrixBase */
 template<typename Derived>

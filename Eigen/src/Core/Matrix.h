@@ -276,13 +276,13 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
     Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
-      *this = other;
+      Base::lazyAssign(other.derived());
     }
     /** Copy constructor */
     Matrix(const Matrix& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
-      *this = other;
+      Base::lazyAssign(other);
     }
     /** Destructor */
     ~Matrix() {}

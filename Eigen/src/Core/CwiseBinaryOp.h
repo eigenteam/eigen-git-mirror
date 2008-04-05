@@ -95,26 +95,6 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     const BinaryOp m_functor;
 };
 
-/** \internal
-  * \brief Template functor to compute the difference of two scalars
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::operator-
-  */
-template<typename Scalar> struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
-    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
-    enum { Cost = NumTraits<Scalar>::AddCost };
-};
-
-/** \internal
-  * \brief Template functor to compute the quotient of two scalars
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
-  */
-template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
-    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
-    enum { Cost = 2 * NumTraits<Scalar>::MulCost };
-};
-
 /**\returns an expression of the difference of \c *this and \a other
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-=()

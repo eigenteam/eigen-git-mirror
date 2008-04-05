@@ -175,6 +175,10 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<OtherDerived>& other);
 
+    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
+    template<typename OtherDerived>
+    Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
+
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
@@ -185,7 +189,7 @@ template<typename Derived> class MatrixBase
 
     /** Overloaded for optimal product evaluation */
     template<typename Derived1, typename Derived2>
-    Derived& operator=(const Product<Derived1,Derived2,CacheOptimal>& product);
+    Derived& lazyAssign(const Product<Derived1,Derived2,CacheOptimal>& product);
 
     CommaInitializer operator<< (const Scalar& s);
 
@@ -252,8 +256,7 @@ template<typename Derived> class MatrixBase
       */
     //@{
     template<typename OtherDerived>
-    const Product<typename ei_eval_if_needed_before_nesting<Derived, OtherDerived::ColsAtCompileTime>::type,
-                  typename ei_eval_if_needed_before_nesting<OtherDerived, ei_traits<Derived>::ColsAtCompileTime>::type>
+    const Product<Derived,OtherDerived>
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -272,7 +275,8 @@ template<typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
-    const Transpose<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> > adjoint() const;
+    const Transpose<Temporary<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> > >
+    adjoint() const;
     //@}
 
     /// \name Sub-matrices
@@ -377,6 +381,7 @@ template<typename Derived> class MatrixBase
     void swap(const MatrixBase<OtherDerived>& other);
 
     const Lazy<Derived> lazy() const;
+    const Temporary<Derived> temporary() const;
     //@}
 
     /// \name Coefficient-wise operations
