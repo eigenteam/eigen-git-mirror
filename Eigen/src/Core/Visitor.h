@@ -74,9 +74,7 @@ template<typename Derived>
 template<typename Visitor>
 void MatrixBase<Derived>::visit(Visitor& visitor) const
 {
-  if(EIGEN_UNROLLED_LOOPS
-  && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     return ei_visitor_unroller<Visitor, Derived,
         (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
         SizeAtCompileTime : Dynamic>::run(derived(), visitor);

@@ -171,9 +171,7 @@ template<typename BinaryOp>
 typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
 MatrixBase<Derived>::redux(const BinaryOp& func) const
 {
-  if(EIGEN_UNROLLED_LOOPS
-  && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     return ei_redux_unroller<BinaryOp, Derived, 0,
        (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
         SizeAtCompileTime : Dynamic>::run(derived(), func);
@@ -293,9 +291,7 @@ struct ei_any_unroller<Derived, Dynamic>
 template<typename Derived>
 bool MatrixBase<Derived>::all(void) const
 {
-  if(EIGEN_UNROLLED_LOOPS
-  && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     return ei_all_unroller<Derived,
        (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
         SizeAtCompileTime : Dynamic>::run(derived());
@@ -315,9 +311,7 @@ bool MatrixBase<Derived>::all(void) const
 template<typename Derived>
 bool MatrixBase<Derived>::any(void) const
 {
-  if(EIGEN_UNROLLED_LOOPS
-  && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     return ei_any_unroller<Derived,
        (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
         SizeAtCompileTime : Dynamic>::run(derived());
