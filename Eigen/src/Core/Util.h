@@ -26,9 +26,7 @@
 #define EIGEN_UTIL_H
 
 #ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
-#define EIGEN_UNROLLED_LOOPS (false)
-#else
-#define EIGEN_UNROLLED_LOOPS (true)
+#define EIGEN_UNROLLING_LIMIT 0
 #endif
 
 /** Defines the maximal loop size to enable meta unrolling of loops */

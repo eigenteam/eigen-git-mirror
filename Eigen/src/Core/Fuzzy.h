@@ -44,7 +44,7 @@
 template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isApprox(
-  const OtherDerived& other,
+  const MatrixBase<OtherDerived>& other,
   typename NumTraits<Scalar>::Real prec
 ) const
 {
@@ -55,9 +55,11 @@ bool MatrixBase<Derived>::isApprox(
   }
   else
   {
+    typename Derived::XprCopy xprCopy(derived());
+    typename OtherDerived::XprCopy otherXprCopy(other.derived());
     for(int i = 0; i < cols(); i++)
-      if((col(i) - other.col(i)).norm2()
-         > std::min(col(i).norm2(), other.col(i).norm2()) * prec * prec)
+      if((xprCopy.col(i) - otherXprCopy.col(i)).norm2()
+         > std::min(xprCopy.col(i).norm2(), otherXprCopy.col(i).norm2()) * prec * prec)
         return false;
     return true;
   }
@@ -85,8 +87,9 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   }
   else
   {
+    typename Derived::XprCopy xprCopy(*this);
     for(int i = 0; i < cols(); i++)
-      if(col(i).norm2() > ei_abs2(other * prec))
+      if(xprCopy.col(i).norm2() > ei_abs2(other * prec))
         return false;
     return true;
   }
@@ -116,8 +119,10 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   }
   else
   {
+    typename Derived::XprCopy xprCopy(*this);
+    typename OtherDerived::XprCopy otherXprCopy(other);
     for(int i = 0; i < cols(); i++)
-      if(col(i).norm2() > other.col(i).norm2() * prec * prec)
+      if(xprCopy.col(i).norm2() > otherXprCopy.col(i).norm2() * prec * prec)
         return false;
     return true;
   }

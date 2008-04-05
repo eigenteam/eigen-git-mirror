@@ -80,6 +80,9 @@ template<typename T> struct ei_eval
                  ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
+template<typename T> struct ei_unref { typedef T type; };
+template<typename T> struct ei_unref<T&> { typedef T type; };
+
 template<typename T> struct ei_xpr_copy
 {
   typedef typename ei_meta_if< ei_traits<T>::Flags & EvalBeforeNestingBit,
@@ -95,7 +98,7 @@ template<typename T, int n=1> struct ei_eval_if_needed_before_nesting
 {
   // FIXME should we consider the additional store as well as the creation cost of the temporary ?
   enum { eval = T::Flags & EvalBeforeNestingBit
-             || n * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
+             || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
   typedef typename ei_meta_if<eval, typename ei_eval<T>::type, T>::ret XprType;
   typedef typename ei_meta_if<eval, typename ei_eval<T>::type, typename T::XprCopy>::ret CopyType;
 };

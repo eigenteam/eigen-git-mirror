@@ -133,9 +133,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     const Scalar _coeff(int row, int col) const
     {
       Scalar res;
-      if(EIGEN_UNROLLED_LOOPS
-      && Lhs::ColsAtCompileTime != Dynamic
-      && Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+      if(Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
                             Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
                               ? Lhs::ColsAtCompileTime : Dynamic,

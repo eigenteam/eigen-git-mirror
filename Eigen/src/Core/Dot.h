@@ -72,22 +72,24 @@ template<typename OtherDerived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
+  typename Derived::XprCopy xprCopy(derived());
+  typename OtherDerived::XprCopy otherXprCopy(other.derived());
+
   ei_assert(IsVectorAtCompileTime
       && OtherDerived::IsVectorAtCompileTime
-      && size() == other.size());
+      && xprCopy.size() == otherXprCopy.size());
   Scalar res;
-  if(EIGEN_UNROLLED_LOOPS
-  && SizeAtCompileTime != Dynamic
-  && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     ei_dot_unroller<SizeAtCompileTime-1,
                 SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic,
-                Derived, MatrixBase<OtherDerived> >
-      ::run(derived(), other, res);
+                typename ei_unref<typename Derived::XprCopy>::type,
+                typename ei_unref<typename OtherDerived::XprCopy>::type>
+      ::run(xprCopy, otherXprCopy, res);
   else
   {
-    res = coeff(0) * ei_conj(other.coeff(0));
+    res = xprCopy.coeff(0) * ei_conj(otherXprCopy.coeff(0));
     for(int i = 1; i < size(); i++)
-      res += coeff(i)* ei_conj(other.coeff(i));
+      res += xprCopy.coeff(i)* ei_conj(otherXprCopy.coeff(i));
   }
   return res;
 }
@@ -140,7 +142,9 @@ template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrtho
 (const MatrixBase<OtherDerived>& other, RealScalar prec) const
 {
-  return ei_abs2(dot(other)) <= prec * prec * norm2() * other.norm2();
+  typename Derived::XprCopy xprCopy(derived());
+  typename OtherDerived::XprCopy otherXprCopy(other.derived());
+  return ei_abs2(xprCopy.dot(otherXprCopy)) <= prec * prec * xprCopy.norm2() * otherXprCopy.norm2();
 }
 
 /** \returns true if *this is approximately an unitary matrix,
@@ -157,12 +161,13 @@ bool MatrixBase<Derived>::isOrtho
 template<typename Derived>
 bool MatrixBase<Derived>::isOrtho(RealScalar prec) const
 {
+  typename Derived::XprCopy xprCopy(derived());
   for(int i = 0; i < cols(); i++)
   {
-    if(!ei_isApprox(col(i).norm2(), static_cast<Scalar>(1), prec))
+    if(!ei_isApprox(xprCopy.col(i).norm2(), static_cast<Scalar>(1), prec))
       return false;
     for(int j = 0; j < i; j++)
-      if(!ei_isMuchSmallerThan(col(i).dot(col(j)), static_cast<Scalar>(1), prec))
+      if(!ei_isMuchSmallerThan(xprCopy.col(i).dot(xprCopy.col(j)), static_cast<Scalar>(1), prec))
         return false;
   }
   return true;

@@ -106,9 +106,7 @@ Derived& MatrixBase<Derived>
     // copying a vector expression into a vector
   {
     ei_assert(size() == other.size());
-    if(EIGEN_UNROLLED_LOOPS
-    && SizeAtCompileTime != Dynamic
-    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
       ei_vector_operator_equals_unroller
         <Derived, OtherDerived,
         SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
@@ -120,9 +118,7 @@ Derived& MatrixBase<Derived>
   else // copying a matrix expression into a matrix
   {
     ei_assert(rows() == other.rows() && cols() == other.cols());
-    if(EIGEN_UNROLLED_LOOPS
-    && SizeAtCompileTime != Dynamic
-    && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
     {
       ei_matrix_operator_equals_unroller
         <Derived, OtherDerived,

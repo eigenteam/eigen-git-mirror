@@ -340,7 +340,7 @@ template<typename Derived> class MatrixBase
     /// \name Comparison and diagnostic
     //@{
     template<typename OtherDerived>
-    bool isApprox(const OtherDerived& other,
+    bool isApprox(const MatrixBase<OtherDerived>& other,
                   RealScalar prec = precision<Scalar>()) const;
     bool isMuchSmallerThan(const RealScalar& other,
                            RealScalar prec = precision<Scalar>()) const;
