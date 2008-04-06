@@ -84,21 +84,29 @@ template<typename Lhs, typename Rhs, int EvalMode>
 struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
+  typedef typename ei_xpr_copy<Lhs,Rhs::ColsAtCompileTime>::type LhsXprCopy;
+  typedef typename ei_xpr_copy<Rhs,Lhs::RowsAtCompileTime>::type RhsXprCopy;
+  typedef typename ei_unref<LhsXprCopy>::type ActualLhs;
+  typedef typename ei_unref<RhsXprCopy>::type ActualRhs;
   enum {
+    LhsCoeffReadCost = ActualLhs::CoeffReadCost,
+    RhsCoeffReadCost = ActualRhs::CoeffReadCost,
+    LhsFlags = ActualLhs::Flags,
+    RhsFlags = ActualRhs::Flags,
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
     Flags = ( (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
-              ? (unsigned int)(Lhs::Flags | Rhs::Flags)
-              : (unsigned int)(Lhs::Flags | Rhs::Flags) & ~LargeBit )
+              ? (unsigned int)(LhsFlags | RhsFlags)
+              : (unsigned int)(LhsFlags | RhsFlags) & ~LargeBit )
           | EvalBeforeAssigningBit
           | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
       : Lhs::ColsAtCompileTime
-        * (NumTraits<Scalar>::MulCost + Lhs::CoeffReadCost + Rhs::CoeffReadCost)
+        * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
         + (Lhs::ColsAtCompileTime - 1) * NumTraits<Scalar>::AddCost
   };
 };
@@ -110,10 +118,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
-    typedef typename ei_eval_if_needed_before_nesting<Lhs,Rhs::ColsAtCompileTime>::CopyType CopyLhs;
-    typedef typename ei_eval_if_needed_before_nesting<Rhs,Lhs::RowsAtCompileTime>::CopyType CopyRhs;
-    typedef typename ei_eval_if_needed_before_nesting<Lhs,Rhs::ColsAtCompileTime>::XprType XprLhs;
-    typedef typename ei_eval_if_needed_before_nesting<Rhs,Lhs::RowsAtCompileTime>::XprType XprRhs;
+    typedef typename ei_traits<Product>::LhsXprCopy LhsXprCopy;
+    typedef typename ei_traits<Product>::RhsXprCopy RhsXprCopy;
 
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -133,12 +139,15 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     const Scalar _coeff(int row, int col) const
     {
       Scalar res;
-      if(Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+      const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+      if(unroll)
+      {
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
-                            Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
-                              ? Lhs::ColsAtCompileTime : Dynamic,
-                            XprLhs, XprRhs>
+                            unroll ? Lhs::ColsAtCompileTime : Dynamic,
+                            typename ei_unref<LhsXprCopy>::type,
+                            typename ei_unref<RhsXprCopy>::type>
           ::run(row, col, m_lhs, m_rhs, res);
+      }
       else
       {
         res = m_lhs.coeff(row, 0) * m_rhs.coeff(0, col);
@@ -149,8 +158,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
   protected:
-    const CopyLhs m_lhs;
-    const CopyRhs m_rhs;
+    const LhsXprCopy m_lhs;
+    const RhsXprCopy m_rhs;
 };
 
 /** \returns the matrix product of \c *this and \a other.

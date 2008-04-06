@@ -83,26 +83,29 @@ template<typename T> struct ei_eval
 template<typename T> struct ei_unref { typedef T type; };
 template<typename T> struct ei_unref<T&> { typedef T type; };
 
-template<typename T> struct ei_xpr_copy
+template<typename T> struct ei_is_temporary
 {
-  typedef typename ei_meta_if< ei_traits<T>::Flags & EvalBeforeNestingBit,
-      typename ei_eval<T>::type, const T&>::ret type;
+  enum { ret = 0 };
 };
 
-template<typename T> struct ei_xpr_copy<Temporary<T> >
+template<typename T> struct ei_is_temporary<Temporary<T> >
 {
-  typedef Temporary<T> type;
+  enum { ret = 1 };
 };
 
-template<typename T, int n=1> struct ei_eval_if_needed_before_nesting
+template<typename T, int n=1> struct ei_xpr_copy
 {
-  // FIXME should we consider the additional store as well as the creation cost of the temporary ?
-  enum { eval = T::Flags & EvalBeforeNestingBit
-             || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost };
-  typedef typename ei_meta_if<eval, typename ei_eval<T>::type, T>::ret XprType;
-  typedef typename ei_meta_if<eval, typename ei_eval<T>::type, typename T::XprCopy>::ret CopyType;
+  typedef typename ei_meta_if<
+    ei_is_temporary<T>::ret,
+    T,
+    typename ei_meta_if<
+      ei_traits<T>::Flags & EvalBeforeNestingBit
+      || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost,
+      typename ei_eval<T>::type,
+      const T&
+    >::ret
+  >::ret type;
 };
-
 
 template<typename T> struct ei_functor_traits
 {

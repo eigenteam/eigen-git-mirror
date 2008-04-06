@@ -102,14 +102,15 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
+  const bool unroll = SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
   if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
     // copying a vector expression into a vector
   {
     ei_assert(size() == other.size());
-    if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    if(unroll)
       ei_vector_operator_equals_unroller
         <Derived, OtherDerived,
-        SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        unroll ? SizeAtCompileTime : Dynamic
         >::run(derived(), other.derived());
     else
       for(int i = 0; i < size(); i++)
@@ -118,11 +119,11 @@ Derived& MatrixBase<Derived>
   else // copying a matrix expression into a matrix
   {
     ei_assert(rows() == other.rows() && cols() == other.cols());
-    if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+    if(unroll)
     {
       ei_matrix_operator_equals_unroller
         <Derived, OtherDerived,
-        SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic
+        unroll ? SizeAtCompileTime : Dynamic
         >::run(derived(), other.derived());
     }
     else
@@ -152,7 +153,7 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
-  if (OtherDerived::Flags & EvalBeforeAssigningBit)
+  if(OtherDerived::Flags & EvalBeforeAssigningBit)
   {
     return lazyAssign(other.derived().eval());
   }

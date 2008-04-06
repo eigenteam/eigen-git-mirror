@@ -8,6 +8,10 @@
 using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN
 
+#ifndef REPEAT
+#define REPEAT 40000000
+#endif
+
 int main(int argc, char *argv[])
 {
     Matrix<double,MATSIZE,MATSIZE> I;
@@ -19,7 +23,7 @@ int main(int argc, char *argv[])
             m(i,j) = (i+MATSIZE*j);
         }
     asm("#begin");
-    for(int a = 0; a < 40000000; a++)
+    for(int a = 0; a < REPEAT; a++)
     {
         m = I + 0.00005 * (m + m*m);
     }
