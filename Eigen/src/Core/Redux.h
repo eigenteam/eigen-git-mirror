@@ -87,15 +87,19 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
   typedef typename ei_result_of<
                      BinaryOp(typename MatrixType::Scalar)
                    >::type Scalar;
+  typedef typename ei_xpr_copy<MatrixType>::type MatrixTypeXprCopy;
+  typedef typename ei_unref<MatrixTypeXprCopy>::type _MatrixTypeXprCopy;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
     Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
-          ? (unsigned int)MatrixType::Flags
-          : (unsigned int)MatrixType::Flags & ~LargeBit,
-    CoeffReadCost = 1 //FIXME -- unimplemented!
+          ? (unsigned int)_MatrixTypeXprCopy::Flags
+          : (unsigned int)_MatrixTypeXprCopy::Flags & ~LargeBit,
+    TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
+    CoeffReadCost = TraversalSize * _MatrixTypeXprCopy::CoeffReadCost
+                  + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost
   };
 };
 
@@ -106,6 +110,8 @@ class PartialRedux : ei_no_assignment_operator,
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(PartialRedux)
+    typedef typename ei_traits<PartialRedux>::MatrixTypeXprCopy MatrixTypeXprCopy;
+    typedef typename ei_traits<PartialRedux>::_MatrixTypeXprCopy _MatrixTypeXprCopy;
 
     PartialRedux(const MatrixType& mat, const BinaryOp& func = BinaryOp())
       : m_matrix(mat), m_functor(func) {}
@@ -124,7 +130,7 @@ class PartialRedux : ei_no_assignment_operator,
     }
 
   protected:
-    const typename MatrixType::XprCopy m_matrix;
+    const MatrixTypeXprCopy m_matrix;
     const BinaryOp m_functor;
 };
 
@@ -171,10 +177,13 @@ template<typename BinaryOp>
 typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
 MatrixBase<Derived>::redux(const BinaryOp& func) const
 {
-  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  const bool unroll = SizeAtCompileTime * CoeffReadCost
+                    + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
+                    <= EIGEN_UNROLLING_LIMIT;
+  if(unroll)
     return ei_redux_unroller<BinaryOp, Derived, 0,
-       (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
-        SizeAtCompileTime : Dynamic>::run(derived(), func);
+                             unroll ? SizeAtCompileTime : Dynamic>
+           ::run(derived(), func);
   else
   {
     Scalar res;
@@ -291,10 +300,12 @@ struct ei_any_unroller<Derived, Dynamic>
 template<typename Derived>
 bool MatrixBase<Derived>::all(void) const
 {
-  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
+                      <= EIGEN_UNROLLING_LIMIT;
+  if(unroll)
     return ei_all_unroller<Derived,
-       (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
-        SizeAtCompileTime : Dynamic>::run(derived());
+                           unroll ? SizeAtCompileTime : Dynamic
+     >::run(derived());
   else
   {
     for(int j = 0; j < cols(); j++)
@@ -311,10 +322,12 @@ bool MatrixBase<Derived>::all(void) const
 template<typename Derived>
 bool MatrixBase<Derived>::any(void) const
 {
-  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
+                      <= EIGEN_UNROLLING_LIMIT;
+  if(unroll)
     return ei_any_unroller<Derived,
-       (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
-        SizeAtCompileTime : Dynamic>::run(derived());
+                           unroll ? SizeAtCompileTime : Dynamic
+           >::run(derived());
   else
   {
     for(int j = 0; j < cols(); j++)

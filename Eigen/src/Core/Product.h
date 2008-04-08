@@ -86,13 +86,13 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
   typedef typename Lhs::Scalar Scalar;
   typedef typename ei_xpr_copy<Lhs,Rhs::ColsAtCompileTime>::type LhsXprCopy;
   typedef typename ei_xpr_copy<Rhs,Lhs::RowsAtCompileTime>::type RhsXprCopy;
-  typedef typename ei_unref<LhsXprCopy>::type ActualLhs;
-  typedef typename ei_unref<RhsXprCopy>::type ActualRhs;
+  typedef typename ei_unref<LhsXprCopy>::type _LhsXprCopy;
+  typedef typename ei_unref<RhsXprCopy>::type _RhsXprCopy;
   enum {
-    LhsCoeffReadCost = ActualLhs::CoeffReadCost,
-    RhsCoeffReadCost = ActualRhs::CoeffReadCost,
-    LhsFlags = ActualLhs::Flags,
-    RhsFlags = ActualRhs::Flags,
+    LhsCoeffReadCost = _LhsXprCopy::CoeffReadCost,
+    RhsCoeffReadCost = _RhsXprCopy::CoeffReadCost,
+    LhsFlags = _LhsXprCopy::Flags,
+    RhsFlags = _RhsXprCopy::Flags,
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
@@ -117,9 +117,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
-
     typedef typename ei_traits<Product>::LhsXprCopy LhsXprCopy;
     typedef typename ei_traits<Product>::RhsXprCopy RhsXprCopy;
+    typedef typename ei_traits<Product>::_LhsXprCopy _LhsXprCopy;
+    typedef typename ei_traits<Product>::_RhsXprCopy _RhsXprCopy;
 
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -144,8 +145,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       {
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
                             unroll ? Lhs::ColsAtCompileTime : Dynamic,
-                            typename ei_unref<LhsXprCopy>::type,
-                            typename ei_unref<RhsXprCopy>::type>
+                            _LhsXprCopy, _RhsXprCopy>
           ::run(row, col, m_lhs, m_rhs, res);
       }
       else

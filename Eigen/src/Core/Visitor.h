@@ -74,10 +74,13 @@ template<typename Derived>
 template<typename Visitor>
 void MatrixBase<Derived>::visit(Visitor& visitor) const
 {
-  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  const bool unroll = SizeAtCompileTime * CoeffReadCost
+                    + (SizeAtCompileTime-1) * ei_functor_traits<Visitor>::Cost
+                    <= EIGEN_UNROLLING_LIMIT;
+  if(unroll)
     return ei_visitor_unroller<Visitor, Derived,
-        (SizeAtCompileTime>0 && SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT) ?
-        SizeAtCompileTime : Dynamic>::run(derived(), visitor);
+        unroll ? SizeAtCompileTime : Dynamic
+      >::run(derived(), visitor);
   else
   {
     visitor.init(coeff(0,0), 0, 0);
@@ -124,6 +127,13 @@ struct ei_min_coeff_visitor : ei_coeff_visitor<Scalar>
   }
 };
 
+template<typename Scalar>
+struct ei_functor_traits<ei_min_coeff_visitor<Scalar> > {
+  enum {
+    Cost = NumTraits<Scalar>::AddCost
+  };
+};
+
 /** \internal
   * \brief Visitor computing the max coefficient with its value and coordinates
   *
@@ -141,6 +151,13 @@ struct ei_max_coeff_visitor : ei_coeff_visitor<Scalar>
       this->col = j;
     }
   }
+};
+
+template<typename Scalar>
+struct ei_functor_traits<ei_max_coeff_visitor<Scalar> > {
+  enum {
+    Cost = NumTraits<Scalar>::AddCost
+  };
 };
 
 /** \returns the minimum of all coefficients of *this

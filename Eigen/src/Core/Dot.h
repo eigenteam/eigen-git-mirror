@@ -72,18 +72,25 @@ template<typename OtherDerived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
-  typename Derived::XprCopy xprCopy(derived());
-  typename OtherDerived::XprCopy otherXprCopy(other.derived());
+  typedef typename Derived::XprCopy XprCopy;
+  typedef typename OtherDerived::XprCopy OtherXprCopy;
+  typedef typename ei_unref<XprCopy>::type _XprCopy;
+  typedef typename ei_unref<OtherXprCopy>::type _OtherXprCopy;
+  XprCopy xprCopy(derived());
+  OtherXprCopy otherXprCopy(other.derived());
 
-  ei_assert(IsVectorAtCompileTime
-      && OtherDerived::IsVectorAtCompileTime
-      && xprCopy.size() == otherXprCopy.size());
+  ei_assert(_XprCopy::IsVectorAtCompileTime
+         && _OtherXprCopy::IsVectorAtCompileTime
+         && xprCopy.size() == otherXprCopy.size());
   Scalar res;
-  if(SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+  const bool unroll = SizeAtCompileTime
+                      * (_XprCopy::CoeffReadCost + _OtherXprCopy::CoeffReadCost + NumTraits<Scalar>::MulCost)
+                      + (SizeAtCompileTime - 1) * NumTraits<Scalar>::AddCost
+                      <= EIGEN_UNROLLING_LIMIT;
+  if(unroll)
     ei_dot_unroller<SizeAtCompileTime-1,
-                SizeAtCompileTime <= EIGEN_UNROLLING_LIMIT ? SizeAtCompileTime : Dynamic,
-                typename ei_unref<typename Derived::XprCopy>::type,
-                typename ei_unref<typename OtherDerived::XprCopy>::type>
+                unroll ? SizeAtCompileTime : Dynamic,
+                _XprCopy, _OtherXprCopy>
       ::run(xprCopy, otherXprCopy, res);
   else
   {
@@ -142,8 +149,8 @@ template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrtho
 (const MatrixBase<OtherDerived>& other, RealScalar prec) const
 {
-  typename Derived::XprCopy xprCopy(derived());
-  typename OtherDerived::XprCopy otherXprCopy(other.derived());
+  typename ei_xpr_copy<Derived,2>::type xprCopy(derived());
+  typename ei_xpr_copy<OtherDerived,2>::type otherXprCopy(other.derived());
   return ei_abs2(xprCopy.dot(otherXprCopy)) <= prec * prec * xprCopy.norm2() * otherXprCopy.norm2();
 }
 
