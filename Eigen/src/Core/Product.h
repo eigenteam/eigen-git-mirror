@@ -60,6 +60,38 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
+
+template<bool RowMajor, int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  {
+    ei_packet_product_unroller<RowMajor, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
+    if (RowMajor)
+      res =  ei_padd(res, ei_pmul(ei_pset1(lhs.coeff(row, Index)), rhs.packetCoeff(Index, col)));
+    else
+      res =  ei_padd(res, ei_pmul(lhs.packetCoeff(row, Index), ei_pset1(rhs.coeff(Index, col))));
+  }
+};
+
+template<bool RowMajor, int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<RowMajor, 0, Size, Lhs, Rhs, PacketScalar>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  {
+    if (RowMajor)
+      res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.packetCoeff(0, col));
+    else
+      res = ei_pmul(lhs.packetCoeff(row, 0), ei_pset1(rhs.coeff(0, col)));
+  }
+};
+
+template<bool RowMajor, int Index, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScalar>
+{
+  static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+};
+
 /** \class Product
   *
   * \brief Expression of the product of two matrices
@@ -97,11 +129,14 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
-    Flags = ( (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+    Flags = (( (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
               ? (unsigned int)(LhsFlags | RhsFlags)
               : (unsigned int)(LhsFlags | RhsFlags) & ~LargeBit )
           | EvalBeforeAssigningBit
-          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0),
+          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0))
+          & (~(RowMajorBit|VectorizableBit))
+            | (((!Lhs::Flags&RowMajorBit) && Lhs::Flags&VectorizableBit) ? VectorizableBit
+              : ((Rhs::Flags&RowMajorBit  && Rhs::Flags&VectorizableBit) ? (RowMajorBit|VectorizableBit) : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER)),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
@@ -153,6 +188,36 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
         res = m_lhs.coeff(row, 0) * m_rhs.coeff(0, col);
         for(int i = 1; i < m_lhs.cols(); i++)
           res += m_lhs.coeff(row, i) * m_rhs.coeff(i, col);
+      }
+      return res;
+    }
+
+    PacketScalar _packetCoeff(int row, int col) const EIGEN_ALWAYS_INLINE
+    {
+      PacketScalar res;
+      if(Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
+      {
+        ei_packet_product_unroller<Flags&RowMajorBit, Lhs::ColsAtCompileTime-1,
+                            Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
+                              ? Lhs::ColsAtCompileTime : Dynamic,
+                            Lhs, Rhs, PacketScalar>
+          ::run(row, col, m_lhs, m_rhs, res);
+//           std::cout << "vec unrolled product\n";
+      }
+      else
+      {
+        if (Flags&RowMajorBit)
+        {
+          res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.packetCoeff(0, col));
+          for(int i = 1; i < m_lhs.cols(); i++)
+            res =  ei_padd(res, ei_pmul(ei_pset1(m_lhs.coeff(row, i)), m_rhs.packetCoeff(i, col)));
+        }
+        else
+        {
+          res = ei_pmul(m_lhs.packetCoeff(row, 0), ei_pset1(m_rhs.coeff(0, col)));
+          for(int i = 1; i < m_lhs.cols(); i++)
+            res =  ei_padd(res, ei_pmul(m_lhs.packetCoeff(row, i), ei_pset1(m_rhs.coeff(i, col))));
+        }
       }
       return res;
     }

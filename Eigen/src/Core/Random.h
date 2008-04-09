@@ -41,7 +41,7 @@ struct ei_traits<Random<MatrixType> >
     ColsAtCompileTime = ei_traits<MatrixType>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<MatrixType>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<MatrixType>::MaxColsAtCompileTime,
-    Flags = ei_traits<MatrixType>::Flags | EvalBeforeNestingBit,
+    Flags = (ei_traits<MatrixType>::Flags | EvalBeforeNestingBit) & ~VectorizableBit,
     CoeffReadCost = 2 * NumTraits<Scalar>::MulCost // FIXME: arbitrary value
   };
 };

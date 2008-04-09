@@ -4,10 +4,17 @@
 #include <cstdlib>
 #include <cmath>
 #include <complex>
-#ifndef EIGEN_USE_CUSTOM_ASSERT
 #include <cassert>
-#endif
 #include <iostream>
+
+#ifdef EIGEN_VECTORIZE
+#ifdef EIGEN_INTEL_PLATFORM
+#include <emmintrin.h>
+#include <xmmintrin.h>
+#else
+#undef EIGEN_VECTORIZE
+#endif
+#endif
 
 namespace Eigen {
 
@@ -15,6 +22,8 @@ namespace Eigen {
 #include "src/Core/ForwardDeclarations.h"
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
+#include "src/Core/PacketMath.h"
+#include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/Coeffs.h"
 #include "src/Core/OperatorEquals.h"
@@ -42,7 +51,6 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/Functors.h"
 
 } // namespace Eigen
 

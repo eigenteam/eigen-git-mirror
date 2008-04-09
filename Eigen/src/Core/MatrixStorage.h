@@ -6,12 +6,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -39,18 +39,28 @@
   */
 template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage;
 
-// purely fixed-size matrix.
+template <typename T, int Size, bool Align> struct ei_aligned_array
+{
+  EIGEN_ALIGN_128 T array[Size];
+};
+
+template <typename T, int Size> struct ei_aligned_array<T,Size,false>
+{
+  T array[Size];
+};
+
+// purely fixed-size matrix
 template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 {
-    T m_data[Size];
+    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
   public:
     ei_matrix_storage() {}
     ei_matrix_storage(int,int,int) {}
     static int rows(void) {return _Rows;}
     static int cols(void) {return _Cols;}
     void resize(int,int,int) {}
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    const T *data() const { return m_data.array; }
+    T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage

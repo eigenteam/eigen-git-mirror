@@ -65,7 +65,7 @@ template<typename Scalar> struct ei_scalar_cos_op;
 template<typename Scalar> struct ei_scalar_sin_op;
 template<typename Scalar> struct ei_scalar_pow_op;
 template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
-template<typename Scalar> struct ei_scalar_multiple_op;
+template<typename Scalar, bool IsVectorizable> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
@@ -116,5 +116,10 @@ template<typename T> struct ei_functor_traits
   };
 };
 
+template<typename T> struct ei_packet_traits
+{
+  typedef T type;
+  enum {size=1};
+};
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

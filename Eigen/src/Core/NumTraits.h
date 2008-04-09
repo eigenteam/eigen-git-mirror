@@ -57,7 +57,6 @@ template<> struct NumTraits<int>
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1,
-    PacketSize = 4
   };
 };
 
@@ -71,7 +70,6 @@ template<> struct NumTraits<float>
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1,
-    PacketSize = 4
   };
 };
 
@@ -85,7 +83,6 @@ template<> struct NumTraits<double>
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1,
-    PacketSize = 2
   };
 };
 
@@ -99,7 +96,6 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     ReadCost = 2,
     AddCost = 2 * NumTraits<Real>::AddCost,
     MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost,
-    PacketSize = 0
   };
 };
 
@@ -113,7 +109,6 @@ template<> struct NumTraits<long long int>
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1,
-    PacketSize = 0
   };
 };
 
@@ -127,7 +122,6 @@ template<> struct NumTraits<long double>
     ReadCost = 1,
     AddCost = 2,
     MulCost = 2,
-    PacketSize = 0
   };
 };
 
@@ -141,7 +135,6 @@ template<> struct NumTraits<bool>
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1,
-    PacketSize = 0
   };
 };
 

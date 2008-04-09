@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -51,10 +52,12 @@ using Eigen::MatrixBase;
 #define EIGEN_NO_DEBUG
 #endif
 
+#ifndef ei_assert
 #ifdef EIGEN_NO_DEBUG
 #define ei_assert(x)
 #else
 #define ei_assert(x) assert(x)
+#endif
 #endif
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
@@ -77,6 +80,12 @@ using Eigen::MatrixBase;
 #define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
 #else
 #define EIGEN_ALWAYS_INLINE
+#endif
+
+#if (defined __GNUC__)
+#define EIGEN_ALIGN_128 __attribute__ ((aligned(16)))
+#else
+#define EIGEN_ALIGN_128
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
@@ -107,6 +116,7 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
 typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+typedef typename Base::PacketScalar PacketScalar; \
 typedef typename Eigen::ei_xpr_copy<Derived>::type XprCopy; \
 typedef typename Eigen::ei_eval<Derived>::type Eval; \
 enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
@@ -132,7 +142,11 @@ const unsigned int RowMajorBit = 0x1;
 const unsigned int EvalBeforeNestingBit = 0x2;
 const unsigned int EvalBeforeAssigningBit = 0x4;
 const unsigned int LargeBit = 0x8;
+#ifdef EIGEN_VECTORIZE
 const unsigned int VectorizableBit = 0x10;
+#else
+const unsigned int VectorizableBit = 0x0;
+#endif
 
 
 enum { ConditionalJumpCost = 5 };

@@ -94,9 +94,9 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
-    Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+    Flags = ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)_MatrixTypeXprCopy::Flags
-          : (unsigned int)_MatrixTypeXprCopy::Flags & ~LargeBit,
+          : (unsigned int)_MatrixTypeXprCopy::Flags & ~LargeBit) & ~VectorizableBit,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
     CoeffReadCost = TraversalSize * _MatrixTypeXprCopy::CoeffReadCost
                   + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost

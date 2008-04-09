@@ -77,6 +77,16 @@ template<typename MatrixType> class Transpose
       return m_matrix.coeff(col, row);
     }
 
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_matrix.packetCoeff(col, row);
+    }
+
+    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    {
+      m_matrix.const_cast_derived().writePacketCoeff(col, row, x);
+    }
+
   protected:
     const typename MatrixType::XprCopy m_matrix;
 };

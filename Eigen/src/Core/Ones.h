@@ -41,7 +41,7 @@ struct ei_traits<Ones<MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags,
+    Flags = MatrixType::Flags & ~VectorizableBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };

@@ -59,6 +59,8 @@ template<typename Derived> class MatrixBase
     //@{
     typedef typename ei_traits<Derived>::Scalar Scalar;
 
+    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
     enum {
 
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
@@ -210,6 +212,9 @@ template<typename Derived> class MatrixBase
 
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
+
+    PacketScalar packetCoeff(int row, int col) const { return derived()._packetCoeff(row,col); }
+    void writePacketCoeff(int row, int col, const PacketScalar& x) { return derived()._writePacketCoeff(row,col,x); }
 
     const Scalar x() const;
     const Scalar y() const;
@@ -483,6 +488,11 @@ template<typename Derived> class MatrixBase
     Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
     //@}
+
+  private:
+
+    PacketScalar _packetCoeff(int , int) const { ei_internal_assert(false && "_packetCoeff not defined"); }
+    void _writePacketCoeff(int , int, const PacketScalar&) { ei_internal_assert(false && "_packetCoeff not defined"); }
 
 };
 

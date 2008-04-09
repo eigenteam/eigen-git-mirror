@@ -79,7 +79,10 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = _Flags,
+    Flags = (_Flags & ~VectorizableBit)
+      | (( (ei_packet_traits<Scalar>::size>1) && (_Rows!=Dynamic) && (_Cols!=Dynamic)
+        && ((_Flags&RowMajorBit) && ((_Cols%ei_packet_traits<Scalar>::size)==0)
+            || ((_Rows%ei_packet_traits<Scalar>::size)==0) ) ) ? VectorizableBit  : 0),
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
@@ -117,6 +120,23 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
         return m_storage.data()[col + row * m_storage.cols()];
       else // column-major
         return m_storage.data()[row + col * m_storage.rows()];
+    }
+
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      ei_internal_assert(Flags & VectorizableBit);
+      if(Flags & RowMajorBit)
+        return ei_pload(&m_storage.data()[col + row * m_storage.cols()]);
+      else
+        return ei_pload(&m_storage.data()[row + col * m_storage.rows()]);
+    }
+    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    {
+      ei_internal_assert(Flags & VectorizableBit);
+      if(Flags & RowMajorBit)
+        ei_pstore(&m_storage.data()[col + row * m_storage.cols()], x);
+      else
+        ei_pstore(&m_storage.data()[row + col * m_storage.rows()], x);
     }
 
   public:

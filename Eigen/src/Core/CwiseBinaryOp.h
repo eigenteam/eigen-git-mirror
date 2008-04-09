@@ -60,7 +60,9 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-    Flags = Lhs::Flags | Rhs::Flags,
+    Flags = ((Lhs::Flags | Rhs::Flags) & ~VectorizableBit)
+      | (ei_functor_traits<BinaryOp>::IsVectorizable && ((Lhs::Flags&RowMajorBit)==(Rhs::Flags&RowMajorBit))
+        ? (Lhs::Flags & Rhs::Flags & VectorizableBit) : 0),
     CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
@@ -87,6 +89,11 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     const Scalar _coeff(int row, int col) const
     {
       return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
+    }
+
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_functor.packetOp(m_lhs.packetCoeff(row, col), m_rhs.packetCoeff(row, col));
     }
 
   protected:

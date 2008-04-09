@@ -34,12 +34,15 @@
   */
 template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
   const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+  template<typename PacketScalar>
+  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_padd(a,b); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = NumTraits<Scalar>::PacketSize>0
+    IsVectorizable = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -50,12 +53,15 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   */
 template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+  template<typename PacketScalar>
+  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_pmul(a,b); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    IsVectorizable = NumTraits<Scalar>::PacketSize>0
+    IsVectorizable = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -66,12 +72,15 @@ struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   */
 template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
   const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
+  template<typename PacketScalar>
+  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_pmin(a,b); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = NumTraits<Scalar>::PacketSize>0
+    IsVectorizable = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -82,12 +91,15 @@ struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   */
 template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
   const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
+  template<typename PacketScalar>
+  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_pmax(a,b); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = NumTraits<Scalar>::PacketSize>0
+    IsVectorizable = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -100,13 +112,16 @@ struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
 template<typename Scalar> struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
-    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+  template<typename PacketScalar>
+  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_psub(a,b); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = NumTraits<Scalar>::PacketSize>0
+    IsVectorizable = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -194,15 +209,26 @@ struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
+template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_multiple_op;
+
 template<typename Scalar>
-struct ei_scalar_multiple_op {
-  ei_scalar_multiple_op(const Scalar& other) : m_other(other) {}
+struct ei_scalar_multiple_op<Scalar,true> {
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  ei_scalar_multiple_op(const Scalar& other) : m_other(ei_pset1(other)) { }
+  Scalar operator() (const Scalar& a) const { return a * ei_pfirst(m_other); }
+  PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a, m_other); }
+  const PacketScalar m_other;
+};
+template<typename Scalar>
+struct ei_scalar_multiple_op<Scalar,false> {
+  ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
   Scalar operator() (const Scalar& a) const { return a * m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = ei_packet_traits<Scalar>::size>1 }; };
 
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {

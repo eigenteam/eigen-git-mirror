@@ -50,7 +50,8 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags,
+    Flags = (MatrixType::Flags & ~VectorizableBit)
+      | (ei_functor_traits<UnaryOp>::IsVectorizable ? MatrixType::Flags & VectorizableBit : 0),
     CoeffReadCost = MatrixType::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
@@ -74,6 +75,11 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     const Scalar _coeff(int row, int col) const
     {
       return m_functor(m_matrix.coeff(row, col));
+    }
+
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_functor.packetOp(m_matrix.packetCoeff(row, col));
     }
 
   protected:

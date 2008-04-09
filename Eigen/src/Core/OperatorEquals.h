@@ -63,6 +63,48 @@ struct ei_matrix_operator_equals_unroller<Derived1, Derived2, Dynamic>
   static void run(Derived1 &, const Derived2 &) {}
 };
 
+//----
+
+template<typename Derived1, typename Derived2, int UnrollCount>
+struct ei_matrix_operator_equals_packet_unroller
+{
+  enum {
+    index = UnrollCount-ei_packet_traits<typename Derived1::Scalar>::size,
+    row = Derived1::Flags&RowMajorBit ? index / Derived1::ColsAtCompileTime : index % Derived1::RowsAtCompileTime,
+    col = Derived1::Flags&RowMajorBit ? index % Derived1::ColsAtCompileTime : index / Derived1::RowsAtCompileTime
+  };
+
+  static void run(Derived1 &dst, const Derived2 &src)
+  {
+    ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, index>::run(dst, src);
+    dst.writePacketCoeff(row, col, src.packetCoeff(row, col));
+  }
+};
+
+template<typename Derived1, typename Derived2>
+struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 2>
+{
+  static void run(Derived1 &dst, const Derived2 &src)
+  {
+    dst.writePacketCoeff(0, 0, src.packetCoeff(0, 0));
+  }
+};
+
+// prevent buggy user code from causing an infinite recursion
+template<typename Derived1, typename Derived2>
+struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0>
+{
+  static void run(Derived1 &, const Derived2 &) {exit(666);}
+};
+
+template<typename Derived1, typename Derived2>
+struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, Dynamic>
+{
+  static void run(Derived1 &, const Derived2 &) {exit(666);}
+};
+
+//----
+
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct ei_vector_operator_equals_unroller
 {
@@ -97,54 +139,17 @@ struct ei_vector_operator_equals_unroller<Derived1, Derived2, Dynamic>
   static void run(Derived1 &, const Derived2 &) {}
 };
 
+template <typename Derived, typename OtherDerived,
+bool Vectorize = (Derived::Flags & OtherDerived::Flags & VectorizableBit)
+              && ((Derived::Flags&RowMajorBit)==(OtherDerived::Flags&RowMajorBit))>
+struct ei_operator_equals_impl;
+
 template<typename Derived>
 template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  const bool unroll = SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-  if(IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
-    // copying a vector expression into a vector
-  {
-    ei_assert(size() == other.size());
-    if(unroll)
-      ei_vector_operator_equals_unroller
-        <Derived, OtherDerived,
-        unroll ? SizeAtCompileTime : Dynamic
-        >::run(derived(), other.derived());
-    else
-      for(int i = 0; i < size(); i++)
-        coeffRef(i) = other.coeff(i);
-  }
-  else // copying a matrix expression into a matrix
-  {
-    ei_assert(rows() == other.rows() && cols() == other.cols());
-    if(unroll)
-    {
-      ei_matrix_operator_equals_unroller
-        <Derived, OtherDerived,
-        unroll ? SizeAtCompileTime : Dynamic
-        >::run(derived(), other.derived());
-    }
-    else
-    {
-      if(ColsAtCompileTime == Dynamic || RowsAtCompileTime != Dynamic)
-      {
-        // traverse in column-major order
-        for(int j = 0; j < cols(); j++)
-          for(int i = 0; i < rows(); i++)
-            coeffRef(i, j) = other.coeff(i, j);
-      }
-      else
-      {
-        // traverse in row-major order
-        // in order to allow the compiler to unroll the inner loop
-        for(int i = 0; i < rows(); i++)
-          for(int j = 0; j < cols(); j++)
-            coeffRef(i, j) = other.coeff(i, j);
-      }
-    }
-  }
+  ei_operator_equals_impl<Derived,OtherDerived>::execute(derived(),other.derived());
   return derived();
 }
 
@@ -160,5 +165,88 @@ Derived& MatrixBase<Derived>
   else
     return lazyAssign(other.derived());
 }
+
+template <typename Derived, typename OtherDerived>
+struct ei_operator_equals_impl<Derived, OtherDerived, false>
+{
+  static void execute(Derived & dst, const OtherDerived & src)
+  {
+    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+    if(Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
+      // copying a vector expression into a vector
+    {
+      ei_assert(dst.size() == src.size());
+      if(unroll)
+        ei_vector_operator_equals_unroller
+          <Derived, OtherDerived,
+          unroll ? Derived::SizeAtCompileTime : Dynamic
+          >::run(dst.derived(), src.derived());
+      else
+        for(int i = 0; i < dst.size(); i++)
+          dst.coeffRef(i) = src.coeff(i);
+    }
+    else // copying a matrix expression into a matrix
+    {
+      ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+      if(unroll)
+      {
+        ei_matrix_operator_equals_unroller
+          <Derived, OtherDerived,
+          unroll ? Derived::SizeAtCompileTime : Dynamic
+          >::run(dst.derived(), src.derived());
+      }
+      else
+      {
+        if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
+        {
+          // traverse in column-major order
+          for(int j = 0; j < dst.cols(); j++)
+            for(int i = 0; i < dst.rows(); i++)
+              dst.coeffRef(i, j) = src.coeff(i, j);
+        }
+        else
+        {
+          // traverse in row-major order
+          // in order to allow the compiler to unroll the inner loop
+          for(int i = 0; i < dst.rows(); i++)
+            for(int j = 0; j < dst.cols(); j++)
+              dst.coeffRef(i, j) = src.coeff(i, j);
+        }
+      }
+    }
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_operator_equals_impl<Derived, OtherDerived, true>
+{
+  static void execute(Derived & dst, const OtherDerived & src)
+  {
+    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+    ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    if(unroll)
+    {
+      ei_matrix_operator_equals_packet_unroller
+        <Derived, OtherDerived,
+          unroll ? Derived::SizeAtCompileTime : Dynamic>::run
+          (dst.const_cast_derived(), src.derived());
+    }
+    else
+    {
+      if(OtherDerived::Flags&RowMajorBit)
+      {
+        for(int i = 0; i < dst.rows(); i++)
+          for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
+            dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+      }
+      else
+      {
+        for(int j = 0; j < dst.cols(); j++)
+          for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
+            dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+      }
+    }
+  }
+};
 
 #endif // EIGEN_OPERATOREQUALS_H

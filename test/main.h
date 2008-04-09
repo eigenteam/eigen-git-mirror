@@ -55,10 +55,6 @@
   #define EI_PP_MAKE_STRING2(S) #S
   #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
 
-  #ifdef assert
-  #undef assert
-  #endif
-
   // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is raised while
   // one should have been, then the list of excecuted assertions is printed out.
   //
@@ -74,7 +70,7 @@
       static std::vector<std::string> ei_assert_list;
     }
 
-    #define assert(a)                       \
+    #define ei_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
@@ -103,7 +99,7 @@
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #define assert(a)                       \
+    #define ei_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
