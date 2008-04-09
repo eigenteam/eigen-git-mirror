@@ -134,9 +134,10 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
               : (unsigned int)(LhsFlags | RhsFlags) & ~LargeBit )
           | EvalBeforeAssigningBit
           | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0))
-          & (~(RowMajorBit|VectorizableBit))
-            | (((!Lhs::Flags&RowMajorBit) && Lhs::Flags&VectorizableBit) ? VectorizableBit
-              : ((Rhs::Flags&RowMajorBit  && Rhs::Flags&VectorizableBit) ? (RowMajorBit|VectorizableBit) : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER)),
+          & (~(RowMajorBit | VectorizableBit))
+            | (((!(Lhs::Flags & RowMajorBit)) && (Lhs::Flags & VectorizableBit)) ? VectorizableBit
+              : ((Rhs::Flags & RowMajorBit  && (Rhs::Flags & VectorizableBit)) ? (RowMajorBit | VectorizableBit)
+              : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER)),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
