@@ -82,7 +82,7 @@ struct ei_matrix_operator_equals_packet_unroller
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 2>
+struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, ei_packet_traits<typename Derived1::Scalar>::size >
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -94,13 +94,13 @@ struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 2>
 template<typename Derived1, typename Derived2>
 struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0>
 {
-  static void run(Derived1 &, const Derived2 &) {exit(666);}
+  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_operator_equals_packet_unroller"); }
 };
 
 template<typename Derived1, typename Derived2>
 struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, Dynamic>
 {
-  static void run(Derived1 &, const Derived2 &) {exit(666);}
+  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_operator_equals_packet_unroller"); }
 };
 
 //----
