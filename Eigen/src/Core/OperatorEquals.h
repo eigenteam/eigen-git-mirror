@@ -65,36 +65,29 @@ struct ei_matrix_operator_equals_unroller<Derived1, Derived2, Dynamic>
 
 //----
 
-template<typename Derived1, typename Derived2, int UnrollCount>
+template<typename Derived1, typename Derived2, int Index>
 struct ei_matrix_operator_equals_packet_unroller
 {
   enum {
-    index = UnrollCount-ei_packet_traits<typename Derived1::Scalar>::size,
-    row = Derived1::Flags&RowMajorBit ? index / Derived1::ColsAtCompileTime : index % Derived1::RowsAtCompileTime,
-    col = Derived1::Flags&RowMajorBit ? index % Derived1::ColsAtCompileTime : index / Derived1::RowsAtCompileTime
+    row = Derived1::Flags&RowMajorBit ? Index / Derived1::ColsAtCompileTime : Index % Derived1::RowsAtCompileTime,
+    col = Derived1::Flags&RowMajorBit ? Index % Derived1::ColsAtCompileTime : Index / Derived1::RowsAtCompileTime
   };
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, index>::run(dst, src);
+    ei_matrix_operator_equals_packet_unroller<Derived1, Derived2,
+      Index-ei_packet_traits<typename Derived1::Scalar>::size>::run(dst, src);
     dst.writePacketCoeff(row, col, src.packetCoeff(row, col));
   }
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, ei_packet_traits<typename Derived1::Scalar>::size >
+struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0 >
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
     dst.writePacketCoeff(0, 0, src.packetCoeff(0, 0));
   }
-};
-
-// prevent buggy user code from causing an infinite recursion
-template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0>
-{
-  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_operator_equals_packet_unroller"); }
 };
 
 template<typename Derived1, typename Derived2>
@@ -228,8 +221,9 @@ struct ei_operator_equals_impl<Derived, OtherDerived, true>
     {
       ei_matrix_operator_equals_packet_unroller
         <Derived, OtherDerived,
-          unroll ? Derived::SizeAtCompileTime : Dynamic>::run
-          (dst.const_cast_derived(), src.derived());
+          unroll && int(Derived::SizeAtCompileTime)>=ei_packet_traits<typename Derived::Scalar>::size
+            ? Derived::SizeAtCompileTime-ei_packet_traits<typename Derived::Scalar>::size
+            : Dynamic>::run(dst.const_cast_derived(), src.derived());
     }
     else
     {
