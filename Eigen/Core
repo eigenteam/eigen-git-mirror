@@ -1,11 +1,13 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+#ifndef EIGEN_DONT_VECTORIZE
 #ifdef __SSE2__
 #define EIGEN_VECTORIZE
 #define EIGEN_VECTORIZE_SSE
 #include <emmintrin.h>
 #include <xmmintrin.h>
+#endif
 #endif
 
 #include <cstdlib>

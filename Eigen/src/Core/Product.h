@@ -108,7 +108,7 @@ struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScal
   */
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
-  enum{ value = Lhs::MaxRowsAtCompileTime >= 8 && Rhs::MaxColsAtCompileTime >= 8
+  enum{ value = Lhs::MaxRowsAtCompileTime >= 16 && Rhs::MaxColsAtCompileTime >= 16
               ? CacheOptimalProduct : NormalProduct };
 };
 
@@ -139,7 +139,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
               | (
                   (
                     !(Lhs::Flags & RowMajorBit) && (Lhs::Flags & VectorizableBit)
-                  ) 
+                  )
                   ? VectorizableBit
                   : (
                       (
@@ -215,7 +215,6 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
                               ? Lhs::ColsAtCompileTime : Dynamic,
                             Lhs, Rhs, PacketScalar>
           ::run(row, col, m_lhs, m_rhs, res);
-//           std::cout << "vec unrolled product\n";
       }
       else
       {
@@ -280,25 +279,67 @@ template<typename DestDerived>
 void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
 {
   res.setZero();
-  const int cols4 = m_lhs.cols()&0xfffffffC;
-  for (int k=0; k<m_rhs.cols(); ++k)
+  const int cols4 = m_lhs.cols() & 0xfffffffC;
+  #ifdef EIGEN_VECTORIZE
+  if( (Flags & VectorizableBit) && (!(Lhs::Flags & RowMajorBit)) )
   {
-    int j=0;
-    for (; j<cols4; j+=4)
+    for(int k=0; k<m_rhs.cols(); k++)
     {
-      const Scalar tmp0 = m_rhs.coeff(j  ,k);
-      const Scalar tmp1 = m_rhs.coeff(j+1,k);
-      const Scalar tmp2 = m_rhs.coeff(j+2,k);
-      const Scalar tmp3 = m_rhs.coeff(j+3,k);
-      for (int i=0; i<m_lhs.rows(); ++i)
-        res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
-                           + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+      int j=0;
+      for(; j<cols4; j+=4)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
+        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
+        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
+        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
+        for (int i=0; i<m_lhs.rows(); i+=ei_packet_traits<Scalar>::size)
+        {
+          res.writePacketCoeff(i,k,
+            ei_padd(
+              res.packetCoeff(i,k),
+              ei_padd(
+                ei_padd(
+                  ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
+                  ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
+                ei_padd(
+                  ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
+                  ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
+                )
+              )
+            )
+          );
+        }
+      }
+      for(; j<m_lhs.cols(); ++j)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
+        for (int i=0; i<m_lhs.rows(); ++i)
+          res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
+      }
     }
-    for (; j<m_lhs.cols(); ++j)
+  }
+  else
+  #endif
+  {
+    for(int k=0; k<m_rhs.cols(); ++k)
     {
-      const Scalar tmp = m_rhs.coeff(j,k);
-      for (int i=0; i<m_lhs.rows(); ++i)
-        res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j);
+      int j=0;
+      for(; j<cols4; j+=4)
+      {
+        const Scalar tmp0 = m_rhs.coeff(j  ,k);
+        const Scalar tmp1 = m_rhs.coeff(j+1,k);
+        const Scalar tmp2 = m_rhs.coeff(j+2,k);
+        const Scalar tmp3 = m_rhs.coeff(j+3,k);
+        for (int i=0; i<m_lhs.rows(); ++i)
+          res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
+                            + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+      }
+      for(; j<m_lhs.cols(); ++j)
+      {
+        const Scalar tmp = m_rhs.coeff(j,k);
+        for (int i=0; i<m_lhs.rows(); ++i)
+          res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j);
+      }
     }
   }
 }
