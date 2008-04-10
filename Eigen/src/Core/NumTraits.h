@@ -56,7 +56,7 @@ template<> struct NumTraits<int>
     HasFloatingPoint = 0,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
+    MulCost = 1
   };
 };
 
@@ -69,7 +69,7 @@ template<> struct NumTraits<float>
     HasFloatingPoint = 1,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
+    MulCost = 1
   };
 };
 
@@ -82,7 +82,7 @@ template<> struct NumTraits<double>
     HasFloatingPoint = 1,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
+    MulCost = 1
   };
 };
 
@@ -95,7 +95,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     HasFloatingPoint = NumTraits<Real>::HasFloatingPoint,
     ReadCost = 2,
     AddCost = 2 * NumTraits<Real>::AddCost,
-    MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost,
+    MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
 };
 
@@ -108,7 +108,7 @@ template<> struct NumTraits<long long int>
     HasFloatingPoint = 0,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
+    MulCost = 1
   };
 };
 
@@ -121,7 +121,7 @@ template<> struct NumTraits<long double>
     HasFloatingPoint = 1,
     ReadCost = 1,
     AddCost = 2,
-    MulCost = 2,
+    MulCost = 2
   };
 };
 
@@ -134,7 +134,7 @@ template<> struct NumTraits<bool>
     HasFloatingPoint = 0,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
+    MulCost = 1
   };
 };
 

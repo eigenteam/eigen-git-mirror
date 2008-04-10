@@ -4,7 +4,6 @@
 #ifdef __SSE2__
 #define EIGEN_VECTORIZE
 #define EIGEN_VECTORIZE_SSE
-#warning "enabling vectorization"
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #endif

@@ -80,15 +80,23 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = (_Flags & ~VectorizableBit)
-      | (( (ei_packet_traits<Scalar>::size>1) && (_Rows!=Dynamic) && (_Cols!=Dynamic)
-        && ((_Flags&RowMajorBit) && ((_Cols%ei_packet_traits<Scalar>::size)==0)
-            || ((_Rows%ei_packet_traits<Scalar>::size)==0) ) ) ? VectorizableBit  : 0),
+          | (
+              (
+                ei_packet_traits<Scalar>::size>1
+                && _Rows!=Dynamic
+                && _Cols!=Dynamic
+                && (
+                  (_Flags&RowMajorBit && _Cols%ei_packet_traits<Scalar>::size==0)
+                  || (_Rows%ei_packet_traits<Scalar>::size==0)
+                )
+               ) ? VectorizableBit  : 0
+            ),
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 
 template<typename _Scalar, int _Rows, int _Cols,
-         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER,
+         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_FLAGS,
          int _MaxRows = _Rows, int _MaxCols = _Cols>
 class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
                                         _Flags, _MaxRows, _MaxCols> >
@@ -327,6 +335,19 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 
 #undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_TYPEDEFS
+
+#define EIGEN_MAKE_TYPEDEFS_LARGE(Type, TypeSuffix) \
+typedef Matrix<Type, Dynamic, Dynamic, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit> MatrixXL##TypeSuffix; \
+typedef Matrix<Type, Dynamic, 1, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit>       VectorXL##TypeSuffix; \
+typedef Matrix<Type, 1, Dynamic, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit>       RowVectorXL##TypeSuffix;
+
+EIGEN_MAKE_TYPEDEFS_LARGE(int,                  i)
+EIGEN_MAKE_TYPEDEFS_LARGE(float,                f)
+EIGEN_MAKE_TYPEDEFS_LARGE(double,               d)
+EIGEN_MAKE_TYPEDEFS_LARGE(std::complex<float>,  cf)
+EIGEN_MAKE_TYPEDEFS_LARGE(std::complex<double>, cd)
+
+#undef EIGEN_MAKE_TYPEDEFS_LARGE
 
 #define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
 using Eigen::Matrix##SizeSuffix##TypeSuffix; \
