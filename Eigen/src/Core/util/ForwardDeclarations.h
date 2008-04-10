@@ -93,7 +93,7 @@ template<typename T> struct ei_is_temporary<Temporary<T> >
   enum { ret = 1 };
 };
 
-template<typename T, int n=1> struct ei_xpr_copy
+template<typename T, int n=1> struct ei_nested
 {
   typedef typename ei_meta_if<
     ei_is_temporary<T>::ret,

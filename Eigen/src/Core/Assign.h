@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_OPERATOREQUALS_H
-#define EIGEN_OPERATOREQUALS_H
+#ifndef EIGEN_ASSIGN_H
+#define EIGEN_ASSIGN_H
 
 template<typename Derived1, typename Derived2, int UnrollCount>
 struct ei_matrix_operator_equals_unroller
@@ -243,4 +243,4 @@ struct ei_operator_equals_impl<Derived, OtherDerived, true>
   }
 };
 
-#endif // EIGEN_OPERATOREQUALS_H
+#endif // EIGEN_ASSIGN_H

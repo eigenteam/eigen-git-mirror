@@ -97,8 +97,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     }
 
   protected:
-    const typename Lhs::XprCopy m_lhs;
-    const typename Rhs::XprCopy m_rhs;
+    const typename Lhs::Nested m_lhs;
+    const typename Rhs::Nested m_rhs;
     const BinaryOp m_functor;
 };
 

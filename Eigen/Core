@@ -7,26 +7,17 @@
 #include <cassert>
 #include <iostream>
 
-#ifdef EIGEN_VECTORIZE
-#ifdef EIGEN_INTEL_PLATFORM
-#include <emmintrin.h>
-#include <xmmintrin.h>
-#else
-#undef EIGEN_VECTORIZE
-#endif
-#endif
-
 namespace Eigen {
 
-#include "src/Core/Util.h"
-#include "src/Core/ForwardDeclarations.h"
+#include "src/Core/util/Util.h"
+#include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/PacketMath.h"
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/Coeffs.h"
-#include "src/Core/OperatorEquals.h"
+#include "src/Core/Assign.h"
 #include "src/Core/MatrixStorage.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Lazy.h"

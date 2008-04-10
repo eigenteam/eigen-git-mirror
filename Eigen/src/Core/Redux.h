@@ -87,18 +87,18 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
   typedef typename ei_result_of<
                      BinaryOp(typename MatrixType::Scalar)
                    >::type Scalar;
-  typedef typename ei_xpr_copy<MatrixType>::type MatrixTypeXprCopy;
-  typedef typename ei_unref<MatrixTypeXprCopy>::type _MatrixTypeXprCopy;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
     Flags = ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
-          ? (unsigned int)_MatrixTypeXprCopy::Flags
-          : (unsigned int)_MatrixTypeXprCopy::Flags & ~LargeBit) & ~VectorizableBit,
+          ? (unsigned int)_MatrixTypeNested::Flags
+          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & ~VectorizableBit,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
-    CoeffReadCost = TraversalSize * _MatrixTypeXprCopy::CoeffReadCost
+    CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost
                   + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost
   };
 };
@@ -110,8 +110,8 @@ class PartialRedux : ei_no_assignment_operator,
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(PartialRedux)
-    typedef typename ei_traits<PartialRedux>::MatrixTypeXprCopy MatrixTypeXprCopy;
-    typedef typename ei_traits<PartialRedux>::_MatrixTypeXprCopy _MatrixTypeXprCopy;
+    typedef typename ei_traits<PartialRedux>::MatrixTypeNested MatrixTypeNested;
+    typedef typename ei_traits<PartialRedux>::_MatrixTypeNested _MatrixTypeNested;
 
     PartialRedux(const MatrixType& mat, const BinaryOp& func = BinaryOp())
       : m_matrix(mat), m_functor(func) {}
@@ -130,7 +130,7 @@ class PartialRedux : ei_no_assignment_operator,
     }
 
   protected:
-    const MatrixTypeXprCopy m_matrix;
+    const MatrixTypeNested m_matrix;
     const BinaryOp m_functor;
 };
 

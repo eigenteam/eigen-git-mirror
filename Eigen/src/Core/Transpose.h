@@ -88,7 +88,7 @@ template<typename MatrixType> class Transpose
     }
 
   protected:
-    const typename MatrixType::XprCopy m_matrix;
+    const typename MatrixType::Nested m_matrix;
 };
 
 /** \returns an expression of the transpose of *this.

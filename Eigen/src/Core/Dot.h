@@ -72,31 +72,31 @@ template<typename OtherDerived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
-  typedef typename Derived::XprCopy XprCopy;
-  typedef typename OtherDerived::XprCopy OtherXprCopy;
-  typedef typename ei_unref<XprCopy>::type _XprCopy;
-  typedef typename ei_unref<OtherXprCopy>::type _OtherXprCopy;
-  XprCopy xprCopy(derived());
-  OtherXprCopy otherXprCopy(other.derived());
+  typedef typename Derived::Nested Nested;
+  typedef typename OtherDerived::Nested OtherNested;
+  typedef typename ei_unref<Nested>::type _Nested;
+  typedef typename ei_unref<OtherNested>::type _OtherNested;
+  Nested nested(derived());
+  OtherNested otherNested(other.derived());
 
-  ei_assert(_XprCopy::IsVectorAtCompileTime
-         && _OtherXprCopy::IsVectorAtCompileTime
-         && xprCopy.size() == otherXprCopy.size());
+  ei_assert(_Nested::IsVectorAtCompileTime
+         && _OtherNested::IsVectorAtCompileTime
+         && nested.size() == otherNested.size());
   Scalar res;
   const bool unroll = SizeAtCompileTime
-                      * (_XprCopy::CoeffReadCost + _OtherXprCopy::CoeffReadCost + NumTraits<Scalar>::MulCost)
+                      * (_Nested::CoeffReadCost + _OtherNested::CoeffReadCost + NumTraits<Scalar>::MulCost)
                       + (SizeAtCompileTime - 1) * NumTraits<Scalar>::AddCost
                       <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     ei_dot_unroller<SizeAtCompileTime-1,
                 unroll ? SizeAtCompileTime : Dynamic,
-                _XprCopy, _OtherXprCopy>
-      ::run(xprCopy, otherXprCopy, res);
+                _Nested, _OtherNested>
+      ::run(nested, otherNested, res);
   else
   {
-    res = xprCopy.coeff(0) * ei_conj(otherXprCopy.coeff(0));
+    res = nested.coeff(0) * ei_conj(otherNested.coeff(0));
     for(int i = 1; i < size(); i++)
-      res += xprCopy.coeff(i)* ei_conj(otherXprCopy.coeff(i));
+      res += nested.coeff(i)* ei_conj(otherNested.coeff(i));
   }
   return res;
 }
@@ -149,9 +149,9 @@ template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrtho
 (const MatrixBase<OtherDerived>& other, RealScalar prec) const
 {
-  typename ei_xpr_copy<Derived,2>::type xprCopy(derived());
-  typename ei_xpr_copy<OtherDerived,2>::type otherXprCopy(other.derived());
-  return ei_abs2(xprCopy.dot(otherXprCopy)) <= prec * prec * xprCopy.norm2() * otherXprCopy.norm2();
+  typename ei_nested<Derived,2>::type nested(derived());
+  typename ei_nested<OtherDerived,2>::type otherNested(other.derived());
+  return ei_abs2(nested.dot(otherNested)) <= prec * prec * nested.norm2() * otherNested.norm2();
 }
 
 /** \returns true if *this is approximately an unitary matrix,
@@ -168,13 +168,13 @@ bool MatrixBase<Derived>::isOrtho
 template<typename Derived>
 bool MatrixBase<Derived>::isOrtho(RealScalar prec) const
 {
-  typename Derived::XprCopy xprCopy(derived());
+  typename Derived::Nested nested(derived());
   for(int i = 0; i < cols(); i++)
   {
-    if(!ei_isApprox(xprCopy.col(i).norm2(), static_cast<Scalar>(1), prec))
+    if(!ei_isApprox(nested.col(i).norm2(), static_cast<Scalar>(1), prec))
       return false;
     for(int j = 0; j < i; j++)
-      if(!ei_isMuchSmallerThan(xprCopy.col(i).dot(xprCopy.col(j)), static_cast<Scalar>(1), prec))
+      if(!ei_isMuchSmallerThan(nested.col(i).dot(nested.col(j)), static_cast<Scalar>(1), prec))
         return false;
   }
   return true;

@@ -55,11 +55,11 @@ bool MatrixBase<Derived>::isApprox(
   }
   else
   {
-    typename Derived::XprCopy xprCopy(derived());
-    typename OtherDerived::XprCopy otherXprCopy(other.derived());
+    typename Derived::Nested nested(derived());
+    typename OtherDerived::Nested otherNested(other.derived());
     for(int i = 0; i < cols(); i++)
-      if((xprCopy.col(i) - otherXprCopy.col(i)).norm2()
-         > std::min(xprCopy.col(i).norm2(), otherXprCopy.col(i).norm2()) * prec * prec)
+      if((nested.col(i) - otherNested.col(i)).norm2()
+         > std::min(nested.col(i).norm2(), otherNested.col(i).norm2()) * prec * prec)
         return false;
     return true;
   }
@@ -87,9 +87,9 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   }
   else
   {
-    typename Derived::XprCopy xprCopy(*this);
+    typename Derived::Nested nested(*this);
     for(int i = 0; i < cols(); i++)
-      if(xprCopy.col(i).norm2() > ei_abs2(other * prec))
+      if(nested.col(i).norm2() > ei_abs2(other * prec))
         return false;
     return true;
   }
@@ -119,10 +119,10 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   }
   else
   {
-    typename Derived::XprCopy xprCopy(*this);
-    typename OtherDerived::XprCopy otherXprCopy(other);
+    typename Derived::Nested nested(*this);
+    typename OtherDerived::Nested otherNested(other);
     for(int i = 0; i < cols(); i++)
-      if(xprCopy.col(i).norm2() > otherXprCopy.col(i).norm2() * prec * prec)
+      if(nested.col(i).norm2() > otherNested.col(i).norm2() * prec * prec)
         return false;
     return true;
   }

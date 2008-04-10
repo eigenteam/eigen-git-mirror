@@ -73,7 +73,7 @@ template<typename ExpressionType> class Lazy
     }
 
   protected:
-    const typename ExpressionType::XprCopy m_expression;
+    const typename ExpressionType::Nested m_expression;
 };
 
 /** \returns an expression of the lazy version of *this.

@@ -12,10 +12,14 @@ USING_PART_OF_NAMESPACE_EIGEN
 #define REPEAT 40000000
 #endif
 
+#ifndef SCALAR
+#define SCALAR double
+#endif
+
 int main(int argc, char *argv[])
 {
-    Matrix<double,MATSIZE,MATSIZE> I;
-    Matrix<double,MATSIZE,MATSIZE> m;
+    Matrix<SCALAR,MATSIZE,MATSIZE> I;
+    Matrix<SCALAR,MATSIZE,MATSIZE> m;
     for(int i = 0; i < MATSIZE; i++)
         for(int j = 0; j < MATSIZE; j++)
         {

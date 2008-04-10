@@ -77,7 +77,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
     }
 
   protected:
-    const typename CoeffsVectorType::XprCopy m_coeffs;
+    const typename CoeffsVectorType::Nested m_coeffs;
 };
 
 /** \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients

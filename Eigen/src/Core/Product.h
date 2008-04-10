@@ -116,15 +116,15 @@ template<typename Lhs, typename Rhs, int EvalMode>
 struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
-  typedef typename ei_xpr_copy<Lhs,Rhs::ColsAtCompileTime>::type LhsXprCopy;
-  typedef typename ei_xpr_copy<Rhs,Lhs::RowsAtCompileTime>::type RhsXprCopy;
-  typedef typename ei_unref<LhsXprCopy>::type _LhsXprCopy;
-  typedef typename ei_unref<RhsXprCopy>::type _RhsXprCopy;
+  typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
+  typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
+  typedef typename ei_unref<LhsNested>::type _LhsNested;
+  typedef typename ei_unref<RhsNested>::type _RhsNested;
   enum {
-    LhsCoeffReadCost = _LhsXprCopy::CoeffReadCost,
-    RhsCoeffReadCost = _RhsXprCopy::CoeffReadCost,
-    LhsFlags = _LhsXprCopy::Flags,
-    RhsFlags = _RhsXprCopy::Flags,
+    LhsCoeffReadCost = _LhsNested::CoeffReadCost,
+    RhsCoeffReadCost = _RhsNested::CoeffReadCost,
+    LhsFlags = _LhsNested::Flags,
+    RhsFlags = _RhsNested::Flags,
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
@@ -153,10 +153,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
-    typedef typename ei_traits<Product>::LhsXprCopy LhsXprCopy;
-    typedef typename ei_traits<Product>::RhsXprCopy RhsXprCopy;
-    typedef typename ei_traits<Product>::_LhsXprCopy _LhsXprCopy;
-    typedef typename ei_traits<Product>::_RhsXprCopy _RhsXprCopy;
+    typedef typename ei_traits<Product>::LhsNested LhsNested;
+    typedef typename ei_traits<Product>::RhsNested RhsNested;
+    typedef typename ei_traits<Product>::_LhsNested _LhsNested;
+    typedef typename ei_traits<Product>::_RhsNested _RhsNested;
 
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -181,7 +181,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       {
         ei_product_unroller<Lhs::ColsAtCompileTime-1,
                             unroll ? Lhs::ColsAtCompileTime : Dynamic,
-                            _LhsXprCopy, _RhsXprCopy>
+                            _LhsNested, _RhsNested>
           ::run(row, col, m_lhs, m_rhs, res);
       }
       else
@@ -224,8 +224,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
   protected:
-    const LhsXprCopy m_lhs;
-    const RhsXprCopy m_rhs;
+    const LhsNested m_lhs;
+    const RhsNested m_rhs;
 };
 
 /** \returns the matrix product of \c *this and \a other.

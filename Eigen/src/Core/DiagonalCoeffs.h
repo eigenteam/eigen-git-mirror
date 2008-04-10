@@ -87,7 +87,7 @@ template<typename MatrixType> class DiagonalCoeffs
 
   protected:
 
-    const typename MatrixType::XprCopy m_matrix;
+    const typename MatrixType::Nested m_matrix;
 };
 
 /** \returns an expression of the main diagonal of the matrix \c *this

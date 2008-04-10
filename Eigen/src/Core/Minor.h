@@ -88,7 +88,7 @@ template<typename MatrixType> class Minor
     }
 
   protected:
-    const typename MatrixType::XprCopy m_matrix;
+    const typename MatrixType::Nested m_matrix;
     const int m_row, m_col;
 };
 

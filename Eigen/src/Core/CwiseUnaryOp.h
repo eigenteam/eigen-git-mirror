@@ -83,7 +83,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     }
 
   protected:
-    const typename MatrixType::XprCopy m_matrix;
+    const typename MatrixType::Nested m_matrix;
     const UnaryOp m_functor;
 };
 

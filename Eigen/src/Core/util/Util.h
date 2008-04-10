@@ -26,6 +26,15 @@
 #ifndef EIGEN_UTIL_H
 #define EIGEN_UTIL_H
 
+#ifdef EIGEN_VECTORIZE
+#ifdef EIGEN_INTEL_PLATFORM
+#include <emmintrin.h>
+#include <xmmintrin.h>
+#else
+#undef EIGEN_VECTORIZE
+#endif
+#endif
+
 #ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
 #define EIGEN_UNROLLING_LIMIT 0
 #endif
@@ -117,7 +126,7 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 typedef BaseClass Base; \
 typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
 typedef typename Base::PacketScalar PacketScalar; \
-typedef typename Eigen::ei_xpr_copy<Derived>::type XprCopy; \
+typedef typename Eigen::ei_nested<Derived>::type Nested; \
 typedef typename Eigen::ei_eval<Derived>::type Eval; \
 enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        ColsAtCompileTime = Base::ColsAtCompileTime, \

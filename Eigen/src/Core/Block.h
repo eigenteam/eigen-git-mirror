@@ -143,7 +143,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
   protected:
 
-    const typename MatrixType::XprCopy m_matrix;
+    const typename MatrixType::Nested m_matrix;
     ei_int_if_dynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
     ei_int_if_dynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
