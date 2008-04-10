@@ -109,7 +109,7 @@ struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScal
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
   enum{ value = Lhs::MaxRowsAtCompileTime >= 8 && Rhs::MaxColsAtCompileTime >= 8
-              ? CacheOptimal : UnrolledDotProduct };
+              ? CacheOptimalProduct : NormalProduct };
 };
 
 template<typename Lhs, typename Rhs, int EvalMode>
@@ -133,7 +133,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
               ? (unsigned int)(LhsFlags | RhsFlags)
               : (unsigned int)(LhsFlags | RhsFlags) & ~LargeBit )
           | EvalBeforeAssigningBit
-          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimal ? EvalBeforeNestingBit : 0))
+          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0))
           & (~(RowMajorBit | VectorizableBit))
             | (((!(Lhs::Flags & RowMajorBit)) && (Lhs::Flags & VectorizableBit)) ? VectorizableBit
               : ((Rhs::Flags & RowMajorBit  && (Rhs::Flags & VectorizableBit)) ? (RowMajorBit | VectorizableBit)
@@ -257,7 +257,7 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 
 template<typename Derived>
 template<typename Derived1, typename Derived2>
-Derived& MatrixBase<Derived>::lazyAssign(const Product<Derived1,Derived2,CacheOptimal>& product)
+Derived& MatrixBase<Derived>::lazyAssign(const Product<Derived1,Derived2,CacheOptimalProduct>& product)
 {
   product._cacheOptimalEval(*this);
   return derived();

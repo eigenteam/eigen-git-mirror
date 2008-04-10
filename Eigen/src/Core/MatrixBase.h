@@ -191,7 +191,7 @@ template<typename Derived> class MatrixBase
 
     /** Overloaded for optimal product evaluation */
     template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const Product<Derived1,Derived2,CacheOptimal>& product);
+    Derived& lazyAssign(const Product<Derived1,Derived2,CacheOptimalProduct>& product);
 
     CommaInitializer operator<< (const Scalar& s);
 

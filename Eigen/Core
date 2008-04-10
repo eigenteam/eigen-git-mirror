@@ -1,6 +1,14 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+#ifdef __SSE2__
+#define EIGEN_VECTORIZE
+#define EIGEN_VECTORIZE_SSE
+#warning "enabling vectorization"
+#include <emmintrin.h>
+#include <xmmintrin.h>
+#endif
+
 #include <cstdlib>
 #include <cmath>
 #include <complex>
@@ -9,8 +17,11 @@
 
 namespace Eigen {
 
-#include "src/Core/util/Util.h"
+#include "src/Core/util/Macros.h"
+#include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
+#include "src/Core/util/Meta.h"
+
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/PacketMath.h"

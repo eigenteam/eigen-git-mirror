@@ -23,148 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_UTIL_H
-#define EIGEN_UTIL_H
-
-#ifdef EIGEN_VECTORIZE
-#ifdef EIGEN_INTEL_PLATFORM
-#include <emmintrin.h>
-#include <xmmintrin.h>
-#else
-#undef EIGEN_VECTORIZE
-#endif
-#endif
-
-#ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
-#define EIGEN_UNROLLING_LIMIT 0
-#endif
-
-/** Defines the maximal loop size to enable meta unrolling of loops */
-#ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 400
-#endif
-
-#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajorBit
-#else
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER 0
-#endif
-
-#undef minor
-
-#define USING_PART_OF_NAMESPACE_EIGEN \
-EIGEN_USING_MATRIX_TYPEDEFS \
-using Eigen::Matrix; \
-using Eigen::MatrixBase;
-
-#ifdef NDEBUG
-#define EIGEN_NO_DEBUG
-#endif
-
-#ifndef ei_assert
-#ifdef EIGEN_NO_DEBUG
-#define ei_assert(x)
-#else
-#define ei_assert(x) assert(x)
-#endif
-#endif
-
-#ifdef EIGEN_INTERNAL_DEBUGGING
-#define ei_internal_assert(x) ei_assert(x);
-#else
-#define ei_internal_assert(x)
-#endif
-
-#ifdef EIGEN_NO_DEBUG
-#define EIGEN_ONLY_USED_FOR_DEBUG(x) (void)x
-#else
-#define EIGEN_ONLY_USED_FOR_DEBUG(x)
-#endif
-
-// FIXME with the always_inline attribute,
-// gcc 3.4.x reports the following compilation error:
-//   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
-//    : function body not available
-#if (defined __GNUC__) && (__GNUC__!=3)
-#define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
-#else
-#define EIGEN_ALWAYS_INLINE
-#endif
-
-#if (defined __GNUC__)
-#define EIGEN_ALIGN_128 __attribute__ ((aligned(16)))
-#else
-#define EIGEN_ALIGN_128
-#endif
-
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename OtherDerived> \
-Derived& operator Op(const MatrixBase<OtherDerived>& other) \
-{ \
-  return Eigen::MatrixBase<Derived>::operator Op(other); \
-} \
-Derived& operator Op(const Derived& other) \
-{ \
-  return Eigen::MatrixBase<Derived>::operator Op(other); \
-}
-
-#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename Other> \
-Derived& operator Op(const Other& scalar) \
-{ \
-  return Eigen::MatrixBase<Derived>::operator Op(scalar); \
-}
-
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
-
-#define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-typedef BaseClass Base; \
-typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-typedef typename Base::PacketScalar PacketScalar; \
-typedef typename Eigen::ei_nested<Derived>::type Nested; \
-typedef typename Eigen::ei_eval<Derived>::type Eval; \
-enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
-       ColsAtCompileTime = Base::ColsAtCompileTime, \
-       MaxRowsAtCompileTime = Base::MaxRowsAtCompileTime, \
-       MaxColsAtCompileTime = Base::MaxColsAtCompileTime, \
-       SizeAtCompileTime = Base::SizeAtCompileTime, \
-       MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-       IsVectorAtCompileTime = Base::IsVectorAtCompileTime, \
-       Flags = Base::Flags, \
-       CoeffReadCost = Base::CoeffReadCost };
-
-#define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
-friend class Eigen::MatrixBase<Derived>;
-
-#define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
-
-const int Dynamic = 10000;
-
-// matrix/expression flags
-const unsigned int RowMajorBit = 0x1;
-const unsigned int EvalBeforeNestingBit = 0x2;
-const unsigned int EvalBeforeAssigningBit = 0x4;
-const unsigned int LargeBit = 0x8;
-#ifdef EIGEN_VECTORIZE
-const unsigned int VectorizableBit = 0x10;
-#else
-const unsigned int VectorizableBit = 0x0;
-#endif
-
-
-enum { ConditionalJumpCost = 5 };
-
-enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
-
-enum DirectionType { Vertical, Horizontal };
-
-enum ProductEvaluationMode { UnrolledDotProduct, CacheOptimal };
+#ifndef EIGEN_META_H
+#define EIGEN_META_H
 
 // just a workaround because GCC seems to not really like empty structs
 #ifdef __GNUG__
@@ -270,4 +130,57 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
     typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
 
-#endif // EIGEN_UTIL_H
+template<typename T> struct ei_eval
+{
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                 ei_traits<T>::RowsAtCompileTime,
+                 ei_traits<T>::ColsAtCompileTime,
+                 ei_traits<T>::Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
+                 ei_traits<T>::MaxRowsAtCompileTime,
+                 ei_traits<T>::MaxColsAtCompileTime> type;
+};
+
+template<typename T> struct ei_unref { typedef T type; };
+template<typename T> struct ei_unref<T&> { typedef T type; };
+
+template<typename T> struct ei_is_temporary
+{
+  enum { ret = 0 };
+};
+
+template<typename T> struct ei_is_temporary<Temporary<T> >
+{
+  enum { ret = 1 };
+};
+
+template<typename T, int n=1> struct ei_nested
+{
+  typedef typename ei_meta_if<
+    ei_is_temporary<T>::ret,
+    T,
+    typename ei_meta_if<
+      ei_traits<T>::Flags & EvalBeforeNestingBit
+      || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost,
+      typename ei_eval<T>::type,
+      const T&
+    >::ret
+  >::ret type;
+};
+
+template<typename T> struct ei_functor_traits
+{
+  enum
+  {
+    Cost = 10,
+    IsVectorizable = false
+  };
+};
+
+template<typename T> struct ei_packet_traits
+{
+  typedef T type;
+  enum {size=1};
+};
+
+
+#endif // EIGEN_META_H

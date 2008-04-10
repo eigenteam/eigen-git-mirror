@@ -25,7 +25,7 @@
 #ifndef EIGEN_PACKET_MATH_H
 #define EIGEN_PACKET_MATH_H
 
-#ifdef EIGEN_INTEL_PLATFORM
+#ifdef EIGEN_VECTORIZE_SSE
 
 template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}; };
 template<> struct ei_packet_traits<double> { typedef __m128d type; enum {size=2}; };
