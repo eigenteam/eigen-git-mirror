@@ -6,15 +6,15 @@ using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN
 
 #ifndef MATTYPE
-#define MATTYPE MatrixXd
+#define MATTYPE MatrixXLd
 #endif
 
 #ifndef MATSIZE
-#define MATSIZE 20
+#define MATSIZE 400
 #endif
 
 #ifndef REPEAT
-#define REPEAT 100000
+#define REPEAT 10000
 #endif
 
 int main(int argc, char *argv[])
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	}
 	for(int a = 0; a < REPEAT; a++)
 	{
-		m = I + 0.00005 * (m + m*m);
+		m = I + 0.00005 * (m + m/4);
 	}
 	cout << m(0,0) << endl;
 	return 0;

@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -175,8 +176,28 @@ struct ei_operator_equals_impl<Derived, OtherDerived, false>
           unroll ? Derived::SizeAtCompileTime : Dynamic
           >::run(dst.derived(), src.derived());
       else
-        for(int i = 0; i < dst.size(); i++)
-          dst.coeffRef(i) = src.coeff(i);
+      {
+        #ifdef EIGEN_USE_OPENMPf
+        if(Derived::Flags & OtherDerived::Flags & LargeBit)
+        {
+          #ifdef __INTEL_COMPILER
+          #pragma omp parallel default(none) shared(other)
+          #else
+          #pragma omp parallel default(none)
+          #endif
+          {
+            #pragma omp for
+            for(int i = 0; i < dst.size(); i++)
+              dst.coeffRef(i) = src.coeff(i);
+          }
+        }
+        else
+        #endif // EIGEN_USE_OPENMP
+        {
+          for(int i = 0; i < dst.size(); i++)
+            dst.coeffRef(i) = src.coeff(i);
+        }
+      }
     }
     else // copying a matrix expression into a matrix
     {
@@ -192,18 +213,56 @@ struct ei_operator_equals_impl<Derived, OtherDerived, false>
       {
         if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
         {
-          // traverse in column-major order
-          for(int j = 0; j < dst.cols(); j++)
-            for(int i = 0; i < dst.rows(); i++)
-              dst.coeffRef(i, j) = src.coeff(i, j);
+          #ifdef EIGEN_USE_OPENMP
+          if(Derived::Flags & OtherDerived::Flags & LargeBit)
+          {
+            #ifdef __INTEL_COMPILER
+            #pragma omp parallel default(none) shared(other)
+            #else
+            #pragma omp parallel default(none)
+            #endif
+            {
+              #pragma omp for
+              for(int j = 0; j < dst.cols(); j++)
+                for(int i = 0; i < dst.rows(); i++)
+                  dst.coeffRef(i, j) = src.coeff(i, j);
+            }
+          }
+          else
+          #endif // EIGEN_USE_OPENMP
+          {
+            // traverse in column-major order
+            for(int j = 0; j < dst.cols(); j++)
+              for(int i = 0; i < dst.rows(); i++)
+                dst.coeffRef(i, j) = src.coeff(i, j);
+          }
         }
         else
         {
-          // traverse in row-major order
-          // in order to allow the compiler to unroll the inner loop
-          for(int i = 0; i < dst.rows(); i++)
-            for(int j = 0; j < dst.cols(); j++)
-              dst.coeffRef(i, j) = src.coeff(i, j);
+          #ifdef EIGEN_USE_OPENMP
+          if(Derived::Flags & OtherDerived::Flags & LargeBit)
+          {
+            #ifdef __INTEL_COMPILER
+            #pragma omp parallel default(none) shared(other)
+            #else
+            #pragma omp parallel default(none)
+            #endif
+            {
+              #pragma omp for
+              for(int i = 0; i < dst.rows(); i++)
+                for(int j = 0; j < dst.cols(); j++)
+                  dst.coeffRef(i, j) = src.coeff(i, j);
+            }
+          }
+          else
+          #endif // EIGEN_USE_OPENMP
+          {
+            // traverse in row-major order
+            // in order to allow the compiler to unroll the inner loop
+            for(int i = 0; i < dst.rows(); i++)
+              for(int j = 0; j < dst.cols(); j++)
+                dst.coeffRef(i, j) = src.coeff(i, j);
+          }
         }
       }
     }
