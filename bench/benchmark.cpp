@@ -18,12 +18,11 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {
-    Matrix<SCALAR,MATSIZE,MATSIZE> I;
+    Matrix<SCALAR,MATSIZE,MATSIZE> I = Matrix<SCALAR,MATSIZE,MATSIZE>::ones();
     Matrix<SCALAR,MATSIZE,MATSIZE> m;
     for(int i = 0; i < MATSIZE; i++)
         for(int j = 0; j < MATSIZE; j++)
         {
-            I(i,j) = (i==j);
             m(i,j) = (i+MATSIZE*j);
         }
     asm("#begin");

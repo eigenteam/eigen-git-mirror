@@ -74,6 +74,30 @@ using Eigen::MatrixBase;
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
+#ifdef EIGEN_USE_OPENMP
+# ifdef __INTEL_COMPILER
+#   define EIGEN_PRAGMA_OMP_PARALLEL _Pragma("omp parallel default(none) shared(other)")
+# else
+#   define EIGEN_PRAGMA_OMP_PARALLEL _Pragma("omp parallel default(none)")
+# endif
+# define EIGEN_RUN_PARALLELIZABLE_LOOP(condition) \
+  if(condition) \
+  { \
+    EIGEN_PRAGMA_OMP_PARALLEL \
+    { \
+      _Pragma("omp for") \
+      EIGEN_THE_PARALLELIZABLE_LOOP \
+    } \
+  } \
+  else \
+  { \
+    EIGEN_THE_PARALLELIZABLE_LOOP \
+  }
+#else // EIGEN_USE_OPENMP
+# define EIGEN_RUN_PARALLELIZABLE_LOOP(condition) EIGEN_THE_PARALLELIZABLE_LOOP
+#endif
+
+
 // FIXME with the always_inline attribute,
 // gcc 3.4.x reports the following compilation error:
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'

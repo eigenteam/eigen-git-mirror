@@ -19,11 +19,11 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {
-	MATTYPE I = MATTYPE::identity(MATSIZE,MATSIZE);
+	MATTYPE I = MATTYPE::ones(MATSIZE,MATSIZE);
 	MATTYPE m(MATSIZE,MATSIZE);
 	for(int i = 0; i < MATSIZE; i++) for(int j = 0; j < MATSIZE; j++)
 	{
-		m(i,j) = 0.1 * (i+MATSIZE*j)/MATSIZE;
+		m(i,j) = 0.1 * (i+j+1)/(MATSIZE*MATSIZE);
 	}
 	for(int a = 0; a < REPEAT; a++)
 	{

@@ -1,33 +1,32 @@
-// g++ -O3 -DNDEBUG benchmarkX.cpp -o benchmarkX && time ./benchmarkX
-
+// g++ -fopenmp -I .. -O3 -DNDEBUG -finline-limit=1000 benchmarkX.cpp -o b && time ./b
 #include <Eigen/Core>
 
 using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN
 
 #ifndef MATTYPE
-#define MATTYPE MatrixXd
+#define MATTYPE MatrixXLd
 #endif
 
 #ifndef MATSIZE
-#define MATSIZE 20
+#define MATSIZE 400
 #endif
 
 #ifndef REPEAT
-#define REPEAT 100000
+#define REPEAT 100
 #endif
 
 int main(int argc, char *argv[])
 {
-	MATTYPE I = MATTYPE::identity(MATSIZE,MATSIZE);
+	MATTYPE I = MATTYPE::ones(MATSIZE,MATSIZE);
 	MATTYPE m(MATSIZE,MATSIZE);
 	for(int i = 0; i < MATSIZE; i++) for(int j = 0; j < MATSIZE; j++)
 	{
-		m(i,j) = 0.1 * (i+MATSIZE*j)/MATSIZE;
+		m(i,j) = (i+j+1)/(MATSIZE*MATSIZE);
 	}
 	for(int a = 0; a < REPEAT; a++)
 	{
-		m = I + 0.00005 * (m + m*m);
+		m = I + 0.0001 * (m + m*m);
 	}
 	cout << m(0,0) << endl;
 	return 0;

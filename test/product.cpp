@@ -100,7 +100,7 @@ void EigenTest::testProduct()
   }
 
   // test a large matrix only once
-  product(Matrix<float, 100, 100>());
+  product(MatrixXf(100,100));
 }
 
 } // namespace Eigen

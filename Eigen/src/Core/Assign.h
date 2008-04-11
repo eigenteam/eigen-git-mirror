@@ -28,7 +28,7 @@
 #define EIGEN_ASSIGN_H
 
 template<typename Derived1, typename Derived2, int UnrollCount>
-struct ei_matrix_operator_equals_unroller
+struct ei_matrix_assignment_unroller
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -37,13 +37,13 @@ struct ei_matrix_operator_equals_unroller
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_matrix_operator_equals_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
+    ei_matrix_assignment_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
     dst.coeffRef(row, col) = src.coeff(row, col);
   }
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_unroller<Derived1, Derived2, 1>
+struct ei_matrix_assignment_unroller<Derived1, Derived2, 1>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -53,13 +53,13 @@ struct ei_matrix_operator_equals_unroller<Derived1, Derived2, 1>
 
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_unroller<Derived1, Derived2, 0>
+struct ei_matrix_assignment_unroller<Derived1, Derived2, 0>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_unroller<Derived1, Derived2, Dynamic>
+struct ei_matrix_assignment_unroller<Derived1, Derived2, Dynamic>
 {
   static void run(Derived1 &, const Derived2 &) {}
 };
@@ -67,7 +67,7 @@ struct ei_matrix_operator_equals_unroller<Derived1, Derived2, Dynamic>
 //----
 
 template<typename Derived1, typename Derived2, int Index>
-struct ei_matrix_operator_equals_packet_unroller
+struct ei_matrix_assignment_packet_unroller
 {
   enum {
     row = Derived1::Flags&RowMajorBit ? Index / Derived1::ColsAtCompileTime : Index % Derived1::RowsAtCompileTime,
@@ -76,14 +76,14 @@ struct ei_matrix_operator_equals_packet_unroller
 
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_matrix_operator_equals_packet_unroller<Derived1, Derived2,
+    ei_matrix_assignment_packet_unroller<Derived1, Derived2,
       Index-ei_packet_traits<typename Derived1::Scalar>::size>::run(dst, src);
     dst.writePacketCoeff(row, col, src.packetCoeff(row, col));
   }
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0 >
+struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, 0 >
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -92,58 +92,22 @@ struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, 0 >
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_matrix_operator_equals_packet_unroller<Derived1, Derived2, Dynamic>
+struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
 {
-  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_operator_equals_packet_unroller"); }
-};
-
-//----
-
-template<typename Derived1, typename Derived2, int UnrollCount>
-struct ei_vector_operator_equals_unroller
-{
-  enum { index = UnrollCount - 1 };
-
-  static void run(Derived1 &dst, const Derived2 &src)
-  {
-    ei_vector_operator_equals_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
-    dst.coeffRef(index) = src.coeff(index);
-  }
-};
-
-// prevent buggy user code from causing an infinite recursion
-template<typename Derived1, typename Derived2>
-struct ei_vector_operator_equals_unroller<Derived1, Derived2, 0>
-{
-  static void run(Derived1 &, const Derived2 &) {}
-};
-
-template<typename Derived1, typename Derived2>
-struct ei_vector_operator_equals_unroller<Derived1, Derived2, 1>
-{
-  static void run(Derived1 &dst, const Derived2 &src)
-  {
-    dst.coeffRef(0) = src.coeff(0);
-  }
-};
-
-template<typename Derived1, typename Derived2>
-struct ei_vector_operator_equals_unroller<Derived1, Derived2, Dynamic>
-{
-  static void run(Derived1 &, const Derived2 &) {}
+  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_assignment_packet_unroller"); }
 };
 
 template <typename Derived, typename OtherDerived,
 bool Vectorize = (Derived::Flags & OtherDerived::Flags & VectorizableBit)
               && ((Derived::Flags&RowMajorBit)==(OtherDerived::Flags&RowMajorBit))>
-struct ei_operator_equals_impl;
+struct ei_assignment_impl;
 
 template<typename Derived>
 template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  ei_operator_equals_impl<Derived,OtherDerived>::execute(derived(),other.derived());
+  ei_assignment_impl<Derived,OtherDerived>::execute(derived(),other.derived());
   return derived();
 }
 
@@ -152,125 +116,27 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
+  const bool need_to_transpose = Derived::IsVectorAtCompileTime
+                              && OtherDerived::IsVectorAtCompileTime
+                              && (int)Derived::RowsAtCompileTime != (int)OtherDerived::RowsAtCompileTime;
   if(OtherDerived::Flags & EvalBeforeAssigningBit)
   {
-    return lazyAssign(other.derived().eval());
+    if(need_to_transpose)
+      return lazyAssign(other.transpose().eval());
+    else
+      return lazyAssign(other.eval());
   }
   else
-    return lazyAssign(other.derived());
+  {
+    if(need_to_transpose)
+      return lazyAssign(other.transpose());
+    else
+      return lazyAssign(other.derived());
+  }
 }
 
 template <typename Derived, typename OtherDerived>
-struct ei_operator_equals_impl<Derived, OtherDerived, false>
-{
-  static void execute(Derived & dst, const OtherDerived & src)
-  {
-    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-    if(Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime)
-      // copying a vector expression into a vector
-    {
-      ei_assert(dst.size() == src.size());
-      if(unroll)
-        ei_vector_operator_equals_unroller
-          <Derived, OtherDerived,
-          unroll ? Derived::SizeAtCompileTime : Dynamic
-          >::run(dst.derived(), src.derived());
-      else
-      {
-        #ifdef EIGEN_USE_OPENMPf
-        if(Derived::Flags & OtherDerived::Flags & LargeBit)
-        {
-          #ifdef __INTEL_COMPILER
-          #pragma omp parallel default(none) shared(other)
-          #else
-          #pragma omp parallel default(none)
-          #endif
-          {
-            #pragma omp for
-            for(int i = 0; i < dst.size(); i++)
-              dst.coeffRef(i) = src.coeff(i);
-          }
-        }
-        else
-        #endif // EIGEN_USE_OPENMP
-        {
-          for(int i = 0; i < dst.size(); i++)
-            dst.coeffRef(i) = src.coeff(i);
-        }
-      }
-    }
-    else // copying a matrix expression into a matrix
-    {
-      ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-      if(unroll)
-      {
-        ei_matrix_operator_equals_unroller
-          <Derived, OtherDerived,
-          unroll ? Derived::SizeAtCompileTime : Dynamic
-          >::run(dst.derived(), src.derived());
-      }
-      else
-      {
-        if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
-        {
-          #ifdef EIGEN_USE_OPENMP
-          if(Derived::Flags & OtherDerived::Flags & LargeBit)
-          {
-            #ifdef __INTEL_COMPILER
-            #pragma omp parallel default(none) shared(other)
-            #else
-            #pragma omp parallel default(none)
-            #endif
-            {
-              #pragma omp for
-              for(int j = 0; j < dst.cols(); j++)
-                for(int i = 0; i < dst.rows(); i++)
-                  dst.coeffRef(i, j) = src.coeff(i, j);
-            }
-          }
-          else
-          #endif // EIGEN_USE_OPENMP
-          {
-            // traverse in column-major order
-            for(int j = 0; j < dst.cols(); j++)
-              for(int i = 0; i < dst.rows(); i++)
-                dst.coeffRef(i, j) = src.coeff(i, j);
-          }
-        }
-        else
-        {
-          #ifdef EIGEN_USE_OPENMP
-          if(Derived::Flags & OtherDerived::Flags & LargeBit)
-          {
-            #ifdef __INTEL_COMPILER
-            #pragma omp parallel default(none) shared(other)
-            #else
-            #pragma omp parallel default(none)
-            #endif
-            {
-              #pragma omp for
-              for(int i = 0; i < dst.rows(); i++)
-                for(int j = 0; j < dst.cols(); j++)
-                  dst.coeffRef(i, j) = src.coeff(i, j);
-            }
-          }
-          else
-          #endif // EIGEN_USE_OPENMP
-          {
-            // traverse in row-major order
-            // in order to allow the compiler to unroll the inner loop
-            for(int i = 0; i < dst.rows(); i++)
-              for(int j = 0; j < dst.cols(); j++)
-                dst.coeffRef(i, j) = src.coeff(i, j);
-          }
-        }
-      }
-    }
-  }
-};
-
-template <typename Derived, typename OtherDerived>
-struct ei_operator_equals_impl<Derived, OtherDerived, true>
+struct ei_assignment_impl<Derived, OtherDerived, false>
 {
   static void execute(Derived & dst, const OtherDerived & src)
   {
@@ -278,7 +144,47 @@ struct ei_operator_equals_impl<Derived, OtherDerived, true>
     ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     if(unroll)
     {
-      ei_matrix_operator_equals_packet_unroller
+      ei_matrix_assignment_unroller
+        <Derived, OtherDerived,
+        unroll ? Derived::SizeAtCompileTime : Dynamic
+        >::run(dst.derived(), src.derived());
+    }
+    else
+    {
+      if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
+      {
+        #define EIGEN_THE_PARALLELIZABLE_LOOP \
+            for(int j = 0; j < dst.cols(); j++) \
+              for(int i = 0; i < dst.rows(); i++) \
+                dst.coeffRef(i, j) = src.coeff(i, j);
+        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        #undef EIGEN_THE_PARALLELIZABLE_LOOP
+      }
+      else
+      {
+        // traverse in row-major order
+        // in order to allow the compiler to unroll the inner loop
+        #define EIGEN_THE_PARALLELIZABLE_LOOP \
+          for(int i = 0; i < dst.rows(); i++) \
+            for(int j = 0; j < dst.cols(); j++) \
+              dst.coeffRef(i, j) = src.coeff(i, j);
+        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        #undef EIGEN_THE_PARALLELIZABLE_LOOP
+      }
+    }
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_assignment_impl<Derived, OtherDerived, true>
+{
+  static void execute(Derived & dst, const OtherDerived & src)
+  {
+    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+    ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    if(unroll)
+    {
+      ei_matrix_assignment_packet_unroller
         <Derived, OtherDerived,
           unroll && int(Derived::SizeAtCompileTime)>=ei_packet_traits<typename Derived::Scalar>::size
             ? Derived::SizeAtCompileTime-ei_packet_traits<typename Derived::Scalar>::size
@@ -288,15 +194,21 @@ struct ei_operator_equals_impl<Derived, OtherDerived, true>
     {
       if(OtherDerived::Flags&RowMajorBit)
       {
-        for(int i = 0; i < dst.rows(); i++)
-          for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
+        #define EIGEN_THE_PARALLELIZABLE_LOOP \
+        for(int i = 0; i < dst.rows(); i++) \
+          for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size) \
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
       else
       {
-        for(int j = 0; j < dst.cols(); j++)
-          for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
+        #define EIGEN_THE_PARALLELIZABLE_LOOP \
+        for(int j = 0; j < dst.cols(); j++) \
+          for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size) \
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
     }
   }
