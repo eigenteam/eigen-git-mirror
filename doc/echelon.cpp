@@ -4,21 +4,72 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 namespace Eigen {
 
-template<typename Derived>
-void echelon(MatrixBase<Derived>& m)
+/* Echelon a matrix in-place:
+ *
+ * Meta-Unrolled version, for small fixed-size matrices
+ */
+template<typename Derived, int Step>
+struct unroll_echelon
 {
-  for(int k = 0; k < m.diagonal().size(); k++)
+  enum { k = Step - 1,
+         Rows = Derived::RowsAtCompileTime,
+         Cols = Derived::ColsAtCompileTime,
+         CornerRows = Rows - k,
+         CornerCols = Cols - k
+  };
+  static void run(MatrixBase<Derived>& m)
   {
+    unroll_echelon<Derived, Step-1>::run(m);
     int rowOfBiggest, colOfBiggest;
-    int cornerRows = m.rows()-k, cornerCols = m.cols()-k;
-    m.corner(BottomRight, cornerRows, cornerCols)
+    m.template corner<CornerRows, CornerCols>(BottomRight)
      .cwiseAbs()
      .maxCoeff(&rowOfBiggest, &colOfBiggest);
     m.row(k).swap(m.row(k+rowOfBiggest));
     m.col(k).swap(m.col(k+colOfBiggest));
-    m.corner(BottomRight, cornerRows-1, cornerCols)
-      -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k));
+    m.template corner<CornerRows-1, CornerCols>(BottomRight)
+      -= m.col(k).template end<CornerRows-1>()
+       * (m.row(k).template end<CornerCols>() / m(k,k));
   }
+};
+
+template<typename Derived>
+struct unroll_echelon<Derived, 0>
+{
+  static void run(MatrixBase<Derived>& m) {}
+};
+
+/* Echelon a matrix in-place:
+ *
+ * Non-unrolled version, for dynamic-size matrices.
+ * (this version works for all matrices, but in the fixed-size case the other
+ * version is faster).
+ */
+template<typename Derived>
+struct unroll_echelon<Derived, Dynamic>
+{
+  static void run(MatrixBase<Derived>& m)
+  {
+    for(int k = 0; k < m.diagonal().size(); k++)
+    {
+      int rowOfBiggest, colOfBiggest;
+      int cornerRows = m.rows()-k, cornerCols = m.cols()-k;
+      m.corner(BottomRight, cornerRows, cornerCols)
+      .cwiseAbs()
+      .maxCoeff(&rowOfBiggest, &colOfBiggest);
+      m.row(k).swap(m.row(k+rowOfBiggest));
+      m.col(k).swap(m.col(k+colOfBiggest));
+      m.corner(BottomRight, cornerRows-1, cornerCols)
+        -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k));
+    }
+  }
+};
+using namespace std;
+template<typename Derived>
+void echelon(MatrixBase<Derived>& m)
+{
+  const int size = DiagonalCoeffs<Derived>::SizeAtCompileTime;
+  const bool unroll = size <= 4;
+  unroll_echelon<Derived, unroll ? size : Dynamic>::run(m);
 }
 
 template<typename Derived>
@@ -49,7 +100,7 @@ using namespace std;
 int main(int, char **)
 {
   srand((unsigned int)time(0));
-  const int Rows = 6, Cols = 4;
+  const int Rows = 6, Cols = 6;
   typedef Matrix<double, Rows, Cols> Mat;
   const int N = Rows < Cols ? Rows : Cols;
 

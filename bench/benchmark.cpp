@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     asm("#begin");
     for(int a = 0; a < REPEAT; a++)
     {
-        m = I + 0.00005 * (m + m*m);
+        m = Matrix<SCALAR,MATSIZE,MATSIZE>::ones() + 0.00005 * (m + m*m);
     }
     asm("#end");
     cout << m << endl;

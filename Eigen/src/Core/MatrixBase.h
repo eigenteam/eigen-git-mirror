@@ -316,6 +316,23 @@ template<typename Derived> class MatrixBase
     template<int BlockRows, int BlockCols>
     const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
 
+    template<int CRows, int CCols> Block<Derived, CRows, CCols> corner(CornerType type);
+    template<int CRows, int CCols> const Block<Derived, CRows, CCols> corner(CornerType type) const;
+
+    template<int Size>
+    Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                   ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> start();
+    template<int Size>
+    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                         ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> start() const;
+
+    template<int Size>
+    Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                   ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> end();
+    template<int Size>
+    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                         ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> end() const;
+
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
     //@}

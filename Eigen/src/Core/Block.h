@@ -67,9 +67,11 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
       : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
       : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols),
-    Flags = (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic
-            ? (unsigned int)MatrixType::Flags
-            : (unsigned int)MatrixType::Flags &~ LargeBit) & ~VectorizableBit,
+    FlagsLargeBit = ((RowsAtCompileTime != Dynamic && MatrixType::RowsAtCompileTime == Dynamic)
+                  || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
+                  ? ~LargeBit
+                  : ~(unsigned int)0,
+    Flags = MatrixType::Flags & FlagsLargeBit & ~VectorizableBit,
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
@@ -236,8 +238,7 @@ const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>
-  ::start(int size)
+Block<Derived> MatrixBase<Derived>::start(int size)
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
@@ -247,8 +248,7 @@ Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of start(int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>
-  ::start(int size) const
+const Block<Derived> MatrixBase<Derived>::start(int size) const
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
@@ -272,8 +272,7 @@ const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>
-  ::end(int size)
+Block<Derived> MatrixBase<Derived>::end(int size)
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
@@ -285,8 +284,7 @@ Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of end(int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>
-  ::end(int size) const
+const Block<Derived> MatrixBase<Derived>::end(int size) const
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
@@ -294,6 +292,80 @@ const Block<Derived> MatrixBase<Derived>
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
+}
+
+/** \returns a fixed-size expression of the first coefficients of *this.
+  *
+  * \only_for_vectors
+  *
+  * The template parameter \a Size is the number of coefficients in the block
+  *
+  * Example: \include MatrixBase_template_int_start.cpp
+  * Output: \verbinclude MatrixBase_template_int_start.out
+  *
+  * \sa class Block
+  */
+template<typename Derived>
+template<int Size>
+Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+               ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+MatrixBase<Derived>::start()
+{
+  ei_assert(IsVectorAtCompileTime);
+  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
+                        ColsAtCompileTime == 1 ? 1 : Size>(derived(), 0, 0);
+}
+
+/** This is the const version of start<int>().*/
+template<typename Derived>
+template<int Size>
+const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                     ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+MatrixBase<Derived>::start() const
+{
+  ei_assert(IsVectorAtCompileTime);
+  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
+                        ColsAtCompileTime == 1 ? 1 : Size>(derived(), 0, 0);
+}
+
+/** \returns a fixed-size expression of the last coefficients of *this.
+  *
+  * \only_for_vectors
+  *
+  * The template parameter \a Size is the number of coefficients in the block
+  *
+  * Example: \include MatrixBase_template_int_end.cpp
+  * Output: \verbinclude MatrixBase_template_int_end.out
+  *
+  * \sa class Block
+  */
+template<typename Derived>
+template<int Size>
+Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+               ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+MatrixBase<Derived>::end()
+{
+  ei_assert(IsVectorAtCompileTime);
+  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
+                        ColsAtCompileTime == 1 ? 1 : Size>
+           (derived(),
+            RowsAtCompileTime == 1 ? 0 : rows() - Size,
+            ColsAtCompileTime == 1 ? 0 : cols() - Size);
+}
+
+/** This is the const version of end<int>.*/
+template<typename Derived>
+template<int Size>
+const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                     ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+MatrixBase<Derived>::end() const
+{
+  ei_assert(IsVectorAtCompileTime);
+  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
+                        ColsAtCompileTime == 1 ? 1 : Size>
+           (derived(),
+            RowsAtCompileTime == 1 ? 0 : rows() - Size,
+            ColsAtCompileTime == 1 ? 0 : cols() - Size);
 }
 
 /** \returns a dynamic-size expression of a corner of *this.
@@ -316,14 +388,23 @@ template<typename Derived>
 Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
-  if(type == TopLeft)
-    return Block<Derived>(derived(), 0, 0, cRows, cCols);
-  else if(type == TopRight)
-    return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
-  else if(type == BottomLeft)
-    return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
-  else
-    return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+  switch(type)
+  {
+    case TopLeft:
+      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+      break;
+    case TopRight:
+      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+      break;
+    case BottomLeft:
+      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+      break;
+    case BottomRight:
+      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+      break;
+    default:
+      ei_assert(false && "Bad corner type.");
+  }
 }
 
 /** This is the const version of corner(CornerType, int, int).*/
@@ -331,14 +412,84 @@ template<typename Derived>
 const Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols) const
 {
-  if(type == TopLeft)
-    return Block<Derived>(derived(), 0, 0, cRows, cCols);
-  else if(type == TopRight)
-    return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
-  else if(type == BottomLeft)
-    return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
-  else
-    return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+  switch(type)
+  {
+    case TopLeft:
+      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+      break;
+    case TopRight:
+      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+      break;
+    case BottomLeft:
+      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+      break;
+    case BottomRight:
+      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+      break;
+    default:
+      ei_assert(false && "Bad corner type.");
+  }
+}
+
+/** \returns a fixed-size expression of a corner of *this.
+  *
+  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
+  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
+  *
+  * The template parameters CRows and CCols arethe number of rows and columns in the corner.
+  *
+  * Example: \include MatrixBase_template_int_int_corner_enum.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_corner_enum.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int CRows, int CCols>
+Block<Derived, CRows, CCols> MatrixBase<Derived>
+  ::corner(CornerType type)
+{
+  switch(type)
+  {
+    case TopLeft:
+      return Block<Derived, CRows, CCols>(derived(), 0, 0);
+      break;
+    case TopRight:
+      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
+      break;
+    case BottomLeft:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+      break;
+    case BottomRight:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+      break;
+    default:
+      ei_assert(false && "Bad corner type.");
+  }
+}
+
+/** This is the const version of corner<int, int>(CornerType).*/
+template<typename Derived>
+template<int CRows, int CCols>
+const Block<Derived, CRows, CCols> MatrixBase<Derived>
+  ::corner(CornerType type) const
+{
+  switch(type)
+  {
+    case TopLeft:
+      return Block<Derived, CRows, CCols>(derived(), 0, 0);
+      break;
+    case TopRight:
+      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
+      break;
+    case BottomLeft:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+      break;
+    case BottomRight:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+      break;
+    default:
+      ei_assert(false && "Bad corner type.");
+  }
 }
 
 /** \returns a fixed-size expression of a block in *this.

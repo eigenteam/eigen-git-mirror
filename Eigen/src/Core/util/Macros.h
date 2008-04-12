@@ -142,6 +142,7 @@ EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
 typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
 typedef typename Base::PacketScalar PacketScalar; \
 typedef typename Eigen::ei_nested<Derived>::type Nested; \
 typedef typename Eigen::ei_eval<Derived>::type Eval; \

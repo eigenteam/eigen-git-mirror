@@ -79,7 +79,7 @@ inline float  ei_pfirst(const __m128&  a) { return _mm_cvtss_f32(a); }
 inline double ei_pfirst(const __m128d& a) { return _mm_cvtsd_f64(a); }
 inline int    ei_pfirst(const __m128i& a) { return _mm_cvtsi128_si32(a); }
 
-#endif
+#endif // EIGEN_VECTORIZE_SSE
 
 #endif // EIGEN_PACKET_MATH_H
 

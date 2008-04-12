@@ -28,6 +28,11 @@
 template<typename T> inline typename NumTraits<T>::Real precision();
 template<typename T> inline T ei_random(T a, T b);
 template<typename T> inline T ei_random();
+template<typename T> inline T ei_random_amplitude()
+{
+  if(NumTraits<T>::HasFloatingPoint) return static_cast<T>(1);
+  else return static_cast<T>(10);
+}
 
 template<> inline int precision<int>() { return 0; }
 inline int ei_real(int x)  { return x; }
@@ -54,7 +59,7 @@ template<> inline int ei_random(int a, int b)
 }
 template<> inline int ei_random()
 {
-  return ei_random<int>(-10, 10);
+  return ei_random<int>(-ei_random_amplitude<int>(), ei_random_amplitude<int>());
 }
 inline bool ei_isMuchSmallerThan(int a, int, int = precision<int>())
 {
@@ -88,7 +93,7 @@ template<> inline float ei_random(float a, float b)
 }
 template<> inline float ei_random()
 {
-  return ei_random<float>(-10.0f, 10.0f);
+  return ei_random<float>(-ei_random_amplitude<float>(), ei_random_amplitude<float>());
 }
 inline bool ei_isMuchSmallerThan(float a, float b, float prec = precision<float>())
 {
@@ -122,7 +127,7 @@ template<> inline double ei_random(double a, double b)
 }
 template<> inline double ei_random()
 {
-  return ei_random<double>(-10.0, 10.0);
+  return ei_random<double>(-ei_random_amplitude<double>(), ei_random_amplitude<double>());
 }
 inline bool ei_isMuchSmallerThan(double a, double b, double prec = precision<double>())
 {
