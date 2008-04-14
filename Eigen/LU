@@ -1,0 +1,12 @@
+#ifndef EIGEN_LU_H
+#define EIGEN_LU_H
+
+#include "Core"
+
+namespace Eigen {
+
+#include "Eigen/src/LU/Inverse.h"
+
+} // namespace Eigen
+
+#endif // EIGEN_LU_H

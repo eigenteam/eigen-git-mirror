@@ -10,7 +10,7 @@
 #endif
 #endif
 
-#ifndef EIGEN_DONT_USE_OPENMP
+#ifndef EIGEN_DONT_PARALLELIZE
 #ifdef _OPENMP
 #define EIGEN_USE_OPENMP
 #include <omp.h>

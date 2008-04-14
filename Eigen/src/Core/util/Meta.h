@@ -182,5 +182,4 @@ template<typename T> struct ei_packet_traits
   enum {size=1};
 };
 
-
 #endif // EIGEN_META_H

@@ -49,7 +49,7 @@ struct unroll_echelon<Derived, Dynamic>
 {
   static void run(MatrixBase<Derived>& m)
   {
-    for(int k = 0; k < m.diagonal().size(); k++)
+    for(int k = 0; k < m.diagonal().size() - 1; k++)
     {
       int rowOfBiggest, colOfBiggest;
       int cornerRows = m.rows()-k, cornerCols = m.cols()-k;
@@ -63,13 +63,14 @@ struct unroll_echelon<Derived, Dynamic>
     }
   }
 };
+
 using namespace std;
 template<typename Derived>
 void echelon(MatrixBase<Derived>& m)
 {
   const int size = DiagonalCoeffs<Derived>::SizeAtCompileTime;
   const bool unroll = size <= 4;
-  unroll_echelon<Derived, unroll ? size : Dynamic>::run(m);
+  unroll_echelon<Derived, unroll ? size-1 : Dynamic>::run(m);
 }
 
 template<typename Derived>
@@ -100,7 +101,7 @@ using namespace std;
 int main(int, char **)
 {
   srand((unsigned int)time(0));
-  const int Rows = 6, Cols = 6;
+  const int Rows = 6, Cols = 4;
   typedef Matrix<double, Rows, Cols> Mat;
   const int N = Rows < Cols ? Rows : Cols;
 

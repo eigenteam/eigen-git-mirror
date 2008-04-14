@@ -29,7 +29,11 @@ template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 template<typename T> struct NumTraits;
 
-template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols> class Matrix;
+template<typename _Scalar, int _Rows, int _Cols,
+         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_FLAGS,
+         int _MaxRows = _Rows, int _MaxCols = _Cols>
+class Matrix;
+
 template<typename ExpressionType> class Lazy;
 template<typename ExpressionType> class Temporary;
 template<typename MatrixType> class Minor;
@@ -47,7 +51,6 @@ template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Identity;
 template<typename MatrixType> class Map;
 template<typename Derived> class Eval;
-template<typename Derived> class EvalOMP;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 
 template<typename Scalar> struct ei_scalar_sum_op;
@@ -69,5 +72,7 @@ template<typename Scalar, bool IsVectorizable> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
+
+template<typename ExpressionType, bool CheckExistence = true> class Inverse;
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

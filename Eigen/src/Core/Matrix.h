@@ -95,11 +95,8 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
   };
 };
 
-template<typename _Scalar, int _Rows, int _Cols,
-         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_FLAGS,
-         int _MaxRows = _Rows, int _MaxCols = _Cols>
-class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols,
-                                        _Flags, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
+class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 {
   public:
 

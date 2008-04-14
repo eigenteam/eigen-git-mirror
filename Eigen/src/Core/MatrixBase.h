@@ -506,6 +506,15 @@ template<typename Derived> class MatrixBase
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
     //@}
 
+    /** \name LU module
+      *
+      * \code #include <Eigen/LU> \endcode
+      */
+    //@{
+    const Inverse<Derived, true> inverse() const;
+    const Inverse<Derived, false> quickInverse() const;
+    //@}
+
   private:
 
     PacketScalar _packetCoeff(int , int) const { ei_internal_assert(false && "_packetCoeff not defined"); }

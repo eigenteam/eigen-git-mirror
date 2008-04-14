@@ -135,6 +135,11 @@ Derived& MatrixBase<Derived>
   }
 }
 
+template<typename T1, typename T2> bool ei_should_parallelize_assignment(const T1& t, const T2&)
+{
+  return (T1::Flags & T2::Flags & LargeBit) && t.size() >= EIGEN_PARALLELIZATION_TRESHOLD;
+}
+
 template <typename Derived, typename OtherDerived>
 struct ei_assignment_impl<Derived, OtherDerived, false>
 {
@@ -157,7 +162,7 @@ struct ei_assignment_impl<Derived, OtherDerived, false>
             for(int j = 0; j < dst.cols(); j++) \
               for(int i = 0; i < dst.rows(); i++) \
                 dst.coeffRef(i, j) = src.coeff(i, j);
-        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        EIGEN_RUN_PARALLELIZABLE_LOOP(ei_should_parallelize_assignment(dst, src))
         #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
       else
@@ -168,7 +173,7 @@ struct ei_assignment_impl<Derived, OtherDerived, false>
           for(int i = 0; i < dst.rows(); i++) \
             for(int j = 0; j < dst.cols(); j++) \
               dst.coeffRef(i, j) = src.coeff(i, j);
-        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        EIGEN_RUN_PARALLELIZABLE_LOOP(ei_should_parallelize_assignment(dst, src))
         #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
     }
@@ -198,7 +203,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true>
         for(int i = 0; i < dst.rows(); i++) \
           for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size) \
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
-        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        EIGEN_RUN_PARALLELIZABLE_LOOP(ei_should_parallelize_assignment(dst, src))
         #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
       else
@@ -207,7 +212,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true>
         for(int j = 0; j < dst.cols(); j++) \
           for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size) \
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
-        EIGEN_RUN_PARALLELIZABLE_LOOP(Derived::Flags & OtherDerived::Flags & LargeBit)
+        EIGEN_RUN_PARALLELIZABLE_LOOP(ei_should_parallelize_assignment(dst, src))
         #undef EIGEN_THE_PARALLELIZABLE_LOOP
       }
     }

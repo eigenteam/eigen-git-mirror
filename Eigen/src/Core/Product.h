@@ -280,6 +280,8 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
 {
   res.setZero();
   const int cols4 = m_lhs.cols() & 0xfffffffC;
+  const bool should_parallelize = (Flags & DestDerived::Flags & LargeBit)
+                                && res.size() >= EIGEN_PARALLELIZATION_TRESHOLD;
   #ifdef EIGEN_VECTORIZE
   if( (Flags & VectorizableBit) && (!(Lhs::Flags & RowMajorBit)) )
   {
@@ -318,7 +320,7 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
             res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j))); \
         } \
       }
-    EIGEN_RUN_PARALLELIZABLE_LOOP(Flags & DestDerived::Flags & LargeBit)
+    EIGEN_RUN_PARALLELIZABLE_LOOP(should_parallelize)
     #undef EIGEN_THE_PARALLELIZABLE_LOOP
   }
   else
@@ -345,7 +347,7 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
             res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j); \
         } \
       }
-    EIGEN_RUN_PARALLELIZABLE_LOOP(Flags & DestDerived::Flags & LargeBit)
+    EIGEN_RUN_PARALLELIZABLE_LOOP(should_parallelize)
     #undef EIGEN_THE_PARALLELIZABLE_LOOP
   }
 }
