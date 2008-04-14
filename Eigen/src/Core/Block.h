@@ -392,16 +392,12 @@ Block<Derived> MatrixBase<Derived>
   {
     case TopLeft:
       return Block<Derived>(derived(), 0, 0, cRows, cCols);
-      break;
     case TopRight:
       return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
-      break;
     case BottomLeft:
       return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
-      break;
     case BottomRight:
       return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
-      break;
     default:
       ei_assert(false && "Bad corner type.");
   }
@@ -416,16 +412,12 @@ const Block<Derived> MatrixBase<Derived>
   {
     case TopLeft:
       return Block<Derived>(derived(), 0, 0, cRows, cCols);
-      break;
     case TopRight:
       return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
-      break;
     case BottomLeft:
       return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
-      break;
     case BottomRight:
       return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
-      break;
     default:
       ei_assert(false && "Bad corner type.");
   }
@@ -452,16 +444,12 @@ Block<Derived, CRows, CCols> MatrixBase<Derived>
   {
     case TopLeft:
       return Block<Derived, CRows, CCols>(derived(), 0, 0);
-      break;
     case TopRight:
       return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
-      break;
     case BottomLeft:
       return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
-      break;
     case BottomRight:
       return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
-      break;
     default:
       ei_assert(false && "Bad corner type.");
   }
@@ -477,16 +465,12 @@ const Block<Derived, CRows, CCols> MatrixBase<Derived>
   {
     case TopLeft:
       return Block<Derived, CRows, CCols>(derived(), 0, 0);
-      break;
     case TopRight:
       return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
-      break;
     case BottomLeft:
       return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
-      break;
     case BottomRight:
       return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
-      break;
     default:
       ei_assert(false && "Bad corner type.");
   }

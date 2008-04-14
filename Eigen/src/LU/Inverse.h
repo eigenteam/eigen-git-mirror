@@ -86,8 +86,10 @@ template<typename ExpressionType, bool CheckExistence> class Inverse : ei_no_ass
       return m_inverse.coeff(row, col);
     }
 
+    enum { _Size = MatrixType::RowsAtCompileTime };
     void _compute(const ExpressionType& xpr);
-    void _compute_not_unrolled(MatrixType& matrix, const RealScalar& max);
+    void _compute_in_general_case(const ExpressionType& xpr);
+    void _compute_unrolled(const ExpressionType& xpr);
     template<int Size, int Step, bool Finished = Size==Dynamic> struct _unroll_first_loop;
     template<int Size, int Step, bool Finished = Size==Dynamic> struct _unroll_second_loop;
     template<int Size, int Step, bool Finished = Size==Dynamic> struct _unroll_third_loop;
@@ -99,8 +101,11 @@ template<typename ExpressionType, bool CheckExistence> class Inverse : ei_no_ass
 
 template<typename ExpressionType, bool CheckExistence>
 void Inverse<ExpressionType, CheckExistence>
-::_compute_not_unrolled(MatrixType& matrix, const RealScalar& max)
+::_compute_in_general_case(const ExpressionType& xpr)
 {
+  MatrixType matrix(xpr);
+  const RealScalar max = CheckExistence ? matrix.cwiseAbs().maxCoeff()
+                                        : static_cast<RealScalar>(0);
   const int size = matrix.rows();
   for(int k = 0; k < size-1; k++)
   {
@@ -134,6 +139,21 @@ void Inverse<ExpressionType, CheckExistence>
   {
     m_inverse.block(0,0,k,size) -= matrix.col(k).start(k) * m_inverse.row(k);
   }
+}
+
+template<typename ExpressionType, bool CheckExistence>
+void Inverse<ExpressionType, CheckExistence>
+::_compute_unrolled(const ExpressionType& xpr)
+{
+  MatrixType matrix(xpr);
+  const RealScalar max = CheckExistence ? matrix.cwiseAbs().maxCoeff()
+                                        : static_cast<RealScalar>(0);
+  const int size = MatrixType::RowsAtCompileTime;
+  _unroll_first_loop<size, 0>::run(*this, matrix, max);
+  if(CheckExistence && !m_exists) return;
+  _unroll_second_loop<size, 0>::run(*this, matrix, max);
+  if(CheckExistence && !m_exists) return;
+  _unroll_third_loop<size, 1>::run(*this, matrix, max);
 }
 
 template<typename ExpressionType, bool CheckExistence>
@@ -246,23 +266,57 @@ struct Inverse<ExpressionType, CheckExistence>::_unroll_third_loop<Step, Size, t
 template<typename ExpressionType, bool CheckExistence>
 void Inverse<ExpressionType, CheckExistence>::_compute(const ExpressionType& xpr)
 {
-  MatrixType matrix(xpr);
-  const RealScalar max = CheckExistence ? matrix.cwiseAbs().maxCoeff()
-                                        : static_cast<RealScalar>(0);
-
-  if(MatrixType::RowsAtCompileTime <= 4)
+  if(_Size == 1)
   {
-    const int size = MatrixType::RowsAtCompileTime;
-    _unroll_first_loop<size, 0>::run(*this, matrix, max);
-    if(CheckExistence && !m_exists) return;
-    _unroll_second_loop<size, 0>::run(*this, matrix, max);
-    if(CheckExistence && !m_exists) return;
-    _unroll_third_loop<size, 1>::run(*this, matrix, max);
+    const Scalar x = xpr.coeff(0,0);
+    if(CheckExistence && x == static_cast<Scalar>(0))
+      m_exists = false;
+    else
+      m_inverse.coeffRef(0,0) = static_cast<Scalar>(1) / x;
   }
-  else
+  else if(_Size == 2)
   {
-    _compute_not_unrolled(matrix, max);
+    const typename ei_nested<ExpressionType, 1+CheckExistence>::type matrix(xpr);
+    const Scalar det = matrix.determinant();
+    if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwiseAbs().maxCoeff()))
+      m_exists = false;
+    else
+    {
+      const Scalar invdet = static_cast<Scalar>(1) / det;
+      m_inverse.coeffRef(0,0) = matrix.coeff(1,1) * invdet;
+      m_inverse.coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
+      m_inverse.coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
+      m_inverse.coeffRef(1,1) = matrix.coeff(0,0) * invdet;
+    }
   }
+  else if(_Size == 3)
+  {
+    const typename ei_nested<ExpressionType, 2+CheckExistence>::type matrix(xpr);
+    const Scalar det_minor00 = matrix.minor(0,0).determinant();
+    const Scalar det_minor10 = matrix.minor(1,0).determinant();
+    const Scalar det_minor20 = matrix.minor(2,0).determinant();
+    const Scalar det = det_minor00 * matrix.coeff(0,0)
+                      - det_minor10 * matrix.coeff(1,0)
+                      + det_minor20 * matrix.coeff(2,0);
+    if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwiseAbs().maxCoeff()))
+      m_exists = false;
+    else
+    {
+      const Scalar invdet = static_cast<Scalar>(1) / det;
+      m_inverse.coeffRef(0, 0) = det_minor00 * invdet;
+      m_inverse.coeffRef(0, 1) = -det_minor10 * invdet;
+      m_inverse.coeffRef(0, 2) = det_minor20 * invdet;
+      m_inverse.coeffRef(1, 0) = -matrix.minor(0,1).determinant() * invdet;
+      m_inverse.coeffRef(1, 1) = matrix.minor(1,1).determinant() * invdet;
+      m_inverse.coeffRef(1, 2) = -matrix.minor(2,1).determinant() * invdet;
+      m_inverse.coeffRef(2, 0) = matrix.minor(0,2).determinant() * invdet;
+      m_inverse.coeffRef(2, 1) = -matrix.minor(1,2).determinant() * invdet;
+      m_inverse.coeffRef(2, 2) = matrix.minor(2,2).determinant() * invdet;
+    }
+  }
+  else if(_Size == 4)
+    _compute_unrolled(xpr);
+  else _compute_in_general_case(xpr);
 }
 
 /** \return the matrix inverse of \c *this, if it exists.

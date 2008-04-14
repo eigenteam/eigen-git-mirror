@@ -513,6 +513,7 @@ template<typename Derived> class MatrixBase
     //@{
     const Inverse<Derived, true> inverse() const;
     const Inverse<Derived, false> quickInverse() const;
+    Scalar determinant() const;
     //@}
 
   private:
