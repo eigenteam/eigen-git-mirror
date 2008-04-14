@@ -81,15 +81,8 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
     MaxColsAtCompileTime = _MaxCols,
     Flags = (_Flags & ~VectorizableBit)
           | (
-              (
-                ei_packet_traits<Scalar>::size>1
-                && _Rows!=Dynamic
-                && _Cols!=Dynamic
-                && (
-                  (_Flags&RowMajorBit && _Cols%ei_packet_traits<Scalar>::size==0)
-                  || (_Rows%ei_packet_traits<Scalar>::size==0)
-                )
-               ) ? VectorizableBit  : 0
+              ei_is_matrix_vectorizable<Scalar, _Rows, _Cols, _Flags>::ret
+              ? VectorizableBit  : 0
             ),
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };

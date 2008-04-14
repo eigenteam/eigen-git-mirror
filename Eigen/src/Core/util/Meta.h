@@ -130,12 +130,49 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
     typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
 
+template<typename T> struct ei_functor_traits
+{
+  enum
+  {
+    Cost = 10,
+    IsVectorizable = false
+  };
+};
+
+template<typename T> struct ei_packet_traits
+{
+  typedef T type;
+  enum {size=1};
+};
+
+template<typename Scalar, int Rows, int Cols, unsigned int Flags>
+struct ei_is_matrix_vectorizable
+{
+  enum { ret = ei_packet_traits<Scalar>::size > 1
+             && Rows!=Dynamic
+             && Cols!=Dynamic
+             &&
+             (
+               (Flags&RowMajorBit && Cols%ei_packet_traits<Scalar>::size==0)
+               || (Rows%ei_packet_traits<Scalar>::size==0)
+             )
+  };
+};
+
 template<typename T> struct ei_eval
 {
-  typedef Matrix<typename ei_traits<T>::Scalar,
-                 ei_traits<T>::RowsAtCompileTime,
-                 ei_traits<T>::ColsAtCompileTime,
-                 ei_traits<T>::Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit),
+  typedef typename ei_traits<T>::Scalar _Scalar;
+  enum { _Rows = ei_traits<T>::RowsAtCompileTime,
+         _Cols = ei_traits<T>::ColsAtCompileTime,
+         _Flags = ei_traits<T>::Flags
+  };
+  typedef Matrix<_Scalar,
+                 _Rows,
+                 _Cols,
+                 (_Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit))
+                 |
+                 (ei_is_matrix_vectorizable<_Scalar, _Rows, _Cols, _Flags>::ret
+                  ? VectorizableBit : 0),
                  ei_traits<T>::MaxRowsAtCompileTime,
                  ei_traits<T>::MaxColsAtCompileTime> type;
 };
@@ -165,21 +202,6 @@ template<typename T, int n=1> struct ei_nested
       const T&
     >::ret
   >::ret type;
-};
-
-template<typename T> struct ei_functor_traits
-{
-  enum
-  {
-    Cost = 10,
-    IsVectorizable = false
-  };
-};
-
-template<typename T> struct ei_packet_traits
-{
-  typedef T type;
-  enum {size=1};
 };
 
 #endif // EIGEN_META_H
