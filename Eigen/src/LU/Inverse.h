@@ -196,13 +196,13 @@ void Inverse<ExpressionType, CheckExistence>::_compute_in_size4_case(const Expre
   {
     const Block22 Q = xpr.template block<2,2>(0,2);
     const Block22 P_inverse_times_Q = P_inverse * Q;
-    const Block22 R = xpr.template block<2,2>(2,0);
+    const XprBlock22 R = xpr.template block<2,2>(2,0);
     const Block22 R_times_P_inverse = R * P_inverse;
     const Block22 R_times_P_inverse_times_Q = R_times_P_inverse * Q;
-    const Block22 S = xpr.template block<2,2>(2,2);
+    const XprBlock22 S = xpr.template block<2,2>(2,2);
     const Block22 X = S - R_times_P_inverse_times_Q;
     Block22 Y;
-    if(ei_compute_size2_inverse<Block22, Block22, true>(X, &Y)) 
+    if(ei_compute_size2_inverse<Block22, Block22, CheckExistence>(X, &Y)) 
     {
       m_inverse.template block<2,2>(2,2) = Y;
       m_inverse.template block<2,2>(2,0) = - Y * R_times_P_inverse;
