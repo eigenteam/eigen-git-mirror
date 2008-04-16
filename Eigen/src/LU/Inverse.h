@@ -29,7 +29,7 @@
   *
   * \brief Inverse of a matrix
   *
-  * \param ExpressionType the type of the matrix/expression of which we are taking the inverse
+  * \param MatrixType the type of the matrix of which we are taking the inverse
   * \param CheckExistence whether or not to check the existence of the inverse while computing it
   *
   * This class represents the inverse of a matrix. It is the return
@@ -38,11 +38,10 @@
   *
   * \sa MatrixBase::inverse(), MatrixBase::quickInverse()
   */
-template<typename ExpressionType, bool CheckExistence>
-struct ei_traits<Inverse<ExpressionType, CheckExistence> >
+template<typename MatrixType, bool CheckExistence>
+struct ei_traits<Inverse<MatrixType, CheckExistence> >
 {
-  typedef typename ExpressionType::Scalar Scalar;
-  typedef typename ExpressionType::Eval MatrixType;
+  typedef typename MatrixType::Scalar Scalar;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
@@ -53,20 +52,19 @@ struct ei_traits<Inverse<ExpressionType, CheckExistence> >
   };
 };
 
-template<typename ExpressionType, bool CheckExistence> class Inverse : ei_no_assignment_operator,
-  public MatrixBase<Inverse<ExpressionType, CheckExistence> >
+template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignment_operator,
+  public MatrixBase<Inverse<MatrixType, CheckExistence> >
 {
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Inverse)
-    typedef typename ei_traits<Inverse>::MatrixType MatrixType;
 
-    Inverse(const ExpressionType& xpr)
+    Inverse(const MatrixType& matrix)
       : m_exists(true),
-        m_inverse(MatrixType::identity(xpr.rows(), xpr.cols()))
+        m_inverse(MatrixType::identity(matrix.rows(), matrix.cols()))
     {
-      ei_assert(xpr.rows() == xpr.cols());
-      _compute(xpr);
+      ei_assert(matrix.rows() == matrix.cols());
+      _compute(matrix);
     }
 
     /** \returns whether or not the inverse exists.
@@ -86,24 +84,29 @@ template<typename ExpressionType, bool CheckExistence> class Inverse : ei_no_ass
       return m_inverse.coeff(row, col);
     }
 
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_inverse.packetCoeff(row, col);
+    }
+
     enum { _Size = MatrixType::RowsAtCompileTime };
-    void _compute(const ExpressionType& xpr);
-    void _compute_in_general_case(const ExpressionType& xpr);
-    void _compute_in_size1_case(const ExpressionType& xpr);
-    void _compute_in_size2_case(const ExpressionType& xpr);
-    void _compute_in_size3_case(const ExpressionType& xpr);
-    void _compute_in_size4_case(const ExpressionType& xpr);
+    void _compute(const MatrixType& matrix);
+    void _compute_in_general_case(const MatrixType& matrix);
+    void _compute_in_size1_case(const MatrixType& matrix);
+    void _compute_in_size2_case(const MatrixType& matrix);
+    void _compute_in_size3_case(const MatrixType& matrix);
+    void _compute_in_size4_case(const MatrixType& matrix);
 
   protected:
     bool m_exists;
     MatrixType m_inverse;
 };
 
-template<typename ExpressionType, bool CheckExistence>
-void Inverse<ExpressionType, CheckExistence>
-::_compute_in_general_case(const ExpressionType& xpr)
+template<typename MatrixType, bool CheckExistence>
+void Inverse<MatrixType, CheckExistence>
+::_compute_in_general_case(const MatrixType& _matrix)
 {
-  MatrixType matrix(xpr);
+  MatrixType matrix(_matrix);
   const RealScalar max = CheckExistence ? matrix.cwiseAbs().maxCoeff()
                                         : static_cast<RealScalar>(0);
   const int size = matrix.rows();
@@ -141,10 +144,10 @@ void Inverse<ExpressionType, CheckExistence>
   }
 }
 
-template<typename ExpressionType, typename MatrixType, bool CheckExistence>
-bool ei_compute_size2_inverse(const ExpressionType& xpr, MatrixType* result)
+template<typename ExpressionType, bool CheckExistence>
+bool ei_compute_size2_inverse(const ExpressionType& xpr, typename ExpressionType::Eval* result)
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ExpressionType::Scalar Scalar;
   const typename ei_nested<ExpressionType, 1+CheckExistence>::type matrix(xpr);
   const Scalar det = matrix.determinant();
   if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwiseAbs().maxCoeff()))
@@ -157,10 +160,9 @@ bool ei_compute_size2_inverse(const ExpressionType& xpr, MatrixType* result)
   return true;
 }
 
-template<typename ExpressionType, bool CheckExistence>
-void Inverse<ExpressionType, CheckExistence>::_compute_in_size3_case(const ExpressionType& xpr)
+template<typename MatrixType, bool CheckExistence>
+void Inverse<MatrixType, CheckExistence>::_compute_in_size3_case(const MatrixType& matrix)
 {
-  const typename ei_nested<ExpressionType, 2+CheckExistence>::type matrix(xpr);
   const Scalar det_minor00 = matrix.minor(0,0).determinant();
   const Scalar det_minor10 = matrix.minor(1,0).determinant();
   const Scalar det_minor20 = matrix.minor(2,0).determinant();
@@ -184,25 +186,37 @@ void Inverse<ExpressionType, CheckExistence>::_compute_in_size3_case(const Expre
   }
 }
 
-template<typename ExpressionType, bool CheckExistence>
-void Inverse<ExpressionType, CheckExistence>::_compute_in_size4_case(const ExpressionType& xpr)
+template<typename MatrixType, bool CheckExistence>
+void Inverse<MatrixType, CheckExistence>::_compute_in_size4_case(const MatrixType& matrix)
 {
-  typedef Block<ExpressionType,2,2> XprBlock22;
+  /* Let's split M into four 2x2 blocks:
+    * (P Q)
+    * (R S)
+    * If P is invertible, with inverse denoted by P_inverse, and if
+    * (S - R*P_inverse*Q) is also invertible, then the inverse of M is
+    * (P' Q')
+    * (R' S')
+    * where
+    * S' = (S - R*P_inverse*Q)^(-1)
+    * P' = P1 + (P1*Q) * S' *(R*P_inverse)
+    * Q' = -(P_inverse*Q) * S'
+    * R' = -S' * (R*P_inverse)
+    */
+  typedef Block<MatrixType,2,2> XprBlock22;
   typedef typename XprBlock22::Eval Block22;
-
   Block22 P_inverse;
 
-  if(ei_compute_size2_inverse<XprBlock22, Block22, true>(xpr.template block<2,2>(0,0), &P_inverse))
+  if(ei_compute_size2_inverse<XprBlock22, true>(matrix.template block<2,2>(0,0), &P_inverse))
   {
-    const Block22 Q = xpr.template block<2,2>(0,2);
+    const Block22 Q = matrix.template block<2,2>(0,2);
     const Block22 P_inverse_times_Q = P_inverse * Q;
-    const XprBlock22 R = xpr.template block<2,2>(2,0);
+    const XprBlock22 R = matrix.template block<2,2>(2,0);
     const Block22 R_times_P_inverse = R * P_inverse;
     const Block22 R_times_P_inverse_times_Q = R_times_P_inverse * Q;
-    const XprBlock22 S = xpr.template block<2,2>(2,2);
+    const XprBlock22 S = matrix.template block<2,2>(2,2);
     const Block22 X = S - R_times_P_inverse_times_Q;
     Block22 Y;
-    if(ei_compute_size2_inverse<Block22, Block22, CheckExistence>(X, &Y)) 
+    if(ei_compute_size2_inverse<Block22, CheckExistence>(X, &Y)) 
     {
       m_inverse.template block<2,2>(2,2) = Y;
       m_inverse.template block<2,2>(2,0) = - Y * R_times_P_inverse;
@@ -217,16 +231,16 @@ void Inverse<ExpressionType, CheckExistence>::_compute_in_size4_case(const Expre
   }
   else
   {
-    _compute_in_general_case(xpr);
+    _compute_in_general_case(matrix);
   }
 }
 
-template<typename ExpressionType, bool CheckExistence>
-void Inverse<ExpressionType, CheckExistence>::_compute(const ExpressionType& xpr)
+template<typename MatrixType, bool CheckExistence>
+void Inverse<MatrixType, CheckExistence>::_compute(const MatrixType& matrix)
 {
   if(_Size == 1)
   {
-    const Scalar x = xpr.coeff(0,0);
+    const Scalar x = matrix.coeff(0,0);
     if(CheckExistence && x == static_cast<Scalar>(0))
       m_exists = false;
     else
@@ -235,13 +249,13 @@ void Inverse<ExpressionType, CheckExistence>::_compute(const ExpressionType& xpr
   else if(_Size == 2)
   {
     if(CheckExistence)
-      m_exists = ei_compute_size2_inverse<ExpressionType, MatrixType, true>(xpr, &m_inverse);
+      m_exists = ei_compute_size2_inverse<MatrixType, true>(matrix, &m_inverse);
     else
-      ei_compute_size2_inverse<ExpressionType, MatrixType, false>(xpr, &m_inverse);
+      ei_compute_size2_inverse<MatrixType, false>(matrix, &m_inverse);
   }
-  else if(_Size == 3) _compute_in_size3_case(xpr);
-  else if(_Size == 4) _compute_in_size4_case(xpr);
-  else _compute_in_general_case(xpr);
+  else if(_Size == 3) _compute_in_size3_case(matrix);
+  else if(_Size == 4) _compute_in_size4_case(matrix);
+  else _compute_in_general_case(matrix);
 }
 
 /** \return the matrix inverse of \c *this, if it exists.
@@ -252,10 +266,10 @@ void Inverse<ExpressionType, CheckExistence>::_compute(const ExpressionType& xpr
   * \sa class Inverse
   */
 template<typename Derived>
-const Inverse<Derived, true>
+const Inverse<typename ei_eval<Derived>::type, true>
 MatrixBase<Derived>::inverse() const
 {
-  return Inverse<Derived, true>(derived());
+  return Inverse<typename ei_eval<Derived>::type, true>(derived());
 }
 
 /** \return the matrix inverse of \c *this, which is assumed to exist.
@@ -266,10 +280,10 @@ MatrixBase<Derived>::inverse() const
   * \sa class Inverse
   */
 template<typename Derived>
-const Inverse<Derived, false>
+const Inverse<typename ei_eval<Derived>::type, false>
 MatrixBase<Derived>::quickInverse() const
 {
-  return Inverse<Derived, false>(derived());
+  return Inverse<typename ei_eval<Derived>::type, false>(derived());
 }
 
 #endif // EIGEN_INVERSE_H

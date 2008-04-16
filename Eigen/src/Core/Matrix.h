@@ -35,7 +35,7 @@
   *              specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
   * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to
   *              specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
-  * \param _Flags allows to control certain features such as storage order. See MatrixBase::Flags.
+  * \param _SuggestedFlags allows to control certain features such as storage order. See MatrixBase::Flags.
   *
   * This single class template covers all kinds of matrix and vectors that Eigen can handle.
   * All matrix and vector types are just typedefs to specializations of this class template.
@@ -70,8 +70,8 @@
   *
   * Note that most of the API is in the base class MatrixBase.
   */
-template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, unsigned int _SuggestedFlags, int _MaxRows, int _MaxCols>
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _SuggestedFlags, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -79,11 +79,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = (_Flags & ~VectorizableBit)
-          | (
-              ei_is_matrix_vectorizable<Scalar, _Rows, _Cols, _Flags>::ret
-              ? VectorizableBit  : 0
-            ),
+    Flags = ei_corrected_matrix_flags<_Scalar, _Rows, _Cols, _SuggestedFlags>::ret,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };

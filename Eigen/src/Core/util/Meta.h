@@ -145,36 +145,44 @@ template<typename T> struct ei_packet_traits
   enum {size=1};
 };
 
-template<typename Scalar, int Rows, int Cols, unsigned int Flags>
-struct ei_is_matrix_vectorizable
+template<typename Scalar, int Rows, int Cols, unsigned int SuggestedFlags>
+class ei_corrected_matrix_flags
 {
-  enum { ret = ei_packet_traits<Scalar>::size > 1
-             && Rows!=Dynamic
-             && Cols!=Dynamic
-             &&
-             (
-               (Flags&RowMajorBit && Cols%ei_packet_traits<Scalar>::size==0)
-               || (Rows%ei_packet_traits<Scalar>::size==0)
-             )
-  };
+    enum { is_vectorizable
+            = ei_packet_traits<Scalar>::size > 1
+              && Rows!=Dynamic
+              && Cols!=Dynamic
+              &&
+              (
+                SuggestedFlags&RowMajorBit
+                  ? Cols%ei_packet_traits<Scalar>::size==0
+                  : Rows%ei_packet_traits<Scalar>::size==0
+              ),
+          _flags1 = SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)
+    };
+
+  public:
+    enum { ret = is_vectorizable
+                  ? _flags1 | VectorizableBit
+                  : _flags1 & ~VectorizableBit
+    };
 };
 
-template<typename T> struct ei_eval
+template<typename T> class ei_eval
 {
-  typedef typename ei_traits<T>::Scalar _Scalar;
-  enum { _Rows = ei_traits<T>::RowsAtCompileTime,
-         _Cols = ei_traits<T>::ColsAtCompileTime,
-         _Flags = ei_traits<T>::Flags
-  };
-  typedef Matrix<_Scalar,
-                 _Rows,
-                 _Cols,
-                 (_Flags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit))
-                 |
-                 (ei_is_matrix_vectorizable<_Scalar, _Rows, _Cols, _Flags>::ret
-                  ? VectorizableBit : 0),
-                 ei_traits<T>::MaxRowsAtCompileTime,
-                 ei_traits<T>::MaxColsAtCompileTime> type;
+    typedef typename ei_traits<T>::Scalar _Scalar;
+    enum { _Rows = ei_traits<T>::RowsAtCompileTime,
+          _Cols = ei_traits<T>::ColsAtCompileTime,
+          _Flags = ei_traits<T>::Flags
+    };
+
+  public:
+    typedef Matrix<_Scalar,
+                  _Rows,
+                  _Cols,
+                  ei_corrected_matrix_flags<_Scalar, _Rows, _Cols, _Flags>::ret,
+                  ei_traits<T>::MaxRowsAtCompileTime,
+                  ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
 template<typename T> struct ei_unref { typedef T type; };

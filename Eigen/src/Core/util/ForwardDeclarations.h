@@ -30,7 +30,7 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 template<typename T> struct NumTraits;
 
 template<typename _Scalar, int _Rows, int _Cols,
-         unsigned int _Flags = EIGEN_DEFAULT_MATRIX_FLAGS,
+         unsigned int _SuggestedFlags = EIGEN_DEFAULT_MATRIX_FLAGS,
          int _MaxRows = _Rows, int _MaxCols = _Cols>
 class Matrix;
 

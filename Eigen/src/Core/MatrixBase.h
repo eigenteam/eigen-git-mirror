@@ -511,8 +511,8 @@ template<typename Derived> class MatrixBase
       * \code #include <Eigen/LU> \endcode
       */
     //@{
-    const Inverse<Derived, true> inverse() const;
-    const Inverse<Derived, false> quickInverse() const;
+    const Inverse<typename ei_eval<Derived>::type, true> inverse() const;
+    const Inverse<typename ei_eval<Derived>::type, false> quickInverse() const;
     Scalar determinant() const;
     //@}
 
