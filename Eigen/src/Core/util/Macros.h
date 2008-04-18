@@ -37,10 +37,6 @@
 #define EIGEN_UNROLLING_LIMIT 400
 #endif
 
-#ifndef EIGEN_PARALLELIZATION_TRESHOLD
-#define EIGEN_PARALLELIZATION_TRESHOLD 2000
-#endif
-
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajorBit
 #else
@@ -77,30 +73,6 @@ using Eigen::MatrixBase;
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
-
-#ifdef EIGEN_USE_OPENMP
-# ifdef __INTEL_COMPILER
-#   define EIGEN_PRAGMA_OMP_PARALLEL _Pragma("omp parallel default(none) shared(other)")
-# else
-#   define EIGEN_PRAGMA_OMP_PARALLEL _Pragma("omp parallel default(none)")
-# endif
-# define EIGEN_RUN_PARALLELIZABLE_LOOP(condition) \
-  if(condition) \
-  { \
-    EIGEN_PRAGMA_OMP_PARALLEL \
-    { \
-      _Pragma("omp for") \
-      EIGEN_THE_PARALLELIZABLE_LOOP \
-    } \
-  } \
-  else \
-  { \
-    EIGEN_THE_PARALLELIZABLE_LOOP \
-  }
-#else // EIGEN_USE_OPENMP
-# define EIGEN_RUN_PARALLELIZABLE_LOOP(condition) EIGEN_THE_PARALLELIZABLE_LOOP
-#endif
-
 
 // FIXME with the always_inline attribute,
 // gcc 3.4.x reports the following compilation error:

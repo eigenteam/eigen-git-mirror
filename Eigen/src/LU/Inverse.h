@@ -92,7 +92,6 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
     enum { _Size = MatrixType::RowsAtCompileTime };
     void _compute(const MatrixType& matrix);
     void _compute_in_general_case(const MatrixType& matrix);
-    void _compute_in_size1_case(const MatrixType& matrix);
     void _compute_in_size2_case(const MatrixType& matrix);
     void _compute_in_size3_case(const MatrixType& matrix);
     void _compute_in_size4_case(const MatrixType& matrix);

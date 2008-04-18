@@ -5,12 +5,12 @@
 using namespace std;
 USING_PART_OF_NAMESPACE_EIGEN
 
-#ifndef MATTYPE
-#define MATTYPE MatrixXLd
+#ifndef VECTYPE
+#define VECTYPE VectorXLd
 #endif
 
-#ifndef MATSIZE
-#define MATSIZE 1000000
+#ifndef VECSIZE
+#define VECSIZE 1000000
 #endif
 
 #ifndef REPEAT
@@ -19,16 +19,16 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {
-	MATTYPE I = MATTYPE::ones(MATSIZE,1);
-	MATTYPE m(MATSIZE,1);
-	for(int i = 0; i < MATSIZE; i++) for(int j = 0; j < 1; j++)
+	VECTYPE I = VECTYPE::ones(VECSIZE);
+	VECTYPE m(VECSIZE,1);
+	for(int i = 0; i < VECSIZE; i++)
 	{
-		m(i,j) = 0.1 * (i+j+1)/MATSIZE/MATSIZE;
+		m[i] = 0.1 * i/VECSIZE;
 	}
 	for(int a = 0; a < REPEAT; a++)
 	{
-		m = MATTYPE::ones(MATSIZE,1) + 0.00005 * (m.cwiseProduct(m) + m/4);
+		m = VECTYPE::ones(VECSIZE) + 0.00005 * (m.cwiseProduct(m) + m/4);
 	}
-	cout << m(0,0) << endl;
+	cout << m[0] << endl;
 	return 0;
 }

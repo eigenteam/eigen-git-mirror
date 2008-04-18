@@ -280,75 +280,67 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
 {
   res.setZero();
   const int cols4 = m_lhs.cols() & 0xfffffffC;
-  const bool should_parallelize = (Flags & DestDerived::Flags & LargeBit)
-                                && res.size() >= EIGEN_PARALLELIZATION_TRESHOLD;
   #ifdef EIGEN_VECTORIZE
   if( (Flags & VectorizableBit) && (!(Lhs::Flags & RowMajorBit)) )
-  {
-    #define EIGEN_THE_PARALLELIZABLE_LOOP \
-      for(int k=0; k<this->cols(); k++) \
-      { \
-        int j=0; \
-        for(; j<cols4; j+=4) \
-        { \
-          const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k)); \
-          const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k)); \
-          const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k)); \
-          const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k)); \
-          for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size) \
-          { \
-            res.writePacketCoeff(i,k,\
-              ei_padd( \
-                res.packetCoeff(i,k), \
-                ei_padd( \
-                  ei_padd( \
-                    ei_pmul(tmp0, m_lhs.packetCoeff(i,j)), \
-                    ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))), \
-                  ei_padd( \
-                    ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)), \
-                    ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3)) \
-                  ) \
-                ) \
-              ) \
-            ); \
-          } \
-        } \
-        for(; j<m_lhs.cols(); ++j) \
-        { \
-          const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k)); \
-          for (int i=0; i<this->rows(); ++i) \
-            res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j))); \
-        } \
+  {    
+    for(int k=0; k<this->cols(); k++)
+    {
+      int j=0;
+      for(; j<cols4; j+=4)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
+        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
+        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
+        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
+        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+        {
+          res.writePacketCoeff(i,k,\
+            ei_padd(
+              res.packetCoeff(i,k),
+              ei_padd(
+                ei_padd(
+                  ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
+                  ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
+                ei_padd(
+                  ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
+                  ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
+                )
+              )
+            )
+          );
+        }
       }
-    EIGEN_RUN_PARALLELIZABLE_LOOP(should_parallelize)
-    #undef EIGEN_THE_PARALLELIZABLE_LOOP
+      for(; j<m_lhs.cols(); ++j)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
+        for (int i=0; i<this->rows(); ++i)
+          res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
+      }
+    }
   }
   else
   #endif // EIGEN_VECTORIZE
   {
-    #define EIGEN_THE_PARALLELIZABLE_LOOP \
-      for(int k=0; k<this->cols(); ++k) \
-      { \
-        int j=0; \
-        for(; j<cols4; j+=4) \
-        { \
-          const Scalar tmp0 = m_rhs.coeff(j  ,k); \
-          const Scalar tmp1 = m_rhs.coeff(j+1,k); \
-          const Scalar tmp2 = m_rhs.coeff(j+2,k); \
-          const Scalar tmp3 = m_rhs.coeff(j+3,k); \
-          for (int i=0; i<this->rows(); ++i) \
-            res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1) \
-                              + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3); \
-        } \
-        for(; j<m_lhs.cols(); ++j) \
-        { \
-          const Scalar tmp = m_rhs.coeff(j,k); \
-          for (int i=0; i<this->rows(); ++i) \
-            res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j); \
-        } \
+    for(int k=0; k<this->cols(); ++k)
+    {
+      int j=0;
+      for(; j<cols4; j+=4)
+      {
+        const Scalar tmp0 = m_rhs.coeff(j  ,k);
+        const Scalar tmp1 = m_rhs.coeff(j+1,k);
+        const Scalar tmp2 = m_rhs.coeff(j+2,k);
+        const Scalar tmp3 = m_rhs.coeff(j+3,k);
+        for (int i=0; i<this->rows(); ++i)
+          res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
+                            + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
       }
-    EIGEN_RUN_PARALLELIZABLE_LOOP(should_parallelize)
-    #undef EIGEN_THE_PARALLELIZABLE_LOOP
+      for(; j<m_lhs.cols(); ++j)
+      {
+        const Scalar tmp = m_rhs.coeff(j,k);
+        for (int i=0; i<this->rows(); ++i)
+          res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j);
+      }
+    }
   }
 }
 
