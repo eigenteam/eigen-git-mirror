@@ -38,6 +38,7 @@ const unsigned int VectorizableBit = 0x10;
 #else
 const unsigned int VectorizableBit = 0x0;
 #endif
+const unsigned int Like1DArrayBit = 0x20;
 
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };

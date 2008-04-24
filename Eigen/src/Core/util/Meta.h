@@ -158,7 +158,7 @@ class ei_corrected_matrix_flags
                   ? Cols%ei_packet_traits<Scalar>::size==0
                   : Rows%ei_packet_traits<Scalar>::size==0
               ),
-          _flags1 = SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)
+          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)) | Like1DArrayBit
     };
 
   public:

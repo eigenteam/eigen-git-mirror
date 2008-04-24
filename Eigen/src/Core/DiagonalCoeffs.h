@@ -54,7 +54,7 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
     MaxColsAtCompileTime = 1,
     Flags = (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic
             ? (unsigned int)MatrixType::Flags
-            : (unsigned int)MatrixType::Flags &~ LargeBit) & ~VectorizableBit,
+            : (unsigned int)MatrixType::Flags &~ LargeBit) & ~(VectorizableBit | Like1DArrayBit),
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };

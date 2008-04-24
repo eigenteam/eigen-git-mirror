@@ -213,7 +213,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
         ei_packet_product_unroller<Flags&RowMajorBit, Lhs::ColsAtCompileTime-1,
                             Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
                               ? Lhs::ColsAtCompileTime : Dynamic,
-                            Lhs, Rhs, PacketScalar>
+                            _LhsNested, _RhsNested, PacketScalar>
           ::run(row, col, m_lhs, m_rhs, res);
       }
       else
@@ -282,7 +282,7 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
   const int cols4 = m_lhs.cols() & 0xfffffffC;
   #ifdef EIGEN_VECTORIZE
   if( (Flags & VectorizableBit) && (!(Lhs::Flags & RowMajorBit)) )
-  {    
+  {
     for(int k=0; k<this->cols(); k++)
     {
       int j=0;

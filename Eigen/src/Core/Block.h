@@ -71,7 +71,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
                       || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
                       ? ~LargeBit
                       : ~(unsigned int)0,
-    Flags = MatrixType::Flags & FlagsMaskLargeBit & ~VectorizableBit,
+    Flags = MatrixType::Flags & FlagsMaskLargeBit & ~(VectorizableBit | Like1DArrayBit),
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };

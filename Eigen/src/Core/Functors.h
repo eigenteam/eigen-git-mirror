@@ -340,6 +340,46 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
+// nullary functors
+
+template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_constant_op;
+
+template<typename Scalar>
+struct ei_scalar_constant_op<Scalar,true> {
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  ei_scalar_constant_op(const Scalar& other) : m_other(ei_pset1(other)) { }
+  Scalar operator() (int, int) const { return ei_pfirst(m_other); }
+  PacketScalar packetOp() const
+  { return m_other; }
+  const PacketScalar m_other;
+};
+template<typename Scalar>
+struct ei_scalar_constant_op<Scalar,false> {
+  ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
+  Scalar operator() (int, int) const { return m_other; }
+  const Scalar m_other;
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
+{ enum { Cost = 1, IsVectorizable = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
+
+
+template<typename Scalar> struct ei_scalar_random_op EIGEN_EMPTY_STRUCT {
+  ei_scalar_random_op(void) {}
+  Scalar operator() (int, int) const { return ei_random<Scalar>(); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_random_op<Scalar> >
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false, IsRepeatable = false }; };
+
+
+template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
+  ei_scalar_identity_op(void) {}
+  Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::AddCost, IsVectorizable = false, IsRepeatable = true }; };
 
 // default ei_functor_traits for STL functors:
 

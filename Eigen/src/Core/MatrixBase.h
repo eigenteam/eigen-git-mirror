@@ -339,20 +339,38 @@ template<typename Derived> class MatrixBase
 
     /// \name Generating special matrices
     //@{
-    static const Random<Derived> random(int rows, int cols);
-    static const Random<Derived> random(int size);
-    static const Random<Derived> random();
-    static const Zero<Derived> zero(int rows, int cols);
-    static const Zero<Derived> zero(int size);
-    static const Zero<Derived> zero();
-    static const Ones<Derived> ones(int rows, int cols);
-    static const Ones<Derived> ones(int size);
-    static const Ones<Derived> ones();
-    static const Identity<Derived> identity();
-    static const Identity<Derived> identity(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    constant(int rows, int cols, const Scalar& value);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    constant(int size, const Scalar& value);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    constant(const Scalar& value);
+
+    template<typename CustomZeroaryOp>
+    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
+    cwiseCreate(int rows, int cols, const CustomZeroaryOp& func);
+    template<typename CustomZeroaryOp>
+    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
+    cwiseCreate(int size, const CustomZeroaryOp& func);
+    template<typename CustomZeroaryOp>
+    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
+    cwiseCreate(const CustomZeroaryOp& func);
+
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero(int size);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero();
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones(int size);
+    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones();
+    static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity();
+    static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity(int rows, int cols);
 
     const DiagonalMatrix<Derived> asDiagonal() const;
 
+    Derived& setConstant(const Scalar& value);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
@@ -370,6 +388,7 @@ template<typename Derived> class MatrixBase
     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
                            RealScalar prec = precision<Scalar>()) const;
 
+    bool isEqualToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
