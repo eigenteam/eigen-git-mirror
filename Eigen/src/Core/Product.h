@@ -138,12 +138,14 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
               ~(RowMajorBit | VectorizableBit | Like1DArrayBit)
               | (
                   (
-                    !(Lhs::Flags & RowMajorBit) && (Lhs::Flags & VectorizableBit)
+                    (!(Lhs::Flags & RowMajorBit)) && (Lhs::Flags & VectorizableBit)
+                    && (Lhs::RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0)
                   )
                   ? VectorizableBit
                   : (
                       (
                         (Rhs::Flags & RowMajorBit) && (Rhs::Flags & VectorizableBit)
+                        && (Lhs::ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0)
                       )
                       ? RowMajorBit | VectorizableBit
                       : 0
@@ -282,7 +284,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProdu
       && (Lhs::RowsAtCompileTime%ei_packet_traits<Scalar>::size==0) ),
       ei_meta_true,ei_meta_false>::ret()
     #else
-    ei_meta_false
+    ei_meta_false()
     #endif
     );
   return derived();

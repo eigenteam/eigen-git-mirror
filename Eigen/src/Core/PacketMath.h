@@ -59,9 +59,13 @@ inline __m128d ei_pmul(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a
 inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
 {
   return _mm_or_si128(
-    _mm_mul_epu32(a,b),
+    _mm_and_si128(
+      _mm_mul_epu32(a,b),
+      _mm_setr_epi32(0xffffffff,0,0xffffffff,0)),
     _mm_slli_si128(
-      _mm_mul_epu32(_mm_srli_si128(a,32),_mm_srli_si128(b,32)), 32));
+      _mm_and_si128(
+        _mm_mul_epu32(_mm_srli_si128(a,4),_mm_srli_si128(b,4)),
+        _mm_setr_epi32(0xffffffff,0,0xffffffff,0)), 4));
 }
 
 inline __m128  ei_pmin(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }

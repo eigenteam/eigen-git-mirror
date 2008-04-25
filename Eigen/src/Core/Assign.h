@@ -123,7 +123,8 @@ Derived& MatrixBase<Derived>
 {
   const bool need_to_transpose = Derived::IsVectorAtCompileTime
                               && OtherDerived::IsVectorAtCompileTime
-                              && (int)Derived::RowsAtCompileTime != (int)OtherDerived::RowsAtCompileTime;
+                              && (int)Derived::RowsAtCompileTime != (int)OtherDerived::RowsAtCompileTime
+                              && (int)Derived::ColsAtCompileTime != (int)OtherDerived::ColsAtCompileTime;
   if(OtherDerived::Flags & EvalBeforeAssigningBit)
   {
     if(need_to_transpose)

@@ -110,7 +110,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::cwiseCreate(int rows, int cols, const CustomNullaryOp& func)
+MatrixBase<Derived>::create(int rows, int cols, const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, Derived>(rows, cols, func);
 }
@@ -133,7 +133,7 @@ MatrixBase<Derived>::cwiseCreate(int rows, int cols, const CustomNullaryOp& func
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::cwiseCreate(int size, const CustomNullaryOp& func)
+MatrixBase<Derived>::create(int size, const CustomNullaryOp& func)
 {
   ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, Derived>(1, size, func);
@@ -152,7 +152,7 @@ MatrixBase<Derived>::cwiseCreate(int size, const CustomNullaryOp& func)
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::cwiseCreate(const CustomNullaryOp& func)
+MatrixBase<Derived>::create(const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, Derived>(rows(), cols(), func);
 }
@@ -174,7 +174,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
 {
-  return cwiseCreate(rows, cols, ei_scalar_constant_op<Scalar>(value));
+  return create(rows, cols, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -196,7 +196,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::constant(int size, const Scalar& value)
 {
-  return cwiseCreate(size, ei_scalar_constant_op<Scalar>(value));
+  return create(size, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -212,7 +212,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::constant(const Scalar& value)
 {
-  return cwiseCreate(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
+  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
 template<typename Derived>
@@ -442,7 +442,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int rows, int cols)
 {
-  return cwiseCreate(rows, cols, ei_scalar_random_op<Scalar>());
+  return create(rows, cols, ei_scalar_random_op<Scalar>());
 }
 
 /** \returns a random vector (not an expression, the vector is immediately evaluated).
@@ -465,7 +465,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int size)
 {
-  return cwiseCreate(size, ei_scalar_random_op<Scalar>());
+  return create(size, ei_scalar_random_op<Scalar>());
 }
 
 /** \returns a fixed-size random matrix or vector
@@ -483,7 +483,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random()
 {
-  return cwiseCreate(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
+  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
 }
 
 /** Sets all coefficients in this expression to random values.
@@ -519,7 +519,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity(int rows, int cols)
 {
-  return cwiseCreate(rows, cols, ei_scalar_identity_op<Scalar>());
+  return create(rows, cols, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns an expression of the identity matrix (not necessarily square).
@@ -536,7 +536,7 @@ template<typename Derived>
 const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity()
 {
-  return cwiseCreate(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
+  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns true if *this is approximately equal to the identity matrix

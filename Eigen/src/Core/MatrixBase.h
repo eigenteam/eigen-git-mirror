@@ -340,15 +340,15 @@ template<typename Derived> class MatrixBase
     static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
     constant(const Scalar& value);
 
-    template<typename CustomZeroaryOp>
-    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
-    cwiseCreate(int rows, int cols, const CustomZeroaryOp& func);
-    template<typename CustomZeroaryOp>
-    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
-    cwiseCreate(int size, const CustomZeroaryOp& func);
-    template<typename CustomZeroaryOp>
-    static const CwiseNullaryOp<CustomZeroaryOp, Derived>
-    cwiseCreate(const CustomZeroaryOp& func);
+    template<typename CustomNullaryOp>
+    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    create(int rows, int cols, const CustomNullaryOp& func);
+    template<typename CustomNullaryOp>
+    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    create(int size, const CustomNullaryOp& func);
+    template<typename CustomNullaryOp>
+    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    create(const CustomNullaryOp& func);
 
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);

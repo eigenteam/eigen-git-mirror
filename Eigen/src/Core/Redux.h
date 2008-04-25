@@ -53,7 +53,7 @@ struct ei_redux_unroller<BinaryOp, Derived, Start, 1>
 
   typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
 
-  static Scalar run(const Derived &mat, const BinaryOp &func)
+  static Scalar run(const Derived &mat, const BinaryOp &)
   {
     return mat.coeff(row, col);
   }
@@ -96,7 +96,7 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
     Flags = ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
           ? (unsigned int)_MatrixTypeNested::Flags
-          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & ~VectorizableBit,
+          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & ~(VectorizableBit | Like1DArrayBit),
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
     CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost
                   + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost
@@ -124,9 +124,9 @@ class PartialRedux : ei_no_assignment_operator,
     const Scalar _coeff(int i, int j) const
     {
       if (Direction==Vertical)
-        return this->col(j).redux(m_functor);
+        return m_matrix.col(j).redux(m_functor);
       else
-        return this->row(i).redux(m_functor);
+        return m_matrix.row(i).redux(m_functor);
     }
 
   protected:

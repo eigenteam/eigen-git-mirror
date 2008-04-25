@@ -135,7 +135,7 @@ template<typename Derived>
 const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::normalized() const
 {
-  return (*this) / norm();
+  return (*this) * (Scalar(1)/norm());
 }
 
 /** \returns true if *this is approximately orthogonal to \a other,
