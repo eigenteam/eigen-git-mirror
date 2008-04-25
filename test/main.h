@@ -213,6 +213,7 @@ class EigenTest : public QObject
     void testSmallVectors();
     void testMap();
     void testCwiseops();
+    void testDeterminant();
   protected:
     int m_repeat;
 };

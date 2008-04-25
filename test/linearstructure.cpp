@@ -89,6 +89,12 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   VERIFY_IS_APPROX((m1*s1)(r,c), (m1(r,c))*s1);
   if(NumTraits<Scalar>::HasFloatingPoint)
     VERIFY_IS_APPROX((m1/s1)(r,c), (m1(r,c))/s1);
+
+  // use .block to disable vectorization and compare to the vectorized version
+  VERIFY_IS_APPROX(m1+m1.block(0,0,rows,cols), m1+m1);
+  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), m1.cwiseProduct(m1));
+  VERIFY_IS_APPROX(m1 - m1.block(0,0,rows,cols), m1 - m1);
+  VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
 }
 
 void EigenTest::testLinearStructure()
@@ -97,6 +103,7 @@ void EigenTest::testLinearStructure()
     linearStructure(Matrix<float, 1, 1>());
     linearStructure(Matrix4d());
     linearStructure(MatrixXcf(3, 3));
+    linearStructure(MatrixXf(8, 12));
     linearStructure(MatrixXi(8, 12));
     linearStructure(MatrixXcd(20, 20));
   }

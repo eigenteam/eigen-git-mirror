@@ -34,6 +34,7 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -43,7 +44,8 @@ template<typename MatrixType> void product(const MatrixType& m)
   MatrixType m1 = MatrixType::random(rows, cols),
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
-             mzero = MatrixType::zero(rows, cols),
+             mzero = MatrixType::zero(rows, cols);
+  SquareMatrixType
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
@@ -95,7 +97,8 @@ void EigenTest::testProduct()
     product(Matrix<float, 1, 1>());
     product(Matrix4d());
     product(MatrixXcf(3, 3));
-    product(MatrixXi(8, 12));
+    product(MatrixXf(13, 25));
+    product(MatrixXi(4, 4));
     product(MatrixXcd(20, 20));
   }
 

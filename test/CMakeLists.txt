@@ -17,6 +17,7 @@ SET(test_SRCS
   smallvectors.cpp
   map.cpp
   cwiseop.cpp
+  determinant.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 
