@@ -99,7 +99,11 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
 
 template <typename Derived, typename OtherDerived,
 bool Vectorize = (Derived::Flags & OtherDerived::Flags & VectorizableBit)
-              && ((Derived::Flags&RowMajorBit)==(OtherDerived::Flags&RowMajorBit))>
+              && ((Derived::Flags&RowMajorBit)==(OtherDerived::Flags&RowMajorBit))
+              && (  (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
+                  ||((Derived::Flags&RowMajorBit)
+                    ? Derived::ColsAtCompileTime!=Dynamic && (Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)
+                    : Derived::RowsAtCompileTime!=Dynamic && (Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)) )>
 struct ei_assignment_impl;
 
 template<typename Derived>
@@ -107,6 +111,7 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
+//   std::cout << "lazyAssign = " << Derived::Flags << " " << OtherDerived::Flags << "\n";
   ei_assignment_impl<Derived,OtherDerived>::execute(derived(),other.derived());
   return derived();
 }
@@ -178,6 +183,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true>
     ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     if(unroll)
     {
+//       std::cout << "vectorized unrolled\n";
       ei_matrix_assignment_packet_unroller
         <Derived, OtherDerived,
           unroll && int(Derived::SizeAtCompileTime)>=ei_packet_traits<typename Derived::Scalar>::size
@@ -188,15 +194,61 @@ struct ei_assignment_impl<Derived, OtherDerived, true>
     {
       if(OtherDerived::Flags&RowMajorBit)
       {
-        for(int i = 0; i < dst.rows(); i++)
-          for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
+        if ( (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
+          &&  (Derived::ColsAtCompileTime==Dynamic
+            || Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0))
+        {
+//           std::cout << "vectorized linear row major\n";
+          const int size = dst.rows() * dst.cols();
+          const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)*ei_packet_traits<typename Derived::Scalar>::size;
+          int index = 0;
+          for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
+          {
+            // FIXME the following is not really efficient
+            int i = index/dst.rows();
+            int j = index%dst.rows();
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+          }
+          for(int i = alignedSize/dst.rows(); i < dst.rows(); i++)
+            for(int j = alignedSize%dst.rows(); j < dst.cols(); j++)
+              dst.coeffRef(i, j) = src.coeff(i, j);
+        }
+        else
+        {
+//           std::cout << "vectorized normal row major\n";
+          for(int i = 0; i < dst.rows(); i++)
+            for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
+              dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+        }
       }
       else
       {
-        for(int j = 0; j < dst.cols(); j++)
-          for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
+        if ((Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
+          && ( Derived::RowsAtCompileTime==Dynamic
+            || Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0))
+        {
+//           std::cout << "vectorized linear col major\n";
+          const int size = dst.rows() * dst.cols();
+          const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)*ei_packet_traits<typename Derived::Scalar>::size;
+          int index = 0;
+          for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
+          {
+            // FIXME the following is not really efficient
+            int i = index%dst.rows();
+            int j = index/dst.rows();
             dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+          }
+          for(int j = alignedSize/dst.rows(); j < dst.cols(); j++)
+            for(int i = alignedSize%dst.rows(); i < dst.rows(); i++)
+              dst.coeffRef(i, j) = src.coeff(i, j);
+        }
+        else
+        {
+//           std::cout << "vectorized normal col major\n";
+          for(int j = 0; j < dst.cols(); j++)
+            for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
+              dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+        }
       }
     }
   }

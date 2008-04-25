@@ -75,11 +75,8 @@ template<typename Derived> class MatrixBase
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
 
-      SizeAtCompileTime
-        = ei_traits<Derived>::RowsAtCompileTime == Dynamic
-        || ei_traits<Derived>::ColsAtCompileTime == Dynamic
-        ? Dynamic
-        : ei_traits<Derived>::RowsAtCompileTime * ei_traits<Derived>::ColsAtCompileTime,
+      SizeAtCompileTime = ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
+                                                  ei_traits<Derived>::ColsAtCompileTime>::ret,
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
@@ -106,11 +103,8 @@ template<typename Derived> class MatrixBase
           * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
           */
 
-      MaxSizeAtCompileTime
-        = ei_traits<Derived>::MaxRowsAtCompileTime == Dynamic
-        || ei_traits<Derived>::MaxColsAtCompileTime == Dynamic
-        ? Dynamic
-        : ei_traits<Derived>::MaxRowsAtCompileTime * ei_traits<Derived>::MaxColsAtCompileTime,
+      MaxSizeAtCompileTime = ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
+                                                     ei_traits<Derived>::MaxColsAtCompileTime>::ret,
         /**< This value is equal to the maximum possible number of coefficients that this expression
           * might have. If this expression might have an arbitrarily high number of coefficients,
           * this value is set to \a Dynamic.

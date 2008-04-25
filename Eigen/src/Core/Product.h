@@ -135,7 +135,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
           | EvalBeforeAssigningBit
           | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0))
           & (
-              ~(RowMajorBit | VectorizableBit)
+              ~(RowMajorBit | VectorizableBit | Like1DArrayBit)
               | (
                   (
                     !(Lhs::Flags & RowMajorBit) && (Lhs::Flags & VectorizableBit)
@@ -178,7 +178,11 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
 
     /** \internal */
     template<typename DestDerived>
-    void _cacheOptimalEval(DestDerived& res) const;
+    void _cacheOptimalEval(DestDerived& res, ei_meta_false) const;
+    #ifdef EIGEN_VECTORIZE
+    template<typename DestDerived>
+    void _cacheOptimalEval(DestDerived& res, ei_meta_true) const;
+    #endif
 
   private:
 
@@ -267,59 +271,29 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 }
 
 template<typename Derived>
-template<typename Derived1, typename Derived2>
-Derived& MatrixBase<Derived>::lazyAssign(const Product<Derived1,Derived2,CacheOptimalProduct>& product)
+template<typename Lhs, typename Rhs>
+Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProduct>& product)
 {
-  product._cacheOptimalEval(*this);
+  product._cacheOptimalEval(*this,
+    #ifdef EIGEN_VECTORIZE
+    typename ei_meta_if<(Flags & VectorizableBit)
+      && (!(Lhs::Flags & RowMajorBit)
+      && (Lhs::RowsAtCompileTime!=Dynamic)
+      && (Lhs::RowsAtCompileTime%ei_packet_traits<Scalar>::size==0) ),
+      ei_meta_true,ei_meta_false>::ret()
+    #else
+    ei_meta_false
+    #endif
+    );
   return derived();
 }
 
 template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
-void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
+void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_false) const
 {
   res.setZero();
   const int cols4 = m_lhs.cols() & 0xfffffffC;
-  #ifdef EIGEN_VECTORIZE
-  if( (Flags & VectorizableBit) && (!(Lhs::Flags & RowMajorBit)) )
-  {
-    for(int k=0; k<this->cols(); k++)
-    {
-      int j=0;
-      for(; j<cols4; j+=4)
-      {
-        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
-        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
-        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
-        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
-        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
-        {
-          res.writePacketCoeff(i,k,\
-            ei_padd(
-              res.packetCoeff(i,k),
-              ei_padd(
-                ei_padd(
-                  ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
-                  ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
-                ei_padd(
-                  ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
-                  ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
-                )
-              )
-            )
-          );
-        }
-      }
-      for(; j<m_lhs.cols(); ++j)
-      {
-        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
-        for (int i=0; i<this->rows(); ++i)
-          res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
-      }
-    }
-  }
-  else
-  #endif // EIGEN_VECTORIZE
   {
     for(int k=0; k<this->cols(); ++k)
     {
@@ -343,5 +317,49 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res) const
     }
   }
 }
+
+#ifdef EIGEN_VECTORIZE
+template<typename Lhs, typename Rhs, int EvalMode>
+template<typename DestDerived>
+void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_true) const
+{
+  res.setZero();
+  const int cols4 = m_lhs.cols() & 0xfffffffC;
+  for(int k=0; k<this->cols(); k++)
+  {
+    int j=0;
+    for(; j<cols4; j+=4)
+    {
+      const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
+      const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
+      const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
+      const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
+      for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+      {
+        res.writePacketCoeff(i,k,\
+          ei_padd(
+            res.packetCoeff(i,k),
+            ei_padd(
+              ei_padd(
+                ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
+                ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
+              ei_padd(
+                ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
+                ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
+              )
+            )
+          )
+        );
+      }
+    }
+    for(; j<m_lhs.cols(); ++j)
+    {
+      const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
+      for (int i=0; i<this->rows(); ++i)
+        res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
+    }
+  }
+}
+#endif // EIGEN_VECTORIZE
 
 #endif // EIGEN_PRODUCT_H

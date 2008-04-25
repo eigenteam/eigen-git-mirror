@@ -71,6 +71,11 @@ template<typename ExpressionType> class Temporary
       return m_expression.coeff(row, col);
     }
 
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_expression.packetCoeff(row, col);
+    }
+
   protected:
     const ExpressionType m_expression;
 };

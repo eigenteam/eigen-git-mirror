@@ -49,6 +49,28 @@ template <typename T, int Size> struct ei_aligned_array<T,Size,false>
   T array[Size];
 };
 
+template<typename T>
+T* ei_aligned_malloc(size_t size)
+{
+  #ifdef EIGEN_VECTORIZE
+  if (ei_packet_traits<T>::size>1)
+    return static_cast<T*>(_mm_malloc(sizeof(T)*size, 16));
+  else
+  #endif
+    return new T[size];
+}
+
+template<typename T>
+void ei_aligned_free(T* ptr)
+{
+  #ifdef EIGEN_VECTORIZE
+  if (ei_packet_traits<T>::size>1)
+    _mm_free(ptr);
+  else
+  #endif
+    delete[] ptr;
+}
+
 // purely fixed-size matrix
 template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 {
@@ -127,7 +149,7 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
     int m_cols;
   public:
     ei_matrix_storage(int size, int rows, int cols)
-      : m_data(new T[size]), m_rows(rows), m_cols(cols) {}
+      : m_data(ei_aligned_malloc<T>(size)), m_rows(rows), m_cols(cols) {}
     ~ei_matrix_storage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     int cols(void) const {return m_cols;}
@@ -135,8 +157,8 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
     {
       if(size != m_rows*m_cols)
       {
-        delete[] m_data;
-        m_data = new T[size];
+        ei_aligned_free(m_data);
+        m_data = ei_aligned_malloc<T>(size);
       }
       m_rows = rows;
       m_cols = cols;
@@ -151,7 +173,7 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
     T *m_data;
     int m_cols;
   public:
-    ei_matrix_storage(int size, int, int cols) : m_data(new T[size]), m_cols(cols) {}
+    ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_malloc<T>(size)), m_cols(cols) {}
     ~ei_matrix_storage() { delete[] m_data; }
     static int rows(void) {return _Rows;}
     int cols(void) const {return m_cols;}
@@ -159,8 +181,8 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
     {
       if(size != _Rows*m_cols)
       {
-        delete[] m_data;
-        m_data = new T[size];
+        ei_aligned_free(m_data);
+        m_data = ei_aligned_malloc<T>(size);
       }
       m_cols = cols;
     }
@@ -174,7 +196,7 @@ template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Co
     T *m_data;
     int m_rows;
   public:
-    ei_matrix_storage(int size, int rows, int) : m_data(new T[size]), m_rows(rows) {}
+    ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
     ~ei_matrix_storage() { delete[] m_data; }
     int rows(void) const {return m_rows;}
     static int cols(void) {return _Cols;}
@@ -182,8 +204,8 @@ template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Co
     {
       if(size != m_rows*_Cols)
       {
-        delete[] m_data;
-        m_data = new T[size];
+        ei_aligned_free(m_data);
+        m_data = ei_aligned_malloc<T>(size);
       }
       m_rows = rows;
     }

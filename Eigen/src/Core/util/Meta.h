@@ -70,6 +70,9 @@ struct ei_meta_if <false, Then, Else> { typedef Else ret; };
 template<typename T, typename U> struct ei_is_same_type { enum { ret = 0 }; };
 template<typename T> struct ei_is_same_type<T,T> { enum { ret = 1 }; };
 
+struct ei_meta_true {};
+struct ei_meta_false {};
+
 
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
@@ -145,19 +148,12 @@ template<typename T> struct ei_packet_traits
   enum {size=1};
 };
 
-template<typename Scalar, int Rows, int Cols, unsigned int SuggestedFlags>
+template<typename Scalar, int Size, unsigned int SuggestedFlags>
 class ei_corrected_matrix_flags
 {
     enum { is_vectorizable
             = ei_packet_traits<Scalar>::size > 1
-              && Rows!=Dynamic
-              && Cols!=Dynamic
-              &&
-              (
-                SuggestedFlags&RowMajorBit
-                  ? Cols%ei_packet_traits<Scalar>::size==0
-                  : Rows%ei_packet_traits<Scalar>::size==0
-              ),
+              && (Size%ei_packet_traits<Scalar>::size==0),
           _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)) | Like1DArrayBit
     };
 
@@ -168,19 +164,24 @@ class ei_corrected_matrix_flags
     };
 };
 
+template<int _Rows, int _Cols> struct ei_size_at_compile_time
+{
+  enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
+};
+
 template<typename T> class ei_eval
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
-    enum { _Rows = ei_traits<T>::RowsAtCompileTime,
-          _Cols = ei_traits<T>::ColsAtCompileTime,
+    enum {_MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
+          _MaxCols = ei_traits<T>::MaxColsAtCompileTime,
           _Flags = ei_traits<T>::Flags
     };
 
   public:
     typedef Matrix<_Scalar,
-                  _Rows,
-                  _Cols,
-                  ei_corrected_matrix_flags<_Scalar, _Rows, _Cols, _Flags>::ret,
+                  ei_traits<T>::RowsAtCompileTime,
+                  ei_traits<T>::ColsAtCompileTime,
+                  ei_corrected_matrix_flags<_Scalar, ei_size_at_compile_time<_MaxRows,_MaxCols>::ret, _Flags>::ret,
                   ei_traits<T>::MaxRowsAtCompileTime,
                   ei_traits<T>::MaxColsAtCompileTime> type;
 };

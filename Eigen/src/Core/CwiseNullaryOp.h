@@ -31,8 +31,8 @@
   *
   * \param NullaryOp template functor implementing the operator
   *
-  * This class represents an expression of a generic zeroary operator.
-  * It is the return type of the ones(), zero(), constant() and random() functions,
+  * This class represents an expression of a generic nullary operator.
+  * It is the return type of the ones(), zero(), constant(), identity() and random() functions,
   * and most of the time this is the only way it is used.
   *
   * However, if you want to write a function returning such an expression, you
@@ -94,12 +94,18 @@ class CwiseNullaryOp : ei_no_assignment_operator,
 };
 
 
-/* \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
+/** \returns an expression of a matrix defined by a custom functor \a func
   *
-  * The template parameter \a CustomNullaryOp is the type of the functor
-  * of the custom operator (see class CwiseNullaryOp for an example)
+  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * the returned matrix. Must be compatible with this MatrixBase type.
   *
-  * \sa class CwiseNullaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
+  * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
+  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * instead.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
+  *
+  * \sa class CwiseNullaryOp
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
@@ -109,6 +115,21 @@ MatrixBase<Derived>::cwiseCreate(int rows, int cols, const CustomNullaryOp& func
   return CwiseNullaryOp<CustomNullaryOp, Derived>(rows, cols, func);
 }
 
+/** \returns an expression of a matrix defined by a custom functor \a func
+  *
+  * The parameter \a size is the size of the returned vector.
+  * Must be compatible with this MatrixBase type.
+  *
+  * \only_for_vectors
+  *
+  * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
+  * it is redundant to pass \a size as argument, so zero() should be used
+  * instead.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
+  *
+  * \sa class CwiseNullaryOp
+  */
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
@@ -119,6 +140,15 @@ MatrixBase<Derived>::cwiseCreate(int size, const CustomNullaryOp& func)
   else return CwiseNullaryOp<CustomNullaryOp, Derived>(size, 1, func);
 }
 
+/** \returns an expression of a matrix defined by a custom functor \a func
+  *
+  * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
+  * need to use the variants taking size arguments.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
+  *
+  * \sa class CwiseNullaryOp
+  */
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
@@ -127,7 +157,16 @@ MatrixBase<Derived>::cwiseCreate(const CustomNullaryOp& func)
   return CwiseNullaryOp<CustomNullaryOp, Derived>(rows(), cols(), func);
 }
 
-/* \returns an expression of the coefficient-wise \< operator of *this and \a other
+/** \returns an expression of a constant matrix of value \a value
+  *
+  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * the returned matrix. Must be compatible with this MatrixBase type.
+  *
+  * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
+  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * instead.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
   *
   * \sa class CwiseNullaryOp
   */
@@ -138,6 +177,21 @@ MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
   return cwiseCreate(rows, cols, ei_scalar_constant_op<Scalar>(value));
 }
 
+/** \returns an expression of a constant matrix of value \a value
+  *
+  * The parameter \a size is the size of the returned vector.
+  * Must be compatible with this MatrixBase type.
+  *
+  * \only_for_vectors
+  *
+  * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
+  * it is redundant to pass \a size as argument, so zero() should be used
+  * instead.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
+  *
+  * \sa class CwiseNullaryOp
+  */
 template<typename Derived>
 const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::constant(int size, const Scalar& value)
@@ -145,6 +199,15 @@ MatrixBase<Derived>::constant(int size, const Scalar& value)
   return cwiseCreate(size, ei_scalar_constant_op<Scalar>(value));
 }
 
+/** \returns an expression of a constant matrix of value \a value
+  *
+  * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
+  * need to use the variants taking size arguments.
+  *
+  * The template parameter \a CustomNullaryOp is the type of the functor.
+  *
+  * \sa class CwiseNullaryOp
+  */
 template<typename Derived>
 const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::constant(const Scalar& value)
@@ -163,6 +226,10 @@ bool MatrixBase<Derived>::isEqualToConstant
   return true;
 }
 
+/** Sets all coefficients in this expression to \a value.
+  *
+  * \sa class CwiseNullaryOp, zero(), ones()
+  */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
 {
@@ -238,7 +305,7 @@ MatrixBase<Derived>::zero()
   * Example: \include MatrixBase_isZero.cpp
   * Output: \verbinclude MatrixBase_isZero.out
   *
-  * \sa class Zero, zero()
+  * \sa class CwiseNullaryOp, zero()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isZero
@@ -256,7 +323,7 @@ bool MatrixBase<Derived>::isZero
   * Example: \include MatrixBase_setZero.cpp
   * Output: \verbinclude MatrixBase_setZero.out
   *
-  * \sa class Zero, zero()
+  * \sa class CwiseNullaryOp, zero()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setZero()
@@ -333,7 +400,7 @@ MatrixBase<Derived>::ones()
   * Example: \include MatrixBase_isOnes.cpp
   * Output: \verbinclude MatrixBase_isOnes.out
   *
-  * \sa class Ones, ones()
+  * \sa class CwiseNullaryOp, ones()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isOnes
@@ -347,7 +414,7 @@ bool MatrixBase<Derived>::isOnes
   * Example: \include MatrixBase_setOnes.cpp
   * Output: \verbinclude MatrixBase_setOnes.out
   *
-  * \sa class Ones, ones()
+  * \sa class CwiseNullaryOp, ones()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setOnes()
@@ -424,7 +491,7 @@ MatrixBase<Derived>::random()
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
-  * \sa class Random, ei_random()
+  * \sa class CwiseNullaryOp, ei_random()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setRandom()
@@ -479,7 +546,7 @@ MatrixBase<Derived>::identity()
   * Example: \include MatrixBase_isIdentity.cpp
   * Output: \verbinclude MatrixBase_isIdentity.out
   *
-  * \sa class Identity, identity(), identity(int,int), setIdentity()
+  * \sa class CwiseNullaryOp, identity(), identity(int,int), setIdentity()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isIdentity
@@ -509,7 +576,7 @@ bool MatrixBase<Derived>::isIdentity
   * Example: \include MatrixBase_setIdentity.cpp
   * Output: \verbinclude MatrixBase_setIdentity.out
   *
-  * \sa class Identity, identity(), identity(int,int), isIdentity()
+  * \sa class CwiseNullaryOp, identity(), identity(int,int), isIdentity()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setIdentity()

@@ -79,7 +79,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _SuggestedFlags, _MaxRows, _MaxCo
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = ei_corrected_matrix_flags<_Scalar, _Rows, _Cols, _SuggestedFlags>::ret,
+    Flags = ei_corrected_matrix_flags<_Scalar, ei_size_at_compile_time<_MaxRows,_MaxCols>::ret, _SuggestedFlags>::ret,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
