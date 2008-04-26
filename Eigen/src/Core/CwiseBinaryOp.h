@@ -60,9 +60,11 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-    Flags = ((Lhs::Flags | Rhs::Flags) & ~VectorizableBit)
+    Flags = ((Lhs::Flags | Rhs::Flags) & (
+        DefaultLostFlagMask
+      | Like1DArrayBit
       | (ei_functor_traits<BinaryOp>::IsVectorizable && ((Lhs::Flags & RowMajorBit)==(Rhs::Flags & RowMajorBit))
-        ? (Lhs::Flags & Rhs::Flags & VectorizableBit) : 0),
+        ? VectorizableBit : 0))),
     CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };

@@ -519,6 +519,22 @@ template<typename Derived> class MatrixBase
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
     //@}
 
+    /// \name Triangular matrices
+    //@{
+    Triangular<Upper, Derived> upper(void);
+    const Triangular<Upper, Derived> upper(void) const;
+    const Triangular<Upper|UnitDiagBit, Derived> upperWithUnitDiag(void) const;
+    const Triangular<Upper|NullDiagBit, Derived> upperWithNullDiag(void) const;
+
+    Triangular<Lower, Derived> lower(void);
+    const Triangular<Lower, Derived> lower(void) const;
+    const Triangular<Lower|UnitDiagBit, Derived> lowerWithUnitDiag(void) const;
+    const Triangular<Lower|NullDiagBit, Derived> lowerWithNullDiag(void) const;
+
+    bool isUpper(RealScalar prec = precision<Scalar>()) const;
+    bool isLower(RealScalar prec = precision<Scalar>()) const;
+    //@}
+
     /** \name LU module
       *
       * \code #include <Eigen/LU> \endcode
@@ -527,6 +543,14 @@ template<typename Derived> class MatrixBase
     const Inverse<typename ei_eval<Derived>::type, true> inverse() const;
     const Inverse<typename ei_eval<Derived>::type, false> quickInverse() const;
     Scalar determinant() const;
+    //@}
+
+    /** \name QR module
+      *
+      * \code #include <Eigen/QR> \endcode
+      */
+    //@{
+    const QR<typename ei_eval<Derived>::type> qr() const;
     //@}
 
   private:

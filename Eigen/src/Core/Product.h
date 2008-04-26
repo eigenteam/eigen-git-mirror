@@ -135,7 +135,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
           | EvalBeforeAssigningBit
           | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0))
           & (
-              ~(RowMajorBit | VectorizableBit | Like1DArrayBit)
+              DefaultLostFlagMask & (~RowMajorBit)
               | (
                   (
                     (!(Lhs::Flags & RowMajorBit)) && (Lhs::Flags & VectorizableBit)

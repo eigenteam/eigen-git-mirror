@@ -48,7 +48,7 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (MatrixType::Flags & ~VectorizableBit)
+    Flags = (MatrixType::Flags & (DefaultLostFlagMask | Like1DArrayBit))
       | ei_functor_traits<NullaryOp>::IsVectorizable
       | (ei_functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
     CoeffReadCost = ei_functor_traits<NullaryOp>::Cost

@@ -30,15 +30,24 @@ const int Dynamic = 10000;
 
 // matrix/expression flags
 const unsigned int RowMajorBit = 0x1;
-const unsigned int EvalBeforeNestingBit = 0x2;
-const unsigned int EvalBeforeAssigningBit = 0x4;
+const unsigned int EvalBeforeNestingBit = 0x2;  ///< means the expression should be evaluated by the calling expression
+const unsigned int EvalBeforeAssigningBit = 0x4;///< means the expression should be evaluated before any assignement
 const unsigned int LargeBit = 0x8;
 #ifdef EIGEN_VECTORIZE
-const unsigned int VectorizableBit = 0x10;
+const unsigned int VectorizableBit = 0x10;  ///< means the expression might be vectorized
 #else
 const unsigned int VectorizableBit = 0x0;
 #endif
-const unsigned int Like1DArrayBit = 0x20;
+const unsigned int Like1DArrayBit = 0x20;   ///< means the expression can be seen as 1D vector (used for explicit vectorization)
+const unsigned int NullDiagBit = 0x40;      ///< means all diagonal coefficients are equal to 0
+const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients are equal to 1
+const unsigned int NullLowerBit = 0x200;    ///< means the strictly triangular lower part is 0
+const unsigned int NullUpperBit = 0x400;    ///< means the strictly triangular upper part is 0
+
+enum { Upper=NullLowerBit, Lower=NullUpperBit };
+
+// list of flags that are lost by default
+const unsigned int DefaultLostFlagMask = ~(VectorizableBit | Like1DArrayBit | NullDiagBit | UnitDiagBit | NullLowerBit | NullUpperBit);
 
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };

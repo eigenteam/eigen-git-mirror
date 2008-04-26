@@ -98,7 +98,7 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
 
   protected:
     bool m_exists;
-    typename MatrixType::Eval m_inverse;
+    MatrixType m_inverse;
 };
 
 template<typename MatrixType, bool CheckExistence>
