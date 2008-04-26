@@ -103,7 +103,8 @@ bool Vectorize = (Derived::Flags & OtherDerived::Flags & VectorizableBit)
               && (  (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
                   ||((Derived::Flags&RowMajorBit)
                     ? Derived::ColsAtCompileTime!=Dynamic && (Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)
-                    : Derived::RowsAtCompileTime!=Dynamic && (Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)) )>
+                    : Derived::RowsAtCompileTime!=Dynamic && (Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
+bool TriangularAssign = false>
 struct ei_assignment_impl;
 
 template<typename Derived>
@@ -112,7 +113,9 @@ Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
 //   std::cout << "lazyAssign = " << Derived::Flags << " " << OtherDerived::Flags << "\n";
-  ei_assignment_impl<Derived,OtherDerived>::execute(derived(),other.derived());
+  ei_assignment_impl<Derived, OtherDerived,
+    Derived::Flags & (NullLowerBit | NullUpperBit)>
+    ::execute(derived(),other.derived());
   return derived();
 }
 

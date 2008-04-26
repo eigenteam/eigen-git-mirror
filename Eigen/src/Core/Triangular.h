@@ -96,49 +96,6 @@ template<int Mode, typename MatrixType> class Triangular
       return Triangular<(Upper | Lower) xor Mode, Transpose<MatrixType> >((m_matrix.transpose()));
     }
 
-#if 0
-
-    template<typename OtherDerived>
-    Triangular& operator=(const MatrixBase<OtherDerived>& other);
-
-    /** Overloaded to provide optimal evaluation loops */
-    template<typename OtherDerived>
-    Triangular& operator +=(const MatrixBase<OtherDerived>& other)
-    {
-        return *this = m_matrix + other;
-    }
-
-    /** Overloaded to provide optimal evaluation loops */
-    template<typename OtherDerived>
-    Triangular& operator *=(const MatrixBase<OtherDerived>& other)
-    {
-        return *this = this->lazyProduct(other).eval();
-    }
-
-    /** Optimized triangular matrix - matrix product */
-    template<typename OtherDerived>
-    TriangularProduct<Mode, MatrixType, OtherDerived> lazyProduct(const MatrixBase<Scalar, OtherDerived>& other) const
-    {
-      return TriangularProduct<Mode,MatrixType,OtherDerived>(m_matrix, other.ref());
-    }
-
-    /** Optimized triangular matrix - matrix product */
-    template<typename OtherDerived>
-    Eval<TriangularProduct<Mode, MatrixType, OtherDerived> > operator * (const MatrixBase<Scalar, OtherDerived>& other) const
-    {
-      return this->lazyProduct(other).eval();
-    }
-
-    /** Optimized matrix - triangular matrix product */
-    template<typename OtherDerived>
-    friend Eval<Transpose<TriangularProduct<0x1 xor Mode, Transpose<MatRef>, Transpose<OtherDerived> > > >
-    operator * (const MatrixBase<Scalar, OtherDerived>& other, const Triangular<Mode,MatrixType>& tri)
-    {
-      return tri.transpose().lazyProduct(other.transpose()).transpose().eval();
-    }
-
-#endif
-
     /** \returns the product of the inverse of *this with \a other.
       *
       * This function computes the inverse-matrix matrix product inv(*this) \a other
@@ -159,36 +116,32 @@ template<int Mode, typename MatrixType> class Triangular
         {
           // forward substitution
           if (Flags & UnitDiagBit)
-            res.col(c)[0] = other.col(c)[0];
+            res(0,c) = other(0,c);
           else
-            res.col(c)[0] = other.col(c)[0]/_coeff(0, 0);
+            res(0,c) = other(0,c)/_coeff(0, 0);
           for (int i=1 ; i<_rows() ; ++i)
           {
-            Scalar tmp = other.col(c)[i];
-            for (int j = 0 ; j < i ; ++j)
-              tmp -= _coeff(i,j) * res.col(c)[j];
+            Scalar tmp = other(i,c) - ((this->row(i).start(i)).transpose() * res.col(c).start(i))(0,0);
             if (Flags & UnitDiagBit)
-              res.col(c)[i] = tmp;
+              res(i,c) = tmp;
             else
-              res.col(c)[i] = tmp/_coeff(i,i);
+              res(i,c) = tmp/_coeff(i,i);
           }
         }
         else
         {
           // backward substitution
           if (Flags & UnitDiagBit)
-            res.col(c)[_cols()-1] = other.col(c)[_cols()-1];
+            res(_cols()-1,c) = other(_cols()-1,c);
           else
-            res.col(c)[_cols()-1] = other.col(c)[_cols()-1]/_coeff(_rows()-1, _cols()-1);
+            res(_cols()-1,c) = other(_cols()-1, c)/_coeff(_rows()-1, _cols()-1);
           for (int i=_rows()-2 ; i>=0 ; --i)
           {
-            Scalar tmp = other.col(c)[i];
-            for (int j = i+1 ; j < _cols() ; ++j)
-              tmp -= _coeff(i,j) * res.col(c)[j];
+            Scalar tmp = other(i,c) - ((this->row(i).end(_cols()-i-1)).transpose() * res.col(c).end(_cols()-i-1))(0,0);
             if (Flags & UnitDiagBit)
-              res.col(c)[i] = tmp;
+              res(i,c) = tmp;
             else
-              res.col(c)[i] = tmp/_coeff(i,i);
+              res(i,c) = tmp/_coeff(i,i);
           }
         }
       }

@@ -52,6 +52,7 @@ namespace Eigen {
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
 #include "src/Core/Triangular.h"
+#include "src/Core/TriangularAssign.h"
 
 } // namespace Eigen
 
