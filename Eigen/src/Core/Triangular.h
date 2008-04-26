@@ -61,10 +61,10 @@ struct ei_traits<Triangular<Mode, MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum {
-    RowsAtCompileTime = MatrixType::SizeAtCompileTime,
-    ColsAtCompileTime = MatrixType::SizeAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxSizeAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxSizeAtCompileTime,
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = MatrixType::Flags & (~(VectorizableBit | Like1DArrayBit)) | Mode,
     CoeffReadCost = MatrixType::CoeffReadCost
   };
@@ -84,16 +84,18 @@ template<int Mode, typename MatrixType> class Triangular
       assert(matrix.rows()==matrix.cols());
     }
 
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Triangular)
+
     /** Overloaded to keep a Triangular expression */
-    Triangular<(Upper | Lower) xor Mode, Transpose<MatrixType> > transpose()
+    Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > > transpose()
     {
-      return Triangular<(Upper | Lower) xor Mode, Transpose<MatrixType> >((m_matrix.transpose()));
+      return Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
     }
 
     /** Overloaded to keep a Triangular expression */
-    const Triangular<(Upper | Lower) xor Mode, Transpose<MatrixType> > transpose() const
+    const Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > > transpose() const
     {
-      return Triangular<(Upper | Lower) xor Mode, Transpose<MatrixType> >((m_matrix.transpose()));
+      return Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
     }
 
     /** \returns the product of the inverse of *this with \a other.
@@ -121,7 +123,7 @@ template<int Mode, typename MatrixType> class Triangular
             res(0,c) = other(0,c)/_coeff(0, 0);
           for (int i=1 ; i<_rows() ; ++i)
           {
-            Scalar tmp = other(i,c) - ((this->row(i).start(i)).transpose() * res.col(c).start(i))(0,0);
+            Scalar tmp = other(i,c) - ((this->row(i).start(i)) * res.col(c).start(i))(0,0);
             if (Flags & UnitDiagBit)
               res(i,c) = tmp;
             else
@@ -137,7 +139,7 @@ template<int Mode, typename MatrixType> class Triangular
             res(_cols()-1,c) = other(_cols()-1, c)/_coeff(_rows()-1, _cols()-1);
           for (int i=_rows()-2 ; i>=0 ; --i)
           {
-            Scalar tmp = other(i,c) - ((this->row(i).end(_cols()-i-1)).transpose() * res.col(c).end(_cols()-i-1))(0,0);
+            Scalar tmp = other(i,c) - ((this->row(i).end(_cols()-i-1)) * res.col(c).end(_cols()-i-1))(0,0);
             if (Flags & UnitDiagBit)
               res(i,c) = tmp;
             else
@@ -155,8 +157,8 @@ template<int Mode, typename MatrixType> class Triangular
 
     Scalar& _coeffRef(int row, int col)
     {
-      assert( ((! Flags & Lower) && row<=col) || (Flags & Lower && col<=row));
-      return m_matrix.coeffRef(row, col);
+      ei_assert( ((! (Flags & Lower)) && row<=col) || (Flags & Lower && col<=row));
+      return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
     Scalar _coeff(int row, int col) const

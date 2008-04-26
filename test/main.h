@@ -32,7 +32,7 @@
 #include <ctime>
 #include <iostream>
 
-#define DEFAULT_REPEAT 50
+#define DEFAULT_REPEAT 10
 
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
@@ -214,6 +214,7 @@ class EigenTest : public QObject
     void testMap();
     void testCwiseops();
     void testDeterminant();
+    void testTriangular();
   protected:
     int m_repeat;
 };

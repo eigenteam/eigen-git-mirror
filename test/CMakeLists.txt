@@ -7,6 +7,7 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 
 SET(test_SRCS
+  triangular.cpp
   main.cpp
   basicstuff.cpp
   linearstructure.cpp

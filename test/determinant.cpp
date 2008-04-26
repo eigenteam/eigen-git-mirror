@@ -40,21 +40,32 @@ template<typename MatrixType> void nullDeterminant(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType d(rows, cols);
+  MatrixType dinv(rows, cols), dnotinv(rows, cols);
 
-  // build a ill-conditionned matrix with a nul determinant
-  d.col(0).setOnes();
-  d.block(0,1, rows, cols-2).setRandom();
-  d.col(cols-1).setOnes();
+  dinv.col(0).setOnes();
+  dinv.block(0,1, rows, cols-2).setRandom();
+
+  dnotinv.col(0).setOnes();
+  dnotinv.block(0,1, rows, cols-2).setRandom();
+  dnotinv.col(cols-1).setOnes();
 
   for (int i=0 ; i<rows ; ++i)
-    d.row(i).block(0,1,1,cols-2) = d.row(i).block(0,1,1,cols-2).normalized();
+  {
+    dnotinv.row(i).block(0,1,1,cols-2) = ei_random<Scalar>(99.999999,100.00000001)*dnotinv.row(i).block(0,1,1,cols-2).normalized();
+    dnotinv(i,cols-1) = dnotinv.row(i).block(0,1,1,cols-2).norm2();
+    dinv(i,cols-1) = dinv.row(i).block(0,1,1,cols-2).norm2();
+  }
 
-  SquareMatrixType covarianceMatrix = d.transpose() * d;
+  SquareMatrixType invertibleCovarianceMatrix = dinv.transpose() * dinv;
+  SquareMatrixType notInvertibleCovarianceMatrix = dnotinv.transpose() * dnotinv;
 
-//   std::cout << covarianceMatrix << "\n" << covarianceMatrix.determinant() << "\n";
+  std::cout << notInvertibleCovarianceMatrix << "\n" << notInvertibleCovarianceMatrix.determinant() << "\n";
 
-  VERIFY_IS_APPROX(covarianceMatrix.determinant(), Scalar(0));
+  VERIFY_IS_APPROX(notInvertibleCovarianceMatrix.determinant(), Scalar(0));
+
+  VERIFY(invertibleCovarianceMatrix.inverse().exists());
+
+  VERIFY(!notInvertibleCovarianceMatrix.inverse().exists());
 }
 
 void EigenTest::testDeterminant()
