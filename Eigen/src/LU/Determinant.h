@@ -57,10 +57,10 @@ const typename Derived::Scalar ei_bruteforce_det(const MatrixBase<Derived>& m)
     case 4:
       // trick by Martin Costabel to compute 4x4 det with only 30 muls
       return ei_bruteforce_det4_helper(m,0,1,2,3)
-           + ei_bruteforce_det4_helper(m,0,2,1,3)
+           - ei_bruteforce_det4_helper(m,0,2,1,3)
            + ei_bruteforce_det4_helper(m,0,3,1,2)
            + ei_bruteforce_det4_helper(m,1,2,0,3)
-           + ei_bruteforce_det4_helper(m,1,3,0,2)
+           - ei_bruteforce_det4_helper(m,1,3,0,2)
            + ei_bruteforce_det4_helper(m,2,3,0,1);
     default:
       assert(false);

@@ -52,7 +52,7 @@ struct ei_visitor_unroller<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct ei_visitor_unroller<Visitor, Derived, Dynamic>
 {
-  static void run(const Derived &mat, Visitor& visitor) {}
+  static void run(const Derived &, Visitor&) {}
 };
 
 

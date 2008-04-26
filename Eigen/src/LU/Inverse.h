@@ -98,7 +98,7 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
 
   protected:
     bool m_exists;
-    MatrixType m_inverse;
+    typename MatrixType::Eval m_inverse;
 };
 
 template<typename MatrixType, bool CheckExistence>
@@ -119,7 +119,7 @@ void Inverse<MatrixType, CheckExistence>
 
     m_inverse.row(k).swap(m_inverse.row(k+rowOfBiggest));
     matrix.row(k).swap(matrix.row(k+rowOfBiggest));
-    
+
     const Scalar d = matrix(k,k);
     m_inverse.block(k+1, 0, size-k-1, size)
       -= matrix.col(k).end(size-k-1) * (m_inverse.row(k) / d);
@@ -215,7 +215,7 @@ void Inverse<MatrixType, CheckExistence>::_compute_in_size4_case(const MatrixTyp
     const XprBlock22 S = matrix.template block<2,2>(2,2);
     const Block22 X = S - R_times_P_inverse_times_Q;
     Block22 Y;
-    if(ei_compute_size2_inverse<Block22, CheckExistence>(X, &Y)) 
+    if(ei_compute_size2_inverse<Block22, CheckExistence>(X, &Y))
     {
       m_inverse.template block<2,2>(2,2) = Y;
       m_inverse.template block<2,2>(2,0) = - Y * R_times_P_inverse;
