@@ -181,43 +181,6 @@ inline std::complex<double> ei_exp(std::complex<double> x)  { return std::exp(x)
 inline std::complex<double> ei_sin(std::complex<double> x)  { return std::sin(x); }
 inline std::complex<double> ei_cos(std::complex<double> x)  { return std::cos(x); }
 
-template<typename T>
-inline std::complex<T> ei_sqrt(const std::complex<T>& x)
-{
-  if (std::real(x) == 0.0 && std::imag(x) == 0.0)
-    return std::complex<T>(0);
-  else
-  {
-    T a = ei_abs(std::real(x));
-    T b = ei_abs(std::imag(x));
-    T c;
-
-    if (a >= b)
-    {
-      T t = b / a;
-      c = ei_sqrt(a) * ei_sqrt(0.5 * (1.0 + ei_sqrt(1.0 + t * t)));
-    }
-    else
-    {
-      T t = a / b;
-      c = ei_sqrt(b) * ei_sqrt(0.5 * (t + ei_sqrt (1.0 + t * t)));
-    }
-
-    T d = std::imag(x) / (2.0 * c);
-    if (std::real(x) >= 0.0)
-    {
-      return std::complex<T>(c, d);
-    }
-    else
-    {
-      std::complex<T> res(d, c);
-      if (std::imag(x)<0.0)
-        res = -res;
-      return res;
-    }
-  }
-}
-
 template<> inline std::complex<double> ei_random()
 {
   return std::complex<double>(ei_random<double>(), ei_random<double>());

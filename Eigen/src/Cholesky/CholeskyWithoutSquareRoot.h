@@ -32,13 +32,14 @@
   * \param MatrixType the type of the matrix of which we are computing the Cholesky decomposition
   *
   * This class performs a Cholesky decomposition without square root of a symmetric, positive definite
-  * matrix A such that A = U' D U = L D L', where U is upper triangular with a unit diagonal and D is a diagonal
+  * matrix A such that A = L D L^* = U^* D U, where L is lower triangular with a unit diagonal and D is a diagonal
   * matrix.
   *
   * Compared to a standard Cholesky decomposition, avoiding the square roots allows for faster and more
   * stable computation.
   *
-  * \todo what about complex matrices ?
+  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
+  * the strict lower part does not have to store correct values.
   *
   * \sa class Cholesky
   */
@@ -47,6 +48,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
   public:
 
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
     CholeskyWithoutSquareRoot(const MatrixType& matrix)
@@ -55,92 +57,85 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
       compute(matrix);
     }
 
+    /** \returns the lower triangular matrix L */
     Triangular<Lower|UnitDiagBit, MatrixType > matrixL(void) const
     {
       return m_matrix.lowerWithUnitDiag();
     }
 
+    /** \returns the coefficients of the diagonal matrix D */
     DiagonalCoeffs<MatrixType> vectorD(void) const
     {
       return m_matrix.diagonal();
     }
 
+    /** \returns whether the matrix is positive definite */
     bool isPositiveDefinite(void) const
     {
       return m_matrix.diagonal().minCoeff() > Scalar(0);
     }
 
-    template<typename DerivedVec>
-    typename DerivedVec::Eval solve(MatrixBase<DerivedVec> &vecB);
+    template<typename Derived>
+    typename Derived::Eval solve(MatrixBase<Derived> &b);
 
-    /** Compute / recompute the Cholesky decomposition A = U'DU = LDL' of \a matrix
-      */
     void compute(const MatrixType& matrix);
 
   protected:
     /** \internal
-      * Used to compute and store the cholesky decomposition A = U'DU = LDL'.
+      * Used to compute and store the cholesky decomposition A = L D L^* = U^* D U.
       * The strict upper part is used during the decomposition, the strict lower
-      * part correspond to the coefficients of U'=L (its diagonal is equal to 1 and
+      * part correspond to the coefficients of L (its diagonal is equal to 1 and
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
 };
 
+/** Compute / recompute the Cholesky decomposition A = L D L^* = U^* D U of \a matrix
+  */
 template<typename MatrixType>
-void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& matrix)
+void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
 {
-  assert(matrix.rows()==matrix.cols());
-  const int size = matrix.rows();
-  m_matrix = matrix.conjugate();
-  #if 0
-  for (int i = 0; i < size; ++i)
-  {
-    Scalar tmp = Scalar(1) / m_matrix(i,i);
-    for (int j = i+1; j < size; ++j)
-    {
-      m_matrix(j,i) = m_matrix(i,j) * tmp;
-      m_matrix.row(j).end(size-j) -= m_matrix(j,i) * m_matrix.row(i).end(size-j);
-    }
-  }
-  #else
-  // this version looks faster for large matrices
-  m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix(0,0);
+  assert(a.rows()==a.cols());
+  const int size = a.rows();
+  m_matrix.resize(size, size);
+
+  // Note that, in this algorithm the rows of the strict upper part of m_matrix is used to store
+  // column vector, thus the strange .conjugate() and .transpose()...
+
+  m_matrix.row(0) = a.row(0).conjugate();
+  m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix.coeff(0,0);
   for (int j = 1; j < size; ++j)
   {
-    Scalar tmp = m_matrix(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate())(0,0);
-    m_matrix(j,j) = tmp;
-    tmp = Scalar(1) / tmp;
-    for (int i = j+1; i < size; ++i)
+    RealScalar tmp = ei_real(a.coeff(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
+    m_matrix.coeffRef(j,j) = tmp;
+
+    int endSize = size-j-1;
+    if (endSize>0)
     {
-      m_matrix(j,i) = (m_matrix(j,i) - (m_matrix.row(i).start(j) * m_matrix.col(j).start(j).conjugate())(0,0) );
-      m_matrix(i,j) = tmp * m_matrix(j,i);
+      m_matrix.row(j).end(endSize) = a.row(j).end(endSize).conjugate()
+        - (m_matrix.block(j+1,0, endSize, j) * m_matrix.col(j).start(j).conjugate()).transpose();
+      m_matrix.col(j).end(endSize) = m_matrix.row(j).end(endSize) / tmp;
     }
   }
-  #endif
 }
 
-/** Solve A*x = b with A symmeric positive definite using the available Cholesky decomposition.
- */
+/** \returns the solution of A x = \a b using the current decomposition of A.
+  * In other words, it returns \code A^-1 b \endcode computing
+  * \code (L^-*) (D^-1) (L^-1) b \code from right to left.
+  */
 template<typename MatrixType>
-template<typename DerivedVec>
-typename DerivedVec::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<DerivedVec> &vecB)
+template<typename Derived>
+typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<Derived> &vecB)
 {
   const int size = m_matrix.rows();
   ei_assert(size==vecB.size());
 
-  // FIXME .inverseProduct creates a temporary that is not nice since it is called twice
-  // maybe add a .inverseProductInPlace() ??
   return m_matrix.adjoint().upperWithUnitDiag()
     .inverseProduct(
       (m_matrix.lowerWithUnitDiag()
         .inverseProduct(vecB))
         .cwiseQuotient(m_matrix.diagonal())
       );
-
-//   return m_matrix.adjoint().upperWithUnitDiag()
-//     .inverseProduct(
-//       (m_matrix.lowerWithUnitDiag() * (m_matrix.diagonal().asDiagonal())).lower().inverseProduct(vecB));
 }
 
 
