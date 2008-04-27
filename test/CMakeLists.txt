@@ -7,18 +7,19 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 
 SET(test_SRCS
-  triangular.cpp
+  cholesky.cpp
   main.cpp
-  basicstuff.cpp
-  linearstructure.cpp
-  product.cpp
-  adjoint.cpp
-  submatrices.cpp
-  miscmatrices.cpp
-  smallvectors.cpp
-  map.cpp
-  cwiseop.cpp
-  determinant.cpp
+#   basicstuff.cpp
+#   linearstructure.cpp
+#   product.cpp
+#   adjoint.cpp
+#   submatrices.cpp
+#   miscmatrices.cpp
+#   smallvectors.cpp
+#   map.cpp
+#   cwiseop.cpp
+#   determinant.cpp
+#   triangular.cpp
 )
 QT4_AUTOMOC(${test_SRCS})
 
