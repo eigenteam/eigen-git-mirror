@@ -158,7 +158,8 @@ struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
   */
 template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_abs(a); }
+  typedef typename NumTraits<Scalar>::Real result_type;
+  const result_type operator() (const Scalar& a) const { return ei_abs(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
@@ -170,8 +171,8 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs2
   */
 template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_abs2(a); }
-  enum { Cost = NumTraits<Scalar>::MulCost };
+  typedef typename NumTraits<Scalar>::Real result_type;
+  const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >

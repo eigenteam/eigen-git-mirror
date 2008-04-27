@@ -204,17 +204,17 @@ class EigenTest : public QObject
     EigenTest(int repeat) : m_repeat(repeat) {}
 
   private slots:
-//     void testBasicStuff();
-//     void testLinearStructure();
-//     void testProduct();
-//     void testAdjoint();
-//     void testSubmatrices();
-//     void testMiscMatrices();
-//     void testSmallVectors();
-//     void testMap();
-//     void testCwiseops();
-//     void testDeterminant();
-//     void testTriangular();
+    void testBasicStuff();
+    void testLinearStructure();
+    void testProduct();
+    void testAdjoint();
+    void testSubmatrices();
+    void testMiscMatrices();
+    void testSmallVectors();
+    void testMap();
+    void testCwiseops();
+    void testDeterminant();
+    void testTriangular();
     void testCholesky();
   protected:
     int m_repeat;

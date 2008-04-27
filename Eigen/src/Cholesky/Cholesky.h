@@ -54,11 +54,6 @@ template<typename MatrixType> class Cholesky
       compute(matrix);
     }
 
-    Triangular<Upper, Temporary<Transpose<MatrixType> > > matrixU(void) const
-    {
-      return m_matrix.transpose().temporary().upper();
-    }
-
     Triangular<Lower, MatrixType> matrixL(void) const
     {
       return m_matrix.lower();
@@ -88,24 +83,9 @@ void Cholesky<MatrixType>::compute(const MatrixType& matrix)
 {
   assert(matrix.rows()==matrix.cols());
   const int size = matrix.rows();
-  m_matrix = matrix;
+  m_matrix = matrix.conjugate();
 
-  #if 1
-  // this version looks faster for large matrices
-  m_isPositiveDefinite = m_matrix(0,0) > Scalar(0);
-  m_matrix(0,0) = ei_sqrt(m_matrix(0,0));
-  m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix(0,0);
-  for (int j = 1; j < size; ++j)
-  {
-    Scalar tmp = m_matrix(j,j) - m_matrix.row(j).start(j).norm2();
-    m_isPositiveDefinite = m_isPositiveDefinite && tmp > Scalar(0);
-    m_matrix(j,j) = ei_sqrt(tmp<Scalar(0) ? Scalar(0) : tmp);
-    tmp = Scalar(1) / m_matrix(j,j);
-    for (int i = j+1; i < size; ++i)
-      m_matrix(i,j) = tmp * (m_matrix(j,i) -
-          (m_matrix.row(i).start(j) * m_matrix.row(j).start(j).transpose())(0,0) );
-  }
-  #else
+  #if 0
   m_isPositiveDefinite = true;
   for (int i = 0; i < size; ++i)
   {
@@ -117,6 +97,23 @@ void Cholesky<MatrixType>::compute(const MatrixType& matrix)
     {
       m_matrix.col(j).end(size-j) -= m_matrix(j,i) * m_matrix.col(i).end(size-j);
     }
+  }
+  #else
+  // this version looks faster for large matrices
+//   m_isPositiveDefinite = m_matrix(0,0) > Scalar(0);
+  m_matrix(0,0) = ei_sqrt(m_matrix(0,0));
+  m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix(0,0);
+  for (int j = 1; j < size; ++j)
+  {
+//     Scalar tmp = m_matrix(j,j) - m_matrix.row(j).start(j).norm2();
+    Scalar tmp = m_matrix(j,j) - (m_matrix.row(j).start(j) * m_matrix.row(j).start(j).adjoint())(0,0);
+//     m_isPositiveDefinite = m_isPositiveDefinite && tmp > Scalar(0);
+//     m_matrix(j,j) = ei_sqrt(tmp<Scalar(0) ? Scalar(0) : tmp);
+    m_matrix(j,j) = ei_sqrt(tmp);
+    tmp = 1. / m_matrix(j,j);
+    for (int i = j+1; i < size; ++i)
+      m_matrix(i,j) = tmp * (m_matrix(j,i) -
+          (m_matrix.row(i).start(j) * m_matrix.row(j).start(j).adjoint())(0,0) );
   }
   #endif
 }
@@ -132,8 +129,7 @@ typename DerivedVec::Eval Cholesky<MatrixType>::solve(MatrixBase<DerivedVec> &ve
 
   // FIXME .inverseProduct creates a temporary that is not nice since it is called twice
   // add a .inverseProductInPlace ??
-  return m_matrix.transpose().upper()
-    .inverseProduct(m_matrix.lower().inverseProduct(vecB));
+  return m_matrix.adjoint().upper().inverseProduct(m_matrix.lower().inverseProduct(vecB));
 }
 
 

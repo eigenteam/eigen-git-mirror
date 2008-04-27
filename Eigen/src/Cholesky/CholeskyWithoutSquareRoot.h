@@ -55,12 +55,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
       compute(matrix);
     }
 
-    Triangular<Upper|UnitDiagBit, Temporary<Transpose<MatrixType> > > matrixU(void) const
-    {
-      return m_matrix.transpose().temporary().upperWithUnitDiag();
-    }
-
-    Triangular<Upper|UnitDiagBit, MatrixType > matrixL(void) const
+    Triangular<Lower|UnitDiagBit, MatrixType > matrixL(void) const
     {
       return m_matrix.lowerWithUnitDiag();
     }
@@ -78,7 +73,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     template<typename DerivedVec>
     typename DerivedVec::Eval solve(MatrixBase<DerivedVec> &vecB);
 
-    /** Compute the Cholesky decomposition A = U'DU = LDL' of \a matrix
+    /** Compute / recompute the Cholesky decomposition A = U'DU = LDL' of \a matrix
       */
     void compute(const MatrixType& matrix);
 
@@ -97,7 +92,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& matrix)
 {
   assert(matrix.rows()==matrix.cols());
   const int size = matrix.rows();
-  m_matrix = matrix;
+  m_matrix = matrix.conjugate();
   #if 0
   for (int i = 0; i < size; ++i)
   {
@@ -113,12 +108,12 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& matrix)
   m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix(0,0);
   for (int j = 1; j < size; ++j)
   {
-    Scalar tmp = m_matrix(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j))(0,0);
+    Scalar tmp = m_matrix(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate())(0,0);
     m_matrix(j,j) = tmp;
     tmp = Scalar(1) / tmp;
     for (int i = j+1; i < size; ++i)
     {
-      m_matrix(j,i) = (m_matrix(j,i) - (m_matrix.row(i).start(j) * m_matrix.col(j).start(j))(0,0) );
+      m_matrix(j,i) = (m_matrix(j,i) - (m_matrix.row(i).start(j) * m_matrix.col(j).start(j).conjugate())(0,0) );
       m_matrix(i,j) = tmp * m_matrix(j,i);
     }
   }
@@ -136,12 +131,16 @@ typename DerivedVec::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBas
 
   // FIXME .inverseProduct creates a temporary that is not nice since it is called twice
   // maybe add a .inverseProductInPlace() ??
-  return m_matrix.transpose().upperWithUnitDiag()
+  return m_matrix.adjoint().upperWithUnitDiag()
     .inverseProduct(
       (m_matrix.lowerWithUnitDiag()
         .inverseProduct(vecB))
         .cwiseQuotient(m_matrix.diagonal())
       );
+
+//   return m_matrix.adjoint().upperWithUnitDiag()
+//     .inverseProduct(
+//       (m_matrix.lowerWithUnitDiag() * (m_matrix.diagonal().asDiagonal())).lower().inverseProduct(vecB));
 }
 
 

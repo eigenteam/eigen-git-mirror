@@ -42,14 +42,15 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   MatrixType a = MatrixType::random(rows,cols).transpose();
   VectorType b = VectorType::random(cols);
-  SquareMatrixType covMat =  a.transpose() * a;
+  SquareMatrixType covMat =  a.adjoint() * a;
 
   CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(covMat);
-  VERIFY_IS_APPROX(covMat, cholnosqrt.matrixU().transpose() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixU());
+  VERIFY_IS_APPROX(covMat, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());
   VERIFY_IS_APPROX(covMat * cholnosqrt.solve(b), b);
 
+
   Cholesky<SquareMatrixType> chol(covMat);
-  VERIFY_IS_APPROX(covMat, chol.matrixU().transpose() * chol.matrixU());
+  VERIFY_IS_APPROX(covMat, chol.matrixL() * chol.matrixL().adjoint());
   VERIFY_IS_APPROX(covMat * chol.solve(b), b);
 }
 
@@ -58,7 +59,7 @@ void EigenTest::testCholesky()
   for(int i = 0; i < 1; i++) {
     cholesky(Matrix3f());
     cholesky(Matrix4d());
-    cholesky(MatrixXd(17,17));
+    cholesky(MatrixXcd(7,7));
   }
 }
 
