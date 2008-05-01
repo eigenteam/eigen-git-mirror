@@ -55,17 +55,25 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                        typename Rhs::Scalar
                      )
                    >::type Scalar;
+  typedef typename Lhs::Nested LhsNested;
+  typedef typename Rhs::Nested RhsNested;
+  typedef typename ei_unref<LhsNested>::type _LhsNested;
+  typedef typename ei_unref<RhsNested>::type _RhsNested;
   enum {
+    LhsCoeffReadCost = _LhsNested::CoeffReadCost,
+    RhsCoeffReadCost = _RhsNested::CoeffReadCost,
+    LhsFlags = _LhsNested::Flags,
+    RhsFlags = _RhsNested::Flags,
     RowsAtCompileTime = Lhs::RowsAtCompileTime,
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-    Flags = ((Lhs::Flags | Rhs::Flags) & (
+    Flags = ((LhsFlags | RhsFlags) & (
         DefaultLostFlagMask
       | Like1DArrayBit
-      | (ei_functor_traits<BinaryOp>::IsVectorizable && ((Lhs::Flags & RowMajorBit)==(Rhs::Flags & RowMajorBit))
-        ? Lhs::Flags & Rhs::Flags & VectorizableBit : 0))),
-    CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + ei_functor_traits<BinaryOp>::Cost
+      | (ei_functor_traits<BinaryOp>::IsVectorizable && ((LhsFlags & RowMajorBit)==(RhsFlags & RowMajorBit))
+        ? LhsFlags & RhsFlags & VectorizableBit : 0))),
+    CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
 
@@ -76,6 +84,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
+    typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
+    typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
 
     CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
@@ -99,8 +109,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     }
 
   protected:
-    const typename Lhs::Nested m_lhs;
-    const typename Rhs::Nested m_rhs;
+    const LhsNested m_lhs;
+    const RhsNested m_rhs;
     const BinaryOp m_functor;
 };
 

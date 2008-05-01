@@ -60,13 +60,15 @@ template<int Mode, typename MatrixType>
 struct ei_traits<Triangular<Mode, MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags & (~(VectorizableBit | Like1DArrayBit)) | Mode,
-    CoeffReadCost = MatrixType::CoeffReadCost
+    Flags = _MatrixTypeNested::Flags & (~(VectorizableBit | Like1DArrayBit)) | Mode,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
 

@@ -42,13 +42,15 @@ template<typename CoeffsVectorType>
 struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
 {
   typedef typename CoeffsVectorType::Scalar Scalar;
+  typedef typename ei_nested<CoeffsVectorType>::type CoeffsVectorTypeTypeNested;
+  typedef typename ei_unref<CoeffsVectorTypeTypeNested>::type _CoeffsVectorTypeTypeNested;
   enum {
     RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
     MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    Flags = CoeffsVectorType::Flags & DefaultLostFlagMask,
-    CoeffReadCost = CoeffsVectorType::CoeffReadCost
+    Flags = _CoeffsVectorTypeTypeNested::Flags & DefaultLostFlagMask,
+    CoeffReadCost = _CoeffsVectorTypeTypeNested::CoeffReadCost
   };
 };
 

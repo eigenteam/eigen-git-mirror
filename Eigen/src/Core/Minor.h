@@ -41,6 +41,8 @@ template<typename MatrixType>
 struct ei_traits<Minor<MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
                           MatrixType::RowsAtCompileTime - 1 : Dynamic,
@@ -50,8 +52,8 @@ struct ei_traits<Minor<MatrixType> >
                                 MatrixType::MaxRowsAtCompileTime - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
                                 MatrixType::MaxColsAtCompileTime - 1 : Dynamic,
-    Flags = MatrixType::Flags & DefaultLostFlagMask,
-    CoeffReadCost = MatrixType::CoeffReadCost
+    Flags = _MatrixTypeNested::Flags & DefaultLostFlagMask,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
 

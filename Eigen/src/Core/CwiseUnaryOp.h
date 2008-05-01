@@ -45,15 +45,19 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   typedef typename ei_result_of<
                      UnaryOp(typename MatrixType::Scalar)
                    >::type Scalar;
+  typedef typename MatrixType::Nested MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
+    MatrixTypeCoeffReadCost = _MatrixTypeNested::CoeffReadCost,
+    MatrixTypeFlags = _MatrixTypeNested::Flags,
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (MatrixType::Flags & (
+    Flags = (MatrixTypeFlags & (
       DefaultLostFlagMask | Like1DArrayBit
       | (ei_functor_traits<UnaryOp>::IsVectorizable ? VectorizableBit : 0))),
-    CoeffReadCost = MatrixType::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
+    CoeffReadCost = MatrixTypeCoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
 

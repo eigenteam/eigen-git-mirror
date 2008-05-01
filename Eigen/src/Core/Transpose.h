@@ -41,13 +41,15 @@ template<typename MatrixType>
 struct ei_traits<Transpose<MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = MatrixType::Flags ^ RowMajorBit,
-    CoeffReadCost = MatrixType::CoeffReadCost
+    Flags = _MatrixTypeNested::Flags ^ RowMajorBit,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
 

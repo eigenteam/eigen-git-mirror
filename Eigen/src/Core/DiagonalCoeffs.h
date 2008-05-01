@@ -43,6 +43,8 @@ template<typename MatrixType>
 struct ei_traits<DiagonalCoeffs<MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = MatrixType::SizeAtCompileTime == Dynamic ? Dynamic
                       : EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
@@ -53,9 +55,9 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
                                              MatrixType::MaxColsAtCompileTime),
     MaxColsAtCompileTime = 1,
     Flags = (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic
-            ? (unsigned int)MatrixType::Flags
-            : (unsigned int)MatrixType::Flags &~ LargeBit) & DefaultLostFlagMask,
-    CoeffReadCost = MatrixType::CoeffReadCost
+            ? (unsigned int)_MatrixTypeNested::Flags
+            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit) & DefaultLostFlagMask,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
 
