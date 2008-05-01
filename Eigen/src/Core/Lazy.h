@@ -78,7 +78,7 @@ template<typename ExpressionType> class Lazy
     }
 
   protected:
-    const typename ExpressionType::Nested m_expression;
+    const ExpressionType& m_expression;
 };
 
 /** \returns an expression of the lazy version of *this.

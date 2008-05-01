@@ -64,7 +64,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
         DefaultLostFlagMask
       | Like1DArrayBit
       | (ei_functor_traits<BinaryOp>::IsVectorizable && ((Lhs::Flags & RowMajorBit)==(Rhs::Flags & RowMajorBit))
-        ? VectorizableBit : 0))),
+        ? Lhs::Flags & Rhs::Flags & VectorizableBit : 0))),
     CoeffReadCost = Lhs::CoeffReadCost + Rhs::CoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };

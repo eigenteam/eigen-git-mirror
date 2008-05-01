@@ -112,7 +112,8 @@ template<typename OtherDerived>
 Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-//   std::cout << "lazyAssign = " << Derived::Flags << " " << OtherDerived::Flags << "\n";
+//   std::cout << typeid(OtherDerived).name() << "\n";
+//   std::cout << "lazyAssign = " << (Derived::Flags&VectorizableBit) << " " << (OtherDerived::Flags&VectorizableBit) << "\n";
   ei_assignment_impl<Derived, OtherDerived>::execute(derived(),other.derived());
   return derived();
 }

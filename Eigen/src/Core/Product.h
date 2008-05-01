@@ -108,7 +108,9 @@ struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScal
   */
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
-  enum{ value = Lhs::MaxRowsAtCompileTime >= 16 && Rhs::MaxColsAtCompileTime >= 16
+  enum{ value =  Lhs::MaxRowsAtCompileTime >= 16
+              && Rhs::MaxColsAtCompileTime >= 16
+              && (!( (Lhs::Flags&RowMajorBit) && (Rhs::Flags&RowMajorBit xor RowMajorBit)))
               ? CacheOptimalProduct : NormalProduct };
 };
 
@@ -129,29 +131,18 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
-    Flags = (( (RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
-              ? (unsigned int)(LhsFlags | RhsFlags)
-              : (unsigned int)(LhsFlags | RhsFlags) & ~LargeBit )
+    _RhsVectorizable = (RhsFlags & RowMajorBit) && (RhsFlags & VectorizableBit) && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+    _LhsVectorizable = (!(LhsFlags & RowMajorBit)) && (LhsFlags & VectorizableBit) && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+    _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 1 : 0,
+    _RowMajor = (RhsFlags & RowMajorBit)
+              && (EvalMode==(int)CacheOptimalProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
+    _LostBits = DefaultLostFlagMask & ~(
+                (_RowMajor ? 0 : RowMajorBit)
+              | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
+    Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits)
           | EvalBeforeAssigningBit
-          | (ei_product_eval_mode<Lhs, Rhs>::value == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0))
-          & (
-              DefaultLostFlagMask & (~RowMajorBit)
-              | (
-                  (
-                    (!(Lhs::Flags & RowMajorBit)) && (Lhs::Flags & VectorizableBit)
-                    && (Lhs::RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0)
-                  )
-                  ? VectorizableBit
-                  : (
-                      (
-                        (Rhs::Flags & RowMajorBit) && (Rhs::Flags & VectorizableBit)
-                        && (Lhs::ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0)
-                      )
-                      ? RowMajorBit | VectorizableBit
-                      : 0
-                    )
-                )
-            ),
+          | ((int)EvalMode == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0)
+          | (_Vectorizable ? VectorizableBit : 0),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
@@ -278,11 +269,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProdu
 {
   product._cacheOptimalEval(*this,
     #ifdef EIGEN_VECTORIZE
-    typename ei_meta_if<(Flags & VectorizableBit)
-      && (!(Lhs::Flags & RowMajorBit)
-      && (Lhs::RowsAtCompileTime!=Dynamic)
-      && (Lhs::RowsAtCompileTime%ei_packet_traits<Scalar>::size==0) ),
-      ei_meta_true,ei_meta_false>::ret()
+    typename ei_meta_if<Flags & VectorizableBit, ei_meta_true, ei_meta_false>::ret()
     #else
     ei_meta_false()
     #endif
@@ -296,21 +283,53 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_fals
 {
   res.setZero();
   const int cols4 = m_lhs.cols() & 0xfffffffC;
+  if (Lhs::Flags&RowMajorBit)
   {
-    for(int k=0; k<this->cols(); ++k)
+//     std::cout << "opt rhs\n";
+    int j=0;
+    for(; j<cols4; j+=4)
     {
-      int j=0;
-      for(; j<cols4; j+=4)
+      for(int k=0; k<this->rows(); ++k)
+      {
+        const Scalar tmp0 = m_lhs.coeff(k,j  );
+        const Scalar tmp1 = m_lhs.coeff(k,j+1);
+        const Scalar tmp2 = m_lhs.coeff(k,j+2);
+        const Scalar tmp3 = m_lhs.coeff(k,j+3);
+        for (int i=0; i<this->cols(); ++i)
+          res.coeffRef(k,i) += tmp0 * m_rhs.coeff(j+0,i) + tmp1 * m_rhs.coeff(j+1,i)
+                             + tmp2 * m_rhs.coeff(j+2,i) + tmp3 * m_rhs.coeff(j+3,i);
+      }
+    }
+    for(; j<m_lhs.cols(); ++j)
+    {
+      for(int k=0; k<this->rows(); ++k)
+      {
+        const Scalar tmp = m_rhs.coeff(k,j);
+        for (int i=0; i<this->cols(); ++i)
+          res.coeffRef(k,i) += tmp * m_lhs.coeff(j,i);
+      }
+    }
+  }
+  else
+  {
+//     std::cout << "opt lhs\n";
+    int j = 0;
+    for(; j<cols4; j+=4)
+    {
+      for(int k=0; k<this->cols(); ++k)
       {
         const Scalar tmp0 = m_rhs.coeff(j  ,k);
         const Scalar tmp1 = m_rhs.coeff(j+1,k);
         const Scalar tmp2 = m_rhs.coeff(j+2,k);
         const Scalar tmp3 = m_rhs.coeff(j+3,k);
         for (int i=0; i<this->rows(); ++i)
-          res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j) + tmp1 * m_lhs.coeff(i,j+1)
-                            + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
+          res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j+0) + tmp1 * m_lhs.coeff(i,j+1)
+                             + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
       }
-      for(; j<m_lhs.cols(); ++j)
+    }
+    for(; j<m_lhs.cols(); ++j)
+    {
+      for(int k=0; k<this->cols(); ++k)
       {
         const Scalar tmp = m_rhs.coeff(j,k);
         for (int i=0; i<this->rows(); ++i)
@@ -325,40 +344,95 @@ template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
 void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_true) const
 {
+
+  if (((Lhs::Flags&RowMajorBit) && (_cols() % ei_packet_traits<Scalar>::size != 0))
+    || (_rows() % ei_packet_traits<Scalar>::size != 0))
+  {
+    return _cacheOptimalEval(res, ei_meta_false());
+  }
+
   res.setZero();
   const int cols4 = m_lhs.cols() & 0xfffffffC;
-  for(int k=0; k<this->cols(); k++)
+  if (Lhs::Flags&RowMajorBit)
   {
+//     std::cout << "packet rhs\n";
     int j=0;
     for(; j<cols4; j+=4)
     {
-      const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
-      const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
-      const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
-      const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
-      for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+      for(int k=0; k<this->rows(); k++)
       {
-        res.writePacketCoeff(i,k,\
-          ei_padd(
-            res.packetCoeff(i,k),
+        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_lhs.coeff(k,j+0));
+        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_lhs.coeff(k,j+1));
+        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_lhs.coeff(k,j+2));
+        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_lhs.coeff(k,j+3));
+        for (int i=0; i<this->cols(); i+=ei_packet_traits<Scalar>::size)
+        {
+          res.writePacketCoeff(k,i,
             ei_padd(
+              res.packetCoeff(k,i),
               ei_padd(
-                ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
-                ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
-              ei_padd(
-                ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
-                ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
+                ei_padd(
+                  ei_pmul(tmp0, m_rhs.packetCoeff(j+0,i)),
+                  ei_pmul(tmp1, m_rhs.packetCoeff(j+1,i))),
+                ei_padd(
+                  ei_pmul(tmp2, m_rhs.packetCoeff(j+2,i)),
+                  ei_pmul(tmp3, m_rhs.packetCoeff(j+3,i))
+                )
               )
             )
-          )
-        );
+          );
+        }
       }
     }
     for(; j<m_lhs.cols(); ++j)
     {
-      const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
-      for (int i=0; i<this->rows(); ++i)
-        res.writePacketCoeff(i,k,ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
+      for(int k=0; k<this->rows(); k++)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_lhs.coeff(k,j));
+        for (int i=0; i<this->cols(); i+=ei_packet_traits<Scalar>::size)
+          res.writePacketCoeff(k,i, ei_pmul(tmp, m_rhs.packetCoeff(j,i)));
+      }
+    }
+  }
+  else
+  {
+//     std::cout << "packet lhs\n";
+    int j=0;
+    for(; j<cols4; j+=4)
+    {
+      for(int k=0; k<this->cols(); k++)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(j+0,k));
+        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(j+1,k));
+        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(j+2,k));
+        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(j+3,k));
+        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+        {
+          res.writePacketCoeff(i,k,
+            ei_padd(
+              res.packetCoeff(i,k),
+              ei_padd(
+                ei_padd(
+                  ei_pmul(tmp0, m_lhs.packetCoeff(i,j)),
+                  ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
+                ei_padd(
+                  ei_pmul(tmp2, m_lhs.packetCoeff(i,j+2)),
+                  ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3))
+                )
+              )
+            )
+          );
+        }
+      }
+    }
+    for(; j<m_lhs.cols(); ++j)
+    {
+      for(int k=0; k<this->cols(); k++)
+      {
+        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(j,k));
+        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+          res.writePacketCoeff(i,k, ei_pmul(tmp, m_lhs.packetCoeff(i,j)));
+      }
     }
   }
 }
