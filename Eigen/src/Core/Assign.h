@@ -114,6 +114,7 @@ Derived& MatrixBase<Derived>
 {
 //   std::cout << typeid(OtherDerived).name() << "\n";
 //   std::cout << "lazyAssign = " << (Derived::Flags&VectorizableBit) << " " << (OtherDerived::Flags&VectorizableBit) << "\n";
+//  std::cout << __PRETTY_FUNCTION__ << std::endl;
   ei_assignment_impl<Derived, OtherDerived>::execute(derived(),other.derived());
   return derived();
 }

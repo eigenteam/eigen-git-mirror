@@ -141,7 +141,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
               | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits)
           | EvalBeforeAssigningBit
-          | ((int)EvalMode == (int)CacheOptimalProduct ? EvalBeforeNestingBit : 0)
+          | EvalBeforeNestingBit
           | (_Vectorizable ? VectorizableBit : 0),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
