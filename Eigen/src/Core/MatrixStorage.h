@@ -54,7 +54,13 @@ T* ei_aligned_malloc(size_t size)
 {
   #ifdef EIGEN_VECTORIZE
   if (ei_packet_traits<T>::size>1)
-    return static_cast<T*>(_mm_malloc(sizeof(T)*size, 16));
+  {
+    void* ptr;
+    if (posix_memalign(&ptr, 16, size*sizeof(T))==0)
+      return static_cast<T*>(ptr);
+    else
+      return 0;
+  }
   else
   #endif
     return new T[size];
@@ -65,7 +71,7 @@ void ei_aligned_free(T* ptr)
 {
   #ifdef EIGEN_VECTORIZE
   if (ei_packet_traits<T>::size>1)
-    _mm_free(ptr);
+    free(ptr);
   else
   #endif
     delete[] ptr;

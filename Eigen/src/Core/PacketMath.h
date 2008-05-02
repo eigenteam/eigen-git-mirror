@@ -90,10 +90,6 @@ inline __m128  ei_pload(const float*   from) { return _mm_load_ps(from); }
 inline __m128d ei_pload(const double*  from) { return _mm_load_pd(from); }
 inline __m128i ei_pload(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
-inline __m128  ei_pload1(const float*  from) { return _mm_load1_ps(from); }
-inline __m128d ei_pload1(const double* from) { return _mm_load1_pd(from); }
-inline __m128i ei_pload1(const int*    from) { return _mm_set1_epi32(*from); }
-
 inline __m128  ei_pset1(const float&  from) { return _mm_set1_ps(from); }
 inline __m128d ei_pset1(const double& from) { return _mm_set1_pd(from); }
 inline __m128i ei_pset1(const int&    from) { return _mm_set1_epi32(from); }

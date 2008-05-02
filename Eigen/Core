@@ -10,6 +10,11 @@
 #endif
 #endif
 
+#ifdef EIGEN_VECTORIZE
+// it seems we cannot assume posix_memalign is defined in the stdlib header
+extern "C" int posix_memalign (void **, size_t, size_t) throw ();
+#endif
+
 #include <cstdlib>
 #include <cmath>
 #include <complex>

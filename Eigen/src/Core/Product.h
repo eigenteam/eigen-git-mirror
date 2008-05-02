@@ -60,29 +60,44 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
-
 template<bool RowMajor, int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_packet_product_unroller
+struct ei_packet_product_unroller;
+
+template<int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<true, Index, Size, Lhs, Rhs, PacketScalar>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    ei_packet_product_unroller<RowMajor, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    if (RowMajor)
-      res =  ei_padd(res, ei_pmul(ei_pset1(lhs.coeff(row, Index)), rhs.packetCoeff(Index, col)));
-    else
-      res =  ei_padd(res, ei_pmul(lhs.packetCoeff(row, Index), ei_pset1(rhs.coeff(Index, col))));
+    ei_packet_product_unroller<true, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
+    res =  ei_padd(res, ei_pmul(ei_pset1(lhs.coeff(row, Index)), rhs.packetCoeff(Index, col)));
   }
 };
 
-template<bool RowMajor, int Size, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_packet_product_unroller<RowMajor, 0, Size, Lhs, Rhs, PacketScalar>
+template<int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<false, Index, Size, Lhs, Rhs, PacketScalar>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    if (RowMajor)
-      res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.packetCoeff(0, col));
-    else
-      res = ei_pmul(lhs.packetCoeff(row, 0), ei_pset1(rhs.coeff(0, col)));
+    ei_packet_product_unroller<false, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
+    res =  ei_padd(res, ei_pmul(lhs.packetCoeff(row, Index), ei_pset1(rhs.coeff(Index, col))));
+  }
+};
+
+template<int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<true, 0, Size, Lhs, Rhs, PacketScalar>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  {
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.packetCoeff(0, col));
+  }
+};
+
+template<int Size, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<false, 0, Size, Lhs, Rhs, PacketScalar>
+{
+  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  {
+    res = ei_pmul(lhs.packetCoeff(row, 0), ei_pset1(rhs.coeff(0, col)));
   }
 };
 
@@ -90,6 +105,16 @@ template<bool RowMajor, int Index, typename Lhs, typename Rhs, typename PacketSc
 struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScalar>
 {
   static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+};
+
+template<typename Product, bool RowMajor = true> struct ProductPacketCoeffImpl {
+  inline static typename Product::PacketScalar execute(const Product& product, int row, int col)
+  { return product._packetCoeffRowMajor(row,col); }
+};
+
+template<typename Product> struct ProductPacketCoeffImpl<Product, false> {
+  inline static typename Product::PacketScalar execute(const Product& product, int row, int col)
+  { return product._packetCoeffColumnMajor(row,col); }
 };
 
 /** \class Product
@@ -158,6 +183,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    friend class ProductPacketCoeffImpl<Product,Flags&RowMajorBit>;
     typedef typename ei_traits<Product>::LhsNested LhsNested;
     typedef typename ei_traits<Product>::RhsNested RhsNested;
     typedef typename ei_traits<Product>::_LhsNested _LhsNested;
@@ -202,32 +228,37 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       return res;
     }
 
-    PacketScalar _packetCoeff(int row, int col) const EIGEN_ALWAYS_INLINE
+    PacketScalar _packetCoeff(int row, int col) const
     {
-      PacketScalar res;
       if(Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
       {
+        PacketScalar res;
         ei_packet_product_unroller<Flags&RowMajorBit, Lhs::ColsAtCompileTime-1,
                             Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT
                               ? Lhs::ColsAtCompileTime : Dynamic,
                             _LhsNested, _RhsNested, PacketScalar>
           ::run(row, col, m_lhs, m_rhs, res);
+        return res;
       }
       else
-      {
-        if (Flags&RowMajorBit)
-        {
-          res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.packetCoeff(0, col));
-          for(int i = 1; i < m_lhs.cols(); i++)
-            res =  ei_padd(res, ei_pmul(ei_pset1(m_lhs.coeff(row, i)), m_rhs.packetCoeff(i, col)));
-        }
-        else
-        {
-          res = ei_pmul(m_lhs.packetCoeff(row, 0), ei_pset1(m_rhs.coeff(0, col)));
-          for(int i = 1; i < m_lhs.cols(); i++)
-            res =  ei_padd(res, ei_pmul(m_lhs.packetCoeff(row, i), ei_pset1(m_rhs.coeff(i, col))));
-        }
-      }
+        return ProductPacketCoeffImpl<Product,Flags&RowMajorBit>::execute(*this, row, col);
+    }
+
+    PacketScalar _packetCoeffRowMajor(int row, int col) const
+    {
+      PacketScalar res;
+      res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.packetCoeff(0, col));
+      for(int i = 1; i < m_lhs.cols(); i++)
+        res =  ei_padd(res, ei_pmul(ei_pset1(m_lhs.coeff(row, i)), m_rhs.packetCoeff(i, col)));
+      return res;
+    }
+
+    PacketScalar _packetCoeffColumnMajor(int row, int col) const
+    {
+      PacketScalar res;
+      res = ei_pmul(m_lhs.packetCoeff(row, 0), ei_pset1(m_rhs.coeff(0, col)));
+      for(int i = 1; i < m_lhs.cols(); i++)
+        res =  ei_padd(res, ei_pmul(m_lhs.packetCoeff(row, i), ei_pset1(m_rhs.coeff(i, col))));
       return res;
     }
 
