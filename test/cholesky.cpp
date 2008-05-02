@@ -48,7 +48,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   VERIFY_IS_APPROX(covMat, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());
   VERIFY_IS_APPROX(covMat * cholnosqrt.solve(b), b);
 
-
   Cholesky<SquareMatrixType> chol(covMat);
   VERIFY_IS_APPROX(covMat, chol.matrixL() * chol.matrixL().adjoint());
   VERIFY_IS_APPROX(covMat * chol.solve(b), b);
