@@ -398,15 +398,12 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_true
         const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_lhs.coeff(k,j+3));
         for (int i=0; i<this->cols(); i+=ei_packet_traits<Scalar>::size)
         {
-          // FIXME the following could be implemented using only mul-add, check if this is still OK for SSE
           res.writePacketCoeff(k,i,
-            ei_padd(
-              res.packetCoeff(k,i),
-              ei_padd(
-                ei_pmadd(tmp0, m_rhs.packetCoeff(j+0,i), ei_pmul(tmp1, m_rhs.packetCoeff(j+1,i))),
-                ei_pmadd(tmp2, m_rhs.packetCoeff(j+2,i), ei_pmul(tmp3, m_rhs.packetCoeff(j+3,i)))
-              )
-            )
+            ei_pmadd(tmp0, m_rhs.packetCoeff(j+0,i),
+              ei_pmadd(tmp1, m_rhs.packetCoeff(j+1,i),
+                ei_pmadd(tmp2, m_rhs.packetCoeff(j+2,i),
+                  ei_pmadd(tmp3, m_rhs.packetCoeff(j+3,i),
+                    res.packetCoeff(k,i)))))
           );
         }
       }
@@ -436,14 +433,11 @@ void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_true
         for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
         {
           res.writePacketCoeff(i,k,
-            ei_padd(
-              res.packetCoeff(i,k),
-              ei_padd(
-                ei_pmadd(tmp0, m_lhs.packetCoeff(i,j),  ei_pmul(tmp1, m_lhs.packetCoeff(i,j+1))),
-                ei_pmadd(tmp2, m_lhs.packetCoeff(i,j+2),ei_pmul(tmp3, m_lhs.packetCoeff(i,j+3)))
-
-              )
-            )
+            ei_pmadd(tmp0, m_lhs.packetCoeff(i,j),
+              ei_pmadd(tmp1, m_lhs.packetCoeff(i,j+1),
+                ei_pmadd(tmp2, m_lhs.packetCoeff(i,j+2),
+                  ei_pmadd(tmp3, m_lhs.packetCoeff(i,j+3),
+                    res.packetCoeff(i,k)))))
           );
         }
       }
