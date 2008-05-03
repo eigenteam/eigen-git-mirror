@@ -29,15 +29,26 @@
 // In practice these functions are provided to make easier the writting
 // of generic vectorized code. However, at runtime, they should never be
 // called, TODO so sould we raise an assertion or not ?
+/** \internal \returns a + b (coeff-wise) */
 template <typename Scalar> inline Scalar ei_padd(const Scalar&  a, const Scalar&  b) { return a + b; }
+/** \internal \returns a - b (coeff-wise) */
 template <typename Scalar> inline Scalar ei_psub(const Scalar&  a, const Scalar&  b) { return a - b; }
+/** \internal \returns a * b (coeff-wise) */
 template <typename Scalar> inline Scalar ei_pmul(const Scalar&  a, const Scalar&  b) { return a * b; }
+/** \internal \returns a * b - c (coeff-wise) */
+template <typename Scalar> inline Scalar ei_pmadd(const Scalar&  a, const Scalar&  b, const Scalar&  c)
+{ return ei_padd(ei_pmul(a, b),c); }
+/** \internal \returns the min of \a a and \a b  (coeff-wise) */
 template <typename Scalar> inline Scalar ei_pmin(const Scalar&  a, const Scalar&  b) { return std::min(a,b); }
+/** \internal \returns the max of \a a and \a b  (coeff-wise) */
 template <typename Scalar> inline Scalar ei_pmax(const Scalar&  a, const Scalar&  b) { return std::max(a,b); }
+/** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template <typename Scalar> inline Scalar ei_pload(const Scalar* from) { return *from; }
-template <typename Scalar> inline Scalar ei_pload1(const Scalar* from) { return *from; }
-template <typename Scalar> inline Scalar ei_pset1(const Scalar& from) { return from; }
+/** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
+template <typename Scalar> inline Scalar ei_pset1(const Scalar& a) { return a; }
+/** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
 template <typename Scalar> inline void ei_pstore(Scalar* to, const Scalar& from) { (*to) = from; }
+/** \internal \returns the first element of a packet */
 template <typename Scalar> inline Scalar ei_pfirst(const Scalar& a) { return a; }
 
 #ifdef EIGEN_VECTORIZE_SSE
@@ -67,6 +78,9 @@ inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
         _mm_mul_epu32(_mm_srli_si128(a,4),_mm_srli_si128(b,4)),
         _mm_setr_epi32(0xffffffff,0,0xffffffff,0)), 4));
 }
+
+// for some weird raisons, it has to be overloaded for packet integer
+inline __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }
 
 inline __m128  ei_pmin(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
 inline __m128d ei_pmin(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
