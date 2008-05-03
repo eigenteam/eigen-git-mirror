@@ -133,9 +133,9 @@ template<typename Product> struct ProductPacketCoeffImpl<Product, false> {
   */
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
-  enum{ value =  Lhs::MaxRowsAtCompileTime >= 16
-              && Rhs::MaxColsAtCompileTime >= 16
-              && (!( (Lhs::Flags&RowMajorBit) && (Rhs::Flags&RowMajorBit xor RowMajorBit)))
+  enum{ value =  Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              && (!( (Lhs::Flags&RowMajorBit) && ((Rhs::Flags&RowMajorBit) ^ RowMajorBit)))
               ? CacheOptimalProduct : NormalProduct };
 };
 

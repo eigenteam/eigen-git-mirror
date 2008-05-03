@@ -406,7 +406,7 @@ template<typename Derived>
 bool MatrixBase<Derived>::isOnes
 (typename NumTraits<Scalar>::Real prec) const
 {
-  return isEqualToConstant(Scalar(1));
+  return isEqualToConstant(Scalar(1), prec);
 }
 
 /** Sets all coefficients in this expression to one.

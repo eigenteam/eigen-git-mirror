@@ -67,7 +67,7 @@ struct ei_traits<Triangular<Mode, MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = _MatrixTypeNested::Flags & (~(VectorizableBit | Like1DArrayBit)) | Mode,
+    Flags = (_MatrixTypeNested::Flags & ~(VectorizableBit | Like1DArrayBit)) | Mode,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

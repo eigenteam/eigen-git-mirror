@@ -213,7 +213,7 @@ class EigenTest : public QObject
     void testSmallVectors();
     void testMap();
     void testCwiseops();
-    void testDeterminant();
+    //void testDeterminant();  //determinant for size > 4x4 unimplemented for now
     void testTriangular();
     void testCholesky();
   protected:

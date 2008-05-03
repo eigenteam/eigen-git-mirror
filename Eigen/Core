@@ -8,14 +8,22 @@
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #endif
+#ifdef __ALTIVEC__  // There are zero chances of both __SSE2__ AND __ALTIVEC__ been defined
+#define EIGEN_VECTORIZE
+#define EIGEN_VECTORIZE_ALTIVEC
+#include <altivec.h>
+// We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
+#undef bool
 #endif
+#endif
+
+#include <cstdlib>
 
 #ifdef EIGEN_VECTORIZE
 // it seems we cannot assume posix_memalign is defined in the stdlib header
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 #endif
 
-#include <cstdlib>
 #include <cmath>
 #include <complex>
 #include <cassert>
