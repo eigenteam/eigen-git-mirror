@@ -26,6 +26,10 @@
 #ifndef EIGEN_PRODUCT_H
 #define EIGEN_PRODUCT_H
 
+#ifndef EIGEN_VECTORIZE
+#error you must enable vectorization to try this experimental product implementation
+#endif
+
 template<int Index, int Size, typename Lhs, typename Rhs>
 struct ei_product_unroller
 {
@@ -69,7 +73,7 @@ struct ei_packet_product_unroller<true, Index, Size, Lhs, Rhs, PacketScalar>
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_unroller<true, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packetCoeff<Aligned>(Index, col), res);
+    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.packetCoeff(Index, col), res);
   }
 };
 
@@ -79,7 +83,7 @@ struct ei_packet_product_unroller<false, Index, Size, Lhs, Rhs, PacketScalar>
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_unroller<false, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(lhs.template packetCoeff<Aligned>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
+    res =  ei_pmadd(lhs.packetCoeff(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
   }
 };
 
@@ -88,7 +92,7 @@ struct ei_packet_product_unroller<true, 0, Size, Lhs, Rhs, PacketScalar>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packetCoeff<Aligned>(0, col));
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.packetCoeff(0, col));
   }
 };
 
@@ -97,7 +101,7 @@ struct ei_packet_product_unroller<false, 0, Size, Lhs, Rhs, PacketScalar>
 {
   static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.packetCoeff(row, 0), ei_pset1(rhs.coeff(0, col)));
   }
 };
 
@@ -165,7 +169,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
                 (_RowMajor ? 0 : RowMajorBit)
               | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits)
-          | EvalBeforeAssigningBit
+//          | EvalBeforeAssigningBit //FIXME
           | EvalBeforeNestingBit
           | (_Vectorizable ? VectorizableBit : 0),
     CoeffReadCost
@@ -196,12 +200,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
     /** \internal */
-    template<typename DestDerived, int AlignedMode>
-    void _cacheOptimalEval(DestDerived& res, ei_meta_false) const;
-    #ifdef EIGEN_VECTORIZE
-    template<typename DestDerived, int AlignedMode>
-    void _cacheOptimalEval(DestDerived& res, ei_meta_true) const;
-    #endif
+    template<typename DestDerived> void _cacheFriendlyEval(DestDerived& res) const;
 
   private:
 
@@ -248,27 +247,19 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     PacketScalar _packetCoeffRowMajor(int row, int col) const
     {
       PacketScalar res;
-      res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.template packetCoeff<Aligned>(0, col));
+      res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.packetCoeff(0, col));
       for(int i = 1; i < m_lhs.cols(); i++)
-        res =  ei_pmadd(ei_pset1(m_lhs.coeff(row, i)), m_rhs.template packetCoeff<Aligned>(i, col), res);
+        res =  ei_pmadd(ei_pset1(m_lhs.coeff(row, i)), m_rhs.packetCoeff(i, col), res);
       return res;
     }
 
     PacketScalar _packetCoeffColumnMajor(int row, int col) const
     {
       PacketScalar res;
-      res = ei_pmul(m_lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(m_rhs.coeff(0, col)));
+      res = ei_pmul(m_lhs.packetCoeff(row, 0), ei_pset1(m_rhs.coeff(0, col)));
       for(int i = 1; i < m_lhs.cols(); i++)
-        res =  ei_pmadd(m_lhs.template packetCoeff<Aligned>(row, i), ei_pset1(m_rhs.coeff(i, col)), res);
+        res =  ei_pmadd(m_lhs.packetCoeff(row, i), ei_pset1(m_rhs.coeff(i, col)), res);
       return res;
-//       const PacketScalar tmp[4];
-//       ei_punpack(m_rhs.packetCoeff(0,col), tmp);
-//
-//       return
-//         ei_pmadd(m_lhs.packetCoeff(row, 0), tmp[0],
-//           ei_pmadd(m_lhs.packetCoeff(row, 1), tmp[1],
-//             ei_pmadd(m_lhs.packetCoeff(row, 2), tmp[2]
-//               ei_pmul(m_lhs.packetCoeff(row, 3), tmp[3]))));
     }
 
 
@@ -308,164 +299,198 @@ template<typename Derived>
 template<typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProduct>& product)
 {
-  product.template _cacheOptimalEval<Derived, Aligned>(derived(),
-    #ifdef EIGEN_VECTORIZE
-    typename ei_meta_if<Flags & VectorizableBit, ei_meta_true, ei_meta_false>::ret()
-    #else
-    ei_meta_false()
-    #endif
-    );
+  product._cacheFriendlyEval(*this);
   return derived();
 }
 
 template<typename Lhs, typename Rhs, int EvalMode>
-template<typename DestDerived, int AlignedMode>
-void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_false) const
+template<typename DestDerived>
+void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 {
-  res.setZero();
-  const int cols4 = m_lhs.cols() & 0xfffffffC;
-  if (Lhs::Flags&RowMajorBit)
-  {
-//     std::cout << "opt rhs\n";
-    int j=0;
-    for(; j<cols4; j+=4)
-    {
-      for(int k=0; k<this->rows(); ++k)
-      {
-        const Scalar tmp0 = m_lhs.coeff(k,j  );
-        const Scalar tmp1 = m_lhs.coeff(k,j+1);
-        const Scalar tmp2 = m_lhs.coeff(k,j+2);
-        const Scalar tmp3 = m_lhs.coeff(k,j+3);
-        for (int i=0; i<this->cols(); ++i)
-          res.coeffRef(k,i) += tmp0 * m_rhs.coeff(j+0,i) + tmp1 * m_rhs.coeff(j+1,i)
-                             + tmp2 * m_rhs.coeff(j+2,i) + tmp3 * m_rhs.coeff(j+3,i);
-      }
-    }
-    for(; j<m_lhs.cols(); ++j)
-    {
-      for(int k=0; k<this->rows(); ++k)
-      {
-        const Scalar tmp = m_rhs.coeff(k,j);
-        for (int i=0; i<this->cols(); ++i)
-          res.coeffRef(k,i) += tmp * m_lhs.coeff(j,i);
-      }
-    }
-  }
-  else
-  {
-//     std::cout << "opt lhs\n";
-    int j = 0;
-    for(; j<cols4; j+=4)
-    {
-      for(int k=0; k<this->cols(); ++k)
-      {
-        const Scalar tmp0 = m_rhs.coeff(j  ,k);
-        const Scalar tmp1 = m_rhs.coeff(j+1,k);
-        const Scalar tmp2 = m_rhs.coeff(j+2,k);
-        const Scalar tmp3 = m_rhs.coeff(j+3,k);
-        for (int i=0; i<this->rows(); ++i)
-          res.coeffRef(i,k) += tmp0 * m_lhs.coeff(i,j+0) + tmp1 * m_lhs.coeff(i,j+1)
-                             + tmp2 * m_lhs.coeff(i,j+2) + tmp3 * m_lhs.coeff(i,j+3);
-      }
-    }
-    for(; j<m_lhs.cols(); ++j)
-    {
-      for(int k=0; k<this->cols(); ++k)
-      {
-        const Scalar tmp = m_rhs.coeff(j,k);
-        for (int i=0; i<this->rows(); ++i)
-          res.coeffRef(i,k) += tmp * m_lhs.coeff(i,j);
-      }
-    }
-  }
-}
+  // allow direct access to data for benchmark purpose
+  const Scalar* __restrict__ a = m_lhs.derived().data();
+  const Scalar* __restrict__ b = m_rhs.derived().data();
+  Scalar* __restrict__ c = res.derived().data();
 
-#ifdef EIGEN_VECTORIZE
-template<typename Lhs, typename Rhs, int EvalMode>
-template<typename DestDerived, int AlignedMode>
-void Product<Lhs,Rhs,EvalMode>::_cacheOptimalEval(DestDerived& res, ei_meta_true) const
-{
+  // FIXME find a way to optimize: (an_xpr) + (a * b)
+  // then we don't need to clear res and avoid and additional mat-mat sum
+//   res.setZero();
 
-  if (((Lhs::Flags&RowMajorBit) && (_cols() % ei_packet_traits<Scalar>::size != 0))
-    || (_rows() % ei_packet_traits<Scalar>::size != 0))
-  {
-    return _cacheOptimalEval<DestDerived, AlignedMode>(res, ei_meta_false());
-  }
+  const int ps = ei_packet_traits<Scalar>::size;  // size of a packet
+  #if (defined __i386__)
+  // i386 architectures provides only 8 xmmm register,
+  // so let's reduce the max number of rows processed at once
+  const int bw = 4;                               // number of rows treated at once
+  #else
+  const int bw = 8;                               // number of rows treated at once
+  #endif
+  const int bs = ps * bw;                         // total number of elements treated at once
+  const int rows = _rows();
+  const int cols = _cols();
+  const int size = m_lhs.cols();                  // third dimension of the product
+  const int l2blocksize = 256 > _cols() ? _cols() : 256;
+  const bool rhsIsAligned = ((size%ps) == 0);
+  const bool resIsAligned = ((cols%ps) == 0);
+  Scalar* __restrict__ block = new Scalar[l2blocksize*size];
 
-  res.setZero();
-  const int cols4 = m_lhs.cols() & 0xfffffffC;
-  if (Lhs::Flags&RowMajorBit)
+  // loops on each L2 cache friendly blocks of the result
+  for(int l2i=0; l2i<_rows(); l2i+=l2blocksize)
   {
-//     std::cout << "packet rhs\n";
-    int j=0;
-    for(; j<cols4; j+=4)
+    const int l2blockRowEnd = std::min(l2i+l2blocksize, rows);
+    const int l2blockRowEndBW = l2blockRowEnd & 0xFFFFF8;             // end of the rows aligned to bw
+    const int l2blockRowRemaining = l2blockRowEnd - l2blockRowEndBW;  // number of remaining rows
+
+    // build a cache friendly block
+    int count = 0;
+
+    // copy l2blocksize rows of m_lhs to blocks of ps x bw
+    for(int l2k=0; l2k<size; l2k+=l2blocksize)
     {
-      for(int k=0; k<this->rows(); k++)
+      const int l2blockSizeEnd = std::min(l2k+l2blocksize, size);
+
+      for (int i = l2i; i<l2blockRowEndBW; i+=bw)
       {
-        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_lhs.coeff(k,j+0));
-        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_lhs.coeff(k,j+1));
-        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_lhs.coeff(k,j+2));
-        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_lhs.coeff(k,j+3));
-        for (int i=0; i<this->cols(); i+=ei_packet_traits<Scalar>::size)
+        for (int k=l2k; k<l2blockSizeEnd; k+=ps)
         {
-          res.template writePacketCoeff<AlignedMode>(k,i,
-            ei_pmadd(tmp0, m_rhs.template packetCoeff<AlignedMode>(j+0,i),
-              ei_pmadd(tmp1, m_rhs.template packetCoeff<AlignedMode>(j+1,i),
-                ei_pmadd(tmp2, m_rhs.template packetCoeff<AlignedMode>(j+2,i),
-                  ei_pmadd(tmp3, m_rhs.template packetCoeff<AlignedMode>(j+3,i),
-                    res.template packetCoeff<AlignedMode>(k,i)))))
-          );
+          // TODO write these two loops using meta unrolling
+          // negligible for large matrices but useful for small ones
+          for (int w=0; w<bw; ++w)
+            for (int s=0; s<ps; ++s)
+              block[count++] = m_lhs.coeff(i+w,k+s);
+        }
+      }
+      if (l2blockRowRemaining>0)
+      {
+        for (int k=l2k; k<l2blockSizeEnd; k+=ps)
+        {
+          for (int w=0; w<l2blockRowRemaining; ++w)
+            for (int s=0; s<ps; ++s)
+              block[count++] = m_lhs.coeff(l2blockRowEndBW+w,k+s);
         }
       }
     }
-    for(; j<m_lhs.cols(); ++j)
-    {
-      for(int k=0; k<this->rows(); k++)
-      {
-        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_lhs.coeff(k,j));
-        for (int i=0; i<this->cols(); i+=ei_packet_traits<Scalar>::size)
-          res.template writePacketCoeff<AlignedMode>(k,i,
-            ei_pmadd(tmp, m_rhs.template packetCoeff<AlignedMode>(j,i), res.template packetCoeff<AlignedMode>(k,i)));
-      }
-    }
-  }
-  else
-  {
-//     std::cout << "packet lhs\n";
-    int k=0;
-    for(; k<cols4; k+=4)
-    {
-      for(int j=0; j<this->cols(); j+=1)
-      {
-        const typename ei_packet_traits<Scalar>::type tmp0 = ei_pset1(m_rhs.coeff(k+0,j));
-        const typename ei_packet_traits<Scalar>::type tmp1 = ei_pset1(m_rhs.coeff(k+1,j));
-        const typename ei_packet_traits<Scalar>::type tmp2 = ei_pset1(m_rhs.coeff(k+2,j));
-        const typename ei_packet_traits<Scalar>::type tmp3 = ei_pset1(m_rhs.coeff(k+3,j));
 
-        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
+    for(int l2j=0; l2j<cols; l2j+=l2blocksize)
+    {
+      int l2blockColEnd = std::min(l2j+l2blocksize, cols);
+
+      for(int l2k=0; l2k<size; l2k+=l2blocksize)
+      {
+        // acumulate a full row of current a block time 4 cols of current a block
+        // to a 1x4 c block
+        int l2blockSizeEnd = std::min(l2k+l2blocksize, size);
+
+        // for each 4x1 result's block sub blocks...
+        for(int l1i=l2i; l1i<l2blockRowEndBW; l1i+=bw)
         {
-          res.template writePacketCoeff<AlignedMode>(i,j,
-            ei_pmadd(tmp0, m_lhs.template packetCoeff<AlignedMode>(i,k),
-              ei_pmadd(tmp1, m_lhs.template packetCoeff<AlignedMode>(i,k+1),
-                ei_pmadd(tmp2, m_lhs.template packetCoeff<AlignedMode>(i,k+2),
-                  ei_pmadd(tmp3, m_lhs.template packetCoeff<AlignedMode>(i,k+3),
-                    res.template packetCoeff<AlignedMode>(i,j)))))
-          );
+          for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
+          {
+            int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*bw/*bs*/;
+            const Scalar* localB = &block[offsetblock];
+
+            int l1jsize = l1j * size; //TODO find a better way to optimize address computation ?
+
+            PacketScalar dst[bw];
+            dst[0] = ei_pset1(Scalar(0.));
+            dst[1] = dst[0];
+            dst[2] = dst[0];
+            dst[3] = dst[0];
+            if (bw==8)
+            {
+              dst[4] = dst[0];
+              dst[5] = dst[0];
+              dst[6] = dst[0];
+              dst[7] = dst[0];
+            }
+            PacketScalar b0, b1, tmp;
+            // TODO in unaligned mode, preload the next element
+//             PacketScalar tmp1 = _mm_load_ps(&m_rhs.derived().data()[l1jsize+l2k]);
+            asm("#eigen begincore");
+            for(int k=l2k; k<l2blockSizeEnd; k+=ps)
+            {
+              //PacketScalar tmp = m_rhs.packetCoeff(k, l1j);
+              if (rhsIsAligned)
+                tmp = ei_pload(&m_rhs.derived().data()[l1jsize + k]);
+              else
+                tmp = ei_ploadu(&m_rhs.derived().data()[l1jsize + k]);
+
+              b0 = ei_pload(&(localB[k*bw]));
+              b1 = ei_pload(&(localB[k*bw+ps]));
+              dst[0] = ei_pmadd(tmp, b0, dst[0]);
+              b0 = ei_pload(&(localB[k*bw+2*ps]));
+              dst[1] = ei_pmadd(tmp, b1, dst[1]);
+              b1 = ei_pload(&(localB[k*bw+3*ps]));
+              dst[2] = ei_pmadd(tmp, b0, dst[2]);
+              if (bw==8)
+                b0 = ei_pload(&(localB[k*bw+4*ps]));
+              dst[3] = ei_pmadd(tmp, b1, dst[3]);
+              if (bw==8)
+              {
+                b1 = ei_pload(&(localB[k*bw+5*ps]));
+                dst[4] = ei_pmadd(tmp, b0, dst[4]);
+                b0 = ei_pload(&(localB[k*bw+6*ps]));
+                dst[5] = ei_pmadd(tmp, b1, dst[5]);
+                b1 = ei_pload(&(localB[k*bw+7*ps]));
+                dst[6] = ei_pmadd(tmp, b0, dst[6]);
+                dst[7] = ei_pmadd(tmp, b1, dst[7]);
+              }
+            }
+
+            res.template writePacketCoeff<Aligned>(l1i, l1j, ei_padd(res.template packetCoeff<Aligned>(l1i, l1j), ei_predux(dst)));
+            if (ps==2)
+              res.template writePacketCoeff<Aligned>(l1i+2,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+2,l1j), ei_predux(&(dst[2]))));
+            if (bw==8)
+            {
+              res.template writePacketCoeff<Aligned>(l1i+4,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+4,l1j), ei_predux(&(dst[4]))));
+              if (ps==2)
+                res.template writePacketCoeff<Aligned>(l1i+6,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+6,l1j), ei_predux(&(dst[6]))));
+            }
+
+            asm("#eigen endcore");
+          }
+        }
+        if (l2blockRowRemaining>0)
+        {
+          // TODO optimize this part using a generic templated function that processes N rows
+          // here we process the remaining l2blockRowRemaining rows
+          for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
+          {
+            int offsetblock = l2k * (l2blockRowEnd-l2i) + (l2blockRowEndBW-l2i)*(l2blockSizeEnd-l2k) - l2k*l2blockRowRemaining;
+            const Scalar* localB = &block[offsetblock];
+
+            int l1jsize = l1j * size;
+
+            PacketScalar dst[bw];
+            dst[0] = ei_pset1(Scalar(0.));
+            for (int w = 1; w<l2blockRowRemaining; ++w)
+              dst[w] = dst[0];
+            PacketScalar b0, b1, tmp;
+            asm("#eigen begincore dynamic");
+            for(int k=l2k; k<l2blockSizeEnd; k+=ps)
+            {
+              //PacketScalar tmp = m_rhs.packetCoeff(k, l1j);
+              if (rhsIsAligned)
+                tmp = ei_pload(&m_rhs.derived().data()[l1jsize + k]);
+              else
+                tmp = ei_ploadu(&m_rhs.derived().data()[l1jsize + k]);
+
+              // TODO optimize this loop
+              for (int w = 0; w<l2blockRowRemaining; ++w)
+                dst[w] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRowRemaining+w*ps])), dst[w]);
+            }
+
+            // TODO optimize this loop
+            for (int w = 0; w<l2blockRowRemaining; ++w)
+              res.coeffRef(l2blockRowEndBW+w, l1j) += ei_predux(dst[w]);
+
+            asm("#eigen endcore dynamic");
+          }
         }
       }
     }
-    for(; k<m_lhs.cols(); ++k)
-    {
-      for(int j=0; j<this->cols(); j++)
-      {
-        const typename ei_packet_traits<Scalar>::type tmp = ei_pset1(m_rhs.coeff(k,j));
-        for (int i=0; i<this->rows(); i+=ei_packet_traits<Scalar>::size)
-          res.template writePacketCoeff<AlignedMode>(k,j,
-            ei_pmadd(tmp, m_lhs.template packetCoeff<AlignedMode>(i,k), res.template packetCoeff<AlignedMode>(i,j)));
-      }
-    }
   }
+
+  delete[] block;
 }
-#endif // EIGEN_VECTORIZE
 
 #endif // EIGEN_PRODUCT_H

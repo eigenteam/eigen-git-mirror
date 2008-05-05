@@ -72,9 +72,10 @@ template<typename ExpressionType> class Lazy
       return m_expression.coeff(row, col);
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_expression.packetCoeff(row, col);
+      return m_expression.template packetCoeff<LoadMode>(row, col);
     }
 
   protected:

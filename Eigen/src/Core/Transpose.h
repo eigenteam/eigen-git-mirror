@@ -79,14 +79,16 @@ template<typename MatrixType> class Transpose
       return m_matrix.coeff(col, row);
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_matrix.packetCoeff(col, row);
+      return m_matrix.template packetCoeff<LoadMode>(col, row);
     }
 
+    template<int LoadMode>
     void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().writePacketCoeff(col, row, x);
+      m_matrix.const_cast_derived().template writePacketCoeff<LoadMode>(col, row, x);
     }
 
   protected:

@@ -82,9 +82,10 @@ class CwiseUnaryOp : ei_no_assignment_operator,
       return m_functor(m_matrix.coeff(row, col));
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_functor.packetOp(m_matrix.packetCoeff(row, col));
+      return m_functor.packetOp(m_matrix.template packetCoeff<LoadMode>(row, col));
     }
 
   protected:

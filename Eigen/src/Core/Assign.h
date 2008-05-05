@@ -78,7 +78,7 @@ struct ei_matrix_assignment_packet_unroller
   {
     ei_matrix_assignment_packet_unroller<Derived1, Derived2,
       Index-ei_packet_traits<typename Derived1::Scalar>::size>::run(dst, src);
-    dst.writePacketCoeff(row, col, src.packetCoeff(row, col));
+    dst.template writePacketCoeff<Aligned>(row, col, src.template packetCoeff<Aligned>(row, col));
   }
 };
 
@@ -87,7 +87,7 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, 0 >
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.writePacketCoeff(0, 0, src.packetCoeff(0, 0));
+    dst.template writePacketCoeff<Aligned>(0, 0, src.template packetCoeff<Aligned>(0, 0));
   }
 };
 
@@ -211,7 +211,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
             // FIXME the following is not really efficient
             int i = index/dst.rows();
             int j = index%dst.rows();
-            dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+            dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
           }
           for(int i = alignedSize/dst.rows(); i < dst.rows(); i++)
             for(int j = alignedSize%dst.rows(); j < dst.cols(); j++)
@@ -222,7 +222,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
 //           std::cout << "vectorized normal row major\n";
           for(int i = 0; i < dst.rows(); i++)
             for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
-              dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+              dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
         }
       }
       else
@@ -240,7 +240,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
             // FIXME the following is not really efficient
             int i = index%dst.rows();
             int j = index/dst.rows();
-            dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+            dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
           }
           for(int j = alignedSize/dst.rows(); j < dst.cols(); j++)
             for(int i = alignedSize%dst.rows(); i < dst.rows(); i++)
@@ -251,7 +251,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
 //           std::cout << "vectorized normal col major\n";
           for(int j = 0; j < dst.cols(); j++)
             for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
-              dst.writePacketCoeff(i, j, src.packetCoeff(i, j));
+              dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
         }
       }
     }

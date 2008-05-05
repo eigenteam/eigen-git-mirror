@@ -116,21 +116,36 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
       ei_internal_assert(Flags & VectorizableBit);
       if(Flags & RowMajorBit)
-        return ei_pload(&m_storage.data()[col + row * m_storage.cols()]);
+        if (LoadMode==Aligned)
+          return ei_pload(&m_storage.data()[col + row * m_storage.cols()]);
+        else
+          return ei_ploadu(&m_storage.data()[col + row * m_storage.cols()]);
       else
-        return ei_pload(&m_storage.data()[row + col * m_storage.rows()]);
+        if (LoadMode==Aligned)
+          return ei_pload(&m_storage.data()[row + col * m_storage.rows()]);
+        else
+          return ei_ploadu(&m_storage.data()[row + col * m_storage.rows()]);
     }
+
+    template<int StoreMode>
     void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
       ei_internal_assert(Flags & VectorizableBit);
       if(Flags & RowMajorBit)
-        ei_pstore(&m_storage.data()[col + row * m_storage.cols()], x);
+        if (StoreMode==Aligned)
+          ei_pstore(&m_storage.data()[col + row * m_storage.cols()], x);
+        else
+          ei_pstoreu(&m_storage.data()[col + row * m_storage.cols()], x);
       else
-        ei_pstore(&m_storage.data()[row + col * m_storage.rows()], x);
+        if (StoreMode==Aligned)
+          ei_pstore(&m_storage.data()[row + col * m_storage.rows()], x);
+        else
+          ei_pstoreu(&m_storage.data()[row + col * m_storage.rows()], x);
     }
 
   public:

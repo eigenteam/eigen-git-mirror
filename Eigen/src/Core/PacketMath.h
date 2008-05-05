@@ -54,29 +54,33 @@ template <typename Scalar> inline Scalar ei_pset1(const Scalar& a) { return a; }
 template <typename Scalar> inline void ei_pstore(Scalar* to, const Scalar& from) { (*to) = from; }
 /** \internal \returns the first element of a packet */
 template <typename Scalar> inline Scalar ei_pfirst(const Scalar& a) { return a; }
+/** \internal \returns a packet where the element i contains the sum of the packet of \a vec[i] */
+template <typename Scalar> inline Scalar ei_predux(const Scalar vecs[1]) { return vecs[0]; }
+/** \internal \returns the sum of the elements of \a a*/
+template <typename Scalar> inline Scalar ei_predux(const Scalar& a) { return a; }
 
 #ifdef EIGEN_VECTORIZE_SSE
 
 #ifdef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #undef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 		16
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
 #endif
 
 template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}; };
 template<> struct ei_packet_traits<double> { typedef __m128d type; enum {size=2}; };
 template<> struct ei_packet_traits<int>    { typedef __m128i type; enum {size=4}; };
 
-inline __m128  ei_padd(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
-inline __m128d ei_padd(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
-inline __m128i ei_padd(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
+template<> inline __m128  ei_padd(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
+template<> inline __m128d ei_padd(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
+template<> inline __m128i ei_padd(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
 
-inline __m128  ei_psub(const __m128&  a, const __m128&  b) { return _mm_sub_ps(a,b); }
-inline __m128d ei_psub(const __m128d& a, const __m128d& b) { return _mm_sub_pd(a,b); }
-inline __m128i ei_psub(const __m128i& a, const __m128i& b) { return _mm_sub_epi32(a,b); }
+template<> inline __m128  ei_psub(const __m128&  a, const __m128&  b) { return _mm_sub_ps(a,b); }
+template<> inline __m128d ei_psub(const __m128d& a, const __m128d& b) { return _mm_sub_pd(a,b); }
+template<> inline __m128i ei_psub(const __m128i& a, const __m128i& b) { return _mm_sub_epi32(a,b); }
 
-inline __m128  ei_pmul(const __m128&  a, const __m128&  b) { return _mm_mul_ps(a,b); }
-inline __m128d ei_pmul(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
-inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
+template<> inline __m128  ei_pmul(const __m128&  a, const __m128&  b) { return _mm_mul_ps(a,b); }
+template<> inline __m128d ei_pmul(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
+template<> inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
 {
   return _mm_or_si128(
     _mm_and_si128(
@@ -89,21 +93,21 @@ inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
 }
 
 // for some weird raisons, it has to be overloaded for packet integer
-inline __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }
+template<> inline __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }
 
-inline __m128  ei_pmin(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
-inline __m128d ei_pmin(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
+template<> inline __m128  ei_pmin(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
+template<> inline __m128d ei_pmin(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
 // FIXME this vectorized min operator is likely to be slower than the standard one
-inline __m128i ei_pmin(const __m128i& a, const __m128i& b)
+template<> inline __m128i ei_pmin(const __m128i& a, const __m128i& b)
 {
   __m128i mask = _mm_cmplt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
 
-inline __m128  ei_pmax(const __m128&  a, const __m128&  b) { return _mm_max_ps(a,b); }
-inline __m128d ei_pmax(const __m128d& a, const __m128d& b) { return _mm_max_pd(a,b); }
+template<> inline __m128  ei_pmax(const __m128&  a, const __m128&  b) { return _mm_max_ps(a,b); }
+template<> inline __m128d ei_pmax(const __m128d& a, const __m128d& b) { return _mm_max_pd(a,b); }
 // FIXME this vectorized max operator is likely to be slower than the standard one
-inline __m128i ei_pmax(const __m128i& a, const __m128i& b)
+template<> inline __m128i ei_pmax(const __m128i& a, const __m128i& b)
 {
   __m128i mask = _mm_cmpgt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
@@ -113,6 +117,10 @@ inline __m128  ei_pload(const float*   from) { return _mm_load_ps(from); }
 inline __m128d ei_pload(const double*  from) { return _mm_load_pd(from); }
 inline __m128i ei_pload(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
+inline __m128  ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
+inline __m128d ei_ploadu(const double*  from) { return _mm_loadu_pd(from); }
+inline __m128i ei_ploadu(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
+
 inline __m128  ei_pset1(const float&  from) { return _mm_set1_ps(from); }
 inline __m128d ei_pset1(const double& from) { return _mm_set1_pd(from); }
 inline __m128i ei_pset1(const int&    from) { return _mm_set1_epi32(from); }
@@ -121,15 +129,39 @@ inline void ei_pstore(float*  to, const __m128&  from) { _mm_store_ps(to, from);
 inline void ei_pstore(double* to, const __m128d& from) { _mm_store_pd(to, from); }
 inline void ei_pstore(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
 
+inline void ei_pstoreu(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
+inline void ei_pstoreu(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
+inline void ei_pstoreu(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
+
 inline float  ei_pfirst(const __m128&  a) { return _mm_cvtss_f32(a); }
 inline double ei_pfirst(const __m128d& a) { return _mm_cvtsd_f64(a); }
 inline int    ei_pfirst(const __m128i& a) { return _mm_cvtsi128_si32(a); }
+
+#ifdef __SSE3__
+// TODO implement SSE2 versions as well as integer versions
+inline __m128 ei_predux(const __m128* vecs)
+{
+  return _mm_hadd_ps(_mm_hadd_ps(vecs[0], vecs[1]),_mm_hadd_ps(vecs[2], vecs[3]));
+}
+inline __m128d ei_predux(const __m128d* vecs)
+{
+  return _mm_hadd_pd(vecs[0], vecs[1]);
+}
+
+inline float ei_predux(const __m128& a)
+{
+  __m128 tmp0 = _mm_hadd_ps(a,a);
+  return ei_pfirst(_mm_hadd_ps(tmp0, tmp0));
+}
+
+inline double ei_predux(const __m128d& a) { return ei_pfirst(_mm_hadd_pd(a, a)); }
+#endif
 
 #elif defined(EIGEN_VECTORIZE_ALTIVEC)
 
 #ifdef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #undef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 		4
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
 #endif
 
 static const vector int   v0i   = vec_splat_u32(0);

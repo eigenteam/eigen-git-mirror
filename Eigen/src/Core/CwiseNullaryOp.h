@@ -82,6 +82,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
       return m_functor(rows, cols);
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int, int) const
     {
       return m_functor.packetOp();

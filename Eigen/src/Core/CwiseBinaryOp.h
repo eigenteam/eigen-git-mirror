@@ -103,9 +103,10 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_functor.packetOp(m_lhs.packetCoeff(row, col), m_rhs.packetCoeff(row, col));
+      return m_functor.packetOp(m_lhs.template packetCoeff<LoadMode>(row, col), m_rhs.template packetCoeff<LoadMode>(row, col));
     }
 
   protected:

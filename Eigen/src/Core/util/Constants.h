@@ -45,6 +45,7 @@ const unsigned int NullLowerBit = 0x200;    ///< means the strictly triangular l
 const unsigned int NullUpperBit = 0x400;    ///< means the strictly triangular upper part is 0
 
 enum { Upper=NullLowerBit, Lower=NullUpperBit };
+enum { Aligned=0, UnAligned=1 };
 
 // list of flags that are lost by default
 const unsigned int DefaultLostFlagMask = ~(VectorizableBit | Like1DArrayBit | NullDiagBit | UnitDiagBit | NullLowerBit | NullUpperBit);

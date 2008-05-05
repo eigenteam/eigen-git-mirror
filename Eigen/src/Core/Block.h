@@ -143,6 +143,18 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
+    template<int LoadMode>
+    PacketScalar _packetCoeff(int row, int col) const
+    {
+      return m_matrix.packetCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value());
+    }
+
+    template<int LoadMode>
+    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    {
+      m_matrix.const_cast_derived().writePacketCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
+    }
+
   protected:
 
     const typename MatrixType::Nested m_matrix;

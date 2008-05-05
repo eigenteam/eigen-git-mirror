@@ -207,8 +207,10 @@ template<typename Derived> class MatrixBase
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
 
-    PacketScalar packetCoeff(int row, int col) const { return derived()._packetCoeff(row,col); }
-    void writePacketCoeff(int row, int col, const PacketScalar& x) { return derived()._writePacketCoeff(row,col,x); }
+    template<int LoadMode>
+    PacketScalar packetCoeff(int row, int col) const { return derived().template _packetCoeff<LoadMode>(row,col); }
+    template<int StoreMode>
+    void writePacketCoeff(int row, int col, const PacketScalar& x) { return derived().template _writePacketCoeff<StoreMode>(row,col,x); }
 
     const Scalar x() const;
     const Scalar y() const;
@@ -555,7 +557,9 @@ template<typename Derived> class MatrixBase
 
   private:
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int , int) const { ei_internal_assert(false && "_packetCoeff not defined"); }
+    template<int StoreMode>
     void _writePacketCoeff(int , int, const PacketScalar&) { ei_internal_assert(false && "_packetCoeff not defined"); }
 
 };
