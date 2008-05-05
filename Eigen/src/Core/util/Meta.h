@@ -189,6 +189,9 @@ template<typename T> class ei_eval
 template<typename T> struct ei_unref { typedef T type; };
 template<typename T> struct ei_unref<T&> { typedef T type; };
 
+template<typename T> struct ei_unconst { typedef T type; };
+template<typename T> struct ei_unconst<const T> { typedef T type; };
+
 template<typename T> struct ei_is_temporary
 {
   enum { ret = 0 };

@@ -193,6 +193,17 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     typedef typename ei_traits<Product>::_LhsNested _LhsNested;
     typedef typename ei_traits<Product>::_RhsNested _RhsNested;
 
+    enum {
+      PacketSize = ei_packet_traits<Scalar>::size,
+      #if (defined __i386__)
+      // i386 architectures provides only 8 xmmm register,
+      // so let's reduce the max number of rows processed at once
+      MaxBlockRows = 4,
+      #else
+      MaxBlockRows = 8,
+      #endif
+    };
+
     Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
@@ -200,7 +211,18 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
     /** \internal */
-    template<typename DestDerived> void _cacheFriendlyEval(DestDerived& res) const;
+    template<typename DestDerived>
+    void _cacheFriendlyEval(DestDerived& res) const;
+
+    /** \internal */
+    template<typename DestDerived, int RhsAlignment, int ResAlignment>
+    void _cacheFriendlyEvalImpl(DestDerived& res) const __attribute__ ((noinline));
+
+    /** \internal */
+    template<typename DestDerived, int RhsAlignment, int ResAlignment, int BlockRows>
+    void _cacheFriendlyEvalKernel(DestDerived& res,
+      int l2i, int l2j, int l2k, int l1i,
+      int l2blockRowEnd, int l2blockColEnd, int l2blockSizeEnd, const Scalar* block) const EIGEN_DONT_INLINE;
 
   private:
 
@@ -299,13 +321,134 @@ template<typename Derived>
 template<typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProduct>& product)
 {
-  product._cacheFriendlyEval(*this);
+  product._cacheFriendlyEval(derived());
   return derived();
 }
 
 template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
 void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
+{
+  const bool rhsIsAligned = (m_lhs.cols()%PacketSize == 0);
+  const bool resIsAligned = ((_rows()%PacketSize) == 0);
+
+  if (rhsIsAligned && resIsAligned)
+    _cacheFriendlyEvalImpl<DestDerived, Aligned, Aligned>(res);
+  else if (rhsIsAligned && (!resIsAligned))
+    _cacheFriendlyEvalImpl<DestDerived, Aligned, UnAligned>(res);
+  else if ((!rhsIsAligned) && resIsAligned)
+    _cacheFriendlyEvalImpl<DestDerived, UnAligned, Aligned>(res);
+  else
+    _cacheFriendlyEvalImpl<DestDerived, UnAligned, UnAligned>(res);
+
+}
+
+template<typename Lhs, typename Rhs, int EvalMode>
+template<typename DestDerived, int RhsAlignment, int ResAlignment, int BlockRows>
+void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEvalKernel(DestDerived& res,
+  int l2i, int l2j, int l2k, int l1i,
+  int l2blockRowEnd, int l2blockColEnd, int l2blockSizeEnd, const Scalar* block) const
+{
+  asm("#eigen begin kernel");
+
+  ei_internal_assert(BlockRows<=8);
+
+  // NOTE: sounds like we cannot rely on meta-unrolling to access dst[I] without enforcing GCC
+  // to create the dst's elements in memory, hence killing the performance.
+
+  for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
+  {
+    int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*BlockRows;
+    const Scalar* localB = &block[offsetblock];
+
+    int l1jsize = l1j * m_lhs.cols(); //TODO find a better way to optimize address computation ?
+
+    // don't worry, dst is a set of registers
+    PacketScalar dst[BlockRows];
+    dst[0] = ei_pset1(Scalar(0.));
+    switch(BlockRows)
+    {
+    case 8: dst[7] = dst[0];
+    case 7: dst[6] = dst[0];
+    case 6: dst[5] = dst[0];
+    case 5: dst[4] = dst[0];
+    case 4: dst[3] = dst[0];
+    case 3: dst[2] = dst[0];
+    case 2: dst[1] = dst[0];
+    default: break;
+    }
+
+    // let's declare a few other temporary registers
+    PacketScalar tmp, tmp1;
+
+    // unaligned loads are expensive, therefore let's preload the next element in advance
+    if (RhsAlignment==UnAligned)
+      tmp1 = ei_ploadu(&m_rhs.derived().data()[l1jsize+l2k]);
+
+    for(int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
+    {
+      // FIXME if we don't cache l1j*m_lhs.cols() then the performance are poor,
+      // let's directly access to the data
+      //PacketScalar tmp = m_rhs.template packetCoeff<Aligned>(k, l1j);
+      if (RhsAlignment==Aligned)
+      {
+        tmp = ei_pload(&m_rhs.data()[l1jsize + k]);
+      }
+      else
+      {
+        tmp = tmp1;
+        if (k+PacketSize<l2blockSizeEnd)
+          tmp1 = ei_ploadu(&m_rhs.data()[l1jsize + k+PacketSize]);
+      }
+
+                        dst[0] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows             ])), dst[0]);
+      if (BlockRows>=2) dst[1] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+  PacketSize])), dst[1]);
+      if (BlockRows>=3) dst[2] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+2*PacketSize])), dst[2]);
+      if (BlockRows>=4) dst[3] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+3*PacketSize])), dst[3]);
+      if (BlockRows>=5) dst[4] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+4*PacketSize])), dst[4]);
+      if (BlockRows>=6) dst[5] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+5*PacketSize])), dst[5]);
+      if (BlockRows>=7) dst[6] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+6*PacketSize])), dst[6]);
+      if (BlockRows>=8) dst[7] = ei_pmadd(tmp, ei_pload(&(localB[k*BlockRows+7*PacketSize])), dst[7]);
+    }
+
+    enum {
+      // Number of rows we can reduce per packet
+      PacketRows = (ResAlignment==Aligned && PacketSize>1) ? (BlockRows / PacketSize) : 0,
+      // First row index from which we have to to do redux once at a time
+      RemainingStart = PacketSize * PacketRows
+    };
+
+    // we have up to 4 packets (for doubles: 8 rows / 2)
+    if (PacketRows>=1)
+      res.template writePacketCoeff<Aligned>(l1i, l1j,
+        ei_padd(res.template packetCoeff<Aligned>(l1i, l1j), ei_predux(&(dst[0]))));
+    if (PacketRows>=2)
+      res.template writePacketCoeff<Aligned>(l1i+PacketSize, l1j,
+        ei_padd(res.template packetCoeff<Aligned>(l1i+PacketSize, l1j), ei_predux(&(dst[PacketSize]))));
+    if (PacketRows>=3)
+      res.template writePacketCoeff<Aligned>(l1i+2*PacketSize, l1j,
+        ei_padd(res.template packetCoeff<Aligned>(l1i+2*PacketSize, l1j), ei_predux(&(dst[2*PacketSize]))));
+    if (PacketRows>=4)
+      res.template writePacketCoeff<Aligned>(l1i+3*PacketSize, l1j,
+        ei_padd(res.template packetCoeff<Aligned>(l1i+3*PacketSize, l1j), ei_predux(&(dst[3*PacketSize]))));
+
+    // process the remaining rows one at a time
+    if (RemainingStart<=0 && BlockRows>=1) res.coeffRef(l1i+0, l1j) += ei_predux(dst[0]);
+    if (RemainingStart<=1 && BlockRows>=2) res.coeffRef(l1i+1, l1j) += ei_predux(dst[1]);
+    if (RemainingStart<=2 && BlockRows>=3) res.coeffRef(l1i+2, l1j) += ei_predux(dst[2]);
+    if (RemainingStart<=3 && BlockRows>=4) res.coeffRef(l1i+3, l1j) += ei_predux(dst[3]);
+    if (RemainingStart<=4 && BlockRows>=5) res.coeffRef(l1i+4, l1j) += ei_predux(dst[4]);
+    if (RemainingStart<=5 && BlockRows>=6) res.coeffRef(l1i+5, l1j) += ei_predux(dst[5]);
+    if (RemainingStart<=6 && BlockRows>=7) res.coeffRef(l1i+6, l1j) += ei_predux(dst[6]);
+    if (RemainingStart<=7 && BlockRows>=8) res.coeffRef(l1i+7, l1j) += ei_predux(dst[7]);
+
+    asm("#eigen end kernel");
+  }
+}
+
+template<typename Lhs, typename Rhs, int EvalMode>
+template<typename DestDerived, int RhsAlignment, int ResAlignment>
+void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEvalImpl(DestDerived& res) const
 {
   // allow direct access to data for benchmark purpose
   const Scalar* __restrict__ a = m_lhs.derived().data();
@@ -316,21 +459,13 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
   // then we don't need to clear res and avoid and additional mat-mat sum
 //   res.setZero();
 
-  const int ps = ei_packet_traits<Scalar>::size;  // size of a packet
-  #if (defined __i386__)
-  // i386 architectures provides only 8 xmmm register,
-  // so let's reduce the max number of rows processed at once
-  const int bw = 4;                               // number of rows treated at once
-  #else
-  const int bw = 8;                               // number of rows treated at once
-  #endif
-  const int bs = ps * bw;                         // total number of elements treated at once
+  const int bs = PacketSize * MaxBlockRows;                         // total number of elements treated at once
   const int rows = _rows();
   const int cols = _cols();
-  const int size = m_lhs.cols();                  // third dimension of the product
+  const int remainingSize = m_lhs.cols()%PacketSize;
+  const int size = m_lhs.cols() - remainingSize; // third dimension of the product clamped to packet boundaries
   const int l2blocksize = 256 > _cols() ? _cols() : 256;
-  const bool rhsIsAligned = ((size%ps) == 0);
-  const bool resIsAligned = ((cols%ps) == 0);
+  // FIXME use calloca ?? (allocation on the stack)
   Scalar* __restrict__ block = new Scalar[l2blocksize*size];
 
   // loops on each L2 cache friendly blocks of the result
@@ -348,23 +483,23 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
     {
       const int l2blockSizeEnd = std::min(l2k+l2blocksize, size);
 
-      for (int i = l2i; i<l2blockRowEndBW; i+=bw)
+      for (int i = l2i; i<l2blockRowEndBW; i+=MaxBlockRows)
       {
-        for (int k=l2k; k<l2blockSizeEnd; k+=ps)
+        for (int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
         {
           // TODO write these two loops using meta unrolling
           // negligible for large matrices but useful for small ones
-          for (int w=0; w<bw; ++w)
-            for (int s=0; s<ps; ++s)
+          for (int w=0; w<MaxBlockRows; ++w)
+            for (int s=0; s<PacketSize; ++s)
               block[count++] = m_lhs.coeff(i+w,k+s);
         }
       }
       if (l2blockRowRemaining>0)
       {
-        for (int k=l2k; k<l2blockSizeEnd; k+=ps)
+        for (int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
         {
           for (int w=0; w<l2blockRowRemaining; ++w)
-            for (int s=0; s<ps; ++s)
+            for (int s=0; s<PacketSize; ++s)
               block[count++] = m_lhs.coeff(l2blockRowEndBW+w,k+s);
         }
       }
@@ -376,19 +511,21 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 
       for(int l2k=0; l2k<size; l2k+=l2blocksize)
       {
-        // acumulate a full row of current a block time 4 cols of current a block
-        // to a 1x4 c block
+        // acumulate a bw rows of lhs time a single column of rhs to a bw x 1 block of res
         int l2blockSizeEnd = std::min(l2k+l2blocksize, size);
 
-        // for each 4x1 result's block sub blocks...
-        for(int l1i=l2i; l1i<l2blockRowEndBW; l1i+=bw)
+        // for each bw x 1 result's block
+        for(int l1i=l2i; l1i<l2blockRowEndBW; l1i+=MaxBlockRows)
         {
+            _cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, MaxBlockRows>(
+              res, l2i, l2j, l2k, l1i, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block);
+#if 0
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
             int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*bw/*bs*/;
             const Scalar* localB = &block[offsetblock];
 
-            int l1jsize = l1j * size; //TODO find a better way to optimize address computation ?
+            int l1jsize = l1j * m_lhs.cols(); //TODO find a better way to optimize address computation ?
 
             PacketScalar dst[bw];
             dst[0] = ei_pset1(Scalar(0.));
@@ -408,7 +545,8 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
             asm("#eigen begincore");
             for(int k=l2k; k<l2blockSizeEnd; k+=ps)
             {
-              //PacketScalar tmp = m_rhs.packetCoeff(k, l1j);
+//               PacketScalar tmp = m_rhs.template packetCoeff<Aligned>(k, l1j);
+              // TODO make this branching compile time (costly for doubles)
               if (rhsIsAligned)
                 tmp = ei_pload(&m_rhs.derived().data()[l1jsize + k]);
               else
@@ -436,21 +574,61 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
               }
             }
 
-            res.template writePacketCoeff<Aligned>(l1i, l1j, ei_padd(res.template packetCoeff<Aligned>(l1i, l1j), ei_predux(dst)));
-            if (ps==2)
-              res.template writePacketCoeff<Aligned>(l1i+2,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+2,l1j), ei_predux(&(dst[2]))));
-            if (bw==8)
+//             if (resIsAligned)
             {
-              res.template writePacketCoeff<Aligned>(l1i+4,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+4,l1j), ei_predux(&(dst[4]))));
+              res.template writePacketCoeff<Aligned>(l1i, l1j, ei_padd(res.template packetCoeff<Aligned>(l1i, l1j), ei_predux(dst)));
               if (ps==2)
-                res.template writePacketCoeff<Aligned>(l1i+6,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+6,l1j), ei_predux(&(dst[6]))));
+                res.template writePacketCoeff<Aligned>(l1i+2,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+2,l1j), ei_predux(&(dst[2]))));
+              if (bw==8)
+              {
+                res.template writePacketCoeff<Aligned>(l1i+4,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+4,l1j), ei_predux(&(dst[4]))));
+                if (ps==2)
+                  res.template writePacketCoeff<Aligned>(l1i+6,l1j, ei_padd(res.template packetCoeff<Aligned>(l1i+6,l1j), ei_predux(&(dst[6]))));
+              }
             }
+//             else
+//             {
+//               // TODO uncommenting this code kill the perf, even though it is never called !!
+//               // TODO optimize this loop
+//               // TODO is it better to do one redux at once or packet reduxes + unaligned store ?
+//               for (int w = 0; w<bw; ++w)
+//                 res.coeffRef(l1i+w, l1j) += ei_predux(dst[w]);
+//               std::cout << "!\n";
+//             }
 
             asm("#eigen endcore");
           }
+#endif
         }
         if (l2blockRowRemaining>0)
         {
+          // this is an attempt to build an array of kernels, but I did not manage to get it compiles
+//           typedef void (*Kernel)(DestDerived& , int, int, int, int, int, int, int, const Scalar*);
+//           Kernel kernels[8];
+//           kernels[0] = (Kernel)(&Product<Lhs,Rhs,EvalMode>::template _cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 1>);
+//           kernels[l2blockRowRemaining](res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block);
+
+          switch(l2blockRowRemaining)
+          {
+          case 1:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 1>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 2:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 2>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 3:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 3>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 4:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 4>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 5:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 5>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 6:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 6>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          case 7:_cacheFriendlyEvalKernel<DestDerived, RhsAlignment, ResAlignment, 7>(
+              res, l2i, l2j, l2k, l2blockRowEndBW, l2blockRowEnd, l2blockColEnd, l2blockSizeEnd, block); break;
+          default:
+            ei_internal_assert(false && "internal error"); break;
+          }
+
+#if 0
           // TODO optimize this part using a generic templated function that processes N rows
           // here we process the remaining l2blockRowRemaining rows
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
@@ -460,13 +638,13 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 
             int l1jsize = l1j * size;
 
-            PacketScalar dst[bw];
+            PacketScalar dst[MaxBlockRows];
             dst[0] = ei_pset1(Scalar(0.));
             for (int w = 1; w<l2blockRowRemaining; ++w)
               dst[w] = dst[0];
             PacketScalar b0, b1, tmp;
             asm("#eigen begincore dynamic");
-            for(int k=l2k; k<l2blockSizeEnd; k+=ps)
+            for(int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
             {
               //PacketScalar tmp = m_rhs.packetCoeff(k, l1j);
               if (rhsIsAligned)
@@ -476,7 +654,7 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 
               // TODO optimize this loop
               for (int w = 0; w<l2blockRowRemaining; ++w)
-                dst[w] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRowRemaining+w*ps])), dst[w]);
+                dst[w] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRowRemaining+w*PacketSize])), dst[w]);
             }
 
             // TODO optimize this loop
@@ -485,9 +663,21 @@ void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 
             asm("#eigen endcore dynamic");
           }
+#endif
         }
       }
     }
+  }
+
+  // handle the part which cannot be processed by the vectorized path
+  if (remainingSize)
+  {
+    res += Product<
+      Block<typename ei_unconst<_LhsNested>::type,Dynamic,Dynamic>,
+      Block<typename ei_unconst<_RhsNested>::type,Dynamic,Dynamic>,
+      NormalProduct>(
+        m_lhs.block(0,size, _rows(), remainingSize),
+        m_rhs.block(size,0, remainingSize, _cols())).lazy();
   }
 
   delete[] block;

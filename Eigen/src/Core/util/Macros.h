@@ -85,6 +85,12 @@ using Eigen::MatrixBase;
 #endif
 
 #if (defined __GNUC__)
+#define EIGEN_DONT_INLINE __attribute__((noinline))
+#else
+#define EIGEN_DONT_INLINE
+#endif
+
+#if (defined __GNUC__)
 #define EIGEN_ALIGN_128 __attribute__ ((aligned(16)))
 #else
 #define EIGEN_ALIGN_128

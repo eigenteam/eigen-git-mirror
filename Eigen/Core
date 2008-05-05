@@ -39,6 +39,12 @@ namespace Eigen {
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/PacketMath.h"
+#if defined EIGEN_VECTORIZE_SSE
+#include "src/Core/PacketMath_SSE.h"
+#elif defined EIGEN_VECTORIZE_ALTIVEC
+#include "src/Core/PacketMath_Altivec.h"
+#endif
+
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/Coeffs.h"
