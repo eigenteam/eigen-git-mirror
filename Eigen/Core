@@ -9,10 +9,12 @@
 #define EIGEN_VECTORIZE_SSE
 #include <emmintrin.h>
 #include <xmmintrin.h>
-// SSE3:
+#ifdef __SSE3__
 #include <pmmintrin.h>
-// SSSE3:
+#endif
+//#ifdef __SSSE3__
 //#include <tmmintrin.h>
+//#endif
 #endif
 #ifdef __ALTIVEC__  // There are zero chances of both __SSE2__ AND __ALTIVEC__ been defined
 #define EIGEN_VECTORIZE
