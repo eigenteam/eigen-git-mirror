@@ -45,6 +45,13 @@
 
 #define EIGEN_DEFAULT_MATRIX_FLAGS EIGEN_DEFAULT_MATRIX_STORAGE_ORDER
 
+/** Define a hint size when dealling with large matrices and L2 cache friendlyness
+  * More precisely, its square value represents the amount of bytes which can be assumed to stay in L2 cache.
+  */
+#ifndef EIGEN_TUNE_FOR_L2_CACHE_SIZE
+#define EIGEN_TUNE_FOR_L2_CACHE_SIZE 1024
+#endif
+
 #define USING_PART_OF_NAMESPACE_EIGEN \
 EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix; \

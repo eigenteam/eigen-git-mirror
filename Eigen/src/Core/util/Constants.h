@@ -43,16 +43,18 @@ const unsigned int NullDiagBit = 0x40;      ///< means all diagonal coefficients
 const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients are equal to 1
 const unsigned int NullLowerBit = 0x200;    ///< means the strictly triangular lower part is 0
 const unsigned int NullUpperBit = 0x400;    ///< means the strictly triangular upper part is 0
+const unsigned int ReferencableBit = 0x800; ///< means the expression is writable through MatrixBase::coeffRef(int,int)
 
 enum { Upper=NullLowerBit, Lower=NullUpperBit };
 enum { Aligned=0, UnAligned=1 };
 
 // list of flags that are lost by default
-const unsigned int DefaultLostFlagMask = ~(VectorizableBit | Like1DArrayBit | NullDiagBit | UnitDiagBit | NullLowerBit | NullUpperBit);
+const unsigned int DefaultLostFlagMask = ~(VectorizableBit | Like1DArrayBit | ReferencableBit
+  | NullDiagBit | UnitDiagBit | NullLowerBit | NullUpperBit);
 
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
-enum ProductEvaluationMode { NormalProduct, CacheOptimalProduct };
+enum ProductEvaluationMode { NormalProduct, CacheOptimalProduct, LazyProduct};
 
 #endif // EIGEN_CONSTANTS_H

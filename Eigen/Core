@@ -1,13 +1,18 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+#define EIGEN_WIP_PRODUCT
+
 #ifndef EIGEN_DONT_VECTORIZE
 #if ((defined __SSE2__) && ( (!defined __GNUC__) || (__GNUC__>=4 && __GNUC_MINOR__>=2)))
 #define EIGEN_VECTORIZE
 #define EIGEN_VECTORIZE_SSE
 #include <emmintrin.h>
 #include <xmmintrin.h>
+// SSE3:
 #include <pmmintrin.h>
+// SSSE3:
+//#include <tmmintrin.h>
 #endif
 #ifdef __ALTIVEC__  // There are zero chances of both __SSE2__ AND __ALTIVEC__ been defined
 #define EIGEN_VECTORIZE

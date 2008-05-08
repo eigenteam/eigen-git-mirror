@@ -71,10 +71,10 @@ template <typename Scalar> inline void ei_pstoreu(Scalar* to, const Scalar& from
 template <typename Scalar> inline Scalar ei_pfirst(const Scalar& a) { return a; }
 
 /** \internal \returns a packet where the element i contains the sum of the packet of \a vec[i] */
-// template <typename Scalar> inline Scalar ei_predux(const Scalar* vecs) { return vecs[0]; }
+template <typename Scalar> inline Scalar ei_preduxp(const Scalar* vecs) { return vecs[0]; }
 
 /** \internal \returns the sum of the elements of \a a*/
-// template <typename Scalar> inline Scalar ei_predux(const Scalar& a) { return a; }
+template <typename Scalar> inline Scalar ei_predux(const Scalar& a) { return a; }
 
 #endif // EIGEN_PACKET_MATH_H
 

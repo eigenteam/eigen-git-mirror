@@ -102,14 +102,19 @@ inline int    ei_pfirst(const __m128i& a) { return _mm_cvtsi128_si32(a); }
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions
-inline __m128 ei_predux(const __m128* vecs)
+inline __m128 ei_preduxp(const __m128* vecs)
 {
   return _mm_hadd_ps(_mm_hadd_ps(vecs[0], vecs[1]),_mm_hadd_ps(vecs[2], vecs[3]));
 }
-inline __m128d ei_predux(const __m128d* vecs)
+inline __m128d ei_preduxp(const __m128d* vecs)
 {
   return _mm_hadd_pd(vecs[0], vecs[1]);
 }
+// SSSE3 version:
+// inline __m128i ei_preduxp(const __m128i* vecs)
+// {
+//   return _mm_hadd_epi32(_mm_hadd_epi32(vecs[0], vecs[1]),_mm_hadd_epi32(vecs[2], vecs[3]));
+// }
 
 inline float ei_predux(const __m128& a)
 {
@@ -118,6 +123,13 @@ inline float ei_predux(const __m128& a)
 }
 
 inline double ei_predux(const __m128d& a) { return ei_pfirst(_mm_hadd_pd(a, a)); }
+
+// SSSE3 version:
+// inline float ei_predux(const __m128i& a)
+// {
+//   __m128i tmp0 = _mm_hadd_epi32(a,a);
+//   return ei_pfirst(_mm_hadd_epi32(tmp0, tmp0));
+// }
 #else
 // SSE2 versions
 inline float ei_predux(const __m128& a)
@@ -130,7 +142,7 @@ inline double ei_predux(const __m128d& a)
   return ei_pfirst(_mm_add_sd(a, _mm_unpackhi_pd(a,a)));
 }
 
-inline __m128 ei_predux(const __m128* vecs)
+inline __m128 ei_preduxp(const __m128* vecs)
 {
   __m128 tmp0, tmp1, tmp2;
   tmp0 = _mm_unpacklo_ps(vecs[0], vecs[1]);
@@ -144,11 +156,31 @@ inline __m128 ei_predux(const __m128* vecs)
   return _mm_add_ps(tmp0, tmp2);
 }
 
-inline __m128d ei_predux(const __m128d* vecs)
+inline __m128d ei_preduxp(const __m128d* vecs)
 {
   return _mm_add_pd(_mm_unpacklo_pd(vecs[0], vecs[1]), _mm_unpackhi_pd(vecs[0], vecs[1]));
 }
 #endif  // SSE3
+
+inline int ei_predux(const __m128i& a)
+{
+  __m128i tmp = _mm_add_epi32(a, _mm_unpackhi_epi64(a,a));
+  return ei_pfirst(tmp) + ei_pfirst(_mm_shuffle_epi32(tmp, 1));
+}
+
+inline __m128i ei_preduxp(const __m128i* vecs)
+{
+  __m128i tmp0, tmp1, tmp2;
+  tmp0 = _mm_unpacklo_epi32(vecs[0], vecs[1]);
+  tmp1 = _mm_unpackhi_epi32(vecs[0], vecs[1]);
+  tmp2 = _mm_unpackhi_epi32(vecs[2], vecs[3]);
+  tmp0 = _mm_add_epi32(tmp0, tmp1);
+  tmp1 = _mm_unpacklo_epi32(vecs[2], vecs[3]);
+  tmp1 = _mm_add_epi32(tmp1, tmp2);
+  tmp2 = _mm_unpacklo_epi64(tmp0, tmp1);
+  tmp0 = _mm_unpackhi_epi64(tmp0, tmp1);
+  return _mm_add_epi32(tmp0, tmp2);
+}
 
 #endif // EIGEN_PACKET_MATH_SSE_H
 

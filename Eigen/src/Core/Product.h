@@ -107,6 +107,12 @@ struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScal
   static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
 };
 
+template<int Index, typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<false, Index, Dynamic, Lhs, Rhs, PacketScalar>
+{
+  static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+};
+
 template<typename Product, bool RowMajor = true> struct ProductPacketCoeffImpl {
   inline static typename Product::PacketScalar execute(const Product& product, int row, int col)
   { return product._packetCoeffRowMajor(row,col); }
