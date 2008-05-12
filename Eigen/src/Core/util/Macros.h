@@ -85,10 +85,10 @@ using Eigen::MatrixBase;
 // gcc 3.4.x reports the following compilation error:
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
 //    : function body not available
-#if (defined __GNUC__) && (__GNUC__!=3)
-#define EIGEN_ALWAYS_INLINE __attribute__((always_inline))
+#if EIGEN_GNUC_AT_LEAST(4,0)
+#define EIGEN_INLINE __attribute__((always_inline))
 #else
-#define EIGEN_ALWAYS_INLINE
+#define EIGEN_INLINE inline
 #endif
 
 #if (defined __GNUC__)

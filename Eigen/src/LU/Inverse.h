@@ -84,9 +84,10 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
       return m_inverse.coeff(row, col);
     }
 
+    template<int LoadMode>
     PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_inverse.packetCoeff(row, col);
+      return m_inverse.template packetCoeff<LoadMode>(row, col);
     }
 
     enum { _Size = MatrixType::RowsAtCompileTime };

@@ -3,26 +3,31 @@
 
 #define EIGEN_WIP_PRODUCT
 
+#ifdef __GNUC__
+#define EIGEN_GNUC_AT_LEAST(x,y) (__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x
+#else
+#define EIGEN_GNUC_AT_LEAST(x,y) false
+#endif
+
 #ifndef EIGEN_DONT_VECTORIZE
-#if ((defined __SSE2__) && ( (!defined __GNUC__) || (__GNUC__>=4 && __GNUC_MINOR__>=2)))
-#define EIGEN_VECTORIZE
-#define EIGEN_VECTORIZE_SSE
-#include <emmintrin.h>
-#include <xmmintrin.h>
-#ifdef __SSE3__
-#include <pmmintrin.h>
-#endif
-//#ifdef __SSSE3__
-//#include <tmmintrin.h>
-//#endif
-#endif
-#ifdef __ALTIVEC__  // There are zero chances of both __SSE2__ AND __ALTIVEC__ been defined
-#define EIGEN_VECTORIZE
-#define EIGEN_VECTORIZE_ALTIVEC
-#include <altivec.h>
-// We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
-#undef bool
-#endif
+  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_SSE
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef __SSE3__
+      #include <pmmintrin.h>
+    #endif
+    //#ifdef __SSSE3__
+    //#include <tmmintrin.h>
+    //#endif
+  #elif (defined __ALTIVEC__)
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_ALTIVEC
+    #include <altivec.h>
+    // We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
+    #undef bool
+  #endif
 #endif
 
 #include <cstdlib>
@@ -63,7 +68,7 @@ namespace Eigen {
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"
-#ifdef EIGEN_WIP_PRODUCT
+#if (defined EIGEN_WIP_PRODUCT) && (defined EIGEN_VECTORIZE)
 #include "src/Core/ProductWIP.h"
 #else
 #include "src/Core/Product.h"

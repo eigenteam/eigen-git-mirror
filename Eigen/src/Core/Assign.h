@@ -184,7 +184,6 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
   static void execute(Derived & dst, const OtherDerived & src)
   {
     const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-    ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     if(unroll)
     {
 //       std::cout << "vectorized unrolled\n";

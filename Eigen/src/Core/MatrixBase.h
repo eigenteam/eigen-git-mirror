@@ -409,7 +409,7 @@ template<typename Derived> class MatrixBase
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
-    const typename ei_eval<Derived>::type eval() const EIGEN_ALWAYS_INLINE
+    EIGEN_INLINE const typename ei_eval<Derived>::type eval() const
     {
       return typename ei_eval<Derived>::type(derived());
     }

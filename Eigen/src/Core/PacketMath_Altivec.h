@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2008 Konstantinos Margaritis <markos@codex.gr>
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -29,10 +30,7 @@
 #error include PacketMath_Altivec without EIGEN_VECTORIZE_ALTIVEC
 #endif
 
-#ifdef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#undef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
-#endif
 
 static const vector int   v0i   = vec_splat_u32(0);
 static const vector int   v16i_ = vec_splat_u32(-16);
