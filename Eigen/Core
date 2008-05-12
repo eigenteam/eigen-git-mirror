@@ -1,39 +1,7 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
-#define EIGEN_WIP_PRODUCT
-
-#ifdef __GNUC__
-#define EIGEN_GNUC_AT_LEAST(x,y) (__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x
-#else
-#define EIGEN_GNUC_AT_LEAST(x,y) false
-#endif
-
-#ifndef EIGEN_DONT_VECTORIZE
-  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_SSE
-    #include <emmintrin.h>
-    #include <xmmintrin.h>
-    #ifdef __SSE3__
-      #include <pmmintrin.h>
-    #endif
-    #ifdef __SSSE3__
-    #include <tmmintrin.h>
-    #endif
-  #elif (defined __ALTIVEC__)
-    #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_ALTIVEC
-    #include <altivec.h>
-    // We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
-    #undef bool
-  #endif
-#endif
-
-#include <cstdlib>
-#include <cmath>
-#include <complex>
-#include <cassert>
+#include "CoreDeclarations"
 #include <iostream>
 
 #ifdef EIGEN_VECTORIZE
@@ -42,11 +10,6 @@ extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 #endif
 
 namespace Eigen {
-
-#include "src/Core/util/Macros.h"
-#include "src/Core/util/Constants.h"
-#include "src/Core/util/ForwardDeclarations.h"
-#include "src/Core/util/Meta.h"
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"

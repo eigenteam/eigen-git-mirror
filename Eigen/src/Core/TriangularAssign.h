@@ -80,7 +80,7 @@ struct ei_assignment_impl<Derived, OtherDerived, DummyVectorize, true>
     if(unroll)
     {
       ei_triangular_assign_unroller
-        <Derived, OtherDerived, unroll ? Derived::SizeAtCompileTime : Dynamic, Derived::Flags>::run
+        <Derived, OtherDerived, unroll ? int(Derived::SizeAtCompileTime) : Dynamic, Derived::Flags>::run
           (dst.derived(), src.derived());
     }
     else

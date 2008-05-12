@@ -70,8 +70,8 @@ template<typename Derived1, typename Derived2, int Index>
 struct ei_matrix_assignment_packet_unroller
 {
   enum {
-    row = Derived1::Flags&RowMajorBit ? Index / Derived1::ColsAtCompileTime : Index % Derived1::RowsAtCompileTime,
-    col = Derived1::Flags&RowMajorBit ? Index % Derived1::ColsAtCompileTime : Index / Derived1::RowsAtCompileTime
+    row = int(Derived1::Flags)&RowMajorBit ? Index / int(Derived1::ColsAtCompileTime) : Index % Derived1::RowsAtCompileTime,
+    col = int(Derived1::Flags)&RowMajorBit ? Index % int(Derived1::ColsAtCompileTime) : Index / Derived1::RowsAtCompileTime
   };
 
   inline static void run(Derived1 &dst, const Derived2 &src)
@@ -99,12 +99,12 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
 };
 
 template <typename Derived, typename OtherDerived,
-bool Vectorize = (Derived::Flags & OtherDerived::Flags & VectorizableBit)
-              && ((Derived::Flags&RowMajorBit)==(OtherDerived::Flags&RowMajorBit))
-              && (  (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
-                  ||((Derived::Flags&RowMajorBit)
-                    ? Derived::ColsAtCompileTime!=Dynamic && (Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)
-                    : Derived::RowsAtCompileTime!=Dynamic && (Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
+bool Vectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & VectorizableBit)
+              && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit))
+              && (  (int(Derived::Flags) & int(OtherDerived::Flags) & Like1DArrayBit)
+                  ||((int(Derived::Flags)&RowMajorBit)
+                    ? int(Derived::ColsAtCompileTime)!=Dynamic && (int(Derived::ColsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)
+                    : int(Derived::RowsAtCompileTime)!=Dynamic && (int(Derived::RowsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
 bool TriangularAssign = Derived::Flags & (NullLowerBit | NullUpperBit)>
 struct ei_assignment_impl;
 
@@ -156,7 +156,7 @@ struct ei_assignment_impl<Derived, OtherDerived, false, false>
     {
       ei_matrix_assignment_unroller
         <Derived, OtherDerived,
-        unroll ? Derived::SizeAtCompileTime : Dynamic
+        unroll ? int(Derived::SizeAtCompileTime) : Dynamic
         >::run(dst.derived(), src.derived());
     }
     else
@@ -190,8 +190,8 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false>
 //       std::cout << "vectorized unrolled\n";
       ei_matrix_assignment_packet_unroller
         <Derived, OtherDerived,
-          unroll && int(Derived::SizeAtCompileTime)>=ei_packet_traits<typename Derived::Scalar>::size
-            ? Derived::SizeAtCompileTime-ei_packet_traits<typename Derived::Scalar>::size
+          unroll && int(Derived::SizeAtCompileTime)>=int(ei_packet_traits<typename Derived::Scalar>::size)
+            ? int(Derived::SizeAtCompileTime)-int(ei_packet_traits<typename Derived::Scalar>::size)
             : Dynamic>::run(dst.const_cast_derived(), src.derived());
     }
     else

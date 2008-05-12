@@ -94,7 +94,7 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
-    Flags = ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic)
+    Flags = ((int(RowsAtCompileTime) == Dynamic || int(ColsAtCompileTime) == Dynamic)
           ? (unsigned int)_MatrixTypeNested::Flags
           : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & DefaultLostFlagMask,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
@@ -182,7 +182,7 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
                     <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_redux_unroller<BinaryOp, Derived, 0,
-                             unroll ? SizeAtCompileTime : Dynamic>
+                             unroll ? int(SizeAtCompileTime) : Dynamic>
            ::run(derived(), func);
   else
   {
@@ -304,7 +304,7 @@ bool MatrixBase<Derived>::all(void) const
                       <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_all_unroller<Derived,
-                           unroll ? SizeAtCompileTime : Dynamic
+                           unroll ? int(SizeAtCompileTime) : Dynamic
      >::run(derived());
   else
   {
@@ -326,7 +326,7 @@ bool MatrixBase<Derived>::any(void) const
                       <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_any_unroller<Derived,
-                           unroll ? SizeAtCompileTime : Dynamic
+                           unroll ? int(SizeAtCompileTime) : Dynamic
            >::run(derived());
   else
   {

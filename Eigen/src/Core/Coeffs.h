@@ -256,7 +256,7 @@ template<typename Derived>
 template<int StoreMode>
 inline void MatrixBase<Derived>::writePacketCoeff
 (int row, int col, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{ return derived().template _writePacketCoeff<StoreMode>(row,col,x); }
+{ derived().template _writePacketCoeff<StoreMode>(row,col,x); }
 
 
 #endif // EIGEN_COEFFS_H

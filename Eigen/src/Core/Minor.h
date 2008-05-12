@@ -45,13 +45,13 @@ struct ei_traits<Minor<MatrixType> >
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
-                          MatrixType::RowsAtCompileTime - 1 : Dynamic,
+                          int(MatrixType::RowsAtCompileTime) - 1 : Dynamic,
     ColsAtCompileTime = (MatrixType::ColsAtCompileTime != Dynamic) ?
-                          MatrixType::ColsAtCompileTime - 1 : Dynamic,
+                          int(MatrixType::ColsAtCompileTime) - 1 : Dynamic,
     MaxRowsAtCompileTime = (MatrixType::MaxRowsAtCompileTime != Dynamic) ?
-                                MatrixType::MaxRowsAtCompileTime - 1 : Dynamic,
+                             int(MatrixType::MaxRowsAtCompileTime) - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
-                                MatrixType::MaxColsAtCompileTime - 1 : Dynamic,
+                             int(MatrixType::MaxColsAtCompileTime) - 1 : Dynamic,
     Flags = _MatrixTypeNested::Flags & DefaultLostFlagMask,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };

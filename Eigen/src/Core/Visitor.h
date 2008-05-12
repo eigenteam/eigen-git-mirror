@@ -79,7 +79,7 @@ void MatrixBase<Derived>::visit(Visitor& visitor) const
                     <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_visitor_unroller<Visitor, Derived,
-        unroll ? SizeAtCompileTime : Dynamic
+        unroll ? int(SizeAtCompileTime) : Dynamic
       >::run(derived(), visitor);
   else
   {

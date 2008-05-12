@@ -396,7 +396,7 @@ template<typename Derived> class MatrixBase
     bool isOrtho(const MatrixBase<OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
-
+    
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
     { return derived().cwiseEqualTo(other.derived()).all(); }
@@ -563,6 +563,11 @@ template<typename Derived> class MatrixBase
     //@{
     const QR<typename ei_eval<Derived>::type> qr() const;
     //@}
+    
+        
+    #ifdef EIGEN_MATRIX_CUSTOM_ADDONS_FILE
+    #include EIGEN_MATRIX_CUSTOM_ADDONS_FILE
+    #endif
 
 };
 

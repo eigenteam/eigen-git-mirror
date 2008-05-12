@@ -85,11 +85,11 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   Scalar res;
   const bool unroll = SizeAtCompileTime
                       * (_Nested::CoeffReadCost + _OtherNested::CoeffReadCost + NumTraits<Scalar>::MulCost)
-                      + (SizeAtCompileTime - 1) * NumTraits<Scalar>::AddCost
+                      + (int(SizeAtCompileTime) - 1) * NumTraits<Scalar>::AddCost
                       <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
-    ei_dot_unroller<SizeAtCompileTime-1,
-                unroll ? SizeAtCompileTime : Dynamic,
+    ei_dot_unroller<int(SizeAtCompileTime)-1,
+                unroll ? int(SizeAtCompileTime) : Dynamic,
                 _Nested, _OtherNested>
       ::run(nested, otherNested, res);
   else
@@ -135,7 +135,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::normalized() const
 {
-  return (*this) * (Scalar(1)/norm());
+  return (*this) * (RealScalar(1)/norm());
 }
 
 /** \returns true if *this is approximately orthogonal to \a other,

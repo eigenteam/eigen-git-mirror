@@ -46,11 +46,11 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    RowsAtCompileTime = MatrixType::SizeAtCompileTime == Dynamic ? Dynamic
+    RowsAtCompileTime = int(MatrixType::SizeAtCompileTime) == Dynamic ? Dynamic
                       : EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
                                        MatrixType::ColsAtCompileTime),
     ColsAtCompileTime = 1,
-    MaxRowsAtCompileTime = MatrixType::MaxSizeAtCompileTime == Dynamic ? Dynamic
+    MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
                             : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
                                              MatrixType::MaxColsAtCompileTime),
     MaxColsAtCompileTime = 1,

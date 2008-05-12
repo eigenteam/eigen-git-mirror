@@ -155,7 +155,7 @@ template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
 MatrixBase<Derived>::create(const CustomNullaryOp& func)
 {
-  return CwiseNullaryOp<CustomNullaryOp, Derived>(rows(), cols(), func);
+  return CwiseNullaryOp<CustomNullaryOp, Derived>(RowsAtCompileTime, ColsAtCompileTime, func);
 }
 
 /** \returns an expression of a constant matrix of value \a value
