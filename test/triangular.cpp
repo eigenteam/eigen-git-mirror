@@ -70,13 +70,13 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
   // test overloaded operator=
   m1.setZero();
-  m1.upper() = m2.transpose() * m2;
+  m1.upper() = (m2.transpose() * m2).lazy();
   m3 = m2.transpose() * m2;
   VERIFY_IS_APPROX(m3.lower().transpose(), m1);
 
   // test overloaded operator=
   m1.setZero();
-  m1.lower() = m2.transpose() * m2;
+  m1.lower() = (m2.transpose() * m2).lazy();
   VERIFY_IS_APPROX(m3.lower(), m1);
 
   // test back and forward subsitution

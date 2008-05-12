@@ -95,15 +95,19 @@ void EigenTest::testProduct()
 {
   for(int i = 0; i < m_repeat; i++) {
     product(Matrix<float, 1, 1>());
+    product(Matrix<float, 3, 3>());
+    product(Matrix<float, 4, 2>());
     product(Matrix4d());
-    product(MatrixXcf(3, 3));
-    product(MatrixXf(13, 25));
-    product(MatrixXi(4, 4));
-    product(MatrixXcd(20, 20));
   }
-
-  // test a large matrix only once
-  product(MatrixXf(100,100));
+  for(int i = 0; i < m_repeat; i++) {
+    int rows = ei_random<int>(1,320);
+    int cols = ei_random<int>(1,320);
+    product(MatrixXf(rows, cols));
+    product(MatrixXd(rows, cols));
+    product(MatrixXi(rows, cols));
+    product(MatrixXcf(rows, cols));
+    product(MatrixXcd(rows, cols));
+  }
 }
 
 } // namespace Eigen
