@@ -33,9 +33,9 @@
   * \sa class CwiseBinaryOp, MatrixBase::operator+, class PartialRedux, MatrixBase::sum()
   */
 template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
   template<typename PacketScalar>
-  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_padd(a,b); }
 };
 template<typename Scalar>
@@ -52,9 +52,9 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct(), class PartialRedux, MatrixBase::redux()
   */
 template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
   template<typename PacketScalar>
-  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmul(a,b); }
 };
 template<typename Scalar>
@@ -71,9 +71,9 @@ struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class PartialRedux, MatrixBase::minCoeff()
   */
 template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
   template<typename PacketScalar>
-  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmin(a,b); }
 };
 template<typename Scalar>
@@ -90,9 +90,9 @@ struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class PartialRedux, MatrixBase::maxCoeff()
   */
 template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
   template<typename PacketScalar>
-  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmax(a,b); }
 };
 template<typename Scalar>
@@ -112,9 +112,9 @@ struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
 template<typename Scalar> struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
   template<typename PacketScalar>
-  PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_psub(a,b); }
 };
 template<typename Scalar>
@@ -131,7 +131,7 @@ struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
 template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
-    const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+    inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient_op<Scalar> >
@@ -146,7 +146,7 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::operator-
   */
 template<typename Scalar> struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return -a; }
+  inline const Scalar operator() (const Scalar& a) const { return -a; }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
@@ -159,7 +159,7 @@ struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  const result_type operator() (const Scalar& a) const { return ei_abs(a); }
+  inline const result_type operator() (const Scalar& a) const { return ei_abs(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
@@ -172,7 +172,7 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
+  inline const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
@@ -184,7 +184,7 @@ struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::conjugate()
   */
 template<typename Scalar> struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
@@ -198,7 +198,7 @@ struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
 template<typename Scalar, typename NewType>
 struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
   typedef NewType result_type;
-  const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
+  inline const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
 };
 template<typename Scalar, typename NewType>
 struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
@@ -215,16 +215,16 @@ template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::s
 template<typename Scalar>
 struct ei_scalar_multiple_op<Scalar,true> {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  ei_scalar_multiple_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  Scalar operator() (const Scalar& a) const { return a * ei_pfirst(m_other); }
-  PacketScalar packetOp(const PacketScalar& a) const
+  inline ei_scalar_multiple_op(const Scalar& other) : m_other(ei_pset1(other)) { }
+  inline Scalar operator() (const Scalar& a) const { return a * ei_pfirst(m_other); }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a, m_other); }
   const PacketScalar m_other;
 };
 template<typename Scalar>
 struct ei_scalar_multiple_op<Scalar,false> {
-  ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
-  Scalar operator() (const Scalar& a) const { return a * m_other; }
+  inline ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
+  inline Scalar operator() (const Scalar& a) const { return a * m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -233,8 +233,8 @@ struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
 
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
-  ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
-  Scalar operator() (const Scalar& a) const { return a * m_other; }
+  inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
+  inline Scalar operator() (const Scalar& a) const { return a * m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -243,8 +243,8 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
 
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,false> {
-  ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
-  Scalar operator() (const Scalar& a) const { return a / m_other; }
+  inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
+  inline Scalar operator() (const Scalar& a) const { return a / m_other; }
   const Scalar m_other;
   enum { Cost = 2 * NumTraits<Scalar>::MulCost };
 };
@@ -262,7 +262,7 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
   */
 template<typename Scalar>
 struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint > {
-  ei_scalar_quotient1_op(const Scalar& other)
+  inline ei_scalar_quotient1_op(const Scalar& other)
     : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
 };
 
@@ -272,7 +272,7 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
   */
 template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
@@ -284,7 +284,7 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
   */
 template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
@@ -296,7 +296,7 @@ struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
   */
 template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_log(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_log(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_log_op<Scalar> >
@@ -308,7 +308,7 @@ struct ei_functor_traits<ei_scalar_log_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
   */
 template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_cos(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_cos(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
@@ -320,7 +320,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
   */
 template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
-  const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
+  inline const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
@@ -333,8 +333,8 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
   */
 template<typename Scalar>
 struct ei_scalar_pow_op {
-  ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
-  Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
+  inline ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
+  inline Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
   const Scalar m_exponent;
 };
 template<typename Scalar>
@@ -348,16 +348,16 @@ template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::s
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,true> {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  ei_scalar_constant_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  Scalar operator() (int, int) const { return ei_pfirst(m_other); }
-  PacketScalar packetOp() const
+  inline ei_scalar_constant_op(const Scalar& other) : m_other(ei_pset1(other)) { }
+  inline const Scalar operator() (int, int) const { return ei_pfirst(m_other); }
+  inline const PacketScalar packetOp() const
   { return m_other; }
   const PacketScalar m_other;
 };
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,false> {
-  ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
-  Scalar operator() (int, int) const { return m_other; }
+  inline ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
+  inline const Scalar operator() (int, int) const { return m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -366,8 +366,8 @@ struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
 
 
 template<typename Scalar> struct ei_scalar_random_op EIGEN_EMPTY_STRUCT {
-  ei_scalar_random_op(void) {}
-  Scalar operator() (int, int) const { return ei_random<Scalar>(); }
+  inline ei_scalar_random_op(void) {}
+  inline const Scalar operator() (int, int) const { return ei_random<Scalar>(); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_random_op<Scalar> >
@@ -375,8 +375,8 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
 
 
 template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
-  ei_scalar_identity_op(void) {}
-  Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
+  inline ei_scalar_identity_op(void) {}
+  inline const Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >

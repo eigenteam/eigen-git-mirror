@@ -440,7 +440,7 @@ Derived& MatrixBase<Derived>::setOnes()
   * \sa ei_random(), ei_random(int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int rows, int cols)
 {
   return create(rows, cols, ei_scalar_random_op<Scalar>());
@@ -463,7 +463,7 @@ MatrixBase<Derived>::random(int rows, int cols)
   * \sa ei_random(), ei_random(int,int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int size)
 {
   return create(size, ei_scalar_random_op<Scalar>());
@@ -481,7 +481,7 @@ MatrixBase<Derived>::random(int size)
   * \sa ei_random(int), ei_random(int,int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random()
 {
   return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
@@ -495,7 +495,7 @@ MatrixBase<Derived>::random()
   * \sa class CwiseNullaryOp, ei_random()
   */
 template<typename Derived>
-Derived& MatrixBase<Derived>::setRandom()
+inline Derived& MatrixBase<Derived>::setRandom()
 {
   return *this = random(rows(), cols());
 }
@@ -517,7 +517,7 @@ Derived& MatrixBase<Derived>::setRandom()
   * \sa identity(), setIdentity(), isIdentity()
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity(int rows, int cols)
 {
   return create(rows, cols, ei_scalar_identity_op<Scalar>());
@@ -534,7 +534,7 @@ MatrixBase<Derived>::identity(int rows, int cols)
   * \sa identity(int,int), setIdentity(), isIdentity()
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity()
 {
   return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
@@ -580,7 +580,7 @@ bool MatrixBase<Derived>::isIdentity
   * \sa class CwiseNullaryOp, identity(), identity(int,int), isIdentity()
   */
 template<typename Derived>
-Derived& MatrixBase<Derived>::setIdentity()
+inline Derived& MatrixBase<Derived>::setIdentity()
 {
   return *this = identity(rows(), cols());
 }

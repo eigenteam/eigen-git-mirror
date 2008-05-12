@@ -46,7 +46,7 @@ inline vector int    ei_psub(const vector int     a, const vector int     b) { r
 inline vector float  ei_pmul(const vector float   a, const vector float   b) { return vec_madd(a,b, v0f); }
 inline vector int    ei_pmul(const vector int     a, const vector int     b)
 {
-  // Taken from http://
+  // Taken from http://developer.apple.com/hardwaredrivers/ve/algorithms.html#Multiply32
 
   //Set up constants
   vector int bswap, lowProduct, highProduct;

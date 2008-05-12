@@ -203,7 +203,7 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::sum() const
+inline MatrixBase<Derived>::sum() const
 {
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
@@ -216,7 +216,7 @@ MatrixBase<Derived>::sum() const
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::trace() const
+inline MatrixBase<Derived>::trace() const
 {
   return diagonal().sum();
 }
@@ -225,7 +225,7 @@ MatrixBase<Derived>::trace() const
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::minCoeff() const
+inline MatrixBase<Derived>::minCoeff() const
 {
   return this->redux(Eigen::ei_scalar_min_op<Scalar>());
 }
@@ -234,7 +234,7 @@ MatrixBase<Derived>::minCoeff() const
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::maxCoeff() const
+inline MatrixBase<Derived>::maxCoeff() const
 {
   return this->redux(Eigen::ei_scalar_max_op<Scalar>());
 }
@@ -249,7 +249,7 @@ struct ei_all_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  static bool run(const Derived &mat)
+  inline static bool run(const Derived &mat)
   {
     return ei_all_unroller<Derived, UnrollCount-1>::run(mat) && mat.coeff(row, col);
   }
@@ -258,13 +258,13 @@ struct ei_all_unroller
 template<typename Derived>
 struct ei_all_unroller<Derived, 1>
 {
-  static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct ei_all_unroller<Derived, Dynamic>
 {
-  static bool run(const Derived &) { return false; }
+  inline static bool run(const Derived &) { return false; }
 };
 
 template<typename Derived, int UnrollCount>
@@ -275,7 +275,7 @@ struct ei_any_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  static bool run(const Derived &mat)
+  inline static bool run(const Derived &mat)
   {
     return ei_any_unroller<Derived, UnrollCount-1>::run(mat) || mat.coeff(row, col);
   }
@@ -284,13 +284,13 @@ struct ei_any_unroller
 template<typename Derived>
 struct ei_any_unroller<Derived, 1>
 {
-  static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct ei_any_unroller<Derived, Dynamic>
 {
-  static bool run(const Derived &) { return false; }
+  inline static bool run(const Derived &) { return false; }
 };
 
 /** \returns true if all coefficients are true

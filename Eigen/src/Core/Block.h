@@ -85,7 +85,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     /** Column or Row constructor
       */
-    Block(const MatrixType& matrix, int i)
+    inline Block(const MatrixType& matrix, int i)
       : m_matrix(matrix),
         // It is a row if and only if BlockRows==1 and BlockCols==MatrixType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==MatrixType::RowsAtCompileTime and BlockCols==1,
@@ -103,7 +103,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     /** Fixed-size constructor
       */
-    Block(const MatrixType& matrix, int startRow, int startCol)
+    inline Block(const MatrixType& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
     {
       ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
@@ -113,7 +113,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     /** Dynamic-size constructor
       */
-    Block(const MatrixType& matrix,
+    inline Block(const MatrixType& matrix,
           int startRow, int startCol,
           int blockRows, int blockCols)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
@@ -129,30 +129,30 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
   private:
 
-    int _rows() const { return m_blockRows.value(); }
-    int _cols() const { return m_blockCols.value(); }
+    inline int _rows() const { return m_blockRows.value(); }
+    inline int _cols() const { return m_blockCols.value(); }
 
-    int _stride(void) const { return m_matrix.stride(); }
+    inline int _stride(void) const { return m_matrix.stride(); }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packetCoeff(int row, int col) const
     {
       return m_matrix.template packetCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
-    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacketCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
     }
@@ -183,7 +183,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>
+inline Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
   return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
@@ -191,7 +191,7 @@ Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of block(int,int,int,int). */
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>
+inline const Block<Derived> MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
   return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
@@ -214,7 +214,7 @@ const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>
+inline Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
   ei_assert(IsVectorAtCompileTime);
@@ -226,7 +226,7 @@ Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of block(int,int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>
+inline const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
   ei_assert(IsVectorAtCompileTime);
@@ -252,7 +252,7 @@ const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>::start(int size)
+inline Block<Derived> MatrixBase<Derived>::start(int size)
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
@@ -262,7 +262,7 @@ Block<Derived> MatrixBase<Derived>::start(int size)
 
 /** This is the const version of start(int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>::start(int size) const
+inline const Block<Derived> MatrixBase<Derived>::start(int size) const
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(), 0, 0,
@@ -286,7 +286,7 @@ const Block<Derived> MatrixBase<Derived>::start(int size) const
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>::end(int size)
+inline Block<Derived> MatrixBase<Derived>::end(int size)
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
@@ -298,7 +298,7 @@ Block<Derived> MatrixBase<Derived>::end(int size)
 
 /** This is the const version of end(int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>::end(int size) const
+inline const Block<Derived> MatrixBase<Derived>::end(int size) const
 {
   ei_assert(IsVectorAtCompileTime);
   return Block<Derived>(derived(),
@@ -321,8 +321,8 @@ const Block<Derived> MatrixBase<Derived>::end(int size) const
   */
 template<typename Derived>
 template<int Size>
-Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-               ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                            ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
 MatrixBase<Derived>::start()
 {
   ei_assert(IsVectorAtCompileTime);
@@ -333,8 +333,8 @@ MatrixBase<Derived>::start()
 /** This is the const version of start<int>().*/
 template<typename Derived>
 template<int Size>
-const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                     ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                                  ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
 MatrixBase<Derived>::start() const
 {
   ei_assert(IsVectorAtCompileTime);
@@ -355,8 +355,8 @@ MatrixBase<Derived>::start() const
   */
 template<typename Derived>
 template<int Size>
-Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-               ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                            ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
 MatrixBase<Derived>::end()
 {
   ei_assert(IsVectorAtCompileTime);
@@ -370,8 +370,8 @@ MatrixBase<Derived>::end()
 /** This is the const version of end<int>.*/
 template<typename Derived>
 template<int Size>
-const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                     ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
+                                  ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
 MatrixBase<Derived>::end() const
 {
   ei_assert(IsVectorAtCompileTime);
@@ -399,7 +399,7 @@ MatrixBase<Derived>::end() const
   * \sa class Block, block(int,int,int,int)
   */
 template<typename Derived>
-Block<Derived> MatrixBase<Derived>
+inline Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
   switch(type)
@@ -419,7 +419,7 @@ Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of corner(CornerType, int, int).*/
 template<typename Derived>
-const Block<Derived> MatrixBase<Derived>
+inline const Block<Derived> MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols) const
 {
   switch(type)
@@ -451,7 +451,7 @@ const Block<Derived> MatrixBase<Derived>
   */
 template<typename Derived>
 template<int CRows, int CCols>
-Block<Derived, CRows, CCols> MatrixBase<Derived>
+inline Block<Derived, CRows, CCols> MatrixBase<Derived>
   ::corner(CornerType type)
 {
   switch(type)
@@ -472,7 +472,7 @@ Block<Derived, CRows, CCols> MatrixBase<Derived>
 /** This is the const version of corner<int, int>(CornerType).*/
 template<typename Derived>
 template<int CRows, int CCols>
-const Block<Derived, CRows, CCols> MatrixBase<Derived>
+inline const Block<Derived, CRows, CCols> MatrixBase<Derived>
   ::corner(CornerType type) const
 {
   switch(type)
@@ -508,7 +508,7 @@ const Block<Derived, CRows, CCols> MatrixBase<Derived>
   */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
+inline Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
@@ -517,7 +517,7 @@ Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
 /** This is the const version of block<>(int, int). */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
+inline const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   ::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
@@ -530,7 +530,7 @@ const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   *
   * \sa row(), class Block */
 template<typename Derived>
-Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
 MatrixBase<Derived>::col(int i)
 {
   return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
@@ -538,7 +538,7 @@ MatrixBase<Derived>::col(int i)
 
 /** This is the const version of col(). */
 template<typename Derived>
-const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
 MatrixBase<Derived>::col(int i) const
 {
   return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
@@ -551,7 +551,7 @@ MatrixBase<Derived>::col(int i) const
   *
   * \sa col(), class Block */
 template<typename Derived>
-Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+inline Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
 MatrixBase<Derived>::row(int i)
 {
   return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);
@@ -559,7 +559,7 @@ MatrixBase<Derived>::row(int i)
 
 /** This is the const version of row(). */
 template<typename Derived>
-const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+inline const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
 MatrixBase<Derived>::row(int i) const
 {
   return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);

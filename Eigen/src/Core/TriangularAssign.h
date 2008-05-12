@@ -33,7 +33,7 @@ struct ei_triangular_assign_unroller
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
 
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     ei_triangular_assign_unroller<Derived1, Derived2,
       (Mode & Lower) ?
@@ -47,7 +47,7 @@ struct ei_triangular_assign_unroller
 template<typename Derived1, typename Derived2, int Mode>
 struct ei_triangular_assign_unroller<Derived1, Derived2, 1, Mode>
 {
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     dst.coeffRef(0, 0) = src.coeff(0, 0);
   }
@@ -57,13 +57,13 @@ struct ei_triangular_assign_unroller<Derived1, Derived2, 1, Mode>
 template<typename Derived1, typename Derived2, int Mode>
 struct ei_triangular_assign_unroller<Derived1, Derived2, 0, Mode>
 {
-  static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, int Mode>
 struct ei_triangular_assign_unroller<Derived1, Derived2, Dynamic, Mode>
 {
-  static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 

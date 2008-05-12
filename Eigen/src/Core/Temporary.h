@@ -59,20 +59,20 @@ template<typename ExpressionType> class Temporary
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Temporary)
 
-    Temporary(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline Temporary(const ExpressionType& matrix) : m_expression(matrix) {}
 
   private:
 
-    int _rows() const { return m_expression.rows(); }
-    int _cols() const { return m_expression.cols(); }
+    inline int _rows() const { return m_expression.rows(); }
+    inline int _cols() const { return m_expression.cols(); }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return m_expression.coeff(row, col);
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    inline const PacketScalar _packetCoeff(int row, int col) const
     {
       return m_expression.template packetCoeff<LoadMode>(row, col);
     }
@@ -84,7 +84,7 @@ template<typename ExpressionType> class Temporary
 /** \returns an expression of the temporary version of *this.
   */
 template<typename Derived>
-const Temporary<Derived>
+inline const Temporary<Derived>
 MatrixBase<Derived>::temporary() const
 {
   return Temporary<Derived>(derived());

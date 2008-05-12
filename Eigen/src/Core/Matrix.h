@@ -97,10 +97,10 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
 
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
-    int _rows() const { return m_storage.rows(); }
-    int _cols() const { return m_storage.cols(); }
+    inline int _rows() const { return m_storage.rows(); }
+    inline int _cols() const { return m_storage.cols(); }
 
-    int _stride(void) const
+    inline int _stride(void) const
     {
       if(Flags & RowMajorBit)
         return m_storage.cols();
@@ -108,7 +108,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
         return m_storage.rows();
     }
 
-    const Scalar& _coeff(int row, int col) const
+    inline const Scalar& _coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -116,7 +116,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -125,7 +125,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packetCoeff(int row, int col) const
     {
       ei_internal_assert(Flags & VectorizableBit);
       if(Flags & RowMajorBit)
@@ -141,7 +141,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
     }
 
     template<int StoreMode>
-    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
       ei_internal_assert(Flags & VectorizableBit);
       if(Flags & RowMajorBit)
@@ -158,14 +158,14 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
 
   public:
     /** \returns a const pointer to the data array of this matrix */
-    const Scalar *data() const
+    inline const Scalar *data() const
     { return m_storage.data(); }
 
     /** \returns a pointer to the data array of this matrix */
-    Scalar *data()
+    inline Scalar *data()
     { return m_storage.data(); }
 
-    void resize(int rows, int cols)
+    inline void resize(int rows, int cols)
     {
       ei_assert(rows > 0
           && (MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
@@ -185,7 +185,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       * row-vectors remain row-vectors and vectors remain vectors.
       */
     template<typename OtherDerived>
-    Matrix& operator=(const MatrixBase<OtherDerived>& other)
+    inline Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
       if(RowsAtCompileTime == 1)
       {
@@ -204,7 +204,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
-    Matrix& operator=(const Matrix& other)
+    inline Matrix& operator=(const Matrix& other)
     {
       return operator=<Matrix>(other);
     }
@@ -225,7 +225,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
       * an assertion) because it would leave the matrix without an allocated data buffer.
       */
-    explicit Matrix()
+    inline explicit Matrix()
     {
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
@@ -236,7 +236,8 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       * it is redundant to pass the dimension here, so it makes more sense to use the default
       * constructor Matrix() instead.
       */
-    explicit Matrix(int dim) : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
+    inline explicit Matrix(int dim)
+      : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
       ei_assert(dim > 0);
       ei_assert((RowsAtCompileTime == 1
@@ -255,7 +256,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       *     it is redundant to pass these parameters, so one should use the default constructor
       *     Matrix() instead.
       */
-    Matrix(int x, int y) : m_storage(x*y, x, y)
+    inline Matrix(int x, int y) : m_storage(x*y, x, y)
     {
       if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
       || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
@@ -270,7 +271,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       }
     }
     /** constructs an initialized 2D vector with given coefficients */
-    Matrix(const float& x, const float& y)
+    inline Matrix(const float& x, const float& y)
     {
       ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
@@ -278,7 +279,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
-    Matrix(const double& x, const double& y)
+    inline Matrix(const double& x, const double& y)
     {
       ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
           || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
@@ -286,7 +287,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
-    Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
+    inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
           || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
@@ -295,7 +296,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       m_storage.data()[2] = z;
     }
     /** constructs an initialized 4D vector with given coefficients */
-    Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
           || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
@@ -310,19 +311,19 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
 
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
-    Matrix(const MatrixBase<OtherDerived>& other)
+    inline Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       Base::lazyAssign(other.derived());
     }
     /** Copy constructor */
-    Matrix(const Matrix& other)
+    inline Matrix(const Matrix& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       Base::lazyAssign(other);
     }
     /** Destructor */
-    ~Matrix() {}
+    inline ~Matrix() {}
 };
 
 #define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \

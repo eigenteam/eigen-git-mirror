@@ -58,22 +58,22 @@ template<typename ExpressionType> class Lazy
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Lazy)
 
-    Lazy(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline Lazy(const ExpressionType& matrix) : m_expression(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Lazy)
 
   private:
 
-    int _rows() const { return m_expression.rows(); }
-    int _cols() const { return m_expression.cols(); }
+    inline int _rows() const { return m_expression.rows(); }
+    inline int _cols() const { return m_expression.cols(); }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return m_expression.coeff(row, col);
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packetCoeff(int row, int col) const
     {
       return m_expression.template packetCoeff<LoadMode>(row, col);
     }
@@ -88,7 +88,7 @@ template<typename ExpressionType> class Lazy
   * Output: \verbinclude MatrixBase_lazy.out
   */
 template<typename Derived>
-const Lazy<Derived>
+inline const Lazy<Derived>
 MatrixBase<Derived>::lazy() const
 {
   return Lazy<Derived>(derived());

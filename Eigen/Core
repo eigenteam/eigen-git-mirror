@@ -58,6 +58,10 @@ namespace Eigen {
 #include "src/Core/arch/AltiVec/PacketMath.h"
 #endif
 
+#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
+#endif
+
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/Coeffs.h"

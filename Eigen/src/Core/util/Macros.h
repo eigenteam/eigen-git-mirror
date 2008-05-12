@@ -86,9 +86,9 @@ using Eigen::MatrixBase;
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
 //    : function body not available
 #if EIGEN_GNUC_AT_LEAST(4,0)
-#define EIGEN_INLINE __attribute__((always_inline))
+#define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
 #else
-#define EIGEN_INLINE inline
+#define EIGEN_ALWAYS_INLINE inline
 #endif
 
 #if (defined __GNUC__)

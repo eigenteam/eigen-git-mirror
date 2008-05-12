@@ -151,17 +151,17 @@ template<typename Derived> class MatrixBase
     /// \name Run-time traits
     //@{
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    int rows() const { return derived()._rows(); }
+    inline int rows() const { return derived()._rows(); }
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
-    int cols() const { return derived()._cols(); }
+    inline int cols() const { return derived()._cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
-    int size() const { return rows() * cols(); }
+    inline int size() const { return rows() * cols(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
-    bool isVector() const { return rows()==1 || cols()==1; }
+    inline bool isVector() const { return rows()==1 || cols()==1; }
     //@}
 
     /// \name Copying and initialization
@@ -178,7 +178,7 @@ template<typename Derived> class MatrixBase
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
-    Derived& operator=(const MatrixBase& other)
+    inline Derived& operator=(const MatrixBase& other)
     {
       return this->operator=<Derived>(other);
     }
@@ -208,9 +208,9 @@ template<typename Derived> class MatrixBase
     Scalar& operator[](int index);
 
     template<int LoadMode>
-    PacketScalar packetCoeff(int row, int col) const { return derived().template _packetCoeff<LoadMode>(row,col); }
+    PacketScalar packetCoeff(int row, int col) const;
     template<int StoreMode>
-    void writePacketCoeff(int row, int col, const PacketScalar& x) { return derived().template _writePacketCoeff<StoreMode>(row,col,x); }
+    void writePacketCoeff(int row, int col, const PacketScalar& x);
 
     const Scalar x() const;
     const Scalar y() const;
@@ -244,10 +244,12 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived> operator*(const Scalar& scalar) const;
-    const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived> operator/(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+    operator*(const Scalar& scalar) const;
+    const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
+    operator/(const Scalar& scalar) const;
 
-    friend const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+    inline friend const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
     operator*(const Scalar& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
     //@}
@@ -396,11 +398,11 @@ template<typename Derived> class MatrixBase
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
 
     template<typename OtherDerived>
-    bool operator==(const MatrixBase<OtherDerived>& other) const
+    inline bool operator==(const MatrixBase<OtherDerived>& other) const
     { return derived().cwiseEqualTo(other.derived()).all(); }
 
     template<typename OtherDerived>
-    bool operator!=(const MatrixBase<OtherDerived>& other) const
+    inline bool operator!=(const MatrixBase<OtherDerived>& other) const
     { return derived().cwiseNotEqualTo(other.derived()).all(); }
     //@}
 
@@ -409,7 +411,7 @@ template<typename Derived> class MatrixBase
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
-    EIGEN_INLINE const typename ei_eval<Derived>::type eval() const
+    EIGEN_ALWAYS_INLINE const typename ei_eval<Derived>::type eval() const
     {
       return typename ei_eval<Derived>::type(derived());
     }
@@ -522,9 +524,9 @@ template<typename Derived> class MatrixBase
 
     /// \name Casting to the derived type
     //@{
-    const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    Derived& const_cast_derived() const
+    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    inline Derived& derived() { return *static_cast<Derived*>(this); }
+    inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
     //@}
 
@@ -561,13 +563,6 @@ template<typename Derived> class MatrixBase
     //@{
     const QR<typename ei_eval<Derived>::type> qr() const;
     //@}
-
-  private:
-
-    template<int LoadMode>
-    PacketScalar _packetCoeff(int , int) const { ei_internal_assert(false && "_packetCoeff not defined"); }
-    template<int StoreMode>
-    void _writePacketCoeff(int , int, const PacketScalar&) { ei_internal_assert(false && "_packetCoeff not defined"); }
 
 };
 

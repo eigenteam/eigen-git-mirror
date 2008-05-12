@@ -28,7 +28,7 @@
 template<int Index, int Size, typename Derived1, typename Derived2>
 struct ei_dot_unroller
 {
-  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
+  inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     ei_dot_unroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
     dot += v1.coeff(Index) * ei_conj(v2.coeff(Index));
@@ -38,7 +38,7 @@ struct ei_dot_unroller
 template<int Size, typename Derived1, typename Derived2>
 struct ei_dot_unroller<0, Size, Derived1, Derived2>
 {
-  static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
+  inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
     dot = v1.coeff(0) * ei_conj(v2.coeff(0));
   }
@@ -47,14 +47,14 @@ struct ei_dot_unroller<0, Size, Derived1, Derived2>
 template<int Index, typename Derived1, typename Derived2>
 struct ei_dot_unroller<Index, Dynamic, Derived1, Derived2>
 {
-  static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
+  inline static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Derived1, typename Derived2>
 struct ei_dot_unroller<Index, 0, Derived1, Derived2>
 {
-  static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
+  inline static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
 
 /** \returns the dot product of *this with other.
@@ -108,7 +108,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   * \sa dot(), norm()
   */
 template<typename Derived>
-typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm2() const
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm2() const
 {
   return ei_real(dot(*this));
 }
@@ -120,7 +120,7 @@ typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived
   * \sa dot(), norm2()
   */
 template<typename Derived>
-typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
   return ei_sqrt(norm2());
 }
@@ -132,7 +132,7 @@ typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived
   * \sa norm()
   */
 template<typename Derived>
-const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::normalized() const
 {
   return (*this) * (Scalar(1)/norm());

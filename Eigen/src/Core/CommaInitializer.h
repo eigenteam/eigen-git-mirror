@@ -32,14 +32,14 @@
 template<typename Derived>
 struct MatrixBase<Derived>::CommaInitializer
 {
-  CommaInitializer(Derived& mat, const Scalar& s)
+  inline CommaInitializer(Derived& mat, const Scalar& s)
     : m_matrix(mat), m_row(0), m_col(1), m_currentBlockRows(1)
   {
     m_matrix.coeffRef(0,0) = s;
   }
 
   template<typename OtherDerived>
-  CommaInitializer(Derived& mat, const MatrixBase<OtherDerived>& other)
+  inline CommaInitializer(Derived& mat, const MatrixBase<OtherDerived>& other)
     : m_matrix(mat), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
     m_matrix.block(0, 0, other.rows(), other.cols()) = other;
@@ -86,7 +86,7 @@ struct MatrixBase<Derived>::CommaInitializer
     return *this;
   }
 
-  ~CommaInitializer(void)
+  inline ~CommaInitializer()
   {
     ei_assert((m_row+m_currentBlockRows) == m_matrix.rows()
          && m_col == m_matrix.cols()
@@ -108,14 +108,14 @@ struct MatrixBase<Derived>::CommaInitializer
   * Output: \verbinclude MatrixBase_set.out
   */
 template<typename Derived>
-typename MatrixBase<Derived>::CommaInitializer MatrixBase<Derived>::operator<< (const Scalar& s)
+inline typename MatrixBase<Derived>::CommaInitializer MatrixBase<Derived>::operator<< (const Scalar& s)
 {
   return CommaInitializer(*static_cast<Derived*>(this), s);
 }
 
 template<typename Derived>
 template<typename OtherDerived>
-typename MatrixBase<Derived>::CommaInitializer
+inline typename MatrixBase<Derived>::CommaInitializer
 MatrixBase<Derived>::operator<<(const MatrixBase<OtherDerived>& other)
 {
   return CommaInitializer(*static_cast<Derived *>(this), other);

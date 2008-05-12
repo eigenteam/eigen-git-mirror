@@ -62,7 +62,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
 
-    DiagonalMatrix(const CoeffsVectorType& coeffs) : m_coeffs(coeffs)
+    inline DiagonalMatrix(const CoeffsVectorType& coeffs) : m_coeffs(coeffs)
     {
       ei_assert(CoeffsVectorType::IsVectorAtCompileTime
           && coeffs.size() > 0);
@@ -70,10 +70,10 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
   private:
 
-    int _rows() const { return m_coeffs.size(); }
-    int _cols() const { return m_coeffs.size(); }
+    inline int _rows() const { return m_coeffs.size(); }
+    inline int _cols() const { return m_coeffs.size(); }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
@@ -92,7 +92,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
   * \sa class DiagonalMatrix, isDiagonal()
   **/
 template<typename Derived>
-const DiagonalMatrix<Derived>
+inline const DiagonalMatrix<Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
   return DiagonalMatrix<Derived>(derived());

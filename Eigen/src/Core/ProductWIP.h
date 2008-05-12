@@ -31,8 +31,8 @@
 template<int Index, int Size, typename Lhs, typename Rhs>
 struct ei_product_unroller
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
-                  typename Lhs::Scalar &res)
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+                               typename Lhs::Scalar &res)
   {
     ei_product_unroller<Index-1, Size, Lhs, Rhs>::run(row, col, lhs, rhs, res);
     res += lhs.coeff(row, Index) * rhs.coeff(Index, col);
@@ -42,7 +42,7 @@ struct ei_product_unroller
 template<int Size, typename Lhs, typename Rhs>
 struct ei_product_unroller<0, Size, Lhs, Rhs>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs,
                   typename Lhs::Scalar &res)
   {
     res = lhs.coeff(row, 0) * rhs.coeff(0, col);
@@ -52,14 +52,14 @@ struct ei_product_unroller<0, Size, Lhs, Rhs>
 template<int Index, typename Lhs, typename Rhs>
 struct ei_product_unroller<Index, Dynamic, Lhs, Rhs>
 {
-  static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
+  inline static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Lhs, typename Rhs>
 struct ei_product_unroller<Index, 0, Lhs, Rhs>
 {
-  static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
+  inline static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
 template<bool RowMajor, int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
@@ -68,7 +68,7 @@ struct ei_packet_product_unroller;
 template<int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<true, Index, Size, Lhs, Rhs, PacketScalar>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_unroller<true, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
     res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packetCoeff<Aligned>(Index, col), res);
@@ -78,7 +78,7 @@ struct ei_packet_product_unroller<true, Index, Size, Lhs, Rhs, PacketScalar>
 template<int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<false, Index, Size, Lhs, Rhs, PacketScalar>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_unroller<false, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
     res =  ei_pmadd(lhs.template packetCoeff<Aligned>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
@@ -88,7 +88,7 @@ struct ei_packet_product_unroller<false, Index, Size, Lhs, Rhs, PacketScalar>
 template<int Size, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<true, 0, Size, Lhs, Rhs, PacketScalar>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packetCoeff<Aligned>(0, col));
   }
@@ -97,7 +97,7 @@ struct ei_packet_product_unroller<true, 0, Size, Lhs, Rhs, PacketScalar>
 template<int Size, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<false, 0, Size, Lhs, Rhs, PacketScalar>
 {
-  static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     res = ei_pmul(lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
   }
@@ -106,13 +106,13 @@ struct ei_packet_product_unroller<false, 0, Size, Lhs, Rhs, PacketScalar>
 template<bool RowMajor, int Index, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScalar>
 {
-  static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+  inline static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
 };
 
 template<int Index, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller<false, Index, Dynamic, Lhs, Rhs, PacketScalar>
 {
-  static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+  inline static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
 };
 
 template<typename Product, bool RowMajor = true> struct ProductPacketCoeffImpl {
@@ -260,7 +260,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       PacketSize = ei_packet_traits<Scalar>::size
     };
 
-    Product(const Lhs& lhs, const Rhs& rhs)
+    inline Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows());
@@ -272,8 +272,8 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
 
   private:
 
-    int _rows() const { return m_lhs.rows(); }
-    int _cols() const { return m_rhs.cols(); }
+    inline int _rows() const { return m_lhs.rows(); }
+    inline int _cols() const { return m_rhs.cols(); }
 
     const Scalar _coeff(int row, int col) const
     {
@@ -296,7 +296,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    const PacketScalar _packetCoeff(int row, int col) const
     {
       if(Lhs::ColsAtCompileTime <= EIGEN_UNROLLING_LIMIT)
       {
@@ -312,7 +312,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
         return ProductPacketCoeffImpl<Product,Flags&RowMajorBit>::execute(*this, row, col);
     }
 
-    PacketScalar _packetCoeffRowMajor(int row, int col) const
+    const PacketScalar _packetCoeffRowMajor(int row, int col) const
     {
       PacketScalar res;
       res = ei_pmul(ei_pset1(m_lhs.coeff(row, 0)),m_rhs.template packetCoeff<Aligned>(0, col));
@@ -321,7 +321,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       return res;
     }
 
-    PacketScalar _packetCoeffColumnMajor(int row, int col) const
+    const PacketScalar _packetCoeffColumnMajor(int row, int col) const
     {
       PacketScalar res;
       res = ei_pmul(m_lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(m_rhs.coeff(0, col)));
@@ -348,7 +348,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   */
 template<typename Derived>
 template<typename OtherDerived>
-const Product<Derived,OtherDerived>
+inline const Product<Derived,OtherDerived>
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return Product<Derived,OtherDerived>(derived(), other.derived());
@@ -360,7 +360,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-Derived &
+inline Derived &
 MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 {
   return *this = *this * other;
@@ -368,7 +368,7 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 
 template<typename Derived>
 template<typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)
+inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)
 {
   product._cacheFriendlyEval(derived());
   return derived();
@@ -376,7 +376,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProd
 
 template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
-void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
+inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 {
   #ifndef EIGEN_WIP_PRODUCT_DIRTY
   res.setZero();

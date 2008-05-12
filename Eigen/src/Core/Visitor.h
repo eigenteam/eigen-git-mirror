@@ -33,7 +33,7 @@ struct ei_visitor_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  static void run(const Derived &mat, Visitor& visitor)
+  inline static void run(const Derived &mat, Visitor& visitor)
   {
     ei_visitor_unroller<Visitor, Derived, UnrollCount-1>::run(mat, visitor);
     visitor(mat.coeff(row, col), row, col);
@@ -43,7 +43,7 @@ struct ei_visitor_unroller
 template<typename Visitor, typename Derived>
 struct ei_visitor_unroller<Visitor, Derived, 1>
 {
-  static void run(const Derived &mat, Visitor& visitor)
+  inline static void run(const Derived &mat, Visitor& visitor)
   {
     return visitor.init(mat.coeff(0, 0), 0, 0);
   }
@@ -52,7 +52,7 @@ struct ei_visitor_unroller<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct ei_visitor_unroller<Visitor, Derived, Dynamic>
 {
-  static void run(const Derived &, Visitor&) {}
+  inline static void run(const Derived &, Visitor&) {}
 };
 
 
@@ -100,7 +100,7 @@ struct ei_coeff_visitor
 {
   int row, col;
   Scalar res;
-  void init(const Scalar& value, int i, int j)
+  inline void init(const Scalar& value, int i, int j)
   {
     res = value;
     row = i;

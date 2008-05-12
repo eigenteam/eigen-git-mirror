@@ -61,10 +61,10 @@ template<typename MatrixType> class Map
 
   private:
 
-    int _rows() const { return m_rows; }
-    int _cols() const { return m_cols; }
+    inline int _rows() const { return m_rows; }
+    inline int _cols() const { return m_cols; }
 
-    const Scalar& _coeff(int row, int col) const
+    inline const Scalar& _coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
         return m_data[col + row * m_cols];
@@ -72,7 +72,7 @@ template<typename MatrixType> class Map
         return m_data[row + col * m_rows];
     }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
@@ -81,7 +81,7 @@ template<typename MatrixType> class Map
     }
 
   public:
-    Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
+    inline Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {
       ei_assert(rows > 0
           && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
@@ -98,7 +98,7 @@ template<typename MatrixType> class Map
 
 /** This is the const version of map(Scalar*,int,int). */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
@@ -106,7 +106,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* dat
 
 /** This is the const version of map(Scalar*,int). */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data, int size)
 {
   ei_assert(_Cols == 1 || _Rows ==1);
@@ -118,7 +118,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* dat
 
 /** This is the const version of map(Scalar*). */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline const Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
@@ -136,7 +136,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(const Scalar* dat
   * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int rows, int cols)
 {
   return Map<Matrix>(data, rows, cols);
@@ -155,7 +155,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int
   * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int size)
 {
   ei_assert(_Cols == 1 || _Rows ==1);
@@ -175,7 +175,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data, int
   * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+inline Map<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
 Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data)
 {
   return Map<Matrix>(data, _Rows, _Cols);
@@ -190,7 +190,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>::map(Scalar* data)
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
+inline Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int rows, int cols)
   : m_storage(rows*cols, rows, cols)
 {
@@ -208,7 +208,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
+inline Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data, int size)
   : m_storage(size, RowsAtCompileTime == 1 ? 1 : size, ColsAtCompileTime == 1 ? 1 : size)
 {
@@ -226,7 +226,7 @@ Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   * Matrix::map(const Scalar *)
   */
 template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
+inline Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
   *this = map(data);

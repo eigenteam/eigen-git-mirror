@@ -35,7 +35,7 @@ struct ei_matrix_assignment_unroller
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
 
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     ei_matrix_assignment_unroller<Derived1, Derived2, UnrollCount-1>::run(dst, src);
     dst.coeffRef(row, col) = src.coeff(row, col);
@@ -45,7 +45,7 @@ struct ei_matrix_assignment_unroller
 template<typename Derived1, typename Derived2>
 struct ei_matrix_assignment_unroller<Derived1, Derived2, 1>
 {
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     dst.coeffRef(0, 0) = src.coeff(0, 0);
   }
@@ -55,13 +55,13 @@ struct ei_matrix_assignment_unroller<Derived1, Derived2, 1>
 template<typename Derived1, typename Derived2>
 struct ei_matrix_assignment_unroller<Derived1, Derived2, 0>
 {
-  static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2>
 struct ei_matrix_assignment_unroller<Derived1, Derived2, Dynamic>
 {
-  static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 //----
@@ -74,7 +74,7 @@ struct ei_matrix_assignment_packet_unroller
     col = Derived1::Flags&RowMajorBit ? Index % Derived1::ColsAtCompileTime : Index / Derived1::RowsAtCompileTime
   };
 
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     ei_matrix_assignment_packet_unroller<Derived1, Derived2,
       Index-ei_packet_traits<typename Derived1::Scalar>::size>::run(dst, src);
@@ -85,7 +85,7 @@ struct ei_matrix_assignment_packet_unroller
 template<typename Derived1, typename Derived2>
 struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, 0 >
 {
-  static void run(Derived1 &dst, const Derived2 &src)
+  inline static void run(Derived1 &dst, const Derived2 &src)
   {
     dst.template writePacketCoeff<Aligned>(0, 0, src.template packetCoeff<Aligned>(0, 0));
   }
@@ -94,7 +94,8 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, 0 >
 template<typename Derived1, typename Derived2>
 struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
 {
-  static void run(Derived1 &, const Derived2 &) { ei_internal_assert(false && "ei_matrix_assignment_packet_unroller"); }
+  inline static void run(Derived1 &, const Derived2 &)
+  { ei_internal_assert(false && "ei_matrix_assignment_packet_unroller"); }
 };
 
 template <typename Derived, typename OtherDerived,
@@ -109,7 +110,7 @@ struct ei_assignment_impl;
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>
+inline Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
 //   std::cout << typeid(OtherDerived).name() << "\n";
@@ -121,7 +122,7 @@ Derived& MatrixBase<Derived>
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>
+inline Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
   const bool need_to_transpose = Derived::IsVectorAtCompileTime

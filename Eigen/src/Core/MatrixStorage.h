@@ -50,7 +50,7 @@ template <typename T, int Size> struct ei_aligned_array<T,Size,false>
 };
 
 template<typename T>
-T* ei_aligned_malloc(size_t size)
+inline T* ei_aligned_malloc(size_t size)
 {
   #ifdef EIGEN_VECTORIZE
   if (ei_packet_traits<T>::size>1)
@@ -67,7 +67,7 @@ T* ei_aligned_malloc(size_t size)
 }
 
 template<typename T>
-void ei_aligned_free(T* ptr)
+inline void ei_aligned_free(T* ptr)
 {
   #ifdef EIGEN_VECTORIZE
   if (ei_packet_traits<T>::size>1)
@@ -82,13 +82,13 @@ template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 {
     ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
   public:
-    ei_matrix_storage() {}
-    ei_matrix_storage(int,int,int) {}
-    static int rows(void) {return _Rows;}
-    static int cols(void) {return _Cols;}
-    void resize(int,int,int) {}
-    const T *data() const { return m_data.array; }
-    T *data() { return m_data.array; }
+    inline ei_matrix_storage() {}
+    inline ei_matrix_storage(int,int,int) {}
+    inline static int rows(void) {return _Rows;}
+    inline static int cols(void) {return _Cols;}
+    inline void resize(int,int,int) {}
+    inline const T *data() const { return m_data.array; }
+    inline T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage
@@ -98,17 +98,17 @@ template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic
     int m_rows;
     int m_cols;
   public:
-    ei_matrix_storage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
-    ~ei_matrix_storage() {}
-    int rows(void) const {return m_rows;}
-    int cols(void) const {return m_cols;}
-    void resize(int, int rows, int cols)
+    inline ei_matrix_storage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
+    inline ~ei_matrix_storage() {}
+    inline int rows(void) const {return m_rows;}
+    inline int cols(void) const {return m_cols;}
+    inline void resize(int, int rows, int cols)
     {
       m_rows = rows;
       m_cols = cols;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
@@ -117,16 +117,16 @@ template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynam
     T m_data[Size];
     int m_rows;
   public:
-    ei_matrix_storage(int, int rows, int) : m_rows(rows) {}
-    ~ei_matrix_storage() {}
-    int rows(void) const {return m_rows;}
-    int cols(void) const {return _Cols;}
-    void resize(int size, int rows, int)
+    inline ei_matrix_storage(int, int rows, int) : m_rows(rows) {}
+    inline ~ei_matrix_storage() {}
+    inline int rows(void) const {return m_rows;}
+    inline int cols(void) const {return _Cols;}
+    inline void resize(int size, int rows, int)
     {
       m_rows = rows;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
@@ -135,16 +135,16 @@ template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows
     T m_data[Size];
     int m_cols;
   public:
-    ei_matrix_storage(int, int, int cols) : m_cols(cols) {}
-    ~ei_matrix_storage() {}
-    int rows(void) const {return _Rows;}
-    int cols(void) const {return m_cols;}
-    void resize(int size, int, int cols)
+    inline ei_matrix_storage(int, int, int cols) : m_cols(cols) {}
+    inline ~ei_matrix_storage() {}
+    inline int rows(void) const {return _Rows;}
+    inline int cols(void) const {return m_cols;}
+    inline void resize(int size, int, int cols)
     {
       m_cols = cols;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 // purely dynamic matrix.
@@ -154,11 +154,11 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
     int m_rows;
     int m_cols;
   public:
-    ei_matrix_storage(int size, int rows, int cols)
+    inline ei_matrix_storage(int size, int rows, int cols)
       : m_data(ei_aligned_malloc<T>(size)), m_rows(rows), m_cols(cols) {}
-    ~ei_matrix_storage() { delete[] m_data; }
-    int rows(void) const {return m_rows;}
-    int cols(void) const {return m_cols;}
+    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline int rows(void) const {return m_rows;}
+    inline int cols(void) const {return m_cols;}
     void resize(int size, int rows, int cols)
     {
       if(size != m_rows*m_cols)
@@ -169,8 +169,8 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
       m_rows = rows;
       m_cols = cols;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
@@ -179,10 +179,10 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
     T *m_data;
     int m_cols;
   public:
-    ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_malloc<T>(size)), m_cols(cols) {}
-    ~ei_matrix_storage() { delete[] m_data; }
-    static int rows(void) {return _Rows;}
-    int cols(void) const {return m_cols;}
+    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_malloc<T>(size)), m_cols(cols) {}
+    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline static int rows(void) {return _Rows;}
+    inline int cols(void) const {return m_cols;}
     void resize(int size, int, int cols)
     {
       if(size != _Rows*m_cols)
@@ -192,8 +192,8 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
       }
       m_cols = cols;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
@@ -202,10 +202,10 @@ template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Co
     T *m_data;
     int m_rows;
   public:
-    ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
-    ~ei_matrix_storage() { delete[] m_data; }
-    int rows(void) const {return m_rows;}
-    static int cols(void) {return _Cols;}
+    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
+    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline int rows(void) const {return m_rows;}
+    inline static int cols(void) {return _Cols;}
     void resize(int size, int rows, int)
     {
       if(size != m_rows*_Cols)
@@ -215,8 +215,8 @@ template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Co
       }
       m_rows = rows;
     }
-    const T *data() const { return m_data; }
-    T *data() { return m_data; }
+    inline const T *data() const { return m_data; }
+    inline T *data() { return m_data; }
 };
 
 #endif // EIGEN_MATRIX_H

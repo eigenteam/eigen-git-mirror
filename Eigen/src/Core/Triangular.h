@@ -79,7 +79,7 @@ template<int Mode, typename MatrixType> class Triangular
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Triangular)
 
-    Triangular(const MatrixType& matrix)
+    inline Triangular(const MatrixType& matrix)
       : m_matrix(matrix)
     {
       assert(!( (Flags&UnitDiagBit) && (Flags&NullDiagBit)));
@@ -89,15 +89,15 @@ template<int Mode, typename MatrixType> class Triangular
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Triangular)
 
     /** Overloaded to keep a Triangular expression */
-    Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > > transpose()
+    inline Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > > transpose()
     {
-      return Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
+      return Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
     }
 
     /** Overloaded to keep a Triangular expression */
-    const Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > > transpose() const
+    inline const Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > > transpose() const
     {
-      return Triangular<(Upper | Lower) xor Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
+      return Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
     }
 
     /** \returns the product of the inverse of *this with \a other.
@@ -154,16 +154,16 @@ template<int Mode, typename MatrixType> class Triangular
 
   private:
 
-    int _rows() const { return m_matrix.rows(); }
-    int _cols() const { return m_matrix.cols(); }
+    inline int _rows() const { return m_matrix.rows(); }
+    inline int _cols() const { return m_matrix.cols(); }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       ei_assert( ((! (Flags & Lower)) && row<=col) || (Flags & Lower && col<=row));
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    Scalar _coeff(int row, int col) const
+    inline Scalar _coeff(int row, int col) const
     {
       if ((Flags & Lower) ? col>row : row>col)
         return 0;
@@ -185,14 +185,14 @@ template<int Mode, typename MatrixType> class Triangular
   * \sa isUpper(), upperWithNullDiagBit(), upperWithNullDiagBit(), lower()
   */
 template<typename Derived>
-Triangular<Upper, Derived> MatrixBase<Derived>::upper(void)
+inline Triangular<Upper, Derived> MatrixBase<Derived>::upper(void)
 {
   return Triangular<Upper,Derived>(derived());
 }
 
 /** This is the const version of upper(). */
 template<typename Derived>
-const Triangular<Upper, Derived> MatrixBase<Derived>::upper(void) const
+inline const Triangular<Upper, Derived> MatrixBase<Derived>::upper(void) const
 {
   return Triangular<Upper,Derived>(derived());
 }
@@ -202,14 +202,14 @@ const Triangular<Upper, Derived> MatrixBase<Derived>::upper(void) const
   * \sa isLower(), lowerWithUnitDiag(), lowerWithNullDiag(), upper()
   */
 template<typename Derived>
-Triangular<Lower, Derived> MatrixBase<Derived>::lower(void)
+inline Triangular<Lower, Derived> MatrixBase<Derived>::lower(void)
 {
   return Triangular<Lower,Derived>(derived());
 }
 
 /** This is the const version of lower().*/
 template<typename Derived>
-const Triangular<Lower, Derived> MatrixBase<Derived>::lower(void) const
+inline const Triangular<Lower, Derived> MatrixBase<Derived>::lower(void) const
 {
   return Triangular<Lower,Derived>(derived());
 }
@@ -219,7 +219,7 @@ const Triangular<Lower, Derived> MatrixBase<Derived>::lower(void) const
   * \sa upper(), lowerWithUnitDiagBit()
   */
 template<typename Derived>
-const Triangular<Upper|UnitDiagBit, Derived> MatrixBase<Derived>::upperWithUnitDiag(void) const
+inline const Triangular<Upper|UnitDiagBit, Derived> MatrixBase<Derived>::upperWithUnitDiag(void) const
 {
   return Triangular<Upper|UnitDiagBit, Derived>(derived());
 }
@@ -230,7 +230,7 @@ const Triangular<Upper|UnitDiagBit, Derived> MatrixBase<Derived>::upperWithUnitD
   * \sa upper(), lowerWithNullDiag()
   */
 template<typename Derived>
-const Triangular<Upper|NullDiagBit, Derived> MatrixBase<Derived>::upperWithNullDiag(void) const
+inline const Triangular<Upper|NullDiagBit, Derived> MatrixBase<Derived>::upperWithNullDiag(void) const
 {
   return Triangular<Upper|NullDiagBit, Derived>(derived());
 }
@@ -240,7 +240,7 @@ const Triangular<Upper|NullDiagBit, Derived> MatrixBase<Derived>::upperWithNullD
   * \sa lower(), upperWithUnitDiag()
   */
 template<typename Derived>
-const Triangular<Lower|UnitDiagBit, Derived> MatrixBase<Derived>::lowerWithUnitDiag(void) const
+inline const Triangular<Lower|UnitDiagBit, Derived> MatrixBase<Derived>::lowerWithUnitDiag(void) const
 {
   return Triangular<Lower|UnitDiagBit, Derived>(derived());
 }
@@ -251,7 +251,7 @@ const Triangular<Lower|UnitDiagBit, Derived> MatrixBase<Derived>::lowerWithUnitD
   * \sa lower(), upperWithNullDiag()
   */
 template<typename Derived>
-const Triangular<Lower|NullDiagBit, Derived> MatrixBase<Derived>::lowerWithNullDiag(void) const
+inline const Triangular<Lower|NullDiagBit, Derived> MatrixBase<Derived>::lowerWithNullDiag(void) const
 {
   return Triangular<Lower|NullDiagBit, Derived>(derived());
 }
@@ -299,6 +299,5 @@ bool MatrixBase<Derived>::isLower(RealScalar prec) const
       if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnLowerPart, prec)) return false;
   return true;
 }
-
 
 #endif // EIGEN_TRIANGULAR_H

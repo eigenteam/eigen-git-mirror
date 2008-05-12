@@ -60,35 +60,35 @@ template<typename MatrixType> class Transpose
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
-    Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
+    inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
   private:
 
-    int _rows() const { return m_matrix.cols(); }
-    int _cols() const { return m_matrix.rows(); }
+    inline int _rows() const { return m_matrix.cols(); }
+    inline int _cols() const { return m_matrix.rows(); }
 
-    int _stride(void) const { return m_matrix.stride(); }
+    inline int _stride(void) const { return m_matrix.stride(); }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(col, row);
     }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(col, row);
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int row, int col) const
+    inline const PacketScalar _packetCoeff(int row, int col) const
     {
       return m_matrix.template packetCoeff<LoadMode>(col, row);
     }
 
     template<int LoadMode>
-    void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacketCoeff<LoadMode>(col, row, x);
     }
@@ -104,7 +104,7 @@ template<typename MatrixType> class Transpose
   *
   * \sa adjoint(), class DiagonalCoeffs */
 template<typename Derived>
-Transpose<Derived>
+inline Transpose<Derived>
 MatrixBase<Derived>::transpose()
 {
   return Transpose<Derived>(derived());
@@ -112,7 +112,7 @@ MatrixBase<Derived>::transpose()
 
 /** This is the const version of transpose(). \sa adjoint() */
 template<typename Derived>
-const Transpose<Derived>
+inline const Transpose<Derived>
 MatrixBase<Derived>::transpose() const
 {
   return Transpose<Derived>(derived());
@@ -125,7 +125,9 @@ MatrixBase<Derived>::transpose() const
   *
   * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
-const Transpose<Temporary<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived > > >
+inline const Transpose<Temporary<
+                     CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived >
+                   > >
 MatrixBase<Derived>::adjoint() const
 {
   return conjugate().temporary().transpose();

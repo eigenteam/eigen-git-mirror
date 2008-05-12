@@ -64,8 +64,8 @@ template<typename MatrixType> class Minor
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Minor)
 
-    Minor(const MatrixType& matrix,
-                int row, int col)
+    inline Minor(const MatrixType& matrix,
+                       int row, int col)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
       ei_assert(row >= 0 && row < matrix.rows()
@@ -76,15 +76,15 @@ template<typename MatrixType> class Minor
 
   private:
 
-    int _rows() const { return m_matrix.rows() - 1; }
-    int _cols() const { return m_matrix.cols() - 1; }
+    inline int _rows() const { return m_matrix.rows() - 1; }
+    inline int _cols() const { return m_matrix.cols() - 1; }
 
-    Scalar& _coeffRef(int row, int col)
+    inline Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
 
-    const Scalar _coeff(int row, int col) const
+    inline const Scalar _coeff(int row, int col) const
     {
       return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }
@@ -104,7 +104,7 @@ template<typename MatrixType> class Minor
   * \sa class Minor
   */
 template<typename Derived>
-Minor<Derived>
+inline Minor<Derived>
 MatrixBase<Derived>::minor(int row, int col)
 {
   return Minor<Derived>(derived(), row, col);
@@ -112,7 +112,7 @@ MatrixBase<Derived>::minor(int row, int col)
 
 /** This is the const version of minor(). */
 template<typename Derived>
-const Minor<Derived>
+inline const Minor<Derived>
 MatrixBase<Derived>::minor(int row, int col) const
 {
   return Minor<Derived>(derived(), row, col);

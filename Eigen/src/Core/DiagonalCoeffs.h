@@ -68,21 +68,21 @@ template<typename MatrixType> class DiagonalCoeffs
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalCoeffs)
 
-    DiagonalCoeffs(const MatrixType& matrix) : m_matrix(matrix) {}
+    inline DiagonalCoeffs(const MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
 
   private:
 
-    int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
-    int _cols() const { return 1; }
+    inline int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
+    inline int _cols() const { return 1; }
 
-    Scalar& _coeffRef(int row, int)
+    inline Scalar& _coeffRef(int row, int)
     {
       return m_matrix.const_cast_derived().coeffRef(row, row);
     }
 
-    const Scalar _coeff(int row, int) const
+    inline const Scalar _coeff(int row, int) const
     {
       return m_matrix.coeff(row, row);
     }
@@ -102,14 +102,14 @@ template<typename MatrixType> class DiagonalCoeffs
   * \sa class DiagonalCoeffs */
 template<typename Derived>
 DiagonalCoeffs<Derived>
-MatrixBase<Derived>::diagonal()
+inline MatrixBase<Derived>::diagonal()
 {
   return DiagonalCoeffs<Derived>(derived());
 }
 
 /** This is the const version of diagonal(). */
 template<typename Derived>
-const DiagonalCoeffs<Derived>
+inline const DiagonalCoeffs<Derived>
 MatrixBase<Derived>::diagonal() const
 {
   return DiagonalCoeffs<Derived>(derived());
