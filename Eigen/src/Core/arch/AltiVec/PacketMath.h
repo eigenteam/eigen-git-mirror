@@ -26,11 +26,9 @@
 #ifndef EIGEN_PACKET_MATH_ALTIVEC_H
 #define EIGEN_PACKET_MATH_ALTIVEC_H
 
-#ifndef EIGEN_VECTORIZE_ALTIVEC
-#error include PacketMath_Altivec without EIGEN_VECTORIZE_ALTIVEC
-#endif
-
+#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
+#endif
 
 static const vector int   v0i   = vec_splat_u32(0);
 static const vector int   v16i_ = vec_splat_u32(-16);
@@ -108,4 +106,3 @@ inline int    ei_pfirst(const vector int    a)
 }
 
 #endif // EIGEN_PACKET_MATH_ALTIVEC_H
-

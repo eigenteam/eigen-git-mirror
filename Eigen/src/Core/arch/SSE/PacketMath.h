@@ -25,8 +25,8 @@
 #ifndef EIGEN_PACKET_MATH_SSE_H
 #define EIGEN_PACKET_MATH_SSE_H
 
-#ifndef EIGEN_VECTORIZE_SSE
-#error include PacketMath_SSE without EIGEN_VECTORIZE_SSE
+#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
 #endif
 
 template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}; };

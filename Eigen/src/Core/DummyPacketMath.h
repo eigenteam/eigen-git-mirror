@@ -22,12 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_PACKET_MATH_H
-#define EIGEN_PACKET_MATH_H
-
-#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
-#endif
+#ifndef EIGEN_DUMMY_PACKET_MATH_H
+#define EIGEN_DUMMY_PACKET_MATH_H
 
 // Default implementation for types not supported by the vectorization.
 // In practice these functions are provided to make easier the writting
@@ -76,5 +72,5 @@ template <typename Scalar> inline Scalar ei_preduxp(const Scalar* vecs) { return
 /** \internal \returns the sum of the elements of \a a*/
 template <typename Scalar> inline Scalar ei_predux(const Scalar& a) { return a; }
 
-#endif // EIGEN_PACKET_MATH_H
+#endif // EIGEN_DUMMY_PACKET_MATH_H
 
