@@ -5,8 +5,8 @@
 
 namespace Eigen {
 
-#include "Eigen/src/Cholesky/Cholesky.h"
-#include "Eigen/src/Cholesky/CholeskyWithoutSquareRoot.h"
+#include "src/Cholesky/Cholesky.h"
+#include "src/Cholesky/CholeskyWithoutSquareRoot.h"
 
 } // namespace Eigen
 

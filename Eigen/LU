@@ -5,8 +5,8 @@
 
 namespace Eigen {
 
-#include "Eigen/src/LU/Determinant.h"
-#include "Eigen/src/LU/Inverse.h"
+#include "src/LU/Determinant.h"
+#include "src/LU/Inverse.h"
 
 } // namespace Eigen
 

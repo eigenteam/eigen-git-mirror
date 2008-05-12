@@ -1,4 +1,4 @@
-FILE(GLOB Eigen_SRCS "*.h")
+SET(Eigen_SRCS Core CoreDeclarations LU Cholesky QR)
 
 SET(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/eigen2"
