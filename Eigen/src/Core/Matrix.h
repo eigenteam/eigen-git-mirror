@@ -100,6 +100,14 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
     int _rows() const { return m_storage.rows(); }
     int _cols() const { return m_storage.cols(); }
 
+    int _stride(void) const
+    {
+      if(Flags & RowMajorBit)
+        return m_storage.cols();
+      else
+        return m_storage.rows();
+    }
+
     const Scalar& _coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)

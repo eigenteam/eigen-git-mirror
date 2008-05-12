@@ -6,6 +6,7 @@
 namespace Eigen {
 
 #include "Eigen/src/QR/QR.h"
+#include "Eigen/src/QR/EigenSolver.h"
 
 } // namespace Eigen
 

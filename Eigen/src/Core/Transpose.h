@@ -69,6 +69,8 @@ template<typename MatrixType> class Transpose
     int _rows() const { return m_matrix.cols(); }
     int _cols() const { return m_matrix.rows(); }
 
+    int _stride(void) const { return m_matrix.stride(); }
+
     Scalar& _coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(col, row);

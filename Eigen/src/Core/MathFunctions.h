@@ -46,7 +46,7 @@ inline int ei_log(int)  { ei_assert(false); return 0; }
 inline int ei_sin(int)  { ei_assert(false); return 0; }
 inline int ei_cos(int)  { ei_assert(false); return 0; }
 
-#if EIGEN_GNUC_AT_LEAST(4,3)
+#if EIGEN_GNUC_AT_LEAST(4,2)
 inline int ei_pow(int x, int y) { return int(std::pow(double(x), y)); }
 #else
 inline int ei_pow(int x, int y) { return std::pow(x, y); }

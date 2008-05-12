@@ -60,6 +60,12 @@ struct ei_product_unroller<Index, 0, Lhs, Rhs>
   static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
 };
 
+template<typename Lhs, typename Rhs>
+struct ei_product_unroller<0, Dynamic, Lhs, Rhs>
+{
+  static void run(int, int, const Lhs&, const Rhs&, typename Lhs::Scalar&) {}
+};
+
 template<bool RowMajor, int Index, int Size, typename Lhs, typename Rhs, typename PacketScalar>
 struct ei_packet_product_unroller;
 
@@ -113,6 +119,12 @@ struct ei_packet_product_unroller<false, Index, Dynamic, Lhs, Rhs, PacketScalar>
   static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
 };
 
+template<typename Lhs, typename Rhs, typename PacketScalar>
+struct ei_packet_product_unroller<false, 0, Dynamic, Lhs, Rhs, PacketScalar>
+{
+  static void run(int, int, const Lhs&, const Rhs&, PacketScalar&) {}
+};
+
 template<typename Product, bool RowMajor = true> struct ProductPacketCoeffImpl {
   inline static typename Product::PacketScalar execute(const Product& product, int row, int col)
   { return product._packetCoeffRowMajor(row,col); }
@@ -142,7 +154,7 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode
   enum{ value =  Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && (!( (Lhs::Flags&RowMajorBit) && ((Rhs::Flags&RowMajorBit) ^ RowMajorBit)))
-              ? CacheOptimalProduct : NormalProduct };
+              ? CacheFriendlyProduct : NormalProduct };
 };
 
 template<typename Lhs, typename Rhs, int EvalMode>
@@ -166,7 +178,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     _LhsVectorizable = (!(LhsFlags & RowMajorBit)) && (LhsFlags & VectorizableBit) && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
     _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 1 : 0,
     _RowMajor = (RhsFlags & RowMajorBit)
-              && (EvalMode==(int)CacheOptimalProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
+              && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
     _LostBits = DefaultLostFlagMask & ~(
                 (_RowMajor ? 0 : RowMajorBit)
               | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
@@ -312,7 +324,7 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 
 template<typename Derived>
 template<typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheOptimalProduct>& product)
+Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)
 {
   product.template _cacheOptimalEval<Derived, Aligned>(derived(),
     #ifdef EIGEN_VECTORIZE

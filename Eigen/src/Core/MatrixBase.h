@@ -185,7 +185,7 @@ template<typename Derived> class MatrixBase
 
     /** Overloaded for optimal product evaluation */
     template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const Product<Derived1,Derived2,CacheOptimalProduct>& product);
+    Derived& lazyAssign(const Product<Derived1,Derived2,CacheFriendlyProduct>& product);
 
     CommaInitializer operator<< (const Scalar& s);
 
@@ -419,6 +419,13 @@ template<typename Derived> class MatrixBase
 
     const Lazy<Derived> lazy() const;
     const Temporary<Derived> temporary() const;
+
+    /** \returns number of elements to skip to pass from one row (resp. column) to another
+      * for a row-major (resp. column-major) matrix.
+      * Combined with coeffRef() and the compile times flags, it allows a direct access to the data
+      * of the underlying matrix.
+      */
+    int stride(void) const { return derived()._stride(); }
     //@}
 
     /// \name Coefficient-wise operations

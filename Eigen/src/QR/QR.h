@@ -95,10 +95,11 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
       m_qr(k,k) += 1.0;
 
       // apply transformation to remaining columns
-      for (int j = k+1; j < cols; j++)
+      int remainingCols = cols - k -1;
+      if (remainingCols>0)
       {
-        Scalar s = -(m_qr.col(k).end(remainingSize).transpose() * m_qr.col(j).end(remainingSize))(0,0) / m_qr(k,k);
-        m_qr.col(j).end(remainingSize) += s * m_qr.col(k).end(remainingSize);
+        m_qr.corner(BottomRight, remainingSize, remainingCols) -= (1./m_qr(k,k)) * m_qr.col(k).end(remainingSize)
+          * (m_qr.col(k).end(remainingSize).transpose() * m_qr.corner(BottomRight, remainingSize, remainingCols));
       }
     }
     m_norms[k] = -nrm;

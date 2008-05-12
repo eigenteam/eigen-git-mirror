@@ -71,7 +71,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
                       || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
                       ? ~LargeBit
                       : ~(unsigned int)0,
-    Flags = MatrixType::Flags & (DefaultLostFlagMask | VectorizableBit | ReferencableBit) & FlagsMaskLargeBit,
+    Flags = MatrixType::Flags & (DefaultLostFlagMask | VectorizableBit | DirectAccessBit) & FlagsMaskLargeBit,
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
@@ -131,6 +131,8 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     int _rows() const { return m_blockRows.value(); }
     int _cols() const { return m_blockCols.value(); }
+
+    int _stride(void) const { return m_matrix.stride(); }
 
     Scalar& _coeffRef(int row, int col)
     {
