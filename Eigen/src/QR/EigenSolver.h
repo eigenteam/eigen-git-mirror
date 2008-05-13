@@ -30,94 +30,117 @@
   * \brief Eigen values/vectors solver
   *
   * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \param IsSelfadjoint tells the input matrix is guaranteed to be selfadjoint (hermitian). In that case the
+  * return type of eigenvalues() is a real vector.
+  * 
+  * Currently it only support real matrices.
   *
   * \note this code was adapted from JAMA (public domain)
   *
   * \sa MatrixBase::eigenvalues()
   */
-template<typename _MatrixType> class EigenSolver
+template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
 {
   public:
 
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef std::complex<RealScalar> Complex;
+    typedef Matrix<typename ei_meta_if<IsSelfadjoint, Scalar, Complex>::ret, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
 
     EigenSolver(const MatrixType& matrix)
       : m_eivec(matrix.rows(), matrix.cols()),
-        m_eivalr(matrix.cols()), m_eivali(matrix.cols()),
-        m_H(matrix.rows(), matrix.cols()),
-        m_ort(matrix.cols())
+        m_eivalues(matrix.cols())
     {
       _compute(matrix);
     }
 
     MatrixType eigenvectors(void) const { return m_eivec; }
 
-    VectorType eigenvalues(void) const { return m_eivalr; }
+    EigenvalueType eigenvalues(void) const { return m_eivalues; }
 
   private:
 
-    void _compute(const MatrixType& matrix);
+    void _compute(const MatrixType& matrix)
+    {
+      computeImpl(matrix, typename ei_meta_if<IsSelfadjoint, ei_meta_true, ei_meta_false>::ret());
+    }
+    void computeImpl(const MatrixType& matrix, ei_meta_true isSelfadjoint);
+    void computeImpl(const MatrixType& matrix, ei_meta_false isNotSelfadjoint);
 
-    void tridiagonalization(void);
-    void tql2(void);
+    void tridiagonalization(RealVectorType& eivalr, RealVectorType& eivali);
+    void tql2(RealVectorType& eivalr, RealVectorType& eivali);
 
-    void orthes(void);
-    void hqr2(void);
+    void orthes(MatrixType& matH, RealVectorType& ort);
+    void hqr2(MatrixType& matH, RealVectorType& ort);
 
   protected:
     MatrixType m_eivec;
-    VectorType m_eivalr, m_eivali;
-    MatrixType m_H;
-    VectorType m_ort;
-    bool m_isSymmetric;
+    EigenvalueType m_eivalues;
 };
 
-template<typename MatrixType>
-void EigenSolver<MatrixType>::_compute(const MatrixType& matrix)
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix, ei_meta_true)
 {
   assert(matrix.cols() == matrix.rows());
-
-  m_isSymmetric = true;
   int n = matrix.cols();
-  for (int j = 0; (j < n) && m_isSymmetric; j++) {
-      for (int i = 0; (i < j) && m_isSymmetric; i++) {
-        m_isSymmetric = (matrix(i,j) == matrix(j,i));
-      }
-  }
+  m_eivalues.resize(n,1);
+  
+  RealVectorType eivali(n);
+  m_eivec = matrix;
 
-  m_eivalr.resize(n,1);
-  m_eivali.resize(n,1);
+  // Tridiagonalize.
+  tridiagonalization(m_eivalues, eivali);
 
-  if (m_isSymmetric)
+  // Diagonalize.
+  tql2(m_eivalues, eivali);
+}
+
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix, ei_meta_false)
+{
+  assert(matrix.cols() == matrix.rows());
+  int n = matrix.cols();
+  m_eivalues.resize(n,1);
+
+  bool isSelfadjoint = true;
+  for (int j = 0; (j < n) && isSelfadjoint; j++)
+    for (int i = 0; (i < j) && isSelfadjoint; i++)
+      isSelfadjoint = (matrix(i,j) == matrix(j,i));
+
+  if (isSelfadjoint)
   {
+    RealVectorType eivalr(n);
+    RealVectorType eivali(n);
     m_eivec = matrix;
-
+  
     // Tridiagonalize.
-    tridiagonalization();
-
+    tridiagonalization(eivalr, eivali);
+  
     // Diagonalize.
-    tql2();
+    tql2(eivalr, eivali);
+    
+    m_eivalues = eivalr.template cast<Complex>();
   }
   else
   {
-    m_H = matrix;
-    m_ort.resize(n, 1);
-
+    MatrixType matH = matrix;
+    RealVectorType ort(n);
+    
     // Reduce to Hessenberg form.
-    orthes();
-
+    orthes(matH, ort);
+  
     // Reduce Hessenberg to real Schur form.
-    hqr2();
+    hqr2(matH, ort);
   }
-  std::cout << m_eivali.transpose() << "\n";
 }
 
 
 // Symmetric Householder reduction to tridiagonal form.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::tridiagonalization(void)
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::tridiagonalization(RealVectorType& eivalr, RealVectorType& eivali)
 {
 
 //  This is derived from the Algol procedures tred2 by
@@ -126,7 +149,7 @@ void EigenSolver<MatrixType>::tridiagonalization(void)
 //  Fortran subroutine in EISPACK.
 
   int n = m_eivec.cols();
-  m_eivalr = m_eivec.row(m_eivalr.size()-1);
+  eivalr = m_eivec.row(eivalr.size()-1);
 
   // Householder reduction to tridiagonal form.
   for (int i = n-1; i > 0; i--)
@@ -134,55 +157,55 @@ void EigenSolver<MatrixType>::tridiagonalization(void)
     // Scale to avoid under/overflow.
     Scalar scale = 0.0;
     Scalar h = 0.0;
-    scale = m_eivalr.start(i).cwiseAbs().sum();
+    scale = eivalr.start(i).cwiseAbs().sum();
 
     if (scale == 0.0)
     {
-      m_eivali[i] = m_eivalr[i-1];
-      m_eivalr.start(i) = m_eivec.row(i-1).start(i);
+      eivali[i] = eivalr[i-1];
+      eivalr.start(i) = m_eivec.row(i-1).start(i);
       m_eivec.corner(TopLeft, i, i) = m_eivec.corner(TopLeft, i, i).diagonal().asDiagonal();
     }
     else
     {
       // Generate Householder vector.
-      m_eivalr.start(i) /= scale;
-      h = m_eivalr.start(i).cwiseAbs2().sum();
+      eivalr.start(i) /= scale;
+      h = eivalr.start(i).cwiseAbs2().sum();
 
-      Scalar f = m_eivalr[i-1];
+      Scalar f = eivalr[i-1];
       Scalar g = ei_sqrt(h);
       if (f > 0)
         g = -g;
-      m_eivali[i] = scale * g;
+      eivali[i] = scale * g;
       h = h - f * g;
-      m_eivalr[i-1] = f - g;
-      m_eivali.start(i).setZero();
+      eivalr[i-1] = f - g;
+      eivali.start(i).setZero();
 
       // Apply similarity transformation to remaining columns.
       for (int j = 0; j < i; j++)
       {
-        f = m_eivalr[j];
+        f = eivalr[j];
         m_eivec(j,i) = f;
-        g = m_eivali[j] + m_eivec(j,j) * f;
+        g = eivali[j] + m_eivec(j,j) * f;
         int bSize = i-j-1;
         if (bSize>0)
         {
-          g += (m_eivec.col(j).block(j+1, bSize).transpose() * m_eivalr.block(j+1, bSize))(0,0);
-          m_eivali.block(j+1, bSize) += m_eivec.col(j).block(j+1, bSize) * f;
+          g += (m_eivec.col(j).block(j+1, bSize).transpose() * eivalr.block(j+1, bSize))(0,0);
+          eivali.block(j+1, bSize) += m_eivec.col(j).block(j+1, bSize) * f;
         }
-        m_eivali[j] = g;
+        eivali[j] = g;
       }
 
-      f = (m_eivali.start(i).transpose() * m_eivalr.start(i))(0,0);
-      m_eivali.start(i) = (m_eivali.start(i) - (f / (h + h)) * m_eivalr.start(i))/h;
+      f = (eivali.start(i).transpose() * eivalr.start(i))(0,0);
+      eivali.start(i) = (eivali.start(i) - (f / (h + h)) * eivalr.start(i))/h;
 
       m_eivec.corner(TopLeft, i, i).lower() -=
-        ( (m_eivali.start(i) * m_eivalr.start(i).transpose()).lazy()
-        + (m_eivalr.start(i) * m_eivali.start(i).transpose()).lazy());
+        ( (eivali.start(i) * eivalr.start(i).transpose()).lazy()
+        + (eivalr.start(i) * eivali.start(i).transpose()).lazy());
 
-      m_eivalr.start(i) = m_eivec.row(i-1).start(i);
+      eivalr.start(i) = m_eivec.row(i-1).start(i);
       m_eivec.row(i).start(i).setZero();
     }
-    m_eivalr[i] = h;
+    eivalr[i] = h;
   }
 
   // Accumulate transformations.
@@ -190,39 +213,38 @@ void EigenSolver<MatrixType>::tridiagonalization(void)
   {
     m_eivec(n-1,i) = m_eivec(i,i);
     m_eivec(i,i) = 1.0;
-    Scalar h = m_eivalr[i+1];
+    Scalar h = eivalr[i+1];
     // FIXME this does not looks very stable ;)
     if (h != 0.0)
     {
-      m_eivalr.start(i+1) = m_eivec.col(i+1).start(i+1) / h;
-      m_eivec.corner(TopLeft, i+1, i+1) -= m_eivalr.start(i+1)
+      eivalr.start(i+1) = m_eivec.col(i+1).start(i+1) / h;
+      m_eivec.corner(TopLeft, i+1, i+1) -= eivalr.start(i+1)
         * ( m_eivec.col(i+1).start(i+1).transpose() * m_eivec.corner(TopLeft, i+1, i+1) );
     }
     m_eivec.col(i+1).start(i+1).setZero();
   }
-  m_eivalr = m_eivec.row(m_eivalr.size()-1);
-  m_eivec.row(m_eivalr.size()-1).setZero();
+  eivalr = m_eivec.row(eivalr.size()-1);
+  m_eivec.row(eivalr.size()-1).setZero();
   m_eivec(n-1,n-1) = 1.0;
-  m_eivali[0] = 0.0;
+  eivali[0] = 0.0;
 }
 
 
 // Symmetric tridiagonal QL algorithm.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::tql2(void)
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::tql2(RealVectorType& eivalr, RealVectorType& eivali)
 {
+  //  This is derived from the Algol procedures tql2, by
+  //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
+  //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
+  //  Fortran subroutine in EISPACK.
 
-//  This is derived from the Algol procedures tql2, by
-//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-//  Fortran subroutine in EISPACK.
-
-  int n = m_eivalr.size();
+  int n = eivalr.size();
 
   for (int i = 1; i < n; i++) {
-      m_eivali[i-1] = m_eivali[i];
+      eivali[i-1] = eivali[i];
   }
-  m_eivali[n-1] = 0.0;
+  eivali[n-1] = 0.0;
 
   Scalar f = 0.0;
   Scalar tst1 = 0.0;
@@ -230,13 +252,13 @@ void EigenSolver<MatrixType>::tql2(void)
   for (int l = 0; l < n; l++)
   {
     // Find small subdiagonal element
-    tst1 = std::max(tst1,ei_abs(m_eivalr[l]) + ei_abs(m_eivali[l]));
+    tst1 = std::max(tst1,ei_abs(eivalr[l]) + ei_abs(eivali[l]));
     int m = l;
 
-    while ( (m < n) && (ei_abs(m_eivali[m]) > eps*tst1) )
+    while ( (m < n) && (ei_abs(eivali[m]) > eps*tst1) )
       m++;
 
-    // If m == l, m_eivalr[l] is an eigenvalue,
+    // If m == l, eivalr[l] is an eigenvalue,
     // otherwise, iterate.
     if (m > l)
     {
@@ -246,26 +268,26 @@ void EigenSolver<MatrixType>::tql2(void)
         iter = iter + 1;
 
         // Compute implicit shift
-        Scalar g = m_eivalr[l];
-        Scalar p = (m_eivalr[l+1] - g) / (2.0 * m_eivali[l]);
+        Scalar g = eivalr[l];
+        Scalar p = (eivalr[l+1] - g) / (2.0 * eivali[l]);
         Scalar r = hypot(p,1.0);
         if (p < 0)
           r = -r;
 
-        m_eivalr[l] = m_eivali[l] / (p + r);
-        m_eivalr[l+1] = m_eivali[l] * (p + r);
-        Scalar dl1 = m_eivalr[l+1];
-        Scalar h = g - m_eivalr[l];
+        eivalr[l] = eivali[l] / (p + r);
+        eivalr[l+1] = eivali[l] * (p + r);
+        Scalar dl1 = eivalr[l+1];
+        Scalar h = g - eivalr[l];
         if (l+2<n)
-          m_eivalr.end(n-l-2) -= VectorType::constant(n-l-2, h);
+          eivalr.end(n-l-2) -= RealVectorType::constant(n-l-2, h);
         f = f + h;
 
         // Implicit QL transformation.
-        p = m_eivalr[m];
+        p = eivalr[m];
         Scalar c = 1.0;
         Scalar c2 = c;
         Scalar c3 = c;
-        Scalar el1 = m_eivali[l+1];
+        Scalar el1 = eivali[l+1];
         Scalar s = 0.0;
         Scalar s2 = 0.0;
         for (int i = m-1; i >= l; i--)
@@ -273,14 +295,14 @@ void EigenSolver<MatrixType>::tql2(void)
           c3 = c2;
           c2 = c;
           s2 = s;
-          g = c * m_eivali[i];
+          g = c * eivali[i];
           h = c * p;
-          r = hypot(p,m_eivali[i]);
-          m_eivali[i+1] = s * r;
-          s = m_eivali[i] / r;
+          r = hypot(p,eivali[i]);
+          eivali[i+1] = s * r;
+          s = eivali[i] / r;
           c = p / r;
-          p = c * m_eivalr[i] - s * g;
-          m_eivalr[i+1] = h + s * (c * g + s * m_eivalr[i]);
+          p = c * eivalr[i] - s * g;
+          eivalr[i+1] = h + s * (c * g + s * eivalr[i]);
 
           // Accumulate transformation.
           for (int k = 0; k < n; k++)
@@ -290,15 +312,15 @@ void EigenSolver<MatrixType>::tql2(void)
             m_eivec(k,i) = c * m_eivec(k,i) - s * h;
           }
         }
-        p = -s * s2 * c3 * el1 * m_eivali[l] / dl1;
-        m_eivali[l] = s * p;
-        m_eivalr[l] = c * p;
+        p = -s * s2 * c3 * el1 * eivali[l] / dl1;
+        eivali[l] = s * p;
+        eivalr[l] = c * p;
 
         // Check for convergence.
-      } while (ei_abs(m_eivali[l]) > eps*tst1);
+      } while (ei_abs(eivali[l]) > eps*tst1);
     }
-    m_eivalr[l] = m_eivalr[l] + f;
-    m_eivali[l] = 0.0;
+    eivalr[l] = eivalr[l] + f;
+    eivali[l] = 0.0;
   }
 
   // Sort eigenvalues and corresponding vectors.
@@ -306,18 +328,18 @@ void EigenSolver<MatrixType>::tql2(void)
   for (int i = 0; i < n-1; i++)
   {
     int k = i;
-    Scalar minValue = m_eivalr[i];
+    Scalar minValue = eivalr[i];
     for (int j = i+1; j < n; j++)
     {
-      if (m_eivalr[j] < minValue)
+      if (eivalr[j] < minValue)
       {
         k = j;
-        minValue = m_eivalr[j];
+        minValue = eivalr[j];
       }
     }
     if (k != i)
     {
-      std::swap(m_eivalr[i], m_eivalr[k]);
+      std::swap(eivalr[i], eivalr[k]);
       m_eivec.col(i).swap(m_eivec.col(k));
     }
   }
@@ -325,8 +347,8 @@ void EigenSolver<MatrixType>::tql2(void)
 
 
 // Nonsymmetric reduction to Hessenberg form.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::orthes(void)
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::orthes(MatrixType& matH, RealVectorType& ort)
 {
   //  This is derived from the Algol procedures orthes and ortran,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,
@@ -340,7 +362,7 @@ void EigenSolver<MatrixType>::orthes(void)
   for (int m = low+1; m <= high-1; m++)
   {
     // Scale column.
-    Scalar scale = m_H.block(m, m-1, high-m+1, 1).cwiseAbs().sum();
+    Scalar scale = matH.block(m, m-1, high-m+1, 1).cwiseAbs().sum();
     if (scale != 0.0)
     {
       // Compute Householder transformation.
@@ -348,26 +370,26 @@ void EigenSolver<MatrixType>::orthes(void)
       // FIXME could be rewritten, but this one looks better wrt cache
       for (int i = high; i >= m; i--)
       {
-        m_ort[i] = m_H(i,m-1)/scale;
-        h += m_ort[i] * m_ort[i];
+        ort[i] = matH(i,m-1)/scale;
+        h += ort[i] * ort[i];
       }
       Scalar g = ei_sqrt(h);
-      if (m_ort[m] > 0)
+      if (ort[m] > 0)
         g = -g;
-      h = h - m_ort[m] * g;
-      m_ort[m] = m_ort[m] - g;
+      h = h - ort[m] * g;
+      ort[m] = ort[m] - g;
 
       // Apply Householder similarity transformation
       // H = (I-u*u'/h)*H*(I-u*u')/h)
       int bSize = high-m+1;
-      m_H.block(m, m, bSize, n-m) -= ((m_ort.block(m, bSize)/h)
-        * (m_ort.block(m, bSize).transpose() *  m_H.block(m, m, bSize, n-m)).lazy()).lazy();
+      matH.block(m, m, bSize, n-m) -= ((ort.block(m, bSize)/h)
+        * (ort.block(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)).lazy()).lazy();
 
-      m_H.block(0, m, high+1, bSize) -= ((m_H.block(0, m, high+1, bSize) * m_ort.block(m, bSize)).lazy()
-        * (m_ort.block(m, bSize)/h).transpose()).lazy();
+      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.block(m, bSize)).lazy()
+        * (ort.block(m, bSize)/h).transpose()).lazy();
 
-      m_ort[m] = scale*m_ort[m];
-      m_H(m,m-1) = scale*g;
+      ort[m] = scale*ort[m];
+      matH(m,m-1) = scale*g;
     }
   }
 
@@ -376,13 +398,13 @@ void EigenSolver<MatrixType>::orthes(void)
 
   for (int m = high-1; m >= low+1; m--)
   {
-    if (m_H(m,m-1) != 0.0)
+    if (matH(m,m-1) != 0.0)
     {
-      m_ort.block(m+1, high-m) = m_H.col(m-1).block(m+1, high-m);
+      ort.block(m+1, high-m) = matH.col(m-1).block(m+1, high-m);
 
       int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize) += ( (m_ort.block(m, bSize) /  (m_H(m,m-1) * m_ort[m] ) )
-        * (m_ort.block(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)).lazy());
+      m_eivec.block(m, m, bSize, bSize) += ( (ort.block(m, bSize) /  (matH(m,m-1) * ort[m] ) )
+        * (ort.block(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)).lazy());
     }
   }
 }
@@ -409,8 +431,8 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 
 
 // Nonsymmetric reduction from Hessenberg to real Schur form.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::hqr2(void)
+template<typename MatrixType, bool IsSelfadjoint>
+void EigenSolver<MatrixType,IsSelfadjoint>::hqr2(MatrixType& matH, RealVectorType& ort)
 {
   //  This is derived from the Algol procedure hqr2,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,
@@ -428,17 +450,17 @@ void EigenSolver<MatrixType>::hqr2(void)
 
   // Store roots isolated by balanc and compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
-  // Scalar norm = m_H.upper().cwiseAbs().sum() + m_H.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
+  // Scalar norm = matH.upper().cwiseAbs().sum() + matH.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (int j = 0; j < nn; j++)
   {
     // FIXME what's the purpose of the following since the condition is always false
     if ((j < low) || (j > high))
     {
-      m_eivalr[j] = m_H(j,j);
-      m_eivali[j] = 0.0;
+      m_eivalues[j].real() = matH(j,j);
+      m_eivalues[j].imag() = 0.0;
     }
-    norm += m_H.col(j).start(std::min(j+1,nn)).cwiseAbs().sum();
+    norm += matH.col(j).start(std::min(j+1,nn)).cwiseAbs().sum();
   }
 
   // Outer loop over eigenvalue index
@@ -449,10 +471,10 @@ void EigenSolver<MatrixType>::hqr2(void)
     int l = n;
     while (l > low)
     {
-      s = ei_abs(m_H(l-1,l-1)) + ei_abs(m_H(l,l));
+      s = ei_abs(matH(l-1,l-1)) + ei_abs(matH(l,l));
       if (s == 0.0)
           s = norm;
-      if (ei_abs(m_H(l,l-1)) < eps * s)
+      if (ei_abs(matH(l,l-1)) < eps * s)
         break;
       l--;
     }
@@ -461,21 +483,21 @@ void EigenSolver<MatrixType>::hqr2(void)
     // One root found
     if (l == n)
     {
-      m_H(n,n) = m_H(n,n) + exshift;
-      m_eivalr[n] = m_H(n,n);
-      m_eivali[n] = 0.0;
+      matH(n,n) = matH(n,n) + exshift;
+      m_eivalues[n].real() = matH(n,n);
+      m_eivalues[n].imag() = 0.0;
       n--;
       iter = 0;
     }
     else if (l == n-1) // Two roots found
     {
-      w = m_H(n,n-1) * m_H(n-1,n);
-      p = (m_H(n-1,n-1) - m_H(n,n)) / 2.0;
+      w = matH(n,n-1) * matH(n-1,n);
+      p = (matH(n-1,n-1) - matH(n,n)) / 2.0;
       q = p * p + w;
       z = ei_sqrt(ei_abs(q));
-      m_H(n,n) = m_H(n,n) + exshift;
-      m_H(n-1,n-1) = m_H(n-1,n-1) + exshift;
-      x = m_H(n,n);
+      matH(n,n) = matH(n,n) + exshift;
+      matH(n-1,n-1) = matH(n-1,n-1) + exshift;
+      x = matH(n,n);
 
       // Scalar pair
       if (q >= 0)
@@ -485,14 +507,14 @@ void EigenSolver<MatrixType>::hqr2(void)
         else
           z = p - z;
 
-        m_eivalr[n-1] = x + z;
-        m_eivalr[n] = m_eivalr[n-1];
+        m_eivalues[n-1].real() = x + z;
+        m_eivalues[n].real() = m_eivalues[n-1].real();
         if (z != 0.0)
-          m_eivalr[n] = x - w / z;
+          m_eivalues[n].real() = x - w / z;
 
-        m_eivali[n-1] = 0.0;
-        m_eivali[n] = 0.0;
-        x = m_H(n,n-1);
+        m_eivalues[n-1].imag() = 0.0;
+        m_eivalues[n].imag() = 0.0;
+        x = matH(n,n-1);
         s = ei_abs(x) + ei_abs(z);
         p = x / s;
         q = z / s;
@@ -503,17 +525,17 @@ void EigenSolver<MatrixType>::hqr2(void)
         // Row modification
         for (int j = n-1; j < nn; j++)
         {
-          z = m_H(n-1,j);
-          m_H(n-1,j) = q * z + p * m_H(n,j);
-          m_H(n,j) = q * m_H(n,j) - p * z;
+          z = matH(n-1,j);
+          matH(n-1,j) = q * z + p * matH(n,j);
+          matH(n,j) = q * matH(n,j) - p * z;
         }
 
         // Column modification
         for (int i = 0; i <= n; i++)
         {
-          z = m_H(i,n-1);
-          m_H(i,n-1) = q * z + p * m_H(i,n);
-          m_H(i,n) = q * m_H(i,n) - p * z;
+          z = matH(i,n-1);
+          matH(i,n-1) = q * z + p * matH(i,n);
+          matH(i,n) = q * matH(i,n) - p * z;
         }
 
         // Accumulate transformations
@@ -526,10 +548,10 @@ void EigenSolver<MatrixType>::hqr2(void)
       }
       else // Complex pair
       {
-        m_eivalr[n-1] = x + p;
-        m_eivalr[n] = x + p;
-        m_eivali[n-1] = z;
-        m_eivali[n] = -z;
+        m_eivalues[n-1].real() = x + p;
+        m_eivalues[n].real() = x + p;
+        m_eivalues[n-1].imag() = z;
+        m_eivalues[n].imag() = -z;
       }
       n = n - 2;
       iter = 0;
@@ -537,13 +559,13 @@ void EigenSolver<MatrixType>::hqr2(void)
     else // No convergence yet
     {
       // Form shift
-      x = m_H(n,n);
+      x = matH(n,n);
       y = 0.0;
       w = 0.0;
       if (l < n)
       {
-          y = m_H(n-1,n-1);
-          w = m_H(n,n-1) * m_H(n-1,n);
+          y = matH(n-1,n-1);
+          w = matH(n,n-1) * matH(n-1,n);
       }
 
       // Wilkinson's original ad hoc shift
@@ -551,8 +573,8 @@ void EigenSolver<MatrixType>::hqr2(void)
       {
         exshift += x;
         for (int i = low; i <= n; i++)
-          m_H(i,i) -= x;
-        s = ei_abs(m_H(n,n-1)) + ei_abs(m_H(n-1,n-2));
+          matH(i,i) -= x;
+        s = ei_abs(matH(n,n-1)) + ei_abs(matH(n-1,n-2));
         x = y = 0.75 * s;
         w = -0.4375 * s * s;
       }
@@ -569,7 +591,7 @@ void EigenSolver<MatrixType>::hqr2(void)
             s = -s;
           s = x - w / ((y - x) / 2.0 + s);
           for (int i = low; i <= n; i++)
-            m_H(i,i) -= s;
+            matH(i,i) -= s;
           exshift += s;
           x = y = w = 0.964;
         }
@@ -581,12 +603,12 @@ void EigenSolver<MatrixType>::hqr2(void)
       int m = n-2;
       while (m >= l)
       {
-        z = m_H(m,m);
+        z = matH(m,m);
         r = x - z;
         s = y - z;
-        p = (r * s - w) / m_H(m+1,m) + m_H(m,m+1);
-        q = m_H(m+1,m+1) - z - r - s;
-        r = m_H(m+2,m+1);
+        p = (r * s - w) / matH(m+1,m) + matH(m,m+1);
+        q = matH(m+1,m+1) - z - r - s;
+        r = matH(m+2,m+1);
         s = ei_abs(p) + ei_abs(q) + ei_abs(r);
         p = p / s;
         q = q / s;
@@ -594,9 +616,9 @@ void EigenSolver<MatrixType>::hqr2(void)
         if (m == l) {
           break;
         }
-        if (ei_abs(m_H(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
-          eps * (ei_abs(p) * (ei_abs(m_H(m-1,m-1)) + ei_abs(z) +
-          ei_abs(m_H(m+1,m+1)))))
+        if (ei_abs(matH(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
+          eps * (ei_abs(p) * (ei_abs(matH(m-1,m-1)) + ei_abs(z) +
+          ei_abs(matH(m+1,m+1)))))
         {
           break;
         }
@@ -605,9 +627,9 @@ void EigenSolver<MatrixType>::hqr2(void)
 
       for (int i = m+2; i <= n; i++)
       {
-        m_H(i,i-2) = 0.0;
+        matH(i,i-2) = 0.0;
         if (i > m+2)
-          m_H(i,i-3) = 0.0;
+          matH(i,i-3) = 0.0;
       }
 
       // Double QR step involving rows l:n and columns m:n
@@ -615,9 +637,9 @@ void EigenSolver<MatrixType>::hqr2(void)
       {
         int notlast = (k != n-1);
         if (k != m) {
-          p = m_H(k,k-1);
-          q = m_H(k+1,k-1);
-          r = (notlast ? m_H(k+2,k-1) : 0.0);
+          p = matH(k,k-1);
+          q = matH(k+1,k-1);
+          r = (notlast ? matH(k+2,k-1) : 0.0);
           x = ei_abs(p) + ei_abs(q) + ei_abs(r);
           if (x != 0.0)
           {
@@ -638,9 +660,9 @@ void EigenSolver<MatrixType>::hqr2(void)
         if (s != 0)
         {
           if (k != m)
-            m_H(k,k-1) = -s * x;
+            matH(k,k-1) = -s * x;
           else if (l != m)
-            m_H(k,k-1) = -m_H(k,k-1);
+            matH(k,k-1) = -matH(k,k-1);
 
           p = p + s;
           x = p / s;
@@ -652,27 +674,27 @@ void EigenSolver<MatrixType>::hqr2(void)
           // Row modification
           for (int j = k; j < nn; j++)
           {
-            p = m_H(k,j) + q * m_H(k+1,j);
+            p = matH(k,j) + q * matH(k+1,j);
             if (notlast)
             {
-              p = p + r * m_H(k+2,j);
-              m_H(k+2,j) = m_H(k+2,j) - p * z;
+              p = p + r * matH(k+2,j);
+              matH(k+2,j) = matH(k+2,j) - p * z;
             }
-            m_H(k,j) = m_H(k,j) - p * x;
-            m_H(k+1,j) = m_H(k+1,j) - p * y;
+            matH(k,j) = matH(k,j) - p * x;
+            matH(k+1,j) = matH(k+1,j) - p * y;
           }
 
           // Column modification
           for (int i = 0; i <= std::min(n,k+3); i++)
           {
-            p = x * m_H(i,k) + y * m_H(i,k+1);
+            p = x * matH(i,k) + y * matH(i,k+1);
             if (notlast)
             {
-              p = p + z * m_H(i,k+2);
-              m_H(i,k+2) = m_H(i,k+2) - p * r;
+              p = p + z * matH(i,k+2);
+              matH(i,k+2) = matH(i,k+2) - p * r;
             }
-            m_H(i,k) = m_H(i,k) - p;
-            m_H(i,k+1) = m_H(i,k+1) - p * q;
+            matH(i,k) = matH(i,k) - p;
+            matH(i,k+1) = matH(i,k+1) - p * q;
           }
 
           // Accumulate transformations
@@ -700,20 +722,20 @@ void EigenSolver<MatrixType>::hqr2(void)
 
   for (n = nn-1; n >= 0; n--)
   {
-    p = m_eivalr[n];
-    q = m_eivali[n];
+    p = m_eivalues[n].real();
+    q = m_eivalues[n].imag();
 
     // Scalar vector
     if (q == 0)
     {
       int l = n;
-      m_H(n,n) = 1.0;
+      matH(n,n) = 1.0;
       for (int i = n-1; i >= 0; i--)
       {
-        w = m_H(i,i) - p;
-        r = (m_H.row(i).end(nn-l) * m_H.col(n).end(nn-l))(0,0);
+        w = matH(i,i) - p;
+        r = (matH.row(i).end(nn-l) * matH.col(n).end(nn-l))(0,0);
 
-        if (m_eivali[i] < 0.0)
+        if (m_eivalues[i].imag() < 0.0)
         {
           z = w;
           s = r;
@@ -721,30 +743,30 @@ void EigenSolver<MatrixType>::hqr2(void)
         else
         {
           l = i;
-          if (m_eivali[i] == 0.0)
+          if (m_eivalues[i].imag() == 0.0)
           {
             if (w != 0.0)
-              m_H(i,n) = -r / w;
+              matH(i,n) = -r / w;
             else
-              m_H(i,n) = -r / (eps * norm);
+              matH(i,n) = -r / (eps * norm);
           }
           else // Solve real equations
           {
-            x = m_H(i,i+1);
-            y = m_H(i+1,i);
-            q = (m_eivalr[i] - p) * (m_eivalr[i] - p) + m_eivali[i] * m_eivali[i];
+            x = matH(i,i+1);
+            y = matH(i+1,i);
+            q = (m_eivalues[i].real() - p) * (m_eivalues[i].real() - p) + m_eivalues[i].imag() * m_eivalues[i].imag();
             t = (x * s - z * r) / q;
-            m_H(i,n) = t;
+            matH(i,n) = t;
             if (ei_abs(x) > ei_abs(z))
-              m_H(i+1,n) = (-r - w * t) / x;
+              matH(i+1,n) = (-r - w * t) / x;
             else
-              m_H(i+1,n) = (-s - y * t) / z;
+              matH(i+1,n) = (-s - y * t) / z;
           }
 
           // Overflow control
-          t = ei_abs(m_H(i,n));
+          t = ei_abs(matH(i,n));
           if ((eps * t) * t > 1)
-            m_H.col(n).end(nn-i) /= t;
+            matH.col(n).end(nn-i) /= t;
         }
       }
     }
@@ -754,27 +776,27 @@ void EigenSolver<MatrixType>::hqr2(void)
       int l = n-1;
 
       // Last vector component imaginary so matrix is triangular
-      if (ei_abs(m_H(n,n-1)) > ei_abs(m_H(n-1,n)))
+      if (ei_abs(matH(n,n-1)) > ei_abs(matH(n-1,n)))
       {
-        m_H(n-1,n-1) = q / m_H(n,n-1);
-        m_H(n-1,n) = -(m_H(n,n) - p) / m_H(n,n-1);
+        matH(n-1,n-1) = q / matH(n,n-1);
+        matH(n-1,n) = -(matH(n,n) - p) / matH(n,n-1);
       }
       else
       {
-        cc = cdiv<Scalar>(0.0,-m_H(n-1,n),m_H(n-1,n-1)-p,q);
-        m_H(n-1,n-1) = ei_real(cc);
-        m_H(n-1,n) = ei_imag(cc);
+        cc = cdiv<Scalar>(0.0,-matH(n-1,n),matH(n-1,n-1)-p,q);
+        matH(n-1,n-1) = ei_real(cc);
+        matH(n-1,n) = ei_imag(cc);
       }
-      m_H(n,n-1) = 0.0;
-      m_H(n,n) = 1.0;
+      matH(n,n-1) = 0.0;
+      matH(n,n) = 1.0;
       for (int i = n-2; i >= 0; i--)
       {
         Scalar ra,sa,vr,vi;
-        ra = (m_H.row(i).end(nn-l) * m_H.col(n-1).end(nn-l)).lazy()(0,0);
-        sa = (m_H.row(i).end(nn-l) * m_H.col(n).end(nn-l)).lazy()(0,0);
-        w = m_H(i,i) - p;
+        ra = (matH.row(i).end(nn-l) * matH.col(n-1).end(nn-l)).lazy()(0,0);
+        sa = (matH.row(i).end(nn-l) * matH.col(n).end(nn-l)).lazy()(0,0);
+        w = matH(i,i) - p;
 
-        if (m_eivali[i] < 0.0)
+        if (m_eivalues[i].imag() < 0.0)
         {
           z = w;
           r = ra;
@@ -783,42 +805,42 @@ void EigenSolver<MatrixType>::hqr2(void)
         else
         {
           l = i;
-          if (m_eivali[i] == 0)
+          if (m_eivalues[i].imag() == 0)
           {
             cc = cdiv(-ra,-sa,w,q);
-            m_H(i,n-1) = ei_real(cc);
-            m_H(i,n) = ei_imag(cc);
+            matH(i,n-1) = ei_real(cc);
+            matH(i,n) = ei_imag(cc);
           }
           else
           {
             // Solve complex equations
-            x = m_H(i,i+1);
-            y = m_H(i+1,i);
-            vr = (m_eivalr[i] - p) * (m_eivalr[i] - p) + m_eivali[i] * m_eivali[i] - q * q;
-            vi = (m_eivalr[i] - p) * 2.0 * q;
+            x = matH(i,i+1);
+            y = matH(i+1,i);
+            vr = (m_eivalues[i].real() - p) * (m_eivalues[i].real() - p) + m_eivalues[i].imag() * m_eivalues[i].imag() - q * q;
+            vi = (m_eivalues[i].real() - p) * 2.0 * q;
             if ((vr == 0.0) && (vi == 0.0))
               vr = eps * norm * (ei_abs(w) + ei_abs(q) + ei_abs(x) + ei_abs(y) + ei_abs(z));
 
             cc= cdiv(x*r-z*ra+q*sa,x*s-z*sa-q*ra,vr,vi);
-            m_H(i,n-1) = ei_real(cc);
-            m_H(i,n) = ei_imag(cc);
+            matH(i,n-1) = ei_real(cc);
+            matH(i,n) = ei_imag(cc);
             if (ei_abs(x) > (ei_abs(z) + ei_abs(q)))
             {
-              m_H(i+1,n-1) = (-ra - w * m_H(i,n-1) + q * m_H(i,n)) / x;
-              m_H(i+1,n) = (-sa - w * m_H(i,n) - q * m_H(i,n-1)) / x;
+              matH(i+1,n-1) = (-ra - w * matH(i,n-1) + q * matH(i,n)) / x;
+              matH(i+1,n) = (-sa - w * matH(i,n) - q * matH(i,n-1)) / x;
             }
             else
             {
-              cc = cdiv(-r-y*m_H(i,n-1),-s-y*m_H(i,n),z,q);
-              m_H(i+1,n-1) = ei_real(cc);
-              m_H(i+1,n) = ei_imag(cc);
+              cc = cdiv(-r-y*matH(i,n-1),-s-y*matH(i,n),z,q);
+              matH(i+1,n-1) = ei_real(cc);
+              matH(i+1,n) = ei_imag(cc);
             }
           }
 
           // Overflow control
-          t = std::max(ei_abs(m_H(i,n-1)),ei_abs(m_H(i,n)));
+          t = std::max(ei_abs(matH(i,n-1)),ei_abs(matH(i,n)));
           if ((eps * t) * t > 1)
-            m_H.block(i, n-1, nn-i, 2) /= t;
+            matH.block(i, n-1, nn-i, 2) /= t;
 
         }
       }
@@ -832,7 +854,7 @@ void EigenSolver<MatrixType>::hqr2(void)
     // in this algo low==0 and high==nn-1 !!
     if (i < low || i > high)
     {
-      m_eivec.row(i).end(nn-i) = m_H.row(i).end(nn-i);
+      m_eivec.row(i).end(nn-i) = matH.row(i).end(nn-i);
     }
   }
 
@@ -841,7 +863,7 @@ void EigenSolver<MatrixType>::hqr2(void)
   for (int j = nn-1; j >= low; j--)
   {
     int bSize = std::min(j,high)-low+1;
-    m_eivec.col(j).block(low, bRows) = (m_eivec.block(low, low, bRows, bSize) * m_H.col(j).block(low, bSize));
+    m_eivec.col(j).block(low, bRows) = (m_eivec.block(low, low, bRows, bSize) * matH.col(j).block(low, bSize));
   }
 }
 

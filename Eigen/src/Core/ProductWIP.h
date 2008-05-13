@@ -143,6 +143,7 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
   enum{ value =  Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              && Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               ? CacheFriendlyProduct : NormalProduct };
 };
 
@@ -188,7 +189,7 @@ template<typename T, int n=1> struct ei_product_nested_lhs
          (ei_traits<T>::Flags & EvalBeforeNestingBit)
       || (!(ei_traits<T>::Flags & DirectAccessBit))
       || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost,
-      typename ei_product_eval_to_column_major<T>::type,
+      typename ei_eval<T>::type,
       const T&
     >::ret
   >::ret type;
@@ -201,7 +202,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
   // the cache friendly product evals lhs once only
   // FIXME what to do if we chose to dynamically call the normal product from the cache friendly one for small matrices ?
   typedef typename ei_meta_if<EvalMode==CacheFriendlyProduct,
-      typename ei_product_nested_lhs<Rhs,0>::type,
+      typename ei_product_nested_lhs<Lhs,0>::type,
       typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type>::ret LhsNested;
 
   // NOTE that rhs must be ColumnMajor, so we might need a special nested type calculation
