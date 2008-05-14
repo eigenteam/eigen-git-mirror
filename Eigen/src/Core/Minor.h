@@ -52,7 +52,7 @@ struct ei_traits<Minor<MatrixType> >
                              int(MatrixType::MaxRowsAtCompileTime) - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
                              int(MatrixType::MaxColsAtCompileTime) - 1 : Dynamic,
-    Flags = _MatrixTypeNested::Flags & DefaultLostFlagMask,
+    Flags = _MatrixTypeNested::Flags & HereditaryBits,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

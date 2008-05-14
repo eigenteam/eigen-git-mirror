@@ -96,7 +96,7 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
     Flags = ((int(RowsAtCompileTime) == Dynamic || int(ColsAtCompileTime) == Dynamic)
           ? (unsigned int)_MatrixTypeNested::Flags
-          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & DefaultLostFlagMask,
+          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & HereditaryBits,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
     CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost
                   + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost

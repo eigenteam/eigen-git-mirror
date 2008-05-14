@@ -179,7 +179,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 1 : 0,
     _RowMajor = (RhsFlags & RowMajorBit)
               && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
-    _LostBits = DefaultLostFlagMask & ~(
+    _LostBits = HereditaryBits & ~(
                 (_RowMajor ? 0 : RowMajorBit)
               | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits)

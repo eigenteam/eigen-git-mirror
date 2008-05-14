@@ -27,7 +27,7 @@
 
 /** \class Triangular
   *
-  * \brief Expression of a triangular matrix from a squared matrix
+  * \brief Expression of a triangular matrix from a square matrix
   *
   * \param Mode or-ed bit field indicating the triangular part (Upper or Lower) we are taking,
   * and the property of the diagonal if any (UnitDiagBit or NullDiagBit).
@@ -52,7 +52,7 @@
   * lower part of m1 is left unchanged, and optimal loops are employed. Note that
   * m1 might also be resized.
   *
-  * Of course, in both examples \c <any \c expression> has to be a squared matrix.
+  * Of course, in both examples \c <any \c expression> has to be a square matrix.
   *
   * \sa MatrixBase::upper(), MatrixBase::lower(), class TriangularProduct
   */
@@ -89,21 +89,21 @@ template<int Mode, typename MatrixType> class Triangular
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Triangular)
 
     /** Overloaded to keep a Triangular expression */
-    inline Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > > transpose()
+    inline Triangular<(Upper | Lower) ^ Mode, Flagged<Transpose<MatrixType>,TemporaryBit,0> > transpose()
     {
-      return Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
+      return m_matrix.transpose().temporary();
     }
 
     /** Overloaded to keep a Triangular expression */
-    inline const Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > > transpose() const
+    inline const Triangular<(Upper | Lower) ^ Mode, Flagged<Transpose<MatrixType>,TemporaryBit,0> > transpose() const
     {
-      return Triangular<(Upper | Lower) ^ Mode, Temporary<Transpose<MatrixType> > >((m_matrix.transpose().temporary()));
+      return m_matrix.transpose().temporary();
     }
 
     /** \returns the product of the inverse of *this with \a other.
       *
-      * This function computes the inverse-matrix matrix product inv(*this) \a other
-      * This process is also as forward (resp. backward) substitution if *this is an upper (resp. lower)
+      * This function computes the inverse-matrix matrix product inverse(*this) * \a other
+      * It works as a forward (resp. backward) substitution if *this is an upper (resp. lower)
       * triangular matrix.
       */
     template<typename OtherDerived>

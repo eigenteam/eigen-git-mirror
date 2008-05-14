@@ -55,7 +55,7 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (MatrixTypeFlags & (
-      DefaultLostFlagMask | Like1DArrayBit
+      HereditaryBits | Like1DArrayBit
       | (ei_functor_traits<UnaryOp>::IsVectorizable ? VectorizableBit : 0))),
     CoeffReadCost = MatrixTypeCoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };

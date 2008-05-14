@@ -278,7 +278,9 @@ template<typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
-    const Transpose<Temporary<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> > >
+    const Transpose<
+            Flagged<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived>
+            , TemporaryBit, 0> >
     adjoint() const;
     //@}
 
@@ -419,8 +421,17 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other);
 
-    const Lazy<Derived> lazy() const;
-    const Temporary<Derived> temporary() const;
+    template<unsigned int Added, unsigned int Removed>
+    const Flagged<Derived, Added, Removed> flagged() const;
+
+    const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const
+    {
+      return derived();
+    }
+    const Flagged<Derived, TemporaryBit, 0> temporary() const
+    {
+      return derived();
+    }
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.

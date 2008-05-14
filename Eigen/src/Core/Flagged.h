@@ -1,8 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,23 +22,25 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_TEMPORARY_H
-#define EIGEN_TEMPORARY_H
+#ifndef EIGEN_FLAGGED_H
+#define EIGEN_FLAGGED_H
 
-/** \class Temporary
+/** \class Flagged
   *
-  * \brief Expression with the temporary flag set
+  * \brief Expression with modified flags
   *
-  * \param ExpressionType the type of the object of which we are taking the temporary version
+  * \param ExpressionType the type of the object of which we are modifying the flags
+  * \param Added the flags added to the expression
+  * \param Removed the flags removed from the expression (has priority over Added).
   *
-  * This class represents the temporary version of an expression.
-  * It is the return type of MatrixBase::temporary()
+  * This class represents an expression whose flags have been modified
+  * It is the return type of MatrixBase::flagged()
   * and most of the time this is the only way it is used.
   *
-  * \sa MatrixBase::temporary()
+  * \sa MatrixBase::flagged()
   */
-template<typename ExpressionType>
-struct ei_traits<Temporary<ExpressionType> >
+template<typename ExpressionType, unsigned int Added, unsigned int Removed>
+struct ei_traits<Flagged<ExpressionType, Added, Removed> >
 {
   typedef typename ExpressionType::Scalar Scalar;
   enum {
@@ -47,19 +48,19 @@ struct ei_traits<Temporary<ExpressionType> >
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = ExpressionType::Flags,
+    Flags = (ExpressionType::Flags | Added) & ~Removed,
     CoeffReadCost = ExpressionType::CoeffReadCost
   };
 };
 
-template<typename ExpressionType> class Temporary
-  : public MatrixBase<Temporary<ExpressionType> >
+template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged
+  : public MatrixBase<Flagged<ExpressionType, Added, Removed> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Temporary)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Flagged)
 
-    inline Temporary(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline Flagged(const ExpressionType& matrix) : m_expression(matrix) {}
 
   private:
 
@@ -71,10 +72,21 @@ template<typename ExpressionType> class Temporary
       return m_expression.coeff(row, col);
     }
 
+    inline Scalar& _coeffRef(int row, int col)
+    {
+      return m_expression.const_cast_derived().coeffRef(row, col);
+    }
+
     template<int LoadMode>
     inline const PacketScalar _packetCoeff(int row, int col) const
     {
       return m_expression.template packetCoeff<LoadMode>(row, col);
+    }
+
+    template<int LoadMode>
+    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    {
+      m_expression.const_cast_derived().template writePacketCoeff<LoadMode>(row, col, x);
     }
 
   protected:
@@ -84,10 +96,11 @@ template<typename ExpressionType> class Temporary
 /** \returns an expression of the temporary version of *this.
   */
 template<typename Derived>
-inline const Temporary<Derived>
-MatrixBase<Derived>::temporary() const
+template<unsigned int Added, unsigned int Removed>
+inline const Flagged<Derived, Added, Removed>
+MatrixBase<Derived>::flagged() const
 {
-  return Temporary<Derived>(derived());
+  return Flagged<Derived, Added, Removed>(derived());
 }
 
-#endif // EIGEN_TEMPORARY_H
+#endif // EIGEN_FLAGGED_H

@@ -56,7 +56,7 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
     MaxColsAtCompileTime = 1,
     Flags = (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic
             ? (unsigned int)_MatrixTypeNested::Flags
-            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit) & DefaultLostFlagMask,
+            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit) & HereditaryBits,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

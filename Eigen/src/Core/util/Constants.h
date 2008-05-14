@@ -44,13 +44,16 @@ const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients
 const unsigned int NullLowerBit = 0x200;    ///< means the strictly triangular lower part is 0
 const unsigned int NullUpperBit = 0x400;    ///< means the strictly triangular upper part is 0
 const unsigned int DirectAccessBit = 0x800; ///< means the underlying matrix data can be direclty accessed
+const unsigned int TemporaryBit = 0x1000;   ///< means the expression should be copied by value when nested
 
 enum { Upper=NullLowerBit, Lower=NullUpperBit };
 enum { Aligned=0, UnAligned=1 };
 
-// list of flags that are lost by default
-const unsigned int DefaultLostFlagMask = ~(VectorizableBit | Like1DArrayBit | DirectAccessBit
-  | NullDiagBit | UnitDiagBit | NullLowerBit | NullUpperBit);
+// list of flags that are inherited by default
+const unsigned int HereditaryBits = RowMajorBit
+                                  | EvalBeforeNestingBit
+                                  | EvalBeforeAssigningBit
+                                  | LargeBit;
 
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };

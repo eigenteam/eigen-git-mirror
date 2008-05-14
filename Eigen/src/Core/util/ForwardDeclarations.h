@@ -34,8 +34,7 @@ template<typename _Scalar, int _Rows, int _Cols,
          int _MaxRows = _Rows, int _MaxCols = _Cols>
 class Matrix;
 
-template<typename ExpressionType> class Lazy;
-template<typename ExpressionType> class Temporary;
+template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
 template<typename MatrixType> class Transpose;
