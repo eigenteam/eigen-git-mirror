@@ -167,13 +167,13 @@ template<typename T> class ei_product_eval_to_column_major
 template<typename T, int n=1> struct ei_product_nested_rhs
 {
   typedef typename ei_meta_if<
-    ei_is_temporary<T>::ret && !(ei_traits<T>::Flags & RowMajorBit),
+    (ei_is_temporary<T>::ret && !(ei_traits<T>::Flags & RowMajorBit)),
     T,
     typename ei_meta_if<
-         (ei_traits<T>::Flags & EvalBeforeNestingBit)
+        ((ei_traits<T>::Flags & EvalBeforeNestingBit)
       || (ei_traits<T>::Flags & RowMajorBit)
       || (!(ei_traits<T>::Flags & DirectAccessBit))
-      || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost,
+      || (n+1) * (NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * T::CoeffReadCost),
       typename ei_product_eval_to_column_major<T>::type,
       const T&
     >::ret
@@ -185,10 +185,10 @@ template<typename T, int n=1> struct ei_product_nested_lhs
   typedef typename ei_meta_if<
     ei_is_temporary<T>::ret && !(ei_traits<T>::Flags & RowMajorBit),
     T,
-    typename ei_meta_if<
+    typename ei_meta_if<(
          (ei_traits<T>::Flags & EvalBeforeNestingBit)
       || (!(ei_traits<T>::Flags & DirectAccessBit))
-      || (n+1) * NumTraits<typename ei_traits<T>::Scalar>::ReadCost < (n-1) * T::CoeffReadCost,
+      || (n+1) * (NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * T::CoeffReadCost),
       typename ei_eval<T>::type,
       const T&
     >::ret

@@ -172,7 +172,7 @@ MatrixBase<Derived>::create(const CustomNullaryOp& func)
   * \sa class CwiseNullaryOp
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
 {
   return create(rows, cols, ei_scalar_constant_op<Scalar>(value));
@@ -194,7 +194,7 @@ MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
   * \sa class CwiseNullaryOp
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(int size, const Scalar& value)
 {
   return create(size, ei_scalar_constant_op<Scalar>(value));
@@ -210,7 +210,7 @@ MatrixBase<Derived>::constant(int size, const Scalar& value)
   * \sa class CwiseNullaryOp
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(const Scalar& value)
 {
   return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
@@ -254,7 +254,7 @@ Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
   * \sa zero(), zero(int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::zero(int rows, int cols)
 {
   return constant(rows, cols, Scalar(0));
@@ -277,7 +277,7 @@ MatrixBase<Derived>::zero(int rows, int cols)
   * \sa zero(), zero(int,int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::zero(int size)
 {
   return constant(size, Scalar(0));
@@ -294,7 +294,7 @@ MatrixBase<Derived>::zero(int size)
   * \sa zero(int), zero(int,int)
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::zero()
 {
   return constant(Scalar(0));
@@ -349,7 +349,7 @@ Derived& MatrixBase<Derived>::setZero()
   * \sa ones(), ones(int), isOnes(), class Ones
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::ones(int rows, int cols)
 {
   return constant(rows, cols, Scalar(1));
@@ -372,7 +372,7 @@ MatrixBase<Derived>::ones(int rows, int cols)
   * \sa ones(), ones(int,int), isOnes(), class Ones
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::ones(int size)
 {
   return constant(size, Scalar(1));
@@ -389,7 +389,7 @@ MatrixBase<Derived>::ones(int size)
   * \sa ones(int), ones(int,int), isOnes(), class Ones
   */
 template<typename Derived>
-const CwiseNullaryOp<ei_scalar_constant_op<typename ei_traits<Derived>::Scalar>, Derived>
+const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::ones()
 {
   return constant(Scalar(1));

@@ -135,7 +135,7 @@ typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
 typedef typename Base::PacketScalar PacketScalar; \
 typedef typename Eigen::ei_nested<Derived>::type Nested; \
 typedef typename Eigen::ei_eval<Derived>::type Eval; \
-typedef Eigen::Flagged<Derived, TemporaryBit, 0> Temporary; \
+typedef Eigen::Flagged<Derived, Eigen::TemporaryBit, 0> Temporary; \
 enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
        ColsAtCompileTime = Base::ColsAtCompileTime, \
        MaxRowsAtCompileTime = Base::MaxRowsAtCompileTime, \

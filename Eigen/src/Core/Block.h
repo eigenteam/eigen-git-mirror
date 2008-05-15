@@ -321,25 +321,23 @@ inline const Block<Derived> MatrixBase<Derived>::end(int size) const
   */
 template<typename Derived>
 template<int Size>
-inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                            ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::start()
 {
   ei_assert(IsVectorAtCompileTime);
-  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
-                        ColsAtCompileTime == 1 ? 1 : Size>(derived(), 0, 0);
+  return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
+                        (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
 
 /** This is the const version of start<int>().*/
 template<typename Derived>
 template<int Size>
-inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                                  ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::start() const
 {
   ei_assert(IsVectorAtCompileTime);
-  return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
-                        ColsAtCompileTime == 1 ? 1 : Size>(derived(), 0, 0);
+  return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
+                        (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
 
 /** \returns a fixed-size expression of the last coefficients of *this.
@@ -355,8 +353,7 @@ MatrixBase<Derived>::start() const
   */
 template<typename Derived>
 template<int Size>
-inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                            ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::end()
 {
   ei_assert(IsVectorAtCompileTime);
@@ -370,8 +367,7 @@ MatrixBase<Derived>::end()
 /** This is the const version of end<int>.*/
 template<typename Derived>
 template<int Size>
-inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                                  ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size>
+inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::end() const
 {
   ei_assert(IsVectorAtCompileTime);

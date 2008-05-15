@@ -132,7 +132,7 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   * \sa norm()
   */
 template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const typename MatrixBase<Derived>::ScalarMultipleReturnType
 MatrixBase<Derived>::normalized() const
 {
   return (*this) * (RealScalar(1)/norm());

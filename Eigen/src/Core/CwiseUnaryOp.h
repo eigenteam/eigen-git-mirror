@@ -165,7 +165,7 @@ MatrixBase<Derived>::cast() const
 
 /** \relates MatrixBase */
 template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const typename MatrixBase<Derived>::ScalarMultipleReturnType
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>

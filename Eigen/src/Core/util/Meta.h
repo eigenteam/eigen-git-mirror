@@ -194,7 +194,7 @@ template<typename T> struct ei_unconst<const T> { typedef T type; };
 
 template<typename T> struct ei_is_temporary
 {
-  enum { ret = ei_traits<T>::Flags & TemporaryBit };
+  enum { ret = int(ei_traits<T>::Flags) & TemporaryBit };
 };
 
 template<typename T, int n=1> struct ei_nested

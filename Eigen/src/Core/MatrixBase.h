@@ -163,6 +163,20 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     inline bool isVector() const { return rows()==1 || cols()==1; }
     //@}
+    
+    /// \name Default return types
+    //@{
+    /** Represents a constant matrix */
+    typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    /** Represents a vector block of a matrix  */
+    template<int Size> struct SubVectorReturnType
+    {
+      typedef Block<Derived, (ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size),
+                             (ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size)> Type;
+    };
+    /** Represents a product scalar-matrix */
+    typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
+    //@}
 
     /// \name Copying and initialization
     //@{
@@ -244,8 +258,7 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
-    operator*(const Scalar& scalar) const;
+    const ScalarMultipleReturnType operator*(const Scalar& scalar) const;
     const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
     operator/(const Scalar& scalar) const;
 
@@ -274,7 +287,7 @@ template<typename Derived> class MatrixBase
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived> normalized() const;
+    const ScalarMultipleReturnType normalized() const;
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
@@ -320,18 +333,14 @@ template<typename Derived> class MatrixBase
     template<int CRows, int CCols> const Block<Derived, CRows, CCols> corner(CornerType type) const;
 
     template<int Size>
-    Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                   ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> start();
+    typename SubVectorReturnType<Size>::Type start(void);
     template<int Size>
-    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                         ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> start() const;
+    const typename SubVectorReturnType<Size>::Type start() const;
 
     template<int Size>
-    Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                   ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> end();
+    typename SubVectorReturnType<Size>::Type end();
     template<int Size>
-    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size,
-                         ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size> end() const;
+    const typename SubVectorReturnType<Size>::Type end() const;
 
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
@@ -339,11 +348,11 @@ template<typename Derived> class MatrixBase
 
     /// \name Generating special matrices
     //@{
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    static const ConstantReturnType
     constant(int rows, int cols, const Scalar& value);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    static const ConstantReturnType
     constant(int size, const Scalar& value);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived>
+    static const ConstantReturnType
     constant(const Scalar& value);
 
     template<typename CustomNullaryOp>
@@ -359,12 +368,12 @@ template<typename Derived> class MatrixBase
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero(int rows, int cols);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero(int size);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> zero();
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones(int rows, int cols);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones(int size);
-    static const CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ones();
+    static const ConstantReturnType zero(int rows, int cols);
+    static const ConstantReturnType zero(int size);
+    static const ConstantReturnType zero();
+    static const ConstantReturnType ones(int rows, int cols);
+    static const ConstantReturnType ones(int size);
+    static const ConstantReturnType ones();
     static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity();
     static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity(int rows, int cols);
 
