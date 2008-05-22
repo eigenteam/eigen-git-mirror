@@ -119,9 +119,10 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   }
 }
 
-/** \returns the solution of A x = \a b using the current decomposition of A.
-  * In other words, it returns \code A^-1 b \endcode computing
-  * \code (L^-*) (D^-1) (L^-1) b \code from right to left.
+/** \returns the solution of \f$ A x = b \f$ using the current decomposition of A.
+  * In other words, it returns \f$ A^{-1} b \f$ computing
+  * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
+  * \param vecB the vector \f$ b \f$  (or an array of vectors)
   */
 template<typename MatrixType>
 template<typename Derived>

@@ -109,7 +109,7 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
 
 /** \returns the solution of A x = \a b using the current decomposition of A.
   * In other words, it returns \code A^-1 b \endcode computing
-  * \code L^-*  L^1 b \code from right to left.
+  * \code L^-*  L^1 b \endcode from right to left.
   */
 template<typename MatrixType>
 template<typename Derived>

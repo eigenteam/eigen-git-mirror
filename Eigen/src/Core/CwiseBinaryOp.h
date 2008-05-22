@@ -41,10 +41,7 @@
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
-  * Here is an example illustrating this:
-  * \include class_CwiseBinaryOp.cpp
-  *
-  * \sa class ei_scalar_product_op, class ei_scalar_quotient_op
+  * \sa MatrixBase::cwise(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -219,6 +216,10 @@ MatrixBase<Derived>::cwiseMax(const MatrixBase<OtherDerived> &other) const
   *
   * The template parameter \a CustomBinaryOp is the type of the functor
   * of the custom operator (see class CwiseBinaryOp for an example)
+  *
+  * Here is an example illustrating the use of custom functors:
+  * \include class_CwiseBinaryOp.cpp
+  * Output: \verbinclude class_CwiseBinaryOp.out
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
   */

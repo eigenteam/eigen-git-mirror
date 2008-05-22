@@ -37,7 +37,7 @@
   * It is the return type of the unary operator-, of a matrix or a vector, and most
   * of the time this is the only way it is used.
   *
-  * \sa class CwiseBinaryOp
+  * \sa MatrixBase::cwise(const CustomUnaryOp &) const, class CwiseBinaryOp, class CwiseNullaryOp
   */
 template<typename UnaryOp, typename MatrixType>
 struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
@@ -100,6 +100,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   *
   * Here is an example:
   * \include class_CwiseUnaryOp.cpp
+  * Output: \verbinclude class_CwiseUnaryOp.out
   *
   * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, MatrixBase::cwiseAbs
   */

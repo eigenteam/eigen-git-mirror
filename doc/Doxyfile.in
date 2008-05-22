@@ -143,6 +143,7 @@ DISABLE_INDEX          = NO
 ENUM_VALUES_PER_LINE   = 1
 GENERATE_TREEVIEW      = NO
 TREEVIEW_WIDTH         = 250
+FORMULA_FONTSIZE       = 12
 #---------------------------------------------------------------------------
 # configuration options related to the LaTeX output
 #---------------------------------------------------------------------------

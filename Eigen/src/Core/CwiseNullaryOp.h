@@ -38,6 +38,7 @@
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp, MatrixBase::create()
   */
 template<typename NullaryOp, typename MatrixType>
 struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >

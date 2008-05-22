@@ -39,10 +39,11 @@ class BenchTimer
 {
 public:
 
-  BenchTimer() : m_best(1e99) {}
+  BenchTimer() : m_best(1e12) {}
 
   ~BenchTimer() {}
 
+  inline void reset(void) {m_best = 1e12;}
   inline void start(void) {m_start = getTime();}
   inline void stop(void)
   {
