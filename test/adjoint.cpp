@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 template<typename MatrixType> void adjoint(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -95,17 +93,16 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 
 }
 
-void EigenTest::testAdjoint()
+void test_adjoint()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    adjoint(Matrix<float, 1, 1>());
-    adjoint(Matrix4d());
-    adjoint(MatrixXcf(3, 3));
-    adjoint(MatrixXi(8, 12));
-    adjoint(MatrixXcd(20, 20));
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( adjoint(Matrix4d()) );
+    CALL_SUBTEST( adjoint(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
+    CALL_SUBTEST( adjoint(MatrixXcd(20, 20)) );
   }
   // test a large matrix only once
-  adjoint(Matrix<float, 100, 100>());
+  CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
 }
 
-} // namespace Eigen

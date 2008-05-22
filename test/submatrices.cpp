@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 // check minor separately in order to avoid the possible creation of a zero-sized
 // array. Comes from a compilation error with gcc-3.4 or gcc-4 with -ansi -pedantic.
 // Another solution would be to declare the array like this: T m_data[Size==0?1:Size]; in ei_matrix_storage
@@ -63,7 +61,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
   int rows = m.rows();
   int cols = m.cols();
-  
+
   MatrixType m1 = MatrixType::random(rows, cols),
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
@@ -101,39 +99,37 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   //check operator(), both constant and non-constant, on block()
   m1.block(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.block(0, 0, r2-r1+1,c2-c1+1);
   m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
-  
+
   //check minor()
   CheckMinor<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> checkminor(m1,r1,c1);
-  
+
   //check diagonal()
   VERIFY_IS_APPROX(m1.diagonal(), m1.transpose().diagonal());
   m2.diagonal() = 2 * m1.diagonal();
   m2.diagonal()[0] *= 3;
   VERIFY_IS_APPROX(m2.diagonal()[0], static_cast<Scalar>(6) * m1.diagonal()[0]);
-}
 
-void EigenTest::testSubmatrices()
-{
-  for(int i = 0; i < m_repeat; i++) {
-    submatrices(Matrix<float, 1, 1>());
-    submatrices(Matrix4d());
-    submatrices(MatrixXcf(3, 3));
-    submatrices(MatrixXi(8, 12));
-    submatrices(MatrixXcd(20, 20));
-
-    // test fixed block() separately as it is a template method so doesn't support
-    // being called as a member of a class that is itself a template parameter
-    // (at least as of g++ 4.2)
-    Matrix<float, 6, 8> m = Matrix<float, 6, 8>::random();
-    float s = ei_random<float>();
+  const int BlockRows = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,2);
+  const int BlockCols = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,5);
+  if (rows>=5 && cols>=8)
+  {
     // test fixed block() as lvalue
-    m.block<2,5>(1,1) *= s;
+    m1.template block<BlockRows,BlockCols>(1,1) *= s1;
     // test operator() on fixed block() both as constant and non-constant
-    m.block<2,5>(1,1)(0, 3) = m.block<2,5>(1,1)(1,2);
+    m1.template block<BlockRows,BlockCols>(1,1)(0, 3) = m1.template block<2,5>(1,1)(1,2);
     // check that fixed block() and block() agree
-    MatrixXf b = m.block<3,2>(3,3);
-    VERIFY_IS_APPROX(b, m.block(3,3,3,2));
+    Matrix<Scalar,Dynamic,Dynamic> b = m1.template block<BlockRows,BlockCols>(3,3);
+    VERIFY_IS_APPROX(b, m1.block(3,3,BlockRows,BlockCols));
   }
 }
 
-} // namespace Eigen
+void test_submatrices()
+{
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( submatrices(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( submatrices(Matrix4d()) );
+    CALL_SUBTEST( submatrices(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( submatrices(MatrixXi(8, 12)) );
+    CALL_SUBTEST( submatrices(MatrixXcd(20, 20)) );
+  }
+}

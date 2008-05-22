@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 template<typename MatrixType> void triangular(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -87,14 +85,12 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
 }
 
-void EigenTest::testTriangular()
+void test_triangular()
 {
-  for(int i = 0; i < m_repeat ; i++) {
+  for(int i = 0; i < g_repeat ; i++) {
 //     triangular(Matrix<float, 1, 1>());
-    triangular(Matrix3d());
-    triangular(MatrixXcf(4, 4));
-//     triangular(Matrix<std::complex<float>,8, 8>());
+    CALL_SUBTEST( triangular(Matrix3d()) );
+    CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
+//     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
   }
 }
-
-} // namespace Eigen

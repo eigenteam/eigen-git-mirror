@@ -23,10 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-
 #include <Eigen/LU>
-
-namespace Eigen {
 
 template<typename MatrixType> void nullDeterminant(const MatrixType& m)
 {
@@ -69,15 +66,13 @@ template<typename MatrixType> void nullDeterminant(const MatrixType& m)
   VERIFY(!notInvertibleCovarianceMatrix.inverse().exists());
 }
 
-void EigenTest::testDeterminant()
+void test_determinant()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    nullDeterminant(Matrix<float, 30, 3>());
-    nullDeterminant(Matrix<double, 30, 3>());
-    nullDeterminant(Matrix<float, 20, 4>());
-    nullDeterminant(Matrix<double, 20, 4>());
-//     nullDeterminant(MatrixXd(20,4));
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( nullDeterminant(Matrix<float, 30, 3>()) );
+    CALL_SUBTEST( nullDeterminant(Matrix<double, 30, 3>()) );
+    CALL_SUBTEST( nullDeterminant(Matrix<float, 20, 4>()) );
+    CALL_SUBTEST( nullDeterminant(Matrix<double, 20, 4>()) );
+//     CALL_SUBTEST( nullDeterminant(MatrixXd(20,4));
   }
 }
-
-} // namespace Eigen

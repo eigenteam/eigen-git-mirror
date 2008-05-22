@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 template<typename MatrixType> void linearStructure(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -97,16 +95,14 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
 }
 
-void EigenTest::testLinearStructure()
+void test_linearstructure()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    linearStructure(Matrix<float, 1, 1>());
-    linearStructure(Matrix4d());
-    linearStructure(MatrixXcf(3, 3));
-    linearStructure(MatrixXf(8, 12));
-    linearStructure(MatrixXi(8, 12));
-    linearStructure(MatrixXcd(20, 20));
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( linearStructure(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( linearStructure(Matrix4d()) );
+    CALL_SUBTEST( linearStructure(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( linearStructure(MatrixXf(8, 12)) );
+    CALL_SUBTEST( linearStructure(MatrixXi(8, 12)) );
+    CALL_SUBTEST( linearStructure(MatrixXcd(20, 20)) );
   }
 }
-
-} // namespace Eigen

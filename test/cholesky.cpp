@@ -23,10 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-
 #include <Eigen/Cholesky>
-
-namespace Eigen {
 
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
@@ -53,13 +50,11 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   VERIFY_IS_APPROX(covMat * chol.solve(b), b);
 }
 
-void EigenTest::testCholesky()
+void test_cholesky()
 {
   for(int i = 0; i < 1; i++) {
-    cholesky(Matrix3f());
-    cholesky(Matrix4d());
-    cholesky(MatrixXcd(7,7));
+    CALL_SUBTEST( cholesky(Matrix3f()) );
+    CALL_SUBTEST( cholesky(Matrix4d()) );
+    CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
   }
 }
-
-} // namespace Eigen

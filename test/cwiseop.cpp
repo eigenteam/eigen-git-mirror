@@ -24,14 +24,9 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
 #include <functional>
 
 using namespace std;
-
-namespace Eigen {
 
 template<typename Scalar> struct AddIfNull {
     const Scalar operator() (const Scalar a, const Scalar b) const {return a<=1e-3 ? b : a;}
@@ -76,15 +71,13 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 //   VERIFY_IS_APPROX( cwiseMin(m1,m1-mones), m1-mones );
 }
 
-void EigenTest::testCwiseops()
+void test_cwiseop()
 {
-  for(int i = 0; i < m_repeat ; i++) {
-    cwiseops(Matrix<float, 1, 1>());
-    cwiseops(Matrix4d());
-    cwiseops(MatrixXf(3, 3));
-    cwiseops(MatrixXi(8, 12));
-    cwiseops(MatrixXd(20, 20));
+  for(int i = 0; i < g_repeat ; i++) {
+    CALL_SUBTEST( cwiseops(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( cwiseops(Matrix4d()) );
+    CALL_SUBTEST( cwiseops(MatrixXf(3, 3)) );
+    CALL_SUBTEST( cwiseops(MatrixXi(8, 12)) );
+    CALL_SUBTEST( cwiseops(MatrixXd(20, 20)) );
   }
 }
-
-} // namespace Eigen

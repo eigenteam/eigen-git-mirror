@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -24,32 +24,35 @@
 
 #include "main.h"
 
-template<typename VectorType> void tmap(const VectorType& m)
+void test_commainitializer()
 {
-  typedef typename VectorType::Scalar Scalar;
+  Matrix3d m3;
+  Matrix4d m4;
+  VERIFY_RAISES_ASSERT(m4 = m3);
 
-  int size = m.size();
+  VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8) );
+  VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) );
 
-  // test Map.h
-  Scalar* array1 = new Scalar[size];
-  Scalar* array2 = new Scalar[size];
-  VectorType::map(array1, size) = VectorType::random(size);
-  VectorType::map(array2, size) = VectorType::map(array1, size);
-  VectorType ma1 = VectorType::map(array1, size);
-  VectorType ma2 = VectorType::map(array2, size);
-  VERIFY_IS_APPROX(ma1, ma2);
-  VERIFY_IS_APPROX(ma1, VectorType(array2, size));
-  delete[] array1;
-  delete[] array2;
-}
+  double data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-void test_map()
-{
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( tmap(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( tmap(Vector4d()) );
-    CALL_SUBTEST( tmap(RowVector4f()) );
-    CALL_SUBTEST( tmap(VectorXcf(8)) );
-    CALL_SUBTEST( tmap(VectorXi(12)) );
-  }
+  m3 = Matrix3d::random();
+  m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+
+  Vector3d vec[3];
+  vec[0] << 1, 4, 7;
+  vec[1] << 2, 5, 8;
+  vec[2] << 3, 6, 9;
+  m3 = Matrix3d::random();
+  m3 << vec[0], vec[1], vec[2];
+  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+
+  vec[0] << 1, 2, 3;
+  vec[1] << 4, 5, 6;
+  vec[2] << 7, 8, 9;
+  m3 = Matrix3d::random();
+  m3 << vec[0].transpose(),
+        4, 5, 6,
+        vec[2].transpose();
+  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
 }

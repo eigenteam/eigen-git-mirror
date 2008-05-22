@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 template<typename MatrixType> void product(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -91,23 +89,23 @@ template<typename MatrixType> void product(const MatrixType& m)
     VERIFY_RAISES_ASSERT(m3 = m1*m1);
 }
 
-void EigenTest::testProduct()
+void test_product()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    product(Matrix<float, 1, 1>());
-    product(Matrix<float, 3, 3>());
-    product(Matrix<float, 4, 2>());
-    product(Matrix4d());
-  }
-  for(int i = 0; i < m_repeat; i++) {
+//   for(int i = 0; i < g_repeat; i++) {
+//     CALL_SUBTEST( product(Matrix<float, 1, 1>()) );
+//     CALL_SUBTEST( product(Matrix<float, 3, 3>()) );
+//     CALL_SUBTEST( product(Matrix<float, 4, 2>()) );
+//     CALL_SUBTEST( product(Matrix4d()) );
+//   }
+  for(int i = 0; i < g_repeat; i++) {
     int rows = ei_random<int>(1,320);
     int cols = ei_random<int>(1,320);
-    product(MatrixXf(rows, cols));
-    product(MatrixXd(rows, cols));
-    product(MatrixXi(rows, cols));
-    product(MatrixXcf(rows, cols));
-    product(MatrixXcd(rows, cols));
+    std::cout << "test MatrixXf " << rows << "x" << cols << "\n";
+    CALL_SUBTEST( product(MatrixXf(rows, cols)) );
+    std::cout << "test MatrixXd " << rows << "x" << cols << "\n";
+    CALL_SUBTEST( product(MatrixXd(rows, cols)) );
+//     CALL_SUBTEST( product(MatrixXi(rows, cols)) );
+//     CALL_SUBTEST( product(MatrixXcf(rows, cols)) );
+//     CALL_SUBTEST( product(MatrixXcd(rows, cols)) );
   }
 }
-
-} // namespace Eigen

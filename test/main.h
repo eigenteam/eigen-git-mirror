@@ -23,16 +23,30 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_TEST_MAIN_H
-#define EIGEN_TEST_MAIN_H
-
-#include <QtTest/QtTest>
-
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <string>
+#include <vector>
+#include <Qt/QtCore>
+
+#ifndef EIGEN_TEST_FUNC
+#error EIGEN_TEST_FUNC must be defined
+#endif
 
 #define DEFAULT_REPEAT 10
+
+namespace Eigen
+{
+  static std::vector<std::string> g_test_stack;
+  static int g_repeat;
+}
+
+#define EI_PP_MAKE_STRING2(S) #S
+#define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
+
+#define EI_PP_CAT2(a,b) a ## b
+#define EI_PP_CAT(a,b) EI_PP_CAT2(a,b)
 
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
@@ -51,9 +65,6 @@
       ~ei_assert_exception() { Eigen::no_more_assert = false; }
     };
   }
-
-  #define EI_PP_MAKE_STRING2(S) #S
-  #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
 
   // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is raised while
   // one should have been, then the list of excecuted assertions is printed out.
@@ -88,12 +99,12 @@
           Eigen::ei_push_assert = true;                                           \
           a;                                                                      \
           Eigen::ei_push_assert = false;                                          \
-          std::cout << "One of the following asserts should have been raised:\n"; \
+          std::cerr << "One of the following asserts should have been raised:\n"; \
           for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
-            std::cout << "  " << ei_assert_list[ai] << "\n";                      \
-          QVERIFY(Eigen::should_raise_an_assert && # a);                          \
+            std::cerr << "  " << ei_assert_list[ai] << "\n";                      \
+          VERIFY(Eigen::should_raise_an_assert && # a);                          \
         } catch (Eigen::ei_assert_exception e) {                                  \
-          Eigen::ei_push_assert = false; QVERIFY(true);                           \
+          Eigen::ei_push_assert = false; VERIFY(true);                           \
         }                                                                         \
       }
 
@@ -108,8 +119,8 @@
 
     #define VERIFY_RAISES_ASSERT(a)                                 \
       {                                                             \
-        try { a; QVERIFY(Eigen::should_raise_an_assert && # a); }   \
-        catch (Eigen::ei_assert_exception e) { QVERIFY(true); }     \
+        try { a; VERIFY(Eigen::should_raise_an_assert && # a); }   \
+        catch (Eigen::ei_assert_exception e) { VERIFY(true); }     \
       }
 
   #endif // EIGEN_DEBUG_ASSERTS
@@ -127,13 +138,24 @@
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/Core>
 
-#define VERIFY(a) QVERIFY(a)
-#define VERIFY_IS_APPROX(a, b) QVERIFY(test_ei_isApprox(a, b))
-#define VERIFY_IS_NOT_APPROX(a, b) QVERIFY(!test_ei_isApprox(a, b))
-#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) QVERIFY(test_ei_isMuchSmallerThan(a, b))
-#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) QVERIFY(!test_ei_isMuchSmallerThan(a, b))
-#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) QVERIFY(test_ei_isApproxOrLessThan(a, b))
-#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) QVERIFY(!test_ei_isApproxOrLessThan(a, b))
+#define VERIFY(a) do { if (!(a)) { \
+    std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
+      << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \
+    exit(2); \
+  } } while (0)
+
+#define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
+#define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))
+#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_ei_isMuchSmallerThan(a, b))
+#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_ei_isMuchSmallerThan(a, b))
+#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_ei_isApproxOrLessThan(a, b))
+#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_ei_isApproxOrLessThan(a, b))
+
+#define CALL_SUBTEST(FUNC) do { \
+    g_test_stack.push_back(EI_PP_MAKE_STRING(FUNC)); \
+    FUNC; \
+    g_test_stack.pop_back(); \
+  } while (0)
 
 namespace Eigen {
 
@@ -196,30 +218,86 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
   return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
-class EigenTest : public QObject
-{
-    Q_OBJECT
-
-  public:
-    EigenTest(int repeat) : m_repeat(repeat) {}
-
-  private slots:
-    void testBasicStuff();
-    void testLinearStructure();
-    void testProduct();
-    void testAdjoint();
-    void testSubmatrices();
-    void testMiscMatrices();
-    void testSmallVectors();
-    void testMap();
-    void testCwiseops();
-    //void testDeterminant();  //determinant for size > 4x4 unimplemented for now
-    void testTriangular();
-    void testCholesky();
-  protected:
-    int m_repeat;
-};
-
 } // end namespace Eigen
 
-#endif // EIGEN_TEST_MAIN_H
+
+// forward declaration of the main test function
+void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
+
+using namespace Eigen;
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+
+    bool has_set_repeat = false;
+    bool has_set_seed = false;
+    bool need_help = false;
+    unsigned int seed = 0;
+    int repeat = DEFAULT_REPEAT;
+
+    QStringList args = QCoreApplication::instance()->arguments();
+    args.takeFirst(); // throw away the first argument (path to executable)
+    foreach(QString arg, args)
+    {
+      if(arg.startsWith("r"))
+      {
+        if(has_set_repeat)
+        {
+          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          return 1;
+        }
+        repeat = arg.remove(0, 1).toInt();
+        has_set_repeat = true;
+        if(repeat <= 0)
+        {
+          qDebug() << "Invalid \'repeat\' value" << arg;
+          return 1;
+        }
+      }
+      else if(arg.startsWith("s"))
+      {
+        if(has_set_seed)
+        {
+          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          return 1;
+        }
+        bool ok;
+        seed = arg.remove(0, 1).toUInt(&ok);
+        has_set_seed = true;
+        if(!ok)
+        {
+          qDebug() << "Invalid \'seed\' value" << arg;
+          return 1;
+        }
+      }
+      else
+      {
+        need_help = true;
+      }
+    }
+
+    if(need_help)
+    {
+      qDebug() << "This test application takes the following optional arguments:";
+      qDebug() << "  rN     Repeat each test N times (default:" << DEFAULT_REPEAT << ")";
+      qDebug() << "  sN     Use N as seed for random numbers (default: based on current time)";
+      return 1;
+    }
+
+    if(!has_set_seed) seed = (unsigned int) time(NULL);
+    if(!has_set_repeat) repeat = DEFAULT_REPEAT;
+
+    qDebug() << "Initializing random number generator with seed" << seed;
+    srand(seed);
+    qDebug() << "Repeating each test" << repeat << "times";
+
+    Eigen::g_repeat = repeat;
+    Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));
+
+    EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
+    return 0;
+}
+
+
+

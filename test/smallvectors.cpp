@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,13 +18,11 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-
-namespace Eigen {
 
 template<typename Scalar> void smallVectors()
 {
@@ -49,13 +47,11 @@ template<typename Scalar> void smallVectors()
   VERIFY_IS_APPROX(x4, v4.w());
 }
 
-void EigenTest::testSmallVectors()
+void test_smallvectors()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    smallVectors<int>();
-    smallVectors<float>();
-    smallVectors<double>();
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( smallVectors<int>() );
+    CALL_SUBTEST( smallVectors<float>() );
+    CALL_SUBTEST( smallVectors<double>() );
   }
 }
-
-} // namespace Eigen

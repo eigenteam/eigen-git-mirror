@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-namespace Eigen {
-
 template<typename MatrixType> void basicStuff(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -86,49 +84,14 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   }
 }
 
-void EigenTest::testBasicStuff()
+void test_basicstuff()
 {
-  for(int i = 0; i < m_repeat; i++) {
-    basicStuff(Matrix<float, 1, 1>());
-    basicStuff(Matrix4d());
-    basicStuff(MatrixXcf(3, 3));
-    basicStuff(MatrixXi(8, 12));
-    basicStuff(MatrixXcd(20, 20));
-    basicStuff(Matrix<float, 100, 100>());
-  }
-
-  // some additional basic tests
-  {
-    Matrix3d m3;
-    Matrix4d m4;
-    VERIFY_RAISES_ASSERT(m4 = m3);
-
-    VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8) );
-    VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) );
-
-    double data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-
-    m3 = Matrix3d::random();
-    m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
-
-    Vector3d vec[3];
-    vec[0] << 1, 4, 7;
-    vec[1] << 2, 5, 8;
-    vec[2] << 3, 6, 9;
-    m3 = Matrix3d::random();
-    m3 << vec[0], vec[1], vec[2];
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
-
-    vec[0] << 1, 2, 3;
-    vec[1] << 4, 5, 6;
-    vec[2] << 7, 8, 9;
-    m3 = Matrix3d::random();
-    m3 << vec[0].transpose(),
-          4, 5, 6,
-          vec[2].transpose();
-    VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( basicStuff(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( basicStuff(Matrix4d()) );
+    CALL_SUBTEST( basicStuff(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( basicStuff(MatrixXi(8, 12)) );
+    CALL_SUBTEST( basicStuff(MatrixXcd(20, 20)) );
+    CALL_SUBTEST( basicStuff(Matrix<float, 100, 100>()) );
   }
 }
-
-} // namespace Eigen
