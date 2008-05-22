@@ -62,6 +62,9 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     inline Flagged(const ExpressionType& matrix) : m_expression(matrix) {}
 
+    /** \internal */
+    inline ExpressionType _expression() const { return m_expression; }
+
   private:
 
     inline int _rows() const { return m_expression.rows(); }

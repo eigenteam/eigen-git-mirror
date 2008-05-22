@@ -183,12 +183,12 @@ template<typename T, int n=1> struct ei_product_nested_rhs
 template<typename T, int n=1> struct ei_product_nested_lhs
 {
   typedef typename ei_meta_if<
-    ei_is_temporary<T>::ret && !(ei_traits<T>::Flags & RowMajorBit),
+    ei_is_temporary<T>::ret,
     T,
-    typename ei_meta_if<(
-         (ei_traits<T>::Flags & EvalBeforeNestingBit)
-      || (!(ei_traits<T>::Flags & DirectAccessBit))
-      || (n+1) * (NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * T::CoeffReadCost),
+    typename ei_meta_if<
+         int(ei_traits<T>::Flags) & EvalBeforeNestingBit
+      || (!(int(ei_traits<T>::Flags) & DirectAccessBit))
+      || (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * int(T::CoeffReadCost),
       typename ei_eval<T>::type,
       const T&
     >::ret
@@ -209,8 +209,8 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
   typedef typename ei_meta_if<EvalMode==CacheFriendlyProduct,
       typename ei_product_nested_rhs<Rhs,Lhs::RowsAtCompileTime>::type,
       typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
-  typedef typename ei_unref<LhsNested>::type _LhsNested;
-  typedef typename ei_unref<RhsNested>::type _RhsNested;
+  typedef typename ei_unconst<typename ei_unref<LhsNested>::type>::type _LhsNested;
+  typedef typename ei_unconst<typename ei_unref<RhsNested>::type>::type _RhsNested;
   enum {
     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
@@ -224,7 +224,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     // the other one is always vectorized !
     _RhsVectorizable = (RhsFlags & RowMajorBit) && (RhsFlags & VectorizableBit) && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
     _LhsVectorizable = (!(LhsFlags & RowMajorBit)) && (LhsFlags & VectorizableBit) && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 0 : 0,
+    _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 1 : 0,
     _RowMajor = (RhsFlags & RowMajorBit)
               && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
     _LostBits = HereditaryBits & ~(
@@ -270,6 +270,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     /** \internal */
     template<typename DestDerived>
     void _cacheFriendlyEval(DestDerived& res) const;
+
+    /** \internal */
+    template<typename DestDerived>
+    void _cacheFriendlyEvalAndAdd(DestDerived& res) const;
 
   private:
 
@@ -363,6 +367,16 @@ MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
   return *this = *this * other;
 }
 
+/** \internal */
+template<typename Derived>
+template<typename Lhs,typename Rhs>
+inline Derived&
+MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+{
+  other._expression()._cacheFriendlyEvalAndAdd(const_cast_derived());
+  return  derived();
+}
+
 template<typename Derived>
 template<typename Lhs, typename Rhs>
 inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)
@@ -375,16 +389,50 @@ template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
 inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 {
-  #ifndef EIGEN_WIP_PRODUCT_DIRTY
-  res.setZero();
-  #endif
+  if ( _rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+    && _cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+    && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+  )
+  {
+    #ifndef EIGEN_WIP_PRODUCT_DIRTY
+    res.setZero();
+    #endif
 
-  ei_cache_friendly_product<Scalar>(
-    _rows(), _cols(), m_lhs.cols(),
-    _LhsNested::Flags&RowMajorBit, &(m_lhs.const_cast_derived().coeffRef(0,0)), m_lhs.stride(),
-    _RhsNested::Flags&RowMajorBit, &(m_rhs.const_cast_derived().coeffRef(0,0)), m_rhs.stride(),
-    Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
-  );
+    ei_cache_friendly_product<Scalar>(
+      _rows(), _cols(), m_lhs.cols(),
+      _LhsNested::Flags&RowMajorBit, &(m_lhs.const_cast_derived().coeffRef(0,0)), m_lhs.stride(),
+      _RhsNested::Flags&RowMajorBit, &(m_rhs.const_cast_derived().coeffRef(0,0)), m_rhs.stride(),
+      Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
+    );
+  }
+  else
+  {
+    // lazy product
+    res = Product<_LhsNested,_RhsNested,NormalProduct>(m_lhs, m_rhs).lazy();
+  }
+}
+
+template<typename Lhs, typename Rhs, int EvalMode>
+template<typename DestDerived>
+inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEvalAndAdd(DestDerived& res) const
+{
+  if ( _rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+    && _cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+    && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+  )
+  {
+    ei_cache_friendly_product<Scalar>(
+      _rows(), _cols(), m_lhs.cols(),
+      _LhsNested::Flags&RowMajorBit, &(m_lhs.const_cast_derived().coeffRef(0,0)), m_lhs.stride(),
+      _RhsNested::Flags&RowMajorBit, &(m_rhs.const_cast_derived().coeffRef(0,0)), m_rhs.stride(),
+      Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
+    );
+  }
+  else
+  {
+    // lazy product
+    res += Product<_LhsNested,_RhsNested,NormalProduct>(m_lhs, m_rhs).lazy();
+  }
 }
 
 #endif // EIGEN_PRODUCT_H

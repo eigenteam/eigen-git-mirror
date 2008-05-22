@@ -154,7 +154,7 @@ class ei_corrected_matrix_flags
     enum { is_vectorizable
             = ei_packet_traits<Scalar>::size > 1
               && (Size%ei_packet_traits<Scalar>::size==0),
-          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)) | Like1DArrayBit
+          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)) | Like1DArrayBit | DirectAccessBit
     };
 
   public:

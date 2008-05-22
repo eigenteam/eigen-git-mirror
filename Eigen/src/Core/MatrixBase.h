@@ -163,7 +163,7 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     inline bool isVector() const { return rows()==1 || cols()==1; }
     //@}
-    
+
     /// \name Default return types
     //@{
     /** Represents a constant matrix */
@@ -254,6 +254,9 @@ template<typename Derived> class MatrixBase
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const MatrixBase<OtherDerived>& other);
+
+    template<typename Lhs,typename Rhs>
+    Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
@@ -407,7 +410,7 @@ template<typename Derived> class MatrixBase
     bool isOrtho(const MatrixBase<OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
     bool isOrtho(RealScalar prec = precision<Scalar>()) const;
-    
+
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
     { return derived().cwiseEqualTo(other.derived()).all(); }
@@ -583,8 +586,8 @@ template<typename Derived> class MatrixBase
     //@{
     const QR<typename ei_eval<Derived>::type> qr() const;
     //@}
-    
-        
+
+
     #ifdef EIGEN_MATRIX_CUSTOM_ADDONS_FILE
     #include EIGEN_MATRIX_CUSTOM_ADDONS_FILE
     #endif
