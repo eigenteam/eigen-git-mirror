@@ -48,7 +48,7 @@ struct ei_traits<Transpose<MatrixType> >
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = int(_MatrixTypeNested::Flags) ^ RowMajorBit,
+    Flags = (int(_MatrixTypeNested::Flags) ^ RowMajorBit) & ~Like1DArrayBit,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

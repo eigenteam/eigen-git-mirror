@@ -331,10 +331,6 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       return res;
     }
 
-    /** \internal */
-    template<typename DestDerived, int RhsAlignment>
-    void _cacheFriendlyEvalImpl(DestDerived& res) const EIGEN_DONT_INLINE;
-
   protected:
     const LhsNested m_lhs;
     const RhsNested m_rhs;
