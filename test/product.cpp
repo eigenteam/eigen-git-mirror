@@ -91,21 +91,19 @@ template<typename MatrixType> void product(const MatrixType& m)
 
 void test_product()
 {
-//   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( product(Matrix<float, 1, 1>()) );
-//     CALL_SUBTEST( product(Matrix<float, 3, 3>()) );
-//     CALL_SUBTEST( product(Matrix<float, 4, 2>()) );
-//     CALL_SUBTEST( product(Matrix4d()) );
-//   }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( product(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( product(Matrix<float, 3, 3>()) );
+    CALL_SUBTEST( product(Matrix<float, 4, 2>()) );
+    CALL_SUBTEST( product(Matrix4d()) );
+  }
   for(int i = 0; i < g_repeat; i++) {
     int rows = ei_random<int>(1,320);
     int cols = ei_random<int>(1,320);
-    std::cout << "test MatrixXf " << rows << "x" << cols << "\n";
     CALL_SUBTEST( product(MatrixXf(rows, cols)) );
-    std::cout << "test MatrixXd " << rows << "x" << cols << "\n";
     CALL_SUBTEST( product(MatrixXd(rows, cols)) );
-//     CALL_SUBTEST( product(MatrixXi(rows, cols)) );
-//     CALL_SUBTEST( product(MatrixXcf(rows, cols)) );
-//     CALL_SUBTEST( product(MatrixXcd(rows, cols)) );
+    CALL_SUBTEST( product(MatrixXi(rows, cols)) );
+    CALL_SUBTEST( product(MatrixXcf(rows, cols)) );
+    CALL_SUBTEST( product(MatrixXcd(rows, cols)) );
   }
 }
