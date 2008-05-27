@@ -32,7 +32,7 @@
   * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
   * \param IsSelfadjoint tells the input matrix is guaranteed to be selfadjoint (hermitian). In that case the
   * return type of eigenvalues() is a real vector.
-  * 
+  *
   * Currently it only support real matrices.
   *
   * \note this code was adapted from JAMA (public domain)
@@ -49,6 +49,7 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
     typedef std::complex<RealScalar> Complex;
     typedef Matrix<typename ei_meta_if<IsSelfadjoint, Scalar, Complex>::ret, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
+    typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
     EigenSolver(const MatrixType& matrix)
       : m_eivec(matrix.rows(), matrix.cols()),
@@ -74,7 +75,7 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
     void tql2(RealVectorType& eivalr, RealVectorType& eivali);
 
     void orthes(MatrixType& matH, RealVectorType& ort);
-    void hqr2(MatrixType& matH, RealVectorType& ort);
+    void hqr2(MatrixType& matH);
 
   protected:
     MatrixType m_eivec;
@@ -87,7 +88,7 @@ void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
-  
+
   RealVectorType eivali(n);
   m_eivec = matrix;
 
@@ -115,25 +116,25 @@ void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix
     RealVectorType eivalr(n);
     RealVectorType eivali(n);
     m_eivec = matrix;
-  
+
     // Tridiagonalize.
     tridiagonalization(eivalr, eivali);
-  
+
     // Diagonalize.
     tql2(eivalr, eivali);
-    
+
     m_eivalues = eivalr.template cast<Complex>();
   }
   else
   {
     MatrixType matH = matrix;
     RealVectorType ort(n);
-    
+
     // Reduce to Hessenberg form.
     orthes(matH, ort);
-  
+
     // Reduce Hessenberg to real Schur form.
-    hqr2(matH, ort);
+    hqr2(matH);
   }
 }
 
@@ -198,7 +199,7 @@ void EigenSolver<MatrixType,IsSelfadjoint>::tridiagonalization(RealVectorType& e
       f = (eivali.start(i).transpose() * eivalr.start(i))(0,0);
       eivali.start(i) = (eivali.start(i) - (f / (h + h)) * eivalr.start(i))/h;
 
-      m_eivec.corner(TopLeft, i, i).lower() -=
+      m_eivec.corner(TopLeft, i, i).template part<Lower>() -=
         ( (eivali.start(i) * eivalr.start(i).transpose()).lazy()
         + (eivalr.start(i) * eivali.start(i).transpose()).lazy());
 
@@ -279,7 +280,7 @@ void EigenSolver<MatrixType,IsSelfadjoint>::tql2(RealVectorType& eivalr, RealVec
         Scalar dl1 = eivalr[l+1];
         Scalar h = g - eivalr[l];
         if (l+2<n)
-          eivalr.end(n-l-2) -= RealVectorType::constant(n-l-2, h);
+          eivalr.end(n-l-2) -= RealVectorTypeX::constant(n-l-2, h);
         f = f + h;
 
         // Implicit QL transformation.
@@ -432,7 +433,7 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 
 // Nonsymmetric reduction from Hessenberg to real Schur form.
 template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::hqr2(MatrixType& matH, RealVectorType& ort)
+void EigenSolver<MatrixType,IsSelfadjoint>::hqr2(MatrixType& matH)
 {
   //  This is derived from the Algol procedure hqr2,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,

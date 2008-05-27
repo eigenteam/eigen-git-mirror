@@ -46,7 +46,7 @@ template<typename MatrixType> class QR
   public:
 
     typedef typename MatrixType::Scalar Scalar;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> RMatrixType;
+    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
     QR(const MatrixType& matrix)
@@ -59,7 +59,7 @@ template<typename MatrixType> class QR
     /** \returns whether or not the matrix is of full rank */
     bool isFullRank() const { return ei_isMuchSmallerThan(m_norms.cwiseAbs().minCoeff(), Scalar(1)); }
 
-    RMatrixType matrixR(void) const;
+    MatrixTypeR matrixR(void) const;
 
     MatrixType matrixQ(void) const;
 
@@ -108,10 +108,10 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
 
 /** \returns the matrix R */
 template<typename MatrixType>
-typename QR<MatrixType>::RMatrixType QR<MatrixType>::matrixR(void) const
+typename QR<MatrixType>::MatrixTypeR QR<MatrixType>::matrixR(void) const
 {
   int cols = m_qr.cols();
-  RMatrixType res = m_qr.block(0,0,cols,cols).strictlyUpper();
+  MatrixTypeR res = m_qr.block(0,0,cols,cols).template extract<StrictlyUpper>();
   res.diagonal() = m_norms;
   return res;
 }

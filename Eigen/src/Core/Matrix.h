@@ -318,7 +318,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
     }
     /** Copy constructor */
     inline Matrix(const Matrix& other)
-             : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
+            : Base(), m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       Base::lazyAssign(other);
     }

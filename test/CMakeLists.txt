@@ -75,5 +75,7 @@ EI_ADD_TEST(product)
 EI_ADD_TEST(triangular)
 EI_ADD_TEST(cholesky)
 # EI_ADD_TEST(determinant)
+EI_ADD_TEST(qr)
+EI_ADD_TEST(eigensolver)
 
 ENDIF(BUILD_TESTS)
