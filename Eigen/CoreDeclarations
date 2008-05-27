@@ -1,10 +1,8 @@
 #ifndef EIGEN_CORE_DECLARATIONS_H
 #define EIGEN_CORE_DECLARATIONS_H
 
-#define EIGEN_WIP_PRODUCT
-
 #ifdef __GNUC__
-#define EIGEN_GNUC_AT_LEAST(x,y) (__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x
+#define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
 #else
 #define EIGEN_GNUC_AT_LEAST(x,y) 0
 #endif

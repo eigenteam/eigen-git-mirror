@@ -111,7 +111,7 @@ template<typename MatrixType>
 typename QR<MatrixType>::RMatrixType QR<MatrixType>::matrixR(void) const
 {
   int cols = m_qr.cols();
-  RMatrixType res = m_qr.block(0,0,cols,cols).upperWithNullDiag();
+  RMatrixType res = m_qr.block(0,0,cols,cols).strictlyUpper();
   res.diagonal() = m_norms;
   return res;
 }

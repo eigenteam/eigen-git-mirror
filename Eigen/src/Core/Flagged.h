@@ -60,50 +60,70 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Flagged)
 
-    inline Flagged(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
-    inline ExpressionType _expression() const { return m_expression; }
+    inline ExpressionType _expression() const { return m_matrix; }
 
   private:
 
-    inline int _rows() const { return m_expression.rows(); }
-    inline int _cols() const { return m_expression.cols(); }
+    inline int _rows() const { return m_matrix.rows(); }
+    inline int _cols() const { return m_matrix.cols(); }
+    inline int _stride() const { return m_matrix.stride(); }
 
     inline const Scalar _coeff(int row, int col) const
     {
-      return m_expression.coeff(row, col);
+      return m_matrix.coeff(row, col);
     }
 
     inline Scalar& _coeffRef(int row, int col)
     {
-      return m_expression.const_cast_derived().coeffRef(row, col);
+      return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
     template<int LoadMode>
     inline const PacketScalar _packetCoeff(int row, int col) const
     {
-      return m_expression.template packetCoeff<LoadMode>(row, col);
+      return m_matrix.template packetCoeff<LoadMode>(row, col);
     }
 
     template<int LoadMode>
     inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
     {
-      m_expression.const_cast_derived().template writePacketCoeff<LoadMode>(row, col, x);
+      m_matrix.const_cast_derived().template writePacketCoeff<LoadMode>(row, col, x);
     }
 
   protected:
-    const ExpressionType m_expression;
+    const ExpressionType m_matrix;
 };
 
-/** \returns an expression of the temporary version of *this.
+/** \returns an expression of *this with added flags
   */
 template<typename Derived>
-template<unsigned int Added, unsigned int Removed>
-inline const Flagged<Derived, Added, Removed>
-MatrixBase<Derived>::flagged() const
+template<unsigned int Added>
+inline const Flagged<Derived, Added, 0>
+MatrixBase<Derived>::marked() const
 {
-  return Flagged<Derived, Added, Removed>(derived());
+  return derived();
+}
+
+/** \returns an expression of *this with the following flags removed:
+  * EvalBeforeNestingBit and EvalBeforeAssigningBit.
+  */
+template<typename Derived>
+inline const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>
+MatrixBase<Derived>::lazy() const
+{
+  return derived();
+}
+
+/** \returns an expression of *this with the NestByValueBit flag added.
+  */
+template<typename Derived>
+inline const Flagged<Derived, NestByValueBit, 0>
+MatrixBase<Derived>::temporary() const
+{
+  return derived();
 }
 
 #endif // EIGEN_FLAGGED_H

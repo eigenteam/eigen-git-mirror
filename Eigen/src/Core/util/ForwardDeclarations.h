@@ -46,9 +46,10 @@ template<typename Lhs, typename Rhs, int EvalMode=ei_product_eval_mode<Lhs,Rhs>:
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Map;
-// template<typename Derived> class Eval;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
-template<int Mode, typename MatrixType> class Triangular;
+template<typename MatrixType, unsigned int Mode> class Part;
+template<typename MatrixType, unsigned int Mode> class Extract;
+
 
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;

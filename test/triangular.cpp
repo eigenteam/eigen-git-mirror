@@ -47,8 +47,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  MatrixType m1up = m1.upper();
-  MatrixType m2up = m2.upper();
+  MatrixType m1up = m1.template extract<Eigen::Upper>();
+  MatrixType m2up = m2.template extract<Eigen::Upper>();
 
   if (rows*cols>1)
   {
@@ -62,26 +62,26 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   // test overloaded operator+=
   r1.setZero();
   r2.setZero();
-  r1.upper() +=  m1;
+  r1.template part<Eigen::Upper>() +=  m1;
   r2 += m1up;
   VERIFY_IS_APPROX(r1,r2);
 
   // test overloaded operator=
   m1.setZero();
-  m1.upper() = (m2.transpose() * m2).lazy();
+  m1.template part<Eigen::Upper>() = (m2.transpose() * m2).lazy();
   m3 = m2.transpose() * m2;
-  VERIFY_IS_APPROX(m3.lower().transpose(), m1);
+  VERIFY_IS_APPROX(m3.template extract<Eigen::Lower>().transpose(), m1);
 
   // test overloaded operator=
   m1.setZero();
-  m1.lower() = (m2.transpose() * m2).lazy();
-  VERIFY_IS_APPROX(m3.lower(), m1);
+  m1.template part<Eigen::Lower>() = (m2.transpose() * m2).lazy();
+  VERIFY_IS_APPROX(m3.template extract<Eigen::Lower>(), m1);
 
   // test back and forward subsitution
   m1 = MatrixType::random(rows, cols);
-  VERIFY_IS_APPROX(m1.upper() * (m1.upper().inverseProduct(m2)), m2);
-  VERIFY_IS_APPROX(m1.lower() * (m1.lower().inverseProduct(m2)), m2);
-  VERIFY((m1.upper() * m2.upper()).isUpper());
+  VERIFY_IS_APPROX(m1.template extract<Eigen::Upper>() * (m1.template extract<Eigen::Upper>().inverseProduct(m2)), m2);
+  VERIFY_IS_APPROX(m1.template extract<Eigen::Lower>() * (m1.template extract<Eigen::Lower>().inverseProduct(m2)), m2);
+  VERIFY((m1.template extract<Eigen::Upper>() * m2.template extract<Eigen::Upper>()).isUpper());
 
 }
 

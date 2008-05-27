@@ -136,6 +136,12 @@ template<typename Derived> class MatrixBase
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost
     };
 
+    MatrixBase()
+    {
+      assert(!(  (Flags&UnitDiagBit && Flags&ZeroDiagBit)
+              || (Flags&UpperTriangularBit && Flags&LowerTriangularBit) ));
+    }
+
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
       * \a Scalar is \a std::complex<T> then RealScalar is \a T.
@@ -280,6 +286,10 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
+
+    template<typename OtherDerived>
+    typename OtherDerived::Eval inverseProduct(const MatrixBase<OtherDerived>& other) const;
+
     //@}
 
     /** \name Dot product and related notions
@@ -296,7 +306,7 @@ template<typename Derived> class MatrixBase
     const Transpose<Derived> transpose() const;
     const Transpose<
             Flagged<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived>
-            , TemporaryBit, 0> >
+            , NestByValueBit, 0> >
     adjoint() const;
     //@}
 
@@ -347,6 +357,9 @@ template<typename Derived> class MatrixBase
 
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
+
+    template<unsigned int PartType> Part<Derived, PartType> part();
+    template<unsigned int ExtractType> const Extract<Derived, ExtractType> extract() const;
     //@}
 
     /// \name Generating special matrices
@@ -406,6 +419,9 @@ template<typename Derived> class MatrixBase
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
 
+    bool isUpper(RealScalar prec = precision<Scalar>()) const;
+    bool isLower(RealScalar prec = precision<Scalar>()) const;
+
     template<typename OtherDerived>
     bool isOrtho(const MatrixBase<OtherDerived>& other,
                  RealScalar prec = precision<Scalar>()) const;
@@ -433,24 +449,17 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other);
 
-    template<unsigned int Added, unsigned int Removed>
-    const Flagged<Derived, Added, Removed> flagged() const;
-
-    const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const
-    {
-      return derived();
-    }
-    const Flagged<Derived, TemporaryBit, 0> temporary() const
-    {
-      return derived();
-    }
+    template<unsigned int Added>
+    const Flagged<Derived, Added, 0> marked() const;
+    const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
+    const Flagged<Derived, NestByValueBit, 0> temporary() const;
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.
       * Combined with coeffRef() and the compile times flags, it allows a direct access to the data
       * of the underlying matrix.
       */
-    int stride(void) const { return derived()._stride(); }
+    inline int stride(void) const { return derived()._stride(); }
     //@}
 
     /// \name Coefficient-wise operations
@@ -551,22 +560,6 @@ template<typename Derived> class MatrixBase
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
-    //@}
-
-    /// \name Triangular matrices
-    //@{
-    Triangular<Upper, Derived> upper(void);
-    const Triangular<Upper, Derived> upper(void) const;
-    const Triangular<Upper|UnitDiagBit, Derived> upperWithUnitDiag(void) const;
-    const Triangular<Upper|NullDiagBit, Derived> upperWithNullDiag(void) const;
-
-    Triangular<Lower, Derived> lower(void);
-    const Triangular<Lower, Derived> lower(void) const;
-    const Triangular<Lower|UnitDiagBit, Derived> lowerWithUnitDiag(void) const;
-    const Triangular<Lower|NullDiagBit, Derived> lowerWithNullDiag(void) const;
-
-    bool isUpper(RealScalar prec = precision<Scalar>()) const;
-    bool isLower(RealScalar prec = precision<Scalar>()) const;
     //@}
 
     /** \name LU module

@@ -35,11 +35,7 @@ namespace Eigen {
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"
-#if (defined EIGEN_WIP_PRODUCT)
 #include "src/Core/ProductWIP.h"
-#else
-#include "src/Core/Product.h"
-#endif
 #include "src/Core/Block.h"
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
@@ -54,7 +50,8 @@ namespace Eigen {
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
 #include "src/Core/Triangular.h"
-#include "src/Core/TriangularAssign.h"
+#include "src/Core/Part.h"
+#include "src/Core/InverseProduct.h"
 
 } // namespace Eigen
 

@@ -71,11 +71,11 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   assert(rows() == cols());
-  if (Derived::Flags & (NullLowerBit | NullUpperBit))
+  if (Derived::Flags & (UpperTriangularBit | LowerTriangularBit))
   {
     if (Derived::Flags & UnitDiagBit)
       return 1;
-    else if (Derived::Flags & NullDiagBit)
+    else if (Derived::Flags & ZeroDiagBit)
       return 0;
     else
       return derived().diagonal().redux(ei_scalar_product_op<Scalar>());

@@ -192,15 +192,11 @@ template<typename T> struct ei_unref<T&> { typedef T type; };
 template<typename T> struct ei_unconst { typedef T type; };
 template<typename T> struct ei_unconst<const T> { typedef T type; };
 
-template<typename T> struct ei_is_temporary
-{
-  enum { ret = int(ei_traits<T>::Flags) & TemporaryBit };
-};
 
 template<typename T, int n=1> struct ei_nested
 {
   typedef typename ei_meta_if<
-    ei_is_temporary<T>::ret,
+    ei_traits<T>::Flags & NestByValueBit,
     T,
     typename ei_meta_if<
       int(ei_traits<T>::Flags) & EvalBeforeNestingBit

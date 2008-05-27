@@ -127,7 +127,7 @@ MatrixBase<Derived>::transpose() const
 template<typename Derived>
 inline const Transpose<
                Flagged<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived >
-               , TemporaryBit, 0> >
+               , NestByValueBit, 0> >
 MatrixBase<Derived>::adjoint() const
 {
   return conjugate().temporary().transpose();

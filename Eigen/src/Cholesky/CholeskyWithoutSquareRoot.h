@@ -58,9 +58,9 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     }
 
     /** \returns the lower triangular matrix L */
-    Triangular<Lower|UnitDiagBit, MatrixType > matrixL(void) const
+    Extract<MatrixType, UnitLower> matrixL(void) const
     {
-      return m_matrix.lowerWithUnitDiag();
+      return m_matrix;
     }
 
     /** \returns the coefficients of the diagonal matrix D */
@@ -131,9 +131,9 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<D
   const int size = m_matrix.rows();
   ei_assert(size==vecB.size());
 
-  return m_matrix.adjoint().upperWithUnitDiag()
+  return m_matrix.adjoint().template extract<UnitUpper>()
     .inverseProduct(
-      (m_matrix.lowerWithUnitDiag()
+      (matrixL()
         .inverseProduct(vecB))
         .cwiseQuotient(m_matrix.diagonal())
       );

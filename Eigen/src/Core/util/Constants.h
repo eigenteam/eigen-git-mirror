@@ -39,15 +39,13 @@ const unsigned int VectorizableBit = 0x10;  ///< means the expression might be v
 const unsigned int VectorizableBit = 0x0;
 #endif
 const unsigned int Like1DArrayBit = 0x20;   ///< means the expression can be seen as 1D vector (used for explicit vectorization)
-const unsigned int NullDiagBit = 0x40;      ///< means all diagonal coefficients are equal to 0
+const unsigned int ZeroDiagBit = 0x40;      ///< means all diagonal coefficients are equal to 0
 const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients are equal to 1
-const unsigned int NullLowerBit = 0x200;    ///< means the strictly triangular lower part is 0
-const unsigned int NullUpperBit = 0x400;    ///< means the strictly triangular upper part is 0
+const unsigned int SelfAdjointBit = 0x100;  ///< means the matrix is selfadjoint (M=M*).
+const unsigned int UpperTriangularBit = 0x200;    ///< means the strictly triangular lower part is 0
+const unsigned int LowerTriangularBit = 0x400;    ///< means the strictly triangular upper part is 0
 const unsigned int DirectAccessBit = 0x800; ///< means the underlying matrix data can be direclty accessed
-const unsigned int TemporaryBit = 0x1000;   ///< means the expression should be copied by value when nested
-
-enum { Upper=NullLowerBit, Lower=NullUpperBit };
-enum { Aligned=0, UnAligned=1 };
+const unsigned int NestByValueBit = 0x1000;   ///< means the expression should be copied by value when nested
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
@@ -55,6 +53,22 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeAssigningBit
                                   | LargeBit;
 
+// Possible values for the PartType parameter of part() and the ExtractType parameter of extract()
+const unsigned int Upper = UpperTriangularBit;
+const unsigned int StrictlyUpper = UpperTriangularBit | ZeroDiagBit;
+const unsigned int Lower = LowerTriangularBit;
+const unsigned int StrictlyLower = LowerTriangularBit | ZeroDiagBit;
+
+// additional possible values for the PartType parameter of part()
+const unsigned int SelfAdjoint = SelfAdjointBit;
+
+// additional possible values for the ExtractType parameter of extract()
+const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
+const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
+
+
+
+enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };

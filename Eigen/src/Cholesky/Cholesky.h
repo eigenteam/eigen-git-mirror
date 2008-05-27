@@ -58,9 +58,9 @@ template<typename MatrixType> class Cholesky
       compute(matrix);
     }
 
-    Triangular<Lower, MatrixType> matrixL(void) const
+    Extract<MatrixType, Lower> matrixL(void) const
     {
-      return m_matrix.lower();
+      return m_matrix;
     }
 
     bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
@@ -118,7 +118,7 @@ typename Derived::Eval Cholesky<MatrixType>::solve(MatrixBase<Derived> &b)
   const int size = m_matrix.rows();
   ei_assert(size==b.size());
 
-  return m_matrix.adjoint().upper().inverseProduct(m_matrix.lower().inverseProduct(b));
+  return m_matrix.adjoint().template extract<Upper>().inverseProduct(matrixL().inverseProduct(b));
 }
 
 
