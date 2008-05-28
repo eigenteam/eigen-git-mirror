@@ -1,5 +1,11 @@
 IF(BUILD_TESTS)
 
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  IF(CMAKE_SYSTEM_NAME MATCHES Linux)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g2")
+  ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
 OPTION(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
 
 # similar to SET_TARGET_PROPERTIES but append the property instead of overwritting it
@@ -64,14 +70,14 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
 
 EI_ADD_TEST(basicstuff)
-EI_ADD_TEST(miscmatrices)
+EI_ADD_TEST(linearstructure)
+EI_ADD_TEST(cwiseop)
+EI_ADD_TEST(product)
 EI_ADD_TEST(adjoint)
 EI_ADD_TEST(submatrices)
+EI_ADD_TEST(miscmatrices)
 EI_ADD_TEST(smallvectors)
-EI_ADD_TEST(cwiseop)
 EI_ADD_TEST(map)
-EI_ADD_TEST(linearstructure)
-EI_ADD_TEST(product)
 EI_ADD_TEST(triangular)
 EI_ADD_TEST(cholesky)
 # EI_ADD_TEST(determinant)

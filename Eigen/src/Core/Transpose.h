@@ -107,7 +107,7 @@ template<typename Derived>
 inline Transpose<Derived>
 MatrixBase<Derived>::transpose()
 {
-  return Transpose<Derived>(derived());
+  return derived();
 }
 
 /** This is the const version of transpose(). \sa adjoint() */
@@ -115,7 +115,7 @@ template<typename Derived>
 inline const Transpose<Derived>
 MatrixBase<Derived>::transpose() const
 {
-  return Transpose<Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the adjoint (i.e. conjugate transpose) of *this.
@@ -130,7 +130,7 @@ inline const Transpose<
                , NestByValueBit, 0> >
 MatrixBase<Derived>::adjoint() const
 {
-  return conjugate().temporary().transpose();
+  return conjugate().nestByValue();
 }
 
 #endif // EIGEN_TRANSPOSE_H

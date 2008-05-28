@@ -95,7 +95,7 @@ template<typename Derived>
 inline const DiagonalMatrix<Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
-  return DiagonalMatrix<Derived>(derived());
+  return derived();
 }
 
 /** \returns true if *this is approximately equal to a diagonal matrix,

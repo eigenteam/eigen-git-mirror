@@ -33,7 +33,7 @@
   * \param Added the flags added to the expression
   * \param Removed the flags removed from the expression (has priority over Added).
   *
-  * This class represents an expression whose flags have been modified
+  * This class represents an expression whose flags have been modified.
   * It is the return type of MatrixBase::flagged()
   * and most of the time this is the only way it is used.
   *
@@ -94,7 +94,11 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     }
 
   protected:
-    const ExpressionType m_matrix;
+    const typename ei_meta_if<
+      Added & ~Removed & NestByValueBit,
+      ExpressionType,
+      typename ExpressionType::Nested
+    >::ret m_matrix;
 };
 
 /** \returns an expression of *this with added flags
@@ -121,7 +125,7 @@ MatrixBase<Derived>::lazy() const
   */
 template<typename Derived>
 inline const Flagged<Derived, NestByValueBit, 0>
-MatrixBase<Derived>::temporary() const
+MatrixBase<Derived>::nestByValue() const
 {
   return derived();
 }

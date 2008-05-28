@@ -118,7 +118,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
 MatrixBase<Derived>::operator-() const
 {
-  return CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
@@ -127,7 +127,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>,Derived>
 MatrixBase<Derived>::cwiseAbs() const
 {
-  return CwiseUnaryOp<ei_scalar_abs_op<Scalar>,Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
@@ -136,7 +136,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>,Derived>
 MatrixBase<Derived>::cwiseAbs2() const
 {
-  return CwiseUnaryOp<ei_scalar_abs2_op<Scalar>,Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the complex conjugate of *this.
@@ -146,7 +146,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::conjugate() const
 {
-  return CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of *this with the \a Scalar type casted to
@@ -161,7 +161,7 @@ template<typename NewType>
 inline const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
 MatrixBase<Derived>::cast() const
 {
-  return CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, Derived>(derived());
+  return derived();
 }
 
 /** \relates MatrixBase */
@@ -201,7 +201,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseSqrt() const
 {
-  return CwiseUnaryOp<ei_scalar_sqrt_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise exponential of *this. */
@@ -209,7 +209,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseExp() const
 {
-  return CwiseUnaryOp<ei_scalar_exp_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise logarithm of *this. */
@@ -217,7 +217,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseLog() const
 {
-  return CwiseUnaryOp<ei_scalar_log_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise cosine of *this. */
@@ -225,7 +225,7 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseCos() const
 {
-  return CwiseUnaryOp<ei_scalar_cos_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
 /** \returns an expression of the coefficient-wise sine of *this. */
@@ -233,10 +233,10 @@ template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseSin() const
 {
-  return CwiseUnaryOp<ei_scalar_sin_op<Scalar>, Derived>(derived());
+  return derived();
 }
 
-/** \relates MatrixBase */
+/** \returns an expression of the coefficient-wise power of *this to the given exponent. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwisePow(const Scalar& exponent) const

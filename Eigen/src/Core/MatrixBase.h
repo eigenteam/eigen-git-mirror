@@ -452,7 +452,7 @@ template<typename Derived> class MatrixBase
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
     const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
-    const Flagged<Derived, NestByValueBit, 0> temporary() const;
+    const Flagged<Derived, NestByValueBit, 0> nestByValue() const;
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.

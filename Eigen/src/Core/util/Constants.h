@@ -53,16 +53,16 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeAssigningBit
                                   | LargeBit;
 
-// Possible values for the PartType parameter of part() and the ExtractType parameter of extract()
+// Possible values for the Mode parameter of part() and of extract()
 const unsigned int Upper = UpperTriangularBit;
 const unsigned int StrictlyUpper = UpperTriangularBit | ZeroDiagBit;
 const unsigned int Lower = LowerTriangularBit;
 const unsigned int StrictlyLower = LowerTriangularBit | ZeroDiagBit;
 
-// additional possible values for the PartType parameter of part()
+// additional possible values for the Mode parameter of part()
 const unsigned int SelfAdjoint = SelfAdjointBit;
 
-// additional possible values for the ExtractType parameter of extract()
+// additional possible values for the Mode parameter of extract()
 const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 

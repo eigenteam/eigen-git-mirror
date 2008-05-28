@@ -62,11 +62,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   VERIFY_IS_APPROX(-m2+m1+m2,               m1);
   VERIFY_IS_APPROX(m1*s1,                   s1*m1);
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
-  VERIFY_IS_APPROX((s1+s2)*m1,              m1*s1+m1*s2);
-  VERIFY_IS_APPROX((m1-m2)*s1,              s1*m1-s1*m2);
-  VERIFY_IS_APPROX((s1-s2)*m1,              m1*s1-m1*s2);
   VERIFY_IS_APPROX((-m1+m2)*s1,             -s1*m1+s1*m2);
-  VERIFY_IS_APPROX((-s1+s2)*m1,             -m1*s1+m1*s2);
   m3 = m2; m3 += m1;
   VERIFY_IS_APPROX(m3,                      m1+m2);
   m3 = m2; m3 -= m1;

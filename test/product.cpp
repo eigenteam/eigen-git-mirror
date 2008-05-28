@@ -73,14 +73,10 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
   VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
 
-  // continue testing Product.h: lazy product
-  VERIFY_IS_APPROX(square.lazy() * m1,  square*m1);
-  VERIFY_IS_APPROX(square * m1.lazy(),  square*m1);
   // again, test operator() to check const-qualification
   s1 += (square.lazy() * m1)(r,c);
 
   // test Product.h together with Identity.h
-  VERIFY_IS_APPROX(m1,                      identity*m1);
   VERIFY_IS_APPROX(v1,                      identity*v1);
   // again, test operator() to check const-qualification
   VERIFY_IS_APPROX(MatrixType::identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
@@ -92,18 +88,14 @@ template<typename MatrixType> void product(const MatrixType& m)
 void test_product()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( product(Matrix<float, 3, 3>()) );
-    CALL_SUBTEST( product(Matrix<float, 4, 2>()) );
+    CALL_SUBTEST( product(Matrix3i()) );
+    CALL_SUBTEST( product(Matrix<float, 3, 2>()) );
     CALL_SUBTEST( product(Matrix4d()) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    int rows = ei_random<int>(1,320);
-    int cols = ei_random<int>(1,320);
-    CALL_SUBTEST( product(MatrixXf(rows, cols)) );
-    CALL_SUBTEST( product(MatrixXd(rows, cols)) );
-    CALL_SUBTEST( product(MatrixXi(rows, cols)) );
-    CALL_SUBTEST( product(MatrixXcf(rows, cols)) );
-    CALL_SUBTEST( product(MatrixXcd(rows, cols)) );
+    CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
   }
 }
