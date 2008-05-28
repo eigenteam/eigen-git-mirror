@@ -134,8 +134,6 @@ template<typename Product> struct ProductPacketCoeffImpl<Product, false> {
   * This class represents an expression of the product of two matrices.
   * It is the return type of the operator* between matrices, and most of the time
   * this is the only way it is used.
-  *
-  * \sa class Sum, class Difference
   */
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 {
@@ -162,6 +160,7 @@ template<typename T> class ei_product_eval_to_column_major
                   ei_traits<T>::MaxColsAtCompileTime> type;
 };
 
+// as ei_nested, but evaluate to a column-major matrix if an evaluation is required
 template<typename T, int n=1> struct ei_product_nested_rhs
 {
   typedef typename ei_meta_if<
@@ -176,51 +175,11 @@ template<typename T, int n=1> struct ei_product_nested_rhs
   >::ret type;
 };
 
-// template<typename T, int n=1> struct ei_product_nested_lhs
-// {
-//   typedef typename ei_meta_if<
-//     ei_must_nest_by_value<T>::ret && (int(ei_traits<T>::Flags) & DirectAccessBit),
-//     T,
-//     typename ei_meta_if<
-//          int(ei_traits<T>::Flags) & EvalBeforeNestingBit
-//       || (!(int(ei_traits<T>::Flags) & DirectAccessBit))
-//       || (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * int(T::CoeffReadCost),
-//       typename ei_eval<T>::type,
-//       const T&
-//     >::ret
-//   >::ret type;
-// };
-
-template<typename T> struct ei_product_copy_rhs
-{
-  typedef typename ei_meta_if<
-         (ei_traits<T>::Flags & RowMajorBit)
-      || (!(ei_traits<T>::Flags & DirectAccessBit)),
-      typename ei_product_eval_to_column_major<T>::type,
-      const T&
-    >::ret type;
-};
-
-template<typename T> struct ei_product_copy_lhs
-{
-  typedef typename ei_meta_if<
-      (!(int(ei_traits<T>::Flags) & DirectAccessBit)),
-      typename ei_eval<T>::type,
-      const T&
-    >::ret type;
-};
-
 template<typename Lhs, typename Rhs, int EvalMode>
 struct ei_traits<Product<Lhs, Rhs, EvalMode> >
 {
   typedef typename Lhs::Scalar Scalar;
-  // the cache friendly product evals lhs once only
-  // FIXME what to do if we chose to dynamically call the normal product from the cache friendly one for small matrices ?
-  typedef /*typename ei_meta_if<EvalMode==CacheFriendlyProduct,*/
-//       typename ei_product_nested_lhs<Lhs,1>::type,
-      typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type/*>::ret*/ LhsNested;
-
-  // NOTE that rhs must be ColumnMajor, so we might need a special nested type calculation
+  typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename ei_meta_if<EvalMode==CacheFriendlyProduct,
       typename ei_product_nested_rhs<Rhs,Lhs::RowsAtCompileTime>::type,
       typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
@@ -385,7 +344,6 @@ template<typename Lhs,typename Rhs>
 inline Derived&
 MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
-  std::cout << "_cacheFriendlyEvalAndAdd\n";
   other._expression()._cacheFriendlyEvalAndAdd(const_cast_derived());
   return derived();
 }
@@ -398,92 +356,35 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   return derived();
 }
 
-template<typename Lhs, typename Rhs, int EvalMode, typename DestDerived, bool DirectAccess>
-struct ei_cache_friendly_selector
+template<typename T> struct ei_product_copy_rhs
 {
-  typedef Product<Lhs,Rhs,EvalMode> Prod;
-  typedef typename Prod::_LhsNested _LhsNested;
-  typedef typename Prod::_RhsNested _RhsNested;
-  typedef typename Prod::Scalar Scalar;
-  static inline void eval(const Prod& product, DestDerived& res)
-  {
-    if ( product._rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-      && product._cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-      && product.m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-    )
-    {
-      res.setZero();
-//       typename ei_product_copy_lhs<>::type
-      ei_cache_friendly_product<Scalar>(
-        product._rows(), product._cols(), product.m_lhs.cols(),
-        _LhsNested::Flags&RowMajorBit, &(product.m_lhs.const_cast_derived().coeffRef(0,0)), product.m_lhs.stride(),
-        _RhsNested::Flags&RowMajorBit, &(product.m_rhs.const_cast_derived().coeffRef(0,0)), product.m_rhs.stride(),
-        Prod::Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
-      );
-    }
-    else
-    {
-      res = Product<_LhsNested,_RhsNested,NormalProduct>(product.m_lhs, product.m_rhs).lazy();
-    }
-  }
-
-  static inline void eval_and_add(const Prod& product, DestDerived& res)
-  {
-    if ( product._rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-      && product._cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-      && product.m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-    )
-    {
-      ei_cache_friendly_product<Scalar>(
-        product._rows(), product._cols(), product.m_lhs.cols(),
-        _LhsNested::Flags&RowMajorBit, &(product.m_lhs.const_cast_derived().coeffRef(0,0)), product.m_lhs.stride(),
-        _RhsNested::Flags&RowMajorBit, &(product.m_rhs.const_cast_derived().coeffRef(0,0)), product.m_rhs.stride(),
-        Prod::Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
-      );
-    }
-    else
-    {
-      res += Product<_LhsNested,_RhsNested,NormalProduct>(product.m_lhs, product.m_rhs).lazy();
-    }
-  }
+  typedef typename ei_meta_if<
+         (ei_traits<T>::Flags & RowMajorBit)
+      || (!(ei_traits<T>::Flags & DirectAccessBit)),
+      typename ei_product_eval_to_column_major<T>::type,
+      const T&
+    >::ret type;
 };
 
-template<typename Lhs, typename Rhs, int EvalMode, typename DestDerived>
-struct ei_cache_friendly_selector<Lhs,Rhs,EvalMode,DestDerived,false>
+template<typename T> struct ei_product_copy_lhs
 {
-  typedef Product<Lhs,Rhs,EvalMode> Prod;
-  typedef typename Prod::_LhsNested _LhsNested;
-  typedef typename Prod::_RhsNested _RhsNested;
-  typedef typename Prod::Scalar Scalar;
-  static inline void eval(const Prod& product, DestDerived& res)
-  {
-    res = Product<_LhsNested,_RhsNested,NormalProduct>(product.m_lhs, product.m_rhs).lazy();
-  }
-
-  static inline void eval_and_add(const Prod& product, DestDerived& res)
-  {
-    res += Product<_LhsNested,_RhsNested,NormalProduct>(product.m_lhs, product.m_rhs).lazy();
-  }
+  typedef typename ei_meta_if<
+      (!(int(ei_traits<T>::Flags) & DirectAccessBit)),
+      typename ei_eval<T>::type,
+      const T&
+    >::ret type;
 };
 
 template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
 inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) const
 {
-//   ei_cache_friendly_selector<Lhs,Rhs,EvalMode,DestDerived,
-//                              _LhsNested::Flags&_RhsNested::Flags&DirectAccessBit>
-//     ::eval(*this, res);
-
     if ( _rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
       && _cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
       && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
     )
     {
       res.setZero();
-
-
-//       typedef typename ei_eval<_LhsNested>::type LhsCopy;
-//       typedef typename ei_product_eval_to_column_major<_RhsNested>::type RhsCopy;
       typedef typename ei_product_copy_lhs<_LhsNested>::type LhsCopy;
       typedef typename ei_unref<LhsCopy>::type _LhsCopy;
       typedef typename ei_product_copy_rhs<_RhsNested>::type RhsCopy;
@@ -501,17 +402,12 @@ inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEval(DestDerived& res) cons
     {
       res = Product<_LhsNested,_RhsNested,NormalProduct>(m_lhs, m_rhs).lazy();
     }
-
 }
 
 template<typename Lhs, typename Rhs, int EvalMode>
 template<typename DestDerived>
 inline void Product<Lhs,Rhs,EvalMode>::_cacheFriendlyEvalAndAdd(DestDerived& res) const
 {
-  std::cout << "_cacheFriendlyEvalAndAdd\n";
-//   ei_cache_friendly_selector<Lhs,Rhs,EvalMode,DestDerived,
-//                              _LhsNested::Flags&_RhsNested::Flags&DirectAccessBit>
-//     ::eval_and_add(*this, res);
     if ( _rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
       && _cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
       && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD

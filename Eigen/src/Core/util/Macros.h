@@ -107,7 +107,7 @@ using Eigen::MatrixBase;
 template<typename OtherDerived> \
 Derived& operator Op(const MatrixBase<OtherDerived>& other) \
 { \
-  return Eigen::MatrixBase<Derived>::operator Op(other); \
+  return Eigen::MatrixBase<Derived>::operator Op(other.derived()); \
 } \
 Derived& operator Op(const Derived& other) \
 { \
