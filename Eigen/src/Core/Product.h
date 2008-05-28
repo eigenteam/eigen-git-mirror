@@ -228,7 +228,7 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     _LostBits = HereditaryBits & ~(
                 (_RowMajor ? 0 : RowMajorBit)
               | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
-    Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits)
+    Flags = ((unsigned int)(LhsFlags | RhsFlags) & _LostBits & ~NestedByValue)
           | EvalBeforeAssigningBit
           | EvalBeforeNestingBit
           | (_Vectorizable ? VectorizableBit : 0),

@@ -71,10 +71,21 @@ template<typename ExpressionType> class NestByValue
       return m_expression.coeff(row, col);
     }
 
+    inline Scalar& _coeffRef(int row, int col)
+    {
+      return m_expression.const_cast_derived().coeffRef(row, col);
+    }
+
     template<int LoadMode>
     inline const PacketScalar _packetCoeff(int row, int col) const
     {
       return m_expression.template packetCoeff<LoadMode>(row, col);
+    }
+
+    template<int LoadMode>
+    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    {
+      m_expression.const_cast_derived().template writePacketCoeff<LoadMode>(row, col, x);
     }
 
   protected:

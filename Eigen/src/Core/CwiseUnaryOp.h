@@ -143,10 +143,10 @@ MatrixBase<Derived>::cwiseAbs2() const
   *
   * \sa adjoint() */
 template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const typename MatrixBase<Derived>::ConjugateReturnType
 MatrixBase<Derived>::conjugate() const
 {
-  return derived();
+  return ConjugateReturnType(derived());
 }
 
 /** \returns an expression of *this with the \a Scalar type casted to

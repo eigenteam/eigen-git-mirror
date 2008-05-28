@@ -304,10 +304,17 @@ template<typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
-    const Transpose<
-      NestByValue<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> >
-    >
-    adjoint() const;
+
+    /** the return type of MatrixBase::conjugate() */
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
+                        Derived&
+                     >::ret ConjugateReturnType;
+    /** the return type of MatrixBase::adjoint() */
+    typedef Transpose<
+                NestByValue<typename ei_unref<ConjugateReturnType>::type>
+              > AdjointReturnType;
+    const AdjointReturnType adjoint() const;
     //@}
 
     /// \name Sub-matrices
@@ -465,7 +472,7 @@ template<typename Derived> class MatrixBase
 
     /// \name Coefficient-wise operations
     //@{
-    const CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> conjugate() const;
+    const ConjugateReturnType conjugate() const;
 
     template<typename OtherDerived>
     const CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
