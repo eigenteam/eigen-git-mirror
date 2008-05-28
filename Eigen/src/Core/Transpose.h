@@ -126,8 +126,8 @@ MatrixBase<Derived>::transpose() const
   * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
 inline const Transpose<
-               Flagged<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived >
-               , NestByValueBit, 0> >
+               NestByValue<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived > >
+             >
 MatrixBase<Derived>::adjoint() const
 {
   return conjugate().nestByValue();

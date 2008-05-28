@@ -305,8 +305,8 @@ template<typename Derived> class MatrixBase
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
     const Transpose<
-            Flagged<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived>
-            , NestByValueBit, 0> >
+      NestByValue<CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<Derived>::Scalar>, Derived> >
+    >
     adjoint() const;
     //@}
 
@@ -452,7 +452,6 @@ template<typename Derived> class MatrixBase
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
     const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
-    const Flagged<Derived, NestByValueBit, 0> nestByValue() const;
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.
@@ -460,6 +459,8 @@ template<typename Derived> class MatrixBase
       * of the underlying matrix.
       */
     inline int stride(void) const { return derived()._stride(); }
+
+    inline const NestByValue<Derived> nestByValue() const;
     //@}
 
     /// \name Coefficient-wise operations

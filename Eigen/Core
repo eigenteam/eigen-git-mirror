@@ -30,6 +30,7 @@ namespace Eigen {
 #include "src/Core/Coeffs.h"
 #include "src/Core/Assign.h"
 #include "src/Core/MatrixStorage.h"
+#include "src/Core/NestByValue.h"
 #include "src/Core/Flagged.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/CwiseBinaryOp.h"

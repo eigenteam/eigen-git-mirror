@@ -94,11 +94,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     }
 
   protected:
-    const typename ei_meta_if<
-      Added & ~Removed & NestByValueBit,
-      ExpressionType,
-      typename ExpressionType::Nested
-    >::ret m_matrix;
+    typename ExpressionType::Nested m_matrix;
 };
 
 /** \returns an expression of *this with added flags
@@ -117,15 +113,6 @@ MatrixBase<Derived>::marked() const
 template<typename Derived>
 inline const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>
 MatrixBase<Derived>::lazy() const
-{
-  return derived();
-}
-
-/** \returns an expression of *this with the NestByValueBit flag added.
-  */
-template<typename Derived>
-inline const Flagged<Derived, NestByValueBit, 0>
-MatrixBase<Derived>::nestByValue() const
 {
   return derived();
 }

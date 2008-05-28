@@ -165,7 +165,7 @@ template<typename T> class ei_product_eval_to_column_major
 template<typename T, int n=1> struct ei_product_nested_rhs
 {
   typedef typename ei_meta_if<
-    (ei_traits<T>::Flags & NestByValueBit) && (!(ei_traits<T>::Flags & RowMajorBit)) && (int(ei_traits<T>::Flags) & DirectAccessBit),
+    ei_must_nest_by_value<T>::ret && (!(ei_traits<T>::Flags & RowMajorBit)) && (int(ei_traits<T>::Flags) & DirectAccessBit),
     T,
     typename ei_meta_if<
         ((ei_traits<T>::Flags & EvalBeforeNestingBit)
@@ -181,7 +181,7 @@ template<typename T, int n=1> struct ei_product_nested_rhs
 template<typename T, int n=1> struct ei_product_nested_lhs
 {
   typedef typename ei_meta_if<
-    ei_traits<T>::Flags & NestByValueBit && (int(ei_traits<T>::Flags) & DirectAccessBit),
+    ei_must_nest_by_value<T>::ret && (int(ei_traits<T>::Flags) & DirectAccessBit),
     T,
     typename ei_meta_if<
          int(ei_traits<T>::Flags) & EvalBeforeNestingBit

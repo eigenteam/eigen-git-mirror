@@ -45,7 +45,6 @@ const unsigned int SelfAdjointBit = 0x100;  ///< means the matrix is selfadjoint
 const unsigned int UpperTriangularBit = 0x200;    ///< means the strictly triangular lower part is 0
 const unsigned int LowerTriangularBit = 0x400;    ///< means the strictly triangular upper part is 0
 const unsigned int DirectAccessBit = 0x800; ///< means the underlying matrix data can be direclty accessed
-const unsigned int NestByValueBit = 0x1000;   ///< means the expression should be copied by value when nested
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
