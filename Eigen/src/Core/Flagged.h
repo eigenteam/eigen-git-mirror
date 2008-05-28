@@ -43,6 +43,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed>
 struct ei_traits<Flagged<ExpressionType, Added, Removed> >
 {
   typedef typename ExpressionType::Scalar Scalar;
+
   enum {
     RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
     ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
@@ -59,11 +60,13 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Flagged)
+    typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
 
     inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
-    inline ExpressionType _expression() const { return m_matrix; }
+    inline const ExpressionType& _expression() const { return m_matrix; }
 
   private:
 
@@ -94,7 +97,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     }
 
   protected:
-    typename ExpressionType::Nested m_matrix;
+    ExpressionTypeNested m_matrix;
 };
 
 /** \returns an expression of *this with added flags

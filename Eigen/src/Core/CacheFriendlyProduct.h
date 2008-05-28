@@ -45,7 +45,7 @@ static void ei_cache_friendly_product(
     rhsStride = _lhsStride;
     cols = _rows;
     rows = _cols;
-    lhsRowMajor = _rhsRowMajor;
+    lhsRowMajor = !_rhsRowMajor;
     ei_assert(_lhsRowMajor);
   }
   else

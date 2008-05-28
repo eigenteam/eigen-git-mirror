@@ -208,12 +208,12 @@ struct ei_assignment_impl<Derived, OtherDerived, true>
           for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
           {
             // FIXME the following is not really efficient
-            int i = index/dst.rows();
-            int j = index%dst.rows();
+            int i = index/dst.cols();
+            int j = index%dst.cols();
             dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
           }
-          for(int i = alignedSize/dst.rows(); i < dst.rows(); i++)
-            for(int j = alignedSize%dst.rows(); j < dst.cols(); j++)
+          for(int i = alignedSize/dst.cols(); i < dst.rows(); i++)
+            for(int j = alignedSize%dst.cols(); j < dst.cols(); j++)
               dst.coeffRef(i, j) = src.coeff(i, j);
         }
         else
