@@ -210,4 +210,11 @@ template<typename T, int n=1> struct ei_nested
   >::ret type;
 };
 
+template<unsigned int Flags> struct ei_are_flags_consistent
+{
+  enum { ret = !( (Flags&UnitDiagBit && Flags&ZeroDiagBit)
+                  || (Flags&UpperTriangularBit && Flags&LowerTriangularBit) )
+  };
+};
+
 #endif // EIGEN_META_H

@@ -136,10 +136,10 @@ template<typename Derived> class MatrixBase
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost
     };
 
+    /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
     MatrixBase()
     {
-      assert(!(  (Flags&UnitDiagBit && Flags&ZeroDiagBit)
-              || (Flags&UpperTriangularBit && Flags&LowerTriangularBit) ));
+      ei_assert(ei_are_flags_consistent<Flags>::ret);
     }
 
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -170,7 +170,7 @@ template<typename Derived> class MatrixBase
     inline bool isVector() const { return rows()==1 || cols()==1; }
     //@}
 
-    /// \name Default return types
+    /// \internal \name Default return types
     //@{
     /** Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -289,7 +289,6 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     typename OtherDerived::Eval inverseProduct(const MatrixBase<OtherDerived>& other) const;
-
     //@}
 
     /** \name Dot product and related notions
@@ -420,7 +419,7 @@ template<typename Derived> class MatrixBase
     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
                            RealScalar prec = precision<Scalar>()) const;
 
-    bool isEqualToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
+    bool isApproxToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;

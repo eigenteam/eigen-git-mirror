@@ -1,4 +1,4 @@
-o /** @mainpage Eigen
+o /** \mainpage Eigen
 
 <h3>If you see this page, then you have not properly generated the documentation. Namely, you have run doxygen from the source directory, which is not appropriate for generating the documentation of Eigen.</h3>
 
@@ -14,6 +14,6 @@ In order to generate the documentation of Eigen, please follow these steps:
 After doing that, you will find the HTML documentation in the doc/html/ subdirectory of the build directory.
 
 <h2>Note however that the documentation is available online here:
-<a href="http://eigen.tuxfamily.org/2">http://eigen.tuxfamily.org/2</a>
+<a href="http://eigen.tuxfamily.org/wiki">http://eigen.tuxfamily.org/wiki</a>
 
 */

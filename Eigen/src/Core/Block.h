@@ -497,7 +497,7 @@ inline const Block<Derived, CRows, CCols> MatrixBase<Derived>
   * Example: \include MatrixBase_block_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int.out
   *
-  * \note since block is a templated member, the keyword template as to be used
+  * \note since block is a templated member, the keyword template has to be used
   * if the matrix type is also a template parameter: \code m.template block<3,3>(1,1); \endcode
   *
   * \sa class Block, block(int,int,int,int)

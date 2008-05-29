@@ -25,11 +25,19 @@
 #ifndef EIGEN_INVERSEPRODUCT_H
 #define EIGEN_INVERSEPRODUCT_H
 
-/** \returns the product of the inverse of *this with \a other.
+/** \returns the product of the inverse of \c *this with \a other.
   *
-  * This function computes the inverse-matrix matrix product inverse(*this) * \a other
-  * It works as a forward (resp. backward) substitution if *this is an upper (resp. lower)
+  * This function computes the inverse-matrix matrix product inverse(\c*this) * \a other
+  * It works as a forward (resp. backward) substitution if \c *this is an upper (resp. lower)
   * triangular matrix.
+  *
+  * It is required that \c *this be marked as either an upper or a lower triangular matrix, as
+  * can be done by marked(), and as is automatically the case with expressions such as those returned
+  * by extract().
+  * Example: \include MatrixBase_marked.cpp
+  * Output: \verbinclude MatrixBase_marked.out
+  *
+  * \sa marked(), extract()
   */
 template<typename Derived>
 template<typename OtherDerived>

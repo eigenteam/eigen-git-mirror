@@ -113,6 +113,7 @@ inline typename MatrixBase<Derived>::CommaInitializer MatrixBase<Derived>::opera
   return CommaInitializer(*static_cast<Derived*>(this), s);
 }
 
+/** \sa operator<<(const Scalar&) */
 template<typename Derived>
 template<typename OtherDerived>
 inline typename MatrixBase<Derived>::CommaInitializer

@@ -1,0 +1,8 @@
+Matrix3d m = Matrix3i::zero();
+m.part<Eigen::StrictlyUpper>().setOnes();
+cout << "Here is the matrix m:" << endl << m << endl;
+cout << "And let us now compute m*m.adjoint() in a very optimized way" << endl
+     << "taking advantage of the symmetry." << endl;
+Matrix3d n;
+n.part<Eigen::SelfAdjoint>() = (m*m.adjoint()).lazy();
+cout << "The result is:" << endl << n << endl;

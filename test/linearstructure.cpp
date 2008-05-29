@@ -50,8 +50,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
+  Scalar s1 = ei_random<Scalar>();
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);

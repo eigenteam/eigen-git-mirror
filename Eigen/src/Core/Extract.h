@@ -93,7 +93,13 @@ template<typename MatrixType, unsigned int Mode> class Extract
 
 /** \returns an expression of a triangular matrix extracted from the current matrix
   *
-  * \sa part(), marked()
+  * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
+  * \c Lower, \c StrictlyLower, \c UnitLower.
+  *
+  * Example: \include MatrixBase_extract.cpp
+  * Output: \verbinclude MatrixBase_extract.out
+  *
+  * \sa class Extract, part(), marked()
   */
 template<typename Derived>
 template<unsigned int Mode>

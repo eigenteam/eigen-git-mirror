@@ -218,7 +218,7 @@ MatrixBase<Derived>::constant(const Scalar& value)
 }
 
 template<typename Derived>
-bool MatrixBase<Derived>::isEqualToConstant
+bool MatrixBase<Derived>::isApproxToConstant
 (const Scalar& value, typename NumTraits<Scalar>::Real prec) const
 {
   for(int j = 0; j < cols(); j++)
@@ -408,7 +408,7 @@ template<typename Derived>
 bool MatrixBase<Derived>::isOnes
 (typename NumTraits<Scalar>::Real prec) const
 {
-  return isEqualToConstant(Scalar(1), prec);
+  return isApproxToConstant(Scalar(1), prec);
 }
 
 /** Sets all coefficients in this expression to one.

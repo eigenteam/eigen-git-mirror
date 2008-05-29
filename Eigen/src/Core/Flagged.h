@@ -101,6 +101,11 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 };
 
 /** \returns an expression of *this with added flags
+  *
+  * Example: \include MatrixBase_marked.cpp
+  * Output: \verbinclude MatrixBase_marked.out
+  *
+  * \sa class Flagged, extract(), part()
   */
 template<typename Derived>
 template<unsigned int Added>
@@ -112,6 +117,11 @@ MatrixBase<Derived>::marked() const
 
 /** \returns an expression of *this with the following flags removed:
   * EvalBeforeNestingBit and EvalBeforeAssigningBit.
+  *
+  * Example: \include MatrixBase_lazy.cpp
+  * Output: \verbinclude MatrixBase_lazy.out
+  *
+  * \sa class Flagged, marked()
   */
 template<typename Derived>
 inline const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>

@@ -26,21 +26,44 @@
 #ifndef EIGEN_PART_H
 #define EIGEN_PART_H
 
+/** \class Part
+  *
+  * \brief Pseudo-expression allowing to write to a special part of a matrix
+  *
+  * This lvalue-only pseudo-expression allows to perform special operations
+  * on a matrix, such as writing only to the upper (above diagonal) part.
+  *
+  * It is the return type of MatrixBase::part() and most of the time this is
+  * the only way that it is used.
+  *
+  * \sa class Extract, MatrixBase::part()
+  */
 template<typename MatrixType, unsigned int Mode>
 class Part
 {
   public:
-    Part(MatrixType& matrix) : m_matrix(matrix) {}
+    Part(MatrixType& matrix);
+    /** \sa operator=(), MatrixBase::lazyAssign() */
     template<typename Other> void lazyAssign(const Other& other);
+    /** \sa MatrixBase::operator=() */
     template<typename Other> void operator=(const Other& other);
+    /** \sa MatrixBase::operator+=() */
     template<typename Other> void operator+=(const Other& other);
+    /** \sa MatrixBase::operator-=() */
     template<typename Other> void operator-=(const Other& other);
+    /** \sa MatrixBase::operator*=() */
     void operator*=(const typename ei_traits<MatrixType>::Scalar& other);
+    /** \sa MatrixBase::operator/=() */
     void operator/=(const typename ei_traits<MatrixType>::Scalar& other);
+    /** \sa MatrixBase::setConstant() */
     void setConstant(const typename ei_traits<MatrixType>::Scalar& value);
+    /** \sa MatrixBase::setZero() */
     void setZero();
+    /** \sa MatrixBase::setOnes() */
     void setOnes();
+    /** \sa MatrixBase::setRandom() */
     void setRandom();
+    /** \sa MatrixBase::setIdentity() */
     void setIdentity();
 
   private:
@@ -48,11 +71,22 @@ class Part
 };
 
 template<typename MatrixType, unsigned int Mode>
+inline Part<MatrixType, Mode>::Part(MatrixType& matrix)
+ : m_matrix(matrix)
+{
+  ei_assert(ei_are_flags_consistent<Mode>::ret);
+}
+
+template<typename MatrixType, unsigned int Mode>
 template<typename Other>
 inline void Part<MatrixType, Mode>::operator=(const Other& other)
 {
   if(Other::Flags & EvalBeforeAssigningBit)
-    lazyAssign(other.eval());
+  {
+    typename ei_eval<Other>::type other_evaluated(other.rows(), other.cols());
+    other_evaluated.template part<Mode>().lazyAssign(other);
+    lazyAssign(other_evaluated);
+  }
   else
     lazyAssign(other.derived());
 }
@@ -210,6 +244,16 @@ inline void Part<MatrixType, Mode>::setRandom()
   *this = MatrixType::random(m_matrix.rows(), m_matrix.cols());
 }
 
+/** \returns a lvalue pseudo-expression allowing to perform special operations on \c *this.
+  *
+  * The \a Mode parameter can have the following values: \c Upper, \c StrictlyUpper, \c Lower,
+  * \c StrictlyLower, \c SelfAdjoint.
+  *
+  * Example: \include MatrixBase_part.cpp
+  * Output: \verbinclude MatrixBase_part.out
+  *
+  * \sa class Part, MatrixBase::extract(), MatrixBase::marked()
+  */
 template<typename Derived>
 template<unsigned int Mode>
 inline Part<Derived, Mode> MatrixBase<Derived>::part()
