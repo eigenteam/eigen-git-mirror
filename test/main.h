@@ -28,7 +28,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <Qt/QtCore>
 
 #ifndef EIGEN_TEST_FUNC
 #error EIGEN_TEST_FUNC must be defined
@@ -225,49 +224,46 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
 void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
+using namespace std;
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
-
     bool has_set_repeat = false;
     bool has_set_seed = false;
     bool need_help = false;
     unsigned int seed = 0;
     int repeat = DEFAULT_REPEAT;
 
-    QStringList args = QCoreApplication::instance()->arguments();
-    args.takeFirst(); // throw away the first argument (path to executable)
-    foreach(QString arg, args)
+    for(int i = 1; i < argc; i++)
     {
-      if(arg.startsWith("r"))
+      if(argv[i][0] == 'r')
       {
         if(has_set_repeat)
         {
-          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          cout << "Argument " << argv[i] << " conflicting with a former argument" << endl;
           return 1;
         }
-        repeat = arg.remove(0, 1).toInt();
+        repeat = atoi(argv[i]+1);
         has_set_repeat = true;
         if(repeat <= 0)
         {
-          qDebug() << "Invalid \'repeat\' value" << arg;
+          cout << "Invalid \'repeat\' value " << argv[i]+1 << endl;
           return 1;
         }
       }
-      else if(arg.startsWith("s"))
+      else if(argv[i][0] == 's')
       {
         if(has_set_seed)
         {
-          qDebug() << "Argument" << arg << "conflicting with a former argument";
+          cout << "Argument " << argv[i] << " conflicting with a former argument" << endl;
           return 1;
         }
-        bool ok;
-        seed = arg.remove(0, 1).toUInt(&ok);
+        seed = strtoul(argv[i]+1, 0, 10);
         has_set_seed = true;
+        bool ok = seed!=0;
         if(!ok)
         {
-          qDebug() << "Invalid \'seed\' value" << arg;
+          cout << "Invalid \'seed\' value " << argv[i]+1 << endl;
           return 1;
         }
       }
@@ -279,18 +275,18 @@ int main(int argc, char *argv[])
 
     if(need_help)
     {
-      qDebug() << "This test application takes the following optional arguments:";
-      qDebug() << "  rN     Repeat each test N times (default:" << DEFAULT_REPEAT << ")";
-      qDebug() << "  sN     Use N as seed for random numbers (default: based on current time)";
+      cout << "This test application takes the following optional arguments:" << endl;
+      cout << "  rN     Repeat each test N times (default: " << DEFAULT_REPEAT << ")" << endl;
+      cout << "  sN     Use N as seed for random numbers (default: based on current time)" << endl;
       return 1;
     }
 
     if(!has_set_seed) seed = (unsigned int) time(NULL);
     if(!has_set_repeat) repeat = DEFAULT_REPEAT;
 
-    qDebug() << "Initializing random number generator with seed" << seed;
+    cout << "Initializing random number generator with seed " << seed << endl;
     srand(seed);
-    qDebug() << "Repeating each test" << repeat << "times";
+    cout << "Repeating each test " << repeat << " times" << endl;
 
     Eigen::g_repeat = repeat;
     Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));

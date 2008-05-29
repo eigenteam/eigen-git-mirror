@@ -364,8 +364,8 @@ template<typename Derived> class MatrixBase
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
 
-    template<unsigned int PartType> Part<Derived, PartType> part();
-    template<unsigned int ExtractType> const Extract<Derived, ExtractType> extract() const;
+    template<unsigned int Mode> Part<Derived, Mode> part();
+    template<unsigned int Mode> const Extract<Derived, Mode> extract() const;
     //@}
 
     /// \name Generating special matrices
