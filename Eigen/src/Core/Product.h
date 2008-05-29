@@ -320,10 +320,11 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline const Product<Derived,OtherDerived>
+inline const typename MatrixBase<Derived>::template ProductReturnType<OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return Product<Derived,OtherDerived>(derived(), other.derived());
+  assert( (Derived::Flags&ArrayBit) == (OtherDerived::Flags) );
+  return typename ProductReturnType<OtherDerived>::Type(derived(), other.derived());
 }
 
 /** replaces \c *this by \c *this * \a other.

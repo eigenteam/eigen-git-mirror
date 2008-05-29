@@ -27,6 +27,7 @@ namespace Eigen {
 
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
+#include "src/Core/ArrayBase.h"
 #include "src/Core/Coeffs.h"
 #include "src/Core/Assign.h"
 #include "src/Core/MatrixStorage.h"

@@ -42,15 +42,17 @@ const unsigned int Like1DArrayBit = 0x20;   ///< means the expression can be see
 const unsigned int ZeroDiagBit = 0x40;      ///< means all diagonal coefficients are equal to 0
 const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients are equal to 1
 const unsigned int SelfAdjointBit = 0x100;  ///< means the matrix is selfadjoint (M=M*).
-const unsigned int UpperTriangularBit = 0x200;    ///< means the strictly triangular lower part is 0
-const unsigned int LowerTriangularBit = 0x400;    ///< means the strictly triangular upper part is 0
-const unsigned int DirectAccessBit = 0x800; ///< means the underlying matrix data can be direclty accessed
+const unsigned int UpperTriangularBit = 0x200;  ///< means the strictly triangular lower part is 0
+const unsigned int LowerTriangularBit = 0x400;  ///< means the strictly triangular upper part is 0
+const unsigned int DirectAccessBit = 0x800;     ///< means the underlying matrix data can be direclty accessed
+const unsigned int ArrayBit = 0x1000;           ///< means the underlying matrix data can be direclty accessed
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit
-                                  | LargeBit;
+                                  | LargeBit
+                                  | ArrayBit;
 
 // Possible values for the Mode parameter of part() and of extract()
 const unsigned int Upper = UpperTriangularBit;

@@ -49,7 +49,7 @@
   *
   * \nosubgrouping
   */
-template<typename Derived> class MatrixBase
+template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 {
     struct CommaInitializer;
 
@@ -182,6 +182,24 @@ template<typename Derived> class MatrixBase
     };
     /** Represents a product scalar-matrix */
     typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
+    /** */
+    template<typename OtherDerived>
+    struct ProductReturnType
+    {
+      typedef typename ei_meta_if<
+            (Derived::Flags & OtherDerived::Flags & ArrayBit),
+            CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>,
+            Product<Derived,OtherDerived>
+          >::ret Type;
+    };
+    /** the return type of MatrixBase::conjugate() */
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
+                        Derived&
+                     >::ret ConjugateReturnType;
+    /** the return type of MatrixBase::adjoint() */
+    typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
+            AdjointReturnType;
     //@}
 
     /// \name Copying and initialization
@@ -281,7 +299,7 @@ template<typename Derived> class MatrixBase
       */
     //@{
     template<typename OtherDerived>
-    const Product<Derived,OtherDerived>
+    const typename ProductReturnType<OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -303,16 +321,6 @@ template<typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
-
-    /** the return type of MatrixBase::conjugate() */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
-                        Derived&
-                     >::ret ConjugateReturnType;
-    /** the return type of MatrixBase::adjoint() */
-    typedef Transpose<
-                NestByValue<typename ei_unref<ConjugateReturnType>::type>
-              > AdjointReturnType;
     const AdjointReturnType adjoint() const;
     //@}
 

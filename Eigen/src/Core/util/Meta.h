@@ -202,8 +202,8 @@ template<typename T, int n=1> struct ei_nested
     ei_must_nest_by_value<T>::ret,
     T,
     typename ei_meta_if<
-      int(ei_traits<T>::Flags) & EvalBeforeNestingBit
-      || (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * int(T::CoeffReadCost),
+      (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
+      || ((n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * int(T::CoeffReadCost)),
       typename ei_eval<T>::type,
       const T&
     >::ret
