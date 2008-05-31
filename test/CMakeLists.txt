@@ -80,6 +80,7 @@ EI_ADD_TEST(map)
 EI_ADD_TEST(triangular)
 EI_ADD_TEST(cholesky)
 # EI_ADD_TEST(determinant)
+EI_ADD_TEST(inverse)
 EI_ADD_TEST(qr)
 EI_ADD_TEST(eigensolver)
 
