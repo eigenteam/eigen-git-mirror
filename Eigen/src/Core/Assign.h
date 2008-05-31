@@ -98,13 +98,16 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
   { ei_internal_assert(false && "ei_matrix_assignment_packet_unroller"); }
 };
 
+//----
+
 template <typename Derived, typename OtherDerived,
 bool Vectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & VectorizableBit)
               && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit))
               && (  (int(Derived::Flags) & int(OtherDerived::Flags) & Like1DArrayBit)
                   ||((int(Derived::Flags)&RowMajorBit)
                     ? int(Derived::ColsAtCompileTime)!=Dynamic && (int(Derived::ColsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)
-                    : int(Derived::RowsAtCompileTime)!=Dynamic && (int(Derived::RowsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)) )>
+                    : int(Derived::RowsAtCompileTime)!=Dynamic && (int(Derived::RowsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
+bool Unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT>
 struct ei_assignment_impl;
 
 template<typename Derived>
@@ -112,140 +115,175 @@ template<typename OtherDerived>
 inline Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  ei_assignment_impl<Derived, OtherDerived>::execute(derived(),other.derived());
+  ei_assert(rows() == other.rows() && cols() == other.cols());
+  ei_assignment_impl<Derived, OtherDerived>::run(derived(),other.derived());
   return derived();
 }
+
+template<typename Derived, typename OtherDerived,
+         bool EvalBeforeAssigning = (OtherDerived::Flags & EvalBeforeAssigningBit),
+         bool NeedToTranspose = Derived::IsVectorAtCompileTime
+                && OtherDerived::IsVectorAtCompileTime
+                && (int)Derived::RowsAtCompileTime != (int)OtherDerived::RowsAtCompileTime
+                && (int)Derived::ColsAtCompileTime != (int)OtherDerived::ColsAtCompileTime>
+struct ei_assign_selector;
+
+template<typename Derived, typename OtherDerived>
+struct ei_assign_selector<Derived,OtherDerived,true,true> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
+};
+template<typename Derived, typename OtherDerived>
+struct ei_assign_selector<Derived,OtherDerived,true,false> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.eval()); }
+};
+template<typename Derived, typename OtherDerived>
+struct ei_assign_selector<Derived,OtherDerived,false,true> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
+};
+template<typename Derived, typename OtherDerived>
+struct ei_assign_selector<Derived,OtherDerived,false,false> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
+};
 
 template<typename Derived>
 template<typename OtherDerived>
 inline Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
-  const bool need_to_transpose = Derived::IsVectorAtCompileTime
-                              && OtherDerived::IsVectorAtCompileTime
-                              && (int)Derived::RowsAtCompileTime != (int)OtherDerived::RowsAtCompileTime
-                              && (int)Derived::ColsAtCompileTime != (int)OtherDerived::ColsAtCompileTime;
-  if(OtherDerived::Flags & EvalBeforeAssigningBit)
-  {
-    if(need_to_transpose)
-      return lazyAssign(other.transpose().eval());
-    else
-      return lazyAssign(other.eval());
-  }
-  else
-  {
-    if(need_to_transpose)
-      return lazyAssign(other.transpose());
-    else
-      return lazyAssign(other.derived());
-  }
+  return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
 }
 
+//----
+
 template <typename Derived, typename OtherDerived>
-struct ei_assignment_impl<Derived, OtherDerived, false>
+struct ei_assignment_impl<Derived, OtherDerived, false, true> // no vec + unrolling
 {
-  static void execute(Derived & dst, const OtherDerived & src)
+  static void run(Derived & dst, const OtherDerived & src)
   {
-    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-    ei_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    if(unroll)
-    {
-      ei_matrix_assignment_unroller
-        <Derived, OtherDerived,
-        unroll ? int(Derived::SizeAtCompileTime) : Dynamic
-        >::run(dst.derived(), src.derived());
-    }
-    else
-    {
-      if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
-      {
-        for(int j = 0; j < dst.cols(); j++)
-          for(int i = 0; i < dst.rows(); i++)
-            dst.coeffRef(i, j) = src.coeff(i, j);
-      }
-      else
-      {
-        // traverse in row-major order
-        // in order to allow the compiler to unroll the inner loop
-        for(int i = 0; i < dst.rows(); i++)
-          for(int j = 0; j < dst.cols(); j++)
-            dst.coeffRef(i, j) = src.coeff(i, j);
-      }
-    }
+    ei_matrix_assignment_unroller
+      <Derived, OtherDerived, int(Derived::SizeAtCompileTime)
+      >::run(dst.derived(), src.derived());
   }
 };
 
 template <typename Derived, typename OtherDerived>
-struct ei_assignment_impl<Derived, OtherDerived, true>
+struct ei_assignment_impl<Derived, OtherDerived, false, false> // no vec + no unrolling + col major order
 {
-  static void execute(Derived & dst, const OtherDerived & src)
+  static void run(Derived & dst, const OtherDerived & src)
   {
-    const bool unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-    if(unroll)
+    if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
     {
-      ei_matrix_assignment_packet_unroller
-        <Derived, OtherDerived,
-          unroll && int(Derived::SizeAtCompileTime)>=int(ei_packet_traits<typename Derived::Scalar>::size)
-            ? int(Derived::SizeAtCompileTime)-int(ei_packet_traits<typename Derived::Scalar>::size)
-            : Dynamic>::run(dst.const_cast_derived(), src.derived());
+      for(int j = 0; j < dst.cols(); j++)
+        for(int i = 0; i < dst.rows(); i++)
+          dst.coeffRef(i, j) = src.coeff(i, j);
     }
     else
     {
-      if(OtherDerived::Flags&RowMajorBit)
-      {
-        if ( (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
-          &&  (Derived::ColsAtCompileTime==Dynamic
-            || Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0))
-        {
-          const int size = dst.rows() * dst.cols();
-          const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)*ei_packet_traits<typename Derived::Scalar>::size;
-          int index = 0;
-          for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
-          {
-            // FIXME the following is not really efficient
-            int i = index/dst.cols();
-            int j = index%dst.cols();
-            dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
-          }
-          for(int i = alignedSize/dst.cols(); i < dst.rows(); i++)
-            for(int j = alignedSize%dst.cols(); j < dst.cols(); j++)
-              dst.coeffRef(i, j) = src.coeff(i, j);
-        }
-        else
-        {
-          for(int i = 0; i < dst.rows(); i++)
-            for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
-              dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
-        }
-      }
-      else
-      {
-        if ((Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
-          && ( Derived::RowsAtCompileTime==Dynamic
-            || Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0))
-        {
-          const int size = dst.rows() * dst.cols();
-          const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)*ei_packet_traits<typename Derived::Scalar>::size;
-          int index = 0;
-          for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
-          {
-            // FIXME the following is not really efficient
-            int i = index%dst.rows();
-            int j = index/dst.rows();
-            dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
-          }
-          for(int j = alignedSize/dst.rows(); j < dst.cols(); j++)
-            for(int i = alignedSize%dst.rows(); i < dst.rows(); i++)
-              dst.coeffRef(i, j) = src.coeff(i, j);
-        }
-        else
-        {
-          for(int j = 0; j < dst.cols(); j++)
-            for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
-              dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
-        }
-      }
+      // traverse in row-major order
+      // in order to allow the compiler to unroll the inner loop
+      for(int i = 0; i < dst.rows(); i++)
+        for(int j = 0; j < dst.cols(); j++)
+          dst.coeffRef(i, j) = src.coeff(i, j);
     }
+  }
+};
+
+//----
+
+template <typename Derived, typename OtherDerived>
+struct ei_assignment_impl<Derived, OtherDerived, true, true> // vec + unrolling
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    ei_matrix_assignment_packet_unroller
+      <Derived, OtherDerived,
+       int(Derived::SizeAtCompileTime)-int(ei_packet_traits<typename Derived::Scalar>::size)
+      >::run(dst.const_cast_derived(), src.derived());
+  }
+};
+
+template <typename Derived, typename OtherDerived,
+bool RowMajor = OtherDerived::Flags&RowMajorBit,
+bool Complex1DArray = RowMajor
+  ? (  (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
+    && (   Derived::ColsAtCompileTime==Dynamic
+       || Derived::ColsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0) )
+  : (  (Derived::Flags & OtherDerived::Flags & Like1DArrayBit)
+    && (  Derived::RowsAtCompileTime==Dynamic
+       || Derived::RowsAtCompileTime%ei_packet_traits<typename Derived::Scalar>::size!=0))>
+struct ei_packet_assignment_seclector;
+
+template <typename Derived, typename OtherDerived>
+struct ei_assignment_impl<Derived, OtherDerived, true, false> // vec + no-unrolling
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    ei_packet_assignment_seclector<Derived,OtherDerived>::run(dst,src);
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_packet_assignment_seclector<Derived, OtherDerived, true, true> // row-major + complex 1D array
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    const int size = dst.rows() * dst.cols();
+    const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)
+                            * ei_packet_traits<typename Derived::Scalar>::size;
+    int index = 0;
+    for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
+    {
+      // FIXME the following is not really efficient
+      int i = index/dst.cols();
+      int j = index%dst.cols();
+      dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
+    }
+    for(int i = alignedSize/dst.cols(); i < dst.rows(); i++)
+      for(int j = alignedSize%dst.cols(); j < dst.cols(); j++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_packet_assignment_seclector<Derived, OtherDerived, true, false> // row-major + normal
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    for(int i = 0; i < dst.rows(); i++)
+      for(int j = 0; j < dst.cols(); j+=ei_packet_traits<typename Derived::Scalar>::size)
+        dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_packet_assignment_seclector<Derived, OtherDerived, false, true> // col-major + complex 1D array like
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    const int size = dst.rows() * dst.cols();
+    const int alignedSize = (size/ei_packet_traits<typename Derived::Scalar>::size)*ei_packet_traits<typename Derived::Scalar>::size;
+    int index = 0;
+    for ( ; index<alignedSize ; index+=ei_packet_traits<typename Derived::Scalar>::size)
+    {
+      // FIXME the following is not really efficient
+      int i = index%dst.rows();
+      int j = index/dst.rows();
+      dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
+    }
+    for(int j = alignedSize/dst.rows(); j < dst.cols(); j++)
+      for(int i = alignedSize%dst.rows(); i < dst.rows(); i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_packet_assignment_seclector<Derived, OtherDerived, false, false> // col-major + normal
+{
+  static void run(Derived & dst, const OtherDerived & src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = 0; i < dst.rows(); i+=ei_packet_traits<typename Derived::Scalar>::size)
+        dst.template writePacketCoeff<Aligned>(i, j, src.template packetCoeff<Aligned>(i, j));
   }
 };
 

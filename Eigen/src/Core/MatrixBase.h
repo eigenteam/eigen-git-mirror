@@ -595,11 +595,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     const QR<typename ei_eval<Derived>::type> qr() const;
     //@}
 
-
-    #ifdef EIGEN_MATRIX_CUSTOM_ADDONS_FILE
-    #include EIGEN_MATRIX_CUSTOM_ADDONS_FILE
-    #endif
-
 };
 
 #endif // EIGEN_MATRIXBASE_H
