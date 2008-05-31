@@ -1,0 +1,17 @@
+#ifndef EIGEN_ARRAY_MODULE_H
+#define EIGEN_ARRAY_MODULE_H
+
+#include "Core"
+
+namespace Eigen {
+
+#include "src/Array/ArrayBase.h"
+#include "src/Array/CwiseOperators.h"
+#include "src/Array/Functors.h"
+#include "src/Array/AllAndAny.h"
+#include "src/Array/PartialRedux.h"
+#include "src/Array/Random.h"
+
+} // namespace Eigen
+
+#endif // EIGEN_ARRAY_MODULE_H

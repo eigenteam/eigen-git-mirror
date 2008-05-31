@@ -137,6 +137,10 @@ namespace Eigen
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/Core>
 
+namespace Eigen {
+#include <Eigen/src/Array/Random.h>
+}
+
 #define VERIFY(a) do { if (!(a)) { \
     std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
       << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \

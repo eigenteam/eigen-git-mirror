@@ -50,7 +50,7 @@ template<typename MatrixType> class Map;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
-template<typename Derived, bool HasArrayFlag = int(ei_traits<Derived>::Flags) & ArrayBit> class ArrayBase;
+template<typename Derived, bool HasArrayFlag = int(ei_traits<Derived>::Flags) & ArrayBit> class ArrayBase {};
 
 
 template<typename Scalar> struct ei_scalar_sum_op;
@@ -72,6 +72,7 @@ template<typename Scalar, bool IsVectorizable> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
+template<typename Scalar> struct ei_scalar_random_op;
 
 template<typename ExpressionType, bool CheckExistence = true> class Inverse;
 template<typename MatrixType> class QR;

@@ -25,8 +25,6 @@
 #ifndef EIGEN_ARRAYBASE_H
 #define EIGEN_ARRAYBASE_H
 
-template<typename Derived> class ArrayBase<Derived,false> {};
-
 template<typename Derived> class ArrayBase<Derived,true>
 {
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }

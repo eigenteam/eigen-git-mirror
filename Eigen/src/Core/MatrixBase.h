@@ -395,9 +395,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
     create(const CustomNullaryOp& func);
 
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
     static const ConstantReturnType zero(int rows, int cols);
     static const ConstantReturnType zero(int size);
     static const ConstantReturnType zero();
@@ -497,6 +494,57 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     const CwiseBinaryOp<ei_scalar_max_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     cwiseMax(const MatrixBase<OtherDerived> &other) const;
 
+    const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs() const;
+    const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs2() const;
+
+    template<typename CustomUnaryOp>
+    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
+
+    template<typename CustomBinaryOp, typename OtherDerived>
+    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
+    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
+    //@}
+
+    /// \name Redux and visitor
+    //@{
+    Scalar sum() const;
+    Scalar trace() const;
+
+    typename ei_traits<Derived>::Scalar minCoeff() const;
+    typename ei_traits<Derived>::Scalar maxCoeff() const;
+
+    typename ei_traits<Derived>::Scalar minCoeff(int* row, int* col = 0) const;
+    typename ei_traits<Derived>::Scalar maxCoeff(int* row, int* col = 0) const;
+
+    template<typename BinaryOp>
+    typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
+    redux(const BinaryOp& func) const;
+
+    template<typename Visitor>
+    void visit(Visitor& func) const;
+    //@}
+
+    /// \name Casting to the derived type
+    //@{
+    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    inline Derived& derived() { return *static_cast<Derived*>(this); }
+    inline Derived& const_cast_derived() const
+    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+    //@}
+
+    /** \name Array module
+      *
+      * \code #include <Eigen/Array> \endcode
+      */
+    //@{
+    const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
+    const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseExp() const;
+    const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseLog() const;
+    const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseCos() const;
+    const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSin() const;
+    const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
+    cwisePow(const Scalar& exponent) const;
+
     template<typename OtherDerived>
     const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     cwiseLessThan(const MatrixBase<OtherDerived> &other) const;
@@ -521,35 +569,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     const CwiseBinaryOp<std::not_equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     cwiseNotEqualTo(const MatrixBase<OtherDerived> &other) const;
 
-    const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs() const;
-    const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs2() const;
-    const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
-    const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseExp() const;
-    const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseLog() const;
-    const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseCos() const;
-    const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSin() const;
-    const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
-    cwisePow(const Scalar& exponent) const;
-
-    template<typename CustomUnaryOp>
-    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
-
-    template<typename CustomBinaryOp, typename OtherDerived>
-    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
-    //@}
-
-    /// \name Redux and visitor
-    //@{
-    Scalar sum() const;
-    Scalar trace() const;
-
-    typename ei_traits<Derived>::Scalar minCoeff() const;
-    typename ei_traits<Derived>::Scalar maxCoeff() const;
-
-    typename ei_traits<Derived>::Scalar minCoeff(int* row, int* col = 0) const;
-    typename ei_traits<Derived>::Scalar maxCoeff(int* row, int* col = 0) const;
-
     bool all(void) const;
     bool any(void) const;
 
@@ -561,20 +580,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     const PartialRedux<Horizontal, BinaryOp, Derived>
     horizontalRedux(const BinaryOp& func) const;
 
-    template<typename BinaryOp>
-    typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
-    redux(const BinaryOp& func) const;
-
-    template<typename Visitor>
-    void visit(Visitor& func) const;
-    //@}
-
-    /// \name Casting to the derived type
-    //@{
-    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    inline Derived& derived() { return *static_cast<Derived*>(this); }
-    inline Derived& const_cast_derived() const
-    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
     //@}
 
     /** \name LU module
