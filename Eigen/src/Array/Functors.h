@@ -100,6 +100,19 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
+/** \internal
+  * \brief Template functor to compute the reciprocal of a scalar
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::cwiseInverse
+  */
+template<typename Scalar>
+struct ei_scalar_inverse_op {
+  inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+
 // default ei_functor_traits for STL functors:
 
 template<typename T>

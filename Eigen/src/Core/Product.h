@@ -147,6 +147,7 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode
   enum{ value =  Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              && Rhs::Flags&Diagonal!=Diagonal
               ? CacheFriendlyProduct : NormalProduct };
 };
 
@@ -259,25 +260,40 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
 
     const Scalar _coeff(int row, int col) const
     {
-      Scalar res;
-      const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-      ei_product_impl<Lhs::ColsAtCompileTime-1,
-                          unroll ? Lhs::ColsAtCompileTime : Dynamic,
-                          _LhsNested, _RhsNested>
-        ::run(row, col, m_lhs, m_rhs, res);
-      return res;
+      if ((Rhs::Flags&Diagonal)==Diagonal)
+      {
+        return  m_lhs.coeff(row, col) * m_rhs.coeff(col, col);
+      }
+      else
+      {
+        Scalar res;
+        const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+        ei_product_impl<Lhs::ColsAtCompileTime-1,
+                            unroll ? Lhs::ColsAtCompileTime : Dynamic,
+                            _LhsNested, _RhsNested>
+          ::run(row, col, m_lhs, m_rhs, res);
+        return res;
+      }
     }
 
     template<int LoadMode>
     const PacketScalar _packetCoeff(int row, int col) const
     {
-      const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-      PacketScalar res;
-      ei_packet_product_impl<Flags&RowMajorBit ? true : false, Lhs::ColsAtCompileTime-1,
-                          unroll ? Lhs::ColsAtCompileTime : Dynamic,
-                          _LhsNested, _RhsNested, PacketScalar>
-        ::run(row, col, m_lhs, m_rhs, res);
-      return res;
+      if ((Rhs::Flags&Diagonal)==Diagonal)
+      {
+        assert(_LhsNested::Flags&RowMajorBit==0);
+        return ei_pmul(m_lhs.template packetCoeff<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
+      }
+      else
+      {
+        const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
+        PacketScalar res;
+        ei_packet_product_impl<Flags&RowMajorBit ? true : false, Lhs::ColsAtCompileTime-1,
+                            unroll ? Lhs::ColsAtCompileTime : Dynamic,
+                            _LhsNested, _RhsNested, PacketScalar>
+          ::run(row, col, m_lhs, m_rhs, res);
+        return res;
+      }
     }
 
     template<typename Lhs_, typename Rhs_, int EvalMode_, typename DestDerived_, bool DirectAccess_>

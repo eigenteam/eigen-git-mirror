@@ -66,6 +66,7 @@ const unsigned int SelfAdjoint = SelfAdjointBit;
 // additional possible values for the Mode parameter of extract()
 const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
+const unsigned int Diagonal = Upper | Lower;
 
 
 

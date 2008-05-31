@@ -67,6 +67,7 @@ template<typename Scalar> struct ei_scalar_log_op;
 template<typename Scalar> struct ei_scalar_cos_op;
 template<typename Scalar> struct ei_scalar_sin_op;
 template<typename Scalar> struct ei_scalar_pow_op;
+template<typename Scalar> struct ei_scalar_inverse_op;
 template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
 template<typename Scalar, bool IsVectorizable> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;

@@ -212,8 +212,7 @@ template<typename T, int n=1> struct ei_nested
 
 template<unsigned int Flags> struct ei_are_flags_consistent
 {
-  enum { ret = !( (Flags&UnitDiagBit && Flags&ZeroDiagBit)
-                  || (Flags&UpperTriangularBit && Flags&LowerTriangularBit) )
+  enum { ret = !( (Flags&UnitDiagBit && Flags&ZeroDiagBit) )
   };
 };
 

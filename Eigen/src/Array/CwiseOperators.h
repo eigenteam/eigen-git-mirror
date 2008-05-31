@@ -76,6 +76,14 @@ MatrixBase<Derived>::cwisePow(const Scalar& exponent) const
     (derived(), ei_scalar_pow_op<Scalar>(exponent));
 }
 
+/** \returns an expression of the coefficient-wise reciprocal of *this. */
+template<typename Derived>
+inline const CwiseUnaryOp<ei_scalar_inverse_op<typename ei_traits<Derived>::Scalar>, Derived>
+MatrixBase<Derived>::cwiseInverse() const
+{
+  return derived();
+}
+
 // -- binary operators --
 
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other

@@ -544,6 +544,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSin() const;
     const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
     cwisePow(const Scalar& exponent) const;
+    const CwiseUnaryOp<ei_scalar_inverse_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseInverse() const;
 
     template<typename OtherDerived>
     const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>

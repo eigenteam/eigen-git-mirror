@@ -49,7 +49,7 @@ struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
     ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
     MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    Flags = _CoeffsVectorTypeTypeNested::Flags & HereditaryBits,
+    Flags = _CoeffsVectorTypeTypeNested::Flags & HereditaryBits | Diagonal,
     CoeffReadCost = _CoeffsVectorTypeTypeNested::CoeffReadCost
   };
 };
