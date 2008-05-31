@@ -1,5 +1,7 @@
 PROJECT(Eigen)
 
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+
 OPTION(BUILD_TESTS "Build tests" OFF)
 OPTION(BUILD_DOC "Build documentation and examples" OFF)
 

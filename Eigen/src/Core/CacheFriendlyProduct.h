@@ -349,5 +349,4 @@ static void ei_cache_friendly_product(
   }
 }
 
-
 #endif // EIGEN_CACHE_FRIENDLY_PRODUCT_H

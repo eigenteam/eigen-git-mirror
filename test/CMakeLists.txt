@@ -53,6 +53,8 @@ MACRO(EI_ADD_TEST testname)
 
   EI_ADD_TARGET_PROPERTY(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
+  target_link_libraries(${targetname} Eigen2)
+
   IF(WIN32)
     ADD_TEST(${testname} "${targetname}")
   ELSE(WIN32)
@@ -63,6 +65,8 @@ ENDMACRO(EI_ADD_TEST)
 
 
 ENABLE_TESTING()
+
+ADD_DEFINITIONS("-DEIGEN_EXTERN_INSTANCIATION=1")
 
 EI_ADD_TEST(basicstuff)
 EI_ADD_TEST(linearstructure)
