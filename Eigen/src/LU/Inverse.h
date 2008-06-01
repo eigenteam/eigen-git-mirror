@@ -60,9 +60,9 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
     EIGEN_GENERIC_PUBLIC_INTERFACE(Inverse)
 
     Inverse(const MatrixType& matrix)
-      : m_exists(true),
-        m_inverse(MatrixType::identity(matrix.rows(), matrix.cols()))
+      : m_inverse(MatrixType::identity(matrix.rows(), matrix.cols()))
     {
+      if(CheckExistence) m_exists = true;
       ei_assert(matrix.rows() == matrix.cols());
       _compute(matrix);
     }
@@ -269,7 +269,7 @@ template<typename Derived>
 const Inverse<typename ei_eval<Derived>::type, true>
 MatrixBase<Derived>::inverse() const
 {
-  return Inverse<typename ei_eval<Derived>::type, true>(derived());
+  return Inverse<typename ei_eval<Derived>::type, true>(eval());
 }
 
 /** \return the matrix inverse of \c *this, which is assumed to exist.
@@ -283,7 +283,7 @@ template<typename Derived>
 const Inverse<typename ei_eval<Derived>::type, false>
 MatrixBase<Derived>::quickInverse() const
 {
-  return Inverse<typename ei_eval<Derived>::type, false>(derived());
+  return Inverse<typename ei_eval<Derived>::type, false>(eval());
 }
 
 #endif // EIGEN_INVERSE_H

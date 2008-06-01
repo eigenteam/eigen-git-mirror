@@ -267,7 +267,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows,
       else
       {
         ei_assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
-            && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
+               && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
       }
     }
     /** constructs an initialized 2D vector with given coefficients */

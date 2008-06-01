@@ -147,7 +147,7 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode
   enum{ value =  Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-              && Rhs::Flags&Diagonal!=Diagonal
+              && (Rhs::Flags&Diagonal)!=Diagonal
               ? CacheFriendlyProduct : NormalProduct };
 };
 
