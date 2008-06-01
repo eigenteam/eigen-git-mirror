@@ -197,6 +197,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
                         CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
                         Derived&
                      >::ret ConjugateReturnType;
+    /** the return type of MatrixBase::real() */
+    typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
     /** the return type of MatrixBase::adjoint() */
     typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
             AdjointReturnType;
@@ -477,6 +479,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     /// \name Coefficient-wise operations
     //@{
     const ConjugateReturnType conjugate() const;
+    const RealReturnType real() const;
 
     template<typename OtherDerived>
     const CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>

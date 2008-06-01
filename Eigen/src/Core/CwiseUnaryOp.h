@@ -139,7 +139,7 @@ MatrixBase<Derived>::cwiseAbs2() const
   return derived();
 }
 
-/** \returns an expression of the complex conjugate of *this.
+/** \returns an expression of the complex conjugate of \c *this.
   *
   * \sa adjoint() */
 template<typename Derived>
@@ -147,6 +147,16 @@ inline const typename MatrixBase<Derived>::ConjugateReturnType
 MatrixBase<Derived>::conjugate() const
 {
   return ConjugateReturnType(derived());
+}
+
+/** \returns an expression of the real part of \c *this.
+  *
+  * \sa adjoint() */
+template<typename Derived>
+inline const typename MatrixBase<Derived>::RealReturnType
+MatrixBase<Derived>::real() const
+{
+  return derived();
 }
 
 /** \returns an expression of *this with the \a Scalar type casted to

@@ -77,7 +77,7 @@ template<typename MatrixType, unsigned int Mode> class Extract
     inline Scalar _coeff(int row, int col) const
     {
       if(Flags & LowerTriangularBit ? col>row : row>col)
-        return (Scalar)0;
+        return (Flags & SelfAdjointBit) ? ei_conj(m_matrix.coeff(col, row)) : (Scalar)0;
       if(Flags & UnitDiagBit)
         return col==row ? (Scalar)1 : m_matrix.coeff(row, col);
       else if(Flags & ZeroDiagBit)

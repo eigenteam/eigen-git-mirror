@@ -59,8 +59,6 @@ const unsigned int Upper = UpperTriangularBit;
 const unsigned int StrictlyUpper = UpperTriangularBit | ZeroDiagBit;
 const unsigned int Lower = LowerTriangularBit;
 const unsigned int StrictlyLower = LowerTriangularBit | ZeroDiagBit;
-
-// additional possible values for the Mode parameter of part()
 const unsigned int SelfAdjoint = SelfAdjointBit;
 
 // additional possible values for the Mode parameter of extract()

@@ -204,6 +204,19 @@ template<typename Scalar, typename NewType>
 struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
 { enum { Cost = ei_is_same_type<Scalar, NewType>::ret ? 0 : NumTraits<NewType>::AddCost, IsVectorizable = false }; };
 
+/** \internal
+  * \brief Template functor to extract the real part of a complex
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::real()
+  */
+template<typename Scalar>
+struct ei_scalar_real_op EIGEN_EMPTY_STRUCT {
+  typedef typename NumTraits<Scalar>::Real result_type;
+  inline result_type operator() (const Scalar& a) const { return ei_real(a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_real_op<Scalar> >
+{ enum { Cost =  0, IsVectorizable = false }; };
 
 /** \internal
   * \brief Template functor to multiply a scalar by a fixed other one
