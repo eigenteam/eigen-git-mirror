@@ -2,6 +2,7 @@ SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR)
 
 SET(Eigen_SRCS
   src/Core/CoreInstanciations.cpp
+  src/QR/QrInstanciations.cpp
 )
 
 ADD_LIBRARY(Eigen2 ${Eigen_SRCS})

@@ -47,22 +47,25 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
-    SelfAdjointEigenSolver(const MatrixType& matrix)
+    SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols())
     {
-      compute(matrix);
+      compute(matrix, computeEigenvectors);
     }
 
-    void compute(const MatrixType& matrix);
+    void compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
-    MatrixType eigenvectors(void) const { return m_eivec; }
+    MatrixType eigenvectors(void) const { ei_assert(m_eigenvectorsOk); return m_eivec; }
 
     RealVectorType eigenvalues(void) const { return m_eivalues; }
 
   protected:
     MatrixType m_eivec;
     RealVectorType m_eivalues;
+    #ifndef NDEBUG
+    bool m_eigenvectorsOk;
+    #endif
 };
 
 // from Golub's "Matrix Computations", algorithm 5.1.3
@@ -100,42 +103,13 @@ static void ei_givens_rotation(Scalar a, Scalar b, Scalar& c, Scalar& s)
   * Implemented from Golub's "Matrix Computations", algorithm 8.3.2:
   * "implicit symmetric QR step with Wilkinson shift"
   */
-template<typename Scalar>
-static void ei_tridiagonal_qr_step(Scalar* diag, Scalar* subdiag, int n)
-{
-  Scalar td = (diag[n-2] - diag[n-1])*0.5;
-  Scalar e2 = ei_abs2(subdiag[n-2]);
-  Scalar mu = diag[n-1] - e2 / (td + (td>0 ? 1 : -1) * ei_sqrt(td*td + e2));
-  Scalar x = diag[0] - mu;
-  Scalar z = subdiag[0];
-
-  for (int k = 0; k < n-1; ++k)
-  {
-    Scalar c, s;
-    ei_givens_rotation(x, z, c, s);
-
-    // do T = G' T G
-    Scalar sdk = s * diag[k] + c * subdiag[k];
-    Scalar dkp1 = s * subdiag[k] + c * diag[k+1];
-
-    diag[k] = c * (c * diag[k] - s * subdiag[k]) - s * (c * subdiag[k] - s * diag[k+1]);
-    diag[k+1] = s * sdk + c * dkp1;
-    subdiag[k] = c * sdk - s * dkp1;
-
-    if (k > 0)
-      subdiag[k - 1] = c * subdiag[k-1] - s * z;
-
-    x = subdiag[k];
-    z = -s * subdiag[k+1];
-
-    if (k < n - 2)
-      subdiag[k + 1] = c * subdiag[k+1];
-  }
-}
+template<typename RealScalar, typename Scalar>
+static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n);
 
 template<typename MatrixType>
-void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix)
+void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
+  m_eigenvectorsOk = computeEigenvectors;
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
@@ -146,6 +120,11 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   RealVectorTypeX subdiag(n-1);
   diag = tridiag.diagonal();
   subdiag = tridiag.subDiagonal();
+  if (computeEigenvectors)
+    m_eivec = tridiag.matrixQ();
+
+  RealVectorTypeX gc(n);
+  RealVectorTypeX gs(n);
 
   int end = n-1;
   int start = 0;
@@ -164,10 +143,22 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix)
     while (start>0 && subdiag[start-1]!=0)
       start--;
 
-    ei_tridiagonal_qr_step(&diag.coeffRef(start), &subdiag.coeffRef(start), end-start+1);
+    ei_tridiagonal_qr_step(diag.data(), subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
-  std::cout << "ei values = " << m_eivalues.transpose() << "\n\n";
+  // Sort eigenvalues and corresponding vectors.
+  // TODO make the sort optional ?
+  // TODO use a better sort algorithm !!
+  for (int i = 0; i < n-1; i++)
+  {
+    int k;
+    m_eivalues.block(i,n-i).minCoeff(&k);
+    if (k > 0)
+    {
+      std::swap(m_eivalues[i], m_eivalues[k+i]);
+      m_eivec.col(i).swap(m_eivec.col(k+i));
+    }
+  }
 }
 
 template<typename Derived>
@@ -175,7 +166,7 @@ inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_
 MatrixBase<Derived>::eigenvalues() const
 {
   ei_assert(Flags&SelfAdjointBit);
-  return SelfAdjointEigenSolver<typename Derived::Eval>(eval()).eigenvalues();
+  return SelfAdjointEigenSolver<typename Derived::Eval>(eval(),false).eigenvalues();
 }
 
 template<typename Derived, bool IsSelfAdjoint>
@@ -213,5 +204,64 @@ MatrixBase<Derived>::matrixNorm() const
   return ei_matrixNorm_selector<Derived, Flags&SelfAdjointBit>
        ::matrixNorm(derived());
 }
+
+#ifndef EIGEN_EXTERN_INSTANCIATIONS
+template<typename RealScalar, typename Scalar>
+static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n)
+{
+  RealScalar td = (diag[end-1] - diag[end])*0.5;
+  RealScalar e2 = ei_abs2(subdiag[end-1]);
+  RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * ei_sqrt(td*td + e2));
+  RealScalar x = diag[start] - mu;
+  RealScalar z = subdiag[start];
+
+  for (int k = start; k < end; ++k)
+  {
+    RealScalar c, s;
+    ei_givens_rotation(x, z, c, s);
+
+    // do T = G' T G
+    RealScalar sdk = s * diag[k] + c * subdiag[k];
+    RealScalar dkp1 = s * subdiag[k] + c * diag[k+1];
+
+    diag[k] = c * (c * diag[k] - s * subdiag[k]) - s * (c * subdiag[k] - s * diag[k+1]);
+    diag[k+1] = s * sdk + c * dkp1;
+    subdiag[k] = c * sdk - s * dkp1;
+
+    if (k > start)
+      subdiag[k - 1] = c * subdiag[k-1] - s * z;
+
+    x = subdiag[k];
+    z = -s * subdiag[k+1];
+
+    if (k < end - 1)
+      subdiag[k + 1] = c * subdiag[k+1];
+
+    // apply the givens rotation to the unit matrix Q = Q * G
+    // G only modifies the two columns k and k+1
+    if (matrixQ)
+    {
+      #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+      #else
+      int kn = k*n;
+      int kn1 = (k+1)*n;
+      #endif
+      // let's do the product manually to avoid the need of temporaries...
+      for (uint i=0; i<n; ++i)
+      {
+        #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+        Scalar matrixQ_i_k = matrixQ[i*n+k];
+        matrixQ[i*n+k]   = c * matrixQ_i_k - s * matrixQ[i*n+k+1];
+        matrixQ[i*n+k+1] = s * matrixQ_i_k + c * matrixQ[i*n+k+1];
+        #else
+        Scalar matrixQ_i_k = matrixQ[i+kn];
+        matrixQ[i+kn]  = c * matrixQ_i_k - s * matrixQ[i+kn1];
+        matrixQ[i+kn1] = s * matrixQ_i_k + c * matrixQ[i+kn1];
+        #endif
+      }
+    }
+  }
+}
+#endif
 
 #endif // EIGEN_SELFADJOINTEIGENSOLVER_H
