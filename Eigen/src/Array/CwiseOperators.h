@@ -27,7 +27,9 @@
 
 // -- unary operators --
 
-/** \returns an expression of the coefficient-wise square root of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise square root of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseSqrt() const
@@ -35,7 +37,9 @@ MatrixBase<Derived>::cwiseSqrt() const
   return derived();
 }
 
-/** \returns an expression of the coefficient-wise exponential of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise exponential of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseExp() const
@@ -43,7 +47,9 @@ MatrixBase<Derived>::cwiseExp() const
   return derived();
 }
 
-/** \returns an expression of the coefficient-wise logarithm of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise logarithm of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseLog() const
@@ -51,7 +57,9 @@ MatrixBase<Derived>::cwiseLog() const
   return derived();
 }
 
-/** \returns an expression of the coefficient-wise cosine of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise cosine of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseCos() const
@@ -59,7 +67,9 @@ MatrixBase<Derived>::cwiseCos() const
   return derived();
 }
 
-/** \returns an expression of the coefficient-wise sine of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise sine of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseSin() const
@@ -67,7 +77,9 @@ MatrixBase<Derived>::cwiseSin() const
   return derived();
 }
 
-/** \returns an expression of the coefficient-wise power of *this to the given exponent. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise power of *this to the given exponent. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwisePow(const Scalar& exponent) const
@@ -76,7 +88,9 @@ MatrixBase<Derived>::cwisePow(const Scalar& exponent) const
     (derived(), ei_scalar_pow_op<Scalar>(exponent));
 }
 
-/** \returns an expression of the coefficient-wise reciprocal of *this. */
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise reciprocal of *this. */
 template<typename Derived>
 inline const CwiseUnaryOp<ei_scalar_inverse_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::cwiseInverse() const
@@ -86,7 +100,9 @@ MatrixBase<Derived>::cwiseInverse() const
 
 // -- binary operators --
 
-/** \returns an expression of the coefficient-wise \< operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
@@ -98,7 +114,9 @@ MatrixBase<Derived>::cwiseLessThan(const MatrixBase<OtherDerived> &other) const
   return cwise(other, std::less<Scalar>());
 }
 
-/** \returns an expression of the coefficient-wise \<= operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \<= operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
@@ -110,7 +128,9 @@ MatrixBase<Derived>::cwiseLessEqual(const MatrixBase<OtherDerived> &other) const
   return cwise(other, std::less_equal<Scalar>());
 }
 
-/** \returns an expression of the coefficient-wise \> operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \> operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
@@ -122,7 +142,9 @@ MatrixBase<Derived>::cwiseGreaterThan(const MatrixBase<OtherDerived> &other) con
   return cwise(other, std::greater<Scalar>());
 }
 
-/** \returns an expression of the coefficient-wise \>= operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \>= operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
@@ -134,7 +156,9 @@ MatrixBase<Derived>::cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) co
   return cwise(other, std::greater_equal<Scalar>());
 }
 
-/** \returns an expression of the coefficient-wise == operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise == operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
@@ -146,7 +170,9 @@ MatrixBase<Derived>::cwiseEqualTo(const MatrixBase<OtherDerived> &other) const
   return cwise(other, std::equal_to<Scalar>());
 }
 
-/** \returns an expression of the coefficient-wise != operator of *this and \a other
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise != operator of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */

@@ -182,7 +182,7 @@ INHERIT_DOCS           = YES
 # a new page for each member. If set to NO, the documentation of a member will 
 # be part of the file/class/namespace that contains it.
 
-SEPARATE_MEMBER_PAGES  = NO
+SEPARATE_MEMBER_PAGES  = YES
 
 # The TAB_SIZE tag can be used to set the number of spaces in a tab. 
 # Doxygen uses this value to replace tabs by spaces in code fragments.
@@ -196,8 +196,10 @@ TAB_SIZE               = 8
 # will result in a user-defined paragraph with heading "Side Effects:". 
 # You can put \n's in the value part of an alias to insert newlines.
 
-ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column."
-
+ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column." \
+                         "array_module=This is defined in the %Array module. \code #include<Eigen/Array> \endcode" \
+                         "lu_module=This is defined in the %LU module. \code #include<Eigen/LU> \endcode" \
+                         "qr_module=This is defined in the %QR module. \code #include<Eigen/QR> \endcode"
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C 
 # sources only. Doxygen will then generate output that is more tailored for C. 
 # For instance, some of the names that are used will be different. The list 

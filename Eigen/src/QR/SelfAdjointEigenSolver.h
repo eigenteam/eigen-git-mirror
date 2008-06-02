@@ -25,7 +25,9 @@
 #ifndef EIGEN_SELFADJOINTEIGENSOLVER_H
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
-/** \class SelfAdjointEigenSolver
+/** \qr_module
+  *
+  * \class SelfAdjointEigenSolver
   *
   * \brief Eigen values/vectors solver for selfadjoint matrix
   *
@@ -91,6 +93,9 @@ static void ei_givens_rotation(Scalar a, Scalar b, Scalar& c, Scalar& s)
 }
 
 /** \internal
+  *
+  * \qr_module
+  *
   * Performs a QR step on a tridiagonal symmetric matrix represented as a
   * pair of two vectors \a diag and \a subdiag.
   *
@@ -161,6 +166,10 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   }
 }
 
+/** \qr_module
+  *
+  * \returns a vector listing the eigenvalues of this matrix.
+  */
 template<typename Derived>
 inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1>
 MatrixBase<Derived>::eigenvalues() const
@@ -197,6 +206,10 @@ template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
   }
 };
 
+/** \qr_module
+  *
+  * \returns the matrix norm of this matrix.
+  */
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::matrixNorm() const

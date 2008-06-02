@@ -25,7 +25,9 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
-/** \class Inverse
+/** \lu_module
+  *
+  * \class Inverse
   *
   * \brief Inverse of a matrix
   *
@@ -258,7 +260,9 @@ void Inverse<MatrixType, CheckExistence>::_compute(const MatrixType& matrix)
   else _compute_in_general_case(matrix);
 }
 
-/** \return the matrix inverse of \c *this, if it exists.
+/** \lu_module
+  *
+  * \returns the matrix inverse of \c *this, if it exists.
   *
   * Example: \include MatrixBase_inverse.cpp
   * Output: \verbinclude MatrixBase_inverse.out
@@ -272,7 +276,9 @@ MatrixBase<Derived>::inverse() const
   return Inverse<typename Derived::Eval, true>(eval());
 }
 
-/** \return the matrix inverse of \c *this, which is assumed to exist.
+/** \lu_module
+  *
+  * \returns the matrix inverse of \c *this, which is assumed to exist.
   *
   * Example: \include MatrixBase_quickInverse.cpp
   * Output: \verbinclude MatrixBase_quickInverse.out

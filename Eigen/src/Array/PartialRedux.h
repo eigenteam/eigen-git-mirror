@@ -26,7 +26,9 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
-/** \class PartialRedux
+/** \array_module
+  * 
+  * \class PartialRedux
   *
   * \brief Generic expression of a partially reduxed matrix
   *
@@ -93,7 +95,9 @@ class PartialRedux : ei_no_assignment_operator,
     const BinaryOp m_functor;
 };
 
-/** \returns a row vector expression of *this vertically reduxed by \a func
+/** \array_module
+  * 
+  * \returns a row vector expression of *this vertically reduxed by \a func
   *
   * The template parameter \a BinaryOp is the type of the functor
   * of the custom redux operator. Note that func must be an associative operator.
@@ -108,7 +112,9 @@ MatrixBase<Derived>::verticalRedux(const BinaryOp& func) const
   return PartialRedux<Vertical, BinaryOp, Derived>(derived(), func);
 }
 
-/** \returns a row vector expression of *this horizontally reduxed by \a func
+/** \array_module
+  * 
+  * \returns a row vector expression of *this horizontally reduxed by \a func
   *
   * The template parameter \a BinaryOp is the type of the functor
   * of the custom redux operator. Note that func must be an associative operator.

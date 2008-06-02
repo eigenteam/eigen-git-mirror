@@ -67,6 +67,10 @@ const typename Derived::Scalar ei_bruteforce_det(const MatrixBase<Derived>& m)
   }
 }
 
+/** \lu_module
+  *
+  * \returns the determinant of this matrix
+  */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {

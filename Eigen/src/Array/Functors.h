@@ -26,6 +26,9 @@
 #define EIGEN_ARRAY_FUNCTORS_H
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the square root of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
@@ -38,6 +41,9 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the exponential of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
@@ -50,6 +56,9 @@ struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the logarithm of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
@@ -62,6 +71,9 @@ struct ei_functor_traits<ei_scalar_log_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the cosine of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
@@ -74,6 +86,9 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the sine of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
@@ -86,6 +101,9 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to raise a scalar to a power
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwisePow
@@ -101,6 +119,9 @@ struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
 
 /** \internal
+  *
+  * \array_module
+  * 
   * \brief Template functor to compute the reciprocal of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseInverse

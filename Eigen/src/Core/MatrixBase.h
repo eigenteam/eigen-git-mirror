@@ -55,33 +55,33 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
   public:
 
-    /// \name Compile-time traits
-    //@{
     typedef typename ei_traits<Derived>::Scalar Scalar;
-
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
     enum {
 
-      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
+      RowsAtCompileTime
         /**< The number of rows at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
+        = ei_traits<Derived>::RowsAtCompileTime,
 
-     ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
+     ColsAtCompileTime
         /**< The number of columns at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
+        = ei_traits<Derived>::ColsAtCompileTime,
 
-      SizeAtCompileTime = ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
-                                                  ei_traits<Derived>::ColsAtCompileTime>::ret,
+      SizeAtCompileTime
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
+        = ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
+                                  ei_traits<Derived>::ColsAtCompileTime>::ret,
 
-      MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
+      MaxRowsAtCompileTime
         /**< This value is equal to the maximum possible number of rows that this expression
           * might have. If this expression might have an arbitrarily high number of rows,
           * this value is set to \a Dynamic.
@@ -91,8 +91,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
           */
+        = ei_traits<Derived>::MaxRowsAtCompileTime,
 
-      MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime,
+      MaxColsAtCompileTime
         /**< This value is equal to the maximum possible number of columns that this expression
           * might have. If this expression might have an arbitrarily high number of columns,
           * this value is set to \a Dynamic.
@@ -102,9 +103,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
           */
+        = ei_traits<Derived>::MaxColsAtCompileTime,
 
-      MaxSizeAtCompileTime = ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
-                                                     ei_traits<Derived>::MaxColsAtCompileTime>::ret,
+      MaxSizeAtCompileTime
         /**< This value is equal to the maximum possible number of coefficients that this expression
           * might have. If this expression might have an arbitrarily high number of coefficients,
           * this value is set to \a Dynamic.
@@ -114,26 +115,27 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
+        = ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
+                                                     ei_traits<Derived>::MaxColsAtCompileTime>::ret,
 
       IsVectorAtCompileTime
-        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
+        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1,
 
-      Flags = ei_traits<Derived>::Flags,
+      Flags
         /**< This stores expression metadata which typically is inherited by new expressions
-          * constructed from this one. The available flags are:
-          * \li \c RowMajorBit: if this bit is set, the preferred storage order for an evaluation
-          *                  of this expression is row-major. Otherwise, it is column-major.
-          * \li \c LazyBit: if this bit is set, the next evaluation of this expression will be canceled.
-          *              This can be used, with care, to achieve lazy evaluation.
-          * \li \c LargeBit: if this bit is set, optimization will be tuned for large matrices (typically,
-          *               at least 32x32).
+          * constructed from this one. The available flags are FIXME!!! document that !!!
           */
+        = ei_traits<Derived>::Flags,
 
-      CoeffReadCost = ei_traits<Derived>::CoeffReadCost
+      CoeffReadCost
+        /**< This is a rough measure of how expensive it is to read one coefficient from
+          * this expression.
+          */
+        = ei_traits<Derived>::CoeffReadCost
     };
 
     /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
@@ -152,10 +154,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
       * \sa class NumTraits
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    //@}
 
-    /// \name Run-time traits
-    //@{
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
     inline int rows() const { return derived()._rows(); }
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
@@ -168,10 +167,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     inline bool isVector() const { return rows()==1 || cols()==1; }
-    //@}
 
-    /// \internal \name Default return types
-    //@{
+
     /** Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** Represents a vector block of a matrix  */
@@ -203,10 +200,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
             AdjointReturnType;
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    //@}
 
-    /// \name Copying and initialization
-    //@{
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -232,10 +226,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     template<typename OtherDerived>
     CommaInitializer operator<< (const MatrixBase<OtherDerived>& other);
-    //@}
 
-    /// \name Coefficient accessors
-    //@{
     const Scalar coeff(int row, int col) const;
     const Scalar operator()(int row, int col) const;
 
@@ -261,12 +252,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     Scalar& y();
     Scalar& z();
     Scalar& w();
-    //@}
 
-    /** \name Linear structure
-      * sum, scalar multiple, ...
-      */
-    //@{
+
     const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
 
     template<typename OtherDerived>
@@ -295,12 +282,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     inline friend const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
     operator*(const Scalar& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
-    //@}
 
-    /** \name Matrix product
-      * and, as a special case, matrix-vector product
-      */
-    //@{
+
     template<typename OtherDerived>
     const typename ProductReturnType<OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
@@ -310,12 +293,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     template<typename OtherDerived>
     typename OtherDerived::Eval inverseProduct(const MatrixBase<OtherDerived>& other) const;
-    //@}
 
-    /** \name Dot product and related notions
-      * including vector norm, adjoint, transpose ...
-      */
-    //@{
+
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar norm2() const;
@@ -325,10 +304,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
     const AdjointReturnType adjoint() const;
-    //@}
 
-    /// \name Sub-matrices
-    //@{
+
     Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i);
     const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i) const;
 
@@ -377,10 +354,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     template<unsigned int Mode> Part<Derived, Mode> part();
     template<unsigned int Mode> const Extract<Derived, Mode> extract() const;
-    //@}
 
-    /// \name Generating special matrices
-    //@{
+
     static const ConstantReturnType
     constant(int rows, int cols, const Scalar& value);
     static const ConstantReturnType
@@ -414,10 +389,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     Derived& setOnes();
     Derived& setRandom();
     Derived& setIdentity();
-    //@}
 
-    /// \name Comparison and diagnostic
-    //@{
+
     template<typename OtherDerived>
     bool isApprox(const MatrixBase<OtherDerived>& other,
                   RealScalar prec = precision<Scalar>()) const;
@@ -448,10 +421,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     template<typename OtherDerived>
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
     { return derived().cwiseNotEqualTo(other.derived()).all(); }
-    //@}
 
-    /// \name Special functions
-    //@{
+
     template<typename NewType>
     const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
@@ -475,10 +446,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     inline int stride(void) const { return derived()._stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
-    //@}
 
-    /// \name Coefficient-wise operations
-    //@{
+
     const ConjugateReturnType conjugate() const;
     const RealReturnType real() const;
 
@@ -507,10 +476,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
-    //@}
 
-    /// \name Redux and visitor
-    //@{
+
     Scalar sum() const;
     Scalar trace() const;
 
@@ -526,21 +493,16 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     template<typename Visitor>
     void visit(Visitor& func) const;
-    //@}
 
-    /// \name Casting to the derived type
-    //@{
+
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
-    //@}
 
-    /** \name Array module
-      *
-      * \code #include <Eigen/Array> \endcode
-      */
-    //@{
+
+/////////// Array module ///////////
+
     const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
     const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseExp() const;
     const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseLog() const;
@@ -588,28 +550,21 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
-    //@}
 
-    /** \name LU module
-      *
-      * \code #include <Eigen/LU> \endcode
-      */
-    //@{
+
+/////////// LU module ///////////
+
     const Inverse<typename ei_eval<Derived>::type, true> inverse() const;
     const Inverse<typename ei_eval<Derived>::type, false> quickInverse() const;
     Scalar determinant() const;
-    //@}
 
-    /** \name QR module
-      *
-      * \code #include <Eigen/QR> \endcode
-      */
-    //@{
+
+/////////// QR module ///////////
+
     const QR<typename ei_eval<Derived>::type> qr() const;
     
     EigenvaluesReturnType eigenvalues() const;
     RealScalar matrixNorm() const;
-    //@}
 
 };
 
