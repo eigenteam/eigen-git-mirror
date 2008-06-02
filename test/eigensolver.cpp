@@ -38,14 +38,14 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   MatrixType a = MatrixType::random(rows,cols);
   MatrixType covMat =  a.adjoint() * a;
 
-  EigenSolver<MatrixType,true> eiSymm(covMat);
+  SelfAdjointEigenSolver<MatrixType> eiSymm(covMat);
   VERIFY_IS_APPROX(covMat * eiSymm.eigenvectors(), eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal());
 
-  EigenSolver<MatrixType,false> eiNotSymmButSymm(covMat);
+  EigenSolver<MatrixType> eiNotSymmButSymm(covMat);
   VERIFY_IS_APPROX((covMat.template cast<Complex>()) * (eiNotSymmButSymm.eigenvectors().template cast<Complex>()),
     (eiNotSymmButSymm.eigenvectors().template cast<Complex>()) * (eiNotSymmButSymm.eigenvalues().asDiagonal()));
 
-  EigenSolver<MatrixType,false> eiNotSymm(a);
+  EigenSolver<MatrixType> eiNotSymm(a);
 //   VERIFY_IS_APPROX(a.template cast<Complex>() * eiNotSymm.eigenvectors().template cast<Complex>(),
 //     eiNotSymm.eigenvectors().template cast<Complex>() * eiNotSymm.eigenvalues().asDiagonal());
 

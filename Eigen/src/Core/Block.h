@@ -90,7 +90,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
         // It is a row if and only if BlockRows==1 and BlockCols==MatrixType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==MatrixType::RowsAtCompileTime and BlockCols==1,
         // all other cases are invalid.
-        // The case a 1x1 matrix looks ambibuous, but the result is the same anyway.
+        // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
         m_startRow( (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0),
         m_startCol( (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
         m_blockRows(matrix.rows()), // if it is a row, then m_blockRows has a fixed-size of 1, so no pb to try to overwrite it
@@ -119,8 +119,8 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
                           m_blockRows(blockRows), m_blockCols(blockCols)
     {
-      ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==1)
-          && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==1));
+      ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
+          && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
       ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
           && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }

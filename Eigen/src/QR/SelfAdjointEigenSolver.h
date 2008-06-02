@@ -88,7 +88,7 @@ static void ei_givens_rotation(Scalar a, Scalar b, Scalar& c, Scalar& s)
 
 /** \internal
   * Performs a QR step on a tridiagonal symmetric matrix represented as a
-  * pair of two vectors \a diag \a subdiag.
+  * pair of two vectors \a diag and \a subdiag.
   *
   * \param matA the input selfadjoint matrix
   * \param hCoeffs returned Householder coefficients
@@ -142,7 +142,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 
   Tridiagonalization<MatrixType> tridiag(m_eivec);
   RealVectorType& diag = m_eivalues;
-  RealVectorType subdiag(n-1);
+  RealVectorTypeX subdiag(n-1);
   diag = tridiag.diagonal();
   subdiag = tridiag.subDiagonal();
 
