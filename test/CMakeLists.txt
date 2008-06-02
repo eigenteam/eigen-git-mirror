@@ -68,6 +68,8 @@ ENABLE_TESTING()
 
 ADD_DEFINITIONS("-DEIGEN_EXTERN_INSTANCIATION=1")
 
+EI_ADD_TEST(sizeof)
+EI_ADD_TEST(nomalloc)
 EI_ADD_TEST(basicstuff)
 EI_ADD_TEST(linearstructure)
 EI_ADD_TEST(cwiseop)

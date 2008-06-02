@@ -53,7 +53,7 @@ namespace Eigen
   {
     static const bool should_raise_an_assert = false;
 
-    // Used to avoid to raise two exceptions at the time in which
+    // Used to avoid to raise two exceptions at a time in which
     // case the exception is not properly catched.
     // This may happen when a second exceptions is raise in a destructor.
     static bool no_more_assert = false;
@@ -93,6 +93,7 @@ namespace Eigen
 
     #define VERIFY_RAISES_ASSERT(a)                                               \
       {                                                                           \
+        Eigen::no_more_assert = false;                                            \
         try {                                                                     \
           Eigen::ei_assert_list.clear();                                          \
           Eigen::ei_push_assert = true;                                           \
@@ -101,25 +102,25 @@ namespace Eigen
           std::cerr << "One of the following asserts should have been raised:\n"; \
           for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
             std::cerr << "  " << ei_assert_list[ai] << "\n";                      \
-          VERIFY(Eigen::should_raise_an_assert && # a);                          \
+          VERIFY(Eigen::should_raise_an_assert && # a);                           \
         } catch (Eigen::ei_assert_exception e) {                                  \
-          Eigen::ei_push_assert = false; VERIFY(true);                           \
+          Eigen::ei_push_assert = false; VERIFY(true);                            \
         }                                                                         \
       }
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #define ei_assert(a)                       \
+    #define ei_assert(a) \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
         throw Eigen::ei_assert_exception(); \
       }
 
-    #define VERIFY_RAISES_ASSERT(a)                                 \
-      {                                                             \
-        try { a; VERIFY(Eigen::should_raise_an_assert && # a); }   \
-        catch (Eigen::ei_assert_exception e) { VERIFY(true); }     \
+    #define VERIFY_RAISES_ASSERT(a) {                             \
+        Eigen::no_more_assert = false;                            \
+        try { a; VERIFY(Eigen::should_raise_an_assert && # a); }  \
+        catch (Eigen::ei_assert_exception e) { VERIFY(true); }    \
       }
 
   #endif // EIGEN_DEBUG_ASSERTS
