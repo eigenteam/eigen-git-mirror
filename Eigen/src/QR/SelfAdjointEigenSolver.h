@@ -31,6 +31,8 @@
   *
   * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
   *
+  * \note MatrixType must be an actual Matrix type, it can't be an expression type.
+  *
   * \sa MatrixBase::eigenvalues(), class EigenSolver
   */
 template<typename _MatrixType> class SelfAdjointEigenSolver
@@ -57,7 +59,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     MatrixType eigenvectors(void) const { return m_eivec; }
 
     RealVectorType eigenvalues(void) const { return m_eivalues; }
-
 
   protected:
     MatrixType m_eivec;
@@ -167,6 +168,51 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   }
 
   std::cout << "ei values = " << m_eivalues.transpose() << "\n\n";
+}
+
+template<typename Derived>
+inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1>
+MatrixBase<Derived>::eigenvalues() const
+{
+  ei_assert(Flags&SelfAdjointBit);
+  return SelfAdjointEigenSolver<typename Derived::Eval>(eval()).eigenvalues();
+}
+
+template<typename Derived, bool IsSelfAdjoint>
+struct ei_matrixNorm_selector
+{
+  static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
+  matrixNorm(const MatrixBase<Derived>& m)
+  {
+    // FIXME if it is really guaranteed that the eigenvalues are already sorted,
+    // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
+    return m.eigenvalues().cwiseAbs().maxCoeff();
+  }
+};
+
+template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
+{
+  static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
+  matrixNorm(const MatrixBase<Derived>& m)
+  {
+    // FIXME if it is really guaranteed that the eigenvalues are already sorted,
+    // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
+    return ei_sqrt(
+             (m*m.adjoint())
+             .template marked<SelfAdjoint>()
+             .eigenvalues()
+             .cwiseAbs()
+             .maxCoeff()
+           );
+  }
+};
+
+template<typename Derived>
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
+MatrixBase<Derived>::matrixNorm() const
+{
+  return ei_matrixNorm_selector<Derived, Flags&SelfAdjointBit>
+       ::matrixNorm(derived());
 }
 
 #endif // EIGEN_SELFADJOINTEIGENSOLVER_H

@@ -202,6 +202,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     /** the return type of MatrixBase::adjoint() */
     typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
             AdjointReturnType;
+    typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
     //@}
 
     /// \name Copying and initialization
@@ -605,6 +606,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
       */
     //@{
     const QR<typename ei_eval<Derived>::type> qr() const;
+    
+    EigenvaluesReturnType eigenvalues() const;
+    RealScalar matrixNorm() const;
     //@}
 
 };

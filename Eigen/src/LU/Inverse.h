@@ -269,7 +269,7 @@ template<typename Derived>
 const Inverse<typename ei_eval<Derived>::type, true>
 MatrixBase<Derived>::inverse() const
 {
-  return Inverse<typename ei_eval<Derived>::type, true>(eval());
+  return Inverse<typename Derived::Eval, true>(eval());
 }
 
 /** \return the matrix inverse of \c *this, which is assumed to exist.
@@ -283,7 +283,7 @@ template<typename Derived>
 const Inverse<typename ei_eval<Derived>::type, false>
 MatrixBase<Derived>::quickInverse() const
 {
-  return Inverse<typename ei_eval<Derived>::type, false>(eval());
+  return Inverse<typename Derived::Eval, false>(eval());
 }
 
 #endif // EIGEN_INVERSE_H
