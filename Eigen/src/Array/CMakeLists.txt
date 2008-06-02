@@ -1,6 +1,6 @@
-FILE(GLOB Eigen_ARRAY_SRCS "*.h")
+FILE(GLOB Eigen_Array_SRCS "*.h")
 
 INSTALL(FILES
-  ${Eigen_ARRAY_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen/src/ARRAY
+  ${Eigen_Array_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen/src/Array
   )

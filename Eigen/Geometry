@@ -1,0 +1,13 @@
+#ifndef EIGEN_GEOMETRY_MODULE_H
+#define EIGEN_GEOMETRY_MODULE_H
+
+#include "Core"
+
+namespace Eigen {
+
+#include "src/Geometry/Cross.h"
+#include "src/Geometry/Quaternion.h"
+
+} // namespace Eigen
+
+#endif // EIGEN_GEOMETRY_MODULE_H

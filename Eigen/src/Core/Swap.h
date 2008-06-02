@@ -5,12 +5,12 @@
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,12 +18,15 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_SWAP_H
 #define EIGEN_SWAP_H
+
+template <typename Derived, typename OtherDerived, bool IsVector = Derived::IsVectorAtCompileTime>
+struct ei_swap_selector;
 
 /** swaps *this with the expression \a other.
   *
@@ -41,25 +44,7 @@ void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
   MatrixBase<OtherDerived> *_other = const_cast<MatrixBase<OtherDerived>*>(&other);
   if(SizeAtCompileTime == Dynamic)
   {
-    Scalar tmp;
-    if(IsVectorAtCompileTime)
-    {
-      ei_assert(OtherDerived::IsVectorAtCompileTime && size() == _other->size());
-      for(int i = 0; i < size(); i++)
-      {
-        tmp = coeff(i);
-        coeffRef(i) = _other->coeff(i);
-        _other->coeffRef(i) = tmp;
-      }
-    }
-    else
-      for(int j = 0; j < cols(); j++)
-        for(int i = 0; i < rows(); i++)
-        {
-          tmp = coeff(i, j);
-          coeffRef(i, j) = _other->coeff(i, j);
-          _other->coeffRef(i, j) = tmp;
-        }
+    ei_swap_selector<Derived,OtherDerived>::run(derived(),other.const_cast_derived());
   }
   else // SizeAtCompileTime != Dynamic
   {
@@ -68,5 +53,37 @@ void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
     *_other = buf;
   }
 }
+
+template<typename Derived, typename OtherDerived>
+struct ei_swap_selector<Derived,OtherDerived,true>
+{
+  inline static void run(Derived& src, OtherDerived& other)
+  {
+    typename Derived::Scalar tmp;
+    ei_assert(OtherDerived::IsVectorAtCompileTime && src.size() == other.size());
+    for(int i = 0; i < src.size(); i++)
+    {
+      tmp = src.coeff(i);
+      src.coeffRef(i) = other.coeff(i);
+      other.coeffRef(i) = tmp;
+    }
+  }
+};
+
+template<typename Derived, typename OtherDerived>
+struct ei_swap_selector<Derived,OtherDerived,false>
+{
+  inline void run(Derived& src, OtherDerived& other)
+  {
+    typename Derived::Scalar tmp;
+    for(int j = 0; j < src.cols(); j++)
+      for(int i = 0; i < src.rows(); i++)
+      {
+        tmp = src.coeff(i, j);
+        src.coeffRef(i, j) = other.coeff(i, j);
+        other.coeffRef(i, j) = tmp;
+      }
+  }
+};
 
 #endif // EIGEN_SWAP_H

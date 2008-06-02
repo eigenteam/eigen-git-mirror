@@ -260,7 +260,7 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
       int kn1 = (k+1)*n;
       #endif
       // let's do the product manually to avoid the need of temporaries...
-      for (uint i=0; i<n; ++i)
+      for (int i=0; i<n; ++i)
       {
         #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
         Scalar matrixQ_i_k = matrixQ[i*n+k];
