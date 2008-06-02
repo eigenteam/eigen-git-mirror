@@ -201,7 +201,6 @@ template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
              (m*m.adjoint())
              .template marked<SelfAdjoint>()
              .eigenvalues()
-             .cwiseAbs()
              .maxCoeff()
            );
   }
