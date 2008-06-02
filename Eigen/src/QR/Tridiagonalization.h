@@ -126,7 +126,9 @@ template<typename _MatrixType> class Tridiagonalization
   * \param matA the input selfadjoint matrix
   * \param hCoeffs returned Householder coefficients
   *
-  * The result is written in the lower triangular part of \a matA:
+  * The result is written in the lower triangular part of \a matA.
+  *
+  * Implemented from Golub's "Matrix Computations", algorithm 8.3.1.
   *
   * \sa packedMatrix()
   */

@@ -8,6 +8,7 @@ namespace Eigen {
 #include "src/QR/QR.h"
 #include "src/QR/Tridiagonalization.h"
 #include "src/QR/EigenSolver.h"
+#include "src/QR/SelfAdjointEigenSolver.h"
 
 } // namespace Eigen
 

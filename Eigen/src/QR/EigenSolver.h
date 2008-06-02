@@ -27,19 +27,17 @@
 
 /** \class EigenSolver
   *
-  * \brief Eigen values/vectors solver
+  * \brief Eigen values/vectors solver for non selfadjoint matrices
   *
   * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
-  * \param IsSelfadjoint tells the input matrix is guaranteed to be selfadjoint (hermitian). In that case the
-  * return type of eigenvalues() is a real vector.
   *
   * Currently it only support real matrices.
   *
   * \note this code was adapted from JAMA (public domain)
   *
-  * \sa MatrixBase::eigenvalues()
+  * \sa MatrixBase::eigenvalues(), SelfAdjointEigenSolver
   */
-template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
+template<typename _MatrixType> class EigenSolver
 {
   public:
 
@@ -47,7 +45,7 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-    typedef Matrix<typename ei_meta_if<IsSelfadjoint, Scalar, Complex>::ret, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<Complex, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
@@ -55,7 +53,7 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols())
     {
-      _compute(matrix);
+      compute(matrix);
     }
 
     MatrixType eigenvectors(void) const { return m_eivec; }
@@ -64,15 +62,7 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
 
   private:
 
-    void _compute(const MatrixType& matrix)
-    {
-      computeImpl(matrix, typename ei_meta_if<IsSelfadjoint, ei_meta_true, ei_meta_false>::ret());
-    }
-    void computeImpl(const MatrixType& matrix, ei_meta_true isSelfadjoint);
-    void computeImpl(const MatrixType& matrix, ei_meta_false isNotSelfadjoint);
-
-    void tridiagonalization(RealVectorType& eivalr, RealVectorType& eivali);
-    void tql2(RealVectorType& eivalr, RealVectorType& eivali);
+    void compute(const MatrixType& matrix);
 
     void orthes(MatrixType& matH, RealVectorType& ort);
     void hqr2(MatrixType& matH);
@@ -82,274 +72,27 @@ template<typename _MatrixType, bool IsSelfadjoint=false> class EigenSolver
     EigenvalueType m_eivalues;
 };
 
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix, ei_meta_true)
+
+template<typename MatrixType>
+void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
 
-  RealVectorType eivali(n);
-  m_eivec = matrix;
+  MatrixType matH = matrix;
+  RealVectorType ort(n);
 
-  // Tridiagonalize.
-  tridiagonalization(m_eivalues, eivali);
+  // Reduce to Hessenberg form.
+  orthes(matH, ort);
 
-  // Diagonalize.
-  tql2(m_eivalues, eivali);
+  // Reduce Hessenberg to real Schur form.
+  hqr2(matH);
 }
-
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::computeImpl(const MatrixType& matrix, ei_meta_false)
-{
-  assert(matrix.cols() == matrix.rows());
-  int n = matrix.cols();
-  m_eivalues.resize(n,1);
-
-  bool isSelfadjoint = true;
-  for (int j = 0; (j < n) && isSelfadjoint; j++)
-    for (int i = 0; (i < j) && isSelfadjoint; i++)
-      isSelfadjoint = (matrix(i,j) == matrix(j,i));
-
-  if (isSelfadjoint)
-  {
-    RealVectorType eivalr(n);
-    RealVectorType eivali(n);
-    m_eivec = matrix;
-
-    // Tridiagonalize.
-    tridiagonalization(eivalr, eivali);
-
-    // Diagonalize.
-    tql2(eivalr, eivali);
-
-    m_eivalues = eivalr.template cast<Complex>();
-  }
-  else
-  {
-    MatrixType matH = matrix;
-    RealVectorType ort(n);
-
-    // Reduce to Hessenberg form.
-    orthes(matH, ort);
-
-    // Reduce Hessenberg to real Schur form.
-    hqr2(matH);
-  }
-}
-
-
-// Symmetric Householder reduction to tridiagonal form.
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::tridiagonalization(RealVectorType& eivalr, RealVectorType& eivali)
-{
-
-//  This is derived from the Algol procedures tred2 by
-//  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-//  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-//  Fortran subroutine in EISPACK.
-
-  int n = m_eivec.cols();
-  eivalr = m_eivec.row(eivalr.size()-1);
-
-  // Householder reduction to tridiagonal form.
-  for (int i = n-1; i > 0; i--)
-  {
-    // Scale to avoid under/overflow.
-    Scalar scale = 0.0;
-    Scalar h = 0.0;
-    scale = eivalr.start(i).cwiseAbs().sum();
-
-    if (scale == 0.0)
-    {
-      eivali.coeffRef(i) = eivalr.coeff(i-1);
-      eivalr.start(i) = m_eivec.row(i-1).start(i);
-      m_eivec.corner(TopLeft, i, i) = m_eivec.corner(TopLeft, i, i).diagonal().asDiagonal();
-    }
-    else
-    {
-      // Generate Householder vector.
-      eivalr.start(i) /= scale;
-      h = eivalr.start(i).cwiseAbs2().sum();
-
-      Scalar f = eivalr.coeff(i-1);
-      Scalar g = ei_sqrt(h);
-      if (f > 0)
-        g = -g;
-      eivali.coeffRef(i) = scale * g;
-      h = h - f * g;
-      eivalr.coeffRef(i-1) = f - g;
-      eivali.start(i).setZero();
-
-      // Apply similarity transformation to remaining columns.
-      for (int j = 0; j < i; j++)
-      {
-        f = eivalr.coeff(j);
-        m_eivec.coeffRef(j,i) = f;
-        g = eivali.coeff(j) + m_eivec.coeff(j,j) * f;
-        int bSize = i-j-1;
-        if (bSize>0)
-        {
-          g += (m_eivec.col(j).block(j+1, bSize).transpose() * eivalr.block(j+1, bSize))(0,0);
-          eivali.block(j+1, bSize) += m_eivec.col(j).block(j+1, bSize) * f;
-        }
-        eivali.coeffRef(j) = g;
-      }
-
-      f = (eivali.start(i).transpose() * eivalr.start(i))(0,0);
-      eivali.start(i) = (eivali.start(i) - (f / (h + h)) * eivalr.start(i))/h;
-
-      m_eivec.corner(TopLeft, i, i).template part<Lower>() -=
-        ( (eivali.start(i) * eivalr.start(i).transpose()).lazy()
-        + (eivalr.start(i) * eivali.start(i).transpose()).lazy());
-
-      eivalr.start(i) = m_eivec.row(i-1).start(i);
-      m_eivec.row(i).start(i).setZero();
-    }
-    eivalr.coeffRef(i) = h;
-  }
-
-  // Accumulate transformations.
-  for (int i = 0; i < n-1; i++)
-  {
-    m_eivec.coeffRef(n-1,i) = m_eivec.coeff(i,i);
-    m_eivec.coeffRef(i,i) = 1.0;
-    Scalar h = eivalr.coeff(i+1);
-    // FIXME this does not looks very stable ;)
-    if (h != 0.0)
-    {
-      eivalr.start(i+1) = m_eivec.col(i+1).start(i+1) / h;
-      m_eivec.corner(TopLeft, i+1, i+1) -= eivalr.start(i+1)
-        * ( m_eivec.col(i+1).start(i+1).transpose() * m_eivec.corner(TopLeft, i+1, i+1) );
-    }
-    m_eivec.col(i+1).start(i+1).setZero();
-  }
-  eivalr = m_eivec.row(eivalr.size()-1);
-  m_eivec.row(eivalr.size()-1).setZero();
-  m_eivec.coeffRef(n-1,n-1) = 1.0;
-  eivali.coeffRef(0) = 0.0;
-}
-
-
-// Symmetric tridiagonal QL algorithm.
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::tql2(RealVectorType& eivalr, RealVectorType& eivali)
-{
-  //  This is derived from the Algol procedures tql2, by
-  //  Bowdler, Martin, Reinsch, and Wilkinson, Handbook for
-  //  Auto. Comp., Vol.ii-Linear Algebra, and the corresponding
-  //  Fortran subroutine in EISPACK.
-
-  int n = eivalr.size();
-
-  for (int i = 1; i < n; i++) {
-      eivali.coeffRef(i-1) = eivali.coeff(i);
-  }
-  eivali.coeffRef(n-1) = 0.0;
-
-  Scalar f = 0.0;
-  Scalar tst1 = 0.0;
-  Scalar eps = std::pow(2.0,-52.0);
-  for (int l = 0; l < n; l++)
-  {
-    // Find small subdiagonal element
-    tst1 = std::max(tst1,ei_abs(eivalr.coeff(l)) + ei_abs(eivali.coeff(l)));
-    int m = l;
-
-    while ( (m < n) && (ei_abs(eivali.coeff(m)) > eps*tst1) )
-      m++;
-
-    // If m == l, eivalr.coeff(l) is an eigenvalue,
-    // otherwise, iterate.
-    if (m > l)
-    {
-      int iter = 0;
-      do
-      {
-        iter = iter + 1;
-
-        // Compute implicit shift
-        Scalar g = eivalr.coeff(l);
-        Scalar p = (eivalr.coeff(l+1) - g) / (2.0 * eivali.coeff(l));
-        Scalar r = hypot(p,1.0);
-        if (p < 0)
-          r = -r;
-
-        eivalr.coeffRef(l) = eivali.coeff(l) / (p + r);
-        eivalr.coeffRef(l+1) = eivali.coeff(l) * (p + r);
-        Scalar dl1 = eivalr.coeff(l+1);
-        Scalar h = g - eivalr.coeff(l);
-        if (l+2<n)
-          eivalr.end(n-l-2) -= RealVectorTypeX::constant(n-l-2, h);
-        f = f + h;
-
-        // Implicit QL transformation.
-        p = eivalr.coeff(m);
-        Scalar c = 1.0;
-        Scalar c2 = c;
-        Scalar c3 = c;
-        Scalar el1 = eivali.coeff(l+1);
-        Scalar s = 0.0;
-        Scalar s2 = 0.0;
-        for (int i = m-1; i >= l; i--)
-        {
-          c3 = c2;
-          c2 = c;
-          s2 = s;
-          g = c * eivali.coeff(i);
-          h = c * p;
-          r = hypot(p,eivali.coeff(i));
-          eivali.coeffRef(i+1) = s * r;
-          s = eivali.coeff(i) / r;
-          c = p / r;
-          p = c * eivalr.coeff(i) - s * g;
-          eivalr.coeffRef(i+1) = h + s * (c * g + s * eivalr.coeff(i));
-
-          // Accumulate transformation.
-          for (int k = 0; k < n; k++)
-          {
-            h = m_eivec.coeff(k,i+1);
-            m_eivec.coeffRef(k,i+1) = s * m_eivec.coeff(k,i) + c * h;
-            m_eivec.coeffRef(k,i) = c * m_eivec.coeff(k,i) - s * h;
-          }
-        }
-        p = -s * s2 * c3 * el1 * eivali.coeff(l) / dl1;
-        eivali.coeffRef(l) = s * p;
-        eivalr.coeffRef(l) = c * p;
-
-        // Check for convergence.
-      } while (ei_abs(eivali.coeff(l)) > eps*tst1);
-    }
-    eivalr.coeffRef(l) = eivalr.coeff(l) + f;
-    eivali.coeffRef(l) = 0.0;
-  }
-
-  // Sort eigenvalues and corresponding vectors.
-  // TODO use a better sort algorithm !!
-  for (int i = 0; i < n-1; i++)
-  {
-    int k = i;
-    Scalar minValue = eivalr.coeff(i);
-    for (int j = i+1; j < n; j++)
-    {
-      if (eivalr.coeff(j) < minValue)
-      {
-        k = j;
-        minValue = eivalr.coeff(j);
-      }
-    }
-    if (k != i)
-    {
-      std::swap(eivalr.coeffRef(i), eivalr.coeffRef(k));
-      m_eivec.col(i).swap(m_eivec.col(k));
-    }
-  }
-}
-
 
 // Nonsymmetric reduction to Hessenberg form.
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::orthes(MatrixType& matH, RealVectorType& ort)
+template<typename MatrixType>
+void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
 {
   //  This is derived from the Algol procedures orthes and ortran,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,
@@ -432,8 +175,8 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 
 
 // Nonsymmetric reduction from Hessenberg to real Schur form.
-template<typename MatrixType, bool IsSelfadjoint>
-void EigenSolver<MatrixType,IsSelfadjoint>::hqr2(MatrixType& matH)
+template<typename MatrixType>
+void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
 {
   //  This is derived from the Algol procedure hqr2,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,
