@@ -1,13 +1,15 @@
+namespace Eigen {
+
 o /** \mainpage Eigen
 
 This is the API documentation for Eigen. 
 
-Most of the API is available as methods in <a href="classEigen_1_1MatrixBase.html">MatrixBase</a>, so this is a good starting point for browsing. Also have a look at <a href="classEigen_1_1Matrix.html">Matrix</a>, as a few methods and the matrix constructors are there.
+Most of the API is available as methods in MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there.
 
 For a first contact with Eigen, it is enough to look at Matrix and MatrixBase. In fact, except for advanced use, the only class that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix. For instance, vectors are handled as a special case of Matrix with one column.
 
 The many other classes are typically return types for MatrixBase methods.
 
-This API documentation contains many short examples. For bigger examples, tutorials, and general explanations on Eigen, see the <a href="http://eigen.tuxfamily.org/wiki">wiki</a>.
-
 */
+
+}
