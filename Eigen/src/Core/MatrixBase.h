@@ -60,28 +60,26 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     enum {
 
-      RowsAtCompileTime
+      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
         /**< The number of rows at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
-        = ei_traits<Derived>::RowsAtCompileTime,
 
-     ColsAtCompileTime
+      ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
         /**< The number of columns at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
-        = ei_traits<Derived>::ColsAtCompileTime,
+        
 
-      SizeAtCompileTime
+      SizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
+                                                   ei_traits<Derived>::ColsAtCompileTime>::ret),
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-        = ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
-                                  ei_traits<Derived>::ColsAtCompileTime>::ret,
-
-      MaxRowsAtCompileTime
+      
+      MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
         /**< This value is equal to the maximum possible number of rows that this expression
           * might have. If this expression might have an arbitrarily high number of rows,
           * this value is set to \a Dynamic.
@@ -91,9 +89,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
           */
-        = ei_traits<Derived>::MaxRowsAtCompileTime,
-
-      MaxColsAtCompileTime
+        
+      MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime,
         /**< This value is equal to the maximum possible number of columns that this expression
           * might have. If this expression might have an arbitrarily high number of columns,
           * this value is set to \a Dynamic.
@@ -103,9 +100,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
           */
-        = ei_traits<Derived>::MaxColsAtCompileTime,
-
-      MaxSizeAtCompileTime
+        
+      MaxSizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
+                                                      ei_traits<Derived>::MaxColsAtCompileTime>::ret),
         /**< This value is equal to the maximum possible number of coefficients that this expression
           * might have. If this expression might have an arbitrarily high number of coefficients,
           * this value is set to \a Dynamic.
@@ -115,27 +112,23 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
           *
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
-        = ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
-                                                     ei_traits<Derived>::MaxColsAtCompileTime>::ret,
 
-      IsVectorAtCompileTime
+      IsVectorAtCompileTime = ei_traits<Derived>::RowsAtCompileTime == 1
+                           || ei_traits<Derived>::ColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
-        = ei_traits<Derived>::RowsAtCompileTime == 1 || ei_traits<Derived>::ColsAtCompileTime == 1,
-
-      Flags
-        /**< This stores expression metadata which typically is inherited by new expressions
-          * constructed from this one. The available flags are FIXME!!! document that !!!
+        
+      Flags = ei_traits<Derived>::Flags,
+        /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
+          * constructed from this one. See the \ref flags "list of flags".
           */
-        = ei_traits<Derived>::Flags,
 
-      CoeffReadCost
+      CoeffReadCost = ei_traits<Derived>::CoeffReadCost
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
           */
-        = ei_traits<Derived>::CoeffReadCost
     };
 
     /** Default constructor. Just checks at compile-time for self-consistency of the flags. */

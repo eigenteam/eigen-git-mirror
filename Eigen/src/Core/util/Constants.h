@@ -28,24 +28,93 @@
 
 const int Dynamic = 10000;
 
-// matrix/expression flags
+/** \defgroup flags */
+
+/** \name flags
+  *
+  * These are the possible bits which can be OR'ed to constitute the flags of a matrix or
+  * expression.
+  *
+  * \sa MatrixBase::Flags
+  */
+
+/** \ingroup flags
+  *
+  * for a matrix, this means that the storage order is row-major.
+  * If this bit is not set, the storage order is column-major.
+  * For an expression, this determines the storage order of
+  * the matrix created by evaluation of that expression. */
 const unsigned int RowMajorBit = 0x1;
-const unsigned int EvalBeforeNestingBit = 0x2;  ///< means the expression should be evaluated by the calling expression
-const unsigned int EvalBeforeAssigningBit = 0x4;///< means the expression should be evaluated before any assignement
+
+/** \ingroup flags
+  *
+  * means the expression should be evaluated by the calling expression */
+const unsigned int EvalBeforeNestingBit = 0x2;
+
+/** \ingroup flags
+  *
+  * means the expression should be evaluated before any assignement */
+const unsigned int EvalBeforeAssigningBit = 0x4;
+
+/** \ingroup flags
+  *
+  * currently unused. Means the matrix probably has a very big size.
+  * Could eventually be used as a hint to determine which algorithms
+  * to use. */
 const unsigned int LargeBit = 0x8;
+
 #ifdef EIGEN_VECTORIZE
-const unsigned int VectorizableBit = 0x10;  ///< means the expression might be vectorized
+/** \ingroup flags
+  *
+  * means the expression might be vectorized */
+const unsigned int VectorizableBit = 0x10;
 #else
 const unsigned int VectorizableBit = 0x0;
 #endif
-const unsigned int Like1DArrayBit = 0x20;   ///< means the expression can be seen as 1D vector (used for explicit vectorization)
-const unsigned int ZeroDiagBit = 0x40;      ///< means all diagonal coefficients are equal to 0
-const unsigned int UnitDiagBit = 0x80;      ///< means all diagonal coefficients are equal to 1
-const unsigned int SelfAdjointBit = 0x100;  ///< means the matrix is selfadjoint (M=M*).
-const unsigned int UpperTriangularBit = 0x200;  ///< means the strictly triangular lower part is 0
-const unsigned int LowerTriangularBit = 0x400;  ///< means the strictly triangular upper part is 0
-const unsigned int DirectAccessBit = 0x800;     ///< means the underlying matrix data can be direclty accessed
-const unsigned int ArrayBit = 0x1000;           ///< means the underlying matrix data can be direclty accessed
+
+/** \ingroup flags
+  *
+  * means the expression can be seen as 1D vector (used for explicit vectorization) */
+const unsigned int Like1DArrayBit = 0x20;
+
+/** \ingroup flags
+  *
+  * means all diagonal coefficients are equal to 0 */
+const unsigned int ZeroDiagBit = 0x40;      
+
+/** \ingroup flags
+  *
+  * means all diagonal coefficients are equal to 1 */
+const unsigned int UnitDiagBit = 0x80;
+
+/** \ingroup flags
+  *
+  * means the matrix is selfadjoint (M=M*). */
+const unsigned int SelfAdjointBit = 0x100;
+
+/** \ingroup flags
+  *
+  * means the strictly triangular lower part is 0 */
+const unsigned int UpperTriangularBit = 0x200;
+
+/** \ingroup flags
+  *
+  * means the strictly triangular upper part is 0 */
+const unsigned int LowerTriangularBit = 0x400;
+
+/** \ingroup flags
+  *
+  * means the underlying matrix data can be direclty accessed (contrary to certain
+  * expressions where the matrix coefficients need to be computed rather than just read from
+  * memory) */
+const unsigned int DirectAccessBit = 0x800;
+
+/** \ingroup flags
+  *
+  * means the object is just an array of scalars, and operations on it are regarded as operations
+  * on every of these scalars taken separately.
+  */
+const unsigned int ArrayBit = 0x1000;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
@@ -67,11 +136,11 @@ const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 const unsigned int Diagonal = Upper | Lower;
 
 
-
 enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, LazyProduct};
+
 
 #endif // EIGEN_CONSTANTS_H
