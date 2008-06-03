@@ -93,6 +93,15 @@ struct MatrixBase<Derived>::CommaInitializer
          && "Too few coefficients passed to Matrix::operator<<");
   }
 
+  /** \returns the built matrix once all its coefficients have been set.
+    * Calling finished is 100% optional. Its purpose is to write expressions
+    * like this:
+    * \code
+    * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).finished());
+    * \endcode
+    */
+  inline Derived& finished() { return m_matrix; }
+
   Derived& m_matrix;
   int m_row; // current row id
   int m_col; // current col id

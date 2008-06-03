@@ -71,6 +71,10 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
   VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
 
+  // inverse and conjugate
+  VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
+  VERIFY_IS_APPROX(q1 * (q1.conjugate() * v1), v1);
+
   // cross product
   VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
   Matrix3 m;

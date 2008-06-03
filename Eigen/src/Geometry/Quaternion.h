@@ -168,7 +168,7 @@ public:
     inline Quaternion& operator*= (const Quaternion& q);
 
     Quaternion inverse(void) const;
-    Quaternion unitInverse(void) const;
+    Quaternion conjugate(void) const;
 
     Quaternion slerp(Scalar t, const Quaternion& other) const;
 
@@ -226,6 +226,11 @@ template<typename Scalar>
 inline typename Quaternion<Scalar>::Matrix3
 Quaternion<Scalar>::toRotationMatrix(void) const
 {
+  // FIXME another option would be to declare toRotationMatrix like that:
+  // OtherDerived& toRotationMatrix(MatrixBase<OtherDerived>& m)
+  // it would fill m and returns a ref to m.
+  // the advantages is that way we can accept 4x4 and 3x4 matrices filling the rest of the
+  // matrix with I... ??
   Matrix3 res;
 
   Scalar tx  = 2*this->x();
@@ -261,6 +266,7 @@ template<typename Scalar>
 template<typename Derived>
 Quaternion<Scalar>& Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
 {
+  // FIXME maybe this function could accept 4x4 and 3x4 matrices as well ? (simply update the assert)
   ei_assert(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3);
   // This algorithm comes from  "Quaternion Calculus and Fast Animation",
   // Ken Shoemake, 1987 SIGGRAPH course notes
@@ -398,13 +404,19 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::fromTwoVectors(const MatrixBase<D
   return *this;
 }
 
-/** \returns the inverse of \c *this */
+/** \returns the multiplicative inverse of \c *this
+  * Note that in most cases, i.e., if you simply want the opposite
+  * rotation, it is enough to use the conjugate.
+  *
+  * \sa Quaternion::conjugate()
+  */
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
 {
+  // FIXME should this funtion be called multiplicativeInverse and conjugate() be called inverse() or opposite()  ??
   Scalar n2 = this->norm2();
   if (n2 > 0)
-    return (*this) / norm;
+    return conjugate() / n2;
   else
   {
     // return an invalid result to flag the error
@@ -412,9 +424,14 @@ inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
   }
 }
 
-/** Like Quaternion::inverse() but assumes the quaternion is normalized */
+/** \returns the conjugate of the \c *this which is equal to the multiplicative inverse
+  * if the quaternion is normalized.
+  * The conjugate of a quaternion represents the opposite rotation.
+  *
+  * \sa Quaternion::inverse()
+  */
 template <typename Scalar>
-inline Quaternion<Scalar> Quaternion<Scalar>::unitInverse() const
+inline Quaternion<Scalar> Quaternion<Scalar>::conjugate() const
 {
   return Quaternion(this->w(),-this->x(),-this->y(),-this->z());
 }
@@ -425,6 +442,12 @@ inline Quaternion<Scalar> Quaternion<Scalar>::unitInverse() const
 template <typename Scalar>
 Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) const
 {
+  // FIXME options for this function would be:
+  // 1 - Quaternion& fromSlerp(Scalar t, const Quaternion& q0, const Quaternion& q1);
+  //     which set *this from the s-lerp and returns *this
+  // 2 - Quaternion slerp(Scalar t, const Quaternion& other) const
+  //     which returns the s-lerp between this and other
+  // ??
   if (*this == other)
     return *this;
 
