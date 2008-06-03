@@ -165,7 +165,7 @@ namespace Eigen {
 
 template<typename T> inline typename NumTraits<T>::Real test_precision();
 template<> inline int test_precision<int>() { return 0; }
-template<> inline float test_precision<float>() { return 1e-2f; }
+template<> inline float test_precision<float>() { return 1e-3f; }
 template<> inline double test_precision<double>() { return 1e-5; }
 template<> inline float test_precision<std::complex<float> >() { return test_precision<float>(); }
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }

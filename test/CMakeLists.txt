@@ -85,5 +85,6 @@ EI_ADD_TEST(cholesky)
 EI_ADD_TEST(inverse)
 EI_ADD_TEST(qr)
 EI_ADD_TEST(eigensolver)
+EI_ADD_TEST(geometry)
 
 ENDIF(BUILD_TESTS)

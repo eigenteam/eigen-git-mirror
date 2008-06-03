@@ -51,6 +51,8 @@ template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedu
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename Derived, bool HasArrayFlag = int(ei_traits<Derived>::Flags) & ArrayBit> class ArrayBase {};
+template<typename Lhs, typename Rhs> class Cross;
+template<typename Scalar> class Quaternion;
 
 
 template<typename Scalar> struct ei_scalar_sum_op;

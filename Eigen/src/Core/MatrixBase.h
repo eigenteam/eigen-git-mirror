@@ -555,9 +555,14 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 /////////// QR module ///////////
 
     const QR<typename ei_eval<Derived>::type> qr() const;
-    
+
     EigenvaluesReturnType eigenvalues() const;
     RealScalar matrixNorm() const;
+
+/////////// Geometry module ///////////
+
+    template<typename OtherDerived>
+    const Cross<Derived,OtherDerived> cross(const MatrixBase<OtherDerived>& other) const;
 
 };
 

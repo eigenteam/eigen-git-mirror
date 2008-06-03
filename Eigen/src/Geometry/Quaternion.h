@@ -89,10 +89,10 @@ public:
     // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
     inline Quaternion(Scalar w = 1.0, Scalar x = 0.0, Scalar y = 0.0, Scalar z = 0.0)
     {
-      m_data[0] = _x;
-      m_data[1] = _y;
-      m_data[2] = _z;
-      m_data[3] = _w;
+      m_data[0] = x;
+      m_data[1] = y;
+      m_data[2] = z;
+      m_data[3] = w;
     }
 
     /** Constructor copying the value of the expression \a other */
@@ -126,8 +126,10 @@ public:
     Matrix3 toRotationMatrix(void) const;
     template<typename Derived>
     void fromRotationMatrix(const MatrixBase<Derived>& m);
+
     template<typename Derived>
-    void fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis);
+    Quaternion& fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis);
+
     template<typename Derived1, typename Derived2>
     Quaternion& fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
 
@@ -158,10 +160,10 @@ inline Quaternion<Scalar> Quaternion<Scalar>::operator* (const Quaternion& other
 {
   return Quaternion
   (
-    this->w() * other.w() - this->x() * other.x() - this->y() * other.y() - this->z() * rkQ.z(),
-    this->w() * other.x() + this->x() * other.w() + this->y() * other.z() - this->z() * rkQ.y(),
-    this->w() * other.y() + this->y() * other.w() + this->z() * other.x() - this->x() * rkQ.z(),
-    this->w() * other.z() + this->z() * other.w() + this->x() * other.y() - this->y() * rkQ.x()
+    this->w() * other.w() - this->x() * other.x() - this->y() * other.y() - this->z() * other.z(),
+    this->w() * other.x() + this->x() * other.w() + this->y() * other.z() - this->z() * other.y(),
+    this->w() * other.y() + this->y() * other.w() + this->z() * other.x() - this->x() * other.z(),
+    this->w() * other.z() + this->z() * other.w() + this->x() * other.y() - this->y() * other.x()
   );
 }
 
@@ -172,8 +174,9 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator*= (const Quaternion& oth
 }
 
 template <typename Scalar>
+template<typename Derived>
 inline typename Quaternion<Scalar>::Vector3
-Quaternion<Scalar>::operator* (const Vector3& v) const
+Quaternion<Scalar>::operator* (const MatrixBase<Derived>& v) const
 {
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.
@@ -181,8 +184,8 @@ Quaternion<Scalar>::operator* (const Vector3& v) const
     // in the litterature (30 versus 39 flops). On the other hand it
     // requires two Vector3 as temporaries.
     Vector3 uv;
-    uv = 2 * start<3>().cross(v);
-    return v + this->w() * uv + start<3>().cross(uv);
+    uv = 2 * this->template start<3>().cross(v);
+    return v + this->w() * uv + this->template start<3>().cross(uv);
 }
 
 template<typename Scalar>
@@ -205,9 +208,9 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   Scalar tzz = tz*this->z();
 
   res(0,0) = 1-(tyy+tzz);
-  res(0,1) = fTxy-twz;
-  res(0,2) = fTxz+twy;
-  res(1,0) = fTxy+twz;
+  res(0,1) = txy-twz;
+  res(0,2) = txz+twy;
+  res(1,0) = txy+twz;
   res(1,1) = 1-(txx+tzz);
   res(1,2) = tyz-twx;
   res(2,0) = txz-twy;
@@ -255,11 +258,13 @@ void Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
 
 template<typename Scalar>
 template<typename Derived>
-inline void Quaternion<Scalar>::fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis)
+inline Quaternion<Scalar>& Quaternion<Scalar>
+::fromAngleAxis(const Scalar& angle, const MatrixBase<Derived>& axis)
 {
   Scalar ha = 0.5*angle;
   this->w() = ei_cos(ha);
-  this->start<3>() = ei_sin(ha) * axis;
+  this->template start<3>() = ei_sin(ha) * axis;
+  return *this;
 }
 
 /** Makes a quaternion representing the rotation between two vectors \a a and \a b.
@@ -268,26 +273,22 @@ inline void Quaternion<Scalar>::fromAngleAxis (const Scalar& angle, const Matrix
   */
 template<typename Scalar>
 template<typename Derived1, typename Derived2>
-Quaternion<Scalar>& Quaternion<Scalar>::fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
+inline Quaternion<Scalar>& Quaternion<Scalar>::fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
 {
   Vector3 v0 = a.normalized();
-  Vector3 v1 = a.normalized();
-  Vector3 c = v0.cross(v1);
-
-  // if the magnitude of the cross product approaches zero,
-  // we get unstable because ANY axis will do when a == +/- b
-  Scalar d = v0.dot(v1);
+  Vector3 v1 = b.normalized();
+  Vector3 axis = v0.cross(v1);
+  Scalar c = v0.dot(v1);
 
   // if dot == 1, vectors are the same
-  if (ei_isApprox(d,1))
+  if (ei_isApprox(c,Scalar(1)))
   {
     // set to identity
-    this->w() = 1; this->start<3>().setZero();
+    this->w() = 1; this->template start<3>().setZero();
   }
-  Scalar s = ei_sqrt((1+d)*2);
+  Scalar s = ei_sqrt((1+c)*2);
   Scalar invs = 1./s;
-
-  this->start<3>() = c * invs;
+  this->template start<3>() = axis * invs;
   this->w() = s * 0.5;
 
   return *this;
@@ -299,7 +300,6 @@ inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
   Scalar n2 = this->norm2();
   if (n2 > 0)
     return (*this) / norm;
-  }
   else
   {
     // return an invalid result to flag the error
