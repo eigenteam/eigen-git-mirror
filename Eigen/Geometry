@@ -8,6 +8,10 @@ namespace Eigen {
 #include "src/Geometry/Cross.h"
 #include "src/Geometry/Quaternion.h"
 
+// the Geometry module use cwiseCos and cwiseSin which are defined in the Array module
+#include "src/Array/CwiseOperators.h"
+#include "src/Array/Functors.h"
+
 } // namespace Eigen
 
 #endif // EIGEN_GEOMETRY_MODULE_H

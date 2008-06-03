@@ -37,27 +37,42 @@ template<typename Scalar> void geometry(void)
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternion;
 
-  Quaternion q1, q2, q3;
+  Quaternion q1, q2;
   Vector3 v0 = Vector3::random(),
     v1 = Vector3::random(),
     v2 = Vector3::random();
 
+  Scalar a;
+
   q1.fromAngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
   q2.fromAngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());
 
+  // rotation matrix conversion
   VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
   VERIFY_IS_APPROX(q1 * q2 * v2,
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
   VERIFY_IS_NOT_APPROX(q2 * q1 * v2,
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
-
   q2.fromRotationMatrix(q1.toRotationMatrix());
   VERIFY_IS_APPROX(q1*v1,q2*v1);
 
+  // Euler angle conversion
+  VERIFY_IS_APPROX(q2.fromEulerAngles(q1.toEulerAngles()) * v1, q1 * v1);
+  v2 = q2.toEulerAngles();
+  VERIFY_IS_APPROX(q2.fromEulerAngles(v2).toEulerAngles(), v2);
+  VERIFY_IS_NOT_APPROX(q2.fromEulerAngles(v2.cwiseProduct(Vector3(0.2,-0.2,1))).toEulerAngles(), v2);
+
+  // angle-axis conversion
+  q1.toAngleAxis(a, v2);
+  VERIFY_IS_APPROX(q1 * v1, q2.fromAngleAxis(a,v2) * v1);
+  VERIFY_IS_NOT_APPROX(q1 * v1, q2.fromAngleAxis(2*a,v2) * v1);
+
+  // from two vector creation
+  VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
   VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
 
+  // cross product
   VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
-
   Matrix3 m;
   m << v0.normalized(),
       (v0.cross(v1)).normalized(),
@@ -68,7 +83,7 @@ template<typename Scalar> void geometry(void)
 void test_geometry()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( geometry<float>() );
+    CALL_SUBTEST( geometry<float>() );
     CALL_SUBTEST( geometry<double>() );
   }
 }

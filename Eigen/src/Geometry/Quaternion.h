@@ -25,6 +25,21 @@
 #ifndef EIGEN_QUATERNION_H
 #define EIGEN_QUATERNION_H
 
+/** \class Quaternion
+  *
+  * \brief The quaternion class used to represent 3D orientations and rotations
+  *
+  * \param _Scalar the scalar type, i.e., the type of the coefficients
+  *
+  * This class represents a quaternion that is a convenient representation of
+  * orientations and rotations of objects in three dimensions. Compared to other
+  * representations like Euler angles or 3x3 matrices, quatertions offer the
+  * following advantages:
+  *   - compact storage (4 scalars)
+  *   - efficient to compose (28 flops),
+  *   - stable spherical interpolation
+  *
+  */
 template<typename _Scalar>
 struct ei_traits<Quaternion<_Scalar> >
 {
@@ -103,6 +118,7 @@ public:
     }
     /** Copy constructor */
     inline Quaternion(const Quaternion& other)
+      : Base()
     {
       *this = other;
     }
@@ -123,12 +139,27 @@ public:
       return operator=<Quaternion>(other);
     }
 
-    Matrix3 toRotationMatrix(void) const;
+    /** \overload
+      * \returns a quaternion representing an identity rotation
+      */
+    static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
+
+    /** \overload
+      * \sa Quaternion::identity()
+      */
+    Quaternion& setIdentity() { *this << 1, 0, 0, 0; return *this; }
+
     template<typename Derived>
-    void fromRotationMatrix(const MatrixBase<Derived>& m);
+    Quaternion& fromRotationMatrix(const MatrixBase<Derived>& m);
+    Matrix3 toRotationMatrix(void) const;
 
     template<typename Derived>
     Quaternion& fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis);
+    void toAngleAxis(Scalar& angle, Vector3& axis) const;
+
+    Quaternion& fromEulerAngles(Vector3 eulerAngles);
+
+    Vector3 toEulerAngles(void) const;
 
     template<typename Derived1, typename Derived2>
     Quaternion& fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
@@ -139,14 +170,8 @@ public:
     Quaternion inverse(void) const;
     Quaternion unitInverse(void) const;
 
-    /** Rotation of a vector by a quaternion.
-        \remarks If the quaternion is used to rotate several points (>3)
-        then it is much more efficient to first convert it to a 3x3 Matrix.
-        Comparison of the operation cost for n transformations:
-            * Quaternion:  30n
-            * Via Matrix3: 24 + 15n
-        \todo write a small benchmark.
-    */
+    Quaternion slerp(Scalar t, const Quaternion& other) const;
+
     template<typename Derived>
     Vector3 operator* (const MatrixBase<Derived>& vec) const;
 
@@ -155,6 +180,7 @@ private:
 
 };
 
+/** \returns the concatenation of two rotations as a quaternion-quaternion product */
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::operator* (const Quaternion& other) const
 {
@@ -173,6 +199,13 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator*= (const Quaternion& oth
   return (*this = *this * other);
 }
 
+/** Rotation of a vector by a quaternion.
+  * \remarks If the quaternion is used to rotate several points (>1)
+  * then it is much more efficient to first convert it to a 3x3 Matrix.
+  * Comparison of the operation cost for n transformations:
+  *   - Quaternion:    30n
+  *   - Via a Matrix3: 24 + 15n
+  */
 template <typename Scalar>
 template<typename Derived>
 inline typename Quaternion<Scalar>::Vector3
@@ -181,15 +214,16 @@ Quaternion<Scalar>::operator* (const MatrixBase<Derived>& v) const
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.
     // It appears to be much faster than the common algorithm found
-    // in the litterature (30 versus 39 flops). On the other hand it
-    // requires two Vector3 as temporaries.
+    // in the litterature (30 versus 39 flops). It also requires two
+    // Vector3 as temporaries.
     Vector3 uv;
     uv = 2 * this->template start<3>().cross(v);
     return v + this->w() * uv + this->template start<3>().cross(uv);
 }
 
+/** Convert the quaternion to a 3x3 rotation matrix */
 template<typename Scalar>
-typename Quaternion<Scalar>::Matrix3
+inline typename Quaternion<Scalar>::Matrix3
 Quaternion<Scalar>::toRotationMatrix(void) const
 {
   Matrix3 res;
@@ -220,11 +254,14 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   return res;
 }
 
+/** updates \c *this from the rotation matrix \a m and returns a reference to \c *this
+  * \warning the size of the input matrix expression \a m must be 3x3 at compile time
+  */
 template<typename Scalar>
 template<typename Derived>
-void Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
+Quaternion<Scalar>& Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
 {
-  assert(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3);
+  ei_assert(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3);
   // This algorithm comes from  "Quaternion Calculus and Fast Animation",
   // Ken Shoemake, 1987 SIGGRAPH course notes
   Scalar t = m.trace();
@@ -254,22 +291,89 @@ void Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
     this->coeffRef(j) = (m.coeff(j,i)+m.coeff(i,j))*t;
     this->coeffRef(k) = (m.coeff(k,i)+m.coeff(i,k))*t;
   }
+
+  return *this;
 }
 
+/** updates \c *this from the rotation defined by axis \a axis and angle \a angle
+  * and returns a reference to \c *this
+  * \warning the size of the input vector expression \a axis must be 3 at compile time
+  */
 template<typename Scalar>
 template<typename Derived>
 inline Quaternion<Scalar>& Quaternion<Scalar>
 ::fromAngleAxis(const Scalar& angle, const MatrixBase<Derived>& axis)
 {
+  ei_assert(Derived::SizeAtCompileTime==3);
   Scalar ha = 0.5*angle;
   this->w() = ei_cos(ha);
   this->template start<3>() = ei_sin(ha) * axis;
   return *this;
 }
 
+/** Computes and returns the angle and axis of the rotation represented by the quaternion.
+  * The values are returned in the arguments \a angle and \a axis respectively.
+  * The returned axis is normalized.
+  */
+template <typename Scalar>
+void Quaternion<Scalar>::toAngleAxis(Scalar& angle, Vector3& axis) const
+{
+  // FIXME should we split this function to an "angle" and an "axis" functions ?
+  // the drawbacks is that this approach would require to compute twice the norm of (x,y,z)...
+  // or we returns a Vector4, or a small AngleAxis object... ???
+  Scalar n2 = this->template start<3>().norm2();
+  if (ei_isMuchSmallerThan(n2,Scalar(1)))
+  {
+    angle = 0;
+    axis << 1, 0, 0;
+  }
+  else
+  {
+    angle = 2*std::acos(this->w());
+    axis = this->template start<3>() / ei_sqrt(n2);
+  }
+}
+
+/** updates \c *this from the rotation defined by the Euler angles \a eulerAngles,
+  * and returns a reference to \c *this
+  */
+template <typename Scalar>
+Quaternion<Scalar>& Quaternion<Scalar>::fromEulerAngles(Vector3 eulerAngles)
+{
+  // FIXME should the arguments be 3 scalars or a single Vector3 ?
+  eulerAngles *= 0.5;
+
+  Vector3 cosines = eulerAngles.cwiseCos();
+  Vector3 sines   = eulerAngles.cwiseSin();
+
+  Scalar cYcZ = cosines.y() * cosines.z();
+  Scalar sYsZ = sines.y() * sines.z();
+  Scalar sYcZ = sines.y() * cosines.z();
+  Scalar cYsZ = cosines.y() * sines.z();
+
+  this->w() = cosines.x() * cYcZ + sines.x()   * sYsZ;
+  this->x() = sines.x()   * cYcZ - cosines.x() * sYsZ;
+  this->y() = cosines.x() * sYcZ + sines.x()   * cYsZ;
+  this->z() = cosines.x() * cYsZ - sines.x()   * sYcZ;
+
+  return *this;
+}
+
+/** Computes and returns the Euler angles corresponding to the quaternion \c *this.
+  */
+template <typename Scalar>
+typename Quaternion<Scalar>::Vector3 Quaternion<Scalar>::toEulerAngles(void) const
+{
+  Scalar y2 = this->y() * this->y();
+  return Vector3(
+    std::atan2(2*(this->w()*this->x() + this->y()*this->z()), (1 - 2*(this->x()*this->x() + y2))),
+    std::asin( 2*(this->w()*this->y() - this->z()*this->x())),
+    std::atan2(2*(this->w()*this->z() + this->x()*this->y()), (1 - 2*(y2 + this->z()*this->z()))));
+}
+
 /** Makes a quaternion representing the rotation between two vectors \a a and \a b.
-  *  \returns a reference to the actual quaternion
-  * Note that the two input vectors are \b not assumed to be normalized.
+  * \returns a reference to the actual quaternion
+  * Note that the two input vectors have \b not to be normalized.
   */
 template<typename Scalar>
 template<typename Derived1, typename Derived2>
@@ -294,6 +398,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::fromTwoVectors(const MatrixBase<D
   return *this;
 }
 
+/** \returns the inverse of \c *this */
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
 {
@@ -307,10 +412,34 @@ inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
   }
 }
 
+/** Like Quaternion::inverse() but assumes the quaternion is normalized */
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::unitInverse() const
 {
   return Quaternion(this->w(),-this->x(),-this->y(),-this->z());
+}
+
+/** \returns the spherical linear interpolation between the two quaternions
+  * \c *this and \a other at the parameter \a t
+  */
+template <typename Scalar>
+Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) const
+{
+  if (*this == other)
+    return *this;
+
+  Scalar d = this->dot(other);
+
+  // theta is the angle between the 2 quaternions
+  Scalar theta = std::acos(ei_abs(d));
+  Scalar sinTheta = ei_sin(theta);
+
+  Scalar scale0 = ei_sin( ( 1 - t ) * theta) / sinTheta;
+  Scalar scale1 = ei_sin( ( t * theta) ) / sinTheta;
+  if (d<0)
+    scale1 = -scale1;
+
+  return scale0 * (*this) + scale1 * other;
 }
 
 #endif // EIGEN_QUATERNION_H
