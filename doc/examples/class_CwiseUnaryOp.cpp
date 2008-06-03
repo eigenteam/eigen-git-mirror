@@ -1,4 +1,5 @@
 #include <Eigen/Core>
+#include <Eigen/Array>
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
