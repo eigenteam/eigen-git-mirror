@@ -197,6 +197,10 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = (beta - v0) / beta;
   }
+  else
+  {
+    hCoeffs.coeffRef(n-2) = 0;
+  }
 }
 
 /** reconstructs and returns the matrix Q */

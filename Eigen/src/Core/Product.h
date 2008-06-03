@@ -281,7 +281,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     {
       if ((Rhs::Flags&Diagonal)==Diagonal)
       {
-        assert(_LhsNested::Flags&RowMajorBit==0);
+        assert((_LhsNested::Flags&RowMajorBit)==0);
         return ei_pmul(m_lhs.template packetCoeff<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
       }
       else

@@ -45,7 +45,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-//     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
@@ -120,6 +119,9 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   m_eivalues.resize(n,1);
   m_eivec = matrix;
 
+  // FIXME, should tridiag be a local variable of this function or an attribute of SelfAdjointEigenSolver ?
+  // the latter avoids multiple memory allocation when the same SelfAdjointEigenSolver is used multiple times...
+  // (same for diag and subdiag)
   Tridiagonalization<MatrixType> tridiag(m_eivec);
   RealVectorType& diag = m_eivalues;
   RealVectorTypeX subdiag(n-1);
@@ -127,9 +129,6 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   subdiag = tridiag.subDiagonal();
   if (computeEigenvectors)
     m_eivec = tridiag.matrixQ();
-
-  RealVectorTypeX gc(n);
-  RealVectorTypeX gs(n);
 
   int end = n-1;
   int start = 0;
