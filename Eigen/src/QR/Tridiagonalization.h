@@ -44,11 +44,15 @@ template<typename _MatrixType> class Tridiagonalization
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    enum {SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
+    enum {
+      Size = MatrixType::RowsAtCompileTime,
+      SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
                         ? Dynamic
                         : MatrixType::RowsAtCompileTime-1};
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
+    typedef Matrix<RealScalar, Size, 1> DiagonalType;
+    typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
 
     typedef typename NestByValue<DiagonalCoeffs<MatrixType> >::RealReturnType DiagonalReturnType;
 
@@ -110,9 +114,13 @@ template<typename _MatrixType> class Tridiagonalization
     const DiagonalReturnType diagonal(void) const;
     const SubDiagonalReturnType subDiagonal(void) const;
 
+    static void decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
+
   private:
 
     static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
+
+    static void _decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
 
   protected:
     MatrixType m_matrix;
@@ -181,6 +189,8 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // FIXME can we avoid to evaluate twice the diagonal products ?
       // (in a simple way otherwise it's overkill)
 
+      // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
+      // note: the sequence of the beta values leads to the subdiagonal entries
       matA.col(i).coeffRef(i+1) = beta;
 
       hCoeffs.coeffRef(i) = h;
@@ -240,6 +250,71 @@ Tridiagonalization<MatrixType>::subDiagonal(void) const
   int n = m_matrix.rows();
   return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1)
     .nestByValue().diagonal().nestByValue().real();
+}
+
+/** Performs a full decomposition in place */
+template<typename MatrixType>
+void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+{
+  int n = mat.rows();
+  ei_assert(mat.cols()==n && diag.size()==n && subdiag.size()==n-1);
+  if (n==3 && (!NumTraits<Scalar>::IsComplex) )
+  {
+    Tridiagonalization tridiag(mat);
+    _decomposeInPlace3x3(mat, diag, subdiag, extractQ);
+  }
+  else
+  {
+    Tridiagonalization tridiag(mat);
+    diag = tridiag.diagonal();
+    subdiag = tridiag.subDiagonal();
+    if (extractQ)
+      mat = tridiag.matrixQ();
+  }
+}
+
+/** \internal
+  * Optimized path for 3x3 matrices.
+  * Especially usefull for plane fit.
+  */
+template<typename MatrixType>
+void Tridiagonalization<MatrixType>::_decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+{
+  diag[0] = ei_real(mat(0,0));
+  RealScalar v1norm2 = ei_abs2(mat(0,2));
+  if (ei_isMuchSmallerThan(v1norm2, RealScalar(1)))
+  {
+    diag[1] = ei_real(mat(1,1));
+    diag[2] = ei_real(mat(2,2));
+    subdiag[0] = ei_real(mat(0,1));
+    subdiag[1] = ei_real(mat(1,2));
+    if (extractQ)
+      mat.setIdentity();
+  }
+  else
+  {
+    RealScalar beta = ei_sqrt(ei_abs2(mat(0,1))+v1norm2);
+    RealScalar invBeta = RealScalar(1)/beta;
+    Scalar m01 = mat(0,1) * invBeta;
+    Scalar m02 = mat(0,2) * invBeta;
+    Scalar q = RealScalar(2)*m01*mat(1,2) + m02*(mat(2,2) - mat(1,1));
+    diag[1] = ei_real(mat(1,1) + m02*q);
+    diag[2] = ei_real(mat(2,2) - m02*q);
+    subdiag[0] = beta;
+    subdiag[1] = ei_real(mat(1,2) - m01 * q);
+    if (extractQ)
+    {
+      mat(0,0) = 1;
+      mat(0,1) = 0;
+      mat(0,2) = 0;
+      mat(1,0) = 0;
+      mat(1,1) = m01;
+      mat(1,2) = m02;
+      mat(2,0) = 0;
+      mat(2,1) = m02;
+      mat(2,2) = -m01;
+    }
+  }
 }
 
 #endif // EIGEN_TRIDIAGONALIZATION_H
