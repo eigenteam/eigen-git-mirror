@@ -115,7 +115,7 @@ template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
-  ei_internal_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   if(RowsAtCompileTime == 1)
   {
     ei_internal_assert(index >= 0 && index < cols());
@@ -139,7 +139,7 @@ template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   if(RowsAtCompileTime == 1)
   {
     ei_assert(index >= 0 && index < cols());
@@ -170,7 +170,7 @@ template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int index)
 {
-  ei_internal_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   if(RowsAtCompileTime == 1)
   {
     ei_internal_assert(index >= 0 && index < cols());

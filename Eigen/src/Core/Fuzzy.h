@@ -2,15 +2,16 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either 
+// License as published by the Free Software Foundation; either
 // version 3 of the License, or (at your option) any later version.
 //
 // Alternatively, you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of 
+// published by the Free Software Foundation; either version 2 of
 // the License, or (at your option) any later version.
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -18,12 +19,15 @@
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public 
+// You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef EIGEN_FUZZY_H
 #define EIGEN_FUZZY_H
+
+template<typename Derived, typename OtherDerived=Derived, bool IsVector=Derived::IsVectorAtCompileTime>
+struct ei_fuzzy_selector;
 
 /** \returns \c true if \c *this is approximately equal to \a other, within the precision
   * determined by \a prec.
@@ -48,21 +52,7 @@ bool MatrixBase<Derived>::isApprox(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  ei_assert(rows() == other.rows() && cols() == other.cols());
-  if(IsVectorAtCompileTime)
-  {
-    return((*this - other).norm2() <= std::min(norm2(), other.norm2()) * prec * prec);
-  }
-  else
-  {
-    typename Derived::Nested nested(derived());
-    typename OtherDerived::Nested otherNested(other.derived());
-    for(int i = 0; i < cols(); i++)
-      if((nested.col(i) - otherNested.col(i)).norm2()
-         > std::min(nested.col(i).norm2(), otherNested.col(i).norm2()) * prec * prec)
-        return false;
-    return true;
-  }
+  return ei_fuzzy_selector<Derived,OtherDerived>::isApprox(derived(), other.derived(), prec);
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than \a other,
@@ -81,18 +71,7 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  if(IsVectorAtCompileTime)
-  {
-    return(norm2() <= ei_abs2(other * prec));
-  }
-  else
-  {
-    typename Derived::Nested nested(*this);
-    for(int i = 0; i < cols(); i++)
-      if(nested.col(i).norm2() > ei_abs2(other * prec))
-        return false;
-    return true;
-  }
+  return ei_fuzzy_selector<Derived>::isMuchSmallerThan(derived(), other, prec);
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than the norm of \a other,
@@ -112,20 +91,67 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  ei_assert(rows() == other.rows() && cols() == other.cols());
-  if(IsVectorAtCompileTime)
+  return ei_fuzzy_selector<Derived,OtherDerived>::isMuchSmallerThan(derived(), other.derived(), prec);
+}
+
+
+template<typename Derived, typename OtherDerived>
+struct ei_fuzzy_selector<Derived,OtherDerived,true>
+{
+  typedef typename Derived::RealScalar RealScalar;
+  static bool isApprox(const Derived& self, const OtherDerived& other, RealScalar prec)
   {
-    return(norm2() <= other.norm2() * prec * prec);
+    EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived);
+    ei_assert(self.size() == other.size());
+    return((self - other).norm2() <= std::min(self.norm2(), other.norm2()) * prec * prec);
   }
-  else
+  static bool isMuchSmallerThan(const Derived& self, const RealScalar& other, RealScalar prec)
   {
-    typename Derived::Nested nested(*this);
+    return(self.norm2() <= ei_abs2(other * prec));
+  }
+  static bool isMuchSmallerThan(const Derived& self, const OtherDerived& other, RealScalar prec)
+  {
+    EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived);
+    ei_assert(self.size() == other.size());
+    return(self.norm2() <= other.norm2() * prec * prec);
+  }
+};
+
+template<typename Derived, typename OtherDerived>
+struct ei_fuzzy_selector<Derived,OtherDerived,false>
+{
+  typedef typename Derived::RealScalar RealScalar;
+  static bool isApprox(const Derived& self, const OtherDerived& other, RealScalar prec)
+  {
+    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived);
+    ei_assert(self.rows() == other.rows() && self.cols() == other.cols());
+    typename Derived::Nested nested(self);
     typename OtherDerived::Nested otherNested(other);
-    for(int i = 0; i < cols(); i++)
+    for(int i = 0; i < self.cols(); i++)
+      if((nested.col(i) - otherNested.col(i)).norm2()
+          > std::min(nested.col(i).norm2(), otherNested.col(i).norm2()) * prec * prec)
+        return false;
+    return true;
+  }
+  static bool isMuchSmallerThan(const Derived& self, const RealScalar& other, RealScalar prec)
+  {
+    typename Derived::Nested nested(self);
+    for(int i = 0; i < self.cols(); i++)
+      if(nested.col(i).norm2() > ei_abs2(other * prec))
+        return false;
+    return true;
+  }
+  static bool isMuchSmallerThan(const Derived& self, const OtherDerived& other, RealScalar prec)
+  {
+    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived);
+    ei_assert(self.rows() == other.rows() && self.cols() == other.cols());
+    typename Derived::Nested nested(self);
+    typename OtherDerived::Nested otherNested(other);
+    for(int i = 0; i < self.cols(); i++)
       if(nested.col(i).norm2() > otherNested.col(i).norm2() * prec * prec)
         return false;
     return true;
   }
-}
+};
 
 #endif // EIGEN_FUZZY_H

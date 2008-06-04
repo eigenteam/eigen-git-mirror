@@ -217,7 +217,7 @@ template<typename Derived>
 inline Block<Derived> MatrixBase<Derived>
   ::block(int start, int size)
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -229,7 +229,7 @@ template<typename Derived>
 inline const Block<Derived> MatrixBase<Derived>
   ::block(int start, int size) const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -254,7 +254,7 @@ inline const Block<Derived> MatrixBase<Derived>
 template<typename Derived>
 inline Block<Derived> MatrixBase<Derived>::start(int size)
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
@@ -264,7 +264,7 @@ inline Block<Derived> MatrixBase<Derived>::start(int size)
 template<typename Derived>
 inline const Block<Derived> MatrixBase<Derived>::start(int size) const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(), 0, 0,
                         RowsAtCompileTime == 1 ? 1 : size,
                         ColsAtCompileTime == 1 ? 1 : size);
@@ -288,7 +288,7 @@ inline const Block<Derived> MatrixBase<Derived>::start(int size) const
 template<typename Derived>
 inline Block<Derived> MatrixBase<Derived>::end(int size)
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
@@ -300,7 +300,7 @@ inline Block<Derived> MatrixBase<Derived>::end(int size)
 template<typename Derived>
 inline const Block<Derived> MatrixBase<Derived>::end(int size) const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived>(derived(),
                         RowsAtCompileTime == 1 ? 0 : rows() - size,
                         ColsAtCompileTime == 1 ? 0 : cols() - size,
@@ -324,7 +324,7 @@ template<int Size>
 inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::start()
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
                         (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
@@ -335,7 +335,7 @@ template<int Size>
 inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::start() const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
                         (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
@@ -356,7 +356,7 @@ template<int Size>
 inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::end()
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
                         ColsAtCompileTime == 1 ? 1 : Size>
            (derived(),
@@ -370,7 +370,7 @@ template<int Size>
 inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
 MatrixBase<Derived>::end() const
 {
-  ei_assert(IsVectorAtCompileTime);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
                         ColsAtCompileTime == 1 ? 1 : Size>
            (derived(),

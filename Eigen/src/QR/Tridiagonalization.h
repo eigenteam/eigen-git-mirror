@@ -50,11 +50,11 @@ template<typename _MatrixType> class Tridiagonalization
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
 
-    typedef typename NestByValue<DiagonalCoeffs<MatrixType> >::RealReturnType DiagonalType;
+    typedef typename NestByValue<DiagonalCoeffs<MatrixType> >::RealReturnType DiagonalReturnType;
 
     typedef typename NestByValue<DiagonalCoeffs<
         NestByValue<Block<
-          MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalType;
+          MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
 
     Tridiagonalization()
     {}
@@ -107,8 +107,8 @@ template<typename _MatrixType> class Tridiagonalization
     const MatrixType& packedMatrix(void) const { return m_matrix; }
 
     MatrixType matrixQ(void) const;
-    const DiagonalType diagonal(void) const;
-    const SubDiagonalType subDiagonal(void) const;
+    const DiagonalReturnType diagonal(void) const;
+    const SubDiagonalReturnType subDiagonal(void) const;
 
   private:
 
@@ -188,7 +188,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
   }
   if (NumTraits<Scalar>::IsComplex)
   {
-    // householder transformation on the remaining single scalar
+    // Householder transformation on the remaining single scalar
     int i = n-2;
     Scalar v0 = matA.col(i).coeff(i+1);
     RealScalar beta = ei_abs(v0);
@@ -226,7 +226,7 @@ Tridiagonalization<MatrixType>::matrixQ(void) const
 
 /** \returns an expression of the diagonal vector */
 template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::DiagonalType
+const typename Tridiagonalization<MatrixType>::DiagonalReturnType
 Tridiagonalization<MatrixType>::diagonal(void) const
 {
   return m_matrix.diagonal().nestByValue().real();
@@ -234,7 +234,7 @@ Tridiagonalization<MatrixType>::diagonal(void) const
 
 /** \returns an expression of the sub-diagonal vector */
 template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::SubDiagonalType
+const typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
 Tridiagonalization<MatrixType>::subDiagonal(void) const
 {
   int n = m_matrix.rows();

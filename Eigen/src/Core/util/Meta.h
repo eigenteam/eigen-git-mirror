@@ -73,7 +73,6 @@ template<typename T> struct ei_is_same_type<T,T> { enum { ret = 1 }; };
 struct ei_meta_true {};
 struct ei_meta_false {};
 
-
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
   *

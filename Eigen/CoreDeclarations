@@ -40,6 +40,7 @@ namespace Eigen {
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"
+#include "src/Core/util/StaticAssert.h"
 
 } // namespace Eigen
 

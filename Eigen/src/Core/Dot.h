@@ -79,9 +79,10 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   Nested nested(derived());
   OtherNested otherNested(other.derived());
 
-  ei_assert(_Nested::IsVectorAtCompileTime
-         && _OtherNested::IsVectorAtCompileTime
-         && nested.size() == otherNested.size());
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested);
+  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested);
+  ei_assert(nested.size() == otherNested.size());
   Scalar res;
   const bool unroll = SizeAtCompileTime
                       * (_Nested::CoeffReadCost + _OtherNested::CoeffReadCost + NumTraits<Scalar>::MulCost)
