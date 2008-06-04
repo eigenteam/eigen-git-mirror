@@ -22,10 +22,9 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define throw(X)
 #define EIGEN_DONT_VECTORIZE 1
 #include "main.h"
-
-// #define CUSTOM_NEW_DELETE(TYPE)
 
 void* operator new[] (size_t n)
   {
