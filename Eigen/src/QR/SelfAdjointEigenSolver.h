@@ -58,7 +58,13 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
     void compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
-    MatrixType eigenvectors(void) const { ei_assert(m_eigenvectorsOk); return m_eivec; }
+    MatrixType eigenvectors(void) const
+    {
+      #ifndef NDEBUG
+      ei_assert(m_eigenvectorsOk);
+      #endif
+      return m_eivec;
+    }
 
     RealVectorType eigenvalues(void) const { return m_eivalues; }
 
@@ -114,7 +120,9 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
 template<typename MatrixType>
 void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
+  #ifndef NDEBUG
   m_eigenvectorsOk = computeEigenvectors;
+  #endif
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
