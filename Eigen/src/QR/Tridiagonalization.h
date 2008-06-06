@@ -163,7 +163,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       RealScalar beta = ei_sqrt(ei_abs2(v0)+v1norm2);
       if (ei_real(v0)>=0.)
         beta = -beta;
-      matA.col(i).end(n-(i+2)) *= (1./(v0-beta));
+      matA.col(i).end(n-(i+2)) *= (Scalar(1)/(v0-beta));
       matA.col(i).coeffRef(i+1) = beta;
       Scalar h = (beta - v0) / beta;
       // end of the householder transformation
@@ -177,7 +177,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
                                 * matA.col(i).end(n-i-1));
 
 
-      hCoeffs.end(n-i-1) += (h * (-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
+      hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
                             * matA.col(i).end(n-i-1);
 
       matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower>() =

@@ -47,7 +47,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef std::complex<RealScalar> Complex;
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
-    typedef Tridiagonalization<MatrixType> Tridiagonalization;
+    typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 
     SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
@@ -124,8 +124,8 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   // the latter avoids multiple memory allocation when the same SelfAdjointEigenSolver is used multiple times...
   // (same for diag and subdiag)
   RealVectorType& diag = m_eivalues;
-  typename Tridiagonalization::SubDiagonalType subdiag(n-1);
-  Tridiagonalization::decomposeInPlace(m_eivec, diag, subdiag, computeEigenvectors);
+  typename TridiagonalizationType::SubDiagonalType subdiag(n-1);
+  TridiagonalizationType::decomposeInPlace(m_eivec, diag, subdiag, computeEigenvectors);
 
   int end = n-1;
   int start = 0;
@@ -191,10 +191,11 @@ template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
   static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
   matrixNorm(const MatrixBase<Derived>& m)
   {
+    typename Derived::Eval m_eval(m);
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
     // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
     return ei_sqrt(
-             (m*m.adjoint())
+             (m_eval*m_eval.adjoint())
              .template marked<SelfAdjoint>()
              .eigenvalues()
              .maxCoeff()

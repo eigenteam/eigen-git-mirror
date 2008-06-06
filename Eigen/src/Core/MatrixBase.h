@@ -141,9 +141,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
       * \a Scalar is \a std::complex<T> then RealScalar is \a T.
       *
-      * In fact, \a RealScalar is defined as follows:
-      * \code typedef typename NumTraits<Scalar>::Real RealScalar; \endcode
-      *
       * \sa class NumTraits
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -160,7 +157,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     inline bool isVector() const { return rows()==1 || cols()==1; }
-
 
     /** Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -433,7 +429,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.
-      * Combined with coeffRef() and the compile times flags, it allows a direct access to the data
+      * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
       * of the underlying matrix.
       */
     inline int stride(void) const { return derived()._stride(); }

@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<typename MatrixType> void verifySizeOf(const MatrixType& m)
+template<typename MatrixType> void verifySizeOf(const MatrixType&)
 {
   typedef typename MatrixType::Scalar Scalar;
   if (MatrixType::RowsAtCompileTime!=Dynamic && MatrixType::ColsAtCompileTime!=Dynamic)
