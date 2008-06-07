@@ -26,17 +26,17 @@
 #define EIGEN_DOT_H
 
 template<int Index, int Size, typename Derived1, typename Derived2>
-struct ei_dot_unroller
+struct ei_dot_impl
 {
   inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
-    ei_dot_unroller<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
+    ei_dot_impl<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
     dot += v1.coeff(Index) * ei_conj(v2.coeff(Index));
   }
 };
 
 template<int Size, typename Derived1, typename Derived2>
-struct ei_dot_unroller<0, Size, Derived1, Derived2>
+struct ei_dot_impl<0, Size, Derived1, Derived2>
 {
   inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
   {
@@ -44,15 +44,20 @@ struct ei_dot_unroller<0, Size, Derived1, Derived2>
   }
 };
 
-template<int Index, typename Derived1, typename Derived2>
-struct ei_dot_unroller<Index, Dynamic, Derived1, Derived2>
+template<typename Derived1, typename Derived2>
+struct ei_dot_impl<Dynamic, Dynamic, Derived1, Derived2>
 {
-  inline static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
+  inline static void run(const Derived1& v1, const Derived2& v2, typename Derived1::Scalar& dot)
+  {
+    dot = v1.coeff(0) * ei_conj(v2.coeff(0));
+    for(int i = 1; i < v1.size(); i++)
+      dot += v1.coeff(i)* ei_conj(v2.coeff(i));
+  }
 };
 
 // prevent buggy user code from causing an infinite recursion
 template<int Index, typename Derived1, typename Derived2>
-struct ei_dot_unroller<Index, 0, Derived1, Derived2>
+struct ei_dot_impl<Index, 0, Derived1, Derived2>
 {
   inline static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
 };
@@ -83,22 +88,16 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested);
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested);
   ei_assert(nested.size() == otherNested.size());
-  Scalar res;
   const bool unroll = SizeAtCompileTime
                       * (_Nested::CoeffReadCost + _OtherNested::CoeffReadCost + NumTraits<Scalar>::MulCost)
                       + (int(SizeAtCompileTime) - 1) * NumTraits<Scalar>::AddCost
                       <= EIGEN_UNROLLING_LIMIT;
-  if(unroll)
-    ei_dot_unroller<int(SizeAtCompileTime)-1,
-                unroll ? int(SizeAtCompileTime) : Dynamic,
-                _Nested, _OtherNested>
-      ::run(nested, otherNested, res);
-  else
-  {
-    res = nested.coeff(0) * ei_conj(otherNested.coeff(0));
-    for(int i = 1; i < size(); i++)
-      res += nested.coeff(i)* ei_conj(otherNested.coeff(i));
-  }
+
+  Scalar res;
+  ei_dot_impl<unroll ? int(SizeAtCompileTime)-1 : Dynamic,
+              unroll ? int(SizeAtCompileTime) : Dynamic,
+              _Nested, _OtherNested>
+    ::run(nested, otherNested, res);
   return res;
 }
 

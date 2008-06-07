@@ -47,8 +47,8 @@ struct ei_product_impl<0, Size, Lhs, Rhs>
   }
 };
 
-template<int Index, typename Lhs, typename Rhs>
-struct ei_product_impl<Index, Dynamic, Lhs, Rhs>
+template<typename Lhs, typename Rhs>
+struct ei_product_impl<Dynamic, Dynamic, Lhs, Rhs>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar& res)
   {
@@ -268,7 +268,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       {
         Scalar res;
         const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
-        ei_product_impl<Lhs::ColsAtCompileTime-1,
+        ei_product_impl<unroll ? Lhs::ColsAtCompileTime-1 : Dynamic,
                             unroll ? Lhs::ColsAtCompileTime : Dynamic,
                             _LhsNested, _RhsNested>
           ::run(row, col, m_lhs, m_rhs, res);

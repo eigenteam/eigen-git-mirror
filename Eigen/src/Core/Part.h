@@ -92,7 +92,7 @@ inline void Part<MatrixType, Mode>::operator=(const Other& other)
 }
 
 template<typename Derived1, typename Derived2, unsigned int Mode, int UnrollCount>
-struct ei_part_assignment_unroller
+struct ei_part_assignment_impl
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -101,7 +101,7 @@ struct ei_part_assignment_unroller
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_part_assignment_unroller<Derived1, Derived2, Mode, UnrollCount-1>::run(dst, src);
+    ei_part_assignment_impl<Derived1, Derived2, Mode, UnrollCount-1>::run(dst, src);
 
     if(Mode == SelfAdjoint)
     {
@@ -122,7 +122,7 @@ struct ei_part_assignment_unroller
 };
 
 template<typename Derived1, typename Derived2, unsigned int Mode>
-struct ei_part_assignment_unroller<Derived1, Derived2, Mode, 1>
+struct ei_part_assignment_impl<Derived1, Derived2, Mode, 1>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -133,17 +133,66 @@ struct ei_part_assignment_unroller<Derived1, Derived2, Mode, 1>
 
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2, unsigned int Mode>
-struct ei_part_assignment_unroller<Derived1, Derived2, Mode, 0>
+struct ei_part_assignment_impl<Derived1, Derived2, Mode, 0>
 {
   inline static void run(Derived1 &, const Derived2 &) {}
 };
 
-template<typename Derived1, typename Derived2, unsigned int Mode>
-struct ei_part_assignment_unroller<Derived1, Derived2, Mode, Dynamic>
+template<typename Derived1, typename Derived2>
+struct ei_part_assignment_impl<Derived1, Derived2, Upper, Dynamic>
 {
-  inline static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = 0; i <= j; i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
 };
 
+template<typename Derived1, typename Derived2>
+struct ei_part_assignment_impl<Derived1, Derived2, Lower, Dynamic>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = j; i < dst.rows(); i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+
+template<typename Derived1, typename Derived2>
+struct ei_part_assignment_impl<Derived1, Derived2, StrictlyUpper, Dynamic>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = 0; i < j; i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+template<typename Derived1, typename Derived2>
+struct ei_part_assignment_impl<Derived1, Derived2, StrictlyLower, Dynamic>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = j+1; i < dst.rows(); i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+template<typename Derived1, typename Derived2>
+struct ei_part_assignment_impl<Derived1, Derived2, SelfAdjoint, Dynamic>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+    {
+      for(int i = 0; i < j; i++)
+        dst.coeffRef(j, i) = ei_conj(dst.coeffRef(i, j) = src.coeff(i, j));
+      dst.coeffRef(j, j) = ei_real(src.coeff(j, j));
+    }
+  }
+};
 
 template<typename MatrixType, unsigned int Mode>
 template<typename Other>
@@ -151,47 +200,11 @@ void Part<MatrixType, Mode>::lazyAssign(const Other& other)
 {
   const bool unroll = MatrixType::SizeAtCompileTime * Other::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT;
   ei_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
-  if(unroll)
-  {
-    ei_part_assignment_unroller
-      <MatrixType, Other, Mode,
-      unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic
-      >::run(m_matrix, other.derived());
-  }
-  else
-  {
-    switch(Mode)
-    {
-      case Upper:
-        for(int j = 0; j < m_matrix.cols(); j++)
-          for(int i = 0; i <= j; i++)
-            m_matrix.coeffRef(i, j) = other.coeff(i, j);
-        break;
-      case Lower:
-        for(int j = 0; j < m_matrix.cols(); j++)
-          for(int i = j; i < m_matrix.rows(); i++)
-            m_matrix.coeffRef(i, j) = other.coeff(i, j);
-        break;
-      case StrictlyUpper:
-        for(int j = 0; j < m_matrix.cols(); j++)
-          for(int i = 0; i < j; i++)
-            m_matrix.coeffRef(i, j) = other.coeff(i, j);
-        break;
-      case StrictlyLower:
-        for(int j = 0; j < m_matrix.cols(); j++)
-          for(int i = j+1; i < m_matrix.rows(); i++)
-            m_matrix.coeffRef(i, j) = other.coeff(i, j);
-        break;
-      case SelfAdjoint:
-        for(int j = 0; j < m_matrix.cols(); j++)
-        {
-          for(int i = 0; i < j; i++)
-            m_matrix.coeffRef(j, i) = ei_conj(m_matrix.coeffRef(i, j) = other.coeff(i, j));
-          m_matrix.coeffRef(j, j) = ei_real(other.coeff(j, j));
-        }
-        break;
-    }
-  }
+
+  ei_part_assignment_impl
+    <MatrixType, Other, Mode,
+    unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic
+    >::run(m_matrix, other.derived());
 }
 
 template<typename MatrixType, unsigned int Mode>

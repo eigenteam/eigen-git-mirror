@@ -63,7 +63,17 @@ template<typename BinaryOp, typename Derived, int Start>
 struct ei_redux_unroller<BinaryOp, Derived, Start, Dynamic>
 {
   typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
-  static Scalar run(const Derived&, const BinaryOp&) { return Scalar(); }
+  static Scalar run(const Derived& mat, const BinaryOp& func)
+  {
+    Scalar res;
+    res = mat.coeff(0,0);
+    for(int i = 1; i < mat.rows(); i++)
+      res = func(res, mat.coeff(i, 0));
+    for(int j = 1; j < mat.cols(); j++)
+      for(int i = 0; i < mat.rows(); i++)
+        res = func(res, mat.coeff(i, j));
+    return res;
+  }
 };
 
 /** \returns the result of a full redux operation on the whole matrix or vector using \a func
@@ -81,21 +91,9 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   const bool unroll = SizeAtCompileTime * CoeffReadCost
                     + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
                     <= EIGEN_UNROLLING_LIMIT;
-  if(unroll)
-    return ei_redux_unroller<BinaryOp, Derived, 0,
-                             unroll ? int(SizeAtCompileTime) : Dynamic>
-           ::run(derived(), func);
-  else
-  {
-    Scalar res;
-    res = coeff(0,0);
-    for(int i = 1; i < rows(); i++)
-      res = func(res, coeff(i, 0));
-    for(int j = 1; j < cols(); j++)
-      for(int i = 0; i < rows(); i++)
-        res = func(res, coeff(i, j));
-    return res;
-  }
+  return ei_redux_unroller<BinaryOp, Derived, 0,
+                            unroll ? int(SizeAtCompileTime) : Dynamic>
+          ::run(derived(), func);
 }
 
 /** \returns the sum of all coefficients of *this

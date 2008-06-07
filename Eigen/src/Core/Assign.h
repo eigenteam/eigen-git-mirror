@@ -58,10 +58,30 @@ struct ei_matrix_assignment_unroller<Derived1, Derived2, 0>
   inline static void run(Derived1 &, const Derived2 &) {}
 };
 
+// Dynamic col-major
 template<typename Derived1, typename Derived2>
-struct ei_matrix_assignment_unroller<Derived1, Derived2, Dynamic>
+struct ei_matrix_assignment_unroller<Derived1, Derived2, -1>
 {
-  inline static void run(Derived1 &, const Derived2 &) {}
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); j++)
+      for(int i = 0; i < dst.rows(); i++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
+};
+
+// Dynamic row-major
+template<typename Derived1, typename Derived2>
+struct ei_matrix_assignment_unroller<Derived1, Derived2, -2>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    // traverse in row-major order
+    // in order to allow the compiler to unroll the inner loop
+    for(int i = 0; i < dst.rows(); i++)
+      for(int j = 0; j < dst.cols(); j++)
+        dst.coeffRef(i, j) = src.coeff(i, j);
+  }
 };
 
 //----
@@ -103,10 +123,12 @@ struct ei_matrix_assignment_packet_unroller<Derived1, Derived2, Dynamic>
 template <typename Derived, typename OtherDerived,
 bool Vectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & VectorizableBit)
               && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit))
-              && (  (int(Derived::Flags) & int(OtherDerived::Flags) & Like1DArrayBit)
-                  ||((int(Derived::Flags)&RowMajorBit)
-                    ? int(Derived::ColsAtCompileTime)!=Dynamic && (int(Derived::ColsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)
-                    : int(Derived::RowsAtCompileTime)!=Dynamic && (int(Derived::RowsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
+              && (   (int(Derived::Flags) & int(OtherDerived::Flags) & Like1DArrayBit)
+                  || ((int(Derived::Flags) & RowMajorBit)
+                    ?     int(Derived::ColsAtCompileTime)!=Dynamic
+                      && (int(Derived::ColsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)
+                    :     int(Derived::RowsAtCompileTime)!=Dynamic
+                      && (int(Derived::RowsAtCompileTime)%ei_packet_traits<typename Derived::Scalar>::size==0)) ),
 bool Unroll = Derived::SizeAtCompileTime * OtherDerived::CoeffReadCost <= EIGEN_UNROLLING_LIMIT>
 struct ei_assignment_impl;
 
@@ -156,36 +178,18 @@ inline Derived& MatrixBase<Derived>
 
 //----
 
-template <typename Derived, typename OtherDerived>
-struct ei_assignment_impl<Derived, OtherDerived, false, true> // no vec + unrolling
+// no vectorization
+template <typename Derived, typename OtherDerived, bool Unroll>
+struct ei_assignment_impl<Derived, OtherDerived, false, Unroll>
 {
   static void run(Derived & dst, const OtherDerived & src)
   {
     ei_matrix_assignment_unroller
-      <Derived, OtherDerived, int(Derived::SizeAtCompileTime)
+      <Derived, OtherDerived,
+      Unroll ? int(Derived::SizeAtCompileTime)
+      : Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic ? -1 // col-major
+      : -2 // row-major
       >::run(dst.derived(), src.derived());
-  }
-};
-
-template <typename Derived, typename OtherDerived>
-struct ei_assignment_impl<Derived, OtherDerived, false, false> // no vec + no unrolling + col major order
-{
-  static void run(Derived & dst, const OtherDerived & src)
-  {
-    if(Derived::ColsAtCompileTime == Dynamic || Derived::RowsAtCompileTime != Dynamic)
-    {
-      for(int j = 0; j < dst.cols(); j++)
-        for(int i = 0; i < dst.rows(); i++)
-          dst.coeffRef(i, j) = src.coeff(i, j);
-    }
-    else
-    {
-      // traverse in row-major order
-      // in order to allow the compiler to unroll the inner loop
-      for(int i = 0; i < dst.rows(); i++)
-        for(int j = 0; j < dst.cols(); j++)
-          dst.coeffRef(i, j) = src.coeff(i, j);
-    }
   }
 };
 
@@ -224,7 +228,7 @@ struct ei_assignment_impl<Derived, OtherDerived, true, false> // vec + no-unroll
 };
 
 template <typename Derived, typename OtherDerived>
-struct ei_packet_assignment_seclector<Derived, OtherDerived, true, true> // row-major + complex 1D array
+struct ei_packet_assignment_seclector<Derived, OtherDerived, true, true> // row-major + complex 1D array like
 {
   static void run(Derived & dst, const OtherDerived & src)
   {

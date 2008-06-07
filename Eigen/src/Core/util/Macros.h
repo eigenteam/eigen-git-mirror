@@ -34,7 +34,7 @@
 
 /** Defines the maximal loop size to enable meta unrolling of loops */
 #ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 400
+#define EIGEN_UNROLLING_LIMIT 100
 #endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR

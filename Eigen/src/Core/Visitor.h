@@ -52,7 +52,15 @@ struct ei_visitor_unroller<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct ei_visitor_unroller<Visitor, Derived, Dynamic>
 {
-  inline static void run(const Derived &, Visitor&) {}
+  inline static void run(const Derived& mat, Visitor& visitor)
+  {
+    visitor.init(mat.coeff(0,0), 0, 0);
+    for(int i = 1; i < mat.rows(); i++)
+      visitor(mat.coeff(i, 0), i, 0);
+    for(int j = 1; j < mat.cols(); j++)
+      for(int i = 0; i < mat.rows(); i++)
+        visitor(mat.coeff(i, j), i, j);
+  }
 };
 
 
@@ -77,19 +85,9 @@ void MatrixBase<Derived>::visit(Visitor& visitor) const
   const bool unroll = SizeAtCompileTime * CoeffReadCost
                     + (SizeAtCompileTime-1) * ei_functor_traits<Visitor>::Cost
                     <= EIGEN_UNROLLING_LIMIT;
-  if(unroll)
-    return ei_visitor_unroller<Visitor, Derived,
-        unroll ? int(SizeAtCompileTime) : Dynamic
-      >::run(derived(), visitor);
-  else
-  {
-    visitor.init(coeff(0,0), 0, 0);
-    for(int i = 1; i < rows(); i++)
-      visitor(coeff(i, 0), i, 0);
-    for(int j = 1; j < cols(); j++)
-      for(int i = 0; i < rows(); i++)
-        visitor(coeff(i, j), i, j);
-  }
+  return ei_visitor_unroller<Visitor, Derived,
+      unroll ? int(SizeAtCompileTime) : Dynamic
+    >::run(derived(), visitor);
 }
 
 /** \internal
