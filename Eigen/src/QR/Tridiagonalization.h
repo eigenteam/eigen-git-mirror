@@ -226,7 +226,7 @@ Tridiagonalization<MatrixType>::matrixQ(void) const
     m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
 
     matQ.corner(BottomRight,n-i-1,n-i-1) -=
-      ((m_hCoeffs[i] * m_matrix.col(i).end(n-i-1)) *
+      ((m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1)) *
       (m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy()).lazy();
 
     m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;

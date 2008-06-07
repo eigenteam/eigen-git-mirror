@@ -63,7 +63,10 @@ bool MatrixBase<Derived>::isApprox(
   * \note The fuzzy compares are done multiplicatively. A vector \f$ v \f$ is
   * considered to be much smaller than \f$ x \f$ within precision \f$ p \f$ if
   * \f[ \Vert v \Vert \leqslant p\,\vert x\vert. \f]
-  * For matrices, the comparison is done using the Hilbert-Schmidt norm.
+  *
+  * For matrices, the comparison is done using the Hilbert-Schmidt norm. For this reason,
+  * the value of the reference scalar \a other should come from the Hilbert-Schmidt norm
+  * of a reference matrix of same dimensions.
   *
   * \sa isApprox(), isMuchSmallerThan(const MatrixBase<OtherDerived>&, RealScalar) const
   */
@@ -73,7 +76,7 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   typename NumTraits<Scalar>::Real prec
 ) const
 {
-  return cwiseAbs2().sum() <= prec * prec * other * other * cols() * rows();
+  return cwiseAbs2().sum() <= prec * prec * other * other;
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than the norm of \a other,
