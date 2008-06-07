@@ -25,78 +25,21 @@
 #ifndef EIGEN_CROSS_H
 #define EIGEN_CROSS_H
 
-/** \class Cross
-  *
-  * \brief Expression of the cross product of two vectors
-  *
-  * \param Lhs the type of the left-hand side
-  * \param Rhs the type of the right-hand side
-  *
-  * This class represents an expression of the cross product of two 3D vectors.
-  * It is the return type of MatrixBase::cross(), and most
-  * of the time this is the only way it is used.
-  */
-template<typename Lhs, typename Rhs>
-struct ei_traits<Cross<Lhs, Rhs> >
-{
-  typedef typename Lhs::Scalar Scalar;
-  typedef typename ei_nested<Lhs,2>::type LhsNested;
-  typedef typename ei_nested<Rhs,2>::type RhsNested;
-  typedef typename ei_unref<LhsNested>::type _LhsNested;
-  typedef typename ei_unref<RhsNested>::type _RhsNested;
-  enum {
-    RowsAtCompileTime = 3,
-    ColsAtCompileTime = 1,
-    MaxRowsAtCompileTime = 3,
-    MaxColsAtCompileTime = 1,
-    Flags = ((_RhsNested::Flags | _LhsNested::Flags) & HereditaryBits)
-          | EvalBeforeAssigningBit,
-    CoeffReadCost = NumTraits<Scalar>::AddCost + 2 * NumTraits<Scalar>::MulCost
-  };
-};
-
-template<typename Lhs, typename Rhs> class Cross : ei_no_assignment_operator,
-    public MatrixBase<Cross<Lhs, Rhs> >
-{
-  public:
-
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Cross)
-    typedef typename ei_traits<Cross>::LhsNested LhsNested;
-    typedef typename ei_traits<Cross>::RhsNested RhsNested;
-
-    Cross(const Lhs& lhs, const Rhs& rhs)
-      : m_lhs(lhs), m_rhs(rhs)
-    {
-      assert(lhs.isVector());
-      assert(rhs.isVector());
-      assert(lhs.size() == 3 && rhs.size() == 3);
-    }
-
-  private:
-
-    int _rows() const { return 3; }
-    int _cols() const { return 1; }
-
-    Scalar _coeff(int i, int) const
-    {
-      return m_lhs[(i+1)%3]*m_rhs[(i+2)%3] - m_lhs[(i+2)%3]*m_rhs[(i+1)%3];
-    }
-
-  protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
-};
-
-/** \returns an expression of the cross product of \c *this and \a other
-  *
-  * \sa class Cross
-  */
+/** \returns the cross product of \c *this and \a other */
 template<typename Derived>
 template<typename OtherDerived>
-const Cross<Derived,OtherDerived>
-MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
+typename ei_eval<Derived>::type
+inline MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
-    return Cross<Derived,OtherDerived>(derived(),other.derived());
+  // Note that there is no need for an expression here since the compiler
+  // optimize such a small temporary very well (even within a complex expression)
+  const typename ei_nested<Derived,2>::type lhs(derived());
+  const typename ei_nested<OtherDerived,2>::type rhs(other.derived());
+  return typename ei_eval<Derived>::type(
+    lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1),
+    lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
+    lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)
+  );
 }
 
 #endif // EIGEN_CROSS_H

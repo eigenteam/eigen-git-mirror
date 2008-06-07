@@ -27,7 +27,7 @@
 #define EIGEN_REDUX_H
 
 template<typename BinaryOp, typename Derived, int Start, int Length>
-struct ei_redux_unroller
+struct ei_redux_impl
 {
   enum {
     HalfLength = Length/2
@@ -38,13 +38,13 @@ struct ei_redux_unroller
   static Scalar run(const Derived &mat, const BinaryOp& func)
   {
     return func(
-      ei_redux_unroller<BinaryOp, Derived, Start, HalfLength>::run(mat, func),
-      ei_redux_unroller<BinaryOp, Derived, Start+HalfLength, Length - HalfLength>::run(mat, func));
+      ei_redux_impl<BinaryOp, Derived, Start, HalfLength>::run(mat, func),
+      ei_redux_impl<BinaryOp, Derived, Start+HalfLength, Length - HalfLength>::run(mat, func));
   }
 };
 
 template<typename BinaryOp, typename Derived, int Start>
-struct ei_redux_unroller<BinaryOp, Derived, Start, 1>
+struct ei_redux_impl<BinaryOp, Derived, Start, 1>
 {
   enum {
     col = Start / Derived::RowsAtCompileTime,
@@ -60,7 +60,7 @@ struct ei_redux_unroller<BinaryOp, Derived, Start, 1>
 };
 
 template<typename BinaryOp, typename Derived, int Start>
-struct ei_redux_unroller<BinaryOp, Derived, Start, Dynamic>
+struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
 {
   typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
   static Scalar run(const Derived& mat, const BinaryOp& func)
@@ -91,7 +91,7 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   const bool unroll = SizeAtCompileTime * CoeffReadCost
                     + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
                     <= EIGEN_UNROLLING_LIMIT;
-  return ei_redux_unroller<BinaryOp, Derived, 0,
+  return ei_redux_impl<BinaryOp, Derived, 0,
                             unroll ? int(SizeAtCompileTime) : Dynamic>
           ::run(derived(), func);
 }

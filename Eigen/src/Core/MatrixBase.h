@@ -558,7 +558,8 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>
-    const Cross<Derived,OtherDerived> cross(const MatrixBase<OtherDerived>& other) const;
+    typename ei_eval<Derived>::type
+    cross(const MatrixBase<OtherDerived>& other) const;
 
 };
 

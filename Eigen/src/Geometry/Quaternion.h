@@ -41,113 +41,80 @@
   *
   */
 template<typename _Scalar>
-struct ei_traits<Quaternion<_Scalar> >
+class Quaternion
 {
-  typedef _Scalar Scalar;
-  enum {
-    RowsAtCompileTime = 4,
-    ColsAtCompileTime = 1,
-    MaxRowsAtCompileTime = 4,
-    MaxColsAtCompileTime = 1,
-    Flags = ei_corrected_matrix_flags<_Scalar, 4, 0>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
-  };
-};
-
-template<typename _Scalar>
-class Quaternion : public MatrixBase<Quaternion<_Scalar> >
-{
-public:
+    typedef Matrix<_Scalar, 4, 1> Coefficients;
+    Coefficients m_coeffs;
 
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Quaternion)
-
-  private:
-
-    EIGEN_ALIGN_128 Scalar m_data[4];
-
-    inline int _rows() const { return 4; }
-    inline int _cols() const { return 1; }
-
-    inline const Scalar& _coeff(int i, int) const { return m_data[i]; }
-
-    inline Scalar& _coeffRef(int i, int) { return m_data[i]; }
-
-    template<int LoadMode>
-    inline PacketScalar _packetCoeff(int row, int) const
-    {
-      ei_internal_assert(Flags & VectorizableBit);
-      if (LoadMode==Eigen::Aligned)
-        return ei_pload(&m_data[row]);
-      else
-        return ei_ploadu(&m_data[row]);
-    }
-
-    template<int StoreMode>
-    inline void _writePacketCoeff(int row, int , const PacketScalar& x)
-    {
-      ei_internal_assert(Flags & VectorizableBit);
-      if (StoreMode==Eigen::Aligned)
-        ei_pstore(&m_data[row], x);
-      else
-        ei_pstoreu(&m_data[row], x);
-    }
-
-    inline int _stride(void) const { return _rows(); }
-
-  public:
+    /** the scalar type of the coefficients */
+    typedef _Scalar Scalar;
 
     typedef Matrix<Scalar,3,1> Vector3;
     typedef Matrix<Scalar,3,3> Matrix3;
 
+    inline Scalar x() const { return m_coeffs.coeff(0); }
+    inline Scalar y() const { return m_coeffs.coeff(1); }
+    inline Scalar z() const { return m_coeffs.coeff(2); }
+    inline Scalar w() const { return m_coeffs.coeff(3); }
+
+    inline Scalar& x() { return m_coeffs.coeffRef(0); }
+    inline Scalar& y() { return m_coeffs.coeffRef(1); }
+    inline Scalar& z() { return m_coeffs.coeffRef(2); }
+    inline Scalar& w() { return m_coeffs.coeffRef(3); }
+
+    /** \returns a read-only vector expression of the imaginary part (x,y,z) */
+    inline const Block<Coefficients,3,1> vec() const { return m_coeffs.template start<3>(); }
+
+    /** \returns a vector expression of the imaginary part (x,y,z) */
+    inline Block<Coefficients,3,1> vec() { return m_coeffs.template start<3>(); }
+
+    /** \returns a read-only vector expression of the coefficients */
+    inline const Coefficients& _coeffs() const { return m_coeffs; }
+
+    /** \returns a vector expression of the coefficients */
+    inline Coefficients& _coeffs() { return m_coeffs; }
+
     // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
     inline Quaternion(Scalar w = 1.0, Scalar x = 0.0, Scalar y = 0.0, Scalar z = 0.0)
     {
-      m_data[0] = x;
-      m_data[1] = y;
-      m_data[2] = z;
-      m_data[3] = w;
+      m_coeffs.coeffRef(0) = x;
+      m_coeffs.coeffRef(1) = y;
+      m_coeffs.coeffRef(2) = z;
+      m_coeffs.coeffRef(3) = w;
     }
 
-    /** Constructor copying the value of the expression \a other */
-    template<typename OtherDerived>
-    inline Quaternion(const Eigen::MatrixBase<OtherDerived>& other)
-    {
-      *this = other;
-    }
     /** Copy constructor */
-    inline Quaternion(const Quaternion& other)
-      : Base()
-    {
-      *this = other;
-    }
-
-    /** Copies the value of the expression \a other into \c *this.
-      */
-    template<typename OtherDerived>
-    inline Quaternion& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      return Base::operator=(other.derived());
-    }
+    inline Quaternion(const Quaternion& other) { m_coeffs = other.m_coeffs; }
 
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
     inline Quaternion& operator=(const Quaternion& other)
     {
-      return operator=<Quaternion>(other);
+      m_coeffs = other.m_coeffs;
+      return *this;
     }
 
-    /** \overload
-      * \returns a quaternion representing an identity rotation
+    /** \returns a quaternion representing an identity rotation
+      * \sa MatrixBase::identity()
       */
-    static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
+    inline static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
 
-    /** \overload
-      * \sa Quaternion::identity()
+    /** \sa Quaternion::identity(), MatrixBase::setIdentity()
       */
-    Quaternion& setIdentity() { *this << 1, 0, 0, 0; return *this; }
+    inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
+
+    /** \returns the squared norm of the quaternion's coefficients
+      * \sa Quaternion::norm(), MatrixBase::norm2()
+      */
+    inline Scalar norm2() const { return m_coeffs.norm2(); }
+
+    /** \returns the norm of the quaternion's coefficients
+      * \sa Quaternion::norm2(), MatrixBase::norm()
+      */
+    inline Scalar norm() const { return m_coeffs.norm(); }
 
     template<typename Derived>
     Quaternion& fromRotationMatrix(const MatrixBase<Derived>& m);
@@ -175,8 +142,23 @@ public:
     template<typename Derived>
     Vector3 operator* (const MatrixBase<Derived>& vec) const;
 
-private:
-    // TODO discard here unreliable members.
+protected:
+
+    /** Constructor copying the value of the expression \a other */
+    template<typename OtherDerived>
+    inline Quaternion(const Eigen::MatrixBase<OtherDerived>& other)
+    {
+      m_coeffs = other;
+    }
+
+    /** Copies the value of the expression \a other into \c *this.
+      */
+    template<typename OtherDerived>
+    inline Quaternion& operator=(const MatrixBase<OtherDerived>& other)
+    {
+      m_coeffs = other.derived();
+      return *this;
+    }
 
 };
 
@@ -217,8 +199,8 @@ Quaternion<Scalar>::operator* (const MatrixBase<Derived>& v) const
     // in the litterature (30 versus 39 flops). It also requires two
     // Vector3 as temporaries.
     Vector3 uv;
-    uv = 2 * this->template start<3>().cross(v);
-    return v + this->w() * uv + this->template start<3>().cross(uv);
+    uv = 2 * this->vec().cross(v);
+    return v + this->w() * uv + this->vec().cross(uv);
 }
 
 /** Convert the quaternion to a 3x3 rotation matrix */
@@ -264,38 +246,39 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   */
 template<typename Scalar>
 template<typename Derived>
-Quaternion<Scalar>& Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& m)
+Quaternion<Scalar>& Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
 {
   // FIXME maybe this function could accept 4x4 and 3x4 matrices as well ? (simply update the assert)
+  // FIXME this function could also be static and returns a temporary ?
   ei_assert(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3);
   // This algorithm comes from  "Quaternion Calculus and Fast Animation",
   // Ken Shoemake, 1987 SIGGRAPH course notes
-  Scalar t = m.trace();
+  Scalar t = mat.trace();
   if (t > 0)
   {
     t = ei_sqrt(t + 1.0);
     this->w() = 0.5*t;
     t = 0.5/t;
-    this->x() = (m.coeff(2,1) - m.coeff(1,2)) * t;
-    this->y() = (m.coeff(0,2) - m.coeff(2,0)) * t;
-    this->z() = (m.coeff(1,0) - m.coeff(0,1)) * t;
+    this->x() = (mat.coeff(2,1) - mat.coeff(1,2)) * t;
+    this->y() = (mat.coeff(0,2) - mat.coeff(2,0)) * t;
+    this->z() = (mat.coeff(1,0) - mat.coeff(0,1)) * t;
   }
   else
   {
     int i = 0;
-    if (m(1,1) > m(0,0))
+    if (mat.coeff(1,1) > mat.coeff(0,0))
       i = 1;
-    if (m(2,2) > m(i,i))
+    if (mat.coeff(2,2) > mat.coeff(i,i))
       i = 2;
     int j = (i+1)%3;
     int k = (j+1)%3;
 
-    t = ei_sqrt(m.coeff(i,i)-m.coeff(j,j)-m.coeff(k,k) + 1.0);
-    this->coeffRef(i) = 0.5 * t;
+    t = ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + 1.0);
+    m_coeffs.coeffRef(i) = 0.5 * t;
     t = 0.5/t;
-    this->w() = (m.coeff(k,j)-m.coeff(j,k))*t;
-    this->coeffRef(j) = (m.coeff(j,i)+m.coeff(i,j))*t;
-    this->coeffRef(k) = (m.coeff(k,i)+m.coeff(i,k))*t;
+    this->w() = (mat.coeff(k,j)-mat.coeff(j,k))*t;
+    m_coeffs.coeffRef(j) = (mat.coeff(j,i)+mat.coeff(i,j))*t;
+    m_coeffs.coeffRef(k) = (mat.coeff(k,i)+mat.coeff(i,k))*t;
   }
 
   return *this;
@@ -313,7 +296,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>
   ei_assert(Derived::SizeAtCompileTime==3);
   Scalar ha = 0.5*angle;
   this->w() = ei_cos(ha);
-  this->template start<3>() = ei_sin(ha) * axis;
+  this->vec() = ei_sin(ha) * axis;
   return *this;
 }
 
@@ -327,7 +310,7 @@ void Quaternion<Scalar>::toAngleAxis(Scalar& angle, Vector3& axis) const
   // FIXME should we split this function to an "angle" and an "axis" functions ?
   // the drawbacks is that this approach would require to compute twice the norm of (x,y,z)...
   // or we returns a Vector4, or a small AngleAxis object... ???
-  Scalar n2 = this->template start<3>().norm2();
+  Scalar n2 = this->vec().norm2();
   if (ei_isMuchSmallerThan(n2,Scalar(1)))
   {
     angle = 0;
@@ -336,7 +319,7 @@ void Quaternion<Scalar>::toAngleAxis(Scalar& angle, Vector3& axis) const
   else
   {
     angle = 2*std::acos(this->w());
-    axis = this->template start<3>() / ei_sqrt(n2);
+    axis = this->vec() / ei_sqrt(n2);
   }
 }
 
@@ -394,11 +377,11 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::fromTwoVectors(const MatrixBase<D
   if (ei_isApprox(c,Scalar(1)))
   {
     // set to identity
-    this->w() = 1; this->template start<3>().setZero();
+    this->w() = 1; this->vec().setZero();
   }
   Scalar s = ei_sqrt((1+c)*2);
   Scalar invs = 1./s;
-  this->template start<3>() = axis * invs;
+  this->vec() = axis * invs;
   this->w() = s * 0.5;
 
   return *this;
@@ -416,11 +399,11 @@ inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
   // FIXME should this funtion be called multiplicativeInverse and conjugate() be called inverse() or opposite()  ??
   Scalar n2 = this->norm2();
   if (n2 > 0)
-    return conjugate() / n2;
+    return conjugate()._coeffs() / n2;
   else
   {
     // return an invalid result to flag the error
-    return this->zero();
+    return Coefficients::zero();
   }
 }
 
