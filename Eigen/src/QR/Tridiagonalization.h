@@ -29,7 +29,7 @@
   *
   * \brief Trigiagonal decomposition of a selfadjoint matrix
   *
-  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \param MatrixType the type of the matrix of which we are performing the tridiagonalization
   *
   * This class performs a tridiagonal decomposition of a selfadjoint matrix \f$ A \f$ such that:
   * \f$ A = Q T Q^* \f$ where \f$ Q \f$ is unitatry and \f$ T \f$ a real symmetric tridiagonal matrix
@@ -81,7 +81,7 @@ template<typename _MatrixType> class Tridiagonalization
     void compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
-      m_hCoeffs.resize(matrix.rows()-1);
+      m_hCoeffs.resize(matrix.rows()-1, 1);
       _compute(m_matrix, m_hCoeffs);
     }
 
@@ -111,6 +111,7 @@ template<typename _MatrixType> class Tridiagonalization
     const MatrixType& packedMatrix(void) const { return m_matrix; }
 
     MatrixType matrixQ(void) const;
+    MatrixType matrixT(void) const;
     const DiagonalReturnType diagonal(void) const;
     const SubDiagonalReturnType subDiagonal(void) const;
 
@@ -250,6 +251,25 @@ Tridiagonalization<MatrixType>::subDiagonal(void) const
   int n = m_matrix.rows();
   return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1)
     .nestByValue().diagonal().nestByValue().real();
+}
+
+/** constructs and returns the tridiagonal matrix T.
+  * Note that the matrix T is equivalent to the diagonal and sub-diagonal of the packed matrix.
+  * Therefore, it might be often sufficient to directly use the packed matrix, or the vector
+  * expressions returned by diagonal() and subDiagonal() instead of creating a new matrix.
+  */
+template<typename MatrixType>
+typename Tridiagonalization<MatrixType>::MatrixType
+Tridiagonalization<MatrixType>::matrixT(void) const
+{
+  // FIXME should this function (and other similar) rather take a matrix as argument
+  // and fill it (avoids temporaries)
+  int n = m_matrix.rows();
+  MatrixType matT = m_matrix;
+  matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
+  matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
+  matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
+  return matT;
 }
 
 /** Performs a full decomposition in place */

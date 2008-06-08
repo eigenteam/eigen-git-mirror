@@ -9,6 +9,7 @@ namespace Eigen {
 #include "src/QR/Tridiagonalization.h"
 #include "src/QR/EigenSolver.h"
 #include "src/QR/SelfAdjointEigenSolver.h"
+#include "src/QR/HessenbergDecomposition.h"
 
 } // namespace Eigen
 

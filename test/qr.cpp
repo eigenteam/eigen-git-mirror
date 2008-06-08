@@ -39,17 +39,31 @@ template<typename MatrixType> void qr(const MatrixType& m)
 
   MatrixType a = MatrixType::random(rows,cols);
   QR<MatrixType> qrOfA(a);
-
   VERIFY_IS_APPROX(a, qrOfA.matrixQ() * qrOfA.matrixR());
   VERIFY_IS_NOT_APPROX(a+MatrixType::identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR());
+
+  SquareMatrixType b = a.adjoint() * a;
+
+  // check tridiagonalization
+  Tridiagonalization<SquareMatrixType> tridiag(b);
+  VERIFY_IS_APPROX(b, tridiag.matrixQ() * tridiag.matrixT() * tridiag.matrixQ().adjoint());
+
+  // check hessenberg decomposition
+  HessenbergDecomposition<SquareMatrixType> hess(b);
+  VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
+  VERIFY_IS_APPROX(tridiag.matrixT(), hess.matrixH());
+  b = SquareMatrixType::random(cols,cols);
+  hess.compute(b);
+  VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
 }
 
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
     CALL_SUBTEST( qr(Matrix2f()) );
-    CALL_SUBTEST( qr(Matrix3d()) );
+    CALL_SUBTEST( qr(Matrix4d()) );
     CALL_SUBTEST( qr(MatrixXf(12,8)) );
-//     CALL_SUBTEST( qr(MatrixXcd(17,7)) ); // complex numbers are not supported yet
+    CALL_SUBTEST( qr(MatrixXcd(5,5)) );
+    CALL_SUBTEST( qr(MatrixXcd(7,3)) );
   }
 }

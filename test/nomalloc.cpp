@@ -22,7 +22,9 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+// this hack is needed to make this file compiles with -pedantic (gcc)
 #define throw(X)
+// discard vectorization since operator new is not called in that case
 #define EIGEN_DONT_VECTORIZE 1
 #include "main.h"
 

@@ -54,9 +54,11 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 void test_eigensolver()
 {
   for(int i = 0; i < 1; i++) {
+    // very important to test a 3x3 matrix since we provide a special path for it
     CALL_SUBTEST( eigensolver(Matrix3f()) );
     CALL_SUBTEST( eigensolver(Matrix4d()) );
     CALL_SUBTEST( eigensolver(MatrixXd(7,7)) );
     CALL_SUBTEST( eigensolver(MatrixXcd(6,6)) );
+    CALL_SUBTEST( eigensolver(MatrixXcd(3,3)) );
   }
 }
