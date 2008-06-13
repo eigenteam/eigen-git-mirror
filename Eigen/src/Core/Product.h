@@ -163,9 +163,14 @@ template<typename T> class ei_product_eval_to_column_major
     typedef Matrix<_Scalar,
                   ei_traits<T>::RowsAtCompileTime,
                   ei_traits<T>::ColsAtCompileTime,
-                  ei_corrected_matrix_flags<_Scalar, ei_size_at_compile_time<_MaxRows,_MaxCols>::ret, _Flags>::ret & ~RowMajorBit,
                   ei_traits<T>::MaxRowsAtCompileTime,
-                  ei_traits<T>::MaxColsAtCompileTime> type;
+                  ei_traits<T>::MaxColsAtCompileTime,
+                  ei_corrected_matrix_flags<
+                      _Scalar,
+                      ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                      _Flags
+                  >::ret & ~RowMajorBit
+            > type;
 };
 
 // as ei_nested, but evaluate to a column-major matrix if an evaluation is required

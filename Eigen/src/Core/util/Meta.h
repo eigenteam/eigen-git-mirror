@@ -180,9 +180,14 @@ template<typename T> class ei_eval
     typedef Matrix<_Scalar,
                   ei_traits<T>::RowsAtCompileTime,
                   ei_traits<T>::ColsAtCompileTime,
-                  ei_corrected_matrix_flags<_Scalar, ei_size_at_compile_time<_MaxRows,_MaxCols>::ret, _Flags>::ret,
                   ei_traits<T>::MaxRowsAtCompileTime,
-                  ei_traits<T>::MaxColsAtCompileTime> type;
+                  ei_traits<T>::MaxColsAtCompileTime,
+                  ei_corrected_matrix_flags<
+                      _Scalar,
+                      ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                      _Flags
+                  >::ret
+            > type;
 };
 
 template<typename T> struct ei_unref { typedef T type; };

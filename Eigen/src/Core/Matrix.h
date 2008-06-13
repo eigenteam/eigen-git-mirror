@@ -35,7 +35,15 @@
   *              specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
   * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to
   *              specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
-  * \param _SuggestedFlags allows to control certain features such as storage order. See MatrixBase::Flags.
+  * \param _MaxRows the maximum number of rows at compile-time. By default this is equal to \a _Rows.
+  *              The most common exception is when you don't know the exact number of rows, but know that
+  *              it is smaller than some given value. Then you can set \a _MaxRows to that value, and set
+  *              _Rows to \a Dynamic.
+  * \param _MaxCols the maximum number of cols at compile-time. By default this is equal to \a _Cols.
+  *              The most common exception is when you don't know the exact number of cols, but know that
+  *              it is smaller than some given value. Then you can set \a _MaxCols to that value, and set
+  *              _Cols to \a Dynamic.
+  * \param _Flags allows to control certain features such as storage order. See the \ref flags "list of flags".
   *
   * This single class template covers all kinds of matrix and vectors that Eigen can handle.
   * All matrix and vector types are just typedefs to specializations of this class template.
@@ -70,8 +78,8 @@
   *
   * Note that most of the API is in the base class MatrixBase.
   */
-template<typename _Scalar, int _Rows, int _Cols, unsigned int _SuggestedFlags, int _MaxRows, int _MaxCols>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _SuggestedFlags, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -79,13 +87,13 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _SuggestedFlags, _MaxRows, _MaxCo
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = ei_corrected_matrix_flags<_Scalar, ei_size_at_compile_time<_MaxRows,_MaxCols>::ret, _SuggestedFlags>::ret,
+    Flags = _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 
-template<typename _Scalar, int _Rows, int _Cols, unsigned int _Flags, int _MaxRows, int _MaxCols>
-class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Flags, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
 {
   public:
 

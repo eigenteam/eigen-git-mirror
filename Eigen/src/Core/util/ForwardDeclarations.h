@@ -28,10 +28,18 @@
 template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 template<typename T> struct NumTraits;
+template<typename Scalar, int Size, unsigned int SuggestedFlags> class ei_corrected_matrix_flags;
+
+template<int _Rows, int _Cols> struct ei_size_at_compile_time;
 
 template<typename _Scalar, int _Rows, int _Cols,
-         unsigned int _SuggestedFlags = EIGEN_DEFAULT_MATRIX_FLAGS,
-         int _MaxRows = _Rows, int _MaxCols = _Cols>
+         int _MaxRows = _Rows, int _MaxCols = _Cols,
+         unsigned int _Flags = ei_corrected_matrix_flags<
+                                   _Scalar,
+                                   ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                                   EIGEN_DEFAULT_MATRIX_FLAGS
+                               >::ret
+>
 class Matrix;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
