@@ -22,18 +22,26 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef EIGEN_EXTERN_INSTANCIATIONS
-#undef EIGEN_EXTERN_INSTANCIATIONS
+#ifdef EIGEN_EXTERN_INSTANTIATIONS
+#undef EIGEN_EXTERN_INSTANTIATIONS
 #endif
 
-#include "../../QR"
+#include "../../Core"
 
 namespace Eigen
 {
 
-template static void ei_tridiagonal_qr_step(float* , float* , int, int, float* , int);
-template static void ei_tridiagonal_qr_step(double* , double* , int, int, double* , int);
-template static void ei_tridiagonal_qr_step(float* , float* , int, int, std::complex<float>* , int);
-template static void ei_tridiagonal_qr_step(double* , double* , int, int, std::complex<double>* , int);
+#define EIGEN_INSTANTIATE_PRODUCT(TYPE) \
+template static void ei_cache_friendly_product<TYPE>( \
+  int _rows, int _cols, int depth, \
+  bool _lhsRowMajor, const TYPE* _lhs, int _lhsStride, \
+  bool _rhsRowMajor, const TYPE* _rhs, int _rhsStride, \
+  bool resRowMajor, TYPE* res, int resStride)
+
+EIGEN_INSTANTIATE_PRODUCT(float);
+EIGEN_INSTANTIATE_PRODUCT(double);
+EIGEN_INSTANTIATE_PRODUCT(int);
+EIGEN_INSTANTIATE_PRODUCT(std::complex<float>);
+EIGEN_INSTANTIATE_PRODUCT(std::complex<double>);
 
 }

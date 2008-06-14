@@ -4,12 +4,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
 OPTION(BUILD_TESTS "Build tests" OFF)
 OPTION(BUILD_DOC "Build documentation and examples" OFF)
+OPTION(TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(CMAKE_SYSTEM_NAME MATCHES Linux)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-exceptions -fno-check-new -fno-common -fstrict-aliasing")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-exceptions -fno-check-new -fno-common -fstrict-aliasing")
+    IF(NOT TEST_LIB)
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+    ENDIF(NOT TEST_LIB)
     IF(TEST_OPENMP)
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
       MESSAGE("Enabling OpenMP in tests/examples")

@@ -75,6 +75,8 @@ template<typename MatrixType> class QR
     VectorType m_hCoeffs;
 };
 
+#ifndef EIGEN_HIDE_HEAVY_CODE
+
 template<typename MatrixType>
 void QR<MatrixType>::_compute(const MatrixType& matrix)
 {
@@ -156,6 +158,8 @@ MatrixType QR<MatrixType>::matrixQ(void) const
   }
   return res;
 }
+
+#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \return the QR decomposition of \c *this.
   *

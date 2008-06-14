@@ -223,7 +223,7 @@ MatrixBase<Derived>::matrixNorm() const
        ::matrixNorm(derived());
 }
 
-#ifndef EIGEN_EXTERN_INSTANCIATIONS
+#ifndef EIGEN_EXTERN_INSTANTIATIONS
 template<typename RealScalar, typename Scalar>
 static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n)
 {

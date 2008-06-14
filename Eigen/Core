@@ -57,7 +57,7 @@ namespace Eigen {
 #include "src/Core/Extract.h"
 #include "src/Core/Part.h"
 
-#ifndef EIGEN_EXTERN_INSTANCIATIONS
+#ifndef EIGEN_EXTERN_INSTANTIATIONS
 #include "src/Core/CacheFriendlyProduct.h"
 #endif
 

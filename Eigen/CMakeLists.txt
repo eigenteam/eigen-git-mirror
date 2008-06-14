@@ -1,11 +1,17 @@
 SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR)
 
 SET(Eigen_SRCS
-  src/Core/CoreInstanciations.cpp
-  src/QR/QrInstanciations.cpp
+  src/Core/CoreInstantiations.cpp
+  src/Cholesky/CholeskyInstantiations.cpp
+  src/QR/QrInstantiations.cpp
 )
 
-ADD_LIBRARY(Eigen2 ${Eigen_SRCS})
+ADD_LIBRARY(Eigen2 SHARED ${Eigen_SRCS})
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1 -O2")
+    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g1 -O2")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 SET(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/eigen2"

@@ -60,11 +60,11 @@ template<typename _MatrixType> class HessenbergDecomposition
         NestByValue<Block<
           MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
 
-    HessenbergDecomposition()
-    {}
-
-    HessenbergDecomposition(int rows, int cols)
-      : m_matrix(rows,cols), m_hCoeffs(rows-1)
+    /** This constructor initializes a HessenbergDecomposition object for
+      * further use with HessenbergDecomposition::compute()
+      */
+    HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
+      : m_matrix(size,size), m_hCoeffs(size-1)
     {}
 
     HessenbergDecomposition(const MatrixType& matrix)
@@ -121,6 +121,7 @@ template<typename _MatrixType> class HessenbergDecomposition
     CoeffVectorType m_hCoeffs;
 };
 
+#ifndef EIGEN_HIDE_HEAVY_CODE
 
 /** \internal
   * Performs a tridiagonal decomposition of \a matA in place.
@@ -223,6 +224,8 @@ HessenbergDecomposition<MatrixType>::matrixQ(void) const
   return matQ;
 }
 
+#endif // EIGEN_HIDE_HEAVY_CODE
+
 /** constructs and returns the matrix H.
   * Note that the matrix H is equivalent to the upper part of the packed matrix
   * (including the lower sub-diagonal). Therefore, it might be often sufficient
@@ -233,7 +236,7 @@ typename HessenbergDecomposition<MatrixType>::MatrixType
 HessenbergDecomposition<MatrixType>::matrixH(void) const
 {
   // FIXME should this function (and other similar) rather take a matrix as argument
-  // and fill it (avoids temporaries)
+  // and fill it (to avoid temporaries)
   int n = m_matrix.rows();
   MatrixType matH = m_matrix;
   matH.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();

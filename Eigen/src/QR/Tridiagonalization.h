@@ -60,11 +60,11 @@ template<typename _MatrixType> class Tridiagonalization
         NestByValue<Block<
           MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
 
-    Tridiagonalization()
-    {}
-
-    Tridiagonalization(int rows, int cols)
-      : m_matrix(rows,cols), m_hCoeffs(rows-1)
+    /** This constructor initializes a Tridiagonalization object for
+      * further use with Tridiagonalization::compute()
+      */
+    Tridiagonalization(int size = Size==Dynamic ? 2 : Size)
+      : m_matrix(size,size), m_hCoeffs(size-1)
     {}
 
     Tridiagonalization(const MatrixType& matrix)
@@ -90,7 +90,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa packedMatrix()
       */
-    CoeffVectorType householderCoefficients(void) const { return m_hCoeffs; }
+    inline CoeffVectorType householderCoefficients(void) const { return m_hCoeffs; }
 
     /** \returns the internal result of the decomposition.
       *
@@ -108,7 +108,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * See LAPACK for further details on this packed storage.
       */
-    const MatrixType& packedMatrix(void) const { return m_matrix; }
+    inline const MatrixType& packedMatrix(void) const { return m_matrix; }
 
     MatrixType matrixQ(void) const;
     MatrixType matrixT(void) const;
@@ -128,6 +128,44 @@ template<typename _MatrixType> class Tridiagonalization
     CoeffVectorType m_hCoeffs;
 };
 
+/** \returns an expression of the diagonal vector */
+template<typename MatrixType>
+const typename Tridiagonalization<MatrixType>::DiagonalReturnType
+Tridiagonalization<MatrixType>::diagonal(void) const
+{
+  return m_matrix.diagonal().nestByValue().real();
+}
+
+/** \returns an expression of the sub-diagonal vector */
+template<typename MatrixType>
+const typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
+Tridiagonalization<MatrixType>::subDiagonal(void) const
+{
+  int n = m_matrix.rows();
+  return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1)
+    .nestByValue().diagonal().nestByValue().real();
+}
+
+/** constructs and returns the tridiagonal matrix T.
+  * Note that the matrix T is equivalent to the diagonal and sub-diagonal of the packed matrix.
+  * Therefore, it might be often sufficient to directly use the packed matrix, or the vector
+  * expressions returned by diagonal() and subDiagonal() instead of creating a new matrix.
+  */
+template<typename MatrixType>
+typename Tridiagonalization<MatrixType>::MatrixType
+Tridiagonalization<MatrixType>::matrixT(void) const
+{
+  // FIXME should this function (and other similar) rather take a matrix as argument
+  // and fill it (avoids temporaries)
+  int n = m_matrix.rows();
+  MatrixType matT = m_matrix;
+  matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
+  matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
+  matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
+  return matT;
+}
+
+#ifndef EIGEN_HIDE_HEAVY_CODE
 
 /** \internal
   * Performs a tridiagonal decomposition of \a matA in place.
@@ -235,43 +273,6 @@ Tridiagonalization<MatrixType>::matrixQ(void) const
   return matQ;
 }
 
-/** \returns an expression of the diagonal vector */
-template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::DiagonalReturnType
-Tridiagonalization<MatrixType>::diagonal(void) const
-{
-  return m_matrix.diagonal().nestByValue().real();
-}
-
-/** \returns an expression of the sub-diagonal vector */
-template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
-Tridiagonalization<MatrixType>::subDiagonal(void) const
-{
-  int n = m_matrix.rows();
-  return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1)
-    .nestByValue().diagonal().nestByValue().real();
-}
-
-/** constructs and returns the tridiagonal matrix T.
-  * Note that the matrix T is equivalent to the diagonal and sub-diagonal of the packed matrix.
-  * Therefore, it might be often sufficient to directly use the packed matrix, or the vector
-  * expressions returned by diagonal() and subDiagonal() instead of creating a new matrix.
-  */
-template<typename MatrixType>
-typename Tridiagonalization<MatrixType>::MatrixType
-Tridiagonalization<MatrixType>::matrixT(void) const
-{
-  // FIXME should this function (and other similar) rather take a matrix as argument
-  // and fill it (avoids temporaries)
-  int n = m_matrix.rows();
-  MatrixType matT = m_matrix;
-  matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
-  matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
-  matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
-  return matT;
-}
-
 /** Performs a full decomposition in place */
 template<typename MatrixType>
 void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
@@ -336,5 +337,7 @@ void Tridiagonalization<MatrixType>::_decomposeInPlace3x3(MatrixType& mat, Diago
     }
   }
 }
+
+#endif // EIGEN_HIDE_HEAVY_CODE
 
 #endif // EIGEN_TRIDIAGONALIZATION_H

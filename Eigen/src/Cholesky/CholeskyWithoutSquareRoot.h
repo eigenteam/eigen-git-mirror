@@ -72,7 +72,8 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     /** \returns whether the matrix is positive definite */
     bool isPositiveDefinite(void) const
     {
-      return m_matrix.diagonal().minCoeff() > Scalar(0);
+      // FIXME is it really correct ?
+      return m_matrix.diagonal().real().minCoeff() > RealScalar(0);
     }
 
     template<typename Derived>

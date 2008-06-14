@@ -87,7 +87,7 @@ template<typename Scalar> struct ei_scalar_max_op;
 template<typename Scalar> struct ei_scalar_random_op;
 
 template<typename Scalar>
-static void ei_cache_friendly_product(
+void ei_cache_friendly_product(
   int _rows, int _cols, int depth,
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
