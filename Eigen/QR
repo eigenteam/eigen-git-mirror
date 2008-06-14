@@ -2,6 +2,7 @@
 #define EIGEN_QR_MODULE_H
 
 #include "Core"
+#include "Cholesky"
 
 // Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
 #if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)

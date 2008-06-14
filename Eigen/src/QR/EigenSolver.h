@@ -72,7 +72,6 @@ template<typename _MatrixType> class EigenSolver
     EigenvalueType m_eivalues;
 };
 
-
 template<typename MatrixType>
 void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {

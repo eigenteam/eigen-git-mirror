@@ -36,10 +36,16 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
 
   MatrixType a = MatrixType::random(rows,cols);
-  MatrixType covMat =  a.adjoint() * a;
+  MatrixType symmA =  a.adjoint() * a;
 
-  SelfAdjointEigenSolver<MatrixType> eiSymm(covMat);
-  VERIFY_IS_APPROX(covMat * eiSymm.eigenvectors(), (eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal().eval()));
+  SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
+  VERIFY_IS_APPROX(symmA * eiSymm.eigenvectors(), (eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal().eval()));
+
+  // generalized eigen problem Ax = lBx
+  MatrixType b = MatrixType::random(rows,cols);
+  MatrixType symmB =  b.adjoint() * b;
+  eiSymm.compute(symmA,symmB);
+  VERIFY_IS_APPROX(symmA * eiSymm.eigenvectors(), symmB * (eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal().eval()));
 
 //   EigenSolver<MatrixType> eiNotSymmButSymm(covMat);
 //   VERIFY_IS_APPROX((covMat.template cast<Complex>()) * (eiNotSymmButSymm.eigenvectors().template cast<Complex>()),

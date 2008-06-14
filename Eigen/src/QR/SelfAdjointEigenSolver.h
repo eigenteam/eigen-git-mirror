@@ -49,6 +49,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 
+    /** Constructors computing the eigenvalues of the selfadjoint matrix \a matrix,
+      * as well as the eigenvectors if \a computeEigenvectors is true.
+      *
+      * \sa compute(MatrixType,bool), SelfAdjointEigenSolver(MatrixType,MatrixType,bool)
+      */
     SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols())
@@ -56,7 +61,23 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       compute(matrix, computeEigenvectors);
     }
 
+    /** Constructors computing the eigenvalues of the generalized eigen problem
+      * \f$ Ax = lambda B x \f$ with \a matA the selfadjoint matrix \f$ A \f$
+      * and \a matB the positive definite matrix \f$ B \f$ . The eigenvectors
+      * are computed if \a computeEigenvectors is true.
+      *
+      * \sa compute(MatrixType,MatrixType,bool), SelfAdjointEigenSolver(MatrixType,bool)
+      */
+    SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
+      : m_eivec(matA.rows(), matA.cols()),
+        m_eivalues(matA.cols())
+    {
+      compute(matA, matB, computeEigenvectors);
+    }
+
     void compute(const MatrixType& matrix, bool computeEigenvectors = true);
+
+    void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true);
 
     MatrixType eigenvectors(void) const
     {
@@ -75,6 +96,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     bool m_eigenvectorsOk;
     #endif
 };
+
+#ifndef EIGEN_HIDE_HEAVY_CODE
 
 // from Golub's "Matrix Computations", algorithm 5.1.3
 template<typename Scalar>
@@ -117,6 +140,11 @@ static void ei_givens_rotation(Scalar a, Scalar b, Scalar& c, Scalar& s)
 template<typename RealScalar, typename Scalar>
 static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n);
 
+/** Computes the eigenvalues of the selfadjoint matrix \a matrix,
+  * as well as the eigenvectors if \a computeEigenvectors is true.
+  *
+  * \sa SelfAdjointEigenSolver(MatrixType,bool), compute(MatrixType,MatrixType,bool)
+  */
 template<typename MatrixType>
 void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
@@ -169,6 +197,39 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
     }
   }
 }
+
+/** Computes the eigenvalues of the generalized eigen problem
+  * \f$ Ax = lambda B x \f$ with \a matA the selfadjoint matrix \f$ A \f$
+  * and \a matB the positive definite matrix \f$ B \f$ . The eigenvectors
+  * are computed if \a computeEigenvectors is true.
+  *
+  * \sa SelfAdjointEigenSolver(MatrixType,MatrixType,bool), compute(MatrixType,bool)
+  */
+template<typename MatrixType>
+void SelfAdjointEigenSolver<MatrixType>::
+compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors)
+{
+  ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
+
+  // Compute the cholesky decomposition of matB = U'U
+  Cholesky<MatrixType> cholB(matB);
+
+  // compute C = inv(U') A inv(U)
+  MatrixType matC = cholB.matrixL().inverseProduct(matA);
+  // FIXME since we currently do not support A * inv(U),
+  // let's do (inv(U') A')' :
+  matC = (cholB.matrixL().inverseProduct(matC.adjoint())).adjoint();
+
+  compute(matC, computeEigenvectors);
+
+  if (computeEigenvectors)
+  {
+    // transform back the eigen vectors: evecs = inv(U) * evecs
+    m_eivec = cholB.matrixL().adjoint().template marked<Upper>().inverseProduct(m_eivec);
+  }
+}
+
+#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \qr_module
   *

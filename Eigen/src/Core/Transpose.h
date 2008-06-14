@@ -48,7 +48,12 @@ struct ei_traits<Transpose<MatrixType> >
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = (int(_MatrixTypeNested::Flags) ^ RowMajorBit) & ~Like1DArrayBit,
+    Flags = (int(_MatrixTypeNested::Flags) ^ RowMajorBit)
+          & ~( Like1DArrayBit | LowerTriangularBit | UpperTriangularBit)
+          | (int(_MatrixTypeNested::Flags)&UpperTriangularBit ? LowerTriangularBit : 0)
+          | (int(_MatrixTypeNested::Flags)&LowerTriangularBit ? UpperTriangularBit : 0),
+    // Note that the above test cannot be simplified using ^ because a diagonal matrix
+    // has both LowerTriangularBit and UpperTriangularBit and both must be preserved.
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

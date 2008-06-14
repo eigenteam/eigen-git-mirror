@@ -26,6 +26,8 @@
 #define EIGEN_EXTERN_INSTANTIATIONS
 #endif
 #include "../../Core"
+// commented because of -pedantic
+// #include "../../Cholesky"
 #undef EIGEN_EXTERN_INSTANTIATIONS
 
 #include "../../QR"
