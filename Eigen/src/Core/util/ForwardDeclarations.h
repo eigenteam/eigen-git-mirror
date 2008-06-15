@@ -61,6 +61,9 @@ template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename Derived, bool HasArrayFlag = int(ei_traits<Derived>::Flags) & ArrayBit> class ArrayBase {};
 template<typename Lhs, typename Rhs> class Cross;
 template<typename Scalar> class Quaternion;
+template<typename Scalar> class Rotation2D;
+template<typename Scalar> class AngleAxis;
+template<typename Scalar,int Dim> class Transform;
 
 
 template<typename Scalar> struct ei_scalar_sum_op;

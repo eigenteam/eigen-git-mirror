@@ -25,94 +25,6 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
-/** \class Orientation2D
-  *
-  * \brief Represents an orientation/rotation in a 2 dimensional space.
-  *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  *
-  * This class is equivalent to a single scalar representating the rotation angle
-  * in radian with some additional features such as the conversion from/to
-  * rotation matrix. Moreover this class aims to provide a similar interface
-  * to Quaternion in order to facilitate the writting of generic algorithm
-  * dealing with rotations.
-  *
-  * \sa class Quaternion, class Transform
-  */
-template<typename _Scalar>
-class Orientation2D
-{
-public:
-  enum { Dim = 2 };
-  /** the scalar type of the coefficients */
-  typedef _Scalar Scalar;
-  typedef Matrix<Scalar,2,2> Matrix2;
-
-protected:
-
-  Scalar m_angle;
-
-public:
-
-  inline Orientation2D(Scalar a) : m_angle(a) {}
-  inline operator Scalar& () { return m_angle; }
-  inline operator Scalar () const { return m_angle; }
-
-  template<typename Derived>
-  Orientation2D& fromRotationMatrix(const MatrixBase<Derived>& m);
-  Matrix2 toRotationMatrix(void) const;
-
-  Orientation2D slerp(Scalar t, const Orientation2D& other) const;
-};
-
-/** returns the default type used to represent an orientation.
-  */
-template<typename Scalar, int Dim>
-struct ei_get_orientation_type;
-
-template<typename Scalar>
-struct ei_get_orientation_type<Scalar,2>
-{ typedef Orientation2D<Scalar> type; };
-
-template<typename Scalar>
-struct ei_get_orientation_type<Scalar,3>
-{ typedef Quaternion<Scalar> type; };
-
-/** Set \c *this from a 2x2 rotation matrix \a mat.
-  * In other words, this function extract the rotation angle
-  * from the rotation matrix.
-  */
-template<typename Scalar>
-template<typename Derived>
-Orientation2D<Scalar>& Orientation2D<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
-{
-  EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==2 && Derived::ColsAtCompileTime==2,you_did_a_programming_error);
-  m_angle = ei_atan2(mat.coeff(1,0), mat.coeff(0,0));
-  return *this;
-}
-
-/** Constructs and \returns an equivalent 2x2 rotation matrix.
-  */
-template<typename Scalar>
-typename Orientation2D<Scalar>::Matrix2
-Orientation2D<Scalar>::toRotationMatrix(void) const
-{
-  Scalar sinA = ei_sin(m_angle);
-  Scalar cosA = ei_cos(m_angle);
-  return Matrix2(cosA, -sinA, sinA, cosA);
-}
-
-/** \returns the spherical interpolation between \c *this and \a other using
-  * parameter \a t. It is equivalent to a linear interpolation.
-  */
-template<typename Scalar>
-Orientation2D<Scalar>
-Orientation2D<Scalar>::slerp(Scalar t, const Orientation2D& other) const
-{
-  return m_angle * (1-t) + t * other;
-}
-
-
 /** \class Transform
   *
   * \brief Represents an homogeneous transformation in a N dimensional space
@@ -140,7 +52,6 @@ public:
   typedef Block<MatrixType,Dim,Dim> AffineMatrixRef;
   typedef Matrix<Scalar,Dim,1> VectorType;
   typedef Block<MatrixType,Dim,1> VectorRef;
-  typedef typename ei_get_orientation_type<Scalar,Dim>::type Orientation;
 
 protected:
 
@@ -160,7 +71,7 @@ public:
   { m_matrix = other.m_matrix; }
 
   inline Transform& operator=(const Transform& other)
-  { m_matrix = other.m_matrix; }
+  { m_matrix = other.m_matrix; return *this; }
 
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
@@ -168,7 +79,7 @@ public:
 
   template<typename OtherDerived>
   inline Transform& operator=(const MatrixBase<OtherDerived>& other)
-  { m_matrix = other; }
+  { m_matrix = other; return *this; }
 
   #ifdef EIGEN_QT_SUPPORT
   inline Transform(const QMatrix& other);
@@ -177,9 +88,9 @@ public:
   #endif
 
   /** \returns a read-only expression of the transformation matrix */
-  inline const MatrixType matrix() const { return m_matrix; }
+  inline const MatrixType& matrix() const { return m_matrix; }
   /** \returns a writable expression of the transformation matrix */
-  inline MatrixType matrix() { return m_matrix; }
+  inline MatrixType& matrix() { return m_matrix; }
 
   /** \returns a read-only expression of the affine (linear) part of the transformation */
   inline const AffineMatrixRef affine() const { return m_matrix.template block<Dim,Dim>(0,0); }
@@ -202,7 +113,7 @@ public:
   operator * (const MatrixBase<OtherDerived> &other) const;
 
   /** Contatenates two transformations */
-  Product<MatrixType,MatrixType>
+  const Product<MatrixType,MatrixType>
   operator * (const Transform& other) const
   { return m_matrix * other.matrix(); }
 
@@ -220,6 +131,12 @@ public:
   template<typename OtherDerived>
   Transform& pretranslate(const MatrixBase<OtherDerived> &other);
 
+  template<typename RotationType>
+  Transform& rotate(const RotationType& rotation);
+
+  template<typename RotationType>
+  Transform& prerotate(const RotationType& rotation);
+
   template<typename OtherDerived>
   Transform& shear(Scalar sx, Scalar sy);
 
@@ -229,9 +146,9 @@ public:
   AffineMatrixType extractRotation() const;
   AffineMatrixType extractRotationNoShear() const;
 
-  template<typename PositionDerived, typename ScaleDerived>
+  template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
-    const Orientation& orientation, const MatrixBase<ScaleDerived> &scale);
+    const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
   const Inverse<MatrixType, false> inverse() const
   { return m_matrix.inverse(); }
@@ -258,6 +175,7 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
   m_matrix << other.m11(), other.m21(), other.dx(),
               other.m12(), other.m22(), other.dy(),
               0, 0, 1;
+   return *this;
 }
 
 /** \returns a QMatrix from \c *this assuming the dimension is 2.
@@ -306,11 +224,11 @@ Transform<Scalar,Dim>::prescale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
     && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
-  m_matrix.template block<3,4>(0,0) = (other.asDiagonal() * m_matrix.template block<3,4>(0,0)).lazy();
+  m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
   return *this;
 }
 
-/** Applies on the right translation matrix represented by the vector \a other
+/** Applies on the right the translation matrix represented by the vector \a other
   * to \c *this and returns a reference to \c *this.
   * \sa pretranslate()
   */
@@ -325,7 +243,7 @@ Transform<Scalar,Dim>::translate(const MatrixBase<OtherDerived> &other)
   return *this;
 }
 
-/** Applies on the left translation matrix represented by the vector \a other
+/** Applies on the left the translation matrix represented by the vector \a other
   * to \c *this and returns a reference to \c *this.
   * \sa translate()
   */
@@ -337,6 +255,49 @@ Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
   EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
     && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
   translation() += other;
+  return *this;
+}
+
+/** Applies on the right the rotation represented by the rotation \a rotation
+  * to \c *this and returns a reference to \c *this.
+  *
+  * The template parameter \a RotationType is the type of the rotation which
+  * must be registered by ToRotationMatrix<>.
+  *
+  * Natively supported types includes:
+  *   - any scalar (2D),
+  *   - a Dim x Dim matrix expression,
+  *   - Quaternion (3D),
+  *   - AngleAxis (3D)
+  *
+  * This mechanism is easily extendable to support user types such as Euler angles,
+  * or a pair of Quaternion for 4D rotations.
+  *
+  * \sa rotate(Scalar), class Quaternion, class AngleAxis, class ToRotationMatrix, prerotate(RotationType)
+  */
+template<typename Scalar, int Dim>
+template<typename RotationType>
+Transform<Scalar,Dim>&
+Transform<Scalar,Dim>::rotate(const RotationType& rotation)
+{
+  affine() *= ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation);
+  return *this;
+}
+
+/** Applies on the left the rotation represented by the rotation \a rotation
+  * to \c *this and returns a reference to \c *this.
+  *
+  * See rotate(RotationType) for further details.
+  *
+  * \sa rotate(RotationType), rotate(Scalar)
+  */
+template<typename Scalar, int Dim>
+template<typename RotationType>
+Transform<Scalar,Dim>&
+Transform<Scalar,Dim>::prerotate(const RotationType& rotation)
+{
+  m_matrix.template block<Dim,HDim>(0,0) = ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation)
+                                      * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
 
@@ -369,7 +330,7 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
     && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
-  m_matrix.template block<3,4>(0,0) = AffineMatrixType(1, sx, sy, 1) * m_matrix.template block<3,4>(0,0);
+  m_matrix.template block<Dim,HDim>(0,0) = AffineMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
 
@@ -399,16 +360,17 @@ Transform<Scalar,Dim>::extractRotationNoShear() const
   * of a 3D object.
   */
 template<typename Scalar, int Dim>
-template<typename PositionDerived, typename ScaleDerived>
+template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
-  const Orientation& orientation, const MatrixBase<ScaleDerived> &scale)
+  const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale)
 {
-  affine() = orientation.toRotationMatrix();
+  affine() = ToRotationMatrix<Scalar,Dim,OrientationType>::convert(orientation);
   translation() = position;
   m_matrix(Dim,Dim) = 1.;
   m_matrix.template block<1,Dim>(Dim,0).setZero();
   affine() *= scale.asDiagonal();
+  return *this;
 }
 
 //----------

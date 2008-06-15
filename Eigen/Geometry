@@ -7,6 +7,7 @@ namespace Eigen {
 
 #include "src/Geometry/Cross.h"
 #include "src/Geometry/Quaternion.h"
+#include "src/Geometry/Rotation.h"
 #include "src/Geometry/Transform.h"
 
 // the Geometry module use cwiseCos and cwiseSin which are defined in the Array module

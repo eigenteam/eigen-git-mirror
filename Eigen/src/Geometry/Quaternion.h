@@ -228,15 +228,15 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   Scalar tyz = tz*this->y();
   Scalar tzz = tz*this->z();
 
-  res(0,0) = 1-(tyy+tzz);
-  res(0,1) = txy-twz;
-  res(0,2) = txz+twy;
-  res(1,0) = txy+twz;
-  res(1,1) = 1-(txx+tzz);
-  res(1,2) = tyz-twx;
-  res(2,0) = txz-twy;
-  res(2,1) = tyz+twx;
-  res(2,2) = 1-(txx+tyy);
+  res.coeffRef(0,0) = 1-(tyy+tzz);
+  res.coeffRef(0,1) = txy-twz;
+  res.coeffRef(0,2) = txz+twy;
+  res.coeffRef(1,0) = txy+twz;
+  res.coeffRef(1,1) = 1-(txx+tzz);
+  res.coeffRef(1,2) = tyz-twx;
+  res.coeffRef(2,0) = txz-twy;
+  res.coeffRef(2,1) = tyz+twx;
+  res.coeffRef(2,2) = 1-(txx+tyy);
 
   return res;
 }
@@ -250,7 +250,7 @@ Quaternion<Scalar>& Quaternion<Scalar>::fromRotationMatrix(const MatrixBase<Deri
 {
   // FIXME maybe this function could accept 4x4 and 3x4 matrices as well ? (simply update the assert)
   // FIXME this function could also be static and returns a temporary ?
-  ei_assert(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3);
+  EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==3 && Derived::ColsAtCompileTime==3,you_did_a_programming_error);
   // This algorithm comes from  "Quaternion Calculus and Fast Animation",
   // Ken Shoemake, 1987 SIGGRAPH course notes
   Scalar t = mat.trace();
