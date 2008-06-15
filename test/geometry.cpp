@@ -116,6 +116,9 @@ template<typename Scalar> void geometry(void)
   t1.translate(-v0);
 
   VERIFY((t0.matrix() * t1.matrix()).isIdentity());
+
+  t1.fromPositionOrientationScale(v0, q1, v1);
+  VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
 }
 
 void test_geometry()

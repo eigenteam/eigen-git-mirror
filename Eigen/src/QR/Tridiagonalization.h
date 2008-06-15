@@ -160,8 +160,11 @@ Tridiagonalization<MatrixType>::matrixT(void) const
   int n = m_matrix.rows();
   MatrixType matT = m_matrix;
   matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
-  matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
-  matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
+  if (n>2)
+  {
+    matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
+    matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
+  }
   return matT;
 }
 

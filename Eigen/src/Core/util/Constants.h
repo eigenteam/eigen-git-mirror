@@ -80,7 +80,7 @@ const unsigned int Like1DArrayBit = 0x20;
 /** \ingroup flags
   *
   * means all diagonal coefficients are equal to 0 */
-const unsigned int ZeroDiagBit = 0x40;      
+const unsigned int ZeroDiagBit = 0x40;
 
 /** \ingroup flags
   *
@@ -140,7 +140,7 @@ enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, LazyProduct};
+enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, LazyProduct};
 
 
 #endif // EIGEN_CONSTANTS_H
