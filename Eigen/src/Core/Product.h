@@ -269,6 +269,10 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
       {
         return  m_lhs.coeff(row, col) * m_rhs.coeff(col, col);
       }
+      else if ((Lhs::Flags&Diagonal)==Diagonal)
+      {
+        return  m_lhs.coeff(row, row) * m_rhs.coeff(row, col);
+      }
       else
       {
         Scalar res;
@@ -286,7 +290,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     {
       if ((Rhs::Flags&Diagonal)==Diagonal)
       {
-        assert((_LhsNested::Flags&RowMajorBit)==0);
+        ei_assert((_LhsNested::Flags&RowMajorBit)==0);
         return ei_pmul(m_lhs.template packetCoeff<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
       }
       else

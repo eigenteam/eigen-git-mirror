@@ -43,122 +43,122 @@
 template<typename _Scalar>
 class Quaternion
 {
-    typedef Matrix<_Scalar, 4, 1> Coefficients;
-    Coefficients m_coeffs;
+  typedef Matrix<_Scalar, 4, 1> Coefficients;
+  Coefficients m_coeffs;
 
-  public:
+public:
 
-    /** the scalar type of the coefficients */
-    typedef _Scalar Scalar;
+  /** the scalar type of the coefficients */
+  typedef _Scalar Scalar;
 
-    typedef Matrix<Scalar,3,1> Vector3;
-    typedef Matrix<Scalar,3,3> Matrix3;
+  typedef Matrix<Scalar,3,1> Vector3;
+  typedef Matrix<Scalar,3,3> Matrix3;
 
-    inline Scalar x() const { return m_coeffs.coeff(0); }
-    inline Scalar y() const { return m_coeffs.coeff(1); }
-    inline Scalar z() const { return m_coeffs.coeff(2); }
-    inline Scalar w() const { return m_coeffs.coeff(3); }
+  inline Scalar x() const { return m_coeffs.coeff(0); }
+  inline Scalar y() const { return m_coeffs.coeff(1); }
+  inline Scalar z() const { return m_coeffs.coeff(2); }
+  inline Scalar w() const { return m_coeffs.coeff(3); }
 
-    inline Scalar& x() { return m_coeffs.coeffRef(0); }
-    inline Scalar& y() { return m_coeffs.coeffRef(1); }
-    inline Scalar& z() { return m_coeffs.coeffRef(2); }
-    inline Scalar& w() { return m_coeffs.coeffRef(3); }
+  inline Scalar& x() { return m_coeffs.coeffRef(0); }
+  inline Scalar& y() { return m_coeffs.coeffRef(1); }
+  inline Scalar& z() { return m_coeffs.coeffRef(2); }
+  inline Scalar& w() { return m_coeffs.coeffRef(3); }
 
-    /** \returns a read-only vector expression of the imaginary part (x,y,z) */
-    inline const Block<Coefficients,3,1> vec() const { return m_coeffs.template start<3>(); }
+  /** \returns a read-only vector expression of the imaginary part (x,y,z) */
+  inline const Block<Coefficients,3,1> vec() const { return m_coeffs.template start<3>(); }
 
-    /** \returns a vector expression of the imaginary part (x,y,z) */
-    inline Block<Coefficients,3,1> vec() { return m_coeffs.template start<3>(); }
+  /** \returns a vector expression of the imaginary part (x,y,z) */
+  inline Block<Coefficients,3,1> vec() { return m_coeffs.template start<3>(); }
 
-    /** \returns a read-only vector expression of the coefficients */
-    inline const Coefficients& _coeffs() const { return m_coeffs; }
+  /** \returns a read-only vector expression of the coefficients */
+  inline const Coefficients& _coeffs() const { return m_coeffs; }
 
-    /** \returns a vector expression of the coefficients */
-    inline Coefficients& _coeffs() { return m_coeffs; }
+  /** \returns a vector expression of the coefficients */
+  inline Coefficients& _coeffs() { return m_coeffs; }
 
-    // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
-    inline Quaternion(Scalar w = 1.0, Scalar x = 0.0, Scalar y = 0.0, Scalar z = 0.0)
-    {
-      m_coeffs.coeffRef(0) = x;
-      m_coeffs.coeffRef(1) = y;
-      m_coeffs.coeffRef(2) = z;
-      m_coeffs.coeffRef(3) = w;
-    }
+  // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
+  inline Quaternion(Scalar w = 1.0, Scalar x = 0.0, Scalar y = 0.0, Scalar z = 0.0)
+  {
+    m_coeffs.coeffRef(0) = x;
+    m_coeffs.coeffRef(1) = y;
+    m_coeffs.coeffRef(2) = z;
+    m_coeffs.coeffRef(3) = w;
+  }
 
-    /** Copy constructor */
-    inline Quaternion(const Quaternion& other) { m_coeffs = other.m_coeffs; }
+  /** Copy constructor */
+  inline Quaternion(const Quaternion& other) { m_coeffs = other.m_coeffs; }
 
-    /** This is a special case of the templated operator=. Its purpose is to
-      * prevent a default operator= from hiding the templated operator=.
-      */
-    inline Quaternion& operator=(const Quaternion& other)
-    {
-      m_coeffs = other.m_coeffs;
-      return *this;
-    }
+  /** This is a special case of the templated operator=. Its purpose is to
+    * prevent a default operator= from hiding the templated operator=.
+    */
+  inline Quaternion& operator=(const Quaternion& other)
+  {
+    m_coeffs = other.m_coeffs;
+    return *this;
+  }
 
-    /** \returns a quaternion representing an identity rotation
-      * \sa MatrixBase::identity()
-      */
-    inline static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
+  /** \returns a quaternion representing an identity rotation
+    * \sa MatrixBase::identity()
+    */
+  inline static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
 
-    /** \sa Quaternion::identity(), MatrixBase::setIdentity()
-      */
-    inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
+  /** \sa Quaternion::identity(), MatrixBase::setIdentity()
+    */
+  inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
 
-    /** \returns the squared norm of the quaternion's coefficients
-      * \sa Quaternion::norm(), MatrixBase::norm2()
-      */
-    inline Scalar norm2() const { return m_coeffs.norm2(); }
+  /** \returns the squared norm of the quaternion's coefficients
+    * \sa Quaternion::norm(), MatrixBase::norm2()
+    */
+  inline Scalar norm2() const { return m_coeffs.norm2(); }
 
-    /** \returns the norm of the quaternion's coefficients
-      * \sa Quaternion::norm2(), MatrixBase::norm()
-      */
-    inline Scalar norm() const { return m_coeffs.norm(); }
+  /** \returns the norm of the quaternion's coefficients
+    * \sa Quaternion::norm2(), MatrixBase::norm()
+    */
+  inline Scalar norm() const { return m_coeffs.norm(); }
 
-    template<typename Derived>
-    Quaternion& fromRotationMatrix(const MatrixBase<Derived>& m);
-    Matrix3 toRotationMatrix(void) const;
+  template<typename Derived>
+  Quaternion& fromRotationMatrix(const MatrixBase<Derived>& m);
+  Matrix3 toRotationMatrix(void) const;
 
-    template<typename Derived>
-    Quaternion& fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis);
-    void toAngleAxis(Scalar& angle, Vector3& axis) const;
+  template<typename Derived>
+  Quaternion& fromAngleAxis (const Scalar& angle, const MatrixBase<Derived>& axis);
+  void toAngleAxis(Scalar& angle, Vector3& axis) const;
 
-    Quaternion& fromEulerAngles(Vector3 eulerAngles);
+  Quaternion& fromEulerAngles(Vector3 eulerAngles);
 
-    Vector3 toEulerAngles(void) const;
+  Vector3 toEulerAngles(void) const;
 
-    template<typename Derived1, typename Derived2>
-    Quaternion& fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
+  template<typename Derived1, typename Derived2>
+  Quaternion& fromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
 
-    inline Quaternion operator* (const Quaternion& q) const;
-    inline Quaternion& operator*= (const Quaternion& q);
+  inline Quaternion operator* (const Quaternion& q) const;
+  inline Quaternion& operator*= (const Quaternion& q);
 
-    Quaternion inverse(void) const;
-    Quaternion conjugate(void) const;
+  Quaternion inverse(void) const;
+  Quaternion conjugate(void) const;
 
-    Quaternion slerp(Scalar t, const Quaternion& other) const;
+  Quaternion slerp(Scalar t, const Quaternion& other) const;
 
-    template<typename Derived>
-    Vector3 operator* (const MatrixBase<Derived>& vec) const;
+  template<typename Derived>
+  Vector3 operator* (const MatrixBase<Derived>& vec) const;
 
 protected:
 
-    /** Constructor copying the value of the expression \a other */
-    template<typename OtherDerived>
-    inline Quaternion(const Eigen::MatrixBase<OtherDerived>& other)
-    {
-      m_coeffs = other;
-    }
+  /** Constructor copying the value of the expression \a other */
+  template<typename OtherDerived>
+  inline Quaternion(const Eigen::MatrixBase<OtherDerived>& other)
+  {
+    m_coeffs = other;
+  }
 
-    /** Copies the value of the expression \a other into \c *this.
-      */
-    template<typename OtherDerived>
-    inline Quaternion& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      m_coeffs = other.derived();
-      return *this;
-    }
+  /** Copies the value of the expression \a other into \c *this.
+    */
+  template<typename OtherDerived>
+  inline Quaternion& operator=(const MatrixBase<OtherDerived>& other)
+  {
+    m_coeffs = other.derived();
+    return *this;
+  }
 
 };
 
