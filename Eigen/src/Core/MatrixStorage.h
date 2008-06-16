@@ -94,7 +94,7 @@ template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 // dynamic-size matrix with fixed-size storage
 template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic>
 {
-    T m_data[Size];
+    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
     int m_rows;
     int m_cols;
   public:
@@ -107,14 +107,14 @@ template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic
       m_rows = rows;
       m_cols = cols;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    inline const T *data() const { return m_data.array; }
+    inline T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
 template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynamic, _Cols>
 {
-    T m_data[Size];
+    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
     int m_rows;
   public:
     inline ei_matrix_storage(int, int rows, int) : m_rows(rows) {}
@@ -125,14 +125,14 @@ template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynam
     {
       m_rows = rows;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    inline const T *data() const { return m_data.array; }
+    inline T *data() { return m_data.array; }
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
 template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows, Dynamic>
 {
-    T m_data[Size];
+    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
     int m_cols;
   public:
     inline ei_matrix_storage(int, int, int cols) : m_cols(cols) {}
@@ -143,8 +143,8 @@ template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows
     {
       m_cols = cols;
     }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
+    inline const T *data() const { return m_data.array; }
+    inline T *data() { return m_data.array; }
 };
 
 // purely dynamic matrix.

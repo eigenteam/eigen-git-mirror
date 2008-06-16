@@ -216,7 +216,8 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     _RowMajor = (RhsFlags & RowMajorBit)
               && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsPacketAccess)),
     _LostBits = ~((_RowMajor ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
+                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)
+                | LinearAccessBit),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & _LostBits)
           | EvalBeforeAssigningBit
           | EvalBeforeNestingBit

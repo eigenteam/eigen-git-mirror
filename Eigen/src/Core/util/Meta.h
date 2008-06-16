@@ -161,7 +161,7 @@ class ei_corrected_matrix_flags
             = ei_packet_traits<Scalar>::size > 1
               && (is_big || inner_size%ei_packet_traits<Scalar>::size==0)
               ? PacketAccessBit : 0,
-          
+
           _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
                                     | LinearAccessBit | DirectAccessBit
     };
@@ -215,7 +215,7 @@ template<typename T, int n=1> struct ei_nested
     T,
     typename ei_meta_if<
       (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
-      || ((n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) < (n-1) * int(T::CoeffReadCost)),
+      || ((n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) <= (n-1) * int(T::CoeffReadCost)),
       typename ei_eval<T>::type,
       const T&
     >::ret
