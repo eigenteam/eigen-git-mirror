@@ -137,7 +137,7 @@ template<typename T> struct ei_functor_traits
   enum
   {
     Cost = 10,
-    IsVectorizable = false
+    PacketAccess = false
   };
 };
 
@@ -157,18 +157,18 @@ class ei_corrected_matrix_flags
                          : Cols > 1 ? RowMajorBit : 0,
            is_big = MaxRows == Dynamic || MaxCols == Dynamic,
            inner_size = row_major_bit ? Cols : Rows,
-           vectorizable_bit
+           packet_access_bit
             = ei_packet_traits<Scalar>::size > 1
               && (is_big || inner_size%ei_packet_traits<Scalar>::size==0)
-              ? VectorizableBit : 0,
+              ? PacketAccessBit : 0,
           
-          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | VectorizableBit | RowMajorBit))
-                                    | Like1DArrayBit | DirectAccessBit
+          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
+                                    | LinearAccessBit | DirectAccessBit
     };
 
   public:
-    enum { ret = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | VectorizableBit | RowMajorBit))
-                                    | Like1DArrayBit | DirectAccessBit | vectorizable_bit | row_major_bit
+    enum { ret = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
+                                    | LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit
     };
 };
 

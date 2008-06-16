@@ -34,8 +34,8 @@
 enum {
   NoVectorization,
   InnerVectorization,
-  Like1DVectorization,
-  SlicedVectorization
+  LinearVectorization,
+  SliceVectorization
 };
 
 enum {
@@ -56,18 +56,18 @@ private:
   };
 
   enum {
-    MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & VectorizableBit)
+    MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & PacketAccessBit)
              && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
     MayInnerVectorize = MightVectorize && InnerSize!=Dynamic && int(InnerSize)%int(PacketSize)==0,
-    MayLike1DVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & Like1DArrayBit),
-    MaySlicedVectorize = MightVectorize && InnerSize==Dynamic
+    MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
+    MaySliceVectorize = MightVectorize && InnerSize==Dynamic
   };
 
 public:
   enum {
     Vectorization = MayInnerVectorize  ? InnerVectorization
-                  : MayLike1DVectorize ? Like1DVectorization
-                  : MaySlicedVectorize ? SlicedVectorization
+                  : MayLinearVectorize ? LinearVectorization
+                  : MaySliceVectorize ? SliceVectorization
                                        : NoVectorization
   };
 
@@ -86,7 +86,7 @@ public:
                  : MayUnrollInner      ? InnerUnrolling
                                        : NoUnrolling
                 )
-              : int(Vectorization) == int(Like1DVectorization)
+              : int(Vectorization) == int(LinearVectorization)
               ? ( MayUnrollCompletely ? CompleteUnrolling : NoUnrolling )
               : NoUnrolling
   };
@@ -162,7 +162,7 @@ struct ei_assign_innervec_CompleteUnrolling
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.template writePacketCoeff<Aligned>(row, col, src.template packetCoeff<Aligned>(row, col));
+    dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src);
   }
@@ -181,7 +181,7 @@ struct ei_assign_innervec_InnerUnrolling
   {
     const int row = int(Derived1::Flags)&RowMajorBit ? row_or_col : Index;
     const int col = int(Derived1::Flags)&RowMajorBit ? Index : row_or_col;
-    dst.template writePacketCoeff<Aligned>(row, col, src.template packetCoeff<Aligned>(row, col));
+    dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
     ei_assign_innervec_InnerUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src, row_or_col);
   }
@@ -267,7 +267,7 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
       {
         const int row = rowMajor ? j : i;
         const int col = rowMajor ? i : j;
-        dst.template writePacketCoeff<Aligned>(row, col, src.template packetCoeff<Aligned>(row, col));
+        dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
       }  
     }
   }
@@ -298,11 +298,11 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, InnerUnrolling>
 };
 
 /***************************
-*** Like1D vectorization ***
+*** Linear vectorization ***
 ***************************/
 
 template<typename Derived1, typename Derived2>
-struct ei_assign_impl<Derived1, Derived2, Like1DVectorization, NoUnrolling>
+struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -320,7 +320,7 @@ struct ei_assign_impl<Derived1, Derived2, Like1DVectorization, NoUnrolling>
       // FIXME the following is not really efficient
       const int row = rowMajor ? index/innerSize : index%innerSize;
       const int col = rowMajor ? index%innerSize : index/innerSize;
-      dst.template writePacketCoeff<Aligned>(row, col, src.template packetCoeff<Aligned>(row, col));
+      dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
     }
 
     // now we must do the rest without vectorization.
@@ -347,7 +347,7 @@ struct ei_assign_impl<Derived1, Derived2, Like1DVectorization, NoUnrolling>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_assign_impl<Derived1, Derived2, Like1DVectorization, CompleteUnrolling>
+struct ei_assign_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -375,16 +375,16 @@ struct ei_assign_impl<Derived1, Derived2, Like1DVectorization, CompleteUnrolling
   }
 };
 
-/***************************
-*** Sliced vectorization ***
+/**************************
+*** Slice vectorization ***
 ***************************/
 
 template<typename Derived1, typename Derived2>
-struct ei_assign_impl<Derived1, Derived2, SlicedVectorization, NoUnrolling>
+struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    //FIXME unimplemented
+    //FIXME unimplemented, so for now we fall back to non-vectorized path
     ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>::run(dst, src);
   }
 };

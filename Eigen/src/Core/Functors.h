@@ -42,7 +42,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -61,7 +61,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    IsVectorizable = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -80,7 +80,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -99,7 +99,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -121,7 +121,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    IsVectorizable = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::size>1
   };
 };
 
@@ -135,7 +135,7 @@ template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient_op<Scalar> >
-{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 
 // unary functors:
@@ -150,7 +150,7 @@ template<typename Scalar> struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to compute the absolute value of a scalar
@@ -163,7 +163,7 @@ template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to compute the squared absolute value of a scalar
@@ -176,7 +176,7 @@ template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to compute the conjugate of a complex value
@@ -188,7 +188,7 @@ template<typename Scalar> struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to cast a scalar to another type
@@ -202,7 +202,7 @@ struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar, typename NewType>
 struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
-{ enum { Cost = ei_is_same_type<Scalar, NewType>::ret ? 0 : NumTraits<NewType>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = ei_is_same_type<Scalar, NewType>::ret ? 0 : NumTraits<NewType>::AddCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to extract the real part of a complex
@@ -216,14 +216,14 @@ struct ei_scalar_real_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_real_op<Scalar> >
-{ enum { Cost =  0, IsVectorizable = false }; };
+{ enum { Cost =  0, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to multiply a scalar by a fixed other one
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
-template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_multiple_op;
+template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_multiple_op;
 
 template<typename Scalar>
 struct ei_scalar_multiple_op<Scalar,true> {
@@ -242,7 +242,7 @@ struct ei_scalar_multiple_op<Scalar,false> {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = ei_packet_traits<Scalar>::size>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
 
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
@@ -252,7 +252,7 @@ struct ei_scalar_quotient1_impl {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,false> {
@@ -263,7 +263,7 @@ struct ei_scalar_quotient1_impl<Scalar,false> {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
-{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to divide a scalar by a fixed other one
@@ -281,7 +281,7 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
 
 // nullary functors
 
-template<typename Scalar, bool IsVectorizable = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_constant_op;
+template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_constant_op;
 
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,true> {
@@ -300,7 +300,7 @@ struct ei_scalar_constant_op<Scalar,false> {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
-{ enum { Cost = 1, IsVectorizable = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
+{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
 
 template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
   inline ei_scalar_identity_op(void) {}
@@ -308,6 +308,6 @@ template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, IsVectorizable = false, IsRepeatable = true }; };
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
 #endif // EIGEN_FUNCTORS_H

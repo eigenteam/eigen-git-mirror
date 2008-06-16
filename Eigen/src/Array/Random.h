@@ -31,7 +31,7 @@ template<typename Scalar> struct ei_scalar_random_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_random_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false, IsRepeatable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false, IsRepeatable = false }; };
 
 /** \array_module
   * 

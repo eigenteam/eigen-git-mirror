@@ -53,7 +53,7 @@ struct ei_traits<Extract<MatrixType, Mode> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (_MatrixTypeNested::Flags & ~(VectorizableBit | Like1DArrayBit | DirectAccessBit)) | Mode,
+    Flags = (_MatrixTypeNested::Flags & ~(PacketAccessBit | LinearAccessBit | DirectAccessBit)) | Mode,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

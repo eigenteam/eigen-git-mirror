@@ -49,7 +49,7 @@ struct ei_traits<Transpose<MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     Flags = ((int(_MatrixTypeNested::Flags) ^ RowMajorBit)
-          & ~( Like1DArrayBit | LowerTriangularBit | UpperTriangularBit))
+          & ~( LinearAccessBit | LowerTriangularBit | UpperTriangularBit))
           | (int(_MatrixTypeNested::Flags)&UpperTriangularBit ? LowerTriangularBit : 0)
           | (int(_MatrixTypeNested::Flags)&LowerTriangularBit ? UpperTriangularBit : 0),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
@@ -85,15 +85,15 @@ template<typename MatrixType> class Transpose
     }
 
     template<int LoadMode>
-    inline const PacketScalar _packetCoeff(int row, int col) const
+    inline const PacketScalar _packet(int row, int col) const
     {
-      return m_matrix.template packetCoeff<LoadMode>(col, row);
+      return m_matrix.template packet<LoadMode>(col, row);
     }
 
     template<int LoadMode>
-    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacketCoeff<LoadMode>(col, row, x);
+      m_matrix.const_cast_derived().template writePacket<LoadMode>(col, row, x);
     }
 
   protected:

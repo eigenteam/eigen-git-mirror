@@ -85,15 +85,15 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     }
 
     template<int LoadMode>
-    inline const PacketScalar _packetCoeff(int row, int col) const
+    inline const PacketScalar _packet(int row, int col) const
     {
-      return m_matrix.template packetCoeff<LoadMode>(row, col);
+      return m_matrix.template packet<LoadMode>(row, col);
     }
 
     template<int LoadMode>
-    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacketCoeff<LoadMode>(row, col, x);
+      m_matrix.const_cast_derived().template writePacket<LoadMode>(row, col, x);
     }
 
   protected:

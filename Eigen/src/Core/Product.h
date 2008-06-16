@@ -76,7 +76,7 @@ struct ei_packet_product_impl<true, Index, Size, Lhs, Rhs, PacketScalar>
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_impl<true, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packetCoeff<Aligned>(Index, col), res);
+    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packet<Aligned>(Index, col), res);
   }
 };
 
@@ -86,7 +86,7 @@ struct ei_packet_product_impl<false, Index, Size, Lhs, Rhs, PacketScalar>
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
     ei_packet_product_impl<false, Index-1, Size, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(lhs.template packetCoeff<Aligned>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
+    res =  ei_pmadd(lhs.template packet<Aligned>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
   }
 };
 
@@ -95,7 +95,7 @@ struct ei_packet_product_impl<true, 0, Size, Lhs, Rhs, PacketScalar>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packetCoeff<Aligned>(0, col));
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<Aligned>(0, col));
   }
 };
 
@@ -104,7 +104,7 @@ struct ei_packet_product_impl<false, 0, Size, Lhs, Rhs, PacketScalar>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
   }
 };
 
@@ -113,9 +113,9 @@ struct ei_packet_product_impl<RowMajor, Index, Dynamic, Lhs, Rhs, PacketScalar>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packetCoeff<Aligned>(0, col));
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<Aligned>(0, col));
       for(int i = 1; i < lhs.cols(); i++)
-        res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packetCoeff<Aligned>(i, col), res);
+        res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packet<Aligned>(i, col), res);
   }
 };
 
@@ -124,9 +124,9 @@ struct ei_packet_product_impl<false, Index, Dynamic, Lhs, Rhs, PacketScalar>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
-    res = ei_pmul(lhs.template packetCoeff<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
       for(int i = 1; i < lhs.cols(); i++)
-        res =  ei_pmadd(lhs.template packetCoeff<Aligned>(row, i), ei_pset1(rhs.coeff(i, col)), res);
+        res =  ei_pmadd(lhs.template packet<Aligned>(row, i), ei_pset1(rhs.coeff(i, col)), res);
   }
 };
 
@@ -210,17 +210,17 @@ struct ei_traits<Product<Lhs, Rhs, EvalMode> >
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
     // the vectorization flags are only used by the normal product,
     // the other one is always vectorized !
-    _RhsVectorizable = (RhsFlags & RowMajorBit) && (RhsFlags & VectorizableBit) && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _LhsVectorizable = (!(LhsFlags & RowMajorBit)) && (LhsFlags & VectorizableBit) && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _Vectorizable = (_LhsVectorizable || _RhsVectorizable) ? 1 : 0,
+    _RhsPacketAccess = (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit) && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+    _LhsPacketAccess = (!(LhsFlags & RowMajorBit)) && (LhsFlags & PacketAccessBit) && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+    _PacketAccess = (_LhsPacketAccess || _RhsPacketAccess) ? 1 : 0,
     _RowMajor = (RhsFlags & RowMajorBit)
-              && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsVectorizable)),
+              && (EvalMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!_LhsPacketAccess)),
     _LostBits = ~((_RowMajor ? 0 : RowMajorBit)
                 | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & _LostBits)
           | EvalBeforeAssigningBit
           | EvalBeforeNestingBit
-          | (_Vectorizable ? VectorizableBit : 0),
+          | (_PacketAccess ? PacketAccessBit : 0),
     CoeffReadCost
       = Lhs::ColsAtCompileTime == Dynamic
       ? Dynamic
@@ -276,7 +276,7 @@ template<typename Lhs, typename Rhs, int EvalMode> class Product : ei_no_assignm
     }
 
     template<int LoadMode>
-    const PacketScalar _packetCoeff(int row, int col) const
+    const PacketScalar _packet(int row, int col) const
     {
       const bool unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT;
       PacketScalar res;

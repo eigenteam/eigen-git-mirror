@@ -50,7 +50,7 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (MatrixType::Flags
-      & (HereditaryBits | Like1DArrayBit | (ei_functor_traits<NullaryOp>::IsVectorizable ? VectorizableBit : 0)))
+      & (HereditaryBits | LinearAccessBit | (ei_functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
       | (ei_functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
     CoeffReadCost = ei_functor_traits<NullaryOp>::Cost
   };
@@ -84,7 +84,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
     }
 
     template<int LoadMode>
-    PacketScalar _packetCoeff(int, int) const
+    PacketScalar _packet(int, int) const
     {
       return m_functor.packetOp();
     }

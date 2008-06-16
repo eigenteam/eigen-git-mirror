@@ -229,9 +229,9 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     Scalar& operator[](int index);
 
     template<int LoadMode>
-    PacketScalar packetCoeff(int row, int col) const;
+    PacketScalar packet(int row, int col) const;
     template<int StoreMode>
-    void writePacketCoeff(int row, int col, const PacketScalar& x);
+    void writePacket(int row, int col, const PacketScalar& x);
 
     const Scalar x() const;
     const Scalar y() const;

@@ -38,7 +38,7 @@ template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -53,7 +53,7 @@ template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -68,7 +68,7 @@ template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_log_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -83,7 +83,7 @@ template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -98,7 +98,7 @@ template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -116,7 +116,7 @@ struct ei_scalar_pow_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   *
@@ -132,107 +132,107 @@ struct ei_scalar_inverse_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 // default ei_functor_traits for STL functors:
 
 template<typename T>
 struct ei_functor_traits<std::multiplies<T> >
-{ enum { Cost = NumTraits<T>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<T>::MulCost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::divides<T> >
-{ enum { Cost = NumTraits<T>::MulCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<T>::MulCost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::plus<T> >
-{ enum { Cost = NumTraits<T>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::minus<T> >
-{ enum { Cost = NumTraits<T>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::negate<T> >
-{ enum { Cost = NumTraits<T>::AddCost, IsVectorizable = false }; };
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::logical_or<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::logical_and<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::logical_not<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::greater<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::less<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::greater_equal<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::less_equal<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::equal_to<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::not_equal_to<T> >
-{ enum { Cost = 1, IsVectorizable = false }; };
+{ enum { Cost = 1, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::binder2nd<T> >
-{ enum { Cost = ei_functor_traits<T>::Cost, IsVectorizable = false }; };
+{ enum { Cost = ei_functor_traits<T>::Cost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::binder1st<T> >
-{ enum { Cost = ei_functor_traits<T>::Cost, IsVectorizable = false }; };
+{ enum { Cost = ei_functor_traits<T>::Cost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::unary_negate<T> >
-{ enum { Cost = 1 + ei_functor_traits<T>::Cost, IsVectorizable = false }; };
+{ enum { Cost = 1 + ei_functor_traits<T>::Cost, PacketAccess = false }; };
 
 template<typename T>
 struct ei_functor_traits<std::binary_negate<T> >
-{ enum { Cost = 1 + ei_functor_traits<T>::Cost, IsVectorizable = false }; };
+{ enum { Cost = 1 + ei_functor_traits<T>::Cost, PacketAccess = false }; };
 
 #ifdef EIGEN_STDEXT_SUPPORT
 
 template<typename T0,typename T1>
 struct ei_functor_traits<std::project1st<T0,T1> >
-{ enum { Cost = 0, IsVectorizable = false }; };
+{ enum { Cost = 0, PacketAccess = false }; };
 
 template<typename T0,typename T1>
 struct ei_functor_traits<std::project2nd<T0,T1> >
-{ enum { Cost = 0, IsVectorizable = false }; };
+{ enum { Cost = 0, PacketAccess = false }; };
 
 template<typename T0,typename T1>
 struct ei_functor_traits<std::select2nd<std::pair<T0,T1> > >
-{ enum { Cost = 0, IsVectorizable = false }; };
+{ enum { Cost = 0, PacketAccess = false }; };
 
 template<typename T0,typename T1>
 struct ei_functor_traits<std::select1st<std::pair<T0,T1> > >
-{ enum { Cost = 0, IsVectorizable = false }; };
+{ enum { Cost = 0, PacketAccess = false }; };
 
 template<typename T0,typename T1>
 struct ei_functor_traits<std::unary_compose<T0,T1> >
-{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost, IsVectorizable = false }; };
+{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost, PacketAccess = false }; };
 
 template<typename T0,typename T1,typename T2>
 struct ei_functor_traits<std::binary_compose<T0,T1,T2> >
-{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost + ei_functor_traits<T2>::Cost, IsVectorizable = false }; };
+{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost + ei_functor_traits<T2>::Cost, PacketAccess = false }; };
 
 #endif // EIGEN_STDEXT_SUPPORT
 

@@ -67,15 +67,15 @@ const unsigned int LargeBit = 0x8;
 /** \ingroup flags
   *
   * means the expression might be vectorized */
-const unsigned int VectorizableBit = 0x10;
+const unsigned int PacketAccessBit = 0x10;
 #else
-const unsigned int VectorizableBit = 0x0;
+const unsigned int PacketAccessBit = 0x0;
 #endif
 
 /** \ingroup flags
   *
   * means the expression can be seen as 1D vector (used for explicit vectorization) */
-const unsigned int Like1DArrayBit = 0x20;
+const unsigned int LinearAccessBit = 0x20;
 
 /** \ingroup flags
   *

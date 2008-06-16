@@ -137,9 +137,9 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 
     template<int LoadMode>
-    inline PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packet(int row, int col) const
     {
-      ei_internal_assert(Flags & VectorizableBit);
+      ei_internal_assert(Flags & PacketAccessBit);
       if(Flags & RowMajorBit)
         if (LoadMode==Aligned)
           return ei_pload(&m_storage.data()[col + row * m_storage.cols()]);
@@ -153,9 +153,9 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 
     template<int StoreMode>
-    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacket(int row, int col, const PacketScalar& x)
     {
-      ei_internal_assert(Flags & VectorizableBit);
+      ei_internal_assert(Flags & PacketAccessBit);
       if(Flags & RowMajorBit)
         if (StoreMode==Aligned)
           ei_pstore(&m_storage.data()[col + row * m_storage.cols()], x);

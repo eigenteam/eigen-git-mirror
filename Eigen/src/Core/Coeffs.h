@@ -249,14 +249,14 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 template<typename Derived>
 template<int LoadMode>
 inline typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-MatrixBase<Derived>::packetCoeff(int row, int col) const
-{ return derived().template _packetCoeff<LoadMode>(row,col); }
+MatrixBase<Derived>::packet(int row, int col) const
+{ return derived().template _packet<LoadMode>(row,col); }
 
 template<typename Derived>
 template<int StoreMode>
-inline void MatrixBase<Derived>::writePacketCoeff
+inline void MatrixBase<Derived>::writePacket
 (int row, int col, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{ derived().template _writePacketCoeff<StoreMode>(row,col,x); }
+{ derived().template _writePacket<StoreMode>(row,col,x); }
 
 
 #endif // EIGEN_COEFFS_H

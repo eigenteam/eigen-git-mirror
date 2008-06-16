@@ -67,9 +67,9 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
     Flags = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
-      | (int(LhsFlags) & int(RhsFlags) & Like1DArrayBit)
-      | (ei_functor_traits<BinaryOp>::IsVectorizable && ((int(LhsFlags) & RowMajorBit)==(int(RhsFlags) & RowMajorBit))
-        ? int(LhsFlags) & int(RhsFlags) & VectorizableBit : 0)),
+      | (int(LhsFlags) & int(RhsFlags) & LinearAccessBit)
+      | (ei_functor_traits<BinaryOp>::PacketAccess && ((int(LhsFlags) & RowMajorBit)==(int(RhsFlags) & RowMajorBit))
+        ? int(LhsFlags) & int(RhsFlags) & PacketAccessBit : 0)),
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
@@ -101,9 +101,9 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     }
 
     template<int LoadMode>
-    inline PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packet(int row, int col) const
     {
-      return m_functor.packetOp(m_lhs.template packetCoeff<LoadMode>(row, col), m_rhs.template packetCoeff<LoadMode>(row, col));
+      return m_functor.packetOp(m_lhs.template packet<LoadMode>(row, col), m_rhs.template packet<LoadMode>(row, col));
     }
 
   protected:

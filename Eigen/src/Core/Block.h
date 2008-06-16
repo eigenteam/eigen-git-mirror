@@ -71,7 +71,11 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
                       || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
                       ? ~LargeBit
                       : ~(unsigned int)0,
-    Flags = MatrixType::Flags & (HereditaryBits | VectorizableBit | DirectAccessBit) & FlagsMaskLargeBit,
+    FlagsLinearAccessBit = MatrixType::Flags & RowMajorBit
+                        ? (RowsAtCompileTime == 1 ? LinearAccessBit : 0)
+                        : (ColsAtCompileTime == 1 ? LinearAccessBit : 0),
+    Flags = (MatrixType::Flags & (HereditaryBits | PacketAccessBit | DirectAccessBit) & FlagsMaskLargeBit)
+          | FlagsLinearAccessBit,
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
@@ -146,15 +150,15 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     }
 
     template<int LoadMode>
-    inline PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packet(int row, int col) const
     {
-      return m_matrix.template packetCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value());
+      return m_matrix.template packet<UnAligned>(row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
-    inline void _writePacketCoeff(int row, int col, const PacketScalar& x)
+    inline void _writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacketCoeff<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
+      m_matrix.const_cast_derived().template writePacket<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
     }
 
   protected:

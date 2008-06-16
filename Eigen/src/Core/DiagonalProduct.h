@@ -41,14 +41,14 @@ struct ei_traits<Product<Lhs, Rhs, DiagonalProduct> >
     ColsAtCompileTime = Rhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
-    _RhsVectorizable =  (RhsFlags & RowMajorBit) && (RhsFlags & VectorizableBit)
+    _RhsPacketAccess =  (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit)
                      && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _LhsVectorizable =  (!(LhsFlags & RowMajorBit)) && (LhsFlags & VectorizableBit)
+    _LhsPacketAccess =  (!(LhsFlags & RowMajorBit)) && (LhsFlags & PacketAccessBit)
                      && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _LostBits = ~(((RhsFlags & RowMajorBit) && (!_LhsVectorizable) ? 0 : RowMajorBit)
+    _LostBits = ~(((RhsFlags & RowMajorBit) && (!_LhsPacketAccess) ? 0 : RowMajorBit)
                 | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & _LostBits)
-          | (_LhsVectorizable || _RhsVectorizable ? VectorizableBit : 0),
+          | (_LhsPacketAccess || _RhsPacketAccess ? PacketAccessBit : 0),
     CoeffReadCost = NumTraits<Scalar>::MulCost + _LhsNested::CoeffReadCost + _RhsNested::CoeffReadCost
   };
 };
@@ -86,17 +86,17 @@ template<typename Lhs, typename Rhs> class Product<Lhs, Rhs, DiagonalProduct> : 
     }
 
     template<int LoadMode>
-    const PacketScalar _packetCoeff(int row, int col) const
+    const PacketScalar _packet(int row, int col) const
     {
       if ((Rhs::Flags&Diagonal)==Diagonal)
       {
         ei_assert((_LhsNested::Flags&RowMajorBit)==0);
-        return ei_pmul(m_lhs.template packetCoeff<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
+        return ei_pmul(m_lhs.template packet<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
       }
       else
       {
         ei_assert(_RhsNested::Flags&RowMajorBit);
-        return ei_pmul(ei_pset1(m_lhs.coeff(row, row)), m_rhs.template packetCoeff<LoadMode>(row, col));
+        return ei_pmul(ei_pset1(m_lhs.coeff(row, row)), m_rhs.template packet<LoadMode>(row, col));
       }
     }
 

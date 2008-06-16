@@ -55,8 +55,8 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (MatrixTypeFlags & (
-      HereditaryBits | Like1DArrayBit
-      | (ei_functor_traits<UnaryOp>::IsVectorizable ? VectorizableBit : 0))),
+      HereditaryBits | LinearAccessBit
+      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))),
     CoeffReadCost = MatrixTypeCoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
@@ -83,9 +83,9 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     }
 
     template<int LoadMode>
-    inline PacketScalar _packetCoeff(int row, int col) const
+    inline PacketScalar _packet(int row, int col) const
     {
-      return m_functor.packetOp(m_matrix.template packetCoeff<LoadMode>(row, col));
+      return m_functor.packetOp(m_matrix.template packet<LoadMode>(row, col));
     }
 
   protected:
