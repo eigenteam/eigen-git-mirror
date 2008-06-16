@@ -94,12 +94,12 @@ const unsigned int SelfAdjointBit = 0x100;
 
 /** \ingroup flags
   *
-  * means the strictly triangular lower part is 0 */
+  * means the strictly lower triangular part is 0 */
 const unsigned int UpperTriangularBit = 0x200;
 
 /** \ingroup flags
   *
-  * means the strictly triangular upper part is 0 */
+  * means the strictly upper triangular part is 0 */
 const unsigned int LowerTriangularBit = 0x400;
 
 /** \ingroup flags

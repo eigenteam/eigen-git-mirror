@@ -28,15 +28,13 @@
 template<typename T> struct ei_traits;
 template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 template<typename T> struct NumTraits;
-template<typename Scalar, int Size, unsigned int SuggestedFlags> class ei_corrected_matrix_flags;
-
-template<int _Rows, int _Cols> struct ei_size_at_compile_time;
+template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags> class ei_corrected_matrix_flags;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _MaxRows = _Rows, int _MaxCols = _Cols,
          unsigned int _Flags = ei_corrected_matrix_flags<
                                    _Scalar,
-                                   ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                                   _Rows, _Cols, _MaxRows, _MaxCols,
                                    EIGEN_DEFAULT_MATRIX_FLAGS
                                >::ret
 >

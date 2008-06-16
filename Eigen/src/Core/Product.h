@@ -155,20 +155,20 @@ template<typename Lhs, typename Rhs> struct ei_product_eval_mode
 template<typename T> class ei_product_eval_to_column_major
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
-    enum {_MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
+    enum {
+          _Rows = ei_traits<T>::RowsAtCompileTime,
+          _Cols = ei_traits<T>::ColsAtCompileTime,
+          _MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
           _MaxCols = ei_traits<T>::MaxColsAtCompileTime,
           _Flags = ei_traits<T>::Flags
     };
 
   public:
     typedef Matrix<_Scalar,
-                  ei_traits<T>::RowsAtCompileTime,
-                  ei_traits<T>::ColsAtCompileTime,
-                  ei_traits<T>::MaxRowsAtCompileTime,
-                  ei_traits<T>::MaxColsAtCompileTime,
+                  _Rows, _Cols, _MaxRows, _MaxCols,
                   ei_corrected_matrix_flags<
                       _Scalar,
-                      ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                      _Rows, _Cols, _MaxRows, _MaxCols,
                       _Flags
                   >::ret & ~RowMajorBit
             > type;

@@ -147,19 +147,28 @@ template<typename T> struct ei_packet_traits
   enum {size=1};
 };
 
-template<typename Scalar, int Size, unsigned int SuggestedFlags>
+template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags>
 class ei_corrected_matrix_flags
 {
-    enum { is_vectorizable
+    enum { row_major_bit = (Rows != 1 && Cols != 1)  // if this is not a vector,
+                                                     // then the storage order really matters,
+                                                     // so let us strictly honor the user's choice.
+                         ? SuggestedFlags&RowMajorBit
+                         : Cols > 1 ? RowMajorBit : 0,
+           is_big = MaxRows == Dynamic || MaxCols == Dynamic,
+           inner_size = row_major_bit ? Cols : Rows,
+           vectorizable_bit
             = ei_packet_traits<Scalar>::size > 1
-              && (Size%ei_packet_traits<Scalar>::size==0),
-          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit)) | Like1DArrayBit | DirectAccessBit
+              && (is_big || inner_size%ei_packet_traits<Scalar>::size==0)
+              ? VectorizableBit : 0,
+          
+          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | VectorizableBit | RowMajorBit))
+                                    | Like1DArrayBit | DirectAccessBit
     };
 
   public:
-    enum { ret = int(is_vectorizable)
-                  ? int(_flags1) | int(VectorizableBit)
-                  : int(_flags1) & ~int(VectorizableBit)
+    enum { ret = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | VectorizableBit | RowMajorBit))
+                                    | Like1DArrayBit | DirectAccessBit | vectorizable_bit | row_major_bit
     };
 };
 
@@ -171,20 +180,19 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
 template<typename T> class ei_eval
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
-    enum {_MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
+    enum {_Rows = ei_traits<T>::RowsAtCompileTime,
+          _Cols = ei_traits<T>::ColsAtCompileTime,
+          _MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
           _MaxCols = ei_traits<T>::MaxColsAtCompileTime,
           _Flags = ei_traits<T>::Flags
     };
 
   public:
     typedef Matrix<_Scalar,
-                  ei_traits<T>::RowsAtCompileTime,
-                  ei_traits<T>::ColsAtCompileTime,
-                  ei_traits<T>::MaxRowsAtCompileTime,
-                  ei_traits<T>::MaxColsAtCompileTime,
+                  _Rows, _Cols, _MaxRows, _MaxCols,
                   ei_corrected_matrix_flags<
                       _Scalar,
-                      ei_size_at_compile_time<_MaxRows,_MaxCols>::ret,
+                      _Rows, _Cols, _MaxRows, _MaxCols,
                       _Flags
                   >::ret
             > type;
