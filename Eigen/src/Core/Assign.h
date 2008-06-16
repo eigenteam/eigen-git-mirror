@@ -73,7 +73,7 @@ public:
 
 private:
   enum {
-    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * int(PacketSize),
+    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize)),
     MayUnrollCompletely = int(Derived::SizeAtCompileTime) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize * OtherDerived::CoeffReadCost) <= int(UnrollingLimit)
   };
