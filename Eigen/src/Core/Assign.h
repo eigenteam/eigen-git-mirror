@@ -73,7 +73,7 @@ public:
 
 private:
   enum {
-    UnrollingLimit      = EIGEN_UNROLLING_LIMIT / (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize)),
+    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * int(PacketSize),
     MayUnrollCompletely = int(Derived::SizeAtCompileTime) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize * OtherDerived::CoeffReadCost) <= int(UnrollingLimit)
   };
@@ -238,7 +238,7 @@ template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, NoVectorization, InnerUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
-  {
+  {  
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
     const int outerSize = rowMajor ? dst.rows() : dst.cols();
