@@ -5,7 +5,6 @@
 
 namespace Eigen {
 
-#include "src/Array/ArrayBase.h"
 #include "src/Array/CwiseOperators.h"
 #include "src/Array/Functors.h"
 #include "src/Array/AllAndAny.h"

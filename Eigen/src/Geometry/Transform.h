@@ -103,17 +103,17 @@ public:
   inline VectorRef translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
   template<typename OtherDerived>
-  struct ProductReturnType
+  struct TransformProductReturnType
   {
     typedef typename ei_transform_product_impl<OtherDerived>::ResultType Type;
   };
 
   template<typename OtherDerived>
-  const typename ProductReturnType<OtherDerived>::Type
+  const typename TransformProductReturnType<OtherDerived>::Type
   operator * (const MatrixBase<OtherDerived> &other) const;
 
   /** Contatenates two transformations */
-  const Product<MatrixType,MatrixType>
+  const typename ProductReturnType<MatrixType,MatrixType>::Type
   operator * (const Transform& other) const
   { return m_matrix * other.matrix(); }
 
@@ -192,7 +192,7 @@ QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 
 template<typename Scalar, int Dim>
 template<typename OtherDerived>
-const typename Transform<Scalar,Dim>::template ProductReturnType<OtherDerived>::Type
+const typename Transform<Scalar,Dim>::template TransformProductReturnType<OtherDerived>::Type
 Transform<Scalar,Dim>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return ei_transform_product_impl<OtherDerived>::run(*this,other.derived());
@@ -380,7 +380,7 @@ template<typename Other>
 struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim+1,Dim+1>
 {
   typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
-  typedef Product<MatrixType,Other> ResultType;
+  typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
   static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
   { return tr.matrix() * other; }
 };
@@ -390,7 +390,7 @@ template<typename Other>
 struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim+1,1>
 {
   typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
-  typedef Product<MatrixType,Other> ResultType;
+  typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
   static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
   { return tr.matrix() * other; }
 };
@@ -404,7 +404,7 @@ struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim,1>
       ei_scalar_multiple_op<Scalar>,
       NestByValue<CwiseBinaryOp<
         ei_scalar_sum_op<Scalar>,
-        NestByValue<Product<NestByValue<MatrixType>,Other> >,
+        NestByValue<typename ProductReturnType<NestByValue<MatrixType>,Other>::Type >,
         NestByValue<typename Transform<Scalar,Dim>::VectorRef> > >
       > ResultType;
   // FIXME shall we offer an optimized version when the last row is know to be 0,0...,0,1 ?

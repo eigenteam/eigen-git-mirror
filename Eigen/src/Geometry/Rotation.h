@@ -107,10 +107,10 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients
   *
-  * This class is equivalent to a single scalar representating the rotation angle
+  * This class is equivalent to a single scalar representing the rotation angle
   * in radian with some additional features such as the conversion from/to
   * rotation matrix. Moreover this class aims to provide a similar interface
-  * to Quaternion in order to facilitate the writting of generic algorithm
+  * to Quaternion in order to facilitate the writing of generic algorithm
   * dealing with rotations.
   *
   * \sa class Quaternion, class Transform

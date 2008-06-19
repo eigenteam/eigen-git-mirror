@@ -26,7 +26,6 @@
 #define EIGEN_FORWARDDECLARATIONS_H
 
 template<typename T> struct ei_traits;
-template<typename Lhs, typename Rhs> struct ei_product_eval_mode;
 template<typename T> struct NumTraits;
 template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags> class ei_corrected_matrix_flags;
 
@@ -49,7 +48,7 @@ template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
-template<typename Lhs, typename Rhs, int EvalMode=ei_product_eval_mode<Lhs,Rhs>::value> class Product;
+template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType> class Map;
@@ -63,6 +62,8 @@ template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Transform;
 
+template<typename Lhs, typename Rhs> struct ei_product_mode;
+template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
 
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;

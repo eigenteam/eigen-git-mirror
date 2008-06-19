@@ -140,7 +140,7 @@ enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, LazyProduct};
+enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct };
 
 
 #endif // EIGEN_CONSTANTS_H

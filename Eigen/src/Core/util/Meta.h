@@ -160,10 +160,7 @@ class ei_corrected_matrix_flags
            packet_access_bit
             = ei_packet_traits<Scalar>::size > 1
               && (is_big || inner_size%ei_packet_traits<Scalar>::size==0)
-              ? PacketAccessBit : 0,
-
-          _flags1 = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
-                                    | LinearAccessBit | DirectAccessBit
+              ? PacketAccessBit : 0
     };
 
   public:
@@ -208,7 +205,7 @@ template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 
 
-template<typename T, int n=1> struct ei_nested
+template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> struct ei_nested
 {
   typedef typename ei_meta_if<
     ei_must_nest_by_value<T>::ret,
@@ -216,7 +213,7 @@ template<typename T, int n=1> struct ei_nested
     typename ei_meta_if<
       (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
       || ((n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) <= (n-1) * int(T::CoeffReadCost)),
-      typename ei_eval<T>::type,
+      EvalType,
       const T&
     >::ret
   >::ret type;

@@ -61,7 +61,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   // (we use Transpose.h but this doesn't count as a test for it)
   VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
   m3 = m1;
-  m3 *= (m1.transpose() * m2);
+  m3 *= m1.transpose() * m2;
   VERIFY_IS_APPROX(m3,                      m1 * (m1.transpose()*m2));
   VERIFY_IS_APPROX(m3,                      m1.lazy() * (m1.transpose()*m2));
 
@@ -91,6 +91,8 @@ void test_product()
     CALL_SUBTEST( product(Matrix3i()) );
     CALL_SUBTEST( product(Matrix<float, 3, 2>()) );
     CALL_SUBTEST( product(Matrix4d()) );
+    CALL_SUBTEST( product(Matrix4f()) );
+    CALL_SUBTEST( product(MatrixXf(3,5)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );

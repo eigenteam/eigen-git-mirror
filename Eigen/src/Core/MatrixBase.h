@@ -49,7 +49,7 @@
   *
   * \nosubgrouping
   */
-template<typename Derived> class MatrixBase : public ArrayBase<Derived>
+template<typename Derived> class MatrixBase
 {
     struct CommaInitializer;
 
@@ -168,16 +168,6 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
     };
     /** Represents a product scalar-matrix */
     typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
-    /** */
-    template<typename OtherDerived>
-    struct ProductReturnType
-    {
-      typedef typename ei_meta_if<
-            (Derived::Flags & OtherDerived::Flags & ArrayBit),
-            CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>,
-            Product<Derived,OtherDerived>
-          >::ret Type;
-    };
     /** the return type of MatrixBase::conjugate() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
@@ -274,7 +264,7 @@ template<typename Derived> class MatrixBase : public ArrayBase<Derived>
 
 
     template<typename OtherDerived>
-    const typename ProductReturnType<OtherDerived>::Type
+    const typename ProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>

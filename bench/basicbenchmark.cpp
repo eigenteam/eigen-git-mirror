@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-  // disbale floating point exceptions
+  // disable floating point exceptions
   // this leads to more stable bench results
   // (this is done by default by ICC)
   #ifndef __INTEL_COMPILER

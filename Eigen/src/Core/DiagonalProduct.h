@@ -26,48 +26,57 @@
 #ifndef EIGEN_DIAGONALPRODUCT_H
 #define EIGEN_DIAGONALPRODUCT_H
 
-template<typename Lhs, typename Rhs>
-struct ei_traits<Product<Lhs, Rhs, DiagonalProduct> >
+template<typename LhsNested, typename RhsNested>
+struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
 {
-  typedef typename Lhs::Scalar Scalar;
-  typedef typename ei_nested<Lhs>::type LhsNested;
-  typedef typename ei_nested<Rhs>::type RhsNested;
-  typedef typename ei_unref<LhsNested>::type _LhsNested;
-  typedef typename ei_unref<RhsNested>::type _RhsNested;
+  // clean the nested types:
+  typedef typename ei_unconst<typename ei_unref<LhsNested>::type>::type _LhsNested;
+  typedef typename ei_unconst<typename ei_unref<RhsNested>::type>::type _RhsNested;
+  typedef typename _LhsNested::Scalar Scalar;
+
   enum {
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
-    RowsAtCompileTime = Lhs::RowsAtCompileTime,
-    ColsAtCompileTime = Rhs::ColsAtCompileTime,
-    MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = Rhs::MaxColsAtCompileTime,
-    _RhsPacketAccess =  (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit)
+    RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
+    ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
+    MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
+
+    LhsIsDiagonal = (_LhsNested::Flags&Diagonal)==Diagonal,
+    RhsIsDiagonal = (_RhsNested::Flags&Diagonal)==Diagonal,
+
+    CanVectorizeRhs =  (!RhsIsDiagonal) && (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit)
                      && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _LhsPacketAccess =  (!(LhsFlags & RowMajorBit)) && (LhsFlags & PacketAccessBit)
+
+    CanVectorizeLhs =  (!LhsIsDiagonal) && (!(LhsFlags & RowMajorBit)) && (LhsFlags & PacketAccessBit)
                      && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-    _LostBits = ~(((RhsFlags & RowMajorBit) && (!_LhsPacketAccess) ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
-    Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & _LostBits)
-          | (_LhsPacketAccess || _RhsPacketAccess ? PacketAccessBit : 0),
+
+    RemovedBits = ~(((RhsFlags & RowMajorBit) && (!CanVectorizeLhs) ? 0 : RowMajorBit)
+                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit))
+                | LinearAccessBit,
+
+    Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
+          | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0),
+
     CoeffReadCost = NumTraits<Scalar>::MulCost + _LhsNested::CoeffReadCost + _RhsNested::CoeffReadCost
   };
 };
 
-template<typename Lhs, typename Rhs> class Product<Lhs, Rhs, DiagonalProduct> : ei_no_assignment_operator,
-  public MatrixBase<Product<Lhs, Rhs, DiagonalProduct> >
+template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNested, DiagonalProduct> : ei_no_assignment_operator,
+  public MatrixBase<Product<LhsNested, RhsNested, DiagonalProduct> >
 {
-  public:
-
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
-    typedef typename ei_traits<Product>::LhsNested LhsNested;
-    typedef typename ei_traits<Product>::RhsNested RhsNested;
     typedef typename ei_traits<Product>::_LhsNested _LhsNested;
     typedef typename ei_traits<Product>::_RhsNested _RhsNested;
 
     enum {
-      PacketSize = ei_packet_traits<Scalar>::size
+      RhsIsDiagonal = (_RhsNested::Flags&Diagonal)==Diagonal
     };
 
+  public:
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+
+    template<typename Lhs, typename Rhs>
     inline Product(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
@@ -81,14 +90,14 @@ template<typename Lhs, typename Rhs> class Product<Lhs, Rhs, DiagonalProduct> : 
 
     const Scalar _coeff(int row, int col) const
     {
-      int unique = ((Rhs::Flags&Diagonal)==Diagonal) ? col : row;
+      const int unique = RhsIsDiagonal ? col : row;
       return m_lhs.coeff(row, unique) * m_rhs.coeff(unique, col);
     }
 
     template<int LoadMode>
     const PacketScalar _packet(int row, int col) const
     {
-      if ((Rhs::Flags&Diagonal)==Diagonal)
+      if (RhsIsDiagonal)
       {
         ei_assert((_LhsNested::Flags&RowMajorBit)==0);
         return ei_pmul(m_lhs.template packet<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
