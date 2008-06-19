@@ -28,8 +28,8 @@
 /** \returns the cross product of \c *this and \a other */
 template<typename Derived>
 template<typename OtherDerived>
-typename ei_eval<Derived>::type
-inline MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
+inline typename ei_eval<Derived>::type
+MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)

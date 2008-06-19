@@ -101,8 +101,8 @@ template<typename MatrixType> class DiagonalCoeffs
   *
   * \sa class DiagonalCoeffs */
 template<typename Derived>
-DiagonalCoeffs<Derived>
-inline MatrixBase<Derived>::diagonal()
+inline DiagonalCoeffs<Derived>
+MatrixBase<Derived>::diagonal()
 {
   return DiagonalCoeffs<Derived>(derived());
 }

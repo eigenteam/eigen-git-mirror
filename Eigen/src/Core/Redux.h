@@ -101,8 +101,8 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   * \sa trace()
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar
-inline MatrixBase<Derived>::sum() const
+inline typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::sum() const
 {
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
@@ -114,8 +114,8 @@ inline MatrixBase<Derived>::sum() const
   * \sa diagonal(), sum()
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar
-inline MatrixBase<Derived>::trace() const
+inline typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::trace() const
 {
   return diagonal().sum();
 }
@@ -123,8 +123,8 @@ inline MatrixBase<Derived>::trace() const
 /** \returns the minimum of all coefficients of *this
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar
-inline MatrixBase<Derived>::minCoeff() const
+inline typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::minCoeff() const
 {
   return this->redux(Eigen::ei_scalar_min_op<Scalar>());
 }
@@ -132,8 +132,8 @@ inline MatrixBase<Derived>::minCoeff() const
 /** \returns the maximum of all coefficients of *this
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar
-inline MatrixBase<Derived>::maxCoeff() const
+inline typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::maxCoeff() const
 {
   return this->redux(Eigen::ei_scalar_max_op<Scalar>());
 }

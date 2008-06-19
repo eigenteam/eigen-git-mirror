@@ -156,10 +156,10 @@ class ei_corrected_matrix_flags
                          ? SuggestedFlags&RowMajorBit
                          : Cols > 1 ? RowMajorBit : 0,
            is_big = MaxRows == Dynamic || MaxCols == Dynamic,
-           inner_size = row_major_bit ? Cols : Rows,
+           linear_size = Cols * Rows,
            packet_access_bit
             = ei_packet_traits<Scalar>::size > 1
-              && (is_big || inner_size%ei_packet_traits<Scalar>::size==0)
+              && (is_big || linear_size%ei_packet_traits<Scalar>::size==0)
               ? PacketAccessBit : 0
     };
 

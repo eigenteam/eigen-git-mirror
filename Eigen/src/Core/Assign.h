@@ -238,7 +238,7 @@ template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, NoVectorization, InnerUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
-  {  
+  {
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
     const int outerSize = rowMajor ? dst.rows() : dst.cols();
@@ -268,7 +268,7 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
         const int row = rowMajor ? j : i;
         const int col = rowMajor ? i : j;
         dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
-      }  
+      }
     }
   }
 };
@@ -351,23 +351,25 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    const int size = Derived1::SizeAtCompileTime;
-    const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    const int alignedSize = (size/packetSize)*packetSize;
-    const bool rowMajor = Derived1::Flags&RowMajorBit;
-    const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
-    const int outerSize = rowMajor ? Derived1::RowsAtCompileTime : Derived1::ColsAtCompileTime;
-    int index = 0;
+    enum {
+      size = Derived1::SizeAtCompileTime,
+      packetSize = ei_packet_traits<typename Derived1::Scalar>::size,
+      alignedSize = (int(size)/int(packetSize))*int(packetSize),
+      rowMajor = int(Derived1::Flags)&RowMajorBit,
+      innerSize = int(rowMajor) ? int(Derived1::ColsAtCompileTime) : int(Derived1::RowsAtCompileTime),
+      outerSize = int(rowMajor) ? int(Derived1::RowsAtCompileTime) : int(Derived1::ColsAtCompileTime)
+    };
 
     // do the vectorizable part of the assignment
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2, 0, alignedSize>::run(dst, src);
 
     // now we must do the rest without vectorization.
-    const int k = alignedSize/innerSize;
-    const int i = alignedSize%innerSize;
-
+    enum {
+      k = int(alignedSize)/int(innerSize),
+      i = int(alignedSize)%int(innerSize)
+    };
     // do the remainder of the current row or col
-    ei_assign_novec_InnerUnrolling<Derived1, Derived2, i, innerSize>::run(dst, src, k);
+    ei_assign_novec_InnerUnrolling<Derived1, Derived2, i, int(k)<int(outerSize) ? int(innerSize) : 0>::run(dst, src, k);
 
     // do the remaining rows or cols
     for(int j = k+1; j < outerSize; j++)

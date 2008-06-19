@@ -62,6 +62,47 @@ protected:
   int OtherCols=Other::ColsAtCompileTime>
   struct ei_transform_product_impl;
 
+  // FIXME these specializations of ei_transform_product_impl does not work with gcc 3.3 and 3.4 because
+  // Dim depends on a template parameter. Replacing Dim by 3 (for the 3D case) works.
+
+  // note that these specializations have to be defined here,
+  // otherwise some compilers (at least ICC and NVCC) complain about
+  // the use of Dim in the specialization parameters.
+  template<typename Other>
+  struct ei_transform_product_impl<Other,Dim+1,Dim+1>
+  {
+    typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
+    typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
+    static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
+    { return tr.matrix() * other; }
+  };
+
+  template<typename Other>
+  struct ei_transform_product_impl<Other,Dim+1,1>
+  {
+    typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
+    typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
+    static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
+    { return tr.matrix() * other; }
+  };
+
+  template<typename Other>
+  struct ei_transform_product_impl<Other,Dim,1>
+  {
+    typedef typename Transform<Scalar,Dim>::AffineMatrixRef MatrixType;
+    typedef const CwiseUnaryOp<
+        ei_scalar_multiple_op<Scalar>,
+        NestByValue<CwiseBinaryOp<
+          ei_scalar_sum_op<Scalar>,
+          NestByValue<typename ProductReturnType<NestByValue<MatrixType>,Other>::Type >,
+          NestByValue<typename Transform<Scalar,Dim>::VectorRef> > >
+        > ResultType;
+    // FIXME shall we offer an optimized version when the last row is know to be 0,0...,0,1 ?
+    static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
+    { return ((tr.affine().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
+            * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
+  };
+
 public:
 
   /** Default constructor without initialization of the coefficients. */
@@ -103,13 +144,7 @@ public:
   inline VectorRef translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
   template<typename OtherDerived>
-  struct TransformProductReturnType
-  {
-    typedef typename ei_transform_product_impl<OtherDerived>::ResultType Type;
-  };
-
-  template<typename OtherDerived>
-  const typename TransformProductReturnType<OtherDerived>::Type
+  const typename ei_transform_product_impl<OtherDerived>::ResultType
   operator * (const MatrixBase<OtherDerived> &other) const;
 
   /** Contatenates two transformations */
@@ -192,7 +227,7 @@ QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 
 template<typename Scalar, int Dim>
 template<typename OtherDerived>
-const typename Transform<Scalar,Dim>::template TransformProductReturnType<OtherDerived>::Type
+const typename Transform<Scalar,Dim>::template ei_transform_product_impl<OtherDerived>::ResultType
 Transform<Scalar,Dim>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return ei_transform_product_impl<OtherDerived>::run(*this,other.derived());
@@ -372,45 +407,5 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   affine() *= scale.asDiagonal();
   return *this;
 }
-
-//----------
-
-template<typename Scalar, int Dim>
-template<typename Other>
-struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim+1,Dim+1>
-{
-  typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
-  typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
-  static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
-  { return tr.matrix() * other; }
-};
-
-template<typename Scalar, int Dim>
-template<typename Other>
-struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim+1,1>
-{
-  typedef typename Transform<Scalar,Dim>::MatrixType MatrixType;
-  typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
-  static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
-  { return tr.matrix() * other; }
-};
-
-template<typename Scalar, int Dim>
-template<typename Other>
-struct Transform<Scalar,Dim>::ei_transform_product_impl<Other,Dim,1>
-{
-  typedef typename Transform<Scalar,Dim>::AffineMatrixRef MatrixType;
-  typedef const CwiseUnaryOp<
-      ei_scalar_multiple_op<Scalar>,
-      NestByValue<CwiseBinaryOp<
-        ei_scalar_sum_op<Scalar>,
-        NestByValue<typename ProductReturnType<NestByValue<MatrixType>,Other>::Type >,
-        NestByValue<typename Transform<Scalar,Dim>::VectorRef> > >
-      > ResultType;
-  // FIXME shall we offer an optimized version when the last row is know to be 0,0...,0,1 ?
-  static ResultType run(const Transform<Scalar,Dim>& tr, const Other& other)
-  { return ((tr.affine().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
-          * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
-};
 
 #endif // EIGEN_TRANSFORM_H
