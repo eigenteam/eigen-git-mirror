@@ -336,6 +336,14 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
     /** Destructor */
     inline ~Matrix() {}
+
+    /** Override MatrixBase::eval() since matrices don't need to be evaluated, it is enough to just read them.
+      * This prevents a useless copy when doing e.g. "m1 = m2.eval()"
+      */
+    const Matrix& eval() const
+    {
+      return *this;
+    }
 };
 
 #define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
