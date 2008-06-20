@@ -482,6 +482,9 @@ template<typename Derived> class MatrixBase
 
 /////////// Array module ///////////
 
+    const Array<Derived> array() const;
+    Array<Derived> array();
+
     const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
     const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseExp() const;
     const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseLog() const;

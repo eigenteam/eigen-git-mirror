@@ -10,6 +10,7 @@ namespace Eigen {
 #include "src/Array/AllAndAny.h"
 #include "src/Array/PartialRedux.h"
 #include "src/Array/Random.h"
+#include "src/Array/Array.h"
 
 } // namespace Eigen
 

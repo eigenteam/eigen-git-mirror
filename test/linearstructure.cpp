@@ -94,6 +94,7 @@ void test_linearstructure()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( linearStructure(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( linearStructure(Matrix2f()) );
     CALL_SUBTEST( linearStructure(Matrix4d()) );
     CALL_SUBTEST( linearStructure(MatrixXcf(3, 3)) );
     CALL_SUBTEST( linearStructure(MatrixXf(8, 12)) );

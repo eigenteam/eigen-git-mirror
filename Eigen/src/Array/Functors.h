@@ -26,9 +26,37 @@
 #define EIGEN_ARRAY_FUNCTORS_H
 
 /** \internal
+  * \array_module
+  *
+  * \brief Template functor to add a scalar to a fixed other one
+  *
+  * \sa class CwiseUnaryOp, Array::operator+
+  */
+template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_add_op;
+
+template<typename Scalar>
+struct ei_scalar_add_op<Scalar,true> {
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  inline ei_scalar_add_op(const Scalar& other) : m_other(ei_pset1(other)) { }
+  inline Scalar operator() (const Scalar& a) const { return a + ei_pfirst(m_other); }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_padd(a, m_other); }
+  const PacketScalar m_other;
+};
+template<typename Scalar>
+struct ei_scalar_add_op<Scalar,false> {
+  inline ei_scalar_add_op(const Scalar& other) : m_other(other) { }
+  inline Scalar operator() (const Scalar& a) const { return a + m_other; }
+  const Scalar m_other;
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_add_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
+
+/** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the square root of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
@@ -43,7 +71,7 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the exponential of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
@@ -58,7 +86,7 @@ struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the logarithm of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
@@ -73,7 +101,7 @@ struct ei_functor_traits<ei_scalar_log_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the cosine of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
@@ -88,7 +116,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the sine of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
@@ -103,7 +131,7 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to raise a scalar to a power
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwisePow
@@ -121,7 +149,7 @@ struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
 /** \internal
   *
   * \array_module
-  * 
+  *
   * \brief Template functor to compute the reciprocal of a scalar
   *
   * \sa class CwiseUnaryOp, MatrixBase::cwiseInverse
