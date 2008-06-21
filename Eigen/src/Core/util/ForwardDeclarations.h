@@ -56,11 +56,6 @@ template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedu
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename MatrixType> class Array;
-template<typename Lhs, typename Rhs> class Cross;
-template<typename Scalar> class Quaternion;
-template<typename Scalar> class Rotation2D;
-template<typename Scalar> class AngleAxis;
-template<typename Scalar,int Dim> class Transform;
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
@@ -97,5 +92,13 @@ void ei_cache_friendly_product(
 
 template<typename ExpressionType, bool CheckExistence = true> class Inverse;
 template<typename MatrixType> class QR;
+
+// Geometry module:
+template<typename Lhs, typename Rhs> class Cross;
+template<typename Scalar> class Quaternion;
+template<typename Scalar> class Rotation2D;
+template<typename Scalar> class AngleAxis;
+template<typename Scalar> class EulerAngles;
+template<typename Scalar,int Dim> class Transform;
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

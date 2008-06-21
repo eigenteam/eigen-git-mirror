@@ -384,20 +384,20 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
 template<typename Other, int Dim, int HDim>
 struct ei_transform_product_impl<Other,Dim,HDim, HDim,HDim>
 {
-  typedef Transform<typename Other::Scalar,Dim> Transform;
-  typedef typename Transform::MatrixType MatrixType;
+  typedef Transform<typename Other::Scalar,Dim> TransformType;
+  typedef typename TransformType::MatrixType MatrixType;
   typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
-  static ResultType run(const Transform& tr, const Other& other)
+  static ResultType run(const TransformType& tr, const Other& other)
   { return tr.matrix() * other; }
 };
 
 template<typename Other, int Dim, int HDim>
 struct ei_transform_product_impl<Other,Dim,HDim, HDim,1>
 {
-  typedef Transform<typename Other::Scalar,Dim> Transform;
-  typedef typename Transform::MatrixType MatrixType;
+  typedef Transform<typename Other::Scalar,Dim> TransformType;
+  typedef typename TransformType::MatrixType MatrixType;
   typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
-  static ResultType run(const Transform& tr, const Other& other)
+  static ResultType run(const TransformType& tr, const Other& other)
   { return tr.matrix() * other; }
 };
 
@@ -405,17 +405,17 @@ template<typename Other, int Dim, int HDim>
 struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
 {
   typedef typename Other::Scalar Scalar;
-  typedef Transform<Scalar,Dim> Transform;
-  typedef typename Transform::AffineMatrixRef MatrixType;
+  typedef Transform<Scalar,Dim> TransformType;
+  typedef typename TransformType::AffineMatrixRef MatrixType;
   typedef const CwiseUnaryOp<
       ei_scalar_multiple_op<Scalar>,
       NestByValue<CwiseBinaryOp<
         ei_scalar_sum_op<Scalar>,
         NestByValue<typename ProductReturnType<NestByValue<MatrixType>,Other>::Type >,
-        NestByValue<typename Transform::VectorRef> > >
+        NestByValue<typename TransformType::VectorRef> > >
       > ResultType;
   // FIXME shall we offer an optimized version when the last row is known to be 0,0...,0,1 ?
-  static ResultType run(const Transform& tr, const Other& other)
+  static ResultType run(const TransformType& tr, const Other& other)
   { return ((tr.affine().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
           * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
 };

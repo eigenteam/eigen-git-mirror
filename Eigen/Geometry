@@ -7,6 +7,8 @@ namespace Eigen {
 
 #include "src/Geometry/Cross.h"
 #include "src/Geometry/Quaternion.h"
+#include "src/Geometry/AngleAxis.h"
+#include "src/Geometry/EulerAngles.h"
 #include "src/Geometry/Rotation.h"
 #include "src/Geometry/Transform.h"
 

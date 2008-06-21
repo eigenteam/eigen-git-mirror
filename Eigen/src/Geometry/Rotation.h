@@ -65,7 +65,7 @@ struct ToRotationMatrix<Scalar, 2, OtherScalarType>
   { return Rotation2D<Scalar>(r).toRotationMatrix(); }
 };
 
-// 2D rotation to matrix
+// 2D rotation to rotation matrix
 template<typename Scalar, typename OtherScalarType>
 struct ToRotationMatrix<Scalar, 2, Rotation2D<OtherScalarType> >
 {
@@ -73,7 +73,7 @@ struct ToRotationMatrix<Scalar, 2, Rotation2D<OtherScalarType> >
   { return Rotation2D<Scalar>(r).toRotationMatrix(); }
 };
 
-// quaternion to matrix
+// quaternion to rotation matrix
 template<typename Scalar, typename OtherScalarType>
 struct ToRotationMatrix<Scalar, 3, Quaternion<OtherScalarType> >
 {
@@ -81,12 +81,20 @@ struct ToRotationMatrix<Scalar, 3, Quaternion<OtherScalarType> >
   { return q.toRotationMatrix(); }
 };
 
-// angle axis to matrix
+// angle axis to rotation matrix
 template<typename Scalar, typename OtherScalarType>
 struct ToRotationMatrix<Scalar, 3, AngleAxis<OtherScalarType> >
 {
   inline static Matrix<Scalar,3,3> convert(const AngleAxis<OtherScalarType>& aa)
   { return aa.toRotationMatrix(); }
+};
+
+// euler angles to rotation matrix
+template<typename Scalar, typename OtherScalarType>
+struct ToRotationMatrix<Scalar, 3, EulerAngles<OtherScalarType> >
+{
+  inline static Matrix<Scalar,3,3> convert(const EulerAngles<OtherScalarType>& ea)
+  { return ea.toRotationMatrix(); }
 };
 
 // matrix xpr to matrix xpr
@@ -167,90 +175,6 @@ Rotation2D<Scalar>::toRotationMatrix(void) const
   Scalar sinA = ei_sin(m_angle);
   Scalar cosA = ei_cos(m_angle);
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
-}
-
-/** \class AngleAxis
-  *
-  * \brief Represents a rotation in a 3 dimensional space as a rotation angle around a 3D axis
-  *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients.
-  *
-  * \sa class Quaternion, class Transform
-  */
-template<typename _Scalar>
-class AngleAxis
-{
-public:
-  enum { Dim = 3 };
-  /** the scalar type of the coefficients */
-  typedef _Scalar Scalar;
-  typedef Matrix<Scalar,3,3> Matrix3;
-  typedef Matrix<Scalar,3,1> Vector3;
-
-protected:
-
-  Vector3 m_axis;
-  Scalar m_angle;
-
-public:
-
-  AngleAxis() {}
-  template<typename Derived>
-  inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
-
-  Scalar angle() const { return m_angle; }
-  Scalar& angle() { return m_angle; }
-
-  const Vector3& axis() const { return m_axis; }
-  Vector3& axis() { return m_axis; }
-
-  template<typename Derived>
-  AngleAxis& fromRotationMatrix(const MatrixBase<Derived>& m);
-  Matrix3 toRotationMatrix(void) const;
-};
-
-/** Set \c *this from a 3x3 rotation matrix \a mat.
-  * In other words, this function extract the rotation angle
-  * from the rotation matrix.
-  */
-template<typename Scalar>
-template<typename Derived>
-AngleAxis<Scalar>& AngleAxis<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
-{
-  // Since a direct conversion would not be really faster,
-  // let's use the robust Quaternion implementation:
-  Quaternion<Scalar>().fromRotationMatrix(mat).toAngleAxis(m_angle, m_axis);
-
-  return *this;
-}
-
-/** Constructs and \returns an equivalent 2x2 rotation matrix.
-  */
-template<typename Scalar>
-typename AngleAxis<Scalar>::Matrix3
-AngleAxis<Scalar>::toRotationMatrix(void) const
-{
-  Matrix3 res;
-  Vector3 sin_axis  = ei_sin(m_angle) * m_axis;
-  Scalar c = ei_cos(m_angle);
-  Vector3 cos1_axis = (Scalar(1)-c) * m_axis;
-
-  Scalar tmp;
-  tmp = cos1_axis.x() * m_axis.y();
-  res.coeffRef(0,1) = tmp - sin_axis.z();
-  res.coeffRef(1,0) = tmp + sin_axis.z();
-
-  tmp = cos1_axis.x() * m_axis.z();
-  res.coeffRef(0,2) = tmp + sin_axis.y();
-  res.coeffRef(2,0) = tmp - sin_axis.y();
-
-  tmp = cos1_axis.y() * m_axis.z();
-  res.coeffRef(1,2) = tmp - sin_axis.x();
-  res.coeffRef(2,1) = tmp + sin_axis.x();
-
-  res.diagonal() = Vector3::constant(c) + cos1_axis.cwiseProduct(m_axis);
-
-  return res;
 }
 
 #endif // EIGEN_ROTATION_H

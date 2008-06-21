@@ -39,6 +39,8 @@ template<typename Scalar> void geometry(void)
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternion;
+  typedef AngleAxis<Scalar> AngleAxis;
+  typedef EulerAngles<Scalar> EulerAngles;
 
   Quaternion q1, q2;
   Vector3 v0 = Vector3::random(),
@@ -47,8 +49,8 @@ template<typename Scalar> void geometry(void)
 
   Scalar a = ei_random<Scalar>(-M_PI, M_PI);
 
-  q1.fromAngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
-  q2.fromAngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());
+  q1 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
+  q2 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());
 
   // rotation matrix conversion
   VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
@@ -56,23 +58,23 @@ template<typename Scalar> void geometry(void)
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
   VERIFY_IS_NOT_APPROX(q2 * q1 * v2,
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
-  q2.fromRotationMatrix(q1.toRotationMatrix());
+  q2 = q1.toRotationMatrix();
   VERIFY_IS_APPROX(q1*v1,q2*v1);
 
   // Euler angle conversion
-  VERIFY_IS_APPROX(q2.fromEulerAngles(q1.toEulerAngles()) * v1, q1 * v1);
-  v2 = q2.toEulerAngles();
-  VERIFY_IS_APPROX(q2.fromEulerAngles(v2).toEulerAngles(), v2);
-  VERIFY_IS_NOT_APPROX(q2.fromEulerAngles(v2.cwiseProduct(Vector3(0.2,-0.2,1))).toEulerAngles(), v2);
+  VERIFY_IS_APPROX(Quaternion(EulerAngles(q1)) * v1, q1 * v1);
+  EulerAngles ea = q2;
+  VERIFY_IS_APPROX(EulerAngles(Quaternion(ea)).coeffs(), ea.coeffs());
+  VERIFY_IS_NOT_APPROX(EulerAngles(Quaternion(EulerAngles(v2.cwiseProduct(Vector3(0.2,-0.2,1))))).coeffs(), v2);
 
   // angle-axis conversion
-  q1.toAngleAxis(a, v2);
-  VERIFY_IS_APPROX(q1 * v1, q2.fromAngleAxis(a,v2) * v1);
-  VERIFY_IS_NOT_APPROX(q1 * v1, q2.fromAngleAxis(2*a,v2) * v1);
+  AngleAxis aa = q1;
+  VERIFY_IS_APPROX(q1 * v1, Quaternion(aa) * v1);
+  VERIFY_IS_NOT_APPROX(q1 * v1, Quaternion(AngleAxis(aa.angle()*2,aa.axis())) * v1);
 
   // from two vector creation
-  VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
-  VERIFY_IS_APPROX(v2.normalized(),(q2.fromTwoVectors(v1,v2)*v1).normalized());
+  VERIFY_IS_APPROX(v2.normalized(),(q2.setFromTwoVectors(v1,v2)*v1).normalized());
+  VERIFY_IS_APPROX(v2.normalized(),(q2.setFromTwoVectors(v1,v2)*v1).normalized());
 
   // inverse and conjugate
   VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
@@ -87,15 +89,14 @@ template<typename Scalar> void geometry(void)
   VERIFY(m.isOrtho());
 
   // AngleAxis
-  VERIFY_IS_APPROX(AngleAxis<Scalar>(a,v1.normalized()).toRotationMatrix(),
-    q2.fromAngleAxis(a,v1.normalized()).toRotationMatrix());
+  VERIFY_IS_APPROX(AngleAxis(a,v1.normalized()).toRotationMatrix(),
+    Quaternion(AngleAxis(a,v1.normalized())).toRotationMatrix());
 
-  AngleAxis<Scalar> aa1;
+  AngleAxis aa1;
   m = q1.toRotationMatrix();
-  Vector3 tax; Scalar tan;
-  q2.fromRotationMatrix(m).toAngleAxis(tan,tax);
-  VERIFY_IS_APPROX(aa1.fromRotationMatrix(m).toRotationMatrix(),
-    q2.fromRotationMatrix(m).toRotationMatrix());
+  aa1 = m;
+  VERIFY_IS_APPROX(AngleAxis(m).toRotationMatrix(),
+    Quaternion(m).toRotationMatrix());
 
 
   // Transform
@@ -106,7 +107,7 @@ template<typename Scalar> void geometry(void)
   a = 0;
   while (ei_abs(a)<0.1)
     a = ei_random<Scalar>(-0.4*M_PI, 0.4*M_PI);
-  q1.fromAngleAxis(a, v0.normalized());
+  q1 = AngleAxis(a, v0.normalized());
   Transform3 t0, t1, t2;
   t0.setIdentity();
   t0.affine() = q1.toRotationMatrix();
