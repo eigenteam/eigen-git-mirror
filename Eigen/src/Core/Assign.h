@@ -52,6 +52,9 @@ private:
     InnerSize = int(Derived::Flags)&RowMajorBit
               ? Derived::ColsAtCompileTime
               : Derived::RowsAtCompileTime,
+    InnerMaxSize = int(Derived::Flags)&RowMajorBit
+              ? Derived::MaxColsAtCompileTime
+              : Derived::MaxRowsAtCompileTime,
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size
   };
 
@@ -60,7 +63,9 @@ private:
              && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
     MayInnerVectorize = MightVectorize && InnerSize!=Dynamic && int(InnerSize)%int(PacketSize)==0,
     MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
-    MaySliceVectorize = MightVectorize && InnerSize==Dynamic
+    MaySliceVectorize = MightVectorize && InnerMaxSize==Dynamic /* slice vectorization can be slow, so we only
+      want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
+      of a dynamic block in a fixed-size matrix */
   };
 
 public:
@@ -349,7 +354,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
 {
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static void run(Derived1 &dst, const Derived2 &src)
   {
     const int size = Derived1::SizeAtCompileTime;
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
@@ -383,8 +388,30 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    //FIXME unimplemented, so for now we fall back to non-vectorized path
-    ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>::run(dst, src);
+    const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
+    const bool rowMajor = Derived1::Flags&RowMajorBit;
+    const int innerSize = rowMajor ? dst.cols() : dst.rows();
+    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int alignedInnerSize = (innerSize/packetSize)*packetSize;
+    
+    for(int i = 0; i < outerSize; i++)
+    {
+      // do the vectorizable part of the assignment
+      for (int index = 0; index<alignedInnerSize ; index+=packetSize)
+      {
+        const int row = rowMajor ? i : index;
+        const int col = rowMajor ? index : i;
+        dst.template writePacket<UnAligned>(row, col, src.template packet<UnAligned>(row, col));
+      }
+
+      // do the non-vectorizable part of the assignment
+      for (int index = alignedInnerSize; index<innerSize ; index++)
+      {
+        const int row = rowMajor ? i : index;
+        const int col = rowMajor ? index : i;
+        dst.coeffRef(row, col) = src.coeff(row, col);
+      }
+    }
   }
 };
 

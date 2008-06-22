@@ -94,7 +94,7 @@ inline void ei_pstore(int*    to, const __m128i& from) { _mm_store_si128(reinter
 
 inline void ei_pstoreu(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
 inline void ei_pstoreu(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
-inline void ei_pstoreu(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
+inline void ei_pstoreu(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
 
 inline float  ei_pfirst(const __m128&  a) { return _mm_cvtss_f32(a); }
 inline double ei_pfirst(const __m128d& a) { return _mm_cvtsd_f64(a); }

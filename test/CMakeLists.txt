@@ -11,7 +11,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 OPTION(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
 
-# similar to SET_TARGET_PROPERTIES but append the property instead of overwritting it
+# similar to SET_TARGET_PROPERTIES but append the property instead of overwriting it
 MACRO(EI_ADD_TARGET_PROPERTY target prop value)
 
   GET_TARGET_PROPERTY(previous ${target} ${prop})

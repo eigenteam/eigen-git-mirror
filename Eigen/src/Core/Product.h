@@ -38,7 +38,7 @@ enum {
 template<int VectorizationMode, int Index, typename Lhs, typename Rhs>
 struct ei_product_coeff_impl;
 
-template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar>
+template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
 struct ei_product_packet_impl;
 
 template<typename T> class ei_product_eval_to_column_major;
@@ -188,10 +188,6 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
                                   Unroll ? InnerSize-1 : Dynamic,
                                   _LhsNested, _RhsNested> ScalarCoeffImpl;
 
-    typedef ei_product_packet_impl<Flags&RowMajorBit ? RowMajorProduct : ColMajorProduct,
-                                   Unroll ? InnerSize-1 : Dynamic,
-                                   _LhsNested, _RhsNested, PacketScalar> PacketCoeffImpl;
-
   public:
 
     template<typename Lhs, typename Rhs>
@@ -232,7 +228,10 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
     const PacketScalar _packet(int row, int col) const
     {
       PacketScalar res;
-      PacketCoeffImpl::run(row, col, m_lhs, m_rhs, res);
+      ei_product_packet_impl<Flags&RowMajorBit ? RowMajorProduct : ColMajorProduct,
+                                   Unroll ? InnerSize-1 : Dynamic,
+                                   _LhsNested, _RhsNested, PacketScalar, LoadMode>
+        ::run(row, col, m_lhs, m_rhs, res);
       return res;
     }
 
@@ -356,63 +355,63 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs>
 *** Packet path  ***
 *******************/
 
-template<int Index, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<RowMajorProduct, Index, Lhs, Rhs, PacketScalar>
+template<int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<RowMajorProduct, Index, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    ei_product_packet_impl<RowMajorProduct, Index-1, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packet<Aligned>(Index, col), res);
+    ei_product_packet_impl<RowMajorProduct, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
+    res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packet<LoadMode>(Index, col), res);
   }
 };
 
-template<int Index, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<ColMajorProduct, Index, Lhs, Rhs, PacketScalar>
+template<int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<ColMajorProduct, Index, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    ei_product_packet_impl<ColMajorProduct, Index-1, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(lhs.template packet<Aligned>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
+    ei_product_packet_impl<ColMajorProduct, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
+    res =  ei_pmadd(lhs.template packet<LoadMode>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<RowMajorProduct, 0, Lhs, Rhs, PacketScalar>
+template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<RowMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<Aligned>(0, col));
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<ColMajorProduct, 0, Lhs, Rhs, PacketScalar>
+template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<ColMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    res = ei_pmul(lhs.template packet<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1(rhs.coeff(0, col)));
   }
 };
 
-template<int StorageOrder, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<StorageOrder, Dynamic, Lhs, Rhs, PacketScalar>
+template<int StorageOrder, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<StorageOrder, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<Aligned>(0, col));
+    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
       for(int i = 1; i < lhs.cols(); i++)
-        res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packet<Aligned>(i, col), res);
+        res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_packet_impl<ColMajorProduct, Dynamic, Lhs, Rhs, PacketScalar>
+template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<ColMajorProduct, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
-    res = ei_pmul(lhs.template packet<Aligned>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1(rhs.coeff(0, col)));
       for(int i = 1; i < lhs.cols(); i++)
-        res =  ei_pmadd(lhs.template packet<Aligned>(row, i), ei_pset1(rhs.coeff(i, col)), res);
+        res =  ei_pmadd(lhs.template packet<LoadMode>(row, i), ei_pset1(rhs.coeff(i, col)), res);
   }
 };
 
