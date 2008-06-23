@@ -96,30 +96,6 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
           ::run(derived(), func);
 }
 
-/** \returns the sum of all coefficients of *this
-  *
-  * \sa trace()
-  */
-template<typename Derived>
-inline typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::sum() const
-{
-  return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
-}
-
-/** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.
-  *
-  * \c *this can be any matrix, not necessarily square.
-  *
-  * \sa diagonal(), sum()
-  */
-template<typename Derived>
-inline typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::trace() const
-{
-  return diagonal().sum();
-}
-
 /** \returns the minimum of all coefficients of *this
   */
 template<typename Derived>

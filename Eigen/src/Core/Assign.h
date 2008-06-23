@@ -31,19 +31,6 @@
 * Part 1 : the logic deciding a strategy for vectorization and unrolling
 ***************************************************************************/
 
-enum {
-  NoVectorization,
-  InnerVectorization,
-  LinearVectorization,
-  SliceVectorization
-};
-
-enum {
-  CompleteUnrolling,
-  InnerUnrolling,
-  NoUnrolling
-};
-
 template <typename Derived, typename OtherDerived>
 struct ei_assign_traits
 {

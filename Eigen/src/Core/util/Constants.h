@@ -142,5 +142,18 @@ enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct };
 
+enum {
+  NoVectorization,
+  InnerVectorization,
+  LinearVectorization,
+  SliceVectorization
+};
+
+enum {
+  CompleteUnrolling,
+  InnerUnrolling,
+  NoUnrolling
+};
+
 
 #endif // EIGEN_CONSTANTS_H

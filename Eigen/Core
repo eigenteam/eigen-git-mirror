@@ -48,6 +48,7 @@ namespace Eigen {
 #include "src/Core/Dot.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/DiagonalCoeffs.h"
+#include "src/Core/Sum.h"
 #include "src/Core/Redux.h"
 #include "src/Core/Visitor.h"
 #include "src/Core/Fuzzy.h"

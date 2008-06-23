@@ -173,10 +173,13 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
 template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
   inline const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a,a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = NumTraits<Scalar>::IsComplex==false && int(ei_packet_traits<Scalar>::size)>1 }; };
 
 /** \internal
   * \brief Template functor to compute the conjugate of a complex value
@@ -223,7 +226,7 @@ struct ei_functor_traits<ei_scalar_real_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_multiple_op;
+template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1) > struct ei_scalar_multiple_op;
 
 template<typename Scalar>
 struct ei_scalar_multiple_op<Scalar,true> {
