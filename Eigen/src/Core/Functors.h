@@ -131,12 +131,18 @@ struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
   */
 template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
-    inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_pdiv(a,b); }
 };
 template<typename Scalar>
-struct ei_functor_traits<ei_scalar_quotient_op<Scalar> >
-{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
-
+struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
+  enum {
+    Cost = 2 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::size>1
+  };
+};
 
 // unary functors:
 
@@ -179,7 +185,7 @@ template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = NumTraits<Scalar>::IsComplex==false && int(ei_packet_traits<Scalar>::size)>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
 
 /** \internal
   * \brief Template functor to compute the conjugate of a complex value
@@ -272,7 +278,7 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
   * \brief Template functor to divide a scalar by a fixed other one
   *
   * This functor is used to implement the quotient of a matrix by
-  * a scalar where the scalar type is not a floating point type.
+  * a scalar where the scalar type is not necessarily a floating point type.
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator/
   */

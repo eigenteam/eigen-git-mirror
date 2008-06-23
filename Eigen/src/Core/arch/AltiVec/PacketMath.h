@@ -59,6 +59,8 @@ inline vector int    ei_pmul(const vector int     a, const vector int     b)
   return vec_add( lowProduct, highProduct );
 }
 
+inline vector float  ei_pdiv(const vector float   a, const vector float   b) { return vec_div(a,b); }
+
 inline vector float ei_pmadd(const vector float   a, const vector float   b, const vector float c) { return vec_madd(a, b, c); }
 
 inline vector float  ei_pmin(const vector float   a, const vector float   b) { return vec_min(a,b); }

@@ -38,6 +38,9 @@ template <typename Scalar> inline Scalar ei_psub(const Scalar&  a, const Scalar&
 /** \internal \returns a * b (coeff-wise) */
 template <typename Scalar> inline Scalar ei_pmul(const Scalar&  a, const Scalar&  b) { return a * b; }
 
+/** \internal \returns a / b (coeff-wise) */
+template <typename Scalar> inline Scalar ei_pdiv(const Scalar&  a, const Scalar&  b) { return a / b; }
+
 /** \internal \returns a * b - c (coeff-wise) */
 template <typename Scalar> inline Scalar ei_pmadd(const Scalar&  a, const Scalar&  b, const Scalar&  c)
 { return ei_padd(ei_pmul(a, b),c); }

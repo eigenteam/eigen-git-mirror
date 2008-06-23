@@ -216,7 +216,7 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
       if(alignedSize == size) return res;
     }
     else // too small to vectorize anything.
-         // since this is dynamic-size hence inefficient anyway, don't try to optimize.
+         // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
     {
       res = Scalar(0);
     }
