@@ -194,17 +194,32 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
     // do the vectorizable part of the sum
     if(size >= packetSize)
     {
+    asm("#begin");
+
       PacketScalar packet_res;
       packet_res = mat.template packet<Aligned>(0, 0);
       int index;
-      for(index = packetSize; index<alignedSize ; index+=packetSize)
+      if(Derived::IsVectorAtCompileTime)
       {
-        // FIXME the following is not really efficient
-        const int row = rowMajor ? index/innerSize : index%innerSize;
-        const int col = rowMajor ? index%innerSize : index/innerSize;
-        packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
+        for(index = packetSize; index<alignedSize ; index+=packetSize)
+        {
+          const int row = Derived::RowsAtCompileTime==1 ? 0 : index;
+          const int col = Derived::RowsAtCompileTime==1 ? index : 0;
+          packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
+        }
+      }
+      else
+      {
+        for(index = packetSize; index<alignedSize ; index+=packetSize)
+        {
+          // FIXME the following is not really efficient
+          const int row = rowMajor ? index/innerSize : index%innerSize;
+          const int col = rowMajor ? index%innerSize : index/innerSize;
+          packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
+        }
       }
       res = ei_predux(packet_res);
+    asm("#end");
 
       // now we must do the rest without vectorization.
       if(alignedSize == size) return res;
