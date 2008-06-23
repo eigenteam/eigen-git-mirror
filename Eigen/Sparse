@@ -1,0 +1,16 @@
+#ifndef EIGEN_SPARSE_MODULE_H
+#define EIGEN_SPARSE_MODULE_H
+
+#include "Core"
+#include <vector>
+#include <map>
+
+namespace Eigen {
+
+#include "src/Sparse/SparseArray.h"
+#include "src/Sparse/SparseMatrix.h"
+#include "src/Sparse/CoreIterators.h"
+
+} // namespace Eigen
+
+#endif // EIGEN_SPARSE_MODULE_H

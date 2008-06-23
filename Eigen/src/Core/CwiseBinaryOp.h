@@ -84,6 +84,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
 
+    class InnerIterator;
+
     inline CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {

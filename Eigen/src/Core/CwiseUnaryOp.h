@@ -69,6 +69,8 @@ class CwiseUnaryOp : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
 
+    class InnerIterator;
+
     inline CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())
       : m_matrix(mat), m_functor(func) {}
 

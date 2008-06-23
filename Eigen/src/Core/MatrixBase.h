@@ -55,6 +55,8 @@ template<typename Derived> class MatrixBase
 
   public:
 
+    class InnerIterator;
+
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
