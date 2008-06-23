@@ -54,7 +54,7 @@ public:
     Unrolling = Cost <= UnrollingLimit
               ? CompleteUnrolling
               : NoUnrolling
-  };       
+  };
 };
 
 /***************************************************************************
@@ -62,7 +62,7 @@ public:
 ***************************************************************************/
 
 /*** no vectorization ***/
- 
+
 template<typename Derived, int Start, int Length>
 struct ei_sum_novec_unroller
 {
@@ -194,32 +194,23 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
     // do the vectorizable part of the sum
     if(size >= packetSize)
     {
-    asm("#begin");
-
       PacketScalar packet_res;
       packet_res = mat.template packet<Aligned>(0, 0);
-      int index;
-      if(Derived::IsVectorAtCompileTime)
+      int row = 0;
+      int col = 0;
+      int index = packetSize;
+      while (index<alignedSize)
       {
-        for(index = packetSize; index<alignedSize ; index+=packetSize)
-        {
-          const int row = Derived::RowsAtCompileTime==1 ? 0 : index;
-          const int col = Derived::RowsAtCompileTime==1 ? index : 0;
+        row = rowMajor ? index/innerSize : index%innerSize;
+        col = rowMajor ? index%innerSize : index/innerSize;
+        int start = rowMajor ? col : row;
+        int end = std::min(innerSize, start+alignedSize-index);
+        if (end<start) getchar();
+        for ( ; (rowMajor ? col : row)<end; (rowMajor ? col : row)+=packetSize)
           packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
-        }
-      }
-      else
-      {
-        for(index = packetSize; index<alignedSize ; index+=packetSize)
-        {
-          // FIXME the following is not really efficient
-          const int row = rowMajor ? index/innerSize : index%innerSize;
-          const int col = rowMajor ? index%innerSize : index/innerSize;
-          packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
-        }
+        index += (rowMajor ? col : row) - start;
       }
       res = ei_predux(packet_res);
-    asm("#end");
 
       // now we must do the rest without vectorization.
       if(alignedSize == size) return res;

@@ -307,12 +307,17 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     int index = 0;
 
     // do the vectorizable part of the assignment
-    for ( ; index<alignedSize ; index+=packetSize)
+    int row = 0;
+    int col = 0;
+    while (index<alignedSize)
     {
-      // FIXME the following is not really efficient
-      const int row = rowMajor ? index/innerSize : index%innerSize;
-      const int col = rowMajor ? index%innerSize : index/innerSize;
-      dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
+      int start = rowMajor ? col : row;
+      int end = std::min(innerSize, start + alignedSize-index);
+      for ( ; (rowMajor ? col : row)<end; (rowMajor ? col : row)+=packetSize)
+        dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
+      index += (rowMajor ? col : row) - start;
+      row = rowMajor ? index/innerSize : index%innerSize;
+      col = rowMajor ? index%innerSize : index/innerSize;
     }
 
     // now we must do the rest without vectorization.
@@ -380,7 +385,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
     const int innerSize = rowMajor ? dst.cols() : dst.rows();
     const int outerSize = rowMajor ? dst.rows() : dst.cols();
     const int alignedInnerSize = (innerSize/packetSize)*packetSize;
-    
+
     for(int i = 0; i < outerSize; i++)
     {
       // do the vectorizable part of the assignment
