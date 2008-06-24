@@ -169,7 +169,12 @@ template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false }; };
+{
+  enum {
+    Cost = NumTraits<Scalar>::AddCost,
+    PacketAccess = false // this could actually be vectorized with SSSE3.
+  };
+};
 
 /** \internal
   * \brief Template functor to compute the squared absolute value of a scalar
@@ -194,10 +199,17 @@ struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const { return a; }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0, PacketAccess = false }; };
+{
+  enum {
+    Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0,
+    PacketAccess = int(ei_packet_traits<Scalar>::size)>1
+  };
+};
 
 /** \internal
   * \brief Template functor to cast a scalar to another type

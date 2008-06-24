@@ -168,8 +168,11 @@ template<typename Derived> class MatrixBase
       typedef Block<Derived, (ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size),
                              (ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size)> Type;
     };
-    /** Represents a product scalar-matrix */
+    /** Represents a scalar multiple of a matrix */
     typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
+    /** Represents a quotient of a matrix by a scalar*/
+    typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
+
     /** the return type of MatrixBase::conjugate() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
@@ -280,7 +283,8 @@ template<typename Derived> class MatrixBase
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const ScalarMultipleReturnType normalized() const;
+    const ScalarQuotient1ReturnType normalized() const;
+    void normalize();
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
@@ -391,9 +395,9 @@ template<typename Derived> class MatrixBase
     bool isLower(RealScalar prec = precision<Scalar>()) const;
 
     template<typename OtherDerived>
-    bool isOrtho(const MatrixBase<OtherDerived>& other,
-                 RealScalar prec = precision<Scalar>()) const;
-    bool isOrtho(RealScalar prec = precision<Scalar>()) const;
+    bool isOrthogonal(const MatrixBase<OtherDerived>& other,
+                      RealScalar prec = precision<Scalar>()) const;
+    bool isUnitary(RealScalar prec = precision<Scalar>()) const;
 
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const

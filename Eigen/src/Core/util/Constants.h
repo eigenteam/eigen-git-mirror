@@ -143,10 +143,10 @@ enum DirectionType { Vertical, Horizontal };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct };
 
 enum {
-  NoVectorization,
   InnerVectorization,
   LinearVectorization,
-  SliceVectorization
+  SliceVectorization,
+  NoVectorization
 };
 
 enum {

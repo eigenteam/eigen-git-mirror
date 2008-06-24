@@ -25,42 +25,221 @@
 #ifndef EIGEN_DOT_H
 #define EIGEN_DOT_H
 
-template<int Index, int Size, typename Derived1, typename Derived2>
-struct ei_dot_impl
+/***************************************************************************
+* Part 1 : the logic deciding a strategy for vectorization and unrolling
+***************************************************************************/
+
+template<typename Derived1, typename Derived2>
+struct ei_dot_traits
 {
-  inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
+public:
+  enum {
+    Vectorization = (int(Derived1::Flags)&int(Derived2::Flags)&PacketAccessBit)
+                 && (int(Derived1::Flags)&int(Derived2::Flags)&LinearAccessBit)
+                  ? LinearVectorization
+                  : NoVectorization
+  };
+
+private:
+  typedef typename Derived1::Scalar Scalar;
+  enum {
+    PacketSize = ei_packet_traits<Scalar>::size,
+    Cost = Derived1::SizeAtCompileTime * (Derived1::CoeffReadCost + Derived2::CoeffReadCost + NumTraits<Scalar>::MulCost)
+           + (Derived1::SizeAtCompileTime-1) * NumTraits<Scalar>::AddCost,
+    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
+  };
+
+public:
+  enum {
+    Unrolling = Cost <= UnrollingLimit
+              ? CompleteUnrolling
+              : NoUnrolling
+  };
+};
+
+/***************************************************************************
+* Part 2 : unrollers
+***************************************************************************/
+
+/*** no vectorization ***/
+
+template<typename Derived1, typename Derived2, int Start, int Length>
+struct ei_dot_novec_unroller
+{
+  enum {
+    HalfLength = Length/2
+  };
+
+  typedef typename Derived1::Scalar Scalar;
+
+  inline static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    ei_dot_impl<Index-1, Size, Derived1, Derived2>::run(v1, v2, dot);
-    dot += v1.coeff(Index) * ei_conj(v2.coeff(Index));
+    return ei_dot_novec_unroller<Derived1, Derived2, Start, HalfLength>::run(v1, v2)
+         + ei_dot_novec_unroller<Derived1, Derived2, Start+HalfLength, Length-HalfLength>::run(v1, v2);
   }
 };
 
-template<int Size, typename Derived1, typename Derived2>
-struct ei_dot_impl<0, Size, Derived1, Derived2>
+template<typename Derived1, typename Derived2, int Start>
+struct ei_dot_novec_unroller<Derived1, Derived2, Start, 1>
 {
-  inline static void run(const Derived1 &v1, const Derived2& v2, typename Derived1::Scalar &dot)
+  typedef typename Derived1::Scalar Scalar;
+
+  inline static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    dot = v1.coeff(0) * ei_conj(v2.coeff(0));
+    return v1.coeff(Start) * ei_conj(v2.coeff(Start));
+  }
+};
+
+/*** vectorization ***/
+
+template<typename Derived1, typename Derived2, int Index, int Stop,
+         bool LastPacket = (Stop-Index == ei_packet_traits<typename Derived1::Scalar>::size)>
+struct ei_dot_vec_unroller
+{
+  typedef typename Derived1::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  enum {
+    row1 = Derived1::RowsAtCompileTime == 1 ? 0 : Index,
+    col1 = Derived1::RowsAtCompileTime == 1 ? Index : 0,
+    row2 = Derived2::RowsAtCompileTime == 1 ? 0 : Index,
+    col2 = Derived2::RowsAtCompileTime == 1 ? Index : 0
+  };
+
+  inline static PacketScalar run(const Derived1& v1, const Derived2& v2)
+  {
+    return ei_padd(
+      ei_pmul(v1.template packet<Aligned>(row1, col1), v2.template packet<Aligned>(row2, col2)),
+      ei_dot_vec_unroller<Derived1, Derived2, Index+ei_packet_traits<Scalar>::size, Stop>::run(v1, v2)
+    );
+  }
+};
+
+template<typename Derived1, typename Derived2, int Index, int Stop>
+struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
+{
+  enum {
+    row1 = Derived1::RowsAtCompileTime == 1 ? 0 : Index,
+    col1 = Derived1::RowsAtCompileTime == 1 ? Index : 0,
+    row2 = Derived2::RowsAtCompileTime == 1 ? 0 : Index,
+    col2 = Derived2::RowsAtCompileTime == 1 ? Index : 0
+  };
+
+  typedef typename Derived1::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  inline static PacketScalar run(const Derived1& v1, const Derived2& v2)
+  {
+    return ei_pmul(v1.template packet<Aligned>(row1, col1), v2.template packet<Aligned>(row2, col2));
+  }
+};
+
+/***************************************************************************
+* Part 3 : implementation of all cases
+***************************************************************************/
+
+template<typename Derived1, typename Derived2,
+         int Vectorization = ei_dot_traits<Derived1, Derived2>::Vectorization,
+         int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling
+>
+struct ei_dot_impl;
+
+template<typename Derived1, typename Derived2>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
+{
+  typedef typename Derived1::Scalar Scalar;
+  static Scalar run(const Derived1& v1, const Derived2& v2)
+  {
+    Scalar res;
+    res = v1.coeff(0) * ei_conj(v2.coeff(0));
+    for(int i = 1; i < v1.size(); i++)
+      res += v1.coeff(i) * ei_conj(v2.coeff(i));
+    return res;
   }
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Dynamic, Dynamic, Derived1, Derived2>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling>
+  : public ei_dot_novec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
+{};
+
+template<typename Derived1, typename Derived2>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 {
-  inline static void run(const Derived1& v1, const Derived2& v2, typename Derived1::Scalar& dot)
+  typedef typename Derived1::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    dot = v1.coeff(0) * ei_conj(v2.coeff(0));
-    for(int i = 1; i < v1.size(); i++)
-      dot += v1.coeff(i)* ei_conj(v2.coeff(i));
+    const int size = v1.size();
+    const int packetSize = ei_packet_traits<Scalar>::size;
+    const int alignedSize = (size/packetSize)*packetSize;
+    const bool rowVector1 = Derived1::RowsAtCompileTime == 1;
+    const bool rowVector2 = Derived2::RowsAtCompileTime == 1;
+    Scalar res;
+
+    // do the vectorizable part of the sum
+    if(size >= packetSize)
+    {
+      PacketScalar packet_res;
+      packet_res = ei_pmul(
+                         v1.template packet<Aligned>(0, 0),
+                         v2.template packet<Aligned>(0, 0)
+                   );
+      for(int index = packetSize; index<alignedSize; index += packetSize)
+      {
+        const int row1 = rowVector1 ? 0 : index;
+        const int col1 = rowVector1 ? index : 0;
+        const int row2 = rowVector2 ? 0 : index;
+        const int col2 = rowVector2 ? index : 0;
+        packet_res = ei_padd(
+                       packet_res,
+                       ei_pmul(
+                         v1.template packet<Aligned>(row1, col1),
+                         v2.template packet<Aligned>(row2, col2)
+                       )
+                     );
+      }
+      res = ei_predux(packet_res);
+
+      // now we must do the rest without vectorization.
+      if(alignedSize == size) return res;
+    }
+    else // too small to vectorize anything.
+         // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
+    {
+      res = Scalar(0);
+    }
+
+    // do the remainder of the vector
+    for(int index = alignedSize; index < size; index++)
+    {
+      const int row1 = rowVector1 ? 0 : index;
+      const int col1 = rowVector1 ? index : 0;
+      const int row2 = rowVector2 ? 0 : index;
+      const int col2 = rowVector2 ? index : 0;
+      res += v1.coeff(row1, col1) * v2.coeff(row2, col2);
+    }
+
+    return res;
   }
 };
 
-// prevent buggy user code from causing an infinite recursion
-template<int Index, typename Derived1, typename Derived2>
-struct ei_dot_impl<Index, 0, Derived1, Derived2>
+template<typename Derived1, typename Derived2>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
 {
-  inline static void run(const Derived1&, const Derived2&, typename Derived1::Scalar&) {}
+  typedef typename Derived1::Scalar Scalar;
+  static Scalar run(const Derived1& v1, const Derived2& v2)
+  {
+    return ei_predux(
+      ei_dot_vec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>::run(v1, v2)
+    );
+  }
 };
+
+/***************************************************************************
+* Part 4 : implementation of MatrixBase methods
+***************************************************************************/
 
 /** \returns the dot product of *this with other.
   *
@@ -81,24 +260,13 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   typedef typename OtherDerived::Nested OtherNested;
   typedef typename ei_unref<Nested>::type _Nested;
   typedef typename ei_unref<OtherNested>::type _OtherNested;
-  Nested nested(derived());
-  OtherNested otherNested(other.derived());
 
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested);
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested);
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested);
-  ei_assert(nested.size() == otherNested.size());
-  const bool unroll = SizeAtCompileTime
-                      * (_Nested::CoeffReadCost + _OtherNested::CoeffReadCost + NumTraits<Scalar>::MulCost)
-                      + (int(SizeAtCompileTime) - 1) * NumTraits<Scalar>::AddCost
-                      <= EIGEN_UNROLLING_LIMIT;
+  ei_assert(size() == other.size());
 
-  Scalar res;
-  ei_dot_impl<unroll ? int(SizeAtCompileTime)-1 : Dynamic,
-              unroll ? int(SizeAtCompileTime) : Dynamic,
-              _Nested, _OtherNested>
-    ::run(nested, otherNested, res);
-  return res;
+  return ei_dot_impl<_Nested, _OtherNested>::run(derived(), other.derived());
 }
 
 /** \returns the squared norm of *this, i.e. the dot product of *this with itself.
@@ -129,24 +297,36 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   *
   * \only_for_vectors
   *
-  * \sa norm()
+  * \sa norm(), normalize()
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ScalarMultipleReturnType
+inline const typename MatrixBase<Derived>::ScalarQuotient1ReturnType
 MatrixBase<Derived>::normalized() const
 {
-  return (*this) * (RealScalar(1)/norm());
+  return *this / norm();
+}
+
+/** Normalizes the vector, i.e. divides it by its own norm.
+  *
+  * \only_for_vectors
+  *
+  * \sa norm(), normalized()
+  */
+template<typename Derived>
+inline void MatrixBase<Derived>::normalize()
+{
+  *this /= norm();
 }
 
 /** \returns true if *this is approximately orthogonal to \a other,
   *          within the precision given by \a prec.
   *
-  * Example: \include MatrixBase_isOrtho_vector.cpp
-  * Output: \verbinclude MatrixBase_isOrtho_vector.out
+  * Example: \include MatrixBase_isOrthogonal.cpp
+  * Output: \verbinclude MatrixBase_isOrthogonal.out
   */
 template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Derived>::isOrtho
+bool MatrixBase<Derived>::isOrthogonal
 (const MatrixBase<OtherDerived>& other, RealScalar prec) const
 {
   typename ei_nested<Derived,2>::type nested(derived());
@@ -159,14 +339,14 @@ bool MatrixBase<Derived>::isOrtho
   *          type is real numbers, a unitary matrix is an orthogonal matrix, whence the name.
   *
   * \note This can be used to check whether a family of vectors forms an orthonormal basis.
-  *       Indeed, \c m.isOrtho() returns true if and only if the columns of m form an
+  *       Indeed, \c m.isUnitary() returns true if and only if the columns (equivalently, the rows) of m form an
   *       orthonormal basis.
   *
-  * Example: \include MatrixBase_isOrtho_matrix.cpp
-  * Output: \verbinclude MatrixBase_isOrtho_matrix.out
+  * Example: \include MatrixBase_isUnitary.cpp
+  * Output: \verbinclude MatrixBase_isUnitary.out
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isOrtho(RealScalar prec) const
+bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
 {
   typename Derived::Nested nested(derived());
   for(int i = 0; i < cols(); i++)

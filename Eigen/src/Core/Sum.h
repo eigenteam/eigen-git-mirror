@@ -184,7 +184,7 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
   static Scalar run(const Derived& mat)
   {
     const int size = mat.size();
-    const int packetSize = ei_packet_traits<typename Derived::Scalar>::size;
+    const int packetSize = ei_packet_traits<Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
     const bool rowMajor = Derived::Flags&RowMajorBit;
     const int innerSize = rowMajor ? mat.cols() : mat.rows();
@@ -283,6 +283,5 @@ MatrixBase<Derived>::trace() const
 {
   return diagonal().sum();
 }
-
 
 #endif // EIGEN_SUM_H

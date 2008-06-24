@@ -86,7 +86,7 @@ template<typename Scalar> void geometry(void)
   m << v0.normalized(),
       (v0.cross(v1)).normalized(),
       (v0.cross(v1).cross(v0)).normalized();
-  VERIFY(m.isOrtho());
+  VERIFY(m.isUnitary());
 
   // AngleAxis
   VERIFY_IS_APPROX(AngleAxis(a,v1.normalized()).toRotationMatrix(),

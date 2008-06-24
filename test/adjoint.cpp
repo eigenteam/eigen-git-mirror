@@ -56,9 +56,6 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m1.adjoint().conjugate().transpose(),    m1);
 
   // check multiplicative behavior
-  std::cout << (m1.adjoint() * m2).adjoint() << std::endl;
-  std::cout << "------------------------------" << std::endl;
-  std::cout << m2.adjoint() * m1 << std::endl;
   VERIFY_IS_APPROX((m1.adjoint() * m2).adjoint(),           m2.adjoint() * m1);
   VERIFY_IS_APPROX((s1 * m1).adjoint(),                     ei_conj(s1) * m1.adjoint());
 

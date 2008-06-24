@@ -59,7 +59,12 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 
   VERIFY_IS_APPROX(               mzero,    m1-m1);
   VERIFY_IS_APPROX(               m2,       m1+m2-m1);
-  VERIFY_IS_APPROX(               mones,    m2.cwiseQuotient(m2));
+#ifdef EIGEN_VECTORIZE
+  if(NumTraits<Scalar>::HasFloatingPoint)
+#endif
+  {
+    VERIFY_IS_APPROX(               mones,    m2.cwiseQuotient(m2));
+  }
   VERIFY_IS_APPROX(               m1.cwiseProduct(m2),    m2.cwiseProduct(m1));
 
   VERIFY( m1.cwiseLessThan(m1.cwise(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
