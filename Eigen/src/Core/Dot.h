@@ -108,8 +108,9 @@ struct ei_dot_vec_unroller
 
   inline static PacketScalar run(const Derived1& v1, const Derived2& v2)
   {
-    return ei_padd(
-      ei_pmul(v1.template packet<Aligned>(row1, col1), v2.template packet<Aligned>(row2, col2)),
+    return ei_pmadd(
+      v1.template packet<Aligned>(row1, col1),
+      v2.template packet<Aligned>(row2, col2),
       ei_dot_vec_unroller<Derived1, Derived2, Index+ei_packet_traits<Scalar>::size, Stop>::run(v1, v2)
     );
   }
@@ -192,12 +193,10 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
         const int col1 = rowVector1 ? index : 0;
         const int row2 = rowVector2 ? 0 : index;
         const int col2 = rowVector2 ? index : 0;
-        packet_res = ei_padd(
-                       packet_res,
-                       ei_pmul(
-                         v1.template packet<Aligned>(row1, col1),
-                         v2.template packet<Aligned>(row2, col2)
-                       )
+        packet_res = ei_pmadd(
+                       v1.template packet<Aligned>(row1, col1),
+                       v2.template packet<Aligned>(row2, col2),
+                       packet_res
                      );
       }
       res = ei_predux(packet_res);
