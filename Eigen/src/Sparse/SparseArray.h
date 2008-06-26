@@ -32,11 +32,11 @@ template<typename Scalar> class SparseArray
 {
   public:
     SparseArray()
-      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
+      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0), m_isShared(0)
     {}
 
     SparseArray(int size)
-      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
+      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0), m_isShared(0)
     {
       resize(size);
     }
@@ -51,6 +51,28 @@ template<typename Scalar> class SparseArray
       resize(other.size());
       memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
       memcpy(m_indices, other.m_indices, m_size * sizeof(int));
+      m_isShared = 0;
+    }
+
+    void shallowCopy(const SparseArray& other)
+    {
+      delete[] m_values;
+      delete[] m_indices;
+      m_values = other.m_values;
+      m_indices = other.m_indices;
+      m_size = other.m_size;
+      m_allocatedSize = other.m_allocatedSize;
+      m_isShared = false;
+      other.m_isShared = true;
+    }
+
+    ~SparseArray()
+    {
+      if (!m_isShared)
+      {
+        delete[] m_values;
+        delete[] m_indices;
+      }
     }
 
     void reserve(int size)
@@ -117,7 +139,11 @@ template<typename Scalar> class SparseArray
     Scalar* m_values;
     int* m_indices;
     int m_size;
-    int m_allocatedSize;
+    struct {
+      int m_allocatedSize:31;
+      mutable int m_isShared:1;
+    };
+
 };
 
 #endif // EIGEN_SPARSE_ARRAY_H

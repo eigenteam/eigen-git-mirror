@@ -138,10 +138,8 @@ const unsigned int LowerTriangularBit = 0x400;
 
 /** \ingroup flags
   *
-  * means the object is just an array of scalars, and operations on it are regarded as operations
-  * on every of these scalars taken separately.
-  */
-const unsigned int ArrayBit = 0x800;
+  * means the expression includes sparse matrices and the sparse path has to be taken. */
+const unsigned int SparseBit = 0x800;
 
 /** \ingroup flags
   *
@@ -155,7 +153,7 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit
                                   | LargeBit
-                                  | ArrayBit;
+                                  | SparseBit;
 
 // Possible values for the Mode parameter of part() and of extract()
 const unsigned int Upper = UpperTriangularBit;
@@ -173,7 +171,7 @@ enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct };
+enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, SparseProduct };
 
 enum {
   InnerVectorization,
@@ -188,5 +186,14 @@ enum {
   NoUnrolling
 };
 
+enum {
+  Dense   = 0,
+  Sparse  = SparseBit
+};
+
+const int FullyCoherentAccessPattern  = 0x1;
+const int InnerCoherentAccessPattern  = 0x2 | FullyCoherentAccessPattern;
+const int OuterCoherentAccessPattern  = 0x4 | InnerCoherentAccessPattern;
+const int RandomAccessPattern         = 0x8 | OuterCoherentAccessPattern;
 
 #endif // EIGEN_CONSTANTS_H

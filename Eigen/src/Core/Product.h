@@ -258,7 +258,6 @@ template<typename OtherDerived>
 inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  assert( (Derived::Flags&ArrayBit) == (OtherDerived::Flags&ArrayBit) );
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 

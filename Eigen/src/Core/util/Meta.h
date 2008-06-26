@@ -175,7 +175,9 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
   enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
 };
 
-template<typename T> class ei_eval
+template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
+
+template<typename T> class ei_eval<T,Dense>
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
     enum {_Rows = ei_traits<T>::RowsAtCompileTime,

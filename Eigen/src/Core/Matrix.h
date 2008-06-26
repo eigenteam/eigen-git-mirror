@@ -92,7 +92,8 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
                 _Rows, _Cols, _MaxRows, _MaxCols,
                 _Flags
             >::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
+    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    SupportedAccessPatterns = RandomAccessPattern
   };
 };
 

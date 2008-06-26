@@ -25,28 +25,45 @@
 #ifndef EIGEN_COREITERATORS_H
 #define EIGEN_COREITERATORS_H
 
+/* This file contains the respective InnerIterator definition of the expressions defined in Eigen/Core
+ */
+
 template<typename Derived>
 class MatrixBase<Derived>::InnerIterator
 {
     typedef typename Derived::Scalar Scalar;
   public:
-    InnerIterator(const Derived& mat, int col)
-      : m_matrix(mat), m_row(0), m_col(col), m_end(mat.rows())
+    InnerIterator(const Derived& mat, int outer)
+      : m_matrix(mat), m_inner(0), m_outer(outer), m_end(mat.rows())
     {}
 
-    Scalar value() { return m_matrix.coeff(m_row, m_col); }
+    Scalar value()
+    {
+      return (Derived::Flags&RowMajorBit) ? m_matrix.coeff(m_outer, m_inner)
+                                          : m_matrix.coeff(m_inner, m_outer);
+    }
 
-    InnerIterator& operator++() { m_row++; return *this; }
+    InnerIterator& operator++() { m_inner++; return *this; }
 
-    int index() const { return m_row; }
+    int index() const { return m_inner; }
 
-    operator bool() const { return m_row < m_end && m_row>=0; }
+    operator bool() const { return m_inner < m_end && m_inner>=0; }
 
   protected:
     const Derived& m_matrix;
-    int m_row;
-    const int m_col;
+    int m_inner;
+    const int m_outer;
     const int m_end;
+};
+
+template<typename MatrixType>
+class Transpose<MatrixType>::InnerIterator : public MatrixType::InnerIterator
+{
+  public:
+
+    InnerIterator(const Transpose& trans, int outer)
+      : MatrixType::InnerIterator(trans.m_matrix, outer)
+    {}
 };
 
 template<typename UnaryOp, typename MatrixType>
@@ -57,8 +74,8 @@ class CwiseUnaryOp<UnaryOp,MatrixType>::InnerIterator
     typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
   public:
 
-    InnerIterator(const CwiseUnaryOp& unaryOp, int col)
-      : m_iter(unaryOp.m_matrix,col), m_functor(unaryOp.m_functor), m_id(-1)
+    InnerIterator(const CwiseUnaryOp& unaryOp, int outer)
+      : m_iter(unaryOp.m_matrix,outer), m_functor(unaryOp.m_functor), m_id(-1)
     {
       this->operator++();
     }
@@ -101,8 +118,8 @@ class CwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
     typedef typename _RhsNested::InnerIterator RhsIterator;
   public:
 
-    InnerIterator(const CwiseBinaryOp& binOp, int col)
-      : m_lhsIter(binOp.m_lhs,col), m_rhsIter(binOp.m_rhs,col), m_functor(binOp.m_functor), m_id(-1)
+    InnerIterator(const CwiseBinaryOp& binOp, int outer)
+      : m_lhsIter(binOp.m_lhs,outer), m_rhsIter(binOp.m_rhs,outer), m_functor(binOp.m_functor), m_id(-1)
     {
       this->operator++();
     }

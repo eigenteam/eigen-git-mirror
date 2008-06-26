@@ -25,8 +25,6 @@
 #ifndef EIGEN_SPARSEMATRIX_H
 #define EIGEN_SPARSEMATRIX_H
 
-template<typename _Scalar> class SparseMatrix;
-
 /** \class SparseMatrix
   *
   * \brief Sparse matrix
@@ -36,8 +34,8 @@ template<typename _Scalar> class SparseMatrix;
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar>
-struct ei_traits<SparseMatrix<_Scalar> >
+template<typename _Scalar, int _Flags>
+struct ei_traits<SparseMatrix<_Scalar, _Flags> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -45,13 +43,16 @@ struct ei_traits<SparseMatrix<_Scalar> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = 0,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
+    Flags = _Flags,
+    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    SupportedAccessPatterns = FullyCoherentAccessPattern
   };
 };
 
-template<typename _Scalar>
-class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
+
+
+template<typename _Scalar, int _Flags>
+class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
@@ -62,6 +63,8 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
     SparseArray<Scalar> m_data;
     int m_rows;
     int m_cols;
+
+  public:
 
     inline int rows() const { return m_rows; }
     inline int cols() const { return m_cols; }
@@ -81,8 +84,8 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
 
     inline Scalar& coeffRef(int row, int col)
     {
-      int id = m_colPtrs[cols];
-      int end = m_colPtrs[cols+1];
+      int id = m_colPtrs[col];
+      int end = m_colPtrs[col+1];
       while (id<end && m_data.index(id)!=row)
       {
         ++id;
@@ -95,20 +98,8 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
 
     class InnerIterator;
 
-    inline int rows() const { return rows(); }
-    inline int cols() const { return cols(); }
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
-
-    inline const Scalar& operator() (int row, int col) const
-    {
-      return coeff(row, col);
-    }
-
-    inline Scalar& operator() (int row, int col)
-    {
-      return coeffRef(row, col);
-    }
 
     inline void startFill(int reserveSize = 1000)
     {
@@ -170,143 +161,80 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
       resize(rows, cols);
     }
 
+    inline void shallowCopy(const SparseMatrix& other)
+    {
+      EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: shallowCopy\n");
+      delete[] m_colPtrs;
+      m_colPtrs = 0;
+      m_rows = other.rows();
+      m_cols = other.cols();
+      m_colPtrs = other.m_colPtrs;
+      m_data.shallowCopy(other.m_data);
+      other.markAsCopied();
+    }
+
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
-      resize(other.rows(), other.cols());
-      m_colPtrs = other.m_colPtrs;
-      for (int col=0; col<=cols(); ++col)
-        m_colPtrs[col] = other.m_colPtrs[col];
-      m_data = other.m_data;
-      return *this;
+      if (other.isRValue())
+      {
+        shallowCopy(other);
+      }
+      else
+      {
+        resize(other.rows(), other.cols());
+        for (int col=0; col<=cols(); ++col)
+          m_colPtrs[col] = other.m_colPtrs[col];
+        m_data = other.m_data;
+        return *this;
+      }
     }
 
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const MatrixBase<OtherDerived>& other)
     {
-      resize(other.rows(), other.cols());
-      startFill(std::max(m_rows,m_cols)*2);
-      for (int col=0; col<cols(); ++col)
-      {
-        for (typename OtherDerived::InnerIterator it(other.derived(), col); it; ++it)
-        {
-          Scalar v = it.value();
-          if (v!=Scalar(0))
-            fill(it.index(),col) = v;
-        }
-      }
-      endFill();
-      return *this;
+      return SparseMatrixBase<SparseMatrix>::operator=(other);
     }
 
+    template<typename OtherDerived>
+    SparseMatrix<Scalar> operator*(const MatrixBase<OtherDerived>& other)
+    {
+      SparseMatrix<Scalar> res(rows(), other.cols());
+      ei_sparse_product<SparseMatrix,OtherDerived>(*this,other.derived(),res);
+      return res;
+    }
 
-    // old explicit operator+
-//     template<typename Other>
-//     SparseMatrix operator+(const Other& other)
-//     {
-//       SparseMatrix res(rows(), cols());
-//       res.startFill(nonZeros()*3);
-//       for (int col=0; col<cols(); ++col)
-//       {
-//         InnerIterator row0(*this,col);
-//         typename Other::InnerIterator row1(other,col);
-//         while (row0 && row1)
-//         {
-//           if (row0.index()==row1.index())
-//           {
-//             std::cout << "both " << col << " " << row0.index() << "\n";
-//             Scalar v = row0.value() + row1.value();
-//             if (v!=Scalar(0))
-//               res.fill(row0.index(),col) = v;
-//             ++row0;
-//             ++row1;
-//           }
-//           else if (row0.index()<row1.index())
-//           {
-//             std::cout << "row0 " << col << " " << row0.index() << "\n";
-//             Scalar v = row0.value();
-//             if (v!=Scalar(0))
-//               res.fill(row0.index(),col) = v;
-//             ++row0;
-//           }
-//           else if (row1)
-//           {
-//             std::cout << "row1 " << col << " " << row0.index() << "\n";
-//             Scalar v = row1.value();
-//             if (v!=Scalar(0))
-//               res.fill(row1.index(),col) = v;
-//             ++row1;
-//           }
-//         }
-//         while (row0)
-//         {
-//           std::cout << "row0 " << col << " " << row0.index() << "\n";
-//           Scalar v = row0.value();
-//           if (v!=Scalar(0))
-//             res.fill(row0.index(),col) = v;
-//           ++row0;
-//         }
-//         while (row1)
-//         {
-//           std::cout << "row1 " << col << " " << row1.index() << "\n";
-//           Scalar v = row1.value();
-//           if (v!=Scalar(0))
-//             res.fill(row1.index(),col) = v;
-//           ++row1;
-//         }
-//       }
-//       res.endFill();
-//       return res;
-// //       return binaryOp(other, ei_scalar_sum_op<Scalar>());
-//     }
-
-
-    // WARNING for efficiency reason it currently outputs the transposed matrix
     friend std::ostream & operator << (std::ostream & s, const SparseMatrix& m)
     {
-      s << "Nonzero entries:\n";
-      for (uint i=0; i<m.nonZeros(); ++i)
-      {
-        s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";
-      }
-      s << std::endl;
-      s << std::endl;
-      s << "Column pointers:\n";
-      for (uint i=0; i<m.cols(); ++i)
-      {
-        s << m.m_colPtrs[i] << " ";
-      }
-      s << std::endl;
-      s << std::endl;
-      s << "Matrix (transposed):\n";
-      for (int j=0; j<m.cols(); j++ )
-      {
-        int end = m.m_colPtrs[j+1];
-        int i=0;
-        for (int id=m.m_colPtrs[j]; id<end; id++)
+      EIGEN_DBG_SPARSE(
+        s << "Nonzero entries:\n";
+        for (uint i=0; i<m.nonZeros(); ++i)
         {
-          int row = m.m_data.index(id);
-          // fill with zeros
-          for (int k=i; k<row; ++k)
-            s << "0 ";
-          i = row+1;
-          s << m.m_data.value(id) << " ";
+          s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";
         }
-        for (int k=i; k<m.rows(); ++k)
-          s << "0 ";
         s << std::endl;
-      }
+        s << std::endl;
+        s << "Column pointers:\n";
+        for (uint i=0; i<m.cols(); ++i)
+        {
+          s << m.m_colPtrs[i] << " ";
+        }
+        s << std::endl;
+        s << std::endl;
+      );
+      s << static_cast<const SparseMatrixBase<SparseMatrix>&>(m);
       return s;
     }
 
     /** Destructor */
     inline ~SparseMatrix()
     {
-      delete[] m_colPtrs;
+      if (this->isNotShared())
+        delete[] m_colPtrs;
     }
 };
 
-template<typename Scalar>
-class SparseMatrix<Scalar>::InnerIterator
+template<typename Scalar, int _Flags>
+class SparseMatrix<Scalar,_Flags>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, int col)

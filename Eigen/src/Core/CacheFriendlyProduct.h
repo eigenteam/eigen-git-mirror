@@ -86,7 +86,12 @@ static void ei_cache_friendly_product(
   const int l2BlockRows = MaxL2BlockSize > rows ? rows : MaxL2BlockSize;
   const int l2BlockCols = MaxL2BlockSize > cols ? cols : MaxL2BlockSize;
   const int l2BlockSize = MaxL2BlockSize > size ? size : MaxL2BlockSize;
-  Scalar* __restrict__ block   = (Scalar*)alloca(sizeof(Scalar)*l2BlockRows*size);
+  Scalar* __restrict__ block = 0;
+  const int allocBlockSize = sizeof(Scalar)*l2BlockRows*size;
+  if (allocBlockSize>16000000)
+    block = (Scalar*)malloc(allocBlockSize);
+  else
+    block = (Scalar*)alloca(allocBlockSize);
   Scalar* __restrict__ rhsCopy = (Scalar*)alloca(sizeof(Scalar)*l2BlockSize);
 
   // loops on each L2 cache friendly blocks of the result
@@ -347,6 +352,9 @@ static void ei_cache_friendly_product(
         }
     }
   }
+
+  if (allocBlockSize>16000000)
+    free(block);
 }
 
 #endif // EIGEN_CACHE_FRIENDLY_PRODUCT_H

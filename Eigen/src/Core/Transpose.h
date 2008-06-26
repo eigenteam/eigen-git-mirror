@@ -63,6 +63,8 @@ template<typename MatrixType> class Transpose
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
+    class InnerIterator;
+
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
