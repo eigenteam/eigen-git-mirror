@@ -79,10 +79,10 @@ class PartialRedux : ei_no_assignment_operator,
 
   private:
 
-    int _rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
-    int _cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
+    int rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
+    int cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    const Scalar _coeff(int i, int j) const
+    const Scalar coeff(int i, int j) const
     {
       if (Direction==Vertical)
         return m_matrix.col(j).redux(m_functor);

@@ -92,29 +92,27 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-  private:
+    inline int rows() const { return m_lhs.rows(); }
+    inline int cols() const { return m_lhs.cols(); }
 
-    inline int _rows() const { return m_lhs.rows(); }
-    inline int _cols() const { return m_lhs.cols(); }
-
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int row, int col) const
+    inline PacketScalar packet(int row, int col) const
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(row, col), m_rhs.template packet<LoadMode>(row, col));
     }
 
-    inline const Scalar _coeff(int index) const
+    inline const Scalar coeff(int index) const
     {
       return m_functor(m_lhs.coeff(index), m_rhs.coeff(index));
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int index) const
+    inline PacketScalar packet(int index) const
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(index), m_rhs.template packet<LoadMode>(index));
     }

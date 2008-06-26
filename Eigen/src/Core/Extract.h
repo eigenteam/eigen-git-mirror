@@ -69,12 +69,10 @@ template<typename MatrixType, unsigned int Mode> class Extract
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Extract)
 
-  private:
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
 
-    inline int _rows() const { return m_matrix.rows(); }
-    inline int _cols() const { return m_matrix.cols(); }
-
-    inline Scalar _coeff(int row, int col) const
+    inline Scalar coeff(int row, int col) const
     {
       if(Flags & LowerTriangularBit ? col>row : row>col)
         return (Flags & SelfAdjointBit) ? ei_conj(m_matrix.coeff(col, row)) : (Scalar)0;

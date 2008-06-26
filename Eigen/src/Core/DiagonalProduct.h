@@ -82,19 +82,17 @@ template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNes
       ei_assert(lhs.cols() == rhs.rows());
     }
 
-  private:
+    inline int rows() const { return m_lhs.rows(); }
+    inline int cols() const { return m_rhs.cols(); }
 
-    inline int _rows() const { return m_lhs.rows(); }
-    inline int _cols() const { return m_rhs.cols(); }
-
-    const Scalar _coeff(int row, int col) const
+    const Scalar coeff(int row, int col) const
     {
       const int unique = RhsIsDiagonal ? col : row;
       return m_lhs.coeff(row, unique) * m_rhs.coeff(unique, col);
     }
 
     template<int LoadMode>
-    const PacketScalar _packet(int row, int col) const
+    const PacketScalar packet(int row, int col) const
     {
       if (RhsIsDiagonal)
       {

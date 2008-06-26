@@ -100,19 +100,18 @@ template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, uns
 class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
 {
   public:
-
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
-    friend class Map<Matrix>;
-
-  private:
-
+  protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
-    inline int _rows() const { return m_storage.rows(); }
-    inline int _cols() const { return m_storage.cols(); }
+  public:
+    friend class Map<Matrix>;
 
-    inline int _stride(void) const
+    inline int rows() const { return m_storage.rows(); }
+    inline int cols() const { return m_storage.cols(); }
+
+    inline int stride(void) const
     {
       if(Flags & RowMajorBit)
         return m_storage.cols();
@@ -120,7 +119,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
         return m_storage.rows();
     }
 
-    inline const Scalar& _coeff(int row, int col) const
+    inline const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -128,12 +127,12 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    inline const Scalar& _coeff(int index) const
+    inline const Scalar& coeff(int index) const
     {
       return m_storage.data()[index];
     }
 
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -141,13 +140,13 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    inline Scalar& _coeffRef(int index)
+    inline Scalar& coeffRef(int index)
     {
       return m_storage.data()[index];
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int row, int col) const
+    inline PacketScalar packet(int row, int col) const
     {
       if(Flags & RowMajorBit)
         if (LoadMode==Aligned)
@@ -162,7 +161,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int index) const
+    inline PacketScalar packet(int index) const
     {
       if (LoadMode==Aligned)
         return ei_pload(m_storage.data() + index);
@@ -171,7 +170,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 
     template<int StoreMode>
-    inline void _writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(int row, int col, const PacketScalar& x)
     {
       ei_internal_assert(Flags & PacketAccessBit);
       if(Flags & RowMajorBit)
@@ -187,7 +186,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 
     template<int StoreMode>
-    inline void _writePacket(int index, const PacketScalar& x)
+    inline void writePacket(int index, const PacketScalar& x)
     {
         if (StoreMode==Aligned)
           ei_pstore(m_storage.data() + index, x);

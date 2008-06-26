@@ -206,17 +206,15 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       * \returns whether it is worth it to use the cache friendly product.
       */
     inline bool _useCacheFriendlyProduct() const {
-      return   _rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-            && _cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+      return   rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+            && cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
             && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD;
     }
 
-  private:
+    inline int rows() const { return m_lhs.rows(); }
+    inline int cols() const { return m_rhs.cols(); }
 
-    inline int _rows() const { return m_lhs.rows(); }
-    inline int _cols() const { return m_rhs.cols(); }
-
-    const Scalar _coeff(int row, int col) const
+    const Scalar coeff(int row, int col) const
     {
       Scalar res;
       ScalarCoeffImpl::run(row, col, m_lhs, m_rhs, res);
@@ -226,7 +224,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
     /* Allow index-based non-packet access. It is impossible though to allow index-based packed access,
      * which is why we don't set the LinearAccessBit.
      */
-    const Scalar _coeff(int index) const
+    const Scalar coeff(int index) const
     {
       Scalar res;
       const int row = RowsAtCompileTime == 1 ? 0 : index;
@@ -236,7 +234,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
     }
 
     template<int LoadMode>
-    const PacketScalar _packet(int row, int col) const
+    const PacketScalar packet(int row, int col) const
     {
       PacketScalar res;
       ei_product_packet_impl<Flags&RowMajorBit ? RowMajorProduct : ColMajorProduct,
@@ -508,7 +506,7 @@ inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& 
   LhsCopy lhs(m_lhs);
   RhsCopy rhs(m_rhs);
   ei_cache_friendly_product<Scalar>(
-    _rows(), _cols(), lhs.cols(),
+    rows(), cols(), lhs.cols(),
     _LhsCopy::Flags&RowMajorBit, &(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
     _RhsCopy::Flags&RowMajorBit, &(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
     Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()

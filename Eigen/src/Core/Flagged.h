@@ -68,52 +68,50 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     /** \internal */
     inline const ExpressionType& _expression() const { return m_matrix; }
 
-  private:
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
+    inline int stride() const { return m_matrix.stride(); }
 
-    inline int _rows() const { return m_matrix.rows(); }
-    inline int _cols() const { return m_matrix.cols(); }
-    inline int _stride() const { return m_matrix.stride(); }
-
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_matrix.coeff(row, col);
     }
 
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    inline const Scalar _coeff(int index) const
+    inline const Scalar coeff(int index) const
     {
       return m_matrix.coeff(index);
     }
 
-    inline Scalar& _coeffRef(int index)
+    inline Scalar& coeffRef(int index)
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
 
     template<int LoadMode>
-    inline const PacketScalar _packet(int row, int col) const
+    inline const PacketScalar packet(int row, int col) const
     {
       return m_matrix.template packet<LoadMode>(row, col);
     }
 
     template<int LoadMode>
-    inline void _writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(row, col, x);
     }
 
     template<int LoadMode>
-    inline const PacketScalar _packet(int index) const
+    inline const PacketScalar packet(int index) const
     {
       return m_matrix.template packet<LoadMode>(index);
     }
 
     template<int LoadMode>
-    inline void _writePacket(int index, const PacketScalar& x)
+    inline void writePacket(int index, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
     }

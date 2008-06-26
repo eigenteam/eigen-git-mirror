@@ -45,7 +45,7 @@ inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  return derived()._coeff(row, col);
+  return derived().coeff(row, col);
 }
 
 /** \returns the coefficient at given the given row and column.
@@ -58,7 +58,7 @@ inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
 {
   ei_assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
-  return derived()._coeff(row, col);
+  return derived().coeff(row, col);
 }
 
 /** Short version: don't use this function, use
@@ -81,7 +81,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  return derived()._coeffRef(row, col);
+  return derived().coeffRef(row, col);
 }
 
 /** \returns a reference to the coefficient at given the given row and column.
@@ -94,7 +94,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 {
   ei_assert(row >= 0 && row < rows()
       && col >= 0 && col < cols());
-  return derived()._coeffRef(row, col);
+  return derived().coeffRef(row, col);
 }
 
 /** Short version: don't use this function, use
@@ -116,7 +116,7 @@ inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
   ei_internal_assert(index >= 0 && index < size());
-  return derived()._coeff(index);
+  return derived().coeff(index);
 }
 
 /** \returns the coefficient at given index.
@@ -131,7 +131,7 @@ inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
   ei_assert(index >= 0 && index < size());
-  return derived()._coeff(index);
+  return derived().coeff(index);
 }
 
 /** Short version: don't use this function, use
@@ -153,7 +153,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int index)
 {
   ei_internal_assert(index >= 0 && index < size());
-  return derived()._coeffRef(index);
+  return derived().coeffRef(index);
 }
 
 /** \returns a reference to the coefficient at given index.
@@ -167,7 +167,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator[](int index)
 {
   ei_assert(index >= 0 && index < size());
-  return derived()._coeffRef(index);
+  return derived().coeffRef(index);
 }
 
 /** equivalent to operator[](0).  */
@@ -225,7 +225,7 @@ MatrixBase<Derived>::packet(int row, int col) const
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  return derived().template _packet<LoadMode>(row,col);
+  return derived().template packet<LoadMode>(row,col);
 }
 
 /** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
@@ -243,7 +243,7 @@ inline void MatrixBase<Derived>::writePacket
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  derived().template _writePacket<StoreMode>(row,col,x);
+  derived().template writePacket<StoreMode>(row,col,x);
 }
 
 /** \returns the packet of coefficients starting at the given index. It is your responsibility
@@ -260,7 +260,7 @@ inline typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
 MatrixBase<Derived>::packet(int index) const
 {
   ei_internal_assert(index >= 0 && index < size());
-  return derived().template _packet<LoadMode>(index);
+  return derived().template packet<LoadMode>(index);
 }
 
 /** Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
@@ -277,7 +277,7 @@ inline void MatrixBase<Derived>::writePacket
 (int index, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
 {
   ei_internal_assert(index >= 0 && index < size());
-  derived().template _writePacket<StoreMode>(index,x);
+  derived().template writePacket<StoreMode>(index,x);
 }
 
 

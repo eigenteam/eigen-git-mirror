@@ -75,29 +75,27 @@ class CwiseNullaryOp : ei_no_assignment_operator,
           && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
 
-  private:
+    int rows() const { return m_rows.value(); }
+    int cols() const { return m_cols.value(); }
 
-    int _rows() const { return m_rows.value(); }
-    int _cols() const { return m_cols.value(); }
-
-    const Scalar _coeff(int rows, int cols) const
+    const Scalar coeff(int rows, int cols) const
     {
       return m_functor(rows, cols);
     }
 
     template<int LoadMode>
-    PacketScalar _packet(int, int) const
+    PacketScalar packet(int, int) const
     {
       return m_functor.packetOp();
     }
 
-    const Scalar _coeff(int index) const
+    const Scalar coeff(int index) const
     {
       return m_functor(index);
     }
 
     template<int LoadMode>
-    PacketScalar _packet(int) const
+    PacketScalar packet(int) const
     {
       return m_functor.packetOp();
     }

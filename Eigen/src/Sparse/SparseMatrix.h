@@ -63,10 +63,10 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
     int m_rows;
     int m_cols;
 
-    inline int _rows() const { return m_rows; }
-    inline int _cols() const { return m_cols; }
+    inline int rows() const { return m_rows; }
+    inline int cols() const { return m_cols; }
 
-    inline const Scalar& _coeff(int row, int col) const
+    inline const Scalar& coeff(int row, int col) const
     {
       int id = m_colPtrs[col];
       int end = m_colPtrs[col+1];
@@ -79,7 +79,7 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
       return m_data.value(id);
     }
 
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       int id = m_colPtrs[cols];
       int end = m_colPtrs[cols+1];
@@ -95,19 +95,19 @@ class SparseMatrix : public MatrixBase<SparseMatrix<_Scalar> >
 
     class InnerIterator;
 
-    inline int rows() const { return _rows(); }
-    inline int cols() const { return _cols(); }
+    inline int rows() const { return rows(); }
+    inline int cols() const { return cols(); }
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
 
     inline const Scalar& operator() (int row, int col) const
     {
-      return _coeff(row, col);
+      return coeff(row, col);
     }
 
     inline Scalar& operator() (int row, int col)
     {
-      return _coeffRef(row, col);
+      return coeffRef(row, col);
     }
 
     inline void startFill(int reserveSize = 1000)

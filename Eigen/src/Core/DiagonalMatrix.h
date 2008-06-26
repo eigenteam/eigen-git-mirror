@@ -68,12 +68,10 @@ class DiagonalMatrix : ei_no_assignment_operator,
           && coeffs.size() > 0);
     }
 
-  private:
+    inline int rows() const { return m_coeffs.size(); }
+    inline int cols() const { return m_coeffs.size(); }
 
-    inline int _rows() const { return m_coeffs.size(); }
-    inline int _cols() const { return m_coeffs.size(); }
-
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }

@@ -148,9 +148,9 @@ template<typename Derived> class MatrixBase
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    inline int rows() const { return derived()._rows(); }
+    inline int rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
-    inline int cols() const { return derived()._cols(); }
+    inline int cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int size() const { return rows() * cols(); }
@@ -433,7 +433,7 @@ template<typename Derived> class MatrixBase
       * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
       * of the underlying matrix.
       */
-    inline int stride(void) const { return derived()._stride(); }
+    inline int stride(void) const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
 

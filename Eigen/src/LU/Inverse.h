@@ -76,18 +76,16 @@ template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignm
       */
     bool exists() const { assert(CheckExistence); return m_exists; }
 
-  private:
+    int rows() const { return m_inverse.rows(); }
+    int cols() const { return m_inverse.cols(); }
 
-    int _rows() const { return m_inverse.rows(); }
-    int _cols() const { return m_inverse.cols(); }
-
-    const Scalar _coeff(int row, int col) const
+    const Scalar coeff(int row, int col) const
     {
       return m_inverse.coeff(row, col);
     }
 
     template<int LoadMode>
-    PacketScalar _packet(int row, int col) const
+    PacketScalar packet(int row, int col) const
     {
       return m_inverse.template packet<LoadMode>(row, col);
     }

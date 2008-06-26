@@ -73,27 +73,25 @@ template<typename MatrixType> class DiagonalCoeffs
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
 
-  private:
+    inline int rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
+    inline int cols() const { return 1; }
 
-    inline int _rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
-    inline int _cols() const { return 1; }
-
-    inline Scalar& _coeffRef(int row, int)
+    inline Scalar& coeffRef(int row, int)
     {
       return m_matrix.const_cast_derived().coeffRef(row, row);
     }
 
-    inline const Scalar _coeff(int row, int) const
+    inline const Scalar coeff(int row, int) const
     {
       return m_matrix.coeff(row, row);
     }
 
-    inline Scalar& _coeffRef(int index)
+    inline Scalar& coeffRef(int index)
     {
       return m_matrix.const_cast_derived().coeffRef(index, index);
     }
 
-    inline const Scalar _coeff(int index) const
+    inline const Scalar coeff(int index) const
     {
       return m_matrix.coeff(index, index);
     }

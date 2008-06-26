@@ -134,25 +134,23 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
-  private:
+    inline int rows() const { return m_blockRows.value(); }
+    inline int cols() const { return m_blockCols.value(); }
 
-    inline int _rows() const { return m_blockRows.value(); }
-    inline int _cols() const { return m_blockCols.value(); }
+    inline int stride(void) const { return m_matrix.stride(); }
 
-    inline int _stride(void) const { return m_matrix.stride(); }
-
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline Scalar& _coeffRef(int index)
+    inline Scalar& coeffRef(int index)
     {
       return m_matrix.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
@@ -160,7 +158,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       
     }
 
-    inline const Scalar _coeff(int index) const
+    inline const Scalar coeff(int index) const
     {
       return m_matrix
              .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
@@ -168,26 +166,26 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int row, int col) const
+    inline PacketScalar packet(int row, int col) const
     {
       return m_matrix.template packet<UnAligned>(row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
-    inline void _writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int index) const
+    inline PacketScalar packet(int index) const
     {
       return m_matrix.template packet<UnAligned>(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                                                  m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     template<int LoadMode>
-    inline void _writePacket(int index, const PacketScalar& x)
+    inline void writePacket(int index, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<UnAligned>
          (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),

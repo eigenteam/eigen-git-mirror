@@ -59,12 +59,10 @@ template<typename MatrixType> class Map
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
 
-  private:
+    inline int rows() const { return m_rows; }
+    inline int cols() const { return m_cols; }
 
-    inline int _rows() const { return m_rows; }
-    inline int _cols() const { return m_cols; }
-
-    inline const Scalar& _coeff(int row, int col) const
+    inline const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
         return m_data[col + row * m_cols];
@@ -72,7 +70,7 @@ template<typename MatrixType> class Map
         return m_data[row + col * m_rows];
     }
 
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
         return const_cast<Scalar*>(m_data)[col + row * m_cols];
@@ -80,12 +78,12 @@ template<typename MatrixType> class Map
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
     }
 
-    inline const Scalar& _coeff(int index) const
+    inline const Scalar& coeff(int index) const
     {
       return m_data[index];
     }
 
-    inline Scalar& _coeffRef(int index)
+    inline Scalar& coeffRef(int index)
     {
       return m_data[index];
     }

@@ -67,31 +67,29 @@ template<typename MatrixType> class Transpose
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-  private:
+    inline int rows() const { return m_matrix.cols(); }
+    inline int cols() const { return m_matrix.rows(); }
 
-    inline int _rows() const { return m_matrix.cols(); }
-    inline int _cols() const { return m_matrix.rows(); }
+    inline int stride(void) const { return m_matrix.stride(); }
 
-    inline int _stride(void) const { return m_matrix.stride(); }
-
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(col, row);
     }
 
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_matrix.coeff(col, row);
     }
 
     template<int LoadMode>
-    inline const PacketScalar _packet(int row, int col) const
+    inline const PacketScalar packet(int row, int col) const
     {
       return m_matrix.template packet<LoadMode>(col, row);
     }
 
     template<int LoadMode>
-    inline void _writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(col, row, x);
     }

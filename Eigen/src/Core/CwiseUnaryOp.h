@@ -74,29 +74,27 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     inline CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())
       : m_matrix(mat), m_functor(func) {}
 
-  private:
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
 
-    inline int _rows() const { return m_matrix.rows(); }
-    inline int _cols() const { return m_matrix.cols(); }
-
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_functor(m_matrix.coeff(row, col));
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int row, int col) const
+    inline PacketScalar packet(int row, int col) const
     {
       return m_functor.packetOp(m_matrix.template packet<LoadMode>(row, col));
     }
 
-    inline const Scalar _coeff(int index) const
+    inline const Scalar coeff(int index) const
     {
       return m_functor(m_matrix.coeff(index));
     }
 
     template<int LoadMode>
-    inline PacketScalar _packet(int index) const
+    inline PacketScalar packet(int index) const
     {
       return m_functor.packetOp(m_matrix.template packet<LoadMode>(index));
     }

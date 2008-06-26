@@ -74,17 +74,15 @@ template<typename MatrixType> class Minor
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
 
-  private:
+    inline int rows() const { return m_matrix.rows() - 1; }
+    inline int cols() const { return m_matrix.cols() - 1; }
 
-    inline int _rows() const { return m_matrix.rows() - 1; }
-    inline int _cols() const { return m_matrix.cols() - 1; }
-
-    inline Scalar& _coeffRef(int row, int col)
+    inline Scalar& coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived().coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
 
-    inline const Scalar _coeff(int row, int col) const
+    inline const Scalar coeff(int row, int col) const
     {
       return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }
