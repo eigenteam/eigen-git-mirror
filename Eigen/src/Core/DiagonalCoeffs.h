@@ -56,7 +56,8 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
     MaxColsAtCompileTime = 1,
     Flags = (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic
             ? (unsigned int)_MatrixTypeNested::Flags
-            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit) & HereditaryBits,
+            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit)
+          & (HereditaryBits | LinearAccessBit),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -85,6 +86,16 @@ template<typename MatrixType> class DiagonalCoeffs
     inline const Scalar _coeff(int row, int) const
     {
       return m_matrix.coeff(row, row);
+    }
+
+    inline Scalar& _coeffRef(int index)
+    {
+      return m_matrix.const_cast_derived().coeffRef(index, index);
+    }
+
+    inline const Scalar _coeff(int index) const
+    {
+      return m_matrix.coeff(index, index);
     }
 
   protected:

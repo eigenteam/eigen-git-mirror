@@ -104,7 +104,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \link operator[](int) const \endlink, but without the assertion.
   * Use this for limiting the performance cost of debugging code when doing
   * repeated coefficient access. Only use this when it is guaranteed that the
-  * parameters \a row and \a col are in range.
+  * parameter \a index is in range.
   *
   * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
   * function equivalent to \link operator[](int) const \endlink.
@@ -115,22 +115,13 @@ template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::coeff(int index) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  if(RowsAtCompileTime == 1)
-  {
-    ei_internal_assert(index >= 0 && index < cols());
-    return coeff(0, index);
-  }
-  else
-  {
-    ei_internal_assert(index >= 0 && index < rows());
-    return coeff(index, 0);
-  }
+  ei_internal_assert(index >= 0 && index < size());
+  return derived()._coeff(index);
 }
 
 /** \returns the coefficient at given index.
   *
-  * \only_for_vectors
+  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
   *
   * \sa operator[](int), operator()(int,int) const, x() const, y() const,
   * z() const, w() const
@@ -139,17 +130,8 @@ template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::operator[](int index) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  if(RowsAtCompileTime == 1)
-  {
-    ei_assert(index >= 0 && index < cols());
-    return coeff(0, index);
-  }
-  else
-  {
-    ei_assert(index >= 0 && index < rows());
-    return coeff(index, 0);
-  }
+  ei_assert(index >= 0 && index < size());
+  return derived()._coeff(index);
 }
 
 /** Short version: don't use this function, use
@@ -170,22 +152,13 @@ template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::coeffRef(int index)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  if(RowsAtCompileTime == 1)
-  {
-    ei_internal_assert(index >= 0 && index < cols());
-    return coeffRef(0, index);
-  }
-  else
-  {
-    ei_internal_assert(index >= 0 && index < rows());
-    return coeffRef(index, 0);
-  }
+  ei_internal_assert(index >= 0 && index < size());
+  return derived()._coeffRef(index);
 }
 
 /** \returns a reference to the coefficient at given index.
   *
-  * \only_for_vectors
+  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
   *
   * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
   */
@@ -193,70 +166,119 @@ template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator[](int index)
 {
-  ei_assert(IsVectorAtCompileTime);
-  if(RowsAtCompileTime == 1)
-  {
-    ei_assert(index >= 0 && index < cols());
-    return coeffRef(0, index);
-  }
-  else
-  {
-    ei_assert(index >= 0 && index < rows());
-    return coeffRef(index, 0);
-  }
+  ei_assert(index >= 0 && index < size());
+  return derived()._coeffRef(index);
 }
 
-/** equivalent to operator[](0). \only_for_vectors */
+/** equivalent to operator[](0).  */
 template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::x() const { return (*this)[0]; }
 
-/** equivalent to operator[](1). \only_for_vectors */
+/** equivalent to operator[](1).  */
 template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::y() const { return (*this)[1]; }
 
-/** equivalent to operator[](2). \only_for_vectors */
+/** equivalent to operator[](2).  */
 template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::z() const { return (*this)[2]; }
 
-/** equivalent to operator[](3). \only_for_vectors */
+/** equivalent to operator[](3).  */
 template<typename Derived>
 inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   ::w() const { return (*this)[3]; }
 
-/** equivalent to operator[](0). \only_for_vectors */
+/** equivalent to operator[](0).  */
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::x() { return (*this)[0]; }
 
-/** equivalent to operator[](1). \only_for_vectors */
+/** equivalent to operator[](1).  */
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::y() { return (*this)[1]; }
 
-/** equivalent to operator[](2). \only_for_vectors */
+/** equivalent to operator[](2).  */
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::z() { return (*this)[2]; }
 
-/** equivalent to operator[](3). \only_for_vectors */
+/** equivalent to operator[](3).  */
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::w() { return (*this)[3]; }
 
+/** \returns the packet of coefficients starting at the given row and column. It is your responsibility
+  * to ensure that a packet really starts there. This method is only available on expressions having the
+  * PacketAccessBit.
+  *
+  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+  * starting at an address which is a multiple of the packet size.
+  */
 template<typename Derived>
 template<int LoadMode>
 inline typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
 MatrixBase<Derived>::packet(int row, int col) const
-{ return derived().template _packet<LoadMode>(row,col); }
+{
+  ei_internal_assert(row >= 0 && row < rows()
+                     && col >= 0 && col < cols());
+  return derived().template _packet<LoadMode>(row,col);
+}
 
+/** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
+  * to ensure that a packet really starts there. This method is only available on expressions having the
+  * PacketAccessBit.
+  *
+  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+  * starting at an address which is a multiple of the packet size.
+  */
 template<typename Derived>
 template<int StoreMode>
 inline void MatrixBase<Derived>::writePacket
 (int row, int col, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{ derived().template _writePacket<StoreMode>(row,col,x); }
+{
+  ei_internal_assert(row >= 0 && row < rows()
+                     && col >= 0 && col < cols());
+  derived().template _writePacket<StoreMode>(row,col,x);
+}
+
+/** \returns the packet of coefficients starting at the given index. It is your responsibility
+  * to ensure that a packet really starts there. This method is only available on expressions having the
+  * PacketAccessBit and the LinearAccessBit.
+  *
+  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+  * starting at an address which is a multiple of the packet size.
+  */
+template<typename Derived>
+template<int LoadMode>
+inline typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
+MatrixBase<Derived>::packet(int index) const
+{
+  ei_internal_assert(index >= 0 && index < size());
+  return derived().template _packet<LoadMode>(index);
+}
+
+/** Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
+  * to ensure that a packet really starts there. This method is only available on expressions having the
+  * PacketAccessBit and the LinearAccessBit.
+  *
+  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+  * starting at an address which is a multiple of the packet size.
+  */
+template<typename Derived>
+template<int StoreMode>
+inline void MatrixBase<Derived>::writePacket
+(int index, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
+{
+  ei_internal_assert(index >= 0 && index < size());
+  derived().template _writePacket<StoreMode>(index,x);
+}
 
 
 #endif // EIGEN_COEFFS_H

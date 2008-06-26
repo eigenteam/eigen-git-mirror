@@ -69,7 +69,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
         HereditaryBits
       | (int(LhsFlags) & int(RhsFlags) & LinearAccessBit)
       | (ei_functor_traits<BinaryOp>::PacketAccess && ((int(LhsFlags) & RowMajorBit)==(int(RhsFlags) & RowMajorBit))
-        ? int(LhsFlags) & int(RhsFlags) & PacketAccessBit : 0)),
+        ? (int(LhsFlags) & int(RhsFlags) & PacketAccessBit) : 0)),
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
@@ -106,6 +106,17 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     inline PacketScalar _packet(int row, int col) const
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(row, col), m_rhs.template packet<LoadMode>(row, col));
+    }
+
+    inline const Scalar _coeff(int index) const
+    {
+      return m_functor(m_lhs.coeff(index), m_rhs.coeff(index));
+    }
+
+    template<int LoadMode>
+    inline PacketScalar _packet(int index) const
+    {
+      return m_functor.packetOp(m_lhs.template packet<LoadMode>(index), m_rhs.template packet<LoadMode>(index));
     }
 
   protected:

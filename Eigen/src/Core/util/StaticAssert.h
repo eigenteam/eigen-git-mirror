@@ -75,7 +75,9 @@
 
 
 // static assertion failling if the type \a TYPE is not a vector type
-#define EIGEN_STATIC_ASSERT_VECTOR_ONLY(TYPE) EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime,you_tried_calling_a_vector_method_on_a_matrix)
+#define EIGEN_STATIC_ASSERT_VECTOR_ONLY(TYPE) \
+  EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime, \
+                      you_tried_calling_a_vector_method_on_a_matrix)
 
 // static assertion failling if the two vector expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(TYPE0,TYPE1) \

@@ -186,34 +186,15 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
     const int size = mat.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
-    const bool rowMajor = Derived::Flags&RowMajorBit;
-    const int innerSize = rowMajor ? mat.cols() : mat.rows();
-    const int outerSize = rowMajor ? mat.rows() : mat.cols();
     Scalar res;
 
-    // do the vectorizable part of the sum
     if(size >= packetSize)
     {
-      PacketScalar packet_res;
-      packet_res = mat.template packet<Aligned>(0, 0);
-      int row = 0;
-      int col = 0;
-      int index = packetSize;
-      while (index<alignedSize)
-      {
-        row = rowMajor ? index/innerSize : index%innerSize;
-        col = rowMajor ? index%innerSize : index/innerSize;
-        int start = rowMajor ? col : row;
-        int end = std::min(innerSize, start+alignedSize-index);
-        if (end<start) getchar();
-        for ( ; (rowMajor ? col : row)<end; (rowMajor ? col : row)+=packetSize)
-          packet_res = ei_padd(packet_res, mat.template packet<Aligned>(row, col));
-        index += (rowMajor ? col : row) - start;
-      }
-      res = ei_predux(packet_res);
+      PacketScalar packet_res = mat.template packet<Aligned>(0, 0);
+      for(int index = packetSize; index < alignedSize; index += packetSize)
+        packet_res = ei_padd(packet_res, mat.template packet<Aligned>(index));
 
-      // now we must do the rest without vectorization.
-      if(alignedSize == size) return res;
+      res = ei_predux(packet_res);
     }
     else // too small to vectorize anything.
          // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
@@ -221,24 +202,10 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
       res = Scalar(0);
     }
 
-    const int k = alignedSize/innerSize;
-
-    // do the remainder of the current row or col
-    for(int i = alignedSize%innerSize; i < innerSize; i++)
+    for(int index = alignedSize; index < size; index++)
     {
-      const int row = rowMajor ? k : i;
-      const int col = rowMajor ? i : k;
-      res += mat.coeff(row, col);
+      res += mat.coeff(index);
     }
-
-    // do the remaining rows or cols
-    for(int j = k+1; j < outerSize; j++)
-      for(int i = 0; i < innerSize; i++)
-      {
-        const int row = rowMajor ? i : j;
-        const int col = rowMajor ? j : i;
-        res += mat.coeff(row, col);
-      }
 
     return res;
   }

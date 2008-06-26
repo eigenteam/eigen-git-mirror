@@ -55,33 +55,33 @@ typename OtherDerived::Eval MatrixBase<Derived>::inverseProduct(const MatrixBase
     {
       // forward substitution
       if(Flags & UnitDiagBit)
-	res.coeffRef(0,c) = other.coeff(0,c);
+        res.coeffRef(0,c) = other.coeff(0,c);
       else
-	res.coeffRef(0,c) = other.coeff(0,c)/coeff(0, 0);
+        res.coeffRef(0,c) = other.coeff(0,c)/coeff(0, 0);
       for(int i=1; i<rows(); ++i)
       {
-	Scalar tmp = other.coeff(i,c) - ((this->row(i).start(i)) * res.col(c).start(i)).coeff(0,0);
-	if (Flags & UnitDiagBit)
-	  res.coeffRef(i,c) = tmp;
-	else
-	  res.coeffRef(i,c) = tmp/coeff(i,i);
+        Scalar tmp = other.coeff(i,c) - ((this->row(i).start(i)) * res.col(c).start(i)).coeff(0,0);
+        if (Flags & UnitDiagBit)
+          res.coeffRef(i,c) = tmp;
+        else
+          res.coeffRef(i,c) = tmp/coeff(i,i);
       }
     }
     else
     {
       // backward substitution
       if(Flags & UnitDiagBit)
-	res.coeffRef(cols()-1,c) = other.coeff(cols()-1,c);
+        res.coeffRef(cols()-1,c) = other.coeff(cols()-1,c);
       else
-	res.coeffRef(cols()-1,c) = other.coeff(cols()-1, c)/coeff(rows()-1, cols()-1);
+        res.coeffRef(cols()-1,c) = other.coeff(cols()-1, c)/coeff(rows()-1, cols()-1);
       for(int i=rows()-2 ; i>=0 ; --i)
       {
-	Scalar tmp = other.coeff(i,c)
-                     - ((this->row(i).end(cols()-i-1)) * res.col(c).end(cols()-i-1)).coeff(0,0);
-	if (Flags & UnitDiagBit)
-	  res.coeffRef(i,c) = tmp;
-	else
-	  res.coeffRef(i,c) = tmp/coeff(i,i);
+        Scalar tmp = other.coeff(i,c)
+                   - ((this->row(i).end(cols()-i-1)) * res.col(c).end(cols()-i-1)).coeff(0,0);
+        if (Flags & UnitDiagBit)
+          res.coeffRef(i,c) = tmp;
+        else
+          res.coeffRef(i,c) = tmp/coeff(i,i);
       }
     }
   }

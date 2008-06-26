@@ -76,6 +76,16 @@ template<typename ExpressionType> class NestByValue
       return m_expression.const_cast_derived().coeffRef(row, col);
     }
 
+    inline const Scalar _coeff(int index) const
+    {
+      return m_expression.coeff(index);
+    }
+
+    inline Scalar& _coeffRef(int index)
+    {
+      return m_expression.const_cast_derived().coeffRef(index);
+    }
+
     template<int LoadMode>
     inline const PacketScalar _packet(int row, int col) const
     {
@@ -86,6 +96,18 @@ template<typename ExpressionType> class NestByValue
     inline void _writePacket(int row, int col, const PacketScalar& x)
     {
       m_expression.const_cast_derived().template writePacket<LoadMode>(row, col, x);
+    }
+
+    template<int LoadMode>
+    inline const PacketScalar _packet(int index) const
+    {
+      return m_expression.template packet<LoadMode>(index);
+    }
+
+    template<int LoadMode>
+    inline void _writePacket(int index, const PacketScalar& x)
+    {
+      m_expression.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 
   protected:

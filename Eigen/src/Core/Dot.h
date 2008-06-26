@@ -175,27 +175,20 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     const int size = v1.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
-    const bool rowVector1 = Derived1::RowsAtCompileTime == 1;
-    const bool rowVector2 = Derived2::RowsAtCompileTime == 1;
     Scalar res;
 
     // do the vectorizable part of the sum
     if(size >= packetSize)
     {
-      PacketScalar packet_res;
-      packet_res = ei_pmul(
-                         v1.template packet<Aligned>(0, 0),
-                         v2.template packet<Aligned>(0, 0)
-                   );
+      PacketScalar packet_res = ei_pmul(
+                                  v1.template packet<Aligned>(0),
+                                  v2.template packet<Aligned>(0)
+                                );
       for(int index = packetSize; index<alignedSize; index += packetSize)
       {
-        const int row1 = rowVector1 ? 0 : index;
-        const int col1 = rowVector1 ? index : 0;
-        const int row2 = rowVector2 ? 0 : index;
-        const int col2 = rowVector2 ? index : 0;
         packet_res = ei_pmadd(
-                       v1.template packet<Aligned>(row1, col1),
-                       v2.template packet<Aligned>(row2, col2),
+                       v1.template packet<Aligned>(index),
+                       v2.template packet<Aligned>(index),
                        packet_res
                      );
       }
@@ -213,11 +206,7 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     // do the remainder of the vector
     for(int index = alignedSize; index < size; index++)
     {
-      const int row1 = rowVector1 ? 0 : index;
-      const int col1 = rowVector1 ? index : 0;
-      const int row2 = rowVector2 ? 0 : index;
-      const int col2 = rowVector2 ? index : 0;
-      res += v1.coeff(row1, col1) * v2.coeff(row2, col2);
+      res += v1.coeff(index) * v2.coeff(index);
     }
 
     return res;

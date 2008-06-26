@@ -52,8 +52,7 @@ struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
                      && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
 
     RemovedBits = ~(((RhsFlags & RowMajorBit) && (!CanVectorizeLhs) ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit))
-                | LinearAccessBit,
+                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
           | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0),

@@ -80,6 +80,16 @@ template<typename MatrixType> class Map
         return const_cast<Scalar*>(m_data)[row + col * m_rows];
     }
 
+    inline const Scalar& _coeff(int index) const
+    {
+      return m_data[index];
+    }
+
+    inline Scalar& _coeffRef(int index)
+    {
+      return m_data[index];
+    }
+
   public:
     inline Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
     {

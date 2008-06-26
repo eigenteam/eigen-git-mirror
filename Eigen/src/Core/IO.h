@@ -31,14 +31,14 @@
   */
 template<typename Derived>
 std::ostream & operator <<
-( std::ostream & s,
-  const MatrixBase<Derived> & m )
+(std::ostream & s,
+ const MatrixBase<Derived> & m)
 {
-  for( int i = 0; i < m.rows(); i++ )
+  for(int i = 0; i < m.rows(); i++)
   {
-    s << m( i, 0 );
-    for (int j = 1; j < m.cols(); j++ )
-      s << " " << m( i, j );
+    s << m.coeff(i, 0);
+    for(int j = 1; j < m.cols(); j++)
+      s << " " << m.coeff(i, j);
     if( i < m.rows() - 1)
       s << "\n";
   }

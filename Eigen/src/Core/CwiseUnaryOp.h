@@ -90,6 +90,17 @@ class CwiseUnaryOp : ei_no_assignment_operator,
       return m_functor.packetOp(m_matrix.template packet<LoadMode>(row, col));
     }
 
+    inline const Scalar _coeff(int index) const
+    {
+      return m_functor(m_matrix.coeff(index));
+    }
+
+    template<int LoadMode>
+    inline PacketScalar _packet(int index) const
+    {
+      return m_functor.packetOp(m_matrix.template packet<LoadMode>(index));
+    }
+
   protected:
     const typename MatrixType::Nested m_matrix;
     const UnaryOp m_functor;

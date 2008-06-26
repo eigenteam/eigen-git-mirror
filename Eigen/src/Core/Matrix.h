@@ -128,6 +128,11 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
+    inline const Scalar& _coeff(int index) const
+    {
+      return m_storage.data()[index];
+    }
+
     inline Scalar& _coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
@@ -136,20 +141,33 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
+    inline Scalar& _coeffRef(int index)
+    {
+      return m_storage.data()[index];
+    }
+
     template<int LoadMode>
     inline PacketScalar _packet(int row, int col) const
     {
-      ei_internal_assert(Flags & PacketAccessBit);
       if(Flags & RowMajorBit)
         if (LoadMode==Aligned)
-          return ei_pload(&m_storage.data()[col + row * m_storage.cols()]);
+          return ei_pload(m_storage.data() + col + row * m_storage.cols());
         else
-          return ei_ploadu(&m_storage.data()[col + row * m_storage.cols()]);
+          return ei_ploadu(m_storage.data() + col + row * m_storage.cols());
       else
         if (LoadMode==Aligned)
-          return ei_pload(&m_storage.data()[row + col * m_storage.rows()]);
+          return ei_pload(m_storage.data() + row + col * m_storage.rows());
         else
-          return ei_ploadu(&m_storage.data()[row + col * m_storage.rows()]);
+          return ei_ploadu(m_storage.data() + row + col * m_storage.rows());
+    }
+
+    template<int LoadMode>
+    inline PacketScalar _packet(int index) const
+    {
+      if (LoadMode==Aligned)
+        return ei_pload(m_storage.data() + index);
+      else
+        return ei_ploadu(m_storage.data() + index);
     }
 
     template<int StoreMode>
@@ -158,14 +176,23 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       ei_internal_assert(Flags & PacketAccessBit);
       if(Flags & RowMajorBit)
         if (StoreMode==Aligned)
-          ei_pstore(&m_storage.data()[col + row * m_storage.cols()], x);
+          ei_pstore(m_storage.data() + col + row * m_storage.cols(), x);
         else
-          ei_pstoreu(&m_storage.data()[col + row * m_storage.cols()], x);
+          ei_pstoreu(m_storage.data() + col + row * m_storage.cols(), x);
       else
         if (StoreMode==Aligned)
-          ei_pstore(&m_storage.data()[row + col * m_storage.rows()], x);
+          ei_pstore(m_storage.data() + row + col * m_storage.rows(), x);
         else
-          ei_pstoreu(&m_storage.data()[row + col * m_storage.rows()], x);
+          ei_pstoreu(m_storage.data() + row + col * m_storage.rows(), x);
+    }
+
+    template<int StoreMode>
+    inline void _writePacket(int index, const PacketScalar& x)
+    {
+        if (StoreMode==Aligned)
+          ei_pstore(m_storage.data() + index, x);
+        else
+          ei_pstoreu(m_storage.data() + index, x);
     }
 
   public:

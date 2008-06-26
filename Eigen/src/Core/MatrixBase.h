@@ -228,6 +228,11 @@ template<typename Derived> class MatrixBase
     template<int StoreMode>
     void writePacket(int row, int col, const PacketScalar& x);
 
+    template<int LoadMode>
+    PacketScalar packet(int index) const;
+    template<int StoreMode>
+    void writePacket(int index, const PacketScalar& x);
+
     const Scalar x() const;
     const Scalar y() const;
     const Scalar z() const;
@@ -307,11 +312,11 @@ template<typename Derived> class MatrixBase
     Block<Derived> block(int start, int size);
     const Block<Derived> block(int start, int size) const;
 
-    Block<Derived> start(int size);
-    const Block<Derived> start(int size) const;
+    typename SubVectorReturnType<Dynamic>::Type start(int size);
+    const typename SubVectorReturnType<Dynamic>::Type start(int size) const;
 
-    Block<Derived> end(int size);
-    const Block<Derived> end(int size) const;
+    typename SubVectorReturnType<Dynamic>::Type end(int size);
+    const typename SubVectorReturnType<Dynamic>::Type end(int size) const;
 
     Block<Derived> corner(CornerType type, int cRows, int cCols);
     const Block<Derived> corner(CornerType type, int cRows, int cCols) const;

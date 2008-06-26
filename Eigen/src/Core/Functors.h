@@ -302,13 +302,13 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
 
 // nullary functors
 
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_constant_op;
+template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1) > struct ei_scalar_constant_op;
 
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,true> {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   inline ei_scalar_constant_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  inline const Scalar operator() (int, int) const { return ei_pfirst(m_other); }
+  inline const Scalar operator() (int, int = 0) const { return ei_pfirst(m_other); }
   inline const PacketScalar packetOp() const
   { return m_other; }
   const PacketScalar m_other;
@@ -316,7 +316,7 @@ struct ei_scalar_constant_op<Scalar,true> {
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,false> {
   inline ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
-  inline const Scalar operator() (int, int) const { return m_other; }
+  inline const Scalar operator() (int, int = 0) const { return m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -330,5 +330,12 @@ template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
+
+// NOTE quick hack:
+// all functors allow linear access, except ei_scalar_identity_op. So we fix here a quick meta
+// to indicate whether a functor allows linear access, just always answering 'yes' except for
+// ei_scalar_identity_op.
+template<typename Functor> struct ei_functor_has_linear_access { enum { ret = 1 }; };
+template<typename Scalar> struct ei_functor_has_linear_access<ei_scalar_identity_op<Scalar> > { enum { ret = 0 }; };
 
 #endif // EIGEN_FUNCTORS_H

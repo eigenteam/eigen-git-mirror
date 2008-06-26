@@ -301,45 +301,14 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     const int size = dst.size();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
-    const bool rowMajor = Derived1::Flags&RowMajorBit;
-    const int innerSize = rowMajor ? dst.cols() : dst.rows();
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
-    int index = 0;
 
-    // do the vectorizable part of the assignment
-    int row = 0;
-    int col = 0;
-    while (index<alignedSize)
+    for(int index = 0; index < alignedSize; index += packetSize)
     {
-      int start = rowMajor ? col : row;
-      int end = std::min(innerSize, start + alignedSize-index);
-      for ( ; (rowMajor ? col : row)<end; (rowMajor ? col : row)+=packetSize)
-        dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
-      index += (rowMajor ? col : row) - start;
-      row = rowMajor ? index/innerSize : index%innerSize;
-      col = rowMajor ? index%innerSize : index/innerSize;
+      dst.template writePacket<Aligned>(index, src.template packet<Aligned>(index));
     }
 
-    // now we must do the rest without vectorization.
-    if(alignedSize == size) return;
-    const int k = alignedSize/innerSize;
-
-    // do the remainder of the current row or col
-    for(int i = alignedSize%innerSize; i < innerSize; i++)
-    {
-      const int row = rowMajor ? k : i;
-      const int col = rowMajor ? i : k;
-      dst.coeffRef(row, col) = src.coeff(row, col);
-    }
-
-    // do the remaining rows or cols
-    for(int j = k+1; j < outerSize; j++)
-      for(int i = 0; i < innerSize; i++)
-      {
-        const int row = rowMajor ? i : j;
-        const int col = rowMajor ? j : i;
-        dst.coeffRef(row, col) = src.coeff(row, col);
-      }
+    for(int index = alignedSize; index < size; index++)
+      dst.coeffRef(index) = src.coeff(index);
   }
 };
 
@@ -351,23 +320,9 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling
     const int size = Derived1::SizeAtCompileTime;
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
-    const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
-    const int innerSize = rowMajor ? int(Derived1::ColsAtCompileTime) : int(Derived1::RowsAtCompileTime);
-    const int outerSize = rowMajor ? int(Derived1::RowsAtCompileTime) : int(Derived1::ColsAtCompileTime);
 
-    // do the vectorizable part of the assignment
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2, 0, alignedSize>::run(dst, src);
-
-    // now we must do the rest without vectorization.
-    const int k = alignedSize/innerSize;
-    const int i = alignedSize%innerSize;
-
-    // do the remainder of the current row or col
-    ei_assign_novec_InnerUnrolling<Derived1, Derived2, i, k<outerSize ? innerSize : 0>::run(dst, src, k);
-
-    // do the remaining rows or cols
-    for(int j = k+1; j < outerSize; j++)
-      ei_assign_novec_InnerUnrolling<Derived1, Derived2, 0, innerSize>::run(dst, src, j);
+    ei_assign_novec_CompleteUnrolling<Derived1, Derived2, alignedSize, size>::run(dst, src);
   }
 };
 
@@ -432,8 +387,8 @@ template<typename Derived, typename OtherDerived,
 struct ei_assign_selector;
 
 template<typename Derived, typename OtherDerived>
-struct ei_assign_selector<Derived,OtherDerived,true,true> {
-  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
+struct ei_assign_selector<Derived,OtherDerived,false,false> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
 };
 template<typename Derived, typename OtherDerived>
 struct ei_assign_selector<Derived,OtherDerived,true,false> {
@@ -444,8 +399,8 @@ struct ei_assign_selector<Derived,OtherDerived,false,true> {
   static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
 };
 template<typename Derived, typename OtherDerived>
-struct ei_assign_selector<Derived,OtherDerived,false,false> {
-  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
+struct ei_assign_selector<Derived,OtherDerived,true,true> {
+  static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
 };
 
 template<typename Derived>

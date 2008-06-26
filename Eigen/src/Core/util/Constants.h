@@ -56,26 +56,60 @@ const unsigned int EvalBeforeNestingBit = 0x2;
   * means the expression should be evaluated before any assignement */
 const unsigned int EvalBeforeAssigningBit = 0x4;
 
-/** \ingroup flags
-  *
-  * currently unused. Means the matrix probably has a very big size.
-  * Could eventually be used as a hint to determine which algorithms
-  * to use. */
-const unsigned int LargeBit = 0x8;
-
 #ifdef EIGEN_VECTORIZE
 /** \ingroup flags
   *
-  * means the expression might be vectorized */
-const unsigned int PacketAccessBit = 0x10;
+  * Short version: means the expression might be vectorized
+  *
+  * Long version: means that the coefficients can be handled by packets
+  * and start at a memory location whose alignment meets the requirements
+  * of the present CPU architecture for optimized packet access. In the fixed-size
+  * case, there is the additional condition that the total size of the coefficients
+  * array is a multiple of the packet size, so that it is possible to access all the
+  * coefficients by packets. In the dynamic-size case, there is no such condition
+  * on the total size, so it might not be possible to access the few last coeffs
+  * by packets.
+  *
+  * \note If vectorization is not enabled (EIGEN_VECTORIZE is not defined) this constant
+  * is set to the value 0.
+  */
+const unsigned int PacketAccessBit = 0x8;
 #else
 const unsigned int PacketAccessBit = 0x0;
 #endif
 
 /** \ingroup flags
   *
-  * means the expression can be seen as 1D vector (used for explicit vectorization) */
-const unsigned int LinearAccessBit = 0x20;
+  * Short version: means the expression can be seen as 1D vector.
+  *
+  * Long version: means that one can access the coefficients
+  * of this expression by coeff(int), and coeffRef(int) in the case of a lvalue expression. These
+  * index-based access methods are guaranteed
+  * to not have to do any runtime computation of a (row, col)-pair from the index, so that it
+  * is guaranteed that whenever it is available, index-based access is at least as fast as
+  * (row,col)-based access. Expressions for which that isn't possible don't have the LinearAccessBit.
+  *
+  * If both PacketAccessBit and LinearAccessBit are set, then the
+  * packets of this expression can be accessed by packet(int), and writePacket(int) in the case of a
+  * lvalue expression.
+  *
+  * Typically, all vector expressions have the LinearAccessBit, but there is one exception:
+  * Product expressions don't have it, because it would be troublesome for vectorization, even when the
+  * Product is a vector expression. Thus, vector Product expressions allow index-based coefficient access but
+  * not index-based packet access, so they don't have the LinearAccessBit.
+  */
+const unsigned int LinearAccessBit = 0x10;
+
+/** \ingroup flags
+  *
+  * Means that the underlying array of coefficients can be directly accessed. This means two things.
+  * First, references to the coefficients must be available through coeffRef(int, int). This rules out read-only
+  * expressions whose coefficients are computed on demand by coeff(int, int). Second, the memory layout of the
+  * array of coefficients must be exactly the natural one suggested by rows(), cols(), stride(), and the RowMajorBit.
+  * This rules out expressions such as DiagonalCoeffs, whose coefficients, though referencable, do not have
+  * such a regular memory layout.
+  */
+const unsigned int DirectAccessBit = 0x20;
 
 /** \ingroup flags
   *
@@ -104,17 +138,17 @@ const unsigned int LowerTriangularBit = 0x400;
 
 /** \ingroup flags
   *
-  * means the underlying matrix data can be direclty accessed (contrary to certain
-  * expressions where the matrix coefficients need to be computed rather than just read from
-  * memory) */
-const unsigned int DirectAccessBit = 0x800;
-
-/** \ingroup flags
-  *
   * means the object is just an array of scalars, and operations on it are regarded as operations
   * on every of these scalars taken separately.
   */
-const unsigned int ArrayBit = 0x1000;
+const unsigned int ArrayBit = 0x800;
+
+/** \ingroup flags
+  *
+  * currently unused. Means the matrix probably has a very big size.
+  * Could eventually be used as a hint to determine which algorithms
+  * to use. */
+const unsigned int LargeBit = 0x1000;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
@@ -134,7 +168,6 @@ const unsigned int SelfAdjoint = SelfAdjointBit;
 const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 const unsigned int Diagonal = Upper | Lower;
-
 
 enum { Aligned=0, UnAligned=1 };
 enum { ConditionalJumpCost = 5 };

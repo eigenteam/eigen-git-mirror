@@ -71,13 +71,12 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
                   || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
                    ? ~LargeBit
                    : ~(unsigned int)0,
-    MaskPacketAccessBit = ei_corrected_matrix_flags<
-                            Scalar, RowsAtCompileTime, ColsAtCompileTime,
-                            MaxRowsAtCompileTime, MaxColsAtCompileTime, MatrixType::Flags
-                          >::ret & PacketAccessBit,
-    FlagsLinearAccessBit = MatrixType::Flags & RowMajorBit
-                        ? (RowsAtCompileTime == 1 ? LinearAccessBit : 0)
-                        : (ColsAtCompileTime == 1 ? LinearAccessBit : 0),
+    RowMajor = int(MatrixType::Flags)&RowMajorBit,
+    InnerSize = RowMajor ? ColsAtCompileTime : RowsAtCompileTime,
+    InnerMaxSize = RowMajor ? MaxColsAtCompileTime : MaxRowsAtCompileTime,
+    MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
+                        ? PacketAccessBit : 0,
+    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     Flags = (MatrixType::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit) & MaskLargeBit)
           | FlagsLinearAccessBit,
     CoeffReadCost = MatrixType::CoeffReadCost
@@ -153,6 +152,21 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
+    inline Scalar& _coeffRef(int index)
+    {
+      return m_matrix.const_cast_derived()
+             .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                       m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+      
+    }
+
+    inline const Scalar _coeff(int index) const
+    {
+      return m_matrix
+             .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                    m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+    }
+
     template<int LoadMode>
     inline PacketScalar _packet(int row, int col) const
     {
@@ -163,6 +177,21 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     inline void _writePacket(int row, int col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<UnAligned>(row + m_startRow.value(), col + m_startCol.value(), x);
+    }
+
+    template<int LoadMode>
+    inline PacketScalar _packet(int index) const
+    {
+      return m_matrix.template packet<UnAligned>(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                                                 m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+    }
+
+    template<int LoadMode>
+    inline void _writePacket(int index, const PacketScalar& x)
+    {
+      m_matrix.const_cast_derived().template writePacket<UnAligned>
+         (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+          m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0), x);
     }
 
   protected:
@@ -260,22 +289,30 @@ inline const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline Block<Derived> MatrixBase<Derived>::start(int size)
+inline typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+MatrixBase<Derived>::start(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(), 0, 0,
-                        RowsAtCompileTime == 1 ? 1 : size,
-                        ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived,
+               RowsAtCompileTime == 1 ? 1 : Dynamic,
+               ColsAtCompileTime == 1 ? 1 : Dynamic>
+              (derived(), 0, 0,
+               RowsAtCompileTime == 1 ? 1 : size,
+               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of start(int).*/
 template<typename Derived>
-inline const Block<Derived> MatrixBase<Derived>::start(int size) const
+inline const typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+MatrixBase<Derived>::start(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(), 0, 0,
-                        RowsAtCompileTime == 1 ? 1 : size,
-                        ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived,
+               RowsAtCompileTime == 1 ? 1 : Dynamic,
+               ColsAtCompileTime == 1 ? 1 : Dynamic>
+              (derived(), 0, 0,
+               RowsAtCompileTime == 1 ? 1 : size,
+               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a dynamic-size expression of the last coefficients of *this.
@@ -294,26 +331,34 @@ inline const Block<Derived> MatrixBase<Derived>::start(int size) const
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline Block<Derived> MatrixBase<Derived>::end(int size)
+inline typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+MatrixBase<Derived>::end(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(),
-                        RowsAtCompileTime == 1 ? 0 : rows() - size,
-                        ColsAtCompileTime == 1 ? 0 : cols() - size,
-                        RowsAtCompileTime == 1 ? 1 : size,
-                        ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived,
+               RowsAtCompileTime == 1 ? 1 : Dynamic,
+               ColsAtCompileTime == 1 ? 1 : Dynamic>
+              (derived(),
+               RowsAtCompileTime == 1 ? 0 : rows() - size,
+               ColsAtCompileTime == 1 ? 0 : cols() - size,
+               RowsAtCompileTime == 1 ? 1 : size,
+               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** This is the const version of end(int).*/
 template<typename Derived>
-inline const Block<Derived> MatrixBase<Derived>::end(int size) const
+inline const typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+MatrixBase<Derived>::end(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(),
-                        RowsAtCompileTime == 1 ? 0 : rows() - size,
-                        ColsAtCompileTime == 1 ? 0 : cols() - size,
-                        RowsAtCompileTime == 1 ? 1 : size,
-                        ColsAtCompileTime == 1 ? 1 : size);
+  return Block<Derived,
+               RowsAtCompileTime == 1 ? 1 : Dynamic,
+               ColsAtCompileTime == 1 ? 1 : Dynamic>
+              (derived(),
+               RowsAtCompileTime == 1 ? 0 : rows() - size,
+               ColsAtCompileTime == 1 ? 0 : cols() - size,
+               RowsAtCompileTime == 1 ? 1 : size,
+               ColsAtCompileTime == 1 ? 1 : size);
 }
 
 /** \returns a fixed-size expression of the first coefficients of *this.

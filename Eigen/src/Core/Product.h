@@ -151,8 +151,7 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
                    && (ProductMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!CanVectorizeLhs)),
 
     RemovedBits = ~((EvalToRowMajor ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)
-                | LinearAccessBit),
+                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
           | EvalBeforeAssigningBit
@@ -224,6 +223,18 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       return res;
     }
 
+    /* Allow index-based non-packet access. It is impossible though to allow index-based packed access,
+     * which is why we don't set the LinearAccessBit.
+     */
+    const Scalar _coeff(int index) const
+    {
+      Scalar res;
+      const int row = RowsAtCompileTime == 1 ? 0 : index;
+      const int col = RowsAtCompileTime == 1 ? index : 0;
+      ScalarCoeffImpl::run(row, col, m_lhs, m_rhs, res);
+      return res;
+    }
+
     template<int LoadMode>
     const PacketScalar _packet(int row, int col) const
     {
@@ -234,9 +245,6 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
         ::run(row, col, m_lhs, m_rhs, res);
       return res;
     }
-
-    template<typename Lhs_, typename Rhs_, int ProductMode_, typename DestDerived_, bool DirectAccess_>
-    friend struct ei_cache_friendly_selector;
 
   protected:
     const LhsNested m_lhs;
