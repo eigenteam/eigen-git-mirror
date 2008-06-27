@@ -1,12 +1,14 @@
-SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR)
+SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR Geometry Sparse Array)
 
-SET(Eigen_SRCS
-  src/Core/CoreInstantiations.cpp
-  src/Cholesky/CholeskyInstantiations.cpp
-  src/QR/QrInstantiations.cpp
-)
+IF(TEST_LIB)
+    SET(Eigen_SRCS
+      src/Core/CoreInstantiations.cpp
+      src/Cholesky/CholeskyInstantiations.cpp
+      src/QR/QrInstantiations.cpp
+    )
 
-ADD_LIBRARY(Eigen2 SHARED ${Eigen_SRCS})
+    ADD_LIBRARY(Eigen2 SHARED ${Eigen_SRCS})
+ENDIF(TEST_LIB)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1 -O2")
@@ -14,7 +16,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 SET(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
+    "${CMAKE_INSTALL_PREFIX}/include"
     CACHE PATH
     "The directory where we install the header files"
     FORCE)
@@ -24,9 +26,11 @@ INSTALL(FILES
   DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen
   )
 
-INSTALL(TARGETS Eigen2
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+IF(TEST_LIB)
+    INSTALL(TARGETS Eigen2
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+ENDIF(TEST_LIB)
 
 ADD_SUBDIRECTORY(src)

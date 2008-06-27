@@ -235,13 +235,12 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
 
-    /** Default constructor, does nothing. Only for fixed-size matrices.
-      * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
-      * an assertion) because it would leave the matrix without an allocated data buffer.
+    /** Default constructor, for fixed-size matrices, does nothing.
+      * For dynamic-size matrices, initializes with initial size 1x1, which is inefficient, hence
+      * when performance matters one should avoid using this constructor on dynamic-size matrices.
       */
-    inline explicit Matrix()
+    inline explicit Matrix() : m_storage(1, 1, 1)
     {
-      ei_assert(RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic);
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
 
