@@ -50,8 +50,8 @@ struct ei_traits<Map<MatrixType, Alignment> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = MatrixType::Flags
-          & (HereditaryBits | LinearAccessBit | DirectAccessBit)
-          & (Alignment == Aligned ? PacketAccessBit : 0),
+          & ( (HereditaryBits | LinearAccessBit | DirectAccessBit)
+              | (Alignment == Aligned ? PacketAccessBit : 0) ),
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
@@ -89,7 +89,7 @@ template<typename MatrixType, int Alignment> class Map
 
     inline Scalar& coeffRef(int index)
     {
-      return m_data[index];
+      return *const_cast<Scalar*>(m_data + index);
     }
 
     template<int LoadMode>
@@ -111,7 +111,7 @@ template<typename MatrixType, int Alignment> class Map
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>
-               (m_data + (Flags & RowMajorBit
+               (const_cast<Scalar*>(m_data) + (Flags & RowMajorBit
                          ? col + row * m_cols.value()
                          : row + col * m_rows.value()), x);
     }
@@ -119,7 +119,8 @@ template<typename MatrixType, int Alignment> class Map
     template<int StoreMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>(m_data + index, x);
+      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>
+        (const_cast<Scalar*>(m_data) + index, x);
     }
 
     inline Map(const Scalar* data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
