@@ -30,50 +30,93 @@
 // of generic vectorized code. However, at runtime, they should never be
 // called, TODO so sould we raise an assertion or not ?
 /** \internal \returns a + b (coeff-wise) */
-template <typename Scalar> inline Scalar ei_padd(const Scalar&  a, const Scalar&  b) { return a + b; }
+template <typename Packet> inline Packet
+ei_padd(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns a - b (coeff-wise) */
-template <typename Scalar> inline Scalar ei_psub(const Scalar&  a, const Scalar&  b) { return a - b; }
+template <typename Packet> inline Packet
+ei_psub(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns a * b (coeff-wise) */
-template <typename Scalar> inline Scalar ei_pmul(const Scalar&  a, const Scalar&  b) { return a * b; }
+template <typename Packet> inline Packet
+ei_pmul(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns a / b (coeff-wise) */
-template <typename Scalar> inline Scalar ei_pdiv(const Scalar&  a, const Scalar&  b) { return a / b; }
-
-/** \internal \returns a * b - c (coeff-wise) */
-template <typename Scalar> inline Scalar ei_pmadd(const Scalar&  a, const Scalar&  b, const Scalar&  c)
-{ return ei_padd(ei_pmul(a, b),c); }
+template <typename Packet> inline Packet
+ei_pdiv(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns the min of \a a and \a b  (coeff-wise) */
-template <typename Scalar> inline Scalar ei_pmin(const Scalar&  a, const Scalar&  b) { return std::min(a,b); }
+template <typename Packet> inline Packet
+ei_pmin(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns the max of \a a and \a b  (coeff-wise) */
-template <typename Scalar> inline Scalar ei_pmax(const Scalar&  a, const Scalar&  b) { return std::max(a,b); }
+template <typename Packet> inline Packet
+ei_pmax(const Packet&,
+        const Packet&) { Packet ret; return ret; }
 
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
-template <typename Scalar> inline Scalar ei_pload(const Scalar* from) { return *from; }
+template <typename Scalar> inline typename ei_packet_traits<Scalar>::type
+ei_pload(const Scalar*) { typename ei_packet_traits<Scalar>::type ret; return ret; }
 
 /** \internal \returns a packet version of \a *from, (un-aligned load) */
-template <typename Scalar> inline Scalar ei_ploadu(const Scalar* from) { return *from; }
+template <typename Scalar> inline typename ei_packet_traits<Scalar>::type
+ei_ploadu(const Scalar*) { typename ei_packet_traits<Scalar>::type ret; return ret; }
 
 /** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
-template <typename Scalar> inline Scalar ei_pset1(const Scalar& a) { return a; }
+template <typename Scalar> inline typename ei_packet_traits<Scalar>::type
+ei_pset1(const Scalar&) { typename ei_packet_traits<Scalar>::type ret; return ret; }
 
 /** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
-template <typename Scalar> inline void ei_pstore(Scalar* to, const Scalar& from) { (*to) = from; }
+template <typename Scalar, typename Packet> inline void ei_pstore(Scalar*, const Packet&) {}
 
 /** \internal copy the packet \a from to \a *to, (un-aligned store) */
-template <typename Scalar> inline void ei_pstoreu(Scalar* to, const Scalar& from) { (*to) = from; }
+template <typename Scalar, typename Packet> inline void ei_pstoreu(Scalar*, const Packet&) {}
 
 /** \internal \returns the first element of a packet */
-template <typename Scalar> inline Scalar ei_pfirst(const Scalar& a) { return a; }
+template <typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_pfirst(const Packet&)
+{ typename ei_unpacket_traits<Packet>::type ret; return ret; }
 
 /** \internal \returns a packet where the element i contains the sum of the packet of \a vec[i] */
-template <typename Scalar> inline Scalar ei_preduxp(const Scalar* vecs) { return vecs[0]; }
+template <typename Packet> inline Packet
+ei_preduxp(const Packet*) { Packet ret; return ret; }
 
 /** \internal \returns the sum of the elements of \a a*/
-template <typename Scalar> inline Scalar ei_predux(const Scalar& a) { return a; }
+template <typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux(const Packet&)
+{ typename ei_unpacket_traits<Packet>::type ret; return ret; }
+
+
+////////////
+
+
+/** \internal \returns a * b + c (coeff-wise) */
+template <typename Packet> inline Packet
+ei_pmadd(const Packet&  a,
+         const Packet&  b,
+         const Packet&  c)
+{ return ei_padd(ei_pmul(a, b),c); }
+
+/** \internal \returns a packet version of \a *from. If LoadMode equals Aligned, \a from must be 16 bytes aligned */
+template <typename Scalar, int LoadMode> inline typename ei_packet_traits<Scalar>::type ei_ploadt(const Scalar* from)
+{
+  if(LoadMode == Aligned)
+    return ei_pload(from);
+  else
+    return ei_ploadu(from);
+}
+
+/** \internal copy the packet \a from to \a *to. If StoreMode equals Aligned, \a to must be 16 bytes aligned */
+template <typename Scalar, typename Packet, int LoadMode> inline void ei_pstoret(Scalar* to, const Packet& from)
+{
+  if(LoadMode == Aligned)
+    ei_pstore(to, from);
+  else
+    ei_pstoreu(to, from);  
+}
 
 #endif // EIGEN_DUMMY_PACKET_MATH_H
 

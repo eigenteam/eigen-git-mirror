@@ -102,12 +102,13 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
+    friend class Eigen::Map<Matrix, Unaligned>;
+    friend class Eigen::Map<Matrix, Aligned>;
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
 
   public:
-    friend class Map<Matrix>;
 
     inline int rows() const { return m_storage.rows(); }
     inline int cols() const { return m_storage.cols(); }
@@ -149,50 +150,31 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
-      if(Flags & RowMajorBit)
-        if (LoadMode==Aligned)
-          return ei_pload(m_storage.data() + col + row * m_storage.cols());
-        else
-          return ei_ploadu(m_storage.data() + col + row * m_storage.cols());
-      else
-        if (LoadMode==Aligned)
-          return ei_pload(m_storage.data() + row + col * m_storage.rows());
-        else
-          return ei_ploadu(m_storage.data() + row + col * m_storage.rows());
+      return ei_ploadt<Scalar, LoadMode>
+               (m_storage.data() + (Flags & RowMajorBit
+                                   ? col + row * m_storage.cols()
+                                   : row + col * m_storage.rows()));
     }
 
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      if (LoadMode==Aligned)
-        return ei_pload(m_storage.data() + index);
-      else
-        return ei_ploadu(m_storage.data() + index);
+      return ei_ploadt<Scalar, LoadMode>(m_storage.data() + index);
     }
 
     template<int StoreMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      ei_internal_assert(Flags & PacketAccessBit);
-      if(Flags & RowMajorBit)
-        if (StoreMode==Aligned)
-          ei_pstore(m_storage.data() + col + row * m_storage.cols(), x);
-        else
-          ei_pstoreu(m_storage.data() + col + row * m_storage.cols(), x);
-      else
-        if (StoreMode==Aligned)
-          ei_pstore(m_storage.data() + row + col * m_storage.rows(), x);
-        else
-          ei_pstoreu(m_storage.data() + row + col * m_storage.rows(), x);
+      ei_pstoret<Scalar, PacketScalar, StoreMode>
+              (m_storage.data() + (Flags & RowMajorBit
+                                   ? col + row * m_storage.cols()
+                                   : row + col * m_storage.rows()), x);
     }
 
     template<int StoreMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-        if (StoreMode==Aligned)
-          ei_pstore(m_storage.data() + index, x);
-        else
-          ei_pstoreu(m_storage.data() + index, x);
+      ei_pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
     }
 
   public:
@@ -253,19 +235,13 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
 
-    static const Map<Matrix> map(const Scalar* array, int rows, int cols);
-    static const Map<Matrix> map(const Scalar* array, int size);
-    static const Map<Matrix> map(const Scalar* array);
-    static Map<Matrix> map(Scalar* array, int rows, int cols);
-    static Map<Matrix> map(Scalar* array, int size);
-    static Map<Matrix> map(Scalar* array);
-
     /** Default constructor, does nothing. Only for fixed-size matrices.
       * For dynamic-size matrices and vectors, this constructor is forbidden (guarded by
       * an assertion) because it would leave the matrix without an allocated data buffer.
       */
     inline explicit Matrix()
     {
+      ei_assert(RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic);
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
 

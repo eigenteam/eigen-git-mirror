@@ -29,17 +29,19 @@
   *
   * \brief A matrix or vector expression mapping an existing array of data.
   *
+  * \param Alignment can be either Aligned or Unaligned. Tells whether the array is suitably aligned for
+  *                  vectorization on the present CPU architecture. Defaults to Unaligned.
+  *
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
   * such as plain C arrays or structures from other libraries.
   *
-  * This class is the return type of Matrix::map() and most of the time this is the only
-  * way it is used.
+  * This class is the return type of Matrix::map() but can also be used directly.
   *
   * \sa Matrix::map()
   */
-template<typename MatrixType>
-struct ei_traits<Map<MatrixType> >
+template<typename MatrixType, int Alignment>
+struct ei_traits<Map<MatrixType, Alignment> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum {
@@ -47,35 +49,37 @@ struct ei_traits<Map<MatrixType> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags & (HereditaryBits | DirectAccessBit),
+    Flags = MatrixType::Flags
+          & (HereditaryBits | LinearAccessBit | DirectAccessBit)
+          & (Alignment == Aligned ? PacketAccessBit : 0),
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 
-template<typename MatrixType> class Map
-  : public MatrixBase<Map<MatrixType> >
+template<typename MatrixType, int Alignment> class Map
+  : public MatrixBase<Map<MatrixType, Alignment> >
 {
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
 
-    inline int rows() const { return m_rows; }
-    inline int cols() const { return m_cols; }
+    inline int rows() const { return m_rows.value(); }
+    inline int cols() const { return m_cols.value(); }
 
     inline const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
-        return m_data[col + row * m_cols];
+        return m_data[col + row * m_cols.value()];
       else // column-major
-        return m_data[row + col * m_rows];
+        return m_data[row + col * m_rows.value()];
     }
 
     inline Scalar& coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
-        return const_cast<Scalar*>(m_data)[col + row * m_cols];
+        return const_cast<Scalar*>(m_data)[col + row * m_cols.value()];
       else // column-major
-        return const_cast<Scalar*>(m_data)[row + col * m_rows];
+        return const_cast<Scalar*>(m_data)[row + col * m_rows.value()];
     }
 
     inline const Scalar& coeff(int index) const
@@ -88,106 +92,68 @@ template<typename MatrixType> class Map
       return m_data[index];
     }
 
-  public:
-    inline Map(const Scalar* data, int rows, int cols) : m_data(data), m_rows(rows), m_cols(cols)
+    template<int LoadMode>
+    inline PacketScalar packet(int row, int col) const
     {
-      ei_assert(rows > 0
-          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-          && cols > 0
-          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      return ei_ploadt<Scalar, LoadMode == Aligned ? Alignment : Unaligned>
+               (m_data + (Flags & RowMajorBit
+                         ? col + row * m_cols.value()
+                         : row + col * m_rows.value()));
+    }
+
+    template<int LoadMode>
+    inline PacketScalar packet(int index) const
+    {
+      return ei_ploadt<Scalar, LoadMode == Aligned ? Alignment : Unaligned>(m_data + index);
+    }
+
+    template<int StoreMode>
+    inline void writePacket(int row, int col, const PacketScalar& x)
+    {
+      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>
+               (m_data + (Flags & RowMajorBit
+                         ? col + row * m_cols.value()
+                         : row + col * m_rows.value()), x);
+    }
+
+    template<int StoreMode>
+    inline void writePacket(int index, const PacketScalar& x)
+    {
+      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>(m_data + index, x);
+    }
+
+    inline Map(const Scalar* data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
+    {
+      ei_assert(RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic);
+      ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+    }
+
+    inline Map(const Scalar* data, int size)
+            : m_data(data),
+              m_rows(RowsAtCompileTime == Dynamic ? size : RowsAtCompileTime),
+              m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
+    {
+      ei_assert(size > 0);
+      ei_assert((RowsAtCompileTime == 1
+              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == size))
+          || (ColsAtCompileTime == 1
+              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == size)));
+    }
+
+    inline Map(const Scalar* data, int rows, int cols)
+            : m_data(data), m_rows(rows), m_cols(cols)
+    {
+      ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+               && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 
   protected:
     const Scalar* m_data;
-    const int m_rows, m_cols;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
-
-/** This is the const version of map(Scalar*,int,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline const Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(const Scalar* data, int rows, int cols)
-{
-  return Map<Matrix>(data, rows, cols);
-}
-
-/** This is the const version of map(Scalar*,int). */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline const Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(const Scalar* data, int size)
-{
-  ei_assert(_Cols == 1 || _Rows ==1);
-  if(_Cols == 1)
-    return Map<Matrix>(data, size, 1);
-  else
-    return Map<Matrix>(data, 1, size);
-}
-
-/** This is the const version of map(Scalar*). */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline const Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(const Scalar* data)
-{
-  return Map<Matrix>(data, _Rows, _Cols);
-}
-
-/** \returns a expression of a matrix or vector mapping the given data.
-  *
-  * \param data The array of data to map
-  * \param rows The number of rows of the expression to construct
-  * \param cols The number of columns of the expression to construct
-  *
-  * Example: \include MatrixBase_map_int_int.cpp
-  * Output: \verbinclude MatrixBase_map_int_int.out
-  *
-  * \sa map(const Scalar*, int, int), map(Scalar*, int), map(Scalar*), class Map
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(Scalar* data, int rows, int cols)
-{
-  return Map<Matrix>(data, rows, cols);
-}
-
-/** \returns a expression of a vector mapping the given data.
-  *
-  * \param data The array of data to map
-  * \param size The size (number of coefficients) of the expression to construct
-  *
-  * \only_for_vectors
-  *
-  * Example: \include MatrixBase_map_int.cpp
-  * Output: \verbinclude MatrixBase_map_int.out
-  *
-  * \sa map(const Scalar*, int), map(Scalar*, int, int), map(Scalar*), class Map
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(Scalar* data, int size)
-{
-  ei_assert(_Cols == 1 || _Rows ==1);
-  if(_Cols == 1)
-    return Map<Matrix>(data, size, 1);
-  else
-    return Map<Matrix>(data, 1, size);
-}
-
-/** \returns a expression of a fixed-size matrix or vector mapping the given data.
-  *
-  * \param data The array of data to map
-  *
-  * Example: \include MatrixBase_map.cpp
-  * Output: \verbinclude MatrixBase_map.out
-  *
-  * \sa map(const Scalar*), map(Scalar*, int), map(Scalar*, int, int), class Map
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Map<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::map(Scalar* data)
-{
-  return Map<Matrix>(data, _Rows, _Cols);
-}
 
 /** Constructor copying an existing array of data. Only useful for dynamic-size matrices:
   * for fixed-size matrices, it is redundant to pass the \a rows and \a cols parameters.
@@ -202,7 +168,7 @@ inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
   ::Matrix(const Scalar *data, int rows, int cols)
   : m_storage(rows*cols, rows, cols)
 {
-  *this = map(data, rows, cols);
+  *this = Map<Matrix>(data, rows, cols);
 }
 
 /** Constructor copying an existing array of data. Only useful for dynamic-size vectors:
@@ -220,7 +186,7 @@ inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
   ::Matrix(const Scalar *data, int size)
   : m_storage(size, RowsAtCompileTime == 1 ? 1 : size, ColsAtCompileTime == 1 ? 1 : size)
 {
-  *this = map(data, size);
+  *this = Map<Matrix>(data, size);
 }
 
 /** Constructor copying an existing array of data.
@@ -237,7 +203,7 @@ template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, uns
 inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
   ::Matrix(const Scalar *data)
 {
-  *this = map(data);
+  *this = Map<Matrix>(data);
 }
 
 #endif // EIGEN_MAP_H

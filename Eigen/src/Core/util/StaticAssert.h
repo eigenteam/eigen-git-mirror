@@ -58,7 +58,8 @@
         you_tried_calling_a_vector_method_on_a_matrix,
         you_mixed_vectors_of_different_sizes,
         you_mixed_matrices_of_different_sizes,
-        you_did_a_programming_error
+        you_did_a_programming_error,
+        unaligned_load_and_store_operations_unimplemented_on_AltiVec
       };
     };
 

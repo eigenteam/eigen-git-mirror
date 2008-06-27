@@ -214,7 +214,7 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * to ensure that a packet really starts there. This method is only available on expressions having the
   * PacketAccessBit.
   *
-  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
   * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
   * starting at an address which is a multiple of the packet size.
   */
@@ -232,7 +232,7 @@ MatrixBase<Derived>::packet(int row, int col) const
   * to ensure that a packet really starts there. This method is only available on expressions having the
   * PacketAccessBit.
   *
-  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
   * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
   * starting at an address which is a multiple of the packet size.
   */
@@ -250,7 +250,7 @@ inline void MatrixBase<Derived>::writePacket
   * to ensure that a packet really starts there. This method is only available on expressions having the
   * PacketAccessBit and the LinearAccessBit.
   *
-  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
   * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
   * starting at an address which is a multiple of the packet size.
   */
@@ -267,7 +267,7 @@ MatrixBase<Derived>::packet(int index) const
   * to ensure that a packet really starts there. This method is only available on expressions having the
   * PacketAccessBit and the LinearAccessBit.
   *
-  * The \a LoadMode parameter may have the value \a Aligned or \a UnAligned. Its effect is to select
+  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
   * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
   * starting at an address which is a multiple of the packet size.
   */

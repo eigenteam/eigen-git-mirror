@@ -348,7 +348,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
       {
         const int row = rowMajor ? i : index;
         const int col = rowMajor ? index : i;
-        dst.template writePacket<UnAligned>(row, col, src.template packet<UnAligned>(row, col));
+        dst.template writePacket<Unaligned>(row, col, src.template packet<Unaligned>(row, col));
       }
 
       // do the non-vectorizable part of the assignment

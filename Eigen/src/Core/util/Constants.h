@@ -167,7 +167,7 @@ const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 const unsigned int Diagonal = Upper | Lower;
 
-enum { Aligned=0, UnAligned=1 };
+enum { Aligned=0, Unaligned=1 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };

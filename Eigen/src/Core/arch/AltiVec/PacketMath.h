@@ -72,6 +72,11 @@ inline vector int    ei_pmax(const vector int     a, const vector int     b) { r
 inline vector float  ei_pload(const float*   from) { return vec_ld(0, from); }
 inline vector int    ei_pload(const int*     from) { return vec_ld(0, from); }
 
+inline vector float  ei_ploadu(const float*)
+{ EIGEN_STATIC_ASSERT(unaligned_load_and_store_operations_unimplemented_on_AltiVec) }
+inline vector int    ei_ploadu(const int*  )
+{ EIGEN_STATIC_ASSERT(unaligned_load_and_store_operations_unimplemented_on_AltiVec) }
+
 inline vector float  ei_pset1(const float&  from)
 {
   static float __attribute__(aligned(16)) af[4];
@@ -92,6 +97,11 @@ inline vector int    ei_pset1(const int&    from)
 
 inline void ei_pstore(float*   to, const vector float   from) { vec_st(from, 0, to); }
 inline void ei_pstore(int*     to, const vector int     from) { vec_st(from, 0, to); }
+
+inline void ei_pstoreu(float*, const vector float)
+{ EIGEN_STATIC_ASSERT(unaligned_load_and_store_operations_unimplemented_on_AltiVec) }
+inline void ei_pstoreu(int*  , const vector int  )
+{ EIGEN_STATIC_ASSERT(unaligned_load_and_store_operations_unimplemented_on_AltiVec) }
 
 inline float  ei_pfirst(const vector float  a)
 {

@@ -147,6 +147,13 @@ template<typename T> struct ei_packet_traits
   enum {size=1};
 };
 
+template<typename T> struct ei_unpacket_traits
+{
+  typedef T type;
+  enum {size=1};
+};
+
+
 template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags>
 class ei_corrected_matrix_flags
 {

@@ -33,6 +33,10 @@ template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}
 template<> struct ei_packet_traits<double> { typedef __m128d type; enum {size=2}; };
 template<> struct ei_packet_traits<int>    { typedef __m128i type; enum {size=4}; };
 
+template<> struct ei_unpacket_traits<__m128>  { typedef float  type; enum {size=4}; };
+template<> struct ei_unpacket_traits<__m128d> { typedef double type; enum {size=2}; };
+template<> struct ei_unpacket_traits<__m128i> { typedef int    type; enum {size=4}; };
+
 template<> inline __m128  ei_padd(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
 template<> inline __m128d ei_padd(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
 template<> inline __m128i ei_padd(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
@@ -79,29 +83,29 @@ template<> inline __m128i ei_pmax(const __m128i& a, const __m128i& b)
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
 
-inline __m128  ei_pload(const float*   from) { return _mm_load_ps(from); }
-inline __m128d ei_pload(const double*  from) { return _mm_load_pd(from); }
-inline __m128i ei_pload(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
+template<> inline __m128  ei_pload(const float*   from) { return _mm_load_ps(from); }
+template<> inline __m128d ei_pload(const double*  from) { return _mm_load_pd(from); }
+template<> inline __m128i ei_pload(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
-inline __m128  ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
-inline __m128d ei_ploadu(const double*  from) { return _mm_loadu_pd(from); }
-inline __m128i ei_ploadu(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
+template<> inline __m128  ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
+template<> inline __m128d ei_ploadu(const double*  from) { return _mm_loadu_pd(from); }
+template<> inline __m128i ei_ploadu(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
 
-inline __m128  ei_pset1(const float&  from) { return _mm_set1_ps(from); }
-inline __m128d ei_pset1(const double& from) { return _mm_set1_pd(from); }
-inline __m128i ei_pset1(const int&    from) { return _mm_set1_epi32(from); }
+template<> inline __m128  ei_pset1(const float&  from) { return _mm_set1_ps(from); }
+template<> inline __m128d ei_pset1(const double& from) { return _mm_set1_pd(from); }
+template<> inline __m128i ei_pset1(const int&    from) { return _mm_set1_epi32(from); }
 
-inline void ei_pstore(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
-inline void ei_pstore(double* to, const __m128d& from) { _mm_store_pd(to, from); }
-inline void ei_pstore(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> inline void ei_pstore(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
+template<> inline void ei_pstore(double* to, const __m128d& from) { _mm_store_pd(to, from); }
+template<> inline void ei_pstore(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
 
-inline void ei_pstoreu(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
-inline void ei_pstoreu(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
-inline void ei_pstoreu(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> inline void ei_pstoreu(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
+template<> inline void ei_pstoreu(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
+template<> inline void ei_pstoreu(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
 
-inline float  ei_pfirst(const __m128&  a) { return _mm_cvtss_f32(a); }
-inline double ei_pfirst(const __m128d& a) { return _mm_cvtsd_f64(a); }
-inline int    ei_pfirst(const __m128i& a) { return _mm_cvtsi128_si32(a); }
+template<> inline float  ei_pfirst(const __m128&  a) { return _mm_cvtss_f32(a); }
+template<> inline double ei_pfirst(const __m128d& a) { return _mm_cvtsd_f64(a); }
+template<> inline int    ei_pfirst(const __m128i& a) { return _mm_cvtsi128_si32(a); }
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions

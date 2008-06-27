@@ -45,7 +45,7 @@
 
 #define EIGEN_DEFAULT_MATRIX_FLAGS EIGEN_DEFAULT_MATRIX_STORAGE_ORDER
 
-/** Define a hint size when dealling with large matrices and L2 cache friendlyness
+/** Define a hint size when dealing with large matrices and L2 cache friendlyness
   * More precisely, its square value represents the amount of bytes which can be assumed to stay in L2 cache.
   */
 #ifndef EIGEN_TUNE_FOR_L2_CACHE_SIZE
@@ -136,15 +136,15 @@ typedef typename Base::PacketScalar PacketScalar; \
 typedef typename Eigen::ei_nested<Derived>::type Nested; \
 typedef typename Eigen::ei_eval<Derived>::type Eval; \
 typedef typename Eigen::Inverse<Eval> InverseType; \
-enum { RowsAtCompileTime = Base::RowsAtCompileTime, \
-       ColsAtCompileTime = Base::ColsAtCompileTime, \
-       MaxRowsAtCompileTime = Base::MaxRowsAtCompileTime, \
-       MaxColsAtCompileTime = Base::MaxColsAtCompileTime, \
+enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+       ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+       MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
+       MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
+       Flags = Eigen::ei_traits<Derived>::Flags, \
+       CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
        SizeAtCompileTime = Base::SizeAtCompileTime, \
        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-       IsVectorAtCompileTime = Base::IsVectorAtCompileTime, \
-       Flags = Base::Flags, \
-       CoeffReadCost = Base::CoeffReadCost };
+       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \

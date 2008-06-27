@@ -31,16 +31,16 @@ template<typename VectorType> void tmap(const VectorType& m)
   int size = m.size();
 
   // test Map.h
-  Scalar* array1 = new Scalar[size];
-  Scalar* array2 = new Scalar[size];
-  VectorType::map(array1, size) = VectorType::random(size);
-  VectorType::map(array2, size) = VectorType::map(array1, size);
-  VectorType ma1 = VectorType::map(array1, size);
-  VectorType ma2 = VectorType::map(array2, size);
+  Scalar* array1 = ei_aligned_malloc<Scalar>(size);
+  Scalar* array2 = ei_aligned_malloc<Scalar>(size);
+  Map<VectorType, Aligned>(array1, size) = VectorType::random(size);
+  Map<VectorType>(array2, size) = Map<VectorType>(array1, size);
+  VectorType ma1 = Map<VectorType>(array1, size);
+  VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, VectorType(array2, size));
-  delete[] array1;
-  delete[] array2;
+  ei_aligned_free(array1);
+  ei_aligned_free(array2);
 }
 
 void test_map()

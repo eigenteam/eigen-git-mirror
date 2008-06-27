@@ -51,7 +51,7 @@ template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
-template<typename MatrixType> class Map;
+template<typename MatrixType, int Alignment = Unaligned> class Map;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
