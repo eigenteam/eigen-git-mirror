@@ -204,8 +204,8 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
-    const int innerSize = rowMajor ? dst.cols() : dst.rows();
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int innerSize = dst.innerSize();
+    const int outerSize = dst.outerSize();
     for(int j = 0; j < outerSize; j++)
       for(int i = 0; i < innerSize; i++)
       {
@@ -233,7 +233,7 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, InnerUnrolling>
   {
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int outerSize = dst.outerSize();
     for(int j = 0; j < outerSize; j++)
       ei_assign_novec_InnerUnrolling<Derived1, Derived2, 0, innerSize>
         ::run(dst, src, j);
@@ -250,8 +250,8 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
-    const int innerSize = rowMajor ? dst.cols() : dst.rows();
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int innerSize = dst.innerSize();
+    const int outerSize = dst.outerSize();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     for(int j = 0; j < outerSize; j++)
     {
@@ -282,7 +282,7 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, InnerUnrolling>
   {
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int outerSize = dst.outerSize();
     for(int j = 0; j < outerSize; j++)
       ei_assign_innervec_InnerUnrolling<Derived1, Derived2, 0, innerSize>
         ::run(dst, src, j);
@@ -337,8 +337,8 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
   {
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     const bool rowMajor = Derived1::Flags&RowMajorBit;
-    const int innerSize = rowMajor ? dst.cols() : dst.rows();
-    const int outerSize = rowMajor ? dst.rows() : dst.cols();
+    const int innerSize = dst.innerSize();
+    const int outerSize = dst.outerSize();
     const int alignedInnerSize = (innerSize/packetSize)*packetSize;
 
     for(int i = 0; i < outerSize; i++)

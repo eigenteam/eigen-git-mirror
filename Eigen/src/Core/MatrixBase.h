@@ -154,11 +154,20 @@ template<typename Derived> class MatrixBase
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int size() const { return rows() * cols(); }
+    /** \returns the number of nonzero coefficients which is in practice the number
+      * of stored coefficients. */
+    inline int nonZeros() const { return derived.nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
     inline bool isVector() const { return rows()==1 || cols()==1; }
+    /** \returns the size of the storage major dimension,
+      * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
+    int outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
+    /** \returns the size of the inner dimension according to the storage order,
+      * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
+    int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     /** Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -205,6 +214,10 @@ template<typename Derived> class MatrixBase
     /** Overloaded for optimal product evaluation */
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const Product<Derived1,Derived2,CacheFriendlyProduct>& product);
+
+    /** Overloaded for sparse product evaluation */
+    template<typename Derived1, typename Derived2>
+    Derived& lazyAssign(const Product<Derived1,Derived2,SparseProduct>& product);
 
     CommaInitializer operator<< (const Scalar& s);
 

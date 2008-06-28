@@ -92,6 +92,8 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
 {
   enum{ value = ((Rhs::Flags&Diagonal)==Diagonal) || ((Lhs::Flags&Diagonal)==Diagonal)
               ? DiagonalProduct
+              : (Rhs::Flags & Lhs::Flags & SparseBit)
+              ? SparseProduct
               :    Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
                 && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
                 && Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
@@ -147,8 +149,7 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
     CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & PacketAccessBit) && (RhsFlags & PacketAccessBit)
                       && (InnerSize!=Dynamic) && (InnerSize % ei_packet_traits<Scalar>::size == 0),
 
-    EvalToRowMajor = (RhsFlags & RowMajorBit)
-                   && (ProductMode==(int)CacheFriendlyProduct ? (int)LhsFlags & RowMajorBit : (!CanVectorizeLhs)),
+    EvalToRowMajor = RhsRowMajor && (ProductMode==(int)CacheFriendlyProduct ? LhsRowMajor : (!CanVectorizeLhs)),
 
     RemovedBits = ~((EvalToRowMajor ? 0 : RowMajorBit)
                 | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),

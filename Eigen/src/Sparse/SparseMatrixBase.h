@@ -49,9 +49,6 @@ class SparseMatrixBase : public MatrixBase<Derived>
     bool isRValue() const { return m_isRValue; }
     Derived& temporary() { m_isRValue = true; return derived(); }
 
-    int outerSize() const { return RowMajor ? this->rows() : this->cols(); }
-    int innerSize() const { return RowMajor ? this->cols() : this->rows(); }
-
     inline Derived& operator=(const Derived& other)
     {
       if (other.isRValue())
@@ -64,31 +61,27 @@ class SparseMatrixBase : public MatrixBase<Derived>
       return derived();
     }
 
-
-
     template<typename OtherDerived>
     inline Derived& operator=(const MatrixBase<OtherDerived>& other)
     {
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      const int outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
-      // eval to a temporary and then do a shallow copy
-      typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret temp(other.rows(), other.cols());
+      const int outerSize = other.outerSize();
+      typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
+      TempType temp(other.rows(), other.cols());
 
       temp.startFill(std::max(this->rows(),this->cols())*2);
-//       std::cout << other.rows() << " xm " << other.cols() << "\n";
       for (int j=0; j<outerSize; ++j)
       {
         for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
         {
-//           std::cout << other.rows() << " x " << other.cols() << "\n";
-//           std::cout << it.m_matrix.rows() << "\n";
           Scalar v = it.value();
           if (v!=Scalar(0))
-            if (RowMajor) temp.fill(j,it.index()) = v;
+            if (OtherDerived::Flags & RowMajorBit) temp.fill(j,it.index()) = v;
             else temp.fill(it.index(),j) = v;
         }
       }
       temp.endFill();
+
       derived() = temp.temporary();
       return derived();
     }
@@ -97,6 +90,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
     inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+//       std::cout << "eval transpose = " << transpose << "\n";
       const int outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
       if ((!transpose) && other.isRValue())
       {
@@ -120,12 +114,15 @@ class SparseMatrixBase : public MatrixBase<Derived>
       return derived();
     }
 
+    template<typename Lhs, typename Rhs>
+    inline Derived& operator=(const Product<Lhs,Rhs,SparseProduct>& product);
+
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
 
       if (Flags&RowMajorBit)
       {
-        for (int row=0; row<m.rows(); ++row)
+        for (int row=0; row<m.outerSize(); ++row)
         {
           int col = 0;
           for (typename Derived::InnerIterator it(m.derived(), row); it; ++it)
@@ -157,7 +154,5 @@ class SparseMatrixBase : public MatrixBase<Derived>
     bool m_isRValue;
     mutable bool m_hasBeenCopied;
 };
-
-
 
 #endif // EIGEN_SPARSEMATRIXBASE_H

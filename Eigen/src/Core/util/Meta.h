@@ -211,6 +211,11 @@ template<typename T> struct ei_unref<T&> { typedef T type; };
 template<typename T> struct ei_unconst { typedef T type; };
 template<typename T> struct ei_unconst<const T> { typedef T type; };
 
+template<typename T> struct ei_cleantype { typedef T type; };
+template<typename T> struct ei_cleantype<const T> { typedef T type; };
+template<typename T> struct ei_cleantype<const T&> { typedef T type; };
+template<typename T> struct ei_cleantype<T&> { typedef T type; };
+
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 

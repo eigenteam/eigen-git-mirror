@@ -34,7 +34,7 @@ struct ei_traits<HashMatrix<_Scalar, _Flags> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Flags,
+    Flags = SparseBit | _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = RandomAccessPattern
   };

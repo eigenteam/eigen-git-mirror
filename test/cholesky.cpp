@@ -24,6 +24,7 @@
 
 #include "main.h"
 #include <Eigen/Cholesky>
+#include <Eigen/LU>
 
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
@@ -34,12 +35,12 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   int cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  MatrixType a = MatrixType::random(rows,cols).transpose();
-  VectorType b = VectorType::random(cols);
-  SquareMatrixType covMat =  a.adjoint() * a;
+  MatrixType a = MatrixType::random(rows,cols);
+  VectorType b = VectorType::random(rows);
+  SquareMatrixType covMat =  a * a.adjoint();
 
   CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(covMat);
   VERIFY_IS_APPROX(covMat, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());

@@ -31,6 +31,7 @@
 #define EIGEN_DBG_SPARSE(X) X
 #endif
 
+template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SparseMatrix;
 template<typename _Scalar, int _Flags = 0> class HashMatrix;
 template<typename _Scalar, int _Flags = 0> class LinkedVectorMatrix;

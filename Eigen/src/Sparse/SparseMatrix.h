@@ -43,7 +43,7 @@ struct ei_traits<SparseMatrix<_Scalar, _Flags> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Flags,
+    Flags = SparseBit | _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = FullyCoherentAccessPattern
   };
@@ -68,8 +68,9 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
 
     inline int rows() const { return m_rows; }
     inline int cols() const { return m_cols; }
+    inline int innerNonZeros(int j) const { return m_colPtrs[j+1]-m_colPtrs[j]; }
 
-    inline const Scalar& coeff(int row, int col) const
+    inline Scalar coeff(int row, int col) const
     {
       int id = m_colPtrs[col];
       int end = m_colPtrs[col+1];
@@ -161,6 +162,13 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
       resize(rows, cols);
     }
 
+    template<typename OtherDerived>
+    inline SparseMatrix(const MatrixBase<OtherDerived>& other)
+      : m_rows(0), m_cols(0), m_colPtrs(0)
+    {
+      *this = other.derived();
+    }
+
     inline void shallowCopy(const SparseMatrix& other)
     {
       EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: shallowCopy\n");
@@ -192,15 +200,7 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const MatrixBase<OtherDerived>& other)
     {
-      return SparseMatrixBase<SparseMatrix>::operator=(other);
-    }
-
-    template<typename OtherDerived>
-    SparseMatrix<Scalar> operator*(const MatrixBase<OtherDerived>& other)
-    {
-      SparseMatrix<Scalar> res(rows(), other.cols());
-      ei_sparse_product<SparseMatrix,OtherDerived>(*this,other.derived(),res);
-      return res;
+      return SparseMatrixBase<SparseMatrix>::operator=(other.derived());
     }
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrix& m)
