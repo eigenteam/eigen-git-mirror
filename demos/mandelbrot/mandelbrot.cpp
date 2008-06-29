@@ -82,7 +82,7 @@ void MandelbrotWidget::paintEvent(QPaintEvent *)
 {
   float resolution  = xradius*2/width();
   int max_iter = 64;
-  if(resolution < 1e-4f) max_iter += 32 * ( 4 - std::log10(resolution));
+  if(resolution < 1e-4f) max_iter += 32 * ( - 4 - std::log10(resolution));
   max_iter = (max_iter/4)*4;
   int img_width = width()/draft;
   int img_height = height()/draft;
