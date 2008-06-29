@@ -43,19 +43,16 @@ class SparseMatrixBase : public MatrixBase<Derived>
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
 
     SparseMatrixBase()
-      : m_isRValue(false), m_hasBeenCopied(false)
+      : m_isRValue(false)
     {}
 
     bool isRValue() const { return m_isRValue; }
-    Derived& temporary() { m_isRValue = true; return derived(); }
+    Derived& markAsRValue() { m_isRValue = true; return derived(); }
 
     inline Derived& operator=(const Derived& other)
     {
       if (other.isRValue())
-      {
-        m_hasBeenCopied = true;
-        derived().shallowCopy(other);
-      }
+        derived().swap(other.const_cast_derived());
       else
         this->operator=<Derived>(other);
       return derived();
@@ -82,7 +79,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
       }
       temp.endFill();
 
-      derived() = temp.temporary();
+      derived() = temp.markAsRValue();
       return derived();
     }
 
@@ -119,7 +116,6 @@ class SparseMatrixBase : public MatrixBase<Derived>
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
-
       if (Flags&RowMajorBit)
       {
         for (int row=0; row<m.outerSize(); ++row)
@@ -130,6 +126,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
             for ( ; col<it.index(); ++col)
               s << "0 ";
             std::cout << it.value() << " ";
+            ++col;
           }
           for ( ; col<m.cols(); ++col)
             s << "0 ";
@@ -144,15 +141,12 @@ class SparseMatrixBase : public MatrixBase<Derived>
       return s;
     }
 
-  protected:
-
-    bool isNotShared() { return !m_hasBeenCopied; }
-    void markAsCopied() const { m_hasBeenCopied = true; }
+    template<typename OtherDerived>
+    OtherDerived inverseProduct(const MatrixBase<OtherDerived>& other) const;
 
   protected:
 
     bool m_isRValue;
-    mutable bool m_hasBeenCopied;
 };
 
 #endif // EIGEN_SPARSEMATRIXBASE_H

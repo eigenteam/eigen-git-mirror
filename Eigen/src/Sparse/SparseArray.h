@@ -32,11 +32,11 @@ template<typename Scalar> class SparseArray
 {
   public:
     SparseArray()
-      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0), m_isShared(0)
+      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {}
 
     SparseArray(int size)
-      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0), m_isShared(0)
+      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {
       resize(size);
     }
@@ -51,66 +51,39 @@ template<typename Scalar> class SparseArray
       resize(other.size());
       memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
       memcpy(m_indices, other.m_indices, m_size * sizeof(int));
-      m_isShared = 0;
     }
 
-    void shallowCopy(const SparseArray& other)
+    void swap(SparseArray& other)
     {
-      delete[] m_values;
-      delete[] m_indices;
-      m_values = other.m_values;
-      m_indices = other.m_indices;
-      m_size = other.m_size;
-      m_allocatedSize = other.m_allocatedSize;
-      m_isShared = false;
-      other.m_isShared = true;
+      std::swap(m_values, other.m_values);
+      std::swap(m_indices, other.m_indices);
+      std::swap(m_size, other.m_size);
+      std::swap(m_allocatedSize, other.m_allocatedSize);
     }
 
     ~SparseArray()
     {
-      if (!m_isShared)
-      {
-        delete[] m_values;
-        delete[] m_indices;
-      }
+      delete[] m_values;
+      delete[] m_indices;
     }
 
     void reserve(int size)
     {
       int newAllocatedSize = m_size + size;
       if (newAllocatedSize > m_allocatedSize)
-      {
-        Scalar* newValues  = new Scalar[newAllocatedSize];
-        int* newIndices = new int[newAllocatedSize];
-        // copy
-        memcpy(newValues,  m_values,  m_size * sizeof(Scalar));
-        memcpy(newIndices, m_indices, m_size * sizeof(int));
-        // delete old stuff
-        delete[] m_values;
-        delete[] m_indices;
-        m_values = newValues;
-        m_indices = newIndices;
-        m_allocatedSize = newAllocatedSize;
-      }
+        reallocate(newAllocatedSize);
+    }
+
+    void squeeze()
+    {
+      if (m_allocatedSize>m_size)
+        reallocate(m_size);
     }
 
     void resize(int size, int reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-      {
-        int newAllocatedSize = size + reserveSizeFactor*size;
-        Scalar* newValues  = new Scalar[newAllocatedSize];
-        int* newIndices = new int[newAllocatedSize];
-        // copy
-        memcpy(newValues,  m_values,  m_size * sizeof(Scalar));
-        memcpy(newIndices, m_indices, m_size * sizeof(int));
-        // delete old stuff
-        delete[] m_values;
-        delete[] m_indices;
-        m_values = newValues;
-        m_indices = newIndices;
-        m_allocatedSize = newAllocatedSize;
-      }
+        reallocate(size + reserveSizeFactor*size);
       m_size = size;
     }
 
@@ -123,26 +96,37 @@ template<typename Scalar> class SparseArray
     }
 
     int size() const { return m_size; }
-
-    void clear()
-    {
-      m_size = 0;
-    }
+    void clear() { m_size = 0; }
 
     Scalar& value(int i) { return m_values[i]; }
-    Scalar value(int i) const { return m_values[i]; }
+    const Scalar& value(int i) const { return m_values[i]; }
 
     int& index(int i) { return m_indices[i]; }
-    int index(int i) const { return m_indices[i]; }
+    const int& index(int i) const { return m_indices[i]; }
+
+  protected:
+
+    void reallocate(int size)
+    {
+      Scalar* newValues  = new Scalar[size];
+      int* newIndices = new int[size];
+      int copySize = std::min(size, m_size);
+      // copy
+      memcpy(newValues,  m_values,  copySize * sizeof(Scalar));
+      memcpy(newIndices, m_indices, copySize * sizeof(int));
+      // delete old stuff
+      delete[] m_values;
+      delete[] m_indices;
+      m_values = newValues;
+      m_indices = newIndices;
+      m_allocatedSize = size;
+    }
 
   protected:
     Scalar* m_values;
     int* m_indices;
     int m_size;
-    struct {
-      int m_allocatedSize:31;
-      mutable int m_isShared:1;
-    };
+    int m_allocatedSize;
 
 };
 

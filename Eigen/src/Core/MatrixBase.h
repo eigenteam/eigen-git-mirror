@@ -296,6 +296,9 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     typename OtherDerived::Eval inverseProduct(const MatrixBase<OtherDerived>& other) const;
 
+    template<typename OtherDerived>
+    void inverseProductInPlace(MatrixBase<OtherDerived>& other) const;
+
 
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;

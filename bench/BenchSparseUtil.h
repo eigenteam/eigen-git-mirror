@@ -64,7 +64,8 @@ void eiToGmm(const EigenSparseMatrix& src, GmmSparse& dst)
 
 #ifndef NOMTL
 #include <boost/numeric/mtl/mtl.hpp>
-typedef mtl::compressed2D<Scalar> MtlSparse;
+typedef mtl::compressed2D<Scalar, mtl::matrix::parameters<mtl::tag::col_major> > MtlSparse;
+typedef mtl::compressed2D<Scalar, mtl::matrix::parameters<mtl::tag::row_major> > MtlSparseRowMajor;
 void eiToMtl(const EigenSparseMatrix& src, MtlSparse& dst)
 {
   mtl::matrix::inserter<MtlSparse> ins(dst);

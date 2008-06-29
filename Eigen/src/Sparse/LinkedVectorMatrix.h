@@ -40,15 +40,15 @@ struct ei_traits<LinkedVectorMatrix<_Scalar,_Flags> >
   };
 };
 
-template<typename Element, int BlockSize = 8>
-struct LinkedVector
+template<typename Element, int ChunkSize = 8>
+struct LinkedVectorChunk
 {
-  LinkedVector() : size(0), next(0), prev(0) {}
-  Element data[BlockSize];
-  LinkedVector* next;
-  LinkedVector* prev;
+  LinkedVectorChunk() : size(0), next(0), prev(0) {}
+  Element data[ChunkSize];
+  LinkedVectorChunk* next;
+  LinkedVectorChunk* prev;
   int size;
-  bool isFull() const { return size==BlockSize; }
+  bool isFull() const { return size==ChunkSize; }
 };
 
 template<typename _Scalar, int _Flags>
@@ -70,11 +70,11 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       Scalar value;
       int index;
     };
-    typedef LinkedVector<ValueIndex,8> LinkedVectorBlock;
+    typedef LinkedVectorChunk<ValueIndex,8> VectorChunk;
 
-    inline int find(LinkedVectorBlock** _el, int id)
+    inline int find(VectorChunk** _el, int id)
     {
-      LinkedVectorBlock* el = *_el;
+      VectorChunk* el = *_el;
       while (el && el->data[el->size-1].index<id)
         el = el->next;
       *_el = el;
@@ -115,7 +115,7 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       const int outer = RowMajor ? row : col;
       const int inner = RowMajor ? col : row;
 
-      LinkedVectorBlock* el = m_data[outer];
+      VectorChunk* el = m_data[outer];
       int id = find(&el, inner);
       if (id<0)
         return Scalar(0);
@@ -127,7 +127,7 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       const int outer = RowMajor ? row : col;
       const int inner = RowMajor ? col : row;
 
-      LinkedVectorBlock* el = m_data[outer];
+      VectorChunk* el = m_data[outer];
       int id = find(&el, inner);
       ei_assert(id>=0);
 //       if (id<0)
@@ -150,7 +150,7 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       const int inner = RowMajor ? col : row;
       if (m_ends[outer]==0)
       {
-        m_data[outer] = m_ends[outer] = new LinkedVectorBlock();
+        m_data[outer] = m_ends[outer] = new VectorChunk();
       }
       else
       {
@@ -158,7 +158,7 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
         if (m_ends[outer]->isFull())
         {
 
-          LinkedVectorBlock* el = new LinkedVectorBlock();
+          VectorChunk* el = new VectorChunk();
           m_ends[outer]->next = el;
           el->prev = m_ends[outer];
           m_ends[outer] = el;
@@ -168,24 +168,21 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       return m_ends[outer]->data[m_ends[outer]->size++].value;
     }
 
-    inline void endFill()
-    {
-    }
+    inline void endFill() { }
 
     ~LinkedVectorMatrix()
     {
-      if (this->isNotShared())
-        clear();
+      clear();
     }
 
     void clear()
     {
       for (int i=0; i<m_data.size(); ++i)
       {
-        LinkedVectorBlock* el = m_data[i];
+        VectorChunk* el = m_data[i];
         while (el)
         {
-          LinkedVectorBlock* tmp = el;
+          VectorChunk* tmp = el;
           el = el->next;
           delete tmp;
         }
@@ -221,30 +218,26 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
       *this = other.derived();
     }
 
-    inline void shallowCopy(const LinkedVectorMatrix& other)
+    inline void swap(LinkedVectorMatrix& other)
     {
-      EIGEN_DBG_SPARSE(std::cout << "LinkedVectorMatrix:: shallowCopy\n");
+      EIGEN_DBG_SPARSE(std::cout << "LinkedVectorMatrix:: swap\n");
       resize(other.rows(), other.cols());
-      for (int j=0; j<this->outerSize(); ++j)
-      {
-        m_data[j] = other.m_data[j];
-        m_ends[j] = other.m_ends[j];
-      }
-      other.markAsCopied();
+      m_data.swap(other.m_data);
+      m_ends.swap(other.m_ends);
     }
 
     inline LinkedVectorMatrix& operator=(const LinkedVectorMatrix& other)
     {
       if (other.isRValue())
       {
-        shallowCopy(other);
-        return *this;
+        swap(other.const_cast_derived());
       }
       else
       {
         // TODO implement a specialized deep copy here
         return operator=<LinkedVectorMatrix>(other);
       }
+      return *this;
     }
 
     template<typename OtherDerived>
@@ -255,8 +248,10 @@ class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_F
 
   protected:
 
-    std::vector<LinkedVectorBlock*> m_data;
-    std::vector<LinkedVectorBlock*> m_ends;
+    // outer vector of inner linked vector chunks
+    std::vector<VectorChunk*> m_data;
+    // stores a reference to the last vector chunk for efficient filling
+    std::vector<VectorChunk*> m_ends;
     int m_innerSize;
 
 };
@@ -281,7 +276,7 @@ class LinkedVectorMatrix<Scalar,_Flags>::InnerIterator
 
   protected:
     const LinkedVectorMatrix& m_matrix;
-    LinkedVectorBlock* m_el;
+    VectorChunk* m_el;
     int m_it;
 };
 

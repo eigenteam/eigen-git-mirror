@@ -123,9 +123,6 @@ template<typename LhsNested, typename RhsNested> class Product<LhsNested,RhsNest
     const RhsNested m_rhs;
 };
 
-const int RowMajor = RowMajorBit;
-const int ColMajor = 0;
-
 template<typename Lhs, typename Rhs, typename ResultType,
   int LhsStorageOrder = ei_traits<Lhs>::Flags&RowMajorBit,
   int RhsStorageOrder = ei_traits<Rhs>::Flags&RowMajorBit,

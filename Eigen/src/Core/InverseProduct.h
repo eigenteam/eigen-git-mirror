@@ -25,6 +25,53 @@
 #ifndef EIGEN_INVERSEPRODUCT_H
 #define EIGEN_INVERSEPRODUCT_H
 
+
+/** "in-place" version of MatrixBase::inverseProduct() where the result is written in \a other
+  *
+  * \sa inverseProduct()
+  */
+template<typename Derived>
+template<typename OtherDerived>
+void MatrixBase<Derived>::inverseProductInPlace(MatrixBase<OtherDerived>& other) const
+{
+  ei_assert(cols() == other.rows());
+  ei_assert(!(Flags & ZeroDiagBit));
+  ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
+
+  for(int c=0 ; c<other.cols() ; ++c)
+  {
+    if(Flags & LowerTriangularBit)
+    {
+      // forward substitution
+      if(!(Flags & UnitDiagBit))
+        other.coeffRef(0,c) = other.coeff(0,c)/coeff(0, 0);
+      for(int i=1; i<rows(); ++i)
+      {
+        Scalar tmp = other.coeff(i,c) - ((this->row(i).start(i)) * other.col(c).start(i)).coeff(0,0);
+        if (Flags & UnitDiagBit)
+          other.coeffRef(i,c) = tmp;
+        else
+          other.coeffRef(i,c) = tmp/coeff(i,i);
+      }
+    }
+    else
+    {
+      // backward substitution
+      if(!(Flags & UnitDiagBit))
+        other.coeffRef(cols()-1,c) = other.coeff(cols()-1, c)/coeff(rows()-1, cols()-1);
+      for(int i=rows()-2 ; i>=0 ; --i)
+      {
+        Scalar tmp = other.coeff(i,c)
+                   - ((this->row(i).end(cols()-i-1)) * other.col(c).end(cols()-i-1)).coeff(0,0);
+        if (Flags & UnitDiagBit)
+          other.coeffRef(i,c) = tmp;
+        else
+          other.coeffRef(i,c) = tmp/coeff(i,i);
+      }
+    }
+  }
+}
+
 /** \returns the product of the inverse of \c *this with \a other.
   *
   * This function computes the inverse-matrix matrix product inverse(\c*this) * \a other
@@ -43,48 +90,8 @@ template<typename Derived>
 template<typename OtherDerived>
 typename OtherDerived::Eval MatrixBase<Derived>::inverseProduct(const MatrixBase<OtherDerived>& other) const
 {
-  assert(cols() == other.rows());
-  assert(!(Flags & ZeroDiagBit));
-  assert(Flags & (UpperTriangularBit|LowerTriangularBit));
-
-  typename OtherDerived::Eval res(other.rows(), other.cols());
-
-  for(int c=0 ; c<other.cols() ; ++c)
-  {
-    if(Flags & LowerTriangularBit)
-    {
-      // forward substitution
-      if(Flags & UnitDiagBit)
-        res.coeffRef(0,c) = other.coeff(0,c);
-      else
-        res.coeffRef(0,c) = other.coeff(0,c)/coeff(0, 0);
-      for(int i=1; i<rows(); ++i)
-      {
-        Scalar tmp = other.coeff(i,c) - ((this->row(i).start(i)) * res.col(c).start(i)).coeff(0,0);
-        if (Flags & UnitDiagBit)
-          res.coeffRef(i,c) = tmp;
-        else
-          res.coeffRef(i,c) = tmp/coeff(i,i);
-      }
-    }
-    else
-    {
-      // backward substitution
-      if(Flags & UnitDiagBit)
-        res.coeffRef(cols()-1,c) = other.coeff(cols()-1,c);
-      else
-        res.coeffRef(cols()-1,c) = other.coeff(cols()-1, c)/coeff(rows()-1, cols()-1);
-      for(int i=rows()-2 ; i>=0 ; --i)
-      {
-        Scalar tmp = other.coeff(i,c)
-                   - ((this->row(i).end(cols()-i-1)) * res.col(c).end(cols()-i-1)).coeff(0,0);
-        if (Flags & UnitDiagBit)
-          res.coeffRef(i,c) = tmp;
-        else
-          res.coeffRef(i,c) = tmp/coeff(i,i);
-      }
-    }
-  }
+  typename OtherDerived::Eval res(other);
+  inverseProductInPlace(res);
   return res;
 }
 

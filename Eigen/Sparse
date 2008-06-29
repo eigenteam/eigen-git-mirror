@@ -18,6 +18,7 @@ namespace Eigen {
 #include "src/Sparse/CoreIterators.h"
 #include "src/Sparse/SparseSetter.h"
 #include "src/Sparse/SparseProduct.h"
+#include "src/Sparse/TriangularSolver.h"
 
 } // namespace Eigen
 

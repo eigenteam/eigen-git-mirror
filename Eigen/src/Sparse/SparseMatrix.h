@@ -58,41 +58,50 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
     EIGEN_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
 
   protected:
+  public:
 
-    int* m_colPtrs;
+    typedef SparseMatrixBase<SparseMatrix> SparseBase;
+    enum {
+      RowMajor = SparseBase::RowMajor
+    };
+
+    int m_outerSize;
+    int m_innerSize;
+    int* m_outerIndex;
     SparseArray<Scalar> m_data;
-    int m_rows;
-    int m_cols;
+
 
   public:
 
-    inline int rows() const { return m_rows; }
-    inline int cols() const { return m_cols; }
-    inline int innerNonZeros(int j) const { return m_colPtrs[j+1]-m_colPtrs[j]; }
+    inline int rows() const { return RowMajor ? m_outerSize : m_innerSize; }
+    inline int cols() const { return RowMajor ? m_innerSize : m_outerSize; }
+    inline int innerSize() const { return m_innerSize; }
+    inline int outerSize() const { return m_outerSize; }
+    inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
 
     inline Scalar coeff(int row, int col) const
     {
-      int id = m_colPtrs[col];
-      int end = m_colPtrs[col+1];
-      while (id<end && m_data.index(id)!=row)
-      {
-        ++id;
-      }
-      if (id==end)
-        return 0;
-      return m_data.value(id);
+      const int outer = RowMajor ? row : col;
+      const int inner = RowMajor ? col : row;
+
+      int id = m_outerIndex[outer];
+      int end = m_outerIndex[outer+1]-1;
+      if (m_data.index(end)==inner)
+        return m_data.value(end);
+      const int* r = std::lower_bound(&m_data.index(id),&m_data.index(end),inner);
+      return (*r==inner) ? m_data.value(*r) : Scalar(0);
     }
 
     inline Scalar& coeffRef(int row, int col)
     {
-      int id = m_colPtrs[col];
-      int end = m_colPtrs[col+1];
-      while (id<end && m_data.index(id)!=row)
-      {
-        ++id;
-      }
-      ei_assert(id!=end);
-      return m_data.value(id);
+      const int outer = RowMajor ? row : col;
+      const int inner = RowMajor ? col : row;
+
+      int id = m_outerIndex[outer];
+      int end = m_outerIndex[outer+1];
+      int* r = std::lower_bound(&m_data.index(id),&m_data.index(end),inner);
+      ei_assert(*r==inner);
+      return m_data.value(*r);
     }
 
   public:
@@ -106,92 +115,94 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
     {
       m_data.clear();
       m_data.reserve(reserveSize);
-      for (int i=0; i<=m_cols; ++i)
-        m_colPtrs[i] = 0;
+      for (int i=0; i<=m_outerSize; ++i)
+        m_outerIndex[i] = 0;
     }
 
     inline Scalar& fill(int row, int col)
     {
-      if (m_colPtrs[col+1]==0)
+      const int outer = RowMajor ? row : col;
+      const int inner = RowMajor ? col : row;
+
+      if (m_outerIndex[outer+1]==0)
       {
         int i=col;
-        while (i>=0 && m_colPtrs[i]==0)
+        while (i>=0 && m_outerIndex[i]==0)
         {
-          m_colPtrs[i] = m_data.size();
+          m_outerIndex[i] = m_data.size();
           --i;
         }
-        m_colPtrs[col+1] = m_colPtrs[col];
+        m_outerIndex[outer+1] = m_outerIndex[outer];
       }
-      assert(m_colPtrs[col+1] == m_data.size());
-      int id = m_colPtrs[col+1];
-      m_colPtrs[col+1]++;
+      assert(m_outerIndex[outer+1] == m_data.size());
+      int id = m_outerIndex[outer+1];
+      m_outerIndex[outer+1]++;
 
-      m_data.append(0, row);
+      m_data.append(0, inner);
       return m_data.value(id);
     }
 
     inline void endFill()
     {
       int size = m_data.size();
-      int i = m_cols;
+      int i = m_outerSize;
       // find the last filled column
-      while (i>=0 && m_colPtrs[i]==0)
+      while (i>=0 && m_outerIndex[i]==0)
         --i;
       i++;
-      while (i<=m_cols)
+      while (i<=m_outerSize)
       {
-        m_colPtrs[i] = size;
+        m_outerIndex[i] = size;
         ++i;
       }
     }
 
     void resize(int rows, int cols)
     {
-      if (m_cols != cols)
+      const int outerSize = RowMajor ? rows : cols;
+      m_innerSize = RowMajor ? cols : rows;
+      m_data.clear();
+      if (m_outerSize != outerSize)
       {
-        delete[] m_colPtrs;
-        m_colPtrs = new int [cols+1];
-        m_rows = rows;
-        m_cols = cols;
+        delete[] m_outerIndex;
+        m_outerIndex = new int [outerSize+1];
+        m_outerSize = outerSize;
       }
     }
 
     inline SparseMatrix(int rows, int cols)
-      : m_rows(0), m_cols(0), m_colPtrs(0)
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       resize(rows, cols);
     }
 
     template<typename OtherDerived>
     inline SparseMatrix(const MatrixBase<OtherDerived>& other)
-      : m_rows(0), m_cols(0), m_colPtrs(0)
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       *this = other.derived();
     }
 
-    inline void shallowCopy(const SparseMatrix& other)
+    inline void swap(SparseMatrix& other)
     {
-      EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: shallowCopy\n");
-      delete[] m_colPtrs;
-      m_colPtrs = 0;
-      m_rows = other.rows();
-      m_cols = other.cols();
-      m_colPtrs = other.m_colPtrs;
-      m_data.shallowCopy(other.m_data);
-      other.markAsCopied();
+      EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: swap\n");
+      std::swap(m_outerIndex, other.m_outerIndex);
+      std::swap(m_innerSize, other.m_innerSize);
+      std::swap(m_outerSize, other.m_outerSize);
+      m_data.swap(other.m_data);
     }
 
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
       if (other.isRValue())
       {
-        shallowCopy(other);
+        swap(other.const_cast_derived());
       }
       else
       {
         resize(other.rows(), other.cols());
-        for (int col=0; col<=cols(); ++col)
-          m_colPtrs[col] = other.m_colPtrs[col];
+        for (int j=0; j<=m_outerSize; ++j)
+          m_outerIndex[j] = other.m_outerIndex[j];
         m_data = other.m_data;
         return *this;
       }
@@ -216,7 +227,7 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
         s << "Column pointers:\n";
         for (uint i=0; i<m.cols(); ++i)
         {
-          s << m.m_colPtrs[i] << " ";
+          s << m.m_outerIndex[i] << " ";
         }
         s << std::endl;
         s << std::endl;
@@ -228,8 +239,7 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
     /** Destructor */
     inline ~SparseMatrix()
     {
-      if (this->isNotShared())
-        delete[] m_colPtrs;
+      delete[] m_outerIndex;
     }
 };
 
@@ -237,8 +247,8 @@ template<typename Scalar, int _Flags>
 class SparseMatrix<Scalar,_Flags>::InnerIterator
 {
   public:
-    InnerIterator(const SparseMatrix& mat, int col)
-      : m_matrix(mat), m_id(mat.m_colPtrs[col]), m_start(m_id), m_end(mat.m_colPtrs[col+1])
+    InnerIterator(const SparseMatrix& mat, int outer)
+      : m_matrix(mat), m_id(mat.m_outerIndex[outer]), m_start(m_id), m_end(mat.m_outerIndex[outer+1])
     {}
 
     InnerIterator& operator++() { m_id++; return *this; }
