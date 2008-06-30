@@ -9,8 +9,8 @@ class MandelbrotWidget : public QWidget
 {
     Q_OBJECT
 
-    Eigen::Vector2f center;
-    float xradius;
+    Eigen::Vector2d center;
+    double xradius;
     int size;
     unsigned char *buffer;
     QPoint lastpos;

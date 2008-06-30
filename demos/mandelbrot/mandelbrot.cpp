@@ -21,9 +21,10 @@ template<typename Real> int MandelbrotWidget::render(int max_iter, int img_width
   typedef Eigen::Matrix<Real, packetSize, 1> Packet; // wrap a Packet as a vector
 
   int alignedWidth = (img_width/packetSize)*packetSize;
-  float yradius = xradius * img_height / img_width;
-  Eigen::Vector2f start(center.x() - xradius, center.y() - yradius);
-  Eigen::Vector2f step(2*xradius/img_width, 2*yradius/img_height);
+  double yradius = xradius * img_height / img_width;
+  typedef Eigen::Matrix<Real, 2, 1> Vector2;
+  Vector2 start(center.x() - xradius, center.y() - yradius);
+  Vector2 step(2*xradius/img_width, 2*yradius/img_height);
   int pix = 0, total_iter = 0;
 
   for(int y = 0; y < img_height; y++)
@@ -53,6 +54,7 @@ template<typename Real> int MandelbrotWidget::render(int max_iter, int img_width
           pzi = 2 * pzr_buf.cwiseProduct(pzi) + pci;
         }
         pix_dont_diverge = (pzr.cwiseAbs2() + pzi.cwiseAbs2())
+                           .eval() // temporary fix for lack of vectorizability of what follows
                            .cwiseLessThan(Packet::constant(4))
                            .template cast<int>();
         pix_iter += 4 * pix_dont_diverge;
@@ -65,7 +67,7 @@ template<typename Real> int MandelbrotWidget::render(int max_iter, int img_width
       for(int i = 0; i < packetSize; i++)
       {
         
-        buffer[4*(pix+i)] = float(pix_iter[i])*255/max_iter;
+        buffer[4*(pix+i)] = pix_iter[i]*255/max_iter;
         buffer[4*(pix+i)+1] = 0;
         buffer[4*(pix+i)+2] = 0;
       }
@@ -80,7 +82,7 @@ template<typename Real> int MandelbrotWidget::render(int max_iter, int img_width
 
 void MandelbrotWidget::paintEvent(QPaintEvent *)
 {
-  float resolution  = xradius*2/width();
+  double resolution  = xradius*2/width();
   int max_iter = 64;
   if(resolution < 1e-4f) max_iter += 32 * ( - 4 - std::log10(resolution));
   max_iter = (max_iter/4)*4;
@@ -131,8 +133,8 @@ void MandelbrotWidget::mousePressEvent(QMouseEvent *event)
   if( event->buttons() & Qt::LeftButton )
   {
     lastpos = event->pos();
-    float yradius = xradius * height() / width();
-    center = Eigen::Vector2f(center.x() + (event->pos().x() - width()/2) * xradius * 2 / width(),
+    double yradius = xradius * height() / width();
+    center = Eigen::Vector2d(center.x() + (event->pos().x() - width()/2) * xradius * 2 / width(),
                              center.y() + (event->pos().y() - height()/2) * yradius * 2 / height());
     draft = 16;
     update();
@@ -145,7 +147,7 @@ void MandelbrotWidget::mouseMoveEvent(QMouseEvent *event)
   lastpos = event->pos();
   if( event->buttons() & Qt::LeftButton )
   {
-    float t = 1 + 5 * float(delta.y()) / height();
+    double t = 1 + 5 * double(delta.y()) / height();
     if(t < 0.5) t = 0.5;
     if(t > 2) t = 2;
     xradius *= t;
