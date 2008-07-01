@@ -41,7 +41,6 @@ class MandelbrotWidget : public QWidget
     void paintEvent(QPaintEvent *);
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
-    template<typename Real> int render(int max_iter, int resx, int resy);
 
   public:
     MandelbrotWidget() : QWidget(), center(0,0), xradius(2),

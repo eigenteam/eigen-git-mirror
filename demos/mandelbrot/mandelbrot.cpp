@@ -29,13 +29,13 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
   unsigned char *const buffer = widget->buffer;
   const double xradius = widget->xradius;
   const double yradius = xradius * img_height / img_width;
+  const int threadcount = widget->threadcount;
   typedef Eigen::Matrix<Real, 2, 1> Vector2;
   Vector2 start(widget->center.x() - widget->xradius, widget->center.y() - yradius);
   Vector2 step(2*widget->xradius/img_width, 2*yradius/img_height);
   total_iter = 0;
-  int slice_height = img_height / widget->threadcount;
 
-  for(int y = id * slice_height; y < (id+1) * slice_height; y++)
+  for(int y = id; y < img_height; y += threadcount)
   {
     int pix = y * img_width;
 
@@ -78,7 +78,6 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
       // compute pixel colors
       for(int i = 0; i < packetSize; i++)
       {
-        
         buffer[4*(pix+i)] = 255*pix_iter[i]/max_iter;
         buffer[4*(pix+i)+1] = 0;
         buffer[4*(pix+i)+2] = 0;
@@ -135,8 +134,8 @@ void MandelbrotWidget::paintEvent(QPaintEvent *)
                    ? int(Eigen::ei_packet_traits<float>::size)
                    : int(Eigen::ei_packet_traits<double>::size);
     setWindowTitle(QString("resolution ")+QString::number(xradius*2/width(), 'e', 2)
-                  +QString(", up to %1 iterations").arg(threads[0]->max_iter)
-                  +(threads[0]->single_precision ? QString(", single ") : QString(", double "))
+                  +QString(", %1 iterations per pixel, ").arg(threads[0]->max_iter)
+                  +(threads[0]->single_precision ? QString("single ") : QString("double "))
                   +QString("precision, ")
                   +(packetSize==1 ? QString("no vectorization")
                                   : QString("vectorized (%1 per packet)").arg(packetSize)));
