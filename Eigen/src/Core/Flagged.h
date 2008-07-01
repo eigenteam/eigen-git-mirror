@@ -113,6 +113,8 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
       m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 
+    const ExpressionType& _expression() const { return m_matrix; }
+
   protected:
     ExpressionTypeNested m_matrix;
 };
