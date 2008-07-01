@@ -51,10 +51,12 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
       Packet pcr, pci = pci_start, pzr, pzi = pzi_start, pzr_buf;
       for(int i = 0; i < packetSize; i++) pzr[i] = pcr[i] = start.x() + (x+i) * step.x();
 
-      // do the iterations. Every 4 iterations we check for divergence, in which case we can stop iterating.
+      // do the iterations. Every iters_before_test iterations we check for divergence,
+      // in which case we can stop iterating.
       int j = 0;
       typedef Eigen::Matrix<int, packetSize, 1> Packeti;
-      Packeti pix_iter = Packeti::zero(), pix_dont_diverge;
+      Packeti pix_iter = Packeti::zero(), // number of iteration per pixel in the packet
+              pix_dont_diverge; // whether or not each pixel has already diverged
       do
       {
         for(int i = 0; i < iters_before_test/4; i++) // peel the inner loop by 4
@@ -67,7 +69,9 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
         }
         pix_dont_diverge = (pzr.cwiseAbs2() + pzi.cwiseAbs2())
                            .eval() // temporary fix as what follows is not yet vectorized by Eigen
-                           .cwiseLessThan(Packet::constant(iters_before_test))
+                           .cwiseLessThan(Packet::constant(4))
+                                // the 4 here is not a magic value, it's a math fact that if
+                                // the square modulus is >4 then divergence is inevitable.
                            .template cast<int>();
         pix_iter += iters_before_test * pix_dont_diverge;
         j++;
