@@ -73,7 +73,7 @@ struct ei_swap_selector<Derived,OtherDerived,true>
 template<typename Derived, typename OtherDerived>
 struct ei_swap_selector<Derived,OtherDerived,false>
 {
-  inline void run(Derived& src, OtherDerived& other)
+  inline static void run(Derived& src, OtherDerived& other)
   {
     typename Derived::Scalar tmp;
     for(int j = 0; j < src.cols(); j++)

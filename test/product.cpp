@@ -31,8 +31,10 @@ template<typename MatrixType> void product(const MatrixType& m)
   */
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::FloatingPoint FloatingPoint;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> RowSquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> ColSquareMatrixType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -43,11 +45,13 @@ template<typename MatrixType> void product(const MatrixType& m)
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::zero(rows, cols);
-  SquareMatrixType
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::random(rows, rows);
+  RowSquareMatrixType
+             identity = RowSquareMatrixType::identity(rows, rows),
+             square = RowSquareMatrixType::random(rows, rows),
+             res = RowSquareMatrixType::random(rows, rows);
+  ColSquareMatrixType
+             square2 = ColSquareMatrixType::random(cols, cols),
+             res2 = ColSquareMatrixType::random(cols, cols);
   VectorType v1 = VectorType::random(rows),
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
@@ -83,6 +87,20 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   if (rows!=cols)
     VERIFY_RAISES_ASSERT(m3 = m1*m1);
+
+  // test the previous tests were not screwed up because operator* returns 0
+  VERIFY_IS_NOT_APPROX((m1.transpose()*m2).template cast<FloatingPoint>(), (m2.transpose()*m1).template cast<FloatingPoint>());
+
+  // test optimized operator+= path
+  res = square;
+  res += (m1 * m2.transpose()).lazy();
+  VERIFY_IS_APPROX(res, square + m1 * m2.transpose());
+  VERIFY_IS_NOT_APPROX(res.template cast<FloatingPoint>(), (square + m2 * m1.transpose()).template cast<FloatingPoint>());
+
+  res2 = square2;
+  res2 += (m1.transpose() * m2).lazy();
+  VERIFY_IS_APPROX(res2, square2 + m1.transpose() * m2);
+  VERIFY_IS_NOT_APPROX(res2.template cast<FloatingPoint>(), (square2 + m2.transpose() * m1).template cast<FloatingPoint>());
 }
 
 void test_product()
@@ -93,11 +111,17 @@ void test_product()
     CALL_SUBTEST( product(Matrix4d()) );
     CALL_SUBTEST( product(Matrix4f()) );
     CALL_SUBTEST( product(MatrixXf(3,5)) );
+    CALL_SUBTEST( product(MatrixXi(28,39)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
     CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,256), ei_random<int>(1,256))) );
     CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
+    #ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
+    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,RowMajorBit>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    #else
+    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,0>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    #endif
   }
 }

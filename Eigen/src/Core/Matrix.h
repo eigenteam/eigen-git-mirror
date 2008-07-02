@@ -346,6 +346,17 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     {
       return *this;
     }
+
+    /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
+      * data pointers.
+      */
+    void swap(Matrix& other)
+    {
+      if (Base::SizeAtCompileTime==Dynamic)
+        m_storage.swap(other.m_storage);
+      else
+        this->Base::swap(other);
+    }
 };
 
 #define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \

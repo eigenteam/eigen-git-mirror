@@ -30,11 +30,6 @@
 *** Forward declarations ***
 ***************************/
 
-enum {
-  ColMajorProduct,
-  RowMajorProduct
-};
-
 template<int VectorizationMode, int Index, typename Lhs, typename Rhs>
 struct ei_product_coeff_impl;
 
@@ -238,7 +233,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
     const PacketScalar packet(int row, int col) const
     {
       PacketScalar res;
-      ei_product_packet_impl<Flags&RowMajorBit ? RowMajorProduct : ColMajorProduct,
+      ei_product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
                                    Unroll ? InnerSize-1 : Dynamic,
                                    _LhsNested, _RhsNested, PacketScalar, LoadMode>
         ::run(row, col, m_lhs, m_rhs, res);
@@ -362,27 +357,27 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs>
 *******************/
 
 template<int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<RowMajorProduct, Index, Lhs, Rhs, PacketScalar, LoadMode>
+struct ei_product_packet_impl<RowMajor, Index, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    ei_product_packet_impl<RowMajorProduct, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
+    ei_product_packet_impl<RowMajor, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
     res =  ei_pmadd(ei_pset1(lhs.coeff(row, Index)), rhs.template packet<LoadMode>(Index, col), res);
   }
 };
 
 template<int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajorProduct, Index, Lhs, Rhs, PacketScalar, LoadMode>
+struct ei_product_packet_impl<ColMajor, Index, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
-    ei_product_packet_impl<ColMajorProduct, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
+    ei_product_packet_impl<ColMajor, Index-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
     res =  ei_pmadd(lhs.template packet<LoadMode>(row, Index), ei_pset1(rhs.coeff(Index, col)), res);
   }
 };
 
 template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<RowMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMode>
+struct ei_product_packet_impl<RowMajor, 0, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
@@ -391,7 +386,7 @@ struct ei_product_packet_impl<RowMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMo
 };
 
 template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMode>
+struct ei_product_packet_impl<ColMajor, 0, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
   {
@@ -399,8 +394,8 @@ struct ei_product_packet_impl<ColMajorProduct, 0, Lhs, Rhs, PacketScalar, LoadMo
   }
 };
 
-template<int StorageOrder, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<StorageOrder, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
+template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
@@ -411,7 +406,7 @@ struct ei_product_packet_impl<StorageOrder, Dynamic, Lhs, Rhs, PacketScalar, Loa
 };
 
 template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajorProduct, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
+struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {

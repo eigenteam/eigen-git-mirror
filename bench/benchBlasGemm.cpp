@@ -1,4 +1,8 @@
 
+// g++-4.2 -O3 -DNDEBUG -I.. benchBlasGemm.cpp /usr/lib/libcblas.so.3 - o benchBlasGemm
+// possible options:
+//    -DEIGEN_DONT_VECTORIZE
+//    -msse2
 
 // #define EIGEN_DEFAULT_TO_ROW_MAJOR
 #define _FLOAT
@@ -28,6 +32,8 @@ void check_product(void);
 
 int main(int argc, char *argv[])
 {
+  // disable SSE exceptions
+  #ifdef __GNUC__
   {
     int aux;
     asm(
@@ -36,6 +42,7 @@ int main(int argc, char *argv[])
     "ldmxcsr   %[aux]           \n\t"
     : : [aux] "m" (aux));
   }
+  #endif
 
   int nbtries=1, nbloops=1, M, N, K;
 
@@ -70,8 +77,18 @@ int main(int argc, char *argv[])
   }
   else
   {
+    std::cout << "Usage: " << argv[0] << " size  \n";
+    std::cout << "Usage: " << argv[0] << " auto size\n";
     std::cout << "Usage: " << argv[0] << " size nbloops nbtries\n";
     std::cout << "Usage: " << argv[0] << " M N K nbloops nbtries\n";
+    std::cout << "Usage: " << argv[0] << " check\n";
+    std::cout << "Options:\n"
+    std::cout << "    size       unique size of the 2 matrices (integer)\n";
+    std::cout << "    auto       automatically set the number of repetitions and tries\n";
+    std::cout << "    nbloops    number of times the GEMM routines is executed\n"
+    std::cout << "    nbtries    number of times the loop is benched (return the best try)\n"
+    std::cout << "    M N K      sizes of the matrices: MxN  =  MxK * KxN (integers)\n"
+    std::cout << "    check      check eigen product using cblas as a reference\n";
     exit(1);
   }
 
@@ -119,7 +136,7 @@ int main(int argc, char *argv[])
   mb = MyMatrix::random(K,N);
   mc = MyMatrix::random(M,N);
 
-  // eigen fast ?
+  // eigen
 //   if (!(std::string(argv[1])=="auto"))
   {
       timer.reset();
@@ -158,20 +175,10 @@ int main(int argc, char *argv[])
 
 using namespace Eigen;
 
-
-
 void bench_eigengemm(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops)
 {
   for (uint j=0 ; j<nbloops ; ++j)
-    #ifdef EIGEN_WIP_PRODUCT_DIRTY
-      mc = ma * mb;
-    #else
       mc += (ma * mb).lazy();
-      /*static_cast<MatrixBase<MyMatrix>& >*//*(mc).operator+=( (ma * mb).lazy() );*/
-
-//       Flagged<Product<MyMatrix,MyMatrix,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>(
-//         Product<MyMatrix,MyMatrix,CacheFriendlyProduct>(ma, mb)));
-    #endif
 }
 
 void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops)
@@ -183,7 +190,6 @@ void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb
 #define MYVERIFY(A,M) if (!(A)) { \
     std::cout << "FAIL: " << M << "\n"; \
   }
-
 void check_product(int M, int N, int K)
 {
   MyMatrix ma(M,K), mb(K,N), mc(M,N), maT(K,M), mbT(N,K), meigen(M,N), mref(M,N);
@@ -200,20 +206,20 @@ void check_product(int M, int N, int K)
   meigen += ma * mb;
   MYVERIFY(meigen.isApprox(mref, eps),". * .");
 
-//   meigen = mref = mc;
-//   CBLAS_GEMM(CblasColMajor, CblasTrans, CblasNoTrans, M, N, K, 1, maT.data(), K, mb.data(), K, 1, mref.data(), M);
-//   meigen += maT.transpose() * mb;
-//   MYVERIFY(meigen.isApprox(mref, eps),"T * .");
-// 
-//   meigen = mref = mc;
-//   CBLAS_GEMM(CblasColMajor, CblasTrans, CblasTrans, M, N, K, 1, maT.data(), K, mbT.data(), N, 1, mref.data(), M);
-//   meigen += (maT.transpose()) * (mbT.transpose());
-//   MYVERIFY(meigen.isApprox(mref, eps),"T * T");
-// 
-//   meigen = mref = mc;
-//   CBLAS_GEMM(CblasColMajor, CblasNoTrans, CblasTrans, M, N, K, 1, ma.data(), M, mbT.data(), N, 1, mref.data(), M);
-//   meigen += ma * mbT.transpose();
-//   MYVERIFY(meigen.isApprox(mref, eps),". * T");
+  meigen = mref = mc;
+  CBLAS_GEMM(CblasColMajor, CblasTrans, CblasNoTrans, M, N, K, 1, maT.data(), K, mb.data(), K, 1, mref.data(), M);
+  meigen += maT.transpose() * mb;
+  MYVERIFY(meigen.isApprox(mref, eps),"T * .");
+
+  meigen = mref = mc;
+  CBLAS_GEMM(CblasColMajor, CblasTrans, CblasTrans, M, N, K, 1, maT.data(), K, mbT.data(), N, 1, mref.data(), M);
+  meigen += (maT.transpose()) * (mbT.transpose());
+  MYVERIFY(meigen.isApprox(mref, eps),"T * T");
+
+  meigen = mref = mc;
+  CBLAS_GEMM(CblasColMajor, CblasNoTrans, CblasTrans, M, N, K, 1, ma.data(), M, mbT.data(), N, 1, mref.data(), M);
+  meigen += ma * mbT.transpose();
+  MYVERIFY(meigen.isApprox(mref, eps),". * T");
 }
 
 void check_product(void)
