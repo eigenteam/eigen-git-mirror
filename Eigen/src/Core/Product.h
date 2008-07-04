@@ -141,9 +141,6 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
                     && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
 
-    CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & PacketAccessBit) && (RhsFlags & PacketAccessBit)
-                      && (InnerSize!=Dynamic) && (InnerSize % ei_packet_traits<Scalar>::size == 0),
-
     EvalToRowMajor = RhsRowMajor && (ProductMode==(int)CacheFriendlyProduct ? LhsRowMajor : (!CanVectorizeLhs)),
 
     RemovedBits = ~((EvalToRowMajor ? 0 : RowMajorBit)
@@ -156,7 +153,15 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
 
     CoeffReadCost = InnerSize == Dynamic ? Dynamic
                   : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
-                    + (InnerSize - 1) * NumTraits<Scalar>::AddCost
+                    + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
+
+    /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
+     * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
+     * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
+     * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
+     */
+    CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & RhsFlags & ActualPacketAccessBit)
+                      && (InnerSize!=Dynamic) && (InnerSize % ei_packet_traits<Scalar>::size == 0)
   };
 };
 

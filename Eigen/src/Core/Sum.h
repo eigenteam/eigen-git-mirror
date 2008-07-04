@@ -35,7 +35,7 @@ struct ei_sum_traits
 {
 public:
   enum {
-    Vectorization = (int(Derived::Flags)&PacketAccessBit)
+    Vectorization = (int(Derived::Flags)&ActualPacketAccessBit)
                  && (int(Derived::Flags)&LinearAccessBit)
                   ? LinearVectorization
                   : NoVectorization

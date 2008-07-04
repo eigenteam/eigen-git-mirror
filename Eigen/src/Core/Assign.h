@@ -46,7 +46,7 @@ private:
   };
 
   enum {
-    MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & PacketAccessBit)
+    MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
              && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
     MayInnerVectorize = MightVectorize && InnerSize!=Dynamic && int(InnerSize)%int(PacketSize)==0,
     MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),

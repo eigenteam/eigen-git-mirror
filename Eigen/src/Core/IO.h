@@ -25,12 +25,8 @@
 #ifndef EIGEN_IO_H
 #define EIGEN_IO_H
 
-/** \relates MatrixBase
-  *
-  * Outputs the matrix, laid out as an array as usual, to the given stream.
-  */
 template<typename Derived>
-std::ostream & operator <<
+std::ostream & ei_print_matrix
 (std::ostream & s,
  const MatrixBase<Derived> & m)
 {
@@ -43,6 +39,18 @@ std::ostream & operator <<
       s << "\n";
   }
   return s;
+}
+
+/** \relates MatrixBase
+  *
+  * Outputs the matrix, laid out as an array as usual, to the given stream.
+  */
+template<typename Derived>
+std::ostream & operator <<
+(std::ostream & s,
+ const MatrixBase<Derived> & m)
+{
+  return ei_print_matrix(s, m.eval());
 }
 
 #endif // EIGEN_IO_H

@@ -34,7 +34,7 @@ struct ei_dot_traits
 {
 public:
   enum {
-    Vectorization = (int(Derived1::Flags)&int(Derived2::Flags)&PacketAccessBit)
+    Vectorization = (int(Derived1::Flags)&int(Derived2::Flags)&ActualPacketAccessBit)
                  && (int(Derived1::Flags)&int(Derived2::Flags)&LinearAccessBit)
                   ? LinearVectorization
                   : NoVectorization

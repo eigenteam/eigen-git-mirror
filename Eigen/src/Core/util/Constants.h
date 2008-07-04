@@ -56,7 +56,6 @@ const unsigned int EvalBeforeNestingBit = 0x2;
   * means the expression should be evaluated before any assignement */
 const unsigned int EvalBeforeAssigningBit = 0x4;
 
-#ifdef EIGEN_VECTORIZE
 /** \ingroup flags
   *
   * Short version: means the expression might be vectorized
@@ -70,12 +69,23 @@ const unsigned int EvalBeforeAssigningBit = 0x4;
   * on the total size, so it might not be possible to access the few last coeffs
   * by packets.
   *
-  * \note If vectorization is not enabled (EIGEN_VECTORIZE is not defined) this constant
-  * is set to the value 0.
+  * \note This bit can be set regardless of whether vectorization is actually enabled.
+  *       To check for actual vectorizability, see \a ActualPacketAccessBit.
   */
 const unsigned int PacketAccessBit = 0x8;
+
+#ifdef EIGEN_VECTORIZE
+/** \ingroup flags
+  *
+  * If vectorization is enabled (EIGEN_VECTORIZE is defined) this constant
+  * is set to the value \a PacketAccessBit.
+  *
+  * If vectorization is not enabled (EIGEN_VECTORIZE is not defined) this constant
+  * is set to the value 0.
+  */
+const unsigned int ActualPacketAccessBit = PacketAccessBit;
 #else
-const unsigned int PacketAccessBit = 0x0;
+const unsigned int ActualPacketAccessBit = 0x0;
 #endif
 
 /** \ingroup flags
