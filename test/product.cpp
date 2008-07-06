@@ -23,6 +23,13 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <Eigen/QR>
+
+template<typename Derived1, typename Derived2>
+bool areNotApprox(const MatrixBase<Derived1>& m1, const MatrixBase<Derived2>& m2, typename Derived1::Scalar epsilon = precision<typename Derived1::Scalar>())
+{
+  return !((m1-m2).matrixNorm() < epsilon * std::max(m1.matrixNorm(), m2.matrixNorm()));
+}
 
 template<typename MatrixType> void product(const MatrixType& m)
 {
@@ -89,18 +96,28 @@ template<typename MatrixType> void product(const MatrixType& m)
     VERIFY_RAISES_ASSERT(m3 = m1*m1);
 
   // test the previous tests were not screwed up because operator* returns 0
-  VERIFY_IS_NOT_APPROX((m1.transpose()*m2).template cast<FloatingPoint>(), (m2.transpose()*m1).template cast<FloatingPoint>());
+  // (we use the more accurate default epsilon)
+  if (NumTraits<Scalar>::HasFloatingPoint && std::min(rows,cols)>1)
+  {
+    VERIFY(areNotApprox(m1.transpose()*m2,m2.transpose()*m1));
+  }
 
   // test optimized operator+= path
   res = square;
   res += (m1 * m2.transpose()).lazy();
   VERIFY_IS_APPROX(res, square + m1 * m2.transpose());
-  VERIFY_IS_NOT_APPROX(res.template cast<FloatingPoint>(), (square + m2 * m1.transpose()).template cast<FloatingPoint>());
+  if (NumTraits<Scalar>::HasFloatingPoint && std::min(rows,cols)>1)
+  {
+    VERIFY(areNotApprox(res,square + m2 * m1.transpose()));
+  }
 
   res2 = square2;
   res2 += (m1.transpose() * m2).lazy();
   VERIFY_IS_APPROX(res2, square2 + m1.transpose() * m2);
-  VERIFY_IS_NOT_APPROX(res2.template cast<FloatingPoint>(), (square2 + m2.transpose() * m1).template cast<FloatingPoint>());
+  if (NumTraits<Scalar>::HasFloatingPoint && std::min(rows,cols)>1)
+  {
+    VERIFY(areNotApprox(res2,square2 + m2.transpose() * m1));
+  }
 }
 
 void test_product()
