@@ -59,7 +59,7 @@ template<typename MatrixType> void nullDeterminant(const MatrixType& m)
   std::cout << notInvertibleCovarianceMatrix << "\n" << notInvertibleCovarianceMatrix.determinant() << "\n";
 
   VERIFY_IS_MUCH_SMALLER_THAN(notInvertibleCovarianceMatrix.determinant(),
-                              notInvertibleCovarianceMatrix.cwiseAbs().maxCoeff());
+                              notInvertibleCovarianceMatrix.cwise().abs().maxCoeff());
 
   VERIFY(invertibleCovarianceMatrix.inverse().exists());
 

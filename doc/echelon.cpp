@@ -22,7 +22,7 @@ struct unroll_echelon
     unroll_echelon<Derived, Step-1>::run(m);
     int rowOfBiggest, colOfBiggest;
     m.template corner<CornerRows, CornerCols>(BottomRight)
-     .cwiseAbs()
+     .cwise().abs()
      .maxCoeff(&rowOfBiggest, &colOfBiggest);
     m.row(k).swap(m.row(k+rowOfBiggest));
     m.col(k).swap(m.col(k+colOfBiggest));
@@ -54,7 +54,7 @@ struct unroll_echelon<Derived, Dynamic>
       int rowOfBiggest, colOfBiggest;
       int cornerRows = m.rows()-k, cornerCols = m.cols()-k;
       m.corner(BottomRight, cornerRows, cornerCols)
-      .cwiseAbs()
+      .cwise().abs()
       .maxCoeff(&rowOfBiggest, &colOfBiggest);
       m.row(k).swap(m.row(k+rowOfBiggest));
       m.col(k).swap(m.col(k+colOfBiggest));

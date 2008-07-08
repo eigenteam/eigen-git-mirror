@@ -35,7 +35,7 @@
   * \param Rhs the type of the right-hand side
   *
   * This class represents an expression of a generic binary operator of two matrices or vectors.
-  * It is the return type of the operator+, operator-, cwiseProduct, cwiseQuotient between matrices or vectors, and most
+  * It is the return type of the operator+, operator-, and the Cwise methods, and most
   * of the time this is the only way it is used.
   *
   * However, if you want to write a function returning such an expression, you
@@ -232,7 +232,7 @@ Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
   * \include class_CwiseBinaryOp.cpp
   * Output: \verbinclude class_CwiseBinaryOp.out
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct, MatrixBase::cwiseQuotient
+  * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, Cwise::operator*, Cwise::operator/
   */
 template<typename Derived>
 template<typename CustomBinaryOp, typename OtherDerived>

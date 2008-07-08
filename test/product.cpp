@@ -26,7 +26,7 @@
 #include <Eigen/QR>
 
 template<typename Derived1, typename Derived2>
-bool areNotApprox(const MatrixBase<Derived1>& m1, const MatrixBase<Derived2>& m2, typename Derived1::Scalar epsilon = precision<typename Derived1::Scalar>())
+bool areNotApprox(const MatrixBase<Derived1>& m1, const MatrixBase<Derived2>& m2, typename Derived1::RealScalar epsilon = precision<typename Derived1::RealScalar>())
 {
   return !((m1-m2).matrixNorm() < epsilon * std::max(m1.matrixNorm(), m2.matrixNorm()));
 }

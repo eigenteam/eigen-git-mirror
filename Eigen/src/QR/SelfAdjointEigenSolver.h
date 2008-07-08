@@ -251,7 +251,7 @@ struct ei_matrixNorm_selector
   {
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
     // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
-    return m.eigenvalues().cwiseAbs().maxCoeff();
+    return m.eigenvalues().cwise().abs().maxCoeff();
   }
 };
 

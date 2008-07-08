@@ -7,12 +7,11 @@ using namespace std;
 template<typename Scalar> struct MakeComplexOp EIGEN_EMPTY_STRUCT {
   typedef complex<Scalar> result_type;
   complex<Scalar> operator()(const Scalar& a, const Scalar& b) const { return complex<Scalar>(a,b); }
-  enum { Cost = 0 };
 };
 
 int main(int, char**)
 {
   Matrix4d m1 = Matrix4d::random(), m2 = Matrix4d::random();
-  cout << m1.cwise(m2, MakeComplexOp<double>()) << endl;
+  cout << m1.binaryExpr(m2, MakeComplexOp<double>()) << endl;
   return 0;
 }

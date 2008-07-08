@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	}
 	for(int a = 0; a < REPEAT; a++)
 	{
-		m = VECTYPE::ones(VECSIZE) + 0.00005 * (m.cwiseProduct(m) + m/4);
+		m = VECTYPE::ones(VECSIZE) + 0.00005 * (m.cwise().square() + m/4);
 	}
 	cout << m[0] << endl;
 	return 0;

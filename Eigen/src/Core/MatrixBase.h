@@ -30,7 +30,8 @@
   * \brief Base class for all matrices, vectors, and expressions
   *
   * This class is the base that is inherited by all matrix, vector, and expression
-  * types. Most of the Eigen API is contained in this class.
+  * types. Most of the Eigen API is contained in this class. Other important classes for
+  * the Eigen API are Matrix, Cwise, and Part.
   *
   * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *
@@ -422,11 +423,11 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
-    { return derived().cwiseEqualTo(other.derived()).all(); }
+    { return (cwise() == other).all(); }
 
     template<typename OtherDerived>
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
-    { return derived().cwiseNotEqualTo(other.derived()).all(); }
+    { return (cwise() != other).any(); }
 
 
     template<typename NewType>

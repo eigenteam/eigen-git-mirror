@@ -356,8 +356,8 @@ template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::AffineMatrixType
 Transform<Scalar,Dim>::extractRotationNoShear() const
 {
-  return affine().cwiseAbs2()
-            .verticalRedux(ei_scalar_sum_op<Scalar>()).cwiseSqrt();
+  return affine().cwise().abs2()
+            .verticalRedux(ei_scalar_sum_op<Scalar>()).cwise().sqrt();
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale

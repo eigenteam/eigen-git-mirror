@@ -120,8 +120,8 @@ template<typename Scalar>
 typename EulerAngles<Scalar>::Matrix3
 EulerAngles<Scalar>::toRotationMatrix(void) const
 {
-  Vector3 c = m_angles.cwiseCos();
-  Vector3 s = m_angles.cwiseSin();
+  Vector3 c = m_angles.cwise().cos();
+  Vector3 s = m_angles.cwise().sin();
   return Matrix3() <<
     c.y()*c.z(),                    -c.y()*s.z(),                   s.y(),
     c.z()*s.x()*s.y()+c.x()*s.z(),  c.x()*c.z()-s.x()*s.y()*s.z(),  -c.y()*s.x(),

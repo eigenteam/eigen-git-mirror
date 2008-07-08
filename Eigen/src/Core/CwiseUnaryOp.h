@@ -113,7 +113,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, MatrixBase::cwiseAbs
+  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
   */
 template<typename Derived>
 template<typename CustomUnaryOp>

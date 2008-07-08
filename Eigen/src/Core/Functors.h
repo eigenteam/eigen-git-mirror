@@ -49,7 +49,7 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
 /** \internal
   * \brief Template functor to compute the product of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseProduct(), class PartialRedux, MatrixBase::redux()
+  * \sa class CwiseBinaryOp, Cwise::operator*(), class PartialRedux, MatrixBase::redux()
   */
 template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
@@ -128,7 +128,7 @@ struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
 /** \internal
   * \brief Template functor to compute the quotient of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseQuotient()
+  * \sa class CwiseBinaryOp, Cwise::operator/()
   */
 template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
@@ -161,7 +161,7 @@ struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
 /** \internal
   * \brief Template functor to compute the absolute value of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs
+  * \sa class CwiseUnaryOp, Cwise::abs
   */
 template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
@@ -179,7 +179,7 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
 /** \internal
   * \brief Template functor to compute the squared absolute value of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseAbs2
+  * \sa class CwiseUnaryOp, Cwise::abs2
   */
 template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;

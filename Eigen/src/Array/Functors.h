@@ -50,7 +50,7 @@ struct ei_functor_traits<ei_scalar_add_op<Scalar> >
   *
   * \brief Template functor to compute the square root of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseSqrt()
+  * \sa class CwiseUnaryOp, Cwise::sqrt()
   */
 template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
@@ -65,7 +65,7 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
   *
   * \brief Template functor to compute the exponential of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseExp()
+  * \sa class CwiseUnaryOp, Cwise::exp()
   */
 template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
@@ -80,7 +80,7 @@ struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
   *
   * \brief Template functor to compute the logarithm of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseLog()
+  * \sa class CwiseUnaryOp, Cwise::log()
   */
 template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_log(a); }
@@ -95,7 +95,7 @@ struct ei_functor_traits<ei_scalar_log_op<Scalar> >
   *
   * \brief Template functor to compute the cosine of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseCos()
+  * \sa class CwiseUnaryOp, Cwise::cos()
   */
 template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_cos(a); }
@@ -110,7 +110,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
   *
   * \brief Template functor to compute the sine of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseSin()
+  * \sa class CwiseUnaryOp, Cwise::sin()
   */
 template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
@@ -125,7 +125,7 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
   *
   * \brief Template functor to raise a scalar to a power
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwisePow
+  * \sa class CwiseUnaryOp, Cwise::pow
   */
 template<typename Scalar>
 struct ei_scalar_pow_op {

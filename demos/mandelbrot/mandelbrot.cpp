@@ -87,13 +87,13 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
         {
 #         define ITERATE \
             pzr_buf = pzr; \
-            pzr = pzr.cwiseAbs2() - pzi.cwiseAbs2() + pcr; \
-            pzi = 2 * pzr_buf.cwiseProduct(pzi) + pci;
+            pzr = pzr.cwise().square() - pzi.cwise().square() + pcr; \
+            pzi = (2*pzr_buf).cwise()*pzi + pci;
           ITERATE ITERATE ITERATE ITERATE
         }
-        pix_dont_diverge = (pzr.cwiseAbs2() + pzi.cwiseAbs2())
+        pix_dont_diverge = ((pzr.cwise().square() + pzi.cwise().square())
                            .eval() // temporary fix as what follows is not yet vectorized by Eigen
-                           .cwiseLessThan(Packet::constant(4))
+                           .cwise() <= Packet::constant(4))
                                 // the 4 here is not a magic value, it's a math fact that if
                                 // the square modulus is >4 then divergence is inevitable.
                            .template cast<int>();
