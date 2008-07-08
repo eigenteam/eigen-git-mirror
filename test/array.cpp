@@ -44,15 +44,15 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   Scalar  s1 = ei_random<Scalar>(),
           s2 = ei_random<Scalar>();
 
-  VERIFY_IS_APPROX(m1.array() + s1, s1 + m1.array());
-  VERIFY_IS_APPROX(m1.array() + s1, MatrixType::constant(rows,cols,s1) + m1);
-  VERIFY_IS_APPROX((m1*Scalar(2)).array() - s2, (m1+m1) - MatrixType::constant(rows,cols,s2) );
+  VERIFY_IS_APPROX(m1.cwise() + s1, s1 + m1.cwise());
+  VERIFY_IS_APPROX(m1.cwise() + s1, MatrixType::constant(rows,cols,s1) + m1);
+  VERIFY_IS_APPROX((m1*Scalar(2)).cwise() - s2, (m1+m1) - MatrixType::constant(rows,cols,s2) );
   m3 = m1;
-  m3.array() += s2;
-  VERIFY_IS_APPROX(m3, m1.array() + s2);
+  m3.cwise() += s2;
+  VERIFY_IS_APPROX(m3, m1.cwise() + s2);
   m3 = m1;
-  m3.array() -= s1;
-  VERIFY_IS_APPROX(m3, m1.array() - s1);
+  m3.cwise() -= s1;
+  VERIFY_IS_APPROX(m3, m1.cwise() - s1);
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)
@@ -70,14 +70,14 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
              m2 = MatrixType::random(rows, cols),
              m3(rows, cols);
 
-  VERIFY((m1.array() + Scalar(1)).array() > m1.array());
-  VERIFY((m1.array() - Scalar(1)).array() < m1.array());
+  VERIFY(((m1.cwise() + Scalar(1)).cwise() > m1).all());
+  VERIFY(((m1.cwise() - Scalar(1)).cwise() < m1).all());
   if (rows*cols>1)
   {
     m3 = m1;
     m3(r,c) += 1;
-    VERIFY(! (m1.array() < m3.array()) );
-    VERIFY(! (m1.array() > m3.array()) );
+    VERIFY(! (m1.cwise() < m3).all() );
+    VERIFY(! (m1.cwise() > m3).all() );
   }
 }
 

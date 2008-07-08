@@ -53,7 +53,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int rows, int cols)
 {
-  return create(rows, cols, ei_scalar_random_op<Scalar>());
+  return NullaryExpr(rows, cols, ei_scalar_random_op<Scalar>());
 }
 
 /** \array_module
@@ -78,7 +78,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random(int size)
 {
-  return create(size, ei_scalar_random_op<Scalar>());
+  return NullaryExpr(size, ei_scalar_random_op<Scalar>());
 }
 
 /** \array_module
@@ -98,7 +98,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::random()
 {
-  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
+  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
 }
 
 /** \array_module

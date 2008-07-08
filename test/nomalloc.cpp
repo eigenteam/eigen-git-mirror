@@ -75,7 +75,7 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
 
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
-  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), m1.cwiseProduct(m1));
+  VERIFY_IS_APPROX(m1.cwise() * m1.block(0,0,rows,cols), m1.cwise() * m1);
   VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
 }
 

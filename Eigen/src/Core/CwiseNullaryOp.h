@@ -38,7 +38,7 @@
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
-  * \sa class CwiseUnaryOp, class CwiseBinaryOp, MatrixBase::create()
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp, MatrixBase::NullaryExpr()
   */
 template<typename NullaryOp, typename MatrixType>
 struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
@@ -123,7 +123,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::create(int rows, int cols, const CustomNullaryOp& func)
+MatrixBase<Derived>::NullaryExpr(int rows, int cols, const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, Derived>(rows, cols, func);
 }
@@ -146,7 +146,7 @@ MatrixBase<Derived>::create(int rows, int cols, const CustomNullaryOp& func)
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::create(int size, const CustomNullaryOp& func)
+MatrixBase<Derived>::NullaryExpr(int size, const CustomNullaryOp& func)
 {
   ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, Derived>(1, size, func);
@@ -165,7 +165,7 @@ MatrixBase<Derived>::create(int size, const CustomNullaryOp& func)
 template<typename Derived>
 template<typename CustomNullaryOp>
 const CwiseNullaryOp<CustomNullaryOp, Derived>
-MatrixBase<Derived>::create(const CustomNullaryOp& func)
+MatrixBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
 {
   return CwiseNullaryOp<CustomNullaryOp, Derived>(RowsAtCompileTime, ColsAtCompileTime, func);
 }
@@ -187,7 +187,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
 {
-  return create(rows, cols, ei_scalar_constant_op<Scalar>(value));
+  return NullaryExpr(rows, cols, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -209,7 +209,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(int size, const Scalar& value)
 {
-  return create(size, ei_scalar_constant_op<Scalar>(value));
+  return NullaryExpr(size, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -225,7 +225,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(const Scalar& value)
 {
-  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
+  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
 template<typename Derived>
@@ -455,7 +455,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity(int rows, int cols)
 {
-  return create(rows, cols, ei_scalar_identity_op<Scalar>());
+  return NullaryExpr(rows, cols, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns an expression of the identity matrix (not necessarily square).
@@ -472,7 +472,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity()
 {
-  return create(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
+  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns true if *this is approximately equal to the identity matrix

@@ -65,7 +65,7 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(Quaternion(EulerAngles(q1)) * v1, q1 * v1);
   EulerAngles ea = q2;
   VERIFY_IS_APPROX(EulerAngles(Quaternion(ea)).coeffs(), ea.coeffs());
-  VERIFY_IS_NOT_APPROX(EulerAngles(Quaternion(EulerAngles(v2.cwiseProduct(Vector3(0.2,-0.2,1))))).coeffs(), v2);
+  VERIFY_IS_NOT_APPROX(EulerAngles(Quaternion(EulerAngles(v2.cwise() * Vector3(0.2,-0.2,1)))).coeffs(), v2);
 
   // angle-axis conversion
   AngleAxis aa = q1;
@@ -128,7 +128,7 @@ template<typename Scalar> void geometry(void)
   t0.pretranslate(v0);
   t0.scale(v1);
   t1.affine() = q1.conjugate().toRotationMatrix();
-  t1.prescale(v1.cwiseInverse());
+  t1.prescale(v1.cwise().inverse());
   t1.translate(-v0);
 
   VERIFY((t0.matrix() * t1.matrix()).isIdentity());
@@ -147,7 +147,7 @@ template<typename Scalar> void geometry(void)
 
   t21.setIdentity();
   t21.affine() = Rotation2D<Scalar>(-a).toRotationMatrix();
-  VERIFY( (t20.fromPositionOrientationScale(v20,a,v21) * (t21.prescale(v21.cwiseInverse()).translate(-v20))).isIdentity() );
+  VERIFY( (t20.fromPositionOrientationScale(v20,a,v21) * (t21.prescale(v21.cwise().inverse()).translate(-v20))).isIdentity() );
 }
 
 void test_geometry()

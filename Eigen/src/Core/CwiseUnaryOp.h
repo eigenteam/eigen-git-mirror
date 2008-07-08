@@ -37,7 +37,7 @@
   * It is the return type of the unary operator-, of a matrix or a vector, and most
   * of the time this is the only way it is used.
   *
-  * \sa MatrixBase::cwise(const CustomUnaryOp &) const, class CwiseBinaryOp, class CwiseNullaryOp
+  * \sa MatrixBase::unaryExpr(const CustomUnaryOp &) const, class CwiseBinaryOp, class CwiseNullaryOp
   */
 template<typename UnaryOp, typename MatrixType>
 struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
@@ -118,7 +118,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
 template<typename Derived>
 template<typename CustomUnaryOp>
 inline const CwiseUnaryOp<CustomUnaryOp, Derived>
-MatrixBase<Derived>::cwise(const CustomUnaryOp& func) const
+MatrixBase<Derived>::unaryExpr(const CustomUnaryOp& func) const
 {
   return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
 }
@@ -134,20 +134,20 @@ MatrixBase<Derived>::operator-() const
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>,Derived>
-MatrixBase<Derived>::cwiseAbs() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_abs_op>::ReturnType
+Cwise<ExpressionType>::abs() const
 {
-  return derived();
+  return _expression();
 }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>,Derived>
-MatrixBase<Derived>::cwiseAbs2() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_abs2_op>::ReturnType
+Cwise<ExpressionType>::abs2() const
 {
-  return derived();
+  return _expression();
 }
 
 /** \returns an expression of the complex conjugate of \c *this.

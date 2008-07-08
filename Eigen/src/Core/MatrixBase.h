@@ -371,13 +371,13 @@ template<typename Derived> class MatrixBase
 
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
-    create(int rows, int cols, const CustomNullaryOp& func);
+    NullaryExpr(int rows, int cols, const CustomNullaryOp& func);
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
-    create(int size, const CustomNullaryOp& func);
+    NullaryExpr(int size, const CustomNullaryOp& func);
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
-    create(const CustomNullaryOp& func);
+    NullaryExpr(const CustomNullaryOp& func);
 
     static const ConstantReturnType zero(int rows, int cols);
     static const ConstantReturnType zero(int size);
@@ -457,31 +457,12 @@ template<typename Derived> class MatrixBase
     const ConjugateReturnType conjugate() const;
     const RealReturnType real() const;
 
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseProduct(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseQuotient(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_min_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseMin(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_max_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseMax(const MatrixBase<OtherDerived> &other) const;
-
-    const CwiseUnaryOp<ei_scalar_abs_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs() const;
-    const CwiseUnaryOp<ei_scalar_abs2_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseAbs2() const;
-
     template<typename CustomUnaryOp>
-    const CwiseUnaryOp<CustomUnaryOp, Derived> cwise(const CustomUnaryOp& func = CustomUnaryOp()) const;
+    const CwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
 
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
+    binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
 
     Scalar sum() const;
@@ -506,44 +487,10 @@ template<typename Derived> class MatrixBase
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
 
+    const Cwise<Derived> cwise() const;
+    Cwise<Derived> cwise();
 
 /////////// Array module ///////////
-
-    const Array<Derived> array() const;
-    Array<Derived> array();
-
-    const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSqrt() const;
-    const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseExp() const;
-    const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseLog() const;
-    const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseCos() const;
-    const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseSin() const;
-    const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
-    cwisePow(const Scalar& exponent) const;
-    const CwiseUnaryOp<ei_scalar_inverse_op<typename ei_traits<Derived>::Scalar>, Derived> cwiseInverse() const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseLessThan(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::less_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseLessEqual(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::greater<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseGreaterThan(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::greater_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseEqualTo(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<std::not_equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    cwiseNotEqualTo(const MatrixBase<OtherDerived> &other) const;
 
     bool all(void) const;
     bool any(void) const;

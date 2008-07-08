@@ -212,8 +212,8 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(EulerAnglesType ea)
 {
   ea.coeffs() *= 0.5;
 
-  Vector3 cosines = ea.coeffs().cwiseCos();
-  Vector3 sines   = ea.coeffs().cwiseSin();
+  Vector3 cosines = ea.coeffs().cwise().cos();
+  Vector3 sines   = ea.coeffs().cwise().sin();
 
   Scalar cYcZ = cosines.y() * cosines.z();
   Scalar sYsZ = sines.y() * sines.z();

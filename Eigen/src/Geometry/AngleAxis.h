@@ -139,7 +139,7 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
   res.coeffRef(1,2) = tmp - sin_axis.x();
   res.coeffRef(2,1) = tmp + sin_axis.x();
 
-  res.diagonal() = Vector3::constant(c) + cos1_axis.cwiseProduct(m_axis);
+  res.diagonal() = (cos1_axis.cwise() * m_axis).cwise() + c;
 
   return res;
 }

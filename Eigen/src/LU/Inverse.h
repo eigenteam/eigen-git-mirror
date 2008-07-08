@@ -107,14 +107,14 @@ void Inverse<MatrixType, CheckExistence>
 ::_compute_in_general_case(const MatrixType& _matrix)
 {
   MatrixType matrix(_matrix);
-  const RealScalar max = CheckExistence ? matrix.cwiseAbs().maxCoeff()
+  const RealScalar max = CheckExistence ? matrix.cwise().abs().maxCoeff()
                                         : static_cast<RealScalar>(0);
   const int size = matrix.rows();
   for(int k = 0; k < size-1; k++)
   {
     int rowOfBiggest;
     const RealScalar max_in_this_col
-      = matrix.col(k).end(size-k).cwiseAbs().maxCoeff(&rowOfBiggest);
+      = matrix.col(k).end(size-k).cwise().abs().maxCoeff(&rowOfBiggest);
     if(CheckExistence && ei_isMuchSmallerThan(max_in_this_col, max))
     { m_exists = false; return; }
 
@@ -150,7 +150,7 @@ bool ei_compute_size2_inverse(const ExpressionType& xpr, typename ExpressionType
   typedef typename ExpressionType::Scalar Scalar;
   const typename ei_nested<ExpressionType, 1+CheckExistence>::type matrix(xpr);
   const Scalar det = matrix.determinant();
-  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwiseAbs().maxCoeff()))
+  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff()))
     return false;
   const Scalar invdet = static_cast<Scalar>(1) / det;
   result->coeffRef(0,0) = matrix.coeff(1,1) * invdet;
@@ -169,7 +169,7 @@ void Inverse<MatrixType, CheckExistence>::_compute_in_size3_case(const MatrixTyp
   const Scalar det = det_minor00 * matrix.coeff(0,0)
                    - det_minor10 * matrix.coeff(1,0)
                    + det_minor20 * matrix.coeff(2,0);
-  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwiseAbs().maxCoeff()))
+  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff()))
     m_exists = false;
   else
   {

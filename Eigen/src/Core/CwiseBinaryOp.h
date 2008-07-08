@@ -41,7 +41,7 @@
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
-  * \sa MatrixBase::cwise(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
+  * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -179,48 +179,48 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_product_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_product_op, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return typename BinOp<ei_scalar_product_op, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseQuotient(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_quotient_op, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return typename BinOp<ei_scalar_quotient_op, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise min of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_min_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseMin(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_min_op, OtherDerived>::ReturnType
+Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_min_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return typename BinOp<ei_scalar_min_op, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise max of *this and \a other
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_max_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseMax(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_max_op, OtherDerived>::ReturnType
+Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_max_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return typename BinOp<ei_scalar_max_op, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
@@ -237,7 +237,7 @@ MatrixBase<Derived>::cwiseMax(const MatrixBase<OtherDerived> &other) const
 template<typename Derived>
 template<typename CustomBinaryOp, typename OtherDerived>
 inline const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-MatrixBase<Derived>::cwise(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
+MatrixBase<Derived>::binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
 {
   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);
 }

@@ -30,73 +30,96 @@
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise square root of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_sqrt_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseSqrt() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_sqrt_op>::ReturnType
+Cwise<ExpressionType>::sqrt() const
 {
-  return derived();
+  return _expression();
 }
 
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise exponential of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_exp_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseExp() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_exp_op>::ReturnType
+Cwise<ExpressionType>::exp() const
 {
-  return derived();
+  return _expression();
 }
 
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise logarithm of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_log_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseLog() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_log_op>::ReturnType
+Cwise<ExpressionType>::log() const
 {
-  return derived();
+  return _expression();
 }
 
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise cosine of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_cos_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseCos() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_cos_op>::ReturnType
+Cwise<ExpressionType>::cos() const
 {
-  return derived();
+  return _expression();
 }
+
 
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise sine of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_sin_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseSin() const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_sin_op>::ReturnType
+Cwise<ExpressionType>::sin() const
 {
-  return derived();
+  return _expression();
 }
+
 
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise power of *this to the given exponent. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_pow_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwisePow(const Scalar& exponent) const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_pow_op>::ReturnType
+Cwise<ExpressionType>::pow(const Scalar& exponent) const
 {
-  return CwiseUnaryOp<ei_scalar_pow_op<Scalar>, Derived>
-    (derived(), ei_scalar_pow_op<Scalar>(exponent));
+  return typename UnOp<ei_scalar_pow_op>::ReturnType(_expression(), ei_scalar_pow_op<Scalar>(exponent));
 }
+
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise reciprocal of *this. */
-template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_inverse_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::cwiseInverse() const
+  * \returns an expression of the coefficient-wise inverse of *this. */
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_inverse_op>::ReturnType
+Cwise<ExpressionType>::inverse() const
 {
-  return derived();
+  return _expression();
 }
+
+/** \array_module
+  *
+  * \returns an expression of the coefficient-wise square of *this. */
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_square_op>::ReturnType
+Cwise<ExpressionType>::square() const
+{
+  return _expression();
+}
+
+/** \array_module
+  *
+  * \returns an expression of the coefficient-wise cube of *this. */
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_cube_op>::ReturnType
+Cwise<ExpressionType>::cube() const
+{
+  return _expression();
+}
+
 
 // -- binary operators --
 
@@ -106,12 +129,12 @@ MatrixBase<Derived>::cwiseInverse() const
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::less<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseLessThan(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::less, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator<(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::less<Scalar>());
+  return typename BinOp<std::less, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \array_module
@@ -120,12 +143,12 @@ MatrixBase<Derived>::cwiseLessThan(const MatrixBase<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::less_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseLessEqual(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::less_equal, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::less_equal<Scalar>());
+  return typename BinOp<std::less_equal, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \array_module
@@ -134,12 +157,12 @@ MatrixBase<Derived>::cwiseLessEqual(const MatrixBase<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::greater<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseGreaterThan(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::greater, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator>(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::greater<Scalar>());
+  return typename BinOp<std::greater, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \array_module
@@ -148,12 +171,12 @@ MatrixBase<Derived>::cwiseGreaterThan(const MatrixBase<OtherDerived> &other) con
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::greater_equal<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::greater_equal, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator>=(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::greater_equal<Scalar>());
+  return typename BinOp<std::greater_equal, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \array_module
@@ -162,12 +185,12 @@ MatrixBase<Derived>::cwiseGreaterEqual(const MatrixBase<OtherDerived> &other) co
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseEqualTo(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::equal_to, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator==(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::equal_to<Scalar>());
+  return typename BinOp<std::equal_to, OtherDerived>::ReturnType(_expression(), other.derived());
 }
 
 /** \array_module
@@ -176,12 +199,43 @@ MatrixBase<Derived>::cwiseEqualTo(const MatrixBase<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp
   */
-template<typename Derived>
+template<typename ExpressionType>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<std::not_equal_to<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::cwiseNotEqualTo(const MatrixBase<OtherDerived> &other) const
+inline const typename Cwise<ExpressionType>::template BinOp<std::not_equal_to, OtherDerived>::ReturnType
+Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
 {
-  return cwise(other, std::not_equal_to<Scalar>());
+  return typename BinOp<std::not_equal_to, OtherDerived>::ReturnType(_expression(), other.derived());
+}
+
+
+/** \returns an expression of \c *this with each coeff incremented by the constant \a scalar */
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::ScalarAddReturnType
+Cwise<ExpressionType>::operator+(const Scalar& scalar) const
+{
+  return typename Cwise<ExpressionType>::ScalarAddReturnType(m_matrix, ei_scalar_add_op<Scalar>(scalar));
+}
+
+/** \see operator+ */
+template<typename ExpressionType>
+inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
+{
+  return m_matrix.const_cast_derived() = *this + scalar;
+}
+
+/** \returns an expression of \c *this with each coeff decremented by the constant \a scalar */
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::ScalarAddReturnType
+Cwise<ExpressionType>::operator-(const Scalar& scalar) const
+{
+  return *this + (-scalar);
+}
+
+/** \see operator- */
+template<typename ExpressionType>
+inline ExpressionType& Cwise<ExpressionType>::operator-=(const Scalar& scalar)
+{
+  return m_matrix.const_cast_derived() = *this - scalar;
 }
 
 #endif // EIGEN_ARRAY_CWISE_OPERATORS_H

@@ -61,10 +61,10 @@ template<> class ei_int_if_dynamic<Dynamic>
 };
 
 
-template <bool Condition, class Then, class Else>
+template<bool Condition, typename Then, typename Else>
 struct ei_meta_if { typedef Then ret; };
 
-template <class Then, class Else>
+template<typename Then, typename Else>
 struct ei_meta_if <false, Then, Else> { typedef Else ret; };
 
 template<typename T, typename U> struct ei_is_same_type { enum { ret = 0 }; };

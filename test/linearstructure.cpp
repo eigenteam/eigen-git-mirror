@@ -85,7 +85,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
 
   // use .block to disable vectorization and compare to the vectorized version
   VERIFY_IS_APPROX(m1+m1.block(0,0,rows,cols), m1+m1);
-  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), m1.cwiseProduct(m1));
+  VERIFY_IS_APPROX(m1.cwise() * m1.block(0,0,rows,cols), m1.cwise() * m1);
   VERIFY_IS_APPROX(m1 - m1.block(0,0,rows,cols), m1 - m1);
   VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
 }

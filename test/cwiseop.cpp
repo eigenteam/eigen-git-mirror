@@ -55,7 +55,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              v2 = VectorType::random(rows),
              vzero = VectorType::zero(rows);
 
-  m2 = m2.template cwise<AddIfNull<Scalar> >(mones);
+  m2 = m2.template binaryExpr<AddIfNull<Scalar> >(mones);
 
   VERIFY_IS_APPROX(               mzero,    m1-m1);
   VERIFY_IS_APPROX(               m2,       m1+m2-m1);
@@ -63,13 +63,13 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   if(NumTraits<Scalar>::HasFloatingPoint)
 #endif
   {
-    VERIFY_IS_APPROX(               mones,    m2.cwiseQuotient(m2));
+    VERIFY_IS_APPROX(               mones,    m2.cwise()/m2);
   }
-  VERIFY_IS_APPROX(               m1.cwiseProduct(m2),    m2.cwiseProduct(m1));
+  VERIFY_IS_APPROX(               m1.cwise() * m2,    m2.cwise() * m1);
 
-  VERIFY( m1.cwiseLessThan(m1.cwise(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !m1.cwiseLessThan(m1.cwise(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !m1.cwiseGreaterThan(m1.cwise(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
+  VERIFY( (m1.cwise()<m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !(m1.cwise()<m1.unaryExpr(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !(m1.cwise()>m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
   //VERIFY_IS_APPROX(               m1,       m2.cwiseProduct(m1).cwiseQuotient(m2));
 
 //   VERIFY_IS_APPROX( cwiseMin(m1,m2), cwiseMin(m2,m1) );

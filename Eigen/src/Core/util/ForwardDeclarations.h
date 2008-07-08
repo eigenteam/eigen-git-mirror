@@ -55,7 +55,7 @@ template<typename MatrixType, int Alignment = Unaligned> class Map;
 template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
-template<typename MatrixType> class Array;
+template<typename ExpressionType> class Cwise;
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
@@ -76,6 +76,8 @@ template<typename Scalar> struct ei_scalar_cos_op;
 template<typename Scalar> struct ei_scalar_sin_op;
 template<typename Scalar> struct ei_scalar_pow_op;
 template<typename Scalar> struct ei_scalar_inverse_op;
+template<typename Scalar> struct ei_scalar_square_op;
+template<typename Scalar> struct ei_scalar_cube_op;
 template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
 template<typename Scalar, bool PacketAccess> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;

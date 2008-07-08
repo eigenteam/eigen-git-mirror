@@ -25,15 +25,6 @@
 #ifndef EIGEN_ARRAY_FUNCTORS_H
 #define EIGEN_ARRAY_FUNCTORS_H
 
-/** \internal
-  * \array_module
-  *
-  * \brief Template functor to add a scalar to a fixed other one
-  *
-  * \sa class CwiseUnaryOp, Array::operator+
-  */
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_add_op;
-
 template<typename Scalar>
 struct ei_scalar_add_op<Scalar,true> {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -150,17 +141,59 @@ struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
   *
   * \array_module
   *
-  * \brief Template functor to compute the reciprocal of a scalar
+  * \brief Template functor to compute the inverse of a scalar
   *
-  * \sa class CwiseUnaryOp, MatrixBase::cwiseInverse
+  * \sa class CwiseUnaryOp, Cwise::inverse()
   */
 template<typename Scalar>
 struct ei_scalar_inverse_op {
   inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_div(ei_pset1(Scalar(1)),a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
+/** \internal
+  *
+  * \array_module
+  *
+  * \brief Template functor to compute the square of a scalar
+  *
+  * \sa class CwiseUnaryOp, Cwise::square()
+  */
+template<typename Scalar>
+struct ei_scalar_square_op {
+  inline Scalar operator() (const Scalar& a) const { return a*a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a,a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_square_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
+/** \internal
+  *
+  * \array_module
+  *
+  * \brief Template functor to compute the cube of a scalar
+  *
+  * \sa class CwiseUnaryOp, Cwise::cube()
+  */
+template<typename Scalar>
+struct ei_scalar_cube_op {
+  inline Scalar operator() (const Scalar& a) const { return a*a*a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a,ei_pmul(a,a)); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_cube_op<Scalar> >
+{ enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
 
 // default ei_functor_traits for STL functors:
 

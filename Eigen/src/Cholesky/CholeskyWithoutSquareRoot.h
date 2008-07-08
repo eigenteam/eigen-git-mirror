@@ -136,7 +136,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<D
     .inverseProduct(
       (matrixL()
         .inverseProduct(vecB))
-        .cwiseQuotient(m_matrix.diagonal())
+        .cwise()/m_matrix.diagonal()
       );
 }
 
