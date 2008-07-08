@@ -4,19 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-  // disable floating point exceptions
-  // this leads to more stable bench results
-  // (this is done by default by ICC)
-  #ifndef __INTEL_COMPILER
-  {
-    int aux;
-    asm(
-    "stmxcsr   %[aux]           \n\t"
-    "orl       $32832, %[aux]   \n\t"
-    "ldmxcsr   %[aux]           \n\t"
-    : : [aux] "m" (aux));
-  }
-  #endif
+  DISABLE_SSE_EXCEPTIONS();
 
   // this is the list of matrix type and size we want to bench:
   // ((suffix) (matrix size) (number of iterations))

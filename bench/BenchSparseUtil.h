@@ -3,8 +3,6 @@
 #include <Eigen/Sparse>
 #include <bench/BenchTimer.h>
 
-
-
 using namespace std;
 using namespace Eigen;
 USING_PART_OF_NAMESPACE_EIGEN

@@ -26,3 +26,43 @@ template<typename MatrixType> void initMatrix_identity(MatrixType& mat)
 {
   mat.setIdentity();
 }
+
+#ifndef __INTEL_COMPILER
+#define DISABLE_SSE_EXCEPTIONS()  { \
+  int aux; \
+  asm( \
+  "stmxcsr   %[aux]           \n\t" \
+  "orl       $32832, %[aux]   \n\t" \
+  "ldmxcsr   %[aux]           \n\t" \
+  : : [aux] "m" (aux)); \
+}
+#else
+#define DISABLE_SSE_EXCEPTIONS()  
+#endif
+
+#ifdef BENCH_GMM
+#include <gmm/gmm.h>
+template <typename EigenMatrixType, typename GmmMatrixType>
+void eiToGmm(const EigenMatrixType& src, GmmMatrixType& dst)
+{
+  dst.resize(src.rows(),src.cols());
+  for (int j=0; j<src.cols(); ++j)
+    for (int i=0; i<src.rows(); ++i)
+      dst(i,j) = src.coeff(i,j);
+}
+#endif
+
+
+#ifdef BENCH_GSL
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_eigen.h>
+template <typename EigenMatrixType>
+void eiToGsl(const EigenMatrixType& src, gsl_matrix** dst)
+{
+  for (int j=0; j<src.cols(); ++j)
+    for (int i=0; i<src.rows(); ++i)
+      gsl_matrix_set(*dst, i, j, src.coeff(i,j));
+}
+#endif
+
