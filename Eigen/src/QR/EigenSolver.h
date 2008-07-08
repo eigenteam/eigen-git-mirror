@@ -60,9 +60,9 @@ template<typename _MatrixType> class EigenSolver
 
     EigenvalueType eigenvalues(void) const { return m_eivalues; }
 
-  private:
-
     void compute(const MatrixType& matrix);
+
+  private:
 
     void orthes(MatrixType& matH, RealVectorType& ort);
     void hqr2(MatrixType& matH);
