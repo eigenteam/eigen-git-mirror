@@ -212,9 +212,14 @@ template<typename Derived> class MatrixBase
       return this->operator=<Derived>(other);
     }
 
-    /** Overloaded for optimal product evaluation */
-    template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const Product<Derived1,Derived2,CacheFriendlyProduct>& product);
+    /** Overloaded for cache friendly product evaluation */
+    template<typename Lhs, typename Rhs>
+    Derived& lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product);
+
+    /** Overloaded for cache friendly product evaluation */
+    template<typename OtherDerived>
+    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    { lazyAssign(other._expression()); }
 
     /** Overloaded for sparse product evaluation */
     template<typename Derived1, typename Derived2>

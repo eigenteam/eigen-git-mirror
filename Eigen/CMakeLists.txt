@@ -1,6 +1,6 @@
 SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR Geometry Sparse Array)
 
-IF(TEST_LIB)
+IF(BUILD_LIB)
     SET(Eigen_SRCS
       src/Core/CoreInstantiations.cpp
       src/Cholesky/CholeskyInstantiations.cpp
@@ -8,7 +8,12 @@ IF(TEST_LIB)
     )
 
     ADD_LIBRARY(Eigen2 SHARED ${Eigen_SRCS})
-ENDIF(TEST_LIB)
+
+    INSTALL(TARGETS Eigen2
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
+ENDIF(BUILD_LIB)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g1 -O2")
@@ -25,12 +30,5 @@ INSTALL(FILES
   ${Eigen_HEADERS}
   DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen
   )
-
-IF(TEST_LIB)
-    INSTALL(TARGETS Eigen2
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib)
-ENDIF(TEST_LIB)
 
 ADD_SUBDIRECTORY(src)
