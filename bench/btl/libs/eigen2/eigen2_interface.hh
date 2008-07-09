@@ -108,7 +108,7 @@ public :
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
-    X = (A*B).lazy();
+    X = (A.transpose()*B).lazy();
   }
 
   static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N){

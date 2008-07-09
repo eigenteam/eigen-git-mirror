@@ -48,6 +48,6 @@
 #define DEFAULT_NB_SAMPLE 1000
 
 // how many times we run a single bench (keep the best perf)
-#define NB_TRIES 3
+#define NB_TRIES 4
 
 #endif

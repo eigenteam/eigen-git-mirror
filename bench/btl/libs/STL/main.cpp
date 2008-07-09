@@ -28,6 +28,8 @@
 #include "action_aat_product.hh"
 #include "action_atv_product.hh"
 
+BTL_MAIN;
+
 int main()
 {
   bench<Action_axpy<STL_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);

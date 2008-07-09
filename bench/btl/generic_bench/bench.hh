@@ -19,6 +19,8 @@
 //
 #ifndef BENCH_HH
 #define BENCH_HH
+
+#include "btl.hh"
 #include "bench_parameter.hh"
 #include <iostream>
 #include "utilities.h"
@@ -34,9 +36,10 @@
 using namespace std;
 
 template <template<class> class Perf_Analyzer, class Action>
-void bench( int size_min, int size_max, int nb_point ){
-
-  // bench name
+void bench( int size_min, int size_max, int nb_point )
+{
+  if (BtlConfig::skipAction(Action::name()))
+    return;
 
   string filename="bench_"+Action::name()+".dat";
 

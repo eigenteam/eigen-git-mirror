@@ -23,6 +23,8 @@
 #include "action_atv_product.hh"
 #include "action_axpy.hh"
 
+BTL_MAIN;
+
 int main()
 {
 

@@ -28,6 +28,8 @@
 //#include "action_lu_solve.hh"
 #include "timers/mixed_perf_analyzer.hh"
 
+BTL_MAIN;
+
 int main()
 {
 
