@@ -5,7 +5,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 OPTION(BUILD_TESTS "Build tests" OFF)
 OPTION(BUILD_DOC "Build documentation and examples" OFF)
 OPTION(BUILD_DEMOS "Build demos" OFF)
-OPTION(TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
+OPTION(BUILD_LIB "Build the binary shared library" OFF)
+OPTION(BUILD_BTL "Build benchmark suite" OFF)
+
+IF(BUILD_LIB)
+  OPTION(TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
+ENDIF(BUILD_LIB)
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -36,3 +41,7 @@ ADD_SUBDIRECTORY(Eigen)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(demos)
+
+IF(BUILD_BTL)
+ADD_SUBDIRECTORY(bench/btl)
+ENDIF(BUILD_BTL)

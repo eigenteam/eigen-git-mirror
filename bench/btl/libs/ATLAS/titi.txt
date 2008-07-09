@@ -1,0 +1,33 @@
+Bonjour à tous,
+
+Une dizaine de candidats Neptune se sont déjà déclarés pour la formation C++
+(sur la base de 2 jours/semaine pendant 1 mois).
+
+Il faut faire une proposition de date pour la formation. Les vacances scolaires zone C (Paris)
+se terminent le 22 avril (au matin) nous pourrions commencer ce jour.
+
+A priori il me semble que deux jours consécutifs soient préférables. Je propose les mardi et mercredi
+de chaque semaine. Sachant qu'il y a 2 jeudi (1er et 8 mai) consécutifs qui sont fériés.
+
+Dans cette hypothèse les dates de formation seraient :
+
+Mardi 22 avril        (Vincent/Marc)
+Mercredi 23 avril   (Marc)
+
+Mardi 29 avril        (Marc/Antoine)
+Mercredi 30 avril   (Antoine)
+
+Mardi 6 mai           (Antoine)
+Mercredi 7 mai      (Antoine)
+
+Mardi 13 mai         (Laurent)
+Mercredi 14 mai    (Laurent)
+
+J'ai mis entre parenthèse les intervenants principaux (on doit choisir le deuxième formateur pour chaque session).
+
+Qu'en pensez-vous ?
+
+Je dois toujours présenter un programme, pouvez-vous me donner vos programmes respectifs...?
+
+
+Laurent
