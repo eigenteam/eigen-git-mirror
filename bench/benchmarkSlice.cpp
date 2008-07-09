@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     m.block(r,c,nr,nc) += Mat::ones(nr,nc);
     m.block(r,c,nr,nc) *= SCALAR(10);
     m.block(r,c,nr,nc) -= Mat::constant(nr,nc,10);
+    m.block(r,c,nr,nc) /= SCALAR(10);
   }
   cout << m[0] << endl;
   return 0;
