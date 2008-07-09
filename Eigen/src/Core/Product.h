@@ -89,9 +89,11 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
               ? DiagonalProduct
               : (Rhs::Flags & Lhs::Flags & SparseBit)
               ? SparseProduct
-              :    Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                && Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                && Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              :    Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                && ( Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                  || ((Rhs::Flags&RowMajorBit) && Lhs::IsVectorAtCompileTime))
+                && ( Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                  || ((!(Lhs::Flags&RowMajorBit)) && Rhs::IsVectorAtCompileTime))
                 ? CacheFriendlyProduct : NormalProduct };
 };
 
@@ -161,7 +163,7 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
      * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
      */
     CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & RhsFlags & ActualPacketAccessBit)
-                      && (InnerSize!=Dynamic) && (InnerSize % ei_packet_traits<Scalar>::size == 0)
+                      && (InnerSize % ei_packet_traits<Scalar>::size == 0)
   };
 };
 
@@ -181,7 +183,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       PacketSize = ei_packet_traits<Scalar>::size,
       InnerSize  = ei_traits<Product>::InnerSize,
       Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
-      CanVectorizeInner = ei_traits<Product>::CanVectorizeInner && Unroll
+      CanVectorizeInner = ei_traits<Product>::CanVectorizeInner
     };
 
     typedef ei_product_coeff_impl<CanVectorizeInner ? InnerVectorization : NoVectorization,
@@ -206,10 +208,13 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
     /** \internal
       * \returns whether it is worth it to use the cache friendly product.
       */
-    inline bool _useCacheFriendlyProduct() const {
-      return   rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-            && cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-            && m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD;
+    inline bool _useCacheFriendlyProduct() const
+    {
+      return   m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+            && (rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                || ((_RhsNested::Flags&RowMajorBit) && _LhsNested::IsVectorAtCompileTime))
+            && (cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                || ((!(_LhsNested::Flags&RowMajorBit)) && _RhsNested::IsVectorAtCompileTime));
     }
 
     inline int rows() const { return m_lhs.rows(); }
@@ -244,6 +249,9 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
         ::run(row, col, m_lhs, m_rhs, res);
       return res;
     }
+
+    const _LhsNested& lhs() const { return m_lhs; }
+    const _RhsNested& rhs() const { return m_rhs; }
 
   protected:
     const LhsNested m_lhs;
@@ -324,18 +332,18 @@ struct ei_product_coeff_impl<NoVectorization, -1, Lhs, Rhs>
 *******************************************/
 
 template<int Index, typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_coeff_vectorized_impl
+struct ei_product_coeff_vectorized_unroller
 {
   enum { PacketSize = ei_packet_traits<typename Lhs::Scalar>::size };
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::PacketScalar &pres)
   {
-    ei_product_coeff_vectorized_impl<Index-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
+    ei_product_coeff_vectorized_unroller<Index-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
     pres = ei_padd(pres, ei_pmul( lhs.template packet<Aligned>(row, Index) , rhs.template packet<Aligned>(Index, col) ));
   }
 };
 
 template<typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_coeff_vectorized_impl<0, Lhs, Rhs, PacketScalar>
+struct ei_product_coeff_vectorized_unroller<0, Lhs, Rhs, PacketScalar>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::PacketScalar &pres)
   {
@@ -351,9 +359,56 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs>
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
     PacketScalar pres;
-    ei_product_coeff_vectorized_impl<Index+1-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
+    ei_product_coeff_vectorized_unroller<Index+1-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
     ei_product_coeff_impl<NoVectorization,Index,Lhs,Rhs>::run(row, col, lhs, rhs, res);
     res = ei_predux(pres);
+  }
+};
+
+// FIXME the following is a hack to get very high perf with matrix-vector product,
+// however, it would be preferable to switch for more general dynamic alignment queries
+template<typename Lhs, typename Rhs, int LhsRows = Lhs::RowsAtCompileTime, int RhsCols = Rhs::ColsAtCompileTime>
+struct ei_product_coeff_vectorized_dyn_selector
+{
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  {
+    res = ei_dot_impl<
+      Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
+      Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
+      LinearVectorization, NoUnrolling>::run(lhs.row(row), rhs.col(col));
+  }
+};
+
+template<typename Lhs, typename Rhs, int RhsCols>
+struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
+{
+  inline static void run(int /*row*/, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  {
+    res = ei_dot_impl<
+      Lhs,
+      Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
+      LinearVectorization, NoUnrolling>::run(lhs, rhs.col(col));
+  }
+};
+
+template<typename Lhs, typename Rhs, int LhsRows>
+struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
+{
+  inline static void run(int row, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  {
+    res = ei_dot_impl<
+      Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
+      Rhs,
+      LinearVectorization, NoUnrolling>::run(lhs.row(row), rhs);
+  }
+};
+
+template<typename Lhs, typename Rhs>
+struct ei_product_coeff_impl<InnerVectorization, Dynamic, Lhs, Rhs>
+{
+  inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  {
+    ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs>::run(row, col, lhs, rhs, res);
   }
 };
 
@@ -425,6 +480,46 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 * Cache friendly product callers and specific nested evaluation strategies
 ***************************************************************************/
 
+template<typename ProductType,
+  int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
+  int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
+  int RhsCols  = ei_traits<ProductType>::ColsAtCompileTime,
+  int RhsOrder = int(ei_traits<ProductType>::RhsFlags)&RowMajorBit ? RowMajor : ColMajor>
+struct ei_cache_friendly_product_selector
+{
+  template<typename DestDerived>
+  inline static void run(DestDerived& res, const ProductType& product)
+  {
+    product._cacheFriendlyEvalAndAdd(res);
+  }
+};
+
+// optimized colmajor * vector path
+template<typename ProductType, int LhsRows, int RhsOrder>
+struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,1,RhsOrder>
+{
+  template<typename DestDerived>
+  inline static void run(DestDerived& res, const ProductType& product)
+  {
+    const int rows = product.rhs().rows();
+    for (int j=0; j<rows; ++j)
+      res += product.rhs().coeff(j) * product.lhs().col(j);
+  }
+};
+
+// optimized vector * rowmajor path
+template<typename ProductType, int LhsOrder, int RhsCols>
+struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,RhsCols,RowMajor>
+{
+  template<typename DestDerived>
+  inline static void run(DestDerived& res, const ProductType& product)
+  {
+    const int cols = product.lhs().cols();
+    for (int j=0; j<cols; ++j)
+      res += product.lhs().coeff(j) * product.rhs().row(j);
+  }
+};
+
 /** \internal */
 template<typename Derived>
 template<typename Lhs,typename Rhs>
@@ -432,7 +527,7 @@ inline Derived&
 MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
   if (other._expression()._useCacheFriendlyProduct())
-    other._expression()._cacheFriendlyEvalAndAdd(const_cast_derived());
+    ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), other._expression());
   else
     lazyAssign(derived() + other._expression());
   return derived();
@@ -445,7 +540,7 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   if (product._useCacheFriendlyProduct())
   {
     setZero();
-    product._cacheFriendlyEvalAndAdd(derived());
+    ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), product);
   }
   else
   {

@@ -219,7 +219,7 @@ template<typename Derived> class MatrixBase
     /** Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-    { lazyAssign(other._expression()); }
+    { return lazyAssign(other._expression()); }
 
     /** Overloaded for sparse product evaluation */
     template<typename Derived1, typename Derived2>

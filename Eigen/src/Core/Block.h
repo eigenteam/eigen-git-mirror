@@ -155,7 +155,7 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       return m_matrix.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
-      
+
     }
 
     inline const Scalar coeff(int index) const
@@ -168,20 +168,23 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
-      return m_matrix.template packet<Unaligned>(row + m_startRow.value(), col + m_startCol.value());
+      return m_matrix.template packet<Unaligned>
+              (row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacket<Unaligned>(row + m_startRow.value(), col + m_startCol.value(), x);
+      m_matrix.const_cast_derived().template writePacket<Unaligned>
+              (row + m_startRow.value(), col + m_startCol.value(), x);
     }
 
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return m_matrix.template packet<Unaligned>(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
-                                                 m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+      return m_matrix.template packet<Unaligned>
+              (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+               m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     template<int LoadMode>
