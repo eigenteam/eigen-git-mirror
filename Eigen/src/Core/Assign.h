@@ -203,15 +203,15 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
     for(int j = 0; j < outerSize; j++)
       for(int i = 0; i < innerSize; i++)
       {
-        const int row = rowMajor ? j : i;
-        const int col = rowMajor ? i : j;
-        dst.coeffRef(row, col) = src.coeff(row, col);
+        if(int(Derived1::Flags)&RowMajorBit)
+          dst.coeffRef(j, i) = src.coeff(j, i);
+        else
+          dst.coeffRef(i, j) = src.coeff(i, j);
       }
   }
 };
@@ -254,14 +254,13 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
     const int outerSize = dst.outerSize();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     for(int j = 0; j < outerSize; j++)
-    {
       for(int i = 0; i < innerSize; i+=packetSize)
       {
-        const int row = rowMajor ? j : i;
-        const int col = rowMajor ? i : j;
-        dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
+        if(int(Derived1::Flags)&RowMajorBit)
+          dst.template writePacket<Aligned>(j, i, src.template packet<Aligned>(j, i));
+        else
+          dst.template writePacket<Aligned>(i, j, src.template packet<Aligned>(i, j));
       }
-    }
   }
 };
 
@@ -336,7 +335,6 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    const bool rowMajor = Derived1::Flags&RowMajorBit;
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
     const int alignedInnerSize = (innerSize/packetSize)*packetSize;
@@ -346,17 +344,19 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
       // do the vectorizable part of the assignment
       for (int index = 0; index<alignedInnerSize ; index+=packetSize)
       {
-        const int row = rowMajor ? i : index;
-        const int col = rowMajor ? index : i;
-        dst.template writePacket<Unaligned>(row, col, src.template packet<Unaligned>(row, col));
+        if(Derived1::Flags&RowMajorBit)
+          dst.template writePacket<Unaligned>(i, index, src.template packet<Unaligned>(i, index));
+        else
+          dst.template writePacket<Unaligned>(index, i, src.template packet<Unaligned>(index, i));
       }
 
       // do the non-vectorizable part of the assignment
       for (int index = alignedInnerSize; index<innerSize ; index++)
       {
-        const int row = rowMajor ? i : index;
-        const int col = rowMajor ? index : i;
-        dst.coeffRef(row, col) = src.coeff(row, col);
+        if(Derived1::Flags&RowMajorBit)
+          dst.coeffRef(i, index) = src.coeff(i, index);
+        else
+          dst.coeffRef(index, i) = src.coeff(index, i);
       }
     }
   }

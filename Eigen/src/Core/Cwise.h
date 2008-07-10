@@ -144,9 +144,7 @@ template<typename ExpressionType> class Cwise
     ExpressionTypeNested m_matrix;
 };
 
-/** \array_module
-  *
-  * \returns a Cwise expression of *this providing additional coefficient-wise operations
+/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
   *
   * \sa class Cwise
   */
@@ -157,9 +155,7 @@ MatrixBase<Derived>::cwise() const
   return derived();
 }
 
-/** \array_module
-  *
-  * \returns a Cwise expression of *this providing additional coefficient-wise operations
+/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
   *
   * \sa class Cwise
   */
