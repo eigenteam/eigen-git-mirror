@@ -1,14 +1,14 @@
 //=====================================================
 // File   :  f77_interface.hh
-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
+// Author :  L. Plagne <laurent.plagne@edf.fr)>
 // Copyright (C) EDF R&D,  lun sep 30 14:23:24 CEST 2002
 //=====================================================
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-// 
+//
 #ifndef F77_INTERFACE_HH
 #define F77_INTERFACE_HH
 #include "f77_interface_base.hh"
@@ -55,39 +55,31 @@ public :
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
   {
-    
     dmxv_(A,&N,B,&N,X);
-    
   }
 
   static inline void matrix_matrix_product(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N)
   {
-    
     dmxm_(A,&N,B,&N,X,&N);
-    
   }
 
   static inline void ata_product(gene_matrix & A, gene_matrix & X, int N)
   {
-    
     data_(A,X,&N);
-    
   }
 
   static inline void aat_product(gene_matrix & A, gene_matrix & X, int N)
   {
-    
     daat_(A,X,&N);
-    
   }
-   
-  static  inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N)  
+
+  static  inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N)
   {
     int one=1;
     daxpy_(&N,&coef,X,Y);
   }
 
-  
+
 };
 
 
@@ -104,34 +96,26 @@ public :
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
   {
-    
     smxv_(A,&N,B,&N,X);
-    
   }
 
   static inline void matrix_matrix_product(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N)
   {
-    
     smxm_(A,&N,B,&N,X,&N);
-    
   }
 
   static inline void ata_product(gene_matrix & A, gene_matrix & X, int N)
   {
-    
     sata_(A,X,&N);
-    
   }
 
   static inline void aat_product(gene_matrix & A, gene_matrix & X, int N)
   {
-    
     saat_(A,X,&N);
-    
   }
-   
 
-  static  inline void axpy(float coef, const gene_vector & X, gene_vector & Y, int N)  
+
+  static  inline void axpy(float coef, const gene_vector & X, gene_vector & Y, int N)
   {
     saxpy_(&N,&coef,X,Y);
   }

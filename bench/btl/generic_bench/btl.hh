@@ -18,8 +18,10 @@
 //
 #ifndef BTL_HH
 #define BTL_HH
+
 #include "bench_parameter.hh"
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include "utilities.h"

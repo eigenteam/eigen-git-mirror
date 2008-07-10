@@ -27,6 +27,9 @@ extern "C"
 #include "cblas.h"
 }
 
+#define MAKE_STRING2(S) #S
+#define MAKE_STRING(S) MAKE_STRING2(S)
+
 template<class real>
 class C_BLAS_interface : public f77_interface_base<real>
 {
@@ -37,7 +40,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "C_BLAS";
+    return MAKE_STRING(CBLASNAME);
   }
 
   static  inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
@@ -84,7 +87,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "C_BLAS";
+    return MAKE_STRING(CBLASNAME);
   }
 
   static  inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)

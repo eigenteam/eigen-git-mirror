@@ -88,11 +88,11 @@ public :
   }
 
   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (trans(A)*A);
+//     X = (trans(A)*A);
   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (A*trans(A));
+//     X = (A*trans(A));
   }
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){

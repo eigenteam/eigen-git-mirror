@@ -34,11 +34,32 @@ public :
 
   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
   {
+//     for (int i=0;i<N;i++)
+//     {
+//       real somme = 0.0;
+//       for (int j=0;j<N;j++)
+//         somme += A[j*N+i] * B[j];
+//       X[i] = somme;
+//     }
+    for (int i=0;i<N;i++)
+      X[i] = 0;
     for (int i=0;i<N;i++)
     {
+      real tmp = B[i];
+      int iN = i*N;
+      for (int j=0;j<N;j++)
+        X[j] += tmp * A[j+iN];
+    }
+  }
+
+  static inline void atv_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
+  {
+    for (int i=0;i<N;i++)
+    {
+      int iN = i*N;
       real somme = 0.0;
       for (int j=0;j<N;j++)
-        somme += A[j*N+i] * B[j];
+        somme += A[iN+j] * B[j];
       X[i] = somme;
     }
   }

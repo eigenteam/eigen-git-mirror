@@ -35,8 +35,8 @@ int main()
   bench<Action_matrix_vector_product<mtl4_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_atv_product<mtl4_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_matrix_matrix_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_ata_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_aat_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+//   bench<Action_ata_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+//   bench<Action_aat_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

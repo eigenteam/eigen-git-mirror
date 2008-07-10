@@ -1,14 +1,12 @@
 //=====================================================
-// File   :  main.cpp
-// Author :  L. Plagne <laurent.plagne@edf.fr)>        
-// Copyright (C) EDF R&D,  lun sep 30 14:23:29 CEST 2002
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //=====================================================
-// 
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -16,32 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-// 
+//
 #include "utilities.h"
-#include "INTEL_BLAS_interface.hh"
-#include "INTEL_BLAS_LU_solve_interface.hh"
-#include "bench.hh"
+#include "eigen2_interface.hh"
+#include "static/bench_static.hh"
 #include "action_matrix_vector_product.hh"
 #include "action_matrix_matrix_product.hh"
 #include "action_axpy.hh"
 #include "action_lu_solve.hh"
 #include "action_ata_product.hh"
 #include "action_aat_product.hh"
+#include "action_atv_product.hh"
+
+BTL_MAIN;
 
 int main()
 {
 
-  bench<Action_axpy<INTEL_BLAS_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);  
-
-  bench<Action_matrix_vector_product<INTEL_BLAS_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);  
-
-  bench<Action_matrix_matrix_product<INTEL_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);  
-
-  bench<Action_ata_product<INTEL_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  
-  bench<Action_aat_product<INTEL_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-
-//   bench<Action_lu_solve<INTEL_BLAS_LU_solve_interface<REAL_TYPE> > >(MIN_LU,MAX_LU,NB_POINT);  
+  bench_static<Action_axpy,eigen2_interface>();
+  bench_static<Action_matrix_matrix_product,eigen2_interface>();
+  bench_static<Action_matrix_vector_product,eigen2_interface>();
+  bench_static<Action_atv_product,eigen2_interface>();
 
   return 0;
 }

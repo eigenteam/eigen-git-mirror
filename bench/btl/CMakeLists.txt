@@ -28,56 +28,47 @@ include_directories(
 
 
 MACRO(BTL_ADD_BENCH targetname)
-  ADD_EXECUTABLE(${ARGV})
-  ADD_TEST(${targetname} "${targetname}")
+
+  foreach(_current_var ${ARGN})
+    set(_last_var ${_current_var})
+  endforeach(_current_var)
+
+  set(_sources ${ARGN})
+  list(LENGTH _sources _argn_length)
+
+  list(REMOVE_ITEM _sources ON OFF TRUE FALSE)
+
+  list(LENGTH _sources _src_length)
+
+  if (${_argn_length} EQUAL ${_src_length})
+    set(_last_var ON)
+  endif (${_argn_length} EQUAL ${_src_length})
+
+  OPTION(BUILD_${targetname} "Build benchmark ${targetname}" ${_last_var})
+
+  message(STATUS ${targetname} " : " ${ARGN} " => " ${_sources} " => " ${_last_var})
+
+  IF(BUILD_${targetname})
+    ADD_EXECUTABLE(${targetname} ${_sources})
+    ADD_TEST(${targetname} "${targetname}")
+  ENDIF(BUILD_${targetname})
+
 ENDMACRO(BTL_ADD_BENCH)
 
 ENABLE_TESTING()
 
-# Eigen2
-find_package(Eigen2)
-if (EIGEN2_FOUND)
-  macro_optional_add_subdirectory(libs/eigen2 ON)
-  macro_optional_add_subdirectory(libs/tiny_eigen2 OFF)
-endif (EIGEN2_FOUND)
-
-# GMM++
-find_package(GMM)
-if (GMM_FOUND)
-  macro_optional_add_subdirectory(libs/gmm ON)
-endif (GMM_FOUND)
-
-# Boost
-find_package(Boost)
-if (Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-  macro_optional_add_subdirectory(libs/ublas ON)
-endif (Boost_FOUND)
-
-# blitz
-find_package(Blitz)
-if (BLITZ_FOUND)
-  macro_optional_add_subdirectory(libs/blitz ON)
-  macro_optional_add_subdirectory(libs/tiny_blitz OFF)
-endif (BLITZ_FOUND)
-
-# tvmet
-find_package(Tvmet)
-if (TVMET_FOUND)
-  macro_optional_add_subdirectory(libs/tvmet OFF)
-endif (TVMET_FOUND)
-
-# cblas
-find_package(CBLAS)
-if (CBLAS_FOUND)
-  macro_optional_add_subdirectory(libs/C_BLAS ON)
-endif (CBLAS_FOUND)
-
-
-macro_optional_add_subdirectory(libs/f77 ON)
-macro_optional_add_subdirectory(libs/C ON)
-macro_optional_add_subdirectory(libs/STL ON)
-macro_optional_add_subdirectory(libs/STL_algo ON)
+add_subdirectory(libs/eigen2)
+add_subdirectory(libs/hand_vec)
+add_subdirectory(libs/gmm)
+add_subdirectory(libs/mtl4)
+add_subdirectory(libs/ublas)
+add_subdirectory(libs/blitz)
+add_subdirectory(libs/tvmet)
+add_subdirectory(libs/C_BLAS)
+add_subdirectory(libs/f77)
+add_subdirectory(libs/C)
+add_subdirectory(libs/STL)
+add_subdirectory(libs/STL_algo)
 
 add_subdirectory(data)
 
