@@ -17,13 +17,13 @@ if (MTL4_INCLUDE_DIR)
 
 else (MTL4_INCLUDE_DIR)
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MTL4 DEFAULT_MSG MTL4_INCLUDE_DIR)
-
 find_path(MTL4_INCLUDE_DIR NAMES boost/numeric/mtl/mtl.hpp
      PATHS
      ${INCLUDE_INSTALL_DIR}
    )
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(MTL4 DEFAULT_MSG MTL4_INCLUDE_DIR)
 
 mark_as_advanced(MTL4_INCLUDE_DIR)
 
