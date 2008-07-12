@@ -39,9 +39,13 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::FloatingPoint FloatingPoint;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> RowVectorType;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> ColVectorType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> RowSquareMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> ColSquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
+                         MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
+                         MatrixType::Flags&RowMajorBit ? 0 : RowMajorBit> OtherMajorMatrixType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -59,9 +63,11 @@ template<typename MatrixType> void product(const MatrixType& m)
   ColSquareMatrixType
              square2 = ColSquareMatrixType::random(cols, cols),
              res2 = ColSquareMatrixType::random(cols, cols);
-  VectorType v1 = VectorType::random(rows),
-             v2 = VectorType::random(rows),
-             vzero = VectorType::zero(rows);
+  RowVectorType v1 = RowVectorType::random(rows),
+             v2 = RowVectorType::random(rows),
+             vzero = RowVectorType::zero(rows);
+  ColVectorType vc2 = ColVectorType::random(cols), vcres;
+  OtherMajorMatrixType tm1 = m1;
 
   Scalar s1 = ei_random<Scalar>();
 
@@ -89,6 +95,7 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   // test Product.h together with Identity.h
   VERIFY_IS_APPROX(v1,                      identity*v1);
+  VERIFY_IS_APPROX(v1.transpose(),          v1.transpose() * identity);
   // again, test operator() to check const-qualification
   VERIFY_IS_APPROX(MatrixType::identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
 
@@ -110,6 +117,21 @@ template<typename MatrixType> void product(const MatrixType& m)
   {
     VERIFY(areNotApprox(res,square + m2 * m1.transpose()));
   }
+  vcres = vc2;
+  vcres += (m1.transpose() * v1).lazy();
+  VERIFY_IS_APPROX(vcres, vc2 + m1.transpose() * v1);
+  tm1 = m1;
+  VERIFY_IS_APPROX(tm1.transpose() * v1, m1.transpose() * v1);
+  VERIFY_IS_APPROX(v1.transpose() * tm1, v1.transpose() * m1);
+
+  // test submatrix and matrix/vector product
+  for (int i=0; i<rows; ++i)
+    res.row(i) = m1.row(i) * m2.transpose();
+  VERIFY_IS_APPROX(res, m1 * m2.transpose());
+  // the other way round:
+  for (int i=0; i<rows; ++i)
+    res.col(i) = m1 * m2.transpose().col(i);
+  VERIFY_IS_APPROX(res, m1 * m2.transpose());
 
   res2 = square2;
   res2 += (m1.transpose() * m2).lazy();

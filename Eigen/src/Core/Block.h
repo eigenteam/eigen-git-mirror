@@ -155,7 +155,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
       return m_matrix.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
-
     }
 
     inline const Scalar coeff(int index) const

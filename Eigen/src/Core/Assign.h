@@ -249,7 +249,6 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
-    const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;

@@ -59,10 +59,7 @@ namespace Eigen {
 #include "src/Core/CommaInitializer.h"
 #include "src/Core/Extract.h"
 #include "src/Core/Part.h"
-
-#ifndef EIGEN_EXTERN_INSTANTIATIONS
 #include "src/Core/CacheFriendlyProduct.h"
-#endif
 
 } // namespace Eigen
 
