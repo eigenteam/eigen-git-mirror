@@ -17,14 +17,14 @@ if (EIGEN2_INCLUDE_DIR)
 
 else (EIGEN2_INCLUDE_DIR)
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Eigen2 DEFAULT_MSG EIGEN2_INCLUDE_DIR)
-
 find_path(EIGEN2_INCLUDE_DIR NAMES Eigen/Core
      PATHS
      ${Eigen_SOURCE_DIR}/
      ${INCLUDE_INSTALL_DIR}
    )
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Eigen2 DEFAULT_MSG EIGEN2_INCLUDE_DIR)
 
 mark_as_advanced(EIGEN2_INCLUDE_DIR)
 
