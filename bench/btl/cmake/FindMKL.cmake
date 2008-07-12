@@ -40,7 +40,7 @@ find_library(MKL_LIBRARIES
 )
 
 if(MKL_LIBRARIES)
-set(MKL_LIBRARIES ${MKL_LIBRARIES} mkl_p4 mkl_sequential guide pthread)
+set(MKL_LIBRARIES ${MKL_LIBRARIES} mkl_intel mkl_sequential guide pthread)
 endif(MKL_LIBRARIES)
 
 endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
