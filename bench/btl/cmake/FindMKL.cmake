@@ -32,12 +32,16 @@ message(STATUS ${MKL_LIBRARIES})
 else(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
 find_library(MKL_LIBRARIES
-  mkl_core mkl_intel mkl_sequential guide pthread
+  mkl_core
   PATHS
   $ENV{MKLLIB}
   /opt/intel/mkl/*/lib/32
   ${LIB_INSTALL_DIR}
 )
+
+if(MKL_LIBRARIES)
+set(MKL_LIBRARIES ${MKL_LIBRARIES} mkl_p4 mkl_sequential guide pthread)
+endif(MKL_LIBRARIES)
 
 endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
