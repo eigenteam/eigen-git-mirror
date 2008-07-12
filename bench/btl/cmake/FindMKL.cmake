@@ -11,12 +11,9 @@ find_path(MKL_INCLUDES
   ${INCLUDE_INSTALL_DIR}
 )
 
-
-message(STATUS ${CMAKE_HOST_SYSTEM_PROCESSOR})
+if(CMAKE_MINOR_VERSION GREATER 4)
 
 if(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-
-message(STATUS "64 bits")
 
 find_library(MKL_LIBRARIES
   mkl_core
@@ -34,8 +31,6 @@ message(STATUS ${MKL_LIBRARIES})
 
 else(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
-message(STATUS "32 bits")
-
 find_library(MKL_LIBRARIES
   mkl_core mkl_intel mkl_sequential guide pthread
   PATHS
@@ -45,6 +40,8 @@ find_library(MKL_LIBRARIES
 )
 
 endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+
+endif(CMAKE_MINOR_VERSION GREATER 4)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MKL DEFAULT_MSG
