@@ -42,7 +42,8 @@ class Matrix;
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType> class NestByValue;
 template<typename MatrixType> class Minor;
-template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic> class Block;
+template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic,
+         int DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit> class Block;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;

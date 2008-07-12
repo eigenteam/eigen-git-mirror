@@ -82,12 +82,12 @@ int main(int argc, char *argv[])
     std::cout << "Usage: " << argv[0] << " size nbloops nbtries\n";
     std::cout << "Usage: " << argv[0] << " M N K nbloops nbtries\n";
     std::cout << "Usage: " << argv[0] << " check\n";
-    std::cout << "Options:\n"
+    std::cout << "Options:\n";
     std::cout << "    size       unique size of the 2 matrices (integer)\n";
     std::cout << "    auto       automatically set the number of repetitions and tries\n";
-    std::cout << "    nbloops    number of times the GEMM routines is executed\n"
-    std::cout << "    nbtries    number of times the loop is benched (return the best try)\n"
-    std::cout << "    M N K      sizes of the matrices: MxN  =  MxK * KxN (integers)\n"
+    std::cout << "    nbloops    number of times the GEMM routines is executed\n";
+    std::cout << "    nbtries    number of times the loop is benched (return the best try)\n";
+    std::cout << "    M N K      sizes of the matrices: MxN  =  MxK * KxN (integers)\n";
     std::cout << "    check      check eigen product using cblas as a reference\n";
     exit(1);
   }

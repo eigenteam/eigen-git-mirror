@@ -365,8 +365,7 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs>
   }
 };
 
-// FIXME the following is a hack to get very high perf with matrix-vector product,
-// however, it would be preferable to switch for more general dynamic alignment queries
+// NOTE the following specializations are because taking .col(0) on a vector is a bit slower
 template<typename Lhs, typename Rhs, int LhsRows = Lhs::RowsAtCompileTime, int RhsCols = Rhs::ColsAtCompileTime>
 struct ei_product_coeff_vectorized_dyn_selector
 {
@@ -481,13 +480,8 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 ***************************************************************************/
 
 template<typename Scalar, typename RhsType>
-static void ei_cache_friendly_product(
+static void ei_cache_friendly_product_colmajor_times_vector(
   int size, const Scalar* lhs, int lhsStride, const RhsType& rhs, Scalar* res);
-
-enum {
-  HasDirectAccess,
-  NoDirectAccess
-};
 
 template<typename ProductType,
   int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
@@ -507,19 +501,13 @@ struct ei_cache_friendly_product_selector
 
 // optimized colmajor * vector path
 template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,NoDirectAccess,ColMajor,1,RhsOrder,RhsAccess>
+struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,NoDirectAccess,1,RhsOrder,RhsAccess>
 {
-  typedef typename ei_traits<ProductType>::_LhsNested Lhs;
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
-    ei_scalar_sum_op<typename ProductType::Scalar> _sum;
     const int size = product.rhs().rows();
     for (int k=0; k<size; ++k)
-      if (Lhs::Flags&DirectAccessBit)
-        // TODO to properly hanlde this workaround let's specialize Block for type having the DirectAccessBit
-        res += product.rhs().coeff(k) * Map<DestDerived>(&product.lhs().const_cast_derived().coeffRef(0,k),product.lhs().rows());
-      else
         res += product.rhs().coeff(k) * product.lhs().col(k);
   }
 };
@@ -527,7 +515,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,NoDirectAccess,Col
 // optimized cache friendly colmajor * vector path for matrix with direct access flag
 // NOTE this path coul also be enabled for expressions if we add runtime align queries
 template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,HasDirectAccess,ColMajor,1,RhsOrder,RhsAccess>
+struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
 {
   typedef typename ProductType::Scalar Scalar;
 
@@ -545,7 +533,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,HasDirectAccess,Co
       _res = (Scalar*)alloca(sizeof(Scalar)*res.size());
       Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
     }
-    ei_cache_friendly_product(res.size(),
+    ei_cache_friendly_product_colmajor_times_vector(res.size(),
       &product.lhs().const_cast_derived().coeffRef(0,0), product.lhs().stride(),
       product.rhs(), _res);
 
@@ -588,7 +576,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
       _res = (Scalar*)alloca(sizeof(Scalar)*res.size());
       Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
     }
-    ei_cache_friendly_product(res.size(),
+    ei_cache_friendly_product_colmajor_times_vector(res.size(),
       &product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
       product.lhs().transpose(), _res);
 

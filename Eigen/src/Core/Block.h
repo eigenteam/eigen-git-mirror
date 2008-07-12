@@ -56,8 +56,8 @@
   *
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
-template<typename MatrixType, int BlockRows, int BlockCols>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
+template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatus>
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols, DirectAccesStatus> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum{
@@ -83,8 +83,8 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols> >
   };
 };
 
-template<typename MatrixType, int BlockRows, int BlockCols> class Block
-  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols> >
+template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatus> class Block
+  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, DirectAccesStatus> >
 {
   public:
 
@@ -202,6 +202,137 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block
     const ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 };
+
+/** \internal */
+template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
+  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >
+{
+    enum {
+      IsRowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit ? 1 : 0
+    };
+
+  public:
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+
+    /** Column or Row constructor
+      */
+    inline Block(const MatrixType& matrix, int i)
+      : m_matrix(matrix),
+        m_data_ptr(&matrix.const_cast_derived().coeffRef(
+          (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0,
+          (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
+        m_blockRows(matrix.rows()),
+        m_blockCols(matrix.cols())
+    {
+      ei_assert( (i>=0) && (
+          ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
+        ||((BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) && i<matrix.cols())));
+    }
+
+    /** Fixed-size constructor
+      */
+    inline Block(const MatrixType& matrix, int startRow, int startCol)
+      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol))
+    {
+      ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
+      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
+          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+    }
+
+    /** Dynamic-size constructor
+      */
+    inline Block(const MatrixType& matrix,
+          int startRow, int startCol,
+          int blockRows, int blockCols)
+      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol)),
+        m_blockRows(blockRows), m_blockCols(blockCols)
+    {
+      ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
+          && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
+      ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
+          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
+    }
+
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+
+    inline int rows() const { return m_blockRows.value(); }
+    inline int cols() const { return m_blockCols.value(); }
+
+    inline int stride(void) const { return m_matrix.stride(); }
+
+    inline Scalar& coeffRef(int row, int col)
+    {
+      if (IsRowMajor)
+        return m_data_ptr[col + row * stride()];
+      else
+        return m_data_ptr[row + col * stride()];
+    }
+
+    inline const Scalar coeff(int row, int col) const
+    {
+//       std::cerr << "coeff(int row, int col)\n";
+      if (IsRowMajor)
+        return m_data_ptr[col + row * stride()];
+      else
+        return m_data_ptr[row + col * stride()];
+    }
+
+    inline Scalar& coeffRef(int index)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
+      return m_data_ptr[index];
+    }
+
+    inline const Scalar coeff(int index) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
+      if ( (RowsAtCompileTime == 1) == IsRowMajor )
+        return m_data_ptr[index];
+      else
+        return m_data_ptr[index*stride()];
+    }
+
+    template<int LoadMode>
+    inline PacketScalar packet(int row, int col) const
+    {
+      if (IsRowMajor)
+        return ei_ploadu(&m_data_ptr[col + row * stride()]);
+      else
+        return ei_ploadu(&m_data_ptr[row + col * stride()]);
+    }
+
+    template<int LoadMode>
+    inline void writePacket(int row, int col, const PacketScalar& x)
+    {
+      if (IsRowMajor)
+        ei_pstoreu(&m_data_ptr[col + row * stride()], x);
+      else
+        ei_pstoreu(&m_data_ptr[row + col * stride()], x);
+    }
+
+    template<int LoadMode>
+    inline PacketScalar packet(int index) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
+      return ei_ploadu(&m_data_ptr[index]);
+    }
+
+    template<int LoadMode>
+    inline void writePacket(int index, const PacketScalar& x)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
+      ei_pstoreu(&m_data_ptr[index], x);
+    }
+
+  protected:
+
+    const typename MatrixType::Nested m_matrix;
+    Scalar* m_data_ptr;
+    const ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
+    const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
+};
+
 
 /** \returns a dynamic-size expression of a block in *this.
   *

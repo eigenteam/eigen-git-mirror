@@ -367,7 +367,7 @@ static void ei_cache_friendly_product(
  * TODO: since rhs gets evaluated only once, no need to evaluate it
  */
 template<typename Scalar, typename RhsType>
-EIGEN_DONT_INLINE static void ei_cache_friendly_product(
+EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   int size,
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
@@ -408,54 +408,34 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product(
                        : alignmentStep==2 ? EvenAligned
                        : FirstAligned;
 
-  // find how many column do we have to skip to be aligned with the result (if possible)
+  // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns=0;
-  for (; skipColumns<PacketSize; ++skipColumns)
-  {
-    if (alignedStart == alignmentStep*skipColumns)
-      break;
-  }
+  for (; skipColumns<PacketSize && alignedStart != alignmentStep*skipColumns; ++skipColumns)
+  {}
   if (skipColumns==PacketSize)
+  {
+    // nothing can be aligned, no need to skip any column
     alignmentPattern = NoneAligned;
-  skipColumns = std::min(skipColumns,rhs.size());
-  if (alignmentPattern!=NoneAligned)
-    for (int i=0; i<skipColumns; i++)
-    {
-      Scalar tmp0 = rhs[i];
-      Packet ptmp0 = ei_pset1(tmp0);
-      int iN0 = i*lhsStride;
-      // process first unaligned result's coeffs
-      for (int j=0; j<alignedStart; j++)
-        res[j] += tmp0 * lhs[j+iN0];
-      // process aligned result's coeffs (we know the lhs columns are not aligned)
-      for (int j = alignedStart;j<alignedSize;j+=PacketSize)
-        ei_pstore(&res[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&lhs[j+iN0])),ei_pload(&res[j])));
-      // process remaining result's coeffs
-      for (int j=alignedSize; j<size; j++)
-        res[j] += tmp0 * lhs[j+iN0];
-    }
+    skipColumns = 0;
+  }
+  else
+  {
+    skipColumns = std::min(skipColumns,rhs.size());
+    // note that the skiped columns are processed later.
+  }
 
   int columnBound = (rhs.size()/columnsAtOnce)*columnsAtOnce;
-  for (int i=0; i<columnBound; i+=columnsAtOnce)
+  for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
-    Scalar tmp0 = rhs[i];
-    Packet ptmp0 = ei_pset1(tmp0);
-    Scalar tmp1 = rhs[i+1];
-    Packet ptmp1 = ei_pset1(tmp1);
-    Scalar tmp2 = rhs[i+2];
-    Packet ptmp2 = ei_pset1(tmp2);
-    Scalar tmp3 = rhs[i+3];
-    Packet ptmp3 = ei_pset1(tmp3);
-    int iN0 = i*lhsStride;
-    int iN1 = (i+1)*lhsStride;
-    int iN2 = (i+2)*lhsStride;
-    int iN3 = (i+3)*lhsStride;
+    Scalar tmp0  = rhs[i], tmp1 = rhs[i+1], tmp2 = rhs[i+2], tmp3 = rhs[i+3];
+    Packet ptmp0 = ei_pset1(tmp0), ptmp1 = ei_pset1(tmp1), ptmp2 = ei_pset1(tmp2), ptmp3 = ei_pset1(tmp3);
+    int iN0 = i*lhsStride, iN1 = (i+1)*lhsStride, iN2 = (i+2)*lhsStride, iN3 = (i+3)*lhsStride;
 
     // process initial unaligned coeffs
     for (int j=0; j<alignedStart; j++)
       res[j] += tmp0 * lhs[j+iN0] + tmp1 * lhs[j+iN1] + tmp2 * lhs[j+iN2] + tmp3 * lhs[j+iN3];
 
-    if (alignedSize>0)
+    if (alignedSize>alignedStart)
     {
       switch(alignmentPattern)
       {
@@ -475,10 +455,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product(
               _EIGEN_ACCUMULATE_PACKETS(,u,u,+PacketSize);
               if (peels>2) _EIGEN_ACCUMULATE_PACKETS(,u,u,+2*PacketSize);
               if (peels>3) _EIGEN_ACCUMULATE_PACKETS(,u,u,+3*PacketSize);
-              if (peels>4) _EIGEN_ACCUMULATE_PACKETS(,u,u,+4*PacketSize);
-              if (peels>5) _EIGEN_ACCUMULATE_PACKETS(,u,u,+5*PacketSize);
-              if (peels>6) _EIGEN_ACCUMULATE_PACKETS(,u,u,+6*PacketSize);
-              if (peels>7) _EIGEN_ACCUMULATE_PACKETS(,u,u,+7*PacketSize);
             }
           for (int j = peeledSize; j<alignedSize; j+=PacketSize)
             _EIGEN_ACCUMULATE_PACKETS(,u,u,);
@@ -494,25 +470,42 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product(
     for (int j=alignedSize; j<size; j++)
       res[j] += tmp0 * lhs[j+iN0] + tmp1 * lhs[j+iN1] + tmp2 * lhs[j+iN2] + tmp3 * lhs[j+iN3];
   }
-  for (int i=columnBound; i<rhs.size(); i++)
+
+  // process remaining first and last columns (at most columnsAtOnce-1)
+  int end = rhs.size();
+  int start = columnBound;
+  do
   {
-    Scalar tmp0 = rhs[i];
-    Packet ptmp0 = ei_pset1(tmp0);
-    int iN0 = i*lhsStride;
-    if (alignedSize>0)
+    for (int i=columnBound; i<end; i++)
     {
-      bool aligned0 = (iN0 % PacketSize) == 0;
-      if (aligned0)
+      Scalar tmp0 = rhs[i];
+      Packet ptmp0 = ei_pset1(tmp0);
+      int iN0 = i*lhsStride;
+      // process first unaligned result's coeffs
+      for (int j=0; j<alignedStart; j++)
+        res[j] += tmp0 * lhs[j+iN0];
+
+      // process aligned result's coeffs
+      if ((iN0 % PacketSize) == 0)
         for (int j = 0;j<alignedSize;j+=PacketSize)
           ei_pstore(&res[j], ei_padd(ei_pmul(ptmp0,ei_pload(&lhs[j+iN0])),ei_pload(&res[j])));
       else
         for (int j = 0;j<alignedSize;j+=PacketSize)
           ei_pstore(&res[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&lhs[j+iN0])),ei_pload(&res[j])));
+
+      // process remaining scalars
+      for (int j=alignedSize; j<size; j++)
+        res[j] += tmp0 * lhs[j+iN0];
     }
-    // process remaining scalars
-    for (int j=alignedSize; j<size; j++)
-      res[j] += tmp0 * lhs[j+iN0];
-  }
+    if (skipColumns)
+    {
+      start = 0;
+      end = skipColumns;
+      skipColumns = 0;
+    }
+    else
+      break;
+  } while(true);
   asm("#end matrix_vector_product");
 
   #undef _EIGEN_ACCUMULATE_PACKETS

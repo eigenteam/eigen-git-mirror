@@ -206,6 +206,11 @@ enum {
   RowMajor = RowMajorBit
 };
 
+enum {
+  NoDirectAccess = 0,
+  HasDirectAccess = DirectAccessBit
+};
+
 const int FullyCoherentAccessPattern  = 0x1;
 const int InnerCoherentAccessPattern  = 0x2 | FullyCoherentAccessPattern;
 const int OuterCoherentAccessPattern  = 0x4 | InnerCoherentAccessPattern;
