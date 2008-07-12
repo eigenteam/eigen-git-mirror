@@ -88,7 +88,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "matrix_vector_"+Interface::name();
+    return "matrix_vector_" + Interface::name();
   }
 
   double nb_op_base( void ){

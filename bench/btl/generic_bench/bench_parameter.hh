@@ -27,21 +27,21 @@
 // nb of point on bench curves
 #define NB_POINT 100
 // min vector size for axpy bench
-#define MIN_AXPY 2
+#define MIN_AXPY 5
 // max vector size for axpy bench
 #define MAX_AXPY 1000000
 // min matrix size for matrix vector product bench
-#define MIN_MV 2
+#define MIN_MV 5
 // max matrix size for matrix vector product bench
 #define MAX_MV 1024
 // min matrix size for matrix matrix product bench
-#define MIN_MM 2
+#define MIN_MM 5
 // max matrix size for matrix matrix product bench
 #define MAX_MM 1024
 // min matrix size for LU bench
-#define MIN_LU 10
+#define MIN_LU 5
 // max matrix size for LU bench
-#define MAX_LU 1000
+#define MAX_LU 1024
 // max size for tiny vector and matrix
 #define TINY_MV_MAX_SIZE 16
 // default nb_sample for x86 timer

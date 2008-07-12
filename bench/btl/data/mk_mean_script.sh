@@ -10,7 +10,7 @@ WORK_DIR=tmp
 mkdir $WORK_DIR
 
 DATA_FILE=`find $DIR -name "*.dat" | grep _${WHAT}`
-echo 
+echo
 for FILE in $DATA_FILE
 do
         ##echo hello world
@@ -19,7 +19,7 @@ do
 
 	##echo "mk_mean_script1" ${TITLE}
 	cp $FILE ${WORK_DIR}/${TITLE}
-	
+
 done
 
 cd $WORK_DIR
@@ -29,6 +29,10 @@ rm -f *.gnuplot
 cd ..
 
 rm -R $WORK_DIR
+
+webpagefilename=$2/index.html
+# echo '<h3>'${WHAT}'</h3>'  >> $webpagefilename
+echo '<a href="/btl/'$1'.pdf"><img src="/btl/'$1'.png" alt="'${WHAT}'" /></a><br/>'  >> $webpagefilename
 
 
 

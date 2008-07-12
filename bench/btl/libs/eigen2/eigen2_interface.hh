@@ -30,7 +30,9 @@ class eigen2_interface
 
 public :
 
-  typedef real real_type ;
+  enum {IsFixedSize = (SIZE!=Dynamic)};
+
+  typedef real real_type;
 
   typedef std::vector<real> stl_vector;
   typedef std::vector<stl_vector> stl_matrix;
@@ -41,11 +43,11 @@ public :
   static inline std::string name( void )
   {
     #if defined(EIGEN_VECTORIZE_SSE)
-    if (SIZE==Dynamic) return "eigen2_SSE"; else return "tiny_eigen2_SSE";
-    #elif defined(EIGEN_VECTORIZE_ALTIVEC)
-    if (SIZE==Dynamic) return "eigen2_AltiVec"; else return "tiny_eigen2_AltiVec";
-    #else
     if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
+    #elif defined(EIGEN_VECTORIZE_ALTIVEC)
+    if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
+    #else
+    if (SIZE==Dynamic) return "eigen2_novec"; else return "tiny_eigen2_novec";
     #endif
   }
 

@@ -85,8 +85,10 @@ public :
     Interface::copy_vector(X_ref,X,_size);
   }
 
-  inline void calculate( void ) {
-      Interface::atv_product(A,B,X,_size);
+  BTL_DONT_INLINE void calculate( void ) {
+    asm("#begin atv");
+    Interface::atv_product(A,B,X,_size);
+    asm("#end atv");
   }
 
   void check_result( void )

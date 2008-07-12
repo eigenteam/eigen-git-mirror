@@ -46,9 +46,9 @@ public :
 
   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     A.resize(A_stl.size(),A_stl[0].size());
-    for (int i=0; i<A_stl.size() ; i++)
-      for (int j=0; j<A_stl[i].size() ; j++)
-        A(i,j)=A_stl[i][j];
+    for (int j=0; j<A_stl.size() ; j++)
+      for (int i=0; i<A_stl[j].size() ; i++)
+        A(i,j)=A_stl[j][i];
   }
 
   static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
@@ -64,11 +64,11 @@ public :
 
   static inline void matrix_to_stl(gene_matrix & A, stl_matrix & A_stl){
     int N=A_stl.size();
-    for (int i=0;i<N;i++)
+    for (int j=0;j<N;j++)
     {
-      A_stl[i].resize(N);
-      for (int j=0;j<N;j++)
-        A_stl[i][j]=A(i,j);
+      A_stl[j].resize(N);
+      for (int i=0;i<N;i++)
+        A_stl[j][i]=A(i,j);
     }
   }
 
