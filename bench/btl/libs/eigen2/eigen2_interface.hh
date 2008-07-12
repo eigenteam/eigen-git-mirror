@@ -20,6 +20,7 @@
 
 #include <Eigen/Core>
 #include <vector>
+#include "btl.hh"
 
 using namespace Eigen;
 
@@ -52,7 +53,7 @@ public :
 
   static void free_vector(gene_vector & B) {}
 
-  static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
+  static BTL_DONT_INLINE void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     A.resize(A_stl[0].size(), A_stl.size());
 
     for (int j=0; j<A_stl.size() ; j++){
@@ -62,7 +63,7 @@ public :
     }
   }
 
-  static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
+  static BTL_DONT_INLINE  void vector_from_stl(gene_vector & B, stl_vector & B_stl){
     B.resize(B_stl.size(),1);
 
     for (int i=0; i<B_stl.size() ; i++){
@@ -70,13 +71,13 @@ public :
     }
   }
 
-  static inline void vector_to_stl(gene_vector & B, stl_vector & B_stl){
+  static BTL_DONT_INLINE  void vector_to_stl(gene_vector & B, stl_vector & B_stl){
     for (int i=0; i<B_stl.size() ; i++){
       B_stl[i] = B.coeff(i);
     }
   }
 
-  static inline void matrix_to_stl(gene_matrix & A, stl_matrix & A_stl){
+  static BTL_DONT_INLINE  void matrix_to_stl(gene_matrix & A, stl_matrix & A_stl){
     int N=A_stl.size();
 
     for (int j=0;j<N;j++){
@@ -103,7 +104,7 @@ public :
     X = (A*A.transpose()).lazy();
   }
 
-  static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
+  static inline void matrix_vector_product(const gene_matrix &  __restrict__  A, const gene_vector & __restrict__ B, gene_vector &  __restrict__ X, int N){
     X = (A*B).lazy();
   }
 

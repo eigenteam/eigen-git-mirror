@@ -26,6 +26,31 @@
 #include <string>
 #include "utilities.h"
 
+#if (defined __GNUC__)
+#define BTL_ALWAYS_INLINE __attribute__((always_inline)) inline
+#else
+#define BTL_ALWAYS_INLINE inline
+#endif
+
+#if (defined __GNUC__)
+#define BTL_DONT_INLINE __attribute__((noinline))
+#else
+#define BTL_DONT_INLINE
+#endif
+
+#ifndef __INTEL_COMPILER
+#define BTL_DISABLE_SSE_EXCEPTIONS()  { \
+  int aux; \
+  asm( \
+  "stmxcsr   %[aux]           \n\t" \
+  "orl       $32832, %[aux]   \n\t" \
+  "ldmxcsr   %[aux]           \n\t" \
+  : : [aux] "m" (aux)); \
+}
+#else
+#define DISABLE_SSE_EXCEPTIONS()
+#endif
+
 /** Enhanced std::string
 */
 class BtlString : public std::string
@@ -161,13 +186,14 @@ public:
         }
       }
     }
+
+    BTL_DISABLE_SSE_EXCEPTIONS();
   }
 
-  static bool skipAction(const std::string& name)
+  BTL_DONT_INLINE static bool skipAction(const std::string& name)
   {
     if (Instance.m_runSingleAction)
     {
-      std::cout << "Instance.m_singleActionName = " << Instance.m_singleActionName << "\n";
       return !BtlString(name).contains(Instance.m_singleActionName);
     }
 

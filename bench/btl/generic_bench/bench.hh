@@ -36,10 +36,12 @@
 using namespace std;
 
 template <template<class> class Perf_Analyzer, class Action>
-void bench( int size_min, int size_max, int nb_point )
+BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point )
 {
   if (BtlConfig::skipAction(Action::name()))
     return;
+
+  BTL_DISABLE_SSE_EXCEPTIONS();
 
   string filename="bench_"+Action::name()+".dat";
 
@@ -76,7 +78,7 @@ void bench( int size_min, int size_max, int nb_point )
 // default Perf Analyzer
 
 template <class Action>
-void bench( int size_min, int size_max, int nb_point ){
+BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point ){
 
   // if the rdtsc is not available :
   bench<Portable_Perf_Analyzer,Action>(size_min,size_max,nb_point);

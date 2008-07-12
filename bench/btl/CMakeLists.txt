@@ -46,8 +46,6 @@ MACRO(BTL_ADD_BENCH targetname)
 
   OPTION(BUILD_${targetname} "Build benchmark ${targetname}" ${_last_var})
 
-  message(STATUS ${targetname} " : " ${ARGN} " => " ${_sources} " => " ${_last_var})
-
   IF(BUILD_${targetname})
     ADD_EXECUTABLE(${targetname} ${_sources})
     ADD_TEST(${targetname} "${targetname}")

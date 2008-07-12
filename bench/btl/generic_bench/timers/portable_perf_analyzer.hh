@@ -40,7 +40,7 @@ public:
 
 
 
-  inline double eval_mflops(int size)
+  BTL_DONT_INLINE  double eval_mflops(int size)
   {
     Action action(size);
 
@@ -70,7 +70,7 @@ public:
     return action.nb_op_base()/(time_action*1000000.0);
   }
 
-  double time_calculate(Action & action)
+  BTL_DONT_INLINE double time_calculate(Action & action)
   {
     // time measurement
     _chronos.start();

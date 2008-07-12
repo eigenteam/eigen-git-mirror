@@ -1,8 +1,11 @@
+eigen2_SSE
 eigen2
-C_BLAS
+INTEL_MKL
+ATLAS
 STL
 C
 gmm
+mtl4
 ublas
 blitz
 F77

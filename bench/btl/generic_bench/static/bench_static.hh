@@ -34,7 +34,7 @@ using namespace std;
 
 
 template <template<class> class Perf_Analyzer, template<class> class Action, template<class,int> class Interface>
-void bench_static(void)
+BTL_DONT_INLINE  void bench_static(void)
 {
   if (BtlConfig::skipAction(Action<Interface<REAL_TYPE,10> >::name()))
     return;
@@ -55,7 +55,7 @@ void bench_static(void)
 
 // default Perf Analyzer
 template <template<class> class Action, template<class,int> class Interface>
-void bench_static(void)
+BTL_DONT_INLINE  void bench_static(void)
 {
   bench_static<Portable_Perf_Analyzer,Action,Interface>();
   //bench_static<Mixed_Perf_Analyzer,Action,Interface>();
