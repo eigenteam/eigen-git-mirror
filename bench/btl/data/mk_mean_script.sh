@@ -32,7 +32,7 @@ rm -R $WORK_DIR
 
 webpagefilename=$2/index.html
 # echo '<h3>'${WHAT}'</h3>'  >> $webpagefilename
-echo '<a href="/btl/'$1'.pdf"><img src="/btl/'$1'.png" alt="'${WHAT}'" /></a><br/>'  >> $webpagefilename
+echo '<hr/><a href="/btl/'$1'.pdf"><img src="/btl/'$1'.png" alt="'${WHAT}'" /></a><br/>'  >> $webpagefilename
 
 
 

@@ -1,10 +1,10 @@
-eigen2 ; with lines lw 2 lc rgbcolor "black" lt 1
-eigen2_novec ; with lines lw 1 lc rgbcolor "grey" lt 1
-gmm ; with lines lc rgbcolor "blue" lt 1
-mtl4 ; with lines lc rgbcolor "#74B973" lt 1
-blitz ; with lines lc rgbcolor "#38F5F5" lt 1
-ATLAS ; with lines lc rgbcolor "green" lt 1
-INTEL_MKL ; with lines lc rgbcolor "yellow" lt 2
-ublas ; with lines lc rgbcolor "red"  lt 1
-F77 ; with lines lc rgbcolor "#9A6B36" lt 1
-C ; with lines lc rgbcolor "#7DF4FF" lt 1
+eigen2 ;        with lines lw 4 lt 1 lc rgbcolor "black"
+eigen2_novec ;  with lines lw 3 lt 1 lc rgbcolor "#999999"
+INTEL_MKL ;     with lines lw 3 lt 2 lc rgbcolor "#00b7ff"
+ATLAS ;         with lines lw 3 lt 1 lc rgbcolor "#52e657"
+gmm ;           with lines lw 3 lt 1 lc rgbcolor "#0000ff"
+ublas ;         with lines lw 3 lt 1 lc rgbcolor "#ff0000"
+mtl4 ;          with lines lw 3 lt 1 lc rgbcolor "#d18847"
+blitz ;         with lines lw 3 lt 1 lc rgbcolor "#ff00ff"
+F77 ;           with lines lw 3 lt 3 lc rgbcolor "#e6e64c"
+C ;             with lines lw 3 lt 3 lc rgbcolor "#e6bd96"

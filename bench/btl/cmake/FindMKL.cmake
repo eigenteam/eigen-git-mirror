@@ -27,8 +27,6 @@ if(MKL_LIBRARIES)
 set(MKL_LIBRARIES ${MKL_LIBRARIES} mkl_intel_lp64 mkl_sequential guide pthread)
 endif(MKL_LIBRARIES)
 
-message(STATUS ${MKL_LIBRARIES})
-
 else(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
 find_library(MKL_LIBRARIES

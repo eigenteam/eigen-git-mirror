@@ -6,6 +6,8 @@ cat ../gnuplot_common_settings.hh > ${WHAT}.gnuplot
 cat ../${WHAT}.hh >> ${WHAT}.gnuplot
 
 DATA_FILE=`cat ../order_lib`
+echo set term postscript color rounded enhanced >> $WHAT.gnuplot
+echo set output "'"../${DIR}/$WHAT.ps"'" >> $WHAT.gnuplot
 
 echo plot \\ >> $WHAT.gnuplot
 
@@ -26,24 +28,9 @@ do
 done
 echo " " >>  $WHAT.gnuplot
 
-
-echo set term postscript color >> $WHAT.gnuplot
-echo set output "'"../${DIR}/$WHAT.ps"'" >> $WHAT.gnuplot
-echo replot >> $WHAT.gnuplot
-
-echo set term png truecolor size 800,600 >> $WHAT.gnuplot
-echo set output "'"../${DIR}/$WHAT.png"'" >> $WHAT.gnuplot
-echo replot >> $WHAT.gnuplot
-
-
 gnuplot -persist < $WHAT.gnuplot
 
 rm $WHAT.gnuplot
 
-# echo "`pwd` hh s2pdf $WHAT.ps $WHAT.pdf" > ../log.txt
-
 ps2pdf ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.pdf
-
-
-
-
+convert -density 120 -rotate 90 -resize 800 +dither -colors 48 -quality 0 ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.png
