@@ -85,16 +85,19 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
-  enum{ value = ((Rhs::Flags&Diagonal)==Diagonal) || ((Lhs::Flags&Diagonal)==Diagonal)
-              ? DiagonalProduct
-              : (Rhs::Flags & Lhs::Flags & SparseBit)
-              ? SparseProduct
-              :    Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                && ( Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                  || ((Rhs::Flags&RowMajorBit) && Lhs::IsVectorAtCompileTime))
-                && ( Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                  || ((!(Lhs::Flags&RowMajorBit)) && Rhs::IsVectorAtCompileTime))
-                ? CacheFriendlyProduct : NormalProduct };
+  enum{
+
+    value = ((Rhs::Flags&Diagonal)==Diagonal) || ((Lhs::Flags&Diagonal)==Diagonal)
+          ? DiagonalProduct
+          : (Rhs::Flags & Lhs::Flags & SparseBit)
+          ? SparseProduct
+          : Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+            && ( Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              || Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD )
+            && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!Lhs::Flags&DirectAccessBit)))
+            && (!(Lhs::IsVectorAtCompileTime && (!Rhs::Flags&RowMajorBit) && (!Rhs::Flags&DirectAccessBit)))
+          ? CacheFriendlyProduct
+          : NormalProduct };
 };
 
 /** \class Product
@@ -210,11 +213,9 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       */
     inline bool _useCacheFriendlyProduct() const
     {
-      return   m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-            && (rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                || ((_RhsNested::Flags&RowMajorBit) && _LhsNested::IsVectorAtCompileTime))
-            && (cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                || ((!(_LhsNested::Flags&RowMajorBit)) && _RhsNested::IsVectorAtCompileTime));
+      return  m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+              && (  rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+                 || cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD);
     }
 
     inline int rows() const { return m_lhs.rows(); }
@@ -365,7 +366,6 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs>
   }
 };
 
-// NOTE the following specializations are because taking .col(0) on a vector is a bit slower
 template<typename Lhs, typename Rhs, int LhsRows = Lhs::RowsAtCompileTime, int RhsCols = Rhs::ColsAtCompileTime>
 struct ei_product_coeff_vectorized_dyn_selector
 {
@@ -378,6 +378,7 @@ struct ei_product_coeff_vectorized_dyn_selector
   }
 };
 
+// NOTE the 2 following specializations are because taking .col(0) on a vector is a bit slower
 template<typename Lhs, typename Rhs, int RhsCols>
 struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
 {
@@ -483,6 +484,10 @@ template<typename Scalar, typename RhsType>
 static void ei_cache_friendly_product_colmajor_times_vector(
   int size, const Scalar* lhs, int lhsStride, const RhsType& rhs, Scalar* res);
 
+template<typename Scalar, typename ResType>
+static void ei_cache_friendly_product_rowmajor_times_vector(
+  const Scalar* lhs, int lhsStride, const Scalar* rhs, int rhsSize, ResType& res);
+
 template<typename ProductType,
   int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
   int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
@@ -538,7 +543,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
       product.rhs(), _res);
 
     if (!EvalToRes)
-      res = Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size());
+      res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
   }
 };
 
@@ -574,16 +579,81 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     else
     {
       _res = (Scalar*)alloca(sizeof(Scalar)*res.size());
-      Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
+      Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
       &product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
       product.lhs().transpose(), _res);
 
     if (!EvalToRes)
-      res = Map<Matrix<Scalar,1,DestDerived::ColsAtCompileTime> >(_res, res.size());
+      res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
   }
 };
+
+// optimized rowmajor - vector product
+template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
+struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
+{
+  typedef typename ProductType::Scalar Scalar;
+  typedef typename ei_traits<ProductType>::_RhsNested Rhs;
+  enum {
+      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Rhs::Flags&ActualPacketAccessBit))
+                     && (!(Rhs::Flags & RowMajorBit)) };
+
+  template<typename DestDerived>
+  inline static void run(DestDerived& res, const ProductType& product)
+  {
+    Scalar* __restrict__ _rhs;
+    if (UseRhsDirectly)
+       _rhs = &product.rhs().const_cast_derived().coeffRef(0);
+    else
+    {
+      _rhs = (Scalar*)alloca(sizeof(Scalar)*product.rhs().size());
+      Map<Matrix<Scalar,Rhs::SizeAtCompileTime,1> >(_rhs, product.rhs().size()) = product.rhs();
+    }
+    ei_cache_friendly_product_rowmajor_times_vector(&product.lhs().const_cast_derived().coeffRef(0,0), product.lhs().stride(),
+                                                    _rhs, product.rhs().size(), res);
+  }
+};
+
+// optimized vector - colmajor product
+template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
+struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,ColMajor,HasDirectAccess>
+{
+  typedef typename ProductType::Scalar Scalar;
+  typedef typename ei_traits<ProductType>::_LhsNested Lhs;
+  enum {
+      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Lhs::Flags&ActualPacketAccessBit))
+                     && (!(Lhs::Flags & RowMajorBit)) };
+
+  template<typename DestDerived>
+  inline static void run(DestDerived& res, const ProductType& product)
+  {
+    Scalar* __restrict__ _lhs;
+    if (UseLhsDirectly)
+       _lhs = &product.lhs().const_cast_derived().coeffRef(0);
+    else
+    {
+      _lhs = (Scalar*)alloca(sizeof(Scalar)*product.lhs().size());
+      Map<Matrix<Scalar,Lhs::SizeAtCompileTime,1> >(_lhs, product.lhs().size()) = product.lhs();
+    }
+    ei_cache_friendly_product_rowmajor_times_vector(&product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
+                                                    _lhs, product.lhs().size(), res);
+  }
+};
+
+// discard this case which has to be handled by the default path
+// (we keep it to be sure to hit a compilation error if this is not the case)
+template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
+struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,NoDirectAccess,1,RhsOrder,RhsAccess>
+{};
+
+// discard this case which has to be handled by the default path
+// (we keep it to be sure to hit a compilation error if this is not the case)
+template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
+struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,ColMajor,NoDirectAccess>
+{};
+
 
 /** \internal */
 template<typename Derived>

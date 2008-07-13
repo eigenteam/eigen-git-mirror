@@ -125,7 +125,7 @@ template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynam
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline int cols(void) const {return _Cols;}
-    inline void resize(int size, int rows, int)
+    inline void resize(int /*size*/, int rows, int)
     {
       m_rows = rows;
     }
