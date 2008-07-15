@@ -1,10 +1,13 @@
 #include <Eigen/Core>
 #include <Eigen/Array>
 #include <Eigen/LU>
+
 USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
+
 int main(int, char**)
 {
-${snippet_source_code}
-return 0;
+  cout.precision(3);
+  ${snippet_source_code}
+  return 0;
 }

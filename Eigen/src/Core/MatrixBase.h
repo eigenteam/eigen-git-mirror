@@ -516,8 +516,8 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const Inverse<typename ei_eval<Derived>::type, true> inverse() const;
-    const Inverse<typename ei_eval<Derived>::type, false> quickInverse() const;
+    const typename ei_eval<Derived>::type inverse() const;
+    void computeInverse(typename ei_eval<Derived>::type *result) const;
     Scalar determinant() const;
 
 

@@ -38,32 +38,30 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 
   MatrixType m1 = MatrixType::random(rows, cols),
              m2 = MatrixType::random(rows, cols),
-             m3(rows, cols),
              mzero = MatrixType::zero(rows, cols),
              identity = MatrixType::identity(rows, rows);
 
   m2 = m1.inverse();
   VERIFY_IS_APPROX(m1, m2.inverse() );
 
-  m3 = (m1+m2).inverse();
-  VERIFY_IS_APPROX(m3+m1, (m1+m2).inverse()+m1);
+  m1.computeInverse(&m2);
+  VERIFY_IS_APPROX(m1, m2.inverse() );
 
-  VERIFY_IS_APPROX(m1, m1.inverse().eval().inverse() );
+  VERIFY_IS_APPROX((Scalar(2)*m2).inverse(), m2.inverse()*Scalar(0.5));
 
-  VERIFY_IS_NOT_APPROX(m1, m1.inverse() );
   VERIFY_IS_APPROX(identity, m1.inverse() * m1 );
   VERIFY_IS_APPROX(identity, m1 * m1.inverse() );
 
-  // this one fails:
-  VERIFY_IS_APPROX(m1, (m1.inverse()).inverse() );
+  VERIFY_IS_APPROX(m1, m1.inverse().inverse() );
 }
 
 void test_inverse()
 {
   for(int i = 0; i < 1; i++) {
-    CALL_SUBTEST( inverse(Matrix2f()) );
+    CALL_SUBTEST( inverse(Matrix<double,1,1>()) );
+    CALL_SUBTEST( inverse(Matrix2d()) );
     CALL_SUBTEST( inverse(Matrix3f()) );
-    CALL_SUBTEST( inverse(Matrix4d()) );
-//     CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
+    CALL_SUBTEST( inverse(Matrix4f()) );
+    CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
   }
 }

@@ -25,134 +25,113 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
-/** \lu_module
-  *
-  * \class Inverse
-  *
-  * \brief Inverse of a matrix
-  *
-  * \param MatrixType the type of the matrix of which we are taking the inverse
-  * \param CheckExistence whether or not to check the existence of the inverse while computing it
-  *
-  * This class represents the inverse of a matrix. It is the return
-  * type of MatrixBase::inverse() and most of the time this is the only way it
-  * is used.
-  *
-  * \sa MatrixBase::inverse(), MatrixBase::quickInverse()
-  */
-template<typename MatrixType, bool CheckExistence>
-struct ei_traits<Inverse<MatrixType, CheckExistence> >
+/***************************************************************************
+*** Part 1 : implementation in the general case, by Gaussian elimination ***
+***************************************************************************/
+
+template<typename MatrixType, int StorageOrder>
+struct ei_compute_inverse_in_general_case;
+
+template<typename MatrixType>
+struct ei_compute_inverse_in_general_case<MatrixType, RowMajor>
+{
+  static void run(const MatrixType& _matrix, MatrixType *result)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    MatrixType matrix(_matrix);
+    MatrixType &inverse = *result;
+    inverse.setIdentity();
+    const int size = matrix.rows();
+    for(int k = 0; k < size-1; k++)
+    {
+      int rowOfBiggest;
+      matrix.col(k).end(size-k).cwise().abs().maxCoeff(&rowOfBiggest);
+      inverse.row(k).swap(inverse.row(k+rowOfBiggest));
+      matrix.row(k).swap(matrix.row(k+rowOfBiggest));
+
+      const Scalar d = matrix(k,k);
+      inverse.block(k+1, 0, size-k-1, size)
+        -= matrix.col(k).end(size-k-1) * (inverse.row(k) / d);
+      matrix.corner(BottomRight, size-k-1, size-k)
+        -= matrix.col(k).end(size-k-1) * (matrix.row(k).end(size-k) / d);
+    }
+
+    for(int k = 0; k < size-1; k++)
+    {
+      const Scalar d = static_cast<Scalar>(1)/matrix(k,k);
+      matrix.row(k).end(size-k) *= d;
+      inverse.row(k) *= d;
+    }
+    inverse.row(size-1) /= matrix(size-1,size-1);
+
+    for(int k = size-1; k >= 1; k--)
+    {
+      inverse.block(0,0,k,size) -= matrix.col(k).start(k) * inverse.row(k);
+    }
+  }
+};
+
+template<typename MatrixType>
+struct ei_compute_inverse_in_general_case<MatrixType, ColMajor>
+{
+  static void run(const MatrixType& _matrix, MatrixType *result)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    MatrixType matrix(_matrix);
+    MatrixType& inverse = *result;
+    inverse.setIdentity();
+    const int size = matrix.rows();
+    for(int k = 0; k < size-1; k++)
+    {
+      int colOfBiggest;
+      matrix.row(k).end(size-k).cwise().abs().maxCoeff(&colOfBiggest);
+      inverse.col(k).swap(inverse.col(k+colOfBiggest));
+      matrix.col(k).swap(matrix.col(k+colOfBiggest));
+
+      const Scalar d = matrix(k,k);
+      inverse.block(0, k+1, size, size-k-1)
+        -= (inverse.col(k) / d) * matrix.row(k).end(size-k-1);
+      matrix.corner(BottomRight, size-k, size-k-1)
+        -= (matrix.col(k).end(size-k) / d) * matrix.row(k).end(size-k-1);
+    }
+
+    for(int k = 0; k < size-1; k++)
+    {
+      const Scalar d = static_cast<Scalar>(1)/matrix(k,k);
+      matrix.col(k).end(size-k) *= d;
+      inverse.col(k) *= d;
+    }
+    inverse.col(size-1) /= matrix(size-1,size-1);
+
+    for(int k = size-1; k >= 1; k--)
+    {
+      inverse.block(0,0,size,k) -= inverse.col(k) * matrix.row(k).start(k);
+    }
+  }
+};
+
+/********************************************************************
+*** Part 2 : optimized implementations for fixed-size 2,3,4 cases ***
+********************************************************************/
+
+template<typename MatrixType>
+void ei_compute_inverse_in_size2_case(const MatrixType& matrix, MatrixType* result)
 {
   typedef typename MatrixType::Scalar Scalar;
-  enum {
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags,
-    CoeffReadCost = MatrixType::CoeffReadCost
-  };
-};
-
-template<typename MatrixType, bool CheckExistence> class Inverse : ei_no_assignment_operator,
-  public MatrixBase<Inverse<MatrixType, CheckExistence> >
-{
-  public:
-
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Inverse)
-
-    Inverse(const MatrixType& matrix)
-      : m_inverse(MatrixType::identity(matrix.rows(), matrix.cols()))
-    {
-      if(CheckExistence) m_exists = true;
-      ei_assert(matrix.rows() == matrix.cols());
-      _compute(matrix);
-    }
-
-    /** \returns whether or not the inverse exists.
-      *
-      * \note This method is only available if CheckExistence is set to true, which is the default value.
-      *       For instance, when using quickInverse(), this method is not available.
-      */
-    bool exists() const { assert(CheckExistence); return m_exists; }
-
-    int rows() const { return m_inverse.rows(); }
-    int cols() const { return m_inverse.cols(); }
-
-    const Scalar coeff(int row, int col) const
-    {
-      return m_inverse.coeff(row, col);
-    }
-
-    template<int LoadMode>
-    PacketScalar packet(int row, int col) const
-    {
-      return m_inverse.template packet<LoadMode>(row, col);
-    }
-
-    enum { _Size = MatrixType::RowsAtCompileTime };
-    void _compute(const MatrixType& matrix);
-    void _compute_in_general_case(const MatrixType& matrix);
-    void _compute_in_size2_case(const MatrixType& matrix);
-    void _compute_in_size3_case(const MatrixType& matrix);
-    void _compute_in_size4_case(const MatrixType& matrix);
-
-  protected:
-    bool m_exists;
-    typename MatrixType::Eval m_inverse;
-};
-
-template<typename MatrixType, bool CheckExistence>
-void Inverse<MatrixType, CheckExistence>
-::_compute_in_general_case(const MatrixType& _matrix)
-{
-  MatrixType matrix(_matrix);
-  const RealScalar max = CheckExistence ? matrix.cwise().abs().maxCoeff()
-                                        : static_cast<RealScalar>(0);
-  const int size = matrix.rows();
-  for(int k = 0; k < size-1; k++)
-  {
-    int rowOfBiggest;
-    const RealScalar max_in_this_col
-      = matrix.col(k).end(size-k).cwise().abs().maxCoeff(&rowOfBiggest);
-    if(CheckExistence && ei_isMuchSmallerThan(max_in_this_col, max))
-    { m_exists = false; return; }
-
-    m_inverse.row(k).swap(m_inverse.row(k+rowOfBiggest));
-    matrix.row(k).swap(matrix.row(k+rowOfBiggest));
-
-    const Scalar d = matrix(k,k);
-    m_inverse.block(k+1, 0, size-k-1, size)
-      -= matrix.col(k).end(size-k-1) * (m_inverse.row(k) / d);
-    matrix.corner(BottomRight, size-k-1, size-k)
-      -= matrix.col(k).end(size-k-1) * (matrix.row(k).end(size-k) / d);
-  }
-
-  for(int k = 0; k < size-1; k++)
-  {
-    const Scalar d = static_cast<Scalar>(1)/matrix(k,k);
-    matrix.row(k).end(size-k) *= d;
-    m_inverse.row(k) *= d;
-  }
-  if(CheckExistence && ei_isMuchSmallerThan(matrix(size-1,size-1), max))
-  { m_exists = false; return; }
-  m_inverse.row(size-1) /= matrix(size-1,size-1);
-
-  for(int k = size-1; k >= 1; k--)
-  {
-    m_inverse.block(0,0,k,size) -= matrix.col(k).start(k) * m_inverse.row(k);
-  }
+  const Scalar invdet = Scalar(1) / matrix.determinant();
+  result->coeffRef(0,0) = matrix.coeff(1,1) * invdet;
+  result->coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
+  result->coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
+  result->coeffRef(1,1) = matrix.coeff(0,0) * invdet;
 }
 
-template<typename ExpressionType, bool CheckExistence>
-bool ei_compute_size2_inverse(const ExpressionType& xpr, typename ExpressionType::Eval* result)
+template<typename XprType, typename MatrixType>
+bool ei_compute_inverse_in_size2_case_with_check(const XprType& matrix, MatrixType* result)
 {
-  typedef typename ExpressionType::Scalar Scalar;
-  const typename ei_nested<ExpressionType, 1+CheckExistence>::type matrix(xpr);
+  typedef typename MatrixType::Scalar Scalar;
   const Scalar det = matrix.determinant();
-  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff()))
-    return false;
-  const Scalar invdet = static_cast<Scalar>(1) / det;
+  if(ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff())) return false;
+  const Scalar invdet = Scalar(1) / det;
   result->coeffRef(0,0) = matrix.coeff(1,1) * invdet;
   result->coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
   result->coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
@@ -160,34 +139,29 @@ bool ei_compute_size2_inverse(const ExpressionType& xpr, typename ExpressionType
   return true;
 }
 
-template<typename MatrixType, bool CheckExistence>
-void Inverse<MatrixType, CheckExistence>::_compute_in_size3_case(const MatrixType& matrix)
+template<typename MatrixType>
+void ei_compute_inverse_in_size3_case(const MatrixType& matrix, MatrixType* result)
 {
+  typedef typename MatrixType::Scalar Scalar;
   const Scalar det_minor00 = matrix.minor(0,0).determinant();
   const Scalar det_minor10 = matrix.minor(1,0).determinant();
   const Scalar det_minor20 = matrix.minor(2,0).determinant();
-  const Scalar det = det_minor00 * matrix.coeff(0,0)
-                   - det_minor10 * matrix.coeff(1,0)
-                   + det_minor20 * matrix.coeff(2,0);
-  if(CheckExistence && ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff()))
-    m_exists = false;
-  else
-  {
-    const Scalar invdet = static_cast<Scalar>(1) / det;
-    m_inverse.coeffRef(0, 0) = det_minor00 * invdet;
-    m_inverse.coeffRef(0, 1) = -det_minor10 * invdet;
-    m_inverse.coeffRef(0, 2) = det_minor20 * invdet;
-    m_inverse.coeffRef(1, 0) = -matrix.minor(0,1).determinant() * invdet;
-    m_inverse.coeffRef(1, 1) = matrix.minor(1,1).determinant() * invdet;
-    m_inverse.coeffRef(1, 2) = -matrix.minor(2,1).determinant() * invdet;
-    m_inverse.coeffRef(2, 0) = matrix.minor(0,2).determinant() * invdet;
-    m_inverse.coeffRef(2, 1) = -matrix.minor(1,2).determinant() * invdet;
-    m_inverse.coeffRef(2, 2) = matrix.minor(2,2).determinant() * invdet;
-  }
+  const Scalar invdet = Scalar(1) / ( det_minor00 * matrix.coeff(0,0)
+                                    - det_minor10 * matrix.coeff(1,0)
+                                    + det_minor20 * matrix.coeff(2,0) );
+  result->coeffRef(0, 0) = det_minor00 * invdet;
+  result->coeffRef(0, 1) = -det_minor10 * invdet;
+  result->coeffRef(0, 2) = det_minor20 * invdet;
+  result->coeffRef(1, 0) = -matrix.minor(0,1).determinant() * invdet;
+  result->coeffRef(1, 1) = matrix.minor(1,1).determinant() * invdet;
+  result->coeffRef(1, 2) = -matrix.minor(2,1).determinant() * invdet;
+  result->coeffRef(2, 0) = matrix.minor(0,2).determinant() * invdet;
+  result->coeffRef(2, 1) = -matrix.minor(1,2).determinant() * invdet;
+  result->coeffRef(2, 2) = matrix.minor(2,2).determinant() * invdet;
 }
 
-template<typename MatrixType, bool CheckExistence>
-void Inverse<MatrixType, CheckExistence>::_compute_in_size4_case(const MatrixType& matrix)
+template<typename MatrixType>
+bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixType* result)
 {
   /* Let's split M into four 2x2 blocks:
     * (P Q)
@@ -205,8 +179,7 @@ void Inverse<MatrixType, CheckExistence>::_compute_in_size4_case(const MatrixTyp
   typedef Block<MatrixType,2,2> XprBlock22;
   typedef typename XprBlock22::Eval Block22;
   Block22 P_inverse;
-
-  if(ei_compute_size2_inverse<XprBlock22, true>(matrix.template block<2,2>(0,0), &P_inverse))
+  if(ei_compute_inverse_in_size2_case_with_check(matrix.template block<2,2>(0,0), &P_inverse))
   {
     const Block22 Q = matrix.template block<2,2>(0,2);
     const Block22 P_inverse_times_Q = P_inverse * Q;
@@ -216,78 +189,147 @@ void Inverse<MatrixType, CheckExistence>::_compute_in_size4_case(const MatrixTyp
     const XprBlock22 S = matrix.template block<2,2>(2,2);
     const Block22 X = S - R_times_P_inverse_times_Q;
     Block22 Y;
-    if(ei_compute_size2_inverse<Block22, CheckExistence>(X, &Y))
-    {
-      m_inverse.template block<2,2>(2,2) = Y;
-      m_inverse.template block<2,2>(2,0) = - Y * R_times_P_inverse;
-      const Block22 Z = P_inverse_times_Q * Y;
-      m_inverse.template block<2,2>(0,2) = - Z;
-      m_inverse.template block<2,2>(0,0) = P_inverse + Z * R_times_P_inverse;
-    }
-    else
-    {
-      m_exists = false; return;
-    }
+    ei_compute_inverse_in_size2_case(X, &Y);
+    result->template block<2,2>(2,2) = Y;
+    result->template block<2,2>(2,0) = - Y * R_times_P_inverse;
+    const Block22 Z = P_inverse_times_Q * Y;
+    result->template block<2,2>(0,2) = - Z;
+    result->template block<2,2>(0,0) = P_inverse + Z * R_times_P_inverse;
+    return true;
   }
   else
   {
-    _compute_in_general_case(matrix);
+    return false;
   }
 }
 
-template<typename MatrixType, bool CheckExistence>
-void Inverse<MatrixType, CheckExistence>::_compute(const MatrixType& matrix)
+template<typename MatrixType>
+void ei_compute_inverse_in_size4_case(const MatrixType& matrix, MatrixType* result)
 {
-  if(_Size == 1)
+  if(ei_compute_inverse_in_size4_case_helper(matrix, result))
   {
-    const Scalar x = matrix.coeff(0,0);
-    if(CheckExistence && x == static_cast<Scalar>(0))
-      m_exists = false;
-    else
-      m_inverse.coeffRef(0,0) = static_cast<Scalar>(1) / x;
+    // good ! The topleft 2x2 block was invertible, so the 2x2 blocks approach is successful.
+    return;
   }
-  else if(_Size == 2)
+  else
   {
-    if(CheckExistence)
-      m_exists = ei_compute_size2_inverse<MatrixType, true>(matrix, &m_inverse);
+    // rare case: the topleft 2x2 block is not invertible (but the matrix itself is assumed to be).
+    // since this is a rare case, we don't need to optimize it. We just want to handle it with little
+    // additional code.
+    MatrixType m(matrix);
+    m.row(1).swap(m.row(2));
+    if(ei_compute_inverse_in_size4_case_helper(m, result))
+    {
+      // good, the topleft 2x2 block of m is invertible. Since m is different from matrix in that two
+      // rows were permuted, the actual inverse of matrix is derived from the inverse of m by permuting
+      // the corresponding columns.
+      result->col(1).swap(result->col(2));
+    }
     else
-      ei_compute_size2_inverse<MatrixType, false>(matrix, &m_inverse);
+    {
+      // last possible case. Since matrix is assumed to be invertible, this last case has to work.
+      m.row(1).swap(m.row(2));
+      m.row(1).swap(m.row(3));
+      ei_compute_inverse_in_size4_case_helper(m, result);
+      result->col(1).swap(result->col(3));
+    }
   }
-  else if(_Size == 3) _compute_in_size3_case(matrix);
-  else if(_Size == 4) _compute_in_size4_case(matrix);
-  else _compute_in_general_case(matrix);
+}
+
+/***********************************************
+*** Part 3 : selector and MatrixBase methods ***
+***********************************************/
+
+template<typename MatrixType, int Size = MatrixType::RowsAtCompileTime>
+struct ei_compute_inverse
+{
+  static inline void run(const MatrixType& matrix, MatrixType* result)
+  {
+    ei_compute_inverse_in_general_case<MatrixType, MatrixType::Flags&RowMajorBit>
+      ::run(matrix, result);
+  }
+};
+
+template<typename MatrixType>
+struct ei_compute_inverse<MatrixType, 1>
+{
+  static inline void run(const MatrixType& matrix, MatrixType* result)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    result->coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
+  }
+};
+
+template<typename MatrixType>
+struct ei_compute_inverse<MatrixType, 2>
+{
+  static inline void run(const MatrixType& matrix, MatrixType* result)
+  {
+    ei_compute_inverse_in_size2_case(matrix, result);
+  }
+};
+
+template<typename MatrixType>
+struct ei_compute_inverse<MatrixType, 3>
+{
+  static inline void run(const MatrixType& matrix, MatrixType* result)
+  {
+    ei_compute_inverse_in_size3_case(matrix, result);
+  }
+};
+
+template<typename MatrixType>
+struct ei_compute_inverse<MatrixType, 4>
+{
+  static inline void run(const MatrixType& matrix, MatrixType* result)
+  {
+    ei_compute_inverse_in_size4_case(matrix, result);
+  }
+};
+
+/** \lu_module
+  *
+  * Computes the matrix inverse of this matrix.
+  *
+  * \note This matrix must be invertible, otherwise the result is undefined.
+  *
+  * \param result Pointer to the matrix in which to store the result.
+  *
+  * Example: \include MatrixBase_computeInverse.cpp
+  * Output: \verbinclude MatrixBase_computeInverse.out
+  *
+  * \sa inverse()
+  */
+template<typename Derived>
+inline void MatrixBase<Derived>::computeInverse(typename ei_eval<Derived>::type *result) const
+{
+  typedef typename ei_eval<Derived>::type MatrixType;
+  ei_assert(rows() == cols());
+  ei_assert(NumTraits<Scalar>::HasFloatingPoint);
+  ei_compute_inverse<MatrixType>::run(eval(), result);
 }
 
 /** \lu_module
   *
-  * \returns the matrix inverse of \c *this, if it exists.
+  * \returns the matrix inverse of this matrix.
+  *
+  * \note This matrix must be invertible, otherwise the result is undefined.
+  *
+  * \note This method returns a matrix by value, which can be inefficient. To avoid that overhead,
+  * use computeInverse() instead.
   *
   * Example: \include MatrixBase_inverse.cpp
   * Output: \verbinclude MatrixBase_inverse.out
   *
-  * \sa class Inverse
+  * \sa computeInverse()
   */
 template<typename Derived>
-const Inverse<typename ei_eval<Derived>::type, true>
-MatrixBase<Derived>::inverse() const
+inline const typename ei_eval<Derived>::type MatrixBase<Derived>::inverse() const
 {
-  return Inverse<typename Derived::Eval, true>(eval());
-}
-
-/** \lu_module
-  *
-  * \returns the matrix inverse of \c *this, which is assumed to exist.
-  *
-  * Example: \include MatrixBase_quickInverse.cpp
-  * Output: \verbinclude MatrixBase_quickInverse.out
-  *
-  * \sa class Inverse
-  */
-template<typename Derived>
-const Inverse<typename ei_eval<Derived>::type, false>
-MatrixBase<Derived>::quickInverse() const
-{
-  return Inverse<typename Derived::Eval, false>(eval());
+  typedef typename ei_eval<Derived>::type MatrixType;
+  MatrixType result(rows(), cols());
+  computeInverse(&result);
+  return result;
 }
 
 #endif // EIGEN_INVERSE_H
