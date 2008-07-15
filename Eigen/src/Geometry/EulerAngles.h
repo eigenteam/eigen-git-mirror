@@ -57,7 +57,6 @@ protected:
 public:
 
   EulerAngles() {}
-  template<typename Derived>
   inline EulerAngles(Scalar a0, Scalar a1, Scalar a2) : m_angles(a0, a1, a2) {}
   inline EulerAngles(const QuaternionType& q) { *this = q; }
   inline EulerAngles(const AngleAxisType& aa) { *this = aa; }
