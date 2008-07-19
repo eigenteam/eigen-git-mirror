@@ -113,6 +113,8 @@ struct MatrixBase<Derived>::CommaInitializer
   * The coefficients must be provided in a row major order and exactly match
   * the size of the matrix. Otherwise an assertion is raised.
   *
+  * \addexample CommaInit \label How to easily set all the coefficients of a matrix
+  *
   * Example: \include MatrixBase_set.cpp
   * Output: \verbinclude MatrixBase_set.out
   */

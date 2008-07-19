@@ -44,6 +44,8 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
   * it is redundant to pass \a rows and \a cols as arguments, so ei_random() should be used
   * instead.
   *
+  * \addexample RandomExample \label How to create a matrix with random coefficients
+  *
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
   *

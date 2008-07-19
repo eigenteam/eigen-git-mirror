@@ -5,6 +5,8 @@
 
 namespace Eigen {
 
+/** \defgroup Geometry */
+
 #include "src/Geometry/Cross.h"
 #include "src/Geometry/Quaternion.h"
 #include "src/Geometry/AngleAxis.h"

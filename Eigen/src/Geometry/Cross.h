@@ -25,7 +25,8 @@
 #ifndef EIGEN_CROSS_H
 #define EIGEN_CROSS_H
 
-/** \returns the cross product of \c *this and \a other */
+/** \geometry_module
+  * \returns the cross product of \c *this and \a other */
 template<typename Derived>
 template<typename OtherDerived>
 inline typename ei_eval<Derived>::type

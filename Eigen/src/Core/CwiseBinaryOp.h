@@ -228,6 +228,8 @@ Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
   * The template parameter \a CustomBinaryOp is the type of the functor
   * of the custom operator (see class CwiseBinaryOp for an example)
   *
+  * \addexample CustomCwiseBinaryFunctors \label How to use custom coeff wise binary functors
+  *
   * Here is an example illustrating the use of custom functors:
   * \include class_CwiseBinaryOp.cpp
   * Output: \verbinclude class_CwiseBinaryOp.out

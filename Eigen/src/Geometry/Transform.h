@@ -35,7 +35,9 @@ template< typename Other,
           int OtherCols=Other::ColsAtCompileTime>
 struct ei_transform_product_impl;
 
-/** \class Transform
+/** \geometry_module \ingroup Geometry
+  *
+  * \class Transform
   *
   * \brief Represents an homogeneous transformation in a N dimensional space
   *

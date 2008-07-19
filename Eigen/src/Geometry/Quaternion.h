@@ -30,7 +30,9 @@ template<typename Other,
          int OtherCols=Other::ColsAtCompileTime>
 struct ei_quaternion_assign_impl;
 
-/** \class Quaternion
+/** \geometry_module \ingroup Geometry
+  *
+  * \class Quaternion
   *
   * \brief The quaternion class used to represent 3D orientations and rotations
   *
@@ -48,7 +50,7 @@ struct ei_quaternion_assign_impl;
   * \li \c Quaternionf for \c float
   * \li \c Quaterniond for \c double
   *
-  * \sa  class AngleAxis, class EulerAngles, class Transform
+  * \sa  class AngleAxis, class Transform
   */
 template<typename _Scalar>
 class Quaternion

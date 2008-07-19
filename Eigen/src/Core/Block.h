@@ -341,6 +341,8 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
   * \param blockRows the number of rows in the block
   * \param blockCols the number of columns in the block
   *
+  * \addexample BlockIntIntIntInt \label How to reference a sub-matrix (dynamic-size)
+  *
   * Example: \include MatrixBase_block_int_int_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int_int_int.out
   *
@@ -368,6 +370,8 @@ inline const Block<Derived> MatrixBase<Derived>
 /** \returns a dynamic-size expression of a block in *this.
   *
   * \only_for_vectors
+  *
+  * \addexample BlockIntInt \label How to reference a sub-vector (dynamic size)
   *
   * \param start the first coefficient in the block
   * \param size the number of coefficients in the block
@@ -410,6 +414,8 @@ inline const Block<Derived> MatrixBase<Derived>
   *
   * \param size the number of coefficients in the block
   *
+  * \addexample BlockInt \label How to reference a sub-vector (fixed-size)
+  *
   * Example: \include MatrixBase_start_int.cpp
   * Output: \verbinclude MatrixBase_start_int.out
   *
@@ -451,6 +457,8 @@ MatrixBase<Derived>::start(int size) const
   * \only_for_vectors
   *
   * \param size the number of coefficients in the block
+  *
+  * \addexample BlockEnd \label How to reference the end of a vector (fixed-size)
   *
   * Example: \include MatrixBase_end_int.cpp
   * Output: \verbinclude MatrixBase_end_int.out
@@ -497,6 +505,8 @@ MatrixBase<Derived>::end(int size) const
   * \only_for_vectors
   *
   * The template parameter \a Size is the number of coefficients in the block
+  *
+  * \addexample BlockStart \label How to reference the start of a vector (fixed-size)
   *
   * Example: \include MatrixBase_template_int_start.cpp
   * Output: \verbinclude MatrixBase_template_int_start.out
@@ -568,6 +578,8 @@ MatrixBase<Derived>::end() const
   * \a Eigen::BottomLeft, \a Eigen::BottomRight.
   * \param cRows the number of rows in the corner
   * \param cCols the number of columns in the corner
+  *
+  * \addexample BlockCornerDynamicSize \label How to reference a sub-corner of a matrix
   *
   * Example: \include MatrixBase_corner_enum_int_int.cpp
   * Output: \verbinclude MatrixBase_corner_enum_int_int.out
@@ -678,6 +690,8 @@ inline const Block<Derived, CRows, CCols> MatrixBase<Derived>
   * \param startRow the first row in the block
   * \param startCol the first column in the block
   *
+  * \addexample BlockSubMatrixFixedSize \label How to reference a sub-matrix (fixed-size)
+  *
   * Example: \include MatrixBase_block_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int.out
   *
@@ -705,6 +719,8 @@ inline const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
 
 /** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
   *
+  * \addexample BlockColumn \label How to reference a single column of a matrix
+  *
   * Example: \include MatrixBase_col.cpp
   * Output: \verbinclude MatrixBase_col.out
   *
@@ -725,6 +741,8 @@ MatrixBase<Derived>::col(int i) const
 }
 
 /** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
+  *
+  * \addexample BlockRow \label How to reference a single row of a matrix
   *
   * Example: \include MatrixBase_row.cpp
   * Output: \verbinclude MatrixBase_row.out

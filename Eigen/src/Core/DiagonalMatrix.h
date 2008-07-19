@@ -84,6 +84,8 @@ class DiagonalMatrix : ei_no_assignment_operator,
   *
   * \only_for_vectors
   *
+  * \addexample AsDiagonalExample \label How to build a diagonal matrix from a vector
+  *
   * Example: \include MatrixBase_asDiagonal.cpp
   * Output: \verbinclude MatrixBase_asDiagonal.out
   *

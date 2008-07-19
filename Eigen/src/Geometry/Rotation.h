@@ -28,7 +28,9 @@
 // this file aims to contains the various representations of rotation/orientation
 // in 2D and 3D space excepted Matrix and Quaternion.
 
-/** \class ToRotationMatrix
+/** \geometry_module
+  *
+  * \class ToRotationMatrix
   *
   * \brief Template static struct to convert any rotation representation to a matrix form
   *
@@ -101,7 +103,9 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   }
 };
 
-/** \class Rotation2D
+/** \geometry_module
+  *
+  * \class Rotation2D
   *
   * \brief Represents a rotation/orientation in a 2 dimensional space.
   *

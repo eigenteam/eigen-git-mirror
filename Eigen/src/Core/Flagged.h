@@ -121,6 +121,8 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
 /** \returns an expression of *this with added flags
   *
+  * \addexample MarkExample \label How to mark a triangular matrix as triangular
+  *
   * Example: \include MatrixBase_marked.cpp
   * Output: \verbinclude MatrixBase_marked.out
   *

@@ -197,9 +197,12 @@ TAB_SIZE               = 8
 # You can put \n's in the value part of an alias to insert newlines.
 
 ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column." \
-                         "array_module=This is defined in the %Array module. \code #include<Eigen/Array> \endcode" \
-                         "lu_module=This is defined in the %LU module. \code #include<Eigen/LU> \endcode" \
-                         "qr_module=This is defined in the %QR module. \code #include<Eigen/QR> \endcode"
+                         "array_module=This is defined in the %Array module. \code #include <Eigen/Array> \endcode" \
+                         "lu_module=This is defined in the %LU module. \code #include <Eigen/LU> \endcode" \
+                         "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode" \
+                         "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode" \
+                         "addexample=\anchor"  \
+                         "label=\bug"
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C
 # sources only. Doxygen will then generate output that is more tailored for C.
 # For instance, some of the names that are used will be different. The list
@@ -547,7 +550,8 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ${CMAKE_SOURCE_DIR}/Eigen \
-                         ${CMAKE_SOURCE_DIR}/doc
+                         ${CMAKE_SOURCE_DIR}/doc \
+                         ${CMAKE_BINARY_DIR}/doc
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -576,7 +580,7 @@ RECURSIVE              = NO
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                =
+EXCLUDE                = 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded
@@ -592,6 +596,7 @@ EXCLUDE_SYMLINKS       = NO
 
 EXCLUDE_PATTERNS       = CMake* \
                          *.txt \
+                         *.sh \
                          *~
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names

@@ -94,6 +94,8 @@ template<typename MatrixType, unsigned int Mode> class Extract
   * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
   * \c Lower, \c StrictlyLower, \c UnitLower.
   *
+  * \addexample ExtractExample \label How to extract a triangular part of an arbitrary matrix
+  *
   * Example: \include MatrixBase_extract.cpp
   * Output: \verbinclude MatrixBase_extract.out
   *

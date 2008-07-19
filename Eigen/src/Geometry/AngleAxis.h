@@ -25,9 +25,11 @@
 #ifndef EIGEN_ANGLEAXIS_H
 #define EIGEN_ANGLEAXIS_H
 
-/** \class AngleAxis
+/** \geometry_module \ingroup Geometry
   *
-  * \brief Represents a rotation in a 3 dimensional space as a rotation angle around a 3D axis
+  * \class AngleAxis
+  *
+  * \brief Represents a 3D rotation as a rotation angle around an arbitray 3D axis
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients.
   *
@@ -35,7 +37,7 @@
   * \li \c AngleAxisf for \c float
   * \li \c AngleAxisd for \c double
   *
-  * \sa class Quaternion, class EulerAngles, class Transform
+  * \sa class Quaternion, class Transform
   */
 template<typename _Scalar>
 class AngleAxis
