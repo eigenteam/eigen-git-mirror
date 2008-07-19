@@ -40,12 +40,12 @@ template<typename Scalar> void geometry(void)
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternion;
   typedef AngleAxis<Scalar> AngleAxis;
-  typedef EulerAngles<Scalar> EulerAngles;
 
   Quaternion q1, q2;
   Vector3 v0 = Vector3::random(),
     v1 = Vector3::random(),
     v2 = Vector3::random();
+  Matrix3 matrot1;
 
   Scalar a = ei_random<Scalar>(-M_PI, M_PI);
 
@@ -61,11 +61,13 @@ template<typename Scalar> void geometry(void)
   q2 = q1.toRotationMatrix();
   VERIFY_IS_APPROX(q1*v1,q2*v1);
 
-  // Euler angle conversion
-  VERIFY_IS_APPROX(Quaternion(EulerAngles(q1)) * v1, q1 * v1);
-  EulerAngles ea = q2;
-  VERIFY_IS_APPROX(EulerAngles(Quaternion(ea)).coeffs(), ea.coeffs());
-  VERIFY_IS_NOT_APPROX(EulerAngles(Quaternion(EulerAngles(v2.cwise() * Vector3(0.2,-0.2,1)))).coeffs(), v2);
+  matrot1 = AngleAxis(0.1, Vector3::UnitX())
+          * AngleAxis(0.2, Vector3::UnitY())
+          * AngleAxis(0.3, Vector3::UnitZ());
+  VERIFY_IS_APPROX(matrot1 * v1,
+       AngleAxis(0.1, Vector3(1,0,0)).toRotationMatrix()
+    * (AngleAxis(0.2, Vector3(0,1,0)).toRotationMatrix()
+    * (AngleAxis(0.3, Vector3(0,0,1)).toRotationMatrix() * v1)));
 
   // angle-axis conversion
   AngleAxis aa = q1;

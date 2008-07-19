@@ -148,6 +148,10 @@ template<typename Derived> class MatrixBase
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
+    /** type of the equivalent square matrix */
+    typedef Matrix<Scalar,EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime),
+                          EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime)> SquareMatrixType;
+
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
     inline int rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
@@ -193,7 +197,14 @@ template<typename Derived> class MatrixBase
     /** the return type of MatrixBase::adjoint() */
     typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
             AdjointReturnType;
+    /** the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
+    /** the return type of identity */
+    typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
+    /** the return type of unit vectors */
+    typedef Block<CwiseNullaryOp<ei_scalar_identity_op<Scalar>, SquareMatrixType>,
+                  ei_traits<Derived>::RowsAtCompileTime,
+                  ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
 
 
     /** Copies \a other into *this. \returns a reference to *this. */
@@ -391,8 +402,14 @@ template<typename Derived> class MatrixBase
     static const ConstantReturnType ones(int rows, int cols);
     static const ConstantReturnType ones(int size);
     static const ConstantReturnType ones();
-    static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity();
-    static const CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> identity(int rows, int cols);
+    static const IdentityReturnType identity();
+    static const IdentityReturnType identity(int rows, int cols);
+    static const BasisReturnType Unit(int size, int i);
+    static const BasisReturnType Unit(int i);
+    static const BasisReturnType UnitX();
+    static const BasisReturnType UnitY();
+    static const BasisReturnType UnitZ();
+    static const BasisReturnType UnitW();
 
     const DiagonalMatrix<Derived> asDiagonal() const;
 

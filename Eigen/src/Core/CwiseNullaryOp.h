@@ -43,13 +43,13 @@
 template<typename NullaryOp, typename MatrixType>
 struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum {
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (MatrixType::Flags
+    RowsAtCompileTime = ei_traits<MatrixType>::RowsAtCompileTime,
+    ColsAtCompileTime = ei_traits<MatrixType>::ColsAtCompileTime,
+    MaxRowsAtCompileTime = ei_traits<MatrixType>::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = ei_traits<MatrixType>::MaxColsAtCompileTime,
+    Flags = (ei_traits<MatrixType>::Flags
       & (  HereditaryBits
          | (ei_functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
          | (ei_functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
@@ -453,7 +453,7 @@ Derived& MatrixBase<Derived>::setOnes()
   * \sa identity(), setIdentity(), isIdentity()
   */
 template<typename Derived>
-inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const typename MatrixBase<Derived>::IdentityReturnType
 MatrixBase<Derived>::identity(int rows, int cols)
 {
   return NullaryExpr(rows, cols, ei_scalar_identity_op<Scalar>());
@@ -470,7 +470,7 @@ MatrixBase<Derived>::identity(int rows, int cols)
   * \sa identity(int,int), setIdentity(), isIdentity()
   */
 template<typename Derived>
-inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const typename MatrixBase<Derived>::IdentityReturnType
 MatrixBase<Derived>::identity()
 {
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
@@ -521,5 +521,73 @@ inline Derived& MatrixBase<Derived>::setIdentity()
 {
   return *this = identity(rows(), cols());
 }
+
+/** \returns an expression of the i-th unit (basis) vector.
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::Unit(int), MatrixBase::UnitX(), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int size, int i)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  return BasisReturnType(SquareMatrixType::identity(size,size), i);
+}
+
+/** \returns an expression of the i-th unit (basis) vector.
+  *
+  * \only_for_vectors
+  *
+  * This variant is for fixed-size vector only.
+  *
+  * \sa MatrixBase::Unit(int,int), MatrixBase::UnitX(), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int i)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  return BasisReturnType(SquareMatrixType::identity(),i);
+}
+
+/** \returns an expression of the X axis unit vector (1{,0}^*)
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::Unit(int,int), MatrixBase::Unit(int), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitX()
+{ return Derived::Unit(0); }
+
+/** \returns an expression of the Y axis unit vector (0,1{,0}^*)
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::Unit(int,int), MatrixBase::Unit(int), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitY()
+{ return Derived::Unit(1); }
+
+/** \returns an expression of the Z axis unit vector (0,0,1{,0}^*)
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::Unit(int,int), MatrixBase::Unit(int), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitZ()
+{ return Derived::Unit(2); }
+
+/** \returns an expression of the W axis unit vector (0,0,0,1)
+  *
+  * \only_for_vectors
+  *
+  * \sa MatrixBase::Unit(int,int), MatrixBase::Unit(int), MatrixBase::UnitY(), MatrixBase::UnitZ(), MatrixBase::UnitW()
+  */
+template<typename Derived>
+const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitW()
+{ return Derived::Unit(3); }
 
 #endif // EIGEN_CWISE_NULLARY_OP_H

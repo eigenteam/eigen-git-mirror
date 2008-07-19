@@ -89,14 +89,6 @@ struct ToRotationMatrix<Scalar, 3, AngleAxis<OtherScalarType> >
   { return aa.toRotationMatrix(); }
 };
 
-// euler angles to rotation matrix
-template<typename Scalar, typename OtherScalarType>
-struct ToRotationMatrix<Scalar, 3, EulerAngles<OtherScalarType> >
-{
-  inline static Matrix<Scalar,3,3> convert(const EulerAngles<OtherScalarType>& ea)
-  { return ea.toRotationMatrix(); }
-};
-
 // matrix xpr to matrix xpr
 template<typename Scalar, int Dim, typename OtherDerived>
 struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >

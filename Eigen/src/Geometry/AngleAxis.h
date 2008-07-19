@@ -31,6 +31,10 @@
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients.
   *
+  * The following two typedefs are provided for convenience:
+  * \li \c AngleAxisf for \c float
+  * \li \c AngleAxisd for \c double
+  *
   * \sa class Quaternion, class EulerAngles, class Transform
   */
 template<typename _Scalar>
@@ -43,7 +47,6 @@ public:
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Quaternion<Scalar> QuaternionType;
-  typedef EulerAngles<Scalar> EulerAnglesType;
 
 protected:
 
@@ -56,7 +59,6 @@ public:
   template<typename Derived>
   inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
   inline AngleAxis(const QuaternionType& q) { *this = q; }
-  inline AngleAxis(const EulerAnglesType& ea) { *this = ea; }
   template<typename Derived>
   inline AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
 
@@ -66,8 +68,26 @@ public:
   const Vector3& axis() const { return m_axis; }
   Vector3& axis() { return m_axis; }
 
+  operator Matrix3 () const { return toRotationMatrix(); }
+
+  inline QuaternionType operator* (const AngleAxis& other) const
+  { return QuaternionType(*this) * QuaternionType(other); }
+  
+  inline QuaternionType operator* (const QuaternionType& other) const
+  { return QuaternionType(*this) * other; }
+
+  friend inline QuaternionType operator* (const QuaternionType& a, const AngleAxis& b)
+  { return a * QuaternionType(b); }
+
+  inline typename ProductReturnType<Matrix3,Matrix3>::Type
+  operator* (const Matrix3& other) const
+  { return toRotationMatrix() * other; }
+
+  inline friend typename ProductReturnType<Matrix3,Matrix3>::Type
+  operator* (const Matrix3& a, const AngleAxis& b)
+  { return a * b.toRotationMatrix(); }
+
   AngleAxis& operator=(const QuaternionType& q);
-  AngleAxis& operator=(const EulerAnglesType& ea);
   template<typename Derived>
   AngleAxis& operator=(const MatrixBase<Derived>& m);
 
@@ -75,6 +95,9 @@ public:
   AngleAxis& fromRotationMatrix(const MatrixBase<Derived>& m);
   Matrix3 toRotationMatrix(void) const;
 };
+
+typedef AngleAxis<float> AngleAxisf;
+typedef AngleAxis<double> AngleAxisd;
 
 /** Set \c *this from a quaternion.
   * The axis is normalized.
@@ -94,14 +117,6 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
     m_axis = q.vec() / ei_sqrt(n2);
   }
   return *this;
-}
-
-/** Set \c *this from Euler angles \a ea.
-  */
-template<typename Scalar>
-AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const EulerAnglesType& ea)
-{
-  return *this = QuaternionType(ea);
 }
 
 /** Set \c *this from a 3x3 rotation matrix \a mat.

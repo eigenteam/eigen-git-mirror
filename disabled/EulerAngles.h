@@ -30,6 +30,13 @@ template<typename Other,
          int OtherCols=Other::ColsAtCompileTime>
 struct ei_eulerangles_assign_impl;
 
+// enum {
+//   XYZ,
+//   XYX,
+//
+//
+// };
+
 /** \class EulerAngles
   *
   * \brief Represents a rotation in a 3 dimensional space as three Euler angles

@@ -102,7 +102,6 @@ template<typename Lhs, typename Rhs> class Cross;
 template<typename Scalar> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
-template<typename Scalar> class EulerAngles;
 template<typename Scalar,int Dim> class Transform;
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

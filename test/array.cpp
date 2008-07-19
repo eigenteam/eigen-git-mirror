@@ -53,6 +53,11 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   m3 = m1;
   m3.cwise() -= s1;
   VERIFY_IS_APPROX(m3, m1.cwise() - s1);
+
+  VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
+  VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
+  VERIFY_IS_NOT_APPROX((m1.rowwise().sum()*2).sum(), m1.sum());
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(ei_scalar_sum_op<Scalar>()));
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)

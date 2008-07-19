@@ -40,9 +40,13 @@ struct ei_quaternion_assign_impl;
   * orientations and rotations of objects in three dimensions. Compared to other
   * representations like Euler angles or 3x3 matrices, quatertions offer the
   * following advantages:
-  *   - compact storage (4 scalars)
-  *   - efficient to compose (28 flops),
-  *   - stable spherical interpolation
+  * \li \c compact storage (4 scalars)
+  * \li \c efficient to compose (28 flops),
+  * \li \c stable spherical interpolation
+  *
+  * The following two typedefs are provided for convenience:
+  * \li \c Quaternionf for \c float
+  * \li \c Quaterniond for \c double
   *
   * \sa  class AngleAxis, class EulerAngles, class Transform
   */
@@ -60,7 +64,6 @@ public:
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef AngleAxis<Scalar> AngleAxisType;
-  typedef EulerAngles<Scalar> EulerAnglesType;
 
   inline Scalar x() const { return m_coeffs.coeff(0); }
   inline Scalar y() const { return m_coeffs.coeff(1); }
@@ -97,15 +100,15 @@ public:
   inline Quaternion(const Quaternion& other) { m_coeffs = other.m_coeffs; }
 
   explicit inline Quaternion(const AngleAxisType& aa) { *this = aa; }
-  explicit inline Quaternion(const EulerAnglesType& ea) { *this = ea; }
   template<typename Derived>
   explicit inline Quaternion(const MatrixBase<Derived>& other) { *this = other; }
 
   Quaternion& operator=(const Quaternion& other);
   Quaternion& operator=(const AngleAxisType& aa);
-  Quaternion& operator=(EulerAnglesType ea);
   template<typename Derived>
   Quaternion& operator=(const MatrixBase<Derived>& m);
+
+  operator Matrix3 () const { return toRotationMatrix(); }
 
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::identity()
@@ -143,6 +146,9 @@ public:
   Vector3 operator* (const MatrixBase<Derived>& vec) const;
 
 };
+
+typedef Quaternion<float> Quaternionf;
+typedef Quaternion<double> Quaterniond;
 
 /** \returns the concatenation of two rotations as a quaternion-quaternion product */
 template <typename Scalar>
@@ -201,30 +207,6 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const AngleAxisType& aa
   Scalar ha = 0.5*aa.angle();
   this->w() = ei_cos(ha);
   this->vec() = ei_sin(ha) * aa.axis();
-  return *this;
-}
-
-/** Set \c *this from the rotation defined by the Euler angles \a ea,
-  * and returns a reference to \c *this
-  */
-template<typename Scalar>
-inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(EulerAnglesType ea)
-{
-  ea.coeffs() *= 0.5;
-
-  Vector3 cosines = ea.coeffs().cwise().cos();
-  Vector3 sines   = ea.coeffs().cwise().sin();
-
-  Scalar cYcZ = cosines.y() * cosines.z();
-  Scalar sYsZ = sines.y() * sines.z();
-  Scalar sYcZ = sines.y() * cosines.z();
-  Scalar cYsZ = cosines.y() * sines.z();
-
-  this->w() = cosines.x() * cYcZ + sines.x()   * sYsZ;
-  this->x() = sines.x()   * cYcZ - cosines.x() * sYsZ;
-  this->y() = cosines.x() * sYcZ + sines.x()   * cYsZ;
-  this->z() = cosines.x() * cYsZ - sines.x()   * sYcZ;
-
   return *this;
 }
 

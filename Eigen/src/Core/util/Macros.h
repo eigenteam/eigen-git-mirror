@@ -151,5 +151,6 @@ _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
 friend class Eigen::MatrixBase<Derived>;
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
+#define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 
 #endif // EIGEN_MACROS_H
