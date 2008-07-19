@@ -94,8 +94,8 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
           : Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
             && ( Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               || Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD )
-            && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!Lhs::Flags&DirectAccessBit)))
-            && (!(Lhs::IsVectorAtCompileTime && (!Rhs::Flags&RowMajorBit) && (!Rhs::Flags&DirectAccessBit)))
+            && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!(Lhs::Flags&DirectAccessBit))))
+            && (!(Lhs::IsVectorAtCompileTime && (!(Rhs::Flags&RowMajorBit)) && (!(Rhs::Flags&DirectAccessBit))))
           ? CacheFriendlyProduct
           : NormalProduct };
 };

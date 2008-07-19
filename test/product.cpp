@@ -23,12 +23,14 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <Eigen/Array>
 #include <Eigen/QR>
 
 template<typename Derived1, typename Derived2>
 bool areNotApprox(const MatrixBase<Derived1>& m1, const MatrixBase<Derived2>& m2, typename Derived1::RealScalar epsilon = precision<typename Derived1::RealScalar>())
 {
-  return !((m1-m2).matrixNorm() < epsilon * std::max(m1.matrixNorm(), m2.matrixNorm()));
+  return !((m1-m2).cwise().abs2().maxCoeff() < epsilon * epsilon
+                          * std::max(m1.cwise().abs2().maxCoeff(), m2.cwise().abs2().maxCoeff()));
 }
 
 template<typename MatrixType> void product(const MatrixType& m)

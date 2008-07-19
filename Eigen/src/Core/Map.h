@@ -66,6 +66,8 @@ template<typename MatrixType, int Alignment> class Map
     inline int rows() const { return m_rows.value(); }
     inline int cols() const { return m_cols.value(); }
 
+    inline int stride() const { return this->innerSize(); }
+
     inline const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
@@ -155,40 +157,6 @@ template<typename MatrixType, int Alignment> class Map
     const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
-
-/** Constructor copying an existing array of data. Only useful for dynamic-size matrices:
-  * for fixed-size matrices, it is redundant to pass the \a rows and \a cols parameters.
-  * \param data The array of data to copy
-  * \param rows The number of rows of the matrix to construct
-  * \param cols The number of columns of the matrix to construct
-  *
-  * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int, int)
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
-  ::Matrix(const Scalar *data, int rows, int cols)
-  : m_storage(rows*cols, rows, cols)
-{
-  *this = Map<Matrix>(data, rows, cols);
-}
-
-/** Constructor copying an existing array of data. Only useful for dynamic-size vectors:
-  * for fixed-size vectors, it is redundant to pass the \a size parameter.
-  *
-  * \only_for_vectors
-  *
-  * \param data The array of data to copy
-  * \param size The size of the vector to construct
-  *
-  * \sa Matrix(const Scalar *), Matrix::map(const Scalar *, int)
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
-  ::Matrix(const Scalar *data, int size)
-  : m_storage(size, RowsAtCompileTime == 1 ? 1 : size, ColsAtCompileTime == 1 ? 1 : size)
-{
-  *this = Map<Matrix>(data, size);
-}
 
 /** Constructor copying an existing array of data.
   * Only for fixed-size matrices and vectors.

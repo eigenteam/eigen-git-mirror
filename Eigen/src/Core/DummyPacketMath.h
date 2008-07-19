@@ -117,7 +117,7 @@ template <typename Scalar, typename Packet, int LoadMode> inline void ei_pstoret
   if(LoadMode == Aligned)
     ei_pstore(to, from);
   else
-    ei_pstoreu(to, from);  
+    ei_pstoreu(to, from);
 }
 
 #endif // EIGEN_DUMMY_PACKET_MATH_H

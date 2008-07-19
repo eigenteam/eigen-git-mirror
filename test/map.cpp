@@ -38,7 +38,6 @@ template<typename VectorType> void tmap(const VectorType& m)
   VectorType ma1 = Map<VectorType>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VERIFY_IS_APPROX(ma1, ma2);
-  VERIFY_IS_APPROX(ma1, VectorType(array2, size));
   ei_aligned_free(array1);
   ei_aligned_free(array2);
 }

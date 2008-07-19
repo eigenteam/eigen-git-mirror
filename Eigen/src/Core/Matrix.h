@@ -319,8 +319,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       m_storage.data()[2] = z;
       m_storage.data()[3] = w;
     }
-    Matrix(const Scalar *data, int rows, int cols);
-    Matrix(const Scalar *data, int size);
+
     explicit Matrix(const Scalar *data);
 
     /** Constructor copying the value of the expression \a other */

@@ -161,7 +161,7 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
   public:
     inline ei_matrix_storage(int size, int rows, int cols)
       : m_data(ei_aligned_malloc<T>(size)), m_rows(rows), m_cols(cols) {}
-    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline ~ei_matrix_storage() { ei_aligned_free(m_data); }
     inline void swap(ei_matrix_storage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return m_rows;}
@@ -187,7 +187,7 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
     int m_cols;
   public:
     inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_malloc<T>(size)), m_cols(cols) {}
-    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline ~ei_matrix_storage() { ei_aligned_free(m_data); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static int rows(void) {return _Rows;}
     inline int cols(void) const {return m_cols;}
@@ -211,7 +211,7 @@ template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Co
     int m_rows;
   public:
     inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
-    inline ~ei_matrix_storage() { delete[] m_data; }
+    inline ~ei_matrix_storage() { ei_aligned_free(m_data); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline static int cols(void) {return _Cols;}
