@@ -29,7 +29,7 @@
   *
   * \class AngleAxis
   *
-  * \brief Represents a 3D rotation as a rotation angle around an arbitray 3D axis
+  * \brief Represents a 3D rotation as a rotation angle around an arbitrary 3D axis
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients.
   *
@@ -37,7 +37,14 @@
   * \li \c AngleAxisf for \c float
   * \li \c AngleAxisd for \c double
   *
-  * \sa class Quaternion, class Transform
+  * \addexample AngleAxisForEuler \label How to define a rotation from Euler-angles
+  *
+  * Combined with MatrixBase::Unit{X,Y,Z}, AngleAxis can be used to easily
+  * mimic Euler-angles. Here is an example:
+  * \include AngleAxis_mimic_euler.cpp
+  * Output: \verbinclude AngleAxis_mimic_euler.out
+  *
+  * \sa class Quaternion, class Transform, MatrixBase::UnitX()
   */
 template<typename _Scalar>
 class AngleAxis

@@ -20,4 +20,6 @@ ADD_CUSTOM_COMMAND(
   ARGS >${CMAKE_CURRENT_BINARY_DIR}/${snippet}.out
 )
 ADD_DEPENDENCIES(all_snippets ${compile_snippet_target})
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src}
+                            PROPERTIES OBJECT_DEPENDS ${snippet_src})
 ENDFOREACH(snippet_src)

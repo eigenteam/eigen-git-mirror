@@ -96,6 +96,8 @@ void ei_cache_friendly_product(
 
 template<typename ExpressionType, bool CheckExistence = true> class Inverse;
 template<typename MatrixType> class QR;
+template<typename MatrixType> class Cholesky;
+template<typename MatrixType> class CholeskyWithoutSquareRoot;
 
 // Geometry module:
 template<typename Lhs, typename Rhs> class Cross;

@@ -77,7 +77,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     }
 
     template<typename Derived>
-    typename Derived::Eval solve(MatrixBase<Derived> &b);
+    typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
 
     void compute(const MatrixType& matrix);
 
@@ -127,7 +127,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   */
 template<typename MatrixType>
 template<typename Derived>
-typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<Derived> &vecB)
+typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const MatrixBase<Derived> &vecB) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==vecB.size());
@@ -140,5 +140,14 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(MatrixBase<D
       );
 }
 
+/** \cholesky_module
+  * \returns the Cholesky decomposition without square root of \c *this
+  */
+template<typename Derived>
+inline const CholeskyWithoutSquareRoot<typename ei_eval<Derived>::type>
+MatrixBase<Derived>::choleskyNoSqrt() const
+{
+  return derived();
+}
 
 #endif // EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H

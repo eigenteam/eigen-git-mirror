@@ -66,7 +66,7 @@ template<typename MatrixType> class Cholesky
     bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
-    typename Derived::Eval solve(MatrixBase<Derived> &b);
+    typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
 
     void compute(const MatrixType& matrix);
 
@@ -110,10 +110,14 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
 /** \returns the solution of A x = \a b using the current decomposition of A.
   * In other words, it returns \code A^-1 b \endcode computing
   * \code L^-*  L^1 b \endcode from right to left.
+  *
+  * Example: \include Cholesky_solve.cpp
+  * Output: \verbinclude Cholesky_solve.out
+  *
   */
 template<typename MatrixType>
 template<typename Derived>
-typename Derived::Eval Cholesky<MatrixType>::solve(MatrixBase<Derived> &b)
+typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.size());
@@ -121,5 +125,14 @@ typename Derived::Eval Cholesky<MatrixType>::solve(MatrixBase<Derived> &b)
   return m_matrix.adjoint().template extract<Upper>().inverseProduct(matrixL().inverseProduct(b));
 }
 
+/** \cholesky_module
+  * \returns the Cholesky decomposition of \c *this
+  */
+template<typename Derived>
+inline const Cholesky<typename ei_eval<Derived>::type>
+MatrixBase<Derived>::cholesky() const
+{
+  return Cholesky<typename ei_eval<Derived>::type>(derived());
+}
 
 #endif // EIGEN_CHOLESKY_H

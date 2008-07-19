@@ -532,6 +532,10 @@ template<typename Derived> class MatrixBase
     void computeInverse(typename ei_eval<Derived>::type *result) const;
     Scalar determinant() const;
 
+/////////// Cholesky module ///////////
+
+    const Cholesky<typename ei_eval<Derived>::type> cholesky() const;
+    const CholeskyWithoutSquareRoot<typename ei_eval<Derived>::type> choleskyNoSqrt() const;
 
 /////////// QR module ///////////
 

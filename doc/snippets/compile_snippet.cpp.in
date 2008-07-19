@@ -1,8 +1,11 @@
 #include <Eigen/Core>
 #include <Eigen/Array>
 #include <Eigen/LU>
+#include <Eigen/Cholesky>
+#include <Eigen/Geometry>
 
 USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 using namespace std;
 
 int main(int, char**)

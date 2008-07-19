@@ -4,7 +4,7 @@ echo "namespace Eigen {"
 echo "/** \page ExampleList"
 echo "<h1>Selected list of examples</h1>"
 
-grep \\addexample $1/Eigen/* -R | cut -d \\ -f 2- | \
+grep \\addexample $1/Eigen/src/*/*.h -R | cut -d \\ -f 2- | \
 while read example;
 do
 anchor=`echo "$example" | cut -d " " -f 2`
