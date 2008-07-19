@@ -58,7 +58,9 @@
         you_tried_calling_a_vector_method_on_a_matrix,
         you_mixed_vectors_of_different_sizes,
         you_mixed_matrices_of_different_sizes,
+        this_method_is_only_for_vectors_of_a_specific_size,
         you_did_a_programming_error,
+        you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
         unaligned_load_and_store_operations_unimplemented_on_AltiVec
       };
     };
@@ -75,12 +77,22 @@
 #endif // EIGEN_NO_STATIC_ASSERT
 
 
-// static assertion failling if the type \a TYPE is not a vector type
+// static assertion failing if the type \a TYPE is not a vector type
 #define EIGEN_STATIC_ASSERT_VECTOR_ONLY(TYPE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime, \
                       you_tried_calling_a_vector_method_on_a_matrix)
 
-// static assertion failling if the two vector expression types are not compatible (same fixed-size or dynamic size)
+// static assertion failing if the type \a TYPE is not fixed-size
+#define EIGEN_STATIC_ASSERT_FIXED_SIZE(TYPE) \
+  EIGEN_STATIC_ASSERT(TYPE::SizeAtCompileTime!=Eigen::Dynamic, \
+                      you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector)
+
+// static assertion failing if the type \a TYPE is not a vector type of the given size
+#define EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(TYPE, SIZE) \
+  EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime && TYPE::SizeAtCompileTime==SIZE, \
+                      this_method_is_only_for_vectors_of_a_specific_size)
+
+// static assertion failing if the two vector expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
       (int(TYPE0::SizeAtCompileTime)==Eigen::Dynamic \
@@ -88,7 +100,7 @@
     || int(TYPE0::SizeAtCompileTime)==int(TYPE1::SizeAtCompileTime)),\
     you_mixed_vectors_of_different_sizes)
 
-// static assertion failling if the two matrix expression types are not compatible (same fixed-size or dynamic size)
+// static assertion failing if the two matrix expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
      ((int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \

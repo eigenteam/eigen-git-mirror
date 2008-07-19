@@ -225,6 +225,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
 MatrixBase<Derived>::constant(const Scalar& value)
 {
+  EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
@@ -472,6 +473,7 @@ template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_identity_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::identity()
 {
+  EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
 }
 

@@ -235,7 +235,10 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
     EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
 
-    /** Default constructor, for fixed-size matrices, does nothing.
+    /** Default constructor.
+      *
+      * For fixed-size matrices, does nothing.
+      *
       * For dynamic-size matrices, initializes with initial size 1x1, which is inefficient, hence
       * when performance matters one should avoid using this constructor on dynamic-size matrices.
       */
@@ -253,11 +256,9 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     inline explicit Matrix(int dim)
       : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       ei_assert(dim > 0);
-      ei_assert((RowsAtCompileTime == 1
-              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == dim))
-          || (ColsAtCompileTime == 1
-              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == dim)));
+      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
     }
 
     /** This constructor has two very different behaviors, depending on the type of *this.
@@ -287,24 +288,21 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     /** constructs an initialized 2D vector with given coefficients */
     inline Matrix(const float& x, const float& y)
     {
-      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2);
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
     inline Matrix(const double& x, const double& y)
     {
-      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-          || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1));
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2);
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
     inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
-      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 3)
-          || (RowsAtCompileTime == 3 && ColsAtCompileTime == 1));
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3);
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;
@@ -312,8 +310,7 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     /** constructs an initialized 4D vector with given coefficients */
     inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
-      ei_assert((RowsAtCompileTime == 1 && ColsAtCompileTime == 4)
-          || (RowsAtCompileTime == 4 && ColsAtCompileTime == 1));
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4);
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;

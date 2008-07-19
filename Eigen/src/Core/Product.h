@@ -529,7 +529,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
   {
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
-                ||(DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit)) };
+                ||((DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit))) };
     Scalar* __restrict__ _res;
     if (EvalToRes)
        _res = &res.coeffRef(0);
@@ -572,7 +572,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   {
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
-                ||(DestDerived::Flags & ActualPacketAccessBit) && (DestDerived::Flags & RowMajorBit) };
+                ||((DestDerived::Flags & ActualPacketAccessBit) && (DestDerived::Flags & RowMajorBit)) };
     Scalar* __restrict__ _res;
     if (EvalToRes)
        _res = &res.coeffRef(0);
