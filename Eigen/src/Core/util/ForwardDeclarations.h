@@ -53,10 +53,11 @@ template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType, int Alignment = Unaligned> class Map;
-template<int Direction, typename UnaryOp, typename MatrixType> class PartialRedux;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
+template<typename ExpressionType, int Direction> class PartialRedux;
+template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;

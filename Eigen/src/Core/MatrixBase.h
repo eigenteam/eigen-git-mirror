@@ -501,13 +501,8 @@ template<typename Derived> class MatrixBase
     bool all(void) const;
     bool any(void) const;
 
-    template<typename BinaryOp>
-    const PartialRedux<Vertical, BinaryOp, Derived>
-    verticalRedux(const BinaryOp& func) const;
-
-    template<typename BinaryOp>
-    const PartialRedux<Horizontal, BinaryOp, Derived>
-    horizontalRedux(const BinaryOp& func) const;
+    const PartialRedux<Derived,Horizontal> rowwise() const;
+    const PartialRedux<Derived,Vertical> colwise() const;
 
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);

@@ -81,7 +81,7 @@ struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
   * an assiociative operator. Both current STL and TR1 functor styles are handled.
   *
-  * \sa MatrixBase::sum(), MatrixBase::minCoeff(), MatrixBase::maxCoeff(), MatrixBase::verticalRedux(), MatrixBase::horizontalRedux()
+  * \sa MatrixBase::sum(), MatrixBase::minCoeff(), MatrixBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
 template<typename Derived>
 template<typename BinaryOp>

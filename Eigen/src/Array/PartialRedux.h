@@ -28,26 +28,29 @@
 
 /** \array_module
   * 
-  * \class PartialRedux
+  * \class PartialReduxExpr
   *
   * \brief Generic expression of a partially reduxed matrix
   *
-  * \param Direction indicates the direction of the redux (Vertical or Horizontal)
-  * \param BinaryOp type of the binary functor implementing the operator (must be associative)
   * \param MatrixType the type of the matrix we are applying the redux operation
+  * \param MemberOp type of the member functor
+  * \param Direction indicates the direction of the redux (Vertical or Horizontal)
   *
   * This class represents an expression of a partial redux operator of a matrix.
-  * It is the return type of MatrixBase::verticalRedux(), MatrixBase::horizontalRedux(),
+  * It is the return type of PartialRedux functions,
   * and most of the time this is the only way it is used.
   *
-  * \sa class CwiseBinaryOp
+  * \sa class PartialRedux
   */
-template<int Direction, typename BinaryOp, typename MatrixType>
-struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
+
+template< typename MatrixType, typename MemberOp, int Direction>
+class PartialReduxExpr;
+
+template<typename MatrixType, typename MemberOp, int Direction>
+struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 {
-  typedef typename ei_result_of<
-                     BinaryOp(typename MatrixType::Scalar)
-                   >::type Scalar;
+  typedef typename MemberOp::result_type Scalar;
+  typedef typename MatrixType::Scalar InputScalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
@@ -60,24 +63,22 @@ struct ei_traits<PartialRedux<Direction, BinaryOp, MatrixType> >
           : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & HereditaryBits,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
     CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost
-                  + (TraversalSize - 1) * ei_functor_traits<BinaryOp>::Cost
+                  + MemberOp::template Cost<InputScalar,TraversalSize>::value
   };
 };
 
-template<int Direction, typename BinaryOp, typename MatrixType>
-class PartialRedux : ei_no_assignment_operator,
-  public MatrixBase<PartialRedux<Direction, BinaryOp, MatrixType> >
+template< typename MatrixType, typename MemberOp, int Direction>
+class PartialReduxExpr : ei_no_assignment_operator,
+  public MatrixBase<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(PartialRedux)
-    typedef typename ei_traits<PartialRedux>::MatrixTypeNested MatrixTypeNested;
-    typedef typename ei_traits<PartialRedux>::_MatrixTypeNested _MatrixTypeNested;
+    EIGEN_GENERIC_PUBLIC_INTERFACE(PartialReduxExpr)
+    typedef typename ei_traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
+    typedef typename ei_traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 
-    PartialRedux(const MatrixType& mat, const BinaryOp& func = BinaryOp())
+    PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
-
-  private:
 
     int rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
     int cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
@@ -85,48 +86,171 @@ class PartialRedux : ei_no_assignment_operator,
     const Scalar coeff(int i, int j) const
     {
       if (Direction==Vertical)
-        return m_matrix.col(j).redux(m_functor);
+        return m_functor(m_matrix.col(j));
       else
-        return m_matrix.row(i).redux(m_functor);
+        return m_functor(m_matrix.row(i));
     }
 
   protected:
     const MatrixTypeNested m_matrix;
-    const BinaryOp m_functor;
+    const MemberOp m_functor;
+};
+
+#define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                           \
+  template <typename ResultType>                                    \
+  struct ei_member_##MEMBER EIGEN_EMPTY_STRUCT {                    \
+    typedef ResultType result_type;                                 \
+    template<typename Scalar, int Size> struct Cost                 \
+    { enum { value = COST }; };                                     \
+    template<typename Derived>                                      \
+    inline ResultType operator()(const MatrixBase<Derived>& mat) const     \
+    { return mat.MEMBER(); }                                        \
+  }
+
+EIGEN_MEMBER_FUNCTOR(norm2, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
+
+/** \internal */
+template <typename BinaryOp, typename Scalar>
+struct ei_member_redux {
+  typedef typename ei_result_of<
+                     BinaryOp(Scalar)
+                   >::type  result_type;
+  template<typename _Scalar, int Size> struct Cost
+  { enum { value = (Size-1) * ei_functor_traits<BinaryOp>::Cost }; };
+  ei_member_redux(const BinaryOp func) : m_functor(func) {}
+  template<typename Derived>
+  inline result_type operator()(const MatrixBase<Derived>& mat) const
+  { return mat.redux(m_functor); }
+  const BinaryOp m_functor;
 };
 
 /** \array_module
-  * 
-  * \returns a row vector expression of *this vertically reduxed by \a func
   *
-  * The template parameter \a BinaryOp is the type of the functor
-  * of the custom redux operator. Note that func must be an associative operator.
+  * \class PartialRedux
   *
-  * \sa class PartialRedux, MatrixBase::horizontalRedux()
+  * \brief Pseudo expression providing partial reduction operations
+  *
+  * \param ExpressionType the type of the object on which to do partial reductions
+  * \param Direction indicates the direction of the redux (Vertical or Horizontal)
+  *
+  * This class represents an expression with additional partial reduction features.
+  * It is the return type of MatrixBase::colwise() and MatrixBase::rowwise()
+  * and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::colwise(), MatrixBase::rowwise()
+  */
+template<typename ExpressionType, int Direction> class PartialRedux
+{
+  public:
+
+    typedef typename ei_traits<ExpressionType>::Scalar Scalar;
+    typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
+
+    template<template<typename _Scalar> class Functor> struct ReturnType
+    {
+      typedef PartialReduxExpr<ExpressionType,
+                               Functor<typename ei_traits<ExpressionType>::Scalar>,
+                               Direction
+                              > Type;
+    };
+
+    template<typename BinaryOp> struct ReduxReturnType
+    {
+      typedef PartialReduxExpr<ExpressionType,
+                               ei_member_redux<BinaryOp,typename ei_traits<ExpressionType>::Scalar>,
+                               Direction
+                              > Type;
+    };
+
+    inline PartialRedux(const ExpressionType& matrix) : m_matrix(matrix) {}
+
+    /** \internal */
+    inline const ExpressionType& _expression() const { return m_matrix; }
+
+    template<typename BinaryOp>
+    const typename ReduxReturnType<BinaryOp>::Type
+    redux(const BinaryOp& func = BinaryOp()) const;
+
+    /** \returns a row (or column) vector expression of the smallest coefficient
+      * of each column (or row) of the referenced expression.
+      * \sa MatrixBase::minCoeff() */
+    const typename ReturnType<ei_member_minCoeff>::Type minCoeff() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the largest coefficient
+      * of each column (or row) of the referenced expression.
+      * \sa MatrixBase::maxCoeff() */
+    const typename ReturnType<ei_member_maxCoeff>::Type maxCoeff() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the squared norm
+      * of each column (or row) of the referenced expression.
+      * \sa MatrixBase::norm2() */
+    const typename ReturnType<ei_member_norm2>::Type norm2() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression.
+      * \sa MatrixBase::norm() */
+    const typename ReturnType<ei_member_norm>::Type norm() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the sum
+      * of each column (or row) of the referenced expression.
+      * \sa MatrixBase::sum() */
+    const typename ReturnType<ei_member_sum>::Type sum() const
+    { return _expression(); }
+
+  protected:
+    ExpressionTypeNested m_matrix;
+};
+
+/** \array_module
+  *
+  * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
+  *
+  * \sa class PartialRedux
   */
 template<typename Derived>
-template<typename BinaryOp>
-const PartialRedux<Vertical, BinaryOp, Derived>
-MatrixBase<Derived>::verticalRedux(const BinaryOp& func) const
+inline const PartialRedux<Derived,Vertical>
+MatrixBase<Derived>::colwise() const
 {
-  return PartialRedux<Vertical, BinaryOp, Derived>(derived(), func);
+  return derived();
+}
+
+/** \array_module
+  *
+  * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
+  *
+  * \sa class PartialRedux
+  */
+template<typename Derived>
+inline const PartialRedux<Derived,Horizontal>
+MatrixBase<Derived>::rowwise() const
+{
+  return derived();
 }
 
 /** \array_module
   * 
-  * \returns a row vector expression of *this horizontally reduxed by \a func
+  * \returns a row or column vector expression of \c *this reduxed by \a func
   *
   * The template parameter \a BinaryOp is the type of the functor
   * of the custom redux operator. Note that func must be an associative operator.
   *
-  * \sa class PartialRedux, MatrixBase::verticalRedux()
+  * \sa class PartialRedux, MatrixBase::colwise(), MatrixBase::rowwise()
   */
-template<typename Derived>
+template<typename ExpressionType, int Direction>
 template<typename BinaryOp>
-const PartialRedux<Horizontal, BinaryOp, Derived>
-MatrixBase<Derived>::horizontalRedux(const BinaryOp& func) const
+const typename PartialRedux<ExpressionType,Direction>::template ReduxReturnType<BinaryOp>::Type
+PartialRedux<ExpressionType,Direction>::redux(const BinaryOp& func) const
 {
-  return PartialRedux<Horizontal, BinaryOp, Derived>(derived(), func);
+  return typename ReduxReturnType<BinaryOp>::Type(_expression(), func);
 }
 
 #endif // EIGEN_PARTIAL_REDUX_H
