@@ -28,9 +28,7 @@
 
 const int Dynamic = 10000;
 
-/** \defgroup flags */
-
-/** \name flags
+/** \defgroup flags
   *
   * These are the possible bits which can be OR'ed to constitute the flags of a matrix or
   * expression.

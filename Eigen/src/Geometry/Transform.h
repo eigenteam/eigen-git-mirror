@@ -50,20 +50,29 @@ struct ei_transform_product_impl;
   * Conversion methods from/to Qt's QMatrix are available if the preprocessor token
   * EIGEN_QT_SUPPORT is defined.
   *
+  * \sa class Matrix, class Quaternion
   */
 template<typename _Scalar, int _Dim>
 class Transform
 {
 public:
 
-  enum { Dim = _Dim, HDim = _Dim+1 };
+  enum {
+    Dim = _Dim,     ///< space dimension in which the transformation holds
+    HDim = _Dim+1   ///< size of a respective homogeneous vector
+  };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
+  /** type of the matrix used to represent the transformation */
   typedef Matrix<Scalar,HDim,HDim> MatrixType;
+  /** type of the matrix used to represent the affine part of the transformation */
   typedef Matrix<Scalar,Dim,Dim> AffineMatrixType;
-  typedef Block<MatrixType,Dim,Dim> AffineMatrixRef;
+  /** type of read/write reference to the affine part of the transformation */
+  typedef Block<MatrixType,Dim,Dim> AffinePart;
+  /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
-  typedef Block<MatrixType,Dim,1> VectorRef;
+  /** type of a read/write reference to the translation part of the rotation */
+  typedef Block<MatrixType,Dim,1> TranslationPart;
 
 protected:
 
@@ -80,10 +89,12 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
+  /** Constructs and initializes a transformation from a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
   { m_matrix = other; }
 
+  /** Set \c *this from a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline Transform& operator=(const MatrixBase<OtherDerived>& other)
   { m_matrix = other; return *this; }
@@ -100,14 +111,14 @@ public:
   inline MatrixType& matrix() { return m_matrix; }
 
   /** \returns a read-only expression of the affine (linear) part of the transformation */
-  inline const AffineMatrixRef affine() const { return m_matrix.template block<Dim,Dim>(0,0); }
+  inline const AffinePart affine() const { return m_matrix.template block<Dim,Dim>(0,0); }
   /** \returns a writable expression of the affine (linear) part of the transformation */
-  inline AffineMatrixRef affine() { return m_matrix.template block<Dim,Dim>(0,0); }
+  inline AffinePart affine() { return m_matrix.template block<Dim,Dim>(0,0); }
 
   /** \returns a read-only expression of the translation vector of the transformation */
-  inline const VectorRef translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
+  inline const TranslationPart translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
   /** \returns a writable expression of the translation vector of the transformation */
-  inline VectorRef translation() { return m_matrix.template block<Dim,1>(0,Dim); }
+  inline TranslationPart translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
   template<typename OtherDerived>
   const typename ei_transform_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
@@ -118,6 +129,7 @@ public:
   operator * (const Transform& other) const
   { return m_matrix * other.matrix(); }
 
+  /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
 
   template<typename OtherDerived>
@@ -138,10 +150,7 @@ public:
   template<typename RotationType>
   Transform& prerotate(const RotationType& rotation);
 
-  template<typename OtherDerived>
   Transform& shear(Scalar sx, Scalar sy);
-
-  template<typename OtherDerived>
   Transform& preshear(Scalar sx, Scalar sy);
 
   AffineMatrixType extractRotation() const;
@@ -151,6 +160,7 @@ public:
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
+  /** \sa MatrixBase::inverse() */
   const Inverse<MatrixType, false> inverse() const
   { return m_matrix.inverse(); }
 
@@ -158,8 +168,19 @@ protected:
 
 };
 
+/** \ingroup Geometry */
+typedef Transform<float,2> Transform2f;
+/** \ingroup Geometry */
+typedef Transform<float,3> Transform3f;
+/** \ingroup Geometry */
+typedef Transform<double,2> Transform2d;
+/** \ingroup Geometry */
+typedef Transform<double,3> Transform3d;
+
 #ifdef EIGEN_QT_SUPPORT
 /** Initialises \c *this from a QMatrix assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>::Transform(const QMatrix& other)
@@ -168,6 +189,8 @@ Transform<Scalar,Dim>::Transform(const QMatrix& other)
 }
 
 /** Set \c *this from a QMatrix assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
@@ -180,21 +203,25 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 }
 
 /** \returns a QMatrix from \c *this assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
 template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 {
   EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
-  return QMatrix( other.coeffRef(0,0), other.coeffRef(1,0),
-                  other.coeffRef(0,1), other.coeffRef(1,1),
-                  other.coeffRef(0,2), other.coeffRef(1,2),
+  return QMatrix(other.coeffRef(0,0), other.coeffRef(1,0),
+                 other.coeffRef(0,1), other.coeffRef(1,1),
+                 other.coeffRef(0,2), other.coeffRef(1,2));
 }
 #endif
 
 /** \returns an expression of the product between the transform \c *this and a matrix expression \a other
   *
-  * The right hand side \a other might be a vector of size Dim, an homogeneous vector of size Dim+1
-  * or a transformation matrix of size Dim+1 x Dim+1.
+  * The right hand side \a other might be either:
+  * \li a vector of size Dim,
+  * \li an homogeneous vector of size Dim+1,
+  * \li a transformation matrix of size Dim+1 x Dim+1.
   */
 template<typename Scalar, int Dim>
 template<typename OtherDerived>
@@ -213,8 +240,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::scale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
   affine() = (affine() * other.asDiagonal()).lazy();
   return *this;
 }
@@ -228,8 +254,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::prescale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
   m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
   return *this;
 }
@@ -243,8 +268,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::translate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
   translation() += affine() * other;
   return *this;
 }
@@ -258,8 +282,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
   translation() += other;
   return *this;
 }
@@ -273,8 +296,8 @@ Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
   * Natively supported types includes:
   *   - any scalar (2D),
   *   - a Dim x Dim matrix expression,
-  *   - Quaternion (3D),
-  *   - AngleAxis (3D)
+  *   - a Quaternion (3D),
+  *   - a AngleAxis (3D)
   *
   * This mechanism is easily extendable to support user types such as Euler angles,
   * or a pair of Quaternion for 4D rotations.
@@ -293,9 +316,9 @@ Transform<Scalar,Dim>::rotate(const RotationType& rotation)
 /** Applies on the left the rotation represented by the rotation \a rotation
   * to \c *this and returns a reference to \c *this.
   *
-  * See rotate(RotationType) for further details.
+  * See rotate() for further details.
   *
-  * \sa rotate(RotationType), rotate(Scalar)
+  * \sa rotate()
   */
 template<typename Scalar, int Dim>
 template<typename RotationType>
@@ -303,7 +326,7 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::prerotate(const RotationType& rotation)
 {
   m_matrix.template block<Dim,HDim>(0,0) = ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation)
-                                      * m_matrix.template block<Dim,HDim>(0,0);
+                                         * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
 
@@ -313,12 +336,10 @@ Transform<Scalar,Dim>::prerotate(const RotationType& rotation)
   * \sa preshear()
   */
 template<typename Scalar, int Dim>
-template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::shear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim) && int(Dim)==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
   VectorType tmp = affine().col(0)*sy + affine().col(1);
   affine() << affine().col(0) + affine().col(1)*sx, tmp;
   return *this;
@@ -330,18 +351,16 @@ Transform<Scalar,Dim>::shear(Scalar sx, Scalar sy)
   * \sa shear()
   */
 template<typename Scalar, int Dim>
-template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(OtherDerived::IsVectorAtCompileTime)
-    && int(OtherDerived::SizeAtCompileTime)==int(Dim), you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
   m_matrix.template block<Dim,HDim>(0,0) = AffineMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
 
 /** \returns the rotation part of the transformation using a QR decomposition.
-  * \sa extractRotationNoShear()
+  * \sa extractRotationNoShear(), class QR
   */
 template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::AffineMatrixType
@@ -408,15 +427,15 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
 {
   typedef typename Other::Scalar Scalar;
   typedef Transform<Scalar,Dim> TransformType;
-  typedef typename TransformType::AffineMatrixRef MatrixType;
+  typedef typename TransformType::AffinePart MatrixType;
   typedef const CwiseUnaryOp<
       ei_scalar_multiple_op<Scalar>,
       NestByValue<CwiseBinaryOp<
         ei_scalar_sum_op<Scalar>,
         NestByValue<typename ProductReturnType<NestByValue<MatrixType>,Other>::Type >,
-        NestByValue<typename TransformType::VectorRef> > >
+        NestByValue<typename TransformType::TranslationPart> > >
       > ResultType;
-  // FIXME shall we offer an optimized version when the last row is known to be 0,0...,0,1 ?
+  // FIXME should we offer an optimized version when the last row is known to be 0,0...,0,1 ?
   static ResultType run(const TransformType& tr, const Other& other)
   { return ((tr.affine().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
           * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }

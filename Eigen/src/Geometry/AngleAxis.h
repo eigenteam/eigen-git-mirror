@@ -64,10 +64,15 @@ protected:
 
 public:
 
+  /** Default constructor without initialization. */
   AngleAxis() {}
+  /** Constructs and initialize the angle-axis rotation from an \a angle in radian
+    * and an \a axis which must be normalized. */
   template<typename Derived>
   inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
+  /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
   inline AngleAxis(const QuaternionType& q) { *this = q; }
+  /** Constructs and initialize the angle-axis rotation from a 3x3 rotation matrix. */
   template<typename Derived>
   inline AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
 
@@ -77,6 +82,8 @@ public:
   const Vector3& axis() const { return m_axis; }
   Vector3& axis() { return m_axis; }
 
+  /** Automatic conversion to a 3x3 rotation matrix.
+    * \sa toRotationMatrix() */
   operator Matrix3 () const { return toRotationMatrix(); }
 
   inline QuaternionType operator* (const AngleAxis& other) const
@@ -105,7 +112,11 @@ public:
   Matrix3 toRotationMatrix(void) const;
 };
 
+/** \ingroup Geometry
+  * single precision angle-axis type */
 typedef AngleAxis<float> AngleAxisf;
+/** \ingroup Geometry
+  * double precision angle-axis type */
 typedef AngleAxis<double> AngleAxisd;
 
 /** Set \c *this from a quaternion.

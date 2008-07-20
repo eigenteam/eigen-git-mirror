@@ -76,6 +76,9 @@ struct ei_visitor_impl<Visitor, Derived, Dynamic>
   * };
   * \endcode
   *
+  * \note compared to one or two \em for \em loops, visitors offer automatic
+  * unrolling for small fixed size matrix.
+  *
   * \sa minCoeff(int*,int*), maxCoeff(int*,int*), MatrixBase::redux()
   */
 template<typename Derived>

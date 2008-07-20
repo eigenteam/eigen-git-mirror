@@ -72,9 +72,9 @@ void MatrixBase<Derived>::inverseProductInPlace(MatrixBase<OtherDerived>& other)
   }
 }
 
-/** \returns the product of the inverse of \c *this with \a other.
+/** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
   *
-  * This function computes the inverse-matrix matrix product inverse(\c*this) * \a other
+  * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other
   * It works as a forward (resp. backward) substitution if \c *this is an upper (resp. lower)
   * triangular matrix.
   *

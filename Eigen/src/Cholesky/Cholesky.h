@@ -42,7 +42,7 @@
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   *
-  * \sa class CholeskyWithoutSquareRoot
+  * \sa MatrixBase::cholesky(), class CholeskyWithoutSquareRoot
   */
 template<typename MatrixType> class Cholesky
 {
@@ -107,20 +107,22 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
   }
 }
 
-/** \returns the solution of A x = \a b using the current decomposition of A.
-  * In other words, it returns \code A^-1 b \endcode computing
-  * \code L^-*  L^1 b \endcode from right to left.
+/** \returns the solution of \f$ A x = b \f$ using the current decomposition of A.
+  * In other words, it returns \f$ A^{-1} b \f$ computing
+  * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
+  * \param b the column vector \f$ b \f$, which can also be a matrix.
   *
   * Example: \include Cholesky_solve.cpp
   * Output: \verbinclude Cholesky_solve.out
   *
+  * \sa MatrixBase::cholesky(), CholeskyWithoutSquareRoot::solve()
   */
 template<typename MatrixType>
 template<typename Derived>
 typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==b.size());
+  ei_assert(size==b.rows());
 
   return m_matrix.adjoint().template extract<Upper>().inverseProduct(matrixL().inverseProduct(b));
 }

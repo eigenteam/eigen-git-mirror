@@ -38,13 +38,12 @@ struct ei_quaternion_assign_impl;
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients
   *
-  * This class represents a quaternion that is a convenient representation of
-  * orientations and rotations of objects in three dimensions. Compared to other
-  * representations like Euler angles or 3x3 matrices, quatertions offer the
-  * following advantages:
-  * \li \c compact storage (4 scalars)
-  * \li \c efficient to compose (28 flops),
-  * \li \c stable spherical interpolation
+  * This class represents a quaternion \f$ w+xi+yj+zk \f$ that is a convenient representation of
+  * orientations and rotations of objects in three dimensions. Compared to other representations
+  * like Euler angles or 3x3 matrices, quatertions offer the following advantages:
+  * \li \b compact storage (4 scalars)
+  * \li \b efficient to compose (28 flops),
+  * \li \b stable spherical interpolation
   *
   * The following two typedefs are provided for convenience:
   * \li \c Quaternionf for \c float
@@ -63,18 +62,29 @@ public:
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
 
+  /** the type of a 3D vector */
   typedef Matrix<Scalar,3,1> Vector3;
+  /** the equivalent rotation matrix type */
   typedef Matrix<Scalar,3,3> Matrix3;
+  /** the equivalent angle-axis type */
   typedef AngleAxis<Scalar> AngleAxisType;
 
+  /** \returns the \c x coefficient */
   inline Scalar x() const { return m_coeffs.coeff(0); }
+  /** \returns the \c y coefficient */
   inline Scalar y() const { return m_coeffs.coeff(1); }
+  /** \returns the \c z coefficient */
   inline Scalar z() const { return m_coeffs.coeff(2); }
+  /** \returns the \c w coefficient */
   inline Scalar w() const { return m_coeffs.coeff(3); }
 
+  /** \returns a reference to the \c x coefficient */
   inline Scalar& x() { return m_coeffs.coeffRef(0); }
+  /** \returns a reference to the \c y coefficient */
   inline Scalar& y() { return m_coeffs.coeffRef(1); }
+  /** \returns a reference to the \c z coefficient */
   inline Scalar& z() { return m_coeffs.coeffRef(2); }
+  /** \returns a reference to the \c w coefficient */
   inline Scalar& w() { return m_coeffs.coeffRef(3); }
 
   /** \returns a read-only vector expression of the imaginary part (x,y,z) */
@@ -83,25 +93,33 @@ public:
   /** \returns a vector expression of the imaginary part (x,y,z) */
   inline Block<Coefficients,3,1> vec() { return m_coeffs.template start<3>(); }
 
-  /** \returns a read-only vector expression of the coefficients */
+  /** \returns a read-only vector expression of the coefficients (x,y,z,w) */
   inline const Coefficients& coeffs() const { return m_coeffs; }
 
-  /** \returns a vector expression of the coefficients */
+  /** \returns a vector expression of the coefficients (x,y,z,w) */
   inline Coefficients& coeffs() { return m_coeffs; }
 
+  /** Default constructor and initializing an identity quaternion. */
+  inline Quaternion()
+  { m_coeffs << 0, 0, 0, 1; }
+
+  /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
+    * its four coefficients \a w, \a x, \a y and \a z.
+    */
   // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
-  inline Quaternion(Scalar w = 1.0, Scalar x = 0.0, Scalar y = 0.0, Scalar z = 0.0)
-  {
-    m_coeffs.coeffRef(0) = x;
-    m_coeffs.coeffRef(1) = y;
-    m_coeffs.coeffRef(2) = z;
-    m_coeffs.coeffRef(3) = w;
-  }
+  inline Quaternion(Scalar w, Scalar x, Scalar y, Scalar z)
+  { m_coeffs << x, y, z, w; }
 
   /** Copy constructor */
   inline Quaternion(const Quaternion& other) { m_coeffs = other.m_coeffs; }
 
+  /** Constructs and initializes a quaternion from the angle-axis \a aa */
   explicit inline Quaternion(const AngleAxisType& aa) { *this = aa; }
+  /** Constructs and initializes a quaternion from either:
+    *  - a rotation matrix expression,
+    *  - a 4D vector expression representing quaternion coefficients.
+    * \sa operator=(MatrixBase<Derived>)
+    */
   template<typename Derived>
   explicit inline Quaternion(const MatrixBase<Derived>& other) { *this = other; }
 
@@ -110,6 +128,7 @@ public:
   template<typename Derived>
   Quaternion& operator=(const MatrixBase<Derived>& m);
 
+  /** Automatic conversion to a rotation matrix. */
   operator Matrix3 () const { return toRotationMatrix(); }
 
   /** \returns a quaternion representing an identity rotation
@@ -149,7 +168,11 @@ public:
 
 };
 
+/** \ingroup Geometry
+  * single precision quaternion type */
 typedef Quaternion<float> Quaternionf;
+/** \ingroup Geometry
+  * double precision quaternion type */
 typedef Quaternion<double> Quaterniond;
 
 /** \returns the concatenation of two rotations as a quaternion-quaternion product */
@@ -165,6 +188,7 @@ inline Quaternion<Scalar> Quaternion<Scalar>::operator* (const Quaternion& other
   );
 }
 
+/** \sa operator*(Quaternion) */
 template <typename Scalar>
 inline Quaternion<Scalar>& Quaternion<Scalar>::operator*= (const Quaternion& other)
 {
@@ -200,8 +224,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const Quaternion& other
   return *this;
 }
 
-/** Set \c *this from an angle-axis \a aa
-  * and returns a reference to \c *this
+/** Set \c *this from an angle-axis \a aa and returns a reference to \c *this
   */
 template<typename Scalar>
 inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const AngleAxisType& aa)

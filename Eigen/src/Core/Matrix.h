@@ -71,6 +71,8 @@
   * \li \c VectorXf is a typedef for \c Matrix<float,Dynamic,1>
   * \li \c RowVector3i is a typedef for \c Matrix<int,1,3>
   *
+  * See \ref matrixtypedefs for an explicit list of all matrix typedefs.
+  *
   * Of course these typedefs do not exhaust all the possibilities offered by the Matrix class
   * template, they only address some of the most common cases. For instance, if you want a
   * fixed-size matrix with 3 rows and 5 columns, there is no typedef for that, so you should use
@@ -355,9 +357,18 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
     }
 };
 
-#define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix) \
-typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix; \
-typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix; \
+/** \defgroup matrixtypedefs Global matrix typedefs
+  * Eigen defines several typedef shortcuts for most common matrix types.
+  * Here is the explicit list.
+  * \sa class Matrix
+  */
+
+#define EIGEN_MAKE_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix)   \
+/** \ingroup matrixtypedefs */                                    \
+typedef Matrix<Type, Size, Size> Matrix##SizeSuffix##TypeSuffix;  \
+/** \ingroup matrixtypedefs */                                    \
+typedef Matrix<Type, Size, 1>    Vector##SizeSuffix##TypeSuffix;  \
+/** \ingroup matrixtypedefs */                                    \
 typedef Matrix<Type, 1, Size>    RowVector##SizeSuffix##TypeSuffix;
 
 #define EIGEN_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \

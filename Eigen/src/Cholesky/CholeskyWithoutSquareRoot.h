@@ -32,8 +32,8 @@
   * \param MatrixType the type of the matrix of which we are computing the Cholesky decomposition
   *
   * This class performs a Cholesky decomposition without square root of a symmetric, positive definite
-  * matrix A such that A = L D L^* = U^* D U, where L is lower triangular with a unit diagonal and D is a diagonal
-  * matrix.
+  * matrix A such that A = L D L^* = U^* D U, where L is lower triangular with a unit diagonal
+  * and D is a diagonal matrix.
   *
   * Compared to a standard Cholesky decomposition, avoiding the square roots allows for faster and more
   * stable computation.
@@ -41,7 +41,7 @@
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   *
-  * \sa class Cholesky
+  * \sa MatrixBase::choleskyNoSqrt(), class Cholesky
   */
 template<typename MatrixType> class CholeskyWithoutSquareRoot
 {
@@ -123,19 +123,23 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
 /** \returns the solution of \f$ A x = b \f$ using the current decomposition of A.
   * In other words, it returns \f$ A^{-1} b \f$ computing
   * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
-  * \param vecB the vector \f$ b \f$  (or an array of vectors)
+  * \param b the column vector \f$ b \f$, which can also be a matrix.
+  *
+  * See Cholesky::solve() for a example.
+  * 
+  * \sa MatrixBase::choleskyNoSqrt()
   */
 template<typename MatrixType>
 template<typename Derived>
-typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const MatrixBase<Derived> &vecB) const
+typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==vecB.size());
+  ei_assert(size==b.rows());
 
   return m_matrix.adjoint().template extract<UnitUpper>()
     .inverseProduct(
       (matrixL()
-        .inverseProduct(vecB))
+        .inverseProduct(b))
         .cwise()/m_matrix.diagonal()
       );
 }

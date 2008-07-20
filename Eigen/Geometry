@@ -5,7 +5,16 @@
 
 namespace Eigen {
 
-/** \defgroup Geometry */
+/** \defgroup Geometry
+  * This module provides support for:
+  *  - fixed-size homogeneous transformations
+  *  - 2D and 3D rotations
+  *  - \ref MatrixBase::cross() "cross product"
+  * 
+  * \code
+  * #include <Eigen/Geometry>
+  * \endcode
+  */
 
 #include "src/Geometry/Cross.h"
 #include "src/Geometry/Quaternion.h"

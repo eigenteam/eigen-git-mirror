@@ -28,7 +28,7 @@
 // this file aims to contains the various representations of rotation/orientation
 // in 2D and 3D space excepted Matrix and Quaternion.
 
-/** \geometry_module
+/** \internal
   *
   * \class ToRotationMatrix
   *
@@ -103,7 +103,7 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   }
 };
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry
   *
   * \class Rotation2D
   *
@@ -111,10 +111,10 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients
   *
-  * This class is equivalent to a single scalar representing the rotation angle
-  * in radian with some additional features such as the conversion from/to
-  * rotation matrix. Moreover this class aims to provide a similar interface
-  * to Quaternion in order to facilitate the writing of generic algorithm
+  * This class is equivalent to a single scalar representing a counter clock wise rotation
+  * as a single angle in radian. It provides some additional features such as the automatic
+  * conversion from/to a 2x2 rotation matrix. Moreover this class aims to provide a similar
+  * interface to Quaternion in order to facilitate the writing of generic algorithm
   * dealing with rotations.
   *
   * \sa class Quaternion, class Transform
@@ -134,16 +134,22 @@ protected:
 
 public:
 
+  /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
   inline Rotation2D(Scalar a) : m_angle(a) {}
   inline operator Scalar& () { return m_angle; }
   inline operator Scalar () const { return m_angle; }
+
+  /** Automatic convertion to a 2D rotation matrix.
+    * \sa toRotationMatrix()
+    */
+  inline operator Matrix2() const { return toRotationMatrix(); }
 
   template<typename Derived>
   Rotation2D& fromRotationMatrix(const MatrixBase<Derived>& m);
   Matrix2 toRotationMatrix(void) const;
 
   /** \returns the spherical interpolation between \c *this and \a other using
-    * parameter \a t. It is equivalent to a linear interpolation.
+    * parameter \a t. It is in fact equivalent to a linear interpolation.
     */
   inline Rotation2D slerp(Scalar t, const Rotation2D& other) const
   { return m_angle * (1-t) + t * other; }

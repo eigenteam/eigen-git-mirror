@@ -106,9 +106,9 @@ struct ei_part_assignment_impl
     if(Mode == SelfAdjoint)
     {
       if(row == col)
-	dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
+        dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
       else if(row < col)
-	dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
+        dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
     }
     else
     {
@@ -116,7 +116,7 @@ struct ei_part_assignment_impl
       || (Mode == Lower && row >= col)
       || (Mode == StrictlyUpper && row < col)
       || (Mode == StrictlyLower && row > col))
-	dst.coeffRef(row, col) = src.coeff(row, col);
+        dst.coeffRef(row, col) = src.coeff(row, col);
     }
   }
 };
@@ -261,6 +261,8 @@ inline void Part<MatrixType, Mode>::setRandom()
   *
   * The \a Mode parameter can have the following values: \c Upper, \c StrictlyUpper, \c Lower,
   * \c StrictlyLower, \c SelfAdjoint.
+  *
+  * \addexample PartExample \label How to write to a triangular part of a matrix
   *
   * Example: \include MatrixBase_part.cpp
   * Output: \verbinclude MatrixBase_part.out
