@@ -141,6 +141,9 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
   enum {
     Cost = 2 * NumTraits<Scalar>::MulCost,
     PacketAccess = ei_packet_traits<Scalar>::size>1
+                  #ifdef EIGEN_VECTORIZE_SSE
+                  && NumTraits<Scalar>::HasFloatingPoint
+                  #endif
   };
 };
 

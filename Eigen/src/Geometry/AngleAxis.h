@@ -74,7 +74,7 @@ public:
   inline AngleAxis(const QuaternionType& q) { *this = q; }
   /** Constructs and initialize the angle-axis rotation from a 3x3 rotation matrix. */
   template<typename Derived>
-  inline AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
+  inline explicit AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
 
   Scalar angle() const { return m_angle; }
   Scalar& angle() { return m_angle; }

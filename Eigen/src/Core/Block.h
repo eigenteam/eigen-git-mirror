@@ -111,9 +111,10 @@ template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatu
     /** Fixed-size constructor
       */
     inline Block(const MatrixType& matrix, int startRow, int startCol)
-      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol)
+      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
+        m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
     {
-      ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
+      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size);
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
@@ -233,8 +234,10 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
     /** Fixed-size constructor
       */
     inline Block(const MatrixType& matrix, int startRow, int startCol)
-      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol))
+      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol)),
+        m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
     {
+      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size);
       ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());

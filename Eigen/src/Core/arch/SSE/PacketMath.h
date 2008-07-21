@@ -61,6 +61,8 @@ template<> inline __m128i ei_pmul(const __m128i& a, const __m128i& b)
 
 template<> inline __m128  ei_pdiv(const __m128&  a, const __m128&  b) { return _mm_div_ps(a,b); }
 template<> inline __m128d ei_pdiv(const __m128d& a, const __m128d& b) { return _mm_div_pd(a,b); }
+template<> inline __m128i ei_pdiv(const __m128i& a, const __m128i& b)
+{ ei_assert(false && "packet integer division are not supported by SSE"); }
 
 // for some weird raisons, it has to be overloaded for packet integer
 template<> inline __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }

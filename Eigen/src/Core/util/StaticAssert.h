@@ -64,7 +64,8 @@
         unaligned_load_and_store_operations_unimplemented_on_AltiVec,
         scalar_type_must_be_floating_point,
         default_writting_to_selfadjoint_not_supported,
-        writting_to_triangular_part_with_unit_diag_is_not_supported
+        writting_to_triangular_part_with_unit_diag_is_not_supported,
+        this_method_is_only_for_fixed_size
       };
     };
 
