@@ -28,58 +28,120 @@
 
 /** \class Part
   *
-  * \brief Pseudo-expression allowing to write to a special part of a matrix
+  * \brief Expression of a triangular matrix extracted from a given matrix
   *
-  * This lvalue-only pseudo-expression allows to perform special operations
-  * on a matrix, such as writing only to the upper (above diagonal) part.
+  * \param MatrixType the type of the object in which we are taking the triangular part
+  * \param Mode the kind of triangular matrix expression to construct. Can be Upper, StrictlyUpper,
+  *             UnitUpper, Lower, StrictlyLower, UnitLower. This is in fact a bit field; it must have either
+  *             UpperTriangularBit or LowerTriangularBit, and additionnaly it may have either ZeroDiagBit or
+  *             UnitDiagBit.
   *
-  * It is the return type of MatrixBase::part() and most of the time this is
-  * the only way that it is used.
+  * This class represents an expression of the upper or lower triangular part of
+  * a square matrix, possibly with a further assumption on the diagonal. It is the return type
+  * of MatrixBase::part() and most of the time this is the only way it is used.
   *
-  * \sa class Extract, MatrixBase::part()
+  * \sa MatrixBase::part()
   */
 template<typename MatrixType, unsigned int Mode>
-class Part
+struct ei_traits<Part<MatrixType, Mode> >
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = (_MatrixTypeNested::Flags & ~(PacketAccessBit | LinearAccessBit | DirectAccessBit)) | Mode,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+  };
+};
+
+template<typename MatrixType, unsigned int Mode> class Part
+  : public MatrixBase<Part<MatrixType, Mode> >
 {
   public:
-    Part(MatrixType& matrix);
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Part)
+
+    inline Part(const MatrixType& matrix) : m_matrix(matrix)
+    { ei_assert(ei_are_flags_consistent<Mode>::ret); }
+
+    /** \sa MatrixBase::operator+=() */
+    template<typename Other> Part&  operator+=(const Other& other);
+    /** \sa MatrixBase::operator-=() */
+    template<typename Other> Part&  operator-=(const Other& other);
+    /** \sa MatrixBase::operator*=() */
+    Part&  operator*=(const typename ei_traits<MatrixType>::Scalar& other);
+    /** \sa MatrixBase::operator/=() */
+    Part&  operator/=(const typename ei_traits<MatrixType>::Scalar& other);
+
     /** \sa operator=(), MatrixBase::lazyAssign() */
     template<typename Other> void lazyAssign(const Other& other);
     /** \sa MatrixBase::operator=() */
-    template<typename Other> void operator=(const Other& other);
-    /** \sa MatrixBase::operator+=() */
-    template<typename Other> void operator+=(const Other& other);
-    /** \sa MatrixBase::operator-=() */
-    template<typename Other> void operator-=(const Other& other);
-    /** \sa MatrixBase::operator*=() */
-    void operator*=(const typename ei_traits<MatrixType>::Scalar& other);
-    /** \sa MatrixBase::operator/=() */
-    void operator/=(const typename ei_traits<MatrixType>::Scalar& other);
-    /** \sa MatrixBase::setConstant() */
-    void setConstant(const typename ei_traits<MatrixType>::Scalar& value);
-    /** \sa MatrixBase::setZero() */
-    void setZero();
-    /** \sa MatrixBase::setOnes() */
-    void setOnes();
-    /** \sa MatrixBase::setRandom() */
-    void setRandom();
-    /** \sa MatrixBase::setIdentity() */
-    void setIdentity();
+    template<typename Other> Part& operator=(const Other& other);
 
-  private:
-    MatrixType& m_matrix;
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
+
+    inline Scalar coeff(int row, int col) const
+    {
+      if(Flags & LowerTriangularBit ? col>row : row>col)
+        return (Flags & SelfAdjointBit) ? ei_conj(m_matrix.coeff(col, row)) : (Scalar)0;
+      if(Flags & UnitDiagBit)
+        return col==row ? (Scalar)1 : m_matrix.coeff(row, col);
+      else if(Flags & ZeroDiagBit)
+        return col==row ? (Scalar)0 : m_matrix.coeff(row, col);
+      else
+        return m_matrix.coeff(row, col);
+    }
+
+    inline Scalar coeffRef(int row, int col) const
+    {
+      EIGEN_STATIC_ASSERT(!(Flags & UnitDiagBit), writting_to_triangular_part_with_unit_diag_is_not_supported);
+      EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), default_writting_to_selfadjoint_not_supported);
+      ei_assert(   (Mode==Upper && col>=row)
+                || (Mode==Lower && col<=row)
+                || (Mode==StrictlyUpper && col>row)
+                || (Mode==StrictlyLower && col<row));
+      return m_matrix.coeffRef(row, col);
+    }
+
+    /** discard any writes to a row */
+    const Block<Part, 1, ColsAtCompileTime> row(int i) { return Base::row(i); }
+    const Block<Part, 1, ColsAtCompileTime> row(int i) const { return Base::row(i); }
+    /** discard any writes to a column */
+    const Block<Part, RowsAtCompileTime, 1> col(int i) { return Base::col(i); }
+    const Block<Part, RowsAtCompileTime, 1> col(int i) const { return Base::col(i); }
+
+  protected:
+
+    const typename MatrixType::Nested m_matrix;
 };
 
-template<typename MatrixType, unsigned int Mode>
-inline Part<MatrixType, Mode>::Part(MatrixType& matrix)
- : m_matrix(matrix)
+/** \returns an expression of a triangular matrix extracted from the current matrix
+  *
+  * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
+  * \c Lower, \c StrictlyLower, \c UnitLower.
+  *
+  * \addexample PartExample \label How to extract a triangular part of an arbitrary matrix
+  *
+  * Example: \include MatrixBase_extract.cpp
+  * Output: \verbinclude MatrixBase_extract.out
+  *
+  * \sa class Part, part(), marked()
+  */
+template<typename Derived>
+template<unsigned int Mode>
+const Part<Derived, Mode> MatrixBase<Derived>::part() const
 {
-  ei_assert(ei_are_flags_consistent<Mode>::ret);
+  return derived();
 }
 
 template<typename MatrixType, unsigned int Mode>
 template<typename Other>
-inline void Part<MatrixType, Mode>::operator=(const Other& other)
+inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator=(const Other& other)
 {
   if(Other::Flags & EvalBeforeAssigningBit)
   {
@@ -89,6 +151,7 @@ inline void Part<MatrixType, Mode>::operator=(const Other& other)
   }
   else
     lazyAssign(other.derived());
+  return *this;
 }
 
 template<typename Derived1, typename Derived2, unsigned int Mode, int UnrollCount>
@@ -204,57 +267,7 @@ void Part<MatrixType, Mode>::lazyAssign(const Other& other)
   ei_part_assignment_impl
     <MatrixType, Other, Mode,
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic
-    >::run(m_matrix, other.derived());
-}
-
-template<typename MatrixType, unsigned int Mode>
-template<typename Other> inline void Part<MatrixType, Mode>::operator+=(const Other& other)
-{
-  *this = m_matrix + other;
-}
-
-template<typename MatrixType, unsigned int Mode>
-template<typename Other> inline void Part<MatrixType, Mode>::operator-=(const Other& other)
-{
-  *this = m_matrix - other;
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::operator*=
-(const typename ei_traits<MatrixType>::Scalar& other)
-{
-  *this = m_matrix * other;
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::operator/=
-(const typename ei_traits<MatrixType>::Scalar& other)
-{
-  *this = m_matrix / other;
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::setConstant(const typename ei_traits<MatrixType>::Scalar& value)
-{
-  *this = MatrixType::constant(m_matrix.rows(), m_matrix.cols(), value);
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::setZero()
-{
-  setConstant((typename ei_traits<MatrixType>::Scalar)(0));
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::setOnes()
-{
-  setConstant((typename ei_traits<MatrixType>::Scalar)(1));
-}
-
-template<typename MatrixType, unsigned int Mode>
-inline void Part<MatrixType, Mode>::setRandom()
-{
-  *this = MatrixType::random(m_matrix.rows(), m_matrix.cols());
+    >::run(m_matrix.const_cast_derived(), other.derived());
 }
 
 /** \returns a lvalue pseudo-expression allowing to perform special operations on \c *this.
@@ -274,6 +287,78 @@ template<unsigned int Mode>
 inline Part<Derived, Mode> MatrixBase<Derived>::part()
 {
   return Part<Derived, Mode>(derived());
+}
+
+/** \returns true if *this is approximately equal to an upper triangular matrix,
+  *          within the precision given by \a prec.
+  *
+  * \sa isLower(), extract(), part(), marked()
+  */
+template<typename Derived>
+bool MatrixBase<Derived>::isUpper(RealScalar prec) const
+{
+  if(cols() != rows()) return false;
+  RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
+  for(int j = 0; j < cols(); j++)
+    for(int i = 0; i <= j; i++)
+    {
+      RealScalar absValue = ei_abs(coeff(i,j));
+      if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
+    }
+  for(int j = 0; j < cols()-1; j++)
+    for(int i = j+1; i < rows(); i++)
+      if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnUpperPart, prec)) return false;
+  return true;
+}
+
+/** \returns true if *this is approximately equal to a lower triangular matrix,
+  *          within the precision given by \a prec.
+  *
+  * \sa isUpper(), extract(), part(), marked()
+  */
+template<typename Derived>
+bool MatrixBase<Derived>::isLower(RealScalar prec) const
+{
+  if(cols() != rows()) return false;
+  RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
+  for(int j = 0; j < cols(); j++)
+    for(int i = j; i < rows(); i++)
+    {
+      RealScalar absValue = ei_abs(coeff(i,j));
+      if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
+    }
+  for(int j = 1; j < cols(); j++)
+    for(int i = 0; i < j; i++)
+      if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnLowerPart, prec)) return false;
+  return true;
+}
+
+template<typename MatrixType, unsigned int Mode>
+template<typename Other>
+inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator+=(const Other& other)
+{
+  return *this = m_matrix + other;
+}
+
+template<typename MatrixType, unsigned int Mode>
+template<typename Other>
+inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator-=(const Other& other)
+{
+  return *this = m_matrix - other;
+}
+
+template<typename MatrixType, unsigned int Mode>
+inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator*=
+(const typename ei_traits<MatrixType>::Scalar& other)
+{
+  return *this = m_matrix * other;
+}
+
+template<typename MatrixType, unsigned int Mode>
+inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator/=
+(const typename ei_traits<MatrixType>::Scalar& other)
+{
+  return *this = m_matrix / other;
 }
 
 #endif // EIGEN_PART_H

@@ -1,4 +1,4 @@
-Matrix2f M = Matrix2f::random();
+Matrix2f M = Matrix2f::Random();
 Matrix2f m;
 m = M;
 cout << "Here is the matrix m:" << endl << m << endl;

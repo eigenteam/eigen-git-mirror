@@ -18,7 +18,7 @@ topLeft2x2Corner(const MatrixBase<Derived>& m)
 
 int main(int, char**)
 {
-  Matrix3d m = Matrix3d::identity();
+  Matrix3d m = Matrix3d::Identity();
   cout << topLeft2x2Corner(4*m) << endl; // calls the const version
   topLeft2x2Corner(m) *= 2;              // calls the non-const version
   cout << "Now the matrix m is:" << endl << m << endl;

@@ -1,2 +1,2 @@
-cout << Matrix2d::ones() << endl;
-cout << 6 * RowVector4i::ones() << endl;
+cout << Matrix2d::Ones() << endl;
+cout << 6 * RowVector4i::Ones() << endl;

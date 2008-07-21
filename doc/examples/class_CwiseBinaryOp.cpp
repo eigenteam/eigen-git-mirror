@@ -11,7 +11,7 @@ template<typename Scalar> struct MakeComplexOp EIGEN_EMPTY_STRUCT {
 
 int main(int, char**)
 {
-  Matrix4d m1 = Matrix4d::random(), m2 = Matrix4d::random();
+  Matrix4d m1 = Matrix4d::Random(), m2 = Matrix4d::Random();
   cout << m1.binaryExpr(m2, MakeComplexOp<double>()) << endl;
   return 0;
 }

@@ -58,7 +58,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     }
 
     /** \returns the lower triangular matrix L */
-    Extract<MatrixType, UnitLower> matrixL(void) const
+    Part<MatrixType, UnitLower> matrixL(void) const
     {
       return m_matrix;
     }
@@ -136,7 +136,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  return m_matrix.adjoint().template extract<UnitUpper>()
+  return m_matrix.adjoint().template part<UnitUpper>()
     .inverseProduct(
       (matrixL()
         .inverseProduct(b))

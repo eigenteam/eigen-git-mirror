@@ -36,10 +36,10 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType m1 = MatrixType::random(rows, cols),
-             m2 = MatrixType::random(rows, cols),
-             mzero = MatrixType::zero(rows, cols),
-             identity = MatrixType::identity(rows, rows);
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
+             mzero = MatrixType::Zero(rows, cols),
+             identity = MatrixType::Identity(rows, rows);
 
   m2 = m1.inverse();
   VERIFY_IS_APPROX(m1, m2.inverse() );

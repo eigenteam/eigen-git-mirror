@@ -132,11 +132,11 @@ public:
   operator Matrix3 () const { return toRotationMatrix(); }
 
   /** \returns a quaternion representing an identity rotation
-    * \sa MatrixBase::identity()
+    * \sa MatrixBase::Identity()
     */
-  inline static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
+  inline static Quaternion Identity() { return Quaternion(1, 0, 0, 0); }
 
-  /** \sa Quaternion::identity(), MatrixBase::setIdentity()
+  /** \sa Quaternion::Identity(), MatrixBase::setIdentity()
     */
   inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
 
@@ -328,7 +328,7 @@ inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
   else
   {
     // return an invalid result to flag the error
-    return Quaternion(Coefficients::zero());
+    return Quaternion(Coefficients::Zero());
   }
 }
 

@@ -240,7 +240,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::scale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
   affine() = (affine() * other.asDiagonal()).lazy();
   return *this;
 }
@@ -254,7 +254,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::prescale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
   m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
   return *this;
 }
@@ -268,7 +268,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::translate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
   translation() += affine() * other;
   return *this;
 }
@@ -282,7 +282,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,Dim);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
   translation() += other;
   return *this;
 }

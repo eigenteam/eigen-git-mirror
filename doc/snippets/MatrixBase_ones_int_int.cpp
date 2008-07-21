@@ -1,1 +1,1 @@
-cout << MatrixXi::ones(2,3) << endl;
+cout << MatrixXi::Ones(2,3) << endl;

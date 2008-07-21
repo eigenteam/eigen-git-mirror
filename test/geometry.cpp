@@ -42,9 +42,9 @@ template<typename Scalar> void geometry(void)
   typedef AngleAxis<Scalar> AngleAxis;
 
   Quaternion q1, q2;
-  Vector3 v0 = Vector3::random(),
-    v1 = Vector3::random(),
-    v2 = Vector3::random();
+  Vector3 v0 = Vector3::Random(),
+    v1 = Vector3::Random(),
+    v2 = Vector3::Random();
   Matrix3 matrot1;
 
   Scalar a = ei_random<Scalar>(-M_PI, M_PI);
@@ -116,7 +116,7 @@ template<typename Scalar> void geometry(void)
   t1.setIdentity();
   t1.affine() = q1.toRotationMatrix();
 
-  v0 << 50, 2, 1;//= Vector3::random().cwiseProduct(Vector3(10,2,0.5));
+  v0 << 50, 2, 1;//= Vector3::Random().cwiseProduct(Vector3(10,2,0.5));
   t0.scale(v0);
   t1.prescale(v0);
 
@@ -140,8 +140,8 @@ template<typename Scalar> void geometry(void)
 
   // 2D transformation
   Transform2 t20, t21;
-  Vector2 v20 = Vector2::random();
-  Vector2 v21 = Vector2::random();
+  Vector2 v20 = Vector2::Random();
+  Vector2 v21 = Vector2::Random();
   t21.setIdentity();
   t21.affine() = Rotation2D<Scalar>(a).toRotationMatrix();
   VERIFY_IS_APPROX(t20.fromPositionOrientationScale(v20,a,v21).matrix(),

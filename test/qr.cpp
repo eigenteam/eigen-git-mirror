@@ -37,10 +37,10 @@ template<typename MatrixType> void qr(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType a = MatrixType::random(rows,cols);
+  MatrixType a = MatrixType::Random(rows,cols);
   QR<MatrixType> qrOfA(a);
   VERIFY_IS_APPROX(a, qrOfA.matrixQ() * qrOfA.matrixR());
-  VERIFY_IS_NOT_APPROX(a+MatrixType::identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR());
+  VERIFY_IS_NOT_APPROX(a+MatrixType::Identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR());
 
   SquareMatrixType b = a.adjoint() * a;
 
@@ -52,7 +52,7 @@ template<typename MatrixType> void qr(const MatrixType& m)
   HessenbergDecomposition<SquareMatrixType> hess(b);
   VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
   VERIFY_IS_APPROX(tridiag.matrixT(), hess.matrixH());
-  b = SquareMatrixType::random(cols,cols);
+  b = SquareMatrixType::Random(cols,cols);
   hess.compute(b);
   VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
 }

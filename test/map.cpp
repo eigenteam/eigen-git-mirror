@@ -33,7 +33,7 @@ template<typename VectorType> void tmap(const VectorType& m)
   // test Map.h
   Scalar* array1 = ei_aligned_malloc<Scalar>(size);
   Scalar* array2 = ei_aligned_malloc<Scalar>(size);
-  Map<VectorType, Aligned>(array1, size) = VectorType::random(size);
+  Map<VectorType, Aligned>(array1, size) = VectorType::Random(size);
   Map<VectorType>(array2, size) = Map<VectorType>(array1, size);
   VectorType ma1 = Map<VectorType>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);

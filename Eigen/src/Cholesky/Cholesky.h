@@ -58,7 +58,7 @@ template<typename MatrixType> class Cholesky
       compute(matrix);
     }
 
-    Extract<MatrixType, Lower> matrixL(void) const
+    Part<MatrixType, Lower> matrixL(void) const
     {
       return m_matrix;
     }
@@ -79,7 +79,7 @@ template<typename MatrixType> class Cholesky
     bool m_isPositiveDefinite;
 };
 
-/** Compute / recompute the Cholesky decomposition A = LL^* = U^*U of \a matrix
+/** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
   */
 template<typename MatrixType>
 void Cholesky<MatrixType>::compute(const MatrixType& a)
@@ -124,7 +124,7 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  return m_matrix.adjoint().template extract<Upper>().inverseProduct(matrixL().inverseProduct(b));
+  return m_matrix.adjoint().template part<Upper>().inverseProduct(matrixL().inverseProduct(b));
 }
 
 /** \cholesky_module

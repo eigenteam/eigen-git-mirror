@@ -376,15 +376,15 @@ template<typename Derived> class MatrixBase
     const DiagonalCoeffs<Derived> diagonal() const;
 
     template<unsigned int Mode> Part<Derived, Mode> part();
-    template<unsigned int Mode> const Extract<Derived, Mode> extract() const;
+    template<unsigned int Mode> const Part<Derived, Mode> part() const;
 
 
     static const ConstantReturnType
-    constant(int rows, int cols, const Scalar& value);
+    Constant(int rows, int cols, const Scalar& value);
     static const ConstantReturnType
-    constant(int size, const Scalar& value);
+    Constant(int size, const Scalar& value);
     static const ConstantReturnType
-    constant(const Scalar& value);
+    Constant(const Scalar& value);
 
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
@@ -396,14 +396,14 @@ template<typename Derived> class MatrixBase
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
     NullaryExpr(const CustomNullaryOp& func);
 
-    static const ConstantReturnType zero(int rows, int cols);
-    static const ConstantReturnType zero(int size);
-    static const ConstantReturnType zero();
-    static const ConstantReturnType ones(int rows, int cols);
-    static const ConstantReturnType ones(int size);
-    static const ConstantReturnType ones();
-    static const IdentityReturnType identity();
-    static const IdentityReturnType identity(int rows, int cols);
+    static const ConstantReturnType Zero(int rows, int cols);
+    static const ConstantReturnType Zero(int size);
+    static const ConstantReturnType Zero();
+    static const ConstantReturnType Ones(int rows, int cols);
+    static const ConstantReturnType Ones(int size);
+    static const ConstantReturnType Ones();
+    static const IdentityReturnType Identity();
+    static const IdentityReturnType Identity(int rows, int cols);
     static const BasisReturnType Unit(int size, int i);
     static const BasisReturnType Unit(int i);
     static const BasisReturnType UnitX();
@@ -521,9 +521,9 @@ template<typename Derived> class MatrixBase
     const PartialRedux<Derived,Horizontal> rowwise() const;
     const PartialRedux<Derived,Vertical> colwise() const;
 
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int rows, int cols);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random(int size);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> random();
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int rows, int cols);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int size);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random();
 
 
 /////////// LU module ///////////

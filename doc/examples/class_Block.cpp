@@ -18,7 +18,7 @@ topLeftCorner(const MatrixBase<Derived>& m, int rows, int cols)
 
 int main(int, char**)
 {
-  Matrix4d m = Matrix4d::identity();
+  Matrix4d m = Matrix4d::Identity();
   cout << topLeftCorner(4*m, 2, 3) << endl; // calls the const version
   topLeftCorner(m, 2, 3) *= 5;              // calls the non-const version
   cout << "Now the matrix m is:" << endl << m << endl;

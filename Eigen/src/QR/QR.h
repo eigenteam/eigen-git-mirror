@@ -57,11 +57,11 @@ template<typename MatrixType> class QR
     bool isFullRank() const { return ei_isMuchSmallerThan(m_hCoeffs.cwise().abs().minCoeff(), Scalar(1)); }
 
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
-    const Extract<NestByValue<MatrixRBlockType>, Upper>
+    const Part<NestByValue<MatrixRBlockType>, Upper>
     matrixR(void) const
     {
       int cols = m_qr.cols();
-      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template extract<Upper>();
+      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template part<Upper>();
     }
 
     MatrixType matrixQ(void) const;
@@ -144,7 +144,7 @@ MatrixType QR<MatrixType>::matrixQ(void) const
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
   int rows = m_qr.rows();
   int cols = m_qr.cols();
-  MatrixType res = MatrixType::identity(rows, cols);
+  MatrixType res = MatrixType::Identity(rows, cols);
   for (int k = cols-1; k >= 0; k--)
   {
     // to make easier the computation of the transformation, let's temporarily

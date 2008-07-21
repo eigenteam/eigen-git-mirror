@@ -1,2 +1,2 @@
-cout << RowVectorXi::zero(4) << endl;
-cout << VectorXf::zero(2) << endl;
+cout << RowVectorXi::Zero(4) << endl;
+cout << VectorXf::Zero(2) << endl;

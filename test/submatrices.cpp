@@ -62,18 +62,18 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::random(rows, cols),
-             m2 = MatrixType::random(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
-             mzero = MatrixType::zero(rows, cols),
+             mzero = MatrixType::Zero(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::identity(rows, rows),
+                              ::Identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::random(rows, rows);
-  VectorType v1 = VectorType::random(rows),
-             v2 = VectorType::random(rows),
-             v3 = VectorType::random(rows),
-             vzero = VectorType::zero(rows);
+                              ::Random(rows, rows);
+  VectorType v1 = VectorType::Random(rows),
+             v2 = VectorType::Random(rows),
+             v3 = VectorType::Random(rows),
+             vzero = VectorType::Zero(rows);
 
   Scalar s1 = ei_random<Scalar>();
 

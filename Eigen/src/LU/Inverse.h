@@ -305,7 +305,7 @@ inline void MatrixBase<Derived>::computeInverse(typename ei_eval<Derived>::type 
 {
   typedef typename ei_eval<Derived>::type MatrixType;
   ei_assert(rows() == cols());
-  ei_assert(NumTraits<Scalar>::HasFloatingPoint);
+  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,scalar_type_must_be_floating_point);
   ei_compute_inverse<MatrixType>::run(eval(), result);
 }
 

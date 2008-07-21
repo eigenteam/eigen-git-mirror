@@ -1,4 +1,4 @@
-Matrix3d m = Matrix3i::zero();
+Matrix3d m = Matrix3i::Zero();
 m.part<Eigen::StrictlyUpper>().setOnes();
 cout << "Here is the matrix m:" << endl << m << endl;
 cout << "And let us now compute m*m.adjoint() in a very optimized way" << endl

@@ -1,4 +1,4 @@
-Matrix2i m = Matrix2i::random();
+Matrix2i m = Matrix2i::Random();
 cout << "Here is the matrix m:" << endl << m << endl;
 cout << "Here is the transpose of m:" << endl << m.transpose() << endl;
 cout << "Here is the coefficient (1,0) in the transpose of m:" << endl

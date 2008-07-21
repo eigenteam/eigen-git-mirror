@@ -57,7 +57,6 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/Extract.h"
 #include "src/Core/Part.h"
 #include "src/Core/CacheFriendlyProduct.h"
 

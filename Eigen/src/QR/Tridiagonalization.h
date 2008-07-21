@@ -215,7 +215,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 
       matA.col(i).coeffRef(i+1) = 1;
       // let's use the end of hCoeffs to store temporary values
-      hCoeffs.end(n-i-1) = h * (matA.corner(BottomRight,n-i-1,n-i-1).template extract<Lower|SelfAdjoint>()
+      hCoeffs.end(n-i-1) = h * (matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower|SelfAdjoint>()
                                 * matA.col(i).end(n-i-1));
 
 
@@ -261,7 +261,7 @@ typename Tridiagonalization<MatrixType>::MatrixType
 Tridiagonalization<MatrixType>::matrixQ(void) const
 {
   int n = m_matrix.rows();
-  MatrixType matQ = MatrixType::identity(n,n);
+  MatrixType matQ = MatrixType::Identity(n,n);
   for (int i = n-2; i>=0; i--)
   {
     Scalar tmp = m_matrix.coeff(i+1,i);

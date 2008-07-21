@@ -13,7 +13,7 @@ struct CwiseClampOp {
 
 int main(int, char**)
 {
-  Matrix4d m1 = Matrix4d::random();
+  Matrix4d m1 = Matrix4d::Random();
   cout << m1 << endl << "becomes: " << endl << m1.unaryExpr(CwiseClampOp<double>(-0.5,0.5)) << endl;
   return 0;
 }

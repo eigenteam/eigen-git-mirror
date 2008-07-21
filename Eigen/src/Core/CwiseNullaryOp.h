@@ -32,7 +32,7 @@
   * \param NullaryOp template functor implementing the operator
   *
   * This class represents an expression of a generic nullary operator.
-  * It is the return type of the ones(), zero(), constant(), identity() and random() functions,
+  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() functions,
   * and most of the time this is the only way it is used.
   *
   * However, if you want to write a function returning such an expression, you
@@ -113,7 +113,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -136,7 +136,7 @@ MatrixBase<Derived>::NullaryExpr(int rows, int cols, const CustomNullaryOp& func
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so zero() should be used
+  * it is redundant to pass \a size as argument, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -176,7 +176,7 @@ MatrixBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -185,7 +185,7 @@ MatrixBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
+MatrixBase<Derived>::Constant(int rows, int cols, const Scalar& value)
 {
   return NullaryExpr(rows, cols, ei_scalar_constant_op<Scalar>(value));
 }
@@ -198,7 +198,7 @@ MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so zero() should be used
+  * it is redundant to pass \a size as argument, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -207,7 +207,7 @@ MatrixBase<Derived>::constant(int rows, int cols, const Scalar& value)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::constant(int size, const Scalar& value)
+MatrixBase<Derived>::Constant(int size, const Scalar& value)
 {
   return NullaryExpr(size, ei_scalar_constant_op<Scalar>(value));
 }
@@ -223,7 +223,7 @@ MatrixBase<Derived>::constant(int size, const Scalar& value)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::constant(const Scalar& value)
+MatrixBase<Derived>::Constant(const Scalar& value)
 {
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
@@ -242,12 +242,12 @@ bool MatrixBase<Derived>::isApproxToConstant
 
 /** Sets all coefficients in this expression to \a value.
   *
-  * \sa class CwiseNullaryOp, zero(), ones()
+  * \sa class CwiseNullaryOp, Zero(), Ones()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
 {
-  return *this = constant(rows(), cols(), value);
+  return derived() = Constant(rows(), cols(), value);
 }
 
 // zero:
@@ -258,7 +258,7 @@ Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so zero() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
   * instead.
   *
   * \addexample Zero \label How to take get a zero matrix
@@ -266,13 +266,13 @@ Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
   * Example: \include MatrixBase_zero_int_int.cpp
   * Output: \verbinclude MatrixBase_zero_int_int.out
   *
-  * \sa zero(), zero(int)
+  * \sa Zero(), Zero(int)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::zero(int rows, int cols)
+MatrixBase<Derived>::Zero(int rows, int cols)
 {
-  return constant(rows, cols, Scalar(0));
+  return Constant(rows, cols, Scalar(0));
 }
 
 /** \returns an expression of a zero vector.
@@ -283,19 +283,19 @@ MatrixBase<Derived>::zero(int rows, int cols)
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so zero() should be used
+  * it is redundant to pass \a size as argument, so Zero() should be used
   * instead.
   *
   * Example: \include MatrixBase_zero_int.cpp
   * Output: \verbinclude MatrixBase_zero_int.out
   *
-  * \sa zero(), zero(int,int)
+  * \sa Zero(), Zero(int,int)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::zero(int size)
+MatrixBase<Derived>::Zero(int size)
 {
-  return constant(size, Scalar(0));
+  return Constant(size, Scalar(0));
 }
 
 /** \returns an expression of a fixed-size zero matrix or vector.
@@ -306,13 +306,13 @@ MatrixBase<Derived>::zero(int size)
   * Example: \include MatrixBase_zero.cpp
   * Output: \verbinclude MatrixBase_zero.out
   *
-  * \sa zero(int), zero(int,int)
+  * \sa Zero(int), Zero(int,int)
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::zero()
+MatrixBase<Derived>::Zero()
 {
-  return constant(Scalar(0));
+  return Constant(Scalar(0));
 }
 
 /** \returns true if *this is approximately equal to the zero matrix,
@@ -321,7 +321,7 @@ MatrixBase<Derived>::zero()
   * Example: \include MatrixBase_isZero.cpp
   * Output: \verbinclude MatrixBase_isZero.out
   *
-  * \sa class CwiseNullaryOp, zero()
+  * \sa class CwiseNullaryOp, Zero()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isZero
@@ -339,7 +339,7 @@ bool MatrixBase<Derived>::isZero
   * Example: \include MatrixBase_setZero.cpp
   * Output: \verbinclude MatrixBase_setZero.out
   *
-  * \sa class CwiseNullaryOp, zero()
+  * \sa class CwiseNullaryOp, Zero()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setZero()
@@ -355,7 +355,7 @@ Derived& MatrixBase<Derived>::setZero()
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so ones() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Ones() should be used
   * instead.
   *
   * \addexample One \label How to get a matrix with all coefficients equal one
@@ -363,13 +363,13 @@ Derived& MatrixBase<Derived>::setZero()
   * Example: \include MatrixBase_ones_int_int.cpp
   * Output: \verbinclude MatrixBase_ones_int_int.out
   *
-  * \sa ones(), ones(int), isOnes(), class Ones
+  * \sa Ones(), Ones(int), isOnes(), class Ones
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::ones(int rows, int cols)
+MatrixBase<Derived>::Ones(int rows, int cols)
 {
-  return constant(rows, cols, Scalar(1));
+  return Constant(rows, cols, Scalar(1));
 }
 
 /** \returns an expression of a vector where all coefficients equal one.
@@ -380,19 +380,19 @@ MatrixBase<Derived>::ones(int rows, int cols)
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so ones() should be used
+  * it is redundant to pass \a size as argument, so Ones() should be used
   * instead.
   *
   * Example: \include MatrixBase_ones_int.cpp
   * Output: \verbinclude MatrixBase_ones_int.out
   *
-  * \sa ones(), ones(int,int), isOnes(), class Ones
+  * \sa Ones(), Ones(int,int), isOnes(), class Ones
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::ones(int size)
+MatrixBase<Derived>::Ones(int size)
 {
-  return constant(size, Scalar(1));
+  return Constant(size, Scalar(1));
 }
 
 /** \returns an expression of a fixed-size matrix or vector where all coefficients equal one.
@@ -403,13 +403,13 @@ MatrixBase<Derived>::ones(int size)
   * Example: \include MatrixBase_ones.cpp
   * Output: \verbinclude MatrixBase_ones.out
   *
-  * \sa ones(int), ones(int,int), isOnes(), class Ones
+  * \sa Ones(int), Ones(int,int), isOnes(), class Ones
   */
 template<typename Derived>
 const typename MatrixBase<Derived>::ConstantReturnType
-MatrixBase<Derived>::ones()
+MatrixBase<Derived>::Ones()
 {
-  return constant(Scalar(1));
+  return Constant(Scalar(1));
 }
 
 /** \returns true if *this is approximately equal to the matrix where all coefficients
@@ -418,7 +418,7 @@ MatrixBase<Derived>::ones()
   * Example: \include MatrixBase_isOnes.cpp
   * Output: \verbinclude MatrixBase_isOnes.out
   *
-  * \sa class CwiseNullaryOp, ones()
+  * \sa class CwiseNullaryOp, Ones()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isOnes
@@ -432,7 +432,7 @@ bool MatrixBase<Derived>::isOnes
   * Example: \include MatrixBase_setOnes.cpp
   * Output: \verbinclude MatrixBase_setOnes.out
   *
-  * \sa class CwiseNullaryOp, ones()
+  * \sa class CwiseNullaryOp, Ones()
   */
 template<typename Derived>
 Derived& MatrixBase<Derived>::setOnes()
@@ -448,7 +448,7 @@ Derived& MatrixBase<Derived>::setOnes()
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so identity() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Identity() should be used
   * instead.
   * 
   * \addexample Identity \label How to get an identity matrix
@@ -456,11 +456,11 @@ Derived& MatrixBase<Derived>::setOnes()
   * Example: \include MatrixBase_identity_int_int.cpp
   * Output: \verbinclude MatrixBase_identity_int_int.out
   *
-  * \sa identity(), setIdentity(), isIdentity()
+  * \sa Identity(), setIdentity(), isIdentity()
   */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::IdentityReturnType
-MatrixBase<Derived>::identity(int rows, int cols)
+MatrixBase<Derived>::Identity(int rows, int cols)
 {
   return NullaryExpr(rows, cols, ei_scalar_identity_op<Scalar>());
 }
@@ -473,11 +473,11 @@ MatrixBase<Derived>::identity(int rows, int cols)
   * Example: \include MatrixBase_identity.cpp
   * Output: \verbinclude MatrixBase_identity.out
   *
-  * \sa identity(int,int), setIdentity(), isIdentity()
+  * \sa Identity(int,int), setIdentity(), isIdentity()
   */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::IdentityReturnType
-MatrixBase<Derived>::identity()
+MatrixBase<Derived>::Identity()
 {
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
@@ -490,7 +490,7 @@ MatrixBase<Derived>::identity()
   * Example: \include MatrixBase_isIdentity.cpp
   * Output: \verbinclude MatrixBase_isIdentity.out
   *
-  * \sa class CwiseNullaryOp, identity(), identity(int,int), setIdentity()
+  * \sa class CwiseNullaryOp, Identity(), Identity(int,int), setIdentity()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isIdentity
@@ -520,12 +520,12 @@ bool MatrixBase<Derived>::isIdentity
   * Example: \include MatrixBase_setIdentity.cpp
   * Output: \verbinclude MatrixBase_setIdentity.out
   *
-  * \sa class CwiseNullaryOp, identity(), identity(int,int), isIdentity()
+  * \sa class CwiseNullaryOp, Identity(), Identity(int,int), isIdentity()
   */
 template<typename Derived>
 inline Derived& MatrixBase<Derived>::setIdentity()
 {
-  return *this = identity(rows(), cols());
+  return derived() = Identity(rows(), cols());
 }
 
 /** \returns an expression of the i-th unit (basis) vector.
@@ -538,7 +538,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int size, int i)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return BasisReturnType(SquareMatrixType::identity(size,size), i);
+  return BasisReturnType(SquareMatrixType::Identity(size,size), i);
 }
 
 /** \returns an expression of the i-th unit (basis) vector.
@@ -553,7 +553,7 @@ template<typename Derived>
 const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int i)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return BasisReturnType(SquareMatrixType::identity(),i);
+  return BasisReturnType(SquareMatrixType::Identity(),i);
 }
 
 /** \returns an expression of the X axis unit vector (1{,0}^*)

@@ -53,7 +53,7 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::random(int rows, int cols)
+MatrixBase<Derived>::Random(int rows, int cols)
 {
   return NullaryExpr(rows, cols, ei_scalar_random_op<Scalar>());
 }
@@ -78,7 +78,7 @@ MatrixBase<Derived>::random(int rows, int cols)
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::random(int size)
+MatrixBase<Derived>::Random(int size)
 {
   return NullaryExpr(size, ei_scalar_random_op<Scalar>());
 }
@@ -98,7 +98,7 @@ MatrixBase<Derived>::random(int size)
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::random()
+MatrixBase<Derived>::Random()
 {
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
 }
@@ -115,7 +115,7 @@ MatrixBase<Derived>::random()
 template<typename Derived>
 inline Derived& MatrixBase<Derived>::setRandom()
 {
-  return *this = random(rows(), cols());
+  return *this = Random(rows(), cols());
 }
 
 #endif // EIGEN_RANDOM_H

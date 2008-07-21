@@ -61,7 +61,10 @@
         this_method_is_only_for_vectors_of_a_specific_size,
         you_did_a_programming_error,
         you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
-        unaligned_load_and_store_operations_unimplemented_on_AltiVec
+        unaligned_load_and_store_operations_unimplemented_on_AltiVec,
+        scalar_type_must_be_floating_point,
+        default_writting_to_selfadjoint_not_supported,
+        writting_to_triangular_part_with_unit_diag_is_not_supported
       };
     };
 

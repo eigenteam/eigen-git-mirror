@@ -38,8 +38,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  MatrixType a = MatrixType::random(rows,cols);
-  VectorType b = VectorType::random(rows);
+  MatrixType a = MatrixType::Random(rows,cols);
+  VectorType b = VectorType::Random(rows);
   SquareMatrixType covMat =  a * a.adjoint();
 
   CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(covMat);

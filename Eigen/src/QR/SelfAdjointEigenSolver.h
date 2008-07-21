@@ -79,6 +79,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
     void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true);
 
+    /** \returns the computed eigen vectors as a matrix of column vectors */
     MatrixType eigenvectors(void) const
     {
       #ifndef NDEBUG
@@ -87,6 +88,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       return m_eivec;
     }
 
+    /** \returns the computed eigen values */
     RealVectorType eigenvalues(void) const { return m_eivalues; }
 
   protected:

@@ -37,18 +37,18 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   int cols = m.cols();
 
   int r = ei_random<int>(0, rows-1), r2 = ei_random<int>(0, rows-1), c = ei_random<int>(0, cols-1);
-  VERIFY_IS_APPROX(MatrixType::ones(rows,cols)(r,c), static_cast<Scalar>(1));
-  MatrixType m1 = MatrixType::ones(rows,cols);
+  VERIFY_IS_APPROX(MatrixType::Ones(rows,cols)(r,c), static_cast<Scalar>(1));
+  MatrixType m1 = MatrixType::Ones(rows,cols);
   VERIFY_IS_APPROX(m1(r,c), static_cast<Scalar>(1));
-  VectorType v1 = VectorType::random(rows);
+  VectorType v1 = VectorType::Random(rows);
   v1[0];
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
   square = v1.asDiagonal();
   if(r==r2) VERIFY_IS_APPROX(square(r,r2), v1[r]);
   else VERIFY_IS_MUCH_SMALLER_THAN(square(r,r2), static_cast<Scalar>(1));
-  square = MatrixType::zero(rows, rows);
-  square.diagonal() = VectorType::ones(rows);
-  VERIFY_IS_APPROX(square, MatrixType::identity(rows, rows));
+  square = MatrixType::Zero(rows, rows);
+  square.diagonal() = VectorType::Ones(rows);
+  VERIFY_IS_APPROX(square, MatrixType::Identity(rows, rows));
 }
 
 void test_miscmatrices()

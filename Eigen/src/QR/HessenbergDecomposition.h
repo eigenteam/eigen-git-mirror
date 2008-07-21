@@ -209,7 +209,7 @@ typename HessenbergDecomposition<MatrixType>::MatrixType
 HessenbergDecomposition<MatrixType>::matrixQ(void) const
 {
   int n = m_matrix.rows();
-  MatrixType matQ = MatrixType::identity(n,n);
+  MatrixType matQ = MatrixType::Identity(n,n);
   for (int i = n-2; i>=0; i--)
   {
     Scalar tmp = m_matrix.coeff(i+1,i);

@@ -54,21 +54,21 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h
-  MatrixType m1 = MatrixType::random(rows, cols),
-             m2 = MatrixType::random(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
-             mzero = MatrixType::zero(rows, cols);
+             mzero = MatrixType::Zero(rows, cols);
   RowSquareMatrixType
-             identity = RowSquareMatrixType::identity(rows, rows),
-             square = RowSquareMatrixType::random(rows, rows),
-             res = RowSquareMatrixType::random(rows, rows);
+             identity = RowSquareMatrixType::Identity(rows, rows),
+             square = RowSquareMatrixType::Random(rows, rows),
+             res = RowSquareMatrixType::Random(rows, rows);
   ColSquareMatrixType
-             square2 = ColSquareMatrixType::random(cols, cols),
-             res2 = ColSquareMatrixType::random(cols, cols);
-  RowVectorType v1 = RowVectorType::random(rows),
-             v2 = RowVectorType::random(rows),
-             vzero = RowVectorType::zero(rows);
-  ColVectorType vc2 = ColVectorType::random(cols), vcres;
+             square2 = ColSquareMatrixType::Random(cols, cols),
+             res2 = ColSquareMatrixType::Random(cols, cols);
+  RowVectorType v1 = RowVectorType::Random(rows),
+             v2 = RowVectorType::Random(rows),
+             vzero = RowVectorType::Zero(rows);
+  ColVectorType vc2 = ColVectorType::Random(cols), vcres;
   OtherMajorMatrixType tm1 = m1;
 
   Scalar s1 = ei_random<Scalar>();
@@ -99,7 +99,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(v1,                      identity*v1);
   VERIFY_IS_APPROX(v1.transpose(),          v1.transpose() * identity);
   // again, test operator() to check const-qualification
-  VERIFY_IS_APPROX(MatrixType::identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
+  VERIFY_IS_APPROX(MatrixType::Identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
 
   if (rows!=cols)
     VERIFY_RAISES_ASSERT(m3 = m1*m1);

@@ -42,18 +42,18 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::random(rows, cols),
-             m2 = MatrixType::random(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
-             mzero = MatrixType::zero(rows, cols),
-             mones = MatrixType::ones(rows, cols),
+             mzero = MatrixType::Zero(rows, cols),
+             mones = MatrixType::Ones(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::identity(rows, rows),
+                              ::Identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::random(rows, rows);
-  VectorType v1 = VectorType::random(rows),
-             v2 = VectorType::random(rows),
-             vzero = VectorType::zero(rows);
+                              ::Random(rows, rows);
+  VectorType v1 = VectorType::Random(rows),
+             v2 = VectorType::Random(rows),
+             vzero = VectorType::Zero(rows);
 
   m2 = m2.template binaryExpr<AddIfNull<Scalar> >(mones);
 

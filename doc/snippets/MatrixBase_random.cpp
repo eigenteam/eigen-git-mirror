@@ -1,1 +1,1 @@
-cout << 100 * Matrix2i::random() << endl;
+cout << 100 * Matrix2i::Random() << endl;

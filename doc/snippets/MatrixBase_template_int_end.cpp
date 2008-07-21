@@ -1,4 +1,4 @@
-RowVector4i v = RowVector4i::random();
+RowVector4i v = RowVector4i::Random();
 cout << "Here is the vector v:" << endl << v << endl;
 cout << "Here is v.end(2):" << endl << v.end<2>() << endl;
 v.end<2>().setZero();

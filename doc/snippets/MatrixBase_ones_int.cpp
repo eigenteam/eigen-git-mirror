@@ -1,2 +1,2 @@
-cout << 6 * RowVectorXi::ones(4) << endl;
-cout << VectorXf::ones(2) << endl;
+cout << 6 * RowVectorXi::Ones(4) << endl;
+cout << VectorXf::Ones(2) << endl;
