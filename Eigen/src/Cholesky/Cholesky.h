@@ -25,7 +25,9 @@
 #ifndef EIGEN_CHOLESKY_H
 #define EIGEN_CHOLESKY_H
 
-/** \class Cholesky
+/** \ingroup Cholesky_Module
+  *
+  * \class Cholesky
   *
   * \brief Standard Cholesky decomposition of a matrix and associated features
   *

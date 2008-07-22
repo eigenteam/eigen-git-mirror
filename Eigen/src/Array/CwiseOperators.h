@@ -127,6 +127,8 @@ Cwise<ExpressionType>::cube() const
   * 
   * \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
+  * See MatrixBase::all() for an example.
+  *
   * \sa class CwiseBinaryOp
   */
 template<typename ExpressionType>
@@ -154,6 +156,8 @@ Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
 /** \array_module
   * 
   * \returns an expression of the coefficient-wise \> operator of *this and \a other
+  *
+  * See MatrixBase::all() for an example.
   *
   * \sa class CwiseBinaryOp
   */
@@ -208,7 +212,8 @@ Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
 }
 
 
-/** \returns an expression of \c *this with each coeff incremented by the constant \a scalar */
+/** \array_module
+  * \returns an expression of \c *this with each coeff incremented by the constant \a scalar */
 template<typename ExpressionType>
 inline const typename Cwise<ExpressionType>::ScalarAddReturnType
 Cwise<ExpressionType>::operator+(const Scalar& scalar) const
@@ -216,14 +221,16 @@ Cwise<ExpressionType>::operator+(const Scalar& scalar) const
   return typename Cwise<ExpressionType>::ScalarAddReturnType(m_matrix, ei_scalar_add_op<Scalar>(scalar));
 }
 
-/** \see operator+ */
+/** \array_module
+  * \see operator+() */
 template<typename ExpressionType>
 inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
 {
   return m_matrix.const_cast_derived() = *this + scalar;
 }
 
-/** \returns an expression of \c *this with each coeff decremented by the constant \a scalar */
+/** \array_module
+  * \returns an expression of \c *this with each coeff decremented by the constant \a scalar */
 template<typename ExpressionType>
 inline const typename Cwise<ExpressionType>::ScalarAddReturnType
 Cwise<ExpressionType>::operator-(const Scalar& scalar) const
@@ -231,7 +238,8 @@ Cwise<ExpressionType>::operator-(const Scalar& scalar) const
   return *this + (-scalar);
 }
 
-/** \see operator- */
+/** \array_module
+  * \see operator- */
 template<typename ExpressionType>
 inline ExpressionType& Cwise<ExpressionType>::operator-=(const Scalar& scalar)
 {

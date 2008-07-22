@@ -25,7 +25,9 @@
 #ifndef EIGEN_TRIDIAGONALIZATION_H
 #define EIGEN_TRIDIAGONALIZATION_H
 
-/** \class Tridiagonalization
+/** \ingroup QR_Module
+  *
+  * \class Tridiagonalization
   *
   * \brief Trigiagonal decomposition of a selfadjoint matrix
   *

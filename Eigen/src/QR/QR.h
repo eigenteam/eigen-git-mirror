@@ -25,7 +25,9 @@
 #ifndef EIGEN_QR_H
 #define EIGEN_QR_H
 
-/** \class QR
+/** \ingroup QR_Module
+  *
+  * \class QR
   *
   * \brief QR decomposition of a matrix
   *

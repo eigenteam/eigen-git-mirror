@@ -45,6 +45,8 @@ template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::siz
   * It is the return type of MatrixBase::cwise()
   * and most of the time this is the only way it is used.
   *
+  * Note that some methods are defined in the \ref Array module.
+  *
   * \sa MatrixBase::cwise()
   */
 template<typename ExpressionType> class Cwise

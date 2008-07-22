@@ -81,7 +81,12 @@ struct ei_any_unroller<Derived, Dynamic>
   * 
   * \returns true if all coefficients are true
   *
-  * \sa MatrixBase::any()
+  * \addexample CwiseAll \label How to check whether a point is inside a box (using operator< and all())
+  *
+  * Example: \include MatrixBase_all.cpp
+  * Output: \verbinclude MatrixBase_all.out
+  *
+  * \sa MatrixBase::any(), Cwise::operator<()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::all(void) const
@@ -105,7 +110,7 @@ bool MatrixBase<Derived>::all(void) const
   * 
   * \returns true if at least one coefficient is true
   *
-  * \sa MatrixBase::any()
+  * \sa MatrixBase::all()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::any(void) const

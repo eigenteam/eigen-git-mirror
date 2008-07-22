@@ -25,7 +25,7 @@
 #ifndef EIGEN_SELFADJOINTEIGENSOLVER_H
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
-/** \qr_module
+/** \qr_module \ingroup QR_Module
   *
   * \class SelfAdjointEigenSolver
   *

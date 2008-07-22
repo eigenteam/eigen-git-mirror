@@ -25,7 +25,9 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
-/** \class EigenSolver
+/** \ingroup QR_Module
+  *
+  * \class EigenSolver
   *
   * \brief Eigen values/vectors solver for non selfadjoint matrices
   *

@@ -25,7 +25,9 @@
 #ifndef EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H
 #define EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H
 
-/** \class CholeskyWithoutSquareRoot
+/** \ingroup Cholesky_Module
+  *
+  * \class CholeskyWithoutSquareRoot
   *
   * \brief Robust Cholesky decomposition of a matrix and associated features
   *

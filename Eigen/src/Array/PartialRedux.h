@@ -26,7 +26,7 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
-/** \array_module
+/** \array_module \ingroup Array
   * 
   * \class PartialReduxExpr
   *
@@ -128,7 +128,7 @@ struct ei_member_redux {
   const BinaryOp m_functor;
 };
 
-/** \array_module
+/** \array_module \ingroup Array
   *
   * \class PartialRedux
   *
@@ -141,7 +141,7 @@ struct ei_member_redux {
   * It is the return type of MatrixBase::colwise() and MatrixBase::rowwise()
   * and most of the time this is the only way it is used.
   *
-  * \sa MatrixBase::colwise(), MatrixBase::rowwise()
+  * \sa MatrixBase::colwise(), MatrixBase::rowwise(), class PartialReduxExpr
   */
 template<typename ExpressionType, int Direction> class PartialRedux
 {
@@ -236,9 +236,7 @@ MatrixBase<Derived>::rowwise() const
   return derived();
 }
 
-/** \array_module
-  * 
-  * \returns a row or column vector expression of \c *this reduxed by \a func
+/** \returns a row or column vector expression of \c *this reduxed by \a func
   *
   * The template parameter \a BinaryOp is the type of the functor
   * of the custom redux operator. Note that func must be an associative operator.

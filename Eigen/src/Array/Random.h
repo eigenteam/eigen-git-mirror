@@ -49,7 +49,7 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
   *
-  * \sa ei_random(), ei_random(int)
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(int), MatrixBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -74,7 +74,7 @@ MatrixBase<Derived>::Random(int rows, int cols)
   * Example: \include MatrixBase_random_int.cpp
   * Output: \verbinclude MatrixBase_random_int.out
   *
-  * \sa ei_random(), ei_random(int,int)
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -94,7 +94,7 @@ MatrixBase<Derived>::Random(int size)
   * Example: \include MatrixBase_random.cpp
   * Output: \verbinclude MatrixBase_random.out
   *
-  * \sa ei_random(int), ei_random(int,int)
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random(int)
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -110,7 +110,7 @@ MatrixBase<Derived>::Random()
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
-  * \sa class CwiseNullaryOp, ei_random()
+  * \sa class CwiseNullaryOp, MatrixBase::setRandom(int,int)
   */
 template<typename Derived>
 inline Derived& MatrixBase<Derived>::setRandom()

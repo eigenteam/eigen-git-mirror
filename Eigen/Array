@@ -5,6 +5,23 @@
 
 namespace Eigen {
 
+/** \defgroup Array Array module
+  * This module provides several handy features to manipulate matrices as simple array of values.
+  * In addition to listed classes, it defines various methods of the Cwise interface
+  * (accessible from MatrixBase::cwise()), including:
+  *  - matrix-scalar sum,
+  *  - coeff-wise comparison operators,
+  *  - sin, cos, sqrt, pow, exp, log, square, cube, reciprocal.
+  *
+  * This module also provides various MatrixBase methods, including:
+  *  - \ref MatrixBase::all() "all", \ref MatrixBase::any() "any",
+  *  - \ref MatrixBase::Random() "random matrix initialization"
+  *
+  * \code
+  * #include <Eigen/Array>
+  * \endcode
+  */
+
 #include "src/Array/CwiseOperators.h"
 #include "src/Array/Functors.h"
 #include "src/Array/AllAndAny.h"

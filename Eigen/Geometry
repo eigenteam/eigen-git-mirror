@@ -5,7 +5,7 @@
 
 namespace Eigen {
 
-/** \defgroup Geometry
+/** \defgroup Geometry Geometry module
   * This module provides support for:
   *  - fixed-size homogeneous transformations
   *  - 2D and 3D rotations

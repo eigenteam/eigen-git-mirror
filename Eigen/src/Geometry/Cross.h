@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -32,6 +33,8 @@ template<typename OtherDerived>
 inline typename ei_eval<Derived>::type
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3);
+  
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
   const typename ei_nested<Derived,2>::type lhs(derived());
@@ -41,6 +44,67 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
     lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
     lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)
   );
+}
+
+template<typename Derived, int Size = Derived::SizeAtCompileTime>
+struct ei_perpendicular_selector
+{
+  typedef typename ei_eval<Derived>::type VectorType;
+  typedef typename ei_traits<Derived>::Scalar Scalar;
+  inline static VectorType run(const Derived& src)
+  {
+    VectorType perp;
+    /* Let us compute the crossed product of *this with a vector
+     * that is not too close to being colinear to *this.
+     */
+
+    /* unless the x and y coords are both close to zero, we can
+     * simply take ( -y, x, 0 ) and normalize it.
+     */
+    if((!ei_isMuchSmallerThan(src.x(), src.z()))
+    || (!ei_isMuchSmallerThan(src.y(), src.z())))
+    {
+      Scalar invnm = Scalar(1)/src.template start<2>().norm();
+      perp.template start<3>() << -ei_conj(src.y())*invnm, ei_conj(src.x())*invnm, 0;
+    }
+    /* if both x and y are close to zero, then the vector is close
+     * to the z-axis, so it's far from colinear to the x-axis for instance.
+     * So we take the crossed product with (1,0,0) and normalize it.
+     */
+    else
+    {
+      Scalar invnm = Scalar(1)/src.template end<2>().norm();
+      perp.template start<3>() << 0, -ei_conj(src.z())*invnm, ei_conj(src.y())*invnm;
+    }
+    if (Derived::SizeAtCompileTime>3
+    || (Derived::SizeAtCompileTime==Dynamic && src.size()>3))
+      perp.end(src.size()-3).setZero();
+
+    return perp;
+   }
+};
+
+template<typename Derived>
+struct ei_perpendicular_selector<Derived,2>
+{
+  typedef typename ei_eval<Derived>::type VectorType;
+  inline static VectorType run(const Derived& src)
+  { return VectorType(-ei_conj(src.y()), ei_conj(src.x())).normalized(); }
+};
+
+/** \Returns an orthogonal vector of \c *this
+  *
+  * The size of \c *this must be at least 2. If the size is exactly 2,
+  * then the returned vector is a counter clock wise rotation of \c *this, \ie (-y,x).
+  *
+  * \sa cross()
+  */
+template<typename Derived>
+typename ei_eval<Derived>::type
+MatrixBase<Derived>::perpendicular() const
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  return ei_perpendicular_selector<Derived>::run(derived());
 }
 
 #endif // EIGEN_CROSS_H

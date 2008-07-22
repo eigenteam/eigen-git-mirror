@@ -45,9 +45,22 @@ template<typename Scalar> void geometry(void)
   Vector3 v0 = Vector3::Random(),
     v1 = Vector3::Random(),
     v2 = Vector3::Random();
+  Vector2 u0 = Vector2::Random();
   Matrix3 matrot1;
 
   Scalar a = ei_random<Scalar>(-M_PI, M_PI);
+
+  // cross product
+  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
+  Matrix3 m;
+  m << v0.normalized(),
+      (v0.cross(v1)).normalized(),
+      (v0.cross(v1).cross(v0)).normalized();
+  VERIFY(m.isUnitary());
+
+  // perpendicular
+  VERIFY_IS_MUCH_SMALLER_THAN(u0.perpendicular().dot(u0), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v0.perpendicular().dot(v0), Scalar(1));
 
   q1 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
   q2 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());
@@ -81,14 +94,6 @@ template<typename Scalar> void geometry(void)
   // inverse and conjugate
   VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
   VERIFY_IS_APPROX(q1 * (q1.conjugate() * v1), v1);
-
-  // cross product
-  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
-  Matrix3 m;
-  m << v0.normalized(),
-      (v0.cross(v1)).normalized(),
-      (v0.cross(v1).cross(v0)).normalized();
-  VERIFY(m.isUnitary());
 
   // AngleAxis
   VERIFY_IS_APPROX(AngleAxis(a,v1.normalized()).toRotationMatrix(),

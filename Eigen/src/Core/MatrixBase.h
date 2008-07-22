@@ -31,7 +31,9 @@
   *
   * This class is the base that is inherited by all matrix, vector, and expression
   * types. Most of the Eigen API is contained in this class. Other important classes for
-  * the Eigen API are Matrix, Cwise, and Part.
+  * the Eigen API are Matrix, Cwise, and PartialRedux.
+  * 
+  * Note that some methods are defined in the \ref Array module.
   *
   * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *
@@ -48,7 +50,6 @@
     }
   * \endcode
   *
-  * \nosubgrouping
   */
 template<typename Derived> class MatrixBase
 {
@@ -549,7 +550,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     typename ei_eval<Derived>::type
     cross(const MatrixBase<OtherDerived>& other) const;
-
+    typename ei_eval<Derived>::type perpendicular(void) const;
 };
 
 #endif // EIGEN_MATRIXBASE_H

@@ -25,7 +25,9 @@
 #ifndef EIGEN_HESSENBERGDECOMPOSITION_H
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
-/** \class HessenbergDecomposition
+/** \ingroup QR_Module
+  *
+  * \class HessenbergDecomposition
   *
   * \brief Reduces a squared matrix to an Hessemberg form
   *

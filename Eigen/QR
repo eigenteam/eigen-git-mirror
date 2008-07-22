@@ -15,6 +15,18 @@
 
 namespace Eigen {
 
+/** \defgroup QR_Module QR module
+  * This module mainly provides QR decomposition and an eigen value solver.
+  * This module also provides some MatrixBase methods, including:
+  *  - MatrixBase::qr(),
+  *  - MatrixBase::eigenvalues(),
+  *  - MatrixBase::matrixNorm()
+  *
+  * \code
+  * #include <Eigen/QR>
+  * \endcode
+  */
+
 #include "src/QR/QR.h"
 #include "src/QR/Tridiagonalization.h"
 #include "src/QR/EigenSolver.h"
