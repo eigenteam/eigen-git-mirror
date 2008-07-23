@@ -359,6 +359,19 @@ static void ei_cache_friendly_product(
 
 #endif // EIGEN_EXTERN_INSTANTIATIONS
 
+template<typename Scalar>
+inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
+{
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  const int PacketSize = ei_packet_traits<Scalar>::size;
+  const int PacketAlignedMask = PacketSize-1;
+  const bool Vectorized = PacketSize>1;
+  return Vectorized
+          ? std::min<int>( (PacketSize - ((size_t(ptr)/sizeof(Scalar)) & PacketAlignedMask))
+                           & PacketAlignedMask, maxOffset)
+          : 0;
+}
+
 /* Optimized col-major matrix * vector product:
  * This algorithm processes 4 columns at onces that allows to both reduce
  * the number of load/stores of the result by a factor 4 and to reduce
@@ -397,9 +410,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
-  const int alignedStart = Vectorized
-                         ? std::min<int>( (PacketSize - ((size_t(res)/sizeof(Scalar)) & PacketAlignedMask)) & PacketAlignedMask, size)
-                         : 0;
+  const int alignedStart = ei_alignmentOffset(res,size);
   const int alignedSize = alignedStart + ((size-alignedStart) & ~PacketAlignedMask);
   const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
@@ -408,9 +419,13 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
                        : alignmentStep==2 ? EvenAligned
                        : FirstAligned;
 
+  // we cannot assume the first element is aligned because of sub-matrices
+  const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
+  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0);
+  
   // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns=0;
-  for (; skipColumns<PacketSize && alignedStart != alignmentStep*skipColumns; ++skipColumns)
+  for (; skipColumns<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipColumns; ++skipColumns)
   {}
   if (skipColumns==PacketSize)
   {
@@ -423,6 +438,10 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
     skipColumns = std::min(skipColumns,rhs.size());
     // note that the skiped columns are processed later.
   }
+
+  ei_internal_assert((alignmentPattern==NoneAligned)
+    || size_t(lhs+alignedStart+alignmentStep*skipColumns)%sizeof(Packet)==0);
+
   int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
@@ -500,7 +519,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
         res[j] += ei_pfirst(ptmp0) * lhs0[j];
 
       // process aligned result's coeffs
-      if (((i*lhsStride) % PacketSize+alignedStart) == 0)
+      if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
         for (int j = alignedStart;j<alignedSize;j+=PacketSize)
           ei_pstore(&res[j], ei_pmadd(ptmp0,ei_pload(&lhs0[j]),ei_pload(&res[j])));
       else
@@ -557,9 +576,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
-  const int alignedStart = Vectorized
-                         ? std::min<int>( (PacketSize - ((size_t(rhs)/sizeof(Scalar)) & PacketAlignedMask)) & PacketAlignedMask, size)
-                         : 0;
+  const int alignedStart = ei_alignmentOffset(rhs, size);
   const int alignedSize = alignedStart + ((size-alignedStart) & ~PacketAlignedMask);
   //const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : 0;
 
@@ -568,9 +585,12 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
                        : alignmentStep==2 ? EvenAligned
                        : FirstAligned;
 
+  // we cannot assume the first element is aligned because of sub-matrices
+  const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
+  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0);
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   int skipRows=0;
-  for (; skipRows<PacketSize && alignedStart != alignmentStep*skipRows; ++skipRows)
+  for (; skipRows<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipRows; ++skipRows)
   {}
   if (skipRows==PacketSize)
   {
@@ -583,6 +603,8 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     skipRows = std::min(skipRows,res.size());
     // note that the skiped columns are processed later.
   }
+  ei_internal_assert((alignmentPattern==NoneAligned)
+    || size_t(lhs+alignedStart+alignmentStep*skipRows)%sizeof(Packet)==0);
   
   int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (int i=skipRows; i<rowBound; i+=rowsAtOnce)
@@ -652,7 +674,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
       if (alignedSize>alignedStart)
       {
         // process aligned rhs coeffs
-        if ((i*lhsStride+alignedStart) % PacketSize==0)
+        if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
           for (int j = alignedStart;j<alignedSize;j+=PacketSize)
             ptmp0 = ei_pmadd(ei_pload(&rhs[j]), ei_pload(&lhs0[j]), ptmp0);
         else

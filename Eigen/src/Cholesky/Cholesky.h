@@ -48,24 +48,28 @@
   */
 template<typename MatrixType> class Cholesky
 {
-  public:
-
+  private:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
+    enum {
+      PacketSize = ei_packet_traits<Scalar>::size,
+      AlignmentMask = int(PacketSize)-1
+    };
+
+  public:
+  
     Cholesky(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols())
     {
       compute(matrix);
     }
 
-    Part<MatrixType, Lower> matrixL(void) const
-    {
-      return m_matrix;
-    }
+    inline Part<MatrixType, Lower> matrixL(void) const { return m_matrix; }
 
-    bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
+    /** \returns true if the matrix is positive definite */
+    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
     typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
@@ -92,20 +96,30 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
 
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = x > RealScalar(0) && ei_isMuchSmallerThan(ei_imag(m_matrix.coeff(0,0)), RealScalar(1));
+  m_isPositiveDefinite = x > precision<Scalar>() && ei_isMuchSmallerThan(ei_imag(m_matrix.coeff(0,0)), RealScalar(1));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
-  m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / m_matrix.coeff(0,0);
+  m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
     Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).norm2();
     x = ei_real(tmp);
-    m_isPositiveDefinite = m_isPositiveDefinite && x > RealScalar(0) && ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1));
+    if (x < precision<Scalar>() || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
+    {
+      m_isPositiveDefinite = m_isPositiveDefinite;
+      return;
+    }
     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
 
     int endSize = size-j-1;
-    if (endSize>0)
+    if (endSize>0) {
+      // Note that when all matrix columns have good alignment, then the following
+      // product is guaranteed to be optimal with respect to alignment.
+      m_matrix.col(j).end(endSize) =
+        (m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()).lazy();
+
       m_matrix.col(j).end(endSize) = (a.row(j).end(endSize).adjoint()
-        - m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()) / x;
+        - m_matrix.col(j).end(endSize) ) / x;
+    }
   }
 }
 

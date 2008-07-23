@@ -34,7 +34,7 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
 
-  MatrixType a = MatrixType::random(rows,cols);
+  MatrixType a = MatrixType::Random(rows,cols);
   SquareMatrixType covMat =  a * a.adjoint();
 
   BenchTimer timerNoSqrt, timerSqrt;
@@ -108,7 +108,7 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
 
 int main(int argc, char* argv[])
 {
-  const int dynsizes[] = {4,6,8,12,16,24,32,64,128,256,512,0};
+  const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,0};
   std::cout << "size            no sqrt         standard";
   #ifdef BENCH_GSL
   std::cout << "       GSL (standard + double + ATLAS)  ";
@@ -118,15 +118,15 @@ int main(int argc, char* argv[])
   for (uint i=0; dynsizes[i]>0; ++i)
     benchCholesky(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
 
-  benchCholesky(Matrix<Scalar,2,2>());
-  benchCholesky(Matrix<Scalar,3,3>());
-  benchCholesky(Matrix<Scalar,4,4>());
-  benchCholesky(Matrix<Scalar,5,5>());
-  benchCholesky(Matrix<Scalar,6,6>());
-  benchCholesky(Matrix<Scalar,7,7>());
-  benchCholesky(Matrix<Scalar,8,8>());
-  benchCholesky(Matrix<Scalar,12,12>());
-  benchCholesky(Matrix<Scalar,16,16>());
+//   benchCholesky(Matrix<Scalar,2,2>());
+//   benchCholesky(Matrix<Scalar,3,3>());
+//   benchCholesky(Matrix<Scalar,4,4>());
+//   benchCholesky(Matrix<Scalar,5,5>());
+//   benchCholesky(Matrix<Scalar,6,6>());
+//   benchCholesky(Matrix<Scalar,7,7>());
+//   benchCholesky(Matrix<Scalar,8,8>());
+//   benchCholesky(Matrix<Scalar,12,12>());
+//   benchCholesky(Matrix<Scalar,16,16>());
   return 0;
 }
 

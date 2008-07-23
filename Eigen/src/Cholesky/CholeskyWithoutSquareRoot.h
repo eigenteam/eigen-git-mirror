@@ -60,23 +60,13 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     }
 
     /** \returns the lower triangular matrix L */
-    Part<MatrixType, UnitLower> matrixL(void) const
-    {
-      return m_matrix;
-    }
+    inline Part<MatrixType, UnitLower> matrixL(void) const { return m_matrix; }
 
     /** \returns the coefficients of the diagonal matrix D */
-    DiagonalCoeffs<MatrixType> vectorD(void) const
-    {
-      return m_matrix.diagonal();
-    }
+    inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
 
-    /** \returns whether the matrix is positive definite */
-    bool isPositiveDefinite(void) const
-    {
-      // FIXME is it really correct ?
-      return m_matrix.diagonal().real().minCoeff() > RealScalar(0);
-    }
+    /** \returns true if the matrix is positive definite */
+    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
     typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
@@ -91,6 +81,8 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
+
+    bool m_isPositiveDefinite;
 };
 
 /** Compute / recompute the Cholesky decomposition A = L D L^* = U^* D U of \a matrix
@@ -101,6 +93,13 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
+  m_isPositiveDefinite = true;
+
+  // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
+  // Unlike the standard Cholesky decomposition, here we cannot evaluate it to the destination
+  // matrix because it a sub-row which is not compatible suitable for efficient packet evaluation.
+  // (at least if we assume the matrix is col-major)
+  Matrix<Scalar,MatrixType::RowsAtCompileTime,1> _temporary(size);
 
   // Note that, in this algorithm the rows of the strict upper part of m_matrix is used to store
   // column vector, thus the strange .conjugate() and .transpose()...
@@ -112,11 +111,21 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
     RealScalar tmp = ei_real(a.coeff(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
     m_matrix.coeffRef(j,j) = tmp;
 
+    if (ei_isMuchSmallerThan(tmp,RealScalar(1)))
+    {
+      m_isPositiveDefinite = false;
+      return;
+    }
+
     int endSize = size-j-1;
     if (endSize>0)
     {
+      _temporary.end(endSize) = ( m_matrix.block(j+1,0, endSize, j)
+                                  * m_matrix.col(j).start(j).conjugate() ).lazy();
+
       m_matrix.row(j).end(endSize) = a.row(j).end(endSize).conjugate()
-        - (m_matrix.block(j+1,0, endSize, j) * m_matrix.col(j).start(j).conjugate()).transpose();
+                                   - _temporary.end(endSize).transpose();
+
       m_matrix.col(j).end(endSize) = m_matrix.row(j).end(endSize) / tmp;
     }
   }
