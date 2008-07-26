@@ -421,7 +421,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   // we cannot assume the first element is aligned because of sub-matrices
   const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
   ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0);
-  
+
   // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns=0;
   for (; skipColumns<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipColumns; ++skipColumns)
@@ -439,7 +439,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   }
 
   ei_internal_assert((alignmentPattern==NoneAligned)
-    || size_t(lhs+alignedStart+alignmentStep*skipColumns)%sizeof(Packet)==0);
+    || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
 
   int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
@@ -602,8 +602,8 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     // note that the skiped columns are processed later.
   }
   ei_internal_assert((alignmentPattern==NoneAligned)
-    || size_t(lhs+alignedStart+alignmentStep*skipRows)%sizeof(Packet)==0);
-  
+    || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
+
   int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (int i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
