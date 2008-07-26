@@ -378,7 +378,7 @@ struct ei_product_coeff_vectorized_dyn_selector
   }
 };
 
-// NOTE the 2 following specializations are because taking .col(0) on a vector is a bit slower
+// NOTE the 3 following specializations are because taking .col(0) on a vector is a bit slower
 template<typename Lhs, typename Rhs, int RhsCols>
 struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
 {
@@ -400,6 +400,18 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
       Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
       Rhs,
       LinearVectorization, NoUnrolling>::run(lhs.row(row), rhs);
+  }
+};
+
+template<typename Lhs, typename Rhs>
+struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,1>
+{
+  inline static void run(int row, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  {
+    res = ei_dot_impl<
+      Lhs,
+      Rhs,
+      LinearVectorization, NoUnrolling>::run(lhs, rhs);
   }
 };
 
@@ -518,7 +530,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,NoDirectA
 };
 
 // optimized cache friendly colmajor * vector path for matrix with direct access flag
-// NOTE this path coul also be enabled for expressions if we add runtime align queries
+// NOTE this path could also be enabled for expressions if we add runtime align queries
 template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
 struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
 {

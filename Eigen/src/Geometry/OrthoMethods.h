@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_CROSS_H
-#define EIGEN_CROSS_H
+#ifndef EIGEN_ORTHOMETHODS_H
+#define EIGEN_ORTHOMETHODS_H
 
 /** \geometry_module
   * \returns the cross product of \c *this and \a other */
@@ -34,7 +34,7 @@ inline typename ei_eval<Derived>::type
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3);
-  
+
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
   const typename ei_nested<Derived,2>::type lhs(derived());
@@ -107,4 +107,4 @@ MatrixBase<Derived>::someOrthogonal() const
   return ei_perpendicular_selector<Derived>::run(derived());
 }
 
-#endif // EIGEN_CROSS_H
+#endif // EIGEN_ORTHOMETHODS_H

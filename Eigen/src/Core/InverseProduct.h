@@ -25,8 +25,12 @@
 #ifndef EIGEN_INVERSEPRODUCT_H
 #define EIGEN_INVERSEPRODUCT_H
 
+template<typename XprType> struct ei_is_part { enum {value=false}; };
+template<typename XprType, unsigned int Mode> struct ei_is_part<Part<XprType,Mode> > { enum {value=true}; };
+
 template<typename Lhs, typename Rhs,
-  int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
+  int TriangularPart = ei_is_part<Lhs>::value ? -1  // this is to solve ambiguous specializations
+                     : (int(Lhs::Flags) & LowerTriangularBit)
                      ? Lower
                      : (int(Lhs::Flags) & UpperTriangularBit)
                      ? Upper
@@ -34,6 +38,16 @@ template<typename Lhs, typename Rhs,
   int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
   >
 struct ei_trisolve_selector;
+
+// transform a Part xpr to a Flagged xpr
+template<typename Lhs, unsigned int LhsMode, typename Rhs, int TriangularPart, int StorageOrder>
+struct ei_trisolve_selector<Part<Lhs,LhsMode>,Rhs,TriangularPart,StorageOrder>
+{
+  static void run(const Part<Lhs,LhsMode>& lhs, Rhs& other)
+  {
+    ei_trisolve_selector<Flagged<Lhs,LhsMode,0>,Rhs>::run(lhs._expression(), other);
+  }
+};
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
@@ -102,12 +116,12 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
       int blockyEnd = (std::max(size-5,0)/4)*4;
       for(int i=0; i<blockyEnd;)
       {
-        int startBlock = i;
-        int endBlock = startBlock+4;
-        Matrix<Scalar,4,1> btmp;
         /* Let's process the 4x4 sub-matrix as usual.
          * btmp stores the diagonal coefficients used to update the remaining part of the result.
          */
+        int startBlock = i;
+        int endBlock = startBlock+4;
+        Matrix<Scalar,4,1> btmp;
         for (;i<endBlock;++i)
         {
           if(!(Lhs::Flags & UnitDiagBit))
@@ -135,8 +149,10 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
       {
         if(!(Lhs::Flags & UnitDiagBit))
           other.coeffRef(i,c) /= lhs.coeff(i,i);
-        // NOTE we cannot use lhs.col(i).end(size-i-1) because Part::coeffRef gets called by .col() to
-        // get the address of the start of the row
+
+        /* NOTE we cannot use lhs.col(i).end(size-i-1) because Part::coeffRef gets called by .col() to
+         * get the address of the start of the row
+         */
         other.col(c).end(size-i-1) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, i+1,i, size-i-1,1);
       }
       if(!(Lhs::Flags & UnitDiagBit))
@@ -146,6 +162,7 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
 };
 
 // backward substitution, col-major
+// see the previous specialization for details on the algorithm
 template<typename Lhs, typename Rhs>
 struct ei_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
 {

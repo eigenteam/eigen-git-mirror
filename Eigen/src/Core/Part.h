@@ -53,7 +53,7 @@ struct ei_traits<Part<MatrixType, Mode> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (_MatrixTypeNested::Flags & (HereditaryBits | DirectAccessBit) & (~(PacketAccessBit | LinearAccessBit))) | Mode,
+    Flags = (_MatrixTypeNested::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -108,6 +108,9 @@ template<typename MatrixType, unsigned int Mode> class Part
                 || (Mode==StrictlyLower && col<row));
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
+
+    /** \internal */
+    const MatrixType& _expression() const { return m_matrix; }
 
     /** discard any writes to a row */
     const Block<Part, 1, ColsAtCompileTime> row(int i) { return Base::row(i); }
