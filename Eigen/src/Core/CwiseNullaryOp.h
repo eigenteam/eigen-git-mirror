@@ -450,7 +450,7 @@ Derived& MatrixBase<Derived>::setOnes()
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
   * it is redundant to pass \a rows and \a cols as arguments, so Identity() should be used
   * instead.
-  * 
+  *
   * \addexample Identity \label How to get an identity matrix
   *
   * Example: \include MatrixBase_identity_int_int.cpp

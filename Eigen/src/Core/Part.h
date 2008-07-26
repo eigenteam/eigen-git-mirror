@@ -53,7 +53,7 @@ struct ei_traits<Part<MatrixType, Mode> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (_MatrixTypeNested::Flags & ~(PacketAccessBit | LinearAccessBit | DirectAccessBit)) | Mode,
+    Flags = (_MatrixTypeNested::Flags & (HereditaryBits | DirectAccessBit) & (~(PacketAccessBit | LinearAccessBit))) | Mode,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -84,6 +84,7 @@ template<typename MatrixType, unsigned int Mode> class Part
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
+    inline int stride() const { return m_matrix.stride(); }
 
     inline Scalar coeff(int row, int col) const
     {
@@ -97,7 +98,7 @@ template<typename MatrixType, unsigned int Mode> class Part
         return m_matrix.coeff(row, col);
     }
 
-    inline Scalar coeffRef(int row, int col) const
+    inline Scalar& coeffRef(int row, int col)
     {
       EIGEN_STATIC_ASSERT(!(Flags & UnitDiagBit), writting_to_triangular_part_with_unit_diag_is_not_supported);
       EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), default_writting_to_selfadjoint_not_supported);
@@ -105,7 +106,7 @@ template<typename MatrixType, unsigned int Mode> class Part
                 || (Mode==Lower && col<=row)
                 || (Mode==StrictlyUpper && col>row)
                 || (Mode==StrictlyLower && col<row));
-      return m_matrix.coeffRef(row, col);
+      return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
     /** discard any writes to a row */

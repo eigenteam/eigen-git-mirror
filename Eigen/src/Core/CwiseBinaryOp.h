@@ -177,6 +177,11 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 
 /** \returns an expression of the Schur product (coefficient wise product) of *this and \a other
   *
+  * \addexample CwiseProduct \label How to perform a component wise product of two matrices.
+  *
+  * Example: \include Cwise_product.cpp
+  * Output: \verbinclude Cwise_product.out
+  * 
   * \sa class CwiseBinaryOp
   */
 template<typename ExpressionType>

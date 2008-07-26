@@ -33,11 +33,11 @@ template<typename Lhs, typename Rhs,
                      : -1,
   int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
   >
-struct ei_inverse_product_selector;
+struct ei_sparse_trisolve_selector;
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_inverse_product_selector<Lhs,Rhs,Lower,RowMajor>
+struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
@@ -69,7 +69,7 @@ struct ei_inverse_product_selector<Lhs,Rhs,Lower,RowMajor>
 
 // backward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_inverse_product_selector<Lhs,Rhs,Upper,RowMajor>
+struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
@@ -100,7 +100,7 @@ struct ei_inverse_product_selector<Lhs,Rhs,Upper,RowMajor>
 
 // forward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_inverse_product_selector<Lhs,Rhs,Lower,ColMajor>
+struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
@@ -127,7 +127,7 @@ struct ei_inverse_product_selector<Lhs,Rhs,Lower,ColMajor>
 
 // backward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_inverse_product_selector<Lhs,Rhs,Upper,ColMajor>
+struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
@@ -155,15 +155,14 @@ struct ei_inverse_product_selector<Lhs,Rhs,Upper,ColMajor>
 
 template<typename Derived>
 template<typename OtherDerived>
-OtherDerived
-SparseMatrixBase<Derived>::inverseProduct(const MatrixBase<OtherDerived>& other) const
+OtherDerived SparseMatrixBase<Derived>::inverseProduct(const MatrixBase<OtherDerived>& other) const
 {
   ei_assert(derived().cols() == other.rows());
   ei_assert(!(Flags & ZeroDiagBit));
   ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
 
   OtherDerived res(other.rows(), other.cols());
-  ei_inverse_product_selector<Derived, OtherDerived>::run(derived(), other.derived(), res);
+  ei_sparse_trisolve_selector<Derived, OtherDerived>::run(derived(), other.derived(), res);
   return res;
 }
 

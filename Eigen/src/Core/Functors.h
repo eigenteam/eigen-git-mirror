@@ -318,6 +318,7 @@ struct ei_scalar_constant_op<Scalar,true> {
 };
 template<typename Scalar>
 struct ei_scalar_constant_op<Scalar,false> {
+  inline ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
   inline ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
   inline const Scalar operator() (int, int = 0) const { return m_other; }
   const Scalar m_other;

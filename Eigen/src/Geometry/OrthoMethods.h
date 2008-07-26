@@ -101,7 +101,7 @@ struct ei_perpendicular_selector<Derived,2>
   */
 template<typename Derived>
 typename ei_eval<Derived>::type
-MatrixBase<Derived>::perpendicular() const
+MatrixBase<Derived>::someOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return ei_perpendicular_selector<Derived>::run(derived());

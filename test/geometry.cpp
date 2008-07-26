@@ -58,9 +58,9 @@ template<typename Scalar> void geometry(void)
       (v0.cross(v1).cross(v0)).normalized();
   VERIFY(m.isUnitary());
 
-  // perpendicular
-  VERIFY_IS_MUCH_SMALLER_THAN(u0.perpendicular().dot(u0), Scalar(1));
-  VERIFY_IS_MUCH_SMALLER_THAN(v0.perpendicular().dot(v0), Scalar(1));
+  // someOrthogonal
+  VERIFY_IS_MUCH_SMALLER_THAN(u0.someOrthogonal().dot(u0), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v0.someOrthogonal().dot(v0), Scalar(1));
 
   q1 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
   q2 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());

@@ -25,6 +25,171 @@
 #ifndef EIGEN_INVERSEPRODUCT_H
 #define EIGEN_INVERSEPRODUCT_H
 
+template<typename Lhs, typename Rhs,
+  int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
+                     ? Lower
+                     : (int(Lhs::Flags) & UpperTriangularBit)
+                     ? Upper
+                     : -1,
+  int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
+  >
+struct ei_trisolve_selector;
+
+// forward substitution, row-major
+template<typename Lhs, typename Rhs>
+struct ei_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
+{
+  typedef typename Rhs::Scalar Scalar;
+  static void run(const Lhs& lhs, Rhs& other)
+  {
+    for(int c=0 ; c<other.cols() ; ++c)
+    {
+      if(!(Lhs::Flags & UnitDiagBit))
+        other.coeffRef(0,c) = other.coeff(0,c)/lhs.coeff(0, 0);
+      for(int i=1; i<lhs.rows(); ++i)
+      {
+        Scalar tmp = other.coeff(i,c) - ((lhs.row(i).start(i)) * other.col(c).start(i)).coeff(0,0);
+        if (Lhs::Flags & UnitDiagBit)
+          other.coeffRef(i,c) = tmp;
+        else
+          other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
+      }
+    }
+  }
+};
+
+// backward substitution, row-major
+template<typename Lhs, typename Rhs>
+struct ei_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
+{
+  typedef typename Rhs::Scalar Scalar;
+  static void run(const Lhs& lhs, Rhs& other)
+  {
+    const int size = lhs.cols();
+    for(int c=0 ; c<other.cols() ; ++c)
+    {
+      if(!(Lhs::Flags & UnitDiagBit))
+        other.coeffRef(size-1,c) = other.coeff(size-1, c)/lhs.coeff(size-1, size-1);
+      for(int i=size-2 ; i>=0 ; --i)
+      {
+        Scalar tmp = other.coeff(i,c)
+                   - ((lhs.row(i).end(size-i-1)) * other.col(c).end(size-i-1)).coeff(0,0);
+        if (Lhs::Flags & UnitDiagBit)
+          other.coeffRef(i,c) = tmp;
+        else
+          other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
+      }
+    }
+  }
+};
+
+// forward substitution, col-major
+template<typename Lhs, typename Rhs>
+struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
+{
+  typedef typename Rhs::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  enum {PacketSize =  ei_packet_traits<Scalar>::size};
+
+  static void run(const Lhs& lhs, Rhs& other)
+  {
+    const int size = lhs.cols();
+    for(int c=0 ; c<other.cols() ; ++c)
+    {
+      /* let's perform the inverse product per block of 4 columns such that we perfectly match
+       * our optimized matrix * vector product.
+       */
+      int blockyEnd = (std::max(size-5,0)/4)*4;
+      for(int i=0; i<blockyEnd;)
+      {
+        int startBlock = i;
+        int endBlock = startBlock+4;
+        Matrix<Scalar,4,1> btmp;
+        /* Let's process the 4x4 sub-matrix as usual.
+         * btmp stores the diagonal coefficients used to update the remaining part of the result.
+         */
+        for (;i<endBlock;++i)
+        {
+          if(!(Lhs::Flags & UnitDiagBit))
+            other.coeffRef(i,c) /= lhs.coeff(i,i);
+          int remainingSize = endBlock-i-1;
+          if (remainingSize>0)
+            other.col(c).block(i+1,remainingSize) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, i+1, i, remainingSize, 1);
+          btmp.coeffRef(i-startBlock) = -other.coeffRef(i,c);
+        }
+
+        /* Now we can efficiently update the remaining part of the result as a matrix * vector product.
+         * NOTE in order to reduce both compilation time and binary size, let's directly call
+         * the fast product implementation. It is equivalent to the following code:
+         *   other.col(c).end(size-endBlock) += (lhs.block(endBlock, startBlock, size-endBlock, endBlock-startBlock)
+         *                                       * other.col(c).block(startBlock,endBlock-startBlock)).lazy();
+         */
+        ei_cache_friendly_product_colmajor_times_vector(
+          size-endBlock, &(lhs.const_cast_derived().coeffRef(endBlock,startBlock)), lhs.stride(),
+          btmp, &(other.coeffRef(endBlock,c)));
+      }
+
+      /* Now we have to process the remaining part as usual */
+      int i;
+      for(i=blockyEnd; i<size-1; ++i)
+      {
+        if(!(Lhs::Flags & UnitDiagBit))
+          other.coeffRef(i,c) /= lhs.coeff(i,i);
+        // NOTE we cannot use lhs.col(i).end(size-i-1) because Part::coeffRef gets called by .col() to
+        // get the address of the start of the row
+        other.col(c).end(size-i-1) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, i+1,i, size-i-1,1);
+      }
+      if(!(Lhs::Flags & UnitDiagBit))
+        other.coeffRef(i,c) /= lhs.coeff(i,i);
+    }
+  }
+};
+
+// backward substitution, col-major
+template<typename Lhs, typename Rhs>
+struct ei_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
+{
+  typedef typename Rhs::Scalar Scalar;
+  static void run(const Lhs& lhs, Rhs& other)
+  {
+    const int size = lhs.cols();
+    for(int c=0 ; c<other.cols() ; ++c)
+    {
+      int blockyEnd = size-1 - (std::max(size-5,0)/4)*4;
+      for(int i=size-1; i>blockyEnd;)
+      {
+        int startBlock = i;
+        int endBlock = startBlock-4;
+        Matrix<Scalar,4,1> btmp;
+        /* Let's process the 4x4 sub-matrix as usual.
+         * btmp stores the diagonal coefficients used to update the remaining part of the result.
+         */
+        for (; i>endBlock; --i)
+        {
+          if(!(Lhs::Flags & UnitDiagBit))
+            other.coeffRef(i,c) /= lhs.coeff(i,i);
+          int remainingSize = i-endBlock-1;
+          if (remainingSize>0)
+            other.col(c).block(endBlock+1,remainingSize) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, endBlock+1, i, remainingSize, 1);
+          btmp.coeffRef(remainingSize) = -other.coeffRef(i,c);
+        }
+
+        ei_cache_friendly_product_colmajor_times_vector(
+          endBlock+1, &(lhs.const_cast_derived().coeffRef(0,endBlock+1)), lhs.stride(),
+          btmp, &(other.coeffRef(0,c)));
+      }
+
+      for(int i=blockyEnd; i>0; --i)
+      {
+        if(!(Lhs::Flags & UnitDiagBit))
+          other.coeffRef(i,c) /= lhs.coeff(i,i);
+        other.col(c).start(i) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, 0,i, i, 1);
+      }
+      if(!(Lhs::Flags & UnitDiagBit))
+        other.coeffRef(0,c) /= lhs.coeff(0,0);
+    }
+  }
+};
 
 /** "in-place" version of MatrixBase::inverseProduct() where the result is written in \a other
   *
@@ -34,42 +199,12 @@ template<typename Derived>
 template<typename OtherDerived>
 void MatrixBase<Derived>::inverseProductInPlace(MatrixBase<OtherDerived>& other) const
 {
-  ei_assert(cols() == other.rows());
+  ei_assert(derived().cols() == derived().rows());
+  ei_assert(derived().cols() == other.rows());
   ei_assert(!(Flags & ZeroDiagBit));
   ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
 
-  for(int c=0 ; c<other.cols() ; ++c)
-  {
-    if(Flags & LowerTriangularBit)
-    {
-      // forward substitution
-      if(!(Flags & UnitDiagBit))
-        other.coeffRef(0,c) = other.coeff(0,c)/coeff(0, 0);
-      for(int i=1; i<rows(); ++i)
-      {
-        Scalar tmp = other.coeff(i,c) - ((this->row(i).start(i)) * other.col(c).start(i)).coeff(0,0);
-        if (Flags & UnitDiagBit)
-          other.coeffRef(i,c) = tmp;
-        else
-          other.coeffRef(i,c) = tmp/coeff(i,i);
-      }
-    }
-    else
-    {
-      // backward substitution
-      if(!(Flags & UnitDiagBit))
-        other.coeffRef(cols()-1,c) = other.coeff(cols()-1, c)/coeff(rows()-1, cols()-1);
-      for(int i=rows()-2 ; i>=0 ; --i)
-      {
-        Scalar tmp = other.coeff(i,c)
-                   - ((this->row(i).end(cols()-i-1)) * other.col(c).end(cols()-i-1)).coeff(0,0);
-        if (Flags & UnitDiagBit)
-          other.coeffRef(i,c) = tmp;
-        else
-          other.coeffRef(i,c) = tmp/coeff(i,i);
-      }
-    }
-  }
+  ei_trisolve_selector<Derived, OtherDerived>::run(derived(), other.derived());
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
