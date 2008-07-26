@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -53,15 +54,19 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   VERIFY_IS_APPROX(identity, m1 * m1.inverse() );
 
   VERIFY_IS_APPROX(m1, m1.inverse().inverse() );
+
+  // since for the general case we implement separately row-major and col-major, test that
+  VERIFY_IS_APPROX(m1.transpose().inverse(), m1.inverse().transpose());
 }
 
 void test_inverse()
 {
-  for(int i = 0; i < 1; i++) {
+  for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( inverse(Matrix<double,1,1>()) );
     CALL_SUBTEST( inverse(Matrix2d()) );
     CALL_SUBTEST( inverse(Matrix3f()) );
     CALL_SUBTEST( inverse(Matrix4f()) );
+    CALL_SUBTEST( inverse(MatrixXf(8,8)) );
     CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
   }
 }

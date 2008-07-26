@@ -127,8 +127,7 @@ template<typename MatrixType, int Alignment> class Map
 
     inline Map(const Scalar* data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
-      ei_assert(RowsAtCompileTime != Dynamic && ColsAtCompileTime != Dynamic);
-      ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(MatrixType)
     }
 
     inline Map(const Scalar* data, int size)
@@ -136,11 +135,9 @@ template<typename MatrixType, int Alignment> class Map
               m_rows(RowsAtCompileTime == Dynamic ? size : RowsAtCompileTime),
               m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
     {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType)
       ei_assert(size > 0);
-      ei_assert((RowsAtCompileTime == 1
-              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == size))
-          || (ColsAtCompileTime == 1
-              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == size)));
+      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
     }
 
     inline Map(const Scalar* data, int rows, int cols)

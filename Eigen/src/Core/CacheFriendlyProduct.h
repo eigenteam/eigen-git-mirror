@@ -406,7 +406,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   const int peels = 2;
   const int PacketAlignedMask = PacketSize-1;
   const int PeelAlignedMask = PacketSize*peels-1;
-  const bool Vectorized = sizeof(Packet) != sizeof(Scalar);
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
@@ -571,7 +570,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
 //   const int peels = 2;
   const int PacketAlignedMask = PacketSize-1;
 //   const int PeelAlignedMask = PacketSize*peels-1;
-  const bool Vectorized = sizeof(Packet) != sizeof(Scalar);
   const int size = rhsSize;
 
   // How many coeffs of the result do we have to skip to be aligned.
