@@ -120,5 +120,19 @@ template <typename Scalar, typename Packet, int LoadMode> inline void ei_pstoret
     ei_pstoreu(to, from);
 }
 
+/** \internal \returns the number of elements which have to be skipped such that data are aligned */
+template<typename Scalar>
+inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
+{
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  const int PacketSize = ei_packet_traits<Scalar>::size;
+  const int PacketAlignedMask = PacketSize-1;
+  const bool Vectorized = PacketSize>1;
+  return Vectorized
+          ? std::min<int>( (PacketSize - ((size_t(ptr)/sizeof(Scalar)) & PacketAlignedMask))
+                           & PacketAlignedMask, maxOffset)
+          : 0;
+}
+
 #endif // EIGEN_DUMMY_PACKET_MATH_H
 

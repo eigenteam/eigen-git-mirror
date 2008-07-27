@@ -98,6 +98,8 @@ struct ei_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
 };
 
 // forward substitution, col-major
+// FIXME the Lower and Upper specialization could be merged using a small helper class
+// performing reflexions on the coordinates...
 template<typename Lhs, typename Rhs>
 struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
 {
@@ -138,6 +140,8 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
          *   other.col(c).end(size-endBlock) += (lhs.block(endBlock, startBlock, size-endBlock, endBlock-startBlock)
          *                                       * other.col(c).block(startBlock,endBlock-startBlock)).lazy();
          */
+        // FIXME this is cool but what about conjugate/adjoint expressions ? do we want to evaluate them ?
+        // this is a more general problem though.
         ei_cache_friendly_product_colmajor_times_vector(
           size-endBlock, &(lhs.const_cast_derived().coeffRef(endBlock,startBlock)), lhs.stride(),
           btmp, &(other.coeffRef(endBlock,c)));

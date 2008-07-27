@@ -359,19 +359,6 @@ static void ei_cache_friendly_product(
 
 #endif // EIGEN_EXTERN_INSTANTIATIONS
 
-template<typename Scalar>
-inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
-{
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = ei_packet_traits<Scalar>::size;
-  const int PacketAlignedMask = PacketSize-1;
-  const bool Vectorized = PacketSize>1;
-  return Vectorized
-          ? std::min<int>( (PacketSize - ((size_t(ptr)/sizeof(Scalar)) & PacketAlignedMask))
-                           & PacketAlignedMask, maxOffset)
-          : 0;
-}
-
 /* Optimized col-major matrix * vector product:
  * This algorithm processes 4 columns at onces that allows to both reduce
  * the number of load/stores of the result by a factor 4 and to reduce
@@ -420,7 +407,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
 
   // we cannot assume the first element is aligned because of sub-matrices
   const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
-  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0);
+  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0 || size<PacketSize || PacketSize==1);
 
   // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns=0;
@@ -438,7 +425,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
     // note that the skiped columns are processed later.
   }
 
-  ei_internal_assert((alignmentPattern==NoneAligned)
+  ei_internal_assert((alignmentPattern==NoneAligned) || PacketSize==1
     || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
 
   int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
@@ -585,7 +572,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
 
   // we cannot assume the first element is aligned because of sub-matrices
   const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
-  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0);
+  ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || PacketSize==1 || size<PacketSize);
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   int skipRows=0;
   for (; skipRows<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipRows; ++skipRows)
@@ -601,7 +588,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     skipRows = std::min(skipRows,res.size());
     // note that the skiped columns are processed later.
   }
-  ei_internal_assert((alignmentPattern==NoneAligned)
+  ei_internal_assert((alignmentPattern==NoneAligned) || PacketSize==1
     || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
 
   int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;

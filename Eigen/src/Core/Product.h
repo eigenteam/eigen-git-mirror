@@ -379,6 +379,7 @@ struct ei_product_coeff_vectorized_dyn_selector
 };
 
 // NOTE the 3 following specializations are because taking .col(0) on a vector is a bit slower
+// NOTE maybe they are now useless since we have a specialization for Block<Matrix>
 template<typename Lhs, typename Rhs, int RhsCols>
 struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
 {
@@ -406,7 +407,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
 template<typename Lhs, typename Rhs>
 struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,1>
 {
-  inline static void run(int row, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
+  inline static void run(int /*row*/, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
     res = ei_dot_impl<
       Lhs,
