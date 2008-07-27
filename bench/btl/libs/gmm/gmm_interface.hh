@@ -106,6 +106,10 @@ public :
     gmm::add(gmm::scaled(X,coef), Y);
   }
 
+  static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+    gmm::add(gmm::scaled(X,a), gmm::scaled(Y,b), Y);
+  }
+
   static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){
     gmm::copy(source,cible);
   }
@@ -113,6 +117,12 @@ public :
   static inline void copy_vector(const gene_vector & source, gene_vector & cible, int N){
     gmm::copy(source,cible);
   }
+
+  static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector & X, int N){
+    gmm::copy(B,X);
+    gmm::lower_tri_solve(L, X, false);
+  }
+
 
 };
 

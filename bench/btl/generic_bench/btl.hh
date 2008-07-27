@@ -48,7 +48,7 @@
   : : [aux] "m" (aux)); \
 }
 #else
-#define DISABLE_SSE_EXCEPTIONS()
+#define BTL_DISABLE_SSE_EXCEPTIONS()
 #endif
 
 /** Enhanced std::string
@@ -163,7 +163,7 @@ class BtlConfig
 {
 public:
   BtlConfig()
-    : m_runSingleAction(false)
+    : overwriteResults(false)
   {
     char * _config;
     _config = getenv ("BTL_CONFIG");
@@ -179,10 +179,13 @@ public:
             std::cerr << "error processing option: " << config[i] << "\n";
             exit(2);
           }
-          Instance.m_runSingleAction = true;
-          Instance.m_singleActionName = config[i+1];
+          Instance.m_selectedActionNames = config[i+1].split(":");
 
           i += 1;
+        }
+        else if (config[i].beginsWith("--overwrite"))
+        {
+          Instance.overwriteResults = true;
         }
       }
     }
@@ -190,22 +193,24 @@ public:
     BTL_DISABLE_SSE_EXCEPTIONS();
   }
 
-  BTL_DONT_INLINE static bool skipAction(const std::string& name)
+  BTL_DONT_INLINE static bool skipAction(const std::string& _name)
   {
-    if (Instance.m_runSingleAction)
-    {
-      return !BtlString(name).contains(Instance.m_singleActionName);
-    }
+    if (Instance.m_selectedActionNames.empty())
+      return false;
 
-    return false;
+    BtlString name(_name);
+    for (int i=0; i<Instance.m_selectedActionNames.size(); ++i)
+      if (name.contains(Instance.m_selectedActionNames[i]))
+        return false;
+
+    return true;
   }
 
+  static BtlConfig Instance;
+  bool overwriteResults;
 
 protected:
-  bool m_runSingleAction;
-  BtlString m_singleActionName;
-
-  static BtlConfig Instance;
+  std::vector<BtlString> m_selectedActionNames;
 };
 
 #define BTL_MAIN \

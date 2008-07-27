@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
   BenchTimer timer;
   #if 1
   EigenSparseTriMatrix sm1(rows,cols);
-  VectorXf b = VectorXf::random(cols);
-  VectorXf x = VectorXf::random(cols);
+  VectorXf b = VectorXf::Random(cols);
+  VectorXf x = VectorXf::Random(cols);
 
   bool densedone = false;
 
@@ -171,9 +171,9 @@ int main(int argc, char *argv[])
     {
       timer.reset();
       for (int _j=0; _j<10; ++_j) {
-        Matrix4f m = Matrix4f::random();
-        Vector4f b = Vector4f::random();
-        Vector4f x = Vector4f::random();
+        Matrix4f m = Matrix4f::Random();
+        Vector4f b = Vector4f::Random();
+        Vector4f x = Vector4f::Random();
         timer.start();
         for (int _k=0; _k<1000000; ++_k) {
           b = m.inverseProduct(b);
@@ -186,9 +186,9 @@ int main(int argc, char *argv[])
     {
       timer.reset();
       for (int _j=0; _j<10; ++_j) {
-        Matrix4f m = Matrix4f::random();
-        Vector4f b = Vector4f::random();
-        Vector4f x = Vector4f::random();
+        Matrix4f m = Matrix4f::Random();
+        Vector4f b = Vector4f::Random();
+        Vector4f x = Vector4f::Random();
         timer.start();
         for (int _k=0; _k<1000000; ++_k) {
           m.inverseProductInPlace(x);

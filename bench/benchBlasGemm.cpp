@@ -99,9 +99,9 @@ int main(int argc, char *argv[])
 
   Scalar alpha, beta;
   MyMatrix ma(M,K), mb(K,N), mc(M,N);
-  ma = MyMatrix::random(M,K);
-  mb = MyMatrix::random(K,N);
-  mc = MyMatrix::random(M,N);
+  ma = MyMatrix::Random(M,K);
+  mb = MyMatrix::Random(K,N);
+  mc = MyMatrix::Random(M,N);
 
   Eigen::BenchTimer timer;
 
@@ -132,9 +132,9 @@ int main(int argc, char *argv[])
   }
 
   // clear
-  ma = MyMatrix::random(M,K);
-  mb = MyMatrix::random(K,N);
-  mc = MyMatrix::random(M,N);
+  ma = MyMatrix::Random(M,K);
+  mb = MyMatrix::Random(K,N);
+  mc = MyMatrix::Random(M,N);
 
   // eigen
 //   if (!(std::string(argv[1])=="auto"))
@@ -153,9 +153,9 @@ int main(int argc, char *argv[])
   }
 
   // clear
-  ma = MyMatrix::random(M,K);
-  mb = MyMatrix::random(K,N);
-  mc = MyMatrix::random(M,N);
+  ma = MyMatrix::Random(M,K);
+  mb = MyMatrix::Random(K,N);
+  mc = MyMatrix::Random(M,N);
 
   // eigen normal
   if (!(std::string(argv[1])=="auto"))
@@ -193,11 +193,11 @@ void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb
 void check_product(int M, int N, int K)
 {
   MyMatrix ma(M,K), mb(K,N), mc(M,N), maT(K,M), mbT(N,K), meigen(M,N), mref(M,N);
-  ma = MyMatrix::random(M,K);
-  mb = MyMatrix::random(K,N);
+  ma = MyMatrix::Random(M,K);
+  mb = MyMatrix::Random(K,N);
   maT = ma.transpose();
   mbT = mb.transpose();
-  mc = MyMatrix::random(M,N);
+  mc = MyMatrix::Random(M,N);
 
   MyMatrix::Scalar eps = 1e-4;
 

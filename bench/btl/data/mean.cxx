@@ -23,11 +23,11 @@
 #include <iostream>
 #include <fstream>
 #include "bench_parameter.hh"
+#include "utils/xy_file.hh"
 #include <set>
 
 using namespace std;
 
-void read_xy_file(const string & filename, vector<int> & tab_sizes, vector<double> & tab_mflops);
 double mean_calc(const vector<int> & tab_sizes, const vector<double> & tab_mflops, const int size_min, const int size_max);
 
 class Lib_Mean{
@@ -150,29 +150,6 @@ int main( int argc , char *argv[] )
 
   output_file.close();
 
-}
-
-void read_xy_file(const string & filename, vector<int> & tab_sizes, vector<double> & tab_mflops){
-
-  ifstream input_file (filename.c_str(),ios::in) ;
-
-  if (!input_file){
-    INFOS("!!! Error opening "<<filename);
-    exit(0);
-  }
-  
-  int nb_point=0;
-  int size=0;
-  double mflops=0;
-
-  while (input_file >> size >> mflops ){
-    nb_point++;
-    tab_sizes.push_back(size);
-    tab_mflops.push_back(mflops);
-  }
-  SCRUTE(nb_point);
-
-  input_file.close();
 }
 
 double mean_calc(const vector<int> & tab_sizes, const vector<double> & tab_mflops, const int size_min, const int size_max){

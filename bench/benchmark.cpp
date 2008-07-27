@@ -18,7 +18,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {
-    Matrix<SCALAR,MATSIZE,MATSIZE> I = Matrix<SCALAR,MATSIZE,MATSIZE>::ones();
+    Matrix<SCALAR,MATSIZE,MATSIZE> I = Matrix<SCALAR,MATSIZE,MATSIZE>::Ones();
     Matrix<SCALAR,MATSIZE,MATSIZE> m;
     for(int i = 0; i < MATSIZE; i++)
         for(int j = 0; j < MATSIZE; j++)
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     asm("#begin");
     for(int a = 0; a < REPEAT; a++)
     {
-        m = Matrix<SCALAR,MATSIZE,MATSIZE>::ones() + 0.00005 * (m + (m*m));
+        m = Matrix<SCALAR,MATSIZE,MATSIZE>::Ones() + 0.00005 * (m + (m*m));
     }
     asm("#end");
     cout << m << endl;

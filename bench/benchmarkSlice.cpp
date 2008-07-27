@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     c = Eigen::ei_random<int>(0,10);
     nr = Eigen::ei_random<int>(50,80);
     nc = Eigen::ei_random<int>(50,80);
-    m.block(r,c,nr,nc) += Mat::ones(nr,nc);
+    m.block(r,c,nr,nc) += Mat::Ones(nr,nc);
     m.block(r,c,nr,nc) *= SCALAR(10);
     m.block(r,c,nr,nc) -= Mat::constant(nr,nc,10);
     m.block(r,c,nr,nc) /= SCALAR(10);

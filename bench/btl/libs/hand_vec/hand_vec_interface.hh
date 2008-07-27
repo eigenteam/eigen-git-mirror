@@ -68,96 +68,152 @@ public :
     #endif
   }
 
-static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
+  static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
   {
     asm("#begin matrix_vector_product");
     int AN = (N/PacketSize)*PacketSize;
-    int ANP = (AN/(4*PacketSize))*4*PacketSize;
+    int ANP = (AN/(2*PacketSize))*2*PacketSize;
     int bound = (N/4)*4;
     for (int i=0;i<N;i++)
       X[i] = 0;
 
     for (int i=0;i<bound;i+=4)
     {
-      real tmp0 = B[i];
-      Packet ptmp0 = ei_pset1(tmp0);
-      real tmp1 = B[i+1];
-      Packet ptmp1 = ei_pset1(tmp1);
-      real tmp2 = B[i+2];
-      Packet ptmp2 = ei_pset1(tmp2);
-      real tmp3 = B[i+3];
-      Packet ptmp3 = ei_pset1(tmp3);
-      int iN0 = i*N;
-      int iN1 = (i+1)*N;
-      int iN2 = (i+2)*N;
-      int iN3 = (i+3)*N;
+      register real* __restrict__ A0 = A + i*N;
+      register real* __restrict__ A1 = A + (i+1)*N;
+      register real* __restrict__ A2 = A + (i+2)*N;
+      register real* __restrict__ A3 = A + (i+3)*N;
+
+      Packet ptmp0 = ei_pset1(B[i]);
+      Packet ptmp1 = ei_pset1(B[i+1]);
+      Packet ptmp2 = ei_pset1(B[i+2]);
+      Packet ptmp3 = ei_pset1(B[i+3]);
+//       register Packet ptmp0, ptmp1, ptmp2, ptmp3;
+//       asm(
+//
+//           "movss     (%[B],%[j],4), %[ptmp0]  \n\t"
+//           "shufps   $0,%[ptmp0],%[ptmp0] \n\t"
+//           "movss    4(%[B],%[j],4), %[ptmp1]  \n\t"
+//           "shufps   $0,%[ptmp1],%[ptmp1] \n\t"
+//           "movss    8(%[B],%[j],4), %[ptmp2]  \n\t"
+//           "shufps   $0,%[ptmp2],%[ptmp2] \n\t"
+//           "movss   12(%[B],%[j],4), %[ptmp3]  \n\t"
+//           "shufps   $0,%[ptmp3],%[ptmp3] \n\t"
+//           : [ptmp0] "=x" (ptmp0),
+//             [ptmp1] "=x" (ptmp1),
+//             [ptmp2] "=x" (ptmp2),
+//             [ptmp3] "=x" (ptmp3)
+//           : [B] "r" (B),
+//             [j] "r" (size_t(i))
+//           : );
+
       if (AN>0)
       {
-//         int aligned0 = (iN0 % PacketSize);
-        int aligned1 = (iN1 % PacketSize);
+//         for (size_t j = 0;j<ANP;j+=8)
+//         {
+//           asm(
+//
+//           "movaps     (%[A0],%[j],4), %%xmm8  \n\t"
+//           "movaps   16(%[A0],%[j],4), %%xmm12 \n\t"
+//           "movups     (%[A3],%[j],4), %%xmm11 \n\t"
+//           "movups   16(%[A3],%[j],4), %%xmm15 \n\t"
+//           "movups     (%[A2],%[j],4), %%xmm10 \n\t"
+//           "movups   16(%[A2],%[j],4), %%xmm14 \n\t"
+//           "movups     (%[A1],%[j],4), %%xmm9  \n\t"
+//           "movups   16(%[A1],%[j],4), %%xmm13 \n\t"
+//
+//           "mulps %[ptmp0], %%xmm8  \n\t"
+//           "addps (%[res0],%[j],4), %%xmm8  \n\t"
+//           "mulps %[ptmp3], %%xmm11 \n\t"
+//           "addps %%xmm11, %%xmm8  \n\t"
+//           "mulps %[ptmp2], %%xmm10 \n\t"
+//           "addps %%xmm10, %%xmm8  \n\t"
+//           "mulps %[ptmp1], %%xmm9  \n\t"
+//           "addps %%xmm9, %%xmm8   \n\t"
+//           "movaps %%xmm8, (%[res0],%[j],4)  \n\t"
+//
+//           "mulps %[ptmp0], %%xmm12 \n\t"
+//           "addps 16(%[res0],%[j],4), %%xmm12  \n\t"
+//           "mulps %[ptmp3], %%xmm15 \n\t"
+//           "addps %%xmm15, %%xmm12  \n\t"
+//           "mulps %[ptmp2], %%xmm14 \n\t"
+//           "addps %%xmm14, %%xmm12  \n\t"
+//           "mulps %[ptmp1], %%xmm13 \n\t"
+//           "addps %%xmm13, %%xmm12  \n\t"
+//           "movaps %%xmm12, 16(%[res0],%[j],4) \n\t"
+//           :
+//           : [res0] "r" (X), [j] "r" (j),[A0] "r" (A0),
+//             [A1] "r" (A1),
+//             [A2] "r" (A2),
+//             [A3] "r" (A3),
+//             [ptmp0] "x" (ptmp0),
+//             [ptmp1] "x" (ptmp1),
+//             [ptmp2] "x" (ptmp2),
+//             [ptmp3] "x" (ptmp3)
+//           : "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15", "%r14");
+//         }
+          register Packet A00;
+          register Packet A01;
+          register Packet A02;
+          register Packet A03;
+          register Packet A10;
+          register Packet A11;
+          register Packet A12;
+          register Packet A13;
+          for (int j = 0;j<ANP;j+=2*PacketSize)
+          {
+//             A00 = ei_pload(&A0[j]);
+//             A01 = ei_ploadu(&A1[j]);
+//             A02 = ei_ploadu(&A2[j]);
+//             A03 = ei_ploadu(&A3[j]);
+//             A10 = ei_pload(&A0[j+PacketSize]);
+//             A11 = ei_ploadu(&A1[j+PacketSize]);
+//             A12 = ei_ploadu(&A2[j+PacketSize]);
+//             A13 = ei_ploadu(&A3[j+PacketSize]);
+//
+//             A00 = ei_pmul(ptmp0, A00);
+//             A01 = ei_pmul(ptmp1, A01);
+//             A02 = ei_pmul(ptmp2, A02);
+//             A03 = ei_pmul(ptmp3, A03);
+//             A10 = ei_pmul(ptmp0, A10);
+//             A11 = ei_pmul(ptmp1, A11);
+//             A12 = ei_pmul(ptmp2, A12);
+//             A13 = ei_pmul(ptmp3, A13);
+//
+//             A00 = ei_padd(A00,A01);
+//             A02 = ei_padd(A02,A03);
+//             A00 = ei_padd(A00,ei_pload(&X[j]));
+//             A00 = ei_padd(A00,A02);
+//             ei_pstore(&X[j],A00);
+//
+//             A10 = ei_padd(A10,A11);
+//             A12 = ei_padd(A12,A13);
+//             A10 = ei_padd(A10,ei_pload(&X[j+PacketSize]));
+//             A10 = ei_padd(A10,A12);
+//             ei_pstore(&X[j+PacketSize],A10);
 
-        if (aligned1==0)
-        {
-          for (int j = 0;j<AN;j+=PacketSize)
-          {
             ei_pstore(&X[j],
               ei_padd(ei_pload(&X[j]),
                 ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_pload(&A[j+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_pload(&A[j+iN3]))) )));
-          }
-        }
-        else if (aligned1==2)
-        {
-          for (int j = 0;j<AN;j+=PacketSize)
-          {
-            ei_pstore(&X[j],
-              ei_padd(ei_pload(&X[j]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
-          }
-        }
-        else
-        {
-          for (int j = 0;j<ANP;j+=4*PacketSize)
-          {
-            ei_pstore(&X[j],
-              ei_padd(ei_pload(&X[j]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j])),ei_pmul(ptmp1,ei_ploadu(&A1[j]))),
+                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j])),ei_pmul(ptmp3,ei_ploadu(&A3[j]))) )));
 
             ei_pstore(&X[j+PacketSize],
               ei_padd(ei_pload(&X[j+PacketSize]),
                 ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+PacketSize+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+PacketSize+iN3]))) )));
-
-            ei_pstore(&X[j+2*PacketSize],
-              ei_padd(ei_pload(&X[j+2*PacketSize]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+2*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+2*PacketSize+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+2*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+2*PacketSize+iN3]))) )));
-
-            ei_pstore(&X[j+3*PacketSize],
-              ei_padd(ei_pload(&X[j+3*PacketSize]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+3*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+3*PacketSize+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+3*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+3*PacketSize+iN3]))) )));
-
+                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j+PacketSize])),ei_pmul(ptmp1,ei_ploadu(&A1[j+PacketSize]))),
+                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j+PacketSize])),ei_pmul(ptmp3,ei_ploadu(&A3[j+PacketSize]))) )));
           }
           for (int j = ANP;j<AN;j+=PacketSize)
             ei_pstore(&X[j],
               ei_padd(ei_pload(&X[j]),
                 ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
-        }
+                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j])),ei_pmul(ptmp1,ei_ploadu(&A1[j]))),
+                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j])),ei_pmul(ptmp3,ei_ploadu(&A3[j]))) )));
       }
       // process remaining scalars
       for (int j=AN;j<N;j++)
-        X[j] += tmp0 * A[j+iN0] + tmp1 * A[j+iN1];
+        X[j] += ei_pfirst(ptmp0) * A0[j] + ei_pfirst(ptmp1) * A1[j] + ei_pfirst(ptmp2) * A2[j] + ei_pfirst(ptmp3) * A3[j];
     }
     for (int i=bound;i<N;i++)
     {
@@ -180,6 +236,119 @@ static inline void matrix_vector_product(const gene_matrix & A, const gene_vecto
     }
     asm("#end matrix_vector_product");
   }
+
+//   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
+//   {
+//     asm("#begin matrix_vector_product");
+//     int AN = (N/PacketSize)*PacketSize;
+//     int ANP = (AN/(2*PacketSize))*2*PacketSize;
+//     int bound = (N/4)*4;
+//     for (int i=0;i<N;i++)
+//       X[i] = 0;
+//
+//     for (int i=0;i<bound;i+=4)
+//     {
+//       real tmp0 = B[i];
+//       Packet ptmp0 = ei_pset1(tmp0);
+//       real tmp1 = B[i+1];
+//       Packet ptmp1 = ei_pset1(tmp1);
+//       real tmp2 = B[i+2];
+//       Packet ptmp2 = ei_pset1(tmp2);
+//       real tmp3 = B[i+3];
+//       Packet ptmp3 = ei_pset1(tmp3);
+//       int iN0 = i*N;
+//       int iN1 = (i+1)*N;
+//       int iN2 = (i+2)*N;
+//       int iN3 = (i+3)*N;
+//       if (AN>0)
+//       {
+// //         int aligned0 = (iN0 % PacketSize);
+//         int aligned1 = (iN1 % PacketSize);
+//
+//         if (aligned1==0)
+//         {
+//           for (int j = 0;j<AN;j+=PacketSize)
+//           {
+//             ei_pstore(&X[j],
+//               ei_padd(ei_pload(&X[j]),
+//                 ei_padd(
+//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_pload(&A[j+iN1]))),
+//                   ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_pload(&A[j+iN3]))) )));
+//           }
+//         }
+//         else if (aligned1==2)
+//         {
+//           for (int j = 0;j<AN;j+=PacketSize)
+//           {
+//             ei_pstore(&X[j],
+//               ei_padd(ei_pload(&X[j]),
+//                 ei_padd(
+//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
+//                   ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//           }
+//         }
+//         else
+//         {
+//           for (int j = 0;j<ANP;j+=2*PacketSize)
+//           {
+//             ei_pstore(&X[j],
+//               ei_padd(ei_pload(&X[j]),
+//                 ei_padd(
+//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
+//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//
+//             ei_pstore(&X[j+PacketSize],
+//               ei_padd(ei_pload(&X[j+PacketSize]),
+//                 ei_padd(
+//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+PacketSize+iN1]))),
+//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+PacketSize+iN3]))) )));
+//
+// //             ei_pstore(&X[j+2*PacketSize],
+// //               ei_padd(ei_pload(&X[j+2*PacketSize]),
+// //                 ei_padd(
+// //                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+2*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+2*PacketSize+iN1]))),
+// //                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+2*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+2*PacketSize+iN3]))) )));
+// //
+// //             ei_pstore(&X[j+3*PacketSize],
+// //               ei_padd(ei_pload(&X[j+3*PacketSize]),
+// //                 ei_padd(
+// //                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+3*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+3*PacketSize+iN1]))),
+// //                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+3*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+3*PacketSize+iN3]))) )));
+//
+//           }
+//           for (int j = ANP;j<AN;j+=PacketSize)
+//             ei_pstore(&X[j],
+//               ei_padd(ei_pload(&X[j]),
+//                 ei_padd(
+//                   ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
+//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//         }
+//       }
+//       // process remaining scalars
+//       for (int j=AN;j<N;j++)
+//         X[j] += tmp0 * A[j+iN0] + tmp1 * A[j+iN1] + tmp2 * A[j+iN2] + tmp3 * A[j+iN3];
+//     }
+//     for (int i=bound;i<N;i++)
+//     {
+//       real tmp0 = B[i];
+//       Packet ptmp0 = ei_pset1(tmp0);
+//       int iN0 = i*N;
+//       if (AN>0)
+//       {
+//         bool aligned0 = (iN0 % PacketSize) == 0;
+//         if (aligned0)
+//           for (int j = 0;j<AN;j+=PacketSize)
+//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pload(&X[j])));
+//         else
+//           for (int j = 0;j<AN;j+=PacketSize)
+//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pload(&X[j])));
+//       }
+//       // process remaining scalars
+//       for (int j=AN;j<N;j++)
+//         X[j] += tmp0 * A[j+iN0];
+//     }
+//     asm("#end matrix_vector_product");
+//   }
 
 //   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
 //   {

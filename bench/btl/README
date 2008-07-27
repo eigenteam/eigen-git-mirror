@@ -29,7 +29,18 @@ BTL uses cmake / ctest:
 
   $ ctest -V
 
-You can also run a single bench, e.g.: ctest -V -R eigen
+You can run the benchmarks only on libraries matching a given regular expression:
+  ctest -V -R <regexp>
+For instance:
+  ctest -V -R eigen2
+
+You can also select a given set of actions defining the environment variable BTL_CONFIG this way:
+  BTL_CONFIG="-a action1{:action2}*" ctest -V
+An exemple:
+  BTL_CONFIG="-a axpy:vector_matrix:trisolve:ata" ctest -V -R eigen2
+
+Finally, if bench results already exist (the bench*.dat files) then they merges by keeping the best for each matrix size. If you want to overwrite the previous ones you can simply add the "--overwrite" option:
+  BTL_CONFIG="-a axpy:vector_matrix:trisolve:ata --overwrite" ctest -V -R eigen2
 
 4 : Analyze the result. different data files (.dat) are produced in each libs directories.
  If gnuplot is available, choose a directory name in the data directory to store the results and type

@@ -26,6 +26,11 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/generic_bench/utils
   ${PROJECT_SOURCE_DIR}/libs/STL)
 
+# find_package(MKL)
+# if (MKL_FOUND)
+#   add_definitions(-DHAVE_MKL)
+#   set(DEFAULT_LIBRARIES ${MKL_LIBRARIES})
+# endif (MKL_FOUND)
 
 MACRO(BTL_ADD_BENCH targetname)
 
@@ -49,6 +54,7 @@ MACRO(BTL_ADD_BENCH targetname)
   IF(BUILD_${targetname})
     ADD_EXECUTABLE(${targetname} ${_sources})
     ADD_TEST(${targetname} "${targetname}")
+    target_link_libraries(${targetname} ${DEFAULT_LIBRARIES})
   ENDIF(BUILD_${targetname})
 
 ENDMACRO(BTL_ADD_BENCH)

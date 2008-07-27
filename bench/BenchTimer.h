@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <numeric>
 
 namespace Eigen
 {
@@ -39,11 +40,11 @@ class BenchTimer
 {
 public:
 
-  BenchTimer() : m_best(1e12) {}
+  BenchTimer() { reset(); }
 
   ~BenchTimer() {}
 
-  inline void reset(void) {m_best = 1e12;}
+  inline void reset(void) {m_best = 1e6;}
   inline void start(void) {m_start = getTime();}
   inline void stop(void)
   {

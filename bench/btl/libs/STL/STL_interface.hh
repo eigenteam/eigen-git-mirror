@@ -146,6 +146,22 @@ public :
       Y[i]+=coef*X[i];
   }
 
+  static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+    for (int i=0;i<N;i++)
+      Y[i] = a*X[i] + b*Y[i];
+  }
+
+  static inline void trisolve_lower(const gene_matrix & L, const gene_vector & B, gene_vector & X, int N){
+    copy_vector(B,X,N);
+    for(int i=0; i<N; ++i)
+    {
+      X[i] /= L[i][i];
+      real tmp = X[i];
+      for (int j=i+1; j<N; ++j)
+        X[j] -= tmp * L[i][j];
+    }
+  }
+
   static inline real norm_diff(const stl_vector & A, const stl_vector & B)
   {
     int N=A.size();

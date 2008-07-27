@@ -18,7 +18,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 int main(int argc, char *argv[])
 {
-	MATTYPE I = MATTYPE::ones(MATSIZE,MATSIZE);
+	MATTYPE I = MATTYPE::Ones(MATSIZE,MATSIZE);
 	MATTYPE m(MATSIZE,MATSIZE);
 	for(int i = 0; i < MATSIZE; i++) for(int j = 0; j < MATSIZE; j++)
 	{

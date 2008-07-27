@@ -49,11 +49,10 @@ public :
     // generic matrix and vector initialization
 
     Interface::matrix_from_stl(A_ref,A_stl);
-    Interface::vector_from_stl(B_ref,B_stl);
-    Interface::vector_from_stl(X_ref,X_stl);
-
     Interface::matrix_from_stl(A,A_stl);
+    Interface::vector_from_stl(B_ref,B_stl);
     Interface::vector_from_stl(B,B_stl);
+    Interface::vector_from_stl(X_ref,X_stl);
     Interface::vector_from_stl(X,X_stl);
 
   }

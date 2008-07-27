@@ -19,6 +19,7 @@
 #define EIGEN2_INTERFACE_HH
 
 #include <Eigen/Core>
+#include <Eigen/Cholesky>
 #include <vector>
 #include "btl.hh"
 
@@ -107,15 +108,19 @@ public :
   }
 
   static inline void matrix_vector_product(const gene_matrix &  __restrict__  A, const gene_vector & __restrict__ B, gene_vector &  __restrict__ X, int N){
-    X = (A*B).lazy();
+    X = (A*B)/*.lazy()*/;
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
-    X = (A.transpose()*B).lazy();
+    X = (A.transpose()*B)/*.lazy()*/;
   }
 
-  static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N){
+  static inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N){
     Y += coef * X;
+  }
+
+  static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+    Y = a*X + b*Y;
   }
 
   static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){
@@ -124,6 +129,16 @@ public :
 
   static inline void copy_vector(const gene_vector & source, gene_vector & cible, int N){
     cible = source;
+  }
+
+  static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
+    X = L.template marked<Lower>().inverseProduct(B);
+  }
+
+  static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
+//     C = X;
+//     Cholesky<gene_matrix>::computeInPlace(C);
+    C = X.cholesky().matrixL();
   }
 
 };

@@ -19,6 +19,7 @@
 #define MTL4_INTERFACE_HH
 
 #include <boost/numeric/mtl/mtl.hpp>
+#include <boost/numeric/mtl/operation/cholesky.hpp>
 #include <vector>
 
 using namespace mtl;
@@ -81,6 +82,9 @@ public :
 
   static inline void matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N){
     X = (A*B);
+//     morton_dense<double, doppled_64_row_mask> C(N,N);
+//     C = B;
+//     X = (A*C);
   }
 
   static inline void transposed_matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N){
@@ -88,11 +92,11 @@ public :
   }
 
   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
-//     X = (trans(A)*A);
+    X = (trans(A)*A);
   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int N){
-//     X = (A*trans(A));
+    X = (A*trans(A));
   }
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -105,6 +109,19 @@ public :
 
   static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N){
     Y += coef * X;
+  }
+
+  static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+    Y = a*X + b*Y;
+  }
+
+  static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
+    C = X;
+    recursive_cholesky(C);
+  }
+
+  static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector & X, int N){
+    X = lower_trisolve(L, B);
   }
 
   static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){

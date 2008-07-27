@@ -40,7 +40,7 @@ __attribute__ ((noinline)) void benchEigenSolver(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
 
-  MatrixType a = MatrixType::random(rows,cols);
+  MatrixType a = MatrixType::Random(rows,cols);
   SquareMatrixType covMat =  a * a.adjoint();
 
   BenchTimer timerSa, timerStd;

@@ -23,7 +23,9 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
 
+using namespace boost::numeric;
 
 template <class real>
 class ublas_interface{
@@ -116,6 +118,10 @@ public :
     Y.plus_assign(coef*X);
   }
 
+  static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+    Y = a*X + b*Y;
+  }
+
   static inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
     // X =  prod(trans(A),A);
     X.assign(prod(trans(A),A));
@@ -124,6 +130,10 @@ public :
   static inline void aat_product(gene_matrix & A, gene_matrix & X, int N){
     // X =  prod(A,trans(A));
     X.assign(prod(A,trans(A)));
+  }
+
+  static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector & X, int N){
+    X = solve(L, B, ublas::lower_tag ());
   }
 
 };

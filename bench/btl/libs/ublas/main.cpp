@@ -20,18 +20,15 @@
 #include "utilities.h"
 #include "ublas_interface.hh"
 #include "bench.hh"
-#include "action_matrix_vector_product.hh"
-#include "action_matrix_matrix_product.hh"
-#include "action_axpy.hh"
-#include "action_ata_product.hh"
-#include "action_aat_product.hh"
-#include "action_atv_product.hh"
+#include "basic_actions.hh"
+#include "basic_actions.hh"
 
 BTL_MAIN;
 
 int main()
 {
   bench<Action_axpy<ublas_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+  bench<Action_axpby<ublas_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
 
   bench<Action_matrix_vector_product<ublas_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_atv_product<ublas_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
@@ -39,6 +36,8 @@ int main()
   bench<Action_matrix_matrix_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_ata_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_aat_product<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+
+  bench<Action_trisolve<ublas_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

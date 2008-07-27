@@ -18,28 +18,15 @@
 #include "utilities.h"
 #include "eigen2_interface.hh"
 #include "bench.hh"
-#include "action_matrix_vector_product.hh"
-#include "action_matrix_matrix_product.hh"
-#include "action_axpy.hh"
-#include "action_lu_solve.hh"
-#include "action_ata_product.hh"
-#include "action_aat_product.hh"
-#include "action_atv_product.hh"
+#include "basic_actions.hh"
 
 BTL_MAIN;
 
 int main()
 {
-
-  bench<Action_matrix_vector_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-
-  bench<Action_axpy<eigen2_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-//  bench<Action_matrix_matrix_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-//  bench<Action_ata_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-//  bench<Action_aat_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_atv_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-
-  //bench<Action_lu_solve<blitz_LU_solve_interface<REAL_TYPE> > >(MIN_LU,MAX_LU,NB_POINT);
+  bench<Action_matrix_matrix_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_ata_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_aat_product<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

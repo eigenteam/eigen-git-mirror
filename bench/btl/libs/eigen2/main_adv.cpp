@@ -16,27 +16,17 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 #include "utilities.h"
-#include "gmm_interface.hh"
+#include "eigen2_interface.hh"
 #include "bench.hh"
-#include "basic_actions.hh"
+#include "action_trisolve.hh"
+#include "action_cholesky.hh"
 
 BTL_MAIN;
 
 int main()
 {
-
-  bench<Action_axpy<gmm_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-  bench<Action_axpby<gmm_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-
-  bench<Action_matrix_vector_product<gmm_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-  bench<Action_atv_product<gmm_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-
-  bench<Action_matrix_matrix_product<gmm_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_ata_product<gmm_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_aat_product<gmm_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-
-  bench<Action_trisolve<gmm_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  //bench<Action_lu_solve<blitz_LU_solve_interface<REAL_TYPE> > >(MIN_LU,MAX_LU,NB_POINT);
+  bench<Action_trisolve<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_cholesky<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

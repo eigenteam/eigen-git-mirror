@@ -38,16 +38,16 @@ public:
     MESSAGE("Portable_Perf_Analyzer Dtor");
   };
 
-
-
   BTL_DONT_INLINE  double eval_mflops(int size)
   {
     Action action(size);
 
-
-    double time_action = time_calculate(action);
+    double time_action = 0;
+    action.initialize();
+    time_action = time_calculate(action);
     while (time_action < MIN_TIME)
     {
+      //Action action(size);
       _nb_calc *= 2;
       action.initialize();
       time_action = time_calculate(action);
@@ -56,8 +56,10 @@ public:
     // optimize
     for (int i=1; i<NB_TRIES; ++i)
     {
-      action.initialize();
-      time_action = std::min(time_action, time_calculate(action));
+      Action _action(size);
+      std::cout << " " << _action.nb_op_base()*_nb_calc/(time_action*1e6) << " ";
+      _action.initialize();
+      time_action = std::min(time_action, time_calculate(_action));
     }
 
     time_action = time_action / (double(_nb_calc));
@@ -66,13 +68,13 @@ public:
     action.initialize();
     action.calculate();
     action.check_result();
-
     return action.nb_op_base()/(time_action*1000000.0);
   }
 
   BTL_DONT_INLINE double time_calculate(Action & action)
   {
     // time measurement
+    action.calculate();
     _chronos.start();
     for (int ii=0;ii<_nb_calc;ii++)
     {

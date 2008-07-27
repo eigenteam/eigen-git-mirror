@@ -18,13 +18,8 @@
 #include "utilities.h"
 #include "mtl4_interface.hh"
 #include "bench.hh"
-#include "action_matrix_vector_product.hh"
-#include "action_matrix_matrix_product.hh"
-#include "action_axpy.hh"
-#include "action_lu_solve.hh"
-#include "action_ata_product.hh"
-#include "action_aat_product.hh"
-#include "action_atv_product.hh"
+#include "basic_actions.hh"
+#include "action_cholesky.hh"
 
 BTL_MAIN;
 
@@ -32,11 +27,16 @@ int main()
 {
 
   bench<Action_axpy<mtl4_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+  bench<Action_axpby<mtl4_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+
   bench<Action_matrix_vector_product<mtl4_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_atv_product<mtl4_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_matrix_matrix_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 //   bench<Action_ata_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 //   bench<Action_aat_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+
+  bench<Action_trisolve<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_cholesky<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

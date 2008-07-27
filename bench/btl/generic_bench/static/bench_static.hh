@@ -24,7 +24,7 @@
 #include "bench_parameter.hh"
 #include <iostream>
 #include "utilities.h"
-#include "dump_file_x_y.hh"
+#include "xy_file.hh"
 #include "static/static_size_generator.hh"
 #include "timers/portable_perf_analyzer.hh"
 #include "timers/mixed_perf_analyzer.hh"

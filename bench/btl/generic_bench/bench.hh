@@ -25,14 +25,16 @@
 #include <iostream>
 #include "utilities.h"
 #include "size_lin_log.hh"
-#include "dump_file_x_y.hh"
+#include "xy_file.hh"
 #include <vector>
 #include <string>
 #include "timers/portable_perf_analyzer.hh"
-//#include "timers/mixed_perf_analyzer.hh"
-//#include "timers/x86_perf_analyzer.hh"
-//#include "timers/STL_perf_analyzer.hh"
-
+// #include "timers/mixed_perf_analyzer.hh"
+// #include "timers/x86_perf_analyzer.hh"
+// #include "timers/STL_perf_analyzer.hh"
+#ifdef HAVE_MKL
+extern "C" void cblas_saxpy(const int, const float, const float*, const int, float *, const int);
+#endif
 using namespace std;
 
 template <template<class> class Perf_Analyzer, class Action>
@@ -40,8 +42,6 @@ BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point )
 {
   if (BtlConfig::skipAction(Action::name()))
     return;
-
-  BTL_DISABLE_SSE_EXCEPTIONS();
 
   string filename="bench_"+Action::name()+".dat";
 
@@ -64,14 +64,71 @@ BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point )
   {
     //INFOS("size=" <<tab_sizes[i]<<"   ("<<nb_point-i<<"/"<<nb_point<<")");
     std::cout << " " << "size = " << tab_sizes[i] << "  " << std::flush;
+
+    BTL_DISABLE_SSE_EXCEPTIONS();
+    #ifdef HAVE_MKL
+    {
+      float dummy;
+      cblas_saxpy(1,0,&dummy,1,&dummy,1);
+    }
+    #endif
+
     tab_mflops[i] = perf_action.eval_mflops(tab_sizes[i]);
     std::cout << tab_mflops[i] << " MFlops    (" << nb_point-i << "/" << nb_point << ")" << std::endl;
   }
-//   std::cout << "\n";
+
+  if (!BtlConfig::Instance.overwriteResults)
+  {
+    std::vector<int> oldSizes;
+    std::vector<double> oldFlops;
+    if (read_xy_file(filename, oldSizes, oldFlops, true))
+    {
+      // merge the two data
+      std::vector<int> newSizes;
+      std::vector<double> newFlops;
+      int i=0;
+      int j=0;
+      while (i<tab_sizes.size() && j<oldSizes.size())
+      {
+        if (tab_sizes[i] == oldSizes[j])
+        {
+          newSizes.push_back(tab_sizes[i]);
+          newFlops.push_back(std::max(tab_mflops[i], oldFlops[j]));
+          ++i;
+          ++j;
+        }
+        else if (tab_sizes[i] < oldSizes[j])
+        {
+          newSizes.push_back(tab_sizes[i]);
+          newFlops.push_back(tab_mflops[i]);
+          ++i;
+        }
+        else
+        {
+          newSizes.push_back(oldSizes[j]);
+          newFlops.push_back(oldFlops[j]);
+          ++j;
+        }
+      }
+      while (i<tab_sizes.size())
+      {
+        newSizes.push_back(tab_sizes[i]);
+        newFlops.push_back(tab_mflops[i]);
+        ++i;
+      }
+      while (j<oldSizes.size())
+      {
+        newSizes.push_back(oldSizes[j]);
+        newFlops.push_back(oldFlops[j]);
+        ++j;
+      }
+      tab_mflops = newFlops;
+      tab_sizes = newSizes;
+    }
+  }
 
   // dump the result in a file  :
-
-  dump_file_x_y(tab_sizes,tab_mflops,filename);
+  dump_xy_file(tab_sizes,tab_mflops,filename);
 
 }
 
@@ -87,8 +144,8 @@ BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point ){
 
 
   // Only for small problem size. Otherwize it will be too long
-  //bench<X86_Perf_Analyzer,Action>(size_min,size_max,nb_point);
-  //bench<STL_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+//   bench<X86_Perf_Analyzer,Action>(size_min,size_max,nb_point);
+//   bench<STL_Perf_Analyzer,Action>(size_min,size_max,nb_point);
 
 }
 
