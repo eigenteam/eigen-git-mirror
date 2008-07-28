@@ -22,8 +22,10 @@
 #include "bench.hh"
 #include "basic_actions.hh"
 
-#ifdef HAS_LAPACK
 #include "action_cholesky.hh"
+
+#ifdef HAS_LAPACK
+#include "action_hessenberg.hh"
 #endif
 
 BTL_MAIN;
@@ -43,8 +45,11 @@ int main()
 
   bench<Action_trisolve<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
+//   bench<Action_cholesky<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+
   #ifdef HAS_LAPACK
-  bench<Action_cholesky<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_hessenberg<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_tridiagonalization<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   #endif
 
   //bench<Action_lu_solve<C_BLAS_LU_solve_interface<REAL_TYPE> > >(MIN_LU,MAX_LU,NB_POINT);

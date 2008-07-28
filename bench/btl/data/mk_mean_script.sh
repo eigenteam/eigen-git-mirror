@@ -10,7 +10,8 @@ WORK_DIR=tmp
 mkdir $WORK_DIR
 
 DATA_FILE=`find $DIR -name "*.dat" | grep _${WHAT}`
-echo
+echo ""
+echo $"1..."
 for FILE in $DATA_FILE
 do
         ##echo hello world

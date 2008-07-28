@@ -36,8 +36,8 @@ extern "C"
   void daat_(double * A, double *X, int * N);
   void saat_(float * A, float *X, int * N);
 
-  void saxpy_(int * N, float * coef, float * X, float *Y);
-  void daxpy_(int * N, double * coef, double * X, double *Y);
+  void saxpyf_(int * N, float * coef, float * X, float *Y);
+  void daxpyf_(int * N, double * coef, double * X, double *Y);
 }
 
 template<class real>
@@ -76,7 +76,7 @@ public :
   static  inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N)
   {
     int one=1;
-    daxpy_(&N,&coef,X,Y);
+    daxpyf_(&N,&coef,X,Y);
   }
 
 
@@ -117,7 +117,7 @@ public :
 
   static  inline void axpy(float coef, const gene_vector & X, gene_vector & Y, int N)
   {
-    saxpy_(&N,&coef,X,Y);
+    saxpyf_(&N,&coef,X,Y);
   }
 
 };

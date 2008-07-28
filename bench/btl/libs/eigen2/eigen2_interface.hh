@@ -20,6 +20,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
+#include <Eigen/QR>
 #include <vector>
 #include "btl.hh"
 
@@ -136,9 +137,15 @@ public :
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
-//     C = X;
-//     Cholesky<gene_matrix>::computeInPlace(C);
     C = X.cholesky().matrixL();
+  }
+
+  static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
+    C = HessenbergDecomposition<gene_matrix>(X).packedMatrix();
+  }
+
+  static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
+    C = Tridiagonalization<gene_matrix>(X).packedMatrix();
   }
 
 };

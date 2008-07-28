@@ -1,5 +1,5 @@
 #! /bin/bash
-mkdir $1
+mkdir -p $1
 ##cp ../libs/*/*.dat $1
 
 EIGENDIR=`cat eigen_root_dir.txt`
@@ -17,6 +17,7 @@ echo '<ul>'\
   '</p>'  >> $webpagefilename
 
 source mk_mean_script.sh axpy $1 11 2500 100000 250000 > $1/axpy.html
+source mk_mean_script.sh axpby $1 11 2500 100000 250000 > $1/axpby.html
 source mk_mean_script.sh matrix_vector $1 11 50 300 1000 > $1/matrix_vector.html
 source mk_mean_script.sh atv $1 11 50 300 1000 > $1/atv.html
 source mk_mean_script.sh matrix_matrix $1 11 100 300 1000 > $1/matrix_matrix.html
@@ -24,6 +25,8 @@ source mk_mean_script.sh aat $1 11 100 300 1000 > $1/aat.html
 source mk_mean_script.sh ata $1 11 100 300 1000 > $1/ata.html
 source mk_mean_script.sh trisolve $1 11 100 300 1000 > $1/trisolve.html
 source mk_mean_script.sh cholesky $1 11 100 300 1000 > $1/cholesky.html
+source mk_mean_script.sh hessenberg $1 11 100 300 1000 > $1/hessenberg.html
+source mk_mean_script.sh tridiagonalization $1 11 100 300 1000 > $1/tridiagonalization.html
 
 ## compile the web page ##
 

@@ -123,6 +123,15 @@ public :
     gmm::lower_tri_solve(L, X, false);
   }
 
+  static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
+    gmm::copy(X,C);
+    gmm::Hessenberg_reduction(C,X,false);
+  }
+
+  static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
+    gmm::copy(X,C);
+    gmm::Householder_tridiagonalization(C,X,false);
+  }
 
 };
 

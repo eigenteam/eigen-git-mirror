@@ -1,4 +1,4 @@
-      SUBROUTINE SAXPY(N,A,X,Y)
+      SUBROUTINE SAXPYF(N,A,X,Y)
 **  ***************************************
 **    CALCULE  Y = Y + A*X
 **  ***************************************

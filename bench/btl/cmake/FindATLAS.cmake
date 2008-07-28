@@ -18,8 +18,11 @@ find_library(ATLAS_LIB atlas PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
 find_file(ATLAS_CBLAS libcblas.so.3 PATHS /usr/lib $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
 find_library(ATLAS_CBLAS cblas PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
 
-find_file(ATLAS_LAPACK liblapack_atlas.so.3 PATHS /usr/lib $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
-find_library(ATLAS_LAPACK lapack_atlas PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
+# find_file(ATLAS_LAPACK liblapack_atlas.so.3 PATHS /usr/lib $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
+# find_library(ATLAS_LAPACK lapack_atlas PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
+
+find_file(ATLAS_LAPACK liblapack.so.3 PATHS /usr/lib/atlas $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
+# find_library(ATLAS_LAPACK lapack PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
 
 find_file(ATLAS_F77BLAS libf77blas.so.3 PATHS /usr/lib $ENV{ATLASDIR} ${LIB_INSTALL_DIR})
 find_library(ATLAS_F77BLAS f77blas PATHS $ENV{ATLASDIR} ${LIB_INSTALL_DIR})

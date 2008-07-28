@@ -25,10 +25,32 @@
 extern "C"
 {
 #include "cblas.h"
-#ifdef HAS_LAPACK
+
+void sgemm_(const char *transa, const char *transb, const int *m, const int *n, const int *k,
+           const float *alpha, const float *a, const int *lda, const float *b, const int *ldb,
+           const float *beta, float *c, const int *ldc);
+
+void sgemv_(const char *trans, const int *m, const int *n, const float *alpha,
+           const float *a, const int *lda, const float *x, const int *incx,
+           const float *beta, float *y, const int *incy);
+
+void sscal_(const int *n, const float *alpha, const float *x, const int *incx);
+
+void saxpy_(const int *n, const float *alpha, const float *x, const int *incx,
+            float *y, const int *incy);
+
+void strsv_(const char *uplo, const char *trans, const char *diag, const int *n,
+           const float *a, const int *lda, float *x, const int *incx);
+
+void scopy_(const int *n, const float *x, const int *incx, float *y, const int *incy);
+
   // Cholesky Factorization
+// #include "mkl_lapack.h"
   void spotrf_(const char* uplo, const int* n, float *a, const int* ld, int* info);
   void dpotrf_(const char* uplo, const int* n, double *a, const int* ld, int* info);
+  void ssytrd_(char *uplo, const int *n, float *a, const int *lda, float *d, float *e, float *tau, float *work, int *lwork, int *info );
+  void sgehrd_( const int *n, int *ilo, int *ihi, float *a, const int *lda, float *tau, float *work, int *lwork, int *info );
+#ifdef HAS_LAPACK
 #endif
 }
 
@@ -85,9 +107,18 @@ public :
 
 };
 
+static const float fone = 1;
+static const float fzero = 0;
+static const char notrans = 'N';
+static const char trans = 'T';
+static const char nonunit = 'N';
+static const char lower = 'L';
+static const int intone = 1;
+
 template<>
 class C_BLAS_interface<float> : public f77_interface_base<float>
 {
+
 public :
 
   static inline std::string name( void )
@@ -96,59 +127,114 @@ public :
   }
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
+    #ifdef PUREBLAS
+    sgemv_(&notrans,&N,&N,&fone,A,&N,B,&intone,&fzero,X,&intone);
+    #else
     cblas_sgemv(CblasColMajor,CblasNoTrans,N,N,1.0,A,N,B,1,0.0,X,1);
+    #endif
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
+    #ifdef PUREBLAS
+    sgemv_(&trans,&N,&N,&fone,A,&N,B,&intone,&fzero,X,&intone);
+    #else
     cblas_sgemv(CblasColMajor,CblasTrans,N,N,1.0,A,N,B,1,0.0,X,1);
+    #endif
   }
 
   static inline void matrix_matrix_product(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N){
+    #ifdef PUREBLAS
+    sgemm_(&notrans,&notrans,&N,&N,&N,&fone,A,&N,B,&N,&fzero,X,&N);
+    #else
     cblas_sgemm(CblasColMajor,CblasNoTrans,CblasNoTrans,N,N,N,1.0,A,N,B,N,0.0,X,N);
+    #endif
   }
 
   static inline void transposed_matrix_matrix_product(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N){
+    #ifdef PUREBLAS
+    sgemm_(&notrans,&notrans,&N,&N,&N,&fone,A,&N,B,&N,&fzero,X,&N);
+    #else
     cblas_sgemm(CblasColMajor,CblasNoTrans,CblasNoTrans,N,N,N,1.0,A,N,B,N,0.0,X,N);
+    #endif
   }
 
   static inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
+    #ifdef PUREBLAS
+    sgemm_(&trans,&notrans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
+    #else
     cblas_sgemm(CblasColMajor,CblasTrans,CblasNoTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+    #endif
   }
 
   static inline void aat_product(gene_matrix & A, gene_matrix & X, int N){
+    #ifdef PUREBLAS
+    sgemm_(&notrans,&trans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
+    #else
     cblas_sgemm(CblasColMajor,CblasNoTrans,CblasTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+    #endif
   }
 
   static inline void axpy(float coef, const gene_vector & X, gene_vector & Y, int N){
+    #ifdef PUREBLAS
+    saxpy_(&N,&coef,X,&intone,Y,&intone);
+    #else
     cblas_saxpy(N,coef,X,1,Y,1);
+    #endif
   }
 
   static inline void axpby(float a, const gene_vector & X, float b, gene_vector & Y, int N){
+    #ifdef PUREBLAS
+    sscal_(&N,&b,Y,&intone);
+    saxpy_(&N,&a,X,&intone,Y,&intone);
+    #else
     cblas_sscal(N,b,Y,1);
     cblas_saxpy(N,a,X,1,Y,1);
+    #endif
   }
 
-  #ifdef HAS_LAPACK
   static inline void cholesky(const gene_vector & X, gene_vector & C, int N){
     cblas_scopy(N*N, X, 1, C, 1);
     char uplo = 'L';
     int info = 0;
     spotrf_(&uplo, &N, C, &N, &info);
-//     float tmp[N];
-//     for (int j = 1; j < N; ++j)
-//     {
-//       int endSize = N-j-1;
-//       if (endSize>0) {
-          //cblas_sgemv(CblasColMajor, CblasNoTrans, N-j-1, j, ATL_rnone, A+j+1, lda, A+j, lda, ATL_rone, Ac+j+1,       1);
-//          cblas_sgemv(CblasColMajor, CblasNoTrans,endSize,j, 1.0,     &(C[j+1]),N, &(C[j]),N, 0.0,      &(C[j+1+N*j]),1);
-//       }
-//     }
+  }
+
+  #ifdef HAS_LAPACK
+
+  static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
+    cblas_scopy(N*N, X, 1, C, 1);
+    int info = 0;
+    int ilo = 1;
+    int ihi = N;
+    int bsize = 64;
+    int worksize = N*bsize;
+    float* d = new float[N+worksize];
+    sgehrd_(&N, &ilo, &ihi, C, &N, d, d+N, &worksize, &info);
+    delete[] d;
+  }
+
+  static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
+    cblas_scopy(N*N, X, 1, C, 1);
+    char uplo = 'U';
+    int info = 0;
+    int ilo = 1;
+    int ihi = N;
+    int bsize = 64;
+    int worksize = N*bsize;
+    float* d = new float[3*N+worksize];
+    ssytrd_(&uplo, &N, C, &N, d, d+N, d+2*N, d+3*N, &worksize, &info);
+    delete[] d;
   }
   #endif
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector & X, int N){
+    #ifdef PUREBLAS
+    scopy_(&N, B, &intone, X, &intone);
+    strsv_(&lower, &notrans, &nonunit, &N, L, &N, X, &intone);
+    #else
     cblas_scopy(N, B, 1, X, 1);
     cblas_strsv(CblasColMajor, CblasLower, CblasNoTrans, CblasNonUnit, N, L, N, X, 1);
+    #endif
   }
 
 };

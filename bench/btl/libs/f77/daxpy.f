@@ -1,4 +1,4 @@
-      SUBROUTINE DAXPY(N,A,X,Y)
+      SUBROUTINE DAXPYF(N,A,X,Y)
 **  ***************************************
 **    CALCULE  Y = Y + A*X
 **  ***************************************
