@@ -47,20 +47,20 @@ private:
 
   enum {
     MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
-             && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
-    MayInnerVectorize = MightVectorize && InnerSize!=Dynamic && int(InnerSize)%int(PacketSize)==0,
+                  && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
+    MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0,
     MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
-    MaySliceVectorize = MightVectorize && InnerMaxSize==Dynamic /* slice vectorization can be slow, so we only
+    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)==Dynamic /* slice vectorization can be slow, so we only
       want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
       of a dynamic block in a fixed-size matrix */
   };
 
 public:
   enum {
-    Vectorization = MayInnerVectorize  ? InnerVectorization
-                  : MayLinearVectorize ? LinearVectorization
-                  : MaySliceVectorize ? SliceVectorization
-                                       : NoVectorization
+    Vectorization = int(MayInnerVectorize)  ? int(InnerVectorization)
+                  : int(MayLinearVectorize) ? int(LinearVectorization)
+                  : int(MaySliceVectorize)  ? int(SliceVectorization)
+                                            : int(NoVectorization)
   };
 
 private:
@@ -74,13 +74,13 @@ public:
   enum {
     Unrolling = (int(Vectorization) == int(InnerVectorization) || int(Vectorization) == int(NoVectorization))
               ? (
-                   MayUnrollCompletely ? CompleteUnrolling
-                 : MayUnrollInner      ? InnerUnrolling
-                                       : NoUnrolling
+                   int(MayUnrollCompletely) ? int(CompleteUnrolling)
+                 : int(MayUnrollInner)      ? int(InnerUnrolling)
+                                            : int(NoUnrolling)
                 )
               : int(Vectorization) == int(LinearVectorization)
-              ? ( MayUnrollCompletely ? CompleteUnrolling : NoUnrolling )
-              : NoUnrolling
+              ? ( int(MayUnrollCompletely) ? int(CompleteUnrolling) : int(NoUnrolling) )
+              : int(NoUnrolling)
   };
 };
 

@@ -35,6 +35,16 @@
   */
 template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_add_op;
 
+/** \internal
+  * convenient macro to defined the return type of a cwise binary operation */
+#define EIGEN_CWISE_BINOP_RETURN_TYPE(OP) \
+    CwiseBinaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType, OtherDerived>
+
+/** \internal
+  * convenient macro to defined the return type of a cwise unary operation */
+#define EIGEN_CWISE_UNOP_RETURN_TYPE(OP) \
+    CwiseUnaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType>
+
 /** \class Cwise
   *
   * \brief Pseudo expression providing additional coefficient-wise operations
@@ -56,23 +66,7 @@ template<typename ExpressionType> class Cwise
     typedef typename ei_traits<ExpressionType>::Scalar Scalar;
     typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
-//     typedef NestByValue<typename ExpressionType::ConstantReturnType> ConstantReturnType;
     typedef CwiseUnaryOp<ei_scalar_add_op<Scalar>, ExpressionType> ScalarAddReturnType;
-
-    template<template<typename _Scalar> class Functor, typename OtherDerived> struct BinOp
-    {
-      typedef CwiseBinaryOp<Functor<typename ei_traits<ExpressionType>::Scalar>,
-                            ExpressionType,
-                            OtherDerived
-                           > ReturnType;
-    };
-
-    template<template<typename _Scalar> class Functor> struct UnOp
-    {
-      typedef CwiseUnaryOp<Functor<typename ei_traits<ExpressionType>::Scalar>,
-                           ExpressionType
-                          > ReturnType;
-    };
 
     inline Cwise(const ExpressionType& matrix) : m_matrix(matrix) {}
 
@@ -80,32 +74,32 @@ template<typename ExpressionType> class Cwise
     inline const ExpressionType& _expression() const { return m_matrix; }
 
     template<typename OtherDerived>
-    const typename BinOp<ei_scalar_product_op, OtherDerived>::ReturnType
+	const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const typename BinOp<ei_scalar_quotient_op, OtherDerived>::ReturnType
+    const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
     operator/(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const typename BinOp<ei_scalar_min_op, OtherDerived>::ReturnType
+    const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
     min(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const typename BinOp<ei_scalar_max_op, OtherDerived>::ReturnType
+    const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
     max(const MatrixBase<OtherDerived> &other) const;
 
-    const typename UnOp<ei_scalar_abs_op>::ReturnType abs() const;
-    const typename UnOp<ei_scalar_abs2_op>::ReturnType abs2() const;
-    const typename UnOp<ei_scalar_square_op>::ReturnType square() const;
-    const typename UnOp<ei_scalar_cube_op>::ReturnType cube() const;
-    const typename UnOp<ei_scalar_inverse_op>::ReturnType inverse() const;
-    const typename UnOp<ei_scalar_sqrt_op>::ReturnType sqrt() const;
-    const typename UnOp<ei_scalar_exp_op>::ReturnType exp() const;
-    const typename UnOp<ei_scalar_log_op>::ReturnType log() const;
-    const typename UnOp<ei_scalar_cos_op>::ReturnType cos() const;
-    const typename UnOp<ei_scalar_sin_op>::ReturnType sin() const;
-    const typename UnOp<ei_scalar_pow_op>::ReturnType pow(const Scalar& exponent) const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)      abs() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)     abs2() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_square_op)   square() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cube_op)     cube() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_inverse_op)  inverse() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sqrt_op)     sqrt() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)      exp() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)      log() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cos_op)      cos() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)      sin() const;
+    const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)      pow(const Scalar& exponent) const;
 
 
     const ScalarAddReturnType
@@ -123,22 +117,22 @@ template<typename ExpressionType> class Cwise
 
     ExpressionType& operator-=(const Scalar& scalar);
 
-    template<typename OtherDerived> const typename BinOp<std::less, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
     operator<(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived> const typename BinOp<std::less_equal, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
     operator<=(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived> const typename BinOp<std::greater, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
     operator>(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived> const typename BinOp<std::greater_equal, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
     operator>=(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived> const typename BinOp<std::equal_to, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)
     operator==(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived> const typename BinOp<std::not_equal_to, OtherDerived>::ReturnType
+    template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
     operator!=(const MatrixBase<OtherDerived>& other) const;
 
 

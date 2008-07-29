@@ -301,7 +301,7 @@ struct ei_compute_inverse<MatrixType, 4>
   * \sa inverse()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::computeInverse(typename ei_eval<Derived>::type *result) const
+inline void MatrixBase<Derived>::computeInverse(typename MatrixBase<Derived>::EvalType *result) const
 {
   typedef typename ei_eval<Derived>::type MatrixType;
   ei_assert(rows() == cols());
@@ -324,10 +324,9 @@ inline void MatrixBase<Derived>::computeInverse(typename ei_eval<Derived>::type 
   * \sa computeInverse()
   */
 template<typename Derived>
-inline const typename ei_eval<Derived>::type MatrixBase<Derived>::inverse() const
+inline const typename MatrixBase<Derived>::EvalType MatrixBase<Derived>::inverse() const
 {
-  typedef typename ei_eval<Derived>::type MatrixType;
-  MatrixType result(rows(), cols());
+  EvalType result(rows(), cols());
   computeInverse(&result);
   return result;
 }

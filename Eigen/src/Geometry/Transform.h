@@ -120,9 +120,18 @@ public:
   /** \returns a writable expression of the translation vector of the transformation */
   inline TranslationPart translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
+  /** \returns an expression of the product between the transform \c *this and a matrix expression \a other
+  *
+  * The right hand side \a other might be either:
+  * \li a vector of size Dim,
+  * \li an homogeneous vector of size Dim+1,
+  * \li a transformation matrix of size Dim+1 x Dim+1.
+  */
+  // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
   const typename ei_transform_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
-  operator * (const MatrixBase<OtherDerived> &other) const;
+  operator * (const MatrixBase<OtherDerived> &other) const
+  { return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
 
   /** Contatenates two transformations */
   const typename ProductReturnType<MatrixType,MatrixType>::Type
@@ -215,21 +224,6 @@ QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
                  other.coeffRef(0,2), other.coeffRef(1,2));
 }
 #endif
-
-/** \returns an expression of the product between the transform \c *this and a matrix expression \a other
-  *
-  * The right hand side \a other might be either:
-  * \li a vector of size Dim,
-  * \li an homogeneous vector of size Dim+1,
-  * \li a transformation matrix of size Dim+1 x Dim+1.
-  */
-template<typename Scalar, int Dim>
-template<typename OtherDerived>
-const typename ei_transform_product_impl<OtherDerived,Dim,Dim+1>::ResultType
-Transform<Scalar,Dim>::operator*(const MatrixBase<OtherDerived> &other) const
-{
-  return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived());
-}
 
 /** Applies on the right the non uniform scale transformation represented
   * by the vector \a other to \c *this and returns a reference to \c *this.

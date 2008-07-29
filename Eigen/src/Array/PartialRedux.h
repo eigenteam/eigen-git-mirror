@@ -61,9 +61,11 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     Flags = ((int(RowsAtCompileTime) == Dynamic || int(ColsAtCompileTime) == Dynamic)
           ? (unsigned int)_MatrixTypeNested::Flags
           : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & HereditaryBits,
-    TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime,
-    CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost
-                  + MemberOp::template Cost<InputScalar,TraversalSize>::value
+    TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime
+  };
+  typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
+  enum {
+    CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost + CostOpType::value
   };
 };
 

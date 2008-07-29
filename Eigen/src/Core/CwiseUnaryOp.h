@@ -137,7 +137,7 @@ MatrixBase<Derived>::operator-() const
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_abs_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
 Cwise<ExpressionType>::abs() const
 {
   return _expression();
@@ -146,7 +146,7 @@ Cwise<ExpressionType>::abs() const
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_abs2_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)
 Cwise<ExpressionType>::abs2() const
 {
   return _expression();

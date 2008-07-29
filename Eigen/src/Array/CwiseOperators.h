@@ -31,7 +31,7 @@
   * 
   * \returns an expression of the coefficient-wise square root of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_sqrt_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sqrt_op)
 Cwise<ExpressionType>::sqrt() const
 {
   return _expression();
@@ -41,7 +41,7 @@ Cwise<ExpressionType>::sqrt() const
   * 
   * \returns an expression of the coefficient-wise exponential of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_exp_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)
 Cwise<ExpressionType>::exp() const
 {
   return _expression();
@@ -51,7 +51,7 @@ Cwise<ExpressionType>::exp() const
   * 
   * \returns an expression of the coefficient-wise logarithm of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_log_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
 Cwise<ExpressionType>::log() const
 {
   return _expression();
@@ -61,7 +61,7 @@ Cwise<ExpressionType>::log() const
   * 
   * \returns an expression of the coefficient-wise cosine of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_cos_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cos_op)
 Cwise<ExpressionType>::cos() const
 {
   return _expression();
@@ -72,7 +72,7 @@ Cwise<ExpressionType>::cos() const
   * 
   * \returns an expression of the coefficient-wise sine of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_sin_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)
 Cwise<ExpressionType>::sin() const
 {
   return _expression();
@@ -83,10 +83,10 @@ Cwise<ExpressionType>::sin() const
   * 
   * \returns an expression of the coefficient-wise power of *this to the given exponent. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_pow_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)
 Cwise<ExpressionType>::pow(const Scalar& exponent) const
 {
-  return typename UnOp<ei_scalar_pow_op>::ReturnType(_expression(), ei_scalar_pow_op<Scalar>(exponent));
+  return EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)(_expression(), ei_scalar_pow_op<Scalar>(exponent));
 }
 
 
@@ -94,7 +94,7 @@ Cwise<ExpressionType>::pow(const Scalar& exponent) const
   * 
   * \returns an expression of the coefficient-wise inverse of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_inverse_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_inverse_op)
 Cwise<ExpressionType>::inverse() const
 {
   return _expression();
@@ -104,7 +104,7 @@ Cwise<ExpressionType>::inverse() const
   *
   * \returns an expression of the coefficient-wise square of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_square_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_square_op)
 Cwise<ExpressionType>::square() const
 {
   return _expression();
@@ -114,7 +114,7 @@ Cwise<ExpressionType>::square() const
   *
   * \returns an expression of the coefficient-wise cube of *this. */
 template<typename ExpressionType>
-inline const typename Cwise<ExpressionType>::template UnOp<ei_scalar_cube_op>::ReturnType
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cube_op)
 Cwise<ExpressionType>::cube() const
 {
   return _expression();
@@ -133,10 +133,10 @@ Cwise<ExpressionType>::cube() const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::less, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
 Cwise<ExpressionType>::operator<(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::less, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)(_expression(), other.derived());
 }
 
 /** \array_module
@@ -147,10 +147,10 @@ Cwise<ExpressionType>::operator<(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::less_equal, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
 Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::less_equal, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)(_expression(), other.derived());
 }
 
 /** \array_module
@@ -163,10 +163,10 @@ Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::greater, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
 Cwise<ExpressionType>::operator>(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::greater, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)(_expression(), other.derived());
 }
 
 /** \array_module
@@ -177,10 +177,10 @@ Cwise<ExpressionType>::operator>(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::greater_equal, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
 Cwise<ExpressionType>::operator>=(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::greater_equal, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)(_expression(), other.derived());
 }
 
 /** \array_module
@@ -191,10 +191,10 @@ Cwise<ExpressionType>::operator>=(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::equal_to, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)
 Cwise<ExpressionType>::operator==(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::equal_to, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)(_expression(), other.derived());
 }
 
 /** \array_module
@@ -205,10 +205,10 @@ Cwise<ExpressionType>::operator==(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<std::not_equal_to, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
 Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<std::not_equal_to, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)(_expression(), other.derived());
 }
 
 

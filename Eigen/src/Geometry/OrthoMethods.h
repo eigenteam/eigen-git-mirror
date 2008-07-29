@@ -30,7 +30,7 @@
   * \returns the cross product of \c *this and \a other */
 template<typename Derived>
 template<typename OtherDerived>
-inline typename ei_eval<Derived>::type
+inline typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3);
@@ -100,7 +100,7 @@ struct ei_perpendicular_selector<Derived,2>
   * \sa cross()
   */
 template<typename Derived>
-typename ei_eval<Derived>::type
+typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::someOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);

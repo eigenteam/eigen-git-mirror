@@ -41,6 +41,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 {
   public:
 
+    enum {Size = _MatrixType::RowsAtCompileTime };
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -48,6 +49,18 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
+
+    SelfAdjointEigenSolver()
+        : m_eivec(Size, Size),
+          m_eivalues(Size)
+    {
+      ei_assert(Size!=Dynamic);
+    }
+
+    SelfAdjointEigenSolver(int size)
+        : m_eivec(size, size),
+          m_eivalues(size)
+    {}
 
     /** Constructors computing the eigenvalues of the selfadjoint matrix \a matrix,
       * as well as the eigenvectors if \a computeEigenvectors is true.

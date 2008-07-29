@@ -240,4 +240,13 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   };
 };
 
+/** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size
+  * TODO: could be a good idea to define a big ReturnType struct ??
+  */
+template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
+	typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
+                                  (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
+	typedef Block<ExpressionType, RowsOrSize, Cols> Type;
+};
+
 #endif // EIGEN_META_H

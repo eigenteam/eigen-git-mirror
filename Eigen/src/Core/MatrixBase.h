@@ -175,34 +175,33 @@ template<typename Derived> class MatrixBase
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
-    /** Represents a constant matrix */
+    /** \internal the type to which the expression gets evaluated (needed by MSVC) */
+	typedef typename ei_eval<Derived>::type EvalType;
+    /** \internal Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
-    /** Represents a vector block of a matrix  */
-    template<int Size> struct SubVectorReturnType
-    {
-      typedef Block<Derived, (ei_traits<Derived>::RowsAtCompileTime == 1 ? 1 : Size),
-                             (ei_traits<Derived>::ColsAtCompileTime == 1 ? 1 : Size)> Type;
-    };
-    /** Represents a scalar multiple of a matrix */
+    /** \internal Represents a scalar multiple of a matrix */
     typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
-    /** Represents a quotient of a matrix by a scalar*/
+    /** \internal Represents a quotient of a matrix by a scalar*/
     typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
-
-    /** the return type of MatrixBase::conjugate() */
+    /** \internal the return type of MatrixBase::conjugate() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
                         Derived&
                      >::ret ConjugateReturnType;
-    /** the return type of MatrixBase::real() */
+    /** \internal the return type of MatrixBase::real() */
     typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
-    /** the return type of MatrixBase::adjoint() */
+    /** \internal the return type of MatrixBase::adjoint() */
     typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
             AdjointReturnType;
-    /** the return type of MatrixBase::eigenvalues() */
+    /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    /** the return type of identity */
+	/** \internal expression tyepe of a column */
+	typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
+	/** \internal expression tyepe of a column */
+	typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
+    /** \internal the return type of identity */
     typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
-    /** the return type of unit vectors */
+    /** \internal the return type of unit vectors */
     typedef Block<CwiseNullaryOp<ei_scalar_identity_op<Scalar>, SquareMatrixType>,
                   ei_traits<Derived>::RowsAtCompileTime,
                   ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
@@ -330,48 +329,46 @@ template<typename Derived> class MatrixBase
     const AdjointReturnType adjoint() const;
 
 
-    Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i);
-    const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> row(int i) const;
+    RowXpr row(int i);
+    const RowXpr row(int i) const;
 
-    Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> col(int i);
-    const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> col(int i) const;
+    ColXpr col(int i);
+    const ColXpr col(int i) const;
 
     Minor<Derived> minor(int row, int col);
     const Minor<Derived> minor(int row, int col) const;
 
-    Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols);
-    const Block<Derived>
+    typename BlockReturnType<Derived>::Type block(int startRow, int startCol, int blockRows, int blockCols);
+    const typename BlockReturnType<Derived>::Type
     block(int startRow, int startCol, int blockRows, int blockCols) const;
 
-    Block<Derived> block(int start, int size);
-    const Block<Derived> block(int start, int size) const;
+    typename BlockReturnType<Derived>::SubVectorType block(int start, int size);
+    const typename BlockReturnType<Derived>::SubVectorType block(int start, int size) const;
 
-    typename SubVectorReturnType<Dynamic>::Type start(int size);
-    const typename SubVectorReturnType<Dynamic>::Type start(int size) const;
+    typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size);
+    const typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size) const;
 
-    typename SubVectorReturnType<Dynamic>::Type end(int size);
-    const typename SubVectorReturnType<Dynamic>::Type end(int size) const;
+    typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size);
+    const typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size) const;
 
-    Block<Derived> corner(CornerType type, int cRows, int cCols);
-    const Block<Derived> corner(CornerType type, int cRows, int cCols) const;
+    typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
+    const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
 
     template<int BlockRows, int BlockCols>
-    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
+    typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol);
     template<int BlockRows, int BlockCols>
-    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
+    const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol) const;
 
-    template<int CRows, int CCols> Block<Derived, CRows, CCols> corner(CornerType type);
-    template<int CRows, int CCols> const Block<Derived, CRows, CCols> corner(CornerType type) const;
+    template<int CRows, int CCols>
+    typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type);
+    template<int CRows, int CCols>
+    const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
 
-    template<int Size>
-    typename SubVectorReturnType<Size>::Type start(void);
-    template<int Size>
-    const typename SubVectorReturnType<Size>::Type start() const;
+    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType start(void);
+    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType start() const;
 
-    template<int Size>
-    typename SubVectorReturnType<Size>::Type end();
-    template<int Size>
-    const typename SubVectorReturnType<Size>::Type end() const;
+    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
+    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
 
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
@@ -529,18 +526,18 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const typename ei_eval<Derived>::type inverse() const;
-    void computeInverse(typename ei_eval<Derived>::type *result) const;
+    const EvalType inverse() const;
+    void computeInverse(EvalType *result) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
 
-    const Cholesky<typename ei_eval<Derived>::type> cholesky() const;
-    const CholeskyWithoutSquareRoot<typename ei_eval<Derived>::type> choleskyNoSqrt() const;
+    const Cholesky<EvalType> cholesky() const;
+    const CholeskyWithoutSquareRoot<EvalType> choleskyNoSqrt() const;
 
 /////////// QR module ///////////
 
-    const QR<typename ei_eval<Derived>::type> qr() const;
+    const QR<EvalType> qr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar matrixNorm() const;
@@ -548,9 +545,14 @@ template<typename Derived> class MatrixBase
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>
-    typename ei_eval<Derived>::type
-    cross(const MatrixBase<OtherDerived>& other) const;
-    typename ei_eval<Derived>::type someOrthogonal(void) const;
+    EvalType cross(const MatrixBase<OtherDerived>& other) const;
+    EvalType someOrthogonal(void) const;
+    
+    /**
+     */
+    #ifdef EIGEN_MATRIXBASE_PLUGIN
+    #include EIGEN_MATRIXBASE_PLUGIN
+    #endif
 };
 
 #endif // EIGEN_MATRIXBASE_H

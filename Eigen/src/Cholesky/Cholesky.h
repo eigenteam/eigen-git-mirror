@@ -147,7 +147,7 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
   * \returns the Cholesky decomposition of \c *this
   */
 template<typename Derived>
-inline const Cholesky<typename ei_eval<Derived>::type>
+inline const Cholesky<typename MatrixBase<Derived>::EvalType>
 MatrixBase<Derived>::cholesky() const
 {
   return Cholesky<typename ei_eval<Derived>::type>(derived());

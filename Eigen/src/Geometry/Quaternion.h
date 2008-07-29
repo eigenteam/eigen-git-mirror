@@ -356,10 +356,10 @@ Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) 
   // 2 - Quaternion slerp(Scalar t, const Quaternion& other) const
   //     which returns the s-lerp between this and other
   // ??
-  if (*this == other)
+  if (m_coeffs == other.m_coeffs)
     return *this;
 
-  Scalar d = this->dot(other);
+  Scalar d = m_coeffs.dot(other.m_coeffs);
 
   // theta is the angle between the 2 quaternions
   Scalar theta = std::acos(ei_abs(d));
@@ -370,7 +370,7 @@ Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) 
   if (d<0)
     scale1 = -scale1;
 
-  return scale0 * (*this) + scale1 * other;
+  return Quaternion(scale0 * m_coeffs + scale1 * other.m_coeffs);
 }
 
 // set from a rotation matrix

@@ -336,7 +336,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
     const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 };
 
-
 /** \returns a dynamic-size expression of a block in *this.
   *
   * \param startRow the first row in the block
@@ -356,18 +355,18 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline Block<Derived> MatrixBase<Derived>
+inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
-  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
+  return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
 }
 
 /** This is the const version of block(int,int,int,int). */
 template<typename Derived>
-inline const Block<Derived> MatrixBase<Derived>
+inline const typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
+  return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
 }
 
 /** \returns a dynamic-size expression of a block in *this.
@@ -389,11 +388,11 @@ inline const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int)
   */
 template<typename Derived>
-inline Block<Derived> MatrixBase<Derived>
+inline typename BlockReturnType<Derived>::SubVectorType MatrixBase<Derived>
   ::block(int start, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
+  return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
                                    ColsAtCompileTime == 1 ? 1 : size);
@@ -401,11 +400,11 @@ inline Block<Derived> MatrixBase<Derived>
 
 /** This is the const version of block(int,int).*/
 template<typename Derived>
-inline const Block<Derived> MatrixBase<Derived>
-  ::block(int start, int size) const
+inline const typename BlockReturnType<Derived>::SubVectorType
+MatrixBase<Derived>::block(int start, int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return Block<Derived>(derived(), RowsAtCompileTime == 1 ? 0 : start,
+  return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
                                    ColsAtCompileTime == 1 ? 1 : size);
@@ -429,7 +428,7 @@ inline const Block<Derived> MatrixBase<Derived>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+inline typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::start(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -443,7 +442,7 @@ MatrixBase<Derived>::start(int size)
 
 /** This is the const version of start(int).*/
 template<typename Derived>
-inline const typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+inline const typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::start(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -473,7 +472,7 @@ MatrixBase<Derived>::start(int size) const
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+inline typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::end(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -489,7 +488,7 @@ MatrixBase<Derived>::end(int size)
 
 /** This is the const version of end(int).*/
 template<typename Derived>
-inline const typename MatrixBase<Derived>::template SubVectorReturnType<Dynamic>::Type
+inline const typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::end(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -518,7 +517,7 @@ MatrixBase<Derived>::end(int size) const
   */
 template<typename Derived>
 template<int Size>
-inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
+inline typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::start()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -529,7 +528,7 @@ MatrixBase<Derived>::start()
 /** This is the const version of start<int>().*/
 template<typename Derived>
 template<int Size>
-inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
+inline const typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::start() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -550,7 +549,7 @@ MatrixBase<Derived>::start() const
   */
 template<typename Derived>
 template<int Size>
-inline typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
+inline typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::end()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -564,7 +563,7 @@ MatrixBase<Derived>::end()
 /** This is the const version of end<int>.*/
 template<typename Derived>
 template<int Size>
-inline const typename MatrixBase<Derived>::template SubVectorReturnType<Size>::Type
+inline const typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::end() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -594,7 +593,7 @@ MatrixBase<Derived>::end() const
   * \sa class Block, block(int,int,int,int)
   */
 template<typename Derived>
-inline Block<Derived> MatrixBase<Derived>
+inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
   switch(type)
@@ -602,33 +601,33 @@ inline Block<Derived> MatrixBase<Derived>
     default:
       ei_assert(false && "Bad corner type.");
     case TopLeft:
-      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), 0, 0, cRows, cCols);
     case TopRight:
-      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), 0, cols() - cCols, cRows, cCols);
     case BottomLeft:
-      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, 0, cRows, cCols);
     case BottomRight:
-      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
   }
 }
 
 /** This is the const version of corner(CornerType, int, int).*/
 template<typename Derived>
-inline const Block<Derived> MatrixBase<Derived>
-  ::corner(CornerType type, int cRows, int cCols) const
+inline const typename BlockReturnType<Derived>::Type
+MatrixBase<Derived>::corner(CornerType type, int cRows, int cCols) const
 {
   switch(type)
   {
     default:
       ei_assert(false && "Bad corner type.");
     case TopLeft:
-      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), 0, 0, cRows, cCols);
     case TopRight:
-      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), 0, cols() - cCols, cRows, cCols);
     case BottomLeft:
-      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, 0, cRows, cCols);
     case BottomRight:
-      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
   }
 }
 
@@ -646,8 +645,8 @@ inline const Block<Derived> MatrixBase<Derived>
   */
 template<typename Derived>
 template<int CRows, int CCols>
-inline Block<Derived, CRows, CCols> MatrixBase<Derived>
-  ::corner(CornerType type)
+inline typename BlockReturnType<Derived, CRows, CCols>::Type
+MatrixBase<Derived>::corner(CornerType type)
 {
   switch(type)
   {
@@ -667,8 +666,8 @@ inline Block<Derived, CRows, CCols> MatrixBase<Derived>
 /** This is the const version of corner<int, int>(CornerType).*/
 template<typename Derived>
 template<int CRows, int CCols>
-inline const Block<Derived, CRows, CCols> MatrixBase<Derived>
-  ::corner(CornerType type) const
+inline const typename BlockReturnType<Derived, CRows, CCols>::Type
+MatrixBase<Derived>::corner(CornerType type) const
 {
   switch(type)
   {
@@ -705,8 +704,8 @@ inline const Block<Derived, CRows, CCols> MatrixBase<Derived>
   */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-inline Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
-  ::block(int startRow, int startCol)
+inline typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
+MatrixBase<Derived>::block(int startRow, int startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
@@ -714,8 +713,8 @@ inline Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
 /** This is the const version of block<>(int, int). */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-inline const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
-  ::block(int startRow, int startCol) const
+inline const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
+MatrixBase<Derived>::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
@@ -729,18 +728,18 @@ inline const Block<Derived, BlockRows, BlockCols> MatrixBase<Derived>
   *
   * \sa row(), class Block */
 template<typename Derived>
-inline Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+inline typename MatrixBase<Derived>::ColXpr
 MatrixBase<Derived>::col(int i)
 {
-  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
+  return ColXpr(derived(), i);
 }
 
 /** This is the const version of col(). */
 template<typename Derived>
-inline const Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>
+inline const typename MatrixBase<Derived>::ColXpr
 MatrixBase<Derived>::col(int i) const
 {
-  return Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1>(derived(), i);
+  return ColXpr(derived(), i);
 }
 
 /** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
@@ -752,18 +751,18 @@ MatrixBase<Derived>::col(int i) const
   *
   * \sa col(), class Block */
 template<typename Derived>
-inline Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+inline typename MatrixBase<Derived>::RowXpr
 MatrixBase<Derived>::row(int i)
 {
-  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);
+  return RowXpr(derived(), i);
 }
 
 /** This is the const version of row(). */
 template<typename Derived>
-inline const Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>
+inline const typename MatrixBase<Derived>::RowXpr
 MatrixBase<Derived>::row(int i) const
 {
-  return Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime>(derived(), i);
+  return RowXpr(derived(), i);
 }
 
 #endif // EIGEN_BLOCK_H

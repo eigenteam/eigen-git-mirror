@@ -159,7 +159,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
   * \returns the Cholesky decomposition without square root of \c *this
   */
 template<typename Derived>
-inline const CholeskyWithoutSquareRoot<typename ei_eval<Derived>::type>
+inline const CholeskyWithoutSquareRoot<typename MatrixBase<Derived>::EvalType>
 MatrixBase<Derived>::choleskyNoSqrt() const
 {
   return derived();

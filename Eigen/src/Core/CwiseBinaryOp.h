@@ -186,10 +186,10 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_product_op, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
 Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<ei_scalar_product_op, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
@@ -198,10 +198,10 @@ Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_quotient_op, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
 Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<ei_scalar_quotient_op, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise min of *this and \a other
@@ -210,10 +210,10 @@ Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_min_op, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
 Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<ei_scalar_min_op, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise max of *this and \a other
@@ -222,10 +222,10 @@ Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const typename Cwise<ExpressionType>::template BinOp<ei_scalar_max_op, OtherDerived>::ReturnType
+inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
 Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
 {
-  return typename BinOp<ei_scalar_max_op, OtherDerived>::ReturnType(_expression(), other.derived());
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
 }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
