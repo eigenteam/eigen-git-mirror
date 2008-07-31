@@ -27,15 +27,6 @@
 #define EIGEN_CWISE_H
 
 /** \internal
-  * \array_module
-  *
-  * \brief Template functor to add a scalar to a fixed other one
-  *
-  * \sa class CwiseUnaryOp, Array::operator+
-  */
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1?true:false) > struct ei_scalar_add_op;
-
-/** \internal
   * convenient macro to defined the return type of a cwise binary operation */
 #define EIGEN_CWISE_BINOP_RETURN_TYPE(OP) \
     CwiseBinaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType, OtherDerived>

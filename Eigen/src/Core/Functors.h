@@ -247,21 +247,21 @@ struct ei_functor_traits<ei_scalar_real_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1) > struct ei_scalar_multiple_op;
-
+/* NOTE why doing the ei_pset1() *is* an optimization ?
+ * indeed it seems better to declare m_other as a PacketScalar and do the ei_pset1() once
+ * in the constructor. However, in practice:
+ *  - GCC does not like m_other as a PacketScalar and generate a load every time it needs it
+ *  - one the other hand GCC is able to moves the ei_pset1() away the loop :)
+ *  - simpler code ;)
+ * (ICC performs well in both cases)
+ */
 template<typename Scalar>
-struct ei_scalar_multiple_op<Scalar,true> {
+struct ei_scalar_multiple_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  inline ei_scalar_multiple_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  inline Scalar operator() (const Scalar& a) const { return a * ei_pfirst(m_other); }
-  inline const PacketScalar packetOp(const PacketScalar& a) const
-  { return ei_pmul(a, m_other); }
-  const PacketScalar m_other;
-};
-template<typename Scalar>
-struct ei_scalar_multiple_op<Scalar,false> {
   inline ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return a * m_other; }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -270,13 +270,16 @@ struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
 
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
   inline Scalar operator() (const Scalar& a) const { return a * m_other; }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
 
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,false> {
@@ -305,22 +308,13 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
 
 // nullary functors
 
-template<typename Scalar, bool PacketAccess = (int(ei_packet_traits<Scalar>::size)>1) > struct ei_scalar_constant_op;
-
 template<typename Scalar>
-struct ei_scalar_constant_op<Scalar,true> {
+struct ei_scalar_constant_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  inline ei_scalar_constant_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  inline const Scalar operator() (int, int = 0) const { return ei_pfirst(m_other); }
-  inline const PacketScalar packetOp() const
-  { return m_other; }
-  const PacketScalar m_other;
-};
-template<typename Scalar>
-struct ei_scalar_constant_op<Scalar,false> {
   inline ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
   inline ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
   inline const Scalar operator() (int, int = 0) const { return m_other; }
+  inline const PacketScalar packetOp() const { return ei_pset1(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>

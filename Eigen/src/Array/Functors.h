@@ -25,19 +25,21 @@
 #ifndef EIGEN_ARRAY_FUNCTORS_H
 #define EIGEN_ARRAY_FUNCTORS_H
 
+/** \internal
+  * \array_module
+  *
+  * \brief Template functor to add a scalar to a fixed other one
+  *
+  * \sa class CwiseUnaryOp, Array::operator+
+  */
+/* If you wonder why doing the ei_pset1() in packetOp() is an optimization check ei_scalar_multiple_op */
 template<typename Scalar>
-struct ei_scalar_add_op<Scalar,true> {
+struct ei_scalar_add_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  inline ei_scalar_add_op(const Scalar& other) : m_other(ei_pset1(other)) { }
-  inline Scalar operator() (const Scalar& a) const { return a + ei_pfirst(m_other); }
-  inline const PacketScalar packetOp(const PacketScalar& a) const
-  { return ei_padd(a, m_other); }
-  const PacketScalar m_other;
-};
-template<typename Scalar>
-struct ei_scalar_add_op<Scalar,false> {
   inline ei_scalar_add_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return a + m_other; }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_padd(a, ei_pset1(m_other)); }
   const Scalar m_other;
 };
 template<typename Scalar>

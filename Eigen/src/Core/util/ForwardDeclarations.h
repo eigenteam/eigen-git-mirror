@@ -81,11 +81,12 @@ template<typename Scalar> struct ei_scalar_inverse_op;
 template<typename Scalar> struct ei_scalar_square_op;
 template<typename Scalar> struct ei_scalar_cube_op;
 template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
-template<typename Scalar, bool PacketAccess> struct ei_scalar_multiple_op;
+template<typename Scalar> struct ei_scalar_multiple_op;
 template<typename Scalar> struct ei_scalar_quotient1_op;
 template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
 template<typename Scalar> struct ei_scalar_random_op;
+template<typename Scalar> struct ei_scalar_add_op;
 
 template<typename Scalar>
 void ei_cache_friendly_product(
