@@ -144,25 +144,3 @@ template<typename MatrixType> void product(const MatrixType& m)
   }
 }
 
-void test_product()
-{
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(Matrix3i()) );
-    CALL_SUBTEST( product(Matrix<float, 3, 2>()) );
-    CALL_SUBTEST( product(Matrix4d()) );
-    CALL_SUBTEST( product(Matrix4f()) );
-    CALL_SUBTEST( product(MatrixXf(3,5)) );
-    CALL_SUBTEST( product(MatrixXi(28,39)) );
-  }
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,256), ei_random<int>(1,256))) );
-    CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
-    #ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,RowMajorBit>(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    #else
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,0>(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    #endif
-  }
-}

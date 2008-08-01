@@ -38,7 +38,12 @@ MACRO(EI_ADD_TEST testname)
 
   SET(targetname test_${testname})
 
-  ADD_EXECUTABLE(${targetname} ${testname}.cpp)
+  IF(${ARGC} EQUAL 2)
+    SET(filename ${ARGV1})
+  ELSE(${ARGC} EQUAL 2)
+    SET(filename ${testname}.cpp)
+  ENDIF(${ARGC} EQUAL 2)
+  ADD_EXECUTABLE(${targetname} ${filename})
 
   IF(NOT EIGEN_NO_ASSERTION_CHECKING)
 
@@ -80,7 +85,8 @@ EI_ADD_TEST(nomalloc)
 EI_ADD_TEST(basicstuff)
 EI_ADD_TEST(linearstructure)
 EI_ADD_TEST(cwiseop)
-EI_ADD_TEST(product)
+EI_ADD_TEST(product_small)
+EI_ADD_TEST(product_large)
 EI_ADD_TEST(adjoint)
 EI_ADD_TEST(submatrices)
 EI_ADD_TEST(miscmatrices)

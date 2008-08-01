@@ -86,13 +86,15 @@ static void ei_cache_friendly_product(
   const int l2BlockRows = MaxL2BlockSize > rows ? rows : MaxL2BlockSize;
   const int l2BlockCols = MaxL2BlockSize > cols ? cols : MaxL2BlockSize;
   const int l2BlockSize = MaxL2BlockSize > size ? size : MaxL2BlockSize;
+  const int l2BlockSizeAligned = (1 + std::max(l2BlockSize,l2BlockCols)/PacketSize)*PacketSize;
+  const bool needRhsCopy = (PacketSize>1) && ((rhsStride%PacketSize!=0) || (size_t(rhs)%16!=0));
   Scalar* __restrict__ block = 0;
   const int allocBlockSize = sizeof(Scalar)*l2BlockRows*size;
   if (allocBlockSize>16000000)
     block = (Scalar*)malloc(allocBlockSize);
   else
     block = (Scalar*)alloca(allocBlockSize);
-  Scalar* __restrict__ rhsCopy = (Scalar*)alloca(sizeof(Scalar)*l2BlockSize);
+  Scalar* __restrict__ rhsCopy = (Scalar*)alloca(sizeof(Scalar)*l2BlockSizeAligned*l2BlockSizeAligned);
 
   // loops on each L2 cache friendly blocks of the result
   for(int l2i=0; l2i<rows; l2i+=l2BlockRows)
@@ -113,8 +115,8 @@ static void ei_cache_friendly_product(
 
       for (int i = l2i; i<l2blockRowEndBW/*PlusOne*/; i+=MaxBlockRows)
       {
-        // TODO merge the if l2blockRemainingRows
-//         const int blockRows = std::min(i+MaxBlockRows, rows) - i;
+        // TODO merge the "if l2blockRemainingRows" using something like:
+        // const int blockRows = std::min(i+MaxBlockRows, rows) - i;
 
         for (int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
         {
@@ -164,62 +166,58 @@ static void ei_cache_friendly_product(
         // acumulate bw rows of lhs time a single column of rhs to a bw x 1 block of res
         int l2blockSizeEnd = std::min(l2k+l2BlockSize, size);
 
+        // if not aligned, copy the rhs block
+        if (needRhsCopy)
+          for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
+          {
+            ei_internal_assert(l2BlockSizeAligned*(l1j-l2j)+(l2blockSizeEnd-l2k) < l2BlockSizeAligned*l2BlockSizeAligned);
+            memcpy(rhsCopy+l2BlockSizeAligned*(l1j-l2j),&(rhs[l1j*rhsStride+l2k]),(l2blockSizeEnd-l2k)*sizeof(Scalar));
+          }
+
         // for each bw x 1 result's block
         for(int l1i=l2i; l1i<l2blockRowEndBW; l1i+=MaxBlockRows)
         {
+          int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*MaxBlockRows;
+          const Scalar* __restrict__ localB = &block[offsetblock];
+          
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
-            int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*MaxBlockRows;
-            const Scalar* __restrict__ localB = &block[offsetblock];
-
-            const Scalar* __restrict__ rhsColumn = &(rhs[l1j*rhsStride]);
-
-            // copy unaligned rhs data
-            // YES it seems to be faster to copy some part of rhs multiple times
-            // to aligned memory rather than using unligned load.
-            // Moreover this avoids a "if" in the most nested loop :)
-            if (PacketSize>1 && size_t(rhsColumn)%16)
-            {
-              int count = 0;
-              // FIXME this loop get vectorized by the compiler (ICC)
-              // I'm not sure thats good or not
-              for (int k = l2k; k<l2blockSizeEnd; ++k)
-              {
-                rhsCopy[count++] = rhsColumn[k];
-              }
-              rhsColumn = &(rhsCopy[-l2k]);
-            }
+            const Scalar* __restrict__ rhsColumn;
+            if (needRhsCopy)
+              rhsColumn = &(rhsCopy[l2BlockSizeAligned*(l1j-l2j)-l2k]);
+            else
+              rhsColumn = &(rhs[l1j*rhsStride]);
 
             PacketType dst[MaxBlockRows];
-            dst[0] = ei_pset1(Scalar(0.));
-            dst[1] = dst[0];
-            dst[2] = dst[0];
-            dst[3] = dst[0];
+            dst[3] = dst[2] = dst[1] = dst[0] = ei_pset1(Scalar(0.));
             if (MaxBlockRows==8)
-            {
-              dst[4] = dst[0];
-              dst[5] = dst[0];
-              dst[6] = dst[0];
-              dst[7] = dst[0];
-            }
+              dst[7] = dst[6] = dst[5] = dst[4] = dst[0];
 
             PacketType tmp;
 
             asm("#eigen begincore");
             for(int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
             {
-              tmp = ei_pload(&rhsColumn[k]);
-
-              dst[0] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows             ])), dst[0]);
-              dst[1] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+  PacketSize])), dst[1]);
-              dst[2] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+2*PacketSize])), dst[2]);
-              dst[3] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+3*PacketSize])), dst[3]);
+              tmp = ei_ploadu(&rhsColumn[k]);
+              PacketType A0, A1, A2, A3, A4, A5;
+              A0 = ei_pload(localB + k*MaxBlockRows);
+              A1 = ei_pload(localB + k*MaxBlockRows+1*PacketSize);
+              A2 = ei_pload(localB + k*MaxBlockRows+2*PacketSize);
+              A3 = ei_pload(localB + k*MaxBlockRows+3*PacketSize);
+              if (MaxBlockRows==8) A4 = ei_pload(localB + k*MaxBlockRows+4*PacketSize);
+              if (MaxBlockRows==8) A5 = ei_pload(localB + k*MaxBlockRows+5*PacketSize);
+              dst[0] = ei_pmadd(tmp, A0, dst[0]);
+              if (MaxBlockRows==8) A0 = ei_pload(localB + k*MaxBlockRows+6*PacketSize);
+              dst[1] = ei_pmadd(tmp, A1, dst[1]);
+              if (MaxBlockRows==8) A1 = ei_pload(localB + k*MaxBlockRows+7*PacketSize);
+              dst[2] = ei_pmadd(tmp, A2, dst[2]);
+              dst[3] = ei_pmadd(tmp, A3, dst[3]);
               if (MaxBlockRows==8)
               {
-                dst[4] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+4*PacketSize])), dst[4]);
-                dst[5] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+5*PacketSize])), dst[5]);
-                dst[6] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+6*PacketSize])), dst[6]);
-                dst[7] = ei_pmadd(tmp, ei_pload(&(localB[k*MaxBlockRows+7*PacketSize])), dst[7]);
+                dst[4] = ei_pmadd(tmp, A4, dst[4]);
+                dst[5] = ei_pmadd(tmp, A5, dst[5]);
+                dst[6] = ei_pmadd(tmp, A0, dst[6]);
+                dst[7] = ei_pmadd(tmp, A1, dst[7]);
               }
             }
 
@@ -227,7 +225,8 @@ static void ei_cache_friendly_product(
 
             if (PacketSize>1 && resIsAligned)
             {
-              ei_pstore(&(localRes[0]), ei_padd(ei_pload(&(localRes[0])), ei_preduxp(dst)));
+              // the result is aligned: let's do packet reduction
+              ei_pstore(&(localRes[0]), ei_padd(ei_pload(&(localRes[0])), ei_preduxp(&dst[0])));
               if (PacketSize==2)
                 ei_pstore(&(localRes[2]), ei_padd(ei_pload(&(localRes[2])), ei_preduxp(&(dst[2]))));
               if (MaxBlockRows==8)
@@ -239,6 +238,7 @@ static void ei_cache_friendly_product(
             }
             else
             {
+              // not aligned => per coeff packet reduction
               localRes[0] += ei_predux(dst[0]);
               localRes[1] += ei_predux(dst[1]);
               localRes[2] += ei_predux(dst[2]);
@@ -262,32 +262,16 @@ static void ei_cache_friendly_product(
           asm("#eigen begin dynkernel");
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
-            const Scalar* __restrict__ rhsColumn = &(rhs[l1j*rhsStride]);
-
-            // copy unaligned rhs data
-            if (PacketSize>1 && size_t(rhsColumn)%16)
-            {
-              int count = 0;
-              // FIXME this loop get vectorized by the compiler !
-              for (int k = l2k; k<l2blockSizeEnd; ++k)
-              {
-                rhsCopy[count++] = rhsColumn[k];
-              }
-              rhsColumn = &(rhsCopy[-l2k]);
-            }
+            const Scalar* __restrict__ rhsColumn;
+            if (needRhsCopy)
+              rhsColumn = &(rhsCopy[l2BlockSizeAligned*(l1j-l2j)-l2k]);
+            else
+              rhsColumn = &(rhs[l1j*rhsStride]);
 
             PacketType dst[MaxBlockRows];
-            dst[0] = ei_pset1(Scalar(0.));
-            dst[1] = dst[0];
-            dst[2] = dst[0];
-            dst[3] = dst[0];
-            if (MaxBlockRows>4)
-            {
-              dst[4] = dst[0];
-              dst[5] = dst[0];
-              dst[6] = dst[0];
-              dst[7] = dst[0];
-            }
+            dst[3] = dst[2] = dst[1] = dst[0] = ei_pset1(Scalar(0.));
+            if (MaxBlockRows==8)
+              dst[7] = dst[6] = dst[5] = dst[4] = dst[0];
 
             // let's declare a few other temporary registers
             PacketType tmp;
@@ -300,7 +284,7 @@ static void ei_cache_friendly_product(
               if (l2blockRemainingRows>=2) dst[1] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRemainingRows+  PacketSize])), dst[1]);
               if (l2blockRemainingRows>=3) dst[2] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRemainingRows+2*PacketSize])), dst[2]);
               if (l2blockRemainingRows>=4) dst[3] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRemainingRows+3*PacketSize])), dst[3]);
-              if (MaxBlockRows>4)
+              if (MaxBlockRows==8)
               {
                 if (l2blockRemainingRows>=5) dst[4] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRemainingRows+4*PacketSize])), dst[4]);
                 if (l2blockRemainingRows>=6) dst[5] = ei_pmadd(tmp, ei_pload(&(localB[k*l2blockRemainingRows+5*PacketSize])), dst[5]);
@@ -316,7 +300,7 @@ static void ei_cache_friendly_product(
             if (l2blockRemainingRows>=2) localRes[1] += ei_predux(dst[1]);
             if (l2blockRemainingRows>=3) localRes[2] += ei_predux(dst[2]);
             if (l2blockRemainingRows>=4) localRes[3] += ei_predux(dst[3]);
-            if (MaxBlockRows>4)
+            if (MaxBlockRows==8)
             {
               if (l2blockRemainingRows>=5) localRes[4] += ei_predux(dst[4]);
               if (l2blockRemainingRows>=6) localRes[5] += ei_predux(dst[5]);
@@ -573,16 +557,16 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
 
   enum { AllAligned, EvenAligned, FirstAligned, NoneAligned };
   const int rowsAtOnce = 4;
-//   const int peels = 2;
+  const int peels = 2;
   const int PacketAlignedMask = PacketSize-1;
-//   const int PeelAlignedMask = PacketSize*peels-1;
+  const int PeelAlignedMask = PacketSize*peels-1;
   const int size = rhsSize;
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
   const int alignedStart = ei_alignmentOffset(rhs, size);
   const int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
-  //const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : 0;
+  const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
   const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
   int alignmentPattern = alignmentStep==0 ? AllAligned
@@ -650,7 +634,32 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
               _EIGEN_ACCUMULATE_PACKETS(,u,,);
             break;
           case FirstAligned:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            if (peels>1)
+            {
+              Packet A01, A02, A03, b;
+              for (int j = alignedStart; j<peeledSize; j+=peels*PacketSize)
+              {
+                b = ei_pload(&rhs[j]);
+                A01 = ei_ploadu(&lhs1[j]);
+                A02 = ei_ploadu(&lhs2[j]);
+                A03 = ei_ploadu(&lhs3[j]);
+
+                ptmp0 = ei_pmadd(b, ei_pload (&lhs0[j]), ptmp0);
+                ptmp1 = ei_pmadd(b, A01, ptmp1);
+                A01 = ei_ploadu(&lhs1[j+PacketSize]);
+                ptmp2 = ei_pmadd(b, A02, ptmp2);
+                A02 = ei_ploadu(&lhs2[j+PacketSize]);
+                ptmp3 = ei_pmadd(b, A03, ptmp3);
+                A03 = ei_ploadu(&lhs3[j+PacketSize]);
+
+                b = ei_pload(&rhs[j+PacketSize]);
+                ptmp0 = ei_pmadd(b, ei_pload (&lhs0[j+PacketSize]), ptmp0);
+                ptmp1 = ei_pmadd(b, A01, ptmp1);
+                ptmp2 = ei_pmadd(b, A02, ptmp2);
+                ptmp3 = ei_pmadd(b, A03, ptmp3);
+              }
+            }
+            for (int j = peeledSize; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(,u,u,);
             break;
           default:

@@ -34,7 +34,7 @@
   * \param MatrixType the type of the matrix of which we are performing the tridiagonalization
   *
   * This class performs a tridiagonal decomposition of a selfadjoint matrix \f$ A \f$ such that:
-  * \f$ A = Q T Q^* \f$ where \f$ Q \f$ is unitatry and \f$ T \f$ a real symmetric tridiagonal matrix
+  * \f$ A = Q T Q^* \f$ where \f$ Q \f$ is unitary and \f$ T \f$ a real symmetric tridiagonal matrix.
   *
   * \sa MatrixBase::tridiagonalize()
   */
@@ -45,12 +45,15 @@ template<typename _MatrixType> class Tridiagonalization
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename ei_packet_traits<Scalar>::type Packet;
 
     enum {
       Size = MatrixType::RowsAtCompileTime,
       SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
-                        ? Dynamic
-                        : MatrixType::RowsAtCompileTime-1};
+                   ? Dynamic
+                   : MatrixType::RowsAtCompileTime-1,
+      PacketSize = ei_packet_traits<Scalar>::size
+    };
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
     typedef Matrix<RealScalar, Size, 1> DiagonalType;
@@ -59,8 +62,7 @@ template<typename _MatrixType> class Tridiagonalization
     typedef typename NestByValue<DiagonalCoeffs<MatrixType> >::RealReturnType DiagonalReturnType;
 
     typedef typename NestByValue<DiagonalCoeffs<
-        NestByValue<Block<
-          MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
+        NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
 
     /** This constructor initializes a Tridiagonalization object for
       * further use with Tridiagonalization::compute()
@@ -103,7 +105,7 @@ template<typename _MatrixType> class Tridiagonalization
       *    Householder coefficients returned by householderCoefficients(),
       *    allows to reconstruct the matrix Q as follow:
       *       Q = H_{N-1} ... H_1 H_0
-      *    where the matrices H are the Householder transformation:
+      *    where the matrices H are the Householder transformations:
       *       H_i = (I - h_i * v_i * v_i')
       *    where h_i == householderCoefficients()[i] and v_i is a Householder vector:
       *       v_i = [ 0, ..., 0, 1, M(i+2,i), ..., M(N-1,i) ]
@@ -157,8 +159,8 @@ template<typename MatrixType>
 typename Tridiagonalization<MatrixType>::MatrixType
 Tridiagonalization<MatrixType>::matrixT(void) const
 {
-  // FIXME should this function (and other similar) rather take a matrix as argument
-  // and fill it (avoids temporaries)
+  // FIXME should this function (and other similar ones) rather take a matrix as argument
+  // and fill it ? (to avoid temporaries)
   int n = m_matrix.rows();
   MatrixType matT = m_matrix;
   matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
@@ -189,6 +191,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
+//   std::cerr << matA << "\n\n";
   for (int i = 0; i<n-2; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1
@@ -216,22 +219,100 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
 
       matA.col(i).coeffRef(i+1) = 1;
-      // let's use the end of hCoeffs to store temporary values
-      hCoeffs.end(n-i-1) = h * (matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower|SelfAdjoint>()
-                                * matA.col(i).end(n-i-1));
+      
+      /* This is the initial algorithm which minimize operation counts and maximize
+       * the use of Eigen's expression. Unfortunately, the first matrix-vector product
+       * using Part<Lower|Selfadjoint>  is very very slow */
+      #ifdef EIGEN_NEVER_DEFINED
+      // matrix - vector product
+      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower|SelfAdjoint>()
+                                * (h * matA.col(i).end(n-i-1))).lazy();
+      // simple axpy
+      hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
+                            * matA.col(i).end(n-i-1);
+      // rank-2 update
+      //Block<MatrixType,Dynamic,1> B(matA,i+1,i,n-i-1,1);
+      matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower>() -=
+            (matA.col(i).end(n-i-1) * hCoeffs.end(n-i-1).adjoint()).lazy()
+          + (hCoeffs.end(n-i-1) * matA.col(i).end(n-i-1).adjoint()).lazy();
+      #endif
+      /* end initial algorithm */
 
+      /* If we still want to minimize operation count (i.e., perform operation on the lower part only)
+       * then we could provide the following algorithm for selfadjoint - vector product. However, a full
+       * matrix-vector product is still faster (at least for dynamic size, and not too small, did not check
+       * small matrices). The algo performs block matrix-vector and transposed matrix vector products. */
+      #ifdef EIGEN_NEVER_DEFINED
+      int n4 = (std::max(0,n-4)/4)*4;
+      hCoeffs.end(n-i-1).setZero();
+      for (int b=i+1; b<n4; b+=4)
+      {
+        // the ?x4 part:
+        hCoeffs.end(b-4) +=
+            Block<MatrixType,Dynamic,4>(matA,b+4,b,n-b-4,4) * matA.template block<4,1>(b,i);
+        // the respective transposed part:
+        Block<CoeffVectorType,4,1>(hCoeffs, b, 0, 4,1) +=
+            Block<MatrixType,Dynamic,4>(matA,b+4,b,n-b-4,4).adjoint() * Block<MatrixType,Dynamic,1>(matA,b+4,i,n-b-4,1);
+        // the 4x4 block diagonal:
+        Block<CoeffVectorType,4,1>(hCoeffs, b, 0, 4,1) +=
+            (Block<MatrixType,4,4>(matA,b,b,4,4).template part<Lower|SelfAdjoint>()
+             * (h * Block<MatrixType,4,1>(matA,b,i,4,1))).lazy();
+      }
+      #endif
+      // todo: handle the remaining part
+      /* end optimized selfadjoint - vector product */
+
+      /* Another interesting note: the above rank-2 update is much slower than the following hand written loop.
+       * After an analyse of the ASM, it seems GCC (4.2) generate poor code because of the Block. Moreover,
+       * if we remove the specialization of Block for Matrix then it is even worse, much worse ! */
+      #ifdef EIGEN_NEVER_DEFINED
+      for (int j1=i+1; j1<n; ++j1)
+      for (int i1=j1;  i1<n; i1++)
+        matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
+                              + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
+      #endif
+      /* end hand writen partial rank-2 update */
+
+      /* The current fastest implementation: the full matrix is used, no "optimization" to use/compute
+       * only half of the matrix. Custom vectorization of the inner col -= alpha X + beta Y such that access
+       * to col are always aligned. Once we support that in Assign, then the algorithm could be rewriten as
+       * a single compact expression. This code is therefore a good benchmark when will do that. */
+
+      // let's use the end of hCoeffs to store temporary values:
+      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1) * (h * matA.col(i).end(n-i-1))).lazy();
+      // FIXME in the above expr a temporary is created because of the scalar multiple by h
 
       hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
                             * matA.col(i).end(n-i-1);
-
-      matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower>() =
-        matA.corner(BottomRight,n-i-1,n-i-1) - (
-            (matA.col(i).end(n-i-1) * hCoeffs.end(n-i-1).adjoint()).lazy()
-          + (hCoeffs.end(n-i-1) * matA.col(i).end(n-i-1).adjoint()).lazy() );
-      // FIXME check that the above expression does follow the lazy path (no temporary and
-      // only lower products are evaluated)
-      // FIXME can we avoid to evaluate twice the diagonal products ?
-      // (in a simple way otherwise it's overkill)
+      
+      const Scalar* __restrict__ pb = &matA.coeffRef(0,i);
+      const Scalar* __restrict__ pa = (&hCoeffs.coeffRef(0)) - 1;
+      for (int j1=i+1; j1<n; ++j1)
+      {
+        int starti = i+1;
+        int alignedEnd = starti;
+        if (PacketSize>1)
+        {
+          int alignedStart = (starti) + ei_alignmentOffset(&matA.coeffRef(starti,j1), n-starti);
+          alignedEnd = alignedStart + ((n-alignedStart)/PacketSize)*PacketSize;
+          
+          for (int i1=starti; i1<alignedStart; ++i1)
+            matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
+                                  + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
+          
+          Packet tmp0 = ei_pset1(hCoeffs.coeff(j1-1));
+          Packet tmp1 = ei_pset1(matA.coeff(j1,i));
+          Scalar* pc = &matA.coeffRef(0,j1);
+          for (int i1=alignedStart ; i1<alignedEnd; i1+=PacketSize)
+            ei_pstore(pc+i1,ei_psub(ei_pload(pc+i1),
+              ei_padd(ei_pmul(tmp0, ei_ploadu(pb+i1)),
+                      ei_pmul(tmp1, ei_ploadu(pa+i1)))));
+        }
+        for (int i1=alignedEnd; i1<n; ++i1)
+          matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
+                                + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
+      }
+      /* end optimized implemenation */
 
       // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
       // note: the sequence of the beta values leads to the subdiagonal entries
@@ -286,7 +367,6 @@ void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalT
   ei_assert(mat.cols()==n && diag.size()==n && subdiag.size()==n-1);
   if (n==3 && (!NumTraits<Scalar>::IsComplex) )
   {
-    Tridiagonalization tridiag(mat);
     _decomposeInPlace3x3(mat, diag, subdiag, extractQ);
   }
   else
@@ -301,7 +381,7 @@ void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalT
 
 /** \internal
   * Optimized path for 3x3 matrices.
-  * Especially usefull for plane fit.
+  * Especially useful for plane fitting.
   */
 template<typename MatrixType>
 void Tridiagonalization<MatrixType>::_decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)

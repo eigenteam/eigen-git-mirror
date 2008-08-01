@@ -192,12 +192,12 @@ inline __m128i ei_preduxp(const __m128i* vecs)
 }
 
 #if (defined __GNUC__)
-template <> inline __m128 ei_pmadd(const __m128&  a, const __m128&  b, const __m128&  c)
-{
-  __m128 res = b;
-  asm("mulps %[a], %[b] \n\taddps %[c], %[b]" : [b] "+x" (res) : [a] "x" (a), [c] "x" (c));
-  return res;
-}
+// template <> inline __m128 ei_pmadd(const __m128&  a, const __m128&  b, const __m128&  c)
+// {
+//   __m128 res = b;
+//   asm("mulps %[a], %[b] \n\taddps %[c], %[b]" : [b] "+x" (res) : [a] "x" (a), [c] "x" (c));
+//   return res;
+// }
 #endif
 
 #endif // EIGEN_PACKET_MATH_SSE_H

@@ -49,9 +49,7 @@ struct ei_traits<Map<MatrixType, Alignment> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags
-          & ( (HereditaryBits | LinearAccessBit | DirectAccessBit)
-              | (Alignment == Aligned ? PacketAccessBit : 0) ),
+    Flags = MatrixType::Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
