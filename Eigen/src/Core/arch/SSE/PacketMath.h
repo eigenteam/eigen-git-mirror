@@ -90,6 +90,12 @@ template<> inline __m128d ei_pload(const double*  from) { return _mm_load_pd(fro
 template<> inline __m128i ei_pload(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
 template<> inline __m128  ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
+// template<> inline __m128  ei_ploadu(const float*   from) {
+//   if (size_t(from)&0xF)
+//     return _mm_loadu_ps(from);
+//   else 
+//     return _mm_loadu_ps(from);
+// }
 template<> inline __m128d ei_ploadu(const double*  from) { return _mm_loadu_pd(from); }
 template<> inline __m128i ei_ploadu(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
 
@@ -198,7 +204,80 @@ inline __m128i ei_preduxp(const __m128i* vecs)
 //   asm("mulps %[a], %[b] \n\taddps %[c], %[b]" : [b] "+x" (res) : [a] "x" (a), [c] "x" (c));
 //   return res;
 // }
+// inline __m128i _mm_alignr_epi8(const __m128i&  a, const __m128i&  b, const int i)
+// {
+//   __m128i res = a;
+//   asm("palignr %[i], %[a], %[b] " : [b] "+x" (res) : [a] "x" (a), [i] "i" (i));
+//   return res;
+// }
+#endif
+
+#ifdef __SSSE3__
+// SSSE3 versions
+template<int Offset>
+struct ei_palign_impl<Offset,__m128>
+{
+  inline static void run(__m128& first, const __m128& second)
+  {
+    first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(first), _mm_castps_si128(second), (4-Offset)*4));
+  }
+};
+
+template<int Offset>
+struct ei_palign_impl<Offset,__m128i>
+{
+  inline static void run(__m128i& first, const __m128i& second)
+  {
+    first = _mm_alignr_epi8(first, second, (4-Offset)*4);
+  }
+};
+#else
+// SSE2 versions
+template<int Offset>
+struct ei_palign_impl<Offset,__m128>
+{
+  inline static void run(__m128& first, const __m128& second)
+  {
+    if (Offset==1)
+    {
+      first = _mm_move_ss(first,second);
+      first = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(first),0x39));
+    }
+    else if (Offset==2)
+    {
+      first = _mm_movehl_ps(first,first);
+      first = _mm_movelh_ps(first,second);
+    }
+    else if (Offset==3)
+    {
+      first = _mm_move_ss(first,second);
+      first = _mm_shuffle_ps(first,second,0x93);
+    }
+  }
+};
+
+template<int Offset>
+struct ei_palign_impl<Offset,__m128i>
+{
+  inline static void run(__m128i& first, const __m128i& second)
+  {
+    if (Offset==1)
+    {
+      first = _mm_castps_si128(_mm_move_ss(_mm_castsi128_ps(first),_mm_castsi128_ps(second)));
+      first = _mm_shuffle_epi32(first,0x39);
+    }
+    else if (Offset==2)
+    {
+      first = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(first),_mm_castsi128_ps(first)));
+      first = _mm_castps_si128(_mm_movelh_ps(_mm_castsi128_ps(first),_mm_castsi128_ps(second)));
+    }
+    else if (Offset==3)
+    {
+      first = _mm_castps_si128(_mm_move_ss(_mm_castsi128_ps(first),_mm_castsi128_ps(second)));
+      first = _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(first),_mm_castsi128_ps(second),0x93));
+    }
+  }
+};
 #endif
 
 #endif // EIGEN_PACKET_MATH_SSE_H
-

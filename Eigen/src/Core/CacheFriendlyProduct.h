@@ -390,7 +390,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
 
   const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
   int alignmentPattern = alignmentStep==0 ? AllAligned
-                       : alignmentStep==2 ? EvenAligned
+                       : alignmentStep==(PacketSize/2) ? EvenAligned
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
@@ -432,7 +432,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
     if (PacketSize>1)
     {
       /* explicit vectorization */
-
       // process initial unaligned coeffs
       for (int j=0; j<alignedStart; j++)
         res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
@@ -452,26 +451,41 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
           case FirstAligned:
             if(peels>1)
             {
-              // NOTE peeling with two _EIGEN_ACCUMULATE_PACKETS() is much less efficient
-              // than the following code
-              asm("#mybegin");
               Packet A00, A01, A02, A03, A10, A11, A12, A13;
+              if (alignmentStep==1)
+              {
+                A00 = ptmp1; ptmp1 = ptmp3; ptmp3 = A00;
+                const Scalar* aux = lhs1;
+                lhs1 = lhs3; lhs3 = aux;
+              }
+
+              A01 = ei_pload(&lhs1[alignedStart-1]);
+              A02 = ei_pload(&lhs2[alignedStart-2]);
+              A03 = ei_pload(&lhs3[alignedStart-3]);
+                
               for (int j = alignedStart; j<peeledSize; j+=peels*PacketSize)
               {
-                A01 = ei_ploadu(&lhs1[j]);          A11 = ei_ploadu(&lhs1[j+PacketSize]);
-                A02 = ei_ploadu(&lhs2[j]);          A12 = ei_ploadu(&lhs2[j+PacketSize]);
-                A00 = ei_pload (&lhs0[j]);          A10 = ei_pload (&lhs0[j+PacketSize]);
+                A11 = ei_pload(&lhs1[j-1+PacketSize]);  ei_palign<1>(A01,A11);
+                A12 = ei_pload(&lhs2[j-2+PacketSize]);  ei_palign<2>(A02,A12);
+                A13 = ei_pload(&lhs3[j-3+PacketSize]);  ei_palign<3>(A03,A13);
 
+                A00 = ei_pload (&lhs0[j]);
+                A10 = ei_pload (&lhs0[j+PacketSize]);
                 A00 = ei_pmadd(ptmp0, A00, ei_pload(&res[j]));
                 A10 = ei_pmadd(ptmp0, A10, ei_pload(&res[j+PacketSize]));
 
-                A00 = ei_pmadd(ptmp1, A01, A00);    A10 = ei_pmadd(ptmp1, A11, A10);
-                A03 = ei_ploadu(&lhs3[j]);          A13 = ei_ploadu(&lhs3[j+PacketSize]);
-                A00 = ei_pmadd(ptmp2, A02, A00);    A10 = ei_pmadd(ptmp2, A12, A10);
-                A00 = ei_pmadd(ptmp3, A03, A00);    A10 = ei_pmadd(ptmp3, A13, A10);
-                ei_pstore(&res[j],A00);             ei_pstore(&res[j+PacketSize],A10);
+                A00 = ei_pmadd(ptmp1, A01, A00);
+                A01 = ei_pload(&lhs1[j-1+2*PacketSize]);  ei_palign<1>(A11,A01);
+                A00 = ei_pmadd(ptmp2, A02, A00);
+                A02 = ei_pload(&lhs2[j-2+2*PacketSize]);  ei_palign<2>(A12,A02);
+                A00 = ei_pmadd(ptmp3, A03, A00);
+                ei_pstore(&res[j],A00);
+                A03 = ei_pload(&lhs3[j-3+2*PacketSize]);  ei_palign<3>(A13,A03);
+                A10 = ei_pmadd(ptmp1, A11, A10);
+                A10 = ei_pmadd(ptmp2, A12, A10);
+                A10 = ei_pmadd(ptmp3, A13, A10);
+                ei_pstore(&res[j+PacketSize],A10);
               }
-              asm("#myend");
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(,u,u,);
@@ -532,7 +546,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
 
-
 // TODO add peeling to mask unaligned load/stores
 template<typename Scalar, typename ResType>
 EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
@@ -570,7 +583,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
 
   const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
   int alignmentPattern = alignmentStep==0 ? AllAligned
-                       : alignmentStep==2 ? EvenAligned
+                       : alignmentStep==(PacketSize/2) ? EvenAligned
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
@@ -636,27 +649,51 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
           case FirstAligned:
             if (peels>1)
             {
-              Packet A01, A02, A03, b;
+              /* Here we proccess 4 rows with with two peeled iterations to hide
+               * tghe overhead of unaligned loads. Moreover unaligned loads are handled
+               * using special shift/move operations between the two aligned packets
+               * overlaping the desired unaligned packet. This is *much* more efficient
+               * than basic unaligned loads.
+               */
+              Packet A01, A02, A03, b, A11, A12, A13;
+              if (alignmentStep==1)
+              {
+                // flip row #1 and #3
+                b = ptmp1; ptmp1 = ptmp3; ptmp3 = b;
+                const Scalar* aux = lhs1;
+                lhs1 = lhs3; lhs3 = aux;
+              }
+              A01 = ei_pload(&lhs1[alignedStart-1]);
+              A02 = ei_pload(&lhs2[alignedStart-2]);
+              A03 = ei_pload(&lhs3[alignedStart-3]);
+
               for (int j = alignedStart; j<peeledSize; j+=peels*PacketSize)
               {
                 b = ei_pload(&rhs[j]);
-                A01 = ei_ploadu(&lhs1[j]);
-                A02 = ei_ploadu(&lhs2[j]);
-                A03 = ei_ploadu(&lhs3[j]);
+                A11 = ei_pload(&lhs1[j-1+PacketSize]);  ei_palign<1>(A01,A11);
+                A12 = ei_pload(&lhs2[j-2+PacketSize]);  ei_palign<2>(A02,A12);
+                A13 = ei_pload(&lhs3[j-3+PacketSize]);  ei_palign<3>(A03,A13);
 
                 ptmp0 = ei_pmadd(b, ei_pload (&lhs0[j]), ptmp0);
                 ptmp1 = ei_pmadd(b, A01, ptmp1);
-                A01 = ei_ploadu(&lhs1[j+PacketSize]);
+                A01 = ei_pload(&lhs1[j-1+2*PacketSize]);  ei_palign<1>(A11,A01);
                 ptmp2 = ei_pmadd(b, A02, ptmp2);
-                A02 = ei_ploadu(&lhs2[j+PacketSize]);
+                A02 = ei_pload(&lhs2[j-2+2*PacketSize]);  ei_palign<2>(A12,A02);
                 ptmp3 = ei_pmadd(b, A03, ptmp3);
-                A03 = ei_ploadu(&lhs3[j+PacketSize]);
+                A03 = ei_pload(&lhs3[j-3+2*PacketSize]);  ei_palign<3>(A13,A03);
 
                 b = ei_pload(&rhs[j+PacketSize]);
                 ptmp0 = ei_pmadd(b, ei_pload (&lhs0[j+PacketSize]), ptmp0);
-                ptmp1 = ei_pmadd(b, A01, ptmp1);
-                ptmp2 = ei_pmadd(b, A02, ptmp2);
-                ptmp3 = ei_pmadd(b, A03, ptmp3);
+                ptmp1 = ei_pmadd(b, A11, ptmp1);
+                ptmp2 = ei_pmadd(b, A12, ptmp2);
+                ptmp3 = ei_pmadd(b, A13, ptmp3);
+              }
+              if (alignmentStep==1)
+              {
+                // restore rows #1 and #3
+                b = ptmp1; ptmp1 = ptmp3; ptmp3 = b;
+                const Scalar* aux = lhs1;
+                lhs1 = lhs3; lhs3 = aux;
               }
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)

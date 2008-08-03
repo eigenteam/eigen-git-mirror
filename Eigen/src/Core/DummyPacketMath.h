@@ -134,5 +134,21 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
           : 0;
 }
 
+/** \internal specialization of ei_palign() */
+template<int Offset,typename PacketType>
+struct ei_palign_impl
+{
+  // by default data are aligned, so there is nothing to be done :)
+  inline static void run(PacketType& first, const PacketType& second) {}
+};
+
+/** \internal update \a first using the concatenation of the \a Offset last elements
+  * of \a first and packet_size minus \a Offset first elements of \a second */
+template<int Offset,typename PacketType>
+inline void ei_palign(PacketType& first, const PacketType& second)
+{
+  ei_palign_impl<Offset,PacketType>::run(first,second);
+}
+
 #endif // EIGEN_DUMMY_PACKET_MATH_H
 

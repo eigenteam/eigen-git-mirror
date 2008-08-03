@@ -111,8 +111,8 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
   * This class represents an expression of the product of two matrices.
   * It is the return type of the operator* between matrices. Its template
   * arguments are determined automatically by ProductReturnType. Therefore,
-  * Product should be used direclty. To determine the result type of a function
-  * which involve a matrix product, use ProductReturnType::Type.
+  * Product should never be used direclty. To determine the result type of a
+  * function which involves a matrix product, use ProductReturnType::Type.
   *
   * \sa ProductReturnType, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
   */

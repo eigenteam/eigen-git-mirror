@@ -274,7 +274,6 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
 
     inline const Scalar coeff(int row, int col) const
     {
-//       std::cerr << "coeff(int row, int col)\n";
       if (IsRowMajor)
         return m_data_ptr[col + row * stride()];
       else
