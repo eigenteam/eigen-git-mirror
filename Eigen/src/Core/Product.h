@@ -750,9 +750,9 @@ inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& 
   RhsCopy rhs(m_rhs);
   ei_cache_friendly_product<Scalar>(
     rows(), cols(), lhs.cols(),
-    _LhsCopy::Flags&RowMajorBit, &(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
-    _RhsCopy::Flags&RowMajorBit, &(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
-    Flags&RowMajorBit, &(res.coeffRef(0,0)), res.stride()
+    _LhsCopy::Flags&RowMajorBit, (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
+    _RhsCopy::Flags&RowMajorBit, (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
+    Flags&RowMajorBit, (Scalar*)&(res.coeffRef(0,0)), res.stride()
   );
 }
 
