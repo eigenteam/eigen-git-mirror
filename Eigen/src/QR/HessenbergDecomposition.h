@@ -49,8 +49,9 @@ template<typename _MatrixType> class HessenbergDecomposition
     enum {
       Size = MatrixType::RowsAtCompileTime,
       SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
-                        ? Dynamic
-                        : MatrixType::RowsAtCompileTime-1};
+                   ? Dynamic
+                   : MatrixType::RowsAtCompileTime-1
+    };
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
     typedef Matrix<RealScalar, Size, 1> DiagonalType;
@@ -59,8 +60,7 @@ template<typename _MatrixType> class HessenbergDecomposition
     typedef typename NestByValue<DiagonalCoeffs<MatrixType> >::RealReturnType DiagonalReturnType;
 
     typedef typename NestByValue<DiagonalCoeffs<
-        NestByValue<Block<
-          MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
+        NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> > > >::RealReturnType SubDiagonalReturnType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()
@@ -171,11 +171,11 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
       // first let's do A = H A
       matA.corner(BottomRight,n-i-1,n-i-1) -= ((ei_conj(h) * matA.col(i).end(n-i-1)) *
-        (matA.col(i).end(n-i-1).adjoint() * matA.corner(BottomRight,n-i-1,n-i-1)).lazy()).lazy();
+        (matA.col(i).end(n-i-1).adjoint() * matA.corner(BottomRight,n-i-1,n-i-1))).lazy();
 
       // now let's do A = A H
-      matA.corner(BottomRight,n,n-i-1) -= ((matA.corner(BottomRight,n,n-i-1) * matA.col(i).end(n-i-1)).lazy() *
-        (h * matA.col(i).end(n-i-1).adjoint())).lazy();
+      matA.corner(BottomRight,n,n-i-1) -= ((matA.corner(BottomRight,n,n-i-1) * matA.col(i).end(n-i-1))
+                                        * (h * matA.col(i).end(n-i-1).adjoint())).lazy();
 
       matA.col(i).coeffRef(i+1) = beta;
       hCoeffs.coeffRef(i) = h;

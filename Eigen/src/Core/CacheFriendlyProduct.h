@@ -402,8 +402,9 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0 || size<PacketSize);
     
-    for (; skipColumns<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipColumns; ++skipColumns)
-    {}
+    while (skipColumns<PacketSize &&
+           alignedStart != ((lhsAlignmentOffset + alignmentStep*skipColumns)%PacketSize))
+      ++skipColumns;
     if (skipColumns==PacketSize)
     {
       // nothing can be aligned, no need to skip any column
@@ -568,7 +569,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
-  enum { AllAligned, EvenAligned, FirstAligned, NoneAligned };
+  enum { AllAligned=0, EvenAligned=1, FirstAligned=2, NoneAligned=3 };
   const int rowsAtOnce = 4;
   const int peels = 2;
   const int PacketAlignedMask = PacketSize-1;
@@ -595,8 +596,9 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || size<PacketSize);
     
-    for (; skipRows<PacketSize && alignedStart != lhsAlignmentOffset + alignmentStep*skipRows; ++skipRows)
-    {}
+    while (skipRows<PacketSize &&
+           alignedStart != ((lhsAlignmentOffset + alignmentStep*skipRows)%PacketSize))
+      ++skipRows;
     if (skipRows==PacketSize)
     {
       // nothing can be aligned, no need to skip any column
@@ -611,7 +613,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     ei_internal_assert((alignmentPattern==NoneAligned) || PacketSize==1
       || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
   }
-
+  
   int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (int i=skipRows; i<rowBound; i+=rowsAtOnce)
   {

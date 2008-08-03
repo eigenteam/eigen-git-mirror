@@ -96,7 +96,7 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
 
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = x > precision<Scalar>() && ei_isMuchSmallerThan(ei_imag(m_matrix.coeff(0,0)), RealScalar(1));
+  m_isPositiveDefinite = x > precision<Scalar>() && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
@@ -105,7 +105,7 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
     x = ei_real(tmp);
     if (x < precision<Scalar>() || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
     {
-      m_isPositiveDefinite = m_isPositiveDefinite;
+      m_isPositiveDefinite = false;
       return;
     }
     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
@@ -117,6 +117,7 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
       m_matrix.col(j).end(endSize) =
         (m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()).lazy();
 
+      // FIXME could use a.col instead of a.row
       m_matrix.col(j).end(endSize) = (a.row(j).end(endSize).adjoint()
         - m_matrix.col(j).end(endSize) ) / x;
     }

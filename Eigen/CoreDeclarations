@@ -30,7 +30,6 @@
 
 #include <cstdlib>
 #include <cmath>
-#include <cstring>
 #include <complex>
 #include <cassert>
 #include <functional>
