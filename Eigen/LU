@@ -1,5 +1,5 @@
-#ifndef EIGEN_LU_H
-#define EIGEN_LU_H
+#ifndef EIGEN_LU_MODULE_H
+#define EIGEN_LU_MODULE_H
 
 #include "Core"
 
@@ -16,9 +16,10 @@ namespace Eigen {
   * \endcode
   */
 
+#include "src/LU/LU.h"
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
 
 } // namespace Eigen
 
-#endif // EIGEN_LU_H
+#endif // EIGEN_LU_MODULE_H

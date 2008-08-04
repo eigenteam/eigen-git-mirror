@@ -42,7 +42,9 @@ template<typename OtherDerived>
 void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
 {
   MatrixBase<OtherDerived> *_other = const_cast<MatrixBase<OtherDerived>*>(&other);
-  if(SizeAtCompileTime == Dynamic)
+
+  // disable that path: it makes LU decomposition fail ! I can't see the bug though.
+  if(false /*SizeAtCompileTime == Dynamic*/)
   {
     ei_swap_selector<Derived,OtherDerived>::run(derived(),other.const_cast_derived());
   }

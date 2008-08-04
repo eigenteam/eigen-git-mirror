@@ -25,54 +25,50 @@
 #include "main.h"
 #include <Eigen/LU>
 
-template<typename MatrixType> void nullDeterminant(const MatrixType& m)
+template<typename MatrixType> void determinant(const MatrixType& m)
 {
   /* this test covers the following files:
      Determinant.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  int size = m.rows();
 
+  MatrixType m1(size, size), m2(size, size);
+  m1.setRandom();
+  m2.setRandom();
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
-
-  MatrixType dinv(rows, cols), dnotinv(rows, cols);
-
-  dinv.col(0).setOnes();
-  dinv.block(0,1, rows, cols-2).setRandom();
-
-  dnotinv.col(0).setOnes();
-  dnotinv.block(0,1, rows, cols-2).setRandom();
-  dnotinv.col(cols-1).setOnes();
-
-  for (int i=0 ; i<rows ; ++i)
-  {
-    dnotinv.row(i).block(0,1,1,cols-2) = ei_random<Scalar>(99.999999,100.00000001)*dnotinv.row(i).block(0,1,1,cols-2).normalized();
-    dnotinv(i,cols-1) = dnotinv.row(i).block(0,1,1,cols-2).norm2();
-    dinv(i,cols-1) = dinv.row(i).block(0,1,1,cols-2).norm2();
-  }
-
-  SquareMatrixType invertibleCovarianceMatrix = dinv.transpose() * dinv;
-  SquareMatrixType notInvertibleCovarianceMatrix = dnotinv.transpose() * dnotinv;
-
-  std::cout << notInvertibleCovarianceMatrix << "\n" << notInvertibleCovarianceMatrix.determinant() << "\n";
-
-  VERIFY_IS_MUCH_SMALLER_THAN(notInvertibleCovarianceMatrix.determinant(),
-                              notInvertibleCovarianceMatrix.cwise().abs().maxCoeff());
-
-  VERIFY(invertibleCovarianceMatrix.inverse().exists());
-
-  VERIFY(!notInvertibleCovarianceMatrix.inverse().exists());
+  Scalar x = ei_random<Scalar>();
+  VERIFY(ei_isApprox(MatrixType::Identity(size, size).determinant(), Scalar(1)));
+  VERIFY(ei_isApprox((m1*m2).determinant(), m1.determinant() * m2.determinant()));
+  if(size==1) return;
+  int i = ei_random<int>(0, size-1);
+  int j;
+  do {
+    j = ei_random<int>(0, size-1);
+  } while(j==i);
+  m2 = m1;
+  m2.row(i).swap(m2.row(j));
+  VERIFY(ei_isApprox(m2.determinant(), -m1.determinant()));
+  m2 = m1;
+  m2.col(i).swap(m2.col(j));
+  VERIFY(ei_isApprox(m2.determinant(), -m1.determinant()));
+  VERIFY(ei_isApprox(m2.determinant(), m2.transpose().determinant()));
+  VERIFY(ei_isApprox(ei_conj(m2.determinant()), m2.adjoint().determinant()));
+  m2 = m1;
+  m2.row(i) += x*m2.row(j);
+  VERIFY(ei_isApprox(m2.determinant(), m1.determinant()));
+  m2 = m1;
+  m2.row(i) *= x;
+  VERIFY(ei_isApprox(m2.determinant(), m1.determinant() * x));
 }
 
 void test_determinant()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( nullDeterminant(Matrix<float, 30, 3>()) );
-    CALL_SUBTEST( nullDeterminant(Matrix<double, 30, 3>()) );
-    CALL_SUBTEST( nullDeterminant(Matrix<float, 20, 4>()) );
-    CALL_SUBTEST( nullDeterminant(Matrix<double, 20, 4>()) );
-//     CALL_SUBTEST( nullDeterminant(MatrixXd(20,4));
+    CALL_SUBTEST( determinant(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( determinant(Matrix<double, 2, 2>()) );
+    CALL_SUBTEST( determinant(Matrix<double, 3, 3>()) );
+    CALL_SUBTEST( determinant(Matrix<double, 4, 4>()) );
+    CALL_SUBTEST( determinant(Matrix<std::complex<double>, 10, 10>()) );
+    CALL_SUBTEST( determinant(MatrixXd(20, 20)) );
   }
 }

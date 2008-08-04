@@ -526,6 +526,7 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
+    const LU<EvalType> lu() const;
     const EvalType inverse() const;
     void computeInverse(EvalType *result) const;
     Scalar determinant() const;

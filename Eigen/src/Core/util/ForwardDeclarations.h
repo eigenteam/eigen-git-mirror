@@ -95,7 +95,7 @@ void ei_cache_friendly_product(
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
   bool resRowMajor, Scalar* res, int resStride);
 
-template<typename ExpressionType, bool CheckExistence = true> class Inverse;
+template<typename MatrixType> class LU;
 template<typename MatrixType> class QR;
 template<typename MatrixType> class Cholesky;
 template<typename MatrixType> class CholeskyWithoutSquareRoot;

@@ -171,7 +171,7 @@ template<typename Derived>
 const QR<typename MatrixBase<Derived>::EvalType>
 MatrixBase<Derived>::qr() const
 {
-  return QR<typename ei_eval<Derived>::type>(derived());
+  return eval();
 }
 
 

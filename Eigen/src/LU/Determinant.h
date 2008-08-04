@@ -63,7 +63,7 @@ const typename Derived::Scalar ei_bruteforce_det(const MatrixBase<Derived>& m)
            - ei_bruteforce_det4_helper(m,1,3,0,2)
            + ei_bruteforce_det4_helper(m,2,3,0,1);
     default:
-      assert(false);
+      ei_internal_assert(false);
   }
 }
 
@@ -85,7 +85,7 @@ typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
       return derived().diagonal().redux(ei_scalar_product_op<Scalar>());
   }
   else if(rows() <= 4) return ei_bruteforce_det(derived());
-  else assert(false); // unimplemented for now
+  else return lu().determinant();
 }
 
 #endif // EIGEN_DETERMINANT_H
