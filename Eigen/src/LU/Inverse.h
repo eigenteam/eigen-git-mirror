@@ -50,10 +50,10 @@ struct ei_compute_inverse_in_general_case<MatrixType, RowMajor>
       matrix.row(k).swap(matrix.row(k+rowOfBiggest));
 
       const Scalar d = matrix(k,k);
-      inverse.block(k+1, 0, size-k-1, size)
-        -= matrix.col(k).end(size-k-1) * (inverse.row(k) / d);
-      matrix.corner(BottomRight, size-k-1, size-k)
-        -= matrix.col(k).end(size-k-1) * (matrix.row(k).end(size-k) / d);
+      for(int row = k + 1; row < size; row++)
+        inverse.row(row) -= inverse.row(k) * (matrix.coeff(row,k)/d);
+      for(int row = k + 1; row < size; row++)
+        matrix.row(row).end(size-k) -= (matrix.row(k).end(size-k)/d) * matrix.coeff(row,k);
     }
 
     for(int k = 0; k < size-1; k++)
@@ -87,12 +87,11 @@ struct ei_compute_inverse_in_general_case<MatrixType, ColMajor>
       matrix.row(k).end(size-k).cwise().abs().maxCoeff(&colOfBiggest);
       inverse.col(k).swap(inverse.col(k+colOfBiggest));
       matrix.col(k).swap(matrix.col(k+colOfBiggest));
-
       const Scalar d = matrix(k,k);
-      inverse.block(0, k+1, size, size-k-1)
-        -= (inverse.col(k) / d) * matrix.row(k).end(size-k-1);
-      matrix.corner(BottomRight, size-k, size-k-1)
-        -= (matrix.col(k).end(size-k) / d) * matrix.row(k).end(size-k-1);
+      for(int col = k + 1; col < size; col++)
+        inverse.col(col) -= inverse.col(k) * (matrix.coeff(k,col)/d);
+      for(int col = k + 1; col < size; col++)
+        matrix.col(col).end(size-k) -= (matrix.col(k).end(size-k)/d) * matrix.coeff(k,col);
     }
 
     for(int k = 0; k < size-1; k++)

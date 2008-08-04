@@ -179,7 +179,6 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       ei_pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
     }
 
-  public:
     /** \returns a const pointer to the data array of this matrix */
     inline const Scalar *data() const
     { return m_storage.data(); }

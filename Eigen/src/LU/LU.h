@@ -143,8 +143,8 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= lu_k_k;
     if(k<size-1)
-      m_lu.corner(BottomRight, rows-k-1, cols-k-1)
-          -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
+      for( int col = k + 1; col < cols; col++ )
+        m_lu.col(col).end(rows-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.coeff(k,col);
   }
 
   for(int k = 0; k < matrix.rows(); k++) m_p.coeffRef(k) = k;
