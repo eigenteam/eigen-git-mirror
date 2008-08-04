@@ -65,9 +65,8 @@ struct ei_compute_inverse_in_general_case<MatrixType, RowMajor>
     inverse.row(size-1) /= matrix(size-1,size-1);
 
     for(int k = size-1; k >= 1; k--)
-    {
-      inverse.block(0,0,k,size) -= matrix.col(k).start(k) * inverse.row(k);
-    }
+      for(int row = 0; row < k; row++)
+        inverse.row(row) -= inverse.row(k) * matrix.coeff(row,k);
   }
 };
 
@@ -103,9 +102,8 @@ struct ei_compute_inverse_in_general_case<MatrixType, ColMajor>
     inverse.col(size-1) /= matrix(size-1,size-1);
 
     for(int k = size-1; k >= 1; k--)
-    {
-      inverse.block(0,0,size,k) -= inverse.col(k) * matrix.row(k).start(k);
-    }
+      for(int col = 0; col < k; col++)
+        inverse.col(col) -= inverse.col(k) * matrix.coeff(k,col);
   }
 };
 
