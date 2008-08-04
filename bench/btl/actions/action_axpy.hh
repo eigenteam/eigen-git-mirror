@@ -96,7 +96,9 @@ public :
   }
 
   inline void calculate( void ) {
-      Interface::axpy(_coef,X,Y,_size);
+    asm("#mybegin axpy");
+    Interface::axpy(_coef,X,Y,_size);
+    asm("#myend axpy");
   }
 
   void check_result( void ){

@@ -714,17 +714,36 @@ public :
     {
       Packet pcoef = ei_pset1(coef);
       #ifdef PEELING
-      int ANP = (AN/(8*PacketSize))*8*PacketSize;
-      for (int j = 0;j<ANP;j+=PacketSize*8)
+      const int peelSize = 3;
+      int ANP = (AN/(peelSize*PacketSize))*peelSize*PacketSize;
+      float* X1 = X + PacketSize;
+      float* Y1 = Y + PacketSize;
+      float* X2 = X + 2*PacketSize;
+      float* Y2 = Y + 2*PacketSize;
+      Packet x0,x1,x2,y0,y1,y2;
+      for (int j = 0;j<ANP;j+=PacketSize*peelSize)
       {
-        ei_pstore(&Y[j             ], ei_padd(ei_pload(&Y[j             ]), ei_pmul(pcoef,ei_pload(&X[j             ]))));
-        ei_pstore(&Y[j+  PacketSize], ei_padd(ei_pload(&Y[j+  PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+  PacketSize]))));
-        ei_pstore(&Y[j+2*PacketSize], ei_padd(ei_pload(&Y[j+2*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+2*PacketSize]))));
-        ei_pstore(&Y[j+3*PacketSize], ei_padd(ei_pload(&Y[j+3*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+3*PacketSize]))));
-        ei_pstore(&Y[j+4*PacketSize], ei_padd(ei_pload(&Y[j+4*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+4*PacketSize]))));
-        ei_pstore(&Y[j+5*PacketSize], ei_padd(ei_pload(&Y[j+5*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+5*PacketSize]))));
-        ei_pstore(&Y[j+6*PacketSize], ei_padd(ei_pload(&Y[j+6*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+6*PacketSize]))));
-        ei_pstore(&Y[j+7*PacketSize], ei_padd(ei_pload(&Y[j+7*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+7*PacketSize]))));
+        x0 = ei_pload(X+j);
+        x1 = ei_pload(X1+j);
+        x2 = ei_pload(X2+j);
+
+        y0 = ei_pload(Y+j);
+        y1 = ei_pload(Y1+j);
+        y2 = ei_pload(Y2+j);
+
+        y0 = ei_pmadd(pcoef, x0, y0);
+        y1 = ei_pmadd(pcoef, x1, y1);
+        y2 = ei_pmadd(pcoef, x2, y2);
+
+        ei_pstore(Y+j,  y0);
+        ei_pstore(Y1+j, y1);
+        ei_pstore(Y2+j, y2);
+//         ei_pstore(&Y[j+2*PacketSize], ei_padd(ei_pload(&Y[j+2*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+2*PacketSize]))));
+//         ei_pstore(&Y[j+3*PacketSize], ei_padd(ei_pload(&Y[j+3*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+3*PacketSize]))));
+//         ei_pstore(&Y[j+4*PacketSize], ei_padd(ei_pload(&Y[j+4*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+4*PacketSize]))));
+//         ei_pstore(&Y[j+5*PacketSize], ei_padd(ei_pload(&Y[j+5*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+5*PacketSize]))));
+//         ei_pstore(&Y[j+6*PacketSize], ei_padd(ei_pload(&Y[j+6*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+6*PacketSize]))));
+//         ei_pstore(&Y[j+7*PacketSize], ei_padd(ei_pload(&Y[j+7*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+7*PacketSize]))));
       }
       for (int j = ANP;j<AN;j+=PacketSize)
         ei_pstore(&Y[j], ei_padd(ei_pload(&Y[j]), ei_pmul(pcoef,ei_pload(&X[j]))));

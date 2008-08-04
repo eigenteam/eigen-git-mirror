@@ -1,4 +1,4 @@
-
+find_package(MKL)
 find_package(Eigen2)
 if (EIGEN2_FOUND)
 
@@ -25,6 +25,11 @@ if (EIGEN2_FOUND)
     if(BUILD_btl_eigen2_novec_adv)
       set_target_properties(btl_eigen2_novec_adv PROPERTIES COMPILE_FLAGS "-DEIGEN_DONT_VECTORIZE")
     endif(BUILD_btl_eigen2_novec_adv)
+
+    if(BUILD_btl_eigen2_adv)
+      target_link_libraries(btl_eigen2_adv ${MKL_LIBRARIES})
+    endif(BUILD_btl_eigen2_adv)
+    
   ENDIF(NOT BTL_NOVEC)
 
   btl_add_bench(btl_tiny_eigen2 btl_tiny_eigen2.cpp OFF)

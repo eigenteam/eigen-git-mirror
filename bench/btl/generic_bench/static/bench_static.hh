@@ -27,8 +27,8 @@
 #include "xy_file.hh"
 #include "static/static_size_generator.hh"
 #include "timers/portable_perf_analyzer.hh"
-#include "timers/mixed_perf_analyzer.hh"
-#include "timers/x86_perf_analyzer.hh"
+// #include "timers/mixed_perf_analyzer.hh"
+// #include "timers/x86_perf_analyzer.hh"
 
 using namespace std;
 
@@ -50,7 +50,7 @@ BTL_DONT_INLINE  void bench_static(void)
 
   static_size_generator<max_size,Perf_Analyzer,Action,Interface>::go(tab_sizes,tab_mflops);
 
-  dump_file_x_y(tab_sizes,tab_mflops,filename);
+  dump_xy_file(tab_sizes,tab_mflops,filename);
 }
 
 // default Perf Analyzer

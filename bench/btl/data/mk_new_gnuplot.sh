@@ -1,13 +1,29 @@
-#! /bin/bash
+#!/bin/bash
 WHAT=$1
 DIR=$2
 
 cat ../gnuplot_common_settings.hh > ${WHAT}.gnuplot
-cat ../${WHAT}.hh >> ${WHAT}.gnuplot
+
+echo "set title " `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 2` >> $WHAT.gnuplot
+echo "set xlabel " `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 3` "0.000000,0.000000" >> $WHAT.gnuplot
+echo "set xrange [" `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 4` "]" >> $WHAT.gnuplot
+
+if [ $# > 3 ]; then
+  if [ $3 == "tiny" ]; then
+    echo "set xrange [2:16]" >> $WHAT.gnuplot
+    echo "set nologscale" >> $WHAT.gnuplot
+  fi
+fi
+
+
 
 DATA_FILE=`cat ../order_lib`
 echo set term postscript color rounded enhanced >> $WHAT.gnuplot
 echo set output "'"../${DIR}/$WHAT.ps"'" >> $WHAT.gnuplot
+
+# echo set term svg color rounded enhanced >> $WHAT.gnuplot
+# echo "set terminal svg enhanced size 1000 1000 fname \"Times\" fsize 36" >> $WHAT.gnuplot
+# echo set output "'"../${DIR}/$WHAT.svg"'" >> $WHAT.gnuplot
 
 echo plot \\ >> $WHAT.gnuplot
 
@@ -34,3 +50,5 @@ rm $WHAT.gnuplot
 
 ps2pdf ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.pdf
 convert -density 120 -rotate 90 -resize 800 +dither -colors 48 -quality 0 ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.png
+
+# pstoedit -rotate -90 -xscale 0.8 -yscale 0.8 -centered -yshift -50 -xshift -100  -f plot-svg aat.ps  aat2.svg

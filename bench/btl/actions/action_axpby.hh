@@ -85,7 +85,9 @@ public :
   }
 
   inline void calculate( void ) {
+    asm("#mybegin axpby");
     Interface::axpby(_alpha,X,_beta,Y,_size);
+    asm("#myend axpby");
   }
 
   void check_result( void ){

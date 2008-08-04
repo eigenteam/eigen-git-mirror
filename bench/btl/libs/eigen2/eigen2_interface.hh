@@ -17,9 +17,10 @@
 //
 #ifndef EIGEN2_INTERFACE_HH
 #define EIGEN2_INTERFACE_HH
-
+#include <cblas.h>
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
+#include <Eigen/LU>
 #include <Eigen/QR>
 #include <vector>
 #include "btl.hh"
@@ -138,15 +139,24 @@ public :
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
     C = X.cholesky().matrixL();
+//     C = X;
+//     Cholesky<gene_matrix>::computeInPlace(C);
+//     Cholesky<gene_matrix>::computeInPlaceBlock(C);
+  }
+
+  static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    C = X.lu().matrixLU();
+  }
+
+  static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
+    C = Tridiagonalization<gene_matrix>(X).packedMatrix();
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
     C = HessenbergDecomposition<gene_matrix>(X).packedMatrix();
   }
 
-  static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
-    C = Tridiagonalization<gene_matrix>(X).packedMatrix();
-  }
+
 
 };
 

@@ -120,6 +120,12 @@ public :
     recursive_cholesky(C);
   }
 
+//   static inline void lu_decomp(const gene_matrix & X, gene_matrix & R, int N){
+//     R = X;
+//     std::vector<int> ipvt(N);
+//     lu_factor(R, ipvt);
+//   }
+
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector & X, int N){
     X = lower_trisolve(L, B);
   }

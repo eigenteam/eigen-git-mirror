@@ -25,6 +25,8 @@
 #include "action_ata_product.hh"
 #include "action_aat_product.hh"
 #include "action_atv_product.hh"
+#include "action_cholesky.hh"
+#include "action_trisolve.hh"
 
 BTL_MAIN;
 
@@ -35,6 +37,8 @@ int main()
   bench_static<Action_matrix_matrix_product,eigen2_interface>();
   bench_static<Action_matrix_vector_product,eigen2_interface>();
   bench_static<Action_atv_product,eigen2_interface>();
+  bench_static<Action_cholesky,eigen2_interface>();
+  bench_static<Action_trisolve,eigen2_interface>();
 
   return 0;
 }

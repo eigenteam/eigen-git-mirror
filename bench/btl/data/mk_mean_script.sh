@@ -6,12 +6,14 @@ MAXIC=$4
 MINOC=$5
 MAXOC=$6
 
+meanstatsfilename=$2/mean.html
+
 WORK_DIR=tmp
 mkdir $WORK_DIR
 
 DATA_FILE=`find $DIR -name "*.dat" | grep _${WHAT}`
 echo ""
-echo $"1..."
+echo "$1..."
 for FILE in $DATA_FILE
 do
         ##echo hello world
@@ -24,12 +26,14 @@ do
 done
 
 cd $WORK_DIR
-../main $1 $3 $4 $5 $6 *
-../mk_new_gnuplot.sh $1 $2
+../main $1 $3 $4 $5 $6 * >> ../$meanstatsfilename
+../mk_new_gnuplot.sh $1 $2 $7
 rm -f *.gnuplot
 cd ..
 
 rm -R $WORK_DIR
+
+echo '<br/>' >> $meanstatsfilename
 
 webpagefilename=$2/index.html
 # echo '<h3>'${WHAT}'</h3>'  >> $webpagefilename

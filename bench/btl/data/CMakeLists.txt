@@ -1,9 +1,8 @@
 
 ADD_CUSTOM_TARGET(copy_scripts)
 
-SET(script_files go_mean aat.hh ata.hh axpy.hh axpby.hh cholesky.hh trisolve.hh hessenberg.hh tridiagonalization.hh
-    order_lib mk_mean_script.sh mk_new_gnuplot.sh mk_gnuplot_script.sh
-    matrix_matrix.hh matrix_vector.hh atv.hh perlib_plot_settings.txt gnuplot_common_settings.hh )
+SET(script_files go_mean mk_mean_script.sh mk_new_gnuplot.sh
+    perlib_plot_settings.txt action_settings.txt gnuplot_common_settings.hh )
 
 FOREACH(script_file ${script_files})
 ADD_CUSTOM_COMMAND(

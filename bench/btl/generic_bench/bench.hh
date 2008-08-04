@@ -53,13 +53,15 @@ BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point )
   std::vector<int> tab_sizes(nb_point);
 
   // matrices and vector size calculations
-
   size_lin_log(nb_point,size_min,size_max,tab_sizes);
 
+  std::vector<int> oldSizes;
+  std::vector<double> oldFlops;
+  bool hasOldResults = read_xy_file(filename, oldSizes, oldFlops, true);
+  int oldi = oldSizes.size() - 1;
+
   // loop on matrix size
-
   Perf_Analyzer<Action> perf_action;
-
   for (int i=nb_point-1;i>=0;i--)
   {
     //INFOS("size=" <<tab_sizes[i]<<"   ("<<nb_point-i<<"/"<<nb_point<<")");
@@ -74,14 +76,28 @@ BTL_DONT_INLINE void bench( int size_min, int size_max, int nb_point )
     #endif
 
     tab_mflops[i] = perf_action.eval_mflops(tab_sizes[i]);
-    std::cout << tab_mflops[i] << " MFlops    (" << nb_point-i << "/" << nb_point << ")" << std::endl;
+    std::cout << tab_mflops[i];
+    
+    if (hasOldResults)
+    {
+      while (oldi>=0 && oldSizes[oldi]>tab_sizes[i])
+        --oldi;
+      if (oldi>=0 && oldSizes[oldi]==tab_sizes[i])
+      {
+        if (oldFlops[oldi]<tab_mflops[i])
+          std::cout << "\t > ";
+        else
+          std::cout << "\t < ";
+        std::cout << oldFlops[oldi];
+      }
+      --oldi;
+    }
+    std::cout << " MFlops    (" << nb_point-i << "/" << nb_point << ")" << std::endl;
   }
 
   if (!BtlConfig::Instance.overwriteResults)
   {
-    std::vector<int> oldSizes;
-    std::vector<double> oldFlops;
-    if (read_xy_file(filename, oldSizes, oldFlops, true))
+    if (hasOldResults)
     {
       // merge the two data
       std::vector<int> newSizes;

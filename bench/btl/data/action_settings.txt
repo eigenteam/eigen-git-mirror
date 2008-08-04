@@ -1,0 +1,12 @@
+aat ; "{/*1.5 A x A^T}" ; "matrix size" ; 4:1024
+ata ; "{/*1.5 A^T x A}" ; "matrix size" ; 4:1024
+atv ; "{/*1.5 matrix^T x vector}" ; "matrix size" ; 4:1024
+axpby ; "{/*1.5 Y = alpha * X + beta * Y}" ; "vector size" ; 5:1000000
+axpy ; "{/*1.5 Y += alpha * X}" ; "vector size" ; 5:1000000
+matrix_matrix ; "{/*1.5 matrix matrix product}" ; "matrix size" ; 4:1024
+matrix_vector ; "{/*1.5 matrix vector product}" ; "matrix size" ; 4:1024
+trisolve ; "{/*1.5 triangular solver (X = inv(L) * X)}" ; "size" ; 4:1024
+cholesky ; "{/*1.5 Cholesky decomposition}" ; "matrix size" ; 4:1024
+lu_decomp ; "{/*1.5 LU decomposition}" ; "matrix size" ; 4:1024
+tridiagonalization ; "{/*1.5 Tridiagonalization}" ; "matrix size" ; 4:1024
+hessenberg ; "{/*1.5 Hessenberg decomposition}" ; "matrix size" ; 4:1024 

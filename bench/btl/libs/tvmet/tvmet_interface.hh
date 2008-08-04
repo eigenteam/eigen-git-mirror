@@ -41,7 +41,7 @@ public :
   typedef Vector<real,SIZE> gene_vector;
   typedef Matrix<real,SIZE,SIZE> gene_matrix;
 
-  static inline std::string name() { return "tvmet"; }
+  static inline std::string name() { return "tiny_tvmet"; }
 
   static void free_matrix(gene_matrix & A, int N){}
 

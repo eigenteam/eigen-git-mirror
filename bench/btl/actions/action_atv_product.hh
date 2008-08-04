@@ -102,7 +102,7 @@ public :
 
     if (error>1.e-6){
       INFOS("WRONG CALCULATION...residual=" << error);
-      exit(0);
+      exit(1);
     }
   }
 

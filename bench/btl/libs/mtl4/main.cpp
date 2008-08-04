@@ -20,6 +20,7 @@
 #include "bench.hh"
 #include "basic_actions.hh"
 #include "action_cholesky.hh"
+// #include "action_lu_decomp.hh"
 
 BTL_MAIN;
 
@@ -37,6 +38,7 @@ int main()
 
   bench<Action_trisolve<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_cholesky<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+//   bench<Action_lu_decomp<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;
 }

@@ -27,12 +27,13 @@ using namespace std;
 
 template <int SIZE,template<class> class Perf_Analyzer, template<class> class Action, template<class,int> class Interface> 
 struct static_size_generator{
-  static  void go(vector<double> & tab_sizes, vector<double> & tab_mflops)
+  static void go(vector<double> & tab_sizes, vector<double> & tab_mflops)
   {
     tab_sizes.push_back(SIZE);
-
+    std::cout << tab_sizes.back() << " \t" << std::flush;
     Perf_Analyzer<Action<Interface<REAL_TYPE,SIZE> > > perf_action;
     tab_mflops.push_back(perf_action.eval_mflops(SIZE));
+    std::cout << tab_mflops.back() << " MFlops" << std::endl;
     static_size_generator<SIZE-1,Perf_Analyzer,Action,Interface>::go(tab_sizes,tab_mflops);
   };
 };
