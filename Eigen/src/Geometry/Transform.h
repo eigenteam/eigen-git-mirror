@@ -170,7 +170,7 @@ public:
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
   /** \sa MatrixBase::inverse() */
-  const Inverse<MatrixType, false> inverse() const
+  const MatrixType inverse() const
   { return m_matrix.inverse(); }
 
 protected:

@@ -280,5 +280,40 @@ inline void MatrixBase<Derived>::writePacket
   derived().template writePacket<StoreMode>(index,x);
 }
 
+template<typename Derived>
+template<typename OtherDerived>
+inline void MatrixBase<Derived>::copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other)
+{
+  ei_internal_assert(row >= 0 && row < rows()
+                     && col >= 0 && col < cols());
+  derived().coeffRef(row, col) = other.derived().coeff(row, col);
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+inline void MatrixBase<Derived>::copyCoeff(int index, const MatrixBase<OtherDerived>& other)
+{
+  ei_internal_assert(index >= 0 && index < size());
+  derived().coeffRef(index) = other.derived().coeff(index);
+}
+
+template<typename Derived>
+template<typename OtherDerived, int LoadStoreMode>
+inline void MatrixBase<Derived>::copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
+{
+  ei_internal_assert(row >= 0 && row < rows()
+                     && col >= 0 && col < cols());
+  derived().template writePacket<LoadStoreMode>(row, col,
+    other.derived().template packet<LoadStoreMode>(row, col));
+}
+
+template<typename Derived>
+template<typename OtherDerived, int LoadStoreMode>
+inline void MatrixBase<Derived>::copyPacket(int index, const MatrixBase<OtherDerived>& other)
+{
+  ei_internal_assert(index >= 0 && index < size());
+  derived().template writePacket<LoadStoreMode>(index,
+    other.derived().template packet<LoadStoreMode>(index));
+}
 
 #endif // EIGEN_COEFFS_H

@@ -106,7 +106,7 @@ struct ei_assign_novec_CompleteUnrolling
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.coeffRef(row, col) = src.coeff(row, col);
+    dst.copyCoeff(row, col, src);
     ei_assign_novec_CompleteUnrolling<Derived1, Derived2, Index+1, Stop>::run(dst, src);
   }
 };
@@ -125,7 +125,7 @@ struct ei_assign_novec_InnerUnrolling
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int row = rowMajor ? row_or_col : Index;
     const int col = rowMajor ? Index : row_or_col;
-    dst.coeffRef(row, col) = src.coeff(row, col);
+    dst.copyCoeff(row, col, src);
     ei_assign_novec_InnerUnrolling<Derived1, Derived2, Index+1, Stop>::run(dst, src, row_or_col);
   }
 };
@@ -154,7 +154,7 @@ struct ei_assign_innervec_CompleteUnrolling
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
+    dst.template copyPacket<Derived2, Aligned>(row, col, src);
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src);
   }
@@ -173,7 +173,7 @@ struct ei_assign_innervec_InnerUnrolling
   {
     const int row = int(Derived1::Flags)&RowMajorBit ? row_or_col : Index;
     const int col = int(Derived1::Flags)&RowMajorBit ? Index : row_or_col;
-    dst.template writePacket<Aligned>(row, col, src.template packet<Aligned>(row, col));
+    dst.template copyPacket<Derived2, Aligned>(row, col, src);
     ei_assign_innervec_InnerUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src, row_or_col);
   }
@@ -209,9 +209,9 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
       for(int i = 0; i < innerSize; i++)
       {
         if(int(Derived1::Flags)&RowMajorBit)
-          dst.coeffRef(j, i) = src.coeff(j, i);
+          dst.copyCoeff(j, i, src);
         else
-          dst.coeffRef(i, j) = src.coeff(i, j);
+          dst.copyCoeff(i, j, src);
       }
   }
 };
@@ -256,9 +256,9 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
       for(int i = 0; i < innerSize; i+=packetSize)
       {
         if(int(Derived1::Flags)&RowMajorBit)
-          dst.template writePacket<Aligned>(j, i, src.template packet<Aligned>(j, i));
+          dst.template copyPacket<Derived2, Aligned>(j, i, src);
         else
-          dst.template writePacket<Aligned>(i, j, src.template packet<Aligned>(i, j));
+          dst.template copyPacket<Derived2, Aligned>(i, j, src);
       }
   }
 };
@@ -302,11 +302,11 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 
     for(int index = 0; index < alignedSize; index += packetSize)
     {
-      dst.template writePacket<Aligned>(index, src.template packet<Aligned>(index));
+      dst.template copyPacket<Derived2, Aligned>(index, src);
     }
 
     for(int index = alignedSize; index < size; index++)
-      dst.coeffRef(index) = src.coeff(index);
+      dst.copyCoeff(index, src);
   }
 };
 
@@ -344,18 +344,18 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
       for (int index = 0; index<alignedInnerSize ; index+=packetSize)
       {
         if(Derived1::Flags&RowMajorBit)
-          dst.template writePacket<Unaligned>(i, index, src.template packet<Unaligned>(i, index));
+          dst.template copyPacket<Derived2, Unaligned>(i, index, src);
         else
-          dst.template writePacket<Unaligned>(index, i, src.template packet<Unaligned>(index, i));
+          dst.template copyPacket<Derived2, Unaligned>(index, i, src);
       }
 
       // do the non-vectorizable part of the assignment
       for (int index = alignedInnerSize; index<innerSize ; index++)
       {
         if(Derived1::Flags&RowMajorBit)
-          dst.coeffRef(i, index) = src.coeff(i, index);
+          dst.copyCoeff(i, index, src);
         else
-          dst.coeffRef(index, i) = src.coeff(index, i);
+          dst.copyCoeff(index, i, src);
       }
     }
   }

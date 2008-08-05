@@ -253,6 +253,15 @@ template<typename Derived> class MatrixBase
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
 
+    template<typename OtherDerived>
+    void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other);
+    template<typename OtherDerived>
+    void copyCoeff(int index, const MatrixBase<OtherDerived>& other);
+    template<typename OtherDerived, int LoadStoreMode>
+    void copyPacket(int row, int col, const MatrixBase<OtherDerived>& other);
+    template<typename OtherDerived, int LoadStoreMode>
+    void copyPacket(int index, const MatrixBase<OtherDerived>& other);
+
     template<int LoadMode>
     PacketScalar packet(int row, int col) const;
     template<int StoreMode>
