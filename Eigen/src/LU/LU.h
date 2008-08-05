@@ -54,29 +54,29 @@ template<typename MatrixType> class LU
     typedef Matrix<int, MatrixType::ColsAtCompileTime, 1> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
 
-    LU(const MatrixType& matrix);
+    LU(const MatrixType& matrix, int pivoting = CompletePivoting);
 
-    const MatrixType& matrixLU() const
+    inline const MatrixType& matrixLU() const
     {
       return m_lu;
     }
 
-    const Part<MatrixType, UnitLower> matrixL() const
+    inline const Part<MatrixType, UnitLower> matrixL() const
     {
       return m_lu;
     }
 
-    const Part<MatrixType, Upper> matrixU() const
+    inline const Part<MatrixType, Upper> matrixU() const
     {
       return m_lu;
     }
 
-    const IntColVectorType& permutationP() const
+    inline const IntColVectorType& permutationP() const
     {
       return m_p;
     }
 
-    const IntRowVectorType& permutationQ() const
+    inline const IntRowVectorType& permutationQ() const
     {
       return m_q;
     }
@@ -92,10 +92,25 @@ template<typename MatrixType> class LU
       * as the LU decomposition has already been computed.
       *
       * Warning: a determinant can be very big or small, so for matrices
-      * of large dimension (like a 50-by-50 matrix) there can be a risk of
+      * of large enough dimension (like a 50-by-50 matrix) there is a risk of
       * overflow/underflow.
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
+
+    inline int rank() const
+    {
+      return m_rank;
+    }
+
+    inline int dimensionOfKernel() const
+    {
+      return m_lu.cols() - m_rank;
+    }
+
+    inline bool isInvertible() const
+    {
+      return m_rank == m_lu.cols();
+    }
 
   protected:
     MatrixType m_lu;
@@ -103,18 +118,21 @@ template<typename MatrixType> class LU
     IntRowVectorType m_q;
     int m_det_pq;
     Scalar m_biggest_eigenvalue_of_u;
-    int m_dimension_of_kernel;
+    int m_rank;
+    int m_pivoting;
 };
 
 template<typename MatrixType>
-LU<MatrixType>::LU(const MatrixType& matrix)
+LU<MatrixType>::LU(const MatrixType& matrix, int pivoting)
   : m_lu(matrix),
     m_p(matrix.rows()),
-    m_q(matrix.cols())
+    m_q(matrix.cols()),
+    m_pivoting(pivoting)
 {
   const int size = matrix.diagonal().size();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
+  ei_assert(pivoting == PartialPivoting || pivoting == CompletePivoting);
 
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
@@ -123,20 +141,36 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   for(int k = 0; k < size; k++)
   {
     int row_of_biggest, col_of_biggest;
-    const Scalar biggest = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
-                               .cwise().abs()
-                               .maxCoeff(&row_of_biggest, &col_of_biggest);
-    row_of_biggest += k;
-    col_of_biggest += k;
-    rows_transpositions.coeffRef(k) = row_of_biggest;
-    cols_transpositions.coeffRef(k) = col_of_biggest;
-    if(k != row_of_biggest) {
-      m_lu.row(k).swap(m_lu.row(row_of_biggest));
-      number_of_transpositions++;
+    Scalar biggest;
+    if(m_pivoting == CompletePivoting)
+    {
+      biggest = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
+                    .cwise().abs()
+                    .maxCoeff(&row_of_biggest, &col_of_biggest);
+      row_of_biggest += k;
+      col_of_biggest += k;
+      rows_transpositions.coeffRef(k) = row_of_biggest;
+      cols_transpositions.coeffRef(k) = col_of_biggest;
+      if(k != row_of_biggest) {
+        m_lu.row(k).swap(m_lu.row(row_of_biggest));
+        number_of_transpositions++;
+      }
+      if(k != col_of_biggest) {
+        m_lu.col(k).swap(m_lu.col(col_of_biggest));
+        number_of_transpositions++;
+      }
     }
-    if(k != col_of_biggest) {
-      m_lu.col(k).swap(m_lu.col(col_of_biggest));
-      number_of_transpositions++;
+    else // partial pivoting
+    {
+      biggest = m_lu.col(k).end(rows-k)
+                    .cwise().abs()
+                    .maxCoeff(&row_of_biggest);
+      row_of_biggest += k;
+      rows_transpositions.coeffRef(k) = row_of_biggest;
+      if(k != row_of_biggest) {
+        m_lu.row(k).swap(m_lu.row(row_of_biggest));
+        number_of_transpositions++;
+      }
     }
     const Scalar lu_k_k = m_lu.coeff(k,k);
     if(ei_isMuchSmallerThan(lu_k_k, biggest)) continue;
@@ -151,9 +185,12 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   for(int k = size-1; k >= 0; k--)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
-  for(int k = 0; k < matrix.cols(); k++) m_q.coeffRef(k) = k;
-  for(int k = 0; k < size; k++)
-    std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
+  if(pivoting == CompletePivoting)
+  {
+    for(int k = 0; k < matrix.cols(); k++) m_q.coeffRef(k) = k;
+    for(int k = 0; k < size; k++)
+      std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
+  }
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
@@ -161,14 +198,15 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   m_lu.diagonal().cwise().abs().maxCoeff(&index_of_biggest);
   m_biggest_eigenvalue_of_u = m_lu.diagonal().coeff(index_of_biggest);
 
-  m_dimension_of_kernel = 0;
+  m_rank = 0;
   for(int k = 0; k < size; k++)
-    m_dimension_of_kernel += ei_isMuchSmallerThan(m_lu.diagonal().coeff(k), m_biggest_eigenvalue_of_u);
+    m_rank += !ei_isMuchSmallerThan(m_lu.diagonal().coeff(k), m_biggest_eigenvalue_of_u);
 }
 
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
+  if(!isInvertible()) return Scalar(0);
   Scalar res = m_det_pq;
   for(int k = 0; k < m_lu.diagonal().size(); k++) res *= m_lu.diagonal().coeff(k);
   return res;
@@ -180,9 +218,9 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
   */
 template<typename Derived>
 const LU<typename MatrixBase<Derived>::EvalType>
-MatrixBase<Derived>::lu() const
+MatrixBase<Derived>::lu(int pivoting = CompletePivoting) const
 {
-  return eval();
+  return LU<typename MatrixBase<Derived>::EvalType>(eval(), pivoting);
 }
 
 #endif // EIGEN_LU_H

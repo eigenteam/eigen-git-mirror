@@ -209,6 +209,11 @@ enum {
   HasDirectAccess = DirectAccessBit
 };
 
+enum {
+  PartialPivoting,
+  CompletePivoting
+};
+
 const int FullyCoherentAccessPattern  = 0x1;
 const int InnerCoherentAccessPattern  = 0x2 | FullyCoherentAccessPattern;
 const int OuterCoherentAccessPattern  = 0x4 | InnerCoherentAccessPattern;
