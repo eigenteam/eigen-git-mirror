@@ -41,32 +41,6 @@ const typename Derived::Scalar ei_bruteforce_det4_helper
        * (matrix.coeff(m,2) * matrix.coeff(n,3) - matrix.coeff(n,2) * matrix.coeff(m,3));
 }
 
-template<typename Derived>
-const typename Derived::Scalar ei_bruteforce_det(const MatrixBase<Derived>& m)
-{
-  switch(Derived::RowsAtCompileTime)
-  {
-    case 1:
-      return m.coeff(0,0);
-    case 2:
-      return m.coeff(0,0) * m.coeff(1,1) - m.coeff(1,0) * m.coeff(0,1);
-    case 3:
-      return ei_bruteforce_det3_helper(m,0,1,2)
-           - ei_bruteforce_det3_helper(m,1,0,2)
-           + ei_bruteforce_det3_helper(m,2,0,1);
-    case 4:
-      // trick by Martin Costabel to compute 4x4 det with only 30 muls
-      return ei_bruteforce_det4_helper(m,0,1,2,3)
-           - ei_bruteforce_det4_helper(m,0,2,1,3)
-           + ei_bruteforce_det4_helper(m,0,3,1,2)
-           + ei_bruteforce_det4_helper(m,1,2,0,3)
-           - ei_bruteforce_det4_helper(m,1,3,0,2)
-           + ei_bruteforce_det4_helper(m,2,3,0,1);
-    default:
-      ei_internal_assert(false);
-  }
-}
-
 const int TriangularDeterminant = 0;
 
 template<typename Derived,
