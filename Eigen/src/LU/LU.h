@@ -51,8 +51,15 @@ template<typename MatrixType> class LU
 
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, MatrixType::ColsAtCompileTime, 1> IntRowVectorType;
+    typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
+    typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
+
+    enum { MaxKerDimAtCompileTime = EIGEN_ENUM_MIN(
+             MatrixType::MaxColsAtCompileTime,
+             MatrixType::MaxRowsAtCompileTime)
+    };
 
     LU(const MatrixType& matrix);
 
@@ -81,9 +88,9 @@ template<typename MatrixType> class LU
       return m_q;
     }
 
-    inline const Matrix<Scalar, MatrixType::RowsAtCompileTime, Dynamic,
-                        MatrixType::MaxRowsAtCompileTime,
-                        MatrixType::MaxColsAtCompileTime> kernel() const;
+    inline const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                        MatrixType::MaxColsAtCompileTime,
+                        LU<MatrixType>::MaxKerDimAtCompileTime> kernel() const;
 
     template<typename OtherDerived>
     typename ProductReturnType<Transpose<MatrixType>, OtherDerived>::Type::Eval
@@ -131,7 +138,6 @@ template<typename MatrixType> class LU
     IntColVectorType m_p;
     IntRowVectorType m_q;
     int m_det_pq;
-    Scalar m_biggest_eigenvalue_of_u;
     int m_rank;
 };
 
@@ -173,8 +179,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 
     if(k==0) biggest = biggest_in_corner;
     const Scalar lu_k_k = m_lu.coeff(k,k);
-    std::cout << lu_k_k << " " << biggest << std::endl;
-    if(ei_isMuchSmallerThan(lu_k_k, biggest)) { std::cout << "hello" << std::endl; continue; }
+    if(ei_isMuchSmallerThan(lu_k_k, biggest)) continue;
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= lu_k_k;
     if(k<size-1)
@@ -192,35 +197,61 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
-  int index_of_biggest_in_diagonal;
-  m_lu.diagonal().cwise().abs().maxCoeff(&index_of_biggest_in_diagonal);
-  m_biggest_eigenvalue_of_u = m_lu.diagonal().coeff(index_of_biggest_in_diagonal);
-
   m_rank = 0;
   for(int k = 0; k < size; k++)
-    m_rank += !ei_isMuchSmallerThan(m_lu.diagonal().coeff(k), m_biggest_eigenvalue_of_u);
+    m_rank += !ei_isMuchSmallerThan(m_lu.diagonal().coeff(k),
+                                    m_lu.diagonal().coeff(0));
 }
 
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
-  if(!isInvertible()) return Scalar(0);
-  Scalar res = m_det_pq;
-  for(int k = 0; k < m_lu.diagonal().size(); k++) res *= m_lu.diagonal().coeff(k);
-  return res;
+  return m_lu.diagonal().redux(ei_scalar_product_op<Scalar>()) * Scalar(m_det_pq);
 }
 
-#if 0
 template<typename MatrixType>
-inline const Matrix<Scalar, RowsAtCompileTime, Dynamic,
-                    MaxRowsAtCompileTime, MaxColsAtCompileTime> kernel() const
+inline const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                    MatrixType::MaxColsAtCompileTime,
+                    LU<MatrixType>::MaxKerDimAtCompileTime>
+LU<MatrixType>::kernel() const
 {
-  Matrix<Scalar, RowsAtCompileTime, Dynamic,
-         MaxRowsAtCompileTime, MaxColsAtCompileTime>
-    result(m_lu.rows(), dimensionOfKernel());
-  
+  ei_assert(!isInvertible());
+  const int dimker = dimensionOfKernel(), rows = m_lu.rows(), cols = m_lu.cols();
+  Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+         MatrixType::MaxColsAtCompileTime,
+         LU<MatrixType>::MaxKerDimAtCompileTime>
+    result(cols, dimker);
+
+  /* Let us use the following lemma:
+    *
+    * Lemma: If the matrix A has the LU decomposition PAQ = LU,
+    * then Ker A = Q( Ker U ).
+    *
+    * Proof: trivial: just keep in mind that P, Q, L are invertible.
+    */
+
+  /* Thus, all we need to do is to compute Ker U, and then apply Q.
+    *
+    * U is upper triangular, with eigenvalues sorted in decreasing order of
+    * absolute value. Thus, the diagonal of U ends with exactly
+    * m_dimKer zero's. Let us use that to construct m_dimKer linearly
+    * independent vectors in Ker U.
+    */
+
+  Matrix<Scalar, Dynamic, Dynamic, MatrixType::MaxColsAtCompileTime, MaxKerDimAtCompileTime>
+    y(-m_lu.corner(TopRight, m_rank, dimker));
+
+  m_lu.corner(TopLeft, m_rank, m_rank)
+      .template marked<Upper>()
+      .inverseProductInPlace(y);
+
+  for(int i = 0; i < m_rank; i++)
+    result.row(m_q.coeff(i)) = y.row(i);
+  for(int i = m_rank; i < cols; i++) result.row(m_q.coeff(i)).setZero();
+  for(int k = 0; k < dimker; k++) result.coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
+
+  return result;
 }
-#endif
 
 /** \return the LU decomposition of \c *this.
   *

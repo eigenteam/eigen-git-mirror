@@ -67,6 +67,73 @@ const typename Derived::Scalar ei_bruteforce_det(const MatrixBase<Derived>& m)
   }
 }
 
+const int TriangularDeterminant = 0;
+
+template<typename Derived,
+         int DeterminantType =
+           (Derived::Flags & (UpperTriangularBit | LowerTriangularBit))
+           ? TriangularDeterminant : Derived::RowsAtCompileTime
+> struct ei_determinant_impl
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    return m.lu().determinant();
+  }
+};
+
+template<typename Derived> struct ei_determinant_impl<Derived, TriangularDeterminant>
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    if (Derived::Flags & UnitDiagBit)
+      return 1;
+    else if (Derived::Flags & ZeroDiagBit)
+      return 0;
+    else
+      return m.diagonal().redux(ei_scalar_product_op<typename ei_traits<Derived>::Scalar>());
+  }
+};
+
+template<typename Derived> struct ei_determinant_impl<Derived, 1>
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    return m.coeff(0,0);
+  }
+};
+
+template<typename Derived> struct ei_determinant_impl<Derived, 2>
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    return m.coeff(0,0) * m.coeff(1,1) - m.coeff(1,0) * m.coeff(0,1);
+  }
+};
+
+template<typename Derived> struct ei_determinant_impl<Derived, 3>
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    return ei_bruteforce_det3_helper(m,0,1,2)
+          - ei_bruteforce_det3_helper(m,1,0,2)
+          + ei_bruteforce_det3_helper(m,2,0,1);
+  }
+};
+
+template<typename Derived> struct ei_determinant_impl<Derived, 4>
+{
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  {
+    // trick by Martin Costabel to compute 4x4 det with only 30 muls
+    return ei_bruteforce_det4_helper(m,0,1,2,3)
+          - ei_bruteforce_det4_helper(m,0,2,1,3)
+          + ei_bruteforce_det4_helper(m,0,3,1,2)
+          + ei_bruteforce_det4_helper(m,1,2,0,3)
+          - ei_bruteforce_det4_helper(m,1,3,0,2)
+          + ei_bruteforce_det4_helper(m,2,3,0,1);
+  }
+};
+
 /** \lu_module
   *
   * \returns the determinant of this matrix
@@ -75,17 +142,7 @@ template<typename Derived>
 typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   assert(rows() == cols());
-  if (Derived::Flags & (UpperTriangularBit | LowerTriangularBit))
-  {
-    if (Derived::Flags & UnitDiagBit)
-      return 1;
-    else if (Derived::Flags & ZeroDiagBit)
-      return 0;
-    else
-      return derived().diagonal().redux(ei_scalar_product_op<Scalar>());
-  }
-  else if(rows() <= 4) return ei_bruteforce_det(derived());
-  else return lu().determinant();
+  return ei_determinant_impl<Derived>::run(derived());
 }
 
 #endif // EIGEN_DETERMINANT_H
