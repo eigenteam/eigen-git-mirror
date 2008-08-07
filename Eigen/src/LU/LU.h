@@ -54,7 +54,7 @@ template<typename MatrixType> class LU
     typedef Matrix<int, MatrixType::ColsAtCompileTime, 1> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
 
-    LU(const MatrixType& matrix, int pivoting = CompletePivoting);
+    LU(const MatrixType& matrix);
 
     inline const MatrixType& matrixLU() const
     {
@@ -80,6 +80,10 @@ template<typename MatrixType> class LU
     {
       return m_q;
     }
+
+    inline const Matrix<Scalar, MatrixType::RowsAtCompileTime, Dynamic,
+                        MatrixType::MaxRowsAtCompileTime,
+                        MatrixType::MaxColsAtCompileTime> kernel() const;
 
     template<typename OtherDerived>
     typename ProductReturnType<Transpose<MatrixType>, OtherDerived>::Type::Eval
@@ -107,9 +111,19 @@ template<typename MatrixType> class LU
       return m_lu.cols() - m_rank;
     }
 
-    inline bool isInvertible() const
+    inline bool isInjective() const
     {
       return m_rank == m_lu.cols();
+    }
+
+    inline bool isSurjective() const
+    {
+      return m_rank == m_lu.rows();
+    }
+
+    inline bool isInvertible() const
+    {
+      return isInjective() && isSurjective();
     }
 
   protected:
@@ -119,61 +133,48 @@ template<typename MatrixType> class LU
     int m_det_pq;
     Scalar m_biggest_eigenvalue_of_u;
     int m_rank;
-    int m_pivoting;
 };
 
 template<typename MatrixType>
-LU<MatrixType>::LU(const MatrixType& matrix, int pivoting)
+LU<MatrixType>::LU(const MatrixType& matrix)
   : m_lu(matrix),
     m_p(matrix.rows()),
-    m_q(matrix.cols()),
-    m_pivoting(pivoting)
+    m_q(matrix.cols())
 {
   const int size = matrix.diagonal().size();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
-  ei_assert(pivoting == PartialPivoting || pivoting == CompletePivoting);
 
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
   int number_of_transpositions = 0;
 
+  RealScalar biggest;
   for(int k = 0; k < size; k++)
   {
-    int row_of_biggest, col_of_biggest;
-    Scalar biggest;
-    if(m_pivoting == CompletePivoting)
-    {
-      biggest = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
-                    .cwise().abs()
-                    .maxCoeff(&row_of_biggest, &col_of_biggest);
-      row_of_biggest += k;
-      col_of_biggest += k;
-      rows_transpositions.coeffRef(k) = row_of_biggest;
-      cols_transpositions.coeffRef(k) = col_of_biggest;
-      if(k != row_of_biggest) {
-        m_lu.row(k).swap(m_lu.row(row_of_biggest));
-        number_of_transpositions++;
-      }
-      if(k != col_of_biggest) {
-        m_lu.col(k).swap(m_lu.col(col_of_biggest));
-        number_of_transpositions++;
-      }
+    int row_of_biggest_in_corner, col_of_biggest_in_corner;
+    RealScalar biggest_in_corner;
+
+    biggest_in_corner = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
+                  .cwise().abs()
+                  .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
+    row_of_biggest_in_corner += k;
+    col_of_biggest_in_corner += k;
+    rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
+    cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
+    if(k != row_of_biggest_in_corner) {
+      m_lu.row(k).swap(m_lu.row(row_of_biggest_in_corner));
+      number_of_transpositions++;
     }
-    else // partial pivoting
-    {
-      biggest = m_lu.col(k).end(rows-k)
-                    .cwise().abs()
-                    .maxCoeff(&row_of_biggest);
-      row_of_biggest += k;
-      rows_transpositions.coeffRef(k) = row_of_biggest;
-      if(k != row_of_biggest) {
-        m_lu.row(k).swap(m_lu.row(row_of_biggest));
-        number_of_transpositions++;
-      }
+    if(k != col_of_biggest_in_corner) {
+      m_lu.col(k).swap(m_lu.col(col_of_biggest_in_corner));
+      number_of_transpositions++;
     }
+
+    if(k==0) biggest = biggest_in_corner;
     const Scalar lu_k_k = m_lu.coeff(k,k);
-    if(ei_isMuchSmallerThan(lu_k_k, biggest)) continue;
+    std::cout << lu_k_k << " " << biggest << std::endl;
+    if(ei_isMuchSmallerThan(lu_k_k, biggest)) { std::cout << "hello" << std::endl; continue; }
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= lu_k_k;
     if(k<size-1)
@@ -185,18 +186,15 @@ LU<MatrixType>::LU(const MatrixType& matrix, int pivoting)
   for(int k = size-1; k >= 0; k--)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
-  if(pivoting == CompletePivoting)
-  {
-    for(int k = 0; k < matrix.cols(); k++) m_q.coeffRef(k) = k;
-    for(int k = 0; k < size; k++)
-      std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
-  }
+  for(int k = 0; k < matrix.cols(); k++) m_q.coeffRef(k) = k;
+  for(int k = 0; k < size; k++)
+    std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
-  int index_of_biggest;
-  m_lu.diagonal().cwise().abs().maxCoeff(&index_of_biggest);
-  m_biggest_eigenvalue_of_u = m_lu.diagonal().coeff(index_of_biggest);
+  int index_of_biggest_in_diagonal;
+  m_lu.diagonal().cwise().abs().maxCoeff(&index_of_biggest_in_diagonal);
+  m_biggest_eigenvalue_of_u = m_lu.diagonal().coeff(index_of_biggest_in_diagonal);
 
   m_rank = 0;
   for(int k = 0; k < size; k++)
@@ -212,15 +210,27 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
   return res;
 }
 
+#if 0
+template<typename MatrixType>
+inline const Matrix<Scalar, RowsAtCompileTime, Dynamic,
+                    MaxRowsAtCompileTime, MaxColsAtCompileTime> kernel() const
+{
+  Matrix<Scalar, RowsAtCompileTime, Dynamic,
+         MaxRowsAtCompileTime, MaxColsAtCompileTime>
+    result(m_lu.rows(), dimensionOfKernel());
+  
+}
+#endif
+
 /** \return the LU decomposition of \c *this.
   *
   * \sa class LU
   */
 template<typename Derived>
 const LU<typename MatrixBase<Derived>::EvalType>
-MatrixBase<Derived>::lu(int pivoting = CompletePivoting) const
+MatrixBase<Derived>::lu() const
 {
-  return LU<typename MatrixBase<Derived>::EvalType>(eval(), pivoting);
+  return eval();
 }
 
 #endif // EIGEN_LU_H

@@ -179,6 +179,7 @@ struct ei_part_assignment_impl
     }
     else
     {
+      ei_assert(Mode == Upper || Mode == Lower || Mode == StrictlyUpper || Mode == StrictlyLower);
       if((Mode == Upper && row <= col)
       || (Mode == Lower && row >= col)
       || (Mode == StrictlyUpper && row < col)

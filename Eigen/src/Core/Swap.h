@@ -27,14 +27,9 @@
 
 /** \class SwapWrapper
   *
-  * \brief Expression which must be nested by value
+  * \internal
   *
-  * \param ExpressionType the type of the object of which we are requiring nesting-by-value
-  *
-  * This class is the return type of MatrixBase::nestByValue()
-  * and most of the time this is the only way it is used.
-  *
-  * \sa MatrixBase::nestByValue()
+  * \brief Internal helper class for swapping two expressions
   */
 template<typename ExpressionType>
 struct ei_traits<SwapWrapper<ExpressionType> >
@@ -116,12 +111,10 @@ template<typename ExpressionType> class SwapWrapper
 
 /** swaps *this with the expression \a other.
   *
-  * \note \a other is only marked const because I couln't find another way
-  * to get g++ (4.2 and 4.3) to accept that template parameter resolution.
-  * The problem seems to be that when swapping expressions as in
-  * m.row(i).swap(m.row(j)); the Row object returned by row(j) is a temporary
-  * and g++ doesn't dare to pass it by non-constant reference.
-  * It gets const_cast'd of course. TODO: get rid of const here.
+  * \note \a other is only marked for internal reasons, but of course
+  * it gets const-casted. One reason is that one will often call swap
+  * on temporary objects (hence non-const references are forbidden).
+  * Another reason is that lazyAssign takes a const argument anyway.
   */
 template<typename Derived>
 template<typename OtherDerived>
@@ -131,3 +124,9 @@ void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
 }
 
 #endif // EIGEN_SWAP_H
+
+
+
+
+
+
