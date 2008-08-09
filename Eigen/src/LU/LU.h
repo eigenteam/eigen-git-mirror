@@ -38,12 +38,9 @@
   * are permutation matrices.
   *
   * This decomposition provides the generic approach to solving systems of linear equations, computing
-  * the rank, invertibility, inverse, and determinant. However for the case when invertibility is
-  * assumed, we have a specialized variant (see MatrixBase::inverse()) achieving better performance.
+  * the rank, invertibility, inverse, kernel, and determinant.
   *
-  * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::rank(), MatrixBase::kernelDim(),
-  *     MatrixBase::kernelBasis(), MatrixBase::solve(), MatrixBase::isInvertible(),
-  *     MatrixBase::inverse(), MatrixBase::computeInverse()
+  * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse(), MatrixBase::computeInverse()
   */
 template<typename MatrixType> class LU
 {
@@ -141,6 +138,18 @@ template<typename MatrixType> class LU
       return isInjective() && isSurjective();
     }
 
+    inline void computeInverse(MatrixType *result) const
+    {
+      solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
+    }
+
+    inline MatrixType inverse() const
+    {
+      MatrixType result;
+      computeInverse(&result);
+      return result;
+    }
+
   protected:
     MatrixType m_lu;
     IntColVectorType m_p;
@@ -163,7 +172,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   IntRowVectorType cols_transpositions(matrix.cols());
   int number_of_transpositions = 0;
 
-  RealScalar biggest;
+  RealScalar biggest = RealScalar(0);
   for(int k = 0; k < size; k++)
   {
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
@@ -224,7 +233,7 @@ void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
                                    > *result) const
 {
   ei_assert(!isInvertible());
-  const int dimker = dimensionOfKernel(), rows = m_lu.rows(), cols = m_lu.cols();
+  const int dimker = dimensionOfKernel(), cols = m_lu.cols();
   result->resize(cols, dimker);
 
   /* Let us use the following lemma:
@@ -284,21 +293,22 @@ bool LU<MatrixType>::solve(
    * Step 4: result = Qd;
    */
 
-  ei_assert(b.rows() == m_lu.rows());
-  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+  const int rows = m_lu.rows();
+  ei_assert(b.rows() == rows);
+  const int smalldim = std::min(rows, m_lu.cols());
 
   typename OtherDerived::Eval c(b.rows(), b.cols());
 
   // Step 1
-  for(int i = 0; i < m_lu.rows(); i++) c.row(m_p.coeff(i)) = b.row(i);
+  for(int i = 0; i < rows; i++) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
          MatrixType::MaxRowsAtCompileTime,
-         MatrixType::MaxRowsAtCompileTime> l(m_lu.rows(), m_lu.rows());
+         MatrixType::MaxRowsAtCompileTime> l(rows, rows);
   l.setZero();
-  l.corner(Eigen::TopLeft,m_lu.rows(),smalldim)
-    = m_lu.corner(Eigen::TopLeft,m_lu.rows(),smalldim);
+  l.corner(Eigen::TopLeft,rows,smalldim)
+    = m_lu.corner(Eigen::TopLeft,rows,smalldim);
   l.template marked<UnitLower>().inverseProductInPlace(c);
 
   // Step 3
@@ -330,7 +340,7 @@ bool LU<MatrixType>::solve(
   * \sa class LU
   */
 template<typename Derived>
-const LU<typename MatrixBase<Derived>::EvalType>
+inline const LU<typename MatrixBase<Derived>::EvalType>
 MatrixBase<Derived>::lu() const
 {
   return eval();

@@ -161,7 +161,7 @@ struct ei_compute_inverse
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
     LU<MatrixType> lu(matrix);
-    lu.solve(MatrixType::Identity(matrix.rows(), matrix.cols()), result);
+    lu.computeInverse(result);
   }
 };
 
