@@ -26,7 +26,7 @@
 #define EIGEN_DETERMINANT_H
 
 template<typename Derived>
-const typename Derived::Scalar ei_bruteforce_det3_helper
+inline const typename Derived::Scalar ei_bruteforce_det3_helper
 (const MatrixBase<Derived>& matrix, int a, int b, int c)
 {
   return matrix.coeff(0,a)
@@ -86,7 +86,7 @@ template<typename Derived> struct ei_determinant_impl<Derived, 2>
 
 template<typename Derived> struct ei_determinant_impl<Derived, 3>
 {
-  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  static typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
     return ei_bruteforce_det3_helper(m,0,1,2)
           - ei_bruteforce_det3_helper(m,1,0,2)
@@ -96,7 +96,7 @@ template<typename Derived> struct ei_determinant_impl<Derived, 3>
 
 template<typename Derived> struct ei_determinant_impl<Derived, 4>
 {
-  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
+  static typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
     // trick by Martin Costabel to compute 4x4 det with only 30 muls
     return ei_bruteforce_det4_helper(m,0,1,2,3)
@@ -113,7 +113,7 @@ template<typename Derived> struct ei_determinant_impl<Derived, 4>
   * \returns the determinant of this matrix
   */
 template<typename Derived>
-typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
+inline typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   assert(rows() == cols());
   return ei_determinant_impl<Derived>::run(derived());

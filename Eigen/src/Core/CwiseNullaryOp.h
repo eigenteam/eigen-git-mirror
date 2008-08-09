@@ -515,6 +515,27 @@ bool MatrixBase<Derived>::isIdentity
   return true;
 }
 
+template<typename Derived, bool Big = (Derived::SizeAtCompileTime>=16)>
+struct ei_setIdentity_impl
+{
+  static inline Derived& run(Derived& m)
+  {
+    return m = Derived::Identity(m.rows(), m.cols());
+  }
+};
+
+template<typename Derived>
+struct ei_setIdentity_impl<Derived, true>
+{
+  static inline Derived& run(Derived& m)
+  {
+    m.setZero();
+    const int size = std::min(m.rows(), m.cols());
+    for(int i = 0; i < size; i++) m.coeffRef(i,i) = typename Derived::Scalar(1);
+    return m;
+  }
+};
+
 /** Writes the identity expression (not necessarily square) into *this.
   *
   * Example: \include MatrixBase_setIdentity.cpp
@@ -525,7 +546,7 @@ bool MatrixBase<Derived>::isIdentity
 template<typename Derived>
 inline Derived& MatrixBase<Derived>::setIdentity()
 {
-  return derived() = Identity(rows(), cols());
+  return ei_setIdentity_impl<Derived>::run(derived());
 }
 
 /** \returns an expression of the i-th unit (basis) vector.

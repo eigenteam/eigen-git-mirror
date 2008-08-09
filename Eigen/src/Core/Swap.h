@@ -53,7 +53,7 @@ template<typename ExpressionType> class SwapWrapper
     EIGEN_GENERIC_PUBLIC_INTERFACE(SwapWrapper)
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
-    inline SwapWrapper(ExpressionType& matrix) : m_expression(matrix) {}
+    inline SwapWrapper(ExpressionType& xpr) : m_expression(xpr) {}
 
     inline int rows() const { return m_expression.rows(); }
     inline int cols() const { return m_expression.cols(); }
@@ -106,7 +106,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
   protected:
-    ExpressionType m_expression;
+    ExpressionType& m_expression;
 };
 
 /** swaps *this with the expression \a other.

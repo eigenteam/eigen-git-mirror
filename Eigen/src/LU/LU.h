@@ -56,9 +56,18 @@ template<typename MatrixType> class LU
     typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
 
-    enum { MaxKerDimAtCompileTime = EIGEN_ENUM_MIN(
+    enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
              MatrixType::MaxColsAtCompileTime,
-             MatrixType::MaxRowsAtCompileTime)
+             MatrixType::MaxRowsAtCompileTime),
+           SmallDimAtCompileTime = EIGEN_ENUM_MIN(
+             MatrixType::ColsAtCompileTime,
+             MatrixType::RowsAtCompileTime),
+           MaxBigDimAtCompileTime = EIGEN_ENUM_MAX(
+             MatrixType::MaxColsAtCompileTime,
+             MatrixType::MaxRowsAtCompileTime),
+           BigDimAtCompileTime = EIGEN_ENUM_MAX(
+             MatrixType::ColsAtCompileTime,
+             MatrixType::RowsAtCompileTime)
     };
 
     LU(const MatrixType& matrix);
@@ -88,13 +97,21 @@ template<typename MatrixType> class LU
       return m_q;
     }
 
-    inline const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                        MatrixType::MaxColsAtCompileTime,
-                        LU<MatrixType>::MaxKerDimAtCompileTime> kernel() const;
+    void computeKernel(Matrix<typename MatrixType::Scalar,
+                              MatrixType::ColsAtCompileTime, Dynamic,
+                              MatrixType::MaxColsAtCompileTime,
+                              LU<MatrixType>::MaxSmallDimAtCompileTime
+                             > *result) const;
+
+    const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                 MatrixType::MaxColsAtCompileTime,
+                 LU<MatrixType>::MaxSmallDimAtCompileTime> kernel() const;
 
     template<typename OtherDerived>
-    typename ProductReturnType<Transpose<MatrixType>, OtherDerived>::Type::Eval
-    solve(const MatrixBase<MatrixType> &b) const;
+    Matrix<typename MatrixType::Scalar,
+           MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
+           MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime
+    > solve(MatrixBase<OtherDerived> *b) const;
 
     /**
       * This method returns the determinant of the matrix of which
@@ -197,30 +214,27 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
-  m_rank = 0;
-  for(int k = 0; k < size; k++)
-    m_rank += !ei_isMuchSmallerThan(m_lu.diagonal().coeff(k),
-                                    m_lu.diagonal().coeff(0));
+  for(m_rank = 0; m_rank < size; m_rank++)
+    if(ei_isMuchSmallerThan(m_lu.diagonal().coeff(m_rank), m_lu.diagonal().coeff(0)))
+      break;
 }
 
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
-  return m_lu.diagonal().redux(ei_scalar_product_op<Scalar>()) * Scalar(m_det_pq);
+  return Scalar(m_det_pq) * m_lu.diagonal().redux(ei_scalar_product_op<Scalar>());
 }
 
 template<typename MatrixType>
-inline const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                    MatrixType::MaxColsAtCompileTime,
-                    LU<MatrixType>::MaxKerDimAtCompileTime>
-LU<MatrixType>::kernel() const
+void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
+                                          MatrixType::ColsAtCompileTime, Dynamic,
+                                          MatrixType::MaxColsAtCompileTime,
+                                          LU<MatrixType>::MaxSmallDimAtCompileTime
+                                   > *result) const
 {
   ei_assert(!isInvertible());
   const int dimker = dimensionOfKernel(), rows = m_lu.rows(), cols = m_lu.cols();
-  Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-         MatrixType::MaxColsAtCompileTime,
-         LU<MatrixType>::MaxKerDimAtCompileTime>
-    result(cols, dimker);
+  result->resize(cols, dimker);
 
   /* Let us use the following lemma:
     *
@@ -238,7 +252,7 @@ LU<MatrixType>::kernel() const
     * independent vectors in Ker U.
     */
 
-  Matrix<Scalar, Dynamic, Dynamic, MatrixType::MaxColsAtCompileTime, MaxKerDimAtCompileTime>
+  Matrix<Scalar, Dynamic, Dynamic, MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime>
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
   m_lu.corner(TopLeft, m_rank, m_rank)
@@ -246,12 +260,91 @@ LU<MatrixType>::kernel() const
       .inverseProductInPlace(y);
 
   for(int i = 0; i < m_rank; i++)
-    result.row(m_q.coeff(i)) = y.row(i);
-  for(int i = m_rank; i < cols; i++) result.row(m_q.coeff(i)).setZero();
-  for(int k = 0; k < dimker; k++) result.coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
+    result->row(m_q.coeff(i)) = y.row(i);
+  for(int i = m_rank; i < cols; i++) result->row(m_q.coeff(i)).setZero();
+  for(int k = 0; k < dimker; k++) result->coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
+}
 
+template<typename MatrixType>
+const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                    MatrixType::MaxColsAtCompileTime,
+                    LU<MatrixType>::MaxSmallDimAtCompileTime>
+LU<MatrixType>::kernel() const
+{
+  Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                    MatrixType::MaxColsAtCompileTime,
+                    LU<MatrixType>::MaxSmallDimAtCompileTime> result(m_lu.cols(), dimensionOfKernel());
+  computeKernel(&result);
   return result;
 }
+
+#if 0
+template<typename MatrixType>
+template<typename OtherDerived>
+bool LU<MatrixType>::solve(
+  const MatrixBase<OtherDerived>& b,
+  Matrix<typename MatrixType::Scalar,
+             MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
+             MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime> *result
+) const
+{
+  /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
+   * So we proceed as follows:
+   * Step 1: compute c = Pb.
+   * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
+   * Step 3: compute d such that Ud = c. Check if such d really exists.
+   * Step 4: result = Qd;
+   */
+
+  typename OtherDerived::Eval c(b.rows(), b.cols());
+  Matrix<typename MatrixType::Scalar,
+         MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
+         MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
+    d(m_lu.cols(), b.cols());
+
+  // Step 1
+  for(int i = 0; i < dim(); i++) c.row(m_p.coeff(i)) = b.row(i);
+
+  // Step 2
+  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
+         MatrixType::MaxRowsAtCompileTime,
+         MatrixType::MaxRowsAtCompileTime> l(m_lu.rows(), m_lu.rows());
+  l.setIdentity();
+  l.corner(Eigen::TopLeft,HEIGHT,SIZE) = lu.matrixL().corner(Eigen::TopLeft,HEIGHT,SIZE);
+  l.template marked<UnitLower>.solveInPlace(c);
+
+  // Step 3
+  const int bigdim = std::max(m_lu.rows(), m_lu.cols());
+  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+  Matrix<Scalar, MatrixType::BigDimAtCompileTime, MatrixType::BigDimAtCompileTime,
+         MatrixType::MaxBigDimAtCompileTime,
+         MatrixType::MaxBigDimAtCompileTime> u(bigdim, bigdim);
+  u.setZero();
+  u.corner(TopLeft, smalldim, smalldim) = m_lu.corner(TopLeft, smalldim, smalldim)
+                                              .template part<Upper>();
+  if(m_lu.cols() > m_lu.rows())
+    u.corner(BottomLeft, m_lu.cols()-m_lu.rows(), m_lu.cols()).setZero();
+  const int size = std::min(m_lu.rows(), m_lu.cols());
+  for(int i = size-1; i >= m_rank; i--)
+  {
+    if(c.row(i).isMuchSmallerThan(ei_abs(m_lu.coeff(0,0))))
+    {
+      d.row(i).setConstant(Scalar(1));
+    }
+    else return false;
+  }
+  for(int i = m_rank-1; i >= 0; i--)
+  {
+    d.row(i) = c.row(i);
+    for( int j = i + 1; j <= dim() - 1; j++ )
+    {
+        rowptr += dim();
+        b[i] -= b[j] * (*rowptr);
+    }
+    b[i] /= *denomptr;
+  }
+}
+#endif
 
 /** \return the LU decomposition of \c *this.
   *
