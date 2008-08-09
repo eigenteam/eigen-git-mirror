@@ -30,8 +30,11 @@
   *
   * \brief A matrix or vector expression mapping an existing array of data.
   *
-  * \param _PacketAccess controls whether vectorized aligned loads or stores are allowed (Aligned)
-  *                      or forced to unaligned (Unaligned). Defaults to Unaligned.
+  * \param MatrixType the equivalent matrix type of the mapped data
+  * \param _PacketAccess allows to enforce aligned loads and stores if set to ForceAligned.
+  *                      The default is AsRequested. This parameter is internaly used by Eigen
+  *                      in expressions such as \code Map<...>(...) += other; \endcode and most
+  *                      of the time this is the only way it is used.
   *
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
@@ -48,9 +51,9 @@ struct ei_traits<Map<MatrixType, _PacketAccess> > : public ei_traits<MatrixType>
     PacketAccess = _PacketAccess,
     Flags = ei_traits<MatrixType>::Flags & ~AlignedBit
   };
-  typedef typename ei_meta_if<int(PacketAccess)==Aligned,
+  typedef typename ei_meta_if<int(PacketAccess)==ForceAligned,
                               Map<MatrixType, _PacketAccess>&,
-                              Map<MatrixType, Aligned> >::ret AlignedDerivedType;
+                              Map<MatrixType, ForceAligned> >::ret AlignedDerivedType;
 };
 
 template<typename MatrixType, int PacketAccess> class Map
@@ -63,12 +66,12 @@ template<typename MatrixType, int PacketAccess> class Map
 
     inline int stride() const { return this->innerSize(); }
 
-    AlignedDerivedType allowAligned()
+    AlignedDerivedType forceAligned()
     {
-      if (PacketAccess==Aligned)
+      if (PacketAccess==ForceAligned)
         return *this;
       else
-        return Map<MatrixType,Aligned>(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
+        return Map<MatrixType,ForceAligned>(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 
     inline Map(const Scalar* data) : Base(data) {}

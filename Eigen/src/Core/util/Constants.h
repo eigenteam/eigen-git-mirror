@@ -180,7 +180,8 @@ const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 const unsigned int Diagonal = Upper | Lower;
 
-enum { Aligned=0, Unaligned=1, Unknown=2 };
+enum { Aligned, Unaligned };
+enum { ForceAligned, AsRequested };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };

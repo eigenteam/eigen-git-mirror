@@ -33,7 +33,10 @@
   * \param MatrixType the type of the object in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param _PacketAccess 
+  * \param _PacketAccess allows to enforce aligned loads and stores if set to ForceAligned.
+  *                      The default is AsRequested. This parameter is internaly used by Eigen
+  *                      in expressions such as \code mat.block() += other; \endcode and most of
+  *                      the time this is the only way it is used.
   * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
@@ -84,9 +87,9 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
     CoeffReadCost = MatrixType::CoeffReadCost,
     PacketAccess = _PacketAccess
   };
-  typedef typename ei_meta_if<int(PacketAccess)==Aligned,
+  typedef typename ei_meta_if<int(PacketAccess)==ForceAligned,
                  Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus>&,
-                 Block<MatrixType, BlockRows, BlockCols, Aligned, _DirectAccessStatus> >::ret AlignedDerivedType;
+                 Block<MatrixType, BlockRows, BlockCols, ForceAligned, _DirectAccessStatus> >::ret AlignedDerivedType;
 };
 
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus> class Block
@@ -223,12 +226,12 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
-    AlignedDerivedType allowAligned()
+    AlignedDerivedType forceAligned()
     {
-      if (PacketAccess==Aligned)
+      if (PacketAccess==ForceAligned)
         return *this;
       else
-        return Block<MatrixType,BlockRows,BlockCols,Aligned,HasDirectAccess>
+        return Block<MatrixType,BlockRows,BlockCols,ForceAligned,HasDirectAccess>
                     (m_matrix, Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 

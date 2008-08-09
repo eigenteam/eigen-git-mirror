@@ -26,11 +26,17 @@
 #ifndef EIGEN_MAPBASE_H
 #define EIGEN_MAPBASE_H
 
-/** \internal
-  *
-  * \class MapBase
+/** \class MapBase
   *
   * \brief Base class for Map and Block expression with direct access
+  *
+  * Expression classes inheriting MapBase must define the constant \c PacketAccess,
+  * and type \c AlignedDerivedType in their respective ei_traits<> specialization structure.
+  * The value of \c PacketAccess can be either:
+  *  - \b ForceAligned which enforces both aligned loads and stores
+  *  - \b AsRequested which is the default behavior
+  * The type \c AlignedDerivedType should correspond to the equivalent expression type
+  * with \c PacketAccess being \c ForceAligned.
   *
   * \sa class Map, class Block
   */
@@ -57,7 +63,10 @@ template<typename Derived> class MapBase
     inline int cols() const { return m_cols.value(); }
 
     inline int stride() const { return derived().stride(); }
-    AlignedDerivedType allowAligned() { return derived().allowAligned(); }
+
+    /** \Returns an expression equivalent to \c *this but having the \c PacketAccess constant
+      * set to \c ForceAligned. Must be reimplemented by the derived class. */
+    AlignedDerivedType forceAligned() { return derived().forceAligned(); }
 
     inline const Scalar& coeff(int row, int col) const
     {
@@ -92,7 +101,7 @@ template<typename Derived> class MapBase
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
-      return ei_ploadt<Scalar, int(PacketAccess) == Aligned ? Aligned : LoadMode>
+      return ei_ploadt<Scalar, int(PacketAccess) == ForceAligned ? Aligned : LoadMode>
                (m_data + (IsRowMajor ? col + row * stride()
                                      : row + col * stride()));
     }
@@ -100,13 +109,13 @@ template<typename Derived> class MapBase
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return ei_ploadt<Scalar, int(PacketAccess) == Aligned ? Aligned : LoadMode>(m_data + index);
+      return ei_ploadt<Scalar, int(PacketAccess) == ForceAligned ? Aligned : LoadMode>(m_data + index);
     }
 
     template<int StoreMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == Aligned ? Aligned : StoreMode>
+      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == ForceAligned ? Aligned : StoreMode>
                (const_cast<Scalar*>(m_data) + (IsRowMajor ? col + row * stride()
                                                           : row + col * stride()), x);
     }
@@ -114,7 +123,7 @@ template<typename Derived> class MapBase
     template<int StoreMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == Aligned ? Aligned : StoreMode>
+      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == ForceAligned ? Aligned : StoreMode>
         (const_cast<Scalar*>(m_data) + index, x);
     }
 
@@ -142,21 +151,19 @@ template<typename Derived> class MapBase
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MapBase)
 
-//     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(MapBase, =)
-
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
-    { return derived() = allowAligned() + other; }
+    { return derived() = forceAligned() + other; }
     
     template<typename OtherDerived>
     Derived& operator-=(const MatrixBase<OtherDerived>& other)
-    { return derived() = allowAligned() - other; }
+    { return derived() = forceAligned() - other; }
 
     Derived& operator*=(const Scalar& other)
-    { return derived() = allowAligned() * other; }
+    { return derived() = forceAligned() * other; }
     
     Derived& operator/=(const Scalar& other)
-    { return derived() = allowAligned() / other; }
+    { return derived() = forceAligned() / other; }
 
   protected:
     const Scalar* __restrict__ m_data;

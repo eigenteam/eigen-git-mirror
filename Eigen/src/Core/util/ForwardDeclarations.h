@@ -43,7 +43,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;
-template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=Unaligned,
+template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=AsRequested,
          int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit> class Block;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
@@ -53,7 +53,7 @@ template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename CoeffsVectorType> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
-template<typename MatrixType, int PacketAccess = Unaligned> class Map;
+template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
