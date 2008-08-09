@@ -58,16 +58,7 @@ template<typename MatrixType> class LU
 
     enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
              MatrixType::MaxColsAtCompileTime,
-             MatrixType::MaxRowsAtCompileTime),
-           SmallDimAtCompileTime = EIGEN_ENUM_MIN(
-             MatrixType::ColsAtCompileTime,
-             MatrixType::RowsAtCompileTime),
-           MaxBigDimAtCompileTime = EIGEN_ENUM_MAX(
-             MatrixType::MaxColsAtCompileTime,
-             MatrixType::MaxRowsAtCompileTime),
-           BigDimAtCompileTime = EIGEN_ENUM_MAX(
-             MatrixType::ColsAtCompileTime,
-             MatrixType::RowsAtCompileTime)
+             MatrixType::MaxRowsAtCompileTime)
     };
 
     LU(const MatrixType& matrix);
@@ -107,12 +98,10 @@ template<typename MatrixType> class LU
                  MatrixType::MaxColsAtCompileTime,
                  LU<MatrixType>::MaxSmallDimAtCompileTime> kernel() const;
 
-    template<typename OtherDerived>
+    template<typename OtherDerived, typename ResultType>
     bool solve(
     const MatrixBase<OtherDerived>& b,
-    Matrix<typename MatrixType::Scalar,
-           MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
-           MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime> *result
+    ResultType *result
     ) const;
 
     /**
@@ -281,12 +270,10 @@ LU<MatrixType>::kernel() const
 }
 
 template<typename MatrixType>
-template<typename OtherDerived>
+template<typename OtherDerived, typename ResultType>
 bool LU<MatrixType>::solve(
   const MatrixBase<OtherDerived>& b,
-  Matrix<typename MatrixType::Scalar,
-             MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
-             MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime> *result
+  ResultType *result
 ) const
 {
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
@@ -298,7 +285,6 @@ bool LU<MatrixType>::solve(
    */
 
   ei_assert(b.rows() == m_lu.rows());
-  const int bigdim = std::max(m_lu.rows(), m_lu.cols());
   const int smalldim = std::min(m_lu.rows(), m_lu.cols());
 
   typename OtherDerived::Eval c(b.rows(), b.cols());

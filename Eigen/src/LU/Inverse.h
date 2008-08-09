@@ -25,90 +25,8 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
-/***************************************************************************
-*** Part 1 : implementation in the general case, by Gaussian elimination ***
-***************************************************************************/
-
-template<typename MatrixType, int StorageOrder>
-struct ei_compute_inverse_in_general_case;
-
-template<typename MatrixType>
-struct ei_compute_inverse_in_general_case<MatrixType, RowMajor>
-{
-  static void run(const MatrixType& _matrix, MatrixType *result)
-  {
-    typedef typename MatrixType::Scalar Scalar;
-    MatrixType matrix(_matrix);
-    MatrixType &inverse = *result;
-    inverse.setIdentity();
-    const int size = matrix.rows();
-    for(int k = 0; k < size-1; k++)
-    {
-      int rowOfBiggest;
-      matrix.col(k).end(size-k).cwise().abs().maxCoeff(&rowOfBiggest);
-      inverse.row(k).swap(inverse.row(k+rowOfBiggest));
-      matrix.row(k).swap(matrix.row(k+rowOfBiggest));
-
-      const Scalar d = matrix(k,k);
-      for(int row = k + 1; row < size; row++)
-        inverse.row(row) -= inverse.row(k) * (matrix.coeff(row,k)/d);
-      for(int row = k + 1; row < size; row++)
-        matrix.row(row).end(size-k) -= (matrix.row(k).end(size-k)/d) * matrix.coeff(row,k);
-    }
-
-    for(int k = 0; k < size-1; k++)
-    {
-      const Scalar d = static_cast<Scalar>(1)/matrix(k,k);
-      matrix.row(k).end(size-k) *= d;
-      inverse.row(k) *= d;
-    }
-    inverse.row(size-1) /= matrix(size-1,size-1);
-
-    for(int k = size-1; k >= 1; k--)
-      for(int row = 0; row < k; row++)
-        inverse.row(row) -= inverse.row(k) * matrix.coeff(row,k);
-  }
-};
-
-template<typename MatrixType>
-struct ei_compute_inverse_in_general_case<MatrixType, ColMajor>
-{
-  static void run(const MatrixType& _matrix, MatrixType *result)
-  {
-    typedef typename MatrixType::Scalar Scalar;
-    MatrixType matrix(_matrix);
-    MatrixType& inverse = *result;
-    inverse.setIdentity();
-    const int size = matrix.rows();
-    for(int k = 0; k < size-1; k++)
-    {
-      int colOfBiggest;
-      matrix.row(k).end(size-k).cwise().abs().maxCoeff(&colOfBiggest);
-      inverse.col(k).swap(inverse.col(k+colOfBiggest));
-      matrix.col(k).swap(matrix.col(k+colOfBiggest));
-      const Scalar d = matrix(k,k);
-      for(int col = k + 1; col < size; col++)
-        inverse.col(col) -= inverse.col(k) * (matrix.coeff(k,col)/d);
-      for(int col = k + 1; col < size; col++)
-        matrix.col(col).end(size-k) -= (matrix.col(k).end(size-k)/d) * matrix.coeff(k,col);
-    }
-
-    for(int k = 0; k < size-1; k++)
-    {
-      const Scalar d = static_cast<Scalar>(1)/matrix(k,k);
-      matrix.col(k).end(size-k) *= d;
-      inverse.col(k) *= d;
-    }
-    inverse.col(size-1) /= matrix(size-1,size-1);
-
-    for(int k = size-1; k >= 1; k--)
-      for(int col = 0; col < k; col++)
-        inverse.col(col) -= inverse.col(k) * matrix.coeff(k,col);
-  }
-};
-
 /********************************************************************
-*** Part 2 : optimized implementations for fixed-size 2,3,4 cases ***
+*** Part 1 : optimized implementations for fixed-size 2,3,4 cases ***
 ********************************************************************/
 
 template<typename MatrixType>
@@ -234,7 +152,7 @@ void ei_compute_inverse_in_size4_case(const MatrixType& matrix, MatrixType* resu
 }
 
 /***********************************************
-*** Part 3 : selector and MatrixBase methods ***
+*** Part 2 : selector and MatrixBase methods ***
 ***********************************************/
 
 template<typename MatrixType, int Size = MatrixType::RowsAtCompileTime>
@@ -242,8 +160,8 @@ struct ei_compute_inverse
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    ei_compute_inverse_in_general_case<MatrixType, MatrixType::Flags&RowMajorBit>
-      ::run(matrix, result);
+    LU<MatrixType> lu(matrix);
+    lu.solve(MatrixType::Identity(matrix.rows(), matrix.cols()), result);
   }
 };
 
