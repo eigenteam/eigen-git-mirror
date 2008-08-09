@@ -38,11 +38,11 @@ MACRO(EI_ADD_TEST testname)
 
   SET(targetname test_${testname})
 
-  IF(${ARGC} EQUAL 2)
-    SET(filename ${ARGV1})
-  ELSE(${ARGC} EQUAL 2)
+#  IF(${ARGC} EQUAL 2)
+#    SET(filename ${ARGV1})
+#  ELSE(${ARGC} EQUAL 2)
     SET(filename ${testname}.cpp)
-  ENDIF(${ARGC} EQUAL 2)
+#  ENDIF(${ARGC} EQUAL 2)
   ADD_EXECUTABLE(${targetname} ${filename})
 
   IF(NOT EIGEN_NO_ASSERTION_CHECKING)
@@ -58,6 +58,10 @@ MACRO(EI_ADD_TEST testname)
     SET_TARGET_PROPERTIES(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_NO_ASSERTION_CHECKING=1")
 
   ENDIF(NOT EIGEN_NO_ASSERTION_CHECKING)
+
+  IF(${ARGC} GREATER 1)
+    EI_ADD_TARGET_PROPERTY(${targetname} COMPILE_FLAGS "${ARGV1}")
+  ENDIF(${ARGC} GREATER 1)
 
   EI_ADD_TARGET_PROPERTY(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
@@ -86,7 +90,7 @@ EI_ADD_TEST(basicstuff)
 EI_ADD_TEST(linearstructure)
 EI_ADD_TEST(cwiseop)
 EI_ADD_TEST(product_small)
-EI_ADD_TEST(product_large)
+EI_ADD_TEST(product_large "-O2")
 EI_ADD_TEST(adjoint)
 EI_ADD_TEST(submatrices)
 EI_ADD_TEST(miscmatrices)

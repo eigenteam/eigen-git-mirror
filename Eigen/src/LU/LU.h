@@ -108,10 +108,12 @@ template<typename MatrixType> class LU
                  LU<MatrixType>::MaxSmallDimAtCompileTime> kernel() const;
 
     template<typename OtherDerived>
+    bool solve(
+    const MatrixBase<OtherDerived>& b,
     Matrix<typename MatrixType::Scalar,
            MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
-           MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime
-    > solve(MatrixBase<OtherDerived> *b) const;
+           MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime> *result
+    ) const;
 
     /**
       * This method returns the determinant of the matrix of which
@@ -278,7 +280,6 @@ LU<MatrixType>::kernel() const
   return result;
 }
 
-#if 0
 template<typename MatrixType>
 template<typename OtherDerived>
 bool LU<MatrixType>::solve(
@@ -296,55 +297,47 @@ bool LU<MatrixType>::solve(
    * Step 4: result = Qd;
    */
 
+  ei_assert(b.rows() == m_lu.rows());
+  const int bigdim = std::max(m_lu.rows(), m_lu.cols());
+  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+
   typename OtherDerived::Eval c(b.rows(), b.cols());
-  Matrix<typename MatrixType::Scalar,
-         MatrixType::ColsAtCompileTime, OtherDerived::ColsAtCompileTime,
-         MatrixType::MaxColsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
-    d(m_lu.cols(), b.cols());
 
   // Step 1
-  for(int i = 0; i < dim(); i++) c.row(m_p.coeff(i)) = b.row(i);
+  for(int i = 0; i < m_lu.rows(); i++) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
          MatrixType::MaxRowsAtCompileTime,
          MatrixType::MaxRowsAtCompileTime> l(m_lu.rows(), m_lu.rows());
-  l.setIdentity();
-  l.corner(Eigen::TopLeft,HEIGHT,SIZE) = lu.matrixL().corner(Eigen::TopLeft,HEIGHT,SIZE);
-  l.template marked<UnitLower>.solveInPlace(c);
+  l.setZero();
+  l.corner(Eigen::TopLeft,m_lu.rows(),smalldim)
+    = m_lu.corner(Eigen::TopLeft,m_lu.rows(),smalldim);
+  l.template marked<UnitLower>().inverseProductInPlace(c);
 
   // Step 3
-  const int bigdim = std::max(m_lu.rows(), m_lu.cols());
-  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
-  Matrix<Scalar, MatrixType::BigDimAtCompileTime, MatrixType::BigDimAtCompileTime,
-         MatrixType::MaxBigDimAtCompileTime,
-         MatrixType::MaxBigDimAtCompileTime> u(bigdim, bigdim);
-  u.setZero();
-  u.corner(TopLeft, smalldim, smalldim) = m_lu.corner(TopLeft, smalldim, smalldim)
-                                              .template part<Upper>();
-  if(m_lu.cols() > m_lu.rows())
-    u.corner(BottomLeft, m_lu.cols()-m_lu.rows(), m_lu.cols()).setZero();
-  const int size = std::min(m_lu.rows(), m_lu.cols());
-  for(int i = size-1; i >= m_rank; i--)
+  if(!isSurjective())
   {
-    if(c.row(i).isMuchSmallerThan(ei_abs(m_lu.coeff(0,0))))
-    {
-      d.row(i).setConstant(Scalar(1));
-    }
-    else return false;
+    // is c is in the image of U ?
+    RealScalar biggest_in_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
+    for(int col = 0; col < c.cols(); col++)
+      for(int row = m_rank; row < c.rows(); row++)
+        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c))
+          return false;
   }
-  for(int i = m_rank-1; i >= 0; i--)
-  {
-    d.row(i) = c.row(i);
-    for( int j = i + 1; j <= dim() - 1; j++ )
-    {
-        rowptr += dim();
-        b[i] -= b[j] * (*rowptr);
-    }
-    b[i] /= *denomptr;
-  }
+  Matrix<Scalar, Dynamic, OtherDerived::ColsAtCompileTime,
+         MatrixType::MaxRowsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
+    d(c.corner(TopLeft, m_rank, c.cols()));
+  m_lu.corner(TopLeft, m_rank, m_rank)
+      .template marked<Upper>()
+      .inverseProductInPlace(d);
+
+  // Step 4
+  result->resize(m_lu.cols(), b.cols());
+  for(int i = 0; i < m_rank; i++) result->row(m_q.coeff(i)) = d.row(i);
+  for(int i = m_rank; i < m_lu.cols(); i++) result->row(m_q.coeff(i)).setZero();
+  return true;
 }
-#endif
 
 /** \return the LU decomposition of \c *this.
   *
