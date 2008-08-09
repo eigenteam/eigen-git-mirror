@@ -80,15 +80,15 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
   // test back and forward subsitution
   m3 = m1.template part<Eigen::Lower>();
-  VERIFY(m3.template marked<Eigen::Lower>().inverseProduct(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.template marked<Eigen::Lower>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
 
   m3 = m1.template part<Eigen::Upper>();
-  VERIFY(m3.template marked<Eigen::Upper>().inverseProduct(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.template marked<Eigen::Upper>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
 
   // FIXME these tests failed due to numerical issues
   // m1 = MatrixType::Random(rows, cols);
-  // VERIFY_IS_APPROX(m1.template part<Eigen::Upper>().eval() * (m1.template part<Eigen::Upper>().inverseProduct(m2)), m2);
-  // VERIFY_IS_APPROX(m1.template part<Eigen::Lower>().eval() * (m1.template part<Eigen::Lower>().inverseProduct(m2)), m2);
+  // VERIFY_IS_APPROX(m1.template part<Eigen::Upper>().eval() * (m1.template part<Eigen::Upper>().solveTriangular(m2)), m2);
+  // VERIFY_IS_APPROX(m1.template part<Eigen::Lower>().eval() * (m1.template part<Eigen::Lower>().solveTriangular(m2)), m2);
 
   VERIFY((m1.template part<Eigen::Upper>() * m2.template part<Eigen::Upper>()).isUpper());
 

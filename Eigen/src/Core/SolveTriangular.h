@@ -212,13 +212,13 @@ struct ei_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
   }
 };
 
-/** "in-place" version of MatrixBase::inverseProduct() where the result is written in \a other
+/** "in-place" version of MatrixBase::solveTriangular() where the result is written in \a other
   *
-  * \sa inverseProduct()
+  * \sa solveTriangular()
   */
 template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Derived>::inverseProductInPlace(MatrixBase<OtherDerived>& other) const
+void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
 {
   ei_assert(derived().cols() == derived().rows());
   ei_assert(derived().cols() == other.rows());
@@ -244,10 +244,10 @@ void MatrixBase<Derived>::inverseProductInPlace(MatrixBase<OtherDerived>& other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-typename OtherDerived::Eval MatrixBase<Derived>::inverseProduct(const MatrixBase<OtherDerived>& other) const
+typename OtherDerived::Eval MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
   typename OtherDerived::Eval res(other);
-  inverseProductInPlace(res);
+  solveTriangularInPlace(res);
   return res;
 }
 

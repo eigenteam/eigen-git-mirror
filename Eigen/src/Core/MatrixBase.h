@@ -320,10 +320,10 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
 
     template<typename OtherDerived>
-    typename OtherDerived::Eval inverseProduct(const MatrixBase<OtherDerived>& other) const;
+    typename OtherDerived::Eval solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
-    void inverseProductInPlace(MatrixBase<OtherDerived>& other) const;
+    void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
 
 
     template<typename OtherDerived>

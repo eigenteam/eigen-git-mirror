@@ -230,17 +230,17 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   Cholesky<MatrixType> cholB(matB);
 
   // compute C = inv(U') A inv(U)
-  MatrixType matC = cholB.matrixL().inverseProduct(matA);
+  MatrixType matC = cholB.matrixL().solveTriangular(matA);
   // FIXME since we currently do not support A * inv(U),
   // let's do (inv(U') A')' :
-  matC = (cholB.matrixL().inverseProduct(matC.adjoint())).adjoint();
+  matC = (cholB.matrixL().solveTriangular(matC.adjoint())).adjoint();
 
   compute(matC, computeEigenvectors);
 
   if (computeEigenvectors)
   {
     // transform back the eigen vectors: evecs = inv(U) * evecs
-    m_eivec = cholB.matrixL().adjoint().template marked<Upper>().inverseProduct(m_eivec);
+    m_eivec = cholB.matrixL().adjoint().template marked<Upper>().solveTriangular(m_eivec);
   }
 }
 

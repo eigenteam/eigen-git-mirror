@@ -18,7 +18,7 @@ using namespace Eigen;
 #endif
 
 #ifndef TRIES
-#define TRIES 4
+#define TRIES 10
 #endif
 
 typedef float Scalar;
@@ -28,6 +28,13 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
 {
   int rows = m.rows();
   int cols = m.cols();
+
+  int cost = 0;
+  for (int j=0; j<rows; ++j)
+  {
+    int r = std::max(rows - j -1,0);
+    cost += 2*(r*j+r+j);
+  }
 
   int repeats = (REPEAT*1000)/(rows*rows);
 
@@ -70,7 +77,8 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
     std::cout << "fixed ";
   std::cout << covMat.rows() << " \t"
             << (timerNoSqrt.value() * REPEAT) / repeats << "s \t"
-            << (timerSqrt.value() * REPEAT) / repeats << "s";
+            << (timerSqrt.value() * REPEAT) / repeats << "s "
+            << "(" << 1e-6 * cost*repeats/timerSqrt.value() << " MFLOPS)\n";
 
 
   #ifdef BENCH_GSL
@@ -108,7 +116,7 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
 
 int main(int argc, char* argv[])
 {
-  const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,0};
+  const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,900,0};
   std::cout << "size            no sqrt         standard";
   #ifdef BENCH_GSL
   std::cout << "       GSL (standard + double + ATLAS)  ";

@@ -155,7 +155,7 @@ struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
 
 template<typename Derived>
 template<typename OtherDerived>
-OtherDerived SparseMatrixBase<Derived>::inverseProduct(const MatrixBase<OtherDerived>& other) const
+OtherDerived SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
   ei_assert(derived().cols() == other.rows());
   ei_assert(!(Flags & ZeroDiagBit));

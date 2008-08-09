@@ -23,7 +23,6 @@
 #include "action_matrix_vector_product.hh"
 #include "action_matrix_matrix_product.hh"
 #include "action_axpy.hh"
-#include "timers/x86_perf_analyzer.hh"
 
 BTL_MAIN;
 

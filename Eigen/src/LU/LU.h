@@ -257,7 +257,7 @@ void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
 
   m_lu.corner(TopLeft, m_rank, m_rank)
       .template marked<Upper>()
-      .inverseProductInPlace(y);
+      .solveTriangularInPlace(y);
 
   for(int i = 0; i < m_rank; i++)
     result->row(m_q.coeff(i)) = y.row(i);
@@ -309,7 +309,7 @@ bool LU<MatrixType>::solve(
   l.setZero();
   l.corner(Eigen::TopLeft,rows,smalldim)
     = m_lu.corner(Eigen::TopLeft,rows,smalldim);
-  l.template marked<UnitLower>().inverseProductInPlace(c);
+  l.template marked<UnitLower>().solveTriangularInPlace(c);
 
   // Step 3
   if(!isSurjective())
@@ -326,7 +326,7 @@ bool LU<MatrixType>::solve(
     d(c.corner(TopLeft, m_rank, c.cols()));
   m_lu.corner(TopLeft, m_rank, m_rank)
       .template marked<Upper>()
-      .inverseProductInPlace(d);
+      .solveTriangularInPlace(d);
 
   // Step 4
   result->resize(m_lu.cols(), b.cols());

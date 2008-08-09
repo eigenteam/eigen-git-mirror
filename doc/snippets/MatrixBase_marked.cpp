@@ -6,4 +6,4 @@ n.part<Eigen::Lower>() *= 2;
 cout << "Here is the matrix n:" << endl << n << endl;
 cout << "And now here is m.inverse()*n, taking advantage of the fact that"
         " m is upper-triangular:" << endl
-     << m.marked<Eigen::Upper>().inverseProduct(n);
+     << m.marked<Eigen::Upper>().solveTriangular(n);

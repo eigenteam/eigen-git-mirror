@@ -141,7 +141,7 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  return m_matrix.adjoint().template part<Upper>().inverseProduct(matrixL().inverseProduct(b));
+  return m_matrix.adjoint().template part<Upper>().solveTriangular(matrixL().solveTriangular(b));
 }
 
 /** \cholesky_module

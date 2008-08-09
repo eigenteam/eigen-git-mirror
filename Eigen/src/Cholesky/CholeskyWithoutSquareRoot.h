@@ -148,9 +148,9 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
   ei_assert(size==b.rows());
 
   return m_matrix.adjoint().template part<UnitUpper>()
-    .inverseProduct(
+    .solveTriangular(
       (matrixL()
-        .inverseProduct(b))
+        .solveTriangular(b))
         .cwise()/m_matrix.diagonal()
       );
 }

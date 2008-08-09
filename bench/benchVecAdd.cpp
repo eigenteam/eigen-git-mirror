@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     int size = SIZE * 8;
     int size2 = size * size;
     Scalar* a = ei_aligned_malloc<Scalar>(size2);
-    Scalar* b = ei_aligned_malloc<Scalar>(size2);
+    Scalar* b = ei_aligned_malloc<Scalar>(size2+4)+1;
     Scalar* c = ei_aligned_malloc<Scalar>(size2); 
     
     for (int i=0; i<size; ++i)
@@ -33,22 +33,22 @@ int main(int argc, char* argv[])
     BenchTimer timer;
     
     timer.reset();
-    for (int k=0; k<3; ++k)
+    for (int k=0; k<10; ++k)
     {
         timer.start();
         benchVec(a, b, c, size2);
         timer.stop();
     }
     std::cout << timer.value() << "s  " << (double(size2*REPEAT)/timer.value())/(1024.*1024.*1024.) << " GFlops\n";
-    
+    return 0;
     for (int innersize = size; innersize>2 ; --innersize)
     {
         if (size2%innersize==0)
         {
             int outersize = size2/innersize;
-            MatrixXf ma = MatrixXf::map(a, innersize, outersize );
-            MatrixXf mb = MatrixXf::map(b, innersize, outersize );
-            MatrixXf mc = MatrixXf::map(c, innersize, outersize );
+            MatrixXf ma = Map<MatrixXf>(a, innersize, outersize );
+            MatrixXf mb = Map<MatrixXf>(b, innersize, outersize );
+            MatrixXf mc = Map<MatrixXf>(c, innersize, outersize );
             timer.reset();
             for (int k=0; k<3; ++k)
             {
@@ -60,9 +60,9 @@ int main(int argc, char* argv[])
         }
     }
     
-    VectorXf va = VectorXf::map(a, size2);
-    VectorXf vb = VectorXf::map(b, size2);
-    VectorXf vc = VectorXf::map(c, size2);
+    VectorXf va = Map<VectorXf>(a, size2);
+    VectorXf vb = Map<VectorXf>(b, size2);
+    VectorXf vc = Map<VectorXf>(c, size2);
     timer.reset();
     for (int k=0; k<3; ++k)
     {
@@ -95,40 +95,40 @@ void benchVec(Scalar* a, Scalar* b, Scalar* c, int size)
     for (int k=0; k<REPEAT; ++k)
         for (int i=0; i<size; i+=PacketSize*8)
         {
-            a0 = ei_pload(&a[i]);
-            b0 = ei_pload(&b[i]);
-            a1 = ei_pload(&a[i+1*PacketSize]);
-            b1 = ei_pload(&b[i+1*PacketSize]);
-            a2 = ei_pload(&a[i+2*PacketSize]);
-            b2 = ei_pload(&b[i+2*PacketSize]);
-            a3 = ei_pload(&a[i+3*PacketSize]);
-            b3 = ei_pload(&b[i+3*PacketSize]);
-            ei_pstore(&a[i], ei_padd(a0, b0));
-            a0 = ei_pload(&a[i+4*PacketSize]);
-            b0 = ei_pload(&b[i+4*PacketSize]);
+//             a0 = ei_pload(&a[i]);
+//             b0 = ei_pload(&b[i]);
+//             a1 = ei_pload(&a[i+1*PacketSize]);
+//             b1 = ei_pload(&b[i+1*PacketSize]);
+//             a2 = ei_pload(&a[i+2*PacketSize]);
+//             b2 = ei_pload(&b[i+2*PacketSize]);
+//             a3 = ei_pload(&a[i+3*PacketSize]);
+//             b3 = ei_pload(&b[i+3*PacketSize]);
+//             ei_pstore(&a[i], ei_padd(a0, b0));
+//             a0 = ei_pload(&a[i+4*PacketSize]);
+//             b0 = ei_pload(&b[i+4*PacketSize]);
+//             
+//             ei_pstore(&a[i+1*PacketSize], ei_padd(a1, b1));
+//             a1 = ei_pload(&a[i+5*PacketSize]);
+//             b1 = ei_pload(&b[i+5*PacketSize]);
+//             
+//             ei_pstore(&a[i+2*PacketSize], ei_padd(a2, b2));
+//             a2 = ei_pload(&a[i+6*PacketSize]);
+//             b2 = ei_pload(&b[i+6*PacketSize]);
+//             
+//             ei_pstore(&a[i+3*PacketSize], ei_padd(a3, b3));
+//             a3 = ei_pload(&a[i+7*PacketSize]);
+//             b3 = ei_pload(&b[i+7*PacketSize]);
+//             
+//             ei_pstore(&a[i+4*PacketSize], ei_padd(a0, b0));
+//             ei_pstore(&a[i+5*PacketSize], ei_padd(a1, b1));
+//             ei_pstore(&a[i+6*PacketSize], ei_padd(a2, b2));
+//             ei_pstore(&a[i+7*PacketSize], ei_padd(a3, b3));
             
-            ei_pstore(&a[i+1*PacketSize], ei_padd(a1, b1));
-            a1 = ei_pload(&a[i+5*PacketSize]);
-            b1 = ei_pload(&b[i+5*PacketSize]);
-            
-            ei_pstore(&a[i+2*PacketSize], ei_padd(a2, b2));
-            a2 = ei_pload(&a[i+6*PacketSize]);
-            b2 = ei_pload(&b[i+6*PacketSize]);
-            
-            ei_pstore(&a[i+3*PacketSize], ei_padd(a3, b3));
-            a3 = ei_pload(&a[i+7*PacketSize]);
-            b3 = ei_pload(&b[i+7*PacketSize]);
-            
-            ei_pstore(&a[i+4*PacketSize], ei_padd(a0, b0));
-            ei_pstore(&a[i+5*PacketSize], ei_padd(a1, b1));
-            ei_pstore(&a[i+6*PacketSize], ei_padd(a2, b2));
-            ei_pstore(&a[i+7*PacketSize], ei_padd(a3, b3));
-            
-//             ei_pstore(&a[i+2*PacketSize], ei_padd(ei_pload(&a[i+2*PacketSize]), ei_pload(&b[i+2*PacketSize])));
-//             ei_pstore(&a[i+3*PacketSize], ei_padd(ei_pload(&a[i+3*PacketSize]), ei_pload(&b[i+3*PacketSize])));
-//             ei_pstore(&a[i+4*PacketSize], ei_padd(ei_pload(&a[i+4*PacketSize]), ei_pload(&b[i+4*PacketSize])));
-//             ei_pstore(&a[i+5*PacketSize], ei_padd(ei_pload(&a[i+5*PacketSize]), ei_pload(&b[i+5*PacketSize])));
-//             ei_pstore(&a[i+6*PacketSize], ei_padd(ei_pload(&a[i+6*PacketSize]), ei_pload(&b[i+6*PacketSize])));
-//             ei_pstore(&a[i+7*PacketSize], ei_padd(ei_pload(&a[i+7*PacketSize]), ei_pload(&b[i+7*PacketSize])));
+            ei_pstore(&a[i+2*PacketSize], ei_padd(ei_ploadu(&a[i+2*PacketSize]), ei_ploadu(&b[i+2*PacketSize])));
+            ei_pstore(&a[i+3*PacketSize], ei_padd(ei_ploadu(&a[i+3*PacketSize]), ei_ploadu(&b[i+3*PacketSize])));
+            ei_pstore(&a[i+4*PacketSize], ei_padd(ei_ploadu(&a[i+4*PacketSize]), ei_ploadu(&b[i+4*PacketSize])));
+            ei_pstore(&a[i+5*PacketSize], ei_padd(ei_ploadu(&a[i+5*PacketSize]), ei_ploadu(&b[i+5*PacketSize])));
+            ei_pstore(&a[i+6*PacketSize], ei_padd(ei_ploadu(&a[i+6*PacketSize]), ei_ploadu(&b[i+6*PacketSize])));
+            ei_pstore(&a[i+7*PacketSize], ei_padd(ei_ploadu(&a[i+7*PacketSize]), ei_ploadu(&b[i+7*PacketSize])));
         }
 }

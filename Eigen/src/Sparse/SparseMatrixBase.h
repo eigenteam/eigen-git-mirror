@@ -142,7 +142,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
     }
 
     template<typename OtherDerived>
-    OtherDerived inverseProduct(const MatrixBase<OtherDerived>& other) const;
+    OtherDerived solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
   protected:
 

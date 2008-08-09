@@ -66,6 +66,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
+             ones = MatrixType::Ones(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
@@ -121,6 +122,14 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
     Matrix<Scalar,Dynamic,Dynamic> b = m1.template block<BlockRows,BlockCols>(3,3);
     VERIFY_IS_APPROX(b, m1.block(3,3,BlockRows,BlockCols));
   }
+
+  // stress some basic stuffs with block matrices
+  VERIFY(ones.col(c1).sum() == Scalar(rows));
+  VERIFY(ones.row(r1).sum() == Scalar(cols));
+
+  VERIFY(ones.col(c1).dot(ones.col(c2)) == Scalar(rows));
+  std::cerr << ones.row(r1).dot(ones.row(r2)) << " == " << cols <<  "\n";
+  VERIFY(ones.row(r1).dot(ones.row(r2)) == Scalar(cols));
 }
 
 void test_submatrices()
@@ -131,5 +140,6 @@ void test_submatrices()
     CALL_SUBTEST( submatrices(MatrixXcf(3, 3)) );
     CALL_SUBTEST( submatrices(MatrixXi(8, 12)) );
     CALL_SUBTEST( submatrices(MatrixXcd(20, 20)) );
+    CALL_SUBTEST( submatrices(MatrixXf(20, 20)) );
   }
 }

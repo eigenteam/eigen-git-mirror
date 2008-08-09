@@ -134,7 +134,7 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
-    X = L.template marked<Lower>().inverseProduct(B);
+    X = L.template marked<Lower>().solveTriangular(B);
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
@@ -146,6 +146,7 @@ public :
 
   static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
     C = X.lu().matrixLU();
+//     C = X.inverse();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
