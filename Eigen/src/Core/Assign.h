@@ -34,6 +34,13 @@
 template <typename Derived, typename OtherDerived>
 struct ei_assign_traits
 {
+public:
+  enum {
+    DstIsAligned = Derived::Flags & AlignedBit,
+    SrcIsAligned = OtherDerived::Flags & AlignedBit,
+    SrcAlignment = DstIsAligned && SrcIsAligned ? Aligned : Unaligned
+  };
+
 private:
   enum {
     InnerSize = int(Derived::Flags)&RowMajorBit
@@ -48,7 +55,8 @@ private:
   enum {
     MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
                   && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
-    MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0,
+    MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
+                       && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
     MaySliceVectorize  = MightVectorize && int(InnerMaxSize)==Dynamic /* slice vectorization can be slow, so we only
       want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
@@ -79,7 +87,7 @@ public:
                                             : int(NoUnrolling)
                 )
               : int(Vectorization) == int(LinearVectorization)
-              ? ( int(MayUnrollCompletely) ? int(CompleteUnrolling) : int(NoUnrolling) )
+              ? ( int(MayUnrollCompletely) && int(DstIsAligned) ? int(CompleteUnrolling) : int(NoUnrolling) )
               : int(NoUnrolling)
   };
 };
@@ -154,7 +162,7 @@ struct ei_assign_innervec_CompleteUnrolling
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.template copyPacket<Derived2, Aligned>(row, col, src);
+    dst.template copyPacket<Derived2, Aligned, Aligned>(row, col, src);
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src);
   }
@@ -173,7 +181,7 @@ struct ei_assign_innervec_InnerUnrolling
   {
     const int row = int(Derived1::Flags)&RowMajorBit ? row_or_col : Index;
     const int col = int(Derived1::Flags)&RowMajorBit ? Index : row_or_col;
-    dst.template copyPacket<Derived2, Aligned>(row, col, src);
+    dst.template copyPacket<Derived2, Aligned, Aligned>(row, col, src);
     ei_assign_innervec_InnerUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src, row_or_col);
   }
@@ -256,9 +264,9 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
       for(int i = 0; i < innerSize; i+=packetSize)
       {
         if(int(Derived1::Flags)&RowMajorBit)
-          dst.template copyPacket<Derived2, Aligned>(j, i, src);
+          dst.template copyPacket<Derived2, Aligned, Aligned>(j, i, src);
         else
-          dst.template copyPacket<Derived2, Aligned>(i, j, src);
+          dst.template copyPacket<Derived2, Aligned, Aligned>(i, j, src);
       }
   }
 };
@@ -298,14 +306,19 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
   {
     const int size = dst.size();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    const int alignedSize = (size/packetSize)*packetSize;
+    const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
+                           : ei_alignmentOffset(&dst.coeffRef(0), size);
+    const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-    for(int index = 0; index < alignedSize; index += packetSize)
+    for(int index = 0; index < alignedStart; index++)
+      dst.copyCoeff(index, src);
+
+    for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      dst.template copyPacket<Derived2, Aligned>(index, src);
+      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
     }
 
-    for(int index = alignedSize; index < size; index++)
+    for(int index = alignedEnd; index < size; index++)
       dst.copyCoeff(index, src);
   }
 };
@@ -334,29 +347,45 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
   static void run(Derived1 &dst, const Derived2 &src)
   {
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
+    const int packetAlignedMask = packetSize - 1;
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
-    const int alignedInnerSize = (innerSize/packetSize)*packetSize;
+    const int alignedStep = (packetSize - dst.stride() % packetSize) & packetAlignedMask;
+    int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
+                     : ei_alignmentOffset(&dst.coeffRef(0), innerSize);
 
     for(int i = 0; i < outerSize; i++)
     {
-      // do the vectorizable part of the assignment
-      for (int index = 0; index<alignedInnerSize ; index+=packetSize)
-      {
-        if(Derived1::Flags&RowMajorBit)
-          dst.template copyPacket<Derived2, Unaligned>(i, index, src);
-        else
-          dst.template copyPacket<Derived2, Unaligned>(index, i, src);
-      }
+      const int alignedEnd = alignedStart + ((innerSize-alignedStart) & ~packetAlignedMask);
 
       // do the non-vectorizable part of the assignment
-      for (int index = alignedInnerSize; index<innerSize ; index++)
+      for (int index = 0; index<alignedStart ; index++)
       {
         if(Derived1::Flags&RowMajorBit)
           dst.copyCoeff(i, index, src);
         else
           dst.copyCoeff(index, i, src);
       }
+
+      // do the vectorizable part of the assignment
+      for (int index = alignedStart; index<alignedEnd; index+=packetSize)
+      {
+        if(Derived1::Flags&RowMajorBit)
+          dst.template copyPacket<Derived2, Aligned, Unaligned>(i, index, src);
+        else
+          dst.template copyPacket<Derived2, Aligned, Unaligned>(index, i, src);
+      }
+
+      // do the non-vectorizable part of the assignment
+      for (int index = alignedEnd; index<innerSize ; index++)
+      {
+        if(Derived1::Flags&RowMajorBit)
+          dst.copyCoeff(i, index, src);
+        else
+          dst.copyCoeff(index, i, src);
+      }
+
+      alignedStart = (alignedStart+alignedStep)%packetSize;
     }
   }
 };

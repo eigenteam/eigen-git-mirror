@@ -123,7 +123,9 @@ struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
     row1 = Derived1::RowsAtCompileTime == 1 ? 0 : Index,
     col1 = Derived1::RowsAtCompileTime == 1 ? Index : 0,
     row2 = Derived2::RowsAtCompileTime == 1 ? 0 : Index,
-    col2 = Derived2::RowsAtCompileTime == 1 ? Index : 0
+    col2 = Derived2::RowsAtCompileTime == 1 ? Index : 0,
+    alignment1 = (Derived1::Flags & AlignedBit) ? Aligned : Unaligned,
+    alignment2 = (Derived2::Flags & AlignedBit) ? Aligned : Unaligned
   };
 
   typedef typename Derived1::Scalar Scalar;
@@ -131,7 +133,7 @@ struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
 
   inline static PacketScalar run(const Derived1& v1, const Derived2& v2)
   {
-    return ei_pmul(v1.template packet<Aligned>(row1, col1), v2.template packet<Aligned>(row2, col2));
+    return ei_pmul(v1.template packet<alignment1>(row1, col1), v2.template packet<alignment2>(row2, col2));
   }
 };
 
@@ -175,20 +177,22 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     const int size = v1.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
+    const int alignment1 = (Derived1::Flags & AlignedBit) ? Aligned : Unaligned;
+    const int alignment2 = (Derived2::Flags & AlignedBit) ? Aligned : Unaligned;
     Scalar res;
 
     // do the vectorizable part of the sum
     if(size >= packetSize)
     {
       PacketScalar packet_res = ei_pmul(
-                                  v1.template packet<Aligned>(0),
-                                  v2.template packet<Aligned>(0)
+                                  v1.template packet<alignment1>(0),
+                                  v2.template packet<alignment2>(0)
                                 );
       for(int index = packetSize; index<alignedSize; index += packetSize)
       {
         packet_res = ei_pmadd(
-                       v1.template packet<Aligned>(index),
-                       v2.template packet<Aligned>(index),
+                       v1.template packet<alignment1>(index),
+                       v2.template packet<alignment2>(index),
                        packet_res
                      );
       }

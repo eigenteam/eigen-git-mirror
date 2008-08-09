@@ -105,8 +105,11 @@ public:
 
   /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
     * its four coefficients \a w, \a x, \a y and \a z.
+    * 
+    * \warning Note the order of the arguments: the real \a w coefficient first,
+    * while internally the coefficients are stored in the following order:
+    * [\c x, \c y, \c z, \c w]
     */
-  // FIXME what is the prefered order: w x,y,z or x,y,z,w ?
   inline Quaternion(Scalar w, Scalar x, Scalar y, Scalar z)
   { m_coeffs << x, y, z, w; }
 
@@ -313,8 +316,8 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
 }
 
 /** \returns the multiplicative inverse of \c *this
-  * Note that in most cases, i.e., if you simply want the opposite
-  * rotation, it is enough to use the conjugate.
+  * Note that in most cases, i.e., if you simply want the opposite rotation,
+  * and/or the quaternion is normalized, then it is enough to use the conjugate.
   *
   * \sa Quaternion::conjugate()
   */

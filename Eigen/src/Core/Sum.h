@@ -33,17 +33,22 @@
 template<typename Derived>
 struct ei_sum_traits
 {
+private:
+  enum {
+    PacketSize = ei_packet_traits<typename Derived::Scalar>::size
+  };
+
 public:
   enum {
     Vectorization = (int(Derived::Flags)&ActualPacketAccessBit)
                  && (int(Derived::Flags)&LinearAccessBit)
+                 && (int(Derived::SizeAtCompileTime)>2*PacketSize)
                   ? LinearVectorization
                   : NoVectorization
   };
 
 private:
   enum {
-    PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
            + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,
     UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
@@ -131,7 +136,8 @@ struct ei_sum_vec_unroller<Derived, Index, Stop, true>
         : Index % Derived::RowsAtCompileTime,
     col = int(Derived::Flags)&RowMajorBit
         ? Index % int(Derived::ColsAtCompileTime)
-        : Index / Derived::RowsAtCompileTime
+        : Index / Derived::RowsAtCompileTime,
+    alignment = (Derived::Flags & AlignedBit) ? Aligned : Unaligned
   };
 
   typedef typename Derived::Scalar Scalar;
@@ -139,7 +145,7 @@ struct ei_sum_vec_unroller<Derived, Index, Stop, true>
 
   inline static PacketScalar run(const Derived &mat)
   {
-    return mat.template packet<Aligned>(row, col);
+    return mat.template packet<alignment>(row, col);
   }
 };
 
@@ -185,14 +191,21 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
   {
     const int size = mat.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
-    const int alignedSize = (size/packetSize)*packetSize;
+    const int alignedStart =  (Derived::Flags & AlignedBit)
+                           || !(Derived::Flags & DirectAccessBit)
+                           ? 0
+                           : ei_alignmentOffset(&mat.const_cast_derived().coeffRef(0), size);
+    const int alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
+                        ? Aligned : Unaligned;
+    const int alignedSize = ((size-alignedStart)/packetSize)*packetSize;
+    const int alignedEnd = alignedStart + alignedSize;
     Scalar res;
 
-    if(size >= packetSize)
+    if(Derived::SizeAtCompileTime>=2*packetSize && alignedSize >= 2*packetSize)
     {
-      PacketScalar packet_res = mat.template packet<Aligned>(0, 0);
-      for(int index = packetSize; index < alignedSize; index += packetSize)
-        packet_res = ei_padd(packet_res, mat.template packet<Aligned>(index));
+      PacketScalar packet_res = mat.template packet<alignment>(alignedStart, alignedStart);
+      for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
+        packet_res = ei_padd(packet_res, mat.template packet<alignment>(index));
 
       res = ei_predux(packet_res);
     }
@@ -202,10 +215,11 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
       res = Scalar(0);
     }
 
-    for(int index = alignedSize; index < size; index++)
-    {
+    for(int index = alignedEnd; index < size; index++)
       res += mat.coeff(index);
-    }
+
+    for(int index = alignedEnd; index < size; index++)
+      res += mat.coeff(index);
 
     return res;
   }

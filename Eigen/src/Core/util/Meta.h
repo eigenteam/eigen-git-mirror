@@ -168,12 +168,14 @@ class ei_corrected_matrix_flags
            packet_access_bit
             = ei_packet_traits<Scalar>::size > 1
               && (is_big || linear_size%ei_packet_traits<Scalar>::size==0)
-              ? PacketAccessBit : 0
+              ? PacketAccessBit : 0,
+           aligned_bit = packet_access_bit
+                         && (is_big || linear_size%ei_packet_traits<Scalar>::size==0) ? AlignedBit : 0
     };
 
   public:
     enum { ret = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
-                                    | LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit
+                                    | LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit
     };
 };
 

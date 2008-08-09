@@ -121,40 +121,45 @@ const unsigned int DirectAccessBit = 0x20;
 
 /** \ingroup flags
   *
+  * means the first coefficient packet is guaranteed to be aligned */
+const unsigned int AlignedBit = 0x40;
+
+/** \ingroup flags
+  *
   * means all diagonal coefficients are equal to 0 */
-const unsigned int ZeroDiagBit = 0x40;
+const unsigned int ZeroDiagBit = 0x80;
 
 /** \ingroup flags
   *
   * means all diagonal coefficients are equal to 1 */
-const unsigned int UnitDiagBit = 0x80;
+const unsigned int UnitDiagBit = 0x100;
 
 /** \ingroup flags
   *
   * means the matrix is selfadjoint (M=M*). */
-const unsigned int SelfAdjointBit = 0x100;
+const unsigned int SelfAdjointBit = 0x200;
 
 /** \ingroup flags
   *
   * means the strictly lower triangular part is 0 */
-const unsigned int UpperTriangularBit = 0x200;
+const unsigned int UpperTriangularBit = 0x400;
 
 /** \ingroup flags
   *
   * means the strictly upper triangular part is 0 */
-const unsigned int LowerTriangularBit = 0x400;
+const unsigned int LowerTriangularBit = 0x800;
 
 /** \ingroup flags
   *
   * means the expression includes sparse matrices and the sparse path has to be taken. */
-const unsigned int SparseBit = 0x800;
+const unsigned int SparseBit = 0x1000;
 
 /** \ingroup flags
   *
   * currently unused. Means the matrix probably has a very big size.
   * Could eventually be used as a hint to determine which algorithms
   * to use. */
-const unsigned int LargeBit = 0x1000;
+const unsigned int LargeBit = 0x2000;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
@@ -175,15 +180,21 @@ const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
 const unsigned int Diagonal = Upper | Lower;
 
-enum { Aligned=0, Unaligned=1 };
+enum { Aligned=0, Unaligned=1, Unknown=2 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, SparseProduct };
 
 enum {
+  /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignement
+    * and good size */
   InnerVectorization,
+  /** \internal Vectorization path using a single loop plus scalar loops for the
+    * unaligned boundaries */
   LinearVectorization,
+  /** \internal Generic vectorization path using one vectorized loop per row/column with some
+    * scalar loops to handle the unaligned boundaries */
   SliceVectorization,
   NoVectorization
 };

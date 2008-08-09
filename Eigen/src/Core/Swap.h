@@ -59,6 +59,16 @@ template<typename ExpressionType> class SwapWrapper
     inline int cols() const { return m_expression.cols(); }
     inline int stride() const { return m_expression.stride(); }
 
+    inline Scalar& coeffRef(int row, int col)
+    {
+      return m_expression.const_cast_derived().coeffRef(row, col);
+    }
+
+    inline Scalar& coeffRef(int index)
+    {
+      return m_expression.const_cast_derived().coeffRef(index);
+    }
+
     template<typename OtherDerived>
     void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other)
     {
@@ -80,29 +90,29 @@ template<typename ExpressionType> class SwapWrapper
       _other.coeffRef(index) = tmp;
     }
 
-    template<typename OtherDerived, int LoadStoreMode>
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
                         && col >= 0 && col < cols());
-      Packet tmp = m_expression.template packet<LoadStoreMode>(row, col);
-      m_expression.template writePacket<LoadStoreMode>(row, col,
-        _other.template packet<LoadStoreMode>(row, col)
+      Packet tmp = m_expression.template packet<StoreMode>(row, col);
+      m_expression.template writePacket<StoreMode>(row, col,
+        _other.template packet<LoadMode>(row, col)
       );
-      _other.template writePacket<LoadStoreMode>(row, col, tmp);
+      _other.template writePacket<LoadMode>(row, col, tmp);
     }
 
-    template<typename OtherDerived, int LoadStoreMode>
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int index, const MatrixBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_expression.size());
-      Packet tmp = m_expression.template packet<LoadStoreMode>(index);
-      m_expression.template writePacket<LoadStoreMode>(index,
-        _other.template packet<LoadStoreMode>(index)
+      Packet tmp = m_expression.template packet<StoreMode>(index);
+      m_expression.template writePacket<StoreMode>(index,
+        _other.template packet<LoadMode>(index)
       );
-      _other.template writePacket<LoadStoreMode>(index, tmp);
+      _other.template writePacket<LoadMode>(index, tmp);
     }
 
   protected:

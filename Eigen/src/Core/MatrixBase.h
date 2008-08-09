@@ -257,9 +257,9 @@ template<typename Derived> class MatrixBase
     void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     void copyCoeff(int index, const MatrixBase<OtherDerived>& other);
-    template<typename OtherDerived, int LoadStoreMode>
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int row, int col, const MatrixBase<OtherDerived>& other);
-    template<typename OtherDerived, int LoadStoreMode>
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int index, const MatrixBase<OtherDerived>& other);
 
     template<int LoadMode>

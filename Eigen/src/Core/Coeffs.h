@@ -298,22 +298,22 @@ inline void MatrixBase<Derived>::copyCoeff(int index, const MatrixBase<OtherDeri
 }
 
 template<typename Derived>
-template<typename OtherDerived, int LoadStoreMode>
+template<typename OtherDerived, int StoreMode, int LoadMode>
 inline void MatrixBase<Derived>::copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
-  derived().template writePacket<LoadStoreMode>(row, col,
-    other.derived().template packet<LoadStoreMode>(row, col));
+  derived().template writePacket<StoreMode>(row, col,
+    other.derived().template packet<LoadMode>(row, col));
 }
 
 template<typename Derived>
-template<typename OtherDerived, int LoadStoreMode>
+template<typename OtherDerived, int StoreMode, int LoadMode>
 inline void MatrixBase<Derived>::copyPacket(int index, const MatrixBase<OtherDerived>& other)
 {
   ei_internal_assert(index >= 0 && index < size());
-  derived().template writePacket<LoadStoreMode>(index,
-    other.derived().template packet<LoadStoreMode>(index));
+  derived().template writePacket<StoreMode>(index,
+    other.derived().template packet<LoadMode>(index));
 }
 
 #endif // EIGEN_COEFFS_H

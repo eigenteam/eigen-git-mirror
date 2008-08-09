@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,8 +30,8 @@
   *
   * \brief A matrix or vector expression mapping an existing array of data.
   *
-  * \param Alignment can be either Aligned or Unaligned. Tells whether the array is suitably aligned for
-  *                  vectorization on the present CPU architecture. Defaults to Unaligned.
+  * \param _PacketAccess controls whether vectorized aligned loads or stores are allowed (Aligned)
+  *                      or forced to unaligned (Unaligned). Defaults to Unaligned.
   *
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
@@ -40,117 +41,43 @@
   *
   * \sa Matrix::map()
   */
-template<typename MatrixType, int Alignment>
-struct ei_traits<Map<MatrixType, Alignment> >
+template<typename MatrixType, int _PacketAccess>
+struct ei_traits<Map<MatrixType, _PacketAccess> > : public ei_traits<MatrixType>
 {
-  typedef typename MatrixType::Scalar Scalar;
   enum {
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = MatrixType::Flags,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
+    PacketAccess = _PacketAccess,
+    Flags = ei_traits<MatrixType>::Flags & ~AlignedBit
   };
+  typedef typename ei_meta_if<int(PacketAccess)==Aligned,
+                              Map<MatrixType, _PacketAccess>&,
+                              Map<MatrixType, Aligned> >::ret AlignedDerivedType;
 };
 
-template<typename MatrixType, int Alignment> class Map
-  : public MatrixBase<Map<MatrixType, Alignment> >
+template<typename MatrixType, int PacketAccess> class Map
+  : public MapBase<Map<MatrixType, PacketAccess> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
-
-    inline int rows() const { return m_rows.value(); }
-    inline int cols() const { return m_cols.value(); }
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Map, MapBase<Map>)
+    typedef typename ei_traits<Map>::AlignedDerivedType AlignedDerivedType;
 
     inline int stride() const { return this->innerSize(); }
 
-    inline const Scalar& coeff(int row, int col) const
+    AlignedDerivedType allowAligned()
     {
-      if(Flags & RowMajorBit)
-        return m_data[col + row * m_cols.value()];
-      else // column-major
-        return m_data[row + col * m_rows.value()];
+      if (PacketAccess==Aligned)
+        return *this;
+      else
+        return Map<MatrixType,Aligned>(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 
-    inline Scalar& coeffRef(int row, int col)
-    {
-      if(Flags & RowMajorBit)
-        return const_cast<Scalar*>(m_data)[col + row * m_cols.value()];
-      else // column-major
-        return const_cast<Scalar*>(m_data)[row + col * m_rows.value()];
-    }
+    inline Map(const Scalar* data) : Base(data) {}
 
-    inline const Scalar& coeff(int index) const
-    {
-      return m_data[index];
-    }
+    inline Map(const Scalar* data, int size) : Base(data, size) {}
 
-    inline Scalar& coeffRef(int index)
-    {
-      return *const_cast<Scalar*>(m_data + index);
-    }
-
-    template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
-    {
-      return ei_ploadt<Scalar, LoadMode == Aligned ? Alignment : Unaligned>
-               (m_data + (Flags & RowMajorBit
-                         ? col + row * m_cols.value()
-                         : row + col * m_rows.value()));
-    }
-
-    template<int LoadMode>
-    inline PacketScalar packet(int index) const
-    {
-      return ei_ploadt<Scalar, LoadMode == Aligned ? Alignment : Unaligned>(m_data + index);
-    }
-
-    template<int StoreMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
-    {
-      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>
-               (const_cast<Scalar*>(m_data) + (Flags & RowMajorBit
-                         ? col + row * m_cols.value()
-                         : row + col * m_rows.value()), x);
-    }
-
-    template<int StoreMode>
-    inline void writePacket(int index, const PacketScalar& x)
-    {
-      ei_pstoret<Scalar, PacketScalar, StoreMode == Aligned ? Alignment : Unaligned>
-        (const_cast<Scalar*>(m_data) + index, x);
-    }
-
-    inline Map(const Scalar* data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
-    {
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(MatrixType)
-    }
-
-    inline Map(const Scalar* data, int size)
-            : m_data(data),
-              m_rows(RowsAtCompileTime == Dynamic ? size : RowsAtCompileTime),
-              m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType)
-      ei_assert(size > 0);
-      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
-    }
-
-    inline Map(const Scalar* data, int rows, int cols)
-            : m_data(data), m_rows(rows), m_cols(cols)
-    {
-      ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-               && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-    }
+    inline Map(const Scalar* data, int rows, int cols) : Base(data, rows, cols) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
-
-  protected:
-    const Scalar* m_data;
-    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
-    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };
 
 /** Constructor copying an existing array of data.

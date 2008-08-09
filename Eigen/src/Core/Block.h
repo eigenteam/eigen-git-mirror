@@ -33,6 +33,8 @@
   * \param MatrixType the type of the object in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
+  * \param _PacketAccess 
+  * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
   * type of MatrixBase::block(int,int,int,int) and MatrixBase::block<int,int>(int,int) and
@@ -56,8 +58,8 @@
   *
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
-template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatus>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols, DirectAccesStatus> >
+template<typename MatrixType, int BlockRows, int BlockCols, int _PacketAccess, int _DirectAccessStatus>
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum{
@@ -74,17 +76,21 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, DirectAccesStatus> >
     RowMajor = int(MatrixType::Flags)&RowMajorBit,
     InnerSize = RowMajor ? ColsAtCompileTime : RowsAtCompileTime,
     InnerMaxSize = RowMajor ? MaxColsAtCompileTime : MaxRowsAtCompileTime,
-    MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
+    MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     Flags = (MatrixType::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit) & MaskLargeBit)
           | FlagsLinearAccessBit,
-    CoeffReadCost = MatrixType::CoeffReadCost
+    CoeffReadCost = MatrixType::CoeffReadCost,
+    PacketAccess = _PacketAccess
   };
+  typedef typename ei_meta_if<int(PacketAccess)==Aligned,
+                 Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus>&,
+                 Block<MatrixType, BlockRows, BlockCols, Aligned, _DirectAccessStatus> >::ret AlignedDerivedType;
 };
 
-template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatus> class Block
-  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, DirectAccesStatus> >
+template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus> class Block
+  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, PacketAccess, _DirectAccessStatus> >
 {
   public:
 
@@ -205,26 +211,36 @@ template<typename MatrixType, int BlockRows, int BlockCols, int DirectAccesStatu
 };
 
 /** \internal */
-template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
-  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >
+template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess>
+class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
+  : public MapBase<Block<MatrixType, BlockRows, BlockCols,PacketAccess,HasDirectAccess> >
 {
-    enum {
-      IsRowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit ? 1 : 0
-    };
-
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Block, MapBase<Block>)
+
+    typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
+
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+
+    AlignedDerivedType allowAligned()
+    {
+      if (PacketAccess==Aligned)
+        return *this;
+      else
+        return Block<MatrixType,BlockRows,BlockCols,Aligned,HasDirectAccess>
+                    (m_matrix, Base::m_data, Base::m_rows.value(), Base::m_cols.value());
+    }
 
     /** Column or Row constructor
       */
     inline Block(const MatrixType& matrix, int i)
-      : m_matrix(matrix),
-        m_data_ptr(&matrix.const_cast_derived().coeffRef(
-          (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0,
-          (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
-        m_blockRows(matrix.rows()),
-        m_blockCols(matrix.cols())
+      : Base(&matrix.const_cast_derived().coeffRef(
+              (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0,
+              (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
+             BlockRows==1 ? 1 : matrix.rows(),
+             BlockCols==1 ? 1 : matrix.cols()),
+        m_matrix(matrix)
     {
       ei_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
@@ -234,13 +250,10 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
     /** Fixed-size constructor
       */
     inline Block(const MatrixType& matrix, int startRow, int startCol)
-      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol)),
-        m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
+      : Base(&matrix.const_cast_derived().coeffRef(startRow,startCol)), m_matrix(matrix)
     {
-      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size);
-      ei_assert(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic);
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
 
     /** Dynamic-size constructor
@@ -248,91 +261,25 @@ template<typename MatrixType, int BlockRows, int BlockCols> class Block<MatrixTy
     inline Block(const MatrixType& matrix,
           int startRow, int startCol,
           int blockRows, int blockCols)
-      : m_matrix(matrix), m_data_ptr(&matrix.const_cast_derived().coeffRef(startRow,startCol)),
-        m_blockRows(blockRows), m_blockCols(blockCols)
+      : Base(&matrix.const_cast_derived().coeffRef(startRow,startCol), blockRows, blockCols),
+        m_matrix(matrix)
     {
       ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
-          && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
+             && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
       ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
-          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
+             && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
     }
-
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
-
-    inline int rows() const { return m_blockRows.value(); }
-    inline int cols() const { return m_blockCols.value(); }
 
     inline int stride(void) const { return m_matrix.stride(); }
 
-    inline Scalar& coeffRef(int row, int col)
-    {
-      if (IsRowMajor)
-        return m_data_ptr[col + row * stride()];
-      else
-        return m_data_ptr[row + col * stride()];
-    }
-
-    inline const Scalar coeff(int row, int col) const
-    {
-      if (IsRowMajor)
-        return m_data_ptr[col + row * stride()];
-      else
-        return m_data_ptr[row + col * stride()];
-    }
-
-    inline Scalar& coeffRef(int index)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
-      return m_data_ptr[index];
-    }
-
-    inline const Scalar coeff(int index) const
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
-      if ( (RowsAtCompileTime == 1) == IsRowMajor )
-        return m_data_ptr[index];
-      else
-        return m_data_ptr[index*stride()];
-    }
-
-    template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
-    {
-      if (IsRowMajor)
-        return ei_ploadu(&m_data_ptr[col + row * stride()]);
-      else
-        return ei_ploadu(&m_data_ptr[row + col * stride()]);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
-    {
-      if (IsRowMajor)
-        ei_pstoreu(&m_data_ptr[col + row * stride()], x);
-      else
-        ei_pstoreu(&m_data_ptr[row + col * stride()], x);
-    }
-
-    template<int LoadMode>
-    inline PacketScalar packet(int index) const
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
-      return ei_ploadu(&m_data_ptr[index]);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Block);
-      ei_pstoreu(&m_data_ptr[index], x);
-    }
-
   protected:
 
+    /** \internal used by allowAligned() */
+    inline Block(const MatrixType& matrix, const Scalar* data, int blockRows, int blockCols)
+      : Base(data, blockRows, blockCols), m_matrix(matrix)
+    {}
+
     const typename MatrixType::Nested m_matrix;
-    Scalar* m_data_ptr;
-    const ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
-    const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 };
 
 /** \returns a dynamic-size expression of a block in *this.
