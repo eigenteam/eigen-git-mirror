@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_INVERSEPRODUCT_H
-#define EIGEN_INVERSEPRODUCT_H
+#ifndef EIGEN_SOLVETRIANGULAR_H
+#define EIGEN_SOLVETRIANGULAR_H
 
 template<typename XprType> struct ei_is_part { enum {value=false}; };
 template<typename XprType, unsigned int Mode> struct ei_is_part<Part<XprType,Mode> > { enum {value=true}; };
@@ -251,4 +251,4 @@ typename OtherDerived::Eval MatrixBase<Derived>::solveTriangular(const MatrixBas
   return res;
 }
 
-#endif // EIGEN_INVERSEPRODUCT_H
+#endif // EIGEN_SOLVETRIANGULAR_H

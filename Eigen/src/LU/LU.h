@@ -29,16 +29,29 @@
   *
   * \class LU
   *
-  * \brief LU decomposition of a matrix with complete pivoting, and associated features
+  * \brief LU decomposition of a matrix with complete pivoting, and related features
   *
   * \param MatrixType the type of the matrix of which we are computing the LU decomposition
   *
-  * This class performs a LU decomposition of any matrix, with complete pivoting: the matrix A
+  * This class represents a LU decomposition of any matrix, with complete pivoting: the matrix A
   * is decomposed as A = PLUQ where L is unit-lower-triangular, U is upper-triangular, and P and Q
-  * are permutation matrices.
+  * are permutation matrices. This is a rank-revealing LU decomposition. The eigenvalues of U are
+  * in non-increasing order.
   *
   * This decomposition provides the generic approach to solving systems of linear equations, computing
   * the rank, invertibility, inverse, kernel, and determinant.
+  *
+  * The data of the LU decomposition can be directly accessed through the methods matrixLU(),
+  * permutationP(), permutationQ(). Convenience methods matrixL(), matrixU() are also provided.
+  *
+  * As an exemple, here is how the original matrix can be retrieved, in the square case:
+  * \include class_LU_1.cpp
+  * Output: \verbinclude class_LU_1.out
+  *
+  * When the matrix is not square, matrixL() is no longer very useful: if one needs it, one has
+  * to construct the L matrix by hand, as shown in this example:
+  * \include class_LU_2.cpp
+  * Output: \verbinclude class_LU_2.out
   *
   * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse(), MatrixBase::computeInverse()
   */
@@ -58,91 +71,220 @@ template<typename MatrixType> class LU
              MatrixType::MaxRowsAtCompileTime)
     };
 
+    /** Constructor.
+      *
+      * \param matrix the matrix of which to compute the LU decomposition.
+      */
     LU(const MatrixType& matrix);
 
+    /** \returns the LU decomposition matrix: the upper-triangular part is U, the
+      * unit-lower-triangular part is L (at least for square matrices; in the non-square
+      * case, special care is needed, see the documentation of class LU).
+      *
+      * \sa matrixL(), matrixU()
+      */
     inline const MatrixType& matrixLU() const
     {
       return m_lu;
     }
 
+    /** \returns an expression of the unit-lower-triangular part of the LU matrix. In the square case,
+      *          this is the L matrix. In the non-square, actually obtaining the L matrix takes some
+      *          more care, see the documentation of class LU.
+      *
+      * \sa matrixLU(), matrixU()
+      */
     inline const Part<MatrixType, UnitLower> matrixL() const
     {
       return m_lu;
     }
 
+    /** \returns an expression of the U matrix, i.e. the upper-triangular part of the LU matrix.
+      *
+      * \note The eigenvalues of U are sorted in non-increasing order.
+      *
+      * \sa matrixLU(), matrixL()
+      */
     inline const Part<MatrixType, Upper> matrixU() const
     {
       return m_lu;
     }
 
+    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
+      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
+      * see the examples given in the documentation of class LU.
+      *
+      * \sa permutationQ()
+      */
     inline const IntColVectorType& permutationP() const
     {
       return m_p;
     }
 
+    /** \returns a vector of integers, whose size is the number of columns of the matrix being
+      * decomposed, representing the Q permutation i.e. the permutation of the columns.
+      * For its precise meaning, see the examples given in the documentation of class LU.
+      *
+      * \sa permutationP()
+      */
     inline const IntRowVectorType& permutationQ() const
     {
       return m_q;
     }
 
+    /** Computes the kernel of the matrix.
+      *
+      * \note: this method is only allowed on non-invertible matrices, as determined by
+      * isInvertible(). Calling it on an invertible matrice will make an assertion fail.
+      *
+      * \param result a pointer to the matrix in which to store the kernel. The columns of this
+      * matrix will be set to form a basis of the kernel (it will be resized
+      * if necessary).
+      *
+      * Example: \include LU_computeKernel.cpp
+      * Output: \verbinclude LU_computeKernel.out
+      *
+      * \sa kernel()
+      */
     void computeKernel(Matrix<typename MatrixType::Scalar,
                               MatrixType::ColsAtCompileTime, Dynamic,
                               MatrixType::MaxColsAtCompileTime,
                               LU<MatrixType>::MaxSmallDimAtCompileTime
                              > *result) const;
 
-    const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+    /** \returns the kernel of the matrix. The columns of the returned matrix
+      * will form a basis of the kernel.
+      *
+      * \note: this method is only allowed on non-invertible matrices, as determined by
+      * isInvertible(). Calling it on an invertible matrice will make an assertion fail.
+      *
+      * \note: this method returns a matrix by value, which induces some inefficiency.
+      *        If you prefer to avoid this overhead, use computeKernel() instead.
+      *
+      * Example: \include LU_kernel.cpp
+      * Output: \verbinclude LU_kernel.out
+      *
+      * \sa computeKernel()
+      */    const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
                  MatrixType::MaxColsAtCompileTime,
                  LU<MatrixType>::MaxSmallDimAtCompileTime> kernel() const;
 
+    /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
+      * *this is the LU decomposition, if any exists.
+      *
+      * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
+      *          the only requirement in order for the equation to make sense is that
+      *          b.rows()==A.rows(), where A is the matrix of which *this is the LU decomposition.
+      * \param result a pointer to the vector or matrix in which to store the solution, if any exists.
+      *          Resized if necessary, so that result->rows()==A.cols() and result->cols()==b.cols().
+      *          If no solution exists, *result is left with undefined coefficients.
+      *
+      * \returns true if any solution exists, false if no solution exists.
+      *
+      * \note If there exist more than one solution, this method will arbitrarily choose one.
+      *       If you need a complete analysis of the space of solutions, take the one solution obtained  *       by this method and add to it elements of the kernel, as determined by kernel().
+      *
+      * Example: \include LU_solve.cpp
+      * Output: \verbinclude LU_solve.out
+      *
+      * \sa MatrixBase::solveTriangular(), kernel(), computeKernel(), inverse(), computeInverse()
+      */
     template<typename OtherDerived, typename ResultType>
     bool solve(
     const MatrixBase<OtherDerived>& b,
     ResultType *result
     ) const;
 
-    /**
-      * This method returns the determinant of the matrix of which
+    /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
       * (that is, O(n) where n is the dimension of the square matrix)
       * as the LU decomposition has already been computed.
       *
-      * Warning: a determinant can be very big or small, so for matrices
-      * of large enough dimension (like a 50-by-50 matrix) there is a risk of
-      * overflow/underflow.
+      * \note This is only for square matrices.
+      *
+      * \note For fixed-size matrices of size up to 4, MatrixBase::determinant() offers
+      *       optimized paths.
+      *
+      * \warning a determinant can be very big or small, so for matrices
+      * of large enough dimension, there is a risk of overflow/underflow.
+      *
+      * \sa MatrixBase::determinant()
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
 
+    /** \returns the rank of the matrix of which *this is the LU decomposition.
+      *
+      * \note This is computed at the time of the construction of the LU decomposition. This
+      *       method does not perform any further computation.
+      */
     inline int rank() const
     {
       return m_rank;
     }
 
+    /** \returns the dimension of the kernel of the matrix of which *this is the LU decomposition.
+      *
+      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
+      *       method almost does not perform any further computation.
+      */
     inline int dimensionOfKernel() const
     {
       return m_lu.cols() - m_rank;
     }
 
+    /** \returns true if the matrix of which *this is the LU decomposition represents an injective
+      *          linear map, i.e. has trivial kernel; false otherwise.
+      *
+      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
+      *       method almost does not perform any further computation.
+      */
     inline bool isInjective() const
     {
       return m_rank == m_lu.cols();
     }
 
+    /** \returns true if the matrix of which *this is the LU decomposition represents a surjective
+      *          linear map; false otherwise.
+      *
+      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
+      *       method almost does not perform any further computation.
+      */
     inline bool isSurjective() const
     {
       return m_rank == m_lu.rows();
     }
 
+    /** \returns true if the matrix of which *this is the LU decomposition is invertible.
+      *
+      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
+      *       method almost does not perform any further computation.
+      */
     inline bool isInvertible() const
     {
       return isInjective() && isSurjective();
     }
 
+    /** Computes the inverse of the matrix of which *this is the LU decomposition.
+      *
+      * \param result a pointer to the matrix into which to store the inverse. Resized if needed.
+      *
+      * \note If this matrix is not invertible, *result is left with undefined coefficients.
+      *       Use isInvertible() to first determine whether this matrix is invertible.
+      *
+      * \sa MatrixBase::computeInverse(), inverse()
+      */
     inline void computeInverse(MatrixType *result) const
     {
       solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
     }
 
+    /** \returns the inverse of the matrix of which *this is the LU decomposition.
+      *
+      * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
+      *       Use isInvertible() to first determine whether this matrix is invertible.
+      *
+      * \sa computeInverse(), MatrixBase::inverse()
+      */
     inline MatrixType inverse() const
     {
       MatrixType result;
