@@ -37,13 +37,7 @@
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
 
-#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajorBit
-#else
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER 0
-#endif
-
-#define EIGEN_DEFAULT_MATRIX_FLAGS EIGEN_DEFAULT_MATRIX_STORAGE_ORDER
+#define EIGEN_DEFAULT_MATRIX_FLAGS 0
 
 /** Define a hint size when dealing with large matrices and L2 cache friendlyness
   * More precisely, its square value represents the amount of bytes which can be assumed to stay in L2 cache.

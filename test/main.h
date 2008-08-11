@@ -134,7 +134,6 @@ namespace Eigen
 #endif // EIGEN_NO_ASSERTION_CHECKING
 
 
-//#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER RowMajorBit
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/Core>
 

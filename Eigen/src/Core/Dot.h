@@ -292,10 +292,13 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   * \sa norm(), normalize()
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ScalarQuotient1ReturnType
+inline const typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::normalized() const
 {
-  return *this / norm();
+  typedef typename ei_nested<Derived>::type Nested;
+  typedef typename ei_unref<Nested>::type _Nested;
+  _Nested n(derived());
+  return n / n.norm();
 }
 
 /** Normalizes the vector, i.e. divides it by its own norm.

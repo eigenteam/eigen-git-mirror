@@ -335,7 +335,9 @@ bool LU<MatrixType>::solve(
   return true;
 }
 
-/** \return the LU decomposition of \c *this.
+/** \lu_module
+  *
+  * \return the LU decomposition of \c *this.
   *
   * \sa class LU
   */

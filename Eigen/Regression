@@ -1,0 +1,20 @@
+#ifndef EIGEN_REGRESSION_MODULE_H
+#define EIGEN_REGRESSION_MODULE_H
+
+#include "LU"
+
+namespace Eigen {
+
+/** \defgroup Regression_Module Regression module
+  * This module provides linear regression and related features.
+  *
+  * \code
+  * #include <Eigen/Regression>
+  * \endcode
+  */
+
+#include "src/Regression/Regression.h"
+
+} // namespace Eigen
+
+#endif // EIGEN_REGRESSION_MODULE_H

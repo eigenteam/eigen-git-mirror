@@ -330,7 +330,7 @@ template<typename Derived> class MatrixBase
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const ScalarQuotient1ReturnType normalized() const;
+    const EvalType normalized() const;
     void normalize();
 
     Transpose<Derived> transpose();

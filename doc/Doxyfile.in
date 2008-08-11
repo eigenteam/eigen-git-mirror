@@ -202,6 +202,7 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "cholesky_module=This is defined in the %Cholesky module. \code #include <Eigen/Cholesky> \endcode" \
                          "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode" \
                          "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode" \
+                         "regression_module=This is defined in the %Regression module. \code #include <Eigen/Regression> \endcode" \
                          "addexample=\anchor"  \
                          "label=\bug"
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C

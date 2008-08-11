@@ -198,6 +198,15 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       m_storage.resize(rows * cols, rows, cols);
     }
 
+    inline void resize(int size)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
+      if(RowsAtCompileTime == 1)
+        m_storage.resize(size, 1, size);
+      else
+        m_storage.resize(size, size, 1);
+    }
+
     /** Copies the value of the expression \a other into *this.
       *
       * *this is resized (if possible) to match the dimensions of \a other.
