@@ -31,7 +31,7 @@ PROJECT_NAME           = Eigen
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 2.0-alpha5
+PROJECT_NUMBER         = 2.0-alpha6
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -1185,7 +1185,8 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = EIGEN_EMPTY_STRUCT \
                          EIGEN_PARSED_BY_DOXYGEN \
-                         EIGEN_VECTORIZE
+                         EIGEN_VECTORIZE \
+                         EIGEN_QT_SUPPORT
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

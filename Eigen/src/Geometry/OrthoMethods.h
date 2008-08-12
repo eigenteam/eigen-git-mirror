@@ -47,10 +47,11 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 }
 
 template<typename Derived, int Size = Derived::SizeAtCompileTime>
-struct ei_perpendicular_selector
+struct ei_someOrthogonal_selector
 {
   typedef typename ei_eval<Derived>::type VectorType;
   typedef typename ei_traits<Derived>::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   inline static VectorType run(const Derived& src)
   {
     VectorType perp;
@@ -64,7 +65,7 @@ struct ei_perpendicular_selector
     if((!ei_isMuchSmallerThan(src.x(), src.z()))
     || (!ei_isMuchSmallerThan(src.y(), src.z())))
     {
-      Scalar invnm = Scalar(1)/src.template start<2>().norm();
+      RealScalar invnm = Scalar(1)/src.template start<2>().norm();
       perp.template start<3>() << -ei_conj(src.y())*invnm, ei_conj(src.x())*invnm, 0;
     }
     /* if both x and y are close to zero, then the vector is close
@@ -73,7 +74,7 @@ struct ei_perpendicular_selector
      */
     else
     {
-      Scalar invnm = Scalar(1)/src.template end<2>().norm();
+      RealScalar invnm = Scalar(1)/src.template end<2>().norm();
       perp.template start<3>() << 0, -ei_conj(src.z())*invnm, ei_conj(src.y())*invnm;
     }
     if (Derived::SizeAtCompileTime>3
@@ -85,7 +86,7 @@ struct ei_perpendicular_selector
 };
 
 template<typename Derived>
-struct ei_perpendicular_selector<Derived,2>
+struct ei_someOrthogonal_selector<Derived,2>
 {
   typedef typename ei_eval<Derived>::type VectorType;
   inline static VectorType run(const Derived& src)
@@ -104,7 +105,7 @@ typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::someOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return ei_perpendicular_selector<Derived>::run(derived());
+  return ei_someOrthogonal_selector<Derived>::run(derived());
 }
 
 #endif // EIGEN_ORTHOMETHODS_H

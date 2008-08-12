@@ -9,6 +9,7 @@ namespace Eigen {
   * This module provides support for:
   *  - fixed-size homogeneous transformations
   *  - 2D and 3D rotations
+  *  - quaternions
   *  - \ref MatrixBase::cross() "cross product"
   *  - \ref MatrixBase::someOrthognal() "orthognal vector generation"
   * 

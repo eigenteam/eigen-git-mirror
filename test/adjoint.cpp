@@ -80,6 +80,12 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m1.conjugate()(r,c), ei_conj(m1(r,c)));
   VERIFY_IS_APPROX(m1.adjoint()(c,r), ei_conj(m1(r,c)));
 
+  if(NumTraits<Scalar>::HasFloatingPoint)
+  {
+    // check that Random().normalized() works: tricky as the random xpr must be evaluated by
+    // normalized() in order to produce a consistent result.
+    VERIFY_IS_APPROX(VectorType::Random(rows).normalized().norm(), RealScalar(1));
+  }
 }
 
 void test_adjoint()
