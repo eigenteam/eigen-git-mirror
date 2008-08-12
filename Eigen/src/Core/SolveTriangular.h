@@ -37,21 +37,21 @@ template<typename Lhs, typename Rhs,
                      : -1,
   int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
   >
-struct ei_trisolve_selector;
+struct ei_solve_triangular_selector;
 
 // transform a Part xpr to a Flagged xpr
 template<typename Lhs, unsigned int LhsMode, typename Rhs, int TriangularPart, int StorageOrder>
-struct ei_trisolve_selector<Part<Lhs,LhsMode>,Rhs,TriangularPart,StorageOrder>
+struct ei_solve_triangular_selector<Part<Lhs,LhsMode>,Rhs,TriangularPart,StorageOrder>
 {
   static void run(const Part<Lhs,LhsMode>& lhs, Rhs& other)
   {
-    ei_trisolve_selector<Flagged<Lhs,LhsMode,0>,Rhs>::run(lhs._expression(), other);
+    ei_solve_triangular_selector<Flagged<Lhs,LhsMode,0>,Rhs>::run(lhs._expression(), other);
   }
 };
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -74,7 +74,7 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
 
 // backward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -101,7 +101,7 @@ struct ei_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
 // FIXME the Lower and Upper specialization could be merged using a small helper class
 // performing reflexions on the coordinates...
 template<typename Lhs, typename Rhs>
-struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
@@ -168,7 +168,7 @@ struct ei_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
 // backward substitution, col-major
 // see the previous specialization for details on the algorithm
 template<typename Lhs, typename Rhs>
-struct ei_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -214,40 +214,58 @@ struct ei_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
 
 /** "in-place" version of MatrixBase::solveTriangular() where the result is written in \a other
   *
-  * \sa solveTriangular()
+  * See MatrixBase:solveTriangular() for the details.
   */
 template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
+void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>* p_other) const
 {
+  ei_assert(p_other!=0);
   ei_assert(derived().cols() == derived().rows());
-  ei_assert(derived().cols() == other.rows());
+  ei_assert(derived().cols() == p_other->rows());
   ei_assert(!(Flags & ZeroDiagBit));
   ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
 
-  ei_trisolve_selector<Derived, OtherDerived>::run(derived(), other.derived());
+  ei_solve_triangular_selector<Derived, OtherDerived>::run(derived(), p_other->derived());
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
   *
-  * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other
-  * It works as a forward (resp. backward) substitution if \c *this is an upper (resp. lower)
-  * triangular matrix.
+  * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other.
+  * The matrix \c *this must be triangular and invertible (i.e., all the coefficients of the
+  * diagonal must be non zero). It works as a forward (resp. backward) substitution if \c *this
+  * is an upper (resp. lower) triangular matrix.
   *
-  * It is required that \c *this be marked as either an upper or a lower triangular matrix, as
-  * can be done by marked(), and as is automatically the case with expressions such as those returned
+  * It is required that \c *this be marked as either an upper or a lower triangular matrix, which
+  * can be done by marked(), and that is automatically the case with expressions such as those returned
   * by extract().
+  * 
+  * \addexample SolveTriangular \label How to solve a triangular system (aka. how to multiply the inverse of a triangular matrix by another one)
+  * 
   * Example: \include MatrixBase_marked.cpp
   * Output: \verbinclude MatrixBase_marked.out
+  * 
+  * This function is essentially a wrapper to the faster solveTriangularInPlace() function creating
+  * a temporary copy of \a other, calling solveTriangularInPlace() on the copy and returning it.
+  * Therefore, if \a other is not needed anymore, it is quite faster to call solveTriangularInPlace()
+  * instead of solveTriangular().
+  * 
+  * For users comming from BLAS, this function (and more specifically solveTriangularInPlace()) offer
+  * all the operations supported by the \c *TRSV and \c *TRSM BLAS routines.
   *
-  * \sa marked(), extract()
+  * \b Tips: to perform a \em "right-inverse-multiply" you can simply transpose the operation, e.g.:
+  * \code
+  * M * T^1  <=>  T.transpose().solveTriangularInPlace(M.transpose());
+  * \endcode
+  * 
+  * \sa solveTriangularInPlace(), marked(), extract()
   */
 template<typename Derived>
 template<typename OtherDerived>
 typename OtherDerived::Eval MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
   typename OtherDerived::Eval res(other);
-  solveTriangularInPlace(res);
+  solveTriangularInPlace(&res);
   return res;
 }
 

@@ -58,7 +58,7 @@ private:
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
-    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)==Dynamic /* slice vectorization can be slow, so we only
+    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize /* slice vectorization can be slow, so we only
       want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
       of a dynamic block in a fixed-size matrix */
   };
