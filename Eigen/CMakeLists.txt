@@ -21,7 +21,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 SET(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/include"
+    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
     CACHE PATH
     "The directory where we install the header files"
     FORCE)
