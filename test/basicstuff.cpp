@@ -46,8 +46,21 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
+  Scalar x = ei_random<Scalar>();
+
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
+
+  m1.coeffRef(r,c) = x;
+  VERIFY_IS_APPROX(x, m1.coeff(r,c));
+  m1(r,c) = x;
+  VERIFY_IS_APPROX(x, m1(r,c));
+  v1.coeffRef(r) = x;
+  VERIFY_IS_APPROX(x, v1.coeff(r));
+  v1(r) = x;
+  VERIFY_IS_APPROX(x, v1(r));
+  v1[r] = x;
+  VERIFY_IS_APPROX(x, v1[r]);
 
   VERIFY_IS_APPROX(               v1,    v1);
   VERIFY_IS_NOT_APPROX(           v1,    2*v1);

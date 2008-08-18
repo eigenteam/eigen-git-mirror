@@ -249,9 +249,11 @@ template<typename Derived> class MatrixBase
 
     const Scalar coeff(int index) const;
     const Scalar operator[](int index) const;
+    const Scalar operator()(int index) const;
 
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
+    Scalar& operator()(int index);
 
     template<typename OtherDerived>
     void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other);

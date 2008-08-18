@@ -134,6 +134,23 @@ inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
   return derived().coeff(index);
 }
 
+/** \returns the coefficient at given index.
+  *
+  * This is synonymous to operator[](int) const.
+  *
+  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+  *
+  * \sa operator[](int), operator()(int,int) const, x() const, y() const,
+  * z() const, w() const
+  */
+template<typename Derived>
+inline const typename ei_traits<Derived>::Scalar MatrixBase<Derived>
+  ::operator()(int index) const
+{
+  ei_assert(index >= 0 && index < size());
+  return derived().coeff(index);
+}
+
 /** Short version: don't use this function, use
   * \link operator[](int) \endlink instead.
   *
@@ -165,6 +182,22 @@ inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   ::operator[](int index)
+{
+  ei_assert(index >= 0 && index < size());
+  return derived().coeffRef(index);
+}
+
+/** \returns a reference to the coefficient at given index.
+  *
+  * This is synonymous to operator[](int).
+  *
+  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+  *
+  * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
+  */
+template<typename Derived>
+inline typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+  ::operator()(int index)
 {
   ei_assert(index >= 0 && index < size());
   return derived().coeffRef(index);
