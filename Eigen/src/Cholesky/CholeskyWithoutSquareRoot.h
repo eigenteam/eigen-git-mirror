@@ -149,7 +149,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
 
   return m_matrix.adjoint().template part<UnitUpper>()
     .solveTriangular(
-      (  m_matrix.cwise().inverse().diagonal().asDiagonal()
+      (  m_matrix.cwise().inverse().template part<Diagonal>()
        * matrixL().solveTriangular(b))
      );
 }

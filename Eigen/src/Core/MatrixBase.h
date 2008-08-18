@@ -325,7 +325,7 @@ template<typename Derived> class MatrixBase
     typename OtherDerived::Eval solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
-    void solveTriangularInPlace(MatrixBase<OtherDerived>* p_other) const;
+    void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
 
 
     template<typename OtherDerived>

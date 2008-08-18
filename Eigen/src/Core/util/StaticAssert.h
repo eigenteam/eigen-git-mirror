@@ -59,6 +59,7 @@
         you_mixed_vectors_of_different_sizes,
         you_mixed_matrices_of_different_sizes,
         this_method_is_only_for_vectors_of_a_specific_size,
+        this_method_is_only_for_matrices_of_a_specific_size,
         you_did_a_programming_error,
         you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
         unaligned_load_and_store_operations_unimplemented_on_AltiVec,
@@ -95,6 +96,11 @@
 #define EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(TYPE, SIZE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime && TYPE::SizeAtCompileTime==SIZE, \
                       this_method_is_only_for_vectors_of_a_specific_size)
+
+// static assertion failing if the type \a TYPE is not a vector type of the given size
+#define EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(TYPE, ROWS, COLS) \
+  EIGEN_STATIC_ASSERT(TYPE::RowsAtCompileTime==ROWS && TYPE::ColsAtCompileTime==COLS, \
+                      this_method_is_only_for_matrices_of_a_specific_size)
 
 // static assertion failing if the two vector expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(TYPE0,TYPE1) \

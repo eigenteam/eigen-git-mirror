@@ -118,6 +118,7 @@ public:
 
   /** Constructs and initializes a quaternion from the angle-axis \a aa */
   explicit inline Quaternion(const AngleAxisType& aa) { *this = aa; }
+
   /** Constructs and initializes a quaternion from either:
     *  - a rotation matrix expression,
     *  - a 4D vector expression representing quaternion coefficients.
@@ -130,9 +131,6 @@ public:
   Quaternion& operator=(const AngleAxisType& aa);
   template<typename Derived>
   Quaternion& operator=(const MatrixBase<Derived>& m);
-
-  /** Automatic conversion to a rotation matrix. */
-  operator Matrix3 () const { return toRotationMatrix(); }
 
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
@@ -425,5 +423,30 @@ struct ei_quaternion_assign_impl<Other,4,1>
     q.coeffs() = vec;
   }
 };
+
+/** \geometry_module
+  *
+  * Constructs a 3x3 rotation matrix from the quaternion \a q
+  *
+  * \sa Matrix(const AngleAxis&)
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::Matrix(const Quaternion<Scalar>& q)
+{
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
+  *this = q.toRotationMatrix();
+}
+
+/** \geometry_module
+  *
+  * Set a 3x3 rotation matrix from the quaternion \a q
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>&
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::operator=(const Quaternion<Scalar>& q)
+{
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
+  return *this = q.toRotationMatrix();
+}
 
 #endif // EIGEN_QUATERNION_H

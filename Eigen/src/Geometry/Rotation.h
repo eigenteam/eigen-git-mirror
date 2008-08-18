@@ -126,6 +126,7 @@ public:
   enum { Dim = 2 };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
+  typedef Matrix<Scalar,2,1> Vector2;
   typedef Matrix<Scalar,2,2> Matrix2;
 
 protected:
@@ -136,13 +137,33 @@ public:
 
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
   inline Rotation2D(Scalar a) : m_angle(a) {}
-  inline operator Scalar& () { return m_angle; }
-  inline operator Scalar () const { return m_angle; }
+
+  /** \Returns the rotation angle */
+  inline Scalar angle() const { return m_angle; }
+
+  /** \Returns a read-write reference to the rotation angle */
+  inline Scalar& angle() { return m_angle; }
 
   /** Automatic convertion to a 2D rotation matrix.
     * \sa toRotationMatrix()
     */
   inline operator Matrix2() const { return toRotationMatrix(); }
+
+  /** \Returns the inverse rotation */
+  inline Rotation2D inverse() const { return -m_angle; }
+
+  /** Concatenates two rotations */
+  inline Rotation2D operator*(const Rotation2D& other) const
+  { return m_angle + other.m_angle; }
+
+  /** Concatenates two rotations */
+  inline Rotation2D& operator*=(const Rotation2D& other)
+  { return m_angle += other.m_angle; }
+
+  /** Applies the rotation to a 2D vector */
+  template<typename Derived>
+  Vector2 operator* (const MatrixBase<Derived>& vec) const
+  { return toRotationMatrix() * vec; }
 
   template<typename Derived>
   Rotation2D& fromRotationMatrix(const MatrixBase<Derived>& m);

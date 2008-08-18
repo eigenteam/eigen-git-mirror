@@ -363,6 +363,13 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       else
         this->Base::swap(other);
     }
+
+/////////// Geometry module ///////////
+
+    explicit Matrix(const Quaternion<Scalar>& q);
+    Matrix& operator=(const Quaternion<Scalar>& q);
+    explicit Matrix(const AngleAxis<Scalar>& aa);
+    Matrix& operator=(const AngleAxis<Scalar>& aa);
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs

@@ -82,26 +82,31 @@ public:
   const Vector3& axis() const { return m_axis; }
   Vector3& axis() { return m_axis; }
 
-  /** Automatic conversion to a 3x3 rotation matrix.
-    * \sa toRotationMatrix() */
-  operator Matrix3 () const { return toRotationMatrix(); }
-
+  /** Concatenates two rotations */
   inline QuaternionType operator* (const AngleAxis& other) const
   { return QuaternionType(*this) * QuaternionType(other); }
-  
+
+  /** Concatenates two rotations */
   inline QuaternionType operator* (const QuaternionType& other) const
   { return QuaternionType(*this) * other; }
 
+  /** Concatenates two rotations */
   friend inline QuaternionType operator* (const QuaternionType& a, const AngleAxis& b)
   { return a * QuaternionType(b); }
 
+  /** Concatenates two rotations */
   inline typename ProductReturnType<Matrix3,Matrix3>::Type
   operator* (const Matrix3& other) const
   { return toRotationMatrix() * other; }
 
+  /** Concatenates two rotations */
   inline friend typename ProductReturnType<Matrix3,Matrix3>::Type
   operator* (const Matrix3& a, const AngleAxis& b)
   { return a * b.toRotationMatrix(); }
+
+  /** \Returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
+  AngleAxis inverse() const
+  { return AngleAxis(-m_angle, m_axis); }
 
   AngleAxis& operator=(const QuaternionType& q);
   template<typename Derived>
@@ -177,6 +182,31 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
   res.diagonal() = (cos1_axis.cwise() * m_axis).cwise() + c;
 
   return res;
+}
+
+/** \geometry_module
+  *
+  * Constructs a 3x3 rotation matrix from the angle-axis \a aa
+  *
+  * \sa Matrix(const Quaternion&)
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::Matrix(const AngleAxis<Scalar>& aa)
+{
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
+  *this = aa.toRotationMatrix();
+}
+
+/** \geometry_module
+  *
+  * Set a 3x3 rotation matrix from the angle-axis \a aa
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>&
+Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::operator=(const AngleAxis<Scalar>& aa)
+{
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
+  return *this = aa.toRotationMatrix();
 }
 
 #endif // EIGEN_ANGLEAXIS_H
