@@ -52,7 +52,9 @@ using Eigen::Matrix; \
 using Eigen::MatrixBase;
 
 #ifdef NDEBUG
-#define EIGEN_NO_DEBUG
+# ifndef EIGEN_NO_DEBUG
+#  define EIGEN_NO_DEBUG
+# endif
 #endif
 
 #ifndef ei_assert
@@ -145,5 +147,13 @@ friend class Eigen::MatrixBase<Derived>;
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
+
+#ifdef __linux__
+# define EIGEN_USE_ALLOCA 1
+# define ei_alloca_or_malloc(condition, size) (condition?alloca(size):malloc(size))
+#else
+# define EIGEN_USE_ALLOCA 0
+# define ei_alloca_or_malloc(condition, size) malloc(size)
+#endif
 
 #endif // EIGEN_MACROS_H
