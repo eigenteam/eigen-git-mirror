@@ -557,6 +557,10 @@ template<typename Derived> class MatrixBase
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
 
+/////////// SVD module ///////////
+
+    const SVD<EvalType> svd() const;
+
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>

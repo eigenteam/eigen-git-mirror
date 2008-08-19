@@ -98,6 +98,7 @@ void ei_cache_friendly_product(
 
 template<typename MatrixType> class LU;
 template<typename MatrixType> class QR;
+template<typename MatrixType> class SVD;
 template<typename MatrixType> class Cholesky;
 template<typename MatrixType> class CholeskyWithoutSquareRoot;
 

@@ -106,5 +106,6 @@ EI_ADD_TEST(qr)
 EI_ADD_TEST(eigensolver)
 EI_ADD_TEST(geometry)
 EI_ADD_TEST(regression)
+EI_ADD_TEST(svd)
 
 ENDIF(BUILD_TESTS)
