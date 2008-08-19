@@ -71,10 +71,12 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor>
     {
       // process first rows using the non block version
       if(!(Lhs::Flags & UnitDiagBit))
+      {
         if (IsLower)
           other.coeffRef(0,c) = other.coeff(0,c)/lhs.coeff(0, 0);
         else
           other.coeffRef(size-1,c) = other.coeff(size-1, c)/lhs.coeff(size-1, size-1);
+      }
       for(int i=(IsLower ? 1 : size-2); IsLower ? i<blockyStart : i>blockyStart; i += (IsLower ? 1 : -1) )
       {
         Scalar tmp = other.coeff(i,c)
