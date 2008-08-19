@@ -139,9 +139,12 @@ struct ei_member_redux {
   * \param ExpressionType the type of the object on which to do partial reductions
   * \param Direction indicates the direction of the redux (Vertical or Horizontal)
   *
-  * This class represents an expression with additional partial reduction features.
+  * This class represents a pseudo expression with partial reduction features.
   * It is the return type of MatrixBase::colwise() and MatrixBase::rowwise()
   * and most of the time this is the only way it is used.
+  *
+  * Example: \include MatrixBase_colwise.cpp
+  * Output: \verbinclude MatrixBase_colwise.out
   *
   * \sa MatrixBase::colwise(), MatrixBase::rowwise(), class PartialReduxExpr
   */
@@ -180,30 +183,50 @@ template<typename ExpressionType, int Direction> class PartialRedux
 
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_minCoeff.cpp
+      * Output: \verbinclude PartialRedux_minCoeff.out
+      *      
       * \sa MatrixBase::minCoeff() */
     const typename ReturnType<ei_member_minCoeff>::Type minCoeff() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the largest coefficient
       * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_maxCoeff.cpp
+      * Output: \verbinclude PartialRedux_maxCoeff.out
+      *      
       * \sa MatrixBase::maxCoeff() */
     const typename ReturnType<ei_member_maxCoeff>::Type maxCoeff() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the squared norm
       * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_norm2.cpp
+      * Output: \verbinclude PartialRedux_norm2.out
+      *      
       * \sa MatrixBase::norm2() */
     const typename ReturnType<ei_member_norm2>::Type norm2() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_norm.cpp
+      * Output: \verbinclude PartialRedux_norm.out
+      *      
       * \sa MatrixBase::norm() */
     const typename ReturnType<ei_member_norm>::Type norm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the sum
       * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_sum.cpp
+      * Output: \verbinclude PartialRedux_sum.out
+      *      
       * \sa MatrixBase::sum() */
     const typename ReturnType<ei_member_sum>::Type sum() const
     { return _expression(); }
@@ -216,7 +239,10 @@ template<typename ExpressionType, int Direction> class PartialRedux
   *
   * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
   *
-  * \sa class PartialRedux
+  * Example: \include MatrixBase_colwise.cpp
+  * Output: \verbinclude MatrixBase_colwise.out
+  *
+  * \sa rowwise(), class PartialRedux
   */
 template<typename Derived>
 inline const PartialRedux<Derived,Vertical>
@@ -229,7 +255,10 @@ MatrixBase<Derived>::colwise() const
   *
   * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
   *
-  * \sa class PartialRedux
+  * Example: \include MatrixBase_rowwise.cpp
+  * Output: \verbinclude MatrixBase_rowwise.out
+  *
+  * \sa colwise(), class PartialRedux
   */
 template<typename Derived>
 inline const PartialRedux<Derived,Horizontal>

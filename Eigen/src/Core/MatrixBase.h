@@ -555,7 +555,7 @@ template<typename Derived> class MatrixBase
     const QR<EvalType> qr() const;
 
     EigenvaluesReturnType eigenvalues() const;
-    RealScalar matrixNorm() const;
+    RealScalar operatorNorm() const;
 
 /////////// Geometry module ///////////
 

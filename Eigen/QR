@@ -20,7 +20,7 @@ namespace Eigen {
   * This module also provides some MatrixBase methods, including:
   *  - MatrixBase::qr(),
   *  - MatrixBase::eigenvalues(),
-  *  - MatrixBase::matrixNorm()
+  *  - MatrixBase::operatorNorm()
   *
   * \code
   * #include <Eigen/QR>

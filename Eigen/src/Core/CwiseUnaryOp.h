@@ -111,7 +111,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   *
   * \addexample CustomCwiseUnaryFunctors \label How to use custom coeff wise unary functors
   *
-  * Here is an example:
+  * Example:
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
@@ -135,6 +135,11 @@ MatrixBase<Derived>::operator-() const
 }
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
+  *
+  * Example: \include Cwise_abs.cpp
+  * Output: \verbinclude Cwise_abs.out
+  *
+  * \sa abs2()
   */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
@@ -144,6 +149,11 @@ Cwise<ExpressionType>::abs() const
 }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
+  *
+  * Example: \include Cwise_abs2.cpp
+  * Output: \verbinclude Cwise_abs2.out
+  *
+  * \sa abs(), square()
   */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)

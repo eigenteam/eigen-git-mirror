@@ -259,10 +259,10 @@ MatrixBase<Derived>::eigenvalues() const
 }
 
 template<typename Derived, bool IsSelfAdjoint>
-struct ei_matrixNorm_selector
+struct ei_operatorNorm_selector
 {
   static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-  matrixNorm(const MatrixBase<Derived>& m)
+  operatorNorm(const MatrixBase<Derived>& m)
   {
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
     // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
@@ -270,10 +270,10 @@ struct ei_matrixNorm_selector
   }
 };
 
-template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
+template<typename Derived> struct ei_operatorNorm_selector<Derived, false>
 {
   static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-  matrixNorm(const MatrixBase<Derived>& m)
+  operatorNorm(const MatrixBase<Derived>& m)
   {
     typename Derived::Eval m_eval(m);
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
@@ -293,10 +293,10 @@ template<typename Derived> struct ei_matrixNorm_selector<Derived, false>
   */
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-MatrixBase<Derived>::matrixNorm() const
+MatrixBase<Derived>::operatorNorm() const
 {
-  return ei_matrixNorm_selector<Derived, Flags&SelfAdjointBit>
-       ::matrixNorm(derived());
+  return ei_operatorNorm_selector<Derived, Flags&SelfAdjointBit>
+       ::operatorNorm(derived());
 }
 
 #ifndef EIGEN_EXTERN_INSTANTIATIONS

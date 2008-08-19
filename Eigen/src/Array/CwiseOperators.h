@@ -29,7 +29,13 @@
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise square root of *this. */
+  * \returns an expression of the coefficient-wise square root of *this.
+  *
+  * Example: \include Cwise_sqrt.cpp
+  * Output: \verbinclude Cwise_sqrt.out
+  *
+  * \sa pow(), square()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sqrt_op)
 Cwise<ExpressionType>::sqrt() const
@@ -39,7 +45,13 @@ Cwise<ExpressionType>::sqrt() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise exponential of *this. */
+  * \returns an expression of the coefficient-wise exponential of *this.
+  *
+  * Example: \include Cwise_exp.cpp
+  * Output: \verbinclude Cwise_exp.out
+  *
+  * \sa pow(), log(), sin(), cos()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)
 Cwise<ExpressionType>::exp() const
@@ -49,7 +61,13 @@ Cwise<ExpressionType>::exp() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise logarithm of *this. */
+  * \returns an expression of the coefficient-wise logarithm of *this.
+  *
+  * Example: \include Cwise_log.cpp
+  * Output: \verbinclude Cwise_log.out
+  *
+  * \sa exp()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
 Cwise<ExpressionType>::log() const
@@ -59,7 +77,13 @@ Cwise<ExpressionType>::log() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise cosine of *this. */
+  * \returns an expression of the coefficient-wise cosine of *this.
+  *
+  * Example: \include Cwise_cos.cpp
+  * Output: \verbinclude Cwise_cos.out
+  *
+  * \sa sin(), exp()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cos_op)
 Cwise<ExpressionType>::cos() const
@@ -70,7 +94,13 @@ Cwise<ExpressionType>::cos() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise sine of *this. */
+  * \returns an expression of the coefficient-wise sine of *this.
+  *
+  * Example: \include Cwise_sin.cpp
+  * Output: \verbinclude Cwise_sin.out
+  *
+  * \sa cos(), exp()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)
 Cwise<ExpressionType>::sin() const
@@ -81,7 +111,13 @@ Cwise<ExpressionType>::sin() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise power of *this to the given exponent. */
+  * \returns an expression of the coefficient-wise power of *this to the given exponent.
+  *
+  * Example: \include Cwise_pow.cpp
+  * Output: \verbinclude Cwise_pow.out
+  *
+  * \sa exp(), log()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)
 Cwise<ExpressionType>::pow(const Scalar& exponent) const
@@ -92,7 +128,13 @@ Cwise<ExpressionType>::pow(const Scalar& exponent) const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise inverse of *this. */
+  * \returns an expression of the coefficient-wise inverse of *this.
+  *
+  * Example: \include Cwise_inverse.cpp
+  * Output: \verbinclude Cwise_inverse.out
+  *
+  * \sa operator/(), operator*()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_inverse_op)
 Cwise<ExpressionType>::inverse() const
@@ -102,7 +144,13 @@ Cwise<ExpressionType>::inverse() const
 
 /** \array_module
   *
-  * \returns an expression of the coefficient-wise square of *this. */
+  * \returns an expression of the coefficient-wise square of *this.
+  *
+  * Example: \include Cwise_square.cpp
+  * Output: \verbinclude Cwise_square.out
+  *
+  * \sa operator/(), operator*(), abs2()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_square_op)
 Cwise<ExpressionType>::square() const
@@ -112,7 +160,13 @@ Cwise<ExpressionType>::square() const
 
 /** \array_module
   *
-  * \returns an expression of the coefficient-wise cube of *this. */
+  * \returns an expression of the coefficient-wise cube of *this.
+  *
+  * Example: \include Cwise_cube.cpp
+  * Output: \verbinclude Cwise_cube.out
+  *
+  * \sa square(), pow()
+  */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cube_op)
 Cwise<ExpressionType>::cube() const
@@ -127,9 +181,10 @@ Cwise<ExpressionType>::cube() const
   * 
   * \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
-  * See MatrixBase::all() for an example.
+  * Example: \include Cwise_less.cpp
+  * Output: \verbinclude Cwise_less.out
   *
-  * \sa class CwiseBinaryOp
+  * \sa MatrixBase::all(), MatrixBase::any(), operator>(), operator<=()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -143,7 +198,10 @@ Cwise<ExpressionType>::operator<(const MatrixBase<OtherDerived> &other) const
   * 
   * \returns an expression of the coefficient-wise \<= operator of *this and \a other
   *
-  * \sa class CwiseBinaryOp
+  * Example: \include Cwise_less_equal.cpp
+  * Output: \verbinclude Cwise_less_equal.out
+  *
+  * \sa MatrixBase::all(), MatrixBase::any(), operator>=(), operator<()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -157,9 +215,10 @@ Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
   * 
   * \returns an expression of the coefficient-wise \> operator of *this and \a other
   *
-  * See MatrixBase::all() for an example.
+  * Example: \include Cwise_greater.cpp
+  * Output: \verbinclude Cwise_greater.out
   *
-  * \sa class CwiseBinaryOp
+  * \sa MatrixBase::all(), MatrixBase::any(), operator>=(), operator<()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -173,7 +232,10 @@ Cwise<ExpressionType>::operator>(const MatrixBase<OtherDerived> &other) const
   * 
   * \returns an expression of the coefficient-wise \>= operator of *this and \a other
   *
-  * \sa class CwiseBinaryOp
+  * Example: \include Cwise_greater_equal.cpp
+  * Output: \verbinclude Cwise_greater_equal.out
+  *
+  * \sa MatrixBase::all(), MatrixBase::any(), operator>(), operator<=()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -187,7 +249,15 @@ Cwise<ExpressionType>::operator>=(const MatrixBase<OtherDerived> &other) const
   * 
   * \returns an expression of the coefficient-wise == operator of *this and \a other
   *
-  * \sa class CwiseBinaryOp
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
+  * MatrixBase::isMuchSmallerThan().
+  *
+  * Example: \include Cwise_equal_equal.cpp
+  * Output: \verbinclude Cwise_equal_equal.out
+  *
+  * \sa MatrixBase::all(), MatrixBase::any(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -201,7 +271,15 @@ Cwise<ExpressionType>::operator==(const MatrixBase<OtherDerived> &other) const
   * 
   * \returns an expression of the coefficient-wise != operator of *this and \a other
   *
-  * \sa class CwiseBinaryOp
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
+  * MatrixBase::isMuchSmallerThan().
+  *
+  * Example: \include Cwise_not_equal.cpp
+  * Output: \verbinclude Cwise_not_equal.out
+  *
+  * \sa MatrixBase::all(), MatrixBase::any(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
@@ -213,7 +291,14 @@ Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
 
 
 /** \array_module
-  * \returns an expression of \c *this with each coeff incremented by the constant \a scalar */
+  *
+  * \returns an expression of \c *this with each coeff incremented by the constant \a scalar
+  *
+  * Example: \include Cwise_plus.cpp
+  * Output: \verbinclude Cwise_plus.out
+  *
+  * \sa operator+=(), operator-()
+  */
 template<typename ExpressionType>
 inline const typename Cwise<ExpressionType>::ScalarAddReturnType
 Cwise<ExpressionType>::operator+(const Scalar& scalar) const
@@ -222,7 +307,14 @@ Cwise<ExpressionType>::operator+(const Scalar& scalar) const
 }
 
 /** \array_module
-  * \see operator+() */
+  *
+  * Adds the given \a scalar to each coeff of this expression.
+  *
+  * Example: \include Cwise_plus_equal.cpp
+  * Output: \verbinclude Cwise_plus_equal.out
+  *
+  * \sa operator+(), operator-=()
+  */
 template<typename ExpressionType>
 inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
 {
@@ -230,7 +322,14 @@ inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
 }
 
 /** \array_module
-  * \returns an expression of \c *this with each coeff decremented by the constant \a scalar */
+  *
+  * \returns an expression of \c *this with each coeff decremented by the constant \a scalar
+  *
+  * Example: \include Cwise_minus.cpp
+  * Output: \verbinclude Cwise_minus.out
+  *
+  * \sa operator+(), operator-=()
+  */
 template<typename ExpressionType>
 inline const typename Cwise<ExpressionType>::ScalarAddReturnType
 Cwise<ExpressionType>::operator-(const Scalar& scalar) const
@@ -239,7 +338,15 @@ Cwise<ExpressionType>::operator-(const Scalar& scalar) const
 }
 
 /** \array_module
-  * \see operator- */
+  *
+  * Substracts the given \a scalar from each coeff of this expression.
+  *
+  * Example: \include Cwise_minus_equal.cpp
+  * Output: \verbinclude Cwise_minus_equal.out
+  *
+  * \sa operator+=(), operator-()
+  */
+
 template<typename ExpressionType>
 inline ExpressionType& Cwise<ExpressionType>::operator-=(const Scalar& scalar)
 {

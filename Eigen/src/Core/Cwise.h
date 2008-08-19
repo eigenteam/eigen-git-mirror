@@ -48,7 +48,10 @@
   *
   * Note that some methods are defined in the \ref Array module.
   *
-  * \sa MatrixBase::cwise()
+  * Example: \include MatrixBase_cwise_const.cpp
+  * Output: \verbinclude MatrixBase_cwise_const.out
+  *
+  * \sa MatrixBase::cwise() const, MatrixBase::cwise()
   */
 template<typename ExpressionType> class Cwise
 {
@@ -133,7 +136,10 @@ template<typename ExpressionType> class Cwise
 
 /** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
   *
-  * \sa class Cwise
+  * Example: \include MatrixBase_cwise_const.cpp
+  * Output: \verbinclude MatrixBase_cwise_const.out
+  *
+  * \sa class Cwise, cwise()
   */
 template<typename Derived>
 inline const Cwise<Derived>
@@ -144,7 +150,10 @@ MatrixBase<Derived>::cwise() const
 
 /** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
   *
-  * \sa class Cwise
+  * Example: \include MatrixBase_cwise.cpp
+  * Output: \verbinclude MatrixBase_cwise.out
+  *
+  * \sa class Cwise, cwise() const
   */
 template<typename Derived>
 inline Cwise<Derived>

@@ -261,7 +261,9 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
 
 /** \returns the matrix product of \c *this and \a other.
   *
-  * \sa lazy(), operator*=(const MatrixBase&)
+  * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
+  *
+  * \sa lazy(), operator*=(const MatrixBase&), Cwise::operator*()
   */
 template<typename Derived>
 template<typename OtherDerived>

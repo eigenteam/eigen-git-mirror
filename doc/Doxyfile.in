@@ -31,7 +31,7 @@ PROJECT_NAME           = Eigen
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 2.0-alpha6
+PROJECT_NUMBER         = 2.0-alpha7
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -1195,7 +1195,9 @@ PREDEFINED             = EIGEN_EMPTY_STRUCT \
 
 EXPAND_AS_DEFINED      = EIGEN_MAKE_SCALAR_OPS          \
                          EIGEN_MAKE_TYPEDEFS            \
-                         EIGEN_MAKE_TYPEDEFS_ALL_SIZES 
+                         EIGEN_MAKE_TYPEDEFS_ALL_SIZES  \
+                         EIGEN_CWISE_UNOP_RETURN_TYPE   \
+                         EIGEN_CWISE_BINOP_RETURN_TYPE
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all function-like macros that are alone
