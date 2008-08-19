@@ -166,7 +166,7 @@ template<typename Derived> class MapBase
     { return derived() = forceAligned() / other; }
 
   protected:
-    const Scalar* __restrict__ m_data;
+    const Scalar* EIGEN_RESTRICT m_data;
     const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
 };

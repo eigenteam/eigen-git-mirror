@@ -79,7 +79,7 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
       // in which case we can stop iterating.
       int j = 0;
       typedef Eigen::Matrix<int, packetSize, 1> Packeti;
-      Packeti pix_iter = Packeti::zero(), // number of iteration per pixel in the packet
+      Packeti pix_iter = Packeti::Zero(), // number of iteration per pixel in the packet
               pix_dont_diverge; // whether or not each pixel has already diverged
       do
       {
@@ -93,7 +93,7 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
         }
         pix_dont_diverge = ((pzr.cwise().square() + pzi.cwise().square())
                            .eval() // temporary fix as what follows is not yet vectorized by Eigen
-                           .cwise() <= Packet::constant(4))
+                           .cwise() <= Packet::Constant(4))
                                 // the 4 here is not a magic value, it's a math fact that if
                                 // the square modulus is >4 then divergence is inevitable.
                            .template cast<int>();

@@ -285,8 +285,8 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
                             * matA.col(i).end(n-i-1);
       
-      const Scalar* __restrict__ pb = &matA.coeffRef(0,i);
-      const Scalar* __restrict__ pa = (&hCoeffs.coeffRef(0)) - 1;
+      const Scalar* EIGEN_RESTRICT pb = &matA.coeffRef(0,i);
+      const Scalar* EIGEN_RESTRICT pa = (&hCoeffs.coeffRef(0)) - 1;
       for (int j1=i+1; j1<n; ++j1)
       {
         int starti = i+1;

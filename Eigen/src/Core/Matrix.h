@@ -286,8 +286,8 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
       if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
       || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
       {
-        m_storage.data()[0] = x;
-        m_storage.data()[1] = y;
+        m_storage.data()[0] = Scalar(x);
+        m_storage.data()[1] = Scalar(y);
       }
       else
       {

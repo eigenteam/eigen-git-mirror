@@ -185,13 +185,13 @@ template<typename Derived> class MatrixBase
     typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
     /** \internal the return type of MatrixBase::conjugate() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
-                        Derived&
+                        const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
+                        const Derived&
                      >::ret ConjugateReturnType;
     /** \internal the return type of MatrixBase::real() */
     typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef Transpose<NestByValue<typename ei_unref<ConjugateReturnType>::type> >
+    typedef Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
             AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
@@ -489,7 +489,7 @@ template<typename Derived> class MatrixBase
     inline const NestByValue<Derived> nestByValue() const;
 
 
-    const ConjugateReturnType conjugate() const;
+    ConjugateReturnType conjugate() const;
     const RealReturnType real() const;
 
     template<typename CustomUnaryOp>

@@ -71,6 +71,9 @@ template<typename MatrixType> class LU
              MatrixType::MaxRowsAtCompileTime)
     };
 
+	typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+                   MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelReturnType;
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -165,9 +168,8 @@ template<typename MatrixType> class LU
       * Output: \verbinclude LU_kernel.out
       *
       * \sa computeKernel()
-      */    const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                 MatrixType::MaxColsAtCompileTime,
-                 LU<MatrixType>::MaxSmallDimAtCompileTime> kernel() const;
+      */
+    const KernelReturnType kernel() const;
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition, if any exists.
@@ -408,9 +410,7 @@ void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
 }
 
 template<typename MatrixType>
-const Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                    MatrixType::MaxColsAtCompileTime,
-                    LU<MatrixType>::MaxSmallDimAtCompileTime>
+const typename LU<MatrixType>::KernelReturnType
 LU<MatrixType>::kernel() const
 {
   Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,

@@ -166,7 +166,7 @@ Cwise<ExpressionType>::abs2() const
   *
   * \sa adjoint() */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ConjugateReturnType
+inline typename MatrixBase<Derived>::ConjugateReturnType
 MatrixBase<Derived>::conjugate() const
 {
   return ConjugateReturnType(derived());

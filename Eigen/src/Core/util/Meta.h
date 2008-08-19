@@ -224,12 +224,16 @@ template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret 
 
 template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> struct ei_nested
 {
+  enum {
+    CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
+	CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
+  };
   typedef typename ei_meta_if<
     ei_must_nest_by_value<T>::ret,
     T,
     typename ei_meta_if<
       (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
-      || ((n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost) <= (n-1) * int(T::CoeffReadCost)),
+      || ( int(CostEval) <= int(CostNoEval) ),
       EvalType,
       const T&
     >::ret

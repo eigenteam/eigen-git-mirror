@@ -72,6 +72,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
     VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),        static_cast<RealScalar>(1));
 
   // check compatibility of dot and adjoint
+  // FIXME this line failed with MSVC and complex<double> in the ei_aligned_free()
   VERIFY_IS_APPROX(v1.dot(square * v2),              (square.adjoint() * v1).dot(v2));
 
   // like in testBasicStuff, test operator() to check const-qualification

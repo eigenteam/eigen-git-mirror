@@ -545,7 +545,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
                 ||((DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit))) };
-    Scalar* __restrict__ _res;
+    Scalar* EIGEN_RESTRICT _res;
     if (EvalToRes)
        _res = &res.coeffRef(0);
     else
@@ -590,7 +590,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
                 ||((DestDerived::Flags & ActualPacketAccessBit) && (DestDerived::Flags & RowMajorBit)) };
-    Scalar* __restrict__ _res;
+    Scalar* EIGEN_RESTRICT _res;
     if (EvalToRes)
        _res = &res.coeffRef(0);
     else
@@ -622,7 +622,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
-    Scalar* __restrict__ _rhs;
+    Scalar* EIGEN_RESTRICT _rhs;
     if (UseRhsDirectly)
        _rhs = &product.rhs().const_cast_derived().coeffRef(0);
     else
@@ -650,7 +650,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
-    Scalar* __restrict__ _lhs;
+    Scalar* EIGEN_RESTRICT _lhs;
     if (UseLhsDirectly)
        _lhs = &product.lhs().const_cast_derived().coeffRef(0);
     else

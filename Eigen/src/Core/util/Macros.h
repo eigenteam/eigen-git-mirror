@@ -99,6 +99,8 @@ using Eigen::MatrixBase;
 #define EIGEN_ALIGN_128
 #endif
 
+#define EIGEN_RESTRICT __restrict
+
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherDerived> \
 Derived& operator Op(const MatrixBase<OtherDerived>& other) \

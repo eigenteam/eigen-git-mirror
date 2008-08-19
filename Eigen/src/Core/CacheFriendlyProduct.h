@@ -34,8 +34,8 @@ static void ei_cache_friendly_product(
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
   bool resRowMajor, Scalar* res, int resStride)
 {
-  const Scalar* __restrict__ lhs;
-  const Scalar* __restrict__ rhs;
+  const Scalar* EIGEN_RESTRICT lhs;
+  const Scalar* EIGEN_RESTRICT rhs;
   int lhsStride, rhsStride, rows, cols;
   bool lhsRowMajor;
 
@@ -88,11 +88,11 @@ static void ei_cache_friendly_product(
   const int l2BlockSize = MaxL2BlockSize > size ? size : MaxL2BlockSize;
   const int l2BlockSizeAligned = (1 + std::max(l2BlockSize,l2BlockCols)/PacketSize)*PacketSize;
   const bool needRhsCopy = (PacketSize>1) && ((rhsStride%PacketSize!=0) || (size_t(rhs)%16!=0));
-  Scalar* __restrict__ block = 0;
+  Scalar* EIGEN_RESTRICT block = 0;
   const int allocBlockSize = sizeof(Scalar)*l2BlockRows*size;
   const bool allocBlockUsingAlloca = EIGEN_USE_ALLOCA && allocBlockSize<=16000000;
   block = (Scalar*)ei_alloca_or_malloc(allocBlockUsingAlloca, allocBlockSize);
-  Scalar* __restrict__ rhsCopy
+  Scalar* EIGEN_RESTRICT rhsCopy
     = (Scalar*)ei_alloca_or_malloc(true, sizeof(Scalar)*l2BlockSizeAligned*l2BlockSizeAligned);
 
   // loops on each L2 cache friendly blocks of the result
@@ -107,7 +107,6 @@ static void ei_cache_friendly_product(
     int count = 0;
 
     // copy l2blocksize rows of m_lhs to blocks of ps x bw
-    asm("#eigen begin buildblocks");
     for(int l2k=0; l2k<size; l2k+=l2BlockSize)
     {
       const int l2blockSizeEnd = std::min(l2k+l2BlockSize, size);
@@ -154,7 +153,6 @@ static void ei_cache_friendly_product(
         }
       }
     }
-    asm("#eigen end buildblocks");
 
     for(int l2j=0; l2j<cols; l2j+=l2BlockCols)
     {
@@ -177,11 +175,11 @@ static void ei_cache_friendly_product(
         for(int l1i=l2i; l1i<l2blockRowEndBW; l1i+=MaxBlockRows)
         {
           int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*MaxBlockRows;
-          const Scalar* __restrict__ localB = &block[offsetblock];
+          const Scalar* EIGEN_RESTRICT localB = &block[offsetblock];
           
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
-            const Scalar* __restrict__ rhsColumn;
+            const Scalar* EIGEN_RESTRICT rhsColumn;
             if (needRhsCopy)
               rhsColumn = &(rhsCopy[l2BlockSizeAligned*(l1j-l2j)-l2k]);
             else
@@ -194,7 +192,6 @@ static void ei_cache_friendly_product(
 
             PacketType tmp;
 
-            asm("#eigen begincore");
             for(int k=l2k; k<l2blockSizeEnd; k+=PacketSize)
             {
               tmp = ei_ploadu(&rhsColumn[k]);
@@ -220,7 +217,7 @@ static void ei_cache_friendly_product(
               }
             }
 
-            Scalar* __restrict__ localRes = &(res[l1i + l1j*resStride]);
+            Scalar* EIGEN_RESTRICT localRes = &(res[l1i + l1j*resStride]);
 
             if (PacketSize>1 && resIsAligned)
             {
@@ -250,7 +247,6 @@ static void ei_cache_friendly_product(
                 localRes[7] += ei_predux(dst[7]);
               }
             }
-            asm("#eigen endcore");
           }
         }
         if (l2blockRemainingRows>0)
@@ -258,10 +254,9 @@ static void ei_cache_friendly_product(
           int offsetblock = l2k * (l2blockRowEnd-l2i) + (l2blockRowEndBW-l2i)*(l2blockSizeEnd-l2k) - l2k*l2blockRemainingRows;
           const Scalar* localB = &block[offsetblock];
 
-          asm("#eigen begin dynkernel");
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
-            const Scalar* __restrict__ rhsColumn;
+            const Scalar* EIGEN_RESTRICT rhsColumn;
             if (needRhsCopy)
               rhsColumn = &(rhsCopy[l2BlockSizeAligned*(l1j-l2j)-l2k]);
             else
@@ -292,7 +287,7 @@ static void ei_cache_friendly_product(
               }
             }
 
-            Scalar* __restrict__ localRes = &(res[l2blockRowEndBW + l1j*resStride]);
+            Scalar* EIGEN_RESTRICT localRes = &(res[l2blockRowEndBW + l1j*resStride]);
 
             // process the remaining rows once at a time
                                          localRes[0] += ei_predux(dst[0]);
@@ -307,7 +302,6 @@ static void ei_cache_friendly_product(
               if (l2blockRemainingRows>=8) localRes[7] += ei_predux(dst[7]);
             }
 
-            asm("#eigen end dynkernel");
           }
         }
       }
@@ -373,7 +367,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
           ei_padd(ei_pmul(ptmp0,ei_pload ## A0(&lhs0[j OFFSET])),ei_pmul(ptmp1,ei_pload ## A13(&lhs1[j OFFSET]))), \
           ei_padd(ei_pmul(ptmp2,ei_pload ## A2(&lhs2[j OFFSET])),ei_pmul(ptmp3,ei_pload ## A13(&lhs3[j OFFSET]))) )))
 
-  asm("#begin matrix_vector_product");
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
@@ -541,7 +534,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
     else
       break;
   } while(PacketSize>1);
-  asm("#end matrix_vector_product");
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
 
@@ -563,7 +555,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     ptmp2 = ei_pmadd(b, ei_pload##A2 (&lhs2[j]), ptmp2); \
     ptmp3 = ei_pmadd(b, ei_pload##A13(&lhs3[j]), ptmp3); }
 
-  asm("#begin matrix_vector_product");
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
@@ -752,7 +743,6 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
     else
       break;
   } while(PacketSize>1);
-  asm("#end matrix_vector_product");
 
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
