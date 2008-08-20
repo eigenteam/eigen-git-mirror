@@ -45,30 +45,91 @@ What if the matrix has dynamic-size i.e. the number of rows or cols isn't known 
 
 <h2>Matrix and vector creation and initialization</h2>
 
-For instance \code Matrix3f m = Matrix3f::Identity(); \endcode creates a 3x3 fixed size matrix of float
-which is initialized to the identity matrix.
-Similarly \code MatrixXcd m = MatrixXcd::Zero(rows,cols); \endcode creates a rows x cols matrix
-of double precision complex which is initialized to zero. Here rows and cols do not have to be
-known at compile-time. In "MatrixXcd", "X" stands for dynamic, "c" for complex, and "d" for double.
-
-You can also initialize a matrix with all coefficients equal to one:
-\code MatrixXi m = MatrixXi::Ones(rows,cols); \endcode
-or to any constant value:
+To get a matrix with all coefficients equals to a given value you can use the Matrix::Constant() function, e.g.:
+<table><tr><td>
 \code
-MatrixXi m = MatrixXi::Constant(rows,cols,66);
-Matrix4d m = Matrix4d::Constant(6.6);
+int rows=2, cols=3;
+cout << MatrixXf::Constant(rows, cols, sqrt(2));
+\endcode
+</td>
+<td>
+output:
+\code
+1.41 1.41 1.41
+1.41 1.41 1.41
+\endcode
+</td></tr></table>
+
+To set all the coefficients of a matrix you can also use the setConstant() variant:
+\code
+MatrixXf m(rows, cols);
+m.setConstant(rows, cols, value);
 \endcode
 
-All these 4 matrix creation functions also exist with the "set" prefix:
-\code
-Matrix3f m3;            MatrixXi mx;                      VectorXcf vec;
-m3.setZero();           mx.setZero(rows,cols);            vec.setZero(size);
-m3.setIdentity();       mx.setIdentity(rows,cols);        vec.setIdentity(size);
-m3.setOnes();           mx.setOnes(rows,cols);            vec.setOnes(size);
-m3.setConstant(6.6);    mx.setConstant(rows,cols,6.6);    vec.setConstant(size,complex<float>(6,3));
-\endcode
+Eigen also offers variants of these functions for vector types and fixed-size matrices or vectors, as well as similar functions to create matrices with all coefficients equal to zero or one, to create the identity matrix and matrices with random coefficients:
 
-Finally, all the coefficients of a matrix can set using the comma initializer syntax:
+<table>
+<tr>
+  <td>Fixed-size matrix or vector</td>
+  <td>Dynamic-size matrix</td>
+  <td>Dynamic-size vector</td>
+</tr>
+<tr>
+  <td>
+\code
+Matrix3f x;
+
+x = Matrix3f::Zero();
+x = Matrix3f::Ones();
+x = Matrix3f::Constant(6);
+x = Matrix3f::Identity();
+x = Matrix3f::Random();
+
+x.setZero();
+x.setOnes();
+x.setIdentity();
+x.setConstant(6);
+x.setRandom();
+\endcode
+  </td>
+  <td>
+\code
+MatrixXf x;
+
+x = MatrixXf::Zero(rows, cols);
+x = MatrixXf::Ones(rows, cols);
+x = MatrixXf::Constant(rows, cols, 6);
+x = MatrixXf::Identity(rows, cols);
+x = MatrixXf::Random(rows, cols);
+
+x.setZero(rows, cols);
+x.setOnes(rows, cols);
+x.setConstant(rows, cols, 6);
+x.setIdentity(rows, cols);
+x.setRandom(rows, cols);
+\endcode
+  </td>
+  <td>
+\code
+VectorXf x;
+
+x = VectorXf::Zero(size);
+x = VectorXf::Ones(size);
+x = VectorXf::Constant(size, 6);
+x = VectorXf::Identity(size);
+x = VectorXf::Random(size);
+
+x.setZero(size);
+x.setOnes(size);
+x.setConstant(size, 6);
+x.setIdentity(size);
+x.setRandom(size);
+\endcode
+  </td>
+</tr>
+</table>
+
+Finally, all the coefficients of a matrix can be set to specific values using the comma initializer syntax:
 <table><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -77,14 +138,18 @@ output:
 \verbinclude Tutorial_commainit_01.out
 </td></tr></table>
 
-Eigen's comma initializer also allows to set the matrix per block making it much more powerful:
+Eigen's comma initializer also allows you to set the matrix per block:
 <table><tr><td>
 \include Tutorial_commainit_02.cpp
 </td>
 <td>
-output with rows=cols=5:
+output:
 \verbinclude Tutorial_commainit_02.out
 </td></tr></table>
+
+Here .finished() is used to get the actual matrix object once the comma initialization
+of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
+Eigen's comma initializer usually yields to very optimized code without any overhead.
 
 <h2>Basic Linear Algebra</h2>
 
@@ -114,6 +179,10 @@ vec3 = vec1.cross(vec2);
 By default, Eigen's only allows mathematically well defined operators.
 However, thanks to the .cwise() operator prefix, Eigen's matrices also provide
 a very powerful numerical container supporting most common coefficient wise operators:
+
+<table>
+<tr><td></td><td></td><tr>
+</table>
 * Coefficient wise product:    \code mat3 = mat1.cwise() * mat2; \endcode
 * Coefficient wise division:   \code mat3 = mat1.cwise() / mat2; \endcode
 * Coefficient wise reciprocal: \code mat3 = mat1.cwise().inverse(); \endcode
