@@ -153,53 +153,130 @@ Eigen's comma initializer usually yields to very optimized code without any over
 
 <h2>Basic Linear Algebra</h2>
 
-As long as you use mathematically well defined operators, you can basically write your matrix
-and vector expressions using standard arithmetic operators:
+In short all mathematically well defined operators can be used right away as in the following exemple:
 \code
-mat1 = mat1*1.5 + mat2 * mat3/4;
+mat4 -= mat1*1.5 + mat2 * mat3/4;
 \endcode
+which includes two matrix scalar products ("mat1*1.5" and "mat3/4"), a matrix-matrix product ("mat2 * mat3/4"),
+a matrix addition ("+") and substraction with assignment ("-=").
 
-\b dot \b product (inner product):
-\code
-scalar = vec1.dot(vec2);
-\endcode
-
-\b outer \b product:
-\code
-mat = vec1 * vec2.transpose();
-\endcode
-
-\b cross \b product: The cross product is defined in the Geometry module, you therefore have to include it first:
-\code
+<table>
+<tr><td>
+matrix/vector product</td><td>\code
+col2 = mat1 * col1;
+row2 = row1 * mat1;     row1 *= mat1;
+mat3 = mat1 * mat2;     mat3 *= mat1; \endcode
+</td></tr>
+<tr><td>
+add/subtract</td><td>\code
+mat3 = mat1 + mat2;      mat3 += mat1;
+mat3 = mat1 - mat2;      mat3 -= mat1;\endcode
+</td></tr>
+<tr><td>
+scalar product</td><td>\code
+mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
+mat3 = mat1 / s1;   mat3 /= s1;\endcode
+</td></tr>
+<tr><td>
+dot product (inner product)</td><td>\code
+scalar = vec1.dot(vec2);\endcode
+</td></tr>
+<tr><td>
+outer product</td><td>\code
+mat = vec1 * vec2.transpose();\endcode
+</td></tr>
+<tr><td>
+cross product</td><td>\code
 #include <Eigen/Geometry>
-vec3 = vec1.cross(vec2);
-\endcode
+vec3 = vec1.cross(vec2);\endcode</td></tr>
+</table>
 
 
-By default, Eigen's only allows mathematically well defined operators.
-However, thanks to the .cwise() operator prefix, Eigen's matrices also provide
+In Eigen only mathematically well defined operators can be used right away,
+but don't worry, thanks to the .cwise() operator prefix, Eigen's matrices also provide
 a very powerful numerical container supporting most common coefficient wise operators:
 
 <table>
-<tr><td></td><td></td><tr>
+
+<tr><td>Coefficient wise product</td>
+<td>\code mat3 = mat1.cwise() * mat2; \endcode
+</td></tr>
+<tr><td>
+Add a scalar to all coefficients</td><td>\code
+mat3 = mat1.cwise() + scalar;
+mat3.cwise() += scalar;
+mat3.cwise() -= scalar;
+\endcode
+</td></tr>
+<tr><td>
+Coefficient wise division</td><td>\code
+mat3 = mat1.cwise() / mat2; \endcode
+</td></tr>
+<tr><td>
+Coefficient wise reciprocal</td><td>\code
+mat3 = mat1.cwise().inverse(); \endcode
+</td></tr>
+<tr><td>
+Coefficient wise comparisons \n
+(support all operators)</td><td>\code
+mat3 = mat1.cwise() < mat2;
+mat3 = mat1.cwise() <= mat2;
+mat3 = mat1.cwise() > mat2;
+etc.
+\endcode
+</td></tr>
+<tr><td>
+Trigo:\n sin, cos, tan</td><td>\code
+mat3 = mat1.cwise().sin();
+etc.
+\endcode
+</td></tr>
+<tr><td>
+Power:\n pow, square, cube, sqrt, exp, log</td><td>\code
+mat3 = mat1.cwise().square();
+mat3 = mat1.cwise().pow(5);
+mat3 = mat1.cwise().log();
+etc.
+\endcode
+</td></tr>
+<tr><td>
+min, max, absolute value</td><td>\code
+mat3 = mat1.cwise().min(mat2);
+mat3 = mat1.cwise().max(mat2);
+mat3 = mat1.cwise().abs(mat2);
+mat3 = mat1.cwise().abs2(mat2);
+\endcode</td></tr>
 </table>
-* Coefficient wise product:    \code mat3 = mat1.cwise() * mat2; \endcode
-* Coefficient wise division:   \code mat3 = mat1.cwise() / mat2; \endcode
-* Coefficient wise reciprocal: \code mat3 = mat1.cwise().inverse(); \endcode
-* Add a scalar to a matrix:    \code mat3 = mat1.cwise() + scalar; \endcode
-* Coefficient wise comparison: \code mat3 = mat1.cwise() < mat2; \endcode
-* Finally, \c .cwise() offers many common numerical functions including abs, pow, exp, sin, cos, tan, e.g.:
-\code mat3 = mat1.cwise().sin(); \endcode
 
 <h2>Reductions</h2>
 
-\code
-scalar = mat.sum();         scalar = mat.norm();         scalar = mat.minCoeff();
-vec = mat.colwise().sum();  vec = mat.colwise().norm();  vec = mat.colwise().minCoeff();
-vec = mat.rowwise().sum();  vec = mat.rowwise().norm();  vec = mat.rowwise().minCoeff();
+Reductions can be done matrix-wise, column-wise or row-wise, e.g.:
+<table>
+<tr><td>\code mat \endcode
+</td><td>\code
+5 3 1
+2 7 8
+9 4 6
 \endcode
-Other natively supported reduction operations include maxCoeff(), norm2(), all() and any().
+</td></tr>
+<tr><td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td></tr>
+<tr><td>\code mat.maxCoeff(); \endcode</td><td>\code 9 \endcode</td></tr>
+<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td></tr>
+<tr><td>\code mat.colwise().maxCoeff(); \endcode</td><td>\code 9 7 8 \endcode</td></tr>
+<tr><td>\code mat.rowwise().minCoeff(); \endcode</td><td>\code
+1
+2
+4
+\endcode</td></tr>
+<tr><td>\code mat.rowwise().maxCoeff(); \endcode</td><td>\code
+5
+8
+9
+\endcode</td></tr>
+</table>
 
+Eigen provides several other reduction methods such as sum(), norm(), norm2(), all(), and any().
+The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators.
 
 <h2>Sub matrices</h2>
 

@@ -11,7 +11,7 @@ namespace Eigen {
   * (accessible from MatrixBase::cwise()), including:
   *  - matrix-scalar sum,
   *  - coeff-wise comparison operators,
-  *  - sin, cos, sqrt, pow, exp, log, square, cube, reciprocal.
+  *  - sin, cos, sqrt, pow, exp, log, square, cube, inverse (reciprocal).
   *
   * This module also provides various MatrixBase methods, including:
   *  - \ref MatrixBase::all() "all", \ref MatrixBase::any() "any",

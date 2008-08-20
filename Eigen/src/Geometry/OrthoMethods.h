@@ -96,7 +96,7 @@ struct ei_someOrthogonal_selector<Derived,2>
 /** \returns an orthogonal vector of \c *this
   *
   * The size of \c *this must be at least 2. If the size is exactly 2,
-  * then the returned vector is a counter clock wise rotation of \c *this, \ie (-y,x).
+  * then the returned vector is a counter clock wise rotation of \c *this, i.e., (-y,x).
   *
   * \sa cross()
   */

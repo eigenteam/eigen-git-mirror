@@ -64,7 +64,7 @@ template<typename Derived> class MapBase
 
     inline int stride() const { return derived().stride(); }
 
-    /** \Returns an expression equivalent to \c *this but having the \c PacketAccess constant
+    /** \returns an expression equivalent to \c *this but having the \c PacketAccess constant
       * set to \c ForceAligned. Must be reimplemented by the derived class. */
     AlignedDerivedType forceAligned() { return derived().forceAligned(); }
 
