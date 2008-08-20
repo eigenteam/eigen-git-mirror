@@ -104,7 +104,7 @@ public:
   operator* (const Matrix3& a, const AngleAxis& b)
   { return a * b.toRotationMatrix(); }
 
-  /** \Returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
+  /** \returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
   AngleAxis inverse() const
   { return AngleAxis(-m_angle, m_axis); }
 

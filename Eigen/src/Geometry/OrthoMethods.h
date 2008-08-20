@@ -93,7 +93,7 @@ struct ei_someOrthogonal_selector<Derived,2>
   { return VectorType(-ei_conj(src.y()), ei_conj(src.x())).normalized(); }
 };
 
-/** \Returns an orthogonal vector of \c *this
+/** \returns an orthogonal vector of \c *this
   *
   * The size of \c *this must be at least 2. If the size is exactly 2,
   * then the returned vector is a counter clock wise rotation of \c *this, \ie (-y,x).

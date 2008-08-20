@@ -373,8 +373,20 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCol
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
-  * Eigen defines several typedef shortcuts for most common matrix types.
-  * Here is the explicit list.
+  *
+  * Eigen defines several typedef shortcuts for most common matrix and vector types.
+  *
+  * The general patterns are the following:
+  *
+  * \c MatrixSizeType where \c Size can be \c 2,\c 3,\c 4 for fixed size square matrices or \c X for dynamic size,
+  * and where \c Type can be \c i for integer, \c f for float, \c d for double, \c cf for complex float, \c cd
+  * for complex double.
+  *
+  * For example, \c Matrix3d is a fixed-size 3x3 matrix type of doubles, and \c MatrixXf is a dynamic-size matrix of floats.
+  *
+  * There are also \c VectorSizeType and \c RowVectorSizeType which are self-explanatory. For example, \c Vector4cf is
+  * a fixed-size vector of 4 complex floats.
+  *
   * \sa class Matrix
   */
 

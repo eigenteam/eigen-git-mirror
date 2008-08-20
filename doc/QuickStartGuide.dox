@@ -4,17 +4,52 @@ namespace Eigen {
 
 <h1>Quick start guide</h1>
 
-<h2>Matrix creation and initialization</h2>
+<h2>Simple example with fixed-size matrices and vectors</h2>
 
-In Eigen all kind of dense matrices and vectors are represented by the template class Matrix.
-For instance \code Matrix<int,Dynamic,4> m(size,4);\endcode declares a matrix of 4 columns
-with a dynamic number of rows.
-However, in most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
+By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
+
+<table><tr><td>
+\include Tutorial_simple_example_fixed_size.cpp
+</td>
+<td>
+output:
+\include Tutorial_simple_example_fixed_size.out
+</td></tr></table>
+
+<h2>Simple example with dynamic-size matrices and vectors</h2>
+
+Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
+
+<table><tr><td>
+\include Tutorial_simple_example_dynamic_size.cpp
+</td>
+<td>
+output:
+\include Tutorial_simple_example_dynamic_size.out
+</td></tr></table>
+
+<h2>Matrix and vector types</h2>
+
+In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
+
+The template class Matrix takes a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
+
+\code Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime> \endcode
+
+\li \c Scalar is the scalar type, i.e. the type of the coefficients. That is, if you want a vector of floats, choose \c float here.
+\li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time. 
+
+For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode.
+
+What if the matrix has dynamic-size i.e. the number of rows or cols isn't known at compile-time? Then use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode.
+
+<h2>Matrix and vector creation and initialization</h2>
+
 For instance \code Matrix3f m = Matrix3f::Identity(); \endcode creates a 3x3 fixed size matrix of float
 which is initialized to the identity matrix.
 Similarly \code MatrixXcd m = MatrixXcd::Zero(rows,cols); \endcode creates a rows x cols matrix
 of double precision complex which is initialized to zero. Here rows and cols do not have to be
-known at runtime. In "MatrixXcd", "X" stands for dynamic, "c" for complex, and "d" for double.
+known at compile-time. In "MatrixXcd", "X" stands for dynamic, "c" for complex, and "d" for double.
 
 You can also initialize a matrix with all coefficients equal to one:
 \code MatrixXi m = MatrixXi::Ones(rows,cols); \endcode

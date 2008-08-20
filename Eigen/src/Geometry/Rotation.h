@@ -138,10 +138,10 @@ public:
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
   inline Rotation2D(Scalar a) : m_angle(a) {}
 
-  /** \Returns the rotation angle */
+  /** \returns the rotation angle */
   inline Scalar angle() const { return m_angle; }
 
-  /** \Returns a read-write reference to the rotation angle */
+  /** \returns a read-write reference to the rotation angle */
   inline Scalar& angle() { return m_angle; }
 
   /** Automatic convertion to a 2D rotation matrix.
@@ -149,7 +149,7 @@ public:
     */
   inline operator Matrix2() const { return toRotationMatrix(); }
 
-  /** \Returns the inverse rotation */
+  /** \returns the inverse rotation */
   inline Rotation2D inverse() const { return -m_angle; }
 
   /** Concatenates two rotations */
