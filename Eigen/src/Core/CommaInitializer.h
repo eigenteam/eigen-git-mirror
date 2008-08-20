@@ -53,10 +53,10 @@ struct MatrixBase<Derived>::CommaInitializer
       m_col = 0;
       m_currentBlockRows = 1;
       ei_assert(m_row<m_matrix.rows()
-        && "Too many rows passed to MatrixBase::operator<<");
+        && "Too many rows passed to comma initializer (operator<<)");
     }
     ei_assert(m_col<m_matrix.cols()
-      && "Too many coefficients passed to MatrixBase::operator<<");
+      && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==1);
     m_matrix.coeffRef(m_row, m_col++) = s;
     return *this;
@@ -71,10 +71,10 @@ struct MatrixBase<Derived>::CommaInitializer
       m_col = 0;
       m_currentBlockRows = other.rows();
       ei_assert(m_row+m_currentBlockRows<=m_matrix.rows()
-        && "Too many rows passed to MatrixBase::operator<<");
+        && "Too many rows passed to comma initializer (operator<<)");
     }
     ei_assert(m_col<m_matrix.cols()
-      && "Too many coefficients passed to MatrixBase::operator<<");
+      && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==other.rows());
     if (OtherDerived::SizeAtCompileTime != Dynamic)
       m_matrix.block<OtherDerived::RowsAtCompileTime != Dynamic ? OtherDerived::RowsAtCompileTime : 1,
@@ -90,7 +90,7 @@ struct MatrixBase<Derived>::CommaInitializer
   {
     ei_assert((m_row+m_currentBlockRows) == m_matrix.rows()
          && m_col == m_matrix.cols()
-         && "Too few coefficients passed to Matrix::operator<<");
+         && "Too few coefficients passed to comma initializer (operator<<)");
   }
 
   /** \returns the built matrix once all its coefficients have been set.

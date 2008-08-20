@@ -1,0 +1,117 @@
+namespace Eigen {
+
+/** \page QuickStartGuide
+
+<h1>Quick start guide</h1>
+
+<h2>Matrix creation and initialization</h2>
+
+In Eigen all kind of dense matrices and vectors are represented by the template class Matrix, e.g.:
+\code Matrix<int,Dynamic,4> m(size,4);\endcode
+declares a matrix of 4 columns and having a dynamic (runtime) number of rows.
+However, in most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs), e.g.:
+\code Matrix3f m = Matrix3f::Identity(); \endcode
+creates a 3x3 fixed size float matrix intialized to the identity matrix, while:
+\code MatrixXcd m = MatrixXcd::Zero(rows,cols); \endcode
+creates a rows x cols matrix of double precision complex initialized to zero where rows and cols do not have to be
+known at runtime. In MatrixXcd "X" stands for dynamic, "c" for complex, and "d" for double.
+
+You can also initialize a matrix with all coefficients equal to one:
+\code MatrixXi m = MatrixXi::Ones(rows,cols); \endcode
+or to any constant value, e.g.:
+\code
+MatrixXi m = MatrixXi::Constant(rows,cols,66);
+Matrix4d m = Matrix4d::Constant(6.6);
+\endcode
+
+All these 4 matrix creation functions also exist with the "set" prefix:
+\code
+Matrix3f m3;            MatrixXi mx;                      VectorXcf vec;
+m3.setZero();           mx.setZero(rows,cols);            vec.setZero(size);
+m3.setIdentity();       mx.setIdentity(rows,cols);        vec.setIdentity(size);
+m3.setOnes();           mx.setOnes(rows,cols);            vec.setOnes(size);
+m3.setConstant(6.6);    mx.setConstant(rows,cols,6.6);    vec.setConstant(size,complex<float>(6,3));
+\endcode
+
+Finally, all the coefficient of a matrix can set using the comma initializer:
+<table><tr><td>
+\include Tutorial_commainit_01.cpp
+</td>
+<td>
+output:
+\verbinclude Tutorial_commainit_01.out
+</td></tr></table>
+
+Eigen's comma initializer also allows to set the matrix per block making it much more powerful:
+<table><tr><td>
+\include Tutorial_commainit_02.cpp
+</td>
+<td>
+output with rows=cols=5:
+\verbinclude Tutorial_commainit_02.out
+</td></tr></table>
+
+<h2>Basic Linear Algebra</h2>
+
+As long as you use mathematically well defined operators, you can basically write your matrix and vector expressions as you would do with a pen an a piece of paper:
+\code
+mat1 = mat1*1.5 + mat2 * mat3/4;
+\endcode
+
+\b dot \b product (inner product):
+\code
+scalar = vec1.dot(vec2);
+\endcode
+
+\b outer \b product:
+\code
+mat = vec1 * vec2.transpose();
+\endcode
+
+\b cross \b product: The cross product is defined in the Geometry module, you therefore have to include it first:
+\code
+#include <Eigen/Geometry>
+vec3 = vec1.cross(vec2);
+\endcode
+
+
+By default, Eigen's only allows mathematically well defined operators. However, Eigen's matrices can also be used as simple numerical containers while still offering most common coefficient wise operations via the .cwise() operator prefix:
+* Coefficient wise product:    \code mat3 = mat1.cwise() * mat2; \endcode
+* Coefficient wise division:   \code mat3 = mat1.cwise() / mat2; \endcode
+* Coefficient wise reciprocal: \code mat3 = mat1.cwise().inverse(); \endcode
+* Add a scalar to a matrix:    \code mat3 = mat1.cwise() + scalar; \endcode
+* Coefficient wise comparison: \code mat3 = mat1.cwise() < mat2; \endcode
+* Finally, \c .cwise() offers many common numerical functions including abs, pow, exp, sin, cos, tan, e.g.:
+\code mat3 = mat1.cwise().sin(); \endcode
+
+<h2>Reductions</h2>
+
+\code
+scalar = mat.sum();         scalar = mat.norm();         scalar = mat.minCoeff();
+vec = mat.colwise().sum();  vec = mat.colwise().norm();  vec = mat.colwise().minCoeff();
+vec = mat.rowwise().sum();  vec = mat.rowwise().norm();  vec = mat.rowwise().minCoeff();
+\endcode
+Other natively supported reduction operations include maxCoeff(), norm2(), all() and any().
+
+
+<h2>Sub matrices</h2>
+
+
+
+<h2>Geometry features</h2>
+
+
+<h2>Notes on performances</h2>
+
+
+<h2>Advanced Linear Algebra</h2>
+
+<h3>Solving linear problems</h3>
+<h3>LU</h3>
+<h3>Cholesky</h3>
+<h3>QR</h3>
+<h3>Eigen value problems</h3>
+
+*/
+
+}

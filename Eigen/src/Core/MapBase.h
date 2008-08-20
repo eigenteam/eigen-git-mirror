@@ -47,7 +47,7 @@ template<typename Derived> class MapBase
 
     typedef MatrixBase<Derived> Base;
     enum {
-      IsRowMajor = int(ei_traits<Derived>::Flags) & RowMajorBit ? 1 : 0,
+      IsRowMajor = (int(ei_traits<Derived>::Flags) & RowMajorBit) ? 1 : 0,
       PacketAccess = ei_traits<Derived>::PacketAccess,
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,

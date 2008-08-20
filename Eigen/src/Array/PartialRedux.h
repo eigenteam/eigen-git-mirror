@@ -114,6 +114,8 @@ EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumT
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(all, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(any, (Size-1)*NumTraits<Scalar>::AddCost);
 
 /** \internal */
 template <typename BinaryOp, typename Scalar>
@@ -216,7 +218,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * Example: \include PartialRedux_norm.cpp
       * Output: \verbinclude PartialRedux_norm.out
-      *      
+      *
       * \sa MatrixBase::norm() */
     const typename ReturnType<ei_member_norm>::Type norm() const
     { return _expression(); }
@@ -226,9 +228,23 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * Example: \include PartialRedux_sum.cpp
       * Output: \verbinclude PartialRedux_sum.out
-      *      
+      *
       * \sa MatrixBase::sum() */
     const typename ReturnType<ei_member_sum>::Type sum() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression representing
+      * whether \b all coefficients of each respective column (or row) are \c true.
+      *
+      * \sa MatrixBase::all() */
+    const typename ReturnType<ei_member_all>::Type all() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression representing
+      * whether \b at \b least one coefficient of each respective column (or row) is \c true.
+      *
+      * \sa MatrixBase::any() */
+    const typename ReturnType<ei_member_any>::Type any() const
     { return _expression(); }
 
   protected:

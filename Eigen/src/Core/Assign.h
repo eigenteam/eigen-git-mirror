@@ -385,7 +385,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
           dst.copyCoeff(index, i, src);
       }
 
-      alignedStart = (alignedStart+alignedStep)%packetSize;
+      alignedStart = std::min<int>((alignedStart+alignedStep)%packetSize, innerSize);
     }
   }
 };
