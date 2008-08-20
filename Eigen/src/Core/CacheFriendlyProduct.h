@@ -89,11 +89,10 @@ static void ei_cache_friendly_product(
   const int l2BlockSizeAligned = (1 + std::max(l2BlockSize,l2BlockCols)/PacketSize)*PacketSize;
   const bool needRhsCopy = (PacketSize>1) && ((rhsStride%PacketSize!=0) || (size_t(rhs)%16!=0));
   Scalar* EIGEN_RESTRICT block = 0;
-  const int allocBlockSize = sizeof(Scalar)*l2BlockRows*size;
-  const bool allocBlockUsingAlloca = EIGEN_USE_ALLOCA && allocBlockSize<=16000000;
-  block = (Scalar*)ei_alloca_or_malloc(allocBlockUsingAlloca, allocBlockSize);
+  const int allocBlockSize = l2BlockRows*size;
+  block = ei_alloc_stack(Scalar, allocBlockSize);
   Scalar* EIGEN_RESTRICT rhsCopy
-    = (Scalar*)ei_alloca_or_malloc(true, sizeof(Scalar)*l2BlockSizeAligned*l2BlockSizeAligned);
+    = ei_alloc_stack(Scalar, l2BlockSizeAligned*l2BlockSizeAligned);
 
   // loops on each L2 cache friendly blocks of the result
   for(int l2i=0; l2i<rows; l2i+=l2BlockRows)
@@ -334,10 +333,8 @@ static void ei_cache_friendly_product(
     }
   }
 
-  if (!allocBlockUsingAlloca)
-    free(block);
-  if (!EIGEN_USE_ALLOCA)
-    free(rhsCopy);
+  ei_free_stack(block, Scalar, allocBlockSize);
+  ei_free_stack(rhsCopy, Scalar, l2BlockSizeAligned*l2BlockSizeAligned);
 }
 
 #endif // EIGEN_EXTERN_INSTANTIATIONS

@@ -150,12 +150,16 @@ friend class Eigen::MatrixBase<Derived>;
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 
+/*  ei_alloc_stack(TYPE,SIZE) allocates sizeof(TYPE)*SIZE bytes on the stack if sizeof(TYPE)*SIZE is smaller
+ *  than EIGEN_STACK_ALLOCATION_LIMIT. Otherwise the memory is allocated using the operator new.
+ *  Data allocated with ei_alloc_stack must be freed calling ei_free_stack(PTR,TYPE,SIZE)
+ */
 #ifdef __linux__
-# define EIGEN_USE_ALLOCA 1
-# define ei_alloca_or_malloc(condition, size) (condition?alloca(size):malloc(size))
+# define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>16000000) ? new TYPE[SIZE] : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
+# define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>16000000) delete[] PTR
 #else
-# define EIGEN_USE_ALLOCA 0
-# define ei_alloca_or_malloc(condition, size) malloc(size)
+# define ei_alloc_stack(TYPE,SIZE) new TYPE[SIZE]
+# define ei_free_stack(PTR,TYPE,SIZE) delete[] PTR
 #endif
 
 #endif // EIGEN_MACROS_H
