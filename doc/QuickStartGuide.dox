@@ -6,19 +6,19 @@ namespace Eigen {
 
 <h2>Matrix creation and initialization</h2>
 
-In Eigen all kind of dense matrices and vectors are represented by the template class Matrix, e.g.:
-\code Matrix<int,Dynamic,4> m(size,4);\endcode
-declares a matrix of 4 columns and having a dynamic (runtime) number of rows.
-However, in most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs), e.g.:
-\code Matrix3f m = Matrix3f::Identity(); \endcode
-creates a 3x3 fixed size float matrix intialized to the identity matrix, while:
-\code MatrixXcd m = MatrixXcd::Zero(rows,cols); \endcode
-creates a rows x cols matrix of double precision complex initialized to zero where rows and cols do not have to be
-known at runtime. In MatrixXcd "X" stands for dynamic, "c" for complex, and "d" for double.
+In Eigen all kind of dense matrices and vectors are represented by the template class Matrix.
+For instance \code Matrix<int,Dynamic,4> m(size,4);\endcode declares a matrix of 4 columns
+with a dynamic number of rows.
+However, in most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
+For instance \code Matrix3f m = Matrix3f::Identity(); \endcode creates a 3x3 fixed size matrix of float
+which is initialized to the identity matrix.
+Similarly \code MatrixXcd m = MatrixXcd::Zero(rows,cols); \endcode creates a rows x cols matrix
+of double precision complex which is initialized to zero. Here rows and cols do not have to be
+known at runtime. In "MatrixXcd", "X" stands for dynamic, "c" for complex, and "d" for double.
 
 You can also initialize a matrix with all coefficients equal to one:
 \code MatrixXi m = MatrixXi::Ones(rows,cols); \endcode
-or to any constant value, e.g.:
+or to any constant value:
 \code
 MatrixXi m = MatrixXi::Constant(rows,cols,66);
 Matrix4d m = Matrix4d::Constant(6.6);
@@ -33,7 +33,7 @@ m3.setOnes();           mx.setOnes(rows,cols);            vec.setOnes(size);
 m3.setConstant(6.6);    mx.setConstant(rows,cols,6.6);    vec.setConstant(size,complex<float>(6,3));
 \endcode
 
-Finally, all the coefficient of a matrix can set using the comma initializer:
+Finally, all the coefficients of a matrix can set using the comma initializer syntax:
 <table><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -53,7 +53,8 @@ output with rows=cols=5:
 
 <h2>Basic Linear Algebra</h2>
 
-As long as you use mathematically well defined operators, you can basically write your matrix and vector expressions as you would do with a pen an a piece of paper:
+As long as you use mathematically well defined operators, you can basically write your matrix
+and vector expressions using standard arithmetic operators:
 \code
 mat1 = mat1*1.5 + mat2 * mat3/4;
 \endcode
@@ -75,7 +76,9 @@ vec3 = vec1.cross(vec2);
 \endcode
 
 
-By default, Eigen's only allows mathematically well defined operators. However, Eigen's matrices can also be used as simple numerical containers while still offering most common coefficient wise operations via the .cwise() operator prefix:
+By default, Eigen's only allows mathematically well defined operators.
+However, thanks to the .cwise() operator prefix, Eigen's matrices also provide
+a very powerful numerical container supporting most common coefficient wise operators:
 * Coefficient wise product:    \code mat3 = mat1.cwise() * mat2; \endcode
 * Coefficient wise division:   \code mat3 = mat1.cwise() / mat2; \endcode
 * Coefficient wise reciprocal: \code mat3 = mat1.cwise().inverse(); \endcode
