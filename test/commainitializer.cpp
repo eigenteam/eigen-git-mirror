@@ -28,16 +28,16 @@ void test_commainitializer()
 {
   Matrix3d m3;
   Matrix4d m4;
-  VERIFY_RAISES_ASSERT(m4 = m3);
 
   VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8) );
   VERIFY_RAISES_ASSERT( (m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10) );
 
   double data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  Matrix3d ref = Map<Matrix<double,3,3,3,3,RowMajorBit> >(data);
 
   m3 = Matrix3d::Random();
   m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+  VERIFY_IS_APPROX(m3, ref );
 
   Vector3d vec[3];
   vec[0] << 1, 4, 7;
@@ -45,7 +45,7 @@ void test_commainitializer()
   vec[2] << 3, 6, 9;
   m3 = Matrix3d::Random();
   m3 << vec[0], vec[1], vec[2];
-  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+  VERIFY_IS_APPROX(m3, ref);
 
   vec[0] << 1, 2, 3;
   vec[1] << 4, 5, 6;
@@ -54,5 +54,5 @@ void test_commainitializer()
   m3 << vec[0].transpose(),
         4, 5, 6,
         vec[2].transpose();
-  VERIFY_IS_APPROX(m3, (Matrix<double,3,3,RowMajorBit>::map(data)) );
+  VERIFY_IS_APPROX(m3, ref);
 }

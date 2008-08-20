@@ -101,6 +101,6 @@ void test_triangular()
     CALL_SUBTEST( triangular(Matrix3d()) );
     CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
-    CALL_SUBTEST( triangular(MatrixXf(12,12)) );
+    CALL_SUBTEST( triangular(MatrixXf(85,85)) );
   }
 }

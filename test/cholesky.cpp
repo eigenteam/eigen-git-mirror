@@ -60,5 +60,6 @@ void test_cholesky()
     CALL_SUBTEST( cholesky(Matrix3f()) );
     CALL_SUBTEST( cholesky(Matrix4d()) );
     CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
+    CALL_SUBTEST( cholesky(MatrixXf(85,85)) );
   }
 }

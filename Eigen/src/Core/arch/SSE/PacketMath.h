@@ -219,7 +219,8 @@ struct ei_palign_impl<Offset,__m128>
 {
   inline static void run(__m128& first, const __m128& second)
   {
-    first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(first), _mm_castps_si128(second), (4-Offset)*4));
+    if (Offset!=0)
+      first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(second), _mm_castps_si128(first), (Offset)*4));
   }
 };
 
@@ -228,7 +229,18 @@ struct ei_palign_impl<Offset,__m128i>
 {
   inline static void run(__m128i& first, const __m128i& second)
   {
-    first = _mm_alignr_epi8(first, second, (4-Offset)*4);
+    if (Offset!=0)
+      first = _mm_alignr_epi8(second,first, (Offset)*4);
+  }
+};
+
+template<int Offset>
+struct ei_palign_impl<Offset,__m128d>
+{
+  inline static void run(__m128d& first, const __m128d& second)
+  {
+    if (Offset==1)
+      first = _mm_castsi128_pd(_mm_alignr_epi8(_mm_castpd_si128(second), _mm_castpd_si128(first), 8));
   }
 };
 #else
@@ -275,6 +287,19 @@ struct ei_palign_impl<Offset,__m128i>
     {
       first = _mm_castps_si128(_mm_move_ss(_mm_castsi128_ps(first),_mm_castsi128_ps(second)));
       first = _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(first),_mm_castsi128_ps(second),0x93));
+    }
+  }
+};
+
+template<int Offset>
+struct ei_palign_impl<Offset,__m128d>
+{
+  inline static void run(__m128d& first, const __m128d& second)
+  {
+    if (Offset==1)
+    {
+      first = _mm_castps_pd(_mm_movehl_ps(_mm_castpd_ps(first),_mm_castpd_ps(first)));
+      first = _mm_castps_pd(_mm_movelh_ps(_mm_castpd_ps(first),_mm_castpd_ps(second)));
     }
   }
 };
