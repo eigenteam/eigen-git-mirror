@@ -201,12 +201,11 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
     const int alignedEnd = alignedStart + alignedSize;
     Scalar res;
 
-    if(Derived::SizeAtCompileTime>=2*packetSize && alignedSize >= 2*packetSize)
+    if(alignedSize)
     {
-      PacketScalar packet_res = mat.template packet<alignment>(alignedStart, alignedStart);
+      PacketScalar packet_res = mat.template packet<alignment>(alignedStart);
       for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
         packet_res = ei_padd(packet_res, mat.template packet<alignment>(index));
-
       res = ei_predux(packet_res);
     }
     else // too small to vectorize anything.
@@ -215,7 +214,7 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
       res = Scalar(0);
     }
 
-    for(int index = alignedEnd; index < size; index++)
+    for(int index = 0; index < alignedStart; index++)
       res += mat.coeff(index);
 
     for(int index = alignedEnd; index < size; index++)
