@@ -153,7 +153,7 @@ Eigen's comma initializer usually yields to very optimized code without any over
 
 <h2>Basic Linear Algebra</h2>
 
-In short all mathematically well defined operators can be used right away as in the following exemple:
+In short all mathematically well defined operators can be used right away as in the following example:
 \code
 mat4 -= mat1*1.5 + mat2 * mat3/4;
 \endcode
@@ -178,7 +178,7 @@ mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
 mat3 = mat1 / s1;   mat3 /= s1;\endcode
 </td></tr>
 <tr><td>
-dot product (inner product)</td><td>\code
+\link MatrixBase::dot() dot product \endlink (inner product)</td><td>\code
 scalar = vec1.dot(vec2);\endcode
 </td></tr>
 <tr><td>
@@ -186,15 +186,16 @@ outer product</td><td>\code
 mat = vec1 * vec2.transpose();\endcode
 </td></tr>
 <tr><td>
-cross product</td><td>\code
+\link MatrixBase::cross() cross product \endcode</td><td>\code
 #include <Eigen/Geometry>
 vec3 = vec1.cross(vec2);\endcode</td></tr>
 </table>
 
 
 In Eigen only mathematically well defined operators can be used right away,
-but don't worry, thanks to the .cwise() operator prefix, Eigen's matrices also provide
-a very powerful numerical container supporting most common coefficient wise operators:
+but don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
+Eigen's matrices also provide a very powerful numerical container supporting
+most common coefficient wise operators:
 
 <table>
 
@@ -250,7 +251,9 @@ mat3 = mat1.cwise().abs2(mat2);
 
 <h2>Reductions</h2>
 
-Reductions can be done matrix-wise, column-wise or row-wise, e.g.:
+Reductions can be done matrix-wise,
+\link MatrixBase::colwise() column-wise \endlink or
+\link MatrixBase::rowwise() row-wise \endlink, e.g.:
 <table>
 <tr><td>\code mat \endcode
 </td><td>\code
@@ -275,11 +278,67 @@ Reductions can be done matrix-wise, column-wise or row-wise, e.g.:
 \endcode</td></tr>
 </table>
 
-Eigen provides several other reduction methods such as sum(), norm(), norm2(), all(), and any().
+Eigen provides several other reduction methods such as \link Cwise::sum() sum() \endlink,
+\link Cwise::norm() norm() \endlink, \link Cwise::norm2() norm2() \endlink,
+\link Cwise::all() all() \endlink, and \link Cwise::any() any() \endlink.
 The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators.
+
+
 
 <h2>Sub matrices</h2>
 
+Read-write access to a \link MatrixBase::col(int) column \endlink
+or a \link MatrixBase::row(int) row \endlink of a matrix:
+\code
+mat1.row(i) = mat2.col(j);
+mat1.col(j1).swap(mat1.col(j2));
+\endcode
+
+Read-write access to sub-vector:
+<table>
+<tr>
+<td>Default versions</td>
+<td>Optimized versions when the size is known at compile time</td></tr>
+<td></td>
+
+<tr><td>\code vec1.start(n)\endcode</td><td>\code vec1.start<n>()\endcode</td><td>the first \c n coeffs </td></tr>
+<tr><td>\code vec1.end(n)\endcode</td><td>\code vec1.end<n>()\endcode</td><td>the last \c n coeffs </td></tr>
+<tr><td>\code vec1.block(pos,n)\endcode</td><td>\code vec1.block<n>(pos)\endcode</td>
+    <td>the \c size coeffs in the range [\c pos : \c pos + \c n [</td></tr>
+</table>
+
+Read-write access to sub-matrices:
+<table>
+<tr><td>Default versions</td>
+<td>Optimized versions when the size is known at compile time</td><td></td></tr>
+
+<tr>
+  <td>\code mat1.block(i,j,rows,cols)\endcode
+      \link MatrixBase::block(int,int,int,int) (more) \endlink</td>
+  <td>\code mat1.block<rows,cols>(i,j)\endcode
+      \link MatrixBase::block(int,int) (more) \endlink</td>
+  <td>the \c rows x \c cols sub-matrix starting from position (\c i,\c j) </td>
+</tr>
+<tr>
+ <td>\code
+ mat1.corner(TopLeft,rows,cols)
+ mat1.corner(TopRight,rows,cols)
+ mat1.corner(BottomLeft,rows,cols)
+ mat1.corner(BottomRight,rows,cols)\endcode
+ \link MatrixBase::corner(CornerType,int,int) (more) \endlink</td>
+ <td>\code
+ mat1.corner<rows,cols>(TopLeft)
+ mat1.corner<rows,cols>(TopRight)
+ mat1.corner<rows,cols>(BottomLeft)
+ mat1.corner<rows,cols>(BottomRight)\endcode
+ \link MatrixBase::corner(CornerType) (more) \endlink</td>
+ <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
+</table>
+
+
+<h2>Transformations</h2>
+
+transpose, adjoint, etc...
 
 
 <h2>Geometry features</h2>
