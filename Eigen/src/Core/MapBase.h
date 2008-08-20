@@ -149,8 +149,6 @@ template<typename Derived> class MapBase
              && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MapBase)
-
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
     { return derived() = forceAligned() + other; }
