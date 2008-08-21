@@ -80,6 +80,21 @@ template<typename MatrixType, int PacketAccess> class Map
 
     inline Map(const Scalar* data, int rows, int cols) : Base(data, rows, cols) {}
 
+    inline void resize(int rows, int cols)
+    {
+      EIGEN_ONLY_USED_FOR_DEBUG(rows);
+      EIGEN_ONLY_USED_FOR_DEBUG(cols);
+      ei_assert(rows == this->rows());
+      ei_assert(rows == this->cols());
+    }
+
+    inline void resize(int size)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType);
+      EIGEN_ONLY_USED_FOR_DEBUG(size);
+      ei_assert(size == this->size());
+    }
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 };
 
