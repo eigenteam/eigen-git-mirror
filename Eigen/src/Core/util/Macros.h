@@ -28,14 +28,6 @@
 
 #undef minor
 
-#ifdef _MSC_VER
-#pragma warning( disable : 4181 4244 )
-#define ASM(name) __asm(name)
-#else
-#define ASM(name) asm(name)
-#endif
-
-
 #ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
 #define EIGEN_UNROLLING_LIMIT 0
 #endif

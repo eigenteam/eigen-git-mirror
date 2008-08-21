@@ -1,6 +1,10 @@
 #ifndef EIGEN_CORE_DECLARATIONS_H
 #define EIGEN_CORE_DECLARATIONS_H
 
+#ifdef _MSC_VER
+#pragma warning( disable : 4181 4244 )
+#endif
+
 #ifdef __GNUC__
 #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
 #else
