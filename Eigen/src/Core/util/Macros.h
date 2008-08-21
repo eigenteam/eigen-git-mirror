@@ -28,6 +28,14 @@
 
 #undef minor
 
+#ifdef _MSC_VER
+#pragma warning( disable : 4181 4244 )
+#define ASM(name) __asm(name)
+#else
+#define ASM(name) asm(name)
+#endif
+
+
 #ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
 #define EIGEN_UNROLLING_LIMIT 0
 #endif
@@ -144,8 +152,7 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>) \
-friend class Eigen::MatrixBase<Derived>;
+_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
