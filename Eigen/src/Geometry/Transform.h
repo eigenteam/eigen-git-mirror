@@ -65,9 +65,9 @@ public:
   typedef _Scalar Scalar;
   /** type of the matrix used to represent the transformation */
   typedef Matrix<Scalar,HDim,HDim> MatrixType;
-  /** type of the matrix used to represent the affine part of the transformation */
+  /** type of the matrix used to represent the linear part of the transformation */
   typedef Matrix<Scalar,Dim,Dim> AffineMatrixType;
-  /** type of read/write reference to the affine part of the transformation */
+  /** type of read/write reference to the linear part of the transformation */
   typedef Block<MatrixType,Dim,Dim> AffinePart;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
@@ -110,10 +110,10 @@ public:
   /** \returns a writable expression of the transformation matrix */
   inline MatrixType& matrix() { return m_matrix; }
 
-  /** \returns a read-only expression of the affine (linear) part of the transformation */
-  inline const AffinePart affine() const { return m_matrix.template block<Dim,Dim>(0,0); }
-  /** \returns a writable expression of the affine (linear) part of the transformation */
-  inline AffinePart affine() { return m_matrix.template block<Dim,Dim>(0,0); }
+  /** \returns a read-only expression of the linear (linear) part of the transformation */
+  inline const AffinePart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
+  /** \returns a writable expression of the linear (linear) part of the transformation */
+  inline AffinePart linear() { return m_matrix.template block<Dim,Dim>(0,0); }
 
   /** \returns a read-only expression of the translation vector of the transformation */
   inline const TranslationPart translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
@@ -235,7 +235,7 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::scale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
-  affine() = (affine() * other.asDiagonal()).lazy();
+  linear() = (linear() * other.asDiagonal()).lazy();
   return *this;
 }
 
@@ -263,7 +263,7 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::translate(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
-  translation() += affine() * other;
+  translation() += linear() * other;
   return *this;
 }
 
@@ -303,7 +303,7 @@ template<typename RotationType>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::rotate(const RotationType& rotation)
 {
-  affine() *= ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation);
+  linear() *= ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation);
   return *this;
 }
 
@@ -334,8 +334,8 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::shear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
-  VectorType tmp = affine().col(0)*sy + affine().col(1);
-  affine() << affine().col(0) + affine().col(1)*sx, tmp;
+  VectorType tmp = linear().col(0)*sy + linear().col(1);
+  linear() << linear().col(0) + linear().col(1)*sx, tmp;
   return *this;
 }
 
@@ -360,18 +360,18 @@ template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::AffineMatrixType
 Transform<Scalar,Dim>::extractRotation() const
 {
-  return affine().qr().matrixQ();
+  return linear().qr().matrixQ();
 }
 
 /** \returns the rotation part of the transformation assuming no shear in
-  * the affine part.
+  * the linear part.
   * \sa extractRotation()
   */
 template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::AffineMatrixType
 Transform<Scalar,Dim>::extractRotationNoShear() const
 {
-  return affine().cwise().abs2()
+  return linear().cwise().abs2()
             .verticalRedux(ei_scalar_sum_op<Scalar>()).cwise().sqrt();
 }
 
@@ -384,11 +384,11 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
   const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale)
 {
-  affine() = ToRotationMatrix<Scalar,Dim,OrientationType>::convert(orientation);
+  linear() = ToRotationMatrix<Scalar,Dim,OrientationType>::convert(orientation);
   translation() = position;
   m_matrix(Dim,Dim) = 1.;
   m_matrix.template block<1,Dim>(Dim,0).setZero();
-  affine() *= scale.asDiagonal();
+  linear() *= scale.asDiagonal();
   return *this;
 }
 
@@ -431,7 +431,7 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
       > ResultType;
   // FIXME should we offer an optimized version when the last row is known to be 0,0...,0,1 ?
   static ResultType run(const TransformType& tr, const Other& other)
-  { return ((tr.affine().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
+  { return ((tr.linear().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
           * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
 };
 

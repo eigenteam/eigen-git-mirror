@@ -85,11 +85,15 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
       const int inner = RowMajor ? col : row;
 
       int id = m_outerIndex[outer];
-      int end = m_outerIndex[outer+1]-1;
-      if (m_data.index(end)==inner)
-        return m_data.value(end);
+      int end = m_outerIndex[outer+1];
+      // optimization: let's first check if it is the last coefficient
+      // (very common in high level algorithms)
+      if (end>0 && inner==m_data.index(end-1))
+        return m_data.value(end-1);
+      else if (id==end)
+        return Scalar(0);
       const int* r = std::lower_bound(&m_data.index(id),&m_data.index(end),inner);
-      return (*r==inner) ? m_data.value(*r) : Scalar(0);
+      return (*r==inner) ? m_data.value(r-&m_data.index(0)) : Scalar(0);
     }
 
     inline Scalar& coeffRef(int row, int col)
@@ -99,9 +103,11 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
 
       int id = m_outerIndex[outer];
       int end = m_outerIndex[outer+1];
+      ei_assert(end>=id && "you probably called coeffRef on a non finalized matrix");
+      ei_assert(end>id && "coeffRef cannot be called on a zero coefficient");
       int* r = std::lower_bound(&m_data.index(id),&m_data.index(end),inner);
-      ei_assert(*r==inner);
-      return m_data.value(*r);
+      ei_assert(*r==inner && "coeffRef cannot be called on a zero coefficient");
+      return m_data.value(r-&m_data.index(0));
     }
 
   public:

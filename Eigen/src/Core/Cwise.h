@@ -95,7 +95,6 @@ template<typename ExpressionType> class Cwise
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)      sin() const;
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)      pow(const Scalar& exponent) const;
 
-
     const ScalarAddReturnType
     operator+(const Scalar& scalar) const;
 

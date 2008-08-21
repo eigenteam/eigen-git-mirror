@@ -117,9 +117,9 @@ template<typename Scalar> void geometry(void)
   q1 = AngleAxis(a, v0.normalized());
   Transform3 t0, t1, t2;
   t0.setIdentity();
-  t0.affine() = q1.toRotationMatrix();
+  t0.linear() = q1.toRotationMatrix();
   t1.setIdentity();
-  t1.affine() = q1.toRotationMatrix();
+  t1.linear() = q1.toRotationMatrix();
 
   v0 << 50, 2, 1;//= Vector3::Random().cwiseProduct(Vector3(10,2,0.5));
   t0.scale(v0);
@@ -131,10 +131,10 @@ template<typename Scalar> void geometry(void)
   t0.setIdentity();
   t1.setIdentity();
   v1 << 1, 2, 3;
-  t0.affine() = q1.toRotationMatrix();
+  t0.linear() = q1.toRotationMatrix();
   t0.pretranslate(v0);
   t0.scale(v1);
-  t1.affine() = q1.conjugate().toRotationMatrix();
+  t1.linear() = q1.conjugate().toRotationMatrix();
   t1.prescale(v1.cwise().inverse());
   t1.translate(-v0);
 
@@ -148,12 +148,12 @@ template<typename Scalar> void geometry(void)
   Vector2 v20 = Vector2::Random();
   Vector2 v21 = Vector2::Random();
   t21.setIdentity();
-  t21.affine() = Rotation2D<Scalar>(a).toRotationMatrix();
+  t21.linear() = Rotation2D<Scalar>(a).toRotationMatrix();
   VERIFY_IS_APPROX(t20.fromPositionOrientationScale(v20,a,v21).matrix(),
     t21.pretranslate(v20).scale(v21).matrix());
 
   t21.setIdentity();
-  t21.affine() = Rotation2D<Scalar>(-a).toRotationMatrix();
+  t21.linear() = Rotation2D<Scalar>(-a).toRotationMatrix();
   VERIFY( (t20.fromPositionOrientationScale(v20,a,v21) * (t21.prescale(v21.cwise().inverse()).translate(-v20))).isIdentity() );
 }
 
