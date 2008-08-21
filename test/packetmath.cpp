@@ -108,8 +108,10 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE(REF_ADD,  ei_padd);
   CHECK_CWISE(REF_SUB,  ei_psub);
   CHECK_CWISE(REF_MUL,  ei_pmul);
+  #ifndef EIGEN_VECTORIZE_ALTIVEC
   if (!ei_is_same_type<Scalar,int>::ret)
     CHECK_CWISE(REF_DIV,  ei_pdiv);
+  #endif
   CHECK_CWISE(std::min, ei_pmin);
   CHECK_CWISE(std::max, ei_pmax);
 
