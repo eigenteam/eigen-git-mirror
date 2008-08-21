@@ -52,7 +52,7 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
   typedef typename MemberOp::result_type Scalar;
   typedef typename MatrixType::Scalar InputScalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
-  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
@@ -65,7 +65,7 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
   };
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
   enum {
-    CoeffReadCost = TraversalSize * _MatrixTypeNested::CoeffReadCost + CostOpType::value
+    CoeffReadCost = TraversalSize * ei_traits<_MatrixTypeNested>::CoeffReadCost + int(CostOpType::value)
   };
 };
 

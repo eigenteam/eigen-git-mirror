@@ -59,6 +59,7 @@ template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
 template<typename ExpressionType, int Direction> class PartialRedux;
 template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
+template<typename ExpressionType> class WithFormat;
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
@@ -88,6 +89,8 @@ template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
 template<typename Scalar> struct ei_scalar_random_op;
 template<typename Scalar> struct ei_scalar_add_op;
+
+struct IoFormat;
 
 template<typename Scalar>
 void ei_cache_friendly_product(

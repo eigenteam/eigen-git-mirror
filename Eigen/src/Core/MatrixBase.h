@@ -176,7 +176,7 @@ template<typename Derived> class MatrixBase
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     /** \internal the type to which the expression gets evaluated (needed by MSVC) */
-	typedef typename ei_eval<Derived>::type EvalType;
+    typedef typename ei_eval<Derived>::type EvalType;
     /** \internal Represents a constant matrix */
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal Represents a scalar multiple of a matrix */
@@ -195,10 +195,10 @@ template<typename Derived> class MatrixBase
             AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-	/** \internal expression tyepe of a column */
-	typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
-	/** \internal expression tyepe of a column */
-	typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
+    /** \internal expression tyepe of a column */
+    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
+    /** \internal expression tyepe of a column */
+    typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
     /** \internal the return type of identity */
     typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
     /** \internal the return type of unit vectors */
@@ -524,6 +524,8 @@ template<typename Derived> class MatrixBase
 
     const Cwise<Derived> cwise() const;
     Cwise<Derived> cwise();
+
+    inline const WithFormat<Derived> format(const IoFormat& fmt) const;
 
 /////////// Array module ///////////
 

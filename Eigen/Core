@@ -4,6 +4,7 @@
 #include "CoreDeclarations"
 #include <iostream>
 #include <cstring>
+#include <string>
 
 #ifdef EIGEN_VECTORIZE
 // it seems we cannot assume posix_memalign is defined in the stdlib header

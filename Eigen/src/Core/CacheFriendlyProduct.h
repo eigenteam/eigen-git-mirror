@@ -347,7 +347,7 @@ static void ei_cache_friendly_product(
  * TODO: since rhs gets evaluated only once, no need to evaluate it
  */
 template<typename Scalar, typename RhsType>
-EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
+static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   int size,
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
@@ -536,7 +536,7 @@ EIGEN_DONT_INLINE static void ei_cache_friendly_product_colmajor_times_vector(
 
 // TODO add peeling to mask unaligned load/stores
 template<typename Scalar, typename ResType>
-EIGEN_DONT_INLINE static void ei_cache_friendly_product_rowmajor_times_vector(
+static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, int lhsStride,
   const Scalar* rhs, int rhsSize,
   ResType& res)

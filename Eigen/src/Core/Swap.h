@@ -130,7 +130,7 @@ template<typename Derived>
 template<typename OtherDerived>
 void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
 {
-  SwapWrapper<Derived>(derived()).lazyAssign(other);
+  (SwapWrapper<Derived>(derived())).lazyAssign(other);
 }
 
 #endif // EIGEN_SWAP_H
