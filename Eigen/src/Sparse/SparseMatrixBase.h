@@ -125,7 +125,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
           {
             for ( ; col<it.index(); ++col)
               s << "0 ";
-            std::cout << it.value() << " ";
+            s << it.value() << " ";
             ++col;
           }
           for ( ; col<m.cols(); ++col)

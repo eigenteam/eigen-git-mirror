@@ -25,41 +25,86 @@
 #include "main.h"
 #include <Eigen/Sparse>
 
+template<typename Scalar> void sparse()
+{
+  int rows = 8, cols = 8;
+  double density = std::max(8./(rows*cols), 0.01);
+  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
+  Scalar eps = 1e-6;
+
+  SparseMatrix<Scalar> m(rows, cols);
+  DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
+
+  std::vector<Vector2i> zeroCoords;
+  std::vector<Vector2i> nonzeroCoords;
+  m.startFill(rows*cols*density);
+  for(int j=0; j<cols; j++)
+  {
+    for(int i=0; i<rows; i++)
+    {
+      Scalar v = (ei_random<Scalar>(0,1) < density) ? ei_random<Scalar>() : 0;
+      if (v!=0)
+      {
+        m.fill(i,j) = v;
+        nonzeroCoords.push_back(Vector2i(i,j));
+      }
+      else
+      {
+        zeroCoords.push_back(Vector2i(i,j));
+      }
+      refMat(i,j) = v;
+    }
+  }
+  m.endFill();
+
+  VERIFY(zeroCoords.size()>0 && "re-run the test");
+  VERIFY(nonzeroCoords.size()>0 && "re-run the test");
+
+  // test coeff and coeffRef
+  for (int i=0; i<zeroCoords.size(); ++i)
+  {
+    VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
+    VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
+  }
+  VERIFY_IS_APPROX(m, refMat);
+
+  m.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
+  refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
+
+  VERIFY_IS_APPROX(m, refMat);
+
+  // test SparseSetters
+  // coherent setter
+  // TODO extend the MatrixSetter
+//   {
+//     m.setZero();
+//     VERIFY_IS_NOT_APPROX(m, refMat);
+//     SparseSetter<SparseMatrix<Scalar>, FullyCoherentAccessPattern> w(m);
+//     for (int i=0; i<nonzeroCoords.size(); ++i)
+//     {
+//       w->coeffRef(nonzeroCoords[i].x(),nonzeroCoords[i].y()) = refMat.coeff(nonzeroCoords[i].x(),nonzeroCoords[i].y());
+//     }
+//   }
+//   VERIFY_IS_APPROX(m, refMat);
+  
+  // random setter
+  {
+    m.setZero();
+    VERIFY_IS_NOT_APPROX(m, refMat);
+    SparseSetter<SparseMatrix<Scalar>, RandomAccessPattern> w(m);
+    std::vector<Vector2i> remaining = nonzeroCoords;
+    while(!remaining.empty())
+    {
+      int i = ei_random<int>(0,remaining.size()-1);
+      w->coeffRef(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
+      remaining[i] = remaining.back();
+      remaining.pop_back();
+    }
+  }
+  VERIFY_IS_APPROX(m, refMat);
+}
+
 void test_sparse()
 {
-  int rows = 4, cols = 4;
-  SparseMatrix<double> m(rows, cols);
-
-  m.startFill(rows);
-  m.fill(0, 2) = 2;
-  m.fill(1, 2) = 1;
-  m.fill(0, 3) = 5;
-  m.endFill();
-
-  m.coeffRef(0, 2) = 3;
-  VERIFY_RAISES_ASSERT( m.coeffRef(0, 0) = 5 );
-  VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(0, 0), 0.000001 );
-  VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(0, 1), 0.000001 );
-  VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(2, 1), 0.000001 );
-  VERIFY_IS_APPROX( m.coeff(0, 2), 3.0 );
-  VERIFY_IS_APPROX( m.coeff(1, 2), 1.0 );
-  VERIFY_IS_APPROX( m.coeff(0, 3), 5.0 );
-
-  Matrix4d dm;
-  double r;
-  m.startFill(rows*cols);
-  for(int i=0; i<cols; i++) {
-    for(int j=0; j<rows; j++) {
-      r = rand();
-      m.fill(j, i) = r;
-      dm(j, i) = r;
-    }
-  }
-  m.endFill();
-
-  for(int i=0; i<cols; i++) {
-    for(int j=0; j<rows; j++) {
-      VERIFY_IS_APPROX( m.coeff(j, i), dm(j, i) );
-    }
-  }
+  sparse<double>();
 }
