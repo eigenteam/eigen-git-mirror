@@ -51,6 +51,7 @@ template<typename Scalar> class SparseArray
       resize(other.size());
       memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
       memcpy(m_indices, other.m_indices, m_size * sizeof(int));
+      return *this;
     }
 
     void swap(SparseArray& other)

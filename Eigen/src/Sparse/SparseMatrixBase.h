@@ -73,8 +73,10 @@ class SparseMatrixBase : public MatrixBase<Derived>
         {
           Scalar v = it.value();
           if (v!=Scalar(0))
+          {
             if (OtherDerived::Flags & RowMajorBit) temp.fill(j,it.index()) = v;
             else temp.fill(it.index(),j) = v;
+          }
         }
       }
       temp.endFill();
@@ -100,8 +102,10 @@ class SparseMatrixBase : public MatrixBase<Derived>
           {
             Scalar v = it.value();
             if (v!=Scalar(0))
+            {
               if (RowMajor) derived().fill(j,it.index()) = v;
               else derived().fill(it.index(),j) = v;
+            }
           }
         }
         derived().endFill();

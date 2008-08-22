@@ -2,6 +2,7 @@
 #define EIGEN_REGRESSION_MODULE_H
 
 #include "LU"
+#include "QR"
 
 namespace Eigen {
 

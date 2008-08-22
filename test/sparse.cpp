@@ -61,7 +61,7 @@ template<typename Scalar> void sparse()
   VERIFY(nonzeroCoords.size()>0 && "re-run the test");
 
   // test coeff and coeffRef
-  for (int i=0; i<zeroCoords.size(); ++i)
+  for (int i=0; i<(int)zeroCoords.size(); ++i)
   {
     VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
     VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );

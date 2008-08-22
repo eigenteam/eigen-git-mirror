@@ -213,8 +213,8 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
         for (int j=0; j<=m_outerSize; ++j)
           m_outerIndex[j] = other.m_outerIndex[j];
         m_data = other.m_data;
-        return *this;
       }
+      return *this;
     }
 
     template<typename OtherDerived>

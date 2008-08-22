@@ -4,8 +4,9 @@
 #include "Core"
 #include <vector>
 #include <map>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
 
 namespace Eigen {
 
