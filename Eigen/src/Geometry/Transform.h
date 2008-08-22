@@ -66,9 +66,9 @@ public:
   /** type of the matrix used to represent the transformation */
   typedef Matrix<Scalar,HDim,HDim> MatrixType;
   /** type of the matrix used to represent the linear part of the transformation */
-  typedef Matrix<Scalar,Dim,Dim> AffineMatrixType;
+  typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** type of read/write reference to the linear part of the transformation */
-  typedef Block<MatrixType,Dim,Dim> AffinePart;
+  typedef Block<MatrixType,Dim,Dim> LinearPart;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
@@ -111,9 +111,9 @@ public:
   inline MatrixType& matrix() { return m_matrix; }
 
   /** \returns a read-only expression of the linear (linear) part of the transformation */
-  inline const AffinePart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
+  inline const LinearPart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
   /** \returns a writable expression of the linear (linear) part of the transformation */
-  inline AffinePart linear() { return m_matrix.template block<Dim,Dim>(0,0); }
+  inline LinearPart linear() { return m_matrix.template block<Dim,Dim>(0,0); }
 
   /** \returns a read-only expression of the translation vector of the transformation */
   inline const TranslationPart translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
@@ -162,8 +162,8 @@ public:
   Transform& shear(Scalar sx, Scalar sy);
   Transform& preshear(Scalar sx, Scalar sy);
 
-  AffineMatrixType extractRotation() const;
-  AffineMatrixType extractRotationNoShear() const;
+  LinearMatrixType extractRotation() const;
+  LinearMatrixType extractRotationNoShear() const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
@@ -349,7 +349,7 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
-  m_matrix.template block<Dim,HDim>(0,0) = AffineMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
+  m_matrix.template block<Dim,HDim>(0,0) = LinearMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
 
@@ -357,7 +357,7 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
   * \sa extractRotationNoShear(), class QR
   */
 template<typename Scalar, int Dim>
-typename Transform<Scalar,Dim>::AffineMatrixType
+typename Transform<Scalar,Dim>::LinearMatrixType
 Transform<Scalar,Dim>::extractRotation() const
 {
   return linear().qr().matrixQ();
@@ -368,7 +368,7 @@ Transform<Scalar,Dim>::extractRotation() const
   * \sa extractRotation()
   */
 template<typename Scalar, int Dim>
-typename Transform<Scalar,Dim>::AffineMatrixType
+typename Transform<Scalar,Dim>::LinearMatrixType
 Transform<Scalar,Dim>::extractRotationNoShear() const
 {
   return linear().cwise().abs2()
@@ -421,7 +421,7 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
 {
   typedef typename Other::Scalar Scalar;
   typedef Transform<Scalar,Dim> TransformType;
-  typedef typename TransformType::AffinePart MatrixType;
+  typedef typename TransformType::LinearPart MatrixType;
   typedef const CwiseUnaryOp<
       ei_scalar_multiple_op<Scalar>,
       NestByValue<CwiseBinaryOp<
