@@ -152,7 +152,7 @@ struct ei_scalar_inverse_op {
   inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
   template<typename PacketScalar>
   inline const PacketScalar packetOp(const PacketScalar& a) const
-  { return ei_div(ei_pset1(Scalar(1)),a); }
+  { return ei_pdiv(ei_pset1(Scalar(1)),a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
