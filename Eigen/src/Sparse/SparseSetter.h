@@ -29,6 +29,42 @@ template<typename MatrixType, int AccessPattern,
   int IsSupported = ei_support_access_pattern<MatrixType,AccessPattern>::ret>
 struct ei_sparse_setter_selector;
 
+/** \class SparseSetter
+  *
+  * Goal: provides a unified API to fill/update a dense or sparse matrix.
+  *
+  * Usage:
+  * \code
+  * {
+  *   SparseSetter<MatrixType, RandomAccessPattern> w(m);
+  *   for (...) w->coeffRef(rand(),rand()) = rand();
+  * }
+  * \endcode
+  *
+  * In the above example we want to fill a matrix m (could be a SparseMatrix or whatever other matrix type)
+  * in a random fashion (whence the RandomAccessPattern). Internally, if \a MatrixType supports random writes
+  * then \c w behaves as a pointer to m, and m is filled directly. Otherwise, a temporary matrix supporting
+  * random writes is created and \c w behaves as a pointer to this temporary object. When the object \c w
+  * is deleted (at the end of the block), then the temporary object is assigned to the matrix m.
+  * 
+  * So far we can distinghished 4 types of access pattern:
+  * - FullyCoherentAccessPattern (if col major, i+j*rows must increase)
+  * - InnerCoherentAccessPattern (if col major, i must increase for each column j)
+  * - OuterCoherentAccessPattern (if col major, the column j is set in a random order, but j must increase)
+  * - RandomAccessPattern
+  * 
+  * See the wiki for more details.
+  * 
+  * The template class ei_support_access_pattern is used to determine the type of the temporary object (which
+  * can be a reference to \a MatrixType if \a MatrixType support \a AccessPattern)
+  *
+  * Currently only the RandomAccessPattern seems to work as expected.
+  *
+  * \todo define the API for each kind of access pattern
+  * \todo allows both update and set modes (set start a new matrix)
+  * \todo implement the OuterCoherentAccessPattern
+  *
+  */
 template<typename MatrixType,
          int AccessPattern,
          typename WrapperType = typename ei_sparse_setter_selector<MatrixType,AccessPattern>::type>
