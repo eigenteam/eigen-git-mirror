@@ -37,8 +37,8 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
+             m2 = test_random_matrix<MatrixType>(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              identity = MatrixType::Identity(rows, rows);
 

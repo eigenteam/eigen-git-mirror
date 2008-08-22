@@ -95,7 +95,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor>
         int endBlock = startBlock + (IsLower ? 4 : -4);
         
         /* Process the i cols times 4 rows block, and keep the result in a temporary vector */
-        Matrix<Scalar,4,1> btmp;
+        // FIXME use fixed size block but take care to small fixed size matrices...
+        Matrix<Scalar,Dynamic,1> btmp(4);
         if (IsLower)
           btmp = lhs.block(startBlock,0,4,i) * other.col(c).start(i);
         else

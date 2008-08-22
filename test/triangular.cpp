@@ -97,7 +97,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++) {
-//     triangular(Matrix<float, 1, 1>());
+    CALL_SUBTEST( triangular(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( triangular(Matrix<float, 2, 2>()) );
     CALL_SUBTEST( triangular(Matrix3d()) );
     CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );

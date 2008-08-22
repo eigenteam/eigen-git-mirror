@@ -92,7 +92,7 @@ template<typename Scalar> void packetmath()
     {
       packets[0] = ei_pload(data1);
       packets[1] = ei_pload(data1+PacketSize);
-          if (offset==0) ei_palign<0>(packets[0], packets[1]);
+           if (offset==0) ei_palign<0>(packets[0], packets[1]);
       else if (offset==1) ei_palign<1>(packets[0], packets[1]);
       else if (offset==2) ei_palign<2>(packets[0], packets[1]);
       else if (offset==3) ei_palign<3>(packets[0], packets[1]);

@@ -221,11 +221,18 @@ template<typename Derived1, typename Derived2>
 struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  enum {
+    PacketSize = ei_packet_traits<Scalar>::size,
+    Size = Derived1::SizeAtCompileTime,
+    VectorizationSize = (Size / PacketSize) * PacketSize
+  };
   static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    return ei_predux(
-      ei_dot_vec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>::run(v1, v2)
-    );
+    Scalar res =  ei_predux(ei_dot_vec_unroller<Derived1, Derived2, 0, VectorizationSize>::run(v1, v2));
+    if (VectorizationSize != Size)
+      res += ei_dot_novec_unroller<Derived1, Derived2, VectorizationSize, Size>::run(v1, v2);
+    return res;
   }
 };
 

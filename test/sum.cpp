@@ -31,7 +31,7 @@ template<typename MatrixType> void matrixSum(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols);
+  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols);
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
   VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(rows*cols));
@@ -45,7 +45,7 @@ template<typename VectorType> void vectorSum(const VectorType& w)
   typedef typename VectorType::Scalar Scalar;
   int size = w.size();
 
-  VectorType v = VectorType::Random(size);
+  VectorType v = test_random_matrix<VectorType>(size);
   for(int i = 1; i < size; i++)
   {
     Scalar s = Scalar(0);
@@ -81,6 +81,6 @@ void test_sum()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( vectorSum(VectorXf(5)) );
     CALL_SUBTEST( vectorSum(VectorXd(10)) );
-    CALL_SUBTEST( vectorSum(VectorXf(100)) );
+    CALL_SUBTEST( vectorSum(VectorXf(33)) );
   }
 }

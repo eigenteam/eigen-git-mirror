@@ -220,7 +220,7 @@ struct ei_palign_impl<Offset,__m128>
   inline static void run(__m128& first, const __m128& second)
   {
     if (Offset!=0)
-      first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(second), _mm_castps_si128(first), (Offset)*4));
+      first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(second), _mm_castps_si128(first), Offset*4));
   }
 };
 
@@ -230,7 +230,7 @@ struct ei_palign_impl<Offset,__m128i>
   inline static void run(__m128i& first, const __m128i& second)
   {
     if (Offset!=0)
-      first = _mm_alignr_epi8(second,first, (Offset)*4);
+      first = _mm_alignr_epi8(second,first, Offset*4);
   }
 };
 

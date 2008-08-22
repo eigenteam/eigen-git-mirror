@@ -164,8 +164,8 @@ namespace Eigen {
 
 template<typename T> inline typename NumTraits<T>::Real test_precision();
 template<> inline int test_precision<int>() { return 0; }
-template<> inline float test_precision<float>() { return 1e-3f; }
-template<> inline double test_precision<double>() { return 1e-5; }
+template<> inline float test_precision<float>() { return 1e-4f; }
+template<> inline double test_precision<double>() { return 1e-6; }
 template<> inline float test_precision<std::complex<float> >() { return test_precision<float>(); }
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
 
@@ -219,6 +219,26 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
                                    const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
 {
   return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
+}
+
+template<typename T> T test_random();
+
+template<> int test_random() { return ei_random<int>(-100,100); }
+template<> float test_random() { return float(ei_random<int>(-1000,1000)) / 256.f; }
+template<> double test_random() { return double(ei_random<int>(-1000,1000)) / 256.; }
+template<> std::complex<float> test_random()
+{ return std::complex<float>(test_random<float>(),test_random<float>()); }
+template<> std::complex<double> test_random()
+{ return std::complex<double>(test_random<double>(),test_random<double>()); }
+
+template<typename MatrixType>
+MatrixType test_random_matrix(int rows = MatrixType::RowsAtCompileTime, int cols = MatrixType::ColsAtCompileTime)
+{
+  MatrixType res(rows, cols);
+  for (int j=0; j<cols; ++j)
+    for (int i=0; i<rows; ++i)
+      res.coeffRef(i,j) = test_random<typename MatrixType::Scalar>();
+  return res;
 }
 
 } // end namespace Eigen
