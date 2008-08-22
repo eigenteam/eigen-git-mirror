@@ -145,54 +145,54 @@ void linearRegression(int numPoints,
   * Thus, the vector \a retCoefficients has size \f$n+1\f$, which is another
   * difference from linearRegression().
   *
-  * This functions proceeds by first determining which coord has the smallest variance,
-  * and then calls linearRegression() to express that coord as a function of the other ones.
+  * In practice, this function performs an hyper-plane fit in a total least square sense
+  * via the following steps:
+  *  1 - center the data to the mean
+  *  2 - compute the covariance matrix
+  *  3 - pick the eigenvector corresponding to the smallest eigenvalue of the covariance matrix
+  * The ratio of the smallest eigenvalue and the second one gives us a hint about the relevance
+  * of the solution. This value is optionally returned in \a soundness.
   *
   * \sa linearRegression()
   */
 template<typename VectorType, typename BigVectorType>
 void fitHyperplane(int numPoints,
                    VectorType **points,
-                   BigVectorType *result)
+                   BigVectorType *result,
+                   typename NumTraits<typename VectorType::Scalar>::Real* soundness = 0)
 {
   typedef typename VectorType::Scalar Scalar;
+  typedef Matrix<Scalar,VectorType::SizeAtCompileTime,VectorType::SizeAtCompileTime> CovMatrixType;
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType)
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(BigVectorType)
   ei_assert(numPoints >= 1);
   int size = points[0]->size();
   ei_assert(size+1 == result->size());
 
-  // now let's find out which coord varies the least. This is
-  // approximative. All that matters is that we don't pick a coordinate
-  // that varies orders of magnitude more than another one.
-  VectorType mean(size);
-  Matrix<typename NumTraits<Scalar>::Real,
-         VectorType::RowsAtCompileTime, VectorType::ColsAtCompileTime,
-         VectorType::MaxRowsAtCompileTime, VectorType::MaxColsAtCompileTime
-        > variance(size);
-  mean.setZero();
-  variance.setZero();
+  // compue the mean of the data
+  VectorType mean = VectorType::Zero(size);
   for(int i = 0; i < numPoints; i++)
     mean += *(points[i]);
   mean /= numPoints;
-  for(int j = 0; j < size; j++)
+
+  // compute the covariance matrix
+  CovMatrixType covMat = CovMatrixType::Zero(size, size);
+  VectorType remean = VectorType::Zero(size);
+  for(int i = 0; i < numPoints; i++)
   {
-    for(int i = 0; i < numPoints; i++)
-      variance.coeffRef(j) += ei_abs2(points[i]->coeff(j) - mean.coeff(j));
+    VectorType diff = (*(points[i]) - mean).conjugate();
+    covMat += diff * diff.adjoint();
   }
+  
+  // now we just have to pick the eigen vector with smallest eigen value
+  SelfAdjointEigenSolver<CovMatrixType> eig(covMat);
+  result->start(size) = eig.eigenvectors().col(0);
+  if (soundness)
+    *soundness = eig.eigenvalues().coeff(0)/eig.eigenvalues().coeff(1);
 
-  int coord_min_variance;
-  variance.minCoeff(&coord_min_variance);
-
-  // let's now perform a linear regression with respect to that
-  // not-too-much-varying coord
-  VectorType affine(size);
-  linearRegression(numPoints, points, &affine, coord_min_variance);
-
-  if(coord_min_variance>0)
-    result->start(coord_min_variance) = affine.start(coord_min_variance);
-  result->coeffRef(coord_min_variance) = static_cast<Scalar>(-1);
-  result->end(size-coord_min_variance) = affine.end(size-coord_min_variance);
+  // let's compute the constant coefficient such that the
+  // plane pass trough the mean point:
+  result->coeffRef(size) = - (result->start(size).cwise()* mean).sum();
 }
 
 
