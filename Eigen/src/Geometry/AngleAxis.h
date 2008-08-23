@@ -131,7 +131,7 @@ template<typename Scalar>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
 {
   Scalar n2 = q.vec().norm2();
-  if (ei_isMuchSmallerThan(n2,Scalar(1)))
+  if (n2 < precision<Scalar>()*precision<Scalar>())
   {
     m_angle = 0;
     m_axis << 1, 0, 0;

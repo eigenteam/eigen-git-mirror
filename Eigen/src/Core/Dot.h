@@ -229,9 +229,9 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
   };
   static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    Scalar res =  ei_predux(ei_dot_vec_unroller<Derived1, Derived2, 0, VectorizationSize>::run(v1, v2));
+    Scalar res = ei_predux(ei_dot_vec_unroller<Derived1, Derived2, 0, VectorizationSize>::run(v1, v2));
     if (VectorizationSize != Size)
-      res += ei_dot_novec_unroller<Derived1, Derived2, VectorizationSize, Size>::run(v1, v2);
+      res += ei_dot_novec_unroller<Derived1, Derived2, VectorizationSize, Size-VectorizationSize>::run(v1, v2);
     return res;
   }
 };

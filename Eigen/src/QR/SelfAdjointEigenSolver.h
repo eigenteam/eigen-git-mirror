@@ -225,22 +225,33 @@ void SelfAdjointEigenSolver<MatrixType>::
 compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors)
 {
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
-
-  // Compute the cholesky decomposition of matB = U'U
+  
+  // Compute the cholesky decomposition of matB = L L'
   Cholesky<MatrixType> cholB(matB);
 
-  // compute C = inv(U') A inv(U)
-  MatrixType matC = cholB.matrixL().solveTriangular(matA);
-  // FIXME since we currently do not support A * inv(U),
-  // let's do (inv(U') A')' :
-  matC = (cholB.matrixL().solveTriangular(matC.adjoint())).adjoint();
+  // compute C = inv(L) A inv(L')
+  MatrixType matC = matA;
+  cholB.matrixL().solveTriangularInPlace(matC);
+  // FIXME since we currently do not support A * inv(L'), let's do (inv(L) A')' :
+  matC = matC.adjoint().eval();
+  cholB.matrixL().template marked<Lower>().solveTriangularInPlace(matC);
+  matC = matC.adjoint().eval();
+  // this version works too:
+//   matC = matC.transpose();
+//   cholB.matrixL().conjugate().template marked<Lower>().solveTriangularInPlace(matC);
+//   matC = matC.transpose();
+  // FIXME: this should work: (currently it only does for small matrices)
+//   Transpose<MatrixType> trMatC(matC);
+//   cholB.matrixL().conjugate().eval().template marked<Lower>().solveTriangularInPlace(trMatC);
 
   compute(matC, computeEigenvectors);
 
   if (computeEigenvectors)
   {
     // transform back the eigen vectors: evecs = inv(U) * evecs
-    m_eivec = cholB.matrixL().adjoint().template marked<Upper>().solveTriangular(m_eivec);
+    cholB.matrixL().adjoint().template marked<Upper>().solveTriangularInPlace(m_eivec);
+    for (int i=0; i<m_eivec.cols(); ++i)
+      m_eivec.col(i) = m_eivec.col(i).normalized();
   }
 }
 

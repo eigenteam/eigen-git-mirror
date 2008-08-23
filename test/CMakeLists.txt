@@ -1,5 +1,9 @@
 IF(BUILD_TESTS)
 
+find_package(GSL)
+if(GSL_FOUND)
+  add_definitions("-DHAS_GSL")
+endif(GSL_FOUND)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(CMAKE_SYSTEM_NAME MATCHES Linux)
@@ -68,6 +72,10 @@ MACRO(EI_ADD_TEST testname)
   IF(TEST_LIB)
     target_link_libraries(${targetname} Eigen2)
   ENDIF(TEST_LIB)
+
+  if(GSL_FOUND)
+    target_link_libraries(${targetname} ${GSL_LIBRARIES})
+  endif(GSL_FOUND)
 
   IF(WIN32)
     ADD_TEST(${testname} "${targetname}")

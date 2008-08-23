@@ -21,10 +21,14 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
-
+#define EIGEN_DONT_VECTORIZE
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
+
+#ifdef HAS_GSL
+#include "gsl_helper.h"
+#endif
 
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
@@ -39,38 +43,79 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  MatrixType a = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType a0 = test_random_matrix<MatrixType>(rows,cols);
   VectorType vecB = test_random_matrix<VectorType>(rows);
   MatrixType matB = test_random_matrix<MatrixType>(rows,cols);
-  SquareMatrixType covMat =  a * a.adjoint();
+  SquareMatrixType symm =  a0 * a0.adjoint();
+  // let's make sure the matrix is not singular or near singular
+  MatrixType a1 = test_random_matrix<MatrixType>(rows,cols);
+  symm += a1 * a1.adjoint();
+
+  #ifdef HAS_GSL
+  if (ei_is_same_type<RealScalar,double>::ret)
+  {
+    typedef GslTraits<Scalar> Gsl;
+    typename Gsl::Matrix gMatA=0, gSymm=0;
+    typename Gsl::Vector gVecB=0, gVecX=0;
+    convert<MatrixType>(symm, gSymm);
+    convert<MatrixType>(symm, gMatA);
+    convert<VectorType>(vecB, gVecB);
+    convert<VectorType>(vecB, gVecX);
+    Gsl::cholesky(gMatA);
+    Gsl::cholesky_solve(gMatA, gVecB, gVecX);
+    VectorType vecX, _vecX, _vecB;
+    convert(gVecX, _vecX);
+    vecX = symm.cholesky().solve(vecB);
+    Gsl::prod(gSymm, gVecX, gVecB);
+    convert(gVecB, _vecB);
+    // test gsl itself !
+    VERIFY_IS_APPROX(vecB, _vecB);
+    VERIFY_IS_APPROX(vecX, _vecX);
+
+    Gsl::free(gMatA);
+    Gsl::free(gSymm);
+    Gsl::free(gVecB);
+    Gsl::free(gVecX);
+  }
+  #endif
 
   if (rows>1)
   {
-    CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(covMat);
-    VERIFY_IS_APPROX(covMat, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());
-  //   cout << (covMat * cholnosqrt.solve(vecB)).transpose().format(6) << endl;
-  //   cout << vecB.transpose().format(6) << endl << "----------" << endl;
-    VERIFY((covMat * cholnosqrt.solve(vecB)).isApprox(vecB, test_precision<RealScalar>()*RealScalar(100))); // FIXME
-    VERIFY((covMat * cholnosqrt.solve(matB)).isApprox(matB, test_precision<RealScalar>()*RealScalar(100))); // FIXME
+    CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(symm);
+    VERIFY(cholnosqrt.isPositiveDefinite());
+    VERIFY_IS_APPROX(symm, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());
+    VERIFY_IS_APPROX(symm * cholnosqrt.solve(vecB), vecB);
+    VERIFY_IS_APPROX(symm * cholnosqrt.solve(matB), matB);
   }
 
-  Cholesky<SquareMatrixType> chol(covMat);
-  VERIFY_IS_APPROX(covMat, chol.matrixL() * chol.matrixL().adjoint());
-//   cout << (covMat * chol.solve(vecB)).transpose().format(6) << endl;
-//   cout << vecB.transpose().format(6) << endl << "----------" << endl;
-  VERIFY((covMat * chol.solve(vecB)).isApprox(vecB, test_precision<RealScalar>()*RealScalar(100))); // FIXME
-  VERIFY((covMat * chol.solve(matB)).isApprox(matB, test_precision<RealScalar>()*RealScalar(100))); // FIXME
+  {
+    Cholesky<SquareMatrixType> chol(symm);
+    VERIFY(chol.isPositiveDefinite());
+    VERIFY_IS_APPROX(symm, chol.matrixL() * chol.matrixL().adjoint());
+    VERIFY_IS_APPROX(symm * chol.solve(vecB), vecB);
+    VERIFY_IS_APPROX(symm * chol.solve(matB), matB);
+  }
+
+  // test isPositiveDefinite on non definite matrix
+  if (rows>4)
+  {
+    SquareMatrixType symm =  a0.block(0,0,rows,cols-4) * a0.block(0,0,rows,cols-4).adjoint();
+    Cholesky<SquareMatrixType> chol(symm);
+    VERIFY(!chol.isPositiveDefinite());
+    CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(symm);
+    VERIFY(!cholnosqrt.isPositiveDefinite());
+  }
 }
 
 void test_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( cholesky(Matrix<float,1,1>()) );
-    CALL_SUBTEST( cholesky(Matrix<float,2,2>()) );
-//     CALL_SUBTEST( cholesky(Matrix3f()) );
-//     CALL_SUBTEST( cholesky(Matrix4d()) );
-//     CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
-//     CALL_SUBTEST( cholesky(MatrixXf(19,19)) );
-//     CALL_SUBTEST( cholesky(MatrixXd(33,33)) );
+    CALL_SUBTEST( cholesky(Matrix<double,1,1>()) );
+    CALL_SUBTEST( cholesky(Matrix2d()) );
+    CALL_SUBTEST( cholesky(Matrix3f()) );
+    CALL_SUBTEST( cholesky(Matrix4d()) );
+    CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
+    CALL_SUBTEST( cholesky(MatrixXf(17,17)) );
+    CALL_SUBTEST( cholesky(MatrixXd(33,33)) );
   }
 }

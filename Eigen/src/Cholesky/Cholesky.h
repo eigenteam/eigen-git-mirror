@@ -93,17 +93,18 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
+  const RealScalar eps = ei_sqrt(precision<Scalar>());
 
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = x > precision<Scalar>() && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
+  m_isPositiveDefinite = x > eps && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
     Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).norm2();
     x = ei_real(tmp);
-    if (x < precision<Scalar>() || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
+    if (x < eps || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
     {
       m_isPositiveDefinite = false;
       return;

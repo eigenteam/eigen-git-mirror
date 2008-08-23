@@ -32,17 +32,18 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   */
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
+             m2 = test_random_matrix<MatrixType>(rows, cols),
              m3(rows, cols);
 
-  Scalar  s1 = ei_random<Scalar>(),
-          s2 = ei_random<Scalar>();
+  Scalar  s1 = test_random<Scalar>(),
+          s2 = test_random<Scalar>();
 
   VERIFY_IS_APPROX(m1.cwise() + s1, s1 + m1.cwise());
   VERIFY_IS_APPROX(m1.cwise() + s1, MatrixType::Constant(rows,cols,s1) + m1);
@@ -56,7 +57,8 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
 
   VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
   VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
-  VERIFY_IS_NOT_APPROX((m1.rowwise().sum()*2).sum(), m1.sum());
+  if (!ei_isApprox(m1.sum(), (m1+m2).sum()))
+    VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
   VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(ei_scalar_sum_op<Scalar>()));
 }
 

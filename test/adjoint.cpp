@@ -31,25 +31,29 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   */
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  RealScalar largerEps = test_precision<RealScalar>();
+  if (ei_is_same_type<RealScalar,float>::ret)
+    largerEps = 1e-3f;
+
+  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
+             m2 = test_random_matrix<MatrixType>(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Random(rows, rows);
-  VectorType v1 = VectorType::Random(rows),
-             v2 = VectorType::Random(rows),
-             v3 = VectorType::Random(rows),
+             identity = SquareMatrixType::Identity(rows, rows),
+             square = test_random_matrix<SquareMatrixType>(rows, rows);
+  VectorType v1 = test_random_matrix<VectorType>(rows),
+             v2 = test_random_matrix<VectorType>(rows),
+             v3 = test_random_matrix<VectorType>(rows),
              vzero = VectorType::Zero(rows);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
+  Scalar s1 = test_random<Scalar>(),
+         s2 = test_random<Scalar>();
 
   // check basic compatibility of adjoint, transpose, conjugate
   VERIFY_IS_APPROX(m1.transpose().conjugate().adjoint(),    m1);
@@ -61,19 +65,18 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 
   // check basic properties of dot, norm, norm2
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  VERIFY_IS_APPROX((s1 * v1 + s2 * v2).dot(v3),      s1 * v1.dot(v3) + s2 * v2.dot(v3));
-  VERIFY_IS_APPROX(v3.dot(s1 * v1 + s2 * v2),        ei_conj(s1)*v3.dot(v1)+ei_conj(s2)*v3.dot(v2));
-  VERIFY_IS_APPROX(ei_conj(v1.dot(v2)),                 v2.dot(v1));
-  VERIFY_IS_APPROX(ei_abs(v1.dot(v1)),                  v1.norm2());
+  VERIFY(ei_isApprox((s1 * v1 + s2 * v2).dot(v3),   s1 * v1.dot(v3) + s2 * v2.dot(v3), largerEps));
+  VERIFY(ei_isApprox(v3.dot(s1 * v1 + s2 * v2),     ei_conj(s1)*v3.dot(v1)+ei_conj(s2)*v3.dot(v2), largerEps));
+  VERIFY_IS_APPROX(ei_conj(v1.dot(v2)),               v2.dot(v1));
+  VERIFY_IS_APPROX(ei_abs(v1.dot(v1)),                v1.norm2());
   if(NumTraits<Scalar>::HasFloatingPoint)
-    VERIFY_IS_APPROX(v1.norm2(),                     v1.norm() * v1.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.dot(v1)),    static_cast<RealScalar>(1));
+    VERIFY_IS_APPROX(v1.norm2(),                      v1.norm() * v1.norm());
+  VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
   if(NumTraits<Scalar>::HasFloatingPoint)
-    VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),        static_cast<RealScalar>(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),         static_cast<RealScalar>(1));
 
   // check compatibility of dot and adjoint
-  // FIXME this line failed with MSVC and complex<double> in the ei_aligned_free()
-  VERIFY_IS_APPROX(v1.dot(square * v2),              (square.adjoint() * v1).dot(v2));
+  VERIFY(ei_isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2), largerEps));
 
   // like in testBasicStuff, test operator() to check const-qualification
   int r = ei_random<int>(0, rows-1),
@@ -93,10 +96,11 @@ void test_adjoint()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( adjoint(Matrix4d()) );
-    CALL_SUBTEST( adjoint(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( adjoint(Matrix3d()) );
+    CALL_SUBTEST( adjoint(Matrix4f()) );
+    CALL_SUBTEST( adjoint(MatrixXcf(4, 4)) );
     CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
-    CALL_SUBTEST( adjoint(MatrixXcd(20, 20)) );
+    CALL_SUBTEST( adjoint(MatrixXf(21, 21)) );
   }
   // test a large matrix only once
   CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );

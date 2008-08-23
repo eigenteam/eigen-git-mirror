@@ -94,6 +94,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   const int size = a.rows();
   m_matrix.resize(size, size);
   m_isPositiveDefinite = true;
+  const RealScalar eps = ei_sqrt(precision<Scalar>());
 
   // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
   // Unlike the standard Cholesky decomposition, here we cannot evaluate it to the destination
@@ -111,7 +112,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
     RealScalar tmp = ei_real(a.coeff(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
     m_matrix.coeffRef(j,j) = tmp;
 
-    if (ei_isMuchSmallerThan(tmp,RealScalar(1)))
+    if (tmp < eps)
     {
       m_isPositiveDefinite = false;
       return;

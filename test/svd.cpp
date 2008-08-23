@@ -34,10 +34,15 @@ template<typename MatrixType> void svd(const MatrixType& m)
   int cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  MatrixType a = MatrixType::Random(rows,cols);
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  MatrixType a = test_random_matrix<MatrixType>(rows,cols);
   Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> b =
-    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1>::Random(rows,1);
+    test_random_matrix<Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> >(rows,1);
   Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x(cols,1), x2(cols,1);
+
+  RealScalar largerEps = test_precision<RealScalar>();
+  if (ei_is_same_type<RealScalar,float>::ret)
+    largerEps = 1e-3f;
 
   SVD<MatrixType> svd(a);
   MatrixType sigma = MatrixType::Zero(rows,cols);
@@ -49,8 +54,14 @@ template<typename MatrixType> void svd(const MatrixType& m)
 
   if (rows==cols)
   {
+    if (ei_is_same_type<RealScalar,float>::ret)
+    {
+      MatrixType a1 = test_random_matrix<MatrixType>(rows,cols);
+      a += a * a.adjoint() + a1 * a1.adjoint();
+    }
+    SVD<MatrixType> svd(a);
     svd.solve(b, &x);
-    VERIFY_IS_APPROX(a * x, b);
+    VERIFY_IS_APPROX(a * x,b);
   }
 }
 
@@ -60,7 +71,7 @@ void test_svd()
     CALL_SUBTEST( svd(Matrix3f()) );
     CALL_SUBTEST( svd(Matrix4d()) );
     CALL_SUBTEST( svd(MatrixXf(7,7)) );
-    CALL_SUBTEST( svd(MatrixXf(14,7)) );
+    CALL_SUBTEST( svd(MatrixXd(14,7)) );
     // complex are not implemented yet
 //     CALL_SUBTEST( svd(MatrixXcd(6,6)) );
 //     CALL_SUBTEST( svd(MatrixXcf(3,3)) );

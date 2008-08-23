@@ -41,15 +41,10 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
              m2 = test_random_matrix<MatrixType>(rows, cols),
              m3(rows, cols),
-             mzero = MatrixType::Zero(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Identity(rows, rows),
-             square = test_random_matrix<Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> >(rows, rows);
-  VectorType v1 = test_random_matrix<VectorType>(rows),
-             v2 = test_random_matrix<VectorType>(rows),
-             vzero = VectorType::Zero(rows);
+             mzero = MatrixType::Zero(rows, cols);
 
   Scalar s1 = test_random<Scalar>();
+  while (ei_abs(s1)<1e-3) s1 = test_random<Scalar>();
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
@@ -94,6 +89,7 @@ void test_linearstructure()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( linearStructure(Matrix<float, 1, 1>()) );
     CALL_SUBTEST( linearStructure(Matrix2f()) );
+    CALL_SUBTEST( linearStructure(Vector3d()) );
     CALL_SUBTEST( linearStructure(Matrix4d()) );
     CALL_SUBTEST( linearStructure(MatrixXcf(3, 3)) );
     CALL_SUBTEST( linearStructure(MatrixXf(8, 12)) );

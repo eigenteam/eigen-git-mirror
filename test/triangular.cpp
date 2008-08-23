@@ -30,12 +30,15 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
+  RealScalar largerEps = 10*test_precision<RealScalar>();
+
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
+             m2 = test_random_matrix<MatrixType>(rows, cols),
              m3(rows, cols),
+             m4(rows, cols),
              r1(rows, cols),
              r2(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
@@ -44,8 +47,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
                               ::Identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Random(rows, rows);
-  VectorType v1 = VectorType::Random(rows),
-             v2 = VectorType::Random(rows),
+  VectorType v1 = test_random_matrix<VectorType>(rows),
+             v2 = test_random_matrix<VectorType>(rows),
              vzero = VectorType::Zero(rows);
 
   MatrixType m1up = m1.template part<Eigen::Upper>();
@@ -78,17 +81,34 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   m1.template part<Eigen::Lower>() = (m2.transpose() * m2).lazy();
   VERIFY_IS_APPROX(m3.template part<Eigen::Lower>(), m1);
 
+  m1 = test_random_matrix<MatrixType>(rows, cols);
+  for (int i=0; i<rows; ++i)
+    while (ei_abs2(m1(i,i))<1e-3) m1(i,i) = test_random<Scalar>();
+
+  Transpose<MatrixType> trm4(m4);
   // test back and forward subsitution
   m3 = m1.template part<Eigen::Lower>();
   VERIFY(m3.template marked<Eigen::Lower>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.transpose().template marked<Eigen::Upper>()
+    .solveTriangular(m3.transpose()).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  // check M * inv(L) using in place API
+  m4 = m3;
+  m3.transpose().template marked<Eigen::Upper>().solveTriangularInPlace(trm4);
+  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
 
   m3 = m1.template part<Eigen::Upper>();
   VERIFY(m3.template marked<Eigen::Upper>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.transpose().template marked<Eigen::Lower>()
+    .solveTriangular(m3.transpose()).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  // check M * inv(U) using in place API
+  m4 = m3;
+  m3.transpose().template marked<Eigen::Lower>().solveTriangularInPlace(trm4);
+  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
 
-  // FIXME these tests failed due to numerical issues
-  // m1 = MatrixType::Random(rows, cols);
-  // VERIFY_IS_APPROX(m1.template part<Eigen::Upper>().eval() * (m1.template part<Eigen::Upper>().solveTriangular(m2)), m2);
-  // VERIFY_IS_APPROX(m1.template part<Eigen::Lower>().eval() * (m1.template part<Eigen::Lower>().solveTriangular(m2)), m2);
+  m3 = m1.template part<Eigen::Upper>();
+  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::Upper>().solveTriangular(m2)), largerEps));
+  m3 = m1.template part<Eigen::Lower>();
+  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::Lower>().solveTriangular(m2)), largerEps));
 
   VERIFY((m1.template part<Eigen::Upper>() * m2.template part<Eigen::Upper>()).isUpper());
 
@@ -102,6 +122,6 @@ void test_triangular()
     CALL_SUBTEST( triangular(Matrix3d()) );
     CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
-    CALL_SUBTEST( triangular(MatrixXf(85,85)) );
+    CALL_SUBTEST( triangular(MatrixXd(17,17)) );
   }
 }
