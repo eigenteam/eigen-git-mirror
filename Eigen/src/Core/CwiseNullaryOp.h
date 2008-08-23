@@ -91,7 +91,10 @@ class CwiseNullaryOp : ei_no_assignment_operator,
 
     const Scalar coeff(int index) const
     {
-      return m_functor(index);
+      if(RowsAtCompileTime == 1)
+        return m_functor(0, index);
+      else
+        return m_functor(index, 0);
     }
 
     template<int LoadMode>
