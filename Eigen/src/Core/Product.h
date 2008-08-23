@@ -148,8 +148,7 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
 
     EvalToRowMajor = RhsRowMajor && (ProductMode==(int)CacheFriendlyProduct ? LhsRowMajor : (!CanVectorizeLhs)),
 
-    RemovedBits = ~((EvalToRowMajor ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
+    RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
           | EvalBeforeAssigningBit
@@ -709,26 +708,15 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   return derived();
 }
 
-template<typename T> class ei_product_eval_to_column_major
+template<typename T> struct ei_product_eval_to_column_major
 {
-    typedef typename ei_traits<T>::Scalar _Scalar;
-    enum {
-          _Rows = ei_traits<T>::RowsAtCompileTime,
-          _Cols = ei_traits<T>::ColsAtCompileTime,
-          _MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
-          _MaxCols = ei_traits<T>::MaxColsAtCompileTime,
-          _Flags = ei_traits<T>::Flags
-    };
-
-  public:
-    typedef Matrix<_Scalar,
-                  _Rows, _Cols, _MaxRows, _MaxCols,
-                  ei_corrected_matrix_flags<
-                      _Scalar,
-                      _Rows, _Cols, _MaxRows, _MaxCols,
-                      _Flags
-                  >::ret & ~RowMajorBit
-            > type;
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                ColMajor,
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
 };
 
 template<typename T> struct ei_product_copy_rhs

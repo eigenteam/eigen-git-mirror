@@ -72,7 +72,8 @@ template<typename MatrixType> class LU
     };
 
 	typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                   MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelReturnType;
+                 MatrixType::Flags&RowMajorBit,
+                 MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelReturnType;
 
     /** Constructor.
       *
@@ -151,6 +152,7 @@ template<typename MatrixType> class LU
       */
     void computeKernel(Matrix<typename MatrixType::Scalar,
                               MatrixType::ColsAtCompileTime, Dynamic,
+                              MatrixType::Flags&RowMajorBit,
                               MatrixType::MaxColsAtCompileTime,
                               LU<MatrixType>::MaxSmallDimAtCompileTime
                              > *result) const;
@@ -372,6 +374,7 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 template<typename MatrixType>
 void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
                                           MatrixType::ColsAtCompileTime, Dynamic,
+                                          MatrixType::Flags&RowMajorBit,
                                           MatrixType::MaxColsAtCompileTime,
                                           LU<MatrixType>::MaxSmallDimAtCompileTime
                                    > *result) const
@@ -396,7 +399,8 @@ void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
     * independent vectors in Ker U.
     */
 
-  Matrix<Scalar, Dynamic, Dynamic, MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime>
+  Matrix<Scalar, Dynamic, Dynamic, MatrixType::Flags&RowMajorBit,
+         MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime>
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
   m_lu.corner(TopLeft, m_rank, m_rank)
@@ -414,8 +418,9 @@ const typename LU<MatrixType>::KernelReturnType
 LU<MatrixType>::kernel() const
 {
   Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                    MatrixType::MaxColsAtCompileTime,
-                    LU<MatrixType>::MaxSmallDimAtCompileTime> result(m_lu.cols(), dimensionOfKernel());
+         MatrixType::Flags&RowMajorBit,
+         MatrixType::MaxColsAtCompileTime,
+         LU<MatrixType>::MaxSmallDimAtCompileTime> result(m_lu.cols(), dimensionOfKernel());
   computeKernel(&result);
   return result;
 }
@@ -446,6 +451,7 @@ bool LU<MatrixType>::solve(
 
   // Step 2
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
+         MatrixType::Flags&RowMajorBit,
          MatrixType::MaxRowsAtCompileTime,
          MatrixType::MaxRowsAtCompileTime> l(rows, rows);
   l.setZero();
@@ -464,6 +470,7 @@ bool LU<MatrixType>::solve(
           return false;
   }
   Matrix<Scalar, Dynamic, OtherDerived::ColsAtCompileTime,
+         MatrixType::Flags&RowMajorBit,
          MatrixType::MaxRowsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
     d(c.corner(TopLeft, m_rank, c.cols()));
   m_lu.corner(TopLeft, m_rank, m_rank)

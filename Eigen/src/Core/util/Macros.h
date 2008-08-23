@@ -37,8 +37,6 @@
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
 
-#define EIGEN_DEFAULT_MATRIX_FLAGS 0
-
 /** Define a hint size when dealing with large matrices and L2 cache friendlyness
   * More precisely, its square value represents the amount of bytes which can be assumed to stay in L2 cache.
   */
@@ -49,7 +47,18 @@
 #define USING_PART_OF_NAMESPACE_EIGEN \
 EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix; \
-using Eigen::MatrixBase;
+using Eigen::MatrixBase; \
+using Eigen::ei_random; \
+using Eigen::ei_real; \
+using Eigen::ei_imag; \
+using Eigen::ei_conj; \
+using Eigen::ei_abs; \
+using Eigen::ei_abs2; \
+using Eigen::ei_sqrt; \
+using Eigen::ei_exp; \
+using Eigen::ei_log; \
+using Eigen::ei_sin; \
+using Eigen::ei_cos;
 
 #ifdef NDEBUG
 # ifndef EIGEN_NO_DEBUG

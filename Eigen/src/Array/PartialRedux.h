@@ -58,9 +58,7 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
-    Flags = ((int(RowsAtCompileTime) == Dynamic || int(ColsAtCompileTime) == Dynamic)
-          ? (unsigned int)_MatrixTypeNested::Flags
-          : (unsigned int)_MatrixTypeNested::Flags & ~LargeBit) & HereditaryBits,
+    Flags = (unsigned int)_MatrixTypeNested::Flags & HereditaryBits,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime
   };
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;

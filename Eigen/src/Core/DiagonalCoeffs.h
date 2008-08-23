@@ -54,10 +54,7 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
                             : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
                                              MatrixType::MaxColsAtCompileTime),
     MaxColsAtCompileTime = 1,
-    Flags = (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic
-            ? (unsigned int)_MatrixTypeNested::Flags
-            : (unsigned int)_MatrixTypeNested::Flags &~ LargeBit)
-          & (HereditaryBits | LinearAccessBit),
+    Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

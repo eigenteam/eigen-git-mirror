@@ -108,8 +108,8 @@ template<typename MatrixType, int PacketAccess> class Map
   * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
   * Matrix::map(const Scalar *)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-inline Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+inline Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
   *this = Map<Matrix>(data);

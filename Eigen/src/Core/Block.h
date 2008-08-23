@@ -72,18 +72,13 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
       : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
       : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols),
-    MaskLargeBit = ((RowsAtCompileTime != Dynamic && MatrixType::RowsAtCompileTime == Dynamic)
-                  || (ColsAtCompileTime != Dynamic && MatrixType::ColsAtCompileTime == Dynamic))
-                   ? ~LargeBit
-                   : ~(unsigned int)0,
     RowMajor = int(MatrixType::Flags)&RowMajorBit,
     InnerSize = RowMajor ? ColsAtCompileTime : RowsAtCompileTime,
     InnerMaxSize = RowMajor ? MaxColsAtCompileTime : MaxRowsAtCompileTime,
     MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (MatrixType::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit) & MaskLargeBit)
-          | FlagsLinearAccessBit,
+    Flags = (MatrixType::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
     CoeffReadCost = MatrixType::CoeffReadCost,
     PacketAccess = _PacketAccess
   };

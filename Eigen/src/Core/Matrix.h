@@ -35,6 +35,7 @@
   *              specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
   * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to
   *              specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
+  * \param _StorageOrder can be either RowMajor or ColMajor. The default is ColMajor.
   * \param _MaxRows the maximum number of rows at compile-time. By default this is equal to \a _Rows.
   *              The most common exception is when you don't know the exact number of rows, but know that
   *              it is smaller than some given value. Then you can set \a _MaxRows to that value, and set
@@ -43,7 +44,6 @@
   *              The most common exception is when you don't know the exact number of cols, but know that
   *              it is smaller than some given value. Then you can set \a _MaxCols to that value, and set
   *              _Cols to \a Dynamic.
-  * \param _Flags allows to control certain features such as storage order. See the \ref flags "list of flags".
   *
   * This single class template covers all kinds of matrix and vectors that Eigen can handle.
   * All matrix and vector types are just typedefs to specializations of this class template.
@@ -80,8 +80,8 @@
   *
   * Note that most of the API is in the base class MatrixBase.
   */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -89,18 +89,14 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = ei_corrected_matrix_flags<
-                _Scalar,
-                _Rows, _Cols, _MaxRows, _MaxCols,
-                _Flags
-            >::ret,
+    Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::ret,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = RandomAccessPattern
   };
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags> >
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
@@ -413,17 +409,6 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_TYPEDEFS
 
-#define EIGEN_MAKE_TYPEDEFS_LARGE(Type, TypeSuffix) \
-typedef Matrix<Type, Dynamic, Dynamic, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit> MatrixXL##TypeSuffix; \
-typedef Matrix<Type, Dynamic, 1, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit>       VectorXL##TypeSuffix; \
-typedef Matrix<Type, 1, Dynamic, EIGEN_DEFAULT_MATRIX_FLAGS | LargeBit>       RowVectorXL##TypeSuffix;
-
-EIGEN_MAKE_TYPEDEFS_LARGE(int,                  i)
-EIGEN_MAKE_TYPEDEFS_LARGE(float,                f)
-EIGEN_MAKE_TYPEDEFS_LARGE(double,               d)
-EIGEN_MAKE_TYPEDEFS_LARGE(std::complex<float>,  cf)
-EIGEN_MAKE_TYPEDEFS_LARGE(std::complex<double>, cd)
-
 #undef EIGEN_MAKE_TYPEDEFS_LARGE
 
 #define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
@@ -436,7 +421,6 @@ EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 2) \
 EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 3) \
 EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 4) \
 EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, X) \
-EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, XL)
 
 #define EIGEN_USING_MATRIX_TYPEDEFS \
 EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(i) \

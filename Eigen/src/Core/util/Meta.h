@@ -154,29 +154,25 @@ template<typename T> struct ei_unpacket_traits
 };
 
 
-template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags>
-class ei_corrected_matrix_flags
+template<typename Scalar, int Rows, int Cols, int StorageOrder, int MaxRows, int MaxCols>
+class ei_compute_matrix_flags
 {
-    enum { row_major_bit = (Rows != 1 && Cols != 1)  // if this is not a vector,
-                                                     // then the storage order really matters,
-                                                     // so let us strictly honor the user's choice.
-                         ? SuggestedFlags&RowMajorBit
-                         : Cols > 1 ? RowMajorBit : 0,
-           inner_max_size = row_major_bit ? MaxCols : MaxRows,
-           is_big = inner_max_size == Dynamic,
-           linear_size = Cols * Rows,
-           packet_access_bit
-            = ei_packet_traits<Scalar>::size > 1
-              && (is_big || linear_size%ei_packet_traits<Scalar>::size==0)
-              ? PacketAccessBit : 0,
-           aligned_bit = packet_access_bit
-                         && (is_big || linear_size%ei_packet_traits<Scalar>::size==0) ? AlignedBit : 0
+    enum {
+      row_major_bit = (Rows != 1 && Cols != 1)  // if this is not a vector,
+                                                // then the storage order really matters,
+                                                // so let us strictly honor the user's choice.
+                    ? StorageOrder
+                    : Cols > 1 ? RowMajorBit : 0,
+      inner_max_size = row_major_bit ? MaxCols : MaxRows,
+      is_big = inner_max_size == Dynamic,
+      is_packet_size_multiple = (Cols * Rows)%ei_packet_traits<Scalar>::size==0,
+      packet_access_bit = ei_packet_traits<Scalar>::size > 1
+                          && (is_big || is_packet_size_multiple) ? PacketAccessBit : 0,
+      aligned_bit = packet_access_bit && (is_big || is_packet_size_multiple) ? AlignedBit : 0
     };
 
   public:
-    enum { ret = (SuggestedFlags & ~(EvalBeforeNestingBit | EvalBeforeAssigningBit | PacketAccessBit | RowMajorBit))
-                                    | LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit
-    };
+    enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
 };
 
 template<int _Rows, int _Cols> struct ei_size_at_compile_time
@@ -186,25 +182,15 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
 
 template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
 
-template<typename T> class ei_eval<T,Dense>
+template<typename T> struct ei_eval<T,Dense>
 {
-    typedef typename ei_traits<T>::Scalar _Scalar;
-    enum {_Rows = ei_traits<T>::RowsAtCompileTime,
-          _Cols = ei_traits<T>::ColsAtCompileTime,
-          _MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
-          _MaxCols = ei_traits<T>::MaxColsAtCompileTime,
-          _Flags = ei_traits<T>::Flags
-    };
-
-  public:
-    typedef Matrix<_Scalar,
-                  _Rows, _Cols, _MaxRows, _MaxCols,
-                  ei_corrected_matrix_flags<
-                      _Scalar,
-                      _Rows, _Cols, _MaxRows, _MaxCols,
-                      _Flags
-                  >::ret
-            > type;
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor,
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
 };
 
 template<typename T> struct ei_unref { typedef T type; };
@@ -226,7 +212,7 @@ template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> str
 {
   enum {
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
-	CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
+    CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
   };
   typedef typename ei_meta_if<
     ei_must_nest_by_value<T>::ret,
@@ -250,9 +236,9 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   * TODO: could be a good idea to define a big ReturnType struct ??
   */
 template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
-	typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
-                                  (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
-	typedef Block<ExpressionType, RowsOrSize, Cols> Type;
+  typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
+                                (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
+  typedef Block<ExpressionType, RowsOrSize, Cols> Type;
 };
 
 #endif // EIGEN_META_H

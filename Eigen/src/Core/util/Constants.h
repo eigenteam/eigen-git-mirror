@@ -154,18 +154,10 @@ const unsigned int LowerTriangularBit = 0x800;
   * means the expression includes sparse matrices and the sparse path has to be taken. */
 const unsigned int SparseBit = 0x1000;
 
-/** \ingroup flags
-  *
-  * currently unused. Means the matrix probably has a very big size.
-  * Could eventually be used as a hint to determine which algorithms
-  * to use. */
-const unsigned int LargeBit = 0x2000;
-
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit
-                                  | LargeBit
                                   | SparseBit;
 
 // Possible values for the Mode parameter of part() and of extract()

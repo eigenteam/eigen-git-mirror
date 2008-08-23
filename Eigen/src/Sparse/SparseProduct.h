@@ -77,8 +77,7 @@ struct ei_traits<Product<LhsNested, RhsNested, SparseProduct> >
 
     EvalToRowMajor = (RhsFlags & LhsFlags & RowMajorBit),
 
-    RemovedBits = ~((EvalToRowMajor ? 0 : RowMajorBit)
-                | ((RowsAtCompileTime == Dynamic || ColsAtCompileTime == Dynamic) ? 0 : LargeBit)),
+    RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
     Flags = (int(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
           | EvalBeforeAssigningBit

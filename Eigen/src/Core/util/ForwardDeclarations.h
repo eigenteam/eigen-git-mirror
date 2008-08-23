@@ -27,17 +27,9 @@
 
 template<typename T> struct ei_traits;
 template<typename T> struct NumTraits;
-template<typename Scalar, int Rows, int Cols, int MaxRows, int MaxCols, unsigned int SuggestedFlags> class ei_corrected_matrix_flags;
 
-template<typename _Scalar, int _Rows, int _Cols,
-         int _MaxRows = _Rows, int _MaxCols = _Cols,
-         unsigned int _Flags = ei_corrected_matrix_flags<
-                                   _Scalar,
-                                   _Rows, _Cols, _MaxRows, _MaxCols,
-                                   EIGEN_DEFAULT_MATRIX_FLAGS
-                               >::ret
->
-class Matrix;
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder = ColMajor,
+         int _MaxRows = _Rows, int _MaxCols = _Cols> class Matrix;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType> class NestByValue;

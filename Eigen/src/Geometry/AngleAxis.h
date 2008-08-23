@@ -190,8 +190,8 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
   *
   * \sa Matrix(const Quaternion&)
   */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::Matrix(const AngleAxis<Scalar>& aa)
+template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::Matrix(const AngleAxis<Scalar>& aa)
 {
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
   *this = aa.toRotationMatrix();
@@ -201,9 +201,9 @@ Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::Matrix(const AngleAxi
   *
   * Set a 3x3 rotation matrix from the angle-axis \a aa
   */
-template<typename _Scalar, int _Rows, int _Cols, int _MaxRows, int _MaxCols, unsigned int _Flags>
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>&
-Matrix<_Scalar, _Rows, _Cols, _MaxRows, _MaxCols, _Flags>::operator=(const AngleAxis<Scalar>& aa)
+template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
+Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::operator=(const AngleAxis<Scalar>& aa)
 {
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
   return *this = aa.toRotationMatrix();

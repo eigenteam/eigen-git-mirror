@@ -31,10 +31,6 @@ void test_product_large()
     CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
     CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
     CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
-    #ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,RowMajorBit>(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    #else
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,Dynamic,Dynamic,0>(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    #endif
+    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
   }
 }
