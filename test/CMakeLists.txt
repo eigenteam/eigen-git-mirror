@@ -118,7 +118,6 @@ EI_ADD_TEST(eigensolver)
 EI_ADD_TEST(geometry)
 EI_ADD_TEST(regression)
 EI_ADD_TEST(svd)
-EI_ADD_TEST(ioformat)
 EI_ADD_TEST(sparse)
 
 ENDIF(BUILD_TESTS)

@@ -27,9 +27,29 @@
 
 enum { Raw, AlignCols };
 
-struct IoFormat
+/** \class IOFormat
+  *
+  * \brief Stores a set of parameters controlling the way matrices are printed
+  *
+  * List of available parameters:
+  *  - \b precision number of digits for floating point values
+  *  - \b flags can be either Raw (default) or AlignCols which aligns all the columns
+  *  - \b coeffSeparator string printed between two coefficients of the same row
+  *  - \b rowSeparator string printed between two rows
+  *  - \b rowPrefix string printed at the begining of each row
+  *  - \b rowSuffix string printed at the end of each row
+  *  - \b matPrefix string printed at the begining of the matrix
+  *  - \b matSuffix string printed at the end of the matrix
+  *
+  * Example: \include IOFormat.cpp
+  * Output: \verbinclude IOFormat.out
+  *
+  * \sa MatrixBase::format(), class WithFormat
+  */
+struct IOFormat
 {
-  IoFormat(int _precision=4, int _flags=Raw,
+  /** Default contructor, see class IOFormat for the meaning of the parameters */
+  IOFormat(int _precision=4, int _flags=Raw,
     const std::string& _coeffSeparator = " ",
     const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
     const std::string& _matPrefix="", const std::string& _matSuffix="")
@@ -51,12 +71,26 @@ struct IoFormat
   int flags;
 };
 
+/** \class WithFormat
+  *
+  * \brief Pseudo expression providing matrix output with given format
+  *
+  * \param ExpressionType the type of the object on which IO stream operations are performed
+  *
+  * This class represents an expression with stream operators controlled by a given IOFormat.
+  * It is the return type of MatrixBase::format()
+  * and most of the time this is the only way it is used.
+  * 
+  * See class IOFormat for some examples.
+  *
+  * \sa MatrixBase::format(), class IOFormat
+  */
 template<typename ExpressionType>
 class WithFormat
 {
   public:
 
-    WithFormat(const ExpressionType& matrix, const IoFormat& format)
+    WithFormat(const ExpressionType& matrix, const IOFormat& format)
       : m_matrix(matrix), m_format(format)
     {}
 
@@ -67,19 +101,28 @@ class WithFormat
 
   protected:
     const typename ExpressionType::Nested m_matrix;
-    IoFormat m_format;
+    IOFormat m_format;
 };
 
+/** \returns a WithFormat proxy object allowing to print a matrix the with given
+  * format \a fmt.
+  *
+  * See class IOFormat for some examples.
+  *
+  * \sa class IOFormat, class WithFormat
+  */
 template<typename Derived>
 inline const WithFormat<Derived>
-MatrixBase<Derived>::format(const IoFormat& fmt) const
+MatrixBase<Derived>::format(const IOFormat& fmt) const
 {
   return WithFormat<Derived>(derived(), fmt);
 }
 
+/** \internal
+  * print the matrix \a _m to the output stream \a s using the output format \a fmt */
 template<typename Derived>
 std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
-                               const IoFormat& fmt = IoFormat())
+                               const IOFormat& fmt = IOFormat())
 {
   const typename Derived::Nested m = _m;
   int width = 0;
@@ -121,6 +164,9 @@ std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
 /** \relates MatrixBase
   *
   * Outputs the matrix, laid out as an array as usual, to the given stream.
+  * You can control the way the matrix is printed using MatrixBase::format().
+  *
+  * \sa MatrixBase::format()
   */
 template<typename Derived>
 std::ostream & operator <<

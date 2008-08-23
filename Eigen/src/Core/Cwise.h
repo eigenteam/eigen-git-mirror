@@ -68,7 +68,7 @@ template<typename ExpressionType> class Cwise
     inline const ExpressionType& _expression() const { return m_matrix; }
 
     template<typename OtherDerived>
-	const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
+    const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>

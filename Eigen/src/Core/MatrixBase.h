@@ -525,7 +525,7 @@ template<typename Derived> class MatrixBase
     const Cwise<Derived> cwise() const;
     Cwise<Derived> cwise();
 
-    inline const WithFormat<Derived> format(const IoFormat& fmt) const;
+    inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 
 /////////// Array module ///////////
 

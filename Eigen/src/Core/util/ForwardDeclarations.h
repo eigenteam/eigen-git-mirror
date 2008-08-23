@@ -82,7 +82,7 @@ template<typename Scalar> struct ei_scalar_max_op;
 template<typename Scalar> struct ei_scalar_random_op;
 template<typename Scalar> struct ei_scalar_add_op;
 
-struct IoFormat;
+struct IOFormat;
 
 template<typename Scalar>
 void ei_cache_friendly_product(
