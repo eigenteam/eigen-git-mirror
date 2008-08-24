@@ -54,7 +54,7 @@ template<typename T> struct ei_unpointer<T*const> { typedef T type; };
 
 template<typename T> struct ei_unconst { typedef T type; };
 template<typename T> struct ei_unconst<const T> { typedef T type; };
-template<typename T> struct ei_unconst<const T&> { typedef T& type; };
+// template<typename T> struct ei_unconst<const T&> { typedef T& type; };
 
 template<typename T> struct ei_cleantype { typedef T type; };
 template<typename T> struct ei_cleantype<const T>   { typedef typename ei_cleantype<T>::type type; };

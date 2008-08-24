@@ -86,23 +86,24 @@ template<typename Scalar> void packetmath()
     VERIFY(areApprox(data1, data2+offset, PacketSize) && "ei_pstoreu");
   }
 
-  if (!ei_is_same_type<Scalar,double>::ret)
+  for (int offset=0; offset<PacketSize; ++offset)
   {
-    for (int offset=0; offset<PacketSize; ++offset)
-    {
-      packets[0] = ei_pload(data1);
-      packets[1] = ei_pload(data1+PacketSize);
-           if (offset==0) ei_palign<0>(packets[0], packets[1]);
-      else if (offset==1) ei_palign<1>(packets[0], packets[1]);
-      else if (offset==2) ei_palign<2>(packets[0], packets[1]);
-      else if (offset==3) ei_palign<3>(packets[0], packets[1]);
-      ei_pstore(data2, packets[0]);
+    packets[0] = ei_pload(data1);
+    packets[1] = ei_pload(data1+PacketSize);
+         if (offset==0) ei_palign<0>(packets[0], packets[1]);
+    else if (offset==1) ei_palign<1>(packets[0], packets[1]);
+    else if (offset==2) ei_palign<2>(packets[0], packets[1]);
+    else if (offset==3) ei_palign<3>(packets[0], packets[1]);
+    ei_pstore(data2, packets[0]);
 
-      for (int i=0; i<PacketSize; ++i)
-        ref[i] = data1[i+offset];
+    for (int i=0; i<PacketSize; ++i)
+      ref[i] = data1[i+offset];
 
-      VERIFY(areApprox(ref, data2, PacketSize) && "ei_palign");
-    }
+    typedef Matrix<Scalar, PacketSize, 1> Vector;
+    std::cout << Vector(data1).transpose() << " | " << Vector(data1+PacketSize).transpose() << "\n";
+    std::cout << " " << offset << " => " << Vector(ref).transpose() << " == " << Vector(data2).transpose() << "\n";
+
+    VERIFY(areApprox(ref, data2, PacketSize) && "ei_palign");
   }
 
   CHECK_CWISE(REF_ADD,  ei_padd);
@@ -143,9 +144,9 @@ template<typename Scalar> void packetmath()
 void test_packetmath()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( packetmath<float>() );
-    CALL_SUBTEST( packetmath<double>() );
-    CALL_SUBTEST( packetmath<int>() );
+//     CALL_SUBTEST( packetmath<float>() );
+//     CALL_SUBTEST( packetmath<double>() );
+//     CALL_SUBTEST( packetmath<int>() );
     packetmath<std::complex<float> >();
   }
 }
