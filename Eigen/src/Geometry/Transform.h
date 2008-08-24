@@ -388,7 +388,7 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale)
 {
   linear() = ToRotationMatrix<Scalar,Dim,OrientationType>::convert(orientation);
-  for(int i = 0; i < Dim; i++) linear().col(i) *= scale.coeff(i);
+  linear() *= scale.asDiagonal();
   translation() = position;
   m_matrix(Dim,Dim) = 1.;
   m_matrix.template block<1,Dim>(Dim,0).setZero();
