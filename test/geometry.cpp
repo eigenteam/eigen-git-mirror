@@ -65,8 +65,15 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
 
 
-  q1 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v0.normalized());
-  q2 = AngleAxis(ei_random<Scalar>(-M_PI, M_PI), v1.normalized());
+  VERIFY_IS_APPROX(v0, AngleAxis(a, v0.normalized()) * v0);
+  VERIFY_IS_APPROX(-v0, AngleAxis(M_PI, v0.unitOrthogonal()) * v0);
+  VERIFY_IS_APPROX(cos(a)*v0.norm2(), v0.dot(AngleAxis(a, v0.unitOrthogonal()) * v0));
+  m = AngleAxis(a, v0.normalized()).toRotationMatrix().adjoint();
+  VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxis(a, v0.normalized()));
+  VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxis(a, v0.normalized()) * m);
+
+  q1 = AngleAxis(a, v0.normalized());
+  q2 = AngleAxis(a, v1.normalized());
 
   // rotation matrix conversion
   VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);

@@ -95,17 +95,17 @@ public:
   { return a * QuaternionType(b); }
 
   /** Concatenates two rotations */
-  inline typename ProductReturnType<Matrix3,Matrix3>::Type
+  inline Matrix3
   operator* (const Matrix3& other) const
   { return toRotationMatrix() * other; }
 
   /** Concatenates two rotations */
-  inline friend typename ProductReturnType<Matrix3,Matrix3>::Type
+  inline friend Matrix3
   operator* (const Matrix3& a, const AngleAxis& b)
   { return a * b.toRotationMatrix(); }
 
   /** Applies rotation to vector */
-  inline typename ProductReturnType<Matrix3,Vector3>::Type
+  inline Vector3
   operator* (const Vector3& other) const
   { return toRotationMatrix() * other; }
 
