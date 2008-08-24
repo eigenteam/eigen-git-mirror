@@ -569,8 +569,6 @@ template<typename Derived> class MatrixBase
     EvalType cross(const MatrixBase<OtherDerived>& other) const;
     EvalType someOrthogonal(void) const;
     
-    /**
-     */
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif

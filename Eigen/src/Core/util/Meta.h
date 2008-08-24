@@ -26,40 +26,15 @@
 #ifndef EIGEN_META_H
 #define EIGEN_META_H
 
-// just a workaround because GCC seems to not really like empty structs
-#ifdef __GNUG__
-  struct ei_empty_struct{char _ei_dummy_;};
-  #define EIGEN_EMPTY_STRUCT : Eigen::ei_empty_struct
-#else
-  #define EIGEN_EMPTY_STRUCT
-#endif
+/** \internal
+  * \file Meta.h
+  * This file contains generic metaprogramming classes which are not specifically related to Eigen.
+  * \note In case you wonder, yes we're aware that Boost already provides all these features,
+  * we however don't want to add a dependency to Boost.
+  */
 
-//classes inheriting ei_no_assignment_operator don't generate a default operator=.
-class ei_no_assignment_operator
-{
-  private:
-    ei_no_assignment_operator& operator=(const ei_no_assignment_operator&);
-};
-
-template<int Value> class ei_int_if_dynamic EIGEN_EMPTY_STRUCT
-{
-  public:
-    ei_int_if_dynamic() {}
-    explicit ei_int_if_dynamic(int) {}
-    static int value() { return Value; }
-    void setValue(int) {}
-};
-
-template<> class ei_int_if_dynamic<Dynamic>
-{
-    int m_value;
-    ei_int_if_dynamic() {}
-  public:
-    explicit ei_int_if_dynamic(int value) : m_value(value) {}
-    int value() const { return m_value; }
-    void setValue(int value) { m_value = value; }
-};
-
+struct ei_meta_true {  enum { ret = 1 }; };
+struct ei_meta_false { enum { ret = 0 }; };
 
 template<bool Condition, typename Then, typename Else>
 struct ei_meta_if { typedef Then ret; };
@@ -70,8 +45,23 @@ struct ei_meta_if <false, Then, Else> { typedef Else ret; };
 template<typename T, typename U> struct ei_is_same_type { enum { ret = 0 }; };
 template<typename T> struct ei_is_same_type<T,T> { enum { ret = 1 }; };
 
-struct ei_meta_true {};
-struct ei_meta_false {};
+template<typename T> struct ei_unref { typedef T type; };
+template<typename T> struct ei_unref<T&> { typedef T type; };
+
+template<typename T> struct ei_unpointer { typedef T type; };
+template<typename T> struct ei_unpointer<T*> { typedef T type; };
+template<typename T> struct ei_unpointer<T*const> { typedef T type; };
+
+template<typename T> struct ei_unconst { typedef T type; };
+template<typename T> struct ei_unconst<const T> { typedef T type; };
+template<typename T> struct ei_unconst<const T&> { typedef T& type; };
+
+template<typename T> struct ei_cleantype { typedef T type; };
+template<typename T> struct ei_cleantype<const T>   { typedef typename ei_cleantype<T>::type type; };
+template<typename T> struct ei_cleantype<const T&>  { typedef typename ei_cleantype<T>::type type; };
+template<typename T> struct ei_cleantype<T&>        { typedef typename ei_cleantype<T>::type type; };
+template<typename T> struct ei_cleantype<const T*>  { typedef typename ei_cleantype<T>::type type; };
+template<typename T> struct ei_cleantype<T*>        { typedef typename ei_cleantype<T>::type type; };
 
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
@@ -132,113 +122,26 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
     typedef typename ei_binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
 
-template<typename T> struct ei_functor_traits
-{
-  enum
-  {
-    Cost = 10,
-    PacketAccess = false
-  };
-};
-
-template<typename T> struct ei_packet_traits
-{
-  typedef T type;
-  enum {size=1};
-};
-
-template<typename T> struct ei_unpacket_traits
-{
-  typedef T type;
-  enum {size=1};
-};
-
-
-template<typename Scalar, int Rows, int Cols, int StorageOrder, int MaxRows, int MaxCols>
-class ei_compute_matrix_flags
+/** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.
+  * Usage example: \code ei_meta_sqrt<1023>::ret \endcode
+  */
+template<int Y,
+         int InfX = 0,
+         int SupX = (Y==1 ? 1 : Y/2),
+         bool Done = (((SupX-InfX)<=1) || ( (SupX*SupX <= Y) && ((SupX+1)*(SupX+1) > Y))) >
+class ei_meta_sqrt
 {
     enum {
-      row_major_bit = (Rows != 1 && Cols != 1)  // if this is not a vector,
-                                                // then the storage order really matters,
-                                                // so let us strictly honor the user's choice.
-                    ? StorageOrder
-                    : Cols > 1 ? RowMajorBit : 0,
-      inner_max_size = row_major_bit ? MaxCols : MaxRows,
-      is_big = inner_max_size == Dynamic,
-      is_packet_size_multiple = (Cols * Rows)%ei_packet_traits<Scalar>::size==0,
-      packet_access_bit = ei_packet_traits<Scalar>::size > 1
-                          && (is_big || is_packet_size_multiple) ? PacketAccessBit : 0,
-      aligned_bit = packet_access_bit && (is_big || is_packet_size_multiple) ? AlignedBit : 0
+      MidX = (InfX+SupX)/2,
+      TakeInf = MidX*MidX > Y,
+      NewInf = TakeInf ? InfX : MidX,
+      NewSup = TakeInf ? MidX : SupX
     };
-
   public:
-    enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
+    enum { ret = ei_meta_sqrt<Y,NewInf,NewSup>::ret };
 };
 
-template<int _Rows, int _Cols> struct ei_size_at_compile_time
-{
-  enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
-};
-
-template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
-
-template<typename T> struct ei_eval<T,Dense>
-{
-  typedef Matrix<typename ei_traits<T>::Scalar,
-                ei_traits<T>::RowsAtCompileTime,
-                ei_traits<T>::ColsAtCompileTime,
-                ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor,
-                ei_traits<T>::MaxRowsAtCompileTime,
-                ei_traits<T>::MaxColsAtCompileTime
-          > type;
-};
-
-template<typename T> struct ei_unref { typedef T type; };
-template<typename T> struct ei_unref<T&> { typedef T type; };
-
-template<typename T> struct ei_unconst { typedef T type; };
-template<typename T> struct ei_unconst<const T> { typedef T type; };
-
-template<typename T> struct ei_cleantype { typedef T type; };
-template<typename T> struct ei_cleantype<const T> { typedef T type; };
-template<typename T> struct ei_cleantype<const T&> { typedef T type; };
-template<typename T> struct ei_cleantype<T&> { typedef T type; };
-
-template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
-template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
-
-
-template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> struct ei_nested
-{
-  enum {
-    CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
-    CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
-  };
-  typedef typename ei_meta_if<
-    ei_must_nest_by_value<T>::ret,
-    T,
-    typename ei_meta_if<
-      (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
-      || ( int(CostEval) <= int(CostNoEval) ),
-      EvalType,
-      const T&
-    >::ret
-  >::ret type;
-};
-
-template<unsigned int Flags> struct ei_are_flags_consistent
-{
-  enum { ret = !( (Flags&UnitDiagBit && Flags&ZeroDiagBit) )
-  };
-};
-
-/** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size
-  * TODO: could be a good idea to define a big ReturnType struct ??
-  */
-template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
-  typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
-                                (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
-  typedef Block<ExpressionType, RowsOrSize, Cols> Type;
-};
+template<int Y, int InfX, int SupX>
+class ei_meta_sqrt<Y, InfX, SupX, true> { public:  enum { ret = (SupX*SupX <= Y) ? SupX : InfX }; };
 
 #endif // EIGEN_META_H

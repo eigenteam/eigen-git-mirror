@@ -25,6 +25,11 @@
 #ifndef EIGEN_CACHE_FRIENDLY_PRODUCT_H
 #define EIGEN_CACHE_FRIENDLY_PRODUCT_H
 
+template <int L2MemorySize,typename Scalar>
+struct ei_L2_block_traits {
+  enum {width = ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
+};
+
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
 
 template<typename Scalar>
@@ -76,7 +81,7 @@ static void ei_cache_friendly_product(
     MaxBlockRows_ClampingMask = 0xFFFFF8,
     #endif
     // maximal size of the blocks fitted in L2 cache
-    MaxL2BlockSize = EIGEN_TUNE_FOR_L2_CACHE_SIZE / sizeof(Scalar)
+    MaxL2BlockSize = ei_L2_block_traits<EIGEN_TUNE_FOR_L2_CACHE_SIZE,Scalar>::width
   };
 
   const bool resIsAligned = (PacketSize==1) || (((resStride%PacketSize) == 0) && (size_t(res)%16==0));

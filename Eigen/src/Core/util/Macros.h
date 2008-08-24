@@ -28,20 +28,15 @@
 
 #undef minor
 
-#ifdef EIGEN_DONT_USE_UNROLLED_LOOPS
-#define EIGEN_UNROLLING_LIMIT 0
-#endif
-
-/** Defines the maximal loop size to enable meta unrolling of loops */
+/** \internal  Defines the maximal loop size to enable meta unrolling of loops */
 #ifndef EIGEN_UNROLLING_LIMIT
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
 
-/** Define a hint size when dealing with large matrices and L2 cache friendlyness
-  * More precisely, its square value represents the amount of bytes which can be assumed to stay in L2 cache.
-  */
+/** \internal Define the maximal size in Bytes of L2 blocks.
+  * The current value is set to generate blocks of 256x256 for float */
 #ifndef EIGEN_TUNE_FOR_L2_CACHE_SIZE
-#define EIGEN_TUNE_FOR_L2_CACHE_SIZE 1024
+#define EIGEN_TUNE_FOR_L2_CACHE_SIZE (1024*256)
 #endif
 
 #define USING_PART_OF_NAMESPACE_EIGEN \

@@ -4,7 +4,25 @@ namespace Eigen {
 
 <h1>Quick start guide</h1>
 
-<h2>Simple example with fixed-size matrices and vectors</h2>
+\b Table \b of \b contents
+ - \ref SimpleExampleFixedSize
+ - \ref SimpleExampleDynamicSize
+ - \ref MatrixTypes
+ - \ref MatrixInitialization
+ - \ref BasicLinearAlgebra
+ - \ref Reductions
+ - \ref SubMatrix
+ - \ref MatrixTransformations
+ - \ref Geometry
+ - \ref Performance
+ - \ref AdvancedLinearAlgebra
+   - \ref LinearSolvers
+   - \ref LU
+   - \ref Cholesky
+   - \ref QR
+   - \ref EigenProblems
+
+\section SimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
 By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
 
@@ -16,7 +34,7 @@ output:
 \include Tutorial_simple_example_fixed_size.out
 </td></tr></table>
 
-<h2>Simple example with dynamic-size matrices and vectors</h2>
+\section SimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
 Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
@@ -28,7 +46,7 @@ output:
 \include Tutorial_simple_example_dynamic_size.out
 </td></tr></table>
 
-<h2>Matrix and vector types</h2>
+\section MatrixTypes Matrix and vector types
 
 In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
 
@@ -39,11 +57,11 @@ The template class Matrix takes a number of template parameters, but for now it 
 \li \c Scalar is the scalar type, i.e. the type of the coefficients. That is, if you want a vector of floats, choose \c float here.
 \li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time. 
 
-For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode.
+For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 
-What if the matrix has dynamic-size i.e. the number of rows or cols isn't known at compile-time? Then use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode.
+What if the matrix has dynamic-size i.e. the number of rows or cols isn't known at compile-time? Then use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
 
-<h2>Matrix and vector creation and initialization</h2>
+\section MatrixInitialization Matrix and vector creation and initialization
 
 To get a matrix with all coefficients equals to a given value you can use the Matrix::Constant() function, e.g.:
 <table><tr><td>
@@ -151,7 +169,7 @@ Here .finished() is used to get the actual matrix object once the comma initiali
 of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
 Eigen's comma initializer usually yields to very optimized code without any overhead.
 
-<h2>Basic Linear Algebra</h2>
+\section BasicLinearAlgebra Basic Linear Algebra
 
 In short all mathematically well defined operators can be used right away as in the following example:
 \code
@@ -249,7 +267,7 @@ mat3 = mat1.cwise().abs2(mat2);
 \endcode</td></tr>
 </table>
 
-<h2>Reductions</h2>
+\section Reductions Reductions
 
 Reductions can be done matrix-wise,
 \link MatrixBase::colwise() column-wise \endlink or
@@ -285,7 +303,7 @@ The all() and any() functions are especially useful in combinaison with coeff-wi
 
 
 
-<h2>Sub matrices</h2>
+\section SubMatrix Sub matrices
 
 Read-write access to a \link MatrixBase::col(int) column \endlink
 or a \link MatrixBase::row(int) row \endlink of a matrix:
@@ -336,24 +354,25 @@ Read-write access to sub-matrices:
 </table>
 
 
-<h2>Transformations</h2>
+\section MatrixTransformations Matrix transformations
 
 transpose, adjoint, etc...
 
 
-<h2>Geometry features</h2>
+\section Geometry Geometry features
+
+maybe a second tutorial for that
+
+\section Performance Notes on performances
 
 
-<h2>Notes on performances</h2>
+\section AdvancedLinearAlgebra Advanced Linear Algebra
 
-
-<h2>Advanced Linear Algebra</h2>
-
-<h3>Solving linear problems</h3>
-<h3>LU</h3>
-<h3>Cholesky</h3>
-<h3>QR</h3>
-<h3>Eigen value problems</h3>
+\subsection LinearSolvers Solving linear problems
+\subsection LU LU
+\subsection Cholesky Cholesky
+\subsection QR QR
+\subsection EigenProblems Eigen value problems
 
 */
 

@@ -1,0 +1,77 @@
+namespace Eigen {
+
+/** \page CustomizingEigen
+
+<h1>Customizing Eigen</h1>
+
+Eigen2 can be extended in several way, for instance, by defining global methods, \link ExtendingMatrixBase by adding custom methods to MatrixBase \endlink, etc.
+
+\section ExtendingMatrixBase Extending MatrixBase
+
+In this section we will see how to add custom methods to MatrixBase. Since all expressions and matrix types inherit MatrixBase, adding a method to MatrixBase make it immediately available to all expressions ! A typical use case is, for instance, to make Eigen compatible with another API.
+
+You certainly know that in C++ it is not possible to add methods to an extending class. So how that's possible ? Here the trick is to include in the declaration of MatrixBase a file defined by the preprocessor token \c EIGEN_MATRIXBASE_PLUGIN:
+\code
+class MatrixBase {
+  // ...
+  #ifdef EIGEN_MATRIXBASE_PLUGIN
+  #include EIGEN_MATRIXBASE_PLUGIN
+  #endif
+};
+\endcode
+Therefore to extend MatrixBase with you own methods you just have to create a file with your method declaration and define EIGEN_MATRIXBASE_PLUGIN before you include any Eigen's header file.
+
+Here is an example of such an extension file: \n
+\b MatrixBaseAddons.h
+\code
+inline Scalar at(uint i, uint j) const { return this->operator()(i,j); }
+inline Scalar& at(uint i, uint j) { return this->operator()(i,j); }
+inline Scalar at(uint i) const { return this->operator[](i); }
+inline Scalar& at(uint i) { return this->operator[](i); }
+
+inline RealScalar squaredLength() const { return norm2(); }
+inline RealScalar length() const { return norm(); }
+inline RealScalar invLength(void) const { return fast_inv_sqrt(norm2()); }
+
+template<typename OtherDerived>
+inline Scalar squaredDistanceTo(const MatrixBase<OtherDerived>& other) const
+{ return (derived() - other.derived()).norm2(); }
+
+template<typename OtherDerived>
+inline RealScalar distanceTo(const MatrixBase<OtherDerived>& other) const
+{ return ei_sqrt(derived().squaredDistanceTo(other)); }
+
+inline void scaleTo(RealScalar l) { RealScalar vl = norm(); if (vl>1e-9) derived() *= (l/vl); }
+
+inline Transpose<Derived> transposed() {return transpose();}
+inline const Transpose<Derived> transposed() const {return transpose();}
+
+inline uint minComponentId(void) const  { int i; minCoeff(&i); return i; }
+inline uint maxComponentId(void) const  { int i; maxCoeff(&i); return i; }
+
+template<typename OtherDerived>
+void makeFloor(const MatrixBase<OtherDerived>& other) { derived() = derived().cwise().min(other.derived()); }
+template<typename OtherDerived>
+void makeCeil(const MatrixBase<OtherDerived>& other) { derived() = derived().cwise().max(other.derived()); }
+
+const typename Cwise<Derived>::ScalarAddReturnType
+operator+(const Scalar& scalar) const { return cwise() + scalar }
+
+friend const typename Cwise<Derived>::ScalarAddReturnType
+operator+(const Scalar& scalar, const MatrixBase<Derived>& mat) { return mat + scalar; }
+\endcode
+
+Then one can the following declaration in the config.h or whatever prerequisites header file of his project:
+\code
+#define EIGEN_MATRIXBASE_PLUGIN "MatrixBaseAddons.h"
+\endcode
+
+\section PreprocessorDirectives Preprocessor directives
+
+ - \b EIGEN_DONT_VECTORIZE disables explicit vectorization when defined.
+ - \b EIGEN_UNROLLING_LIMIT defines the maximal instruction counts to enable meta unrolling of loops. Set it to zero to disable unrolling. The default is 100.
+ - \b EIGEN_TUNE_FOR_L2_CACHE_SIZE represents the maximal size in Bytes of L2 blocks. Since several blocks have to stay concurently in L2 cache, this value should correspond to at most 1/4 of the size of L2 cache.
+
+*/
+
+}
