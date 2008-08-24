@@ -104,6 +104,11 @@ public:
   operator* (const Matrix3& a, const AngleAxis& b)
   { return a * b.toRotationMatrix(); }
 
+  /** Applies rotation to vector */
+  inline typename ProductReturnType<Matrix3,Vector3>::Type
+  operator* (const Vector3& other) const
+  { return toRotationMatrix() * other; }
+
   /** \returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
   AngleAxis inverse() const
   { return AngleAxis(-m_angle, m_axis); }
