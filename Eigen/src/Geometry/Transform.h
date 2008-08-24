@@ -173,6 +173,9 @@ public:
   const MatrixType inverse() const
   { return m_matrix.inverse(); }
 
+  const Scalar* data() const { return m_matrix.data(); }
+  Scalar* data() { return m_matrix.data(); }
+
 protected:
 
 };
