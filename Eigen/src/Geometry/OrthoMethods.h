@@ -47,7 +47,7 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 }
 
 template<typename Derived, int Size = Derived::SizeAtCompileTime>
-struct ei_someOrthogonal_selector
+struct ei_unitOrthogonal_selector
 {
   typedef typename ei_eval<Derived>::type VectorType;
   typedef typename ei_traits<Derived>::Scalar Scalar;
@@ -66,7 +66,9 @@ struct ei_someOrthogonal_selector
     || (!ei_isMuchSmallerThan(src.y(), src.z())))
     {
       RealScalar invnm = Scalar(1)/src.template start<2>().norm();
-      perp.template start<3>() << -ei_conj(src.y())*invnm, ei_conj(src.x())*invnm, 0;
+      perp.coeffRef(0) = -ei_conj(src.y())*invnm;
+      perp.coeffRef(1) = ei_conj(src.x())*invnm;
+      perp.coeffRef(2) = 0;
     }
     /* if both x and y are close to zero, then the vector is close
      * to the z-axis, so it's far from colinear to the x-axis for instance.
@@ -75,10 +77,12 @@ struct ei_someOrthogonal_selector
     else
     {
       RealScalar invnm = Scalar(1)/src.template end<2>().norm();
-      perp.template start<3>() << 0, -ei_conj(src.z())*invnm, ei_conj(src.y())*invnm;
+      perp.coeffRef(0) = 0;
+      perp.coeffRef(1) = -ei_conj(src.z())*invnm;
+      perp.coeffRef(2) = ei_conj(src.y())*invnm;
     }
-    if (Derived::SizeAtCompileTime>3
-    || (Derived::SizeAtCompileTime==Dynamic && src.size()>3))
+    if( (Derived::SizeAtCompileTime!=Dynamic && Derived::SizeAtCompileTime>3)
+     || (Derived::SizeAtCompileTime==Dynamic && src.size()>3) )
       perp.end(src.size()-3).setZero();
 
     return perp;
@@ -86,26 +90,26 @@ struct ei_someOrthogonal_selector
 };
 
 template<typename Derived>
-struct ei_someOrthogonal_selector<Derived,2>
+struct ei_unitOrthogonal_selector<Derived,2>
 {
   typedef typename ei_eval<Derived>::type VectorType;
   inline static VectorType run(const Derived& src)
   { return VectorType(-ei_conj(src.y()), ei_conj(src.x())).normalized(); }
 };
 
-/** \returns an orthogonal vector of \c *this
+/** \returns a unit vector which is orthogonal to \c *this
   *
   * The size of \c *this must be at least 2. If the size is exactly 2,
-  * then the returned vector is a counter clock wise rotation of \c *this, i.e., (-y,x).
+  * then the returned vector is a counter clock wise rotation of \c *this, i.e., (-y,x).normalized().
   *
   * \sa cross()
   */
 template<typename Derived>
 typename MatrixBase<Derived>::EvalType
-MatrixBase<Derived>::someOrthogonal() const
+MatrixBase<Derived>::unitOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return ei_someOrthogonal_selector<Derived>::run(derived());
+  return ei_unitOrthogonal_selector<Derived>::run(derived());
 }
 
 #endif // EIGEN_ORTHOMETHODS_H
