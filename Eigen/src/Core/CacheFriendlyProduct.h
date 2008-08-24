@@ -27,7 +27,7 @@
 
 template <int L2MemorySize,typename Scalar>
 struct ei_L2_block_traits {
-  enum {width = ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
+  enum {width = 8 * ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
 };
 
 #ifndef EIGEN_EXTERN_INSTANTIATIONS

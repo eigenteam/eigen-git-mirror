@@ -26,6 +26,9 @@
 
 void test_meta()
 {
+  typedef float & FloatRef;
+  typedef const float & ConstFloatRef;
+  
   VERIFY((ei_meta_if<(3<4),ei_meta_true, ei_meta_false>::ret::ret));
   VERIFY(( ei_is_same_type<float,float>::ret));
   VERIFY((!ei_is_same_type<float,double>::ret));
@@ -39,8 +42,13 @@ void test_meta()
   VERIFY(( ei_is_same_type<float,ei_cleantype<float**&>::type >::ret));
   VERIFY(( ei_is_same_type<float,ei_cleantype<float* const *&>::type >::ret));
   VERIFY(( ei_is_same_type<float,ei_cleantype<float* const>::type >::ret));
-  
+
+  VERIFY(( ei_is_same_type<float*,ei_unconst<const float*>::type >::ret));
   VERIFY(( ei_is_same_type<float&,ei_unconst<const float&>::type >::ret));
+  VERIFY(( ei_is_same_type<float&,ei_unconst<const FloatRef>::type >::ret));
+  VERIFY(( ei_is_same_type<float&,ei_unconst<ConstFloatRef>::type >::ret));
+  VERIFY(( ei_is_same_type<float&,ei_unconst<const ConstFloatRef>::type >::ret));
+  
   VERIFY(( ei_is_same_type<float&,ei_unconst<float&>::type >::ret));
   VERIFY(( ei_is_same_type<float,ei_unref<float&>::type >::ret));
   VERIFY(( ei_is_same_type<const float,ei_unref<const float&>::type >::ret));

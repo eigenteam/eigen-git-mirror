@@ -60,8 +60,7 @@ struct ProductReturnType
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
 
-  typedef Product<typename ei_unconst<LhsNested>::type,
-                  typename ei_unconst<RhsNested>::type, ProductMode> Type;
+  typedef Product<LhsNested, RhsNested, ProductMode> Type;
 };
 
 // cache friendly specialization
@@ -71,11 +70,10 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
 
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime,
-              typename ei_product_eval_to_column_major<Rhs>::type
-          >::type RhsNested;
+                             typename ei_product_eval_to_column_major<Rhs>::type
+                   >::type RhsNested;
 
-  typedef Product<typename ei_unconst<LhsNested>::type,
-                  typename ei_unconst<RhsNested>::type, CacheFriendlyProduct> Type;
+  typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
 };
 
 /*  Helper class to determine the type of the product, can be either:
