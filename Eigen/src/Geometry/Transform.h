@@ -89,10 +89,19 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
-  /** Constructs and initializes a transformation from a (Dim+1)^2 matrix. */
+  /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
-  { m_matrix = other; }
+  {
+    if(OtherDerived::RowsAtCompileTime == Dim)
+    {
+      linear() = other;
+      translation().setZero();
+      m_matrix(Dim,Dim) = Scalar(1);
+      m_matrix.template block<1,Dim>(Dim,0).setZero();
+    }
+    else m_matrix = other;
+  }
 
   /** Set \c *this from a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
