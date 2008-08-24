@@ -56,9 +56,6 @@ template<typename T> struct ei_unconst { typedef T type; };
 template<typename T> struct ei_unconst<const T> { typedef T type; };
 template<typename T> struct ei_unconst<T const &> { typedef T & type; };
 template<typename T> struct ei_unconst<T const *> { typedef T * type; };
-template<typename T> struct ei_unconst<T const volatile>   { typedef T volatile type; };
-template<typename T> struct ei_unconst<T const volatile &> { typedef T volatile  & type; };
-template<typename T> struct ei_unconst<T const volatile *> { typedef T volatile  * type; };
 
 template<typename T> struct ei_cleantype { typedef T type; };
 template<typename T> struct ei_cleantype<const T>   { typedef typename ei_cleantype<T>::type type; };
@@ -131,15 +128,15 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
   */
 template<int Y,
          int InfX = 0,
-         int SupX = (Y==1 ? 1 : Y/2),
+         int SupX = ((Y==1) ? 1 : Y/2),
          bool Done = (((SupX-InfX)<=1) || ( (SupX*SupX <= Y) && ((SupX+1)*(SupX+1) > Y))) >
 class ei_meta_sqrt
 {
     enum {
       MidX = (InfX+SupX)/2,
-      TakeInf = MidX*MidX > Y,
-      NewInf = TakeInf ? InfX : MidX,
-      NewSup = TakeInf ? MidX : SupX
+      TakeInf = MidX*MidX > Y ? 1 : 0,
+      NewInf = int(TakeInf) ? InfX : int(MidX),
+      NewSup = int(TakeInf) ? int(MidX) : SupX
     };
   public:
     enum { ret = ei_meta_sqrt<Y,NewInf,NewSup>::ret };

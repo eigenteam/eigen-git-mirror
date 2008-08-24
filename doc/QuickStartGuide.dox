@@ -1,6 +1,7 @@
 namespace Eigen {
 
 /** \page QuickStartGuide
+<a name="top"></a>
 
 <h1>Quick start guide</h1>
 
@@ -22,6 +23,10 @@ namespace Eigen {
    - \ref QR
    - \ref EigenProblems
 
+</br>
+<hr>
+
+
 \section SimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
 By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
@@ -34,7 +39,7 @@ output:
 \include Tutorial_simple_example_fixed_size.out
 </td></tr></table>
 
-\section SimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
+<a href="#" class="top">top</a>\section SimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
 Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
@@ -46,7 +51,12 @@ output:
 \include Tutorial_simple_example_dynamic_size.out
 </td></tr></table>
 
-\section MatrixTypes Matrix and vector types
+
+
+
+
+
+<a href="#" class="top">top</a>\section MatrixTypes Matrix and vector types
 
 In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
 
@@ -61,7 +71,11 @@ For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 
 What if the matrix has dynamic-size i.e. the number of rows or cols isn't known at compile-time? Then use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
 
-\section MatrixInitialization Matrix and vector creation and initialization
+
+
+
+
+<a href="#" class="top">top</a>\section MatrixInitialization Matrix and vector creation and initialization
 
 To get a matrix with all coefficients equals to a given value you can use the Matrix::Constant() function, e.g.:
 <table><tr><td>
@@ -169,7 +183,12 @@ Here .finished() is used to get the actual matrix object once the comma initiali
 of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
 Eigen's comma initializer usually yields to very optimized code without any overhead.
 
-\section BasicLinearAlgebra Basic Linear Algebra
+
+
+
+
+
+<a href="#" class="top">top</a>\section BasicLinearAlgebra Basic Linear Algebra
 
 In short all mathematically well defined operators can be used right away as in the following example:
 \code
@@ -267,7 +286,12 @@ mat3 = mat1.cwise().abs2(mat2);
 \endcode</td></tr>
 </table>
 
-\section Reductions Reductions
+
+
+
+
+
+<a href="#" class="top">top</a>\section Reductions Reductions
 
 Reductions can be done matrix-wise,
 \link MatrixBase::colwise() column-wise \endlink or
@@ -280,16 +304,17 @@ Reductions can be done matrix-wise,
 9 4 6
 \endcode
 </td></tr>
-<tr><td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td></tr>
-<tr><td>\code mat.maxCoeff(); \endcode</td><td>\code 9 \endcode</td></tr>
-<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td></tr>
-<tr><td>\code mat.colwise().maxCoeff(); \endcode</td><td>\code 9 7 8 \endcode</td></tr>
+
+<tr><td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td><td></td>
+    <td>\code mat.maxCoeff(); \endcode</td><td>\code 9 \endcode</td></tr>
+<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td><td></td>
+    <td>\code mat.colwise().maxCoeff(); \endcode</td><td>\code 9 7 8 \endcode</td></tr>
 <tr><td>\code mat.rowwise().minCoeff(); \endcode</td><td>\code
 1
 2
 4
-\endcode</td></tr>
-<tr><td>\code mat.rowwise().maxCoeff(); \endcode</td><td>\code
+\endcode</td><td></td>
+   <td>\code mat.rowwise().maxCoeff(); \endcode</td><td>\code
 5
 8
 9
@@ -303,7 +328,9 @@ The all() and any() functions are especially useful in combinaison with coeff-wi
 
 
 
-\section SubMatrix Sub matrices
+
+
+<a href="#" class="top">top</a>\section SubMatrix Sub matrices
 
 Read-write access to a \link MatrixBase::col(int) column \endlink
 or a \link MatrixBase::row(int) row \endlink of a matrix:
@@ -354,19 +381,29 @@ Read-write access to sub-matrices:
 </table>
 
 
-\section MatrixTransformations Matrix transformations
+
+
+
+<a href="#" class="top">top</a>\section MatrixTransformations Matrix transformations
 
 transpose, adjoint, etc...
 
 
-\section Geometry Geometry features
+
+
+
+<a href="#" class="top">top</a>\section Geometry Geometry features
 
 maybe a second tutorial for that
 
-\section Performance Notes on performances
 
 
-\section AdvancedLinearAlgebra Advanced Linear Algebra
+
+
+<a href="#" class="top">top</a>\section Performance Notes on performances
+
+
+<a href="#" class="top">top</a>\section AdvancedLinearAlgebra Advanced Linear Algebra
 
 \subsection LinearSolvers Solving linear problems
 \subsection LU LU
