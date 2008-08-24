@@ -89,18 +89,31 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
+  template<typename OtherDerived, bool select = OtherDerived::RowsAtCompileTime == Dim>
+  struct construct_from_matrix
+  {
+    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
+    {
+      transform->matrix() = other;
+    }
+  };
+
+  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, true>
+  {
+    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
+    {
+      transform->linear() = other;
+      transform->translation().setZero();
+      transform->matrix()(Dim,Dim) = Scalar(1);
+      transform->matrix().template block<1,Dim>(Dim,0).setZero();
+    }
+  };
+
   /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
   {
-    if(OtherDerived::RowsAtCompileTime == Dim)
-    {
-      linear() = other;
-      translation().setZero();
-      m_matrix(Dim,Dim) = Scalar(1);
-      m_matrix.template block<1,Dim>(Dim,0).setZero();
-    }
-    else m_matrix = other;
+    construct_from_matrix<OtherDerived>::run(this, other);
   }
 
   /** Set \c *this from a (Dim+1)^2 matrix. */
