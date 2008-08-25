@@ -1,27 +1,28 @@
 namespace Eigen {
 
 /** \page QuickStartGuide
-<a name="top"></a>
 
 <h1>Quick start guide</h1>
 
 \b Table \b of \b contents
- - \ref SimpleExampleFixedSize
- - \ref SimpleExampleDynamicSize
- - \ref MatrixTypes
- - \ref MatrixInitialization
- - \ref BasicLinearAlgebra
- - \ref Reductions
- - \ref SubMatrix
- - \ref MatrixTransformations
- - \ref Geometry
- - \ref Performance
- - \ref AdvancedLinearAlgebra
-   - \ref LinearSolvers
-   - \ref LU
-   - \ref Cholesky
-   - \ref QR
-   - \ref EigenProblems
+  - Core features (Chapter I)
+    - \ref SimpleExampleFixedSize
+    - \ref SimpleExampleDynamicSize
+    - \ref MatrixTypes
+    - \ref MatrixInitialization
+    - \ref BasicLinearAlgebra
+    - \ref Reductions
+    - \ref SubMatrix
+    - \ref MatrixTransformations
+    - \ref TriangularMatrix
+    - \ref Performance
+  - \ref Geometry (Chapter II)
+  - \ref AdvancedLinearAlgebra (Chapter III)
+    - \ref LinearSolvers
+    - \ref LU
+    - \ref Cholesky
+    - \ref QR
+    - \ref EigenProblems
 
 </br>
 <hr>
@@ -31,7 +32,7 @@ namespace Eigen {
 
 By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
 
-<table><tr><td>
+<table class="tutorial_code"><tr><td>
 \include Tutorial_simple_example_fixed_size.cpp
 </td>
 <td>
@@ -43,7 +44,7 @@ output:
 
 Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
-<table><tr><td>
+<table class="tutorial_code"><tr><td>
 \include Tutorial_simple_example_dynamic_size.cpp
 </td>
 <td>
@@ -58,7 +59,7 @@ output:
 
 <a href="#" class="top">top</a>\section MatrixTypes Matrix and vector types
 
-In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the several convenient typedefs (\ref matrixtypedefs).
+In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the \ref matrixtypedefs "several convenient typedefs".
 
 The template class Matrix takes a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
 
@@ -77,30 +78,8 @@ What if the matrix has dynamic-size i.e. the number of rows or cols isn't known 
 
 <a href="#" class="top">top</a>\section MatrixInitialization Matrix and vector creation and initialization
 
-To get a matrix with all coefficients equals to a given value you can use the Matrix::Constant() function, e.g.:
-<table><tr><td>
-\code
-int rows=2, cols=3;
-cout << MatrixXf::Constant(rows, cols, sqrt(2));
-\endcode
-</td>
-<td>
-output:
-\code
-1.41 1.41 1.41
-1.41 1.41 1.41
-\endcode
-</td></tr></table>
-
-To set all the coefficients of a matrix you can also use the setConstant() variant:
-\code
-MatrixXf m(rows, cols);
-m.setConstant(rows, cols, value);
-\endcode
-
-Eigen also offers variants of these functions for vector types and fixed-size matrices or vectors, as well as similar functions to create matrices with all coefficients equal to zero or one, to create the identity matrix and matrices with random coefficients:
-
-<table>
+Eigen offers several methods to create or set matrices with coefficients equals to either a constant value, the identity matrix or even random values:
+<table class="tutorial_code">
 <tr>
   <td>Fixed-size matrix or vector</td>
   <td>Dynamic-size matrix</td>
@@ -113,14 +92,14 @@ Matrix3f x;
 
 x = Matrix3f::Zero();
 x = Matrix3f::Ones();
-x = Matrix3f::Constant(6);
+x = Matrix3f::Constant(value);
 x = Matrix3f::Identity();
 x = Matrix3f::Random();
 
 x.setZero();
 x.setOnes();
 x.setIdentity();
-x.setConstant(6);
+x.setConstant(value);
 x.setRandom();
 \endcode
   </td>
@@ -130,13 +109,13 @@ MatrixXf x;
 
 x = MatrixXf::Zero(rows, cols);
 x = MatrixXf::Ones(rows, cols);
-x = MatrixXf::Constant(rows, cols, 6);
+x = MatrixXf::Constant(rows, cols, value);
 x = MatrixXf::Identity(rows, cols);
 x = MatrixXf::Random(rows, cols);
 
 x.setZero(rows, cols);
 x.setOnes(rows, cols);
-x.setConstant(rows, cols, 6);
+x.setConstant(rows, cols, value);
 x.setIdentity(rows, cols);
 x.setRandom(rows, cols);
 \endcode
@@ -147,13 +126,13 @@ VectorXf x;
 
 x = VectorXf::Zero(size);
 x = VectorXf::Ones(size);
-x = VectorXf::Constant(size, 6);
+x = VectorXf::Constant(size, value);
 x = VectorXf::Identity(size);
 x = VectorXf::Random(size);
 
 x.setZero(size);
 x.setOnes(size);
-x.setConstant(size, 6);
+x.setConstant(size, value);
 x.setIdentity(size);
 x.setRandom(size);
 \endcode
@@ -161,8 +140,27 @@ x.setRandom(size);
 </tr>
 </table>
 
-Finally, all the coefficients of a matrix can be set to specific values using the comma initializer syntax:
-<table><tr><td>
+Here is an usage example:
+<table class="tutorial_code"><tr><td>
+\code
+cout << MatrixXf::Constant(2, 3, sqrt(2)) << endl;
+RowVector3i v;
+v.setConstant(6);
+cout << "v = " << v << endl;
+\endcode
+</td>
+<td>
+output:
+\code
+1.41 1.41 1.41
+1.41 1.41 1.41
+
+v = 6 6 6
+\endcode
+</td></tr></table>
+
+Eigen also offer a comma initializer syntax which allows to set all the coefficients of a matrix to specific values:
+<table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
 <td>
@@ -170,8 +168,8 @@ output:
 \verbinclude Tutorial_commainit_01.out
 </td></tr></table>
 
-Eigen's comma initializer also allows you to set the matrix per block:
-<table><tr><td>
+Feel the above example boring ? Look at the following example where the matrix is set per block:
+<table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_02.cpp
 </td>
 <td>
@@ -179,9 +177,9 @@ output:
 \verbinclude Tutorial_commainit_02.out
 </td></tr></table>
 
-Here .finished() is used to get the actual matrix object once the comma initialization
+<p class="note">\b Side \b note: here .finished() is used to get the actual matrix object once the comma initialization
 of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
-Eigen's comma initializer usually yields to very optimized code without any overhead.
+Eigen's comma initializer usually yields to very optimized code without any overhead.</p>
 
 
 
@@ -197,7 +195,7 @@ mat4 -= mat1*1.5 + mat2 * mat3/4;
 which includes two matrix scalar products ("mat1*1.5" and "mat3/4"), a matrix-matrix product ("mat2 * mat3/4"),
 a matrix addition ("+") and substraction with assignment ("-=").
 
-<table>
+<table class="tutorial_code">
 <tr><td>
 matrix/vector product</td><td>\code
 col2 = mat1 * col1;
@@ -233,9 +231,9 @@ In Eigen only mathematically well defined operators can be used right away,
 but don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
 Eigen's matrices also provide a very powerful numerical container supporting
 most common coefficient wise operators:
-
-<table>
-
+<table class="noborder">
+<tr><td>
+<table class="tutorial_code" style="margin-right:10pt">
 <tr><td>Coefficient wise product</td>
 <td>\code mat3 = mat1.cwise() * mat2; \endcode
 </td></tr>
@@ -262,7 +260,9 @@ mat3 = mat1.cwise() <= mat2;
 mat3 = mat1.cwise() > mat2;
 etc.
 \endcode
-</td></tr>
+</td></tr></table>
+</td>
+<td><table class="tutorial_code">
 <tr><td>
 Trigo:\n sin, cos, tan</td><td>\code
 mat3 = mat1.cwise().sin();
@@ -270,7 +270,7 @@ etc.
 \endcode
 </td></tr>
 <tr><td>
-Power:\n pow, square, cube, sqrt, exp, log</td><td>\code
+Power:\n pow, square, cube,\n sqrt, exp, log</td><td>\code
 mat3 = mat1.cwise().square();
 mat3 = mat1.cwise().pow(5);
 mat3 = mat1.cwise().log();
@@ -285,46 +285,38 @@ mat3 = mat1.cwise().abs(mat2);
 mat3 = mat1.cwise().abs2(mat2);
 \endcode</td></tr>
 </table>
+</td></tr></table>
 
-
+<p class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</p>
 
 
 
 
 <a href="#" class="top">top</a>\section Reductions Reductions
 
-Reductions can be done matrix-wise,
+Eigen provides several several reduction methods such as:
+\link Cwise::minCoeff() minCoeff() \endlink, \link Cwise::maxCoeff() maxCoeff() \endlink,
+\link Cwise::sum() sum() \endlink, \link Cwise::trace() trace() \endlink,
+\link Cwise::norm() norm() \endlink, \link Cwise::norm2() norm2() \endlink,
+\link Cwise::all() all() \endlink,and \link Cwise::any() any() \endlink.
+All reduction operations can be done matrix-wise,
 \link MatrixBase::colwise() column-wise \endlink or
-\link MatrixBase::rowwise() row-wise \endlink, e.g.:
-<table>
-<tr><td>\code mat \endcode
-</td><td>\code
-5 3 1
-2 7 8
-9 4 6
-\endcode
-</td></tr>
-
-<tr><td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td><td></td>
-    <td>\code mat.maxCoeff(); \endcode</td><td>\code 9 \endcode</td></tr>
-<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td><td></td>
-    <td>\code mat.colwise().maxCoeff(); \endcode</td><td>\code 9 7 8 \endcode</td></tr>
+\link MatrixBase::rowwise() row-wise \endlink. Usage example:
+<table class="tutorial_code">
+<tr><td rowspan="3" style="border-right-style:dashed">\code
+      5 3 1
+mat = 2 7 8
+      9 4 6 \endcode
+</td> <td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td></tr>
+<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td></tr>
 <tr><td>\code mat.rowwise().minCoeff(); \endcode</td><td>\code
 1
 2
 4
-\endcode</td><td></td>
-   <td>\code mat.rowwise().maxCoeff(); \endcode</td><td>\code
-5
-8
-9
 \endcode</td></tr>
 </table>
 
-Eigen provides several other reduction methods such as \link Cwise::sum() sum() \endlink,
-\link Cwise::norm() norm() \endlink, \link Cwise::norm2() norm2() \endlink,
-\link Cwise::all() all() \endlink, and \link Cwise::any() any() \endlink.
-The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators.
+<p class="note">\b Side \b note: The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators (\ref CwiseAll "example").</p>
 
 
 
@@ -339,8 +331,8 @@ mat1.row(i) = mat2.col(j);
 mat1.col(j1).swap(mat1.col(j2));
 \endcode
 
-Read-write access to sub-vector:
-<table>
+Read-write access to sub-vectors:
+<table class="tutorial_code">
 <tr>
 <td>Default versions</td>
 <td>Optimized versions when the size is known at compile time</td></tr>
@@ -353,7 +345,7 @@ Read-write access to sub-vector:
 </table>
 
 Read-write access to sub-matrices:
-<table>
+<table class="tutorial_code">
 <tr><td>Default versions</td>
 <td>Optimized versions when the size is known at compile time</td><td></td></tr>
 
@@ -378,6 +370,13 @@ Read-write access to sub-matrices:
  mat1.corner<rows,cols>(BottomRight)\endcode
  \link MatrixBase::corner(CornerType) (more) \endlink</td>
  <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
+<tr>
+ <td>\code
+ vec1 = mat1.diagonal();
+ mat1.diagonal() = vec1;
+ \endcode
+ \link MatrixBase::diagonal() (more) \endlink</td></td>
+ <td></td>
 </table>
 
 
@@ -386,25 +385,74 @@ Read-write access to sub-matrices:
 
 <a href="#" class="top">top</a>\section MatrixTransformations Matrix transformations
 
-transpose, adjoint, etc...
+<table class="tutorial_code">
+<tr><td>
+\link MatrixBase::transpose() transposition \endlink (read-write)</td><td>\code
+mat3 = mat1.transpose() * mat2;
+mat3.transpose() = mat1 * mat2.transpose();
+\endcode
+</td></tr>
+<tr><td>
+\link MatrixBase::adjoint() adjoint \endlink (read only)\n</td><td>\code
+mat3 = mat1.adjoint() * mat2;
+mat3 = mat1.conjugate().transpose() * mat2;
+\endcode
+</td></tr>
+<tr><td>
+\link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
+\b Note: this product is automatically optimized !</td><td>\code
+mat3 = mat1 * vec2.asDiagonal();\endcode
+</td></tr>
+<tr><td>
+\link MatrixBase::minor() minor \endlink (read-write)</td><td>\code
+mat4x4.minor(i,j) = mat3x3;
+mat3x3 = mat4x4.minor(i,j);\endcode
+</td></tr>
+</table>
 
 
+<a href="#" class="top">top</a>\section TriangularMatrix Dealing with triangular matrices
 
-
-
-<a href="#" class="top">top</a>\section Geometry Geometry features
-
-maybe a second tutorial for that
-
-
-
-
+todo
 
 <a href="#" class="top">top</a>\section Performance Notes on performances
 
+<table class="tutorial_code">
+<tr><td>\code
+m4 = m4 * m4;\endcode</td><td>
+auto-evaluates so no aliasing problem (performance penalty is low)</td></tr>
+<tr><td>\code
+Matrix4f other = (m4 * m4).lazy();\endcode</td><td>
+forces lazy evaluation</td></tr>
+<tr><td>\code
+m4 = m4 + m4;\endcode</td><td>
+here Eigen goes for lazy evaluation, as with most expressions</td></tr>
+<tr><td>\code
+m4 = -m4 + m4 + 5 * m4;\endcode</td><td>
+same here, Eigen chooses lazy evaluation for all that.</td></tr>
+<tr><td>\code
+m4 = m4 * (m4 + m4);\endcode</td><td>
+here Eigen chooses to first evaluate m4 + m4 into a temporary.
+indeed, here it is an optimization to cache this intermediate result.</td></tr>
+<tr><td>\code
+m3 = m3 * m4.block<3,3>(1,1);\endcode</td><td>
+here Eigen chooses \b not to evaluate block() into a temporary
+because accessing coefficients of that block expression is not more costly than accessing
+coefficients of a plain matrix.</td></tr>
+<tr><td>\code
+m4 = m4 * m4.transpose();\endcode</td><td>
+same here, lazy evaluation of the transpose.</td></tr>
+<tr><td>\code
+m4 = m4 * m4.transpose().eval();\endcode</td><td>
+forces immediate evaluation of the transpose</td></tr>
+</table>
+
+<a href="#" class="top">top</a>\section Geometry Geometry features
+
+maybe a second chapter for that
 
 <a href="#" class="top">top</a>\section AdvancedLinearAlgebra Advanced Linear Algebra
-
+Again, let's do another chapter for that
 \subsection LinearSolvers Solving linear problems
 \subsection LU LU
 \subsection Cholesky Cholesky

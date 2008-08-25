@@ -11,6 +11,16 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 )
 
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_header.html.in
+  ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_header.html
+)
+
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_footer.html.in
+  ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_footer.html
+)
+
 SET(examples_targets "")
 SET(snippets_targets "")
 
@@ -20,6 +30,10 @@ ADD_SUBDIRECTORY(snippets)
 ADD_CUSTOM_TARGET(
   run_doxygen
   ALL
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
+                                   ${CMAKE_CURRENT_BINARY_DIR}/html/
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Eigen_Silly_Professor_64x64.png
+                                   ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildexamplelist.sh ${CMAKE_SOURCE_DIR} > ${CMAKE_CURRENT_BINARY_DIR}/ExampleList.dox
   COMMAND doxygen
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

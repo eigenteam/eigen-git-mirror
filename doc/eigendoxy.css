@@ -1,22 +1,23 @@
 BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
   font-family: Geneva, Arial, Helvetica, sans-serif;
+  font-size: 9.4pt;
 }
 BODY,TD {
-  font-size: 90%;
+  /*font-size: 90%;*/
 }
 H1 {
   text-align: center;
-  font-size: 160%;
+  font-size: 15pt;
 }
 H2 {
- font-size: 120%;
- background-color : #d8d6af; margin-top : 2em;
+ font-size: 12pt;
+ background-color : #d8d6af; margin-top : 20pt;
 }
 H3 {
   font-size: 100%;
 }
-CAPTION { 
-  font-weight: bold 
+CAPTION {
+  font-weight: bold
 }
 DIV.qindex {
   width: 100%;
@@ -45,7 +46,7 @@ DIV.navtab {
        padding: 2px;
 }
 TD.navtab {
-       font-size: 70%;
+       font-size: 100%;
 }
 A.qindex {
        text-decoration: none;
@@ -73,42 +74,42 @@ A.qindexHL:hover {
   background-color: #6666cc;
   color: #ffffff;
 }
-A.qindexHL:visited { 
-  text-decoration: none; 
-  background-color: #6666cc; 
-  color: #ffffff 
+A.qindexHL:visited {
+  text-decoration: none;
+  background-color: #6666cc;
+  color: #ffffff
 }
-A.el { 
-  text-decoration: none; 
-  font-weight: bold 
+A.el {
+  text-decoration: none;
+  font-weight: bold
 }
-A.elRef { 
-  font-weight: bold 
+A.elRef {
+  font-weight: bold
 }
-A.code:link { 
-  text-decoration: none; 
-  font-weight: normal; 
+A.code:link {
+  text-decoration: none;
+  font-weight: normal;
   color: #0000FF
 }
-A.code:visited { 
-  text-decoration: none; 
-  font-weight: normal; 
+A.code:visited {
+  text-decoration: none;
+  font-weight: normal;
   color: #0000FF
 }
-A.codeRef:link { 
-  font-weight: normal; 
+A.codeRef:link {
+  font-weight: normal;
   color: #0000FF
 }
-A.codeRef:visited { 
-  font-weight: normal; 
+A.codeRef:visited {
+  font-weight: normal;
   color: #0000FF
 }
-A:hover { 
-  text-decoration: none;  
-  background-color: #f2f2ff 
+A:hover {
+  text-decoration: none;
+  background-color: #f2f2ff
 }
-DL.el { 
-  margin-left: -1cm 
+DL.el {
+  margin-left: -1cm
 }
 .fragment {
        font-family: monospace, fixed;
@@ -126,12 +127,12 @@ PRE.fragment {
   padding-top: 4px;
   padding-bottom: 4px;
 }
-DIV.ah { 
-  background-color: black; 
-  font-weight: bold; 
-  color: #ffffff; 
-  margin-bottom: 3px; 
-  margin-top: 3px 
+DIV.ah {
+  background-color: black;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 3px;
+  margin-top: 3px
 }
 
 DIV.groupHeader {
@@ -140,10 +141,10 @@ DIV.groupHeader {
        margin-bottom: 6px;
        font-weight: bold;
 }
-DIV.groupText { 
-  margin-left: 16px; 
-  font-style: italic; 
-  font-size: 90% 
+DIV.groupText {
+  margin-left: 16px;
+  font-style: italic;
+  font-size: 95%
 }
 BODY {
   background: white;
@@ -178,15 +179,15 @@ TD.indexvalue {
   border: 1px solid #CCCCCC;
 }
 TR.memlist {
-  background-color: #f0f0f0; 
+  background-color: #f0f0f0;
 }
-P.formulaDsp { 
-  text-align: center; 
+P.formulaDsp {
+  text-align: center;
 }
 IMG.formulaDsp {
 }
-IMG.formulaInl { 
-  vertical-align: middle; 
+IMG.formulaInl {
+  vertical-align: middle;
 }
 SPAN.keyword       { color: #008000 }
 SPAN.keywordtype   { color: #604020 }
@@ -202,7 +203,7 @@ SPAN.vhdllogic     { color: #ff0000 }
 
 .mdescLeft {
   padding: 0px 8px 4px 8px;
-  font-size: 80%;
+  font-size: 90%;
   font-style: italic;
   background-color: #FAFAFA;
   border-top: 1px none #E0E0E0;
@@ -213,7 +214,7 @@ SPAN.vhdllogic     { color: #ff0000 }
 }
 .mdescRight {
         padding: 0px 8px 4px 8px;
-  font-size: 80%;
+  font-size: 90%;
   font-style: italic;
   background-color: #FAFAFA;
   border-top: 1px none #E0E0E0;
@@ -238,7 +239,7 @@ SPAN.vhdllogic     { color: #ff0000 }
   border-bottom-style: none;
   border-left-style: none;
   background-color: #FAFAFA;
-  font-size: 80%;
+  font-size: 90%;
 }
 .memItemRight {
   padding: 1px 8px 0px 8px;
@@ -256,7 +257,7 @@ SPAN.vhdllogic     { color: #ff0000 }
   border-bottom-style: none;
   border-left-style: none;
   background-color: #FAFAFA;
-  font-size: 80%;
+  font-size: 90%;
 }
 .memTemplItemLeft {
   padding: 1px 0px 0px 8px;
@@ -274,7 +275,7 @@ SPAN.vhdllogic     { color: #ff0000 }
   border-bottom-style: none;
   border-left-style: none;
   background-color: #FAFAFA;
-  font-size: 80%;
+  font-size: 90%;
 }
 .memTemplItemRight {
   padding: 1px 8px 0px 8px;
@@ -292,7 +293,7 @@ SPAN.vhdllogic     { color: #ff0000 }
   border-bottom-style: none;
   border-left-style: none;
   background-color: #FAFAFA;
-  font-size: 80%;
+  font-size: 90%;
 }
 .memTemplParams {
   padding: 1px 0px 0px 8px;
@@ -311,9 +312,9 @@ SPAN.vhdllogic     { color: #ff0000 }
   border-left-style: none;
   color: #606060;
   background-color: #FAFAFA;
-  font-size: 80%;
+  font-size: 90%;
 }
-.search { 
+.search {
   color: #003399;
   font-weight: bold;
 }
@@ -321,14 +322,14 @@ FORM.search {
   margin-bottom: 0px;
   margin-top: 0px;
 }
-INPUT.search { 
-  font-size: 75%;
+INPUT.search {
+  font-size: 90%;
   color: #000080;
   font-weight: normal;
   background-color: #e8eef2;
 }
-TD.tiny { 
-  font-size: 75%;
+TD.tiny {
+  font-size: 85%;
 }
 a {
   color: #1A41A8;
@@ -336,16 +337,16 @@ a {
 a:visited {
   color: #2A3798;
 }
-.dirtab { 
+.dirtab {
   padding: 4px;
   border-collapse: collapse;
   border: 1px solid #84b0c7;
 }
-TH.dirtab { 
+TH.dirtab {
   background: #e8eef2;
   font-weight: bold;
 }
-HR { 
+HR {
   height: 1px;
   border: none;
   border-top: 1px solid black;
@@ -353,12 +354,12 @@ HR {
 
 /* Style for detailed member documentation */
 .memtemplate {
-  font-size: 80%;
+  font-size: 90%;
   color: #606060;
   font-weight: normal;
   margin-left: 3px;
-} 
-.memnav { 
+}
+.memnav {
   background-color: #e8eef2;
   border: 1px solid #84b0c7;
   text-align: center;
@@ -408,44 +409,92 @@ HR {
   font-family: sans-serif;
   margin:0.5em;
 }
-.directory { 
-  font-size: 9pt; 
-  font-weight: bold; 
+.directory {
+  font-size: 9pt;
+  font-weight: bold;
 }
-.directory h3 { 
-  margin: 0px; 
-  margin-top: 1em; 
-  font-size: 11pt; 
+.directory h3 {
+  margin: 0px;
+  margin-top: 1em;
+  font-size: 11pt;
 }
-.directory > h3 { 
-  margin-top: 0; 
+.directory > h3 {
+  margin-top: 0;
 }
-.directory p { 
-  margin: 0px; 
-  white-space: nowrap; 
+.directory p {
+  margin: 0px;
+  white-space: nowrap;
 }
-.directory div { 
-  display: none; 
-  margin: 0px; 
+.directory div {
+  display: none;
+  margin: 0px;
 }
-.directory img { 
-  vertical-align: -30%; 
+.directory img {
+  vertical-align: -30%;
 }
 
 H2 A {
-  font-size: 130%;margin:10px 0 1em 1em;display:block;
+  font-size: 13pt;margin:10px 0 1em 1em;display:block;
 }
 H2 A:hover {
   background-color: #d8d6af
 }
 A.top  {
-  font-size: 120%;
+  font-size: 11pt;
   display:block;
   color: #666666;
   position:absolute;
-  right:2em;
-  margin:17px 0 0 0;
+  right:20pt;
+  margin:12pt 0 0 0;
+  text-decoration : none;
 }
-A.top:hover  {
-  background-color: #d8d6af;font-weight : bolder;
+A.top:hover, A.logo:hover {
+  background-color: transparent;font-weight : bolder;
 }
+P.note {
+  font-size: 7pt;
+}
+
+TABLE.noborder {
+  border-bottom-style : none;
+  border-left-style   : none;
+  border-right-style  : none;
+  border-top-style : none ;
+  border-spacing : 0px 0px;
+  margin: 4pt 0 0 0;
+  padding: 0 0 0 0;
+}
+TABLE.noborder TD {
+  border-bottom-style : none;
+  border-left-style   : none;
+  border-right-style  : none;
+  border-top-style : none;
+  border-spacing : 0px 0px;
+  margin: 0 0 0 0;
+  vertical-align: top;
+}
+
+TABLE.tutorial_code {
+  border-bottom-style : none;
+  border-left-style   : dashed;
+  border-right-style  : dashed;
+  border-top-style : dashed ;
+  border-spacing : 0px 0px;
+  empty-cells : show;
+  margin: 4pt 0 0 0;
+  padding: 0 0 0 0;
+}
+TABLE.tutorial_code TD {
+  border-bottom-style : dashed;
+  border-left-style   : none;
+  border-right-style  : none;
+  border-top-style : none;
+  border-spacing : 0px 0px;
+  empty-cells : show;
+  margin: 0 0 0 0;
+  padding: 2pt 5pt 2pt 5pt;
+  vertical-align: middle;
+}
+
+
+
