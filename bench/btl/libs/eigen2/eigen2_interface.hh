@@ -17,7 +17,7 @@
 //
 #ifndef EIGEN2_INTERFACE_HH
 #define EIGEN2_INTERFACE_HH
-#include <cblas.h>
+// #include <cblas.h>
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
@@ -134,6 +134,10 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
+    X = L.template marked<Lower>().solveTriangular(B);
+  }
+
+  static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
     X = L.template marked<Lower>().solveTriangular(B);
   }
 

@@ -19,6 +19,7 @@
 #include "eigen2_interface.hh"
 #include "bench.hh"
 #include "action_trisolve.hh"
+#include "action_trisolve_matrix.hh"
 #include "action_cholesky.hh"
 #include "action_hessenberg.hh"
 #include "action_lu_decomp.hh"
@@ -28,6 +29,7 @@ BTL_MAIN;
 int main()
 {
   bench<Action_trisolve<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_trisolve_matrix<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_cholesky<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_lu_decomp<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 

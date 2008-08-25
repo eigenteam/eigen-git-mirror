@@ -24,6 +24,7 @@
 
 #include "action_cholesky.hh"
 #include "action_lu_decomp.hh"
+#include "action_trisolve_matrix.hh"
 
 #ifdef HAS_LAPACK
 #include "action_hessenberg.hh"
@@ -45,6 +46,7 @@ int main()
   bench<Action_aat_product<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   bench<Action_trisolve<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_trisolve_matrix<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   bench<Action_cholesky<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   
