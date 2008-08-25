@@ -63,7 +63,7 @@ template<typename Scalar> void packetmath()
   const int size = PacketSize*4;
   Scalar data1[ei_packet_traits<Scalar>::size*4];
   Scalar data2[ei_packet_traits<Scalar>::size*4];
-  Packet packets[PacketSize];
+  Packet packets[PacketSize*2];
   Scalar ref[ei_packet_traits<Scalar>::size*4];
   for (int i=0; i<size; ++i)
   {
@@ -137,16 +137,14 @@ template<typename Scalar> void packetmath()
   }
   ei_pstore(data2, ei_preduxp(packets));
   VERIFY(areApprox(ref, data2, PacketSize) && "ei_preduxp");
-
-  
 }
 
 void test_packetmath()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( packetmath<float>() );
-//     CALL_SUBTEST( packetmath<double>() );
-//     CALL_SUBTEST( packetmath<int>() );
-    packetmath<std::complex<float> >();
+    CALL_SUBTEST( packetmath<float>() );
+    CALL_SUBTEST( packetmath<double>() );
+    CALL_SUBTEST( packetmath<int>() );
+    CALL_SUBTEST( packetmath<std::complex<float> >() );
   }
 }
