@@ -129,7 +129,8 @@ struct ei_result_of<Func(ArgType0,ArgType1)> {
 template<int Y,
          int InfX = 0,
          int SupX = ((Y==1) ? 1 : Y/2),
-         bool Done = (((SupX-InfX)<=1) || ( (SupX*SupX <= Y) && ((SupX+1)*(SupX+1) > Y))) >
+         bool Done = ((SupX-InfX)<=1 ? true : ((SupX*SupX <= Y) && ((SupX+1)*(SupX+1) > Y))) >
+                                // use ?: instead of || just to shut up a stupid gcc 4.3 warning
 class ei_meta_sqrt
 {
     enum {
