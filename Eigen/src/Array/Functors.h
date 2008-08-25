@@ -36,6 +36,8 @@
 template<typename Scalar>
 struct ei_scalar_add_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_add_op(const ei_scalar_add_op& other) : m_other(other.m_other) { }
   inline ei_scalar_add_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return a + m_other; }
   inline const PacketScalar packetOp(const PacketScalar& a) const
@@ -131,6 +133,8 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
   */
 template<typename Scalar>
 struct ei_scalar_pow_op {
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_pow_op(const ei_scalar_pow_op& other) : m_exponent(other.m_exponent) { }
   inline ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
   inline Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
   const Scalar m_exponent;

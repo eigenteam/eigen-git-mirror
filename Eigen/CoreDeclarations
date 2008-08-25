@@ -23,15 +23,12 @@
     #ifdef __SSSE3__
       #include <tmmintrin.h>
     #endif
-
-/*** Disable AltiVec code for now as it's out of date
   #elif (defined __ALTIVEC__)
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
     #include <altivec.h>
     // We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
     #undef bool
-***/
   #endif
 #endif
 

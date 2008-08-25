@@ -143,8 +143,6 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
     PacketAccess = ei_packet_traits<Scalar>::size>1
                   #if (defined EIGEN_VECTORIZE_SSE)
                   && NumTraits<Scalar>::HasFloatingPoint
-                  #elif (defined EIGEN_VECTORIZE_ALTIVEC)
-                  && 0
                   #endif
   };
 };
@@ -260,6 +258,8 @@ struct ei_functor_traits<ei_scalar_real_op<Scalar> >
 template<typename Scalar>
 struct ei_scalar_multiple_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_multiple_op(const ei_scalar_multiple_op& other) : m_other(other.m_other) { }
   inline ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return a * m_other; }
   inline const PacketScalar packetOp(const PacketScalar& a) const
@@ -273,6 +273,8 @@ struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
   inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
   inline Scalar operator() (const Scalar& a) const { return a * m_other; }
   inline const PacketScalar packetOp(const PacketScalar& a) const
@@ -285,10 +287,11 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
 
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,false> {
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
   inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
   inline Scalar operator() (const Scalar& a) const { return a / m_other; }
   const Scalar m_other;
-  enum { Cost = 2 * NumTraits<Scalar>::MulCost };
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
