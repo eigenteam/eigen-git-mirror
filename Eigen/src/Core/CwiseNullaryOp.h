@@ -60,7 +60,11 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
 
 template<typename NullaryOp, typename MatrixType>
 class CwiseNullaryOp : ei_no_assignment_operator,
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<CwiseNullaryOp<NullaryOp, MatrixType> >
+#else
+  public MatrixBase
+#endif
 {
   public:
 

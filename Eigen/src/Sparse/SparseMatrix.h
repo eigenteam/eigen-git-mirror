@@ -52,7 +52,12 @@ struct ei_traits<SparseMatrix<_Scalar, _Flags> >
 
 
 template<typename _Scalar, int _Flags>
-class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
+class SparseMatrix
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
+#else
+  : public SparseMatrixBase
+#endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
@@ -92,7 +97,7 @@ class SparseMatrix : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
         return m_data.value(end-1);
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
-      
+
       const int* r = std::lower_bound(&m_data.index(start),&m_data.index(end),inner);
       const int id = r-&m_data.index(0);
       return ((*r==inner) && (id<end)) ? m_data.value(id) : Scalar(0);

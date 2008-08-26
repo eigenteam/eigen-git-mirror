@@ -96,7 +96,12 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols
 };
 
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+class Matrix
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+#else
+  : public MatrixBase
+#endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
@@ -369,6 +374,8 @@ class Matrix : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _M
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
+  *
+  * \ingroup Core_Module
   *
   * Eigen defines several typedef shortcuts for most common matrix and vector types.
   *

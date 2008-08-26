@@ -61,7 +61,11 @@ struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
 };
 
 template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNested, DiagonalProduct> : ei_no_assignment_operator,
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<Product<LhsNested, RhsNested, DiagonalProduct> >
+#else
+  public MatrixBase
+#endif
 {
     typedef typename ei_traits<Product>::_LhsNested _LhsNested;
     typedef typename ei_traits<Product>::_RhsNested _RhsNested;

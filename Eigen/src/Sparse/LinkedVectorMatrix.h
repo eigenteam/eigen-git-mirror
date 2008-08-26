@@ -52,7 +52,12 @@ struct LinkedVectorChunk
 };
 
 template<typename _Scalar, int _Flags>
-class LinkedVectorMatrix : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_Flags> >
+class LinkedVectorMatrix
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public SparseMatrixBase<LinkedVectorMatrix<_Scalar,_Flags> >
+#else
+  : public SparseMatrixBase
+#endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(LinkedVectorMatrix)

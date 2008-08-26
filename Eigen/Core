@@ -6,16 +6,27 @@
 #include <cstring>
 #include <string>
 
-#ifdef EIGEN_VECTORIZE
-// it seems we cannot assume posix_memalign is defined in the stdlib header
-extern "C" int posix_memalign (void **, size_t, size_t) throw ();
-#endif
-
 namespace Eigen {
 
+/** \defgroup Core_Module Core module
+  * This is the main module of Eigen providing dense matrix and vector support with
+  * features equivalent to a BLAS library and much more...
+  *
+  * \code
+  * #include <Eigen/Core>
+  * \endcode
+  *
+  * To speedup compilation, in header files you might only include the following file:
+  * \code
+  * #include <Eigen/CoreDeclaration>
+  * \endcode
+  * which gives access to matrix and vector types as well as coefficient accessor operators.
+  */
+
+#include "src/Core/util/Memory.h"
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
-#include "src/Core/DummyPacketMath.h"
+#include "src/Core/GenericPacketMath.h"
 
 #if defined EIGEN_VECTORIZE_SSE
 #include "src/Core/arch/SSE/PacketMath.h"

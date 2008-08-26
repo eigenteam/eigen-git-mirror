@@ -63,7 +63,11 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
 
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOp : ei_no_assignment_operator,
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
+#else
+  public MatrixBase
+#endif
 {
   public:
 

@@ -27,7 +27,7 @@
 #define EIGEN_PARTIAL_REDUX_H
 
 /** \array_module \ingroup Array
-  * 
+  *
   * \class PartialReduxExpr
   *
   * \brief Generic expression of a partially reduxed matrix
@@ -69,7 +69,11 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 
 template< typename MatrixType, typename MemberOp, int Direction>
 class PartialReduxExpr : ei_no_assignment_operator,
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<PartialReduxExpr<MatrixType, MemberOp, Direction> >
+#else
+  public MapBase
+#endif
 {
   public:
 
@@ -186,7 +190,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * Example: \include PartialRedux_minCoeff.cpp
       * Output: \verbinclude PartialRedux_minCoeff.out
-      *      
+      *
       * \sa MatrixBase::minCoeff() */
     const typename ReturnType<ei_member_minCoeff>::Type minCoeff() const
     { return _expression(); }
@@ -196,7 +200,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * Example: \include PartialRedux_maxCoeff.cpp
       * Output: \verbinclude PartialRedux_maxCoeff.out
-      *      
+      *
       * \sa MatrixBase::maxCoeff() */
     const typename ReturnType<ei_member_maxCoeff>::Type maxCoeff() const
     { return _expression(); }
@@ -206,7 +210,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * Example: \include PartialRedux_norm2.cpp
       * Output: \verbinclude PartialRedux_norm2.out
-      *      
+      *
       * \sa MatrixBase::norm2() */
     const typename ReturnType<ei_member_norm2>::Type norm2() const
     { return _expression(); }

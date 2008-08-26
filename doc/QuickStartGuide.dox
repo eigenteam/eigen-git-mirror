@@ -1,34 +1,31 @@
 namespace Eigen {
 
-/** \page QuickStartGuide
+/** \page TutorialCore Tutorial 1/3 - Core features
+    \ingroup Tutorial
 
-<h1>Quick start guide</h1>
+<div class="eimainmenu">\ref index "Overview"
+  | \b Core \b features
+  | \ref TutorialGeometry "Geometry"
+  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
+</div>
 
 \b Table \b of \b contents
-  - Core features (Chapter I)
-    - \ref SimpleExampleFixedSize
-    - \ref SimpleExampleDynamicSize
-    - \ref MatrixTypes
-    - \ref MatrixInitialization
-    - \ref BasicLinearAlgebra
-    - \ref Reductions
-    - \ref SubMatrix
-    - \ref MatrixTransformations
-    - \ref TriangularMatrix
-    - \ref Performance
-  - \ref Geometry (Chapter II)
-  - \ref AdvancedLinearAlgebra (Chapter III)
-    - \ref LinearSolvers
-    - \ref LU
-    - \ref Cholesky
-    - \ref QR
-    - \ref EigenProblems
+  - \ref TutorialCoreSimpleExampleFixedSize
+  - \ref TutorialCoreSimpleExampleDynamicSize
+  - \ref TutorialCoreMatrixTypes
+  - \ref TutorialCoreMatrixInitialization
+  - \ref TutorialCoreBasicLinearAlgebra
+  - \ref TutorialCoreReductions
+  - \ref TutorialCoreSubMatrix
+  - \ref TutorialCoreMatrixTransformations
+  - \ref TutorialCoreTriangularMatrix
+  - \ref TutorialCorePerformance
 
-</br>
+\n
 <hr>
 
 
-\section SimpleExampleFixedSize Simple example with fixed-size matrices and vectors
+\section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
 By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
 
@@ -40,7 +37,9 @@ output:
 \include Tutorial_simple_example_fixed_size.out
 </td></tr></table>
 
-<a href="#" class="top">top</a>\section SimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
+
+
+<a href="#" class="top">top</a>\section TutorialCoreSimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
 Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
@@ -57,7 +56,7 @@ output:
 
 
 
-<a href="#" class="top">top</a>\section MatrixTypes Matrix and vector types
+<a href="#" class="top">top</a>\section TutorialCoreMatrixTypes Matrix and vector types
 
 In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the \ref matrixtypedefs "several convenient typedefs".
 
@@ -66,7 +65,7 @@ The template class Matrix takes a number of template parameters, but for now it 
 \code Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime> \endcode
 
 \li \c Scalar is the scalar type, i.e. the type of the coefficients. That is, if you want a vector of floats, choose \c float here.
-\li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time. 
+\li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time.
 
 For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 
@@ -76,8 +75,10 @@ What if the matrix has dynamic-size i.e. the number of rows or cols isn't known 
 
 
 
-<a href="#" class="top">top</a>\section MatrixInitialization Matrix and vector creation and initialization
+<a href="#" class="top">top</a>\section TutorialCoreMatrixInitialization Matrix and vector creation and initialization
 
+
+\subsection TutorialPredefMat PredefinedMatrix
 Eigen offers several methods to create or set matrices with coefficients equals to either a constant value, the identity matrix or even random values:
 <table class="tutorial_code">
 <tr>
@@ -138,6 +139,16 @@ x.setRandom(size);
 \endcode
   </td>
 </tr>
+<tr><td colspan="3">Basis vectors \link MatrixBase::Unit [details]\endlink</td></tr>
+<tr><td>\code
+Vector3f::UnixX() // 1 0 0
+Vector3f::UnixY() // 0 1 0
+Vector3f::UnixZ() // 0 0 1
+\endcode</td><td></td><td>\code
+VectorXf::Unit(size,i)
+VectorXf::Unit(4,1) == Vector4f(0,1,0,0)
+                    == Vector4f::UnitY()
+\endcode
 </table>
 
 Here is an usage example:
@@ -159,7 +170,25 @@ v = 6 6 6
 \endcode
 </td></tr></table>
 
-Eigen also offer a comma initializer syntax which allows to set all the coefficients of a matrix to specific values:
+
+
+\subsection TutorialMap Map
+Any memory buffer can be mapped as an Eigen's expression:
+<table class="tutorial_code"><tr><td>
+\code
+std::vector<float> stlarray(10);
+Map<VectorXf>(&stlarray[0], stlarray.size()).setOnes();
+int data[4] = 1, 2, 3, 4;
+Matrix2i mat2x2(data);
+MatrixXi mat2x2 = Map<Matrix2i>(data);
+MatrixXi mat2x2 = Map<MatrixXi>(data,2,2);
+\endcode
+</td></tr></table>
+
+
+
+\subsection TutorialCommaInit CommaInitializer
+Eigen also offer a comma initializer syntax which allows you to set all the coefficients of a matrix to specific values:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -177,16 +206,16 @@ output:
 \verbinclude Tutorial_commainit_02.out
 </td></tr></table>
 
-<p class="note">\b Side \b note: here .finished() is used to get the actual matrix object once the comma initialization
+<span class="note">\b Side \b note: here .finished() is used to get the actual matrix object once the comma initialization
 of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
-Eigen's comma initializer usually yields to very optimized code without any overhead.</p>
+Eigen's comma initializer usually yields to very optimized code without any overhead.</span>
 
 
 
 
 
 
-<a href="#" class="top">top</a>\section BasicLinearAlgebra Basic Linear Algebra
+<a href="#" class="top">top</a>\section TutorialCoreBasicLinearAlgebra Basic Linear Algebra
 
 In short all mathematically well defined operators can be used right away as in the following example:
 \code
@@ -221,7 +250,7 @@ outer product</td><td>\code
 mat = vec1 * vec2.transpose();\endcode
 </td></tr>
 <tr><td>
-\link MatrixBase::cross() cross product \endcode</td><td>\code
+\link MatrixBase::cross() cross product \endlink</td><td>\code
 #include <Eigen/Geometry>
 vec3 = vec1.cross(vec2);\endcode</td></tr>
 </table>
@@ -287,18 +316,18 @@ mat3 = mat1.cwise().abs2(mat2);
 </table>
 </td></tr></table>
 
-<p class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</p>
+<span class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
 
 
 
 
-<a href="#" class="top">top</a>\section Reductions Reductions
+<a href="#" class="top">top</a>\section TutorialCoreReductions Reductions
 
 Eigen provides several several reduction methods such as:
-\link Cwise::minCoeff() minCoeff() \endlink, \link Cwise::maxCoeff() maxCoeff() \endlink,
-\link Cwise::sum() sum() \endlink, \link Cwise::trace() trace() \endlink,
-\link Cwise::norm() norm() \endlink, \link Cwise::norm2() norm2() \endlink,
-\link Cwise::all() all() \endlink,and \link Cwise::any() any() \endlink.
+\link MatrixBase::minCoeff() minCoeff() \endlink, \link MatrixBase::maxCoeff() maxCoeff() \endlink,
+\link MatrixBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink,
+\link MatrixBase::norm() norm() \endlink, \link MatrixBase::norm2() norm2() \endlink,
+\link MatrixBase::all() all() \endlink,and \link MatrixBase::any() any() \endlink.
 All reduction operations can be done matrix-wise,
 \link MatrixBase::colwise() column-wise \endlink or
 \link MatrixBase::rowwise() row-wise \endlink. Usage example:
@@ -316,13 +345,13 @@ mat = 2 7 8
 \endcode</td></tr>
 </table>
 
-<p class="note">\b Side \b note: The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators (\ref CwiseAll "example").</p>
+<span class="note">\b Side \b note: The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators (\ref CwiseAll "example").</span>
 
 
 
 
 
-<a href="#" class="top">top</a>\section SubMatrix Sub matrices
+<a href="#" class="top">top</a>\section TutorialCoreSubMatrix Sub matrices
 
 Read-write access to a \link MatrixBase::col(int) column \endlink
 or a \link MatrixBase::row(int) row \endlink of a matrix:
@@ -383,7 +412,7 @@ Read-write access to sub-matrices:
 
 
 
-<a href="#" class="top">top</a>\section MatrixTransformations Matrix transformations
+<a href="#" class="top">top</a>\section TutorialCoreMatrixTransformations Matrix transformations
 
 <table class="tutorial_code">
 <tr><td>
@@ -411,11 +440,11 @@ mat3x3 = mat4x4.minor(i,j);\endcode
 </table>
 
 
-<a href="#" class="top">top</a>\section TriangularMatrix Dealing with triangular matrices
+<a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
 
 todo
 
-<a href="#" class="top">top</a>\section Performance Notes on performances
+<a href="#" class="top">top</a>\section TutorialCorePerformance Notes on performances
 
 <table class="tutorial_code">
 <tr><td>\code
@@ -447,17 +476,70 @@ m4 = m4 * m4.transpose().eval();\endcode</td><td>
 forces immediate evaluation of the transpose</td></tr>
 </table>
 
-<a href="#" class="top">top</a>\section Geometry Geometry features
+*/
 
-maybe a second chapter for that
 
-<a href="#" class="top">top</a>\section AdvancedLinearAlgebra Advanced Linear Algebra
-Again, let's do another chapter for that
-\subsection LinearSolvers Solving linear problems
-\subsection LU LU
-\subsection Cholesky Cholesky
-\subsection QR QR
-\subsection EigenProblems Eigen value problems
+
+
+
+
+/** \page TutorialGeometry Tutorial 2/3 - Geometry
+    \ingroup Tutorial
+
+<div class="eimainmenu">\ref index "Overview"
+  | \ref TutorialCore "Core features"
+  | \b Geometry
+  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
+</div>
+
+\b Table \b of \b contents
+  - \ref TutorialGeoRotations
+  - \ref TutorialGeoTransformation
+
+<a href="#" class="top">top</a>\section TutorialGeoRotations 2D and 3D Rotations
+
+todo
+
+<a href="#" class="top">top</a>\section TutorialGeoTransformation 2D and 3D Transformations
+
+todo
+
+*/
+
+
+
+
+
+/** \page TutorialAdvancedLinearAlgebra Tutorial 3/3 - Advanced linear algebra
+    \ingroup Tutorial
+
+<div class="eimainmenu">\ref index "Overview"
+  | \ref TutorialCore "Core features"
+  | \ref TutorialGeometry "Geometry"
+  | \b Advanced \b linear \b algebra
+</div>
+
+\b Table \b of \b contents
+  - \ref TutorialAdvLinearSolvers
+  - \ref TutorialAdvLU
+  - \ref TutorialAdvCholesky
+  - \ref TutorialAdvQR
+  - \ref TutorialAdvEigenProblems
+
+\section TutorialAdvLinearSolvers Solving linear problems
+todo
+
+<a href="#" class="top">top</a>\section TutorialAdvLU LU
+todo
+
+<a href="#" class="top">top</a>\section TutorialAdvCholesky Cholesky
+todo
+
+<a href="#" class="top">top</a>\section TutorialAdvQR QR
+todo
+
+<a href="#" class="top">top</a>\section TutorialAdvEigenProblems Eigen value problems
+todo
 
 */
 

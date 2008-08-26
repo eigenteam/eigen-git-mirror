@@ -42,7 +42,12 @@ struct ei_traits<HashMatrix<_Scalar, _Flags> >
 
 // TODO reimplement this class using custom linked lists
 template<typename _Scalar, int _Flags>
-class HashMatrix : public SparseMatrixBase<HashMatrix<_Scalar, _Flags> >
+class HashMatrix
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public SparseMatrixBase<HashMatrix<_Scalar, _Flags> >
+#else
+  : public SparseMatrixBase
+#endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(HashMatrix)

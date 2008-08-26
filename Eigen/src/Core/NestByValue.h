@@ -52,7 +52,11 @@ struct ei_traits<NestByValue<ExpressionType> >
 };
 
 template<typename ExpressionType> class NestByValue
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<NestByValue<ExpressionType> >
+#else
+  : public MatrixBase
+#endif
 {
   public:
 

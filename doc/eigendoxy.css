@@ -451,8 +451,15 @@ A.top  {
 A.top:hover, A.logo:hover {
   background-color: transparent;font-weight : bolder;
 }
-P.note {
+SPAN.note {
   font-size: 7pt;
+}
+
+DIV.navigation {
+  min-height    : 64px;
+/*   background    : url("Eigen_Silly_Professor_64x64.png") no-repeat left; */
+  padding-left  : 80px;
+  padding-top   : 5px;
 }
 
 TABLE.noborder {
@@ -496,5 +503,10 @@ TABLE.tutorial_code TD {
   vertical-align: middle;
 }
 
+DIV.eimainmenu {
+  text-align:     center;
+/*   border-top:     solid; */
+/*   border-bottom:  solid; */
+}
 
 

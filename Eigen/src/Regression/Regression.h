@@ -76,17 +76,17 @@
   * Let's now describe precisely the parameters:
   * @param numPoints the number of points
   * @param points the array of pointers to the points on which to perform the linear regression
-  * @param retCoefficients pointer to the vector in which to store the result.
-                           This vector must be of the same type and size as the
-                           data points. The meaning of its coords is as follows.
-                           For brevity, let \f$n=Size\f$,
-                           \f$r_i=retCoefficients[i]\f$,
-                           and \f$f=funcOfOthers\f$. Denote by
-                           \f$x_0,\ldots,x_{n-1}\f$
-                           the n coordinates in the n-dimensional space.
-                           Then the result equation is:
-                           \f[ x_f = r_0 x_0 + \cdots + r_{f-1}x_{f-1}
-                            + r_{f+1}x_{f+1} + \cdots + r_{n-1}x_{n-1} + r_n. \f]
+  * @param result pointer to the vector in which to store the result.
+                  This vector must be of the same type and size as the
+                  data points. The meaning of its coords is as follows.
+                  For brevity, let \f$n=Size\f$,
+                  \f$r_i=retCoefficients[i]\f$,
+                  and \f$f=funcOfOthers\f$. Denote by
+                  \f$x_0,\ldots,x_{n-1}\f$
+                  the n coordinates in the n-dimensional space.
+                  Then the result equation is:
+                  \f[ x_f = r_0 x_0 + \cdots + r_{f-1}x_{f-1}
+                   + r_{f+1}x_{f+1} + \cdots + r_{n-1}x_{n-1} + r_n. \f]
   * @param funcOfOthers Determines which coord to express as a function of the
                         others. Coords are numbered starting from 0, so that a
                         value of 0 means \f$x\f$, 1 means \f$y\f$,
@@ -183,7 +183,7 @@ void fitHyperplane(int numPoints,
     VectorType diff = (*(points[i]) - mean).conjugate();
     covMat += diff * diff.adjoint();
   }
-  
+
   // now we just have to pick the eigen vector with smallest eigen value
   SelfAdjointEigenSolver<CovMatrixType> eig(covMat);
   result->start(size) = eig.eigenvectors().col(0);

@@ -59,7 +59,11 @@ struct ei_traits<Part<MatrixType, Mode> >
 };
 
 template<typename MatrixType, unsigned int Mode> class Part
+#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<Part<MatrixType, Mode> >
+#else
+  : public MatrixBase
+#endif
 {
   public:
 

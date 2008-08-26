@@ -60,7 +60,11 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
 };
 
 template<typename MatrixType> class DiagonalCoeffs
-  : public MatrixBase<DiagonalCoeffs<MatrixType> >
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+   : public MatrixBase<DiagonalCoeffs<MatrixType> >
+#else
+  : public MatrixBase
+#endif
 {
   public:
 

@@ -2,11 +2,17 @@ namespace Eigen {
 
 o /** \mainpage Eigen
 
-This is the API documentation for Eigen. 
+<div class="eimainmenu">\b  Overview
+  | \ref TutorialCore "Core features"
+  | \ref TutorialGeometry "Geometry"
+  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
+</div>
+
+This is the API documentation for Eigen.
 
 Most of the API is available as methods in MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there. Other notable classes for the Eigen API are Cwise, which contains the methods for doing certain coefficient-wise operations, and Part.
 
-For a first contact with Eigen, the best place is to have a look at the \ref QuickStartGuide "quick start guide". Then, it is enough to look at Matrix, MatrixBase, and Cwise. In fact, except for advanced use, the only class that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix. For instance, vectors are handled as a special case of Matrix with one column. Typedefs are provided, e.g. Vector2f is a typedef for Matrix<float, 2, 1>. Finally, you might also have look at the \ref ExampleList "the list of selected examples".
+For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial". Then, it is enough to look at Matrix, MatrixBase, and Cwise. In fact, except for advanced use, the only class that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix. For instance, vectors are handled as a special case of Matrix with one column. Typedefs are provided, e.g. Vector2f is a typedef for Matrix<float, 2, 1>. Finally, you might also have look at the \ref ExampleList "the list of selected examples".
 
 Most of the other classes are just return types for MatrixBase methods.
 

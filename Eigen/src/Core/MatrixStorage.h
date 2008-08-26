@@ -39,44 +39,6 @@
   */
 template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage;
 
-template <typename T, int Size, bool Align> struct ei_aligned_array
-{
-  EIGEN_ALIGN_128 T array[Size];
-};
-
-template <typename T, int Size> struct ei_aligned_array<T,Size,false>
-{
-  T array[Size];
-};
-
-template<typename T>
-inline T* ei_aligned_malloc(size_t size)
-{
-  #ifdef EIGEN_VECTORIZE
-  if (ei_packet_traits<T>::size>1)
-  {
-    void* ptr;
-    if (posix_memalign(&ptr, 16, size*sizeof(T))==0)
-      return static_cast<T*>(ptr);
-    else
-      return 0;
-  }
-  else
-  #endif
-    return new T[size];
-}
-
-template<typename T>
-inline void ei_aligned_free(T* ptr)
-{
-  #ifdef EIGEN_VECTORIZE
-  if (ei_packet_traits<T>::size>1)
-    free(ptr);
-  else
-  #endif
-    delete[] ptr;
-}
-
 // purely fixed-size matrix
 template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 {

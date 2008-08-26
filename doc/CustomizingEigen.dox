@@ -4,7 +4,7 @@ namespace Eigen {
 
 <h1>Customizing Eigen</h1>
 
-Eigen2 can be extended in several way, for instance, by defining global methods, \link ExtendingMatrixBase by adding custom methods to MatrixBase \endlink, etc.
+Eigen2 can be extended in several way, for instance, by defining global methods, \ref ExtendingMatrixBase "by adding custom methods to MatrixBase", etc.
 
 \section ExtendingMatrixBase Extending MatrixBase
 

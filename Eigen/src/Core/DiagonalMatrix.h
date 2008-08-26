@@ -56,7 +56,11 @@ struct ei_traits<DiagonalMatrix<CoeffsVectorType> >
 
 template<typename CoeffsVectorType>
 class DiagonalMatrix : ei_no_assignment_operator,
-  public MatrixBase<DiagonalMatrix<CoeffsVectorType> >
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+   public MatrixBase<DiagonalMatrix<CoeffsVectorType> >
+#else
+  public MatrixBase
+#endif
 {
   public:
 
