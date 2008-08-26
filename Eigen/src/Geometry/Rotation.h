@@ -103,7 +103,7 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   }
 };
 
-/** \geometry_module \ingroup Geometry
+/** \geometry_module \ingroup GeometryModule
   *
   * \class Rotation2D
   *
@@ -114,7 +114,7 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   * This class is equivalent to a single scalar representing a counter clock wise rotation
   * as a single angle in radian. It provides some additional features such as the automatic
   * conversion from/to a 2x2 rotation matrix. Moreover this class aims to provide a similar
-  * interface to Quaternion in order to facilitate the writing of generic algorithm
+  * interface to Quaternion in order to facilitate the writing of generic algorithms
   * dealing with rotations.
   *
   * \sa class Quaternion, class Transform

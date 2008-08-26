@@ -9,8 +9,9 @@
 namespace Eigen {
 
 /** \defgroup Core_Module Core module
-  * This is the main module of Eigen providing dense matrix and vector support with
-  * features equivalent to a BLAS library and much more...
+  * This is the main module of Eigen providing dense matrix and vector support
+  * (both fixed and dynamic size) with all the features corresponding to a BLAS library
+  * and much more...
   *
   * \code
   * #include <Eigen/Core>

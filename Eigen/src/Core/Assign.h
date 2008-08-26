@@ -299,58 +299,28 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, InnerUnrolling>
 *** Linear vectorization ***
 ***************************/
 
-// template<typename Derived1, typename Derived2>
-// struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
-// {
-//   static void run(Derived1 &dst, const Derived2 &src)
-//   {
-//     const int size = dst.size();
-//     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-//     const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-//                            : ei_alignmentOffset(&dst.coeffRef(0), size);
-//     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
-// 
-//     for(int index = 0; index < alignedStart; index++)
-//       dst.copyCoeff(index, src);
-// 
-//     for(int index = alignedStart; index < alignedEnd; index += packetSize)
-//     {
-//       dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
-//     }
-// 
-//     for(int index = alignedEnd; index < size; index++)
-//       dst.copyCoeff(index, src);
-//   }
-// };
 template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 {
- static void run(Derived1 &dst, const Derived2 &src)
- {
-   asm("#begin");
-   const int size = dst.size();
-   const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-   const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                          : ei_alignmentOffset(&dst.coeffRef(0), size);
-   const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
+  static void run(Derived1 &dst, const Derived2 &src)
+  {
+    const int size = dst.size();
+    const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
+    const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
+                           : ei_alignmentOffset(&dst.coeffRef(0), size);
+    const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-   asm("#unaligned start");
+    for(int index = 0; index < alignedStart; index++)
+      dst.copyCoeff(index, src);
 
-   for(int index = 0; index < alignedStart; index++)
-     dst.copyCoeff(index, src);
-   asm("#aligned middle");
+    for(int index = alignedStart; index < alignedEnd; index += packetSize)
+    {
+      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
+    }
 
-   for(int index = alignedStart; index < alignedEnd; index += packetSize)
-   {
-     dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
-   }
-
-   asm("#unaligned end");
-
-   for(int index = alignedEnd; index < size; index++)
-     dst.copyCoeff(index, src);
-   asm("#end");
- }
+    for(int index = alignedEnd; index < size; index++)
+      dst.copyCoeff(index, src);
+  }
 };
 
 template<typename Derived1, typename Derived2>

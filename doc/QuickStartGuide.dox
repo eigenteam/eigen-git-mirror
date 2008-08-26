@@ -492,17 +492,88 @@ forces immediate evaluation of the transpose</td></tr>
   | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
 </div>
 
+In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref GeometryModule "geometry module",
+namely 2D and 3D rotations and affine transformations.
+
 \b Table \b of \b contents
   - \ref TutorialGeoRotations
   - \ref TutorialGeoTransformation
 
 <a href="#" class="top">top</a>\section TutorialGeoRotations 2D and 3D Rotations
 
-todo
+\subsection TutorialGeoRotationTypes Rotation types
 
-<a href="#" class="top">top</a>\section TutorialGeoTransformation 2D and 3D Transformations
 
-todo
+<table class="tutorial_code">
+<tr><td>Rotation type</td><td>Typical initialization code</td><td>Recommended usage</td></tr>
+<tr><td>2D rotation from an angle</td><td>\code
+Rotation2D<float> rot2(angle_in_radian);\endcode</td><td></td></tr>
+<tr><td>2D rotation matrix</td><td>\code
+Matrix2f rotmat2 = Rotation2Df(angle_in_radian);\endcode</td><td></td></tr>
+<tr><td>3D rotation as an angle + axis</td><td>\code
+AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode</td><td></td></tr>
+<tr><td>3D rotation as a quaternion</td><td>\code
+Quaternion<float> q = AngleAxis<float>(angle_in_radian, axis);\endcode</td><td></td></tr>
+<tr><td>3D rotation matrix</td><td>\code
+Matrix3f rotmat3 = AngleAxis<float>(angle_in_radian, axis);\endcode</td><td></td></tr>
+</table>
+
+To transform more than a single vector the prefered representations are rotation matrices,
+for other usage Rotation2D and Quaternion are the representations of choice as they are
+more compact, fast and stable. AngleAxis are only useful to create other rotation objects.
+
+\subsection TutorialGeoCommonRotationAPI Common API of rotation types
+
+To some extent, Eigen's \ref Geometry_Module "geometry module" allows you to write
+generic algorithms working on both 2D and 3D rotations of any of the five above types.
+The following operation are supported:
+<table class="tutorial_code">
+<tr><td>Convertion from and to any types (of same space dimension)</td><td>\code
+RotType2 a = RotType1();\endcode</td></tr>
+<tr><td>Concatenation of two rotations</td><td>\code
+rot3 = rot1 * rot2;\endcode</td></tr>
+<tr><td>Apply the rotation to a vector</td><td>\code
+vec2 = rot1 * vec1;\endcode</td></tr>
+<tr><td>Get the inverse rotation \n (not always the most effient choice)</td><td>\code
+rot2 = rot1.inverse();\endcode</td></tr>
+<tr><td>Spherical interpolation \n (Rotation2D and Quaternion only)</td><td>\code
+rot3 = rot1.slerp(alpha,rot2);\endcode</td></tr>
+</table>
+
+\subsection TutorialGeoEulerAngles Euler angles
+<table class="tutorial_code">
+<tr><td style="max-width:30em;">
+Euler angles might be convenient to create rotation object.
+Since there exist 24 differents convensions, they are one
+the ahand pretty confusing to use. This example shows how
+to create a rotation matrix according to the 2-1-2 convention.</td><td>\code
+Matrix3f m;
+m = AngleAxisf(angle1, Vector3f::UnitZ())
+  * AngleAxisf(angle2, Vector3f::UnitY())
+  * AngleAxisf(angle3, Vector3f::UnitZ());
+\endcode</td></tr>
+</table>
+
+<a href="#" class="top">top</a>\section TutorialGeoTransformation Affine transformations
+In Eigen we have chosen to not distinghish between points and vectors such that all points are
+actually represented by displacement vector from the origine (pt \~ pt-0). With that in mind,
+real points and vector distinguish when the rotation is applied.
+<table class="tutorial_code">
+<tr><td>Creation</td><td>\code
+Transform3f t;
+t.setFrom \endcode</td></tr>
+<tr><td>Apply the transformation to a \b point </td><td>\code
+Vector3f p1, p2;
+p2 = t * p1;\endcode</td></tr>
+<tr><td>Apply the transformation to a \b vector </td><td>\code
+Vector3f v1, v2;
+v2 = t.linear() * v1;\endcode</td></tr>
+<tr><td>Concatenate two transformations</td><td>\code
+t3 = t1 * t2;\endcode</td></tr>
+<tr><td>OpenGL compatibility</td><td>\code
+glLoadMatrixf(t.data());\endcode</td></tr>
+</table>
+
 
 */
 
@@ -518,6 +589,8 @@ todo
   | \ref TutorialGeometry "Geometry"
   | \b Advanced \b linear \b algebra
 </div>
+
+
 
 \b Table \b of \b contents
   - \ref TutorialAdvLinearSolvers

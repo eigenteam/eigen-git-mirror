@@ -30,7 +30,7 @@ template<typename Other,
          int OtherCols=Other::ColsAtCompileTime>
 struct ei_quaternion_assign_impl;
 
-/** \geometry_module \ingroup Geometry
+/** \geometry_module \ingroup GeometryModule
   *
   * \class Quaternion
   *
@@ -169,10 +169,10 @@ public:
 
 };
 
-/** \ingroup Geometry
+/** \ingroup GeometryModule
   * single precision quaternion type */
 typedef Quaternion<float> Quaternionf;
-/** \ingroup Geometry
+/** \ingroup GeometryModule
   * double precision quaternion type */
 typedef Quaternion<double> Quaterniond;
 

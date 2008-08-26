@@ -25,7 +25,7 @@
 #ifndef EIGEN_ANGLEAXIS_H
 #define EIGEN_ANGLEAXIS_H
 
-/** \geometry_module \ingroup Geometry
+/** \geometry_module \ingroup GeometryModule
   *
   * \class AngleAxis
   *
@@ -122,10 +122,10 @@ public:
   Matrix3 toRotationMatrix(void) const;
 };
 
-/** \ingroup Geometry
+/** \ingroup GeometryModule
   * single precision angle-axis type */
 typedef AngleAxis<float> AngleAxisf;
-/** \ingroup Geometry
+/** \ingroup GeometryModule
   * double precision angle-axis type */
 typedef AngleAxis<double> AngleAxisd;
 

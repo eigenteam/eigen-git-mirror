@@ -7,8 +7,8 @@ In order to generate the documentation of Eigen, please follow these steps:
   <li>make sure you have the required software installed: cmake, doxygen, and a C++ compiler.
   <li>create a new directory, which we will call the "build directory", outside of the Eigen source directory.</li>
   <li>enter the build directory</li>
-  <li>configure the project: <pre>cmake -DBUILD_DOC=ON /path/to/source/directory</pre></li>
-  <li>now generate the documentaion: <pre>make</pre> or, if you have two CPUs, <pre>make -j2</pre> Note that this will compile the examples, run them, and integrate their output into the documentation, which can take some time.</li>
+  <li>configure the project: <pre>cmake /path/to/source/directory</pre></li>
+  <li>now generate the documentaion: <pre>make doc</pre> or, if you have two CPUs, <pre>make doc -j2</pre> Note that this will compile the examples, run them, and integrate their output into the documentation, which can take some time.</li>
 </ul>
 
 After doing that, you will find the HTML documentation in the doc/html/ subdirectory of the build directory.

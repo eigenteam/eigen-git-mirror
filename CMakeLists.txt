@@ -5,7 +5,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 OPTION(BUILD_TESTS "Build tests" OFF)
-OPTION(BUILD_DOC "Build documentation and examples" OFF)
 OPTION(BUILD_DEMOS "Build demos" OFF)
 OPTION(BUILD_LIB "Build the binary shared library" OFF)
 OPTION(BUILD_BTL "Build benchmark suite" OFF)

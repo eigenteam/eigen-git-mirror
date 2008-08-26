@@ -1,4 +1,5 @@
-IF(BUILD_DOC)
+
+SET_DIRECTORY_PROPERTIES(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   IF(CMAKE_SYSTEM_NAME MATCHES Linux)
@@ -28,7 +29,7 @@ ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(snippets)
 
 ADD_CUSTOM_TARGET(
-  run_doxygen
+  doc
   ALL
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
@@ -39,6 +40,4 @@ ADD_CUSTOM_TARGET(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-ADD_DEPENDENCIES(run_doxygen all_snippets all_examples)
-
-ENDIF(BUILD_DOC)
+ADD_DEPENDENCIES(doc all_snippets all_examples)
