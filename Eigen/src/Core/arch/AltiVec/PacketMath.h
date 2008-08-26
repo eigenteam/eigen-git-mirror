@@ -29,10 +29,10 @@
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
 #endif
 
-typedef vector float          v4f;
-typedef vector int            v4i;
-typedef vector unsigned int   v4ui;
-typedef vector __bool int     v4bi;
+typedef __vector float          v4f;
+typedef __vector int            v4i;
+typedef __vector unsigned int   v4ui;
+typedef __vector __bool int     v4bi;
 
 // We don't want to write the same code all the time, but we need to reuse the constants
 // and it doesn't really work to declare them global, so we define macros instead
@@ -87,7 +87,7 @@ std::ostream & operator <<(std::ostream & s, const v4ui & v)
 std::ostream & operator <<(std::ostream & s, const v4bi & v)
 {
   union {
-    vector __bool int v;
+    __vector __bool int v;
     unsigned int n[4];
   } vt;
   vt.v = v;
@@ -120,8 +120,8 @@ template<> inline v4i  ei_pmul(const v4i&   a, const v4i&   b)
 
   // Do the multiplication for the asbolute values.
   bswap = (v4i) vec_rl((v4ui) b1, (v4ui) v16i_ );
-  low_prod = vec_mulo((vector short)a1, (vector short)b1);
-  high_prod = vec_msum((vector short)a1, (vector short)bswap, v0i);
+  low_prod = vec_mulo((__vector short)a1, (__vector short)b1);
+  high_prod = vec_msum((__vector short)a1, (__vector short)bswap, v0i);
   high_prod = (v4i) vec_sl((v4ui) high_prod, (v4ui) v16i_);
   prod = vec_add( low_prod, high_prod );
 
@@ -169,8 +169,8 @@ template<> inline v4i  ei_pload(const int*   from) { return vec_ld(0, from); }
 template<> inline v4f  ei_ploadu(const float*  from)
 {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  vector unsigned char MSQ, LSQ;
-  vector unsigned char mask;
+  __vector unsigned char MSQ, LSQ;
+  __vector unsigned char mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)from);         // least significant quadword
   mask = vec_lvsl(0, from);                        // create the permute mask
@@ -180,8 +180,8 @@ template<> inline v4f  ei_ploadu(const float*  from)
 template<> inline v4i    ei_ploadu(const int*    from)
 {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  vector unsigned char MSQ, LSQ;
-  vector unsigned char mask;
+  __vector unsigned char MSQ, LSQ;
+  __vector unsigned char mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)from);         // least significant quadword
   mask = vec_lvsl(0, from);                        // create the permute mask
@@ -214,16 +214,16 @@ template<> inline void ei_pstoreu(float*  to, const v4f&   from)
 {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   // Warning: not thread safe!
-  vector unsigned char MSQ, LSQ, edges;
-  vector unsigned char edgeAlign, align;
+  __vector unsigned char MSQ, LSQ, edges;
+  __vector unsigned char edgeAlign, align;
 
   MSQ = vec_ld(0, (unsigned char *)to);                     // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)to);                    // least significant quadword
   edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
   edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
   align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(vector unsigned char)from,align);   // misalign the data (MSQ)
-  LSQ = vec_perm((vector unsigned char)from,edges,align);   // misalign the data (LSQ)
+  MSQ = vec_perm(edges,(__vector unsigned char)from,align);   // misalign the data (MSQ)
+  LSQ = vec_perm((__vector unsigned char)from,edges,align);   // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
@@ -232,16 +232,16 @@ template<> inline void ei_pstoreu(int*    to , const v4i&    from )
 {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   // Warning: not thread safe!
-  vector unsigned char MSQ, LSQ, edges;
-  vector unsigned char edgeAlign, align;
+  __vector unsigned char MSQ, LSQ, edges;
+  __vector unsigned char edgeAlign, align;
 
   MSQ = vec_ld(0, (unsigned char *)to);                     // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)to);                    // least significant quadword
   edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
   edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
   align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(vector unsigned char)from,align);   // misalign the data (MSQ)
-  LSQ = vec_perm((vector unsigned char)from,edges,align);   // misalign the data (LSQ)
+  MSQ = vec_perm(edges,(__vector unsigned char)from,align);   // misalign the data (MSQ)
+  LSQ = vec_perm((__vector unsigned char)from,edges,align);   // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
