@@ -40,10 +40,10 @@ typedef __vector __bool int     v4bi;
 #define USE_CONST_v0i     const v4i   v0i   = vec_splat_s32(0)
 #define USE_CONST_v1i     const v4i   v1i   = vec_splat_s32(1)
 #define USE_CONST_v16i_   const v4i   v16i_ = vec_splat_s32(-16)
-#define USE_CONST_v0f     USE_CONST_v0i; const v4f v0f = (v4f) v0i;
-#define USE_CONST_v1f     USE_CONST_v1i; const v4f v1f = vec_ctf(v1i, 0);
-#define USE_CONST_v1i_    const v4ui  v1i_  = vec_splat_u32(-1);
-#define USE_CONST_v0f_    USE_CONST_v1i_; const v4f v0f_ = (v4f) vec_sl(v1i_, v1i_);
+#define USE_CONST_v0f     USE_CONST_v0i; const v4f v0f = (v4f) v0i
+#define USE_CONST_v1f     USE_CONST_v1i; const v4f v1f = vec_ctf(v1i, 0)
+#define USE_CONST_v1i_    const v4ui  v1i_  = vec_splat_u32(-1)
+#define USE_CONST_v0f_    USE_CONST_v1i_; const v4f v0f_ = (v4f) vec_sl(v1i_, v1i_)
 
 template<> struct ei_packet_traits<float>  { typedef v4f type; enum {size=4}; };
 template<> struct ei_packet_traits<int>    { typedef v4i type; enum {size=4}; };
