@@ -31,6 +31,7 @@ ADD_SUBDIRECTORY(snippets)
 ADD_CUSTOM_TARGET(
   doc
   ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Eigen_Silly_Professor_64x64.png

@@ -32,7 +32,7 @@ PROJECT_NAME           = Eigen
 # if some version control system is used.
 
 #EIGEN_VERSION is set in the root CMakeLists.txt
-PROJECT_NUMBER         = ${EIGEN_VERSION}
+PROJECT_NUMBER         = "${EIGEN_VERSION}"
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.

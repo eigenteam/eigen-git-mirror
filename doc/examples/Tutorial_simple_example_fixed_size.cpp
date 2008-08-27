@@ -3,7 +3,7 @@
 // import most common Eigen's types 
 USING_PART_OF_NAMESPACE_EIGEN
 
-int main(int argc, char *argv[])
+int main(int, char *[])
 {
   Matrix3f m3;
   m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;

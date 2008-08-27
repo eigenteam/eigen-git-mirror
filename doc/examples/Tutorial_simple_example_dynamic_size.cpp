@@ -3,7 +3,7 @@
 // import most common Eigen's types 
 USING_PART_OF_NAMESPACE_EIGEN
 
-int main(int argc, char *argv[])
+int main(int, char *[])
 {
   for (int size=1; size<=4; ++size)
   {
