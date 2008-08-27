@@ -27,8 +27,11 @@
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
     #include <altivec.h>
-    // We _need_ to #undef bool as it's defined in <altivec.h> for some reason.
+    // We _need_ to #undef all these ugly tokens defined in <altivec.h>
+    // => use __vector instead of vector
     #undef bool
+    #undef vector
+    #undef pixel
   #endif
 #endif
 
