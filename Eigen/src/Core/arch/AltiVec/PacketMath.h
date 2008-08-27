@@ -51,7 +51,7 @@ template<> struct ei_packet_traits<int>    { typedef v4i type; enum {size=4}; };
 template<> struct ei_unpacket_traits<v4f>  { typedef float  type; enum {size=4}; };
 template<> struct ei_unpacket_traits<v4i>  { typedef int    type; enum {size=4}; };
 
-std::ostream & operator <<(std::ostream & s, const v4f & v)
+inline std::ostream & operator <<(std::ostream & s, const v4f & v)
 {
   union {
     v4f   v;
@@ -62,7 +62,7 @@ std::ostream & operator <<(std::ostream & s, const v4f & v)
   return s;
 }
 
-std::ostream & operator <<(std::ostream & s, const v4i & v)
+inline std::ostream & operator <<(std::ostream & s, const v4i & v)
 {
   union {
     v4i   v;
@@ -73,7 +73,7 @@ std::ostream & operator <<(std::ostream & s, const v4i & v)
   return s;
 }
 
-std::ostream & operator <<(std::ostream & s, const v4ui & v)
+inline std::ostream & operator <<(std::ostream & s, const v4ui & v)
 {
   union {
     v4ui   v;
@@ -84,7 +84,7 @@ std::ostream & operator <<(std::ostream & s, const v4ui & v)
   return s;
 }
 
-std::ostream & operator <<(std::ostream & s, const v4bi & v)
+inline std::ostream & operator <<(std::ostream & s, const v4bi & v)
 {
   union {
     __vector __bool int v;
