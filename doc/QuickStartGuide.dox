@@ -522,7 +522,7 @@ To transform more than a single vector the prefered representations are rotation
 for other usage Rotation2D and Quaternion are the representations of choice as they are
 more compact, fast and stable. AngleAxis are only useful to create other rotation objects.
 
-\subsection TutorialGeoCommonRotationAPI Common API of rotation types
+\subsection TutorialGeoCommonRotationAPI Common API across rotation types
 
 To some extent, Eigen's \ref Geometry_Module "geometry module" allows you to write
 generic algorithms working on both 2D and 3D rotations of any of the five above types.
@@ -559,19 +559,76 @@ In Eigen we have chosen to not distinghish between points and vectors such that 
 actually represented by displacement vector from the origine (pt \~ pt-0). With that in mind,
 real points and vector distinguish when the rotation is applied.
 <table class="tutorial_code">
-<tr><td>Creation</td><td>\code
+<tr><td></td><td>\b 3D </td><td>\b 2D </td></tr>
+<tr><td>Creation \n <span class="note">rot2D can also be an angle in radian</span></td><td>\code
 Transform3f t;
-t.setFrom \endcode</td></tr>
+t.fromPositionOrientationScale(
+  pos,any_3D_rotation,Vector3f(sx,sy,sz)); \endcode</td><td>\code
+Transform2f t;
+t.fromPositionOrientationScale(
+  pos,any_2D_rotation,Vector2f(sx,sy)); \endcode</td></tr>
 <tr><td>Apply the transformation to a \b point </td><td>\code
 Vector3f p1, p2;
+p2 = t * p1;\endcode</td><td>\code
+Vector2f p1, p2;
 p2 = t * p1;\endcode</td></tr>
 <tr><td>Apply the transformation to a \b vector </td><td>\code
 Vector3f v1, v2;
+v2 = t.linear() * v1;\endcode</td><td>\code
+Vector2f v1, v2;
 v2 = t.linear() * v1;\endcode</td></tr>
 <tr><td>Concatenate two transformations</td><td>\code
+t3 = t1 * t2;\endcode</td><td>\code
 t3 = t1 * t2;\endcode</td></tr>
 <tr><td>OpenGL compatibility</td><td>\code
-glLoadMatrixf(t.data());\endcode</td></tr>
+glLoadMatrixf(t.data());\endcode</td><td>\code
+Transform3f aux(Transform3f::Identity);
+aux.linear().corner<2,2>(TopLeft) = t.linear();
+aux.translation().start<2>() = t.translation();
+glLoadMatrixf(aux.data());\endcode</td></tr>
+<tr><td colspan="3">\b Component \b accessors</td></tr>
+<tr><td>translation part</td><td>\code
+t.translation() = vec3;
+vec3 = t.translation();
+\endcode</td><td>\code
+t.translation() = vec2;
+vec2 = t.translation();
+\endcode</td></tr>
+<tr><td>linear part</td><td>\code
+t.linear() = mat3x3;
+mat3x3 = t.linear();
+\endcode</td><td>\code
+t.linear() = mat2x2;
+mat2x2 = t.linear();
+\endcode</td></tr>
+<tr><td colspan="3">\b Editing \b shortcuts</td></tr>
+<tr><td>Applies a translation</td><td>\code
+t.translate(Vector3f(tx, ty, tz));
+t.pretranslate(Vector3f(tx, ty, tz));
+\endcode</td><td>\code
+t.translate(Vector2f(tx, ty));
+t.pretranslate(Vector2f(tx, ty));
+\endcode</td></tr>
+<tr><td>Applies a rotation \n <span class="note">rot2D can also be an angle in radian</span></td><td>\code
+t.rotate(rot3D);
+t.prerotate(rot3D);
+\endcode</td><td>\code
+t.rotate(rot2D);
+t.prerotate(rot2D);
+\endcode</td></tr>
+<tr><td>Applies a scaling</td><td>\code
+t.scale(Vector3f(sx, sy, sz));
+t.scale(Vector3f::Constant(s));
+t.prescale(Vector3f(sx, sy, sz));
+\endcode</td><td>\code
+t.scale(Vector2f(tx, ty));
+t.scale(Vector2f::Constant(s));
+t.prescale(Vector2f(tx, ty));
+\endcode</td></tr>
+<tr><td>Applies a shear transformation \n(2D only)</td><td></td><td>\code
+t.shear(sx,sy);
+t.preshear(sx,sy);
+\endcode</td></tr>
 </table>
 
 
