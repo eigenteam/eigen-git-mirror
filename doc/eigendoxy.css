@@ -452,12 +452,11 @@ A.top:hover, A.logo:hover {
   background-color: transparent;font-weight : bolder;
 }
 SPAN.note {
-  font-size: 7pt;
+  font-size: 8.5pt;
 }
 
 DIV.navigation {
   min-height    : 64px;
-/*   background    : url("Eigen_Silly_Professor_64x64.png") no-repeat left; */
   padding-left  : 80px;
   padding-top   : 5px;
 }

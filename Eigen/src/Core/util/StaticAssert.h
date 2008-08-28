@@ -121,5 +121,4 @@
     || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime))),\
     you_mixed_matrices_of_different_sizes)
 
-
 #endif // EIGEN_STATIC_ASSERT_H

@@ -25,6 +25,7 @@ namespace Eigen {
   */
 
 #include "src/Core/util/Memory.h"
+
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
 #include "src/Core/GenericPacketMath.h"

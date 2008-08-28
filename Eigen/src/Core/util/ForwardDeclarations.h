@@ -81,6 +81,8 @@ template<typename Scalar> struct ei_scalar_min_op;
 template<typename Scalar> struct ei_scalar_max_op;
 template<typename Scalar> struct ei_scalar_random_op;
 template<typename Scalar> struct ei_scalar_add_op;
+template<typename Scalar> struct ei_scalar_constant_op;
+template<typename Scalar> struct ei_scalar_identity_op;
 
 struct IOFormat;
 

@@ -161,8 +161,7 @@ public:
   { return m_angle += other.m_angle; }
 
   /** Applies the rotation to a 2D vector */
-  template<typename Derived>
-  Vector2 operator* (const MatrixBase<Derived>& vec) const
+  Vector2 operator* (const Vector2& vec) const
   { return toRotationMatrix() * vec; }
 
   template<typename Derived>

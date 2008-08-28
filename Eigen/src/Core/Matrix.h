@@ -335,7 +335,8 @@ class Matrix
     inline Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
-      Base::lazyAssign(other.derived());
+      ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
+      //Base::operator=(other.derived());
     }
     /** Copy constructor */
     inline Matrix(const Matrix& other)

@@ -187,8 +187,8 @@ MatrixXi mat2x2 = Map<MatrixXi>(data,2,2);
 
 
 
-\subsection TutorialCommaInit CommaInitializer
-Eigen also offer a comma initializer syntax which allows you to set all the coefficients of a matrix to specific values:
+\subsection TutorialCommaInit Comma initializer
+Eigen also offer a \link MatrixBase::operator<<(const Scalar &) comma initializer syntax \endlink which allows you to set all the coefficients of a matrix to specific values:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -206,7 +206,8 @@ output:
 \verbinclude Tutorial_commainit_02.out
 </td></tr></table>
 
-<span class="note">\b Side \b note: here .finished() is used to get the actual matrix object once the comma initialization
+<span class="note">\b Side \b note: here \link CommaInitializer::finished() .finished() \endlink
+is used to get the actual matrix object once the comma initialization
 of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
 Eigen's comma initializer usually yields to very optimized code without any overhead.</span>
 
@@ -263,7 +264,7 @@ most common coefficient wise operators:
 <table class="noborder">
 <tr><td>
 <table class="tutorial_code" style="margin-right:10pt">
-<tr><td>Coefficient wise product</td>
+<tr><td>Coefficient wise \link Cwise::operator*() product \endlink</td>
 <td>\code mat3 = mat1.cwise() * mat2; \endcode
 </td></tr>
 <tr><td>
@@ -274,11 +275,11 @@ mat3.cwise() -= scalar;
 \endcode
 </td></tr>
 <tr><td>
-Coefficient wise division</td><td>\code
+Coefficient wise \link Cwise::operator/() division \endlink</td><td>\code
 mat3 = mat1.cwise() / mat2; \endcode
 </td></tr>
 <tr><td>
-Coefficient wise reciprocal</td><td>\code
+Coefficient wise \link Cwise::inverse() reciprocal \endlink</td><td>\code
 mat3 = mat1.cwise().inverse(); \endcode
 </td></tr>
 <tr><td>
@@ -293,13 +294,17 @@ etc.
 </td>
 <td><table class="tutorial_code">
 <tr><td>
-Trigo:\n sin, cos, tan</td><td>\code
+\b Trigo: \n
+\link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink,
+\link Cwise::tan tan \endlink</td><td>\code
 mat3 = mat1.cwise().sin();
 etc.
 \endcode
 </td></tr>
 <tr><td>
-Power:\n pow, square, cube,\n sqrt, exp, log</td><td>\code
+\b Power: \n \link Cwise::pow() pow \endlink, \link Cwise::square square \endlink,
+\link Cwise::cube cube \endlink, \n \link Cwise::sqrt sqrt \endlink,
+\link Cwise::exp exp \endlink, \link Cwise::log log \endlink </td><td>\code
 mat3 = mat1.cwise().square();
 mat3 = mat1.cwise().pow(5);
 mat3 = mat1.cwise().log();
@@ -307,7 +312,9 @@ etc.
 \endcode
 </td></tr>
 <tr><td>
-min, max, absolute value</td><td>\code
+\link Cwise::min min \endlink, \link Cwise::max max \endlink, \n
+absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endlink
+</td><td>\code
 mat3 = mat1.cwise().min(mat2);
 mat3 = mat1.cwise().max(mat2);
 mat3 = mat1.cwise().abs(mat2);
@@ -426,6 +433,13 @@ mat3.transpose() = mat1 * mat2.transpose();
 mat3 = mat1.adjoint() * mat2;
 mat3 = mat1.conjugate().transpose() * mat2;
 \endcode
+</td></tr>
+<tr><td>
+returns a \link MatrixBase::normalized() normalized \endlink vector \n
+\link MatrixBase::normalize() normalize \endlink a vector
+</td><td>\code
+vec3 = vec1.normalized();
+vec1.normalize();\endcode
 </td></tr>
 <tr><td>
 \link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
