@@ -54,12 +54,6 @@ namespace Eigen {
   * \code
   * #include <Eigen/Core>
   * \endcode
-  *
-  * To speedup compilation, in header files you might only include the following file:
-  * \code
-  * #include <Eigen/CoreDeclaration>
-  * \endcode
-  * which gives access to matrix and vector types as well as coefficient accessor operators.
   */
 
 #include "src/Core/util/Macros.h"
