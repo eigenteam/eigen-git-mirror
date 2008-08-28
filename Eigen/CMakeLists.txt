@@ -1,4 +1,4 @@
-SET(Eigen_HEADERS Core CoreDeclarations LU Cholesky QR Geometry Sparse Array SVD Regression)
+SET(Eigen_HEADERS Core LU Cholesky QR Geometry Sparse Array SVD Regression)
 
 IF(BUILD_LIB)
     SET(Eigen_SRCS
