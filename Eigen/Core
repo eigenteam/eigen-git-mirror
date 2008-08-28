@@ -1,7 +1,45 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
-#include "CoreDeclarations"
+#ifdef _MSC_VER
+#pragma warning( disable : 4181 4244 )
+#endif
+
+#ifdef __GNUC__
+#define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+#else
+#define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+
+#ifndef EIGEN_DONT_VECTORIZE
+  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_SSE
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef __SSE3__
+      #include <pmmintrin.h>
+    #endif
+    #ifdef __SSSE3__
+      #include <tmmintrin.h>
+    #endif
+  #elif (defined __ALTIVEC__)
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_ALTIVEC
+    #include <altivec.h>
+    // We _need_ to #undef all these ugly tokens defined in <altivec.h>
+    // => use __vector instead of vector
+    #undef bool
+    #undef vector
+    #undef pixel
+  #endif
+#endif
+
+#include <cstdlib>
+#include <cmath>
+#include <complex>
+#include <cassert>
+#include <functional>
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -24,6 +62,12 @@ namespace Eigen {
   * which gives access to matrix and vector types as well as coefficient accessor operators.
   */
 
+#include "src/Core/util/Macros.h"
+#include "src/Core/util/Constants.h"
+#include "src/Core/util/ForwardDeclarations.h"
+#include "src/Core/util/Meta.h"
+#include "src/Core/util/XprHelper.h"
+#include "src/Core/util/StaticAssert.h"
 #include "src/Core/util/Memory.h"
 
 #include "src/Core/NumTraits.h"

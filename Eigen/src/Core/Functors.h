@@ -247,13 +247,13 @@ struct ei_functor_traits<ei_scalar_real_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, MatrixBase::operator*, MatrixBase::operator/
   */
-/* NOTE why doing the ei_pset1() *is* an optimization ?
+/* NOTE why doing the ei_pset1() in packetOp *is* an optimization ?
  * indeed it seems better to declare m_other as a PacketScalar and do the ei_pset1() once
  * in the constructor. However, in practice:
  *  - GCC does not like m_other as a PacketScalar and generate a load every time it needs it
  *  - one the other hand GCC is able to moves the ei_pset1() away the loop :)
  *  - simpler code ;)
- * (ICC performs well in both cases)
+ * (ICC and gcc 4.4 seems to perform well in both cases, the issue is visible with y = a*x + b*y)
  */
 template<typename Scalar>
 struct ei_scalar_multiple_op {

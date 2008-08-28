@@ -175,6 +175,13 @@ public:
   { return m_angle * (1-t) + t * other; }
 };
 
+/** \ingroup GeometryModule
+  * single precision 2D rotation type */
+typedef Rotation2D<float> Rotation2Df;
+/** \ingroup GeometryModule
+  * double precision 2D rotation type */
+typedef Rotation2D<double> Rotation2Dd;
+
 /** Set \c *this from a 2x2 rotation matrix \a mat.
   * In other words, this function extract the rotation angle
   * from the rotation matrix.
