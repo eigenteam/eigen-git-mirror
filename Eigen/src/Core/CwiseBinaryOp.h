@@ -76,11 +76,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : ei_no_assignment_operator,
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
-#else
-  public MatrixBase
-#endif
 {
   public:
 

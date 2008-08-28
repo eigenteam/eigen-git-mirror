@@ -57,11 +57,7 @@ struct ei_traits<Map<MatrixType, _PacketAccess> > : public ei_traits<MatrixType>
 };
 
 template<typename MatrixType, int PacketAccess> class Map
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MapBase<Map<MatrixType, PacketAccess> >
-#else
-  : public MapBase
-#endif
 {
   public:
 

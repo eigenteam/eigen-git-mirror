@@ -53,11 +53,7 @@ struct ei_traits<SparseMatrix<_Scalar, _Flags> >
 
 template<typename _Scalar, int _Flags>
 class SparseMatrix
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
-#else
-  : public SparseMatrixBase
-#endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(SparseMatrix)

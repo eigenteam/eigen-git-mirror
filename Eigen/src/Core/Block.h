@@ -88,11 +88,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
 };
 
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus> class Block
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, PacketAccess, _DirectAccessStatus> >
-#else
-  : public MatrixBase
-#endif
 {
   public:
 
@@ -215,11 +211,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
 /** \internal */
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess>
 class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MapBase<Block<MatrixType, BlockRows, BlockCols,PacketAccess,HasDirectAccess> >
-#else
-  : public MapBase
-#endif
 {
   public:
 

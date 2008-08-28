@@ -69,11 +69,7 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 
 template< typename MatrixType, typename MemberOp, int Direction>
 class PartialReduxExpr : ei_no_assignment_operator,
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<PartialReduxExpr<MatrixType, MemberOp, Direction> >
-#else
-  public MapBase
-#endif
 {
   public:
 

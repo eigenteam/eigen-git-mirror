@@ -38,6 +38,7 @@ ADD_CUSTOM_TARGET(
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildexamplelist.sh ${CMAKE_SOURCE_DIR} > ${CMAKE_CURRENT_BINARY_DIR}/ExampleList.dox
   COMMAND doxygen
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cleanhierarchy.sh ${CMAKE_CURRENT_BINARY_DIR}/html/hierarchy.html
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 

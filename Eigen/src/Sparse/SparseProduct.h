@@ -88,11 +88,7 @@ struct ei_traits<Product<LhsNested, RhsNested, SparseProduct> >
 };
 
 template<typename LhsNested, typename RhsNested> class Product<LhsNested,RhsNested,SparseProduct> : ei_no_assignment_operator,
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   public MatrixBase<Product<LhsNested, RhsNested, SparseProduct> >
-#else
-  public MatrixBase
-#endif
 {
   public:
 

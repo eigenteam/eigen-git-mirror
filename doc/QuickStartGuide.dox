@@ -188,7 +188,7 @@ MatrixXi mat2x2 = Map<MatrixXi>(data,2,2);
 
 
 \subsection TutorialCommaInit Comma initializer
-Eigen also offer a \link MatrixBase::operator<<(const Scalar &) comma initializer syntax \endlink which allows you to set all the coefficients of a matrix to specific values:
+Eigen also offer a \ref MatrixBaseCommaInitRef "comma initializer syntax" which allows you to set all the coefficients of a matrix to specific values:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -295,8 +295,7 @@ etc.
 <td><table class="tutorial_code">
 <tr><td>
 \b Trigo: \n
-\link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink,
-\link Cwise::tan tan \endlink</td><td>\code
+\link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink</td><td>\code
 mat3 = mat1.cwise().sin();
 etc.
 \endcode
@@ -538,7 +537,7 @@ more compact, fast and stable. AngleAxis are only useful to create other rotatio
 
 \subsection TutorialGeoCommonRotationAPI Common API across rotation types
 
-To some extent, Eigen's \ref Geometry_Module "geometry module" allows you to write
+To some extent, Eigen's \ref GeometryModule "geometry module" allows you to write
 generic algorithms working on both 2D and 3D rotations of any of the five above types.
 The following operation are supported:
 <table class="tutorial_code">

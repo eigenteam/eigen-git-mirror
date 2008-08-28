@@ -108,7 +108,8 @@ struct MatrixBase<Derived>::CommaInitializer
   int m_currentBlockRows; // current block height
 };
 
-/** Convenient operator to set the coefficients of a matrix.
+/** \anchor MatrixBaseCommaInitRef
+  * Convenient operator to set the coefficients of a matrix.
   *
   * The coefficients must be provided in a row major order and exactly match
   * the size of the matrix. Otherwise an assertion is raised.

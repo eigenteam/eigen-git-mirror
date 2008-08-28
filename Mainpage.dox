@@ -14,6 +14,6 @@ In order to generate the documentation of Eigen, please follow these steps:
 After doing that, you will find the HTML documentation in the doc/html/ subdirectory of the build directory.
 
 <h2>Note however that the documentation is available online here:
-<a href="http://eigen.tuxfamily.org/api/">http://eigen.tuxfamily.org/api</a>
+<a href="http://eigen.tuxfamily.org/api/">http://eigen.tuxfamily.org/api</a></h2>
 
 */

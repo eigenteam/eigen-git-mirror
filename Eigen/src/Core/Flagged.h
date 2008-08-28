@@ -55,11 +55,7 @@ struct ei_traits<Flagged<ExpressionType, Added, Removed> >
 };
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<Flagged<ExpressionType, Added, Removed> >
-#else
-  : public MatrixBase
-#endif
 {
   public:
 

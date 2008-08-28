@@ -46,11 +46,7 @@ struct ei_traits<SwapWrapper<ExpressionType> >
 };
 
 template<typename ExpressionType> class SwapWrapper
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<SwapWrapper<ExpressionType> >
-#else
-  : public MatrixBase
-#endif
 {
   public:
 

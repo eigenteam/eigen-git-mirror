@@ -57,11 +57,7 @@ struct ei_traits<Transpose<MatrixType> >
 };
 
 template<typename MatrixType> class Transpose
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<Transpose<MatrixType> >
-#else
-  : public MatrixBase
-#endif
 {
   public:
 

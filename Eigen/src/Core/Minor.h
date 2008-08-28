@@ -58,11 +58,7 @@ struct ei_traits<Minor<MatrixType> >
 };
 
 template<typename MatrixType> class Minor
-#ifndef EIGEN_PARSED_BY_DOXYGEN
   : public MatrixBase<Minor<MatrixType> >
-#else
-  : public MatrixBase
-#endif
 {
   public:
 
