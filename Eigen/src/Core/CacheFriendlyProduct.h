@@ -490,7 +490,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
             break;
         }
       }
-    } // end explit vectorization
+    } // end explicit vectorization
 
     /* process remaining coeffs (or all if there is no explicit vectorization) */
     for (int j=alignedSize; j<size; j++)

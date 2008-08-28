@@ -263,7 +263,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       /* end optimized selfadjoint - vector product */
 
       /* Another interesting note: the above rank-2 update is much slower than the following hand written loop.
-       * After an analyse of the ASM, it seems GCC (4.2) generate poor code because of the Block. Moreover,
+       * After an analyze of the ASM, it seems GCC (4.2) generate poor code because of the Block. Moreover,
        * if we remove the specialization of Block for Matrix then it is even worse, much worse ! */
       #ifdef EIGEN_NEVER_DEFINED
       for (int j1=i+1; j1<n; ++j1)
@@ -312,7 +312,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
           matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
                                 + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
       }
-      /* end optimized implemenation */
+      /* end optimized implementation */
 
       // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
       // note: the sequence of the beta values leads to the subdiagonal entries

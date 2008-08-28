@@ -30,7 +30,7 @@
   * \file GenericPacketMath.h
   *
   * Default implementation for types not supported by the vectorization.
-  * In practice these functions are provided to make easier the writting
+  * In practice these functions are provided to make easier the writing
   * of generic vectorized code.
   */
 

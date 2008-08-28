@@ -181,7 +181,7 @@ enum DirectionType { Vertical, Horizontal };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, SparseProduct };
 
 enum {
-  /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignement
+  /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignment
     * and good size */
   InnerVectorization,
   /** \internal Vectorization path using a single loop plus scalar loops for the

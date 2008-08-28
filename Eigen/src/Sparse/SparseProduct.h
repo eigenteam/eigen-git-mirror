@@ -297,11 +297,11 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
 //   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 //   {
 //     // trivial product as lhs.row/rhs.col dot products
-//     // loop over the prefered order of the result
+//     // loop over the preferred order of the result
 //   }
 // };
 
-// NOTE the 2 others cases (col row *) must never occurs since they are catched
+// NOTE the 2 others cases (col row *) must never occurs since they are caught
 // by ProductReturnType which transform it to (col col *) by evaluating rhs.
 
 

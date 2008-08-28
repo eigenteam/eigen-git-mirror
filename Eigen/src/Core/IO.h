@@ -36,9 +36,9 @@ enum { Raw, AlignCols };
   *  - \b flags can be either Raw (default) or AlignCols which aligns all the columns
   *  - \b coeffSeparator string printed between two coefficients of the same row
   *  - \b rowSeparator string printed between two rows
-  *  - \b rowPrefix string printed at the begining of each row
+  *  - \b rowPrefix string printed at the beginning of each row
   *  - \b rowSuffix string printed at the end of each row
-  *  - \b matPrefix string printed at the begining of the matrix
+  *  - \b matPrefix string printed at the beginning of the matrix
   *  - \b matSuffix string printed at the end of the matrix
   *
   * Example: \include IOFormat.cpp

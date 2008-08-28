@@ -251,7 +251,7 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   * Therefore, if \a other is not needed anymore, it is quite faster to call solveTriangularInPlace()
   * instead of solveTriangular().
   * 
-  * For users comming from BLAS, this function (and more specifically solveTriangularInPlace()) offer
+  * For users coming from BLAS, this function (and more specifically solveTriangularInPlace()) offer
   * all the operations supported by the \c *TRSV and \c *TRSM BLAS routines.
   *
   * \b Tips: to perform a \em "right-inverse-multiply" you can simply transpose the operation, e.g.:

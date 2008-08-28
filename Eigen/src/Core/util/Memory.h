@@ -44,7 +44,7 @@ template <typename T, int Size> struct ei_aligned_array<T,Size,false>
   T array[Size];
 };
 
-/** \internal allocates \a size * sizeof(\a T) bytes with a 16 bytes based alignement */
+/** \internal allocates \a size * sizeof(\a T) bytes with a 16 bytes based alignment */
 template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {

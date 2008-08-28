@@ -127,6 +127,13 @@ public:
   inline QMatrix toQMatrix(void) const;
   #endif
 
+  /** shortcut for m_matrix(row,col);
+    * \sa MatrixBase::operaror(int,int) const */
+  Scalar operator() (int row, int col) const { return m_matrix(row,col); }
+  /** shortcut for m_matrix(row,col);
+    * \sa MatrixBase::operaror(int,int) */
+  Scalar& operator() (int row, int col) { return m_matrix(row,col); }
+
   /** \returns a read-only expression of the transformation matrix */
   inline const MatrixType& matrix() const { return m_matrix; }
   /** \returns a writable expression of the transformation matrix */

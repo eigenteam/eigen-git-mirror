@@ -76,7 +76,7 @@ class HashMatrix
 
   public:
 
-    inline void startFill(int /*reserveSize = 1000 --- currenty unused, don't generate a warning*/) {}
+    inline void startFill(int /*reserveSize = 1000 --- currently unused, don't generate a warning*/) {}
 
     inline Scalar& fill(int row, int col) { return coeffRef(row, col); }
 

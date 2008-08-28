@@ -322,7 +322,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
 {
-  // FIXME should this funtion be called multiplicativeInverse and conjugate() be called inverse() or opposite()  ??
+  // FIXME should this function be called multiplicativeInverse and conjugate() be called inverse() or opposite()  ??
   Scalar n2 = this->norm2();
   if (n2 > 0)
     return Quaternion(conjugate().coeffs() / n2);

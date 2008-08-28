@@ -152,6 +152,7 @@ template<typename Scalar> void geometry(void)
 
   t1.fromPositionOrientationScale(v0, q1, v1);
   VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
+  VERIFY_IS_APPROX(t1*v1, t0*v1);
 
   // 2D transformation
   Transform2 t20, t21;
