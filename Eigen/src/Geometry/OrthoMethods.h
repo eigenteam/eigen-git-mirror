@@ -54,7 +54,7 @@ struct ei_unitOrthogonal_selector
   typedef typename NumTraits<Scalar>::Real RealScalar;
   inline static VectorType run(const Derived& src)
   {
-    VectorType perp;
+    VectorType perp(src.size());
     /* Let us compute the crossed product of *this with a vector
      * that is not too close to being colinear to *this.
      */
@@ -65,7 +65,7 @@ struct ei_unitOrthogonal_selector
     if((!ei_isMuchSmallerThan(src.x(), src.z()))
     || (!ei_isMuchSmallerThan(src.y(), src.z())))
     {
-      RealScalar invnm = Scalar(1)/src.template start<2>().norm();
+      RealScalar invnm = RealScalar(1)/src.template start<2>().norm();
       perp.coeffRef(0) = -ei_conj(src.y())*invnm;
       perp.coeffRef(1) = ei_conj(src.x())*invnm;
       perp.coeffRef(2) = 0;
@@ -76,7 +76,7 @@ struct ei_unitOrthogonal_selector
      */
     else
     {
-      RealScalar invnm = Scalar(1)/src.template end<2>().norm();
+      RealScalar invnm = RealScalar(1)/src.template end<2>().norm();
       perp.coeffRef(0) = 0;
       perp.coeffRef(1) = -ei_conj(src.z())*invnm;
       perp.coeffRef(2) = ei_conj(src.y())*invnm;
