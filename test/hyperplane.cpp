@@ -29,7 +29,7 @@
 template<typename PlaneType> void hyperplane(const PlaneType& _plane)
 {
   /* this test covers the following files:
-     HyperPlane.h
+     Hyperplane.h
   */
 
   const int dim = _plane.dim();
@@ -62,10 +62,10 @@ template<typename PlaneType> void hyperplane(const PlaneType& _plane)
 void test_hyperplane()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( hyperplane(HyperPlane<float,2>()) );
-    CALL_SUBTEST( hyperplane(HyperPlane<float,3>()) );
-    CALL_SUBTEST( hyperplane(HyperPlane<double,4>()) );
-    CALL_SUBTEST( hyperplane(HyperPlane<std::complex<double>,5>()) );
-    CALL_SUBTEST( hyperplane(HyperPlane<double,Dynamic>(13)) );
+    CALL_SUBTEST( hyperplane(Hyperplane<float,2>()) );
+    CALL_SUBTEST( hyperplane(Hyperplane<float,3>()) );
+    CALL_SUBTEST( hyperplane(Hyperplane<double,4>()) );
+    CALL_SUBTEST( hyperplane(Hyperplane<std::complex<double>,5>()) );
+    CALL_SUBTEST( hyperplane(Hyperplane<double,Dynamic>(13)) );
   }
 }

@@ -22,12 +22,12 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_HYPERPLANE_H
-#define EIGEN_HYPERPLANE_H
+#ifndef EIGEN_Hyperplane_H
+#define EIGEN_Hyperplane_H
 
 /** \geometry_module \ingroup GeometryModule
   *
-  * \class HyperPlane
+  * \class Hyperplane
   *
   * \brief Represents an hyper plane in any dimensions
   *
@@ -40,9 +40,8 @@
   *
   */
 
-// FIXME default to 3 (because plane => dim=3, or default to Dynamic ?)
-template <typename _Scalar, int _Dim = 3>
-class HyperPlane
+template <typename _Scalar, int _Dim>
+class Hyperplane
 {
 
   public:
@@ -51,80 +50,85 @@ class HyperPlane
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef Matrix<Scalar,DimAtCompileTime,1> VectorType;
+    typedef Matrix<Scalar,DimAtCompileTime==Dynamic
+                          ? Dynamic
+                          : DimAtCompileTime+1,1> Coefficients;
+    typedef Block<Coefficients,DimAtCompileTime,1> NormalReturnType;
 
-    HyperPlane(int _dim = DimAtCompileTime)
-      : m_normal(_dim)
-    {}
+    /** Default constructor without initialization */
+    inline Hyperplane(int _dim = DimAtCompileTime) : m_coeffs(_dim+1) {}
     
-    /** Construct a plane from its normal \a normal and a point \a e onto the plane.
+    /** Construct a plane from its normal \a n and a point \a e onto the plane.
       * \warning the vector normal is assumed to be normalized.
       */
-    HyperPlane(const VectorType& normal, const VectorType e)
-        : m_normal(normal), m_offset(-e.dot(normal))
-    {}
+    inline Hyperplane(const VectorType& n, const VectorType e)
+      : m_coeffs(n.size()+1)
+    {
+      _normal() = n;
+      _offset() = -e.dot(n);
+    }
     
-    /** Constructs a plane from its normal \a normal and distance to the origin \a d.
+    /** Constructs a plane from its normal \a n and distance to the origin \a d.
       * \warning the vector normal is assumed to be normalized.
       */
-    HyperPlane(const VectorType& normal, Scalar d)
-      : m_normal(normal), m_offset(d)
-    {}
+    inline Hyperplane(const VectorType& n, Scalar d)
+      : m_coeffs(n.size()+1)
+    {
+      _normal() = n;
+      _offset() = d;
+    }
     
-    ~HyperPlane() {}
+    ~Hyperplane() {}
 
     /** \returns the dimension in which the plane holds */
-    int dim() const { return m_normal.size(); }
+    inline int dim() const { return DimAtCompileTime==Dynamic ? m_coeffs.size()-1 : DimAtCompileTime; }
 
-    /** normalizes \c *this */
-    void normalize(void)
-    {
-      RealScalar l = Scalar(1)/m_normal.norm();
-      m_normal *= l;
-      m_offset *= l;
-    }
+    void normalize(void);
     
     /** \returns the signed distance between the plane \c *this and a point \a p.
       */
-    inline Scalar distanceTo(const VectorType& p) const
-    {
-      return p.dot(m_normal) + m_offset;
-    }
+    inline Scalar distanceTo(const VectorType& p) const { return p.dot(normal()) + offset(); }
     
     /** \returns the projection of a point \a p onto the plane \c *this.
       */
-    inline VectorType project(const VectorType& p) const
-    {
-      return p - distanceTo(p) * m_normal;
-    }
+    inline VectorType project(const VectorType& p) const { return p - distanceTo(p) * normal(); }
 
     /**  \returns the normal of the plane, which corresponds to the linear part of the implicit equation. */
-    inline const VectorType& normal(void) const { return m_normal; }
+    inline const NormalReturnType normal() const { return NormalReturnType(m_coeffs,0,0,dim(),1); }
 
     /** \returns the distance to the origin, which is also the constant part
       * of the implicit equation */
-    inline Scalar offset(void) const { return m_offset; }
+    inline Scalar offset() const { return m_coeffs(dim()); }
     
     /** Set the normal of the plane.
       * \warning the vector normal is assumed to be normalized. */
-    inline void setNormal(const VectorType& normal) { m_normal = normal; }
+    inline void setNormal(const VectorType& normal) { _normal() = normal; }
 
     /** Set the distance to origin */
-    inline void setOffset(Scalar d) { m_offset = d; }
+    inline void setOffset(Scalar d) { _offset() = d; }
 
-    /** \returns a pointer the coefficients c_i of the plane equation:
-      *  c_0*x_0 + ... + c_d-1*x_d-1 + offset = 0
-      * \warning this is only for fixed size dimensions !
+    /** \returns the coefficients c_i of the plane equation:
+      * \f$ c_0*x_0 + ... + c_{d-1}*x_{d-1} + c_d = 0 \f$
       */
-    inline const Scalar* equation(void) const { return m_normal.data(); }
+    // FIXME name: equation vs coeffs vs coefficients ???
+    inline Coefficients equation(void) const { return m_coeffs; }
     
     /** \brief Plane/ray intersection.
         Returns the parameter value of the intersection between the plane \a *this
         and the parametric ray of origin \a rayOrigin and axis \a rayDir
     */
-    Scalar rayIntersection(const VectorType& rayOrigin, const VectorType& rayDir)
+    inline Scalar rayIntersection(const VectorType& rayOrigin, const VectorType& rayDir)
     {
-      return -(m_offset+rayOrigin.dot(m_normal))/(rayDir.dot(m_normal));
+      return -(_offset()+rayOrigin.dot(_normal()))/(rayDir.dot(_normal()));
     }
+
+    template<typename XprType>
+    inline Hyperplane operator* (const MatrixBase<XprType>& mat) const
+    { return Hyperplane(mat.inverse().transpose() * _normal(), _offset()); }
+
+    template<typename XprType>
+    inline Hyperplane& operator*= (const MatrixBase<XprType>& mat) const
+    { _normal() = mat.inverse().transpose() * _normal(); return *this; }
 
     // TODO some convenient functions to fit a 3D plane on 3 points etc...
 //     void makePassBy(const VectorType& p0, const VectorType& p1, const VectorType& p2)
@@ -143,24 +147,33 @@ class HyperPlane
 
 protected:
 
-    VectorType m_normal;
-    Scalar m_offset;
+    inline NormalReturnType _normal() { return NormalReturnType(m_coeffs,0,0,dim(),1); }
+    inline Scalar& _offset() { return m_coeffs(dim()); }
+
+    Coefficients m_coeffs;
 };
 
 /** \addtogroup GeometryModule */
 //@{
-typedef HyperPlane<float, 2> HyperPlane2f;
-typedef HyperPlane<double,2> HyperPlane2d;
-typedef HyperPlane<float, 3> HyperPlane3f;
-typedef HyperPlane<double,3> HyperPlane3d;
+typedef Hyperplane<float, 2> Hyperplane2f;
+typedef Hyperplane<double,2> Hyperplane2d;
+typedef Hyperplane<float, 3> Hyperplane3f;
+typedef Hyperplane<double,3> Hyperplane3d;
 
-typedef HyperPlane<float, 2> Linef;
-typedef HyperPlane<double,2> Lined;
-typedef HyperPlane<float, 3> Planef;
-typedef HyperPlane<double,3> Planed;
+typedef Hyperplane<float, 3> Planef;
+typedef Hyperplane<double,3> Planed;
 
-typedef HyperPlane<float, Dynamic> HyperPlaneXf;
-typedef HyperPlane<double,Dynamic> HyperPlaneXd;
+typedef Hyperplane<float, Dynamic> HyperplaneXf;
+typedef Hyperplane<double,Dynamic> HyperplaneXd;
 //@}
 
-#endif // EIGEN_HYPERPLANE_H
+/** normalizes \c *this */
+template <typename _Scalar, int _Dim>
+void Hyperplane<_Scalar,_Dim>::normalize(void)
+{
+  RealScalar l = Scalar(1)/_normal().norm();
+  _normal() *= l;
+  _offset() *= l;
+}
+
+#endif // EIGEN_Hyperplane_H

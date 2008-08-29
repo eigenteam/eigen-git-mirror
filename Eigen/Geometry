@@ -31,7 +31,7 @@ namespace Eigen {
 #include "src/Geometry/AngleAxis.h"
 #include "src/Geometry/Rotation.h"
 #include "src/Geometry/Transform.h"
-#include "src/Geometry/HyperPlane.h"
+#include "src/Geometry/Hyperplane.h"
 
 } // namespace Eigen
 
