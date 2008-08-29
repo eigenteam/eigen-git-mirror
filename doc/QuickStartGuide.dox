@@ -512,7 +512,7 @@ namely 2D and 3D rotations and affine transformations.
   - \ref TutorialGeoRotations
   - \ref TutorialGeoTransformation
 
-<a href="#" class="top">top</a>\section TutorialGeoRotations 2D and 3D Rotations
+\section TutorialGeoRotations 2D and 3D Rotations
 
 \subsection TutorialGeoRotationTypes Rotation types
 

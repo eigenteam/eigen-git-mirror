@@ -52,6 +52,7 @@
 // DOXYGEN_SET_WARN_NO_PARAMDOC       = NO
 
 // DOXYGEN_SET_INPUT                  = @topdir@/eigen2/doc/examples/ @topdir@/eigen2/doc/snippets/ @topdir@/eigen2/Eigen @topdir@/eigen2/doc
+// DOXYGEN_SET_EXCLUDE                = *.sh *.in
 
 // DOXYGEN_SET_EXAMPLE_PATH           = @topdir@/eigen2/doc/snippets/ @topdir@/eigen2/doc/examples/ eigen2/out/
 
