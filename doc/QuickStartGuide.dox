@@ -590,8 +590,14 @@ Vector3f v1, v2;
 v2 = t.linear() * v1;\endcode</td><td>\code
 Vector2f v1, v2;
 v2 = t.linear() * v1;\endcode</td></tr>
-<tr><td>Concatenate two transformations</td><td>\code
-t3 = t1 * t2;\endcode</td><td>\code
+<tr><td>Apply a \em general transformation \n to a \b normal \b vector
+(<a href="http://www.cgafaq.info/wiki/Transforming_normals">explanations</a>)</td><td colspan="2">\code
+Matrix{3,2}f normalMatrix = t.linear().inverse().transpose();
+n2 = (normalMatrix * n1).normalize();\endcode</td></tr>
+<tr><td>Apply a transformation with \em pure \em rotation \n to a \b normal \b vector 
+(no scaling, no shear)</td><td colspan="2">\code
+n2 = t.linear() * n1;\endcode</td></tr>
+<tr><td>Concatenate two transformations</td><td colspan="2">\code
 t3 = t1 * t2;\endcode</td></tr>
 <tr><td>OpenGL compatibility</td><td>\code
 glLoadMatrixf(t.data());\endcode</td><td>\code
@@ -634,9 +640,9 @@ t.scale(Vector3f(sx, sy, sz));
 t.scale(Vector3f::Constant(s));
 t.prescale(Vector3f(sx, sy, sz));
 \endcode</td><td>\code
-t.scale(Vector2f(tx, ty));
+t.scale(Vector2f(sx, sy));
 t.scale(Vector2f::Constant(s));
-t.prescale(Vector2f(tx, ty));
+t.prescale(Vector2f(sx, sy));
 \endcode</td></tr>
 <tr><td>Applies a shear transformation \n(2D only)</td><td></td><td>\code
 t.shear(sx,sy);
