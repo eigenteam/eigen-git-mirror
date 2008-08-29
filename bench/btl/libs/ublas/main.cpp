@@ -21,7 +21,6 @@
 #include "ublas_interface.hh"
 #include "bench.hh"
 #include "basic_actions.hh"
-#include "basic_actions.hh"
 
 BTL_MAIN;
 

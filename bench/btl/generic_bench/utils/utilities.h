@@ -7,7 +7,7 @@
 // $Header$
 //=============================================================================
 
-/* ---  Definition macros file to print informations if _DEBUG_ is defined --- */
+/* ---  Definition macros file to print information if _DEBUG_ is defined --- */
 
 # ifndef UTILITIES_H
 # define UTILITIES_H

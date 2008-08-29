@@ -1,4 +1,7 @@
 
+#ifndef EIGEN_BENCH_UTIL_H
+#define EIGEN_BENCH_UTIL_H
+
 #include <Eigen/Core>
 #include "BenchTimer.h"
 
@@ -66,3 +69,4 @@ void eiToGsl(const EigenMatrixType& src, gsl_matrix** dst)
 }
 #endif
 
+#endif // EIGEN_BENCH_UTIL_H
