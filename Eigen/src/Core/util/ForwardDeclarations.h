@@ -105,5 +105,7 @@ template<typename Scalar> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Transform;
+template<typename Scalar,int Dim> class Translation;
+template<typename Scalar,int Dim> class Scaling;
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

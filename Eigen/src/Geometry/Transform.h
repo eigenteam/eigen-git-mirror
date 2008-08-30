@@ -73,6 +73,8 @@ public:
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
   typedef Block<MatrixType,Dim,1> TranslationPart;
+  typedef Translation<Scalar,Dim> TranslationType;
+  typedef Scaling<Scalar,Dim> ScalingType;
 
 protected:
 
@@ -81,7 +83,7 @@ protected:
 public:
 
   /** Default constructor without initialization of the coefficients. */
-  Transform() { }
+  inline Transform() { }
 
   inline Transform(const Transform& other)
   { m_matrix = other.m_matrix; }
@@ -129,10 +131,10 @@ public:
 
   /** shortcut for m_matrix(row,col);
     * \sa MatrixBase::operaror(int,int) const */
-  Scalar operator() (int row, int col) const { return m_matrix(row,col); }
+  inline Scalar operator() (int row, int col) const { return m_matrix(row,col); }
   /** shortcut for m_matrix(row,col);
     * \sa MatrixBase::operaror(int,int) */
-  Scalar& operator() (int row, int col) { return m_matrix(row,col); }
+  inline Scalar& operator() (int row, int col) { return m_matrix(row,col); }
 
   /** \returns a read-only expression of the transformation matrix */
   inline const MatrixType& matrix() const { return m_matrix; }
@@ -158,12 +160,12 @@ public:
   */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  const typename ei_transform_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
+  inline const typename ei_transform_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
   operator * (const MatrixBase<OtherDerived> &other) const
   { return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
 
   /** Contatenates two transformations */
-  const typename ProductReturnType<MatrixType,MatrixType>::Type
+  inline const typename ProductReturnType<MatrixType,MatrixType>::Type
   operator * (const Transform& other) const
   { return m_matrix * other.matrix(); }
 
@@ -171,25 +173,37 @@ public:
   void setIdentity() { m_matrix.setIdentity(); }
 
   template<typename OtherDerived>
-  Transform& scale(const MatrixBase<OtherDerived> &other);
+  inline Transform& scale(const MatrixBase<OtherDerived> &other);
 
   template<typename OtherDerived>
-  Transform& prescale(const MatrixBase<OtherDerived> &other);
+  inline Transform& prescale(const MatrixBase<OtherDerived> &other);
 
   template<typename OtherDerived>
-  Transform& translate(const MatrixBase<OtherDerived> &other);
+  inline Transform& translate(const MatrixBase<OtherDerived> &other);
 
   template<typename OtherDerived>
-  Transform& pretranslate(const MatrixBase<OtherDerived> &other);
+  inline Transform& pretranslate(const MatrixBase<OtherDerived> &other);
 
   template<typename RotationType>
-  Transform& rotate(const RotationType& rotation);
+  inline Transform& rotate(const RotationType& rotation);
 
   template<typename RotationType>
-  Transform& prerotate(const RotationType& rotation);
+  inline Transform& prerotate(const RotationType& rotation);
 
   Transform& shear(Scalar sx, Scalar sy);
   Transform& preshear(Scalar sx, Scalar sy);
+
+  inline Transform& operator*=(const TranslationType& t) { return translate(t.vector()); }
+  inline Transform operator*(const TranslationType& t) const;
+  inline Transform& operator*=(const ScalingType& s) { return scale(s.coeffs()); }
+  inline Transform operator*(const ScalingType& s) const;
+  friend inline Transform operator*(const LinearMatrixType& mat, const Transform& t)
+  {
+    Transform res = t;
+    res.matrix().row(Dim) = t.matrix().row(Dim);
+    res.matrix().template block<Dim,HDim>(0,0) = (mat * t.matrix().template block<Dim,HDim>(0,0)).lazy();
+    return res;
+  }
 
   LinearMatrixType extractRotation() const;
   LinearMatrixType extractRotationNoShear() const;
@@ -385,6 +399,22 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
   return *this;
 }
 
+template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const TranslationType& t) const
+{
+  Transform res = *this;
+  res.translate(t.vector());
+  return res;
+}
+
+template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType& s) const
+{
+  Transform res = *this;
+  res.scale(s.coeffs());
+  return res;
+}
+
 /** \returns the rotation part of the transformation using a QR decomposition.
   * \sa extractRotationNoShear(), class QR
   */
@@ -436,6 +466,22 @@ struct ei_transform_product_impl<Other,Dim,HDim, HDim,HDim>
   typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
   static ResultType run(const TransformType& tr, const Other& other)
   { return tr.matrix() * other; }
+};
+
+template<typename Other, int Dim, int HDim>
+struct ei_transform_product_impl<Other,Dim,HDim, Dim,Dim>
+{
+  typedef Transform<typename Other::Scalar,Dim> TransformType;
+  typedef typename TransformType::MatrixType MatrixType;
+  typedef TransformType ResultType;
+  static ResultType run(const TransformType& tr, const Other& other)
+  {
+    TransformType res;
+    res.translation() = tr.translation();
+    res.matrix().row(Dim) = tr.matrix().row(Dim);
+    res.linear() = (tr.linear() * other).lazy();
+    return res;
+  }
 };
 
 template<typename Other, int Dim, int HDim>
