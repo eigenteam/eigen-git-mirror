@@ -582,9 +582,9 @@ Transform<Scalar,Dim>::inverse(TransformTraits traits) const
   }
 }
 
-/***********************************
-*** Specializations of operator* ***
-***********************************/
+/*****************************************************
+*** Specializations of operator* with a MatrixBase ***
+*****************************************************/
 
 template<typename Other, int Dim, int HDim>
 struct ei_transform_product_impl<Other,Dim,HDim, HDim,HDim>
