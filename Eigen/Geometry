@@ -25,6 +25,7 @@ namespace Eigen {
 // the Geometry module use cwiseCos and cwiseSin which are defined in the Array module
 #include "src/Array/CwiseOperators.h"
 #include "src/Array/Functors.h"
+#include "src/Array/PartialRedux.h"
 
 #include "src/Geometry/OrthoMethods.h"
 #include "src/Geometry/Quaternion.h"

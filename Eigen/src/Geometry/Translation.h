@@ -41,12 +41,17 @@ template<typename _Scalar, int _Dim>
 class Translation
 {
 public:
+  /** dimension of the space */
   enum { Dim = _Dim };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
-  typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
+  /** corresponding vector type */
   typedef Matrix<Scalar,Dim,1> VectorType;
+  /** corresponding linear transformation matrix type */
+  typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
+  /** corresponding scaling transformation type */
   typedef Scaling<Scalar,Dim> ScalingType;
+  /** corresponding affine transformation type */
   typedef Transform<Scalar,Dim> TransformType;
 
 protected:

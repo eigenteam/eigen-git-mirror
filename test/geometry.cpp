@@ -219,12 +219,24 @@ template<typename Scalar> void geometry(void)
   t0.setIdentity();
   t0.scale(v0);
   VERIFY_IS_APPROX(t0 * v1, Scaling3(v0) * v1);
+
+  // test transform inversion
+  t0.setIdentity();
+  t0.translate(v0);
+  t0.linear().setRandom();
+  VERIFY_IS_APPROX(t0.inverse(GenericAffine), t0.matrix().inverse());
+  t0.setIdentity();
+  t0.translate(v0).rotate(q1).scale(v1);
+  VERIFY_IS_APPROX(t0.inverse(NoShear), t0.matrix().inverse());
+  t0.setIdentity();
+  t0.translate(v0).rotate(q1);
+  VERIFY_IS_APPROX(t0.inverse(NoScaling), t0.matrix().inverse());
 }
 
 void test_geometry()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( geometry<float>() );
-//     CALL_SUBTEST( geometry<double>() );
+    CALL_SUBTEST( geometry<double>() );
   }
 }

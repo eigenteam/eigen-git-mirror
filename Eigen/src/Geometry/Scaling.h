@@ -35,18 +35,23 @@
   * \param _Dim the  dimension of the space, can be a compile time value or Dynamic
   *
   *
-  * \sa class Translate, class Transform
+  * \sa class Translation, class Transform
   */
 template<typename _Scalar, int _Dim>
 class Scaling
 {
 public:
+  /** dimension of the space */
   enum { Dim = _Dim };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
-  typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
+  /** corresponding vector type */
   typedef Matrix<Scalar,Dim,1> VectorType;
+  /** corresponding linear transformation matrix type */
+  typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
+  /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
+  /** corresponding affine transformation type */
   typedef Transform<Scalar,Dim> TransformType;
 
 protected:

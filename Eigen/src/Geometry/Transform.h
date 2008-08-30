@@ -25,6 +25,14 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
+/** Represents some traits of a transformation */
+enum TransformationKnowledge {
+  NoScaling,      ///< the transformation is a concatenation of translations, rotations
+  NoShear,        ///< the transformation is a concatenation of translations, rotations and scalings
+  GenericAffine,  ///< the transformation is affine (linear transformation + translation)
+  NonAffine       ///< the transformation might not be affine
+};
+
 // Note that we have to pass Dim and HDim because it is not allowed to use a template
 // parameter to define a template specialization. To be more precise, in the following
 // specializations, it is not allowed to use Dim+1 instead of HDim.
@@ -73,7 +81,9 @@ public:
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
   typedef Block<MatrixType,Dim,1> TranslationPart;
+  /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
+  /** corresponding scaling transformation type */
   typedef Scaling<Scalar,Dim> ScalingType;
 
 protected:
@@ -193,8 +203,11 @@ public:
   Transform& shear(Scalar sx, Scalar sy);
   Transform& preshear(Scalar sx, Scalar sy);
 
+  inline Transform& operator=(const TranslationType& t);
   inline Transform& operator*=(const TranslationType& t) { return translate(t.vector()); }
   inline Transform operator*(const TranslationType& t) const;
+
+  inline Transform& operator=(const ScalingType& t);
   inline Transform& operator*=(const ScalingType& s) { return scale(s.coeffs()); }
   inline Transform operator*(const ScalingType& s) const;
   friend inline Transform operator*(const LinearMatrixType& mat, const Transform& t)
@@ -212,9 +225,7 @@ public:
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
-  /** \sa MatrixBase::inverse() */
-  const MatrixType inverse() const
-  { return m_matrix.inverse(); }
+  inline const MatrixType inverse(TransformationKnowledge knowledge = GenericAffine) const;
 
   const Scalar* data() const { return m_matrix.data(); }
   Scalar* data() { return m_matrix.data(); }
@@ -231,6 +242,10 @@ typedef Transform<float,3> Transform3f;
 typedef Transform<double,2> Transform2d;
 /** \ingroup GeometryModule */
 typedef Transform<double,3> Transform3d;
+
+/**************************
+*** Optional QT support ***
+**************************/
 
 #ifdef EIGEN_QT_SUPPORT
 /** Initialises \c *this from a QMatrix assuming the dimension is 2.
@@ -270,6 +285,10 @@ QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
                  other.coeffRef(0,2), other.coeffRef(1,2));
 }
 #endif
+
+/*********************
+*** Procedural API ***
+*********************/
 
 /** Applies on the right the non uniform scale transformation represented
   * by the vector \a other to \c *this and returns a reference to \c *this.
@@ -399,6 +418,18 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
   return *this;
 }
 
+/******************************************************
+*** Scaling, Translation and Rotation compatibility ***
+******************************************************/
+
+template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const TranslationType& t)
+{
+  setIdentity();
+  translation() = t.vector();
+  return *this;
+}
+
 template<typename Scalar, int Dim>
 inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const TranslationType& t) const
 {
@@ -408,12 +439,25 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const TranslationT
 }
 
 template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const ScalingType& s)
+{
+  m_matrix.setZero();
+  linear().diagonal() = s.coeffs();
+  m_matrix(Dim,Dim) = Scalar(1);
+  return *this;
+}
+
+template<typename Scalar, int Dim>
 inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType& s) const
 {
   Transform res = *this;
   res.scale(s.coeffs());
   return res;
 }
+
+/***************************
+*** Specialial functions ***
+***************************/
 
 /** \returns the rotation part of the transformation using a QR decomposition.
   * \sa extractRotationNoShear(), class QR
@@ -452,6 +496,65 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   m_matrix(Dim,Dim) = 1.;
   m_matrix.template block<1,Dim>(Dim,0).setZero();
   return *this;
+}
+
+/** \returns the inverse transformation matrix according to some given knowledge
+  * on \c *this.
+  *
+  * \param knowledge allozs to optimize the inversion process when the transformion
+  * is known to be not a general transformation. The possible values are:
+  *  - NonAffine if the transformation is not necessarily affines, i.e., if the
+  *    last row is not guaranteed to be [0 ... 0 1]
+  *  - GenericAffine is the default, the last row is assumed to be [0 ... 0 1]
+  *  - NoShear if the transformation is only a concatenations of translations,
+  *    rotations, and scalings.
+  *  - NoScaling if the transformation is only a concatenations of translations
+  *    and rotations.
+  *
+  * \sa MatrixBase::inverse()
+  */
+template<typename Scalar, int Dim>
+inline const typename Transform<Scalar,Dim>::MatrixType
+Transform<Scalar,Dim>::inverse(TransformationKnowledge knowledge) const
+{
+  if (knowledge == NonAffine)
+  {
+    return m_matrix.inverse();
+  }
+  else
+  {
+    MatrixType res;
+    if (knowledge == GenericAffine)
+    {
+      res.template corner<Dim,Dim>(TopLeft) = linear().inverse();
+    }
+    else if (knowledge == NoShear)
+    {
+      // extract linear = rotation * scaling
+      // then inv(linear) = inv(scaling) * inv(rotation)
+      //                  = inv(scaling) * trans(rotation)
+      //                  = inv(scaling) * trans(inv(scaling)) * trans(A)
+      //                  = inv(scaling) * inv(scaling) * trans(A)
+      //                  = inv(scaling)^2 * trans(A)
+      //                  = scaling^-2 * trans(A)
+      // with scaling[i] = A.col(i).norm()
+      VectorType invScaling2 = linear().colwise().norm2().cwise().inverse();
+      res.template corner<Dim,Dim>(TopLeft) = (invScaling2.asDiagonal() * linear().transpose()).lazy();
+    }
+    else if (knowledge == NoScaling)
+    {
+      res.template corner<Dim,Dim>(TopLeft) = linear().transpose();
+    }
+    else
+    {
+      ei_assert("invalid knowledge value in Transform::inverse()");
+    }
+    // translation and remaining parts
+    res.template corner<Dim,1>(TopRight) = - res.template corner<Dim,Dim>(TopLeft) * translation();
+    res.template corner<1,Dim>(BottomLeft).setZero();
+    res.coeffRef(Dim,Dim) = Scalar(1);
+    return res;
+  }
 }
 
 /***********************************

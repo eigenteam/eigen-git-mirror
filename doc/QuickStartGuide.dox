@@ -569,8 +569,8 @@ m = AngleAxisf(angle1, Vector3f::UnitZ())
 
 <a href="#" class="top">top</a>\section TutorialGeoTransformation Affine transformations
 In Eigen we have chosen to not distinghish between points and vectors such that all points are
-actually represented by displacement vector from the origine (pt \~ pt-0). With that in mind,
-real points and vector distinguish when the rotation is applied.
+actually represented by displacement vectors from the origine ( \f$ \mathbf{p} \equiv \mathbf{p}-0 \f$ ).
+With that in mind, real points and vector distinguish when the rotation is applied.
 <table class="tutorial_code">
 <tr><td></td><td>\b 3D </td><td>\b 2D </td></tr>
 <tr><td>Creation \n <span class="note">rot2D can also be an angle in radian</span></td><td>\code
@@ -606,6 +606,17 @@ aux.linear().corner<2,2>(TopLeft) = t.linear();
 aux.translation().start<2>() = t.translation();
 glLoadMatrixf(aux.data());\endcode</td></tr>
 <tr><td colspan="3">\b Component \b accessors</td></tr>
+<tr><td>full read-write access to the internal matrix</td><td>\code
+t.matrix() = mat4x4;
+mat4x4 = t.matrix();
+\endcode</td><td>\code
+t.matrix() = mat3x3;
+mat3x3 = t.matrix();
+\endcode</td></tr>
+<tr><td>coefficient accessors</td><td colspan="2">\code
+t(i,j) = scalar;   <=>   t.matrix()(i,j) = scalar;
+scalar = t(i,j);   <=>   scalar = t.matrix()(i,j);
+\endcode</td></tr>
 <tr><td>translation part</td><td>\code
 t.translation() = vec3;
 vec3 = t.translation();
@@ -620,36 +631,50 @@ mat3x3 = t.linear();
 t.linear() = mat2x2;
 mat2x2 = t.linear();
 \endcode</td></tr>
-<tr><td colspan="3">\b Editing \b shortcuts</td></tr>
-<tr><td>Applies a translation</td><td>\code
-t.translate(Vector3f(tx, ty, tz));
-t.pretranslate(Vector3f(tx, ty, tz));
-\endcode</td><td>\code
-t.translate(Vector2f(tx, ty));
-t.pretranslate(Vector2f(tx, ty));
-\endcode</td></tr>
-<tr><td>Applies a rotation \n <span class="note">rot2D can also be an angle in radian</span></td><td>\code
-t.rotate(rot3D);
-t.prerotate(rot3D);
-\endcode</td><td>\code
-t.rotate(rot2D);
-t.prerotate(rot2D);
-\endcode</td></tr>
-<tr><td>Applies a scaling</td><td>\code
-t.scale(Vector3f(sx, sy, sz));
-t.scale(Vector3f::Constant(s));
-t.prescale(Vector3f(sx, sy, sz));
-\endcode</td><td>\code
-t.scale(Vector2f(sx, sy));
-t.scale(Vector2f::Constant(s));
-t.prescale(Vector2f(sx, sy));
-\endcode</td></tr>
-<tr><td>Applies a shear transformation \n(2D only)</td><td></td><td>\code
-t.shear(sx,sy);
-t.preshear(sx,sy);
-\endcode</td></tr>
 </table>
 
+\b Transformation \b creation \n
+Eigen's geometry module offer two different ways to build and update transformation objects.
+<table class="tutorial_code">
+<tr><td></td><td>\b procedurale \b API </td><td>\b natural \b API </td></tr>
+<tr><td>Applies a translation</td><td>\code
+t.translate(Vector3(tx, ty, ...));
+t.pretranslate(Vector3(tx, ty, ...));
+\endcode</td><td>\code
+t *= Translation(tx, ty, ...);
+t = Translation(tx, ty, ...) * t;
+\endcode</td></tr>
+<tr><td>Applies a rotation \n <span class="note">In 2D, any_rotation can also be \n an angle in radian</span></td><td>\code
+t.rotate(any_rotation);
+t.prerotate(any_rotation);
+\endcode</td><td>\code
+t *= any_rotation;
+t = any_rotation * t;
+\endcode</td></tr>
+<tr><td>Applies a scaling</td><td>\code
+t.scale(Vector(sx, sy, ...));
+t.scale(Vector::Constant(s));
+t.prescale(Vector3f(sx, sy, ...));
+\endcode</td><td>\code
+t *= Scaling(sx, sy, ...);
+t *= Scaling(s);
+t = Scaling(sx, sy, ...) * t;
+\endcode</td></tr>
+<tr><td>Applies a shear transformation \n ( \b 2D \b only ! )</td><td>\code
+t.shear(sx,sy);
+t.preshear(sx,sy);
+\endcode</td><td></td></tr>
+</table>
+
+Note that in both API, any many transformations can be concatenated in a single lines as shown in the two following equivalent examples:
+<table class="tutorial_code">
+<tr><td>\code
+t.pretranslate(..).rotate(..).translate(..).scale(..);
+\endcode</td></tr>
+<tr><td>\code
+t = Translation(..) * t * RotationType(..) * Translation(..) * Scaling(..);
+\endcode</td></tr>
+</table>
 
 */
 
