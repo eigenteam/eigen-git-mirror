@@ -44,6 +44,10 @@
   * \include AngleAxis_mimic_euler.cpp
   * Output: \verbinclude AngleAxis_mimic_euler.out
   *
+  * \note This class is not aimed to be used to store a rotation transformation,
+  * but rather to make easier the creation of other rotation (Quaternion, rotation Matrix)
+  * and transformation objects.
+  * 
   * \sa class Quaternion, class Transform, MatrixBase::UnitX()
   */
 
@@ -104,18 +108,15 @@ public:
   { return a * QuaternionType(b); }
 
   /** Concatenates two rotations */
-  inline Matrix3
-  operator* (const Matrix3& other) const
+  inline Matrix3 operator* (const Matrix3& other) const
   { return toRotationMatrix() * other; }
 
   /** Concatenates two rotations */
-  inline friend Matrix3
-  operator* (const Matrix3& a, const AngleAxis& b)
+  inline friend Matrix3 operator* (const Matrix3& a, const AngleAxis& b)
   { return a * b.toRotationMatrix(); }
 
   /** Applies rotation to vector */
-  inline Vector3
-  operator* (const Vector3& other) const
+  inline Vector3 operator* (const Vector3& other) const
   { return toRotationMatrix() * other; }
 
   /** \returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
@@ -196,31 +197,6 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
   res.diagonal() = (cos1_axis.cwise() * m_axis).cwise() + c;
 
   return res;
-}
-
-/** \geometry_module
-  *
-  * Constructs a 3x3 rotation matrix from the angle-axis \a aa
-  *
-  * \sa Matrix(const Quaternion&)
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::Matrix(const AngleAxis<Scalar>& aa)
-{
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
-  *this = aa.toRotationMatrix();
-}
-
-/** \geometry_module
-  *
-  * Set a 3x3 rotation matrix from the angle-axis \a aa
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>&
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::operator=(const AngleAxis<Scalar>& aa)
-{
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
-  return *this = aa.toRotationMatrix();
 }
 
 #endif // EIGEN_ANGLEAXIS_H

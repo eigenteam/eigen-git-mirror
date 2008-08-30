@@ -364,10 +364,10 @@ class Matrix
 
 /////////// Geometry module ///////////
 
-    explicit Matrix(const Quaternion<Scalar>& q);
-    Matrix& operator=(const Quaternion<Scalar>& q);
-    explicit Matrix(const AngleAxis<Scalar>& aa);
-    Matrix& operator=(const AngleAxis<Scalar>& aa);
+    template<typename OtherDerived>
+    explicit Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
+    template<typename OtherDerived>
+    Matrix& operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs

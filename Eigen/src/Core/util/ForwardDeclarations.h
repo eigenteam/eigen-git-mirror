@@ -100,6 +100,7 @@ template<typename MatrixType> class Cholesky;
 template<typename MatrixType> class CholeskyWithoutSquareRoot;
 
 // Geometry module:
+template<typename Derived, int _Dim> class RotationBase;
 template<typename Lhs, typename Rhs> class Cross;
 template<typename Scalar> class Quaternion;
 template<typename Scalar> class Rotation2D;

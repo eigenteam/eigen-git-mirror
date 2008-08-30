@@ -22,49 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ROTATION_H
-#define EIGEN_ROTATION_H
-
-// this file aims to contains the various representations of rotation/orientation
-// in 2D and 3D space excepted Matrix and Quaternion.
-
-/** \class RotationBase
-  *
-  * \brief Common base class for compact rotation representations
-  *
-  * \param Derived is the derived type, i.e., a rotation type
-  * \param _Dim the dimension of the space
-  */
-template<typename Derived, int _Dim>
-class RotationBase
-{
-  public:
-    enum { Dim = _Dim };
-    /** the scalar type of the coefficients */
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    
-    /** corresponding linear transformation matrix type */
-    typedef Matrix<Scalar,Dim,Dim> RotationMatrixType;
-
-    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    inline Derived& derived() { return *static_cast<Derived*>(this); }
-
-    /** \returns an equivalent rotation matrix */
-    inline RotationMatrixType toRotationMatrix() const { return derived().toRotationMatrix(); }
-
-    /** \returns the concatenation of the rotation \c *this with a translation \a t */
-    inline Transform<Scalar,Dim> operator*(const Translation<Scalar,Dim>& t) const
-    { return toRotationMatrix() * t; }
-
-    /** \returns the concatenation of the rotation \c *this with a scaling \a s */
-    inline RotationMatrixType operator*(const Scaling<Scalar,Dim>& s) const
-    { return toRotationMatrix() * s; }
-
-    /** \returns the concatenation of the rotation \c *this with an affine transformation \a t */
-    inline Transform<Scalar,Dim> operator*(const Transform<Scalar,Dim>& t) const
-    { return toRotationMatrix() * t; }
-    
-};
+#ifndef EIGEN_ROTATION2D_H
+#define EIGEN_ROTATION2D_H
 
 /** \geometry_module \ingroup GeometryModule
   *
@@ -115,11 +74,6 @@ public:
   /** \returns a read-write reference to the rotation angle */
   inline Scalar& angle() { return m_angle; }
 
-  /** Automatic convertion to a 2D rotation matrix.
-    * \sa toRotationMatrix()
-    */
-  inline operator Matrix2() const { return toRotationMatrix(); }
-
   /** \returns the inverse rotation */
   inline Rotation2D inverse() const { return -m_angle; }
 
@@ -143,7 +97,7 @@ public:
     * parameter \a t. It is in fact equivalent to a linear interpolation.
     */
   inline Rotation2D slerp(Scalar t, const Rotation2D& other) const
-  { return m_angle * (1-t) + t * other; }
+  { return m_angle * (1-t) + other.angle() * t; }
 };
 
 /** \ingroup GeometryModule
@@ -177,43 +131,4 @@ Rotation2D<Scalar>::toRotationMatrix(void) const
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
 }
 
-/** \internal
-  *
-  * Helper function to return an arbitrary rotation object to a rotation matrix.
-  *
-  * \param Scalar the numeric type of the matrix coefficients
-  * \param Dim the dimension of the current space
-  *
-  * It returns a Dim x Dim fixed size matrix.
-  *
-  * Default specializations are provided for:
-  *   - any scalar type (2D),
-  *   - any matrix expression,
-  *   - any type based on RotationBase (e.g., Quaternion, AngleAxis, Rotation2D)
-  *
-  * Currently ei_toRotationMatrix is only used by Transform.
-  *
-  * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
-  */
-template<typename Scalar, int Dim>
-inline static Matrix<Scalar,2,2> ei_toRotationMatrix(const Scalar& s)
-{
-  EIGEN_STATIC_ASSERT(Dim==2,you_did_a_programming_error);
-  return Rotation2D<Scalar>(s).toRotationMatrix();
-}
-
-template<typename Scalar, int Dim, typename OtherDerived>
-inline static Matrix<Scalar,Dim,Dim> ei_toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
-{
-  return r.toRotationMatrix();
-}
-
-template<typename Scalar, int Dim, typename OtherDerived>
-inline static const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBase<OtherDerived>& mat)
-{
-  EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
-    you_did_a_programming_error);
-  return mat;
-}
-
-#endif // EIGEN_ROTATION_H
+#endif // EIGEN_ROTATION2D_H

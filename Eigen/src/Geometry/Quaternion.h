@@ -432,29 +432,4 @@ struct ei_quaternion_assign_impl<Other,4,1>
   }
 };
 
-/** \geometry_module
-  *
-  * Constructs a 3x3 rotation matrix from the quaternion \a q
-  *
-  * \sa Matrix(const AngleAxis&)
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::Matrix(const Quaternion<Scalar>& q)
-{
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
-  *this = q.toRotationMatrix();
-}
-
-/** \geometry_module
-  *
-  * Set a 3x3 rotation matrix from the quaternion \a q
-  */
-template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>&
-Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>::operator=(const Quaternion<Scalar>& q)
-{
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,3,3);
-  return *this = q.toRotationMatrix();
-}
-
 #endif // EIGEN_QUATERNION_H

@@ -28,7 +28,8 @@ namespace Eigen {
 #include "src/Array/PartialRedux.h"
 
 #include "src/Geometry/OrthoMethods.h"
-#include "src/Geometry/Rotation.h"
+#include "src/Geometry/RotationBase.h"
+#include "src/Geometry/Rotation2D.h"
 #include "src/Geometry/Quaternion.h"
 #include "src/Geometry/AngleAxis.h"
 #include "src/Geometry/Transform.h"
