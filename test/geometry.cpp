@@ -157,6 +157,16 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
   VERIFY_IS_APPROX(t1*v1, t0*v1);
 
+  t0.setIdentity(); t0.scale(v0).rotate(q1.toRotationMatrix());
+  t1.setIdentity(); t1.scale(v0).rotate(q1);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  t0.setIdentity(); t0.scale(v0).rotate(AngleAxis(q1));
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  VERIFY_IS_APPROX(t0.scale(a).matrix(), t1.scale(Vector3::Constant(a)).matrix());
+  VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
+
   // 2D transformation
   Transform2 t20, t21;
   Vector2 v20 = test_random_matrix<Vector2>();
@@ -172,14 +182,6 @@ template<typename Scalar> void geometry(void)
   t21.linear() = Rotation2D<Scalar>(-a).toRotationMatrix();
   VERIFY( (t20.fromPositionOrientationScale(v20,a,v21)
         * (t21.prescale(v21.cwise().inverse()).translate(-v20))).isIdentity(test_precision<Scalar>()) );
-
-
-  t0.setIdentity(); t0.scale(v0).rotate(q1.toRotationMatrix());
-  t1.setIdentity(); t1.scale(v0).rotate(q1);
-  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
-
-  t0.setIdentity(); t0.scale(v0).rotate(AngleAxis(q1));
-  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
 
   // Transform - new API
   // 3D

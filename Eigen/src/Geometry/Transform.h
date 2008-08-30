@@ -188,6 +188,9 @@ public:
   template<typename OtherDerived>
   inline Transform& prescale(const MatrixBase<OtherDerived> &other);
 
+  inline Transform& scale(Scalar s);
+  inline Transform& prescale(Scalar s);
+
   template<typename OtherDerived>
   inline Transform& translate(const MatrixBase<OtherDerived> &other);
 
@@ -310,6 +313,17 @@ Transform<Scalar,Dim>::scale(const MatrixBase<OtherDerived> &other)
   return *this;
 }
 
+/** Applies on the right a uniform scale of a factor \a c to \c *this
+  * and returns a reference to \c *this.
+  * \sa prescale(Scalar)
+  */
+template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::scale(Scalar s)
+{
+  linear() *= s;
+  return *this;
+}
+
 /** Applies on the left the non uniform scale transformation represented
   * by the vector \a other to \c *this and returns a reference to \c *this.
   * \sa scale()
@@ -321,6 +335,17 @@ Transform<Scalar,Dim>::prescale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
   m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
+  return *this;
+}
+
+/** Applies on the left a uniform scale of a factor \a c to \c *this
+  * and returns a reference to \c *this.
+  * \sa scale(Scalar)
+  */
+template<typename Scalar, int Dim>
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::prescale(Scalar s)
+{
+  m_matrix.template corner<Dim,HDim>(TopLeft) *= s;
   return *this;
 }
 
@@ -516,6 +541,7 @@ Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
     return linear();
   else
     ei_assert("invalid traits value in Transform::inverse()");
+  return LinearMatrixType();
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale

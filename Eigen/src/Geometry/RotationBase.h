@@ -77,7 +77,7 @@ template<typename OtherDerived>
 Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>
 ::Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
 {
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,OtherDerived::Dim,OtherDerived::Dim);
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,int(OtherDerived::Dim),int(OtherDerived::Dim));
   *this = r.toRotationMatrix();
 }
 
@@ -91,7 +91,7 @@ Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>&
 Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>
 ::operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
 {
-  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,OtherDerived::Dim,OtherDerived::Dim);
+  EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix,int(OtherDerived::Dim),int(OtherDerived::Dim));
   return *this = r.toRotationMatrix();
 }
 
