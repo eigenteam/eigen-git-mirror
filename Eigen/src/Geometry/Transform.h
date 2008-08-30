@@ -26,7 +26,7 @@
 #define EIGEN_TRANSFORM_H
 
 /** Represents some traits of a transformation */
-enum TransformationKnowledge {
+enum TransformTraits {
   NoScaling,      ///< the transformation is a concatenation of translations, rotations
   NoShear,        ///< the transformation is a concatenation of translations, rotations and scalings
   GenericAffine,  ///< the transformation is affine (linear transformation + translation)
@@ -218,14 +218,13 @@ public:
     return res;
   }
 
-  LinearMatrixType extractRotation() const;
-  LinearMatrixType extractRotationNoShear() const;
+  LinearMatrixType extractRotation(TransformTraits traits = GenericAffine) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
-  inline const MatrixType inverse(TransformationKnowledge knowledge = GenericAffine) const;
+  inline const MatrixType inverse(TransformTraits traits = GenericAffine) const;
 
   const Scalar* data() const { return m_matrix.data(); }
   Scalar* data() { return m_matrix.data(); }
@@ -459,26 +458,48 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType&
 *** Specialial functions ***
 ***************************/
 
-/** \returns the rotation part of the transformation using a QR decomposition.
-  * \sa extractRotationNoShear(), class QR
+/** \returns the rotation part of the transformation
+  *
+  * \param traits allows to optimize the extraction process when the transformion
+  * is known to be not a general aafine transformation. The possible values are:
+  *  - GenericAffine which use a QR decomposition (default),
+  *  - NoShear which is the most probable case and very fast,
+  *  - NoScaling which simply returns the linear part !
+  *
+  * \warning this function consider the scaling is positive
+  *
+  * \warning to use this method in the general case (traits==GenericAffine), you need
+  * to include the QR module.
+  *
+  * \sa inverse(), class QR
   */
 template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::LinearMatrixType
-Transform<Scalar,Dim>::extractRotation() const
+Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
 {
-  return linear().qr().matrixQ();
-}
-
-/** \returns the rotation part of the transformation assuming no shear in
-  * the linear part.
-  * \sa extractRotation()
-  */
-template<typename Scalar, int Dim>
-typename Transform<Scalar,Dim>::LinearMatrixType
-Transform<Scalar,Dim>::extractRotationNoShear() const
-{
-  return linear().cwise().abs2()
-            .verticalRedux(ei_scalar_sum_op<Scalar>()).cwise().sqrt();
+  ei_assert(traits!=NonAffine && "you cannot extract a rotation from a non affine transformation");
+  if (traits == GenericAffine)
+  {
+    // FIXME maybe QR should be fixed to return a R matrix with a positive diagonal ??
+    QR<LinearMatrixType> qr(linear());
+    LinearMatrixType matQ = qr.matrixQ();
+    LinearMatrixType matR = qr.matrixR();
+    for (int i=0 ; i<Dim; ++i)
+      if (matR(i,i)<0)
+        matQ.col(i) = -matQ.col(i);
+    return matQ;
+  }
+  else if (traits == NoShear)
+  {
+    // extract linear = rotation * scaling
+    //  => rotation = linear * inv(Scaling)
+    VectorType invScaling = linear().colwise().norm().cwise().inverse();
+    return linear() * invScaling.asDiagonal();
+  }
+  else if (traits == NoScaling) // though that's stupid let's handle it !
+    return linear();
+  else
+    ei_assert("invalid traits value in Transform::inverse()");
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale
@@ -501,7 +522,7 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
 /** \returns the inverse transformation matrix according to some given knowledge
   * on \c *this.
   *
-  * \param knowledge allozs to optimize the inversion process when the transformion
+  * \param traits allows to optimize the inversion process when the transformion
   * is known to be not a general transformation. The possible values are:
   *  - NonAffine if the transformation is not necessarily affines, i.e., if the
   *    last row is not guaranteed to be [0 ... 0 1]
@@ -511,24 +532,28 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   *  - NoScaling if the transformation is only a concatenations of translations
   *    and rotations.
   *
+  * \warning unless \a traits is always set to NoShear or NoScaling, this function
+  * requires the generic inverse method of MatrixBase defined in the LU module. If
+  * you forget to include this module, then you will get hard to debug linking errors.
+  *
   * \sa MatrixBase::inverse()
   */
 template<typename Scalar, int Dim>
 inline const typename Transform<Scalar,Dim>::MatrixType
-Transform<Scalar,Dim>::inverse(TransformationKnowledge knowledge) const
+Transform<Scalar,Dim>::inverse(TransformTraits traits) const
 {
-  if (knowledge == NonAffine)
+  if (traits == NonAffine)
   {
     return m_matrix.inverse();
   }
   else
   {
     MatrixType res;
-    if (knowledge == GenericAffine)
+    if (traits == GenericAffine)
     {
       res.template corner<Dim,Dim>(TopLeft) = linear().inverse();
     }
-    else if (knowledge == NoShear)
+    else if (traits == NoShear)
     {
       // extract linear = rotation * scaling
       // then inv(linear) = inv(scaling) * inv(rotation)
@@ -541,13 +566,13 @@ Transform<Scalar,Dim>::inverse(TransformationKnowledge knowledge) const
       VectorType invScaling2 = linear().colwise().norm2().cwise().inverse();
       res.template corner<Dim,Dim>(TopLeft) = (invScaling2.asDiagonal() * linear().transpose()).lazy();
     }
-    else if (knowledge == NoScaling)
+    else if (traits == NoScaling)
     {
       res.template corner<Dim,Dim>(TopLeft) = linear().transpose();
     }
     else
     {
-      ei_assert("invalid knowledge value in Transform::inverse()");
+      ei_assert("invalid traits value in Transform::inverse()");
     }
     // translation and remaining parts
     res.template corner<Dim,1>(TopRight) = - res.template corner<Dim,Dim>(TopLeft) * translation();
