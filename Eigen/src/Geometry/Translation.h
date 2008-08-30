@@ -93,6 +93,10 @@ public:
   /** Concatenates a translation and a linear transformation */
   inline TransformType operator* (const LinearMatrixType& linear) const;
 
+  template<typename Derived>
+  inline TransformType operator*(const RotationBase<Derived,Dim>& r) const
+  { return *this * r.toRotationMatrix(); }
+
   /** Concatenates a linear transformation and a translation */
   // its a nightmare to define a templated friend function outside its declaration
   friend inline TransformType operator* (const LinearMatrixType& linear, const Translation& t)

@@ -218,6 +218,13 @@ public:
     return res;
   }
 
+//   template<typename Derived>
+//   inline Transform& operator=(const Rotation<Derived,Dim>& t);
+  template<typename Derived>
+  inline Transform& operator*=(const RotationBase<Derived,Dim>& r) { return rotate(r.toRotationMatrix()); }
+  template<typename Derived>
+  inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
+
   LinearMatrixType extractRotation(TransformTraits traits = GenericAffine) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
@@ -349,7 +356,7 @@ Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
   * to \c *this and returns a reference to \c *this.
   *
   * The template parameter \a RotationType is the type of the rotation which
-  * must be registered by ToRotationMatrix<>.
+  * must be known by ei_toRotationMatrix<>.
   *
   * Natively supported types includes:
   *   - any scalar (2D),
@@ -360,14 +367,14 @@ Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
   * This mechanism is easily extendable to support user types such as Euler angles,
   * or a pair of Quaternion for 4D rotations.
   *
-  * \sa rotate(Scalar), class Quaternion, class AngleAxis, class ToRotationMatrix, prerotate(RotationType)
+  * \sa rotate(Scalar), class Quaternion, class AngleAxis, prerotate(RotationType)
   */
 template<typename Scalar, int Dim>
 template<typename RotationType>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::rotate(const RotationType& rotation)
 {
-  linear() *= ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation);
+  linear() *= ei_toRotationMatrix<Scalar,Dim>(rotation);
   return *this;
 }
 
@@ -383,7 +390,7 @@ template<typename RotationType>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::prerotate(const RotationType& rotation)
 {
-  m_matrix.template block<Dim,HDim>(0,0) = ToRotationMatrix<Scalar,Dim,RotationType>::convert(rotation)
+  m_matrix.template block<Dim,HDim>(0,0) = ei_toRotationMatrix<Scalar,Dim>(rotation)
                                          * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
@@ -454,6 +461,15 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType&
   return res;
 }
 
+template<typename Scalar, int Dim>
+template<typename Derived>
+inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const RotationBase<Derived,Dim>& r) const
+{
+  Transform res = *this;
+  res.rotate(r.derived());
+  return res;
+}
+
 /***************************
 *** Specialial functions ***
 ***************************/
@@ -511,7 +527,7 @@ Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
   const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale)
 {
-  linear() = ToRotationMatrix<Scalar,Dim,OrientationType>::convert(orientation);
+  linear() = ei_toRotationMatrix<Scalar,Dim>(orientation);
   linear() *= scale.asDiagonal();
   translation() = position;
   m_matrix(Dim,Dim) = 1.;

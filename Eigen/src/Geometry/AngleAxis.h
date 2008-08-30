@@ -46,9 +46,18 @@
   *
   * \sa class Quaternion, class Transform, MatrixBase::UnitX()
   */
-template<typename _Scalar>
-class AngleAxis
+
+template<typename _Scalar> struct ei_traits<AngleAxis<_Scalar> >
 {
+  typedef _Scalar Scalar;
+};
+
+template<typename _Scalar>
+class AngleAxis : public RotationBase<AngleAxis<_Scalar>,3>
+{
+  typedef RotationBase<AngleAxis<_Scalar>,3> Base;
+  using Base::operator*;
+
 public:
   enum { Dim = 3 };
   /** the scalar type of the coefficients */

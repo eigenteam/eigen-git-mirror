@@ -51,9 +51,17 @@ struct ei_quaternion_assign_impl;
   *
   * \sa  class AngleAxis, class Transform
   */
-template<typename _Scalar>
-class Quaternion
+
+template<typename _Scalar> struct ei_traits<Quaternion<_Scalar> >
 {
+  typedef _Scalar Scalar;
+};
+
+template<typename _Scalar>
+class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
+{
+  typedef RotationBase<Quaternion<_Scalar>,3> Base;
+  using Base::operator*;
   typedef Matrix<_Scalar, 4, 1> Coefficients;
   Coefficients m_coeffs;
 

@@ -105,6 +105,10 @@ public:
   friend inline LinearMatrixType operator* (const LinearMatrixType& other, const Scaling& s)
   { return other * s.coeffs().asDiagonal(); }
 
+  template<typename Derived>
+  inline LinearMatrixType operator*(const RotationBase<Derived,Dim>& r) const
+  { return *this * r.toRotationMatrix(); }
+
   /** Applies scaling to vector */
   inline VectorType operator* (const VectorType& other) const
   { return coeffs().asDiagonal() * other; }

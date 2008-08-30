@@ -28,79 +28,42 @@
 // this file aims to contains the various representations of rotation/orientation
 // in 2D and 3D space excepted Matrix and Quaternion.
 
-/** \internal
+/** \class RotationBase
   *
-  * \class ToRotationMatrix
+  * \brief Common base class for compact rotation representations
   *
-  * \brief Template static struct to convert any rotation representation to a matrix form
-  *
-  * \param Scalar the numeric type of the matrix coefficients
-  * \param Dim the dimension of the current space
-  * \param RotationType the input type of the rotation
-  *
-  * This class defines a single static member with the following prototype:
-  * \code
-  * static <MatrixExpression> convert(const RotationType& r);
-  * \endcode
-  * where \c <MatrixExpression> must be a fixed-size matrix expression of size Dim x Dim and
-  * coefficient type Scalar.
-  *
-  * Default specializations are provided for:
-  *   - any scalar type (2D),
-  *   - any matrix expression,
-  *   - Quaternion,
-  *   - AngleAxis.
-  *
-  * Currently ToRotationMatrix is only used by Transform.
-  *
-  * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
-  *
+  * \param Derived is the derived type, i.e., a rotation type
+  * \param _Dim the dimension of the space
   */
-template<typename Scalar, int Dim, typename RotationType>
-struct ToRotationMatrix;
-
-// 2D rotation to matrix
-template<typename Scalar, typename OtherScalarType>
-struct ToRotationMatrix<Scalar, 2, OtherScalarType>
+template<typename Derived, int _Dim>
+class RotationBase
 {
-  inline static Matrix<Scalar,2,2> convert(const OtherScalarType& r)
-  { return Rotation2D<Scalar>(r).toRotationMatrix(); }
-};
+  public:
+    enum { Dim = _Dim };
+    /** the scalar type of the coefficients */
+    typedef typename ei_traits<Derived>::Scalar Scalar;
+    
+    /** corresponding linear transformation matrix type */
+    typedef Matrix<Scalar,Dim,Dim> RotationMatrixType;
 
-// 2D rotation to rotation matrix
-template<typename Scalar, typename OtherScalarType>
-struct ToRotationMatrix<Scalar, 2, Rotation2D<OtherScalarType> >
-{
-  inline static Matrix<Scalar,2,2> convert(const Rotation2D<OtherScalarType>& r)
-  { return Rotation2D<Scalar>(r).toRotationMatrix(); }
-};
+    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    inline Derived& derived() { return *static_cast<Derived*>(this); }
 
-// quaternion to rotation matrix
-template<typename Scalar, typename OtherScalarType>
-struct ToRotationMatrix<Scalar, 3, Quaternion<OtherScalarType> >
-{
-  inline static Matrix<Scalar,3,3> convert(const Quaternion<OtherScalarType>& q)
-  { return q.toRotationMatrix(); }
-};
+    /** \returns an equivalent rotation matrix */
+    inline RotationMatrixType toRotationMatrix() const { return derived().toRotationMatrix(); }
 
-// angle axis to rotation matrix
-template<typename Scalar, typename OtherScalarType>
-struct ToRotationMatrix<Scalar, 3, AngleAxis<OtherScalarType> >
-{
-  inline static Matrix<Scalar,3,3> convert(const AngleAxis<OtherScalarType>& aa)
-  { return aa.toRotationMatrix(); }
-};
+    /** \returns the concatenation of the rotation \c *this with a translation \a t */
+    inline Transform<Scalar,Dim> operator*(const Translation<Scalar,Dim>& t) const
+    { return toRotationMatrix() * t; }
 
-// matrix xpr to matrix xpr
-template<typename Scalar, int Dim, typename OtherDerived>
-struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
-{
-  inline static const MatrixBase<OtherDerived>& convert(const MatrixBase<OtherDerived>& mat)
-  {
-    EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
-      you_did_a_programming_error);
-    return mat;
-  }
+    /** \returns the concatenation of the rotation \c *this with a scaling \a s */
+    inline RotationMatrixType operator*(const Scaling<Scalar,Dim>& s) const
+    { return toRotationMatrix() * s; }
+
+    /** \returns the concatenation of the rotation \c *this with an affine transformation \a t */
+    inline Transform<Scalar,Dim> operator*(const Transform<Scalar,Dim>& t) const
+    { return toRotationMatrix() * t; }
+    
 };
 
 /** \geometry_module \ingroup GeometryModule
@@ -119,9 +82,17 @@ struct ToRotationMatrix<Scalar, Dim, MatrixBase<OtherDerived> >
   *
   * \sa class Quaternion, class Transform
   */
-template<typename _Scalar>
-class Rotation2D
+template<typename _Scalar> struct ei_traits<Rotation2D<_Scalar> >
 {
+  typedef _Scalar Scalar;
+};
+
+template<typename _Scalar>
+class Rotation2D : public RotationBase<Rotation2D<_Scalar>,2>
+{
+  typedef RotationBase<Rotation2D<_Scalar>,2> Base;
+  using Base::operator*;
+
 public:
   enum { Dim = 2 };
   /** the scalar type of the coefficients */
@@ -204,6 +175,45 @@ Rotation2D<Scalar>::toRotationMatrix(void) const
   Scalar sinA = ei_sin(m_angle);
   Scalar cosA = ei_cos(m_angle);
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
+}
+
+/** \internal
+  *
+  * Helper function to return an arbitrary rotation object to a rotation matrix.
+  *
+  * \param Scalar the numeric type of the matrix coefficients
+  * \param Dim the dimension of the current space
+  *
+  * It returns a Dim x Dim fixed size matrix.
+  *
+  * Default specializations are provided for:
+  *   - any scalar type (2D),
+  *   - any matrix expression,
+  *   - any type based on RotationBase (e.g., Quaternion, AngleAxis, Rotation2D)
+  *
+  * Currently ei_toRotationMatrix is only used by Transform.
+  *
+  * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
+  */
+template<typename Scalar, int Dim>
+inline static Matrix<Scalar,2,2> ei_toRotationMatrix(const Scalar& s)
+{
+  EIGEN_STATIC_ASSERT(Dim==2,you_did_a_programming_error);
+  return Rotation2D<Scalar>(s).toRotationMatrix();
+}
+
+template<typename Scalar, int Dim, typename OtherDerived>
+inline static Matrix<Scalar,Dim,Dim> ei_toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
+{
+  return r.toRotationMatrix();
+}
+
+template<typename Scalar, int Dim, typename OtherDerived>
+inline static const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBase<OtherDerived>& mat)
+{
+  EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
+    you_did_a_programming_error);
+  return mat;
 }
 
 #endif // EIGEN_ROTATION_H

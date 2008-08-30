@@ -173,6 +173,14 @@ template<typename Scalar> void geometry(void)
   VERIFY( (t20.fromPositionOrientationScale(v20,a,v21)
         * (t21.prescale(v21.cwise().inverse()).translate(-v20))).isIdentity(test_precision<Scalar>()) );
 
+
+  t0.setIdentity(); t0.scale(v0).rotate(q1.toRotationMatrix());
+  t1.setIdentity(); t1.scale(v0).rotate(q1);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  t0.setIdentity(); t0.scale(v0).rotate(AngleAxis(q1));
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
   // Transform - new API
   // 3D
   t0.setIdentity();
@@ -209,6 +217,36 @@ template<typename Scalar> void geometry(void)
   // translation * transformation 
   t0.pretranslate(v0);
   t1 = Translation3(v0) * t1;
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // transform * quaternion
+  t0.rotate(q1);
+  t1 = t1 * q1;
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // translation * quaternion
+  t0.translate(v1).rotate(q1);
+  t1 = t1 * (Translation3(v1) * q1);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // scaling * quaternion
+  t0.scale(v1).rotate(q1);
+  t1 = t1 * (Scaling3(v1) * q1);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // quaternion * transform
+  t0.prerotate(q1);
+  t1 = q1 * t1;
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // quaternion * translation
+  t0.rotate(q1).translate(v1);
+  t1 = t1 * (q1 * Translation3(v1));
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  // quaternion * scaling
+  t0.rotate(q1).scale(v1);
+  t1 = t1 * (q1 * Scaling3(v1));
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
 
   // translation * vector
