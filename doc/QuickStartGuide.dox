@@ -312,7 +312,7 @@ etc.
 </td></tr>
 <tr><td>
 \link Cwise::min min \endlink, \link Cwise::max max \endlink, \n
-absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endlink
+absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endlink)
 </td><td>\code
 mat3 = mat1.cwise().min(mat2);
 mat3 = mat1.cwise().max(mat2);
@@ -410,8 +410,7 @@ Read-write access to sub-matrices:
  vec1 = mat1.diagonal();
  mat1.diagonal() = vec1;
  \endcode
- \link MatrixBase::diagonal() (more) \endlink</td></td>
- <td></td>
+ \link MatrixBase::diagonal() (more) \endlink</td><td></td><td></td></tr>
 </table>
 
 
@@ -442,7 +441,7 @@ vec1.normalize();\endcode
 </td></tr>
 <tr><td>
 \link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
-\b Note: this product is automatically optimized !</td><td>\code
+<em class="note">this product is automatically optimized !</em></td><td>\code
 mat3 = mat1 * vec2.asDiagonal();\endcode
 </td></tr>
 <tr><td>
@@ -498,6 +497,7 @@ forces immediate evaluation of the transpose</td></tr>
 
 /** \page TutorialGeometry Tutorial 2/3 - Geometry
     \ingroup Tutorial
+    \internal
 
 <div class="eimainmenu">\ref index "Overview"
   | \ref TutorialCore "Core features"

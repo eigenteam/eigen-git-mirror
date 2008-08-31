@@ -7,10 +7,11 @@ int main(int, char *[])
 {
   for (int size=1; size<=4; ++size)
   {
-    MatrixXi m(size,size+1);            // creates a size x (size+1) matrix of int
-    for (int j=0; j<m.cols(); ++j)      // loop over the columns
-      for (int i=0; i<m.rows(); ++i)    // loop over the rows
-        m(i,j) = i+j*m.rows();          // to access matrix elements use operator (int,int)
+    MatrixXi m(size,size+1);          // a size x (size+1) matrix of int
+    for (int j=0; j<m.cols(); ++j)    // loop over the columns
+      for (int i=0; i<m.rows(); ++i)  // loop over the rows
+        m(i,j) = i+j*m.rows();        // to access matrix elements
+                                      // use operator (int,int)
     std::cout << m << "\n\n";
   }
 

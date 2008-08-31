@@ -451,7 +451,7 @@ A.top  {
 A.top:hover, A.logo:hover {
   background-color: transparent;font-weight : bolder;
 }
-SPAN.note {
+.note {
   font-size: 8.5pt;
 }
 
