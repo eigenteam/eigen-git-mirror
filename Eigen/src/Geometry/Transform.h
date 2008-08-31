@@ -539,8 +539,9 @@ Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
   }
   else if (traits == NoScaling) // though that's stupid let's handle it !
     return linear();
-  else
+  else {
     ei_assert("invalid traits value in Transform::inverse()");
+  }
   return LinearMatrixType();
 }
 

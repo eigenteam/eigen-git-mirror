@@ -155,21 +155,20 @@ void linearRegression(int numPoints,
   *
   * \sa linearRegression()
   */
-template<typename VectorType, typename BigVectorType>
+template<typename VectorType, typename HyperplaneType>
 void fitHyperplane(int numPoints,
                    VectorType **points,
-                   BigVectorType *result,
+                   HyperplaneType *result,
                    typename NumTraits<typename VectorType::Scalar>::Real* soundness = 0)
 {
   typedef typename VectorType::Scalar Scalar;
   typedef Matrix<Scalar,VectorType::SizeAtCompileTime,VectorType::SizeAtCompileTime> CovMatrixType;
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType)
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(BigVectorType)
   ei_assert(numPoints >= 1);
   int size = points[0]->size();
-  ei_assert(size+1 == result->size());
+  ei_assert(size+1 == result->coeffs().size());
 
-  // compue the mean of the data
+  // compute the mean of the data
   VectorType mean = VectorType::Zero(size);
   for(int i = 0; i < numPoints; i++)
     mean += *(points[i]);
@@ -186,13 +185,13 @@ void fitHyperplane(int numPoints,
 
   // now we just have to pick the eigen vector with smallest eigen value
   SelfAdjointEigenSolver<CovMatrixType> eig(covMat);
-  result->start(size) = eig.eigenvectors().col(0);
+  result->normal() = eig.eigenvectors().col(0);
   if (soundness)
     *soundness = eig.eigenvalues().coeff(0)/eig.eigenvalues().coeff(1);
 
   // let's compute the constant coefficient such that the
   // plane pass trough the mean point:
-  result->coeffRef(size) = - (result->start(size).cwise()* mean).sum();
+  result->offset() = - (result->normal().cwise()* mean).sum();
 }
 
 

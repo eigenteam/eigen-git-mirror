@@ -26,21 +26,21 @@
 #include <Eigen/Regression>
 
 template<typename VectorType,
-         typename BigVecType>
+         typename HyperplaneType>
 void makeNoisyCohyperplanarPoints(int numPoints,
                                   VectorType **points,
-                                  BigVecType *coeffs,
+                                  HyperplaneType *hyperplane,
                                   typename VectorType::Scalar noiseAmplitude )
 {
   typedef typename VectorType::Scalar Scalar;
   const int size = points[0]->size();
   // pick a random hyperplane, store the coefficients of its equation
-  coeffs->resize(size + 1);
+  hyperplane->coeffs().resize(size + 1);
   for(int j = 0; j < size + 1; j++)
   {
     do {
-      coeffs->coeffRef(j) = ei_random<Scalar>();
-    } while(ei_abs(coeffs->coeffRef(j)) < 0.5);
+      hyperplane->coeffs().coeffRef(j) = ei_random<Scalar>();
+    } while(ei_abs(hyperplane->coeffs().coeff(j)) < 0.5);
   }
 
   // now pick numPoints random points on this hyperplane
@@ -51,8 +51,8 @@ void makeNoisyCohyperplanarPoints(int numPoints,
     {
       cur_point = VectorType::Random(size)/*.normalized()*/;
       // project cur_point onto the hyperplane
-      Scalar x = - (coeffs->start(size).cwise()*cur_point).sum();
-      cur_point *= coeffs->coeff(size) / x;
+      Scalar x = - (hyperplane->coeffs().start(size).cwise()*cur_point).sum();
+      cur_point *= hyperplane->coeffs().coeff(size) / x;
     } while( ei_abs(cur_point.norm()) < 0.5
           || ei_abs(cur_point.norm()) > 2.0 );
   }
@@ -63,18 +63,17 @@ void makeNoisyCohyperplanarPoints(int numPoints,
 }
 
 template<typename VectorType,
-         typename BigVecType>
+         typename HyperplaneType>
 void check_fitHyperplane(int numPoints,
                          VectorType **points,
-                         BigVecType *coeffs,
+                         const HyperplaneType& original,
                          typename VectorType::Scalar tolerance)
 {
   int size = points[0]->size();
-  BigVecType result(size + 1);
+  HyperplaneType result(size);
   fitHyperplane(numPoints, points, &result);
-  result /= result.coeff(size);
-  result *= coeffs->coeff(size);
-  typename VectorType::Scalar error = (result - *coeffs).norm() / coeffs->norm();
+  result.coeffs() *= original.coeffs().coeff(size)/result.coeffs().coeff(size);
+  typename VectorType::Scalar error = (result.coeffs() - original.coeffs()).norm() / original.coeffs().norm();
   VERIFY(ei_abs(error) < ei_abs(tolerance));
 }
 
@@ -86,31 +85,33 @@ void test_regression()
       Vector2f points2f [1000];
       Vector2f *points2f_ptrs [1000];
       for(int i = 0; i < 1000; i++) points2f_ptrs[i] = &(points2f[i]);
-      Vector3f coeffs3f;
+      Hyperplane<float,2> coeffs3f;
       makeNoisyCohyperplanarPoints(1000, points2f_ptrs, &coeffs3f, 0.01f);
-      CALL_SUBTEST(check_fitHyperplane(10, points2f_ptrs, &coeffs3f, 0.05f));
-      CALL_SUBTEST(check_fitHyperplane(100, points2f_ptrs, &coeffs3f, 0.01f));
-      CALL_SUBTEST(check_fitHyperplane(1000, points2f_ptrs, &coeffs3f, 0.002f));
+      CALL_SUBTEST(check_fitHyperplane(10, points2f_ptrs, coeffs3f, 0.05f));
+      CALL_SUBTEST(check_fitHyperplane(100, points2f_ptrs, coeffs3f, 0.01f));
+      CALL_SUBTEST(check_fitHyperplane(1000, points2f_ptrs, coeffs3f, 0.002f));
     }
 
     {
       Vector4d points4d [1000];
       Vector4d *points4d_ptrs [1000];
       for(int i = 0; i < 1000; i++) points4d_ptrs[i] = &(points4d[i]);
-      Matrix<double,5,1> coeffs5d;
+      Hyperplane<float,4> coeffs5d;
       makeNoisyCohyperplanarPoints(1000, points4d_ptrs, &coeffs5d, 0.01);
-      CALL_SUBTEST(check_fitHyperplane(10, points4d_ptrs, &coeffs5d, 0.05));
-      CALL_SUBTEST(check_fitHyperplane(100, points4d_ptrs, &coeffs5d, 0.01));
-      CALL_SUBTEST(check_fitHyperplane(1000, points4d_ptrs, &coeffs5d, 0.002));
+      CALL_SUBTEST(check_fitHyperplane(10, points4d_ptrs, coeffs5d, 0.05));
+      CALL_SUBTEST(check_fitHyperplane(100, points4d_ptrs, coeffs5d, 0.01));
+      CALL_SUBTEST(check_fitHyperplane(1000, points4d_ptrs, coeffs5d, 0.002));
     }
 
     {
       VectorXcd *points11cd_ptrs[1000];
       for(int i = 0; i < 1000; i++) points11cd_ptrs[i] = new VectorXcd(11);
-      VectorXcd *coeffs12cd = new VectorXcd(12);
+      Hyperplane<std::complex<double>,Dynamic> *coeffs12cd = new Hyperplane<std::complex<double>,Dynamic>(11);
       makeNoisyCohyperplanarPoints(1000, points11cd_ptrs, coeffs12cd, 0.01);
-      CALL_SUBTEST(check_fitHyperplane(100, points11cd_ptrs, coeffs12cd, 0.025));
-      CALL_SUBTEST(check_fitHyperplane(1000, points11cd_ptrs, coeffs12cd, 0.006));
+      CALL_SUBTEST(check_fitHyperplane(100, points11cd_ptrs, *coeffs12cd, 0.025));
+      CALL_SUBTEST(check_fitHyperplane(1000, points11cd_ptrs, *coeffs12cd, 0.006));
+      delete coeffs12cd;
+      for(int i = 0; i < 1000; i++) delete points11cd_ptrs[i];
     }
   }
 }

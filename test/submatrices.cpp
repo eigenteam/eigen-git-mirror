@@ -128,7 +128,6 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   VERIFY(ones.row(r1).sum() == Scalar(cols));
 
   VERIFY(ones.col(c1).dot(ones.col(c2)) == Scalar(rows));
-  std::cerr << ones.row(r1).dot(ones.row(r2)) << " == " << cols <<  "\n";
   VERIFY(ones.row(r1).dot(ones.row(r2)) == Scalar(cols));
 }
 

@@ -26,16 +26,16 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 
-template<typename PlaneType> void hyperplane(const PlaneType& _plane)
+template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
 {
   /* this test covers the following files:
      Hyperplane.h
   */
 
   const int dim = _plane.dim();
-  typedef typename PlaneType::Scalar Scalar;
+  typedef typename HyperplaneType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, PlaneType::DimAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime, 1> VectorType;
 
   VectorType p0 = VectorType::Random(dim);
   VectorType p1 = VectorType::Random(dim);
@@ -43,8 +43,8 @@ template<typename PlaneType> void hyperplane(const PlaneType& _plane)
   VectorType n0 = VectorType::Random(dim).normalized();
   VectorType n1 = VectorType::Random(dim).normalized();
   
-  PlaneType pl0(n0, p0);
-  PlaneType pl1(n1, p1);
+  HyperplaneType pl0(n0, p0);
+  HyperplaneType pl1(n1, p1);
 
   Scalar s0 = ei_random<Scalar>();
   Scalar s1 = ei_random<Scalar>();
@@ -52,11 +52,43 @@ template<typename PlaneType> void hyperplane(const PlaneType& _plane)
   VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
   VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
   
-  VERIFY_IS_MUCH_SMALLER_THAN( pl0.distanceTo(p0), Scalar(1) );
-  VERIFY_IS_APPROX( pl1.distanceTo(p1 + n1 * s0), s0 );
-  VERIFY_IS_MUCH_SMALLER_THAN( pl1.distanceTo(pl1.project(p0)), Scalar(1) );
-  VERIFY_IS_MUCH_SMALLER_THAN( pl1.distanceTo(p1 +  pl1.normal().unitOrthogonal() * s1), Scalar(1) );
+  VERIFY_IS_MUCH_SMALLER_THAN( pl0.absDistance(p0), Scalar(1) );
+  VERIFY_IS_APPROX( pl1.signedDistance(p1 + n1 * s0), s0 );
+  VERIFY_IS_MUCH_SMALLER_THAN( pl1.signedDistance(pl1.projection(p0)), Scalar(1) );
+  VERIFY_IS_MUCH_SMALLER_THAN( pl1.absDistance(p1 +  pl1.normal().unitOrthogonal() * s1), Scalar(1) );
+}
 
+template<typename Scalar> void lines()
+{
+  typedef Hyperplane<Scalar, 2> HLine;
+  typedef ParametrizedLine<Scalar, 2> PLine;
+  typedef Matrix<Scalar,2,1> Vector;
+  typedef Matrix<Scalar,3,1> CoeffsType;
+
+  for(int i = 0; i < 10; i++)
+  {
+    Vector center = Vector::Random();
+    Vector u = Vector::Random();
+    Vector v = Vector::Random();
+    Scalar a = ei_random<Scalar>();
+
+    HLine line_u = HLine::Through(center + u, center + a*u);
+    HLine line_v = HLine::Through(center + v, center + a*v);
+
+    // the line equations should be normalized so that a^2+b^2=1
+    VERIFY_IS_APPROX(line_u.normal().norm(), Scalar(1));
+    VERIFY_IS_APPROX(line_v.normal().norm(), Scalar(1));
+
+    Vector result = line_u.intersection(line_v);
+
+    // the lines should intersect at the point we called "center"
+    VERIFY_IS_APPROX(result, center);
+
+    // check conversions between two types of lines
+    CoeffsType converted_coeffs(HLine(PLine(line_u)).coeffs());
+    converted_coeffs *= line_u.coeffs()(0)/converted_coeffs(0);
+    VERIFY(line_u.coeffs().isApprox(converted_coeffs));
+  }
 }
 
 void test_hyperplane()
@@ -66,6 +98,7 @@ void test_hyperplane()
     CALL_SUBTEST( hyperplane(Hyperplane<float,3>()) );
     CALL_SUBTEST( hyperplane(Hyperplane<double,4>()) );
     CALL_SUBTEST( hyperplane(Hyperplane<std::complex<double>,5>()) );
-    CALL_SUBTEST( hyperplane(Hyperplane<double,Dynamic>(13)) );
+    CALL_SUBTEST( lines<float>() );
+    CALL_SUBTEST( lines<double>() );
   }
 }

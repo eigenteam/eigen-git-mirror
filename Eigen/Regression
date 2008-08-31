@@ -3,6 +3,7 @@
 
 #include "LU"
 #include "QR"
+#include "Geometry"
 
 namespace Eigen {
 
