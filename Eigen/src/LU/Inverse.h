@@ -216,7 +216,7 @@ struct ei_compute_inverse<MatrixType, 4>
   * \sa inverse()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::computeInverse(typename MatrixBase<Derived>::EvalType *result) const
+inline void MatrixBase<Derived>::computeInverse(EvalType *result) const
 {
   typedef typename ei_eval<Derived>::type MatrixType;
   ei_assert(rows() == cols());

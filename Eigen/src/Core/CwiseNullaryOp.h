@@ -234,7 +234,7 @@ MatrixBase<Derived>::Constant(const Scalar& value)
 
 template<typename Derived>
 bool MatrixBase<Derived>::isApproxToConstant
-(const Scalar& value, typename NumTraits<Scalar>::Real prec) const
+(const Scalar& value, RealScalar prec) const
 {
   for(int j = 0; j < cols(); j++)
     for(int i = 0; i < rows(); i++)
@@ -328,7 +328,7 @@ MatrixBase<Derived>::Zero()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isZero
-(typename NumTraits<Scalar>::Real prec) const
+(RealScalar prec) const
 {
   for(int j = 0; j < cols(); j++)
     for(int i = 0; i < rows(); i++)
@@ -425,7 +425,7 @@ MatrixBase<Derived>::Ones()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isOnes
-(typename NumTraits<Scalar>::Real prec) const
+(RealScalar prec) const
 {
   return isApproxToConstant(Scalar(1), prec);
 }
@@ -497,7 +497,7 @@ MatrixBase<Derived>::Identity()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isIdentity
-(typename NumTraits<Scalar>::Real prec) const
+(RealScalar prec) const
 {
   for(int j = 0; j < cols(); j++)
   {

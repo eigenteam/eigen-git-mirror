@@ -637,42 +637,50 @@ mat2x2 = t.linear();
 Eigen's geometry module offer two different ways to build and update transformation objects.
 <table class="tutorial_code">
 <tr><td></td><td>\b procedurale \b API </td><td>\b natural \b API </td></tr>
-<tr><td>Applies a translation</td><td>\code
-t.translate(Vector3(tx, ty, ...));
-t.pretranslate(Vector3(tx, ty, ...));
+<tr><td>Translation</td><td>\code
+t.translate(Vector_(tx, ty, ...));
+
+t.pretranslate(Vector_(tx, ty, ...));
 \endcode</td><td>\code
-t *= Translation(tx, ty, ...);
-t = Translation(tx, ty, ...) * t;
+t *= Translation_(tx, ty, ...);
+t2 = t1 * Translation_(vec);
+t = Translation_(tx, ty, ...) * t;
 \endcode</td></tr>
-<tr><td>Applies a rotation \n <span class="note">In 2D, any_rotation can also be \n an angle in radian</span></td><td>\code
+<tr><td>Rotation \n <span class="note">In 2D, any_rotation can also \n be an angle in radian</span></td><td>\code
 t.rotate(any_rotation);
+
 t.prerotate(any_rotation);
 \endcode</td><td>\code
 t *= any_rotation;
+t2 = t1 * any_rotation;
 t = any_rotation * t;
 \endcode</td></tr>
-<tr><td>Applies a scaling</td><td>\code
-t.scale(Vector(sx, sy, ...));
-t.scale(Vector::Constant(s));
-t.prescale(Vector3f(sx, sy, ...));
+<tr><td>Scaling</td><td>\code
+t.scale(Vector_(sx, sy, ...));
+
+t.scale(s);
+t.prescale(Vector_(sx, sy, ...));
+t.prescale(s);
 \endcode</td><td>\code
-t *= Scaling(sx, sy, ...);
-t *= Scaling(s);
-t = Scaling(sx, sy, ...) * t;
+t *= Scaling_(sx, sy, ...);
+t2 = t1 * Scaling_(vec);
+t *= Scaling_(s);
+t = Scaling_(sx, sy, ...) * t;
+t = Scaling_(s) * t;
 \endcode</td></tr>
-<tr><td>Applies a shear transformation \n ( \b 2D \b only ! )</td><td>\code
+<tr><td>Shear transformation \n ( \b 2D \b only ! )</td><td>\code
 t.shear(sx,sy);
 t.preshear(sx,sy);
 \endcode</td><td></td></tr>
 </table>
 
-Note that in both API, any many transformations can be concatenated in a single lines as shown in the two following equivalent examples:
+Note that in both API, any many transformations can be concatenated in a single expression as shown in the two following equivalent examples:
 <table class="tutorial_code">
 <tr><td>\code
 t.pretranslate(..).rotate(..).translate(..).scale(..);
 \endcode</td></tr>
 <tr><td>\code
-t = Translation(..) * t * RotationType(..) * Translation(..) * Scaling(..);
+t = Translation_(..) * t * RotationType(..) * Translation_(..) * Scaling_(..);
 \endcode</td></tr>
 </table>
 

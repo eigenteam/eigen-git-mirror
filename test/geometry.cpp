@@ -284,6 +284,6 @@ void test_geometry()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( geometry<float>() );
-//     CALL_SUBTEST( geometry<double>() );
+    CALL_SUBTEST( geometry<double>() );
   }
 }

@@ -61,11 +61,12 @@ template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
-  using Base::operator*;
   typedef Matrix<_Scalar, 4, 1> Coefficients;
   Coefficients m_coeffs;
 
 public:
+
+  using Base::operator*;
 
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;

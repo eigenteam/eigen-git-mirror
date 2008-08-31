@@ -100,9 +100,6 @@ template<typename Scalar> void packetmath()
       ref[i] = data1[i+offset];
 
     typedef Matrix<Scalar, PacketSize, 1> Vector;
-    std::cout << Vector(data1).transpose() << " | " << Vector(data1+PacketSize).transpose() << "\n";
-    std::cout << " " << offset << " => " << Vector(ref).transpose() << " == " << Vector(data2).transpose() << "\n";
-
     VERIFY(areApprox(ref, data2, PacketSize) && "ei_palign");
   }
 

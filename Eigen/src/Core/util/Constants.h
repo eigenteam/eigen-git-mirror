@@ -28,7 +28,7 @@
 
 const int Dynamic = 10000;
 
-/** \defgroup flags
+/** \defgroup flags flags
   * \ingroup Core_Module
   *
   * These are the possible bits which can be OR'ed to constitute the flags of a matrix or

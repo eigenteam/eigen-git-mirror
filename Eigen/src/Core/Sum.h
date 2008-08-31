@@ -195,8 +195,10 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
                            || !(Derived::Flags & DirectAccessBit)
                            ? 0
                            : ei_alignmentOffset(&mat.const_cast_derived().coeffRef(0), size);
-    const int alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
-                        ? Aligned : Unaligned;
+    enum {
+      alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
+                ? Aligned : Unaligned
+    };
     const int alignedSize = ((size-alignedStart)/packetSize)*packetSize;
     const int alignedEnd = alignedStart + alignedSize;
     Scalar res;

@@ -25,6 +25,7 @@
 #include "main.h"
 #include <Eigen/Geometry>
 #include <Eigen/LU>
+#include <Eigen/QR>
 
 template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
 {
@@ -36,6 +37,8 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   typedef typename HyperplaneType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime,
+                         HyperplaneType::AmbientDimAtCompileTime> MatrixType;
 
   VectorType p0 = VectorType::Random(dim);
   VectorType p1 = VectorType::Random(dim);
@@ -45,6 +48,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   
   HyperplaneType pl0(n0, p0);
   HyperplaneType pl1(n1, p1);
+  HyperplaneType pl2 = pl1;
 
   Scalar s0 = ei_random<Scalar>();
   Scalar s1 = ei_random<Scalar>();
@@ -56,6 +60,32 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   VERIFY_IS_APPROX( pl1.signedDistance(p1 + n1 * s0), s0 );
   VERIFY_IS_MUCH_SMALLER_THAN( pl1.signedDistance(pl1.projection(p0)), Scalar(1) );
   VERIFY_IS_MUCH_SMALLER_THAN( pl1.absDistance(p1 +  pl1.normal().unitOrthogonal() * s1), Scalar(1) );
+
+  // transform
+  if (!NumTraits<Scalar>::IsComplex)
+  {
+    MatrixType rot = MatrixType::Random(dim,dim).qr().matrixQ();
+    Scaling<Scalar,HyperplaneType::AmbientDimAtCompileTime> scaling(VectorType::Random());
+    Translation<Scalar,HyperplaneType::AmbientDimAtCompileTime> translation(VectorType::Random());
+    
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot).absDistance(rot * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot,NoScaling).absDistance(rot * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling).absDistance((rot*scaling) * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling, NoShear).absDistance((rot*scaling) * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling*translation)
+                                 .absDistance((rot*scaling*translation) * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling*translation,NoShear)
+                                 .absDistance((rot*scaling*translation) * p1), Scalar(1) );
+    pl2 = pl1;
+    VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*translation,NoScaling)
+                                 .absDistance((rot*translation) * p1), Scalar(1) );
+  }
 }
 
 template<typename Scalar> void lines()

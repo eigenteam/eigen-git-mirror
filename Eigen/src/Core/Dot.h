@@ -177,8 +177,10 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     const int size = v1.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
     const int alignedSize = (size/packetSize)*packetSize;
-    const int alignment1 = (Derived1::Flags & AlignedBit) ? Aligned : Unaligned;
-    const int alignment2 = (Derived2::Flags & AlignedBit) ? Aligned : Unaligned;
+    enum {
+      alignment1 = (Derived1::Flags & AlignedBit) ? Aligned : Unaligned,
+      alignment2 = (Derived2::Flags & AlignedBit) ? Aligned : Unaligned
+    };
     Scalar res;
 
     // do the vectorizable part of the sum

@@ -54,7 +54,7 @@ namespace Eigen
     static const bool should_raise_an_assert = false;
 
     // Used to avoid to raise two exceptions at a time in which
-    // case the exception is not properly catched.
+    // case the exception is not properly caught.
     // This may happen when a second exceptions is raise in a destructor.
     static bool no_more_assert = false;
 

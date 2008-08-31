@@ -60,9 +60,11 @@ template<typename _Scalar>
 class AngleAxis : public RotationBase<AngleAxis<_Scalar>,3>
 {
   typedef RotationBase<AngleAxis<_Scalar>,3> Base;
-  using Base::operator*;
 
 public:
+
+  using Base::operator*;
+  
   enum { Dim = 3 };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;

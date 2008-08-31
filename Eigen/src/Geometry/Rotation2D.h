@@ -50,9 +50,11 @@ template<typename _Scalar>
 class Rotation2D : public RotationBase<Rotation2D<_Scalar>,2>
 {
   typedef RotationBase<Rotation2D<_Scalar>,2> Base;
-  using Base::operator*;
 
 public:
+
+  using Base::operator*;
+
   enum { Dim = 2 };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;

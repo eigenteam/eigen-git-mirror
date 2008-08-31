@@ -48,7 +48,7 @@ class ParametrizedLine
 
     ParametrizedLine(const VectorType& origin, const VectorType& direction)
       : m_origin(origin), m_direction(direction) {}
-    ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
+    explicit ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
 
     ~ParametrizedLine() {}
 
@@ -227,22 +227,41 @@ class Hyperplane
                             invdet*(other.coeffs().coeff(0)*coeffs().coeff(2)-coeffs().coeff(0)*other.coeffs().coeff(2)));
       }
     }
-
-#if 0    
+    
     template<typename XprType>
-    inline Hyperplane operator* (const MatrixBase<XprType>& mat) const
-    { return Hyperplane(mat.inverse().transpose() * normal(), offset()); }
+    inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = GenericAffine)
+    {
+      if (traits==GenericAffine)
+        normal() = mat.inverse().transpose() * normal();
+      else if (traits==NoShear)
+        normal() = (mat.colwise().norm2().cwise().inverse().eval().asDiagonal()
+                    * mat.transpose()).transpose() * normal();
+      else if (traits==NoScaling)
+        normal() = mat * normal();
+      else
+      {
+        ei_assert("invalid traits value in Hyperplane::transform()");
+      }
+      return *this;
+    }
 
-    template<typename XprType>
-    inline Hyperplane& operator*= (const MatrixBase<XprType>& mat) const
-    { normal() = mat.inverse().transpose() * normal(); return *this; }
-#endif
+    inline Hyperplane& transform(const Transform<Scalar,AmbientDimAtCompileTime>& t,
+                                 TransformTraits traits = GenericAffine)
+    {
+      transform(t.linear(), traits);
+      offset() -= t.translation().dot(normal());
+      return *this;
+    }
 
 protected:
 
     Coefficients m_coeffs;
 };
 
+/** Construct a parametrized line from a 2D hyperplane
+  *
+  * \warning the ambient space must have dimension 2 such that the hyperplane actually describes a line
+  */
 template <typename _Scalar, int _AmbientDim>
 ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
 {

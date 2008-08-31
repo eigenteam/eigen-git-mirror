@@ -1,1 +1,3 @@
-IGNORESUBS disabled,bench,build
+SKIP /disabled/
+SKIP /bench/
+SKIP /build/

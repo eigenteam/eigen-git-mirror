@@ -108,7 +108,7 @@ MatrixBase<Derived>::asDiagonal() const
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isDiagonal
-(typename NumTraits<Scalar>::Real prec) const
+(RealScalar prec) const
 {
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
