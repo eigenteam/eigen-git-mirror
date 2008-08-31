@@ -553,8 +553,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ${CMAKE_SOURCE_DIR}/Eigen \
-                         ${CMAKE_SOURCE_DIR}/doc \
+INPUT                  = ${EIGEN_SOURCE_DIR}/Eigen \
+                         ${EIGEN_SOURCE_DIR}/doc \
                          ${CMAKE_BINARY_DIR}/doc
 
 # This tag can be used to specify the character encoding of the source files
@@ -615,9 +615,9 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = ${CMAKE_SOURCE_DIR}/doc/snippets \
+EXAMPLE_PATH           = ${EIGEN_SOURCE_DIR}/doc/snippets \
                          ${CMAKE_BINARY_DIR}/doc/snippets \
-                         ${CMAKE_SOURCE_DIR}/doc/examples \
+                         ${EIGEN_SOURCE_DIR}/doc/examples \
                          ${CMAKE_BINARY_DIR}/doc/examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
@@ -785,7 +785,7 @@ HTML_FOOTER             =
 # the style sheet file to the HTML output directory, so don't put your own
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET         = ${CMAKE_SOURCE_DIR}/doc/eigendoxy.css
+HTML_STYLESHEET         = ${EIGEN_SOURCE_DIR}/doc/eigendoxy.css
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes,
 # files or namespaces will be aligned in HTML using tables. If set to
