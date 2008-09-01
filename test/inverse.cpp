@@ -38,7 +38,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
              m2(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              identity = MatrixType::Identity(rows, rows);
@@ -46,7 +46,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   if (ei_is_same_type<RealScalar,float>::ret)
   {
     // let's build a more stable to inverse matrix
-    MatrixType a = test_random_matrix<MatrixType>(rows,cols);
+    MatrixType a = MatrixType::Random(rows,cols);
     m1 += m1 * m1.adjoint() + a * a.adjoint();
   }
 

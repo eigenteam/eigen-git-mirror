@@ -45,12 +45,12 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 
   RealScalar largerEps = 10*test_precision<RealScalar>();
 
-  MatrixType a = test_random_matrix<MatrixType>(rows,cols);
-  MatrixType a1 = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType a = MatrixType::Random(rows,cols);
+  MatrixType a1 = MatrixType::Random(rows,cols);
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
 
-  MatrixType b = test_random_matrix<MatrixType>(rows,cols);
-  MatrixType b1 = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType b = MatrixType::Random(rows,cols);
+  MatrixType b1 = MatrixType::Random(rows,cols);
   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);

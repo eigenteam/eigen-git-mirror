@@ -89,7 +89,14 @@ inline float ei_pow(float x, float y)  { return std::pow(x, y); }
 
 template<> inline float ei_random(float a, float b)
 {
+#ifdef EIGEN_NICE_RANDOM
+  int i;
+  do { i = ei_random<int>(256*int(a),256*int(b));
+  } while(i==0);
+  return i/256.f;
+#else
   return a + (b-a) * std::rand() / RAND_MAX;
+#endif
 }
 template<> inline float ei_random()
 {
@@ -123,7 +130,14 @@ inline double ei_pow(double x, double y)  { return std::pow(x, y); }
 
 template<> inline double ei_random(double a, double b)
 {
+#ifdef EIGEN_NICE_RANDOM
+  int i;
+  do { i= ei_random<int>(256*int(a),256*int(b));
+  } while(i==0);
+  return i/256.;
+#else
   return a + (b-a) * std::rand() / RAND_MAX;
+#endif
 }
 template<> inline double ei_random()
 {

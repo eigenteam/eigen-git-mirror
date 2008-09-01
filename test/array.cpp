@@ -38,12 +38,12 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
-             m2 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols);
 
-  Scalar  s1 = test_random<Scalar>(),
-          s2 = test_random<Scalar>();
+  Scalar  s1 = ei_random<Scalar>(),
+          s2 = ei_random<Scalar>();
 
   VERIFY_IS_APPROX(m1.cwise() + s1, s1 + m1.cwise());
   VERIFY_IS_APPROX(m1.cwise() + s1, MatrixType::Constant(rows,cols,s1) + m1);

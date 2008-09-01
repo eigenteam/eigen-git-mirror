@@ -38,13 +38,13 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
-             m2 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols);
 
-  Scalar s1 = test_random<Scalar>();
-  while (ei_abs(s1)<1e-3) s1 = test_random<Scalar>();
+  Scalar s1 = ei_random<Scalar>();
+  while (ei_abs(s1)<1e-3) s1 = ei_random<Scalar>();
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);

@@ -35,9 +35,9 @@ template<typename MatrixType> void svd(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  MatrixType a = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType a = MatrixType::Random(rows,cols);
   Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> b =
-    test_random_matrix<Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> >(rows,1);
+    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1>::Random(rows,1);
   Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x(cols,1), x2(cols,1);
 
   RealScalar largerEps = test_precision<RealScalar>();
@@ -56,7 +56,7 @@ template<typename MatrixType> void svd(const MatrixType& m)
   {
     if (ei_is_same_type<RealScalar,float>::ret)
     {
-      MatrixType a1 = test_random_matrix<MatrixType>(rows,cols);
+      MatrixType a1 = MatrixType::Random(rows,cols);
       a += a * a.adjoint() + a1 * a1.adjoint();
     }
     SVD<MatrixType> svd(a);

@@ -43,12 +43,12 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  MatrixType a0 = test_random_matrix<MatrixType>(rows,cols);
-  VectorType vecB = test_random_matrix<VectorType>(rows);
-  MatrixType matB = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType a0 = MatrixType::Random(rows,cols);
+  VectorType vecB = VectorType::Random(rows);
+  MatrixType matB = MatrixType::Random(rows,cols);
   SquareMatrixType symm =  a0 * a0.adjoint();
   // let's make sure the matrix is not singular or near singular
-  MatrixType a1 = test_random_matrix<MatrixType>(rows,cols);
+  MatrixType a1 = MatrixType::Random(rows,cols);
   symm += a1 * a1.adjoint();
 
   #ifdef HAS_GSL

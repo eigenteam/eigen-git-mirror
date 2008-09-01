@@ -41,19 +41,19 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   if (ei_is_same_type<RealScalar,float>::ret)
     largerEps = 1e-3f;
 
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
-             m2 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              identity = SquareMatrixType::Identity(rows, rows),
-             square = test_random_matrix<SquareMatrixType>(rows, rows);
-  VectorType v1 = test_random_matrix<VectorType>(rows),
-             v2 = test_random_matrix<VectorType>(rows),
-             v3 = test_random_matrix<VectorType>(rows),
+             square = SquareMatrixType::Random(rows, rows);
+  VectorType v1 = VectorType::Random(rows),
+             v2 = VectorType::Random(rows),
+             v3 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
-  Scalar s1 = test_random<Scalar>(),
-         s2 = test_random<Scalar>();
+  Scalar s1 = ei_random<Scalar>(),
+         s2 = ei_random<Scalar>();
 
   // check basic compatibility of adjoint, transpose, conjugate
   VERIFY_IS_APPROX(m1.transpose().conjugate().adjoint(),    m1);

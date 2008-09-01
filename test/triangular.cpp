@@ -35,8 +35,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
-             m2 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              m4(rows, cols),
              r1(rows, cols),
@@ -47,8 +47,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
                               ::Identity(rows, rows),
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Random(rows, rows);
-  VectorType v1 = test_random_matrix<VectorType>(rows),
-             v2 = test_random_matrix<VectorType>(rows),
+  VectorType v1 = VectorType::Random(rows),
+             v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
   MatrixType m1up = m1.template part<Eigen::Upper>();
@@ -81,9 +81,9 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   m1.template part<Eigen::Lower>() = (m2.transpose() * m2).lazy();
   VERIFY_IS_APPROX(m3.template part<Eigen::Lower>(), m1);
 
-  m1 = test_random_matrix<MatrixType>(rows, cols);
+  m1 = MatrixType::Random(rows, cols);
   for (int i=0; i<rows; ++i)
-    while (ei_abs2(m1(i,i))<1e-3) m1(i,i) = test_random<Scalar>();
+    while (ei_abs2(m1(i,i))<1e-3) m1(i,i) = ei_random<Scalar>();
 
   Transpose<MatrixType> trm4(m4);
   // test back and forward subsitution

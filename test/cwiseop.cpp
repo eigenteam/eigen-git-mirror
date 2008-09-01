@@ -43,16 +43,16 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = test_random_matrix<MatrixType>(rows, cols),
-             m2 = test_random_matrix<MatrixType>(rows, cols),
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              mones = MatrixType::Ones(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Identity(rows, rows),
-             square = test_random_matrix<Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> >(rows, rows);
-  VectorType v1 = test_random_matrix<VectorType>(rows),
-             v2 = test_random_matrix<VectorType>(rows),
+             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>::Random(rows, rows);
+  VectorType v1 = VectorType::Random(rows),
+             v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
   int r = ei_random<int>(0, rows-1),

@@ -56,7 +56,7 @@ template<typename MatrixType> void lu_non_invertible()
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
   MatrixType m1(rows, cols), m2(cols, cols2), m3(rows, cols2), k(1,1);
-  m1 = test_random_matrix<MatrixType>(rows,cols);
+  m1 = MatrixType::Random(rows,cols);
   if(rows <= cols)
     for(int i = rank; i < rows; i++) m1.row(i).setZero();
   else
@@ -72,12 +72,12 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY((m1 * lu.kernel()).isMuchSmallerThan(m1));
   lu.computeKernel(&k);
   VERIFY((m1 * k).isMuchSmallerThan(m1));
-  m2 = test_random_matrix<MatrixType>(cols,cols2);
+  m2 = MatrixType::Random(cols,cols2);
   m3 = m1*m2;
-  m2 = test_random_matrix<MatrixType>(cols,cols2);
+  m2 = MatrixType::Random(cols,cols2);
   lu.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
-  m3 = test_random_matrix<MatrixType>(rows,cols2);
+  m3 = MatrixType::Random(rows,cols2);
   VERIFY(!lu.solve(m3, &m2));
 }
 
@@ -90,12 +90,12 @@ template<typename MatrixType> void lu_invertible()
   int size = ei_random<int>(10,200);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
-  m1 = test_random_matrix<MatrixType>(size,size);
+  m1 = MatrixType::Random(size,size);
 
   if (ei_is_same_type<RealScalar,float>::ret)
   {
     // let's build a matrix more stable to inverse
-    MatrixType a = test_random_matrix<MatrixType>(size,size*2);
+    MatrixType a = MatrixType::Random(size,size*2);
     m1 += a * a.adjoint();
   }
 
@@ -105,11 +105,11 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.isInjective());
   VERIFY(lu.isSurjective());
   VERIFY(lu.isInvertible());
-  m3 = test_random_matrix<MatrixType>(size,size);
+  m3 = MatrixType::Random(size,size);
   lu.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
-  m3 = test_random_matrix<MatrixType>(size,size);
+  m3 = MatrixType::Random(size,size);
   VERIFY(lu.solve(m3, &m2));
 }
 
