@@ -229,14 +229,11 @@ class Hyperplane
     }
     
     template<typename XprType>
-    inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = GenericAffine)
+    inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = Affine)
     {
-      if (traits==GenericAffine)
+      if (traits==Affine)
         normal() = mat.inverse().transpose() * normal();
-      else if (traits==NoShear)
-        normal() = (mat.colwise().norm2().cwise().inverse().eval().asDiagonal()
-                    * mat.transpose()).transpose() * normal();
-      else if (traits==NoScaling)
+      else if (traits==Isometry)
         normal() = mat * normal();
       else
       {
@@ -246,7 +243,7 @@ class Hyperplane
     }
 
     inline Hyperplane& transform(const Transform<Scalar,AmbientDimAtCompileTime>& t,
-                                 TransformTraits traits = GenericAffine)
+                                 TransformTraits traits = Affine)
     {
       transform(t.linear(), traits);
       offset() -= t.translation().dot(normal());

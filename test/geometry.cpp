@@ -265,19 +265,15 @@ template<typename Scalar> void geometry(void)
   t0.setIdentity();
   t0.translate(v0);
   t0.linear().setRandom();
-  VERIFY_IS_APPROX(t0.inverse(GenericAffine), t0.matrix().inverse());
-  t0.setIdentity();
-  t0.translate(v0).rotate(q1).scale(v1);
-  VERIFY_IS_APPROX(t0.inverse(NoShear), t0.matrix().inverse());
+  VERIFY_IS_APPROX(t0.inverse(Affine), t0.matrix().inverse());
   t0.setIdentity();
   t0.translate(v0).rotate(q1);
-  VERIFY_IS_APPROX(t0.inverse(NoScaling), t0.matrix().inverse());
+  VERIFY_IS_APPROX(t0.inverse(Isometry), t0.matrix().inverse());
 
   // test extract rotation
   t0.setIdentity();
   t0.translate(v0).rotate(q1).scale(v1);
-  VERIFY_IS_APPROX(t0.extractRotation(GenericAffine) * v1, Matrix3(q1) * v1);
-  VERIFY_IS_APPROX(t0.extractRotation(NoShear) * v1, Matrix3(q1) * v1);
+  VERIFY_IS_APPROX(t0.extractRotation(Affine) * v1, Matrix3(q1) * v1);
 }
 
 void test_geometry()

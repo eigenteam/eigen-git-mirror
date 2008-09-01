@@ -27,10 +27,9 @@
 
 /** Represents some traits of a transformation */
 enum TransformTraits {
-  NoScaling,      ///< the transformation is a concatenation of translations, rotations
-  NoShear,        ///< the transformation is a concatenation of translations, rotations and scalings
-  GenericAffine,  ///< the transformation is affine (linear transformation + translation)
-  NonAffine       ///< the transformation might not be affine
+  Isometry,       ///< the transformation is a concatenation of translations and rotations
+  Affine,         ///< the transformation is affine (linear transformation + translation)
+  Projective      ///< the transformation might not be affine
 };
 
 // Note that we have to pass Dim and HDim because it is not allowed to use a template
@@ -231,13 +230,13 @@ public:
   template<typename Derived>
   inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  LinearMatrixType extractRotation(TransformTraits traits = GenericAffine) const;
+  LinearMatrixType extractRotation(TransformTraits traits = Affine) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
-  inline const MatrixType inverse(TransformTraits traits = GenericAffine) const;
+  inline const MatrixType inverse(TransformTraits traits = Affine) const;
 
   const Scalar* data() const { return m_matrix.data(); }
   Scalar* data() { return m_matrix.data(); }
@@ -545,9 +544,8 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const RotationBase
   *
   * \param traits allows to optimize the extraction process when the transformion
   * is known to be not a general aafine transformation. The possible values are:
-  *  - GenericAffine which use a QR decomposition (default),
-  *  - NoShear which is the most probable case and very fast,
-  *  - NoScaling which simply returns the linear part !
+  *  - Affine which use a QR decomposition (default),
+  *  - Isometry which simply returns the linear part !
   *
   * \warning this function consider the scaling is positive
   *
@@ -560,8 +558,8 @@ template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::LinearMatrixType
 Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
 {
-  ei_assert(traits!=NonAffine && "you cannot extract a rotation from a non affine transformation");
-  if (traits == GenericAffine)
+  ei_assert(traits!=Projective && "you cannot extract a rotation from a non affine transformation");
+  if (traits == Affine)
   {
     // FIXME maybe QR should be fixed to return a R matrix with a positive diagonal ??
     QR<LinearMatrixType> qr(linear());
@@ -572,18 +570,11 @@ Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
         matQ.col(i) = -matQ.col(i);
     return matQ;
   }
-  else if (traits == NoShear)
-  {
-    // extract linear = rotation * scaling
-    //  => rotation = linear * inv(Scaling)
-    VectorType invScaling = linear().colwise().norm().cwise().inverse();
-    return linear() * invScaling.asDiagonal();
-  }
-  else if (traits == NoScaling) // though that's stupid let's handle it !
+  else if (traits == Isometry) // though that's stupid let's handle it !
     return linear();
   else
   {
-    ei_assert("invalid traits value in Transform::inverse()");
+    ei_assert("invalid traits value in Transform::extractRotation()");
     return LinearMatrixType();
   }
 }
@@ -610,12 +601,10 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   *
   * \param traits allows to optimize the inversion process when the transformion
   * is known to be not a general transformation. The possible values are:
-  *  - NonAffine if the transformation is not necessarily affines, i.e., if the
+  *  - Projective if the transformation is not necessarily affine, i.e., if the
   *    last row is not guaranteed to be [0 ... 0 1]
-  *  - GenericAffine is the default, the last row is assumed to be [0 ... 0 1]
-  *  - NoShear if the transformation is only a concatenations of translations,
-  *    rotations, and scalings.
-  *  - NoScaling if the transformation is only a concatenations of translations
+  *  - Affine is the default, the last row is assumed to be [0 ... 0 1]
+  *  - Isometry if the transformation is only a concatenations of translations
   *    and rotations.
   *
   * \warning unless \a traits is always set to NoShear or NoScaling, this function
@@ -628,31 +617,18 @@ template<typename Scalar, int Dim>
 inline const typename Transform<Scalar,Dim>::MatrixType
 Transform<Scalar,Dim>::inverse(TransformTraits traits) const
 {
-  if (traits == NonAffine)
+  if (traits == Projective)
   {
     return m_matrix.inverse();
   }
   else
   {
     MatrixType res;
-    if (traits == GenericAffine)
+    if (traits == Affine)
     {
       res.template corner<Dim,Dim>(TopLeft) = linear().inverse();
     }
-    else if (traits == NoShear)
-    {
-      // extract linear = rotation * scaling
-      // then inv(linear) = inv(scaling) * inv(rotation)
-      //                  = inv(scaling) * trans(rotation)
-      //                  = inv(scaling) * trans(inv(scaling)) * trans(A)
-      //                  = inv(scaling) * inv(scaling) * trans(A)
-      //                  = inv(scaling)^2 * trans(A)
-      //                  = scaling^-2 * trans(A)
-      // with scaling[i] = A.col(i).norm()
-      VectorType invScaling2 = linear().colwise().norm2().cwise().inverse();
-      res.template corner<Dim,Dim>(TopLeft) = (invScaling2.asDiagonal() * linear().transpose()).lazy();
-    }
-    else if (traits == NoScaling)
+    else if (traits == Isometry)
     {
       res.template corner<Dim,Dim>(TopLeft) = linear().transpose();
     }
