@@ -23,13 +23,13 @@ namely 2D and 3D rotations and affine transformations.
 <table class="tutorial_code">
 <tr><td>Transformation type</td><td>Typical initialization code</td></tr>
 <tr><td>
-2D rotation from an angle</td><td>\code
+\ref Rotation2D "2D rotation" from an angle</td><td>\code
 Rotation2D<float> rot2(angle_in_radian);\endcode</td></tr>
 <tr><td>
-3D rotation as an angle + axis</td><td>\code
+3D rotation as an \ref AngleAxis "angle + axis"</td><td>\code
 AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode</td></tr>
 <tr><td>
-3D rotation as a quaternion</td><td>\code
+3D rotation as a \ref Quaternion "quaternion"</td><td>\code
 Quaternion<float> q = AngleAxis<float>(angle_in_radian, axis);\endcode</td></tr>
 <tr><td>
 N-D Scaling</td><td>\code

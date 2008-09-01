@@ -188,7 +188,7 @@ MatrixXi mat2x2 = Map<MatrixXi>(data,2,2);
 
 
 \subsection TutorialCommaInit Comma initializer
-Eigen also offer a \ref MatrixBaseCommaInitRef "comma initializer syntax" which allows you to set all the coefficients of a matrix to specific values:
+Eigen also offers a \ref MatrixBaseCommaInitRef "comma initializer syntax" which allows you to set all the coefficients of a matrix to specific values:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -259,7 +259,7 @@ vec3 = vec1.cross(vec2);\endcode</td></tr>
 
 In Eigen only mathematically well defined operators can be used right away,
 but don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
-Eigen's matrices also provide a very powerful numerical container supporting
+Eigen's matrices are also very powerful as a numerical container supporting
 most common coefficient wise operators:
 <table class="noborder">
 <tr><td>
@@ -322,14 +322,14 @@ mat3 = mat1.cwise().abs2(mat2);
 </table>
 </td></tr></table>
 
-<span class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
+<span class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available, then feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
 
 
 
 
 <a href="#" class="top">top</a>\section TutorialCoreReductions Reductions
 
-Eigen provides several several reduction methods such as:
+Eigen provides several reduction methods such as:
 \link MatrixBase::minCoeff() minCoeff() \endlink, \link MatrixBase::maxCoeff() maxCoeff() \endlink,
 \link MatrixBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink,
 \link MatrixBase::norm() norm() \endlink, \link MatrixBase::norm2() norm2() \endlink,
@@ -370,28 +370,22 @@ Read-write access to sub-vectors:
 <table class="tutorial_code">
 <tr>
 <td>Default versions</td>
-<td>Optimized versions when the size is known at compile time</td></tr>
+<td>Optimized versions when the size \n is known at compile time</td></tr>
 <td></td>
 
 <tr><td>\code vec1.start(n)\endcode</td><td>\code vec1.start<n>()\endcode</td><td>the first \c n coeffs </td></tr>
 <tr><td>\code vec1.end(n)\endcode</td><td>\code vec1.end<n>()\endcode</td><td>the last \c n coeffs </td></tr>
 <tr><td>\code vec1.block(pos,n)\endcode</td><td>\code vec1.block<n>(pos)\endcode</td>
-    <td>the \c size coeffs in the range [\c pos : \c pos + \c n [</td></tr>
-</table>
+    <td>the \c size coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>
+<tr style="border-style: dashed none dashed none;"><td>
 
-Read-write access to sub-matrices:
-<table class="tutorial_code">
-<tr><td>Default versions</td>
-<td>Optimized versions when the size is known at compile time</td><td></td></tr>
-
+Read-write access to sub-matrices:</td><td></td><td></td></tr>
 <tr>
   <td>\code mat1.block(i,j,rows,cols)\endcode
       \link MatrixBase::block(int,int,int,int) (more) \endlink</td>
   <td>\code mat1.block<rows,cols>(i,j)\endcode
       \link MatrixBase::block(int,int) (more) \endlink</td>
-  <td>the \c rows x \c cols sub-matrix starting from position (\c i,\c j) </td>
-</tr>
-<tr>
+  <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr><tr>
  <td>\code
  mat1.corner(TopLeft,rows,cols)
  mat1.corner(TopRight,rows,cols)
@@ -489,203 +483,6 @@ forces immediate evaluation of the transpose</td></tr>
 </table>
 
 */
-
-
-
-
-
-
-/** \page TutorialGeometry Tutorial 2/3 - Geometry
-    \ingroup Tutorial
-    \internal
-
-<div class="eimainmenu">\ref index "Overview"
-  | \ref TutorialCore "Core features"
-  | \b Geometry
-  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
-</div>
-
-In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref GeometryModule "geometry module",
-namely 2D and 3D rotations and affine transformations.
-
-\b Table \b of \b contents
-  - \ref TutorialGeoRotations
-  - \ref TutorialGeoTransformation
-
-\section TutorialGeoRotations 2D and 3D Rotations
-
-\subsection TutorialGeoRotationTypes Rotation types
-
-
-<table class="tutorial_code">
-<tr><td>Rotation type</td><td>Typical initialization code</td><td>Recommended usage</td></tr>
-<tr><td>2D rotation from an angle</td><td>\code
-Rotation2D<float> rot2(angle_in_radian);\endcode</td><td></td></tr>
-<tr><td>2D rotation matrix</td><td>\code
-Matrix2f rotmat2 = Rotation2Df(angle_in_radian);\endcode</td><td></td></tr>
-<tr><td>3D rotation as an angle + axis</td><td>\code
-AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode</td><td></td></tr>
-<tr><td>3D rotation as a quaternion</td><td>\code
-Quaternion<float> q = AngleAxis<float>(angle_in_radian, axis);\endcode</td><td></td></tr>
-<tr><td>3D rotation matrix</td><td>\code
-Matrix3f rotmat3 = AngleAxis<float>(angle_in_radian, axis);\endcode</td><td></td></tr>
-</table>
-
-To transform more than a single vector the prefered representations are rotation matrices,
-for other usage Rotation2D and Quaternion are the representations of choice as they are
-more compact, fast and stable. AngleAxis are only useful to create other rotation objects.
-
-\subsection TutorialGeoCommonRotationAPI Common API across rotation types
-
-To some extent, Eigen's \ref GeometryModule "geometry module" allows you to write
-generic algorithms working on both 2D and 3D rotations of any of the five above types.
-The following operation are supported:
-<table class="tutorial_code">
-<tr><td>Convertion from and to any types (of same space dimension)</td><td>\code
-RotType2 a = RotType1();\endcode</td></tr>
-<tr><td>Concatenation of two rotations</td><td>\code
-rot3 = rot1 * rot2;\endcode</td></tr>
-<tr><td>Apply the rotation to a vector</td><td>\code
-vec2 = rot1 * vec1;\endcode</td></tr>
-<tr><td>Get the inverse rotation \n (not always the most effient choice)</td><td>\code
-rot2 = rot1.inverse();\endcode</td></tr>
-<tr><td>Spherical interpolation \n (Rotation2D and Quaternion only)</td><td>\code
-rot3 = rot1.slerp(alpha,rot2);\endcode</td></tr>
-</table>
-
-\subsection TutorialGeoEulerAngles Euler angles
-<table class="tutorial_code">
-<tr><td style="max-width:30em;">
-Euler angles might be convenient to create rotation object.
-Since there exist 24 differents convensions, they are one
-the ahand pretty confusing to use. This example shows how
-to create a rotation matrix according to the 2-1-2 convention.</td><td>\code
-Matrix3f m;
-m = AngleAxisf(angle1, Vector3f::UnitZ())
-  * AngleAxisf(angle2, Vector3f::UnitY())
-  * AngleAxisf(angle3, Vector3f::UnitZ());
-\endcode</td></tr>
-</table>
-
-<a href="#" class="top">top</a>\section TutorialGeoTransformation Affine transformations
-In Eigen we have chosen to not distinghish between points and vectors such that all points are
-actually represented by displacement vectors from the origine ( \f$ \mathbf{p} \equiv \mathbf{p}-0 \f$ ).
-With that in mind, real points and vector distinguish when the rotation is applied.
-<table class="tutorial_code">
-<tr><td></td><td>\b 3D </td><td>\b 2D </td></tr>
-<tr><td>Creation \n <span class="note">rot2D can also be an angle in radian</span></td><td>\code
-Transform3f t;
-t.fromPositionOrientationScale(
-  pos,any_3D_rotation,Vector3f(sx,sy,sz)); \endcode</td><td>\code
-Transform2f t;
-t.fromPositionOrientationScale(
-  pos,any_2D_rotation,Vector2f(sx,sy)); \endcode</td></tr>
-<tr><td>Apply the transformation to a \b point </td><td>\code
-Vector3f p1, p2;
-p2 = t * p1;\endcode</td><td>\code
-Vector2f p1, p2;
-p2 = t * p1;\endcode</td></tr>
-<tr><td>Apply the transformation to a \b vector </td><td>\code
-Vector3f v1, v2;
-v2 = t.linear() * v1;\endcode</td><td>\code
-Vector2f v1, v2;
-v2 = t.linear() * v1;\endcode</td></tr>
-<tr><td>Apply a \em general transformation \n to a \b normal \b vector
-(<a href="http://www.cgafaq.info/wiki/Transforming_normals">explanations</a>)</td><td colspan="2">\code
-Matrix{3,2}f normalMatrix = t.linear().inverse().transpose();
-n2 = (normalMatrix * n1).normalize();\endcode</td></tr>
-<tr><td>Apply a transformation with \em pure \em rotation \n to a \b normal \b vector 
-(no scaling, no shear)</td><td colspan="2">\code
-n2 = t.linear() * n1;\endcode</td></tr>
-<tr><td>Concatenate two transformations</td><td colspan="2">\code
-t3 = t1 * t2;\endcode</td></tr>
-<tr><td>OpenGL compatibility</td><td>\code
-glLoadMatrixf(t.data());\endcode</td><td>\code
-Transform3f aux(Transform3f::Identity);
-aux.linear().corner<2,2>(TopLeft) = t.linear();
-aux.translation().start<2>() = t.translation();
-glLoadMatrixf(aux.data());\endcode</td></tr>
-<tr><td colspan="3">\b Component \b accessors</td></tr>
-<tr><td>full read-write access to the internal matrix</td><td>\code
-t.matrix() = mat4x4;
-mat4x4 = t.matrix();
-\endcode</td><td>\code
-t.matrix() = mat3x3;
-mat3x3 = t.matrix();
-\endcode</td></tr>
-<tr><td>coefficient accessors</td><td colspan="2">\code
-t(i,j) = scalar;   <=>   t.matrix()(i,j) = scalar;
-scalar = t(i,j);   <=>   scalar = t.matrix()(i,j);
-\endcode</td></tr>
-<tr><td>translation part</td><td>\code
-t.translation() = vec3;
-vec3 = t.translation();
-\endcode</td><td>\code
-t.translation() = vec2;
-vec2 = t.translation();
-\endcode</td></tr>
-<tr><td>linear part</td><td>\code
-t.linear() = mat3x3;
-mat3x3 = t.linear();
-\endcode</td><td>\code
-t.linear() = mat2x2;
-mat2x2 = t.linear();
-\endcode</td></tr>
-</table>
-
-\b Transformation \b creation \n
-Eigen's geometry module offer two different ways to build and update transformation objects.
-<table class="tutorial_code">
-<tr><td></td><td>\b procedurale \b API </td><td>\b natural \b API </td></tr>
-<tr><td>Translation</td><td>\code
-t.translate(Vector_(tx, ty, ...));
-
-t.pretranslate(Vector_(tx, ty, ...));
-\endcode</td><td>\code
-t *= Translation_(tx, ty, ...);
-t2 = t1 * Translation_(vec);
-t = Translation_(tx, ty, ...) * t;
-\endcode</td></tr>
-<tr><td>Rotation \n <span class="note">In 2D, any_rotation can also \n be an angle in radian</span></td><td>\code
-t.rotate(any_rotation);
-
-t.prerotate(any_rotation);
-\endcode</td><td>\code
-t *= any_rotation;
-t2 = t1 * any_rotation;
-t = any_rotation * t;
-\endcode</td></tr>
-<tr><td>Scaling</td><td>\code
-t.scale(Vector_(sx, sy, ...));
-
-t.scale(s);
-t.prescale(Vector_(sx, sy, ...));
-t.prescale(s);
-\endcode</td><td>\code
-t *= Scaling_(sx, sy, ...);
-t2 = t1 * Scaling_(vec);
-t *= Scaling_(s);
-t = Scaling_(sx, sy, ...) * t;
-t = Scaling_(s) * t;
-\endcode</td></tr>
-<tr><td>Shear transformation \n ( \b 2D \b only ! )</td><td>\code
-t.shear(sx,sy);
-t.preshear(sx,sy);
-\endcode</td><td></td></tr>
-</table>
-
-Note that in both API, any many transformations can be concatenated in a single expression as shown in the two following equivalent examples:
-<table class="tutorial_code">
-<tr><td>\code
-t.pretranslate(..).rotate(..).translate(..).scale(..);
-\endcode</td></tr>
-<tr><td>\code
-t = Translation_(..) * t * RotationType(..) * Translation_(..) * Scaling_(..);
-\endcode</td></tr>
-</table>
-
-*/
-
 
 
 

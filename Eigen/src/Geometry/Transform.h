@@ -55,8 +55,8 @@ struct ei_transform_product_impl;
   * The homography is internally represented and stored as a (Dim+1)^2 matrix which
   * is available through the matrix() method.
   *
-  * Conversion methods from/to Qt's QMatrix are available if the preprocessor token
-  * EIGEN_QT_SUPPORT is defined.
+  * Conversion methods from/to Qt's QMatrix and QTransform are available if the
+  * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
   * \sa class Matrix, class Quaternion
   */
@@ -137,6 +137,9 @@ public:
   inline Transform(const QMatrix& other);
   inline Transform& operator=(const QMatrix& other);
   inline QMatrix toQMatrix(void) const;
+  inline Transform(const QTransform& other);
+  inline Transform& operator=(const QTransform& other);
+  inline QTransform toQTransform(void) const;
   #endif
 
   /** shortcut for m_matrix(row,col);
@@ -283,6 +286,8 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 
 /** \returns a QMatrix from \c *this assuming the dimension is 2.
   *
+  * \warning this convertion might loss data if \c *this is not affine
+  *
   * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
 template<typename Scalar, int Dim>
@@ -292,6 +297,43 @@ QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
   return QMatrix(other.coeffRef(0,0), other.coeffRef(1,0),
                  other.coeffRef(0,1), other.coeffRef(1,1),
                  other.coeffRef(0,2), other.coeffRef(1,2));
+}
+
+/** Initialises \c *this from a QTransform assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
+  */
+template<typename Scalar, int Dim>
+Transform<Scalar,Dim>::Transform(const QTransform& other)
+{
+  *this = other;
+}
+
+/** Set \c *this from a QTransform assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
+  */
+template<typename Scalar, int Dim>
+Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
+{
+  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  m_matrix << other.m11(), other.m21(), other.dx(),
+              other.m12(), other.m22(), other.dy(),
+              other.m13(), other.m23(), other.m33();
+   return *this;
+}
+
+/** \returns a QTransform from \c *this assuming the dimension is 2.
+  *
+  * This function is available only if the token EIGEN_QT_SUPPORT is defined.
+  */
+template<typename Scalar, int Dim>
+QMatrix Transform<Scalar,Dim>::toQTransform(void) const
+{
+  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  return QTransform(other.coeffRef(0,0), other.coeffRef(1,0), other.coeffRef(2,0)
+                    other.coeffRef(0,1), other.coeffRef(1,1), other.coeffRef(2,1)
+                    other.coeffRef(0,2), other.coeffRef(1,2), other.coeffRef(2,2);
 }
 #endif
 

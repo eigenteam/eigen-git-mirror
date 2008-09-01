@@ -461,6 +461,23 @@ DIV.navigation {
   padding-top   : 5px;
 }
 
+img {
+    border: 0;
+}
+table {
+    border-collapse: collapse;
+    border-style: none;
+    font-size: 1em;
+}
+th {
+    text-align: left;
+    padding-right: 1em;
+/*     border: #cccccc dashed; */
+/*     border-style: dashed; */
+/*     border-width: 0 0 3px 0; */
+}
+
+
 TABLE.noborder {
   border-bottom-style : none;
   border-left-style   : none;
@@ -480,22 +497,18 @@ TABLE.noborder TD {
   vertical-align: top;
 }
 
-TABLE.tutorial_code {
-  border-bottom-style : none;
-  border-left-style   : dashed;
-  border-right-style  : dashed;
-  border-top-style : dashed ;
-  border-spacing : 0px 0px;
+table.tutorial_code {
+  border-collapse: collapse;
   empty-cells : show;
   margin: 4pt 0 0 0;
   padding: 0 0 0 0;
 }
-TABLE.tutorial_code TD {
-  border-bottom-style : dashed;
-  border-left-style   : none;
-  border-right-style  : none;
-  border-top-style : none;
-  border-spacing : 0px 0px;
+table.tutorial_code tr {
+   border-style: none dashed none dashed;
+   border-width: 1px;
+}
+table.tutorial_code td {
+  border-style: dashed none dashed none;
   empty-cells : show;
   margin: 0 0 0 0;
   padding: 2pt 5pt 2pt 5pt;

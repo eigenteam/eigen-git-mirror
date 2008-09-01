@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_Hyperplane_H
-#define EIGEN_Hyperplane_H
+#ifndef EIGEN_HYPERPLANE_H
+#define EIGEN_HYPERPLANE_H
 
 /** \geometry_module \ingroup GeometryModule
   *
@@ -279,20 +279,4 @@ inline _Scalar ParametrizedLine<_Scalar, _AmbientDim>::intersection(const Hyperp
           /(direction().dot(hyperplane.normal()));
 }
 
-#if 0
-/** \addtogroup GeometryModule */
-//@{
-typedef Hyperplane<float, 2> Hyperplane2f;
-typedef Hyperplane<double,2> Hyperplane2d;
-typedef Hyperplane<float, 3> Hyperplane3f;
-typedef Hyperplane<double,3> Hyperplane3d;
-
-typedef Hyperplane<float, 3> Planef;
-typedef Hyperplane<double,3> Planed;
-
-typedef Hyperplane<float, Dynamic> HyperplaneXf;
-typedef Hyperplane<double,Dynamic> HyperplaneXd;
-//@}
-#endif
-
-#endif // EIGEN_Hyperplane_H
+#endif // EIGEN_HYPERPLANE_H
