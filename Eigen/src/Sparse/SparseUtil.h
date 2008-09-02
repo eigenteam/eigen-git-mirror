@@ -48,7 +48,7 @@ template<typename MatrixType, int AccessPattern> struct ei_support_access_patter
   };
 };
 
-template<typename T> class ei_eval<T,Sparse>
+template<typename T> class ei_eval<T,IsSparse>
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
     enum {

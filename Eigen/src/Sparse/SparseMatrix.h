@@ -261,6 +261,12 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
       : m_matrix(mat), m_id(mat.m_outerIndex[outer]), m_start(m_id), m_end(mat.m_outerIndex[outer+1])
     {}
 
+    template<unsigned int Added, unsigned int Removed>
+    InnerIterator(const Flagged<SparseMatrix,Added,Removed>& mat, int outer)
+      : m_matrix(mat._expression()), m_id(m_matrix.m_outerIndex[outer]),
+        m_start(m_id), m_end(m_matrix.m_outerIndex[outer+1])
+    {}
+
     InnerIterator& operator++() { m_id++; return *this; }
 
     Scalar value() const { return m_matrix.m_data.value(m_id); }

@@ -35,7 +35,7 @@ template<typename Lhs, typename Rhs,
                      ? Upper
                      : -1,
   int StorageOrder = ei_is_part<Lhs>::value ? -1  // this is to solve ambiguous specializations
-                   : int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
+                   : int(Lhs::Flags) & (RowMajorBit|SparseBit)
   >
 struct ei_solve_triangular_selector;
 
@@ -51,7 +51,7 @@ struct ei_solve_triangular_selector<Part<Lhs,LhsMode>,Rhs,UpLo,StorageOrder>
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs, int UpLo>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -138,7 +138,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor>
 //  - inv(Upper,         ColMajor) * Column vector
 //  - inv(Upper,UnitDiag,ColMajor) * Column vector
 template<typename Lhs, typename Rhs, int UpLo>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;

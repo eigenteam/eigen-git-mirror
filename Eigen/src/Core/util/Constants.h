@@ -200,19 +200,15 @@ enum {
 };
 
 enum {
-  Dense   = 0,
-  Sparse  = SparseBit
-};
-
-enum {
   ColMajor = 0,
   RowMajor = RowMajorBit
 };
 
 enum {
-  NoDirectAccess = 0,
+  IsDense         = 0,
+  NoDirectAccess  = 0,
   HasDirectAccess = DirectAccessBit,
-  IsSparse = SparseBit
+  IsSparse        = SparseBit
 };
 
 const int FullyCoherentAccessPattern  = 0x1;

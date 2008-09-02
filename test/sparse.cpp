@@ -25,36 +25,63 @@
 #include "main.h"
 #include <Eigen/Sparse>
 
-template<typename Scalar> void sparse(int rows, int cols)
+enum {
+  ForceNonZeroDiag = 1,
+  MakeLowerTriangular = 2,
+  MakeUpperTriangular = 4
+};
+
+template<typename Scalar> void
+initSparse(double density,
+           Matrix<Scalar,Dynamic,Dynamic>& refMat,
+           SparseMatrix<Scalar>& sparseMat,
+           int flags = 0,
+           std::vector<Vector2i>* zeroCoords = 0,
+           std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  double density = std::max(8./(rows*cols), 0.01);
-  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-  Scalar eps = 1e-6;
-
-  SparseMatrix<Scalar> m(rows, cols);
-  DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
-
-  std::vector<Vector2i> zeroCoords;
-  std::vector<Vector2i> nonzeroCoords;
-  m.startFill(rows*cols*density);
-  for(int j=0; j<cols; j++)
+  sparseMat.startFill(refMat.rows()*refMat.cols()*density);
+  for(int j=0; j<refMat.cols(); j++)
   {
-    for(int i=0; i<rows; i++)
+    for(int i=0; i<refMat.rows(); i++)
     {
       Scalar v = (ei_random<Scalar>(0,1) < density) ? ei_random<Scalar>() : 0;
+      if ((flags&ForceNonZeroDiag) && (i==j))
+        while (ei_abs(v)<1e-2)
+          v = ei_random<Scalar>();
+      if ((flags & MakeLowerTriangular) && j>i)
+        v = 0;
+      else if ((flags & MakeUpperTriangular) && j<i)
+        v = 0;
       if (v!=0)
       {
-        m.fill(i,j) = v;
-        nonzeroCoords.push_back(Vector2i(i,j));
+        sparseMat.fill(i,j) = v;
+        if (nonzeroCoords)
+          nonzeroCoords->push_back(Vector2i(i,j));
       }
-      else
+      else if (zeroCoords)
       {
-        zeroCoords.push_back(Vector2i(i,j));
+        zeroCoords->push_back(Vector2i(i,j));
       }
       refMat(i,j) = v;
     }
   }
-  m.endFill();
+  sparseMat.endFill();
+}
+
+template<typename Scalar> void sparse(int rows, int cols)
+{
+  double density = std::max(8./(rows*cols), 0.01);
+  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
+  typedef Matrix<Scalar,Dynamic,1> DenseVector;
+  Scalar eps = 1e-6;
+
+  SparseMatrix<Scalar> m(rows, cols);
+  DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
+  DenseVector vec1 = DenseVector::Random(rows);
+
+  std::vector<Vector2i> zeroCoords;
+  std::vector<Vector2i> nonzeroCoords;
+  initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
 
   VERIFY(zeroCoords.size()>0 && "re-run the test");
   VERIFY(nonzeroCoords.size()>0 && "re-run the test");
@@ -145,10 +172,30 @@ template<typename Scalar> void sparse(int rows, int cols)
   }
   VERIFY_IS_APPROX(m, refMat);
 
+  // test triangular solver
+  {
+    DenseVector vec2 = vec1, vec3 = vec1;
+    SparseMatrix<Scalar> m2(rows, cols);
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+
+    // lower
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<Lower>().solveTriangular(vec2),
+                     m2.template marked<Lower>().solveTriangular(vec3));
+
+    // upper
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<Upper>().solveTriangular(vec2),
+                     m2.template marked<Upper>().solveTriangular(vec3));
+     
+    // TODO test row major
+  }
+
 }
 
 void test_sparse()
 {
   sparse<double>(8, 8);
   sparse<double>(16, 16);
+  sparse<double>(33, 33);
 }

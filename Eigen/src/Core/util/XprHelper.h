@@ -110,7 +110,7 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
 
 template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
 
-template<typename T> struct ei_eval<T,Dense>
+template<typename T> struct ei_eval<T,IsDense>
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,

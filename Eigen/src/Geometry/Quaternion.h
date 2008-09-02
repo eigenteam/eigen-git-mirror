@@ -375,7 +375,7 @@ Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) 
   Scalar theta = std::acos(ei_abs(d));
   Scalar sinTheta = ei_sin(theta);
 
-  Scalar scale0 = ei_sin( ( 1 - t ) * theta) / sinTheta;
+  Scalar scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
   Scalar scale1 = ei_sin( ( t * theta) ) / sinTheta;
   if (d<0)
     scale1 = -scale1;

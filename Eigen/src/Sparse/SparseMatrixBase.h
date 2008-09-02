@@ -160,9 +160,6 @@ class SparseMatrixBase : public MatrixBase<Derived>
       return s;
     }
 
-    template<typename OtherDerived>
-    OtherDerived solveTriangular(const MatrixBase<OtherDerived>& other) const;
-
   protected:
 
     bool m_isRValue;

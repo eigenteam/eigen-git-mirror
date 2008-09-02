@@ -25,42 +25,42 @@
 #ifndef EIGEN_SPARSETRIANGULARSOLVER_H
 #define EIGEN_SPARSETRIANGULARSOLVER_H
 
-template<typename Lhs, typename Rhs,
-  int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
-                     ? Lower
-                     : (int(Lhs::Flags) & UpperTriangularBit)
-                     ? Upper
-                     : -1,
-  int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
-  >
-struct ei_sparse_trisolve_selector;
+// template<typename Lhs, typename Rhs,
+//   int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
+//                      ? Lower
+//                      : (int(Lhs::Flags) & UpperTriangularBit)
+//                      ? Upper
+//                      : -1,
+//   int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
+//   >
+// struct ei_sparse_trisolve_selector;
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Lower,RowMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
+  static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<rhs.cols() ; ++col)
+    for(int col=0 ; col<other.cols() ; ++col)
     {
       for(int i=0; i<lhs.rows(); ++i)
       {
-        Scalar tmp = rhs.coeff(i,col);
+        Scalar tmp = other.coeff(i,col);
         Scalar lastVal = 0;
         int lastIndex = 0;
         for(typename Lhs::InnerIterator it(lhs, i); it; ++it)
         {
           lastVal = it.value();
           lastIndex = it.index();
-          tmp -= lastVal * res.coeff(lastIndex,col);
+          tmp -= lastVal * other.coeff(lastIndex,col);
         }
         if (Lhs::Flags & UnitDiagBit)
-          res.coeffRef(i,col) = tmp;
+          other.coeffRef(i,col) = tmp;
         else
         {
           ei_assert(lastIndex==i);
-          res.coeffRef(i,col) = tmp/lastVal;
+          other.coeffRef(i,col) = tmp/lastVal;
         }
       }
     }
@@ -69,29 +69,29 @@ struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,RowMajor>
 
 // backward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Upper,RowMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
+  static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<rhs.cols() ; ++col)
+    for(int col=0 ; col<other.cols() ; ++col)
     {
       for(int i=lhs.rows()-1 ; i>=0 ; --i)
       {
-        Scalar tmp = rhs.coeff(i,col);
+        Scalar tmp = other.coeff(i,col);
         typename Lhs::InnerIterator it(lhs, i);
         for(++it; it; ++it)
         {
-          tmp -= it.value() * res.coeff(it.index(),col);
+          tmp -= it.value() * other.coeff(it.index(),col);
         }
 
         if (Lhs::Flags & UnitDiagBit)
-          res.coeffRef(i,col) = tmp;
+          other.coeffRef(i,col) = tmp;
         else
         {
           typename Lhs::InnerIterator it(lhs, i);
           ei_assert(it.index() == i);
-          res.coeffRef(i,col) = tmp/it.value();
+          other.coeffRef(i,col) = tmp/it.value();
         }
       }
     }
@@ -100,26 +100,25 @@ struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,RowMajor>
 
 // forward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
+  static void run(const Lhs& lhs, Rhs& other)
   {
-    // NOTE we could avoid this copy using an in-place API
-    res = rhs;
-    for(int col=0 ; col<rhs.cols() ; ++col)
+    for(int col=0 ; col<other.cols() ; ++col)
     {
       for(int i=0; i<lhs.cols(); ++i)
       {
         typename Lhs::InnerIterator it(lhs, i);
         if(!(Lhs::Flags & UnitDiagBit))
         {
+          std::cerr << it.value() << " ; " << it.index() << " == " << i << "\n";
           ei_assert(it.index()==i);
-          res.coeffRef(i,col) /= it.value();
+          other.coeffRef(i,col) /= it.value();
         }
-        Scalar tmp = res.coeffRef(i,col);
+        Scalar tmp = other.coeffRef(i,col);
         for(++it; it; ++it)
-          res.coeffRef(it.index(), col) -= tmp * it.value();
+          other.coeffRef(it.index(), col) -= tmp * it.value();
       }
     }
   }
@@ -127,14 +126,12 @@ struct ei_sparse_trisolve_selector<Lhs,Rhs,Lower,ColMajor>
 
 // backward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
+struct ei_solve_triangular_selector<Lhs,Rhs,Upper,ColMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, Rhs& res)
+  static void run(const Lhs& lhs, Rhs& other)
   {
-    // NOTE we could avoid this copy using an in-place API
-    res = rhs;
-    for(int col=0 ; col<rhs.cols() ; ++col)
+    for(int col=0 ; col<other.cols() ; ++col)
     {
       for(int i=lhs.cols()-1; i>=0; --i)
       {
@@ -142,28 +139,15 @@ struct ei_sparse_trisolve_selector<Lhs,Rhs,Upper,ColMajor>
         {
           // FIXME lhs.coeff(i,i) might not be always efficient while it must simply be the
           // last element of the column !
-          res.coeffRef(i,col) /= lhs.coeff(i,i);
+          other.coeffRef(i,col) /= lhs.coeff(i,i);
         }
-        Scalar tmp = res.coeffRef(i,col);
+        Scalar tmp = other.coeffRef(i,col);
         typename Lhs::InnerIterator it(lhs, i);
         for(; it && it.index()<i; ++it)
-          res.coeffRef(it.index(), col) -= tmp * it.value();
+          other.coeffRef(it.index(), col) -= tmp * it.value();
       }
     }
   }
 };
-
-template<typename Derived>
-template<typename OtherDerived>
-OtherDerived SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
-{
-  ei_assert(derived().cols() == other.rows());
-  ei_assert(!(Flags & ZeroDiagBit));
-  ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
-
-  OtherDerived res(other.rows(), other.cols());
-  ei_sparse_trisolve_selector<Derived, OtherDerived>::run(derived(), other.derived(), res);
-  return res;
-}
 
 #endif // EIGEN_SPARSETRIANGULARSOLVER_H
