@@ -25,9 +25,8 @@
 #include "main.h"
 #include <Eigen/Sparse>
 
-template<typename Scalar> void sparse()
+template<typename Scalar> void sparse(int rows, int cols)
 {
-  int rows = 8, cols = 8;
   double density = std::max(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   Scalar eps = 1e-6;
@@ -73,6 +72,49 @@ template<typename Scalar> void sparse()
 
   VERIFY_IS_APPROX(m, refMat);
 
+  // test InnerIterators and Block expressions
+  for(int j=0; j<cols; j++)
+  {
+    for(int i=0; i<rows; i++)
+    {
+      for(int w=1; w<cols-j; w++)
+      {
+        for(int h=1; h<rows-i; h++)
+        {
+          VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
+          for(int c=0; c<w; c++)
+          {
+            VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
+            for(int r=0; r<h; r++)
+            {
+              VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
+            }
+          }
+          for(int r=0; r<h; r++)
+          {
+            VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
+            for(int c=0; c<w; c++)
+            {
+              VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for(int c=0; c<cols; c++)
+  {
+    VERIFY_IS_APPROX(m.col(c) + m.col(c), (m + m).col(c));
+    VERIFY_IS_APPROX(m.col(c) + m.col(c), refMat.col(c) + refMat.col(c));
+  }
+
+  for(int r=0; r<rows; r++)
+  {
+    VERIFY_IS_APPROX(m.row(r) + m.row(r), (m + m).row(r));
+    VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
+  }
+
   // test SparseSetters
   // coherent setter
   // TODO extend the MatrixSetter
@@ -102,9 +144,11 @@ template<typename Scalar> void sparse()
     }
   }
   VERIFY_IS_APPROX(m, refMat);
+
 }
 
 void test_sparse()
 {
-  sparse<double>();
+  sparse<double>(8, 8);
+  sparse<double>(16, 16);
 }

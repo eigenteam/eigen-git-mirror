@@ -211,7 +211,8 @@ enum {
 
 enum {
   NoDirectAccess = 0,
-  HasDirectAccess = DirectAccessBit
+  HasDirectAccess = DirectAccessBit,
+  IsSparse = SparseBit
 };
 
 const int FullyCoherentAccessPattern  = 0x1;

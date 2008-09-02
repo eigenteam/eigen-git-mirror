@@ -94,7 +94,7 @@ class SparseMatrix
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
 
-      const int* r = std::lower_bound(&m_data.index(start),&m_data.index(end),inner);
+      const int* r = std::lower_bound(&m_data.index(start),&m_data.index(end-1),inner);
       const int id = r-&m_data.index(0);
       return ((*r==inner) && (id<end)) ? m_data.value(id) : Scalar(0);
     }
@@ -263,7 +263,7 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
 
     InnerIterator& operator++() { m_id++; return *this; }
 
-    Scalar value() { return m_matrix.m_data.value(m_id); }
+    Scalar value() const { return m_matrix.m_data.value(m_id); }
 
     int index() const { return m_matrix.m_data.index(m_id); }
 

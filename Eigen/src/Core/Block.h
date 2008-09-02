@@ -65,6 +65,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _PacketAccess, i
 struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::Nested MatrixTypeNested;
+  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum{
     RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : BlockRows,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : BlockCols,
@@ -93,6 +95,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+
+    class InnerIterator;
 
     /** Column or Row constructor
       */
@@ -217,6 +221,7 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Block, MapBase<Block>)
 
+    class InnerIterator;
     typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)

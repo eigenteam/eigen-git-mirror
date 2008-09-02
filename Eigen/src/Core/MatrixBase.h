@@ -155,7 +155,7 @@ template<typename Derived> class MatrixBase
 
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
     inline int rows() const { return derived().rows(); }
-    /** \returns the number of columns. \sa row(), ColsAtCompileTime*/
+    /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
     inline int cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */

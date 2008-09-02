@@ -37,7 +37,7 @@ class MatrixBase<Derived>::InnerIterator
       : m_matrix(mat), m_inner(0), m_outer(outer), m_end(mat.rows())
     {}
 
-    Scalar value()
+    Scalar value() const
     {
       return (Derived::Flags&RowMajorBit) ? m_matrix.coeff(m_outer, m_inner)
                                           : m_matrix.coeff(m_inner, m_outer);
@@ -64,6 +64,80 @@ class Transpose<MatrixType>::InnerIterator : public MatrixType::InnerIterator
     InnerIterator(const Transpose& trans, int outer)
       : MatrixType::InnerIterator(trans.m_matrix, outer)
     {}
+};
+
+template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus>
+class Block<MatrixType, BlockRows, BlockCols, PacketAccess, _DirectAccessStatus>::InnerIterator
+{
+    typedef typename Block::Scalar Scalar;
+    typedef typename ei_traits<Block>::_MatrixTypeNested _MatrixTypeNested;
+    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+  public:
+
+    InnerIterator(const Block& block, int outer)
+      : m_iter(block.m_matrix,(Block::Flags&RowMajor) ? block.m_startRow.value() + outer : block.m_startCol.value() + outer),
+        m_start( (Block::Flags&RowMajor) ? block.m_startCol.value() : block.m_startRow.value()),
+        m_end(m_start + ((Block::Flags&RowMajor) ? block.m_blockCols.value() : block.m_blockRows.value())),
+        m_offset( (Block::Flags&RowMajor) ? block.m_startCol.value() : block.m_startRow.value())
+    {
+      while (m_iter.index()>=0 && m_iter.index()<m_start)
+        ++m_iter;
+    }
+
+    InnerIterator& operator++()
+    {
+      ++m_iter;
+      return *this;
+    }
+
+    Scalar value() const { return m_iter.value(); }
+
+    int index() const { return m_iter.index() - m_offset; }
+
+    operator bool() const { return m_iter && m_iter.index()<m_end; }
+
+  protected:
+    MatrixTypeIterator m_iter;
+    int m_start;
+    int m_end;
+    int m_offset;
+}; 
+
+template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess>
+class Block<MatrixType, BlockRows, BlockCols, PacketAccess, IsSparse>::InnerIterator
+{
+    typedef typename Block::Scalar Scalar;
+    typedef typename ei_traits<Block>::_MatrixTypeNested _MatrixTypeNested;
+    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+  public:
+
+    InnerIterator(const Block& block, int outer)
+      : m_iter(block.m_matrix,(Block::Flags&RowMajor) ? block.m_startRow.value() + outer : block.m_startCol.value() + outer),
+        m_start( (Block::Flags&RowMajor) ? block.m_startCol.value() : block.m_startRow.value()),
+        m_end(m_start + ((Block::Flags&RowMajor) ? block.m_blockCols.value() : block.m_blockRows.value())),
+        m_offset( (Block::Flags&RowMajor) ? block.m_startCol.value() : block.m_startRow.value())
+    {
+      while (m_iter.index()>=0 && m_iter.index()<m_start)
+        ++m_iter;
+    }
+
+    InnerIterator& operator++()
+    {
+      ++m_iter;
+      return *this;
+    }
+
+    Scalar value() const { return m_iter.value(); }
+
+    int index() const { return m_iter.index() - m_offset; }
+
+    operator bool() const { return m_iter && m_iter.index()<m_end; }
+
+  protected:
+    MatrixTypeIterator m_iter;
+    int m_start;
+    int m_end;
+    int m_offset;
 };
 
 template<typename UnaryOp, typename MatrixType>
@@ -133,13 +207,13 @@ class CwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
         ++m_lhsIter;
         ++m_rhsIter;
       }
-      else if (m_lhsIter && ((!m_rhsIter) || m_lhsIter.index() < m_rhsIter.index()))
+      else if (m_lhsIter && (!m_rhsIter || (m_lhsIter.index() < m_rhsIter.index())))
       {
         m_id = m_lhsIter.index();
         m_value = m_functor(m_lhsIter.value(), Scalar(0));
         ++m_lhsIter;
       }
-      else if (m_rhsIter && ((!m_lhsIter) || m_lhsIter.index() > m_rhsIter.index()))
+      else if (m_rhsIter && (!m_lhsIter || (m_lhsIter.index() > m_rhsIter.index())))
       {
         m_id = m_rhsIter.index();
         m_value = m_functor(Scalar(0), m_rhsIter.value());

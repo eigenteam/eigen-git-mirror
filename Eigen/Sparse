@@ -13,6 +13,7 @@ namespace Eigen {
 #include "src/Sparse/SparseUtil.h"
 #include "src/Sparse/SparseMatrixBase.h"
 #include "src/Sparse/SparseArray.h"
+#include "src/Sparse/SparseBlock.h"
 #include "src/Sparse/SparseMatrix.h"
 #include "src/Sparse/HashMatrix.h"
 #include "src/Sparse/LinkedVectorMatrix.h"

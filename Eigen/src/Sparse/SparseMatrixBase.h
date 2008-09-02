@@ -139,8 +139,23 @@ class SparseMatrixBase : public MatrixBase<Derived>
       }
       else
       {
-        LinkedVectorMatrix<Scalar, RowMajorBit> trans = m.derived();
-        s << trans;
+        if (m.cols() == 1) {
+          int row = 0;
+          for (typename Derived::InnerIterator it(m.derived(), 0); it; ++it)
+          {
+            for ( ; row<it.index(); ++row)
+              s << "0" << std::endl;
+            s << it.value() << std::endl;
+            ++row;
+          }
+          for ( ; row<m.rows(); ++row)
+            s << "0" << std::endl;
+        }
+        else
+        {
+          LinkedVectorMatrix<Scalar, RowMajorBit> trans = m.derived();
+          s << trans;
+        }
       }
       return s;
     }
