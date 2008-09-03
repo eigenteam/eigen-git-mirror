@@ -24,8 +24,6 @@
 
 #include "main.h"
 
-#include <ext/malloc_allocator.h>
-
 // test compilation with both a struct and a class...
 struct MyStruct : WithAlignedOperatorNew
 {

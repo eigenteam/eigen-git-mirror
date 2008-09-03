@@ -36,7 +36,7 @@ struct ei_product_coeff_impl;
 template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
 struct ei_product_packet_impl;
 
-template<typename T> class ei_product_eval_to_column_major;
+template<typename T> struct ei_product_eval_to_column_major;
 
 /** \class ProductReturnType
   *

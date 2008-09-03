@@ -71,9 +71,9 @@ template<typename MatrixType> class LU
              MatrixType::MaxRowsAtCompileTime)
     };
 
-	typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
+  typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
                  MatrixType::Flags&RowMajorBit,
-                 MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelReturnType;
+                 MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelResultType;
 
     /** Constructor.
       *
@@ -150,12 +150,7 @@ template<typename MatrixType> class LU
       *
       * \sa kernel()
       */
-    void computeKernel(Matrix<typename MatrixType::Scalar,
-                              MatrixType::ColsAtCompileTime, Dynamic,
-                              MatrixType::Flags&RowMajorBit,
-                              MatrixType::MaxColsAtCompileTime,
-                              LU<MatrixType>::MaxSmallDimAtCompileTime
-                             > *result) const;
+    void computeKernel(KernelResultType *result) const;
 
     /** \returns the kernel of the matrix. The columns of the returned matrix
       * will form a basis of the kernel.
@@ -171,7 +166,7 @@ template<typename MatrixType> class LU
       *
       * \sa computeKernel()
       */
-    const KernelReturnType kernel() const;
+    const KernelResultType kernel() const;
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition, if any exists.
@@ -372,12 +367,7 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 }
 
 template<typename MatrixType>
-void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
-                                          MatrixType::ColsAtCompileTime, Dynamic,
-                                          MatrixType::Flags&RowMajorBit,
-                                          MatrixType::MaxColsAtCompileTime,
-                                          LU<MatrixType>::MaxSmallDimAtCompileTime
-                                   > *result) const
+void LU<MatrixType>::computeKernel(KernelResultType *result) const
 {
   ei_assert(!isInvertible());
   const int dimker = dimensionOfKernel(), cols = m_lu.cols();
@@ -414,13 +404,10 @@ void LU<MatrixType>::computeKernel(Matrix<typename MatrixType::Scalar,
 }
 
 template<typename MatrixType>
-const typename LU<MatrixType>::KernelReturnType
+const typename LU<MatrixType>::KernelResultType
 LU<MatrixType>::kernel() const
 {
-  Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-         MatrixType::Flags&RowMajorBit,
-         MatrixType::MaxColsAtCompileTime,
-         LU<MatrixType>::MaxSmallDimAtCompileTime> result(m_lu.cols(), dimensionOfKernel());
+  KernelResultType result(m_lu.cols(), dimensionOfKernel());
   computeKernel(&result);
   return result;
 }
