@@ -79,7 +79,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   }
   #endif
 
-  if (rows>1)
   {
     CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(symm);
     VERIFY(cholnosqrt.isPositiveDefinite());

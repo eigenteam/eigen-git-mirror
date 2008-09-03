@@ -96,6 +96,12 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   m_isPositiveDefinite = true;
   const RealScalar eps = ei_sqrt(precision<Scalar>());
 
+  if (size<=1)
+  {
+    m_matrix = a;
+    return;
+  }
+  
   // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
   // Unlike the standard Cholesky decomposition, here we cannot evaluate it to the destination
   // matrix because it a sub-row which is not compatible suitable for efficient packet evaluation.
