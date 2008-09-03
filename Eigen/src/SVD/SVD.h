@@ -178,7 +178,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 
 
   // Set up the final bidiagonal matrix or order p.
-  int p = min(n,m+1);
+  int p = std::min(n,m+1);
   if (nct < n)
     m_sigma[nct] = matA(nct,nct);
   if (m < p)
