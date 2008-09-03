@@ -25,7 +25,7 @@
 #include "main.h"
 #include <Eigen/Array>
 
-template<typename MatrixType> void scalarAdd(const MatrixType& m)
+template<typename MatrixType> void array(const MatrixType& m)
 {
   /* this test covers the following files:
      Array.cpp
@@ -45,6 +45,7 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   Scalar  s1 = ei_random<Scalar>(),
           s2 = ei_random<Scalar>();
 
+  // scalar addition
   VERIFY_IS_APPROX(m1.cwise() + s1, s1 + m1.cwise());
   VERIFY_IS_APPROX(m1.cwise() + s1, MatrixType::Constant(rows,cols,s1) + m1);
   VERIFY_IS_APPROX((m1*Scalar(2)).cwise() - s2, (m1+m1) - MatrixType::Constant(rows,cols,s2) );
@@ -55,6 +56,7 @@ template<typename MatrixType> void scalarAdd(const MatrixType& m)
   m3.cwise() -= s1;
   VERIFY_IS_APPROX(m3, m1.cwise() - s1);
 
+  // reductions
   VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
   VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
   if (!ei_isApprox(m1.sum(), (m1+m2).sum()))
@@ -86,17 +88,31 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
     VERIFY(! (m1.cwise() < m3).all() );
     VERIFY(! (m1.cwise() > m3).all() );
   }
+  
+  // test Select
+  VERIFY_IS_APPROX( (m1.cwise()<m2).select(m1,m2), m1.cwise().min(m2) );
+  VERIFY_IS_APPROX( (m1.cwise()>m2).select(m1,m2), m1.cwise().max(m2) );
+  Scalar mid = (m1.cwise().abs().minCoeff() + m1.cwise().abs().maxCoeff())/Scalar(2);
+  for (int j=0; j<cols; ++j)
+  for (int i=0; i<rows; ++i)
+    m3(i,j) = ei_abs(m1(i,j))<mid ? 0 : m1(i,j);
+  VERIFY_IS_APPROX( (m1.cwise().abs().cwise()<MatrixType::Constant(rows,cols,mid))
+                        .select(MatrixType::Zero(rows,cols),m1), m3);
+  VERIFY_IS_APPROX( (m1.cwise().abs().cwise()<MatrixType::Constant(rows,cols,mid))
+                        .select(0,m1), m3);
+  VERIFY_IS_APPROX( (m1.cwise().abs().cwise()>=MatrixType::Constant(rows,cols,mid))
+                        .select(m1,0), m3);
 }
 
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( scalarAdd(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( scalarAdd(Matrix2f()) );
-    CALL_SUBTEST( scalarAdd(Matrix4d()) );
-    CALL_SUBTEST( scalarAdd(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( scalarAdd(MatrixXf(8, 12)) );
-    CALL_SUBTEST( scalarAdd(MatrixXi(8, 12)) );
+    CALL_SUBTEST( array(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( array(Matrix2f()) );
+    CALL_SUBTEST( array(Matrix4d()) );
+    CALL_SUBTEST( array(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( array(MatrixXf(8, 12)) );
+    CALL_SUBTEST( array(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( comparisons(Matrix<float, 1, 1>()) );

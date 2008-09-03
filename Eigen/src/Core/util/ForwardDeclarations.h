@@ -50,8 +50,6 @@ template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
-template<typename ExpressionType, int Direction> class PartialRedux;
-template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
 template<typename ExpressionType> class WithFormat;
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
@@ -93,6 +91,11 @@ void ei_cache_friendly_product(
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
   bool resRowMajor, Scalar* res, int resStride);
+
+// Array module
+template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> class Select;
+template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
+template<typename ExpressionType, int Direction> class PartialRedux;
 
 template<typename MatrixType> class LU;
 template<typename MatrixType> class QR;

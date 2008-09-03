@@ -539,6 +539,18 @@ template<typename Derived> class MatrixBase
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int size);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random();
 
+    template<typename ThenDerived,typename ElseDerived>
+    const Select<Derived,ThenDerived,ElseDerived>
+    select(const MatrixBase<ThenDerived>& thenMatrix,
+           const MatrixBase<ElseDerived>& elseMatrix) const;
+   
+    template<typename ThenDerived>
+    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
+    
+    template<typename ElseDerived>
+    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
 /////////// LU module ///////////
 
