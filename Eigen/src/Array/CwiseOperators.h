@@ -289,6 +289,103 @@ Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)(_expression(), other.derived());
 }
 
+// comparisons to scalar value
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \< operator of *this and a scalar \a s
+  *
+  * \sa operator<(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)
+Cwise<ExpressionType>::operator<(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \<= operator of *this and a scalar \a s
+  *
+  * \sa operator<=(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)
+Cwise<ExpressionType>::operator<=(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \> operator of *this and a scalar \a s
+  *
+  * \sa operator>(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)
+Cwise<ExpressionType>::operator>(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise \>= operator of *this and a scalar \a s
+  *
+  * \sa operator>=(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)
+Cwise<ExpressionType>::operator>=(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise == operator of *this and a scalar \a s
+  *
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
+  * MatrixBase::isMuchSmallerThan().
+  *
+  * \sa operator==(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)
+Cwise<ExpressionType>::operator==(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+/** \array_module
+  * 
+  * \returns an expression of the coefficient-wise != operator of *this and a scalar \a s
+  *
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
+  * MatrixBase::isMuchSmallerThan().
+  *
+  * \sa operator!=(const MatrixBase<OtherDerived> &) const
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)
+Cwise<ExpressionType>::operator!=(Scalar s) const
+{
+  return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)(_expression(),
+            typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
+}
+
+// scalar addition
 
 /** \array_module
   *

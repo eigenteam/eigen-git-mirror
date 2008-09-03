@@ -36,6 +36,12 @@
 #define EIGEN_CWISE_UNOP_RETURN_TYPE(OP) \
     CwiseUnaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType>
 
+/** \internal
+  * convenient macro to defined the return type of a cwise comparison to a scalar */
+#define EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(OP) \
+    CwiseBinaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType, \
+        NestByValue<typename ExpressionType::ConstantReturnType> >
+
 /** \class Cwise
   *
   * \brief Pseudo expression providing additional coefficient-wise operations
@@ -128,6 +134,24 @@ template<typename ExpressionType> class Cwise
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
     operator!=(const MatrixBase<OtherDerived>& other) const;
 
+    // comparisons to a scalar value
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)
+    operator<(Scalar s) const;
+
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)
+    operator<=(Scalar s) const;
+
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)
+    operator>(Scalar s) const;
+
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)
+    operator>=(Scalar s) const;
+
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)
+    operator==(Scalar s) const;
+
+    const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)
+    operator!=(Scalar s) const;
 
   protected:
     ExpressionTypeNested m_matrix;
