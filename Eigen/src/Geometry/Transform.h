@@ -61,6 +61,9 @@ struct ei_transform_product_impl;
   */
 template<typename _Scalar, int _Dim>
 class Transform
+  #ifdef EIGEN_VECTORIZE
+  : public ei_with_aligned_operator_new<_Scalar,_Dim==Dynamic ? Dynamic : (_Dim+1)*(_Dim+1)>
+  #endif
 {
 public:
 

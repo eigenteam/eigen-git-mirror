@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -29,14 +30,14 @@
 #include "main.h"
 
 void* operator new[] (size_t n)
-  {
-    ei_assert(false && "operator new should never be called with fixed size path");
-    // the following is in case assertion are disabled
-    std::cerr << "operator new should never be called with fixed size path" << std::endl;
-    exit(2);
-    void* p = malloc(n);
-    return p;
-  }
+{
+  ei_assert(false && "operator new should never be called with fixed size path");
+  // the following is in case assertion are disabled
+  std::cerr << "operator new should never be called with fixed size path" << std::endl;
+  exit(2);
+  void* p = malloc(n);
+  return p;
+}
 
 void operator delete[](void* p) throw()
 {
@@ -54,8 +55,6 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  // this test relies a lot on Random.h, and there's not much more that we can do
-  // to test it, hence I consider that we will have tested Random.h
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),

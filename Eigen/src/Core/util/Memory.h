@@ -106,4 +106,128 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 # define ei_free_stack(PTR,TYPE,SIZE) delete[] PTR
 #endif
 
+/** \class WithAlignedOperatorNew
+  *
+  * \brief Enforces inherited classes to be 16 bytes aligned when dynamicalled allocated with operator new
+  *
+  * When Eigen's explicit vectorization is enabled, Eigen assumes that some fixed sizes types are aligned
+  * on a 16 bytes boundary. Such types include:
+  *  - Vector2d, Vector4f, Vector4i, Vector4d,
+  *  - Matrix2d, Matrix4f, Matrix4i, Matrix4d,
+  *  - etc.
+  * When objects are statically allocated, the compiler will automatically and always enforces 16 bytes
+  * alignment of the data. However some troubles might appear when data are dynamically allocated.
+  * Let's pick an example:
+  * \code
+  * struct Foo {
+  *   char dummy;
+  *   Vector4f some_vector;
+  * };
+  * Foo obj1;                           // static allocation
+  * obj1.some_vector = Vector4f(..);    // =>   OK
+  *
+  * Foo *pObj2 = new Foo;               // dynamic allocation
+  * pObj2->some_vector = Vector4f(..);  // =>  !! might segfault !!
+  * \endcode
+  * Here, the problem is that operator new is not aware of the compile time alignment requirement of the
+  * type Vector4f (and hence of the type Foo). Therefore "new Foo" does not necessarily returned a 16 bytes
+  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exacly to overcome this issue, by
+  * overloading the operator new to return aligned data when the vectorization is enabled.
+  * Here is a similar safe example:
+  * \code
+  * struct Foo : WithAlignedOperatorNew {
+  *   char dummy;
+  *   Vector4f some_vector;
+  * };
+  * Foo obj1;                           // static allocation
+  * obj1.some_vector = Vector4f(..);    // =>   OK
+  *
+  * Foo *pObj2 = new Foo;               // dynamic allocation
+  * pObj2->some_vector = Vector4f(..);  // =>  SAFE !
+  * \endcode 
+  *
+  * \sa class ei_new_allocator
+  */
+struct WithAlignedOperatorNew
+{
+  #ifdef EIGEN_VECTORIZE
+
+  void *operator new(size_t size) throw()
+  {
+    void* ptr = 0;
+    if (posix_memalign(&ptr, 16, size)==0)
+      return ptr;
+    else
+      return 0;
+  }
+
+  void *operator new[](size_t size) throw()
+  {
+    void* ptr = 0;
+    if (posix_memalign(&ptr, 16, size)==0)
+      return ptr;
+    else
+      return 0;
+  }
+
+  void operator delete(void * ptr) { free(ptr); }
+  void operator delete[](void * ptr) { free(ptr); }
+  
+  #endif
+};
+
+template<typename T, int SizeAtCompileTime,
+         bool NeedsToAlign = (SizeAtCompileTime!=Dynamic) && ((sizeof(T)*SizeAtCompileTime)%16==0)>
+struct ei_with_aligned_operator_new : WithAlignedOperatorNew {};
+
+template<typename T, int SizeAtCompileTime>
+struct ei_with_aligned_operator_new<T,SizeAtCompileTime,false> {};
+
+/** \class ei_new_allocator
+  *
+  * \brief stl compatible allocator to use with with fixed-size vector and matrix types
+  *
+  * STL allocator simply wrapping operators new[] and delete[]. Unlike GCC's default new_allocator,
+  * ei_new_allocator call operator new on the type \a T and not the general new operator ignoring
+  * overloaded version of operator new.
+  * 
+  * Example:
+  * \code
+  * // Vector4f requires 16 bytes alignment:
+  * std::vector<Vector4f,ei_new_allocator<Vector4f> > dataVec4;
+  * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
+  * std::vector<Vector3f> dataVec3;
+  * 
+  * struct Foo : WithAlignedOperatorNew {
+  *   char dummy;
+  *   Vector4f some_vector;
+  * };
+  * std::vector<Foo,ei_new_allocator<Foo> > dataFoo;
+  * \endcode
+  *
+  * \sa class WithAlignedOperatorNew
+  */
+template<typename T> class ei_new_allocator
+{
+  public:
+    typedef T         value_type;
+    typedef T*        pointer;
+    typedef const T*  const_pointer;
+    typedef T&        reference;
+    typedef const T&  const_reference;
+
+    template<typename OtherType>
+    struct rebind
+    { typedef ei_new_allocator<OtherType> other; };
+
+    T* address(T& ref) const { return &ref; }
+    const T* address(const T& ref) const { return &ref; }
+    T* allocate(size_t size, const void* = 0) { return new T[size]; }
+    void deallocate(T* ptr, size_t) { delete[] ptr; }
+    size_t max_size() const { return size_t(-1) / sizeof(T); }
+    // FIXME I'm note sure about this construction...
+    void construct(T* ptr, const T& refObj) { ::new(ptr) T(refObj); }
+    void destroy(T* ptr) { ptr->~T(); }
+};
+
 #endif // EIGEN_MEMORY_H

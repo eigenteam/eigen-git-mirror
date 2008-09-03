@@ -94,6 +94,7 @@ ENDIF(TEST_LIB)
 
 EI_ADD_TEST(meta)
 EI_ADD_TEST(sizeof)
+EI_ADD_TEST(dynalloc)
 EI_ADD_TEST(nomalloc)
 EI_ADD_TEST(packetmath)
 EI_ADD_TEST(basicstuff)
