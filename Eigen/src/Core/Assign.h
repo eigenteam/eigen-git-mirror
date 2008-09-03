@@ -157,12 +157,13 @@ struct ei_assign_innervec_CompleteUnrolling
         : Index % Derived1::RowsAtCompileTime,
     col = int(Derived1::Flags)&RowMajorBit
         ? Index % int(Derived1::ColsAtCompileTime)
-        : Index / Derived1::RowsAtCompileTime
+        : Index / Derived1::RowsAtCompileTime,
+    SrcAlignment = ei_assign_traits<Derived1,Derived2>::SrcAlignment
   };
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.template copyPacket<Derived2, Aligned, Aligned>(row, col, src);
+    dst.template copyPacket<Derived2, Aligned, SrcAlignment>(row, col, src);
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src);
   }
