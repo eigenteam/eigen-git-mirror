@@ -120,6 +120,7 @@ EI_ADD_TEST(eigensolver)
 EI_ADD_TEST(svd)
 EI_ADD_TEST(geometry)
 EI_ADD_TEST(hyperplane)
+EI_ADD_TEST(parametrizedline)
 EI_ADD_TEST(regression)
 EI_ADD_TEST(sparse)
 

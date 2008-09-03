@@ -28,48 +28,6 @@
 
 /** \geometry_module \ingroup GeometryModule
   *
-  * \class ParametrizedLine
-  *
-  * \brief A parametrized line
-  *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
-  *             Notice that the dimension of the hyperplane is _AmbientDim-1.
-  */
-template <typename _Scalar, int _AmbientDim>
-class ParametrizedLine
-  #ifdef EIGEN_VECTORIZE
-  : public ei_with_aligned_operator_new<_Scalar,_AmbientDim>
-  #endif
-{
-  public:
-
-    enum { AmbientDimAtCompileTime = _AmbientDim };
-    typedef _Scalar Scalar;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
-
-    ParametrizedLine(const VectorType& origin, const VectorType& direction)
-      : m_origin(origin), m_direction(direction) {}
-    explicit ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
-
-    ~ParametrizedLine() {}
-
-    const VectorType& origin() const { return m_origin; }
-    VectorType& origin() { return m_origin; }
-
-    const VectorType& direction() const { return m_direction; }
-    VectorType& direction() { return m_direction; }
-
-    Scalar intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
-
-  protected:
-
-    VectorType m_origin, m_direction;
-};
-
-/** \geometry_module \ingroup GeometryModule
-  *
   * \class Hyperplane
   *
   * \brief A hyperplane
@@ -103,7 +61,7 @@ class Hyperplane
     typedef Block<Coefficients,AmbientDimAtCompileTime,1> NormalReturnType;
 
     /** Default constructor without initialization */
-    inline Hyperplane(int _dim = AmbientDimAtCompileTime) : m_coeffs(_dim+1) {}
+    inline explicit Hyperplane(int _dim = AmbientDimAtCompileTime) : m_coeffs(_dim+1) {}
     
     /** Construct a plane from its normal \a n and a point \a e onto the plane.
       * \warning the vector normal is assumed to be normalized.
@@ -175,7 +133,6 @@ class Hyperplane
     
     /** \returns the projection of a point \a p onto the plane \c *this.
       */
-
     inline VectorType projection(const VectorType& p) const { return p - signedDistance(p) * normal(); }
 
     /** \returns a constant reference to the unit normal vector of the plane, which corresponds
@@ -260,26 +217,5 @@ protected:
 
     Coefficients m_coeffs;
 };
-
-/** Construct a parametrized line from a 2D hyperplane
-  *
-  * \warning the ambient space must have dimension 2 such that the hyperplane actually describes a line
-  */
-template <typename _Scalar, int _AmbientDim>
-ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
-{
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2);
-  direction() = hyperplane.normal().unitOrthogonal();
-  origin() = -hyperplane.normal()*hyperplane.offset();
-}
-
-/** \returns the parameter value of the intersection between *this and the given hyperplane
-  */
-template <typename _Scalar, int _AmbientDim>
-inline _Scalar ParametrizedLine<_Scalar, _AmbientDim>::intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
-{
-  return -(hyperplane.offset()+origin().dot(hyperplane.normal()))
-          /(direction().dot(hyperplane.normal()));
-}
 
 #endif // EIGEN_HYPERPLANE_H

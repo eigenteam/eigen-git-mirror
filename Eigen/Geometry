@@ -12,10 +12,11 @@ namespace Eigen {
 /** \defgroup GeometryModule Geometry module
   * This module provides support for:
   *  - fixed-size homogeneous transformations
-  *  - 2D and 3D rotations
+  *  - translation, scaling, 2D and 3D rotations
   *  - quaternions
   *  - \ref MatrixBase::cross() "cross product"
   *  - \ref MatrixBase::unitOrthogonal() "orthognal vector generation"
+  *  - some linear components: parametrized-lines and hyperplanes
   *
   * \code
   * #include <Eigen/Geometry>
@@ -36,6 +37,7 @@ namespace Eigen {
 #include "src/Geometry/Translation.h"
 #include "src/Geometry/Scaling.h"
 #include "src/Geometry/Hyperplane.h"
+#include "src/Geometry/ParametrizedLine.h"
 
 } // namespace Eigen
 

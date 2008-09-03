@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008 Benoit Jacob <jacob@math.jussieu.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -54,7 +55,6 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   Scalar s1 = ei_random<Scalar>();
 
   VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
-  VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
   
   VERIFY_IS_MUCH_SMALLER_THAN( pl0.absDistance(p0), Scalar(1) );
   VERIFY_IS_APPROX( pl1.signedDistance(p1 + n1 * s0), s0 );
@@ -96,6 +96,9 @@ template<typename Scalar> void lines()
     Vector u = Vector::Random();
     Vector v = Vector::Random();
     Scalar a = ei_random<Scalar>();
+    while (ei_abs(a-1) < 1e-4) a = ei_random<Scalar>();
+    while (u.norm() < 1e-4) u = Vector::Random();
+    while (v.norm() < 1e-4) v = Vector::Random();
 
     HLine line_u = HLine::Through(center + u, center + a*u);
     HLine line_v = HLine::Through(center + v, center + a*v);

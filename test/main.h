@@ -229,7 +229,6 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
 void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
-using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -245,14 +244,14 @@ int main(int argc, char *argv[])
       {
         if(has_set_repeat)
         {
-          cout << "Argument " << argv[i] << " conflicting with a former argument" << endl;
+          std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
         repeat = atoi(argv[i]+1);
         has_set_repeat = true;
         if(repeat <= 0)
         {
-          cout << "Invalid \'repeat\' value " << argv[i]+1 << endl;
+          std::cout << "Invalid \'repeat\' value " << argv[i]+1 << std::endl;
           return 1;
         }
       }
@@ -260,7 +259,7 @@ int main(int argc, char *argv[])
       {
         if(has_set_seed)
         {
-          cout << "Argument " << argv[i] << " conflicting with a former argument" << endl;
+          std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
         seed = strtoul(argv[i]+1, 0, 10);
@@ -268,7 +267,7 @@ int main(int argc, char *argv[])
         bool ok = seed!=0;
         if(!ok)
         {
-          cout << "Invalid \'seed\' value " << argv[i]+1 << endl;
+          std::cout << "Invalid \'seed\' value " << argv[i]+1 << std::endl;
           return 1;
         }
       }
@@ -280,18 +279,18 @@ int main(int argc, char *argv[])
 
     if(need_help)
     {
-      cout << "This test application takes the following optional arguments:" << endl;
-      cout << "  rN     Repeat each test N times (default: " << DEFAULT_REPEAT << ")" << endl;
-      cout << "  sN     Use N as seed for random numbers (default: based on current time)" << endl;
+      std::cout << "This test application takes the following optional arguments:" << std::endl;
+      std::cout << "  rN     Repeat each test N times (default: " << DEFAULT_REPEAT << ")" << std::endl;
+      std::cout << "  sN     Use N as seed for random numbers (default: based on current time)" << std::endl;
       return 1;
     }
 
     if(!has_set_seed) seed = (unsigned int) time(NULL);
     if(!has_set_repeat) repeat = DEFAULT_REPEAT;
 
-    cout << "Initializing random number generator with seed " << seed << endl;
+    std::cout << "Initializing random number generator with seed " << seed << std::endl;
     srand(seed);
-    cout << "Repeating each test " << repeat << " times" << endl;
+    std::cout << "Repeating each test " << repeat << " times" << std::endl;
 
     Eigen::g_repeat = repeat;
     Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));
