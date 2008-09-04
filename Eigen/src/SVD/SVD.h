@@ -76,6 +76,7 @@ template<typename MatrixType> class SVD
     const MatrixVType& matrixV() const { return m_matV; }
 
     void compute(const MatrixType& matrix);
+    SVD& sort();
 
   protected:
     /** \internal */
@@ -464,6 +465,43 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   } // end iterations
 }
 
+template<typename MatrixType>
+SVD<MatrixType>& SVD<MatrixType>::sort()
+{
+  int mu = m_matU.rows(); 
+  int mv = m_matV.rows(); 
+  int n  = m_matU.cols();
+
+  for (int i=0; i<n; i++)
+  {
+    int  k = i; 
+    Scalar p = m_sigma.coeff(i);
+
+    for (int j=i+1; j<n; j++)
+    {
+      if (m_sigma.coeff(j) > p) 
+      {
+        k = j;
+        p = m_sigma.coeff(j);
+      }
+    }
+    if (k != i)
+    {
+      m_sigma.coeffRef(k) = m_sigma.coeff(i);  // i.e.
+      m_sigma.coeffRef(i) = p;                 // swaps the i-th and the k-th elements
+
+      int j = mu;
+      for(int s=0; j!=0; ++s, --j)
+        std::swap(m_matU.coeffRef(s,i), m_matU.coeffRef(s,k));
+
+      j = mv;
+      for (int s=0; j!=0; ++s, --j)
+        std::swap(m_matV.coeffRef(s,i), m_matV.coeffRef(s,k));
+    }
+  }
+  return *this;
+}
+
 /** \returns the solution of \f$ A x = b \f$ using the current SVD decomposition of A.
   * The parts of the solution corresponding to zero singular values are ignored.
   *
@@ -476,6 +514,7 @@ void SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
   const int rows = m_matU.rows();
   ei_assert(b.rows() == rows);
 
+  Scalar maxVal = m_sigma.cwise().abs().maxCoeff();
   for (int j=0; j<b.cols(); ++j)
   {
     Matrix<Scalar,MatrixUType::RowsAtCompileTime,1> aux = m_matU.transpose() * b.col(j);
@@ -483,10 +522,10 @@ void SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
     for (int i = 0; i <m_matU.cols(); i++)
     {
       Scalar si = m_sigma.coeff(i);
-      if (si != 0)
-        aux.coeffRef(i) /= si;
-      else
+      if (ei_isMuchSmallerThan(ei_abs(si),maxVal))
         aux.coeffRef(i) = 0;
+      else
+        aux.coeffRef(i) /= si;
     }
 
     result->col(j) = m_matV * aux;
@@ -497,7 +536,7 @@ void SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
   * \returns the SVD decomposition of \c *this
   */
 template<typename Derived>
-inline const SVD<typename MatrixBase<Derived>::EvalType>
+inline SVD<typename MatrixBase<Derived>::EvalType>
 MatrixBase<Derived>::svd() const
 {
   return SVD<typename ei_eval<Derived>::type>(derived());

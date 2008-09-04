@@ -573,7 +573,7 @@ template<typename Derived> class MatrixBase
 
 /////////// SVD module ///////////
 
-    const SVD<EvalType> svd() const;
+    SVD<EvalType> svd() const;
 
 /////////// Geometry module ///////////
 
