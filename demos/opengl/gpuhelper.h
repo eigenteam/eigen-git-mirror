@@ -71,7 +71,7 @@ class GpuHelper
         GLenum matrixTarget);
 
     /** Make the matrix \a matrixTarget the current OpenGL matrix target.
-        Call this function before loadMatrix() or multMatrix() if you cannot guarrantee that glMatrixMode()
+        Call this function before loadMatrix() or multMatrix() if you cannot guarantee that glMatrixMode()
         has never been called after the last loadMatrix() or multMatrix() calls.
         \todo provides a debug mode checking the sanity of the cached matrix mode.
     */

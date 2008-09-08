@@ -131,7 +131,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * \endcode
   * Here, the problem is that operator new is not aware of the compile time alignment requirement of the
   * type Vector4f (and hence of the type Foo). Therefore "new Foo" does not necessarily returned a 16 bytes
-  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exacly to overcome this issue, by
+  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exactly to overcome this issue, by
   * overloading the operator new to return aligned data when the vectorization is enabled.
   * Here is a similar safe example:
   * \code
