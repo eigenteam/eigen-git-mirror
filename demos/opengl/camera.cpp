@@ -42,8 +42,7 @@ Camera::Camera()
     mVpX = 0;
     mVpY = 0;
 
-    setPosition(Vector3f::Constant(50.));
-
+    setPosition(Vector3f::Constant(100.));
     setTarget(Vector3f::Zero());
 }
 
@@ -177,6 +176,14 @@ void Camera::rotateAroundTarget(const Quaternionf& q)
     setPosition(- (qa * mViewMatrix.translation()) );
 
     mViewIsUptodate = true;
+}
+
+void Camera::localRotate(const Quaternionf& q)
+{
+    float dist = (position() - mTarget).norm();
+    setOrientation(orientation() * q);
+    mTarget = position() + dist * direction();
+    mViewIsUptodate = false;
 }
 
 void Camera::zoom(float d)

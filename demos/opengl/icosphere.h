@@ -22,36 +22,24 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_TRACKBALL_H
-#define EIGEN_TRACKBALL_H
+#ifndef EIGEN_ICOSPHERE_H
+#define EIGEN_ICOSPHERE_H
 
-#include <Eigen/Geometry>
+#include <Eigen/Core>
+#include <vector>
 
-class Camera;
-
-class Trackball
+class IcoSphere
 {
   public:
-
-    enum Mode {Around, Local};
-
-    Trackball() : mpCamera(0) {}
-
-    void start(Mode m = Around) { mMode = m; mLastPointOk = false; }
-
-    void setCamera(Camera* pCam) { mpCamera = pCam; }
-
-    void track(const Eigen::Vector2i& newPoint2D);
-
+    IcoSphere(unsigned int levels=1);
+    const std::vector<Eigen::Vector3f>& vertices() const { return mVertices; }
+    const std::vector<int>& indices(int level) const;
+    void draw(int level);
   protected:
-
-    bool mapToSphere( const Eigen::Vector2i& p2, Eigen::Vector3f& v3);
-
-    Camera* mpCamera;
-    Eigen::Vector3f mLastPoint3D;
-    Mode mMode;
-    bool mLastPointOk;
-
+    void _subdivide();
+    std::vector<Eigen::Vector3f> mVertices;
+    std::vector<std::vector<int>*> mIndices;
+    std::vector<int> mListIds;
 };
 
-#endif // EIGEN_TRACKBALL_H
+#endif // EIGEN_ICOSPHERE_H

@@ -23,6 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "quaternion_demo.h"
+#include "icosphere.h"
 
 #include <Eigen/Array>
 #include <Eigen/QR>
@@ -31,6 +32,11 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QInputDialog>
+#include <QGridLayout>
+#include <QButtonGroup>
+#include <QRadioButton>
+#include <QDockWidget>
+#include <QPushButton>
 
 using namespace Eigen;
 
@@ -57,21 +63,27 @@ inline static Frame lerpFrame(float alpha, const Frame& a, const Frame& b)
                Quaternionf(::lerp(alpha,OrientationType(a.orientation),OrientationType(b.orientation))));
 }
 
-QuaternionDemo::QuaternionDemo()
+RenderingWidget::RenderingWidget()
 {
   mAnimate = false;
-  mTrackMode = TM_NO_TRACK;
+  mCurrentTrackingMode = TM_NO_TRACK;
+  mNavMode = NavTurnAround;
+  mLerpMode = LerpQuaternion;
+  mRotationMode = RotationStable;
   mTrackball.setCamera(&mCamera);
+
+  // required to capture key press events
+  setFocusPolicy(Qt::ClickFocus);
 }
 
-void QuaternionDemo::grabFrame(void)
+void RenderingWidget::grabFrame(void)
 {
     // ask user for a time
     bool ok = false;
     double t = 0;
     if (!m_timeline.empty())
       t = (--m_timeline.end())->first + 1.;
-    t = QInputDialog::getDouble(this, "Eigen's QuaternionDemo", "time value: ",
+    t = QInputDialog::getDouble(this, "Eigen's RenderingWidget", "time value: ",
       t, 0, 1e3, 1, &ok);
     if (ok)
     {
@@ -82,20 +94,47 @@ void QuaternionDemo::grabFrame(void)
     }
 }
 
-void QuaternionDemo::drawScene()
+void RenderingWidget::drawScene()
 {
   float length = 50;
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitX(), Color(1,0,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitY(), Color(0,1,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitZ(), Color(0,0,1,1));
+
+  // draw the fractal object
+  float sqrt3 = ei_sqrt(3.);
+  glLightfv(GL_LIGHT0, GL_AMBIENT, Vector4f(0.5,0.5,0.5,1).data());
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, Vector4f(0.5,1,0.5,1).data());
+  glLightfv(GL_LIGHT0, GL_SPECULAR, Vector4f(1,1,1,1).data());
+  glLightfv(GL_LIGHT0, GL_POSITION, Vector4f(-sqrt3,-sqrt3,sqrt3,0).data());
+
+  glLightfv(GL_LIGHT1, GL_AMBIENT, Vector4f(0,0,0,1).data());
+  glLightfv(GL_LIGHT1, GL_DIFFUSE, Vector4f(1,0.5,0.5,1).data());
+  glLightfv(GL_LIGHT1, GL_SPECULAR, Vector4f(1,1,1,1).data());
+  glLightfv(GL_LIGHT1, GL_POSITION, Vector4f(-sqrt3,sqrt3,-sqrt3,0).data());
+
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4f(0.7, 0.7, 0.7, 1).data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4f(0.8, 0.75, 0.6, 1).data());
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4f(1, 1, 1, 1).data());
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64);
+
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
+  
+  glColor3f(0.4, 0.7, 0.4);
+  glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
+  glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  
+  glDisable(GL_LIGHTING);
 }
 
-void QuaternionDemo::drawPath()
-{
-
-}
-
-void QuaternionDemo::animate()
+void RenderingWidget::animate()
 {
   m_alpha += double(m_timer.interval()) * 1e-3;
 
@@ -130,7 +169,7 @@ void QuaternionDemo::animate()
   updateGL();
 }
 
-void QuaternionDemo::keyPressEvent(QKeyEvent * e)
+void RenderingWidget::keyPressEvent(QKeyEvent * e)
 {
     switch(e->key())
     {
@@ -150,18 +189,8 @@ void QuaternionDemo::keyPressEvent(QKeyEvent * e)
             break;
         // move the camera to initial pos
         case Qt::Key_R:
-          {
-            if (mAnimate)
-              stopAnimation();
-            m_timeline.clear();
-            float duration = 3/*AngleAxisf(mCamera.orientation().inverse()
-                              * mInitFrame.orientation).angle()*/;
-            Frame aux = mCamera.frame();
-            aux.orientation = aux.orientation.inverse();
-            aux.position = mCamera.viewMatrix().translation();
-            m_timeline[0] = aux;
-            m_timeline[duration] = mInitFrame;
-          }
+          resetCamera();
+          break;
         // start/stop the animation
         case Qt::Key_A:
             if (mAnimate)
@@ -183,7 +212,7 @@ void QuaternionDemo::keyPressEvent(QKeyEvent * e)
     updateGL();
 }
 
-void QuaternionDemo::stopAnimation()
+void RenderingWidget::stopAnimation()
 {
   disconnect(&m_timer, SIGNAL(timeout()), this, SLOT(animate()));
   m_timer.stop();
@@ -191,46 +220,48 @@ void QuaternionDemo::stopAnimation()
   m_alpha = 0;
 }
 
-void QuaternionDemo::mousePressEvent(QMouseEvent* e)
+void RenderingWidget::mousePressEvent(QMouseEvent* e)
 {
   mMouseCoords = Vector2i(e->pos().x(), e->pos().y());
+  bool fly = (mNavMode==NavFly) || (e->modifiers()&Qt::ControlModifier);
   switch(e->button())
   {
     case Qt::LeftButton:
-      if(e->modifiers()&Qt::ControlModifier)
+      if(fly)
       {
-        mTrackMode = TM_QUAKE_ROTATE;
+        mCurrentTrackingMode = TM_LOCAL_ROTATE;
+        mTrackball.start(Trackball::Local);
       }
       else
       {
-        mTrackMode = TM_ROTATE_AROUND;
-        mTrackball.reset();
-        mTrackball.track(mMouseCoords);
+        mCurrentTrackingMode = TM_ROTATE_AROUND;
+        mTrackball.start(Trackball::Around);
       }
+      mTrackball.track(mMouseCoords);
       break;
     case Qt::MidButton:
-      if(e->modifiers()&Qt::ControlModifier)
-        mTrackMode = TM_QUAKE_WALK;
+      if(fly)
+        mCurrentTrackingMode = TM_FLY_Z;
       else
-        mTrackMode = TM_ZOOM;
+        mCurrentTrackingMode = TM_ZOOM;
       break;
     case Qt::RightButton:
-        mTrackMode = TM_QUAKE_PAN;
+        mCurrentTrackingMode = TM_FLY_PAN;
       break;
     default:
       break;
   }
 }
-void QuaternionDemo::mouseReleaseEvent(QMouseEvent*)
+void RenderingWidget::mouseReleaseEvent(QMouseEvent*)
 {
-    mTrackMode = TM_NO_TRACK;
+    mCurrentTrackingMode = TM_NO_TRACK;
     updateGL();
 }
 
-void QuaternionDemo::mouseMoveEvent(QMouseEvent* e)
+void RenderingWidget::mouseMoveEvent(QMouseEvent* e)
 {
     // tracking
-    if(mTrackMode != TM_NO_TRACK)
+    if(mCurrentTrackingMode != TM_NO_TRACK)
     {
         float dx =   float(e->x() - mMouseCoords.x()) / float(mCamera.vpWidth());
         float dy = - float(e->y() - mMouseCoords.y()) / float(mCamera.vpHeight());
@@ -241,22 +272,20 @@ void QuaternionDemo::mouseMoveEvent(QMouseEvent* e)
           dy *= 10.;
         }
 
-        switch(mTrackMode)
+        switch(mCurrentTrackingMode)
         {
-          case TM_ROTATE_AROUND :
+          case TM_ROTATE_AROUND:
+          case TM_LOCAL_ROTATE:
             mTrackball.track(Vector2i(e->pos().x(), e->pos().y()));
             break;
           case TM_ZOOM :
             mCamera.zoom(dy*50);
             break;
-          case TM_QUAKE_WALK :
-            mCamera.localTranslate(Vector3f(0, 0, dy*100));
+          case TM_FLY_Z :
+            mCamera.localTranslate(Vector3f(0, 0, -dy*100));
             break;
-          case TM_QUAKE_PAN :
+          case TM_FLY_PAN :
             mCamera.localTranslate(Vector3f(dx*100, dy*100, 0));
-            break;
-          case TM_QUAKE_ROTATE :
-            mCamera.localRotate(-dx*M_PI, dy*M_PI);
             break;
           default:
             break;
@@ -268,7 +297,7 @@ void QuaternionDemo::mouseMoveEvent(QMouseEvent* e)
     mMouseCoords = Vector2i(e->pos().x(), e->pos().y());
 }
 
-void QuaternionDemo::paintGL()
+void RenderingWidget::paintGL()
 {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
@@ -288,26 +317,242 @@ void QuaternionDemo::paintGL()
   drawScene();
 }
 
-void QuaternionDemo::initializeGL()
+void RenderingWidget::initializeGL()
 {
   glClearColor(1., 1., 1., 0.);
   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
   glDepthMask(GL_TRUE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-  mInitFrame.orientation = mCamera.viewMatrix().linear();
+  mCamera.setPosition(Vector3f(-200, -200, -200));
+  mCamera.setTarget(Vector3f(0, 0, 0));
+  mInitFrame.orientation = mCamera.orientation().inverse();
   mInitFrame.position = mCamera.viewMatrix().translation();
+
+  // create a kind of fractal sphere
+  {
+    IcoSphere pattern;
+    
+    int levels = 3;
+    float scale = 0.45;
+    float radius = 100;
+    std::vector<Vector3f> centers;
+    std::vector<int> parents;
+    std::vector<float> radii;
+    centers.push_back(Vector3f::Zero());
+    parents.push_back(-1);
+    radii.push_back(radius);
+    radius *= scale;
+
+    // generate level 1 using icosphere vertices
+    {
+      float dist = radii[0]*0.9;
+      for (int i=0; i<12; ++i)
+      {
+        centers.push_back(pattern.vertices()[i] * dist);
+        radii.push_back(radius);
+        parents.push_back(0);
+      }
+    }
+
+    scale = 0.33;
+    static const float angles [10] = {
+      0, 0,
+      M_PI, 0.*M_PI,
+      M_PI, 0.5*M_PI,
+      M_PI, 1.*M_PI,
+      M_PI, 1.5*M_PI};
+    
+    // generate other levels
+    int start = 1;
+    float maxAngle = M_PI/2;
+    for (int l=1; l<levels; l++)
+    {
+      radius *= scale;
+      int end = centers.size();
+      for (int i=start; i<end; ++i)
+      {
+        Vector3f c = centers[i];
+        Vector3f ax0, ax1;
+        if (parents[i]==-1)
+          ax0 = Vector3f::UnitZ();
+        else
+          ax0 = (c - centers[parents[i]]).normalized();
+        ax1 = ax0.unitOrthogonal();
+        Quaternionf q;
+        q.setFromTwoVectors(Vector3f::UnitZ(), ax0);
+        Transform3f t = Translation3f(c) * q * Scaling3f(radii[i]+radius);
+        for (int j=0; j<5; ++j)
+        {
+          Vector3f newC = c + ( (AngleAxisf(angles[j*2+1], ax0)
+                               * AngleAxisf(angles[j*2+0] * (l==1 ? 0.35 : 0.5), ax1)) * ax0)*(radii[i] + radius*0.8);
+          centers.push_back(newC);
+          radii.push_back(radius);
+          parents.push_back(i);
+        }
+      }
+      start = end;
+      maxAngle = M_PI/2;
+    }
+    parents.clear();
+    // instanciate the geometry
+    {
+      const std::vector<int>& sphereIndices = pattern.indices(2);
+      std::cout << "instanciate geometry...  (" << sphereIndices.size() * centers.size() << " vertices)\n";
+      mVertices.reserve(sphereIndices.size() * centers.size());
+      mNormals.reserve(sphereIndices.size() * centers.size());
+      int end = centers.size();
+      for (int i=0; i<end; ++i)
+      {
+        Transform3f t = Translation3f(centers[i]) * Scaling3f(radii[i]);
+        // copy vertices
+        for (unsigned int j=0; j<sphereIndices.size(); ++j)
+        {
+          Vector3f v = pattern.vertices()[sphereIndices[j]];
+          mVertices.push_back(t * v);
+          mNormals.push_back(v);
+        }
+      }
+    }
+  }
 }
 
-void QuaternionDemo::resizeGL(int width, int height)
+void RenderingWidget::resizeGL(int width, int height)
 {
     mCamera.setViewport(width,height);
+}
+
+void RenderingWidget::setNavMode(int m)
+{
+  mNavMode = NavMode(m);
+}
+
+void RenderingWidget::setLerpMode(int m)
+{
+  mLerpMode = LerpMode(m);
+}
+
+void RenderingWidget::setRotationMode(int m)
+{
+  mRotationMode = RotationMode(m);
+}
+
+void RenderingWidget::resetCamera()
+{
+  if (mAnimate)
+    stopAnimation();
+  m_timeline.clear();
+  Frame aux0 = mCamera.frame();
+  aux0.orientation = aux0.orientation.inverse();
+  aux0.position = mCamera.viewMatrix().translation();
+  m_timeline[0] = aux0;
+
+  Vector3f currentTarget = mCamera.target();
+  mCamera.setTarget(Vector3f::Zero());
+
+  // compute the rotation duration to move the camera to the target
+  Frame aux1 = mCamera.frame();
+  aux1.orientation = aux1.orientation.inverse();
+  aux1.position = mCamera.viewMatrix().translation();
+  float rangle = AngleAxisf(aux0.orientation.inverse() * aux1.orientation).angle();
+  if (rangle>M_PI)
+    rangle = 2.*M_PI - rangle;
+  float duration = rangle * 0.9;
+  if (duration<0.1) duration = 0.1;
+
+  // put the camera at that time step:
+  aux1 = aux0.lerp(duration/2,mInitFrame);
+  // and make it look at teh target again
+  aux1.orientation = aux1.orientation.inverse();
+  aux1.position = - (aux1.orientation * aux1.position);
+  mCamera.setFrame(aux1);
+  mCamera.setTarget(Vector3f::Zero());
+
+  // add this camera keyframe
+  aux1.orientation = aux1.orientation.inverse();
+  aux1.position = mCamera.viewMatrix().translation();
+  m_timeline[duration] = aux1;
+
+  m_timeline[2] = mInitFrame;
+  m_alpha = 0;
+  animate();
+  connect(&m_timer, SIGNAL(timeout()), this, SLOT(animate()));
+  m_timer.start(1000/30);
+  mAnimate = true;
+}
+
+QWidget* RenderingWidget::createNavigationControlWidget()
+{
+  QWidget* panel = new QWidget();
+  QVBoxLayout* layout = new QVBoxLayout();
+
+  {
+    // navigation mode
+    QButtonGroup* group = new QButtonGroup(panel);
+    QRadioButton* but;
+    but = new QRadioButton("turn around");
+    group->addButton(but, NavTurnAround);
+    layout->addWidget(but);
+    but = new QRadioButton("fly");
+    group->addButton(but, NavFly);
+    layout->addWidget(but);
+    group->button(mNavMode)->setChecked(true);
+    connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setNavMode(int)));
+  }
+  {
+    QPushButton* but = new QPushButton("reset");
+    layout->addWidget(but);
+    connect(but, SIGNAL(clicked()), this, SLOT(resetCamera()));
+  }
+  {
+    // track ball, rotation mode
+    QButtonGroup* group = new QButtonGroup(panel);
+    QRadioButton* but;
+    but = new QRadioButton("stable trackball");
+    group->addButton(but, RotationStable);
+    layout->addWidget(but);
+    but = new QRadioButton("standard rotation");
+    group->addButton(but, RotationStandard);
+    layout->addWidget(but);
+    but->setEnabled(false);
+    group->button(mRotationMode)->setChecked(true);
+    connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setRotationMode(int)));
+  }
+  {
+    // interpolation mode
+    QButtonGroup* group = new QButtonGroup(panel);
+    QRadioButton* but;
+    but = new QRadioButton("quaternion slerp");
+    group->addButton(but, LerpQuaternion);
+    layout->addWidget(but);
+    but = new QRadioButton("euler angles");
+    group->addButton(but, LerpEulerAngles);
+    layout->addWidget(but);
+    but->setEnabled(false);
+    group->button(mNavMode)->setChecked(true);
+    connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setLerpMode(int)));
+  }
+  layout->addItem(new QSpacerItem(0,0,QSizePolicy::Minimum,QSizePolicy::Expanding));
+  panel->setLayout(layout);
+  return panel;
+}
+
+QuaternionDemo::QuaternionDemo()
+{
+  mRenderingWidget = new RenderingWidget();
+  setCentralWidget(mRenderingWidget);
+
+  QDockWidget* panel = new QDockWidget("navigation", this);
+  panel->setAllowedAreas((QFlags<Qt::DockWidgetArea>)(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea));
+  addDockWidget(Qt::RightDockWidgetArea, panel);
+  panel->setWidget(mRenderingWidget->createNavigationControlWidget());
 }
 
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
   QuaternionDemo demo;
+  demo.resize(600,500);
   demo.show();
   return app.exec();
 }

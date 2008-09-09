@@ -27,12 +27,12 @@
 
 using namespace Eigen;
 
-void Trackball::track(const Vector2i& newPoint2D)
+void Trackball::track(const Vector2i& point2D)
 {
   if (mpCamera==0)
     return;
   Vector3f newPoint3D;
-  bool newPointOk = mapToSphere(newPoint2D, newPoint3D);
+  bool newPointOk = mapToSphere(point2D, newPoint3D);
 
   if (mLastPointOk && newPointOk)
   {
@@ -40,12 +40,14 @@ void Trackball::track(const Vector2i& newPoint2D)
     float cos_angle = mLastPoint3D.dot(newPoint3D);
     if ( ei_abs(cos_angle) < 1.0 )
     {
-      float angle = 2.0 * acos(cos_angle);
-      mpCamera->rotateAroundTarget(Quaternionf(AngleAxisf(angle, axis)));
+      float angle = acos(cos_angle);
+      if (mMode==Around)
+        mpCamera->rotateAroundTarget(Quaternionf(AngleAxisf(2.*angle, axis))); // *2 to speedup the rotation
+      else
+        mpCamera->localRotate(Quaternionf(AngleAxisf(-angle, axis)));
     }
   }
 
-  mLastPoint2D = newPoint2D;
   mLastPoint3D = newPoint3D;
   mLastPointOk = newPointOk;
 }

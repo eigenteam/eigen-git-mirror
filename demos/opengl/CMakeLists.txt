@@ -9,7 +9,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories( ${QT_INCLUDE_DIR} )
 
-set(quaternion_demo_SRCS  gpuhelper.cpp camera.cpp trackball.cpp quaternion_demo.cpp)
+set(quaternion_demo_SRCS  gpuhelper.cpp icosphere.cpp camera.cpp trackball.cpp quaternion_demo.cpp)
 
 qt4_automoc(${quaternion_demo_SRCS})
 

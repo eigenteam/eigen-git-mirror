@@ -91,6 +91,7 @@ class Camera
     const Eigen::Matrix4f& projectionMatrix(void) const;
     
     void rotateAroundTarget(const Eigen::Quaternionf& q);
+    void localRotate(const Eigen::Quaternionf& q);
     void zoom(float d);
     
     void localTranslate(const Eigen::Vector3f& t);

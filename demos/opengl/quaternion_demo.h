@@ -32,8 +32,9 @@
 #include <QTimer>
 #include <QtGui/QApplication>
 #include <QtOpenGL/QGLWidget>
+#include <QtGui/QMainWindow>
 
-class QuaternionDemo : public QGLWidget
+class RenderingWidget : public QGLWidget
 {
   Q_OBJECT
 
@@ -45,14 +46,31 @@ class QuaternionDemo : public QGLWidget
     bool mAnimate;
     float m_alpha;
 
-    
     enum TrackMode {
       TM_NO_TRACK=0, TM_ROTATE_AROUND, TM_ZOOM,
-      TM_QUAKE_ROTATE, TM_QUAKE_WALK, TM_QUAKE_PAN
+      TM_LOCAL_ROTATE, TM_FLY_Z, TM_FLY_PAN
+    };
+
+    enum NavMode {
+      NavTurnAround,
+      NavFly
+    };
+
+    enum LerpMode {
+      LerpQuaternion,
+      LerpEulerAngles
+    };
+
+    enum RotationMode {
+      RotationStable,
+      RotationStandard
     };
 
     Camera mCamera;
-    TrackMode mTrackMode;
+    TrackMode mCurrentTrackingMode;
+    NavMode mNavMode;
+    LerpMode mLerpMode;
+    RotationMode mRotationMode;
     Vector2i mMouseCoords;
     Trackball mTrackball;
 
@@ -60,14 +78,22 @@ class QuaternionDemo : public QGLWidget
 
     void setupCamera();
 
+    std::vector<Vector3f> mVertices;
+    std::vector<Vector3f> mNormals;
+    std::vector<int> mIndices;
+
   protected slots:
 
     virtual void animate(void);
     virtual void drawScene(void);
-    virtual void drawPath(void);
 
     virtual void grabFrame(void);
     virtual void stopAnimation();
+
+    virtual void setNavMode(int);
+    virtual void setLerpMode(int);
+    virtual void setRotationMode(int);
+    virtual void resetCamera();
 
   protected:
 
@@ -83,8 +109,19 @@ class QuaternionDemo : public QGLWidget
     //--------------------------------------------------------------------------------
 
   public:
+    RenderingWidget();
+    ~RenderingWidget() { }
+
+    QWidget* createNavigationControlWidget();
+};
+
+class QuaternionDemo : public QMainWindow
+{
+  Q_OBJECT
+  public:
     QuaternionDemo();
-    ~QuaternionDemo() { }
+  protected:
+    RenderingWidget* mRenderingWidget;
 };
 
 #endif // EIGEN_QUATERNION_DEMO_H

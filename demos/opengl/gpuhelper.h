@@ -100,7 +100,7 @@ class GpuHelper
     void drawVector(const Vector3f& position, const Vector3f& vec, const Color& color, float aspect = 50.);
     void drawVectorBox(const Vector3f& position, const Vector3f& vec, const Color& color, float aspect = 50.);
     void drawUnitCube(void);
-    void drawUnitLightSphere(int level=0);
+    void drawUnitSphere(int level=0);
 
     /// draw the \a nofElement first elements
     inline void draw(GLenum mode, uint nofElement);
