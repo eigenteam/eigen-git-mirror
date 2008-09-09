@@ -37,31 +37,91 @@
 #include <QRadioButton>
 #include <QDockWidget>
 #include <QPushButton>
+#include <QGroupBox>
 
 using namespace Eigen;
 
 
-
+// generic linear interpolation method
 template<typename T> T lerp(float t, const T& a, const T& b)
 {
   return a*(1-t) + b*t;
 }
 
+// quaternion slerp
 template<> Quaternionf lerp(float t, const Quaternionf& a, const Quaternionf& b)
 { return a.slerp(t,b); }
 
-template<> AngleAxisf lerp(float t, const AngleAxisf& a, const AngleAxisf& b)
-{
-  return AngleAxisf(lerp(t,a.angle(),b.angle()),
-                    lerp(t,a.axis(),b.axis()).normalized());
-}
-
+// linear interpolation of a frame using the type OrientationType 
+// to perform the interpolation of the orientations
 template<typename OrientationType>
 inline static Frame lerpFrame(float alpha, const Frame& a, const Frame& b)
 {
-  return Frame(::lerp(alpha,a.position,b.position),
-               Quaternionf(::lerp(alpha,OrientationType(a.orientation),OrientationType(b.orientation))));
+  return Frame(lerp(alpha,a.position,b.position),
+               Quaternionf(lerp(alpha,OrientationType(a.orientation),OrientationType(b.orientation))));
 }
+
+template<typename _Scalar> class EulerAngles
+{
+public:
+  enum { Dim = 3 };
+  typedef _Scalar Scalar;
+  typedef Matrix<Scalar,3,3> Matrix3;
+  typedef Matrix<Scalar,3,1> Vector3;
+  typedef Quaternion<Scalar> QuaternionType;
+
+protected:
+
+  Vector3 m_angles;
+
+public:
+
+  EulerAngles() {}
+  inline EulerAngles(Scalar a0, Scalar a1, Scalar a2) : m_angles(a0, a1, a2) {}
+  inline EulerAngles(const QuaternionType& q) { *this = q; }
+
+  const Vector3& coeffs() const { return m_angles; }
+  Vector3& coeffs() { return m_angles; }
+
+  EulerAngles& operator=(const QuaternionType& q)
+  {
+    Matrix3 m = q.toRotationMatrix();
+    return *this = m;
+  }
+  
+  EulerAngles& operator=(const Matrix3& m)
+  {
+    // mat =  cy*cz          -cy*sz           sy
+    //        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
+    //       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
+    m_angles.coeffRef(1) = std::asin(m.coeff(0,2));
+    m_angles.coeffRef(0) = std::atan2(-m.coeff(1,2),m.coeff(2,2));
+    m_angles.coeffRef(2) = std::atan2(-m.coeff(0,1),m.coeff(0,0));
+    return *this;
+  }
+
+  Matrix3 toRotationMatrix(void) const
+  {
+    Vector3 c = m_angles.cwise().cos();
+    Vector3 s = m_angles.cwise().sin();
+    Matrix3 res;
+    res <<  c.y()*c.z(),                    -c.y()*s.z(),                   s.y(),
+            c.z()*s.x()*s.y()+c.x()*s.z(),  c.x()*c.z()-s.x()*s.y()*s.z(),  -c.y()*s.x(),
+            -c.x()*c.z()*s.y()+s.x()*s.z(), c.z()*s.x()+c.x()*s.y()*s.z(),  c.x()*c.y();
+    return res;
+  }
+
+  operator QuaternionType() { return QuaternionType(toRotationMatrix()); }
+};
+
+// Euler angles slerp
+template<> EulerAngles<float> lerp(float t, const EulerAngles<float>& a, const EulerAngles<float>& b)
+{
+  EulerAngles<float> res;
+  res.coeffs() = lerp(t, a.coeffs(), b.coeffs());
+  return res;
+}
+
 
 RenderingWidget::RenderingWidget()
 {
@@ -158,7 +218,15 @@ void RenderingWidget::animate()
   else
   {
     float s = (m_alpha - lo->first)/(hi->first - lo->first);
-    currentFrame = ::lerpFrame<Eigen::Quaternionf>(s, lo->second, hi->second);
+    if (mLerpMode==LerpEulerAngles)
+      currentFrame = ::lerpFrame<EulerAngles<float> >(s, lo->second, hi->second);
+    else if (mLerpMode==LerpQuaternion)
+      currentFrame = ::lerpFrame<Eigen::Quaternionf>(s, lo->second, hi->second);
+    else
+    {
+      std::cerr << "Invalid rotation interpolation mode (abort)\n";
+      exit(2);
+    }
     currentFrame.orientation.coeffs().normalize();
   }
 
@@ -173,40 +241,40 @@ void RenderingWidget::keyPressEvent(QKeyEvent * e)
 {
     switch(e->key())
     {
-        case Qt::Key_Up:
-            mCamera.zoom(2);
-            break;
-        case Qt::Key_Down:
-            mCamera.zoom(-2);
-            break;
-        // add a frame
-        case Qt::Key_G:
-            grabFrame();
-            break;
-        // clear the time line
-        case Qt::Key_C:
-            m_timeline.clear();
-            break;
-        // move the camera to initial pos
-        case Qt::Key_R:
-          resetCamera();
-          break;
-        // start/stop the animation
-        case Qt::Key_A:
-            if (mAnimate)
-            {
-              stopAnimation();
-            }
-            else
-            {
-              m_alpha = 0;
-              connect(&m_timer, SIGNAL(timeout()), this, SLOT(animate()));
-              m_timer.start(1000/30);
-              mAnimate = true;
-            }
-            break;
-        default:
-            break;
+      case Qt::Key_Up:
+        mCamera.zoom(2);
+        break;
+      case Qt::Key_Down:
+        mCamera.zoom(-2);
+        break;
+      // add a frame
+      case Qt::Key_G:
+        grabFrame();
+        break;
+      // clear the time line
+      case Qt::Key_C:
+        m_timeline.clear();
+        break;
+      // move the camera to initial pos
+      case Qt::Key_R:
+        resetCamera();
+        break;
+      // start/stop the animation
+      case Qt::Key_A:
+        if (mAnimate)
+        {
+          stopAnimation();
+        }
+        else
+        {
+          m_alpha = 0;
+          connect(&m_timer, SIGNAL(timeout()), this, SLOT(animate()));
+          m_timer.start(1000/30);
+          mAnimate = true;
+        }
+        break;
+      default:
+        break;
     }
 
     updateGL();
@@ -266,6 +334,7 @@ void RenderingWidget::mouseMoveEvent(QMouseEvent* e)
         float dx =   float(e->x() - mMouseCoords.x()) / float(mCamera.vpWidth());
         float dy = - float(e->y() - mMouseCoords.y()) / float(mCamera.vpHeight());
 
+        // speedup the transformations
         if(e->modifiers() & Qt::ShiftModifier)
         {
           dx *= 10.;
@@ -276,16 +345,32 @@ void RenderingWidget::mouseMoveEvent(QMouseEvent* e)
         {
           case TM_ROTATE_AROUND:
           case TM_LOCAL_ROTATE:
-            mTrackball.track(Vector2i(e->pos().x(), e->pos().y()));
+            if (mRotationMode==RotationStable)
+            {
+              // use the stable trackball implementation mapping
+              // the 2D coordinates to 3D points on a sphere.
+              mTrackball.track(Vector2i(e->pos().x(), e->pos().y()));
+            }
+            else
+            {
+              // standard approach mapping the x and y displacements as rotations
+              // around the camera's X and Y axes.
+              Quaternionf q = AngleAxisf( dx*M_PI, Vector3f::UnitY())
+                            * AngleAxisf(-dy*M_PI, Vector3f::UnitX());
+              if (mCurrentTrackingMode==TM_LOCAL_ROTATE)
+                mCamera.localRotate(q);
+              else
+                mCamera.rotateAroundTarget(q);
+            }
             break;
           case TM_ZOOM :
-            mCamera.zoom(dy*50);
+            mCamera.zoom(dy*100);
             break;
           case TM_FLY_Z :
-            mCamera.localTranslate(Vector3f(0, 0, -dy*100));
+            mCamera.localTranslate(Vector3f(0, 0, -dy*200));
             break;
           case TM_FLY_PAN :
-            mCamera.localTranslate(Vector3f(dx*100, dy*100, 0));
+            mCamera.localTranslate(Vector3f(dx*200, dy*200, 0));
             break;
           default:
             break;
@@ -487,50 +572,67 @@ QWidget* RenderingWidget::createNavigationControlWidget()
   QVBoxLayout* layout = new QVBoxLayout();
 
   {
-    // navigation mode
-    QButtonGroup* group = new QButtonGroup(panel);
-    QRadioButton* but;
-    but = new QRadioButton("turn around");
-    group->addButton(but, NavTurnAround);
-    layout->addWidget(but);
-    but = new QRadioButton("fly");
-    group->addButton(but, NavFly);
-    layout->addWidget(but);
-    group->button(mNavMode)->setChecked(true);
-    connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setNavMode(int)));
-  }
-  {
     QPushButton* but = new QPushButton("reset");
+    but->setToolTip("move the camera to initial position (with animation)");
     layout->addWidget(but);
     connect(but, SIGNAL(clicked()), this, SLOT(resetCamera()));
   }
   {
+    // navigation mode
+    QGroupBox* box = new QGroupBox("navigation mode");
+    QVBoxLayout* boxLayout = new QVBoxLayout;
+    QButtonGroup* group = new QButtonGroup(panel);
+    QRadioButton* but;
+    but = new QRadioButton("turn around");
+    but->setToolTip("look around an object");
+    group->addButton(but, NavTurnAround);
+    boxLayout->addWidget(but);
+    but = new QRadioButton("fly");
+    but->setToolTip("free navigation like a spaceship\n(this mode can also be enabled pressing the \"shift\" key)");
+    group->addButton(but, NavFly);
+    boxLayout->addWidget(but);
+    group->button(mNavMode)->setChecked(true);
+    connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setNavMode(int)));
+    box->setLayout(boxLayout);
+    layout->addWidget(box);
+  }
+  {
     // track ball, rotation mode
+    QGroupBox* box = new QGroupBox("rotation mode");
+    QVBoxLayout* boxLayout = new QVBoxLayout;
     QButtonGroup* group = new QButtonGroup(panel);
     QRadioButton* but;
     but = new QRadioButton("stable trackball");
     group->addButton(but, RotationStable);
-    layout->addWidget(but);
+    boxLayout->addWidget(but);
+    but->setToolTip("use the stable trackball implementation mapping\nthe 2D coordinates to 3D points on a sphere");
     but = new QRadioButton("standard rotation");
     group->addButton(but, RotationStandard);
-    layout->addWidget(but);
-    but->setEnabled(false);
+    boxLayout->addWidget(but);
+    but->setToolTip("standard approach mapping the x and y displacements\nas rotations around the camera's X and Y axes");
     group->button(mRotationMode)->setChecked(true);
     connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setRotationMode(int)));
+    box->setLayout(boxLayout);
+    layout->addWidget(box);
   }
   {
     // interpolation mode
+    QGroupBox* box = new QGroupBox("spherical interpolation");
+    QVBoxLayout* boxLayout = new QVBoxLayout;
     QButtonGroup* group = new QButtonGroup(panel);
     QRadioButton* but;
     but = new QRadioButton("quaternion slerp");
     group->addButton(but, LerpQuaternion);
-    layout->addWidget(but);
+    boxLayout->addWidget(but);
+    but->setToolTip("use quaternion spherical interpolation\nto interpolate orientations");
     but = new QRadioButton("euler angles");
     group->addButton(but, LerpEulerAngles);
-    layout->addWidget(but);
-    but->setEnabled(false);
+    boxLayout->addWidget(but);
+    but->setToolTip("use Euler angles to interpolate orientations");
     group->button(mNavMode)->setChecked(true);
     connect(group, SIGNAL(buttonClicked(int)), this, SLOT(setLerpMode(int)));
+    box->setLayout(boxLayout);
+    layout->addWidget(box);
   }
   layout->addItem(new QSpacerItem(0,0,QSizePolicy::Minimum,QSizePolicy::Expanding));
   panel->setLayout(layout);

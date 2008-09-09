@@ -40,9 +40,9 @@ void Trackball::track(const Vector2i& point2D)
     float cos_angle = mLastPoint3D.dot(newPoint3D);
     if ( ei_abs(cos_angle) < 1.0 )
     {
-      float angle = acos(cos_angle);
+      float angle = 2. * acos(cos_angle);
       if (mMode==Around)
-        mpCamera->rotateAroundTarget(Quaternionf(AngleAxisf(2.*angle, axis))); // *2 to speedup the rotation
+        mpCamera->rotateAroundTarget(Quaternionf(AngleAxisf(angle, axis)));
       else
         mpCamera->localRotate(Quaternionf(AngleAxisf(-angle, axis)));
     }

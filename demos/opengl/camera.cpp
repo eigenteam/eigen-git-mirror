@@ -205,18 +205,6 @@ void Camera::localTranslate(const Vector3f& t)
   mViewIsUptodate = false;
 }
 
-void Camera::localRotate(float dTheta, float dPhi)
-{
-    float dist = (position() - mTarget).norm();
-
-    setOrientation(  AngleAxisf(dTheta, up())
-                   * AngleAxisf(dPhi, right())
-                   * orientation());
-    mTarget = position() + dist * direction();
-    
-    mViewIsUptodate = false;
-}
-
 void Camera::updateViewMatrix(void) const
 {
     if(!mViewIsUptodate)

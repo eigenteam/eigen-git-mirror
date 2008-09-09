@@ -95,7 +95,6 @@ class Camera
     void zoom(float d);
     
     void localTranslate(const Eigen::Vector3f& t);
-    void localRotate(float dTheta, float dPhi);
     
     /** Setup OpenGL matrices and viewport */
     void activateGL(void);
