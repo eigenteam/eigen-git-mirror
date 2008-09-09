@@ -381,6 +381,9 @@ template<typename Derived> class MatrixBase
     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
 
+    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType block(int start);
+    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType block(int start) const;
+
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
 

@@ -123,6 +123,22 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
     VERIFY_IS_APPROX(b, m1.block(3,3,BlockRows,BlockCols));
   }
 
+  if (rows>2)
+  {
+    // test sub vectors
+    VERIFY_IS_APPROX(v1.template start<2>(), v1.block(0,0,2,1));
+    VERIFY_IS_APPROX(v1.template start<2>(), v1.start(2));
+    VERIFY_IS_APPROX(v1.template start<2>(), v1.block(0,2));
+    VERIFY_IS_APPROX(v1.template start<2>(), v1.template block<2>(0));
+    int i = rows-2;
+    VERIFY_IS_APPROX(v1.template end<2>(), v1.block(i,0,2,1));
+    VERIFY_IS_APPROX(v1.template end<2>(), v1.end(2));
+    VERIFY_IS_APPROX(v1.template end<2>(), v1.block(i,2));
+    VERIFY_IS_APPROX(v1.template end<2>(), v1.template block<2>(i));
+    i = ei_random(0,rows-2);
+    VERIFY_IS_APPROX(v1.block(i,2), v1.template block<2>(i));
+  }
+
   // stress some basic stuffs with block matrices
   VERIFY(ones.col(c1).sum() == Scalar(rows));
   VERIFY(ones.row(r1).sum() == Scalar(cols));

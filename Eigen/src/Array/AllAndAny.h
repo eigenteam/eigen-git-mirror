@@ -89,7 +89,7 @@ struct ei_any_unroller<Derived, Dynamic>
   * \sa MatrixBase::any(), Cwise::operator<()
   */
 template<typename Derived>
-bool MatrixBase<Derived>::all(void) const
+inline bool MatrixBase<Derived>::all(void) const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;
@@ -113,7 +113,7 @@ bool MatrixBase<Derived>::all(void) const
   * \sa MatrixBase::all()
   */
 template<typename Derived>
-bool MatrixBase<Derived>::any(void) const
+inline bool MatrixBase<Derived>::any(void) const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;

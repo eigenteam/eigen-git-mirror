@@ -351,6 +351,8 @@ mat = 2 7 8
 \endcode</td></tr>
 </table>
 
+Also note that maxCoeff and minCoeff can takes optional arguments returning the coordinates of the respective min/max coeff: \link MatrixBase::maxCoeff(int*,int*) const maxCoeff(int* i, int* j) \endlink, \link MatrixBase::minCoeff(int*,int*) const minCoeff(int* i, int* j) \endlink.
+
 <span class="note">\b Side \b note: The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators (\ref CwiseAll "example").</span>
 
 

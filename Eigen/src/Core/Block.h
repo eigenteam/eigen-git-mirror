@@ -451,6 +451,44 @@ MatrixBase<Derived>::end(int size) const
                ColsAtCompileTime == 1 ? 1 : size);
 }
 
+/** \returns a fixed-size expression of a sub-vector of \c *this
+  *
+  * \only_for_vectors
+  *
+  * The template parameter \a Size is the number of coefficients in the block
+  * 
+  * \param start the index of the first element of the sub-vector
+  *
+  * Example: \include MatrixBase_template_int.cpp
+  * Output: \verbinclude MatrixBase_template_int.out
+  *
+  * \sa class Block
+  */
+template<typename Derived>
+template<int Size>
+inline typename BlockReturnType<Derived,Size>::SubVectorType
+MatrixBase<Derived>::block(int start)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),
+                         (ColsAtCompileTime == 1 ? 1 : Size)>
+              (derived(), RowsAtCompileTime == 1 ? 0 : start,
+                          ColsAtCompileTime == 1 ? 0 : start);
+}
+
+/** This is the const version of block<int>(int).*/
+template<typename Derived>
+template<int Size>
+inline const typename BlockReturnType<Derived,Size>::SubVectorType
+MatrixBase<Derived>::block(int start) const
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),
+                         (ColsAtCompileTime == 1 ? 1 : Size)>
+              (derived(), RowsAtCompileTime == 1 ? 0 : start,
+                          ColsAtCompileTime == 1 ? 0 : start);
+}
+
 /** \returns a fixed-size expression of the first coefficients of *this.
   *
   * \only_for_vectors
