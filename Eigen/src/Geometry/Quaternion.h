@@ -163,6 +163,15 @@ public:
     */
   inline Scalar norm() const { return m_coeffs.norm(); }
 
+  /** \returns the dot product of \c *this and \a other
+    * Geometrically speaking, the dot product of two unit quaternions
+    * corresponds to the cosine of half the angle between the two rotations.
+    * \sa angularDistance()
+    */
+  inline Scalar dot(const Quaternion& other) const { return m_coeffs.dot(other.m_coeffs); }
+
+  inline Scalar angularDistance(const Quaternion& other) const;
+
   Matrix3 toRotationMatrix(void) const;
 
   template<typename Derived1, typename Derived2>
@@ -357,22 +366,28 @@ inline Quaternion<Scalar> Quaternion<Scalar>::conjugate() const
   return Quaternion(this->w(),-this->x(),-this->y(),-this->z());
 }
 
+/** \returns the angle (in radian) between two rotations
+  * \sa dot()
+  */
+template <typename Scalar>
+inline Scalar Quaternion<Scalar>::angularDistance(const Quaternion& other) const
+{
+  double d = ei_abs(this->dot(other));
+  if (d>=1.0)
+    return 0;
+  return 2.0 * std::acos(d);
+}
+
 /** \returns the spherical linear interpolation between the two quaternions
   * \c *this and \a other at the parameter \a t
   */
 template <typename Scalar>
 Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) const
 {
-  // FIXME options for this function would be:
-  // 1 - Quaternion& fromSlerp(Scalar t, const Quaternion& q0, const Quaternion& q1);
-  //     which set *this from the s-lerp and returns *this
-  // 2 - Quaternion slerp(Scalar t, const Quaternion& other) const
-  //     which returns the s-lerp between this and other
-  // ??
   static const Scalar one = Scalar(1) - precision<Scalar>();
-  Scalar d = m_coeffs.dot(other.m_coeffs);
+  Scalar d = this->dot(other);
   Scalar absD = ei_abs(d);
-  if (d>=one)
+  if (absD>=one)
     return *this;
 
   // theta is the angle between the 2 quaternions

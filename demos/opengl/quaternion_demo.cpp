@@ -41,6 +41,89 @@
 
 using namespace Eigen;
 
+class FancySpheres
+{
+  public:
+    FancySpheres()
+    {
+      const int levels = 4;
+      const float scale = 0.33;
+      float radius = 100;
+      std::vector<int> parents;
+
+      // leval 0
+      mCenters.push_back(Vector3f::Zero());
+      parents.push_back(-1);
+      mRadii.push_back(radius);
+      
+      // generate level 1 using icosphere vertices
+      radius *= 0.45;
+      {
+        float dist = mRadii[0]*0.9;
+        for (int i=0; i<12; ++i)
+        {
+          mCenters.push_back(mIcoSphere.vertices()[i] * dist);
+          mRadii.push_back(radius);
+          parents.push_back(0);
+        }
+      }
+
+      static const float angles [10] = {
+        0, 0,
+        M_PI, 0.*M_PI,
+        M_PI, 0.5*M_PI,
+        M_PI, 1.*M_PI,
+        M_PI, 1.5*M_PI
+      };
+
+      // generate other levels
+      int start = 1;
+      for (int l=1; l<levels; l++)
+      {
+        radius *= scale;
+        int end = mCenters.size();
+        for (int i=start; i<end; ++i)
+        {
+          Vector3f c = mCenters[i];
+          Vector3f ax0 = (c - mCenters[parents[i]]).normalized();
+          Vector3f ax1 = ax0.unitOrthogonal();
+          Quaternionf q;
+          q.setFromTwoVectors(Vector3f::UnitZ(), ax0);
+          Transform3f t = Translation3f(c) * q * Scaling3f(mRadii[i]+radius);
+          for (int j=0; j<5; ++j)
+          {
+            Vector3f newC = c + ( (AngleAxisf(angles[j*2+1], ax0)
+                                * AngleAxisf(angles[j*2+0] * (l==1 ? 0.35 : 0.5), ax1)) * ax0)
+                                * (mRadii[i] + radius*0.8);
+            mCenters.push_back(newC);
+            mRadii.push_back(radius);
+            parents.push_back(i);
+          }
+        }
+        start = end;
+      }
+    }
+    
+    void draw()
+    {
+      int end = mCenters.size();
+      glEnable(GL_NORMALIZE);
+      for (int i=0; i<end; ++i)
+      {
+        Transform3f t = Translation3f(mCenters[i]) * Scaling3f(mRadii[i]);
+        gpu.pushMatrix(GL_MODELVIEW);
+        gpu.multMatrix(t.matrix(),GL_MODELVIEW);
+        mIcoSphere.draw(2);
+        gpu.popMatrix(GL_MODELVIEW);
+      }
+      glDisable(GL_NORMALIZE);
+    }
+  protected:
+    std::vector<Vector3f> mCenters;
+    std::vector<float> mRadii;
+    IcoSphere mIcoSphere;
+};
+
 
 // generic linear interpolation method
 template<typename T> T lerp(float t, const T& a, const T& b)
@@ -156,7 +239,8 @@ void RenderingWidget::grabFrame(void)
 
 void RenderingWidget::drawScene()
 {
-  float length = 50;
+  static FancySpheres sFancySpheres;
+  float length = 200;
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitX(), Color(1,0,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitY(), Color(0,1,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitZ(), Color(0,0,1,1));
@@ -183,13 +267,14 @@ void RenderingWidget::drawScene()
   glEnable(GL_LIGHT1);
   
   glColor3f(0.4, 0.7, 0.4);
-  glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
-  glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
+  sFancySpheres.draw();
+//   glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
+//   glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
+//   glEnableClientState(GL_VERTEX_ARRAY);
+//   glEnableClientState(GL_NORMAL_ARRAY);
+//   glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+//   glDisableClientState(GL_VERTEX_ARRAY);
+//   glDisableClientState(GL_NORMAL_ARRAY);
   
   glDisable(GL_LIGHTING);
 }
@@ -413,93 +498,6 @@ void RenderingWidget::initializeGL()
   mCamera.setTarget(Vector3f(0, 0, 0));
   mInitFrame.orientation = mCamera.orientation().inverse();
   mInitFrame.position = mCamera.viewMatrix().translation();
-
-  // create a kind of fractal sphere
-  {
-    IcoSphere pattern;
-    
-    int levels = 3;
-    float scale = 0.45;
-    float radius = 100;
-    std::vector<Vector3f> centers;
-    std::vector<int> parents;
-    std::vector<float> radii;
-    centers.push_back(Vector3f::Zero());
-    parents.push_back(-1);
-    radii.push_back(radius);
-    radius *= scale;
-
-    // generate level 1 using icosphere vertices
-    {
-      float dist = radii[0]*0.9;
-      for (int i=0; i<12; ++i)
-      {
-        centers.push_back(pattern.vertices()[i] * dist);
-        radii.push_back(radius);
-        parents.push_back(0);
-      }
-    }
-
-    scale = 0.33;
-    static const float angles [10] = {
-      0, 0,
-      M_PI, 0.*M_PI,
-      M_PI, 0.5*M_PI,
-      M_PI, 1.*M_PI,
-      M_PI, 1.5*M_PI};
-    
-    // generate other levels
-    int start = 1;
-    float maxAngle = M_PI/2;
-    for (int l=1; l<levels; l++)
-    {
-      radius *= scale;
-      int end = centers.size();
-      for (int i=start; i<end; ++i)
-      {
-        Vector3f c = centers[i];
-        Vector3f ax0, ax1;
-        if (parents[i]==-1)
-          ax0 = Vector3f::UnitZ();
-        else
-          ax0 = (c - centers[parents[i]]).normalized();
-        ax1 = ax0.unitOrthogonal();
-        Quaternionf q;
-        q.setFromTwoVectors(Vector3f::UnitZ(), ax0);
-        Transform3f t = Translation3f(c) * q * Scaling3f(radii[i]+radius);
-        for (int j=0; j<5; ++j)
-        {
-          Vector3f newC = c + ( (AngleAxisf(angles[j*2+1], ax0)
-                               * AngleAxisf(angles[j*2+0] * (l==1 ? 0.35 : 0.5), ax1)) * ax0)*(radii[i] + radius*0.8);
-          centers.push_back(newC);
-          radii.push_back(radius);
-          parents.push_back(i);
-        }
-      }
-      start = end;
-      maxAngle = M_PI/2;
-    }
-    parents.clear();
-    // instanciate the geometry
-    {
-      const std::vector<int>& sphereIndices = pattern.indices(2);
-      std::cout << "instanciate geometry...  (" << sphereIndices.size() * centers.size() << " vertices)\n";
-      mVertices.reserve(sphereIndices.size() * centers.size());
-      mNormals.reserve(sphereIndices.size() * centers.size());
-      int end = centers.size();
-      for (int i=0; i<end; ++i)
-      {
-        Transform3f t = Translation3f(centers[i]) * Scaling3f(radii[i]);
-        // copy vertices
-        for (unsigned int j=0; j<sphereIndices.size(); ++j)
-        {
-          Vector3f v = pattern.vertices()[sphereIndices[j]];
-          mVertices.push_back(t * v);
-          mNormals.push_back(v);
-        }
-      }
-    }
-  }
 }
 
 void RenderingWidget::resizeGL(int width, int height)
@@ -539,10 +537,7 @@ void RenderingWidget::resetCamera()
   Frame aux1 = mCamera.frame();
   aux1.orientation = aux1.orientation.inverse();
   aux1.position = mCamera.viewMatrix().translation();
-  float rangle = AngleAxisf(aux0.orientation.inverse() * aux1.orientation).angle();
-  if (rangle>M_PI)
-    rangle = 2.*M_PI - rangle;
-  float duration = rangle * 0.9;
+  float duration = aux0.orientation.angularDistance(aux1.orientation) * 0.9;
   if (duration<0.1) duration = 0.1;
 
   // put the camera at that time step:
@@ -660,3 +655,4 @@ int main(int argc, char *argv[])
 }
 
 #include "quaternion_demo.moc"
+

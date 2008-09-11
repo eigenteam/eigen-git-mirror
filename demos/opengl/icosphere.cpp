@@ -25,6 +25,7 @@
 #include "icosphere.h"
 
 #include <GL/gl.h>
+#include <map>
 
 using namespace Eigen;
 
@@ -74,24 +75,39 @@ const std::vector<int>& IcoSphere::indices(int level) const
 
 void IcoSphere::_subdivide(void)
 {
+  typedef unsigned long long Key;
+  std::map<Key,int> edgeMap;
   const std::vector<int>& indices = *mIndices.back();
   mIndices.push_back(new std::vector<int>);
   std::vector<int>& refinedIndices = *mIndices.back();
   int end = indices.size();
   for (int i=0; i<end; i+=3)
   {
-    int i0, i1, i2;
-    Vector3f v0 = mVertices[i0=indices[i+0]];
-    Vector3f v1 = mVertices[i1=indices[i+1]];
-    Vector3f v2 = mVertices[i2=indices[i+2]];
-    int start = mVertices.size();
-    mVertices.push_back( (v0+v1).normalized() );
-    mVertices.push_back( (v1+v2).normalized() );
-    mVertices.push_back( (v2+v0).normalized() );
-    refinedIndices.push_back(i0); refinedIndices.push_back(start+0); refinedIndices.push_back(start+2);
-    refinedIndices.push_back(i1); refinedIndices.push_back(start+1); refinedIndices.push_back(start+0);
-    refinedIndices.push_back(i2); refinedIndices.push_back(start+2); refinedIndices.push_back(start+1);
-    refinedIndices.push_back(start+0); refinedIndices.push_back(start+1); refinedIndices.push_back(start+2);
+    int ids0[3],  // indices of outer vertices
+        ids1[3];  // indices of edge vertices
+    for (int k=0; k<3; ++k)
+    {
+      int k1 = (k+1)%3;
+      int e0 = indices[i+k];
+      int e1 = indices[i+k1];
+      ids0[k] = e0;
+      if (e1>e0)
+        std::swap(e0,e1);
+      Key edgeKey = Key(e0) | (Key(e1)<<32);
+      std::map<Key,int>::iterator it = edgeMap.find(edgeKey);
+      if (it==edgeMap.end())
+      {
+        ids1[k] = mVertices.size();
+        edgeMap[edgeKey] = ids1[k];
+        mVertices.push_back( (mVertices[e0]+mVertices[e1]).normalized() );
+      }
+      else
+        ids1[k] = it->second;
+    }
+    refinedIndices.push_back(ids0[0]); refinedIndices.push_back(ids1[0]); refinedIndices.push_back(ids1[2]);
+    refinedIndices.push_back(ids0[1]); refinedIndices.push_back(ids1[1]); refinedIndices.push_back(ids1[0]);
+    refinedIndices.push_back(ids0[2]); refinedIndices.push_back(ids1[2]); refinedIndices.push_back(ids1[1]);
+    refinedIndices.push_back(ids1[0]); refinedIndices.push_back(ids1[1]); refinedIndices.push_back(ids1[2]);
   }
   mListIds.push_back(0);
 }

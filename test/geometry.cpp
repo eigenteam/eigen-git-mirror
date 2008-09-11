@@ -48,6 +48,10 @@ template<typename Scalar> void geometry(void)
   typedef Translation<Scalar,2> Translation2;
   typedef Translation<Scalar,3> Translation3;
 
+  Scalar largeEps = test_precision<Scalar>();
+  if (ei_is_same_type<Scalar,float>::ret)
+    largeEps = 1e-3f;
+
   Quaternion q1, q2;
   Vector3 v0 = Vector3::Random(),
     v1 = Vector3::Random(),
@@ -81,6 +85,12 @@ template<typename Scalar> void geometry(void)
 
   q1 = AngleAxis(a, v0.normalized());
   q2 = AngleAxis(a, v1.normalized());
+
+  // angular distance
+  Scalar refangle = ei_abs(AngleAxis(q1.inverse()*q2).angle());
+  if (refangle>M_PI)
+    refangle = 2.*M_PI - refangle;
+  VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
 
   // rotation matrix conversion
   VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
