@@ -91,9 +91,8 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   const bool unroll = SizeAtCompileTime * CoeffReadCost
                     + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
                     <= EIGEN_UNROLLING_LIMIT;
-  return ei_redux_impl<BinaryOp, Derived, 0,
-                            unroll ? int(SizeAtCompileTime) : Dynamic>
-          ::run(derived(), func);
+  return ei_redux_impl<BinaryOp, Derived, 0, unroll ? int(SizeAtCompileTime) : Dynamic>
+            ::run(derived(), func);
 }
 
 /** \returns the minimum of all coefficients of *this

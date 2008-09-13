@@ -53,8 +53,6 @@
   */
 template<typename Derived> class MatrixBase
 {
-    struct CommaInitializer;
-
   public:
 
     class InnerIterator;
@@ -236,10 +234,10 @@ template<typename Derived> class MatrixBase
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const Product<Derived1,Derived2,SparseProduct>& product);
 
-    CommaInitializer operator<< (const Scalar& s);
+    CommaInitializer<Derived> operator<< (const Scalar& s);
 
     template<typename OtherDerived>
-    CommaInitializer operator<< (const MatrixBase<OtherDerived>& other);
+    CommaInitializer<Derived> operator<< (const MatrixBase<OtherDerived>& other);
 
     const Scalar coeff(int row, int col) const;
     const Scalar operator()(int row, int col) const;

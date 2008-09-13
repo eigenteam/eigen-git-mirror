@@ -51,6 +51,8 @@ template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
 template<typename ExpressionType> class WithFormat;
+template<typename MatrixType> struct CommaInitializer;
+
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
