@@ -111,5 +111,6 @@ void test_basicstuff()
     CALL_SUBTEST( basicStuff(MatrixXi(8, 12)) );
     CALL_SUBTEST( basicStuff(MatrixXcd(20, 20)) );
     CALL_SUBTEST( basicStuff(Matrix<float, 100, 100>()) );
+    CALL_SUBTEST( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
   }
 }

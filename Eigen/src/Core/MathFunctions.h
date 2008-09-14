@@ -34,6 +34,10 @@ template<typename T> inline T ei_random_amplitude()
   else return static_cast<T>(10);
 }
 
+/**************
+***   int   ***
+**************/
+
 template<> inline int precision<int>() { return 0; }
 inline int ei_real(int x)  { return x; }
 inline int ei_imag(int)    { return 0; }
@@ -74,6 +78,10 @@ inline bool ei_isApproxOrLessThan(int a, int b, int = precision<int>())
   return a <= b;
 }
 
+/**************
+*** float   ***
+**************/
+
 template<> inline float precision<float>() { return 1e-5f; }
 inline float ei_real(float x)  { return x; }
 inline float ei_imag(float)    { return 0.f; }
@@ -81,10 +89,10 @@ inline float ei_conj(float x)  { return x; }
 inline float ei_abs(float x)   { return std::abs(x); }
 inline float ei_abs2(float x)  { return x*x; }
 inline float ei_sqrt(float x)  { return std::sqrt(x); }
-inline float ei_exp(float x)  { return std::exp(x); }
-inline float ei_log(float x)  { return std::log(x); }
-inline float ei_sin(float x)  { return std::sin(x); }
-inline float ei_cos(float x)  { return std::cos(x); }
+inline float ei_exp(float x)   { return std::exp(x); }
+inline float ei_log(float x)   { return std::log(x); }
+inline float ei_sin(float x)   { return std::sin(x); }
+inline float ei_cos(float x)   { return std::cos(x); }
 inline float ei_pow(float x, float y)  { return std::pow(x, y); }
 
 template<> inline float ei_random(float a, float b)
@@ -115,6 +123,10 @@ inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float
   return a <= b || ei_isApprox(a, b, prec);
 }
 
+/**************
+*** double  ***
+**************/
+
 template<> inline double precision<double>() { return 1e-11; }
 inline double ei_real(double x)  { return x; }
 inline double ei_imag(double)    { return 0.; }
@@ -122,10 +134,10 @@ inline double ei_conj(double x)  { return x; }
 inline double ei_abs(double x)   { return std::abs(x); }
 inline double ei_abs2(double x)  { return x*x; }
 inline double ei_sqrt(double x)  { return std::sqrt(x); }
-inline double ei_exp(double x)  { return std::exp(x); }
-inline double ei_log(double x)  { return std::log(x); }
-inline double ei_sin(double x)  { return std::sin(x); }
-inline double ei_cos(double x)  { return std::cos(x); }
+inline double ei_exp(double x)   { return std::exp(x); }
+inline double ei_log(double x)   { return std::log(x); }
+inline double ei_sin(double x)   { return std::sin(x); }
+inline double ei_cos(double x)   { return std::cos(x); }
 inline double ei_pow(double x, double y)  { return std::pow(x, y); }
 
 template<> inline double ei_random(double a, double b)
@@ -156,6 +168,10 @@ inline bool ei_isApproxOrLessThan(double a, double b, double prec = precision<do
   return a <= b || ei_isApprox(a, b, prec);
 }
 
+/*********************
+*** complex<float> ***
+*********************/
+
 template<> inline float precision<std::complex<float> >() { return precision<float>(); }
 inline float ei_real(const std::complex<float>& x) { return std::real(x); }
 inline float ei_imag(const std::complex<float>& x) { return std::imag(x); }
@@ -185,6 +201,10 @@ inline bool ei_isApprox(const std::complex<float>& a, const std::complex<float>&
 }
 // ei_isApproxOrLessThan wouldn't make sense for complex numbers
 
+/**********************
+*** complex<double> ***
+**********************/
+
 template<> inline double precision<std::complex<double> >() { return precision<double>(); }
 inline double ei_real(const std::complex<double>& x) { return std::real(x); }
 inline double ei_imag(const std::complex<double>& x) { return std::imag(x); }
@@ -213,5 +233,44 @@ inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double
       && ei_isApprox(ei_imag(a), ei_imag(b), prec);
 }
 // ei_isApproxOrLessThan wouldn't make sense for complex numbers
+
+
+/******************
+*** long double ***
+******************/
+
+template<> inline long double precision<long double>() { return precision<double>(); }
+inline long double ei_real(long double x)  { return x; }
+inline long double ei_imag(long double)    { return 0.; }
+inline long double ei_conj(long double x)  { return x; }
+inline long double ei_abs(long double x)   { return std::abs(x); }
+inline long double ei_abs2(long double x)  { return x*x; }
+inline long double ei_sqrt(long double x)  { return std::sqrt(x); }
+inline long double ei_exp(long double x)   { return std::exp(x); }
+inline long double ei_log(long double x)   { return std::log(x); }
+inline long double ei_sin(long double x)   { return std::sin(x); }
+inline long double ei_cos(long double x)   { return std::cos(x); }
+inline long double ei_pow(long double x, long double y)  { return std::pow(x, y); }
+
+template<> inline long double ei_random(long double a, long double b)
+{
+  return ei_random<double>(a,b);
+}
+template<> inline long double ei_random()
+{
+  return ei_random<double>(-ei_random_amplitude<double>(), ei_random_amplitude<double>());
+}
+inline bool ei_isMuchSmallerThan(long double a, long double b, long double prec = precision<long double>())
+{
+  return ei_abs(a) <= ei_abs(b) * prec;
+}
+inline bool ei_isApprox(long double a, long double b, long double prec = precision<long double>())
+{
+  return ei_abs(a - b) <= std::min(ei_abs(a), ei_abs(b)) * prec;
+}
+inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec = precision<long double>())
+{
+  return a <= b || ei_isApprox(a, b, prec);
+}
 
 #endif // EIGEN_MATHFUNCTIONS_H

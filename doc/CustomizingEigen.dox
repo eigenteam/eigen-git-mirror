@@ -1,10 +1,13 @@
 namespace Eigen {
 
-/** \page CustomizingEigen
+/** \page CustomizingEigen Customizing/Extending Eigen
 
-<h1>Customizing Eigen</h1>
+Eigen2 can be extended in several way, for instance, by defining global methods, \ref ExtendingMatrixBase "by adding custom methods to MatrixBase", adding support to \ref CustomScalarType "custom types" etc.
 
-Eigen2 can be extended in several way, for instance, by defining global methods, \ref ExtendingMatrixBase "by adding custom methods to MatrixBase", etc.
+\b Table \b of \b contents
+  - \ref ExtendingMatrixBase
+  - \ref CustomScalarType
+  - \ref PreprocessorDirectives
 
 \section ExtendingMatrixBase Extending MatrixBase
 
@@ -66,11 +69,77 @@ Then one can the following declaration in the config.h or whatever prerequisites
 #define EIGEN_MATRIXBASE_PLUGIN "MatrixBaseAddons.h"
 \endcode
 
+
+
+\section CustomScalarType Using custom scalar types
+
+By default, Eigen currently supports the following scalar types: \c int, \c float, \c double, \c std::complex<float>, \c std::complex<double>, \c long \c double, \c long \c long \c int (64 bits integers), and \c bool. The \c long \c double is especially useful on x86-64 systems or when the SSE2 instruction set is enabled because it enforces the use of x87 registers with extended accuracy.
+
+In order to add support for a custom type \c T you need:
+ 1 - make sure the common operator (+,-,*,/,etc.) are supported by the type \c T
+ 2 - add a specialization of struct Eigen::NumTraits<T> (see \ref class NumTraits)
+ 3 - define a couple of math functions for your type such as: ei_sqrt, ei_abs, etc...
+     (see the file Eigen/src/Core/MathFunctions.h)
+
+Here is a concrete example adding support for the Adolc's \c adouble type. <a href="http://www.math.tu-dresden.de/~adol-c/">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
+
+\code
+#ifndef ADLOCSUPPORT_H
+#define ADLOCSUPPORT_H
+
+#define ADOLC_TAPELESS
+#include <adolc/adouble.h>
+#include <Eigen/Core>
+
+namespace Eigen {
+
+template<> struct NumTraits<adtl::adouble>
+{
+  typedef adtl::adouble Real;
+  typedef adtl::adouble FloatingPoint;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 1,
+    MulCost = 1
+  };
+};
+
+}
+
+// the Adolc's type adouble is defined in the adtl namespace
+// therefore, the following ei_* functions *must* be defined
+// in the same namespace
+namespace adtl {
+
+  inline const adouble& ei_conj(const adouble& x)  { return x; }
+  inline const adouble& ei_real(const adouble& x)  { return x; }
+  inline adouble ei_imag(const adouble&)    { return 0.; }
+  inline adouble ei_abs(const adouble&  x)  { return fabs(x); }
+  inline adouble ei_abs2(const adouble& x)  { return x*x; }
+  inline adouble ei_sqrt(const adouble& x)  { return sqrt(x); }
+  inline adouble ei_exp(const adouble&  x)  { return exp(x); }
+  inline adouble ei_log(const adouble&  x)  { return log(x); }
+  inline adouble ei_sin(const adouble&  x)  { return sin(x); }
+  inline adouble ei_cos(const adouble&  x)  { return cos(x); }
+  inline adouble ei_pow(const adouble& x, adouble y)  { return pow(x, y); }
+
+}
+
+#endif // ADLOCSUPPORT_H
+\endcode
+
+
+
 \section PreprocessorDirectives Preprocessor directives
 
+The value of the following preprocessor tokens can be overwritten by defining them before including any Eigen's headers.
  - \b EIGEN_DONT_VECTORIZE disables explicit vectorization when defined.
  - \b EIGEN_UNROLLING_LIMIT defines the maximal instruction counts to enable meta unrolling of loops. Set it to zero to disable unrolling. The default is 100.
  - \b EIGEN_TUNE_FOR_L2_CACHE_SIZE represents the maximal size in Bytes of L2 blocks. Since several blocks have to stay concurently in L2 cache, this value should correspond to at most 1/4 of the size of L2 cache.
+ - \b EIGEN_NO_STATIC_ASSERT replaces compile time static assertions by runtime assertions
+ - \b EIGEN_MATRIXBASE_PLUGIN see \ref ExtendingMatrixBase
 
 */
 

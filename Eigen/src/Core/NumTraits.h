@@ -31,7 +31,8 @@
   *
   * \param T the numeric type about which this class provides data. Recall that Eigen allows
   *          only the following types for \a T: \c int, \c float, \c double,
-  *          \c std::complex<float>, \c std::complex<double>.
+  *          \c std::complex<float>, \c std::complex<double>, and \c long \c double (especially
+  *          useful to enforce x87 arithmetics when SSE is the default).
   *
   * The provided data consists of:
   * \li A typedef \a Real, giving the "real part" type of \a T. If \a T is already real,
@@ -120,8 +121,8 @@ template<> struct NumTraits<long double>
     IsComplex = 0,
     HasFloatingPoint = 1,
     ReadCost = 1,
-    AddCost = 2,
-    MulCost = 2
+    AddCost = 1,
+    MulCost = 1
   };
 };
 

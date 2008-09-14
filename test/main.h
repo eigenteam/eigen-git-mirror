@@ -169,6 +169,7 @@ template<> inline float test_precision<float>() { return 1e-4f; }
 template<> inline double test_precision<double>() { return 1e-6; }
 template<> inline float test_precision<std::complex<float> >() { return test_precision<float>(); }
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
+template<> inline long double test_precision<long double>() { return 1e-6; }
 
 inline bool test_ei_isApprox(const int& a, const int& b)
 { return ei_isApprox(a, b, test_precision<int>()); }
@@ -200,6 +201,13 @@ inline bool test_ei_isApprox(const std::complex<double>& a, const std::complex<d
 { return ei_isApprox(a, b, test_precision<std::complex<double> >()); }
 inline bool test_ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
 { return ei_isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
+
+inline bool test_ei_isApprox(const long double& a, const long double& b)
+{ return ei_isApprox(a, b, test_precision<long double>()); }
+inline bool test_ei_isMuchSmallerThan(const long double& a, const long double& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<long double>()); }
+inline bool test_ei_isApproxOrLessThan(const long double& a, const long double& b)
+{ return ei_isApproxOrLessThan(a, b, test_precision<long double>()); }
 
 template<typename Derived1, typename Derived2>
 inline bool test_ei_isApprox(const MatrixBase<Derived1>& m1,
