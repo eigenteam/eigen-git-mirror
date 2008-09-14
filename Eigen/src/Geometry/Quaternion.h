@@ -162,6 +162,13 @@ public:
     * \sa Quaternion::norm2(), MatrixBase::norm()
     */
   inline Scalar norm() const { return m_coeffs.norm(); }
+  
+  /** Normalizes the quaternion \c *this 
+    * \sa normalized(), MatrixBase::normalize() */
+  inline void normalize() { m_coeffs.normalize(); } 
+  /** \returns a normalized version of \c *this
+    * \sa normalize(), MatrixBase::normalized() */
+  inline Quaternion normalized() const { Quaternion(m_coeffs.normalized()); } 
 
   /** \returns the dot product of \c *this and \a other
     * Geometrically speaking, the dot product of two unit quaternions
@@ -414,9 +421,9 @@ struct ei_quaternion_assign_impl<Other,3,3>
     Scalar t = mat.trace();
     if (t > 0)
     {
-      t = ei_sqrt(t + 1.0);
-      q.w() = 0.5*t;
-      t = 0.5/t;
+      t = ei_sqrt(t + Scalar(1.0));
+      q.w() = Scalar(0.5)*t;
+      t = Scalar(0.5)/t;
       q.x() = (mat.coeff(2,1) - mat.coeff(1,2)) * t;
       q.y() = (mat.coeff(0,2) - mat.coeff(2,0)) * t;
       q.z() = (mat.coeff(1,0) - mat.coeff(0,1)) * t;
