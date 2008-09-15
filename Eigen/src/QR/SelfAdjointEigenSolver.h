@@ -204,7 +204,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   for (int i = 0; i < n-1; i++)
   {
     int k;
-    m_eivalues.block(i,n-i).minCoeff(&k);
+    m_eivalues.segment(i,n-i).minCoeff(&k);
     if (k > 0)
     {
       std::swap(m_eivalues[i], m_eivalues[k+i]);

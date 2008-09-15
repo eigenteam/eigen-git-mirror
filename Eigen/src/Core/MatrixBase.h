@@ -351,8 +351,8 @@ template<typename Derived> class MatrixBase
     const typename BlockReturnType<Derived>::Type
     block(int startRow, int startCol, int blockRows, int blockCols) const;
 
-    typename BlockReturnType<Derived>::SubVectorType block(int start, int size);
-    const typename BlockReturnType<Derived>::SubVectorType block(int start, int size) const;
+    typename BlockReturnType<Derived>::SubVectorType segment(int start, int size);
+    const typename BlockReturnType<Derived>::SubVectorType segment(int start, int size) const;
 
     typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size);
     const typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size) const;
@@ -379,8 +379,8 @@ template<typename Derived> class MatrixBase
     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType block(int start);
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType block(int start) const;
+    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
+    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
 
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;

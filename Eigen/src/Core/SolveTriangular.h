@@ -119,8 +119,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
           int remainingSize = IsLower ? i-startBlock : startBlock-i;
           Scalar tmp = other.coeff(i,c)
             - btmp.coeff(IsLower ? remainingSize : 3-remainingSize)
-            - (   lhs.row(i).block(IsLower ? startBlock : i+1, remainingSize)
-              * other.col(c).block(IsLower ? startBlock : i+1, remainingSize)).coeff(0,0);
+            - (   lhs.row(i).segment(IsLower ? startBlock : i+1, remainingSize)
+              * other.col(c).segment(IsLower ? startBlock : i+1, remainingSize)).coeff(0,0);
 
           if (Lhs::Flags & UnitDiagBit)
             other.coeffRef(i,c) = tmp;
@@ -172,7 +172,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
             other.coeffRef(i,c) /= lhs.coeff(i,i);
           int remainingSize = IsLower ? endBlock-i-1 : i-endBlock-1;
           if (remainingSize>0)
-            other.col(c).block((IsLower ? i : endBlock) + 1, remainingSize) -=
+            other.col(c).segment((IsLower ? i : endBlock) + 1, remainingSize) -=
                 other.coeffRef(i,c)
               * Block<Lhs,Dynamic,1>(lhs, (IsLower ? i : endBlock) + 1, i, remainingSize, 1);
           btmp.coeffRef(IsLower ? i-startBlock : remainingSize) = -other.coeffRef(i,c);

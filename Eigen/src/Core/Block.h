@@ -318,27 +318,27 @@ inline const typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
 }
 
-/** \returns a dynamic-size expression of a block in *this.
+/** \returns a dynamic-size expression of a segment (i.e. a vector block) in *this.
   *
   * \only_for_vectors
   *
-  * \addexample BlockIntInt \label How to reference a sub-vector (dynamic size)
+  * \addexample SegmentIntInt \label How to reference a sub-vector (dynamic size)
   *
-  * \param start the first coefficient in the block
-  * \param size the number of coefficients in the block
+  * \param start the first coefficient in the segment
+  * \param size the number of coefficients in the segment
   *
-  * Example: \include MatrixBase_block_int_int.cpp
-  * Output: \verbinclude MatrixBase_block_int_int.out
+  * Example: \include MatrixBase_segment_int_int.cpp
+  * Output: \verbinclude MatrixBase_segment_int_int.out
   *
   * \note Even though the returned expression has dynamic size, in the case
   * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, block(int)
+  * \sa class Block, segment(int)
   */
 template<typename Derived>
 inline typename BlockReturnType<Derived>::SubVectorType MatrixBase<Derived>
-  ::block(int start, int size)
+  ::segment(int start, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
@@ -347,10 +347,10 @@ inline typename BlockReturnType<Derived>::SubVectorType MatrixBase<Derived>
                                    ColsAtCompileTime == 1 ? 1 : size);
 }
 
-/** This is the const version of block(int,int).*/
+/** This is the const version of segment(int,int).*/
 template<typename Derived>
 inline const typename BlockReturnType<Derived>::SubVectorType
-MatrixBase<Derived>::block(int start, int size) const
+MatrixBase<Derived>::segment(int start, int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
@@ -451,7 +451,7 @@ MatrixBase<Derived>::end(int size) const
                ColsAtCompileTime == 1 ? 1 : size);
 }
 
-/** \returns a fixed-size expression of a sub-vector of \c *this
+/** \returns a fixed-size expression of a segment (i.e. a vector block) in \c *this
   *
   * \only_for_vectors
   *
@@ -459,15 +459,15 @@ MatrixBase<Derived>::end(int size) const
   * 
   * \param start the index of the first element of the sub-vector
   *
-  * Example: \include MatrixBase_template_int.cpp
-  * Output: \verbinclude MatrixBase_template_int.out
+  * Example: \include MatrixBase_template_int_segment.cpp
+  * Output: \verbinclude MatrixBase_template_int_segment.out
   *
   * \sa class Block
   */
 template<typename Derived>
 template<int Size>
 inline typename BlockReturnType<Derived,Size>::SubVectorType
-MatrixBase<Derived>::block(int start)
+MatrixBase<Derived>::segment(int start)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),
@@ -476,11 +476,11 @@ MatrixBase<Derived>::block(int start)
                           ColsAtCompileTime == 1 ? 0 : start);
 }
 
-/** This is the const version of block<int>(int).*/
+/** This is the const version of segment<int>(int).*/
 template<typename Derived>
 template<int Size>
 inline const typename BlockReturnType<Derived,Size>::SubVectorType
-MatrixBase<Derived>::block(int start) const
+MatrixBase<Derived>::segment(int start) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),

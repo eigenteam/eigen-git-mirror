@@ -1,5 +1,5 @@
-RowVector4i v = RowVector4i::Random();
-cout << "Here is the vector v:" << endl << v << endl;
-cout << "Here is v.block(1, 2):" << endl << v.block(1, 2) << endl;
-v.block(1, 2).setZero();
-cout << "Now the vector v is:" << endl << v << endl;
+Matrix4i m = Matrix4i::Random();
+cout << "Here is the matrix m:" << endl << m << endl;
+cout << "Here is m.block<2,2>(1,1):" << endl << m.block<2,2>(1,1) << endl;
+m.block<2,2>(1,1).setZero();
+cout << "Now the matrix m is:" << endl << m << endl;

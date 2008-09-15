@@ -10,24 +10,37 @@ namespace Eigen {
 </div>
 
 \b Table \b of \b contents
+  - \ref TutorialCoreGettingStarted
   - \ref TutorialCoreSimpleExampleFixedSize
   - \ref TutorialCoreSimpleExampleDynamicSize
   - \ref TutorialCoreMatrixTypes
   - \ref TutorialCoreMatrixInitialization
-  - \ref TutorialCoreBasicLinearAlgebra
+  - \ref TutorialCoreArithmeticOperators
   - \ref TutorialCoreReductions
   - \ref TutorialCoreSubMatrix
-  - \ref TutorialCoreMatrixTransformations
+  - \ref TutorialCoreDiagonalMatrices
+  - \ref TutorialCoreTransposeAdjoint
+  - \ref TutorialCoreDotNorm
   - \ref TutorialCoreTriangularMatrix
-  - \ref TutorialCorePerformance
-
+  - \ref TutorialLazyEvaluation
 \n
 <hr>
 
+<a href="#" class="top">top</a>\section TutorialCoreGettingStarted Getting started
+
+In order to use Eigen, you just need to download and extract Eigen's source code. It is not necessary to use CMake or install anything.
+
+Here are some quick compilation instructions with GCC. To quickly test an example program, just do
+
+\code g++ -I /path/to/eigen2/ my_program.cpp -o my_program \endcode
+
+There is no library to link to. For good performance, add the \c -O2 compile-flag. Note however that this makes it impossible to debug inside Eigen code, as many functions get inlined. In some cases, performance can be further improved by disabling Eigen assertions: use \c -DEIGEN_NO_DEBUG or \c -DNDEBUG to disable them.
+
+On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default.
 
 \section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
-By fixed-size, we mean that the number of rows and columns are known at compile-time. In this case, Eigen avoids dynamic memory allocation and unroll loops. This is useful for very small sizes (typically up to 4x4).
+By fixed-size, we mean that the number of rows and columns are fixed at compile-time. In this case, Eigen avoids dynamic memory allocation, and unroll loops when that makes sense. This is useful for very small sizes: typically up to 4x4, sometimes up to 16x16.
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_simple_example_fixed_size.cpp
@@ -41,7 +54,7 @@ output:
 
 <a href="#" class="top">top</a>\section TutorialCoreSimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
-Dynamic-size means that the number of rows and columns are not known at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
+By dynamic-size, we mean that the numbers of rows and columns are not fixed at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_simple_example_dynamic_size.cpp
@@ -58,7 +71,7 @@ output:
 
 <a href="#" class="top">top</a>\section TutorialCoreMatrixTypes Matrix and vector types
 
-In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases you can simply use one of the \ref matrixtypedefs "several convenient typedefs".
+In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases, you can simply use one of the \ref matrixtypedefs "convenience typedefs".
 
 The template class Matrix takes a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
 
@@ -69,7 +82,7 @@ The template class Matrix takes a number of template parameters, but for now it 
 
 For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 
-What if the matrix has dynamic-size i.e. the number of rows or cols isn't known at compile-time? Then use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
+For dynamic-size, that is in order to left the number of rows or of columns unspecified at compile-time, use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
 
 
 
@@ -79,7 +92,8 @@ What if the matrix has dynamic-size i.e. the number of rows or cols isn't known 
 
 
 \subsection TutorialPredefMat PredefinedMatrix
-Eigen offers several methods to create or set matrices with coefficients equals to either a constant value, the identity matrix or even random values:
+Eigen offers several static methods to create special matrix expressions, and non-static methods to assign these expressions to existing matrices:
+
 <table class="tutorial_code">
 <tr>
   <td>Fixed-size matrix or vector</td>
@@ -173,7 +187,7 @@ v = 6 6 6
 
 
 \subsection TutorialMap Map
-Any memory buffer can be mapped as an Eigen's expression:
+Any memory buffer can be mapped as an Eigen expression:
 <table class="tutorial_code"><tr><td>
 \code
 std::vector<float> stlarray(10);
@@ -197,7 +211,7 @@ output:
 \verbinclude Tutorial_commainit_01.out
 </td></tr></table>
 
-Feel the above example boring ? Look at the following example where the matrix is set per block:
+Not excited by the above example? Then look at the following one where the matrix is set by blocks:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_02.cpp
 </td>
@@ -208,21 +222,21 @@ output:
 
 <span class="note">\b Side \b note: here \link CommaInitializer::finished() .finished() \endlink
 is used to get the actual matrix object once the comma initialization
-of our temporary submatrix is done. Note that despite the appearant complexity of such an expression
-Eigen's comma initializer usually yields to very optimized code without any overhead.</span>
+of our temporary submatrix is done. Note that despite the apparent complexity of such an expression,
+Eigen's comma initializer usually compiles to very optimized code without any overhead.</span>
 
 
 
 
 
 
-<a href="#" class="top">top</a>\section TutorialCoreBasicLinearAlgebra Basic Linear Algebra
+<a href="#" class="top">top</a>\section TutorialCoreArithmeticOperators Arithmetic Operators
 
-In short all mathematically well defined operators can be used right away as in the following example:
+In short, all arithmetic operators can be used right away as in the following example. Note however that arithmetic operators are only given their usual meaning from mathematics tradition. For other operations, such as taking the coefficient-wise product of two vectors, see the discussion of \link Cwise .cwise() \endlink below. Anyway, here is an example demonstrating basic arithmetic operators:
 \code
-mat4 -= mat1*1.5 + mat2 * mat3/4;
+mat4 -= mat1*1.5 + mat2 * (mat3/4);
 \endcode
-which includes two matrix scalar products ("mat1*1.5" and "mat3/4"), a matrix-matrix product ("mat2 * mat3/4"),
+which includes two matrix scalar products ("mat1*1.5" and "mat3/4"), a matrix-matrix product ("mat2 * (mat3/4)"),
 a matrix addition ("+") and substraction with assignment ("-=").
 
 <table class="tutorial_code">
@@ -243,24 +257,12 @@ mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
 mat3 = mat1 / s1;   mat3 /= s1;\endcode
 </td></tr>
 <tr><td>
-\link MatrixBase::dot() dot product \endlink (inner product)</td><td>\code
-scalar = vec1.dot(vec2);\endcode
-</td></tr>
-<tr><td>
-outer product</td><td>\code
-mat = vec1 * vec2.transpose();\endcode
-</td></tr>
-<tr><td>
-\link MatrixBase::cross() cross product \endlink</td><td>\code
-#include <Eigen/Geometry>
-vec3 = vec1.cross(vec2);\endcode</td></tr>
 </table>
 
-
-In Eigen only mathematically well defined operators can be used right away,
-but don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
+In Eigen, only traditional mathematical operators can be used right away.
+But don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
 Eigen's matrices are also very powerful as a numerical container supporting
-most common coefficient wise operators:
+most common coefficient-wise operators:
 <table class="noborder">
 <tr><td>
 <table class="tutorial_code" style="margin-right:10pt">
@@ -301,9 +303,12 @@ etc.
 \endcode
 </td></tr>
 <tr><td>
-\b Power: \n \link Cwise::pow() pow \endlink, \link Cwise::square square \endlink,
-\link Cwise::cube cube \endlink, \n \link Cwise::sqrt sqrt \endlink,
-\link Cwise::exp exp \endlink, \link Cwise::log log \endlink </td><td>\code
+\b Power: \n \link Cwise::pow() pow \endlink,
+\link Cwise::square square \endlink,
+\link Cwise::cube cube \endlink, \n
+\link Cwise::sqrt sqrt \endlink,
+\link Cwise::exp exp \endlink,
+\link Cwise::log log \endlink </td><td>\code
 mat3 = mat1.cwise().square();
 mat3 = mat1.cwise().pow(5);
 mat3 = mat1.cwise().log();
@@ -322,7 +327,22 @@ mat3 = mat1.cwise().abs2(mat2);
 </table>
 </td></tr></table>
 
-<span class="note">\b Side \b note: If you feel the \c .cwise() syntax is too verbose for your taste and don't bother to have non mathematical operator directly available, then feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
+<span class="note">\b Side \b note: If you think that the \c .cwise() syntax is too verbose for your own taste and prefer to have non-conventional mathematical operators directly available, then feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
+
+So far, we saw the notation \code mat1*mat2 \endcode for matrix product, and \code mat1.cwise()*mat2 \endcode for coefficient-wise product. What about other kinds of products, which in some other libraries also use arithmetic operators? In Eigen, they are accessed as follows -- note that here we are anticipating on further sections, for convenience.
+<table class="tutorial_code">
+<tr><td>\link MatrixBase::dot() dot product \endlink (inner product)</td><td>\code
+scalar = vec1.dot(vec2);\endcode
+</td></tr>
+<tr><td>
+outer product</td><td>\code
+mat = vec1 * vec2.transpose();\endcode
+</td></tr>
+<tr><td>
+\link MatrixBase::cross() cross product \endlink</td><td>\code
+#include <Eigen/Geometry>
+vec3 = vec1.cross(vec2);\endcode</td></tr>
+</table>
 
 
 
@@ -401,19 +421,32 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
  mat1.corner<rows,cols>(BottomRight)\endcode
  \link MatrixBase::corner(CornerType) (more) \endlink</td>
  <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
-<tr>
+<tr><td>\code
+mat4x4.minor(i,j) = mat3x3;
+mat3x3 = mat4x4.minor(i,j);\endcode
+</td><td>
+\link MatrixBase::minor() minor \endlink (read-write)</td>
+</tr>
+</table>
+
+<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices
+
+<table class="tutorial_code">
+<tr><td>
+\link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
+<em class="note">this product is automatically optimized !</em></td><td>\code
+mat3 = mat1 * vec2.asDiagonal();\endcode
+</td></tr>
+<tr><td>Access \link MatrixBase::diagonal() the diagonal of a matrix \endlink as a vector (read/write)</td>
  <td>\code
  vec1 = mat1.diagonal();
  mat1.diagonal() = vec1;
  \endcode
- \link MatrixBase::diagonal() (more) \endlink</td><td></td><td></td></tr>
+</td>
+</tr>
 </table>
 
-
-
-
-
-<a href="#" class="top">top</a>\section TutorialCoreMatrixTransformations Matrix transformations
+<a href="#" class="top">top</a>\section TutorialCoreTransposeAdjoint Transpose and Adjoint operations
 
 <table class="tutorial_code">
 <tr><td>
@@ -425,8 +458,21 @@ mat3.transpose() = mat1 * mat2.transpose();
 <tr><td>
 \link MatrixBase::adjoint() adjoint \endlink (read only)\n</td><td>\code
 mat3 = mat1.adjoint() * mat2;
-mat3 = mat1.conjugate().transpose() * mat2;
 \endcode
+</td></tr>
+</table>
+
+<a href="#" class="top">top</a>\section TutorialCoreDotNorm Dot-product, vector norm, normalization
+
+<table class="tutorial_code">
+<tr><td>
+\link MatrixBase::dot() Dot-product \endlink of two vectors
+</td><td>\code vec1.dot(vec2);\endcode
+</td></tr>
+<tr><td>
+\link MatrixBase::norm() norm \endlink of a vector \n
+\link MatrixBase::norm2() squared norm \endlink of a vector
+</td><td>\code vec.norm(); \n vec.norm2() \endcode
 </td></tr>
 <tr><td>
 returns a \link MatrixBase::normalized() normalized \endlink vector \n
@@ -435,54 +481,69 @@ returns a \link MatrixBase::normalized() normalized \endlink vector \n
 vec3 = vec1.normalized();
 vec1.normalize();\endcode
 </td></tr>
-<tr><td>
-\link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
-<em class="note">this product is automatically optimized !</em></td><td>\code
-mat3 = mat1 * vec2.asDiagonal();\endcode
-</td></tr>
-<tr><td>
-\link MatrixBase::minor() minor \endlink (read-write)</td><td>\code
-mat4x4.minor(i,j) = mat3x3;
-mat3x3 = mat4x4.minor(i,j);\endcode
-</td></tr>
 </table>
-
 
 <a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
 
 todo
 
-<a href="#" class="top">top</a>\section TutorialCorePerformance Notes on performances
+<a href="#" class="top">top</a>\section TutorialLazyEvaluation Lazy evaluation of expressions
 
-<table class="tutorial_code">
-<tr><td>\code
-m4 = m4 * m4;\endcode</td><td>
-auto-evaluates so no aliasing problem (performance penalty is low)</td></tr>
-<tr><td>\code
-Matrix4f other = (m4 * m4).lazy();\endcode</td><td>
-forces lazy evaluation</td></tr>
-<tr><td>\code
-m4 = m4 + m4;\endcode</td><td>
-here Eigen goes for lazy evaluation, as with most expressions</td></tr>
-<tr><td>\code
-m4 = -m4 + m4 + 5 * m4;\endcode</td><td>
-same here, Eigen chooses lazy evaluation for all that.</td></tr>
-<tr><td>\code
-m4 = m4 * (m4 + m4);\endcode</td><td>
-here Eigen chooses to first evaluate m4 + m4 into a temporary.
-indeed, here it is an optimization to cache this intermediate result.</td></tr>
-<tr><td>\code
-m3 = m3 * m4.block<3,3>(1,1);\endcode</td><td>
-here Eigen chooses \b not to evaluate block() into a temporary
-because accessing coefficients of that block expression is not more costly than accessing
-coefficients of a plain matrix.</td></tr>
-<tr><td>\code
-m4 = m4 * m4.transpose();\endcode</td><td>
-same here, lazy evaluation of the transpose.</td></tr>
-<tr><td>\code
-m4 = m4 * m4.transpose().eval();\endcode</td><td>
-forces immediate evaluation of the transpose</td></tr>
-</table>
+When you write a line of code involving a complex expression such as
+
+\code mat1 = mat2 + mat3 * (mat4 + mat5); \endcode
+
+Eigen tries to determine automatically whether to evaluate each sub-expression into temporary variables. Indeed, in certain cases it is better to evaluate immediately a sub-expression into a temporary variable, while in other cases it is better to avoid that.
+
+A traditional math library without expression templates always evaluates all sub-expressions into temporaries. So with this code,
+
+\code vec1 = vec2 + vec3; \endcode
+
+a traditional library would evaluate \c vec2 + vec3 into a temporary \c vec4 and then copy \c vec4  into \c vec1. This is of course inefficient: the arrays are traversed twice, so there are a lot of useless load/store operations.
+
+Expression-templates-based libraries can avoid evaluating sub-expressions into temporaries, which in many cases results in large speed improvements. This is called <i>lazy evaluation</i> as an expression is getting evaluated as late as possible, instead of immediately. However, most other expression-templates-based libraries <i>always</i> choose lazy evaluation. There are two problems with that: first, lazy evaluation is not always a good choice for performance; second, lazy evaluation can be very dangerous, for example with matrix products: doing <tt>matrix = matrix*matrix</tt> gives a wrong result if the matrix product is lazy-evaluated, because of the way matrix product works.
+
+For these reasons, Eigen has intelligent compile-time mechanisms to determine automatically when to use lazy evaluation, and when on the contrary it should evaluate immediately into a temporary variable.
+
+So in the basic example,
+
+\code matrix1 = matrix2 + matrix3; \endcode
+
+Eigen chooses lazy evaluation. Thus the arrays are traversed only once, producing optimized code. If you really want to force immediate evaluation, use \link MatrixBase::eval() eval() \endlink:
+
+\code matrix1 = (matrix2 + matrix3).eval(); \endcode
+
+Here is now a more involved example:
+
+\code matrix1 = -matrix2 + matrix3 + 5 * matrix4; \endcode
+
+Eigen chooses lazy evaluation at every stage in that example, which is clearly the correct choice. In fact, lazy evaluation is the "default choice" and Eigen will choose it except in a few circumstances.
+
+<b>The first circumstance</b> in which Eigen chooses immediate evaluation, is when it sees an assignment <tt>a = b;</tt> and the expression \c b has the evaluate-before-assigning \link flags flag \endlink. The most importat example of such an expression is the \link Product matrix product expression \endlink. For example, when you do
+
+\code matrix = matrix * matrix; \endcode
+
+Eigen first evaluates <tt>matrix * matrix</tt> into a temporary matrix, and then copies it into the original \c matrix. This guarantees a correct result as we saw above that lazy evaluation gives wrong results with matrix products. It also doesn't cost much, as the cost of the matrix product itself is much higher.
+
+What if you know what you are doing and want to force lazy evaluation? Then use \link MatrixBase::lazy() .lazy() \endlink instead. Here is an example:
+
+\code matrix1 = (matrix2 * matrix2).lazy(); \endcode
+
+Here, since we know that matrix2 is not the same matrix as matrix1, we know that lazy evaluation is not dangerous, so we may force lazy evaluation. Concretely, the effect of lazy() here is to remove the evaluate-before-assigning \link flags flag \endlink and also the evaluate-before-nesting \link flags flag \endlink which we now discuss.
+
+<b>The second circumstance</b> in which Eigen chooses immediate evaluation, is when it sees a nested expression such as <tt>a + b</tt> where \c b is already an expression having the evaluate-before-nesting \link flags flag \endlink. Again, the most importat example of such an expression is the \link Product matrix product expression \endlink. For example, when you do
+
+\code matrix1 = matrix2 + matrix3 * matrix4; \endcode
+
+the product <tt>matrix3 * matrix4</tt> gets evaluated immediately into a temporary matrix. Indeed, experiments showed that it is often beneficial for performance to evaluate immediately matrix products when they are nested into bigger expressions.
+
+Again, \link MatrixBase::lazy() .lazy() \endlink can be used to force lazy evaluation here.
+
+<b>The third circumstance</b> in which Eigen chooses immediate evaluation, is when its cost model shows that the total cost of an operation is reduced if a sub-expression gets evaluated into a temporary. Indeed, in certain cases, an intermediate result is sufficiently costly to compute and is reused sufficiently many times, that is worth "caching". Here is an example:
+
+\code matrix1 = matrix2 * (matrix3 + matrix4); \endcode
+
+Here, each coefficienct of the expression <tt>matrix3 + matrix4</tt> is going to be used several times in the matrix product. Instead of computing the sum everytime, it is much better to compute it once and store it in a temporary variable. Eigen understands this and evaluates <tt>matrix3 + matrix4</tt> into a temporary variable before evaluating the product.
 
 */
 

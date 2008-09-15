@@ -64,7 +64,7 @@ template<typename VectorType> void vectorSum(const VectorType& w)
   {
     Scalar s = Scalar(0);
     for(int j = i; j < size-i; j++) s += v[j];
-    VERIFY_IS_APPROX(s, v.block(i, size-2*i).sum());
+    VERIFY_IS_APPROX(s, v.segment(i, size-2*i).sum());
   }
 }
 

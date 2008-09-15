@@ -87,8 +87,11 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
         {
 #         define ITERATE \
             pzr_buf = pzr; \
-            pzr = pzr.cwise().square() - pzi.cwise().square() + pcr; \
-            pzi = (2*pzr_buf).cwise()*pzi + pci;
+            pzr = pzr.cwise().square(); \
+            pzr -= pzi.cwise().square(); \
+            pzr += pcr; \
+            pzi = (2*pzr_buf).cwise()*pzi; \
+            pzi += pci;
           ITERATE ITERATE ITERATE ITERATE
         }
         pix_dont_diverge = ((pzr.cwise().square() + pzi.cwise().square())

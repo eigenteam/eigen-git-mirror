@@ -77,7 +77,7 @@ By default, Eigen currently supports the following scalar types: \c int, \c floa
 
 In order to add support for a custom type \c T you need:
  1 - make sure the common operator (+,-,*,/,etc.) are supported by the type \c T
- 2 - add a specialization of struct Eigen::NumTraits<T> (see \ref class NumTraits)
+ 2 - add a specialization of struct Eigen::NumTraits<T> (see \ref NumTraits)
  3 - define a couple of math functions for your type such as: ei_sqrt, ei_abs, etc...
      (see the file Eigen/src/Core/MathFunctions.h)
 

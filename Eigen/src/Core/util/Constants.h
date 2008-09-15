@@ -34,6 +34,10 @@ const int Dynamic = 10000;
   * These are the possible bits which can be OR'ed to constitute the flags of a matrix or
   * expression.
   *
+  * It is important to note that these flags are a purely compile-time notion. They are a compile-time property of
+  * an expression type, implemented as enum's. They are not stored in memory at runtime, and they do not incur any
+  * runtime overhead.
+  *
   * \sa MatrixBase::Flags
   */
 
