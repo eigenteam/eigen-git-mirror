@@ -397,7 +397,7 @@ Read-write access to sub-vectors:
 
 <tr><td>\code vec1.start(n)\endcode</td><td>\code vec1.start<n>()\endcode</td><td>the first \c n coeffs </td></tr>
 <tr><td>\code vec1.end(n)\endcode</td><td>\code vec1.end<n>()\endcode</td><td>the last \c n coeffs </td></tr>
-<tr><td>\code vec1.block(pos,n)\endcode</td><td>\code vec1.block<n>(pos)\endcode</td>
+<tr><td>\code vec1.segment(pos,n)\endcode</td><td>\code vec1.segment<n>(pos)\endcode</td>
     <td>the \c size coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>
 <tr style="border-style: dashed none dashed none;"><td>
 
