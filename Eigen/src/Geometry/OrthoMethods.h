@@ -27,7 +27,11 @@
 #define EIGEN_ORTHOMETHODS_H
 
 /** \geometry_module
-  * \returns the cross product of \c *this and \a other */
+  *
+  * \returns the cross product of \c *this and \a other
+  *
+  * Here is a very good explanation of cross-product: http://xkcd.com/199/
+  */
 template<typename Derived>
 template<typename OtherDerived>
 inline typename MatrixBase<Derived>::EvalType

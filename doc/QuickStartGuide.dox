@@ -17,7 +17,7 @@ namespace Eigen {
   - \ref TutorialCoreMatrixInitialization
   - \ref TutorialCoreArithmeticOperators
   - \ref TutorialCoreReductions
-  - \ref TutorialCoreSubMatrix
+  - \ref TutorialCoreMatrixBlocks
   - \ref TutorialCoreDiagonalMatrices
   - \ref TutorialCoreTransposeAdjoint
   - \ref TutorialCoreDotNorm
@@ -379,7 +379,7 @@ Also note that maxCoeff and minCoeff can takes optional arguments returning the 
 
 
 
-<a href="#" class="top">top</a>\section TutorialCoreSubMatrix Sub matrices
+<a href="#" class="top">top</a>\section TutorialCoreMatrixBlocks Matrix blocks
 
 Read-write access to a \link MatrixBase::col(int) column \endlink
 or a \link MatrixBase::row(int) row \endlink of a matrix:
@@ -472,7 +472,7 @@ mat3 = mat1.adjoint() * mat2;
 <tr><td>
 \link MatrixBase::norm() norm \endlink of a vector \n
 \link MatrixBase::norm2() squared norm \endlink of a vector
-</td><td>\code vec.norm(); \n vec.norm2() \endcode
+</td><td>\code vec.norm(); \endcode \n \code vec.norm2() \endcode
 </td></tr>
 <tr><td>
 returns a \link MatrixBase::normalized() normalized \endlink vector \n
@@ -493,7 +493,7 @@ When you write a line of code involving a complex expression such as
 
 \code mat1 = mat2 + mat3 * (mat4 + mat5); \endcode
 
-Eigen tries to determine automatically whether to evaluate each sub-expression into temporary variables. Indeed, in certain cases it is better to evaluate immediately a sub-expression into a temporary variable, while in other cases it is better to avoid that.
+Eigen determines automatically, for each sub-expression, whether to evaluate it into a temporary variable. Indeed, in certain cases it is better to evaluate immediately a sub-expression into a temporary variable, while in other cases it is better to avoid that.
 
 A traditional math library without expression templates always evaluates all sub-expressions into temporaries. So with this code,
 
@@ -543,7 +543,7 @@ Again, \link MatrixBase::lazy() .lazy() \endlink can be used to force lazy evalu
 
 \code matrix1 = matrix2 * (matrix3 + matrix4); \endcode
 
-Here, each coefficienct of the expression <tt>matrix3 + matrix4</tt> is going to be used several times in the matrix product. Instead of computing the sum everytime, it is much better to compute it once and store it in a temporary variable. Eigen understands this and evaluates <tt>matrix3 + matrix4</tt> into a temporary variable before evaluating the product.
+Here, provided the matrices have at least 2 rows and 2 columns, each coefficienct of the expression <tt>matrix3 + matrix4</tt> is going to be used several times in the matrix product. Instead of computing the sum everytime, it is much better to compute it once and store it in a temporary variable. Eigen understands this and evaluates <tt>matrix3 + matrix4</tt> into a temporary variable before evaluating the product.
 
 */
 
