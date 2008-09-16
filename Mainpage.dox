@@ -1,3 +1,110 @@
+
+// Please don't remove the following lines:
+// this is the only way to specify doxygen options
+// to api.kde.org's scripts
+
+// DOXYGEN_SET_PROJECT_NAME         = Eigen2
+// DOXYGEN_SET_PROJECT_NUMBER       = "2.0-beta1"
+
+// DOXYGEN_SET_CREATE_SUBDIRS         = NO
+// DOXYGEN_SET_BRIEF_MEMBER_DESC      = YES
+// DOXYGEN_SET_REPEAT_BRIEF           = YES
+// DOXYGEN_SET_ALWAYS_DETAILED_SEC    = NO
+// DOXYGEN_SET_INLINE_INHERITED_MEMB  = NO
+// DOXYGEN_SET_FULL_PATH_NAMES        = NO
+// DOXYGEN_SET_SHORT_NAMES            = NO
+// DOXYGEN_SET_JAVADOC_AUTOBRIEF      = NO
+// DOXYGEN_SET_QT_AUTOBRIEF           = NO
+// DOXYGEN_SET_MULTILINE_CPP_IS_BRIEF = NO
+// DOXYGEN_SET_DETAILS_AT_TOP         = YES
+// DOXYGEN_SET_INHERIT_DOCS           = YES
+// DOXYGEN_SET_ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column."                          "array_module=This is defined in the %Array module. \code #include <Eigen/Array> \endcode"                          "lu_module=This is defined in the %LU module. \code #include <Eigen/LU> \endcode"                          "cholesky_module=This is defined in the %Cholesky module. \code #include <Eigen/Cholesky> \endcode"                          "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode"                          "svd_module=This is defined in the %SVD module. \code #include <Eigen/SVD> \endcode"                          "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode"                          "regression_module=This is defined in the %Regression module. \code #include <Eigen/Regression> \endcode"                          "addexample=\anchor"                           "label=\bug"
+// DOXYGEN_SET_DISTRIBUTE_GROUP_DOC   = NO
+// DOXYGEN_SET_SUBGROUPING            = YES
+// DOXYGEN_SET_TYPEDEF_HIDES_STRUCT   = NO
+
+// DOXYGEN_SET_EXTRACT_ALL            = NO
+// DOXYGEN_SET_EXTRACT_PRIVATE        = NO
+// DOXYGEN_SET_EXTRACT_STATIC         = NO
+// DOXYGEN_SET_EXTRACT_LOCAL_CLASSES  = NO
+// DOXYGEN_SET_EXTRACT_LOCAL_METHODS  = NO
+// DOXYGEN_SET_EXTRACT_ANON_NSPACES   = NO
+// DOXYGEN_SET_HIDE_UNDOC_MEMBERS     = NO
+// DOXYGEN_SET_HIDE_UNDOC_CLASSES     = YES
+// DOXYGEN_SET_HIDE_FRIEND_COMPOUNDS  = YES
+// DOXYGEN_SET_HIDE_IN_BODY_DOCS      = NO
+// DOXYGEN_SET_INTERNAL_DOCS          = NO
+// DOXYGEN_SET_CASE_SENSE_NAMES       = YES
+// DOXYGEN_SET_HIDE_SCOPE_NAMES       = YES
+// DOXYGEN_SET_SHOW_INCLUDE_FILES     = YES
+// DOXYGEN_SET_INLINE_INFO            = YES
+// DOXYGEN_SET_SORT_MEMBER_DOCS       = YES
+// DOXYGEN_SET_SORT_BRIEF_DOCS        = YES
+// DOXYGEN_SET_SORT_GROUP_NAMES       = NO
+// DOXYGEN_SET_SORT_BY_SCOPE_NAME     = NO
+// DOXYGEN_SET_GENERATE_TODOLIST      = NO
+// DOXYGEN_SET_GENERATE_TESTLIST      = NO
+// DOXYGEN_SET_GENERATE_BUGLIST       = NO
+// DOXYGEN_SET_GENERATE_DEPRECATEDLIST= NO
+// DOXYGEN_SET_SHOW_USED_FILES        = YES
+// DOXYGEN_SET_SHOW_DIRECTORIES       = NO
+// DOXYGEN_SET_SHOW_FILES             = YES
+// DOXYGEN_SET_SHOW_NAMESPACES        = NO
+
+// DOXYGEN_SET_WARN_IF_UNDOCUMENTED   = NO
+// DOXYGEN_SET_WARN_NO_PARAMDOC       = NO
+
+// DOXYGEN_SET_INPUT                  = @topdir@/eigen2/Eigen @topdir@/eigen2/doc @topdir@/eigen2/build/doc
+// DOXYGEN_SET_EXCLUDE                = *.sh *.in
+
+// DOXYGEN_SET_EXAMPLE_PATH           = @topdir@/eigen2/doc/snippets/ @topdir@/eigen2/doc/examples/ @topdir@/eigen2/build/doc/examples/ @topdir@/eigen2/build/doc/snippets/
+
+// DOXYGEN_SET_FILE_PATTERNS          = *
+// DOXYGEN_SET_RECURSIVE              = NO
+DISABLED/FILTER_PATTERNS        = *.cpp=@topdir@/eigen2/doc/apidox_preprocessing.sh
+// DOXYGEN_SET_FILTER_SOURCE_FILES    = YES
+
+// DOXYGEN_SET_SOURCE_BROWSER         = NO
+// DOXYGEN_SET_INLINE_SOURCES         = NO
+// DOXYGEN_SET_STRIP_CODE_COMMENTS    = YES
+// DOXYGEN_SET_REFERENCED_BY_RELATION = YES
+// DOXYGEN_SET_REFERENCES_RELATION    = YES
+// DOXYGEN_SET_REFERENCES_LINK_SOURCE = YES
+// DOXYGEN_SET_VERBATIM_HEADERS       = YES
+
+// DOXYGEN_SET_ALPHABETICAL_INDEX     = NO
+
+// DOXYGEN_SET_HTML_ALIGN_MEMBERS     = YES
+// DOXYGEN_SET_GENERATE_TREEVIEW      = NO
+// DOXYGEN_SET_FORMULA_FONTSIZE       = 12
+
+// DOXYGEN_SET_GENERATE_LATEX         = NO
+// DOXYGEN_SET_EXTRA_PACKAGES         = amssymb
+
+// DOXYGEN_SET_ENABLE_PREPROCESSING   = YES
+// DOXYGEN_SET_MACRO_EXPANSION        = YES
+// DOXYGEN_SET_EXPAND_ONLY_PREDEF     = YES
+// DOXYGEN_SET_SEARCH_INCLUDES        = YES
+// DOXYGEN_SET_PREDEFINED             = EIGEN_EMPTY_STRUCT EIGEN_PARSED_BY_DOXYGEN EIGEN_VECTORIZE EIGEN_QT_SUPPORT
+// DOXYGEN_SET_EXPAND_AS_DEFINED      = EIGEN_MAKE_SCALAR_OPS EIGEN_MAKE_TYPEDEFS EIGEN_MAKE_TYPEDEFS_ALL_SIZES EIGEN_CWISE_UNOP_RETURN_TYPE EIGEN_CWISE_BINOP_RETURN_TYPE
+// DOXYGEN_SET_SKIP_FUNCTION_MACROS   = YES
+
+// DOXYGEN_SET_CLASS_DIAGRAMS         = NO
+// DOXYGEN_SET_HIDE_UNDOC_RELATIONS   = NO
+// DOXYGEN_SET_HAVE_DOT               = NO
+// DOXYGEN_SET_CLASS_GRAPH            = NO
+// DOXYGEN_SET_COLLABORATION_GRAPH    = NO
+// DOXYGEN_SET_GROUP_GRAPHS           = NO
+// DOXYGEN_SET_UML_LOOK               = NO
+// DOXYGEN_SET_TEMPLATE_RELATIONS     = NO
+// DOXYGEN_SET_INCLUDE_GRAPH          = NO
+// DOXYGEN_SET_INCLUDED_BY_GRAPH      = NO
+// DOXYGEN_SET_CALL_GRAPH             = NO
+// DOXYGEN_SET_CALLER_GRAPH           = NO
+// DOXYGEN_SET_GRAPHICAL_HIERARCHY    = NO
+// DOXYGEN_SET_DIRECTORY_GRAPH        = NO
+
+
 o /** \mainpage Eigen
 
 <h3>If you see this page, then you have not properly generated the documentation. Namely, you have run doxygen from the source directory, which is not appropriate for generating the documentation of Eigen.</h3>
