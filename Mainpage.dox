@@ -61,7 +61,6 @@
 
 // DOXYGEN_SET_FILE_PATTERNS          = *
 // DOXYGEN_SET_RECURSIVE              = NO
-DISABLED/FILTER_PATTERNS        = *.cpp=@topdir@/eigen2/doc/apidox_preprocessing.sh
 // DOXYGEN_SET_FILTER_SOURCE_FILES    = YES
 
 // DOXYGEN_SET_SOURCE_BROWSER         = NO
