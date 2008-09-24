@@ -127,11 +127,11 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
       // Apply Householder similarity transformation
       // H = (I-u*u'/h)*H*(I-u*u')/h)
       int bSize = high-m+1;
-      matH.block(m, m, bSize, n-m) -= ((ort.block(m, bSize)/h)
-        * (ort.block(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)).lazy()).lazy();
+      matH.block(m, m, bSize, n-m) -= ((ort.segment(m, bSize)/h)
+        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)).lazy()).lazy();
 
-      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.block(m, bSize)).lazy()
-        * (ort.block(m, bSize)/h).transpose()).lazy();
+      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize)).lazy()
+        * (ort.segment(m, bSize)/h).transpose()).lazy();
 
       ort.coeffRef(m) = scale*ort.coeff(m);
       matH.coeffRef(m,m-1) = scale*g;
@@ -145,11 +145,11 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
   {
     if (matH.coeff(m,m-1) != 0.0)
     {
-      ort.block(m+1, high-m) = matH.col(m-1).block(m+1, high-m);
+      ort.segment(m+1, high-m) = matH.col(m-1).segment(m+1, high-m);
 
       int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize) += ( (ort.block(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m) ) )
-        * (ort.block(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)).lazy());
+      m_eivec.block(m, m, bSize, bSize) += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m) ) )
+        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)).lazy());
     }
   }
 }
@@ -608,7 +608,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
   for (int j = nn-1; j >= low; j--)
   {
     int bSize = std::min(j,high)-low+1;
-    m_eivec.col(j).block(low, bRows) = (m_eivec.block(low, low, bRows, bSize) * matH.col(j).block(low, bSize));
+    m_eivec.col(j).segment(low, bRows) = (m_eivec.block(low, low, bRows, bSize) * matH.col(j).segment(low, bSize));
   }
 }
 
