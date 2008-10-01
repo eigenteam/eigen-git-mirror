@@ -29,7 +29,7 @@
 #include "gsl_helper.h"
 #endif
 
-template<typename MatrixType> void eigensolver(const MatrixType& m)
+template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 {
   /* this test covers the following files:
      EigenSolver.h, SelfAdjointEigenSolver.h (and indirectly: Tridiagonalization.h)
@@ -69,11 +69,11 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
     convert<MatrixType>(symmB, gSymmB);
     convert<MatrixType>(symmA, gEvec);
     gEval = GslTraits<RealScalar>::createVector(rows);
-    
+
     Gsl::eigen_symm(gSymmA, gEval, gEvec);
     convert(gEval, _eval);
     convert(gEvec, _evec);
-    
+
     // test gsl itself !
     VERIFY((symmA * _evec).isApprox(_evec * _eval.asDiagonal().eval(), largerEps));
 
@@ -108,13 +108,40 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
           symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal().eval()), largerEps));
 
-//   EigenSolver<MatrixType> eiNotSymmButSymm(covMat);
-//   VERIFY_IS_APPROX((covMat.template cast<Complex>()) * (eiNotSymmButSymm.eigenvectors().template cast<Complex>()),
-//     (eiNotSymmButSymm.eigenvectors().template cast<Complex>()) * (eiNotSymmButSymm.eigenvalues().asDiagonal()));
+}
 
-//   EigenSolver<MatrixType> eiNotSymm(a);
-//   VERIFY_IS_APPROX(a.template cast<Complex>() * eiNotSymm.eigenvectors().template cast<Complex>(),
-//     eiNotSymm.eigenvectors().template cast<Complex>() * eiNotSymm.eigenvalues().asDiagonal());
+template<typename MatrixType> void eigensolver(const MatrixType& m)
+{
+  /* this test covers the following files:
+     EigenSolver.h
+  */
+  int rows = m.rows();
+  int cols = m.cols();
+
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
+  typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
+
+  RealScalar largerEps = 10*test_precision<RealScalar>();
+
+  MatrixType a = MatrixType::Random(rows,cols);
+  MatrixType a1 = MatrixType::Random(rows,cols);
+  MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
+
+//   MatrixType b = MatrixType::Random(rows,cols);
+//   MatrixType b1 = MatrixType::Random(rows,cols);
+//   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
+
+  EigenSolver<MatrixType> ei0(symmA);
+  VERIFY_IS_APPROX((symmA.template cast<Complex>()) * (ei0.pseudoEigenvectors().template cast<Complex>()),
+    (ei0.pseudoEigenvectors().template cast<Complex>()) * (ei0.eigenvalues().asDiagonal()));
+
+  a = a + symmA;
+  EigenSolver<MatrixType> ei1(a);
+
+  VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
 
 }
 
@@ -122,10 +149,12 @@ void test_eigensolver()
 {
   for(int i = 0; i < g_repeat; i++) {
     // very important to test a 3x3 matrix since we provide a special path for it
-    CALL_SUBTEST( eigensolver(Matrix3f()) );
+    CALL_SUBTEST( selfadjointeigensolver(Matrix3f()) );
+    CALL_SUBTEST( selfadjointeigensolver(Matrix4d()) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXf(7,7)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(5,5)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
+
     CALL_SUBTEST( eigensolver(Matrix4d()) );
-    CALL_SUBTEST( eigensolver(MatrixXf(7,7)) );
-    CALL_SUBTEST( eigensolver(MatrixXcd(5,5)) );
-    CALL_SUBTEST( eigensolver(MatrixXd(19,19)) );
   }
 }

@@ -58,9 +58,50 @@ template<typename _MatrixType> class EigenSolver
       compute(matrix);
     }
 
-    MatrixType eigenvectors(void) const { return m_eivec; }
+    // TODO compute the complex eigen vectors
+    // MatrixType eigenvectors(void) const { return m_eivec; }
 
-    EigenvalueType eigenvalues(void) const { return m_eivalues; }
+    /** \returns a real matrix V of pseudo eigenvectors.
+      *
+      * Let D be the block diagonal matrix with the real eigenvalues in 1x1 blocks,
+      * and any complex values u+iv in 2x2 blocks [u v ; -v u]. Then, the matrices D
+      * and V satisfy A*V = V*D.
+      *
+      * More precisely, if the diagonal matrix of the eigen values is:\n
+      * \f$
+      * \left[ \begin{array}{cccccc}
+      * u+iv &      &      &      &   &   \\
+      *      & u-iv &      &      &   &   \\
+      *      &      & a+ib &      &   &   \\
+      *      &      &      & a-ib &   &   \\
+      *      &      &      &      & x &   \\
+      *      &      &      &      &   & y \\
+      * \end{array} \right]
+      * \f$ \n
+      * then, we have:\n
+      * \f$
+      * D =\left[ \begin{array}{cccccc}
+      *  u & v &    &   &   &   \\
+      * -v & u &    &   &   &   \\
+      *    &   &  a & b &   &   \\
+      *    &   & -b & a &   &   \\
+      *    &   &    &   & x &   \\
+      *    &   &    &   &   & y \\
+      * \end{array} \right]
+      * \f$
+      *
+      * \sa pseudoEigenvalueMatrix()
+      */
+    const MatrixType& pseudoEigenvectors() const { return m_eivec; }
+
+    /** \returns the real block diagonal matrix D of the eigenvalues.
+      *
+      * See pseudoEigenvectors() for the details.
+      */
+    MatrixType pseudoEigenvalueMatrix() const;
+
+    /** \returns the eigenvalues as a column vector */
+    EigenvalueType eigenvalues() const { return m_eivalues; }
 
     void compute(const MatrixType& matrix);
 
@@ -73,6 +114,25 @@ template<typename _MatrixType> class EigenSolver
     MatrixType m_eivec;
     EigenvalueType m_eivalues;
 };
+
+template<typename MatrixType>
+MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
+{
+  int n = m_eivec.cols();
+  MatrixType matD = MatrixType::Zero(n,n);
+  for (int i=0; i<n; i++)
+  {
+    if (ei_isMuchSmallerThan(ei_imag(m_eivalues.coeff(i)), ei_real(m_eivalues.coeff(i))))
+      matD.coeffRef(i,i) = ei_real(m_eivalues.coeff(i));
+    else
+    {
+      matD.template block<2,2>(i,i) <<  ei_real(m_eivalues.coeff(i)), ei_imag(m_eivalues.coeff(i)),
+                                       -ei_imag(m_eivalues.coeff(i)), ei_real(m_eivalues.coeff(i));
+      i++;
+    }
+  }
+  return matD;
+}
 
 template<typename MatrixType>
 void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
