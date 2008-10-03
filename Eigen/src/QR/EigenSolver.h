@@ -48,6 +48,7 @@ template<typename _MatrixType> class EigenSolver
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
     typedef Matrix<Complex, MatrixType::ColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<Complex, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> EigenvectorType;
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
@@ -58,8 +59,8 @@ template<typename _MatrixType> class EigenSolver
       compute(matrix);
     }
 
-    // TODO compute the complex eigen vectors
-    // MatrixType eigenvectors(void) const { return m_eivec; }
+    
+    EigenvectorType eigenvectors(void) const;
 
     /** \returns a real matrix V of pseudo eigenvectors.
       *
@@ -94,10 +95,6 @@ template<typename _MatrixType> class EigenSolver
       */
     const MatrixType& pseudoEigenvectors() const { return m_eivec; }
 
-    /** \returns the real block diagonal matrix D of the eigenvalues.
-      *
-      * See pseudoEigenvectors() for the details.
-      */
     MatrixType pseudoEigenvalueMatrix() const;
 
     /** \returns the eigenvalues as a column vector */
@@ -115,6 +112,10 @@ template<typename _MatrixType> class EigenSolver
     EigenvalueType m_eivalues;
 };
 
+/** \returns the real block diagonal matrix D of the eigenvalues.
+  *
+  * See pseudoEigenvectors() for the details.
+  */
 template<typename MatrixType>
 MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 {
@@ -132,6 +133,38 @@ MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
     }
   }
   return matD;
+}
+
+/** \returns the normalized complex eigenvectors as a matrix of column vectors.
+  *
+  * \sa eigenvalues(), pseudoEigenvectors()
+  */
+template<typename MatrixType>
+typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors(void) const
+{
+  int n = m_eivec.cols();
+  EigenvectorType matV(n,n);
+  for (int j=0; j<n; j++)
+  {
+    if (ei_isMuchSmallerThan(ei_abs(ei_imag(m_eivalues.coeff(j))), ei_abs(ei_real(m_eivalues.coeff(j)))))
+    {
+      // we have a real eigen value
+      matV.col(j) = m_eivec.col(j);
+    }
+    else
+    {
+      // we have a pair of complex eigen values
+      for (int i=0; i<n; i++)
+      {
+        matV.coeffRef(i,j)   = Complex(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
+        matV.coeffRef(i,j+1) = Complex(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
+      }
+      matV.col(j).normalize();
+      matV.col(j+1).normalize();
+      j++;
+    }
+  }
+  return matV;
 }
 
 template<typename MatrixType>
