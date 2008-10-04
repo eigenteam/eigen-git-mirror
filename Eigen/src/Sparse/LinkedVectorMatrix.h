@@ -149,6 +149,7 @@ class LinkedVectorMatrix
     {
       const int outer = RowMajor ? row : col;
       const int inner = RowMajor ? col : row;
+//       std::cout << " ll fill " << outer << "," << inner << "\n";
       if (m_ends[outer]==0)
       {
         m_data[outer] = m_ends[outer] = new VectorChunk();
@@ -170,6 +171,29 @@ class LinkedVectorMatrix
     }
 
     inline void endFill() { }
+
+    void printDbg()
+    {
+      for (int j=0; j<m_data.size(); ++j)
+      {
+        VectorChunk* el = m_data[j];
+        while (el)
+        {
+          for (int i=0; i<el->size; ++i)
+            std::cout << j << "," << el->data[i].index << " = " << el->data[i].value << "\n";
+          el = el->next;
+        }
+      }
+      for (int j=0; j<m_data.size(); ++j)
+      {
+        InnerIterator it(*this,j);
+        while (it)
+        {
+          std::cout << j << "," << it.index() << " = " << it.value() << "\n";
+          ++it;
+        }
+      }
+    }
 
     ~LinkedVectorMatrix()
     {
@@ -267,7 +291,16 @@ class LinkedVectorMatrix<Scalar,_Flags>::InnerIterator
       : m_matrix(mat), m_el(mat.m_data[col]), m_it(0)
     {}
 
-    InnerIterator& operator++() { if (m_it<m_el->size) m_it++; else {m_el = m_el->next; m_it=0;}; return *this; }
+    InnerIterator& operator++()
+    {
+      m_it++;
+      if (m_it>=m_el->size)
+      {
+        m_el = m_el->next;
+        m_it = 0;
+      }
+      return *this;
+    }
 
     Scalar value() { return m_el->data[m_it].value; }
 

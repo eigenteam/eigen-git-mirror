@@ -51,6 +51,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
 
     inline Derived& operator=(const Derived& other)
     {
+//       std::cout << "Derived& operator=(const Derived& other)\n";
       if (other.isRValue())
         derived().swap(other.const_cast_derived());
       else
@@ -61,7 +62,9 @@ class SparseMatrixBase : public MatrixBase<Derived>
     template<typename OtherDerived>
     inline Derived& operator=(const MatrixBase<OtherDerived>& other)
     {
+//       std::cout << "Derived& operator=(const MatrixBase<OtherDerived>& other)\n";
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+//       std::cout << "eval transpose = " << transpose << "\n";
       const int outerSize = other.outerSize();
       typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       TempType temp(other.rows(), other.cols());
@@ -88,6 +91,8 @@ class SparseMatrixBase : public MatrixBase<Derived>
     template<typename OtherDerived>
     inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
+//       std::cout << typeid(OtherDerived).name() << "\n";
+//       std::cout << Flags << " " << OtherDerived::Flags << "\n";
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
 //       std::cout << "eval transpose = " << transpose << "\n";
       const int outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();

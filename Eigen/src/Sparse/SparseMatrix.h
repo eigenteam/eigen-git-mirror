@@ -133,10 +133,10 @@ class SparseMatrix
     {
       const int outer = RowMajor ? row : col;
       const int inner = RowMajor ? col : row;
-
+//       std::cout << " fill " << outer << "," << inner << "\n";
       if (m_outerIndex[outer+1]==0)
       {
-        int i=col;
+        int i = outer;
         while (i>=0 && m_outerIndex[i]==0)
         {
           m_outerIndex[i] = m_data.size();
@@ -204,6 +204,7 @@ class SparseMatrix
 
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
+//       std::cout << "SparseMatrix& operator=(const SparseMatrix& other)\n";
       if (other.isRValue())
       {
         swap(other.const_cast_derived());
@@ -221,6 +222,7 @@ class SparseMatrix
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const MatrixBase<OtherDerived>& other)
     {
+//       std::cout << "SparseMatrix& operator=(const MatrixBase<OtherDerived>& other)\n";
       return SparseMatrixBase<SparseMatrix>::operator=(other.derived());
     }
 

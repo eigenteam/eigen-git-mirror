@@ -59,7 +59,7 @@ template<typename MatrixType> class Cholesky
     };
 
   public:
-  
+
     Cholesky(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols())
     {

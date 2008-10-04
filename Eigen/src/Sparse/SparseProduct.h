@@ -41,22 +41,22 @@ struct ProductReturnType<Lhs,Rhs,SparseProduct>
   // type of the temporary to perform the transpose op
   typedef typename ei_meta_if<TransposeLhs,
     SparseMatrix<Scalar,0>,
-    typename ei_nested<Lhs,Rhs::RowsAtCompileTime>::type>::ret LhsNested;
+    const typename ei_nested<Lhs,Rhs::RowsAtCompileTime>::type>::ret LhsNested;
 
   typedef typename ei_meta_if<TransposeRhs,
     SparseMatrix<Scalar,0>,
-    typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
+    const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
 
-  typedef Product<typename ei_unconst<LhsNested>::type,
-                  typename ei_unconst<RhsNested>::type, SparseProduct> Type;
+  typedef Product<LhsNested,
+                  RhsNested, SparseProduct> Type;
 };
 
 template<typename LhsNested, typename RhsNested>
 struct ei_traits<Product<LhsNested, RhsNested, SparseProduct> >
 {
   // clean the nested types:
-  typedef typename ei_unconst<typename ei_unref<LhsNested>::type>::type _LhsNested;
-  typedef typename ei_unconst<typename ei_unref<RhsNested>::type>::type _RhsNested;
+  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename _LhsNested::Scalar Scalar;
 
   enum {
@@ -118,8 +118,8 @@ template<typename LhsNested, typename RhsNested> class Product<LhsNested,RhsNest
     const _LhsNested& rhs() const { return m_rhs; }
 
   protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    LhsNested m_lhs;
+    RhsNested m_rhs;
 };
 
 template<typename Lhs, typename Rhs, typename ResultType,
@@ -133,23 +133,16 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
 {
   typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
 
-  struct ListEl
-  {
-    int next;
-    int index;
-    Scalar value;
-  };
-
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
     // make sure to call innerSize/outerSize since we fake the storage order.
     int rows = lhs.innerSize();
     int cols = rhs.outerSize();
     int size = lhs.outerSize();
-    ei_assert(size == rhs.rows());
+    ei_assert(size == rhs.innerSize());
 
     // allocate a temporary buffer
-    Scalar* buffer = new Scalar[rows];
+    AmbiVector<Scalar> tempVector(rows);
 
     // estimate the number of non zero entries
     float ratioLhs = float(lhs.nonZeros())/float(lhs.rows()*lhs.cols());
@@ -164,89 +157,19 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
       //float ratioColRes = std::min(ratioLhs * rhs.innerNonZeros(j), 1.f);
       // FIXME find a nice way to get the number of nonzeros of a sub matrix (here an inner vector)
       float ratioColRes = ratioRes;
-      if (ratioColRes>0.1)
+      tempVector.init(ratioColRes);
+      tempVector.setZero();
+      for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
       {
-        // dense path, the scalar * columns products are accumulated into a dense column
-        Scalar* __restrict__ tmp = buffer;
-        // set to zero
-        for (int k=0; k<rows; ++k)
-          tmp[k] = 0;
-        for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
+        // FIXME should be written like this: tmp += rhsIt.value() * lhs.col(rhsIt.index())
+        Scalar x = rhsIt.value();
+        for (typename Lhs::InnerIterator lhsIt(lhs, rhsIt.index()); lhsIt; ++lhsIt)
         {
-          // FIXME should be written like this: tmp += rhsIt.value() * lhs.col(rhsIt.index())
-          Scalar x = rhsIt.value();
-          for (typename Lhs::InnerIterator lhsIt(lhs, rhsIt.index()); lhsIt; ++lhsIt)
-          {
-            tmp[lhsIt.index()] += lhsIt.value() * x;
-          }
-        }
-        // copy the temporary to the respective res.col()
-        for (int k=0; k<rows; ++k)
-          if (tmp[k]!=0)
-            res.fill(k, j) = tmp[k];
-      }
-      else
-      {
-        ListEl* __restrict__ tmp = reinterpret_cast<ListEl*>(buffer);
-        // sparse path, the scalar * columns products are accumulated into a linked list
-        int tmp_size = 0;
-        int tmp_start = -1;
-        for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
-        {
-          int tmp_el = tmp_start;
-          for (typename Lhs::InnerIterator lhsIt(lhs, rhsIt.index()); lhsIt; ++lhsIt)
-          {
-            Scalar v = lhsIt.value() * rhsIt.value();
-            int id = lhsIt.index();
-            if (tmp_size==0)
-            {
-              tmp_start = 0;
-              tmp_el = 0;
-              tmp_size++;
-              tmp[0].value = v;
-              tmp[0].index = id;
-              tmp[0].next = -1;
-            }
-            else if (id<tmp[tmp_start].index)
-            {
-              tmp[tmp_size].value = v;
-              tmp[tmp_size].index = id;
-              tmp[tmp_size].next = tmp_start;
-              tmp_start = tmp_size;
-              tmp_size++;
-            }
-            else
-            {
-              int nextel = tmp[tmp_el].next;
-              while (nextel >= 0 && tmp[nextel].index<=id)
-              {
-                tmp_el = nextel;
-                nextel = tmp[nextel].next;
-              }
-
-              if (tmp[tmp_el].index==id)
-              {
-                tmp[tmp_el].value += v;
-              }
-              else
-              {
-                tmp[tmp_size].value = v;
-                tmp[tmp_size].index = id;
-                tmp[tmp_size].next = tmp[tmp_el].next;
-                tmp[tmp_el].next = tmp_size;
-                tmp_size++;
-              }
-            }
-          }
-        }
-        int k = tmp_start;
-        while (k>=0)
-        {
-          if (tmp[k].value!=0)
-            res.fill(tmp[k].index, j) = tmp[k].value;
-          k = tmp[k].next;
+          tempVector.coeffRef(lhsIt.index()) += lhsIt.value() * x;
         }
       }
+      for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
+        res.fill(it.index(), j) = it.value();
     }
     res.endFill();
   }
@@ -269,7 +192,7 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,RowMajor>
 {
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
-    // let's transpose the product and fake the matrices are column major
+    // let's transpose the product to get a column x column product
     ei_sparse_product_selector<Rhs,Lhs,ResultType,ColMajor,ColMajor,ColMajor>::run(rhs, lhs, res);
   }
 };
@@ -280,8 +203,11 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
   typedef SparseMatrix<typename ResultType::Scalar> SparseTemporaryType;
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
-    // let's transpose the product and fake the matrices are column major
-    ei_sparse_product_selector<Rhs,Lhs,ResultType,ColMajor,ColMajor,RowMajor>::run(rhs, lhs, res);
+    // let's transpose the product to get a column x column product
+    SparseTemporaryType _res(res.cols(), res.rows());
+    ei_sparse_product_selector<Rhs,Lhs,ResultType,ColMajor,ColMajor,ColMajor>
+      ::run(rhs, lhs, _res);
+    res = _res.transpose();
   }
 };
 
