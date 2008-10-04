@@ -155,7 +155,7 @@ template<typename Scalar> void sparse(int rows, int cols)
 //     }
 //   }
 //   VERIFY_IS_APPROX(m, refMat);
-  
+
   // random setter
   {
     m.setZero();
@@ -172,6 +172,32 @@ template<typename Scalar> void sparse(int rows, int cols)
   }
   VERIFY_IS_APPROX(m, refMat);
 
+  // test transpose
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrix<Scalar> m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
+    VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
+  }
+
+  // test matrix product
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refMat3 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refMat4 = DenseMatrix::Zero(rows, rows);
+    SparseMatrix<Scalar> m2(rows, rows);
+    SparseMatrix<Scalar> m3(rows, rows);
+    SparseMatrix<Scalar> m4(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    initSparse<Scalar>(density, refMat3, m3);
+    initSparse<Scalar>(density, refMat4, m4);
+    VERIFY_IS_APPROX(m4=m2*m3, refMat4=refMat2*refMat3);
+    VERIFY_IS_APPROX(m4=m2.transpose()*m3, refMat4=refMat2.transpose()*refMat3);
+    VERIFY_IS_APPROX(m4=m2.transpose()*m3.transpose(), refMat4=refMat2.transpose()*refMat3.transpose());
+    VERIFY_IS_APPROX(m4=m2*m3.transpose(), refMat4=refMat2*refMat3.transpose());
+  }
+
   // test triangular solver
   {
     DenseVector vec2 = vec1, vec3 = vec1;
@@ -187,7 +213,7 @@ template<typename Scalar> void sparse(int rows, int cols)
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template marked<Upper>().solveTriangular(vec2),
                      m2.template marked<Upper>().solveTriangular(vec3));
-     
+
     // TODO test row major
   }
 
