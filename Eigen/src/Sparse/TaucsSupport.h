@@ -74,7 +74,7 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(taucs_ccs_matrix& tau
                                 reinterpret_cast<Scalar*>(taucsMat.values.v),
                                 taucsMat.colptr[taucsMat.n]);
   res.m_data.swap(data);
-  // res.markAsRValue();
+  res.markAsRValue();
   return res;
 }
 

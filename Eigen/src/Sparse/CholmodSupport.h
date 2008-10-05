@@ -94,7 +94,7 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(cholmod_sparse& cm)
                                 reinterpret_cast<Scalar*>(cm.x),
                                 res.m_outerIndex[cm.ncol]);
   res.m_data.swap(data);
-  // res.markAsRValue();
+  res.markAsRValue();
   return res;
 }
 
