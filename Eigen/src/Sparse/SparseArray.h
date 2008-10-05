@@ -28,7 +28,8 @@
 /** Stores a sparse set of values as a list of values and a list of indices.
   *
   */
-template<typename Scalar> class SparseArray
+template<typename Scalar>
+class SparseArray
 {
   public:
     SparseArray()
@@ -104,6 +105,15 @@ template<typename Scalar> class SparseArray
 
     int& index(int i) { return m_indices[i]; }
     const int& index(int i) const { return m_indices[i]; }
+
+    static SparseArray Map(int* indices, Scalar* values, int size)
+    {
+      SparseArray res;
+      res.m_indices = indices;
+      res.m_values = values;
+      res.m_allocatedSize = res.m_size = size;
+      return res;
+    }
 
   protected:
 

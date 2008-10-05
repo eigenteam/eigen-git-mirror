@@ -80,6 +80,15 @@ class SparseMatrix
     inline int outerSize() const { return m_outerSize; }
     inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
 
+    inline const Scalar* _valuePtr() const { return &m_data.value(0); }
+    inline Scalar* _valuePtr() { return &m_data.value(0); }
+
+    inline const int* _innerIndexPtr() const { return &m_data.index(0); }
+    inline int* _innerIndexPtr() { return &m_data.index(0); }
+
+    inline const int* _outerIndexPtr() const { return m_outerIndex; }
+    inline int* _outerIndexPtr() { return m_outerIndex; }
+
     inline Scalar coeff(int row, int col) const
     {
       const int outer = RowMajor ? row : col;
@@ -180,6 +189,10 @@ class SparseMatrix
       }
     }
 
+    inline SparseMatrix()
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
+    {}
+
     inline SparseMatrix(int rows, int cols)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
@@ -247,6 +260,16 @@ class SparseMatrix
       s << static_cast<const SparseMatrixBase<SparseMatrix>&>(m);
       return s;
     }
+
+    #ifdef EIGEN_TAUCS_SUPPORT
+    static SparseMatrix Map(taucs_ccs_matrix& taucsMatrix);
+    taucs_ccs_matrix asTaucsMatrix();
+    #endif
+
+    #ifdef EIGEN_CHOLMOD_SUPPORT
+    static SparseMatrix Map(cholmod_sparse& cholmodMatrix);
+    cholmod_sparse asCholmodMatrix();
+    #endif
 
     /** Destructor */
     inline ~SparseMatrix()

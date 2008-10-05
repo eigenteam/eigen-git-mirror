@@ -22,12 +22,20 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_BASICSPARSECHOLESKY_H
-#define EIGEN_BASICSPARSECHOLESKY_H
+#ifndef EIGEN_SPARSECHOLESKY_H
+#define EIGEN_SPARSECHOLESKY_H
+
+enum {
+  CholFull        = 0x0,  // full is the default
+  CholPartial     = 0x1,
+  CholUseEigen    = 0x0,  // Eigen's impl is the default
+  CholUseTaucs    = 0x2,
+  CholUseCholmod  = 0x4,
+};
 
 /** \ingroup Sparse_Module
   *
-  * \class BasicSparseCholesky
+  * \class SparseCholesky
   *
   * \brief Standard Cholesky decomposition of a matrix and associated features
   *
@@ -35,12 +43,13 @@
   *
   * \sa class Cholesky, class CholeskyWithoutSquareRoot
   */
-template<typename MatrixType> class BasicSparseCholesky
+template<typename MatrixType> class SparseCholesky
 {
   private:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+    typedef SparseMatrix<Scalar,Lower> CholMatrixType;
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
@@ -49,13 +58,13 @@ template<typename MatrixType> class BasicSparseCholesky
 
   public:
 
-    BasicSparseCholesky(const MatrixType& matrix)
-      : m_matrix(matrix.rows(), matrix.cols())
+    SparseCholesky(const MatrixType& matrix, int flags = 0)
+      : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags)
     {
       compute(matrix);
     }
 
-    inline const MatrixType& matrixL(void) const { return m_matrix; }
+    inline const CholMatrixType& matrixL(void) const { return m_matrix; }
 
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
@@ -67,25 +76,35 @@ template<typename MatrixType> class BasicSparseCholesky
     void compute(const MatrixType& matrix);
 
   protected:
+    void computeUsingEigen(const MatrixType& matrix);
+    void computeUsingTaucs(const MatrixType& matrix);
+    void computeUsingCholmod(const MatrixType& matrix);
+
+  protected:
     /** \internal
       * Used to compute and store L
       * The strict upper part is not used and even not initialized.
       */
-    MatrixType m_matrix;
+    CholMatrixType m_matrix;
+    int m_flags;
     bool m_isPositiveDefinite;
-
-    struct ListEl
-    {
-      int next;
-      int index;
-      Scalar value;
-    };
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
   */
 template<typename MatrixType>
-void BasicSparseCholesky<MatrixType>::compute(const MatrixType& a)
+void SparseCholesky<MatrixType>::compute(const MatrixType& a)
+{
+  if (m_flags&CholUseTaucs)
+    computeUsingTaucs(a);
+  else if (m_flags&CholUseCholmod)
+    computeUsingCholmod(a);
+  else
+    computeUsingEigen(a);
+}
+
+template<typename MatrixType>
+void SparseCholesky<MatrixType>::computeUsingEigen(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();

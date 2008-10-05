@@ -8,6 +8,27 @@
 #include <cstring>
 #include <algorithm>
 
+#ifdef EIGEN_CHOLMOD_SUPPORT
+  extern "C" {
+    #include "cholmod.h"
+  }
+#endif
+
+#ifdef EIGEN_TAUCS_SUPPORT
+
+  extern "C" {
+    #include "taucs.h"
+  }
+
+  #ifdef min
+    #undef min
+  #endif
+  #ifdef max
+    #undef max
+  #endif
+
+#endif
+
 namespace Eigen {
 
 #include "src/Sparse/SparseUtil.h"
@@ -22,7 +43,15 @@ namespace Eigen {
 #include "src/Sparse/SparseSetter.h"
 #include "src/Sparse/SparseProduct.h"
 #include "src/Sparse/TriangularSolver.h"
-#include "src/Sparse/BasicSparseCholesky.h"
+#include "src/Sparse/SparseCholesky.h"
+
+#ifdef EIGEN_CHOLMOD_SUPPORT
+# include "src/Sparse/CholmodSupport.h"
+#endif
+
+#ifdef EIGEN_TAUCS_SUPPORT
+# include "src/Sparse/TaucsSupport.h"
+#endif
 
 } // namespace Eigen
 
