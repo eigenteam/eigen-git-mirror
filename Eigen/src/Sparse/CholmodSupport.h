@@ -104,14 +104,14 @@ void SparseCholesky<MatrixType>::computeUsingCholmod(const MatrixType& a)
   cholmod_common c;
   cholmod_start(&c);
   cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
-  std::vector<int> perm(a.cols());
-  for (int i=0; i<a.cols(); ++i)
-    perm[i] = i;
-  c.nmethods = 1;
-  c.method [0].ordering = CHOLMOD_NATURAL;
-  c.postorder = 0;
+  if (!(m_flags&CholPartial))
+  {
+    c.nmethods = 1;
+    c.method [0].ordering = CHOLMOD_NATURAL;
+    c.postorder = 0;
+  }
   c.final_ll = 1;
-  cholmod_factor *L = cholmod_analyze_p(&A, &perm[0], &perm[0], a.cols(), &c);
+  cholmod_factor *L = cholmod_analyze(&A, &c);
   cholmod_factorize(&A, L, &c);
   cholmod_sparse* cmRes = cholmod_factor_to_sparse(L, &c);
   m_matrix = CholMatrixType::Map(*cmRes);
