@@ -25,16 +25,6 @@
 #ifndef EIGEN_SPARSETRIANGULARSOLVER_H
 #define EIGEN_SPARSETRIANGULARSOLVER_H
 
-// template<typename Lhs, typename Rhs,
-//   int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
-//                      ? Lower
-//                      : (int(Lhs::Flags) & UpperTriangularBit)
-//                      ? Upper
-//                      : -1,
-//   int StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor
-//   >
-// struct ei_sparse_trisolve_selector;
-
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
 struct ei_solve_triangular_selector<Lhs,Rhs,Lower,RowMajor|IsSparse>

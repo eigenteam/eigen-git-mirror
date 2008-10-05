@@ -99,25 +99,109 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(cholmod_sparse& cm)
 }
 
 template<typename MatrixType>
-void SparseCholesky<MatrixType>::computeUsingCholmod(const MatrixType& a)
+class SparseCholesky<MatrixType,Cholmod> : public SparseCholesky<MatrixType>
 {
-  cholmod_common c;
-  cholmod_start(&c);
-  cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
-  if (!(m_flags&CholPartial))
+  protected:
+    typedef SparseCholesky<MatrixType> Base;
+    using Base::Scalar;
+    using Base::RealScalar;
+    using Base::MatrixLIsDirty;
+    using Base::SupernodalFactorIsDirty;
+    using Base::m_flags;
+    using Base::m_matrix;
+    using Base::m_status;
+
+  public:
+
+    SparseCholesky(const MatrixType& matrix, int flags = 0)
+      : Base(matrix, flags), m_cholmodFactor(0)
+    {
+      cholmod_start(&m_cholmod);
+      compute(matrix);
+    }
+
+    ~SparseCholesky()
+    {
+      if (m_cholmodFactor)
+        cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
+      cholmod_finish(&m_cholmod);
+    }
+
+    inline const typename Base::CholMatrixType& matrixL(void) const;
+
+    template<typename Derived>
+    void solveInPlace(MatrixBase<Derived> &b) const;
+
+    void compute(const MatrixType& matrix);
+
+  protected:
+    mutable cholmod_common m_cholmod;
+    cholmod_factor* m_cholmodFactor;
+};
+
+template<typename MatrixType>
+void SparseCholesky<MatrixType,Cholmod>::compute(const MatrixType& a)
+{
+  if (m_cholmodFactor)
   {
-    c.nmethods = 1;
-    c.method [0].ordering = CHOLMOD_NATURAL;
-    c.postorder = 0;
+    cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
+    m_cholmodFactor = 0;
   }
-  c.final_ll = 1;
-  cholmod_factor *L = cholmod_analyze(&A, &c);
-  cholmod_factorize(&A, L, &c);
-  cholmod_sparse* cmRes = cholmod_factor_to_sparse(L, &c);
-  m_matrix = CholMatrixType::Map(*cmRes);
-  free(cmRes);
-  cholmod_free_factor(&L, &c);
-  cholmod_finish(&c);
+
+  cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
+  if (m_flags&IncompleteFactorization)
+  {
+    m_cholmod.nmethods = 1;
+    m_cholmod.method [0].ordering = CHOLMOD_NATURAL;
+    m_cholmod.postorder = 0;
+  }
+  else
+  {
+    m_cholmod.nmethods = 1;
+    m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
+    m_cholmod.postorder = 0;
+  }
+  m_cholmod.final_ll = 1;
+  m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
+  cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
+
+  m_status = (m_status & ~SupernodalFactorIsDirty) | MatrixLIsDirty;
+}
+
+template<typename MatrixType>
+inline const typename SparseCholesky<MatrixType>::CholMatrixType&
+SparseCholesky<MatrixType,Cholmod>::matrixL() const
+{
+  if (m_status & MatrixLIsDirty)
+  {
+    ei_assert(!(m_status & SupernodalFactorIsDirty));
+
+    cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = Base::CholMatrixType::Map(*cmRes);
+    free(cmRes);
+
+    m_status = (m_status & ~MatrixLIsDirty);
+  }
+  return m_matrix;
+}
+
+template<typename MatrixType>
+template<typename Derived>
+void SparseCholesky<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
+{
+  const int size = m_matrix.rows();
+  ei_assert(size==b.rows());
+
+  if (m_status & MatrixLIsDirty)
+  {
+//     ei_assert(!(m_status & SupernodalFactorIsDirty));
+//     taucs_supernodal_solve_llt(m_taucsSupernodalFactor,double* b);
+    matrixL();
+  }
+//   else
+  {
+    Base::solveInPlace(b);
+  }
 }
 
 #endif // EIGEN_CHOLMODSUPPORT_H

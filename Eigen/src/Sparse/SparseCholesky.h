@@ -25,12 +25,25 @@
 #ifndef EIGEN_SPARSECHOLESKY_H
 #define EIGEN_SPARSECHOLESKY_H
 
+enum SparseBackend {
+  DefaultBackend,
+  Taucs,
+  Cholmod,
+  SuperLU
+};
+
 enum {
-  CholFull        = 0x0,  // full is the default
-  CholPartial     = 0x1,
+  CompleteFactorization        = 0x0,  // full is the default
+  IncompleteFactorization      = 0x1,
+  MemoryEfficient              = 0x2,
+  SupernodalMultifrontal       = 0x4,
+  SupernodalLeftLooking        = 0x8,
+
+
+/*
   CholUseEigen    = 0x0,  // Eigen's impl is the default
   CholUseTaucs    = 0x2,
-  CholUseCholmod  = 0x4,
+  CholUseCholmod  = 0x4*/
 };
 
 /** \ingroup Sparse_Module
@@ -43,23 +56,22 @@ enum {
   *
   * \sa class Cholesky, class CholeskyWithoutSquareRoot
   */
-template<typename MatrixType> class SparseCholesky
+template<typename MatrixType, int Backend = DefaultBackend> class SparseCholesky
 {
-  private:
+  protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
     typedef SparseMatrix<Scalar,Lower> CholMatrixType;
 
     enum {
-      PacketSize = ei_packet_traits<Scalar>::size,
-      AlignmentMask = int(PacketSize)-1
+      SupernodalFactorIsDirty      = 0x10000,
+      MatrixLIsDirty               = 0x20000,
     };
 
   public:
 
     SparseCholesky(const MatrixType& matrix, int flags = 0)
-      : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags)
+      : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
       compute(matrix);
     }
@@ -69,16 +81,10 @@ template<typename MatrixType> class SparseCholesky
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
-    // TODO impl the solver
-//     template<typename Derived>
-//     typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
+    template<typename Derived>
+    void solveInPlace(MatrixBase<Derived> &b) const;
 
     void compute(const MatrixType& matrix);
-
-  protected:
-    void computeUsingEigen(const MatrixType& matrix);
-    void computeUsingTaucs(const MatrixType& matrix);
-    void computeUsingCholmod(const MatrixType& matrix);
 
   protected:
     /** \internal
@@ -87,24 +93,14 @@ template<typename MatrixType> class SparseCholesky
       */
     CholMatrixType m_matrix;
     int m_flags;
+    mutable int m_status;
     bool m_isPositiveDefinite;
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
   */
-template<typename MatrixType>
-void SparseCholesky<MatrixType>::compute(const MatrixType& a)
-{
-  if (m_flags&CholUseTaucs)
-    computeUsingTaucs(a);
-  else if (m_flags&CholUseCholmod)
-    computeUsingCholmod(a);
-  else
-    computeUsingEigen(a);
-}
-
-template<typename MatrixType>
-void SparseCholesky<MatrixType>::computeUsingEigen(const MatrixType& a)
+template<typename MatrixType, int Backend>
+void SparseCholesky<MatrixType,Backend>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
@@ -171,6 +167,17 @@ void SparseCholesky<MatrixType>::computeUsingEigen(const MatrixType& a)
     }
   }
   m_matrix.endFill();
+}
+
+template<typename MatrixType, int Backend>
+template<typename Derived>
+void SparseCholesky<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
+{
+  const int size = m_matrix.rows();
+  ei_assert(size==b.rows());
+
+  m_matrix.solveTriangularInPlace(b);
+  m_matrix.adjoint().solveTriangularInPlace(b);
 }
 
 #endif // EIGEN_BASICSPARSECHOLESKY_H

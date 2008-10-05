@@ -79,12 +79,112 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(taucs_ccs_matrix& tau
 }
 
 template<typename MatrixType>
-void SparseCholesky<MatrixType>::computeUsingTaucs(const MatrixType& a)
+class SparseCholesky<MatrixType,Taucs> : public SparseCholesky<MatrixType>
 {
-  taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
-  taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, 0, 0);
-  m_matrix = CholMatrixType::Map(*taucsRes);
-  free(taucsRes);
+  protected:
+    typedef SparseCholesky<MatrixType> Base;
+    using Base::Scalar;
+    using Base::RealScalar;
+    using Base::MatrixLIsDirty;
+    using Base::SupernodalFactorIsDirty;
+    using Base::m_flags;
+    using Base::m_matrix;
+    using Base::m_status;
+
+  public:
+
+    SparseCholesky(const MatrixType& matrix, int flags = 0)
+      : Base(matrix, flags), m_taucsSupernodalFactor(0)
+    {
+      compute(matrix);
+    }
+
+    ~SparseCholesky()
+    {
+      if (m_taucsSupernodalFactor)
+        taucs_supernodal_factor_free(m_taucsSupernodalFactor);
+    }
+
+    inline const typename Base::CholMatrixType& matrixL(void) const;
+
+    template<typename Derived>
+    void solveInPlace(MatrixBase<Derived> &b) const;
+
+    void compute(const MatrixType& matrix);
+
+  protected:
+    void* m_taucsSupernodalFactor;
+};
+
+template<typename MatrixType>
+void SparseCholesky<MatrixType,Taucs>::compute(const MatrixType& a)
+{
+  if (m_taucsSupernodalFactor)
+  {
+    taucs_supernodal_factor_free(m_taucsSupernodalFactor);
+    m_taucsSupernodalFactor = 0;
+  }
+
+  if (m_flags & IncompleteFactorization)
+  {
+    taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
+    taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, 0, 0);
+    m_matrix = Base::CholMatrixType::Map(*taucsRes);
+    free(taucsRes);
+    m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
+             | IncompleteFactorization
+             | SupernodalFactorIsDirty;
+  }
+  else
+  {
+    taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
+    if ( (m_flags & SupernodalLeftLooking)
+      || ((!(m_flags & SupernodalMultifrontal)) && (m_flags & MemoryEfficient)) )
+    {
+      m_taucsSupernodalFactor = taucs_ccs_factor_llt_ll(&taucsMatA);
+    }
+    else
+    {
+      // use the faster Multifrontal routine
+      m_taucsSupernodalFactor = taucs_ccs_factor_llt_ll(&taucsMatA);
+    }
+    m_status = (m_status & ~IncompleteFactorization) | CompleteFactorization | MatrixLIsDirty;
+  }
+}
+
+template<typename MatrixType>
+inline const typename SparseCholesky<MatrixType>::CholMatrixType&
+SparseCholesky<MatrixType,Taucs>::matrixL() const
+{
+  if (m_status & MatrixLIsDirty)
+  {
+    ei_assert(!(m_status & SupernodalFactorIsDirty));
+
+    taucs_ccs_matrix* taucsL = taucs_supernodal_factor_to_ccs(m_taucsSupernodalFactor);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = Base::CholMatrixType::Map(*taucsL);
+    free(taucsL);
+    m_status = (m_status & ~MatrixLIsDirty);
+  }
+  return m_matrix;
+}
+
+template<typename MatrixType>
+template<typename Derived>
+void SparseCholesky<MatrixType,Taucs>::solveInPlace(MatrixBase<Derived> &b) const
+{
+  const int size = m_matrix.rows();
+  ei_assert(size==b.rows());
+
+  if (m_status & MatrixLIsDirty)
+  {
+//     ei_assert(!(m_status & SupernodalFactorIsDirty));
+//     taucs_supernodal_solve_llt(m_taucsSupernodalFactor,double* b);
+    matrixL();
+  }
+//   else
+  {
+    Base::solveInPlace(b);
+  }
 }
 
 #endif // EIGEN_TAUCSSUPPORT_H
