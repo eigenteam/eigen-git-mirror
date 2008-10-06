@@ -288,18 +288,18 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   // it has to be inlined, and so the return by value is not an issue
   Matrix3 res;
 
-  Scalar tx  = 2*this->x();
-  Scalar ty  = 2*this->y();
-  Scalar tz  = 2*this->z();
-  Scalar twx = tx*this->w();
-  Scalar twy = ty*this->w();
-  Scalar twz = tz*this->w();
-  Scalar txx = tx*this->x();
-  Scalar txy = ty*this->x();
-  Scalar txz = tz*this->x();
-  Scalar tyy = ty*this->y();
-  Scalar tyz = tz*this->y();
-  Scalar tzz = tz*this->z();
+  const Scalar tx  = 2*this->x();
+  const Scalar ty  = 2*this->y();
+  const Scalar tz  = 2*this->z();
+  const Scalar twx = tx*this->w();
+  const Scalar twy = ty*this->w();
+  const Scalar twz = tz*this->w();
+  const Scalar txx = tx*this->x();
+  const Scalar txy = ty*this->x();
+  const Scalar txz = tz*this->x();
+  const Scalar tyy = ty*this->y();
+  const Scalar tyz = tz*this->y();
+  const Scalar tzz = tz*this->z();
 
   res.coeffRef(0,0) = 1-(tyy+tzz);
   res.coeffRef(0,1) = txy-twz;
@@ -314,9 +314,11 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   return res;
 }
 
-/** Makes a quaternion representing the rotation between two vectors \a a and \a b.
-  * \returns a reference to the actual quaternion
-  * Note that the two input vectors have \b not to be normalized.
+/** Sets *this to be a quaternion representing a rotation sending the vector \a a to the vector \a b.
+  *
+  * \returns a reference to *this.
+  *
+  * Note that the two input vectors do \b not have to be normalized.
   */
 template<typename Scalar>
 template<typename Derived1, typename Derived2>
@@ -334,9 +336,9 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
     this->w() = 1; this->vec().setZero();
   }
   Scalar s = ei_sqrt((1+c)*2);
-  Scalar invs = 1./s;
+  Scalar invs = Scalar(1)/s;
   this->vec() = axis * invs;
-  this->w() = s * 0.5;
+  this->w() = s * Scalar(0.5);
 
   return *this;
 }
@@ -382,7 +384,7 @@ inline Scalar Quaternion<Scalar>::angularDistance(const Quaternion& other) const
   double d = ei_abs(this->dot(other));
   if (d>=1.0)
     return 0;
-  return 2.0 * std::acos(d);
+  return Scalar(2) * std::acos(d);
 }
 
 /** \returns the spherical linear interpolation between the two quaternions
@@ -439,8 +441,8 @@ struct ei_quaternion_assign_impl<Other,3,3>
       int k = (j+1)%3;
 
       t = ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + 1.0);
-      q.coeffs().coeffRef(i) = 0.5 * t;
-      t = 0.5/t;
+      q.coeffs().coeffRef(i) = Scalar(0.5) * t;
+      t = Scalar(0.5)/t;
       q.w() = (mat.coeff(k,j)-mat.coeff(j,k))*t;
       q.coeffs().coeffRef(j) = (mat.coeff(j,i)+mat.coeff(i,j))*t;
       q.coeffs().coeffRef(k) = (mat.coeff(k,i)+mat.coeff(i,k))*t;
