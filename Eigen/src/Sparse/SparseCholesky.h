@@ -37,7 +37,7 @@ enum {
   IncompleteFactorization      = 0x1,
   MemoryEfficient              = 0x2,
   SupernodalMultifrontal       = 0x4,
-  SupernodalLeftLooking        = 0x8,
+  SupernodalLeftLooking        = 0x8
 
 
 /*
@@ -65,7 +65,7 @@ template<typename MatrixType, int Backend = DefaultBackend> class SparseCholesky
 
     enum {
       SupernodalFactorIsDirty      = 0x10000,
-      MatrixLIsDirty               = 0x20000,
+      MatrixLIsDirty               = 0x20000
     };
 
   public:
