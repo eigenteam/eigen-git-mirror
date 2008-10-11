@@ -30,55 +30,58 @@
   *
   * \brief The matrix class, also used for vectors and row-vectors
   *
-  * \param _Scalar the scalar type, i.e. the type of the coefficients
-  * \param _Rows the number of rows at compile-time. Use the special value \a Dynamic to
-  *              specify that the number of rows is dynamic, i.e. is not fixed at compile-time.
-  * \param _Cols the number of columns at compile-time. Use the special value \a Dynamic to
-  *              specify that the number of columns is dynamic, i.e. is not fixed at compile-time.
-  * \param _StorageOrder can be either RowMajor or ColMajor. The default is ColMajor.
-  * \param _MaxRows the maximum number of rows at compile-time. By default this is equal to \a _Rows.
-  *              The most common exception is when you don't know the exact number of rows, but know that
-  *              it is smaller than some given value. Then you can set \a _MaxRows to that value, and set
-  *              _Rows to \a Dynamic.
-  * \param _MaxCols the maximum number of cols at compile-time. By default this is equal to \a _Cols.
-  *              The most common exception is when you don't know the exact number of cols, but know that
-  *              it is smaller than some given value. Then you can set \a _MaxCols to that value, and set
-  *              _Cols to \a Dynamic.
+  * Eigen's matrix class is the work-horse for all \em dense matrices and vectors within Eigen.  Dense
+  * matrices may either be allocated on the stack, using the template parameters above, or \em dynamically
+  * by specifying \em Dynamic as the size.
   *
-  * This single class template covers all kinds of matrix and vectors that Eigen can handle.
-  * All matrix and vector types are just typedefs to specializations of this class template.
   *
-  * These typedefs are as follows:
-  * \li \c %Matrix\#\#Size\#\#Type for square matrices
-  * \li \c Vector\#\#Size\#\#Type for vectors (matrices with one column)
-  * \li \c RowVector\#\#Size\#\#Type for row-vectors (matrices with one row)
+  * \param _Scalar Numeric type, i.e. float, double, int
+  * \param _Rows Numer of rows, or \b Dynamic
+  * \param _Cols Number of columnss, or \b Dynamic
+  * \param _StorageOrder Either RowMajor or ColMajor. The default is ColMajor.
+  * \param _MaxRows Maximum number of rows. Defaults to \a _Rows.  See note below.
+  * \param _MaxCols Maximum number of columns. Defaults to \a _Cols.  See note below.
   *
-  * where \c Size can be
-  * \li \c 2 for fixed size 2
-  * \li \c 3 for fixed size 3
-  * \li \c 4 for fixed size 4
-  * \li \c X for dynamic size
+  * \note <b>Dynamic size:</b>
+  * \em Dynamic in this context only means specified at run-time instead of at compile time.  Dynamic
+  * matrices <em>do not</em> expand dynamically.
   *
-  * and \c Type can be
-  * \li \c i for type \c int
-  * \li \c f for type \c float
-  * \li \c d for type \c double
-  * \li \c cf for type \c std::complex<float>
-  * \li \c cd for type \c std::complex<double>
+  * \note <b>Max Rows / Columns:</b>
+  * The most common reason to use these values is when you don't know the exact number of columns or rows,
+  * but know that they will remain below the given value.  Then you can set the \a _MaxRows or \a _MaxCols
+  * to that value, and set \a _Rows or \a _Cols to \a Dynamic.
   *
-  * Examples:
-  * \li \c Matrix2d is a typedef for \c Matrix<double,2,2>
-  * \li \c VectorXf is a typedef for \c Matrix<float,Dynamic,1>
-  * \li \c RowVector3i is a typedef for \c Matrix<int,1,3>
+  * \warning For very large matrices, \em Dynamic allocation should be used, otherwise the stack will be
+  * overflowed.
   *
-  * See \ref matrixtypedefs for an explicit list of all matrix typedefs.
+  * Eigen provides a number of typedefs to make working with matrices and vector simpler:
   *
-  * Of course these typedefs do not exhaust all the possibilities offered by the Matrix class
-  * template, they only address some of the most common cases. For instance, if you want a
-  * fixed-size matrix with 3 rows and 5 columns, there is no typedef for that, so you should use
-  * \c Matrix<double,3,5>.
+  * For example:
   *
-  * Note that most of the API is in the base class MatrixBase.
+  * \li <b>\c MatrixXf is a dynamically sized matrix of floats (\c Matrix<float, Dynamic, Dynamic>)</b>
+  * \li <b>\c VectorXf is a dynamically sized vector of floats (\c Matrix<float, Dynamic, 1>)</b>
+  *
+  * \li \c Matrix2d is a 2-row by 2-column square matrix of doubles (\c Matrix<double, 2, 2>)
+  * \li \c RowVector3i is a row-vector with three elements containing integers (\c Matrix<int, 1, 3>)
+  *
+  * \see matrixtypedefs for a complete list of predefined \em Matrix and \em Vector types.
+  *
+  * You can access elements of vectors and matrices using normal subscripting:
+  *
+  * \code
+  *
+  * Eigen::VectorXf v(10);
+  * v[0] = 0.1;
+  * v[1] = 0.2;
+  *
+  * Eigen::MatrixXi m(10, 10);
+  * m(0, 1) = 1;
+  * m(0, 2) = 2;
+  * m(0, 3) = 3;
+  *
+  * \endcode
+  *
+  * \see MatrixBase for the majority of the API methods for matrices
   */
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
