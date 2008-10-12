@@ -36,8 +36,8 @@
   *
   *
   * \param _Scalar Numeric type, i.e. float, double, int
-  * \param _Rows Numer of rows, or \b Dynamic
-  * \param _Cols Number of columnss, or \b Dynamic
+  * \param _Rows Number of rows, or \b Dynamic
+  * \param _Cols Number of columns, or \b Dynamic
   * \param _StorageOrder Either RowMajor or ColMajor. The default is ColMajor.
   * \param _MaxRows Maximum number of rows. Defaults to \a _Rows.  See note below.
   * \param _MaxCols Maximum number of columns. Defaults to \a _Cols.  See note below.
