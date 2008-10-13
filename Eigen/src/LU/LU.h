@@ -181,7 +181,8 @@ template<typename MatrixType> class LU
       * \returns true if any solution exists, false if no solution exists.
       *
       * \note If there exist more than one solution, this method will arbitrarily choose one.
-      *       If you need a complete analysis of the space of solutions, take the one solution obtained  *       by this method and add to it elements of the kernel, as determined by kernel().
+      *       If you need a complete analysis of the space of solutions, take the one solution obtained
+      *       by this method and add to it elements of the kernel, as determined by kernel().
       *
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out

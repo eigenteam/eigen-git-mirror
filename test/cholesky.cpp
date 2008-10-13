@@ -33,7 +33,7 @@
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
   /* this test covers the following files:
-     Cholesky.h CholeskyWithoutSquareRoot.h
+     LLT.h LDLT.h
   */
   int rows = m.rows();
   int cols = m.cols();
@@ -44,8 +44,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   MatrixType a0 = MatrixType::Random(rows,cols);
-  VectorType vecB = VectorType::Random(rows);
-  MatrixType matB = MatrixType::Random(rows,cols);
+  VectorType vecB = VectorType::Random(rows), vecX(rows);
+  MatrixType matB = MatrixType::Random(rows,cols), matX(rows,cols);
   SquareMatrixType symm =  a0 * a0.adjoint();
   // let's make sure the matrix is not singular or near singular
   MatrixType a1 = MatrixType::Random(rows,cols);
@@ -80,28 +80,32 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   #endif
 
   {
-    CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(symm);
-    VERIFY(cholnosqrt.isPositiveDefinite());
-    VERIFY_IS_APPROX(symm, cholnosqrt.matrixL() * cholnosqrt.vectorD().asDiagonal() * cholnosqrt.matrixL().adjoint());
-    VERIFY_IS_APPROX(symm * cholnosqrt.solve(vecB), vecB);
-    VERIFY_IS_APPROX(symm * cholnosqrt.solve(matB), matB);
+    LDLT<SquareMatrixType> ldlt(symm);
+    VERIFY(ldlt.isPositiveDefinite());
+    VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
+    ldlt.solve(vecB, &vecX);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+    ldlt.solve(matB, &matX);
+    VERIFY_IS_APPROX(symm * matX, matB);
   }
 
   {
-    Cholesky<SquareMatrixType> chol(symm);
+    LLT<SquareMatrixType> chol(symm);
     VERIFY(chol.isPositiveDefinite());
     VERIFY_IS_APPROX(symm, chol.matrixL() * chol.matrixL().adjoint());
-    VERIFY_IS_APPROX(symm * chol.solve(vecB), vecB);
-    VERIFY_IS_APPROX(symm * chol.solve(matB), matB);
+    chol.solve(vecB, &vecX);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+    chol.solve(matB, &matX);
+    VERIFY_IS_APPROX(symm * matX, matB);
   }
 
   // test isPositiveDefinite on non definite matrix
   if (rows>4)
   {
     SquareMatrixType symm =  a0.block(0,0,rows,cols-4) * a0.block(0,0,rows,cols-4).adjoint();
-    Cholesky<SquareMatrixType> chol(symm);
+    LLT<SquareMatrixType> chol(symm);
     VERIFY(!chol.isPositiveDefinite());
-    CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(symm);
+    LDLT<SquareMatrixType> cholnosqrt(symm);
     VERIFY(!cholnosqrt.isPositiveDefinite());
   }
 }

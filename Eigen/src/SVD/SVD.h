@@ -505,7 +505,7 @@ SVD<MatrixType>& SVD<MatrixType>::sort()
 /** \returns the solution of \f$ A x = b \f$ using the current SVD decomposition of A.
   * The parts of the solution corresponding to zero singular values are ignored.
   *
-  * \sa MatrixBase::svd(), LU::solve(), Cholesky::solve()
+  * \sa MatrixBase::svd(), LU::solve(), LLT::solve()
   */
 template<typename MatrixType>
 template<typename OtherDerived, typename ResultType>

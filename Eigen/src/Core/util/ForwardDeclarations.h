@@ -102,6 +102,9 @@ template<typename ExpressionType, int Direction> class PartialRedux;
 template<typename MatrixType> class LU;
 template<typename MatrixType> class QR;
 template<typename MatrixType> class SVD;
+template<typename MatrixType> class LLT;
+template<typename MatrixType> class LDLT;
+// deprecated:
 template<typename MatrixType> class Cholesky;
 template<typename MatrixType> class CholeskyWithoutSquareRoot;
 

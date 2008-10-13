@@ -16,7 +16,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #endif
 
 #ifndef SCALAR
-#define SCALAR float
+#define SCALAR double
 #endif
 
 typedef SCALAR Scalar;

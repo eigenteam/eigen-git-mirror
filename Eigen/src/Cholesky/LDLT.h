@@ -22,16 +22,30 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H
-#define EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H
+#ifndef EIGEN_LDLT_H
+#define EIGEN_LDLT_H
 
-/** \deprecated \ingroup Cholesky_Module
+/** \ingroup cholesky_Module
   *
-  * \class CholeskyWithoutSquareRoot
+  * \class LDLT
   *
-  * \deprecated this class has been renamed LDLT
+  * \brief Robust Cholesky decomposition of a matrix and associated features
+  *
+  * \param MatrixType the type of the matrix of which we are computing the LDL^T Cholesky decomposition
+  *
+  * This class performs a Cholesky decomposition without square root of a symmetric, positive definite
+  * matrix A such that A = L D L^* = U^* D U, where L is lower triangular with a unit diagonal
+  * and D is a diagonal matrix.
+  *
+  * Compared to a standard Cholesky decomposition, avoiding the square roots allows for faster and more
+  * stable computation.
+  *
+  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
+  * the strict lower part does not have to store correct values.
+  *
+  * \sa MatrixBase::ldlt(), class LLT
   */
-template<typename MatrixType> class CholeskyWithoutSquareRoot
+template<typename MatrixType> class LDLT
 {
   public:
 
@@ -39,7 +53,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-    CholeskyWithoutSquareRoot(const MatrixType& matrix)
+    LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols())
     {
       compute(matrix);
@@ -54,13 +68,10 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
-    template<typename Derived>
-    typename Derived::Eval solve(const MatrixBase<Derived> &b) const EIGEN_DEPRECATED;
-
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
 
-		template<typename Derived>
+    template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
     void compute(const MatrixType& matrix);
@@ -77,10 +88,10 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     bool m_isPositiveDefinite;
 };
 
-/** Compute / recompute the Cholesky decomposition A = L D L^* = U^* D U of \a matrix
+/** Compute / recompute the LLT decomposition A = L D L^* = U^* D U of \a matrix
   */
 template<typename MatrixType>
-void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
+void LDLT<MatrixType>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
@@ -95,7 +106,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   }
 
   // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
-  // Unlike the standard Cholesky decomposition, here we cannot evaluate it to the destination
+  // Unlike the standard LLT decomposition, here we cannot evaluate it to the destination
   // matrix because it a sub-row which is not compatible suitable for efficient packet evaluation.
   // (at least if we assume the matrix is col-major)
   Matrix<Scalar,MatrixType::RowsAtCompileTime,1> _temporary(size);
@@ -130,21 +141,6 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   }
 }
 
-/** \deprecated */
-template<typename MatrixType>
-template<typename Derived>
-typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const MatrixBase<Derived> &b) const
-{
-  const int size = m_matrix.rows();
-  ei_assert(size==b.rows());
-
-  return m_matrix.adjoint().template part<UnitUpper>()
-    .solveTriangular(
-      (  m_matrix.cwise().inverse().template part<Diagonal>()
-       * matrixL().solveTriangular(b))
-     );
-}
-
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
   * The result is stored in \a bAndx
   *
@@ -154,18 +150,18 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
   * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
   * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
   *
-  * Example: \include CholeskyCholeskyWithoutSquareRoot_solve.cpp
-  * Output: \verbinclude CholeskyCholeskyWithoutSquareRoot_solve.out
+  * Example: \include LLTLDLT_solve.cpp
+  * Output: \verbinclude LLTLDLT_solve.out
   *
-  * \sa CholeskyWithoutSquareRoot::solveInPlace(), MatrixBase::choleskyNoSqrt()
+  * \sa LDLT::solveInPlace(), MatrixBase::ldlt()
   */
 template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
-bool CholeskyWithoutSquareRoot<MatrixType>
+bool LDLT<MatrixType>
 ::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==b.rows() && "Cholesky::solve(): invalid number of rows of the right hand side matrix b");
+  ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
   *result = b;
   return solveInPlace(*result);
 }
@@ -177,11 +173,11 @@ bool CholeskyWithoutSquareRoot<MatrixType>
   * This version avoids a copy when the right hand side matrix b is not
   * needed anymore.
   *
-  * \sa CholeskyWithoutSquareRoot::solve(), MatrixBase::choleskyNoSqrt()
+  * \sa LDLT::solve(), MatrixBase::ldlt()
   */
 template<typename MatrixType>
 template<typename Derived>
-bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
@@ -193,14 +189,14 @@ bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bA
   return true;
 }
 
-/** \deprecated \cholesky_module
-  * \deprecated has been renamed ldlt()
+/** \cholesky_module
+  * \returns the Cholesky decomposition without square root of \c *this
   */
 template<typename Derived>
-inline const CholeskyWithoutSquareRoot<typename MatrixBase<Derived>::EvalType>
-MatrixBase<Derived>::choleskyNoSqrt() const
+inline const LDLT<typename MatrixBase<Derived>::EvalType>
+MatrixBase<Derived>::ldlt() const
 {
   return derived();
 }
 
-#endif // EIGEN_CHOLESKY_WITHOUT_SQUARE_ROOT_H
+#endif // EIGEN_LDLT_H

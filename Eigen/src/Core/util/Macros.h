@@ -98,6 +98,12 @@ using Eigen::ei_cos;
 #endif
 
 #if (defined __GNUC__)
+#define EIGEN_DEPRECATED __attribute__((deprecated))
+#else
+#define EIGEN_DEPRECATED
+#endif
+
+#if (defined __GNUC__)
 #define EIGEN_ALIGN_128 __attribute__ ((aligned(16)))
 #else
 #define EIGEN_ALIGN_128

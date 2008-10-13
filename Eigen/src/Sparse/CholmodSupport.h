@@ -99,10 +99,10 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(cholmod_sparse& cm)
 }
 
 template<typename MatrixType>
-class SparseCholesky<MatrixType,Cholmod> : public SparseCholesky<MatrixType>
+class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
 {
   protected:
-    typedef SparseCholesky<MatrixType> Base;
+    typedef SparseLLT<MatrixType> Base;
     using Base::Scalar;
     using Base::RealScalar;
     using Base::MatrixLIsDirty;
@@ -113,14 +113,20 @@ class SparseCholesky<MatrixType,Cholmod> : public SparseCholesky<MatrixType>
 
   public:
 
-    SparseCholesky(const MatrixType& matrix, int flags = 0)
+    SparseLLT(int flags = 0)
+      : Base(flags), m_cholmodFactor(0)
+    {
+      cholmod_start(&m_cholmod);
+    }
+
+    SparseLLT(const MatrixType& matrix, int flags = 0)
       : Base(matrix, flags), m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);
       compute(matrix);
     }
 
-    ~SparseCholesky()
+    ~SparseLLT()
     {
       if (m_cholmodFactor)
         cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
@@ -140,7 +146,7 @@ class SparseCholesky<MatrixType,Cholmod> : public SparseCholesky<MatrixType>
 };
 
 template<typename MatrixType>
-void SparseCholesky<MatrixType,Cholmod>::compute(const MatrixType& a)
+void SparseLLT<MatrixType,Cholmod>::compute(const MatrixType& a)
 {
   if (m_cholmodFactor)
   {
@@ -169,8 +175,8 @@ void SparseCholesky<MatrixType,Cholmod>::compute(const MatrixType& a)
 }
 
 template<typename MatrixType>
-inline const typename SparseCholesky<MatrixType>::CholMatrixType&
-SparseCholesky<MatrixType,Cholmod>::matrixL() const
+inline const typename SparseLLT<MatrixType>::CholMatrixType&
+SparseLLT<MatrixType,Cholmod>::matrixL() const
 {
   if (m_status & MatrixLIsDirty)
   {
@@ -187,7 +193,7 @@ SparseCholesky<MatrixType,Cholmod>::matrixL() const
 
 template<typename MatrixType>
 template<typename Derived>
-void SparseCholesky<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
+void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());

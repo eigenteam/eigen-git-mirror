@@ -227,7 +227,7 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
   
   // Compute the cholesky decomposition of matB = L L'
-  Cholesky<MatrixType> cholB(matB);
+  LLT<MatrixType> cholB(matB);
 
   // compute C = inv(L) A inv(L')
   MatrixType matC = matA;

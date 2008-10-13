@@ -38,25 +38,19 @@ enum {
   MemoryEfficient              = 0x2,
   SupernodalMultifrontal       = 0x4,
   SupernodalLeftLooking        = 0x8
-
-
-/*
-  CholUseEigen    = 0x0,  // Eigen's impl is the default
-  CholUseTaucs    = 0x2,
-  CholUseCholmod  = 0x4*/
 };
 
 /** \ingroup Sparse_Module
   *
-  * \class SparseCholesky
+  * \class SparseLLT
   *
-  * \brief Standard Cholesky decomposition of a matrix and associated features
+  * \brief Standard LLT decomposition of a matrix and associated features
   *
-  * \param MatrixType the type of the matrix of which we are computing the Cholesky decomposition
+  * \param MatrixType the type of the matrix of which we are computing the LLT decomposition
   *
-  * \sa class Cholesky, class CholeskyWithoutSquareRoot
+  * \sa class LLT, class LDLT
   */
-template<typename MatrixType, int Backend = DefaultBackend> class SparseCholesky
+template<typename MatrixType, int Backend = DefaultBackend> class SparseLLT
 {
   protected:
     typedef typename MatrixType::Scalar Scalar;
@@ -70,66 +64,66 @@ template<typename MatrixType, int Backend = DefaultBackend> class SparseCholesky
 
   public:
 
-    SparseCholesky(const MatrixType& matrix, int flags = 0)
+    SparseLLT(int flags = 0)
+      : m_flags(flags), m_status(0)
+    {
+      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
+    }
+
+    SparseLLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
+      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
       compute(matrix);
     }
 
-    inline const CholMatrixType& matrixL(void) const { return m_matrix; }
+    void setPrecision(RealScalar v) { m_precision = v; }
+    RealScalar precision() const { return m_precision; }
 
-    /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
+    void setFlags(int f) { m_flags = f; }
+    int flags() const { return m_flags; }
+
+    void compute(const MatrixType& matrix);
+
+    inline const CholMatrixType& matrixL(void) const { return m_matrix; }
 
     template<typename Derived>
     void solveInPlace(MatrixBase<Derived> &b) const;
 
-    void compute(const MatrixType& matrix);
+    /** \returns true if the factorization succeeded */
+    inline bool succeeded(void) const { return m_succeeded; }
 
   protected:
-    /** \internal
-      * Used to compute and store L
-      * The strict upper part is not used and even not initialized.
-      */
     CholMatrixType m_matrix;
+    RealScalar m_precision;
     int m_flags;
     mutable int m_status;
-    bool m_isPositiveDefinite;
+    bool m_succeeded;
 };
 
-/** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
+/** Computes / recomputes the LLT decomposition A = LL^* = U^*U of \a matrix
   */
 template<typename MatrixType, int Backend>
-void SparseCholesky<MatrixType,Backend>::compute(const MatrixType& a)
+void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
-  const RealScalar eps = ei_sqrt(precision<Scalar>());
+//   const RealScalar eps = ei_sqrt(precision<Scalar>());
 
   // allocate a temporary vector for accumulations
   AmbiVector<Scalar> tempVector(size);
+  RealScalar density = a.nonZeros()/RealScalar(size*size);
 
   // TODO estimate the number of nnz
   m_matrix.startFill(a.nonZeros()*2);
   for (int j = 0; j < size; ++j)
   {
-//     std::cout << j << "\n";
     Scalar x = ei_real(a.coeff(j,j));
     int endSize = size-j-1;
 
-    // TODO estimate the number of non zero entries
-//       float ratioLhs = float(lhs.nonZeros())/float(lhs.rows()*lhs.cols());
-//       float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
-//       float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
-
-        // let's do a more accurate determination of the nnz ratio for the current column j of res
-        //float ratioColRes = std::min(ratioLhs * rhs.innerNonZeros(j), 1.f);
-        // FIXME find a nice way to get the number of nonzeros of a sub matrix (here an inner vector)
-//         float ratioColRes = ratioRes;
-//         if (ratioColRes>0.1)
-//     tempVector.init(IsSparse);
-    tempVector.init(IsDense);
+    // TODO better estimate the density !
+    tempVector.init(density>0.001? IsDense : IsSparse);
     tempVector.setBounds(j+1,size);
     tempVector.setZero();
     // init with current matrix a
@@ -161,7 +155,7 @@ void SparseCholesky<MatrixType,Backend>::compute(const MatrixType& a)
     RealScalar rx = ei_sqrt(ei_real(x));
     m_matrix.fill(j,j) = rx;
     Scalar y = Scalar(1)/rx;
-    for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
+    for (typename AmbiVector<Scalar>::Iterator it(tempVector, m_precision*rx); it; ++it)
     {
       m_matrix.fill(it.index(), j) = it.value() * y;
     }
@@ -171,7 +165,7 @@ void SparseCholesky<MatrixType,Backend>::compute(const MatrixType& a)
 
 template<typename MatrixType, int Backend>
 template<typename Derived>
-void SparseCholesky<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
+void SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());

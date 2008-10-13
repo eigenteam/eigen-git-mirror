@@ -102,7 +102,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor|IsSparse>
         typename Lhs::InnerIterator it(lhs, i);
         if(!(Lhs::Flags & UnitDiagBit))
         {
-          std::cerr << it.value() << " ; " << it.index() << " == " << i << "\n";
+          // std::cerr << it.value() << " ; " << it.index() << " == " << i << "\n";
           ei_assert(it.index()==i);
           other.coeffRef(i,col) /= it.value();
         }

@@ -1,5 +1,5 @@
 
-// g++ -DNDEBUG -O3 -I.. benchCholesky.cpp  -o benchCholesky && ./benchCholesky
+// g++ -DNDEBUG -O3 -I.. benchLLT.cpp  -o benchLLT && ./benchLLT
 // options:
 //  -DBENCH_GSL -lgsl /usr/lib/libcblas.so.3
 //  -DEIGEN_DONT_VECTORIZE
@@ -9,7 +9,7 @@
 //  -DSCALAR=double
 
 #include <Eigen/Array>
-#include <Eigen/Cholesky>
+#include <Eigen/LLT>
 #include <bench/BenchUtil.h>
 using namespace Eigen;
 
@@ -24,7 +24,7 @@ using namespace Eigen;
 typedef float Scalar;
 
 template <typename MatrixType>
-__attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
+__attribute__ ((noinline)) void benchLLT(const MatrixType& m)
 {
   int rows = m.rows();
   int cols = m.cols();
@@ -54,7 +54,7 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
     timerNoSqrt.start();
     for (int k=0; k<repeats; ++k)
     {
-      CholeskyWithoutSquareRoot<SquareMatrixType> cholnosqrt(covMat);
+      LDLT<SquareMatrixType> cholnosqrt(covMat);
       acc += cholnosqrt.matrixL().coeff(r,c);
     }
     timerNoSqrt.stop();
@@ -65,7 +65,7 @@ __attribute__ ((noinline)) void benchCholesky(const MatrixType& m)
     timerSqrt.start();
     for (int k=0; k<repeats; ++k)
     {
-      Cholesky<SquareMatrixType> chol(covMat);
+      LLT<SquareMatrixType> chol(covMat);
       acc += chol.matrixL().coeff(r,c);
     }
     timerSqrt.stop();
@@ -124,17 +124,17 @@ int main(int argc, char* argv[])
   std::cout << "\n";
 
   for (uint i=0; dynsizes[i]>0; ++i)
-    benchCholesky(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
+    benchLLT(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
 
-//   benchCholesky(Matrix<Scalar,2,2>());
-//   benchCholesky(Matrix<Scalar,3,3>());
-//   benchCholesky(Matrix<Scalar,4,4>());
-//   benchCholesky(Matrix<Scalar,5,5>());
-//   benchCholesky(Matrix<Scalar,6,6>());
-//   benchCholesky(Matrix<Scalar,7,7>());
-//   benchCholesky(Matrix<Scalar,8,8>());
-//   benchCholesky(Matrix<Scalar,12,12>());
-//   benchCholesky(Matrix<Scalar,16,16>());
+//   benchLLT(Matrix<Scalar,2,2>());
+//   benchLLT(Matrix<Scalar,3,3>());
+//   benchLLT(Matrix<Scalar,4,4>());
+//   benchLLT(Matrix<Scalar,5,5>());
+//   benchLLT(Matrix<Scalar,6,6>());
+//   benchLLT(Matrix<Scalar,7,7>());
+//   benchLLT(Matrix<Scalar,8,8>());
+//   benchLLT(Matrix<Scalar,12,12>());
+//   benchLLT(Matrix<Scalar,16,16>());
   return 0;
 }
 

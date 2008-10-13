@@ -22,16 +22,31 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_CHOLESKY_H
-#define EIGEN_CHOLESKY_H
+#ifndef EIGEN_LLT_H
+#define EIGEN_LLT_H
 
-/** \ingroup Cholesky_Module
+/** \ingroup cholesky_Module
   *
-  * \class Cholesky
+  * \class LLT
   *
-  * \deprecated this class has been renamed LLT
+  * \brief Standard Cholesky decomposition (LL^T) of a matrix and associated features
+  *
+  * \param MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
+  *
+  * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
+  * matrix A such that A = LL^* = U^*U, where L is lower triangular.
+  *
+  * While the Cholesky decomposition is particularly useful to solve selfadjoint problems like  D^*D x = b,
+  * for that purpose, we recommend the Cholesky decomposition without square root which is more stable
+  * and even faster. Nevertheless, this standard Cholesky decomposition remains useful in many other
+  * situations like generalised eigen problems with hermitian matrices.
+  *
+  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
+  * the strict lower part does not have to store correct values.
+  *
+  * \sa MatrixBase::llt(), class LDLT
   */
-template<typename MatrixType> class Cholesky
+template<typename MatrixType> class LLT
 {
   private:
     typedef typename MatrixType::Scalar Scalar;
@@ -45,7 +60,7 @@ template<typename MatrixType> class Cholesky
 
   public:
 
-    Cholesky(const MatrixType& matrix)
+    LLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols())
     {
       compute(matrix);
@@ -55,9 +70,6 @@ template<typename MatrixType> class Cholesky
 
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
-
-    template<typename Derived>
-    typename Derived::Eval solve(const MatrixBase<Derived> &b) const EIGEN_DEPRECATED;
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -79,7 +91,7 @@ template<typename MatrixType> class Cholesky
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
   */
 template<typename MatrixType>
-void Cholesky<MatrixType>::compute(const MatrixType& a)
+void LLT<MatrixType>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
@@ -116,18 +128,6 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
   }
 }
 
-/** \deprecated */
-template<typename MatrixType>
-template<typename Derived>
-typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b) const
-{
-  const int size = m_matrix.rows();
-  ei_assert(size==b.rows());
-  typename ei_eval_to_column_major<Derived>::type x(b);
-  solveInPlace(x);
-  return x;
-}
-
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
   * The result is stored in \a bAndx
   *
@@ -137,17 +137,17 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
   * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
   * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
   *
-  * Example: \include Cholesky_solve.cpp
-  * Output: \verbinclude Cholesky_solve.out
+  * Example: \include LLT_solve.cpp
+  * Output: \verbinclude LLT_solve.out
   *
-  * \sa MatrixBase::cholesky(), Cholesky::solveInPlace()
+  * \sa LLT::solveInPlace(), MatrixBase::llt()
   */
 template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
-bool Cholesky<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
+bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==b.rows() && "Cholesky::solve(): invalid number of rows of the right hand side matrix b");
+  ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
   return solveInPlace((*result) = b);
 }
 
@@ -158,11 +158,11 @@ bool Cholesky<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<Res
   * This version avoids a copy when the right hand side matrix b is not
   * needed anymore.
   *
-  * \sa Cholesky::solve(), MatrixBase::cholesky()
+  * \sa LLT::solve(), MatrixBase::llt()
   */
 template<typename MatrixType>
 template<typename Derived>
-bool Cholesky<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
@@ -174,13 +174,13 @@ bool Cholesky<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 }
 
 /** \cholesky_module
-  * \deprecated has been renamed llt()
+  * \returns the LLT decomposition of \c *this
   */
 template<typename Derived>
-inline const Cholesky<typename MatrixBase<Derived>::EvalType>
-MatrixBase<Derived>::cholesky() const
+inline const LLT<typename MatrixBase<Derived>::EvalType>
+MatrixBase<Derived>::llt() const
 {
-  return Cholesky<typename ei_eval<Derived>::type>(derived());
+  return LLT<typename ei_eval<Derived>::type>(derived());
 }
 
-#endif // EIGEN_CHOLESKY_H
+#endif // EIGEN_LLT_H

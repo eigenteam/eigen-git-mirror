@@ -563,6 +563,9 @@ template<typename Derived> class MatrixBase
 
 /////////// Cholesky module ///////////
 
+    const LLT<EvalType>  llt() const;
+    const LDLT<EvalType> ldlt() const;
+    // deprecated:
     const Cholesky<EvalType> cholesky() const;
     const CholeskyWithoutSquareRoot<EvalType> choleskyNoSqrt() const;
 

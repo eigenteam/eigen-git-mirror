@@ -21,6 +21,18 @@
 #define MINDENSITY 0.0004
 #endif
 
+#ifndef NBTRIES
+#define NBTRIES 10
+#endif
+
+#define BENCH(X) \
+  timer.reset(); \
+  for (int _j=0; _j<NBTRIES; ++_j) { \
+    timer.start(); \
+    for (int _k=0; _k<REPEAT; ++_k) { \
+        X  \
+  } timer.stop(); }
+
 int main(int argc, char *argv[])
 {
   int rows = SIZE;
@@ -77,32 +89,34 @@ int main(int argc, char *argv[])
     {
       std::cout << "Eigen sparse\t" << density*100 << "%\n";
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        sm3 = sm1 * sm2;
-      timer.stop();
+//       timer.reset();
+//       timer.start();
+      BENCH(for (int k=0; k<REPEAT; ++k) sm3 = sm1 * sm2;)
+//       timer.stop();
       std::cout << "   a * b:\t" << timer.value() << endl;
 
       timer.reset();
       timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        sm3 = sm1.transpose() * sm2;
-      timer.stop();
+//       std::cerr << "transpose...\n";
+//       EigenSparseMatrix sm4 = sm1.transpose();
+//       std::cout << sm4.nonZeros() << " == " << sm1.nonZeros() << "\n";
+//       exit(1);
+//       std::cerr << "transpose OK\n";
+//       std::cout << sm1 << "\n\n" << sm1.transpose() << "\n\n" << sm4.transpose() << "\n\n";
+      BENCH(for (int k=0; k<REPEAT; ++k) sm3 = sm1.transpose() * sm2;)
+//       timer.stop();
       std::cout << "   a' * b:\t" << timer.value() << endl;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        sm3 = sm1.transpose() * sm2.transpose();
-      timer.stop();
+//       timer.reset();
+//       timer.start();
+      BENCH( for (int k=0; k<REPEAT; ++k) sm3 = sm1.transpose() * sm2.transpose(); )
+//       timer.stop();
       std::cout << "   a' * b':\t" << timer.value() << endl;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        sm3 = sm1 * sm2.transpose();
-      timer.stop();
+//       timer.reset();
+//       timer.start();
+      BENCH( for (int k=0; k<REPEAT; ++k) sm3 = sm1 * sm2.transpose(); )
+//       timer.stop();
       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
 

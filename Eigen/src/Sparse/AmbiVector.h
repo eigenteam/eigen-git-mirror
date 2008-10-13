@@ -28,7 +28,7 @@
 /** \internal
   * Hybrid sparse/dense vector class designed for intensive read-write operations.
   *
-  * See BasicSparseCholesky and SparseProduct for usage examples.
+  * See BasicSparseLLT and SparseProduct for usage examples.
   */
 template<typename _Scalar> class AmbiVector
 {
@@ -269,12 +269,14 @@ class AmbiVector<_Scalar>::Iterator
 
     /** Default constructor
       * \param vec the vector on which we iterate
-      * \param nonZeroReferenceValue reference value used to prune zero coefficients.
-      * In practice, the coefficient are compared to \a nonZeroReferenceValue * precision<Scalar>().
+      * \param epsilon the minimal value used to prune zero coefficients.
+      * In practice, all coefficients having a magnitude smaller than \a epsilon
+      * are skipped.
       */
-    Iterator(const AmbiVector& vec, RealScalar nonZeroReferenceValue = RealScalar(0.1)) : m_vector(vec)
+    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*precision<RealScalar>())
+      : m_vector(vec)
     {
-      m_epsilon = nonZeroReferenceValue * precision<Scalar>();
+      m_epsilon = epsilon;
       m_isDense = m_vector.m_mode==IsDense;
       if (m_isDense)
       {
