@@ -217,6 +217,10 @@ template<typename Scalar> void sparse(int rows, int cols)
     // TODO test row major
   }
 
+  // test Cholesky
+  {
+  }
+
 }
 
 void test_sparse()

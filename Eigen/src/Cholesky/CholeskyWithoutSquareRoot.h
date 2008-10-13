@@ -71,6 +71,9 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     template<typename Derived>
     typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
 
+		template<typename Derived>
+    bool solveInPlace(MatrixBase<Derived> &bAndX) const;
+
     void compute(const MatrixType& matrix);
 
   protected:
@@ -101,7 +104,7 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
     m_matrix = a;
     return;
   }
-  
+
   // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
   // Unlike the standard Cholesky decomposition, here we cannot evaluate it to the destination
   // matrix because it a sub-row which is not compatible suitable for efficient packet evaluation.
@@ -144,8 +147,8 @@ void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
   * \param b the column vector \f$ b \f$, which can also be a matrix.
   *
   * See Cholesky::solve() for a example.
-  * 
-  * \sa MatrixBase::choleskyNoSqrt()
+  *
+  * \sa CholeskyWithoutSquareRoot::solveInPlace(), MatrixBase::choleskyNoSqrt()
   */
 template<typename MatrixType>
 template<typename Derived>
@@ -159,6 +162,34 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
       (  m_matrix.cwise().inverse().template part<Diagonal>()
        * matrixL().solveTriangular(b))
      );
+}
+
+/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
+  * The result is stored in \a bAndx
+  *
+  * \returns true in case of success, false otherwise.
+  *
+  * In other words, it computes \f$ b = A^{-1} b \f$ with
+  * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
+  * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
+  *
+  * Example: \include Cholesky_solve.cpp
+  * Output: \verbinclude Cholesky_solve.out
+  *
+  * \sa MatrixBase::cholesky(), CholeskyWithoutSquareRoot::solve()
+  */
+template<typename MatrixType>
+template<typename Derived>
+bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+{
+  const int size = m_matrix.rows();
+  ei_assert(size==bAndX.rows());
+  if (!m_isPositiveDefinite)
+    return false;
+  matrixL().solveTriangularInPlace(bAndX);
+	bAndX *= m_matrix.cwise().inverse().template part<Diagonal>();
+  m_matrix.adjoint().template part<UnitUpper>().solveTriangularInPlace(bAndX);
+  return true;
 }
 
 /** \cholesky_module

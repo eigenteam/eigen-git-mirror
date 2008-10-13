@@ -88,12 +88,12 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
           other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
       }
 
-      // now let process the remaining rows 4 at once
+      // now let's process the remaining rows 4 at once
       for(int i=blockyStart; IsLower ? i<size : i>0; )
       {
         int startBlock = i;
         int endBlock = startBlock + (IsLower ? 4 : -4);
-        
+
         /* Process the i cols times 4 rows block, and keep the result in a temporary vector */
         // FIXME use fixed size block but take care to small fixed size matrices...
         Matrix<Scalar,Dynamic,1> btmp(4);
@@ -101,7 +101,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
           btmp = lhs.block(startBlock,0,4,i) * other.col(c).start(i);
         else
           btmp = lhs.block(i-3,i+1,4,size-1-i) * other.col(c).end(size-1-i);
-        
+
         /* Let's process the 4x4 sub-matrix as usual.
          * btmp stores the diagonal coefficients used to update the remaining part of the result.
          */
@@ -191,6 +191,12 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
           &(lhs.const_cast_derived().coeffRef(IsLower ? endBlock : 0, IsLower ? startBlock : endBlock+1)),
           lhs.stride(),
           btmp, &(other.coeffRef(IsLower ? endBlock : 0, c)));
+// 				if (IsLower)
+//           other.col(c).end(size-endBlock) += (lhs.block(endBlock, startBlock, size-endBlock, endBlock-startBlock)
+//                                           * other.col(c).block(startBlock,endBlock-startBlock)).lazy();
+// 				else
+//           other.col(c).end(size-endBlock) += (lhs.block(endBlock, startBlock, size-endBlock, endBlock-startBlock)
+//                                           * other.col(c).block(startBlock,endBlock-startBlock)).lazy();
       }
 
       /* Now we have to process the remaining part as usual */
@@ -227,7 +233,15 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   ei_assert(!(Flags & ZeroDiagBit));
   ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
 
-  ei_solve_triangular_selector<Derived, OtherDerived>::run(derived(), other.derived());
+  const bool copy = ei_traits<OtherDerived>::Flags&RowMajorBit;
+  typedef typename ei_meta_if<copy,
+    typename ei_eval_to_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+  OtherCopy otherCopy(other.derived());
+
+  ei_solve_triangular_selector<Derived, typename ei_unref<OtherCopy>::type>::run(derived(), otherCopy);
+
+  if (copy)
+    other = otherCopy;
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
@@ -240,17 +254,17 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   * It is required that \c *this be marked as either an upper or a lower triangular matrix, which
   * can be done by marked(), and that is automatically the case with expressions such as those returned
   * by extract().
-  * 
+  *
   * \addexample SolveTriangular \label How to solve a triangular system (aka. how to multiply the inverse of a triangular matrix by another one)
-  * 
+  *
   * Example: \include MatrixBase_marked.cpp
   * Output: \verbinclude MatrixBase_marked.out
-  * 
+  *
   * This function is essentially a wrapper to the faster solveTriangularInPlace() function creating
   * a temporary copy of \a other, calling solveTriangularInPlace() on the copy and returning it.
   * Therefore, if \a other is not needed anymore, it is quite faster to call solveTriangularInPlace()
   * instead of solveTriangular().
-  * 
+  *
   * For users coming from BLAS, this function (and more specifically solveTriangularInPlace()) offer
   * all the operations supported by the \c *TRSV and \c *TRSM BLAS routines.
   *
@@ -258,14 +272,15 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   * \code
   * M * T^1  <=>  T.transpose().solveTriangularInPlace(M.transpose());
   * \endcode
-  * 
+  *
   * \sa solveTriangularInPlace(), marked(), extract()
   */
 template<typename Derived>
 template<typename OtherDerived>
-typename OtherDerived::Eval MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
+typename ei_eval_to_column_major<OtherDerived>::type
+MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
-  typename OtherDerived::Eval res(other);
+  typename ei_eval_to_column_major<OtherDerived>::type res(other);
   solveTriangularInPlace(res);
   return res;
 }

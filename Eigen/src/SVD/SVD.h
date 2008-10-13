@@ -50,16 +50,16 @@ template<typename MatrixType> class SVD
       AlignmentMask = int(PacketSize)-1,
       MinSize = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime)
     };
-    
+
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVector;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> RowVector;
-    
+
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MinSize> MatrixUType;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixVType;
     typedef Matrix<Scalar, MinSize, 1> SingularValuesType;
 
   public:
-  
+
     SVD(const MatrixType& matrix)
       : m_matU(matrix.rows(), std::min(matrix.rows(), matrix.cols())),
         m_matV(matrix.cols(),matrix.cols()),
@@ -69,7 +69,7 @@ template<typename MatrixType> class SVD
     }
 
     template<typename OtherDerived, typename ResultType>
-    void solve(const MatrixBase<OtherDerived> &b, ResultType* result) const;
+    bool solve(const MatrixBase<OtherDerived> &b, ResultType* result) const;
 
     const MatrixUType& matrixU() const { return m_matU; }
     const SingularValuesType& singularValues() const { return m_sigma; }
@@ -97,7 +97,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   const int m = matrix.rows();
   const int n = matrix.cols();
   const int nu = std::min(m,n);
-  
+
   m_matU.resize(m, nu);
   m_matU.setZero();
   m_sigma.resize(std::min(m,n));
@@ -130,7 +130,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       }
       m_sigma[k] = -m_sigma[k];
     }
-    
+
     for (j = k+1; j < n; j++)
     {
       if ((k < nct) && (m_sigma[k] != 0.0))
@@ -468,18 +468,18 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 template<typename MatrixType>
 SVD<MatrixType>& SVD<MatrixType>::sort()
 {
-  int mu = m_matU.rows(); 
-  int mv = m_matV.rows(); 
+  int mu = m_matU.rows();
+  int mv = m_matV.rows();
   int n  = m_matU.cols();
 
   for (int i=0; i<n; i++)
   {
-    int  k = i; 
+    int  k = i;
     Scalar p = m_sigma.coeff(i);
 
     for (int j=i+1; j<n; j++)
     {
-      if (m_sigma.coeff(j) > p) 
+      if (m_sigma.coeff(j) > p)
       {
         k = j;
         p = m_sigma.coeff(j);
@@ -509,7 +509,7 @@ SVD<MatrixType>& SVD<MatrixType>::sort()
   */
 template<typename MatrixType>
 template<typename OtherDerived, typename ResultType>
-void SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* result) const
+bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* result) const
 {
   const int rows = m_matU.rows();
   ei_assert(b.rows() == rows);
@@ -530,6 +530,7 @@ void SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
 
     result->col(j) = m_matV * aux;
   }
+  return true;
 }
 
 /** \svd_module

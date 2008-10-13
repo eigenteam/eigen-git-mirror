@@ -74,6 +74,9 @@ template<typename MatrixType> class Cholesky
     template<typename Derived>
     typename Derived::Eval solve(const MatrixBase<Derived> &b) const;
 
+    template<typename Derived>
+    bool solveInPlace(MatrixBase<Derived> &bAndX) const;
+
     void compute(const MatrixType& matrix);
 
   protected:
@@ -141,8 +144,37 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
+  typename ei_eval_to_column_major<Derived>::type x(b);
+  solveInPlace(x);
+  return x;
+  //return m_matrix.adjoint().template part<Upper>().solveTriangular(matrixL().solveTriangular(b));
+}
 
-  return m_matrix.adjoint().template part<Upper>().solveTriangular(matrixL().solveTriangular(b));
+/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
+  * The result is stored in \a bAndx
+  *
+  * \returns true in case of success, false otherwise.
+  *
+  * In other words, it computes \f$ b = A^{-1} b \f$ with
+  * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
+  * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
+  *
+  * Example: \include Cholesky_solve.cpp
+  * Output: \verbinclude Cholesky_solve.out
+  *
+  * \sa MatrixBase::cholesky(), Cholesky::solve()
+  */
+template<typename MatrixType>
+template<typename Derived>
+bool Cholesky<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+{
+  const int size = m_matrix.rows();
+  ei_assert(size==bAndX.rows());
+  if (!m_isPositiveDefinite)
+    return false;
+  matrixL().solveTriangularInPlace(bAndX);
+  m_matrix.adjoint().template part<Upper>().solveTriangularInPlace(bAndX);
+  return true;
 }
 
 /** \cholesky_module

@@ -320,7 +320,8 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
 
     template<typename OtherDerived>
-    typename OtherDerived::Eval solveTriangular(const MatrixBase<OtherDerived>& other) const;
+    typename ei_eval_to_column_major<OtherDerived>::type
+		solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
     void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
@@ -544,11 +545,11 @@ template<typename Derived> class MatrixBase
     const Select<Derived,ThenDerived,ElseDerived>
     select(const MatrixBase<ThenDerived>& thenMatrix,
            const MatrixBase<ElseDerived>& elseMatrix) const;
-   
+
     template<typename ThenDerived>
     inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
     select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
-    
+
     template<typename ElseDerived>
     inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
@@ -581,7 +582,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     EvalType cross(const MatrixBase<OtherDerived>& other) const;
     EvalType unitOrthogonal(void) const;
-    
+
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif

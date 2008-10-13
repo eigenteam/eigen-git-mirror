@@ -125,5 +125,6 @@ void test_triangular()
     CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
     CALL_SUBTEST( triangular(MatrixXd(17,17)) );
+    CALL_SUBTEST( triangular(Matrix<float,Dynamic,Dynamic,RowMajor>(5, 5)) );
   }
 }

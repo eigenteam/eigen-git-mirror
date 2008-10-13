@@ -36,8 +36,6 @@ struct ei_product_coeff_impl;
 template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
 struct ei_product_packet_impl;
 
-template<typename T> struct ei_product_eval_to_column_major;
-
 /** \class ProductReturnType
   *
   * \brief Helper class to get the correct and optimized returned type of operator*
@@ -70,7 +68,7 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
 
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime,
-                             typename ei_product_eval_to_column_major<Rhs>::type
+                             typename ei_eval_to_column_major<Rhs>::type
                    >::type RhsNested;
 
   typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
@@ -706,23 +704,12 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   return derived();
 }
 
-template<typename T> struct ei_product_eval_to_column_major
-{
-  typedef Matrix<typename ei_traits<T>::Scalar,
-                ei_traits<T>::RowsAtCompileTime,
-                ei_traits<T>::ColsAtCompileTime,
-                ColMajor,
-                ei_traits<T>::MaxRowsAtCompileTime,
-                ei_traits<T>::MaxColsAtCompileTime
-          > type;
-};
-
 template<typename T> struct ei_product_copy_rhs
 {
   typedef typename ei_meta_if<
          (ei_traits<T>::Flags & RowMajorBit)
       || (!(ei_traits<T>::Flags & DirectAccessBit)),
-      typename ei_product_eval_to_column_major<T>::type,
+      typename ei_eval_to_column_major<T>::type,
       const T&
     >::ret type;
 };

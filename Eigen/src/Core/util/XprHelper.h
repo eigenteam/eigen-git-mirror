@@ -121,6 +121,18 @@ template<typename T> struct ei_eval<T,IsDense>
           > type;
 };
 
+
+template<typename T> struct ei_eval_to_column_major
+{
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                ColMajor,
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
+};
+
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 
