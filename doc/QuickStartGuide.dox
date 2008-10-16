@@ -547,42 +547,4 @@ Here, provided the matrices have at least 2 rows and 2 columns, each coefficienc
 
 */
 
-
-
-
-/** \page TutorialAdvancedLinearAlgebra Tutorial 3/3 - Advanced linear algebra
-    \ingroup Tutorial
-
-<div class="eimainmenu">\ref index "Overview"
-  | \ref TutorialCore "Core features"
-  | \ref TutorialGeometry "Geometry"
-  | \b Advanced \b linear \b algebra
-</div>
-
-
-
-\b Table \b of \b contents
-  - \ref TutorialAdvLinearSolvers
-  - \ref TutorialAdvLU
-  - \ref TutorialAdvCholesky
-  - \ref TutorialAdvQR
-  - \ref TutorialAdvEigenProblems
-
-\section TutorialAdvLinearSolvers Solving linear problems
-todo
-
-<a href="#" class="top">top</a>\section TutorialAdvLU LU
-todo
-
-<a href="#" class="top">top</a>\section TutorialAdvCholesky Cholesky
-todo
-
-<a href="#" class="top">top</a>\section TutorialAdvQR QR
-todo
-
-<a href="#" class="top">top</a>\section TutorialAdvEigenProblems Eigen value problems
-todo
-
-*/
-
 }

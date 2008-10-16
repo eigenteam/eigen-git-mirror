@@ -1,0 +1,159 @@
+
+namespace Eigen {
+
+/** \page TutorialAdvancedLinearAlgebra Tutorial 3/3 - Advanced linear algebra
+    \in group Tutorial
+
+<div class="eimainmenu">\ref index "Overview"
+  | \ref TutorialCore "Core features"
+  | \ref TutorialGeometry "Geometry"
+  | \b Advanced \b linear \b algebra
+</div>
+
+\b Table \b of \b contents
+  - \ref TutorialAdvLinearSolvers
+  - \ref TutorialAdvLU
+  - \ref TutorialAdvCholesky
+  - \ref TutorialAdvQR
+  - \ref TutorialAdvEigenProblems
+
+\section TutorialAdvLinearSolvers Solving linear problems
+
+This part of the tutorial focuses on solving linear problem of the form \f$ A \mathbf{x} = b \f$,
+where both \f$ A \f$ and \f$ b \f$ are known, and \f$ x \f$ is the unknown. Moreover, \f$ A \f$
+assumed to be a squared matrix. Of course, the methods described here can be used whenever an expression
+involve the product of an inverse matrix with a vector or another matrix: \f$ A^{-1} B \f$.
+Eigen offers various algorithms to this problem, and its choice mainly depends on the nature of
+the matrix \f$ A \f$, such as its shape, size and numerical properties.
+
+\subsection TutorialAdv_Triangular Triangular solver
+If the matrix \f$ A \f$ is triangular (upper or lower) and invertible (the coefficients of the diagonal
+are all not zero), then the problem can be solved directly using MatrixBase::solveTriangular(), or better,
+MatrixBase::solveTriangularInPlace(). Here is an example:
+<table class="tutorial_code"><tr><td>
+\include MatrixBase_marked.cpp
+</td>
+<td>
+output:
+\include MatrixBase_marked.out
+</td></tr></table>
+
+See MatrixBase::solveTriangular() for more details.
+
+
+\subsection TutorialAdv_Inverse Direct inversion (for small matrices)
+If the matrix \f$ A \f$ is small (\f$ \leq 4 \f$) and invertible, then the problem can be solved
+by directly computing the inverse of the matrix \f$ A \f$: \f$ \mathbf{x} = A^{-1} b \f$. With Eigen,
+this can be implemented like this:
+
+\code
+#include <Eigen/LU>
+Matrix4f A = Matrix4f::Random();
+Vector4f b = Vector4f::Random();
+Vector4f x = A.inverse() * b;
+\endcode
+
+Note that the function inverse() is defined in the LU module.
+See MatrixBase::inverse() for more details.
+
+
+\subsection TutorialAdv_Symmetric Cholesky (for symmetric matrices)
+If the matrix \f$ A \f$ is \b symmetric, or more generally selfadjoint, and \b positive \b definite (SPD), then
+the best method is to use a Cholesky decomposition.
+Such SPD matrices often arise when solving overdetermined problems in a least square sense (see below).
+Eigen offers two different Cholesky decompositions: a \f$ LL^T \f$ decomposition where L is a lower triangular matrix,
+and a \f$ LDL^T \f$ decomposition where L is lower triangular with unit diagonal and D is a diagonal matrix.
+The latter avoids square roots and is therefore slightly more stable than the former one.
+\code
+#include <Eigen/Cholesky>
+MatrixXf D = MatrixXf::Random(8,4);
+MatrixXf A = D.transpose() * D;
+VectorXf b = D.transpose() * VectorXf::Random(4);
+VectorXf x;
+A.llt().solve(b,&x);   // using a LLT factorization
+A.ldlt().solve(b,&x);  // using a LDLT factorization
+\endcode
+when the value of the right hand side \f$ b \f$ is not needed anymore, then it is faster to use
+the \em in \em place API, e.g.:
+\code
+A.llt().solveInPlace(b);
+\endcode
+In that case the value of \f$ b \f$ is replaced by the result \f$ x \f$.
+
+If the linear problem has to solved for various right hand side \f$ b_i \f$, but same matrix \f$ A \f$,
+then it is highly recommended to perform the decomposition of \$ A \$ only once, e.g.:
+\code
+// ...
+LLT<MatrixXf> lltOfA(A);
+lltOfA.solveInPlace(b0);
+lltOfA.solveInPlace(b1);
+// ...
+\endcode
+
+\sa Cholesky_Module, LLT::solve(), LLT::solveInPlace(), LDLT::solve(), LDLT::solveInPlace(), class LLT, class LDLT.
+
+
+\subsection TutorialAdv_LU LU decomposition (for most cases)
+If the matrix \f$ A \f$ does not fit in one of the previous category, or if you are unsure about the numerical
+stability of your problem, then you can use the LU solver based on a decomposition of the same name.
+Actually, Eigen's LU module does not implement a standard LU decomposition, but rather a so called LU decomposition
+with full pivoting and rank update which has the advantages to be numerically much more stable.
+The API of the LU solver is the same than the Cholesky one, except that there is no \em in \em place variant:
+\code
+Matrix4f A = Matrix4f::Random();
+Vector4f b = Vector4f::Random();
+Vector4f x;
+A.lu().solve(b, &x);
+\endcode
+
+Again, the LU decomposition can be stored to be reused or to perform other kernel operations:
+\code
+// ...
+LU<MatrixXf> luOfA(A);
+luOfA.solve(b, &x);
+// ...
+\endcode
+
+\sa class LU, LU::solve(), LU_Module
+
+
+\subsection TutorialAdv_LU SVD solver (for singular matrices and special cases)
+Finally, Eigen also offer a solver based on a singular value decomposition (SVD). Again, the API is the
+same than with Cholesky or LU:
+\code
+Matrix4f A = Matrix4f::Random();
+Vector4f b = Vector4f::Random();
+Vector4f x;
+A.svd().solve(b, &x);
+SVD<MatrixXf> luOfA(A);
+svdOfA.solve(b, &x);
+\endcode
+
+\sa class SVD, SVD::solve(), SVD_Module
+
+
+
+
+<a href="#" class="top">top</a>\section TutorialAdvLU LU
+todo
+
+\sa LU_Module, LU::solve(), class LU
+
+<a href="#" class="top">top</a>\section TutorialAdvCholesky Cholesky
+todo
+
+\sa Cholesky_Module, LLT::solve(), LLT::solveInPlace(), LDLT::solve(), LDLT::solveInPlace(), class LLT, class LDLT
+
+<a href="#" class="top">top</a>\section TutorialAdvQR QR
+todo
+
+\sa QR_Module, class QR
+
+<a href="#" class="top">top</a>\section TutorialAdvEigenProblems Eigen value problems
+todo
+
+\sa class SelfAdjointEigenSolver, class EigenSolver
+
+*/
+
+}
