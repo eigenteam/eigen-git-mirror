@@ -51,9 +51,10 @@ template<typename MatrixType> class Cholesky
       compute(matrix);
     }
 
+		/** \deprecated */
     inline Part<MatrixType, Lower> matrixL(void) const { return m_matrix; }
 
-    /** \returns true if the matrix is positive definite */
+    /** \deprecated */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
@@ -76,8 +77,7 @@ template<typename MatrixType> class Cholesky
     bool m_isPositiveDefinite;
 };
 
-/** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
-  */
+/** \deprecated */
 template<typename MatrixType>
 void Cholesky<MatrixType>::compute(const MatrixType& a)
 {
@@ -128,20 +128,7 @@ typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b)
   return x;
 }
 
-/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
-  * The result is stored in \a bAndx
-  *
-  * \returns true in case of success, false otherwise.
-  *
-  * In other words, it computes \f$ b = A^{-1} b \f$ with
-  * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
-  * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
-  *
-  * Example: \include Cholesky_solve.cpp
-  * Output: \verbinclude Cholesky_solve.out
-  *
-  * \sa MatrixBase::cholesky(), Cholesky::solveInPlace()
-  */
+/** \deprecated */
 template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
 bool Cholesky<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
@@ -151,15 +138,7 @@ bool Cholesky<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<Res
   return solveInPlace((*result) = b);
 }
 
-/** This is the \em in-place version of solve().
-  *
-  * \param bAndX represents both the right-hand side matrix b and result x.
-  *
-  * This version avoids a copy when the right hand side matrix b is not
-  * needed anymore.
-  *
-  * \sa Cholesky::solve(), MatrixBase::cholesky()
-  */
+/** \deprecated */
 template<typename MatrixType>
 template<typename Derived>
 bool Cholesky<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const

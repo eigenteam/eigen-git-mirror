@@ -24,6 +24,7 @@ namespace Eigen {
   - \ref TutorialCoreTriangularMatrix
   - \ref TutorialLazyEvaluation
 \n
+
 <hr>
 
 <a href="#" class="top">top</a>\section TutorialCoreGettingStarted Getting started
@@ -256,7 +257,6 @@ scalar product</td><td>\code
 mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
 mat3 = mat1 / s1;   mat3 /= s1;\endcode
 </td></tr>
-<tr><td>
 </table>
 
 In Eigen, only traditional mathematical operators can be used right away.
@@ -424,10 +424,12 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
 <tr><td>\code
 mat4x4.minor(i,j) = mat3x3;
 mat3x3 = mat4x4.minor(i,j);\endcode
-</td><td>
+</td><td></td><td>
 \link MatrixBase::minor() minor \endlink (read-write)</td>
 </tr>
 </table>
+
+
 
 <a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices
 

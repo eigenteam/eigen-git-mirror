@@ -66,6 +66,7 @@ template<typename MatrixType> class LLT
       compute(matrix);
     }
 
+    /** \returns the lower triangular matrix L */
     inline Part<MatrixType, Lower> matrixL(void) const { return m_matrix; }
 
     /** \returns true if the matrix is positive definite */
@@ -129,13 +130,12 @@ void LLT<MatrixType>::compute(const MatrixType& a)
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
-  * The result is stored in \a bAndx
+  * The result is stored in \a result
   *
   * \returns true in case of success, false otherwise.
   *
   * In other words, it computes \f$ b = A^{-1} b \f$ with
   * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
-  * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
   *
   * Example: \include LLT_solve.cpp
   * Output: \verbinclude LLT_solve.out

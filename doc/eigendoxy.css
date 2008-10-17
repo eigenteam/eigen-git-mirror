@@ -479,6 +479,7 @@ th {
 
 
 TABLE.noborder {
+  border-collapse: separate;
   border-bottom-style : none;
   border-left-style   : none;
   border-right-style  : none;
@@ -499,16 +500,22 @@ TABLE.noborder TD {
 
 table.tutorial_code {
   border-collapse: collapse;
-  empty-cells : show;
+  border-width: 1px;
+  border-style: dotted;
+  border-color: #888888;
+  empty-cells : hide;
   margin: 4pt 0 0 0;
   padding: 0 0 0 0;
 }
 table.tutorial_code tr {
-   border-style: none dashed none dashed;
+   border-style: dashed;
    border-width: 1px;
+   border-color: #888888;
 }
 table.tutorial_code td {
-  border-style: dashed none dashed none;
+  border-style: none dotted none dotted;
+  border-width: 0 1px 0 1px;
+  border-color: transparent;
   empty-cells : show;
   margin: 0 0 0 0;
   padding: 2pt 5pt 2pt 5pt;

@@ -2,7 +2,7 @@
 namespace Eigen {
 
 /** \page TutorialAdvancedLinearAlgebra Tutorial 3/3 - Advanced linear algebra
-    \in group Tutorial
+    \ingroup Tutorial
 
 <div class="eimainmenu">\ref index "Overview"
   | \ref TutorialCore "Core features"

@@ -77,8 +77,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     bool m_isPositiveDefinite;
 };
 
-/** Compute / recompute the Cholesky decomposition A = L D L^* = U^* D U of \a matrix
-  */
+/** \deprecated */
 template<typename MatrixType>
 void CholeskyWithoutSquareRoot<MatrixType>::compute(const MatrixType& a)
 {
@@ -145,20 +144,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
      );
 }
 
-/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
-  * The result is stored in \a bAndx
-  *
-  * \returns true in case of success, false otherwise.
-  *
-  * In other words, it computes \f$ b = A^{-1} b \f$ with
-  * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
-  * \param bAndX stores both the matrix \f$ b \f$ and the result \f$ x \f$
-  *
-  * Example: \include CholeskyCholeskyWithoutSquareRoot_solve.cpp
-  * Output: \verbinclude CholeskyCholeskyWithoutSquareRoot_solve.out
-  *
-  * \sa CholeskyWithoutSquareRoot::solveInPlace(), MatrixBase::choleskyNoSqrt()
-  */
+/** \deprecated */
 template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
 bool CholeskyWithoutSquareRoot<MatrixType>
@@ -170,15 +156,7 @@ bool CholeskyWithoutSquareRoot<MatrixType>
   return solveInPlace(*result);
 }
 
-/** This is the \em in-place version of solve().
-  *
-  * \param bAndX represents both the right-hand side matrix b and result x.
-  *
-  * This version avoids a copy when the right hand side matrix b is not
-  * needed anymore.
-  *
-  * \sa CholeskyWithoutSquareRoot::solve(), MatrixBase::choleskyNoSqrt()
-  */
+/** \deprecated */
 template<typename MatrixType>
 template<typename Derived>
 bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
@@ -193,7 +171,7 @@ bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bA
   return true;
 }
 
-/** \deprecated \cholesky_module
+/** \cholesky_module
   * \deprecated has been renamed ldlt()
   */
 template<typename Derived>
