@@ -169,7 +169,10 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
         }
       }
       for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
-        res.fill(it.index(), j) = it.value();
+        if (ResultType::Flags&RowMajorBit)
+          res.fill(j,it.index()) = it.value();
+        else
+          res.fill(it.index(), j) = it.value();
     }
     res.endFill();
   }
