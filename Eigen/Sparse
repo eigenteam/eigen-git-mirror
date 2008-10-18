@@ -43,7 +43,8 @@ namespace Eigen {
 #include "src/Sparse/SparseSetter.h"
 #include "src/Sparse/SparseProduct.h"
 #include "src/Sparse/TriangularSolver.h"
-#include "src/Sparse/SparseCholesky.h"
+#include "src/Sparse/SparseLLT.h"
+#include "src/Sparse/SparseLU.h"
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
 # include "src/Sparse/CholmodSupport.h"

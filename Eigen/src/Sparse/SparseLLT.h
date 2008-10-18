@@ -22,35 +22,21 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SPARSECHOLESKY_H
-#define EIGEN_SPARSECHOLESKY_H
-
-enum SparseBackend {
-  DefaultBackend,
-  Taucs,
-  Cholmod,
-  SuperLU
-};
-
-enum {
-  CompleteFactorization        = 0x0,  // full is the default
-  IncompleteFactorization      = 0x1,
-  MemoryEfficient              = 0x2,
-  SupernodalMultifrontal       = 0x4,
-  SupernodalLeftLooking        = 0x8
-};
+#ifndef EIGEN_SPARSELLT_H
+#define EIGEN_SPARSELLT_H
 
 /** \ingroup Sparse_Module
   *
   * \class SparseLLT
   *
-  * \brief Standard LLT decomposition of a matrix and associated features
+  * \brief LLT Cholesky decomposition of a sparse matrix and associated features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LLT decomposition
+  * \param MatrixType the type of the matrix of which we are computing the LLT Cholesky decomposition
   *
   * \sa class LLT, class LDLT
   */
-template<typename MatrixType, int Backend = DefaultBackend> class SparseLLT
+template<typename MatrixType, int Backend = DefaultBackend>
+class SparseLLT
 {
   protected:
     typedef typename MatrixType::Scalar Scalar;
@@ -64,12 +50,15 @@ template<typename MatrixType, int Backend = DefaultBackend> class SparseLLT
 
   public:
 
+    /** Creates a dummy LLT factorization object with flags \a flags. */
     SparseLLT(int flags = 0)
       : m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
     }
 
+    /** Creates a LLT object and compute the respective factorization of \a matrix using
+      * flags \a flags. */
     SparseLLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
@@ -77,18 +66,48 @@ template<typename MatrixType, int Backend = DefaultBackend> class SparseLLT
       compute(matrix);
     }
 
+    /** Sets the relative threshold value used to prune zero coefficients during the decomposition.
+      *
+      * Setting a value greater than zero speeds up computation, and yields to an imcomplete
+      * factorization with fewer non zero coefficients. Such approximate factors are especially
+      * useful to initialize an iterative solver.
+      *
+      * \warning if precision is greater that zero, the LLT factorization is not guaranteed to succeed
+      * even if the matrix is positive definite.
+      *
+      * Note that the exact meaning of this parameter might depends on the actual
+      * backend. Moreover, not all backends support this feature.
+      *
+      * \sa precision() */
     void setPrecision(RealScalar v) { m_precision = v; }
+
+    /** \returns the current precision.
+      *
+      * \sa setPrecision() */
     RealScalar precision() const { return m_precision; }
 
+    /** Sets the flags. Possible values are:
+      *  - CompleteFactorization
+      *  - IncompleteFactorization
+      *  - MemoryEfficient          (hint to use the memory most efficient method offered by the backend)
+      *  - SupernodalMultifrontal   (implies a complete factorization if supported by the backend,
+      *                              overloads the MemoryEfficient flags)
+      *  - SupernodalLeftLooking    (implies a complete factorization  if supported by the backend,
+      *                              overloads the MemoryEfficient flags)
+      *
+      * \sa flags() */
     void setFlags(int f) { m_flags = f; }
+    /** \returns the current flags */
     int flags() const { return m_flags; }
 
+    /** Computes/re-computes the LLT factorization */
     void compute(const MatrixType& matrix);
 
+    /** \returns the lower triangular matrix L */
     inline const CholMatrixType& matrixL(void) const { return m_matrix; }
 
     template<typename Derived>
-    void solveInPlace(MatrixBase<Derived> &b) const;
+    bool solveInPlace(MatrixBase<Derived> &b) const;
 
     /** \returns true if the factorization succeeded */
     inline bool succeeded(void) const { return m_succeeded; }
@@ -101,7 +120,8 @@ template<typename MatrixType, int Backend = DefaultBackend> class SparseLLT
     bool m_succeeded;
 };
 
-/** Computes / recomputes the LLT decomposition A = LL^* = U^*U of \a matrix
+/** Computes / recomputes the LLT decomposition of matrix \a a
+  * using the default algorithm.
   */
 template<typename MatrixType, int Backend>
 void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
@@ -109,20 +129,19 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
-//   const RealScalar eps = ei_sqrt(precision<Scalar>());
 
   // allocate a temporary vector for accumulations
   AmbiVector<Scalar> tempVector(size);
   RealScalar density = a.nonZeros()/RealScalar(size*size);
 
-  // TODO estimate the number of nnz
+  // TODO estimate the number of non zeros
   m_matrix.startFill(a.nonZeros()*2);
   for (int j = 0; j < size; ++j)
   {
     Scalar x = ei_real(a.coeff(j,j));
     int endSize = size-j-1;
 
-    // TODO better estimate the density !
+    // TODO better estimate of the density !
     tempVector.init(density>0.001? IsDense : IsSparse);
     tempVector.setBounds(j+1,size);
     tempVector.setZero();
@@ -163,15 +182,18 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
   m_matrix.endFill();
 }
 
+/** Computes b = L^-T L^-1 b */
 template<typename MatrixType, int Backend>
 template<typename Derived>
-void SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
+bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
   m_matrix.solveTriangularInPlace(b);
   m_matrix.adjoint().solveTriangularInPlace(b);
+
+  return true;
 }
 
-#endif // EIGEN_BASICSPARSECHOLESKY_H
+#endif // EIGEN_SPARSELLT_H

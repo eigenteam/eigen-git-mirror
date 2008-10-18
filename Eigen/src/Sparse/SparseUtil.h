@@ -31,6 +31,24 @@
 #define EIGEN_DBG_SPARSE(X) X
 #endif
 
+enum SparseBackend {
+  DefaultBackend,
+  Taucs,
+  Cholmod,
+  SuperLU,
+  UmfPack
+};
+
+// solver flags
+enum {
+  CompleteFactorization        = 0x0000,  // the default
+  IncompleteFactorization      = 0x0001,
+  MemoryEfficient              = 0x0002,
+  // For LLT Cholesky:
+  SupernodalMultifrontal       = 0x0010,
+  SupernodalLeftLooking        = 0x0020
+};
+
 template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SparseMatrix;
 template<typename _Scalar, int _Flags = 0> class HashMatrix;

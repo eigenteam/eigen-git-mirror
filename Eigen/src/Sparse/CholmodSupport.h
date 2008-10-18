@@ -199,15 +199,8 @@ void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
   ei_assert(size==b.rows());
 
   if (m_status & MatrixLIsDirty)
-  {
-//     ei_assert(!(m_status & SupernodalFactorIsDirty));
-//     taucs_supernodal_solve_llt(m_taucsSupernodalFactor,double* b);
     matrixL();
-  }
-//   else
-  {
-    Base::solveInPlace(b);
-  }
+  Base::solveInPlace(b);
 }
 
 #endif // EIGEN_CHOLMODSUPPORT_H
