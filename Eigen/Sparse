@@ -50,6 +50,10 @@
   namespace Eigen { struct SluMatrix; }
 #endif
 
+#ifdef EIGEN_UMFPACK_SUPPORT
+  #include "umfpack.h"
+#endif
+
 namespace Eigen {
 
 #include "src/Sparse/SparseUtil.h"
@@ -77,6 +81,10 @@ namespace Eigen {
 
 #ifdef EIGEN_SUPERLU_SUPPORT
 # include "src/Sparse/SuperLUSupport.h"
+#endif
+
+#ifdef EIGEN_UMFPACK_SUPPORT
+# include "src/Sparse/UmfPackSupport.h"
 #endif
 
 } // namespace Eigen

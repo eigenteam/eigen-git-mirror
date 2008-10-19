@@ -311,8 +311,8 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
           &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
 
-  // FIXME how to check for errors ???
-  Base::m_succeeded = true;
+  // FIXME how to better check for errors ???
+  Base::m_succeeded = (info == 0);
 }
 
 // template<typename MatrixType>
@@ -362,6 +362,8 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b, MatrixBa
     &m_sluFerr[0], &m_sluBerr[0],
     &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
+
+  return info==0;
 }
 
 #endif // EIGEN_SUPERLUSUPPORT_H
