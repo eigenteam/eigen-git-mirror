@@ -2,6 +2,7 @@
 //g++ -O3 -g0 -DNDEBUG  sparse_product.cpp -I.. -I/home/gael/Coding/LinearAlgebra/mtl4/ -DDENSITY=0.005 -DSIZE=10000 && ./a.out
 //g++ -O3 -g0 -DNDEBUG  sparse_product.cpp -I.. -I/home/gael/Coding/LinearAlgebra/mtl4/ -DDENSITY=0.05 -DSIZE=2000 && ./a.out
 // -DNOGMM -DNOMTL
+// -I /home/gael/Coding/LinearAlgebra/CSparse/Include/ /home/gael/Coding/LinearAlgebra/CSparse/Lib/libcsparse.a
 
 #ifndef SIZE
 #define SIZE 10000
@@ -60,8 +61,9 @@ int main(int argc, char *argv[])
   BenchTimer timer;
   #if 1
   EigenSparseTriMatrix sm1(rows,cols);
-  VectorXf b = VectorXf::Random(cols);
-  VectorXf x = VectorXf::Random(cols);
+  typedef Matrix<Scalar,Dynamic,1> DenseVector;
+  DenseVector b = DenseVector::Random(cols);
+  DenseVector x = DenseVector::Random(cols);
 
   bool densedone = false;
 
@@ -81,13 +83,13 @@ int main(int argc, char *argv[])
       eiToDense(sm1, m1);
       m2 = m1;
 
-      BENCH(x = m1.marked<Upper>().inverseProduct(b);)
+      BENCH(x = m1.marked<Upper>().solveTriangular(b);)
       std::cout << "   colmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << x.transpose() << "\n";
+//       std::cerr << x.transpose() << "\n";
 
-      BENCH(x = m2.marked<Upper>().inverseProduct(b);)
+      BENCH(x = m2.marked<Upper>().solveTriangular(b);)
       std::cout << "   rowmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << x.transpose() << "\n";
+//       std::cerr << x.transpose() << "\n";
     }
     #endif
 
@@ -96,13 +98,13 @@ int main(int argc, char *argv[])
       std::cout << "Eigen sparse\t" << density*100 << "%\n";
       EigenSparseTriMatrixRow sm2 = sm1;
 
-      BENCH(x = sm1.inverseProduct(b);)
+      BENCH(x = sm1.solveTriangular(b);)
       std::cout << "   colmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << x.transpose() << "\n";
+//       std::cerr << x.transpose() << "\n";
 
-      BENCH(x = sm2.inverseProduct(b);)
+      BENCH(x = sm2.solveTriangular(b);)
       std::cout << "   rowmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << x.transpose() << "\n";
+//       std::cerr << x.transpose() << "\n";
 
 //       x = b;
 //       BENCH(sm1.inverseProductInPlace(x);)
@@ -114,6 +116,18 @@ int main(int argc, char *argv[])
 //       std::cout << "   rowmajor^-1 * b:\t" << timer.value() << " (inplace)" << endl;
 //       std::cerr << x.transpose() << "\n";
     }
+
+    // CSparse
+    #ifdef CSPARSE
+    {
+      std::cout << "CSparse \t" << density*100 << "%\n";
+      cs *m1;
+      eiToCSparse(sm1, m1);
+
+      BENCH(x = b; if (!cs_lsolve (m1, x.data())){std::cerr << "cs_lsolve failed\n"; break;}; )
+      std::cout << "   colmajor^-1 * b:\t" << timer.value() << endl;
+    }
+    #endif
 
     // GMM++
     #ifndef NOGMM
@@ -130,13 +144,13 @@ int main(int argc, char *argv[])
       gmmX = gmmB;
       BENCH(gmm::upper_tri_solve(m1, gmmX, false);)
       std::cout << "   colmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << Map<Matrix<Scalar,Dynamic,1> >(&gmmX[0], cols).transpose() << "\n";
+//       std::cerr << Map<Matrix<Scalar,Dynamic,1> >(&gmmX[0], cols).transpose() << "\n";
 
       gmmX = gmmB;
       BENCH(gmm::upper_tri_solve(m2, gmmX, false);)
       timer.stop();
       std::cout << "   rowmajor^-1 * b:\t" << timer.value() << endl;
-      std::cerr << Map<Matrix<Scalar,Dynamic,1> >(&gmmX[0], cols).transpose() << "\n";
+//       std::cerr << Map<Matrix<Scalar,Dynamic,1> >(&gmmX[0], cols).transpose() << "\n";
     }
     #endif
 
@@ -162,7 +176,7 @@ int main(int argc, char *argv[])
     #endif
 
 
-
+    std::cout << "\n\n";
   }
   #endif
 
@@ -198,8 +212,6 @@ int main(int argc, char *argv[])
       std::cout << "4x4 IP :\t" << timer.value() << endl;
     }
   #endif
-
-    std::cout << "\n\n";
 
   return 0;
 }

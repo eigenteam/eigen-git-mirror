@@ -1,8 +1,8 @@
 
 //g++ -O3 -g0 -DNDEBUG  sparse_product.cpp -I.. -I/home/gael/Coding/LinearAlgebra/mtl4/ -DDENSITY=0.005 -DSIZE=10000 && ./a.out
 //g++ -O3 -g0 -DNDEBUG  sparse_product.cpp -I.. -I/home/gael/Coding/LinearAlgebra/mtl4/ -DDENSITY=0.05 -DSIZE=2000 && ./a.out
-// -DNOGMM -DNOMTL
-
+// -DNOGMM -DNOMTL -DCSPARSE
+// -I /home/gael/Coding/LinearAlgebra/CSparse/Include/ /home/gael/Coding/LinearAlgebra/CSparse/Lib/libcsparse.a
 #ifndef SIZE
 #define SIZE 10000
 #endif
@@ -32,6 +32,22 @@
     for (int _k=0; _k<REPEAT; ++_k) { \
         X  \
   } timer.stop(); }
+
+
+#ifdef CSPARSE
+cs* cs_sorted_multiply(const cs* a, const cs* b)
+{
+  cs* A = cs_transpose (a, 1) ;
+  cs* B = cs_transpose (b, 1) ;
+  cs* D = cs_multiply (B,A) ;   /* D = B'*A' */
+  cs_spfree (A) ;
+  cs_spfree (B) ;
+  cs_dropzeros (D) ;      /* drop zeros from D */
+  cs* C = cs_transpose (D, 1) ;   /* C = D', so that C is sorted */
+  cs_spfree (D) ;
+  return C;
+}
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -87,13 +103,15 @@ int main(int argc, char *argv[])
 
     // eigen sparse matrices
     {
-      std::cout << "Eigen sparse\t" << density*100 << "%\n";
+      std::cout << "Eigen sparse\t" << sm1.nonZeros()/float(sm1.rows()*sm1.cols())*100 << "% * "
+                << sm2.nonZeros()/float(sm2.rows()*sm2.cols())*100 << "%\n";
 
 //       timer.reset();
 //       timer.start();
       BENCH(for (int k=0; k<REPEAT; ++k) sm3 = sm1 * sm2;)
 //       timer.stop();
       std::cout << "   a * b:\t" << timer.value() << endl;
+//       std::cout << sm3 << "\n";
 
       timer.reset();
       timer.start();
@@ -119,6 +137,32 @@ int main(int argc, char *argv[])
 //       timer.stop();
       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
+
+    // CSparse
+    #ifdef CSPARSE
+    {
+      std::cout << "CSparse \t" << density*100 << "%\n";
+      cs *m1, *m2, *m3;
+      eiToCSparse(sm1, m1);
+      eiToCSparse(sm2, m2);
+
+      timer.reset();
+      timer.start();
+      for (int k=0; k<REPEAT; ++k)
+      {
+        m3 = cs_sorted_multiply(m1, m2);
+        if (!m3)
+        {
+          std::cerr << "cs_multiply failed\n";
+//           break;
+        }
+//         cs_print(m3, 0);
+        cs_spfree(m3);
+      }
+      timer.stop();
+      std::cout << "   a * b:\t" << timer.value() << endl;
+    }
+    #endif
 
     // GMM++
     #ifndef NOGMM

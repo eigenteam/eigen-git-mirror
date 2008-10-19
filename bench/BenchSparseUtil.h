@@ -72,3 +72,23 @@ void eiToMtl(const EigenSparseMatrix& src, MtlSparse& dst)
       ins[it.index()][j] = it.value();
 }
 #endif
+
+#ifdef CSPARSE
+extern "C" {
+#include "cs.h"
+}
+void eiToCSparse(const EigenSparseMatrix& src, cs* &dst)
+{
+  cs* aux = cs_spalloc (0, 0, 1, 1, 1);
+  for (int j=0; j<src.cols(); ++j)
+    for (EigenSparseMatrix::InnerIterator it(src.derived(), j); it; ++it)
+      if (!cs_entry(aux, it.index(), j, it.value()))
+      {
+        std::cout << "cs_entry error\n";
+        exit(2);
+      }
+   dst = cs_compress(aux);
+//    cs_spfree(aux);
+}
+
+#endif
