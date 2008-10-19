@@ -41,12 +41,23 @@ enum SparseBackend {
 
 // solver flags
 enum {
-  CompleteFactorization        = 0x0000,  // the default
-  IncompleteFactorization      = 0x0001,
-  MemoryEfficient              = 0x0002,
+  CompleteFactorization       = 0x0000,  // the default
+  IncompleteFactorization     = 0x0001,
+  MemoryEfficient             = 0x0002,
+
   // For LLT Cholesky:
-  SupernodalMultifrontal       = 0x0010,
-  SupernodalLeftLooking        = 0x0020
+  SupernodalMultifrontal      = 0x0010,
+  SupernodalLeftLooking       = 0x0020,
+
+  // Ordering methods:
+  NaturalOrdering             = 0x0100, // the default
+  MinimumDegree_AT_PLUS_A     = 0x0200,
+  MinimumDegree_ATA           = 0x0300,
+  ColApproxMinimumDegree      = 0x0400,
+  Metis                       = 0x0500,
+  Scotch                      = 0x0600,
+  Chaco                       = 0x0700,
+  OrderingMask                = 0x0f00
 };
 
 template<typename Derived> class SparseMatrixBase;

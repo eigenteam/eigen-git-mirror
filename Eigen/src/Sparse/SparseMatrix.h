@@ -247,7 +247,7 @@ class SparseMatrix
         typedef typename ei_cleantype<OtherCopy>::type _OtherCopy;
 
         resize(other.rows(), other.cols());
-        Map<VectorXi>(m_outerIndex,outerSize()).setZero();
+        Eigen::Map<VectorXi>(m_outerIndex,outerSize()).setZero();
         // pass 1
         // FIXME the above copy could be merged with that pass
         for (int j=0; j<otherCopy.outerSize(); ++j)
@@ -315,6 +315,11 @@ class SparseMatrix
     #ifdef EIGEN_CHOLMOD_SUPPORT
     static SparseMatrix Map(cholmod_sparse& cholmodMatrix);
     cholmod_sparse asCholmodMatrix();
+    #endif
+
+    #ifdef EIGEN_SUPERLU_SUPPORT
+    static SparseMatrix Map(SluMatrix& sluMatrix);
+    SluMatrix asSluMatrix();
     #endif
 
     /** Destructor */
