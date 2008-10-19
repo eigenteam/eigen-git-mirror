@@ -120,7 +120,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
     }
 
     SparseLLT(const MatrixType& matrix, int flags = 0)
-      : Base(matrix, flags), m_cholmodFactor(0)
+      : Base(flags), m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);
       compute(matrix);

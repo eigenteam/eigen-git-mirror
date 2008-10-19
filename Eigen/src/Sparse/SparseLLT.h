@@ -154,7 +154,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
     }
     for (int k=0; k<j+1; ++k)
     {
-      typename MatrixType::InnerIterator it(m_matrix, k);
+      typename CholMatrixType::InnerIterator it(m_matrix, k);
       while (it && it.index()<j)
         ++it;
       if (it && it.index()==j)

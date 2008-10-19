@@ -225,7 +225,7 @@ class SparseLU<MatrixType,SuperLU> : public SparseLU<MatrixType>
     }
 
     SparseLU(const MatrixType& matrix, int flags = NaturalOrdering)
-      : Base(matrix, flags)
+      : Base(flags)
     {
       compute(matrix);
     }
@@ -312,7 +312,7 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
   StatFree(&m_sluStat);
 
   // FIXME how to check for errors ???
-  m_succeeded = true;
+  Base::m_succeeded = true;
 }
 
 // template<typename MatrixType>
