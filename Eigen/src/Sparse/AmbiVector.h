@@ -124,7 +124,7 @@ void AmbiVector<Scalar>::nonZeros() const
 template<typename Scalar>
 void AmbiVector<Scalar>::init(RealScalar estimatedDensity)
 {
-  if (m_mode = estimatedDensity>0.1)
+  if (estimatedDensity>0.1)
     init(IsDense);
   else
     init(IsSparse);

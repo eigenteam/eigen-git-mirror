@@ -99,7 +99,7 @@ template<typename Scalar> void sparse(int rows, int cols)
   refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
 
   VERIFY_IS_APPROX(m, refMat);
-  #if 0
+
   // test InnerIterators and Block expressions
   for(int j=0; j<cols; j++)
   {
@@ -217,7 +217,6 @@ template<typename Scalar> void sparse(int rows, int cols)
 
     // TODO test row major
   }
-  #endif
 
   // test LLT
   {
@@ -232,8 +231,6 @@ template<typename Scalar> void sparse(int rows, int cols)
     refMat2.diagonal() *= 0.5;
 
     refMat2.llt().solve(b, &refX);
-//     std::cerr << refMat2 << "\n\n" << refMat2.llt().matrixL() << "\n\n";
-//     std::cerr << m2 << "\n\n";
     typedef SparseMatrix<Scalar,Lower|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLLT<SparseSelfAdjointMatrix> (m2).solveInPlace(x);
@@ -253,6 +250,32 @@ template<typename Scalar> void sparse(int rows, int cols)
     x = b;
     SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
+    #endif
+  }
+
+  // test LU
+  {
+    SparseMatrix<Scalar> m2(rows, cols);
+    DenseMatrix refMat2(rows, cols);
+    
+    DenseVector b = DenseVector::Random(cols);
+    DenseVector refX(cols), x(cols);
+    
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
+
+    refMat2.lu().solve(b, &refX);
+//     x.setZero();
+//     SparseLU<SparseMatrix<Scalar> > (m2).solve(b,&x);
+//     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: default");
+    #ifdef EIGEN_SUPERLU_SUPPORT
+    x.setZero();
+    SparseLU<SparseMatrix<Scalar>,SuperLU>(m2).solve(b,&x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: SuperLU");
+    #endif
+    #ifdef EIGEN_UMFPACK_SUPPORT
+    x.setZero();
+    SparseLU<SparseMatrix<Scalar>,UmfPack>(m2).solve(b,&x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: umfpack");
     #endif
   }
 

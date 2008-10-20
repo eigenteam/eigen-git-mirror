@@ -64,11 +64,8 @@ struct SluMatrix : SuperMatrix
   SluMatrix(const SluMatrix& other)
     : SuperMatrix(other)
   {
-    Store = &nnz;
-    nnz = other.nnz;
-    values = other.values;
-    innerInd = other.innerInd;
-    outerInd = other.outerInd;
+    Store = &storage;
+    storage = other.storage;
   }
 
   struct
@@ -77,13 +74,13 @@ struct SluMatrix : SuperMatrix
     void *values;
     int *innerInd;
     int *outerInd;
-  };
+  } storage;
 
   void setStorageType(Stype_t t)
   {
     Stype = t;
     if (t==SLU_NC || t==SLU_NR || t==SLU_DN)
-      Store = &nnz;
+      Store = &storage;
     else
     {
       ei_assert(false && "storage type not supported");
@@ -131,8 +128,8 @@ struct SluMatrixMapHelper<Matrix<Scalar,Rows,Cols,StorageOrder,MRows,MCols> >
     res.nrow      = mat.rows();
     res.ncol      = mat.cols();
 
-    res.lda       = mat.stride();
-    res.values    = mat.data();
+    res.storage.lda       = mat.stride();
+    res.storage.values    = mat.data();
   }
 };
 
@@ -157,10 +154,10 @@ struct SluMatrixMapHelper<SparseMatrix<Scalar,Flags> >
 
     res.Mtype     = SLU_GE;
 
-    res.nnz       = mat.nonZeros();
-    res.values    = mat._valuePtr();
-    res.innerInd  = mat._innerIndexPtr();
-    res.outerInd  = mat._outerIndexPtr();
+    res.storage.nnz       = mat.nonZeros();
+    res.storage.values    = mat._valuePtr();
+    res.storage.innerInd  = mat._innerIndexPtr();
+    res.storage.outerInd  = mat._outerIndexPtr();
 
     res.setScalarType<Scalar>();
 
@@ -196,11 +193,11 @@ SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(SluMatrix& sluMat)
     res.m_innerSize   = sluMat.nrow;
     res.m_outerSize   = sluMat.ncol;
   }
-  res.m_outerIndex  = sluMat.outerInd;
+  res.m_outerIndex  = sluMat.storage.outerInd;
   SparseArray<Scalar> data = SparseArray<Scalar>::Map(
-                                sluMat.innerInd,
-                                reinterpret_cast<Scalar*>(sluMat.values),
-                                sluMat.outerInd[res.m_outerSize]);
+                                sluMat.storage.innerInd,
+                                reinterpret_cast<Scalar*>(sluMat.storage.values),
+                                sluMat.storage.outerInd[res.m_outerSize]);
   res.m_data.swap(data);
   res.markAsRValue();
   return res;
@@ -295,9 +292,9 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
   m_sluB.setStorageType(SLU_DN);
   m_sluB.setScalarType<Scalar>();
   m_sluB.Mtype = SLU_GE;
-  m_sluB.values = 0;
+  m_sluB.storage.values = 0;
   m_sluB.nrow = m_sluB.ncol = 0;
-  m_sluB.lda = size;
+  m_sluB.storage.lda = size;
   m_sluX = m_sluB;
 
   StatInit(&m_sluStat);

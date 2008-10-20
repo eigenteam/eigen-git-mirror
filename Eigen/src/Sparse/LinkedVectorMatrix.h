@@ -43,7 +43,7 @@ struct ei_traits<LinkedVectorMatrix<_Scalar,_Flags> >
 template<typename Element, int ChunkSize = 8>
 struct LinkedVectorChunk
 {
-  LinkedVectorChunk() : size(0), next(0), prev(0) {}
+  LinkedVectorChunk() : next(0), prev(0), size(0) {}
   Element data[ChunkSize];
   LinkedVectorChunk* next;
   LinkedVectorChunk* prev;
@@ -141,7 +141,7 @@ class LinkedVectorMatrix
     inline void startFill(int reserveSize = 1000)
     {
       clear();
-      for (int i=0; i<m_data.size(); ++i)
+      for (unsigned int i=0; i<m_data.size(); ++i)
         m_ends[i] = m_data[i] = 0;
     }
 
@@ -202,7 +202,7 @@ class LinkedVectorMatrix
 
     void clear()
     {
-      for (int i=0; i<m_data.size(); ++i)
+      for (unsigned int i=0; i<m_data.size(); ++i)
       {
         VectorChunk* el = m_data[i];
         while (el)
@@ -224,7 +224,7 @@ class LinkedVectorMatrix
         clear();
         m_data.resize(outers);
         m_ends.resize(outers);
-        for (int i=0; i<m_data.size(); ++i)
+        for (unsigned int i=0; i<m_data.size(); ++i)
           m_ends[i] = m_data[i] = 0;
       }
       m_innerSize = inners;
