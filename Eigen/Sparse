@@ -16,9 +16,16 @@
 
 #ifdef EIGEN_TAUCS_SUPPORT
 
+  // taucs.h declares a lot of mess
+  #define isnan
+  #define finite
+  #define isinf
   extern "C" {
     #include "taucs.h"
   }
+  #undef isnan
+  #undef finite
+  #undef isinf
 
   #ifdef min
     #undef min

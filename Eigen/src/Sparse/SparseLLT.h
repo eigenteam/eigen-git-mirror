@@ -139,7 +139,6 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
   for (int j = 0; j < size; ++j)
   {
     Scalar x = ei_real(a.coeff(j,j));
-    int endSize = size-j-1;
 
     // TODO better estimate of the density !
     tempVector.init(density>0.001? IsDense : IsSparse);
@@ -191,7 +190,8 @@ bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   ei_assert(size==b.rows());
 
   m_matrix.solveTriangularInPlace(b);
-  m_matrix.adjoint().solveTriangularInPlace(b);
+  // FIXME should be .adjoint() but it fails to compile...
+  m_matrix.transpose().solveTriangularInPlace(b);
 
   return true;
 }

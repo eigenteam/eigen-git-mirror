@@ -23,6 +23,8 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <Eigen/Cholesky>
+#include <Eigen/LU>
 #include <Eigen/Sparse>
 
 enum {
@@ -46,8 +48,7 @@ initSparse(double density,
     {
       Scalar v = (ei_random<Scalar>(0,1) < density) ? ei_random<Scalar>() : 0;
       if ((flags&ForceNonZeroDiag) && (i==j))
-        while (ei_abs(v)<1e-2)
-          v = ei_random<Scalar>();
+        v = ei_random<Scalar>(Scalar(5.),Scalar(20.));
       if ((flags & MakeLowerTriangular) && j>i)
         v = 0;
       else if ((flags & MakeUpperTriangular) && j<i)
@@ -98,7 +99,7 @@ template<typename Scalar> void sparse(int rows, int cols)
   refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
 
   VERIFY_IS_APPROX(m, refMat);
-
+  #if 0
   // test InnerIterators and Block expressions
   for(int j=0; j<cols; j++)
   {
@@ -216,9 +217,43 @@ template<typename Scalar> void sparse(int rows, int cols)
 
     // TODO test row major
   }
+  #endif
 
   // test LLT
   {
+    SparseMatrix<Scalar> m2(rows, cols);
+    DenseMatrix refMat2(rows, cols);
+    
+    DenseVector b = DenseVector::Random(cols);
+    DenseVector refX(cols), x(cols);
+    
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
+    refMat2 += refMat2.adjoint();
+    refMat2.diagonal() *= 0.5;
+
+    refMat2.llt().solve(b, &refX);
+//     std::cerr << refMat2 << "\n\n" << refMat2.llt().matrixL() << "\n\n";
+//     std::cerr << m2 << "\n\n";
+    typedef SparseMatrix<Scalar,Lower|SelfAdjoint> SparseSelfAdjointMatrix;
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix> (m2).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: default");
+    #ifdef EIGEN_CHOLMOD_SUPPORT
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Cholmod>(m2).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
+    #endif
+    #ifdef EIGEN_TAUCS_SUPPORT
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
+    #endif
   }
 
 }

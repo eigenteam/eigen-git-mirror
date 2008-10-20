@@ -151,7 +151,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
     else
     {
       // use the faster Multifrontal routine
-      m_taucsSupernodalFactor = taucs_ccs_factor_llt_ll(&taucsMatA);
+      m_taucsSupernodalFactor = taucs_ccs_factor_llt_mf(&taucsMatA);
     }
     m_status = (m_status & ~IncompleteFactorization) | CompleteFactorization | MatrixLIsDirty;
   }
@@ -177,16 +177,19 @@ template<typename MatrixType>
 template<typename Derived>
 void SparseLLT<MatrixType,Taucs>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  const int size = m_matrix.rows();
-  ei_assert(size==b.rows());
-
   if (m_status & MatrixLIsDirty)
   {
-//     ei_assert(!(m_status & SupernodalFactorIsDirty));
-//     taucs_supernodal_solve_llt(m_taucsSupernodalFactor,double* b);
-    //matrixL();
+    // TODO use taucs's supernodal solver, in particular check types, storage order, etc.
+    // VectorXb x(b.rows());
+    // for (int j=0; j<b.cols(); ++j)
+    // {
+    //   taucs_supernodal_solve_llt(m_taucsSupernodalFactor,x.data(),&b.col(j).coeffRef(0));
+    //   b.col(j) = x;
+    // }
+    matrixL();
   }
-  else
+
+
   {
     Base::solveInPlace(b);
   }

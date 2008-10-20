@@ -195,11 +195,12 @@ template<typename MatrixType>
 template<typename Derived>
 void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
 {
+  if (m_status & MatrixLIsDirty)
+    matrixL();
+
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  if (m_status & MatrixLIsDirty)
-    matrixL();
   Base::solveInPlace(b);
 }
 
