@@ -152,6 +152,6 @@ ei_add_test(geometry)
 ei_add_test(hyperplane)
 ei_add_test(parametrizedline)
 ei_add_test(regression)
-ei_add_test(sparse )
+ei_add_test(sparse ${EI_OFLAG})
 
 endif(BUILD_TESTS)

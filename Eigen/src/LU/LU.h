@@ -190,10 +190,7 @@ template<typename MatrixType> class LU
       * \sa MatrixBase::solveTriangular(), kernel(), computeKernel(), inverse(), computeInverse()
       */
     template<typename OtherDerived, typename ResultType>
-    bool solve(
-    const MatrixBase<OtherDerived>& b,
-    ResultType *result
-    ) const;
+    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity

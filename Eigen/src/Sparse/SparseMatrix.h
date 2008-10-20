@@ -189,6 +189,10 @@ class SparseMatrix
         m_outerSize = outerSize;
       }
     }
+    void resizeNonZeros(int size)
+    {
+      m_data.resize(size);
+    }
 
     inline SparseMatrix()
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)

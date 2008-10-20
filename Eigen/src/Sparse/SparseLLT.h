@@ -160,7 +160,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
       {
         Scalar y = it.value();
         x -= ei_abs2(y);
-        ++it; // skip j-th element, and process remaing column coefficients
+        ++it; // skip j-th element, and process remaining column coefficients
         tempVector.restart();
         for (; it; ++it)
         {
