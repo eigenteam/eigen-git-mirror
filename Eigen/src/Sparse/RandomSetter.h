@@ -90,12 +90,12 @@ class RandomSetter
     inline RandomSetter(SparseMatrixType& target)
       : mp_target(&target)
     {
-      int outerPackets = target.outerSize() >> OuterPacketBits;
+      m_outerPackets = target.outerSize() >> OuterPacketBits;
       if (target.outerSize()&OuterPacketMask)
-        outerPackets += 1;
-      m_hashmaps = new HashMapType[outerPackets];
+        m_outerPackets += 1;
+      m_hashmaps = new HashMapType[m_outerPackets];
       KeyType ik = (1<<OuterPacketBits)*mp_target->innerSize()+1;
-      for (int k=0; k<outerPackets; ++k)
+      for (int k=0; k<m_outerPackets; ++k)
         HashMapTraits<ScalarWrapper>::setInvalidKey(m_hashmaps[k],ik);
     }
 
@@ -115,11 +115,20 @@ class RandomSetter
       return m_hashmaps[outerMajor][key].value;
     }
 
+    int nonZeros() const
+    {
+      int nz = 0;
+      for (int k=0; k<m_outerPackets; ++k)
+        nz += m_hashmaps[k].size();
+      return nz;
+    }
+
 
   protected:
 
     HashMapType* m_hashmaps;
     SparseMatrixType* mp_target;
+    int m_outerPackets;
 };
 
 #endif // EIGEN_RANDOMSETTER_H
