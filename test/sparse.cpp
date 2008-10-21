@@ -22,6 +22,14 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifdef __GNUC__
+#include <ext/hash_map>
+#endif
+
+#ifdef EIGEN_GOOGLEHASH_SUPPORT
+  #include <google/sparse_hash_map>
+#endif
+
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
@@ -70,6 +78,24 @@ initSparse(double density,
     }
   }
   sparseMat.endFill();
+}
+
+template<typename SetterType,typename DenseType, typename SparseType>
+bool test_random_setter(SparseType& sm, const DenseType& ref, const std::vector<Vector2i>& nonzeroCoords)
+{
+  {
+    sm.setZero();
+    SetterType w(sm);
+    std::vector<Vector2i> remaining = nonzeroCoords;
+    while(!remaining.empty())
+    {
+      int i = ei_random<int>(0,remaining.size()-1);
+      w(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
+      remaining[i] = remaining.back();
+      remaining.pop_back();
+    }
+  }
+  return sm.isApprox(ref);
 }
 
 template<typename Scalar> void sparse(int rows, int cols)
@@ -157,20 +183,48 @@ template<typename Scalar> void sparse(int rows, int cols)
 //   VERIFY_IS_APPROX(m, refMat);
 
   // random setter
-  {
-    m.setZero();
-    VERIFY_IS_NOT_APPROX(m, refMat);
-    SparseSetter<SparseMatrix<Scalar>, RandomAccessPattern> w(m);
-    std::vector<Vector2i> remaining = nonzeroCoords;
-    while(!remaining.empty())
-    {
-      int i = ei_random<int>(0,remaining.size()-1);
-      w->coeffRef(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
-      remaining[i] = remaining.back();
-      remaining.pop_back();
-    }
-  }
-  VERIFY_IS_APPROX(m, refMat);
+//   {
+//     m.setZero();
+//     VERIFY_IS_NOT_APPROX(m, refMat);
+//     SparseSetter<SparseMatrix<Scalar>, RandomAccessPattern> w(m);
+//     std::vector<Vector2i> remaining = nonzeroCoords;
+//     while(!remaining.empty())
+//     {
+//       int i = ei_random<int>(0,remaining.size()-1);
+//       w->coeffRef(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
+//       remaining[i] = remaining.back();
+//       remaining.pop_back();
+//     }
+//   }
+//   VERIFY_IS_APPROX(m, refMat);
+
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, StdMapTraits> >(m,refMat,nonzeroCoords) ));
+    #ifdef _HASH_MAP
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GnuHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    #endif
+    #ifdef _DENSE_HASH_MAP_H_
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GoogleDenseHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    #endif
+    #ifdef _SPARSE_HASH_MAP_H_
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    #endif
+//   {
+//     m.setZero();
+//     VERIFY_IS_NOT_APPROX(m, refMat);
+// //     RandomSetter<SparseMatrix<Scalar> > w(m);
+//     RandomSetter<SparseMatrix<Scalar>, GoogleDenseHashMapTraits > w(m);
+//     // RandomSetter<SparseMatrix<Scalar>, GnuHashMapTraits > w(m);
+//     std::vector<Vector2i> remaining = nonzeroCoords;
+//     while(!remaining.empty())
+//     {
+//       int i = ei_random<int>(0,remaining.size()-1);
+//       w(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
+//       remaining[i] = remaining.back();
+//       remaining.pop_back();
+//     }
+//   }
+//   std::cerr << m.transpose() << "\n\n"  << refMat.transpose() << "\n\n";
+//   VERIFY_IS_APPROX(m, refMat);
 
   // test transpose
   {
@@ -180,7 +234,7 @@ template<typename Scalar> void sparse(int rows, int cols)
     VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
     VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
   }
-
+#if 0
   // test matrix product
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
@@ -306,7 +360,7 @@ template<typename Scalar> void sparse(int rows, int cols)
     #endif
     count++;
   }
-
+#endif
 }
 
 void test_sparse()

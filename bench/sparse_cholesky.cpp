@@ -1,5 +1,5 @@
-#define EIGEN_TAUCS_SUPPORT
-#define EIGEN_CHOLMOD_SUPPORT
+// #define EIGEN_TAUCS_SUPPORT
+// #define EIGEN_CHOLMOD_SUPPORT
 #include <Eigen/Sparse>
 
 // g++ -DSIZE=10000 -DDENSITY=0.001  sparse_cholesky.cpp -I.. -DDENSEMATRI -O3 -g0 -DNDEBUG   -DNBTRIES=1 -I /home/gael/Coding/LinearAlgebra/taucs_full/src/ -I/home/gael/Coding/LinearAlgebra/taucs_full/build/linux/  -L/home/gael/Coding/LinearAlgebra/taucs_full/lib/linux/ -ltaucs /home/gael/Coding/LinearAlgebra/GotoBLAS/libgoto.a -lpthread -I /home/gael/Coding/LinearAlgebra/SuiteSparse/CHOLMOD/Include/ $CHOLLIB -I /home/gael/Coding/LinearAlgebra/SuiteSparse/UFconfig/ /home/gael/Coding/LinearAlgebra/SuiteSparse/CCOLAMD/Lib/libccolamd.a   /home/gael/Coding/LinearAlgebra/SuiteSparse/CHOLMOD/Lib/libcholmod.a -lmetis /home/gael/Coding/LinearAlgebra/SuiteSparse/AMD/Lib/libamd.a  /home/gael/Coding/LinearAlgebra/SuiteSparse/CAMD/Lib/libcamd.a   /home/gael/Coding/LinearAlgebra/SuiteSparse/CCOLAMD/Lib/libccolamd.a  /home/gael/Coding/LinearAlgebra/SuiteSparse/COLAMD/Lib/libcolamd.a -llapack && ./a.out
@@ -70,7 +70,7 @@ void doEigen(const char* name, const EigenSparseSelfAdjointMatrix& sm1, int flag
   std::cout << ":\t" << timer.value() << endl;
 
   std::cout << "  nnz: " << sm1.nonZeros() << " => " << chol.matrixL().nonZeros() << "\n";
-  //std::cout << "sparse\n" << chol.matrixL() << "%\n";
+  std::cout << "sparse\n" << chol.matrixL() << "%\n";
 }
 
 int main(int argc, char *argv[])

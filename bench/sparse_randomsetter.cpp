@@ -37,6 +37,31 @@
         X  \
   } timer.stop(); }
 
+
+static double rtime;
+static double nentries;
+
+template<typename SetterType>
+void dostuff(const char* name, EigenSparseMatrix& sm1)
+{
+  int rows = sm1.rows();
+  int cols = sm1.cols();
+  sm1.setZero();
+  BenchTimer t;
+  SetterType* set1 = new SetterType(sm1);
+  t.reset(); t.start();
+  for (int k=0; k<nentries; ++k)
+    (*set1)(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
+  t.stop();
+  std::cout << "std::map =>      \t" << t.value()-rtime
+            << " nnz=" << set1->nonZeros() << std::flush;
+
+  // getchar();
+
+  t.reset(); t.start(); delete set1; t.stop();
+  std::cout << "  back: \t" << t.value() << "\n";
+}
+    
 int main(int argc, char *argv[])
 {
   int rows = SIZE;
@@ -46,56 +71,52 @@ int main(int argc, char *argv[])
   EigenSparseMatrix sm1(rows,cols), sm2(rows,cols);
 
 
-  int n = rows*cols*density;
-  std::cout << "n = " << n << "\n";
+  nentries = rows*cols*density;
+  std::cout << "n = " << nentries << "\n";
   int dummy;
   BenchTimer t;
 
   t.reset(); t.start();
-  for (int k=0; k<n; ++k)
+  for (int k=0; k<nentries; ++k)
     dummy = ei_random<int>(0,rows-1) + ei_random<int>(0,cols-1);
   t.stop();
-  double rtime = t.value();
+  rtime = t.value();
   std::cout << "rtime = " << rtime << " (" << dummy << ")\n\n";
   const int Bits = 6;
   for (;;)
   {
-    {
-      RandomSetter<EigenSparseMatrix,StdMapTraits,Bits> set1(sm1);
-      t.reset(); t.start();
-      for (int k=0; k<n; ++k)
-        set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
-      t.stop();
-      std::cout << "std::map =>      \t" << t.value()-rtime
-                << " nnz=" << set1.nonZeros() << "\n";getchar();
-    }
-    {
-      RandomSetter<EigenSparseMatrix,GnuHashMapTraits,Bits> set1(sm1);
-      t.reset(); t.start();
-      for (int k=0; k<n; ++k)
-        set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
-      t.stop();
-      std::cout << "gnu::hash_map => \t" << t.value()-rtime
-                << " nnz=" << set1.nonZeros() << "\n";getchar();
-    }
-    {
-      RandomSetter<EigenSparseMatrix,GoogleDenseHashMapTraits,Bits> set1(sm1);
-      t.reset(); t.start();
-      for (int k=0; k<n; ++k)
-        set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
-      t.stop();
-      std::cout << "google::dense => \t" << t.value()-rtime
-                << " nnz=" << set1.nonZeros() << "\n";getchar();
-    }
-    {
-      RandomSetter<EigenSparseMatrix,GoogleSparseHashMapTraits,Bits> set1(sm1);
-      t.reset(); t.start();
-      for (int k=0; k<n; ++k)
-        set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
-      t.stop();
-      std::cout << "google::sparse => \t" << t.value()-rtime
-                << " nnz=" << set1.nonZeros() << "\n";getchar();
-    }
+    dostuff<RandomSetter<EigenSparseMatrix,StdMapTraits,Bits> >("std::map     ", sm1);
+    dostuff<RandomSetter<EigenSparseMatrix,GnuHashMapTraits,Bits> >("gnu::hash_map", sm1);
+    dostuff<RandomSetter<EigenSparseMatrix,GoogleDenseHashMapTraits,Bits> >("google::dense", sm1);
+    dostuff<RandomSetter<EigenSparseMatrix,GoogleSparseHashMapTraits,Bits> >("google::sparse", sm1);
+
+//     {
+//       RandomSetter<EigenSparseMatrix,GnuHashMapTraits,Bits> set1(sm1);
+//       t.reset(); t.start();
+//       for (int k=0; k<n; ++k)
+//         set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
+//       t.stop();
+//       std::cout << "gnu::hash_map => \t" << t.value()-rtime
+//                 << " nnz=" << set1.nonZeros() << "\n";getchar();
+//     }
+//     {
+//       RandomSetter<EigenSparseMatrix,GoogleDenseHashMapTraits,Bits> set1(sm1);
+//       t.reset(); t.start();
+//       for (int k=0; k<n; ++k)
+//         set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
+//       t.stop();
+//       std::cout << "google::dense => \t" << t.value()-rtime
+//                 << " nnz=" << set1.nonZeros() << "\n";getchar();
+//     }
+//     {
+//       RandomSetter<EigenSparseMatrix,GoogleSparseHashMapTraits,Bits> set1(sm1);
+//       t.reset(); t.start();
+//       for (int k=0; k<n; ++k)
+//         set1(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)) += 1;
+//       t.stop();
+//       std::cout << "google::sparse => \t" << t.value()-rtime
+//                 << " nnz=" << set1.nonZeros() << "\n";getchar();
+//     }
     std::cout << "\n\n";
   }
 
