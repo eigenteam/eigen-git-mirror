@@ -95,6 +95,20 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
     VERIFY_RAISES_ASSERT(m1 = (m2.block(0,0, rows-1, cols-1)));
   }
 
+  // test set
+  {
+    VERIFY_IS_APPROX(m3.set(m1),m1);
+    MatrixType m4, m5;
+    VERIFY_IS_APPROX(m4.set(m1),m1);
+    if (MatrixType::RowsAtCompileTime==Dynamic && MatrixType::ColsAtCompileTime==Dynamic)
+    {
+      MatrixType m6(rows+1,cols);
+      VERIFY_RAISES_ASSERT(m5 = m1);
+      VERIFY_RAISES_ASSERT(m3 = m5);
+      VERIFY_RAISES_ASSERT(m3 = m6);
+    }
+  }
+
   // test swap
   m3 = m1;
   m1.swap(m2);

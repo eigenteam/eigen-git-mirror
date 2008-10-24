@@ -65,6 +65,7 @@ struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
   typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
   static Scalar run(const Derived& mat, const BinaryOp& func)
   {
+    ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
     res = mat.coeff(0,0);
     for(int i = 1; i < mat.rows(); i++)

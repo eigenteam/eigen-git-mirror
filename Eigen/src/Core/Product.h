@@ -312,6 +312,7 @@ struct ei_product_coeff_impl<NoVectorization, Dynamic, Lhs, Rhs>
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar& res)
   {
+    ei_assert(lhs.cols()>0 && "you are using a non initialized matrix");
     res = lhs.coeff(row, 0) * rhs.coeff(0, col);
       for(int i = 1; i < lhs.cols(); i++)
         res += lhs.coeff(row, i) * rhs.coeff(i, col);
@@ -469,6 +470,7 @@ struct ei_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
+    ei_assert(lhs.cols()>0 && "you are using a non initialized matrix");
     res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
       for(int i = 1; i < lhs.cols(); i++)
         res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
@@ -480,6 +482,7 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 {
   inline static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
   {
+    ei_assert(lhs.cols()>0 && "you are using a non initialized matrix");
     res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1(rhs.coeff(0, col)));
       for(int i = 1; i < lhs.cols(); i++)
         res =  ei_pmadd(lhs.template packet<LoadMode>(row, i), ei_pset1(rhs.coeff(i, col)), res);

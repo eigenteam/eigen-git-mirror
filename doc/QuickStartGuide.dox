@@ -156,9 +156,9 @@ x.setRandom(size);
 </tr>
 <tr><td colspan="3">Basis vectors \link MatrixBase::Unit [details]\endlink</td></tr>
 <tr><td>\code
-Vector3f::UnixX() // 1 0 0
-Vector3f::UnixY() // 0 1 0
-Vector3f::UnixZ() // 0 0 1
+Vector3f::UnitX() // 1 0 0
+Vector3f::UnitY() // 0 1 0
+Vector3f::UnitZ() // 0 0 1
 \endcode</td><td></td><td>\code
 VectorXf::Unit(size,i)
 VectorXf::Unit(4,1) == Vector4f(0,1,0,0)

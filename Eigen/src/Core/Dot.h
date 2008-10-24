@@ -153,6 +153,7 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
   typedef typename Derived1::Scalar Scalar;
   static Scalar run(const Derived1& v1, const Derived2& v2)
   {
+    ei_assert(v1.size()>0 && "you are using a non initialized vector");
     Scalar res;
     res = v1.coeff(0) * ei_conj(v2.coeff(0));
     for(int i = 1; i < v1.size(); i++)

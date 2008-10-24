@@ -67,7 +67,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   RowVectorType v1 = RowVectorType::Random(rows),
              v2 = RowVectorType::Random(rows),
              vzero = RowVectorType::Zero(rows);
-  ColVectorType vc2 = ColVectorType::Random(cols), vcres;
+  ColVectorType vc2 = ColVectorType::Random(cols), vcres(cols);
   OtherMajorMatrixType tm1 = m1;
 
   Scalar s1 = ei_random<Scalar>();

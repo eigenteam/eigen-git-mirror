@@ -190,6 +190,17 @@ class Matrix
     inline Scalar *data()
     { return m_storage.data(); }
 
+    /** Resizes \c *this to a \a rows x \a cols matrix.
+      *
+      * Makes sense for dynamic-size matrices only.
+      *
+      * If the current number of coefficients of \c *this exactly matches the
+      * product \a rows * \a cols, then no memory allocation is performed and
+      * the current values are left unchanged. In all other cases, including
+      * shrinking, the data is reallocated and all previous values are lost.
+      *
+      * \sa resize(int) for vectors.
+      */
     inline void resize(int rows, int cols)
     {
       ei_assert(rows > 0
@@ -201,8 +212,13 @@ class Matrix
       m_storage.resize(rows * cols, rows, cols);
     }
 
+    /** Resizes \c *this to a vector of length \a size
+      *
+      * \sa resize(int,int) for the details.
+      */
     inline void resize(int size)
     {
+      ei_assert(size>0 && "a vector cannot be resized to 0 length");
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       if(RowsAtCompileTime == 1)
         m_storage.resize(size, 1, size);
@@ -210,16 +226,36 @@ class Matrix
         m_storage.resize(size, size, 1);
     }
 
-    /** Copies the value of the expression \a other into *this.
+    /** Copies the value of the expression \a other into \c *this.
       *
-      * *this is resized (if possible) to match the dimensions of \a other.
+      * \warning Note that the sizes of \c *this and \a other must match.
+      * If you want automatic resizing, then you must use the function set().
       *
       * As a special exception, copying a row-vector into a vector (and conversely)
-      * is allowed. The resizing, if any, is then done in the appropriate way so that
-      * row-vectors remain row-vectors and vectors remain vectors.
+      * is allowed.
+      *
+      * \sa set()
       */
     template<typename OtherDerived>
     inline Matrix& operator=(const MatrixBase<OtherDerived>& other)
+    {
+      ei_assert(m_storage.data()!=0 && "you cannot use operator= with a non initialized matrix (instead use set()");
+      return Base::operator=(other.derived());
+    }
+
+    /** Copies the value of the expression \a other into \c *this with automatic resizing.
+      *
+      * This function is the same than the assignment operator = excepted that \c *this might
+      * be resized to match the dimensions of \a other.
+      *
+      * Note that copying a row-vector into a vector (and conversely) is allowed.
+      * The resizing, if any, is then done in the appropriate way so that row-vectors
+      * remain row-vectors and vectors remain vectors.
+      *
+      * \sa operator=()
+      */
+    template<typename OtherDerived>
+    inline Matrix& set(const MatrixBase<OtherDerived>& other)
     {
       if(RowsAtCompileTime == 1)
       {
@@ -252,10 +288,28 @@ class Matrix
       *
       * For fixed-size matrices, does nothing.
       *
-      * For dynamic-size matrices, initializes with initial size 1x1, which is inefficient, hence
-      * when performance matters one should avoid using this constructor on dynamic-size matrices.
+      * For dynamic-size matrices, creates an empty matrix of size null.
+      * \warning while creating such an \em null matrix is allowed, it \b cannot
+      * \b be \b used before having being resized or initialized with the function set().
+      * In particular, initializing a null matrix with operator = is not supported.
+      * Finally, this constructor is the unique way to create null matrices: resizing
+      * a matrix to 0 is not supported.
+      * Here are some examples:
+      * \code
+      * MatrixXf r = MatrixXf::Random(3,4); // create a random matrix of floats
+      * MatrixXf m1, m2;  // creates two null matrices of float
+      *
+      * m1 = r;           // illegal (raise an assertion)
+      * r = m1;           // illegal (raise an assertion)
+      * m1 = m2;          // illegal (raise an assertion)
+      * m1.set(r);        // OK
+      * m2.resize(3,4);
+      * m2 = r;           // OK
+      * \endcode
+      *
+      * \sa resize(int,int), set()
       */
-    inline explicit Matrix() : m_storage(1, 1, 1)
+    inline explicit Matrix() : m_storage()
     {
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
