@@ -116,6 +116,13 @@ public:
   {
     m_angle = other.angle();
   }
+
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const Rotation2D& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
 /** \ingroup GeometryModule

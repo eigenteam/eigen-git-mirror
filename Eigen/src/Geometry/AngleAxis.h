@@ -149,6 +149,13 @@ public:
     m_axis = other.axis().template cast<OtherScalarType>();
     m_angle = other.angle();
   }
+
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return m_axis.isApprox(other.m_axis, prec) && ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
 /** \ingroup GeometryModule

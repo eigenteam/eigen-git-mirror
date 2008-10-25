@@ -45,7 +45,7 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   VectorType p1 = VectorType::Random(dim);
 
   VectorType d0 = VectorType::Random(dim).normalized();
-  
+
   LineType l0(p0, d0);
 
   Scalar s0 = ei_random<Scalar>();
@@ -55,7 +55,15 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   VERIFY_IS_MUCH_SMALLER_THAN( l0.distance(p0+s0*d0), RealScalar(1) );
   VERIFY_IS_APPROX( (l0.projection(p1)-p1).norm(), l0.distance(p1) );
   VERIFY_IS_MUCH_SMALLER_THAN( l0.distance(l0.projection(p1)), RealScalar(1) );
-  VERIFY_IS_APPROX( l0.distance((p0+s0*d0) + d0.unitOrthogonal() * s1), s1 );
+  VERIFY_IS_APPROX( Scalar(l0.distance((p0+s0*d0) + d0.unitOrthogonal() * s1)), s1 );
+
+  // casting
+  const int Dim = LineType::AmbientDimAtCompileTime;
+  typedef typename GetDifferentType<Scalar>::type OtherScalar;
+  ParametrizedLine<OtherScalar,Dim> hp1f = l0.template cast<OtherScalar>();
+  VERIFY_IS_APPROX(hp1f.template cast<Scalar>(),l0);
+  ParametrizedLine<Scalar,Dim> hp1d = l0.template cast<Scalar>();
+  VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),l0);
 }
 
 void test_parametrizedline()

@@ -46,7 +46,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
 
   VectorType n0 = VectorType::Random(dim).normalized();
   VectorType n1 = VectorType::Random(dim).normalized();
-  
+
   HyperplaneType pl0(n0, p0);
   HyperplaneType pl1(n1, p1);
   HyperplaneType pl2 = pl1;
@@ -55,7 +55,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   Scalar s1 = ei_random<Scalar>();
 
   VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
-  
+
   VERIFY_IS_MUCH_SMALLER_THAN( pl0.absDistance(p0), Scalar(1) );
   VERIFY_IS_APPROX( pl1.signedDistance(p1 + n1 * s0), s0 );
   VERIFY_IS_MUCH_SMALLER_THAN( pl1.signedDistance(pl1.projection(p0)), Scalar(1) );
@@ -67,7 +67,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
     MatrixType rot = MatrixType::Random(dim,dim).qr().matrixQ();
     Scaling<Scalar,HyperplaneType::AmbientDimAtCompileTime> scaling(VectorType::Random());
     Translation<Scalar,HyperplaneType::AmbientDimAtCompileTime> translation(VectorType::Random());
-    
+
     pl2 = pl1;
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot).absDistance(rot * p1), Scalar(1) );
     pl2 = pl1;
@@ -81,6 +81,14 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*translation,Isometry)
                                  .absDistance((rot*translation) * p1), Scalar(1) );
   }
+
+  // casting
+  const int Dim = HyperplaneType::AmbientDimAtCompileTime;
+  typedef typename GetDifferentType<Scalar>::type OtherScalar;
+  Hyperplane<OtherScalar,Dim> hp1f = pl1.template cast<OtherScalar>();
+  VERIFY_IS_APPROX(hp1f.template cast<Scalar>(),pl1);
+  Hyperplane<Scalar,Dim> hp1d = pl1.template cast<Scalar>();
+  VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),pl1);
 }
 
 template<typename Scalar> void lines()

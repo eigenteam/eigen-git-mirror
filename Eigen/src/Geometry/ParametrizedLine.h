@@ -122,6 +122,13 @@ public:
     m_direction = other.direction().template cast<OtherScalarType>();
   }
 
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const ParametrizedLine& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return m_origin.isApprox(other.m_origin, prec) && m_direction.isApprox(other.m_direction, prec); }
+
 protected:
 
   VectorType m_origin, m_direction;

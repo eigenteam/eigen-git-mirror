@@ -209,11 +209,10 @@ inline bool test_ei_isMuchSmallerThan(const long double& a, const long double& b
 inline bool test_ei_isApproxOrLessThan(const long double& a, const long double& b)
 { return ei_isApproxOrLessThan(a, b, test_precision<long double>()); }
 
-template<typename Derived1, typename Derived2>
-inline bool test_ei_isApprox(const MatrixBase<Derived1>& m1,
-                   const MatrixBase<Derived2>& m2)
+template<typename Type1, typename Type2>
+inline bool test_ei_isApprox(const Type1& a, const Type2& b)
 {
-  return m1.isApprox(m2, test_precision<typename ei_traits<Derived1>::Scalar>());
+  return a.isApprox(b, test_precision<typename Type1::Scalar>());
 }
 
 template<typename Derived1, typename Derived2>
@@ -232,6 +231,12 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
 
 } // end namespace Eigen
 
+template<typename T> struct GetDifferentType;
+
+template<> struct GetDifferentType<float> { typedef double type; };
+template<> struct GetDifferentType<double> { typedef float type; };
+template<typename T> struct GetDifferentType<std::complex<T> >
+{ typedef std::complex<typename GetDifferentType<T>::type> type; };
 
 // forward declaration of the main test function
 void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();

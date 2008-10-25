@@ -207,9 +207,14 @@ public:
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
   inline explicit Quaternion(const Quaternion<OtherScalarType>& other)
-  {
-    m_coeffs = other.coeffs().template cast<OtherScalarType>();
-  }
+  { m_coeffs = other.coeffs().template cast<OtherScalarType>(); }
+
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const Quaternion& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
 };
 

@@ -260,6 +260,13 @@ public:
   inline explicit Transform(const Transform<OtherScalarType,Dim>& other)
   { m_matrix = other.matrix().template cast<OtherScalarType>(); }
 
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return m_matrix.isApprox(other.m_matrix, prec); }
+
 protected:
 
 };

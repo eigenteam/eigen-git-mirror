@@ -256,6 +256,13 @@ public:
   inline explicit Hyperplane(const Hyperplane<OtherScalarType,AmbientDimAtCompileTime>& other)
   { m_coeffs = other.coeffs().template cast<OtherScalarType>(); }
 
+  /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+    * determined by \a prec.
+    *
+    * \sa MatrixBase::isApprox() */
+  bool isApprox(const Hyperplane& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  { return m_coeffs.isApprox(other.m_coeffs, prec); }
+
 protected:
 
   Coefficients m_coeffs;
