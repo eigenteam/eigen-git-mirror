@@ -101,7 +101,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(MatrixType::Identity(rows, cols)(r,c), static_cast<Scalar>(r==c));
 
   if (rows!=cols)
-    VERIFY_RAISES_ASSERT(m3 = m1*m1);
+     VERIFY_RAISES_ASSERT(m3 = m1*m1);
 
   // test the previous tests were not screwed up because operator* returns 0
   // (we use the more accurate default epsilon)

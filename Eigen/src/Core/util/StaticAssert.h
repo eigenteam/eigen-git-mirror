@@ -66,7 +66,10 @@
         scalar_type_must_be_floating_point,
         default_writting_to_selfadjoint_not_supported,
         writting_to_triangular_part_with_unit_diag_is_not_supported,
-        this_method_is_only_for_fixed_size
+        this_method_is_only_for_fixed_size,
+        invalid_matrix_product,
+        invalid_vector_vector_product__if_you_wanted_a_dot_or_coeff_wise_product_you_must_use_the_explicit_functions,
+        invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function
       };
     };
 
@@ -110,15 +113,18 @@
     || int(TYPE0::SizeAtCompileTime)==int(TYPE1::SizeAtCompileTime)),\
     you_mixed_vectors_of_different_sizes)
 
-// static assertion failing if the two matrix expression types are not compatible (same fixed-size or dynamic size)
-#define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
-  EIGEN_STATIC_ASSERT( \
-     ((int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
+#define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
+      ((int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
     || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \
     || int(TYPE0::RowsAtCompileTime)==int(TYPE1::RowsAtCompileTime)) \
    && (int(TYPE0::ColsAtCompileTime)==Eigen::Dynamic \
     || int(TYPE1::ColsAtCompileTime)==Eigen::Dynamic \
-    || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime))),\
+    || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime)))
+
+// static assertion failing if the two matrix expression types are not compatible (same fixed-size or dynamic size)
+#define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
+  EIGEN_STATIC_ASSERT( \
+     EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1),\
     you_mixed_matrices_of_different_sizes)
 
 #endif // EIGEN_STATIC_ASSERT_H
