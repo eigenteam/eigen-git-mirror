@@ -117,7 +117,7 @@ public:
 
   /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
     * its four coefficients \a w, \a x, \a y and \a z.
-    * 
+    *
     * \warning Note the order of the arguments: the real \a w coefficient first,
     * while internally the coefficients are stored in the following order:
     * [\c x, \c y, \c z, \c w]
@@ -162,13 +162,13 @@ public:
     * \sa Quaternion::norm2(), MatrixBase::norm()
     */
   inline Scalar norm() const { return m_coeffs.norm(); }
-  
-  /** Normalizes the quaternion \c *this 
+
+  /** Normalizes the quaternion \c *this
     * \sa normalized(), MatrixBase::normalize() */
-  inline void normalize() { m_coeffs.normalize(); } 
+  inline void normalize() { m_coeffs.normalize(); }
   /** \returns a normalized version of \c *this
     * \sa normalize(), MatrixBase::normalized() */
-  inline Quaternion normalized() const { Quaternion(m_coeffs.normalized()); } 
+  inline Quaternion normalized() const { return Quaternion(m_coeffs.normalized()); }
 
   /** \returns the dot product of \c *this and \a other
     * Geometrically speaking, the dot product of two unit quaternions
