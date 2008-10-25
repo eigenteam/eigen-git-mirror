@@ -61,8 +61,12 @@ class Hyperplane
     typedef Block<Coefficients,AmbientDimAtCompileTime,1> NormalReturnType;
 
     /** Default constructor without initialization */
-    inline explicit Hyperplane(int _dim = AmbientDimAtCompileTime) : m_coeffs(_dim+1) {}
-    
+    inline explicit Hyperplane() {}
+
+    /** Constructs a dynamic-size hyperplane with \a _dim the dimension
+      * of the ambient space */
+    inline explicit Hyperplane(int _dim) : m_coeffs(_dim+1) {}
+
     /** Construct a plane from its normal \a n and a point \a e onto the plane.
       * \warning the vector normal is assumed to be normalized.
       */
@@ -72,8 +76,9 @@ class Hyperplane
       normal() = n;
       offset() = -e.dot(n);
     }
-    
-    /** Constructs a plane from its normal \a n and distance to the origin \a d.
+
+    /** Constructs a plane from its normal \a n and distance to the origin \a d
+      * such that the algebraic equation of the plane is \f$ n \cdot x + d = 0 \f$.
       * \warning the vector normal is assumed to be normalized.
       */
     inline Hyperplane(const VectorType& n, Scalar d)
@@ -106,31 +111,38 @@ class Hyperplane
       return result;
     }
 
-    Hyperplane(const ParametrizedLine<Scalar, AmbientDimAtCompileTime>& parametrized)
+    /** Constructs a hyperplane passing through the parametrized line \a parametrized.
+      * If the dimension of the ambient space is greater than 2, then there isn't uniqueness,
+      * so an arbitrary choice is made.
+      */
+    // FIXME to be consitent with the rest this could be implemented as a static Through function ??
+    explicit Hyperplane(const ParametrizedLine<Scalar, AmbientDimAtCompileTime>& parametrized)
     {
       normal() = parametrized.direction().unitOrthogonal();
       offset() = -normal().dot(parametrized.origin());
     }
-    
+
     ~Hyperplane() {}
 
     /** \returns the dimension in which the plane holds */
     inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_coeffs.size()-1 : AmbientDimAtCompileTime; }
-    
+
     /** normalizes \c *this */
     void normalize(void)
     {
       m_coeffs /= normal().norm();
     }
-    
+
     /** \returns the signed distance between the plane \c *this and a point \a p.
+      * \sa absDistance()
       */
     inline Scalar signedDistance(const VectorType& p) const { return p.dot(normal()) + offset(); }
 
     /** \returns the absolute distance between the plane \c *this and a point \a p.
+      * \sa signedDistance()
       */
     inline Scalar absDistance(const VectorType& p) const { return ei_abs(signedDistance(p)); }
-    
+
     /** \returns the projection of a point \a p onto the plane \c *this.
       */
     inline VectorType projection(const VectorType& p) const { return p - signedDistance(p) * normal(); }
@@ -153,7 +165,7 @@ class Hyperplane
     /** \returns a non-constant reference to the distance to the origin, which is also the constant part
       * of the implicit equation */
     inline Scalar& offset() { return m_coeffs(dim()); }
-    
+
     /** \returns a constant reference to the coefficients c_i of the plane equation:
       * \f$ c_0*x_0 + ... + c_{d-1}*x_{d-1} + c_d = 0 \f$
       */
@@ -166,7 +178,7 @@ class Hyperplane
 
     /** \returns the intersection of *this with \a other.
       *
-      * \warning The ambient space must be a plane, i.e. have dimension 2, so that *this and \a other are lines.
+      * \warning The ambient space must be a plane, i.e. have dimension 2, so that \c *this and \a other are lines.
       *
       * \note If \a other is approximately parallel to *this, this method will return any point on *this.
       */
@@ -190,7 +202,13 @@ class Hyperplane
                             invdet*(other.coeffs().coeff(0)*coeffs().coeff(2)-coeffs().coeff(0)*other.coeffs().coeff(2)));
       }
     }
-    
+
+    /** \returns the transformation of \c *this by the transformation matrix \a mat.
+      *
+      * \param mat the Dim x Dim transformation matrix
+      * \param traits specifies whether the matrix \a mat represents an Isometry
+      *               or a more generic Affine transformation. The default is Affine.
+      */
     template<typename XprType>
     inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = Affine)
     {
@@ -205,6 +223,13 @@ class Hyperplane
       return *this;
     }
 
+    /** \returns the transformation of \c *this by the transformation \a t
+      *
+      * \param t the transformation of dimension Dim
+      * \param traits specifies whether the transformation \a t represents an Isometry
+      *               or a more generic Affine transformation. The default is Affine.
+      *               Other kind of transformations are not supported.
+      */
     inline Hyperplane& transform(const Transform<Scalar,AmbientDimAtCompileTime>& t,
                                  TransformTraits traits = Affine)
     {

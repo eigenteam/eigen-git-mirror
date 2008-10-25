@@ -32,9 +32,12 @@
   *
   * \brief A parametrized line
   *
+  * A parametrized line is defined by an origin point \f$ \mathbf{o} \f$ and a unit
+  * direction vector \f$ \mathbf{d} \f$ such that the line corresponds to
+  * the set \f$ l(t) = \mathbf{o} + t \mathbf{d} \f$, \f$ l \in \mathbf{R} \f$.
+  *
   * \param _Scalar the scalar type, i.e., the type of the coefficients
   * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
-  *             Notice that the dimension of the hyperplane is _AmbientDim-1.
   */
 template <typename _Scalar, int _AmbientDim>
 class ParametrizedLine
@@ -50,13 +53,23 @@ class ParametrizedLine
     typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
     /** Default constructor without initialization */
-    inline explicit ParametrizedLine(int _dim = AmbientDimAtCompileTime)
-      : m_origin(_dim), m_direction(_dim)
-    {}
-    
+    inline explicit ParametrizedLine() {}
+
+    /** Constructs a dynamic-size line with \a _dim the dimension
+      * of the ambient space */
+    inline explicit ParametrizedLine(int _dim) : m_origin(_dim), m_direction(_dim) {}
+
+    /** Initializes a parametrized line of direction \a direction and origin \a origin.
+      * \warning the vector direction is assumed to be normalized.
+      */
     ParametrizedLine(const VectorType& origin, const VectorType& direction)
       : m_origin(origin), m_direction(direction) {}
+
     explicit ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
+
+    /** Constructs a parametrized line going from \a p0 to \a p1. */
+    static inline ParametrizedLine Through(const VectorType& p0, const VectorType& p1)
+    { return ParametrizedLine(p0, (p1-p0).normalized()); }
 
     ~ParametrizedLine() {}
 
@@ -82,8 +95,7 @@ class ParametrizedLine
       */
     RealScalar distance(const VectorType& p) const { return ei_sqrt(squaredDistance(p)); }
 
-    /** \returns the projection of a point \a p onto the line \c *this.
-      */
+    /** \returns the projection of a point \a p onto the line \c *this. */
     VectorType projection(const VectorType& p) const
     { return origin() + (p-origin()).dot(direction()) * direction(); }
 
@@ -94,7 +106,7 @@ class ParametrizedLine
     VectorType m_origin, m_direction;
 };
 
-/** Construct a parametrized line from a 2D hyperplane
+/** Constructs a parametrized line from a 2D hyperplane
   *
   * \warning the ambient space must have dimension 2 such that the hyperplane actually describes a line
   */
@@ -106,7 +118,7 @@ inline ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane
   origin() = -hyperplane.normal()*hyperplane.offset();
 }
 
-/** \returns the parameter value of the intersection between *this and the given hyperplane
+/** \returns the parameter value of the intersection between \c *this and the given hyperplane
   */
 template <typename _Scalar, int _AmbientDim>
 inline _Scalar ParametrizedLine<_Scalar, _AmbientDim>::intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)

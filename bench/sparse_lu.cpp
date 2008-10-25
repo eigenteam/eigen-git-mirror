@@ -112,17 +112,17 @@ int main(int argc, char *argv[])
     }
     #endif
 
+    #ifdef EIGEN_UMFPACK_SUPPORT
+    x.setZero();
+    doEigen<Eigen::UmfPack>("Eigen/UmfPack (auto)", sm1, b, x, 0);
+    #endif
+
     #ifdef EIGEN_SUPERLU_SUPPORT
     x.setZero();
     doEigen<Eigen::SuperLU>("Eigen/SuperLU (nat)", sm1, b, x, Eigen::NaturalOrdering);
 //     doEigen<Eigen::SuperLU>("Eigen/SuperLU (MD AT+A)", sm1, b, x, Eigen::MinimumDegree_AT_PLUS_A);
 //     doEigen<Eigen::SuperLU>("Eigen/SuperLU (MD ATA)", sm1, b, x, Eigen::MinimumDegree_ATA);
     doEigen<Eigen::SuperLU>("Eigen/SuperLU (COLAMD)", sm1, b, x, Eigen::ColApproxMinimumDegree);
-    #endif
-
-    #ifdef EIGEN_UMFPACK_SUPPORT
-    x.setZero();
-    doEigen<Eigen::UmfPack>("Eigen/UmfPack (auto)", sm1, b, x, 0);
     #endif
 
   }
