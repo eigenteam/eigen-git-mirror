@@ -91,7 +91,7 @@ public:
   /** Concatenates two translation */
   inline Translation operator* (const Translation& other) const
   { return Translation(m_coeffs + other.m_coeffs); }
-  
+
   /** Concatenates a translation and a scaling */
   inline TransformType operator* (const ScalingType& other) const;
 
@@ -130,6 +130,20 @@ public:
     m_coeffs = other.m_coeffs;
     return *this;
   }
+
+  /** \returns \c *this with scalar type casted to \a NewScalarType
+    *
+    * Note that if \a NewScalarType is equal to the current scalar type of \c *this
+    * then this function smartly returns a const reference to \c *this.
+    */
+  template<typename NewScalarType>
+  typename ei_cast_return_type<Translation,Translation<NewScalarType,Dim> >::type cast() const
+  { return typename ei_cast_return_type<Translation,Translation<NewScalarType,Dim> >::type(*this); }
+
+  /** Copy constructor with scalar type conversion */
+  template<typename OtherScalarType>
+  explicit Translation(const Translation<OtherScalarType,Dim>& other)
+  { m_coeffs = other.vector().template cast<OtherScalarType>(); }
 
 };
 

@@ -100,6 +100,22 @@ public:
     */
   inline Rotation2D slerp(Scalar t, const Rotation2D& other) const
   { return m_angle * (1-t) + other.angle() * t; }
+
+  /** \returns \c *this with scalar type casted to \a NewScalarType
+    *
+    * Note that if \a NewScalarType is equal to the current scalar type of \c *this
+    * then this function smartly returns a const reference to \c *this.
+    */
+  template<typename NewScalarType>
+  typename ei_cast_return_type<Rotation2D,Rotation2D<NewScalarType> >::type cast() const
+  { return typename ei_cast_return_type<Rotation2D,Rotation2D<NewScalarType> >::type(*this); }
+
+  /** Copy constructor with scalar type conversion */
+  template<typename OtherScalarType>
+  explicit Rotation2D(const Rotation2D<OtherScalarType>& other)
+  {
+    m_angle = other.angle();
+  }
 };
 
 /** \ingroup GeometryModule

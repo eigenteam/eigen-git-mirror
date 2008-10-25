@@ -45,65 +45,86 @@ class ParametrizedLine
   : public ei_with_aligned_operator_new<_Scalar,_AmbientDim>
   #endif
 {
-  public:
+public:
 
-    enum { AmbientDimAtCompileTime = _AmbientDim };
-    typedef _Scalar Scalar;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
+  enum { AmbientDimAtCompileTime = _AmbientDim };
+  typedef _Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
-    /** Default constructor without initialization */
-    inline explicit ParametrizedLine() {}
+  /** Default constructor without initialization */
+  inline explicit ParametrizedLine() {}
 
-    /** Constructs a dynamic-size line with \a _dim the dimension
-      * of the ambient space */
-    inline explicit ParametrizedLine(int _dim) : m_origin(_dim), m_direction(_dim) {}
+  /** Constructs a dynamic-size line with \a _dim the dimension
+    * of the ambient space */
+  inline explicit ParametrizedLine(int _dim) : m_origin(_dim), m_direction(_dim) {}
 
-    /** Initializes a parametrized line of direction \a direction and origin \a origin.
-      * \warning the vector direction is assumed to be normalized.
-      */
-    ParametrizedLine(const VectorType& origin, const VectorType& direction)
-      : m_origin(origin), m_direction(direction) {}
+  /** Initializes a parametrized line of direction \a direction and origin \a origin.
+    * \warning the vector direction is assumed to be normalized.
+    */
+  ParametrizedLine(const VectorType& origin, const VectorType& direction)
+    : m_origin(origin), m_direction(direction) {}
 
-    explicit ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
+  explicit ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
 
-    /** Constructs a parametrized line going from \a p0 to \a p1. */
-    static inline ParametrizedLine Through(const VectorType& p0, const VectorType& p1)
-    { return ParametrizedLine(p0, (p1-p0).normalized()); }
+  /** Constructs a parametrized line going from \a p0 to \a p1. */
+  static inline ParametrizedLine Through(const VectorType& p0, const VectorType& p1)
+  { return ParametrizedLine(p0, (p1-p0).normalized()); }
 
-    ~ParametrizedLine() {}
+  ~ParametrizedLine() {}
 
-    /** \returns the dimension in which the line holds */
-    inline int dim() const { return m_direction.size(); }
+  /** \returns the dimension in which the line holds */
+  inline int dim() const { return m_direction.size(); }
 
-    const VectorType& origin() const { return m_origin; }
-    VectorType& origin() { return m_origin; }
+  const VectorType& origin() const { return m_origin; }
+  VectorType& origin() { return m_origin; }
 
-    const VectorType& direction() const { return m_direction; }
-    VectorType& direction() { return m_direction; }
+  const VectorType& direction() const { return m_direction; }
+  VectorType& direction() { return m_direction; }
 
-    /** \returns the squared distance of a point \a p to its projection onto the line \c *this.
-      * \sa distance()
-      */
-    RealScalar squaredDistance(const VectorType& p) const
-    {
-      VectorType diff = p-origin();
-      return (diff - diff.dot(direction())* direction()).norm2();
-    }
-    /** \returns the distance of a point \a p to its projection onto the line \c *this.
-      * \sa squaredDistance()
-      */
-    RealScalar distance(const VectorType& p) const { return ei_sqrt(squaredDistance(p)); }
+  /** \returns the squared distance of a point \a p to its projection onto the line \c *this.
+    * \sa distance()
+    */
+  RealScalar squaredDistance(const VectorType& p) const
+  {
+    VectorType diff = p-origin();
+    return (diff - diff.dot(direction())* direction()).norm2();
+  }
+  /** \returns the distance of a point \a p to its projection onto the line \c *this.
+    * \sa squaredDistance()
+    */
+  RealScalar distance(const VectorType& p) const { return ei_sqrt(squaredDistance(p)); }
 
-    /** \returns the projection of a point \a p onto the line \c *this. */
-    VectorType projection(const VectorType& p) const
-    { return origin() + (p-origin()).dot(direction()) * direction(); }
+  /** \returns the projection of a point \a p onto the line \c *this. */
+  VectorType projection(const VectorType& p) const
+  { return origin() + (p-origin()).dot(direction()) * direction(); }
 
-    Scalar intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
+  Scalar intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
 
-  protected:
+  /** \returns \c *this with scalar type casted to \a NewScalarType
+    *
+    * Note that if \a NewScalarType is equal to the current scalar type of \c *this
+    * then this function smartly returns a const reference to \c *this.
+    */
+  template<typename NewScalarType>
+  typename ei_cast_return_type<ParametrizedLine,
+           ParametrizedLine<NewScalarType,AmbientDimAtCompileTime> >::type cast() const
+  {
+    return typename ei_cast_return_type<ParametrizedLine,
+                    ParametrizedLine<NewScalarType,AmbientDimAtCompileTime> >::type(*this);
+  }
 
-    VectorType m_origin, m_direction;
+  /** Copy constructor with scalar type conversion */
+  template<typename OtherScalarType>
+  explicit ParametrizedLine(const ParametrizedLine<OtherScalarType,AmbientDimAtCompileTime>& other)
+  {
+    m_origin = other.origin().template cast<OtherScalarType>();
+    m_direction = other.direction().template cast<OtherScalarType>();
+  }
+
+protected:
+
+  VectorType m_origin, m_direction;
 };
 
 /** Constructs a parametrized line from a 2D hyperplane

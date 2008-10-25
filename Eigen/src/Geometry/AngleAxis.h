@@ -47,7 +47,7 @@
   * \note This class is not aimed to be used to store a rotation transformation,
   * but rather to make easier the creation of other rotation (Quaternion, rotation Matrix)
   * and transformation objects.
-  * 
+  *
   * \sa class Quaternion, class Transform, MatrixBase::UnitX()
   */
 
@@ -64,7 +64,7 @@ class AngleAxis : public RotationBase<AngleAxis<_Scalar>,3>
 public:
 
   using Base::operator*;
-  
+
   enum { Dim = 3 };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
@@ -132,6 +132,23 @@ public:
   template<typename Derived>
   AngleAxis& fromRotationMatrix(const MatrixBase<Derived>& m);
   Matrix3 toRotationMatrix(void) const;
+
+  /** \returns \c *this with scalar type casted to \a NewScalarType
+    *
+    * Note that if \a NewScalarType is equal to the current scalar type of \c *this
+    * then this function smartly returns a const reference to \c *this.
+    */
+  template<typename NewScalarType>
+  typename ei_cast_return_type<AngleAxis,AngleAxis<NewScalarType> >::type cast() const
+  { return typename ei_cast_return_type<AngleAxis,AngleAxis<NewScalarType> >::type(*this); }
+
+  /** Copy constructor with scalar type conversion */
+  template<typename OtherScalarType>
+  explicit AngleAxis(const AngleAxis<OtherScalarType>& other)
+  {
+    m_axis = other.axis().template cast<OtherScalarType>();
+    m_angle = other.angle();
+  }
 };
 
 /** \ingroup GeometryModule
