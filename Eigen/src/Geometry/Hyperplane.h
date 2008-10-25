@@ -244,7 +244,7 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<Hyperplane,
+  inline typename ei_cast_return_type<Hyperplane,
            Hyperplane<NewScalarType,AmbientDimAtCompileTime> >::type cast() const
   {
     return typename ei_cast_return_type<Hyperplane,
@@ -253,7 +253,7 @@ public:
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit Hyperplane(const Hyperplane<OtherScalarType,AmbientDimAtCompileTime>& other)
+  inline explicit Hyperplane(const Hyperplane<OtherScalarType,AmbientDimAtCompileTime>& other)
   { m_coeffs = other.coeffs().template cast<OtherScalarType>(); }
 
 protected:

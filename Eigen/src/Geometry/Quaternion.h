@@ -201,12 +201,12 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<Quaternion,Quaternion<NewScalarType> >::type cast() const
+  inline typename ei_cast_return_type<Quaternion,Quaternion<NewScalarType> >::type cast() const
   { return typename ei_cast_return_type<Quaternion,Quaternion<NewScalarType> >::type(*this); }
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit Quaternion(const Quaternion<OtherScalarType>& other)
+  inline explicit Quaternion(const Quaternion<OtherScalarType>& other)
   {
     m_coeffs = other.coeffs().template cast<OtherScalarType>();
   }

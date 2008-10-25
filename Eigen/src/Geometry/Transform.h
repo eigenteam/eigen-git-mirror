@@ -252,12 +252,12 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<Transform,Transform<NewScalarType,Dim> >::type cast() const
+  inline typename ei_cast_return_type<Transform,Transform<NewScalarType,Dim> >::type cast() const
   { return typename ei_cast_return_type<Transform,Transform<NewScalarType,Dim> >::type(*this); }
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit Transform(const Transform<OtherScalarType,Dim>& other)
+  inline explicit Transform(const Transform<OtherScalarType,Dim>& other)
   { m_matrix = other.matrix().template cast<OtherScalarType>(); }
 
 protected:

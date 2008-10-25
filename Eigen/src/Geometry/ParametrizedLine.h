@@ -107,7 +107,7 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<ParametrizedLine,
+  inline typename ei_cast_return_type<ParametrizedLine,
            ParametrizedLine<NewScalarType,AmbientDimAtCompileTime> >::type cast() const
   {
     return typename ei_cast_return_type<ParametrizedLine,
@@ -116,7 +116,7 @@ public:
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit ParametrizedLine(const ParametrizedLine<OtherScalarType,AmbientDimAtCompileTime>& other)
+  inline explicit ParametrizedLine(const ParametrizedLine<OtherScalarType,AmbientDimAtCompileTime>& other)
   {
     m_origin = other.origin().template cast<OtherScalarType>();
     m_direction = other.direction().template cast<OtherScalarType>();

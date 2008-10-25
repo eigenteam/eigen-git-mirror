@@ -107,12 +107,12 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<Rotation2D,Rotation2D<NewScalarType> >::type cast() const
+  inline typename ei_cast_return_type<Rotation2D,Rotation2D<NewScalarType> >::type cast() const
   { return typename ei_cast_return_type<Rotation2D,Rotation2D<NewScalarType> >::type(*this); }
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit Rotation2D(const Rotation2D<OtherScalarType>& other)
+  inline explicit Rotation2D(const Rotation2D<OtherScalarType>& other)
   {
     m_angle = other.angle();
   }

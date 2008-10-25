@@ -134,12 +134,12 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  typename ei_cast_return_type<Scaling,Scaling<NewScalarType,Dim> >::type cast() const
+  inline typename ei_cast_return_type<Scaling,Scaling<NewScalarType,Dim> >::type cast() const
   { return typename ei_cast_return_type<Scaling,Scaling<NewScalarType,Dim> >::type(*this); }
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
-  explicit Scaling(const Scaling<OtherScalarType,Dim>& other)
+  inline explicit Scaling(const Scaling<OtherScalarType,Dim>& other)
   { m_coeffs = other.coeffs().template cast<OtherScalarType>(); }
 
 };
