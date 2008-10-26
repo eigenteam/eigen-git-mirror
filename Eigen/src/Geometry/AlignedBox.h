@@ -29,12 +29,12 @@
   *
   * \class AlignedBox
   *
-  * \brief A box aligned with a axis
+  * \brief An axis aligned box
   *
   * \param _Scalar the type of the scalar coefficients
   * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
   *
-  * This class represents an axis aligned box as the pair of the minimal and maximal corners.
+  * This class represents an axis aligned box as a pair of the minimal and maximal corners.
   */
 template <typename _Scalar, int _AmbientDim>
 class AlignedBox
@@ -107,6 +107,10 @@ public:
   inline AlignedBox& clamp(const AlignedBox& b)
   { m_min = m_min.cwise().max(b.m_min); m_max = m_max.cwise().min(b.m_max); return *this; }
 
+  /** Translate \c *this by the vector \a t and returns a reference to \c *this. */
+  inline AlignedBox& translate(const VectorType& t)
+  { m_min += t; m_max += t; return *this; }
+
   /** \returns the squared distance between the point \a p and the box \c *this,
     * and zero if \a p is inside the box.
     * \sa exteriorDistance()
@@ -119,14 +123,6 @@ public:
     */
   inline Scalar exteriorDistance(const VectorType& p) const
   { return ei_sqrt(squaredExteriorDistance(p)); }
-
-  /** Translate \c *this by the vector \a t and returns a reference to \c *this. */
-  inline AlignedBox& translate(const VectorType& t)
-  {
-    m_min += t;
-    m_max += t;
-    return *this;
-  }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
