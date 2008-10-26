@@ -35,7 +35,7 @@
   * \param _Dim the  dimension of the space, can be a compile time value or Dynamic
   *
   * \note This class is not aimed to be used to store a translation transformation,
-  * but rather to make easier the constructions and updates of Transformation object.
+  * but rather to make easier the constructions and updates of Transform objects.
   *
   * \sa class Scaling, class Transform
   */

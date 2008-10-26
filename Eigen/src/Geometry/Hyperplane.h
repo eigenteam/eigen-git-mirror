@@ -203,7 +203,7 @@ public:
     }
   }
 
-  /** \returns the transformation of \c *this by the transformation matrix \a mat.
+  /** Applies the transformation matrix \a mat to \c *this and returns a reference to \c *this.
     *
     * \param mat the Dim x Dim transformation matrix
     * \param traits specifies whether the matrix \a mat represents an Isometry
@@ -223,7 +223,7 @@ public:
     return *this;
   }
 
-  /** \returns the transformation of \c *this by the transformation \a t
+  /** Applies the transformation \a t to \c *this and returns a reference to \c *this.
     *
     * \param t the transformation of dimension Dim
     * \param traits specifies whether the transformation \a t represents an Isometry

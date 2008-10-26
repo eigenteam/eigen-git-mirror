@@ -33,6 +33,7 @@ namespace Eigen {
 #include "src/Geometry/Scaling.h"
 #include "src/Geometry/Hyperplane.h"
 #include "src/Geometry/ParametrizedLine.h"
+#include "src/Geometry/AlignedBox.h"
 
 } // namespace Eigen
 
