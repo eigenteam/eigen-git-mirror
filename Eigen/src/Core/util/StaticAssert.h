@@ -74,7 +74,7 @@
     };
 
     #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-      if (ei_static_assert<CONDITION ? true : false>::MSG) {}
+      if (Eigen::ei_static_assert<CONDITION ? true : false>::MSG) {}
 
   #endif // CXX0X
 
