@@ -233,8 +233,8 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   ei_assert(!(Flags & ZeroDiagBit));
   ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
 
-  enum { copy = ei_traits<OtherDerived>::Flags&RowMajorBit };
-  
+  enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
+
   typedef typename ei_meta_if<copy,
     typename ei_eval_to_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
   OtherCopy otherCopy(other.derived());

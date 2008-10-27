@@ -113,7 +113,7 @@ using Eigen::ei_cos;
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherDerived> \
-Derived& operator Op(const MatrixBase<OtherDerived>& other) \
+Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \
 { \
   return Eigen::MatrixBase<Derived>::operator Op(other.derived()); \
 } \
