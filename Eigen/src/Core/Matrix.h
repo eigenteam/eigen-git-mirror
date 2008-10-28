@@ -428,6 +428,11 @@ class Matrix
     explicit Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
     template<typename OtherDerived>
     Matrix& operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
+
+    // allow to extend Matrix outside Eigen
+    #ifdef EIGEN_MATRIX_PLUGIN
+    #include EIGEN_MATRIX_PLUGIN
+    #endif
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
