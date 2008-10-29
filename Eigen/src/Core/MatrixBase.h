@@ -337,6 +337,7 @@ template<typename Derived> class MatrixBase
 
     Transpose<Derived> transpose();
     const Transpose<Derived> transpose() const;
+    void transposeInPlace();
     const AdjointReturnType adjoint() const;
 
 

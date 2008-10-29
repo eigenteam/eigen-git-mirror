@@ -119,6 +119,12 @@ template<typename MatrixType, unsigned int Mode> class Part
     const Block<Part, RowsAtCompileTime, 1> col(int i) { return Base::col(i); }
     const Block<Part, RowsAtCompileTime, 1> col(int i) const { return Base::col(i); }
 
+    template<typename OtherDerived/*, int OtherMode*/>
+    void swap(const MatrixBase<OtherDerived>& other)
+    {
+      Part<SwapWrapper<MatrixType>,Mode>(SwapWrapper<MatrixType>(const_cast<MatrixType&>(m_matrix))).lazyAssign(other.derived());
+    }
+
   protected:
 
     const typename MatrixType::Nested m_matrix;
@@ -184,7 +190,7 @@ struct ei_part_assignment_impl
       || (Mode == Lower && row >= col)
       || (Mode == StrictlyUpper && row < col)
       || (Mode == StrictlyLower && row > col))
-        dst.coeffRef(row, col) = src.coeff(row, col);
+        dst.copyCoeff(row, col, src);
     }
   }
 };
@@ -195,7 +201,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, Mode, 1>
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
     if(!(Mode & ZeroDiagBit))
-      dst.coeffRef(0, 0) = src.coeff(0, 0);
+      dst.copyCoeff(0, 0, src);
   }
 };
 
@@ -213,7 +219,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, Upper, Dynamic>
   {
     for(int j = 0; j < dst.cols(); j++)
       for(int i = 0; i <= j; i++)
-        dst.coeffRef(i, j) = src.coeff(i, j);
+        dst.copyCoeff(i, j, src);
   }
 };
 
@@ -224,7 +230,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, Lower, Dynamic>
   {
     for(int j = 0; j < dst.cols(); j++)
       for(int i = j; i < dst.rows(); i++)
-        dst.coeffRef(i, j) = src.coeff(i, j);
+        dst.copyCoeff(i, j, src);
   }
 };
 
@@ -235,7 +241,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyUpper, Dynamic>
   {
     for(int j = 0; j < dst.cols(); j++)
       for(int i = 0; i < j; i++)
-        dst.coeffRef(i, j) = src.coeff(i, j);
+        dst.copyCoeff(i, j, src);
   }
 };
 template<typename Derived1, typename Derived2>
@@ -245,7 +251,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyLower, Dynamic>
   {
     for(int j = 0; j < dst.cols(); j++)
       for(int i = j+1; i < dst.rows(); i++)
-        dst.coeffRef(i, j) = src.coeff(i, j);
+        dst.copyCoeff(i, j, src);
   }
 };
 template<typename Derived1, typename Derived2>

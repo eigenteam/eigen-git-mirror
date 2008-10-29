@@ -156,4 +156,49 @@ MatrixBase<Derived>::adjoint() const
   return conjugate().nestByValue();
 }
 
+/***************************************************************************
+* "in place" transpose implementation
+***************************************************************************/
+
+template<typename MatrixType,
+  bool IsSquare = (MatrixType::RowsAtCompileTime == MatrixType::ColsAtCompileTime) && MatrixType::RowsAtCompileTime!=Dynamic>
+struct ei_inplace_transpose_selector;
+
+template<typename MatrixType>
+struct ei_inplace_transpose_selector<MatrixType,true> { // square matrix
+  static void run(MatrixType& m) {
+    m.template part<StrictlyUpper>().swap(m.transpose());
+  }
+};
+
+template<typename MatrixType>
+struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
+  static void run(MatrixType& m) {
+    if (m.rows()==m.cols())
+      m.template part<StrictlyUpper>().swap(m.transpose());
+    else
+      m.set(m.transpose().eval());
+  }
+};
+
+/** This is the "in place" version of transpose: it transposes \c *this.
+  *
+  * In most cases it is probably better to simply use the transposed expression
+  * of a matrix. However, when transposing the matrix data itself is really needed,
+  * then this "in-place" version is probably the right choice because it provides 
+  * the following additional features:
+  *  - less error prone: doing the same operation with .transpose() requires special care:
+  *    \code m.set(m.transpose().eval()); \endcode
+  *  - no temporary object is created (currently only for squared matrices)
+  *  - it allows future optimizations (cache friendliness, etc.)
+  *
+  * \note if the matrix is not square, then \c *this must be a resizable matrix.
+  *
+  * \sa transpose(), adjoint() */
+template<typename Derived>
+inline void MatrixBase<Derived>::transposeInPlace()
+{
+  ei_inplace_transpose_selector<Derived>::run(derived());
+}
+
 #endif // EIGEN_TRANSPOSE_H

@@ -90,6 +90,14 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
     // normalized() in order to produce a consistent result.
     VERIFY_IS_APPROX(VectorType::Random(rows).normalized().norm(), RealScalar(1));
   }
+
+  // check inplace transpose
+  m3 = m1;
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1.transpose());
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1);
+  
 }
 
 void test_adjoint()
