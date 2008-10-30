@@ -190,7 +190,7 @@ template<typename Derived> class MatrixBase
     /** \internal the return type of MatrixBase::real() */
     typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
+    typedef Eigen::Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
             AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
@@ -335,8 +335,8 @@ template<typename Derived> class MatrixBase
     const EvalType normalized() const;
     void normalize();
 
-    Transpose<Derived> transpose();
-    const Transpose<Derived> transpose() const;
+    Eigen::Transpose<Derived> transpose();
+    const Eigen::Transpose<Derived> transpose() const;
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
 
