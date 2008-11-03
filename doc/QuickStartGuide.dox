@@ -352,7 +352,7 @@ vec3 = vec1.cross(vec2);\endcode</td></tr>
 Eigen provides several reduction methods such as:
 \link MatrixBase::minCoeff() minCoeff() \endlink, \link MatrixBase::maxCoeff() maxCoeff() \endlink,
 \link MatrixBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink,
-\link MatrixBase::norm() norm() \endlink, \link MatrixBase::norm2() norm2() \endlink,
+\link MatrixBase::norm() norm() \endlink, \link MatrixBase::squaredNorm() squaredNorm() \endlink,
 \link MatrixBase::all() all() \endlink,and \link MatrixBase::any() any() \endlink.
 All reduction operations can be done matrix-wise,
 \link MatrixBase::colwise() column-wise \endlink or
@@ -473,8 +473,8 @@ mat3 = mat1.adjoint() * mat2;
 </td></tr>
 <tr><td>
 \link MatrixBase::norm() norm \endlink of a vector \n
-\link MatrixBase::norm2() squared norm \endlink of a vector
-</td><td>\code vec.norm(); \endcode \n \code vec.norm2() \endcode
+\link MatrixBase::squaredNorm() squared norm \endlink of a vector
+</td><td>\code vec.norm(); \endcode \n \code vec.squaredNorm() \endcode
 </td></tr>
 <tr><td>
 returns a \link MatrixBase::normalized() normalized \endlink vector \n

@@ -154,12 +154,12 @@ public:
   inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
 
   /** \returns the squared norm of the quaternion's coefficients
-    * \sa Quaternion::norm(), MatrixBase::norm2()
+    * \sa Quaternion::norm(), MatrixBase::squaredNorm()
     */
-  inline Scalar norm2() const { return m_coeffs.norm2(); }
+  inline Scalar squaredNorm() const { return m_coeffs.squaredNorm(); }
 
   /** \returns the norm of the quaternion's coefficients
-    * \sa Quaternion::norm2(), MatrixBase::norm()
+    * \sa Quaternion::squaredNorm(), MatrixBase::norm()
     */
   inline Scalar norm() const { return m_coeffs.norm(); }
 
@@ -374,7 +374,7 @@ template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::inverse() const
 {
   // FIXME should this function be called multiplicativeInverse and conjugate() be called inverse() or opposite()  ??
-  Scalar n2 = this->norm2();
+  Scalar n2 = this->squaredNorm();
   if (n2 > 0)
     return Quaternion(conjugate().coeffs() / n2);
   else

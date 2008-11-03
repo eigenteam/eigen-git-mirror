@@ -207,8 +207,8 @@ template<typename ExpressionType, int Direction> class PartialRedux
       * Example: \include PartialRedux_norm2.cpp
       * Output: \verbinclude PartialRedux_norm2.out
       *
-      * \sa MatrixBase::norm2() */
-    const typename ReturnType<ei_member_norm2>::Type norm2() const
+      * \sa MatrixBase::squaredNorm() */
+    const typename ReturnType<ei_member_norm2>::Type squaredNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the norm

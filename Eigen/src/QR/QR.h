@@ -109,7 +109,7 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
         m_hCoeffs.coeffRef(k) = 0;
       }
     }
-    else if ( (!ei_isMuchSmallerThan(beta=m_qr.col(k).end(remainingSize-1).norm2(),static_cast<Scalar>(1))) || ei_imag(v0)==0 )
+    else if ( (!ei_isMuchSmallerThan(beta=m_qr.col(k).end(remainingSize-1).squaredNorm(),static_cast<Scalar>(1))) || ei_imag(v0)==0 )
     {
       // form k-th Householder vector
       beta = ei_sqrt(ei_abs2(v0)+beta);

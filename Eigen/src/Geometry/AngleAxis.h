@@ -171,7 +171,7 @@ typedef AngleAxis<double> AngleAxisd;
 template<typename Scalar>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
 {
-  Scalar n2 = q.vec().norm2();
+  Scalar n2 = q.vec().squaredNorm();
   if (n2 < precision<Scalar>()*precision<Scalar>())
   {
     m_angle = 0;

@@ -93,7 +93,7 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
-    Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).norm2();
+    Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
     x = ei_real(tmp);
     if (x < eps || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
     {

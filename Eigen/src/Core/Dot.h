@@ -248,10 +248,10 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
   * \only_for_vectors
   *
   * \note If the scalar type is complex numbers, then this function returns the hermitian
-  * (sesquilinear) dot product, linear in the first variable and anti-linear in the
+  * (sesquilinear) dot product, linear in the first variable and conjugate-linear in the
   * second variable.
   *
-  * \sa norm2(), norm()
+  * \sa squaredNorm(), norm()
   */
 template<typename Derived>
 template<typename OtherDerived>
@@ -275,6 +275,8 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   *
   * \note This is \em not the \em l2 norm.
   *
+  * \deprecated Use squaredNorm() instead. This norm2() function is kept only for compatibility and will be removed in Eigen 2.0.
+  *
   * \only_for_vectors
   *
   * \sa dot(), norm()
@@ -285,16 +287,28 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   return ei_real(dot(*this));
 }
 
+/** \returns the squared norm of *this, i.e. the dot product of *this with itself.
+  *
+  * \only_for_vectors
+  *
+  * \sa dot(), norm()
+  */
+template<typename Derived>
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
+{
+  return ei_real(dot(*this));
+}
+
 /** \returns the \em l2 norm of *this, i.e. the square root of the dot product of *this with itself.
   *
   * \only_for_vectors
   *
-  * \sa dot(), norm2()
+  * \sa dot(), normSquared()
   */
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
-  return ei_sqrt(norm2());
+  return ei_sqrt(squaredNorm());
 }
 
 /** \returns an expression of the quotient of *this by its own norm.
@@ -338,7 +352,7 @@ bool MatrixBase<Derived>::isOrthogonal
 {
   typename ei_nested<Derived,2>::type nested(derived());
   typename ei_nested<OtherDerived,2>::type otherNested(other.derived());
-  return ei_abs2(nested.dot(otherNested)) <= prec * prec * nested.norm2() * otherNested.norm2();
+  return ei_abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
 }
 
 /** \returns true if *this is approximately an unitary matrix,
@@ -358,7 +372,7 @@ bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
   typename Derived::Nested nested(derived());
   for(int i = 0; i < cols(); i++)
   {
-    if(!ei_isApprox(nested.col(i).norm2(), static_cast<Scalar>(1), prec))
+    if(!ei_isApprox(nested.col(i).squaredNorm(), static_cast<Scalar>(1), prec))
       return false;
     for(int j = 0; j < i; j++)
       if(!ei_isMuchSmallerThan(nested.col(i).dot(nested.col(j)), static_cast<Scalar>(1), prec))

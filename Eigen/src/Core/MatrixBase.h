@@ -330,6 +330,7 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
+    RealScalar squaredNorm() const;
     RealScalar norm2() const;
     RealScalar norm()  const;
     const EvalType normalized() const;

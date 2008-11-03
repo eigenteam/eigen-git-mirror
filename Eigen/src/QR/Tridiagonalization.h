@@ -198,7 +198,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 
     // start of the householder transformation
     // squared norm of the vector v skipping the first element
-    RealScalar v1norm2 = matA.col(i).end(n-(i+2)).norm2();
+    RealScalar v1norm2 = matA.col(i).end(n-(i+2)).squaredNorm();
 
     if (ei_isMuchSmallerThan(v1norm2,static_cast<Scalar>(1)))
     {

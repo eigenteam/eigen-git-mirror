@@ -88,7 +88,7 @@ public:
   RealScalar squaredDistance(const VectorType& p) const
   {
     VectorType diff = p-origin();
-    return (diff - diff.dot(direction())* direction()).norm2();
+    return (diff - diff.dot(direction())* direction()).squaredNorm();
   }
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()

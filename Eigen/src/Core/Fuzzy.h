@@ -178,17 +178,17 @@ struct ei_fuzzy_selector<Derived,OtherDerived,true>
   {
     EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived);
     ei_assert(self.size() == other.size());
-    return((self - other).norm2() <= std::min(self.norm2(), other.norm2()) * prec * prec);
+    return((self - other).squaredNorm() <= std::min(self.squaredNorm(), other.squaredNorm()) * prec * prec);
   }
   static bool isMuchSmallerThan(const Derived& self, const RealScalar& other, RealScalar prec)
   {
-    return(self.norm2() <= ei_abs2(other * prec));
+    return(self.squaredNorm() <= ei_abs2(other * prec));
   }
   static bool isMuchSmallerThan(const Derived& self, const OtherDerived& other, RealScalar prec)
   {
     EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived);
     ei_assert(self.size() == other.size());
-    return(self.norm2() <= other.norm2() * prec * prec);
+    return(self.squaredNorm() <= other.squaredNorm() * prec * prec);
   }
 };
 
@@ -203,8 +203,8 @@ struct ei_fuzzy_selector<Derived,OtherDerived,false>
     typename Derived::Nested nested(self);
     typename OtherDerived::Nested otherNested(other);
     for(int i = 0; i < self.cols(); i++)
-      if((nested.col(i) - otherNested.col(i)).norm2()
-          > std::min(nested.col(i).norm2(), otherNested.col(i).norm2()) * prec * prec)
+      if((nested.col(i) - otherNested.col(i)).squaredNorm()
+          > std::min(nested.col(i).squaredNorm(), otherNested.col(i).squaredNorm()) * prec * prec)
         return false;
     return true;
   }
@@ -212,7 +212,7 @@ struct ei_fuzzy_selector<Derived,OtherDerived,false>
   {
     typename Derived::Nested nested(self);
     for(int i = 0; i < self.cols(); i++)
-      if(nested.col(i).norm2() > ei_abs2(other * prec))
+      if(nested.col(i).squaredNorm() > ei_abs2(other * prec))
         return false;
     return true;
   }
@@ -223,7 +223,7 @@ struct ei_fuzzy_selector<Derived,OtherDerived,false>
     typename Derived::Nested nested(self);
     typename OtherDerived::Nested otherNested(other);
     for(int i = 0; i < self.cols(); i++)
-      if(nested.col(i).norm2() > otherNested.col(i).norm2() * prec * prec)
+      if(nested.col(i).squaredNorm() > otherNested.col(i).squaredNorm() * prec * prec)
         return false;
     return true;
   }

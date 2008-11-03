@@ -32,13 +32,13 @@ inline Scalar& at(uint i, uint j) { return this->operator()(i,j); }
 inline Scalar at(uint i) const { return this->operator[](i); }
 inline Scalar& at(uint i) { return this->operator[](i); }
 
-inline RealScalar squaredLength() const { return norm2(); }
+inline RealScalar squaredLength() const { return squaredNorm(); }
 inline RealScalar length() const { return norm(); }
-inline RealScalar invLength(void) const { return fast_inv_sqrt(norm2()); }
+inline RealScalar invLength(void) const { return fast_inv_sqrt(squaredNorm()); }
 
 template<typename OtherDerived>
 inline Scalar squaredDistanceTo(const MatrixBase<OtherDerived>& other) const
-{ return (derived() - other.derived()).norm2(); }
+{ return (derived() - other.derived()).squaredNorm(); }
 
 template<typename OtherDerived>
 inline RealScalar distanceTo(const MatrixBase<OtherDerived>& other) const
