@@ -33,7 +33,7 @@
   * The Matrix class is the work-horse for all \em dense matrices and vectors within Eigen. Vectors are matrices with one column,
   * and row-vectors are matrices with one row.
   *
-  * The Matrix class encompasses \em both fixed-size and dynamic-size objects.
+  * The Matrix class encompasses \em both fixed-size and dynamic-size objects (see note below).
   *
   * \param _Scalar Numeric type, i.e. float, double, int
   * \param _Rows Number of rows, or \b Dynamic
@@ -42,13 +42,13 @@
   * \param _MaxRows Maximum number of rows. Defaults to \a _Rows.  See note below.
   * \param _MaxCols Maximum number of columns. Defaults to \a _Cols.  See note below.
   *
-  * \note <b>Fixed-size versus dynamic-size</b>
+  * \note <b>Fixed-size versus dynamic-size:</b>
   * Fixed-size means that the numbers of rows and columns are known are compile-time. In this case, Eigen allocates the array
   * of coefficients as a fixed-size array on the stack. This makes sense for very small matrices, typically up to 4x4, sometimes up
   * to 16x16. Larger matrices should be declared as dynamic-size even if one happens to know their size at compile-time.
   *
   * Dynamic-size means that the numbers of rows or columns are not necessarily known at compile-time. In this case they are runtime variables,
-  * and the array of coefficients is allocated dynamically, typically on the heap (See Note [*] below).
+  * and the array of coefficients is allocated dynamically, typically on the heap (See note on heap allocation below).
   *
   * Note that dense matrices, be they Fixed-size or Dynamic-size, <em>do not</em> expand dynamically in the sense of a std::map.
   * If you want this behavior, see the Sparse module.
@@ -59,6 +59,10 @@
   * when the exact numbers of rows and columns are not known are compile-time, but it is known at compile-time that they cannot
   * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
   * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.
+  *
+  * \note <b> Heap allocation:</b>
+  * On the Linux platform, for small enough arrays, Eigen will avoid heap allocation and instead will use alloca() to perform a dynamic
+  * allocation on the stack.
   *
   * Eigen provides a number of typedefs to make working with matrices and vector simpler:
   *
