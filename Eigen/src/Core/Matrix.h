@@ -108,7 +108,9 @@ class Matrix
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
     friend class Eigen::Map<Matrix, Unaligned>;
+    typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
     friend class Eigen::Map<Matrix, Aligned>;
+    typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
@@ -406,7 +408,7 @@ class Matrix
     /** Override MatrixBase::eval() since matrices don't need to be evaluated, it is enough to just read them.
       * This prevents a useless copy when doing e.g. "m1 = m2.eval()"
       */
-    const Matrix& eval() const
+    inline const Matrix& eval() const
     {
       return *this;
     }
@@ -414,13 +416,48 @@ class Matrix
     /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
       * data pointers.
       */
-    void swap(Matrix& other)
+    inline void swap(Matrix& other)
     {
       if (Base::SizeAtCompileTime==Dynamic)
         m_storage.swap(other.m_storage);
       else
         this->Base::swap(other);
     }
+
+    /**
+      * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
+      * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
+      * \a data pointers.
+      * 
+      * \see class Map
+      */
+    //@}
+    inline static const UnalignedMapType Map(const Scalar* data)
+    { return UnalignedMapType(data); }
+    inline static UnalignedMapType Map(Scalar* data)
+    { return UnalignedMapType(data); }
+    inline static const UnalignedMapType Map(const Scalar* data, int size)
+    { return UnalignedMapType(data, size); }
+    inline static UnalignedMapType Map(Scalar* data, int size)
+    { return UnalignedMapType(data, size); }
+    inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
+    { return UnalignedMapType(data, rows, cols); }
+    inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
+    { return UnalignedMapType(data, rows, cols); }
+
+    inline static const AlignedMapType MapAligned(const Scalar* data)
+    { return AlignedMapType(data); }
+    inline static AlignedMapType MapAligned(Scalar* data)
+    { return AlignedMapType(data); }
+    inline static const AlignedMapType MapAligned(const Scalar* data, int size)
+    { return AlignedMapType(data, size); }
+    inline static AlignedMapType MapAligned(Scalar* data, int size)
+    { return AlignedMapType(data, size); }
+    inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
+    { return AlignedMapType(data, rows, cols); }
+    inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
+    { return AlignedMapType(data, rows, cols); }
+    //@}
 
 /////////// Geometry module ///////////
 

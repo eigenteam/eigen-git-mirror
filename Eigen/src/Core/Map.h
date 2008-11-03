@@ -40,9 +40,9 @@
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
   * such as plain C arrays or structures from other libraries.
   *
-  * This class is the return type of Matrix::map() but can also be used directly.
+  * This class is the return type of Matrix::Map() but can also be used directly.
   *
-  * \sa Matrix::map()
+  * \sa Matrix::Map()
   */
 template<typename MatrixType, int _PacketAccess>
 struct ei_traits<Map<MatrixType, _PacketAccess> > : public ei_traits<MatrixType>
@@ -106,13 +106,13 @@ template<typename MatrixType, int PacketAccess> class Map
   * for the dimensions.
   *
   * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
-  * Matrix::map(const Scalar *)
+  * Matrix::Map(const Scalar *)
   */
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 inline Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
-  *this = Map<Matrix>(data);
+  *this = Eigen::Map<Matrix>(data);
 }
 
 #endif // EIGEN_MAP_H

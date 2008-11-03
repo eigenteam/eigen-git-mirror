@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<typename VectorType> void tmap(const VectorType& m)
+template<typename VectorType> void map_class(const VectorType& m)
 {
   typedef typename VectorType::Scalar Scalar;
 
@@ -50,13 +50,46 @@ template<typename VectorType> void tmap(const VectorType& m)
   delete[] array3;
 }
 
+template<typename VectorType> void map_static_methods(const VectorType& m)
+{
+  typedef typename VectorType::Scalar Scalar;
+
+  int size = m.size();
+
+  // test Map.h
+  Scalar* array1 = ei_aligned_malloc<Scalar>(size);
+  Scalar* array2 = ei_aligned_malloc<Scalar>(size);
+  Scalar* array3 = new Scalar[size+1];
+  Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  
+  VectorType::MapAligned(array1, size) = VectorType::Random(size);
+  VectorType::Map(array2, size) = VectorType::Map(array1, size);
+  VectorType::Map(array3unaligned, size) = VectorType::Map(array1, size);
+  VectorType ma1 = VectorType::Map(array1, size);
+  VectorType ma2 = VectorType::MapAligned(array2, size);
+  VectorType ma3 = VectorType::Map(array3unaligned, size);
+  VERIFY_IS_APPROX(ma1, ma2);
+  VERIFY_IS_APPROX(ma1, ma3);
+  
+  ei_aligned_free(array1);
+  ei_aligned_free(array2);
+  delete[] array3;
+}
+
+
 void test_map()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( tmap(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( tmap(Vector4d()) );
-    CALL_SUBTEST( tmap(RowVector4f()) );
-    CALL_SUBTEST( tmap(VectorXcf(8)) );
-    CALL_SUBTEST( tmap(VectorXi(12)) );
+    CALL_SUBTEST( map_class(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( map_class(Vector4d()) );
+    CALL_SUBTEST( map_class(RowVector4f()) );
+    CALL_SUBTEST( map_class(VectorXcf(8)) );
+    CALL_SUBTEST( map_class(VectorXi(12)) );
+
+    CALL_SUBTEST( map_static_methods(Matrix<double, 1, 1>()) );
+    CALL_SUBTEST( map_static_methods(Vector3f()) );
+    CALL_SUBTEST( map_static_methods(RowVector3d()) );
+    CALL_SUBTEST( map_static_methods(VectorXcd(8)) );
+    CALL_SUBTEST( map_static_methods(VectorXf(12)) );
   }
 }
