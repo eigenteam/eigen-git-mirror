@@ -28,6 +28,7 @@ namespace Eigen {
 #include "src/Array/Select.h"
 #include "src/Array/PartialRedux.h"
 #include "src/Array/Random.h"
+#include "src/Array/Norms.h"
 
 } // namespace Eigen
 

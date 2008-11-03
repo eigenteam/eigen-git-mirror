@@ -113,6 +113,16 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   VERIFY_IS_APPROX( (m1.cwise().abs().cwise()<mid).select(0,m1), m3);
 }
 
+template<typename VectorType> void lpNorm(const VectorType& v)
+{
+  VectorType u = VectorType::Random(v.size());
+
+  VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), u.cwise().abs().maxCoeff());
+  VERIFY_IS_APPROX(u.template lpNorm<1>(), u.cwise().abs().sum());
+  VERIFY_IS_APPROX(u.template lpNorm<2>(), ei_sqrt(u.cwise().abs().cwise().square().sum()));
+  VERIFY_IS_APPROX(ei_pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.cwise().abs().cwise().pow(5).sum());
+}
+
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -129,5 +139,13 @@ void test_array()
     CALL_SUBTEST( comparisons(Matrix4d()) );
     CALL_SUBTEST( comparisons(MatrixXf(8, 12)) );
     CALL_SUBTEST( comparisons(MatrixXi(8, 12)) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( lpNorm(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( lpNorm(Vector2f()) );
+    CALL_SUBTEST( lpNorm(Vector3d()) );
+    CALL_SUBTEST( lpNorm(Vector4f()) );
+    CALL_SUBTEST( lpNorm(VectorXf(16)) );
+    CALL_SUBTEST( lpNorm(VectorXcd(10)) );
   }
 }

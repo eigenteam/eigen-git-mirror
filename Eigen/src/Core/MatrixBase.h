@@ -557,6 +557,8 @@ template<typename Derived> class MatrixBase
     inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
+    template<int p> RealScalar lpNorm() const;
+
 /////////// LU module ///////////
 
     const LU<EvalType> lu() const;

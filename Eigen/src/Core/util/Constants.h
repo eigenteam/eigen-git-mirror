@@ -27,6 +27,7 @@
 #define EIGEN_CONSTANTS_H
 
 const int Dynamic = 10000;
+const int Infinity = -1;
 
 /** \defgroup flags flags
   * \ingroup Core_Module
