@@ -30,38 +30,44 @@
   *
   * \brief The matrix class, also used for vectors and row-vectors
   *
-  * Eigen's matrix class is the work-horse for all \em dense matrices and vectors within Eigen.  Dense
-  * matrices may either be allocated on the stack, using the template parameters above, or \em dynamically
-  * by specifying \em Dynamic as the size.
+  * The Matrix class is the work-horse for all \em dense matrices and vectors within Eigen. Vectors are matrices with one column,
+  * and row-vectors are matrices with one row.
   *
+  * The Matrix class encompasses \em both fixed-size and dynamic-size objects.
   *
   * \param _Scalar Numeric type, i.e. float, double, int
   * \param _Rows Number of rows, or \b Dynamic
   * \param _Cols Number of columns, or \b Dynamic
-  * \param _StorageOrder Either RowMajor or ColMajor. The default is ColMajor.
+  * \param _StorageOrder Either \b RowMajor or \b ColMajor. The default is \b ColMajor.
   * \param _MaxRows Maximum number of rows. Defaults to \a _Rows.  See note below.
   * \param _MaxCols Maximum number of columns. Defaults to \a _Cols.  See note below.
   *
-  * \note <b>Dynamic size:</b>
-  * \em Dynamic in this context only means specified at run-time instead of at compile time.  Dynamic
-  * matrices <em>do not</em> expand dynamically.
+  * \note <b>Fixed-size versus dynamic-size</b>
+  * Fixed-size means that the numbers of rows and columns are known are compile-time. In this case, Eigen allocates the array
+  * of coefficients as a fixed-size array on the stack. This makes sense for very small matrices, typically up to 4x4, sometimes up
+  * to 16x16. Larger matrices should be declared as dynamic-size even if one happens to know their size at compile-time.
   *
-  * \note <b>Max Rows / Columns:</b>
-  * The most common reason to use these values is when you don't know the exact number of columns or rows,
-  * but know that they will remain below the given value.  Then you can set the \a _MaxRows or \a _MaxCols
-  * to that value, and set \a _Rows or \a _Cols to \a Dynamic.
+  * Dynamic-size means that the numbers of rows or columns are not necessarily known at compile-time. In this case they are runtime variables,
+  * and the array of coefficients is allocated dynamically, typically on the heap (See Note [*] below).
   *
-  * \warning For very large matrices, \em Dynamic allocation should be used, otherwise the stack will be
-  * overflowed.
+  * Note that dense matrices, be they Fixed-size or Dynamic-size, <em>do not</em> expand dynamically in the sense of a std::map.
+  * If you want this behavior, see the Sparse module.
+  *
+  * \note <b>_MaxRows and _MaxCols:</b>
+  * In most cases, one just leaves these parameters to the default values.
+  * These parameters mean the maximum size of rows and columns that the matrix may have. They are useful in cases
+  * when the exact numbers of rows and columns are not known are compile-time, but it is known at compile-time that they cannot
+  * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
+  * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.
   *
   * Eigen provides a number of typedefs to make working with matrices and vector simpler:
   *
   * For example:
   *
-  * \li <b>\c MatrixXf is a dynamically sized matrix of floats (\c Matrix<float, Dynamic, Dynamic>)</b>
-  * \li <b>\c VectorXf is a dynamically sized vector of floats (\c Matrix<float, Dynamic, 1>)</b>
+  * \li \c MatrixXf is a dynamic-size matrix of floats (\c Matrix<float, Dynamic, Dynamic>)
+  * \li \c VectorXf is a dynamic-size vector of floats (\c Matrix<float, Dynamic, 1>)
   *
-  * \li \c Matrix2d is a 2-row by 2-column square matrix of doubles (\c Matrix<double, 2, 2>)
+  * \li \c Matrix2d is a 2x2 square matrix of doubles (\c Matrix<double, 2, 2>)
   * \li \c RowVector3i is a row-vector with three elements containing integers (\c Matrix<int, 1, 3>)
   *
   * \see matrixtypedefs for a complete list of predefined \em Matrix and \em Vector types.
@@ -73,6 +79,9 @@
   * Eigen::VectorXf v(10);
   * v[0] = 0.1;
   * v[1] = 0.2;
+  * v(0) = 0.1;
+  * v(1) = 0.2;
+
   *
   * Eigen::MatrixXi m(10, 10);
   * m(0, 1) = 1;
