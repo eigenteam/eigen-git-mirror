@@ -213,7 +213,7 @@ class SparseMatrix
 
     inline void swap(SparseMatrix& other)
     {
-      EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: swap\n");
+      //EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: swap\n");
       std::swap(m_outerIndex, other.m_outerIndex);
       std::swap(m_innerSize, other.m_innerSize);
       std::swap(m_outerSize, other.m_outerSize);

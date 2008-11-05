@@ -70,7 +70,7 @@ void doEigen(const char* name, const EigenSparseSelfAdjointMatrix& sm1, int flag
   std::cout << ":\t" << timer.value() << endl;
 
   std::cout << "  nnz: " << sm1.nonZeros() << " => " << chol.matrixL().nonZeros() << "\n";
-  std::cout << "sparse\n" << chol.matrixL() << "%\n";
+//   std::cout << "sparse\n" << chol.matrixL() << "%\n";
 }
 
 int main(int argc, char *argv[])
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
           if (!ei_isMuchSmallerThan(ei_abs(chol.matrixL()(i,j)), 0.1))
             count++;
       std::cout << "dense: " << "nnz = " << count << "\n";
-      std::cout << "dense:\n" << m1 << "\n\n" << chol.matrixL() << endl;
+//       std::cout << "dense:\n" << m1 << "\n\n" << chol.matrixL() << endl;
     }
     #endif
 

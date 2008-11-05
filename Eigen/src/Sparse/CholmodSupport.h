@@ -155,6 +155,7 @@ void SparseLLT<MatrixType,Cholmod>::compute(const MatrixType& a)
   }
 
   cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
+  // TODO
   if (m_flags&IncompleteFactorization)
   {
     m_cholmod.nmethods = 1;

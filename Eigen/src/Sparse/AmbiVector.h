@@ -36,7 +36,7 @@ template<typename _Scalar> class AmbiVector
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     AmbiVector(int size)
-      : m_buffer(0), m_size(0), m_allocatedSize(0), m_mode(-1)
+      : m_buffer(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
       resize(size);
     }
@@ -72,16 +72,33 @@ template<typename _Scalar> class AmbiVector
 
     void reallocate(int size)
     {
-      Scalar* newBuffer = new Scalar[size/* *4 + (size * sizeof(int)*2)/sizeof(Scalar)+1 */];
-      int copySize = std::min(size, m_size);
-      memcpy(newBuffer,  m_buffer,  copySize * sizeof(Scalar));
+      // if the size of the matrix is not too large, let's allocate a bit more than needed such
+      // that we can handle dense vector even in sparse mode.
       delete[] m_buffer;
-      m_buffer = newBuffer;
-      m_allocatedSize = size;
-
+      if (size<1000)
+      {
+        int allocSize = (size * sizeof(ListEl))/sizeof(Scalar);
+        m_allocatedElements = (allocSize*sizeof(Scalar))/sizeof(ListEl);
+        m_buffer = new Scalar[allocSize];
+      }
+      else
+      {
+        m_allocatedElements = (size*sizeof(Scalar))/sizeof(ListEl);
+        m_buffer = new Scalar[size];
+      }
       m_size = size;
       m_start = 0;
       m_end = m_size;
+    }
+
+    void reallocateSparse()
+    {
+      int copyElements = m_allocatedElements;
+      m_allocatedElements = std::min(int(m_allocatedElements*1.5),m_size);
+      int allocSize = m_allocatedElements * sizeof(ListEl);
+      allocSize = allocSize/sizeof(Scalar) + (allocSize%sizeof(Scalar)>0?1:0);
+      Scalar* newBuffer = new Scalar[allocSize];
+      memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
     }
 
   protected:
@@ -99,6 +116,7 @@ template<typename _Scalar> class AmbiVector
     int m_start;
     int m_end;
     int m_allocatedSize;
+    int m_allocatedElements;
     int m_mode;
 
     // linked list mode
@@ -219,6 +237,9 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
       }
       else
       {
+        if (m_llSize>=m_allocatedElements)
+          reallocateSparse();
+        ei_internal_assert(m_llSize<m_size && "internal error: overflow in sparse mode");
         // let's insert a new coefficient
         ListEl& el = llElements[m_llSize];
         el.value = Scalar(0);

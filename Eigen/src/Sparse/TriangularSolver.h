@@ -70,7 +70,9 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Upper,RowMajor|IsSparse>
       {
         Scalar tmp = other.coeff(i,col);
         typename Lhs::InnerIterator it(lhs, i);
-        for(++it; it; ++it)
+        if (it.index() == i)
+          ++it;
+        for(; it; ++it)
         {
           tmp -= it.value() * other.coeff(it.index(),col);
         }
@@ -107,7 +109,9 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor|IsSparse>
           other.coeffRef(i,col) /= it.value();
         }
         Scalar tmp = other.coeffRef(i,col);
-        for(++it; it; ++it)
+        if (it.index()==i)
+          ++it;
+        for(; it; ++it)
           other.coeffRef(it.index(), col) -= tmp * it.value();
       }
     }

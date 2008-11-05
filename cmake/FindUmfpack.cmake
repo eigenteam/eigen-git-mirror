@@ -3,6 +3,11 @@ if (UMFPACK_INCLUDES AND UMFPACK_LIBRARIES)
   set(UMFPACK_FIND_QUIETLY TRUE)
 endif (UMFPACK_INCLUDES AND UMFPACK_LIBRARIES)
 
+enable_language(Fortran)
+find_package(BLAS)
+
+if(BLAS_FOUND)
+
 find_path(UMFPACK_INCLUDES
   NAMES
   umfpack.h
@@ -38,6 +43,12 @@ if(UMFPACK_LIBRARIES)
   endif (COLAMD_LIBRARY)
 
 endif(UMFPACK_LIBRARIES)
+
+if(UMFPACK_LIBRARIES)
+  set(UMFPACK_LIBRARIES ${UMFPACK_LIBRARIES} ${BLAS_LIBRARIES})
+endif(UMFPACK_LIBRARIES)
+
+endif(BLAS_FOUND)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(UMFPACK DEFAULT_MSG

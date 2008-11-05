@@ -159,7 +159,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
         }
         else
         {
-          LinkedVectorMatrix<Scalar, RowMajorBit> trans = m.derived();
+          SparseMatrix<Scalar, RowMajorBit> trans = m.derived();
           s << trans;
         }
       }
