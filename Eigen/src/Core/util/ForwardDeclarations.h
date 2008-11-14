@@ -64,6 +64,7 @@ template<typename Scalar> struct ei_scalar_quotient_op;
 template<typename Scalar> struct ei_scalar_opposite_op;
 template<typename Scalar> struct ei_scalar_conjugate_op;
 template<typename Scalar> struct ei_scalar_real_op;
+template<typename Scalar> struct ei_scalar_imag_op;
 template<typename Scalar> struct ei_scalar_abs_op;
 template<typename Scalar> struct ei_scalar_abs2_op;
 template<typename Scalar> struct ei_scalar_sqrt_op;

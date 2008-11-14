@@ -130,27 +130,13 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   MatrixType a1 = MatrixType::Random(rows,cols);
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
 
-//   MatrixType b = MatrixType::Random(rows,cols);
-//   MatrixType b1 = MatrixType::Random(rows,cols);
-//   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
-
   EigenSolver<MatrixType> ei0(symmA);
+  VERIFY_IS_APPROX(symmA * ei0.pseudoEigenvectors(), ei0.pseudoEigenvectors() * ei0.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX((symmA.template cast<Complex>()) * (ei0.pseudoEigenvectors().template cast<Complex>()),
     (ei0.pseudoEigenvectors().template cast<Complex>()) * (ei0.eigenvalues().asDiagonal()));
 
-//   a = a /*+ symmA*/;
   EigenSolver<MatrixType> ei1(a);
-
-  IOFormat OctaveFmt(4, AlignCols, ", ", ";\n", "", "", "[", "]");
-//   std::cerr << "==============\n" << a.format(OctaveFmt) << "\n\n" << ei1.eigenvalues().transpose() << "\n\n";
-//   std::cerr << a * ei1.pseudoEigenvectors() << "\n\n" << ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix() << "\n\n\n";
-
-//   VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
-
-  
-//   std::cerr << a.format(OctaveFmt) << "\n\n";
-//   std::cerr << ei1.eigenvectors().format(OctaveFmt) << "\n\n";
-//   std::cerr << a.template cast<Complex>() * ei1.eigenvectors() << "\n\n" << ei1.eigenvectors() * ei1.eigenvalues().asDiagonal().eval() << "\n\n";
+  VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal().eval());
 
@@ -167,8 +153,7 @@ void test_eigensolver()
     CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
 
     CALL_SUBTEST( eigensolver(Matrix4f()) );
-    // FIXME the test fails for larger matrices
-//     CALL_SUBTEST( eigensolver(MatrixXd(7,7)) );
+    CALL_SUBTEST( eigensolver(MatrixXd(17,17)) );
   }
 }
 

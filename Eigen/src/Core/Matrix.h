@@ -437,14 +437,14 @@ class Matrix
         this->Base::swap(other);
     }
 
-    /**
+    /** \name Map
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
       * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
       * \a data pointers.
-      * 
+      *
       * \see class Map
       */
-    //@}
+    //@{
     inline static const UnalignedMapType Map(const Scalar* data)
     { return UnalignedMapType(data); }
     inline static UnalignedMapType Map(Scalar* data)

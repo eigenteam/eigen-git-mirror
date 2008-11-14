@@ -189,6 +189,8 @@ template<typename Derived> class MatrixBase
                      >::ret ConjugateReturnType;
     /** \internal the return type of MatrixBase::real() */
     typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
+    /** \internal the return type of MatrixBase::imag() */
+    typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef Eigen::Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
             AdjointReturnType;
@@ -496,6 +498,7 @@ template<typename Derived> class MatrixBase
 
     ConjugateReturnType conjugate() const;
     const RealReturnType real() const;
+    const ImagReturnType imag() const;
 
     template<typename CustomUnaryOp>
     const CwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;

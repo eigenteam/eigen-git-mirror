@@ -174,13 +174,17 @@ MatrixBase<Derived>::conjugate() const
 
 /** \returns an expression of the real part of \c *this.
   *
-  * \sa adjoint() */
+  * \sa imag() */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::RealReturnType
-MatrixBase<Derived>::real() const
-{
-  return derived();
-}
+MatrixBase<Derived>::real() const { return derived(); }
+
+/** \returns an expression of the imaginary part of \c *this.
+  *
+  * \sa real() */
+template<typename Derived>
+inline const typename MatrixBase<Derived>::ImagReturnType
+MatrixBase<Derived>::imag() const { return derived(); }
 
 /** \returns an expression of *this with the \a Scalar type casted to
   * \a NewScalar.

@@ -240,7 +240,21 @@ struct ei_scalar_real_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_real_op<Scalar> >
-{ enum { Cost =  0, PacketAccess = false }; };
+{ enum { Cost = 0, PacketAccess = false }; };
+
+/** \internal
+  * \brief Template functor to extract the imaginary part of a complex
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::imag()
+  */
+template<typename Scalar>
+struct ei_scalar_imag_op EIGEN_EMPTY_STRUCT {
+  typedef typename NumTraits<Scalar>::Real result_type;
+  inline result_type operator() (const Scalar& a) const { return ei_imag(a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_imag_op<Scalar> >
+{ enum { Cost = 0, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to multiply a scalar by a fixed other one

@@ -59,7 +59,7 @@ template<typename _MatrixType> class EigenSolver
       compute(matrix);
     }
 
-    
+
     EigenvectorType eigenvectors(void) const;
 
     /** \returns a real matrix V of pseudo eigenvectors.
@@ -200,18 +200,18 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
   for (int m = low+1; m <= high-1; m++)
   {
     // Scale column.
-    Scalar scale = matH.block(m, m-1, high-m+1, 1).cwise().abs().sum();
+    RealScalar scale = matH.block(m, m-1, high-m+1, 1).cwise().abs().sum();
     if (scale != 0.0)
     {
       // Compute Householder transformation.
-      Scalar h = 0.0;
+      RealScalar h = 0.0;
       // FIXME could be rewritten, but this one looks better wrt cache
       for (int i = high; i >= m; i--)
       {
         ort.coeffRef(i) = matH.coeff(i,m-1)/scale;
         h += ort.coeff(i) * ort.coeff(i);
       }
-      Scalar g = ei_sqrt(h);
+      RealScalar g = ei_sqrt(h);
       if (ort.coeff(m) > 0)
         g = -g;
       h = h - ort.coeff(m) * g;
@@ -246,7 +246,6 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
     }
   }
 }
-
 
 // Complex scalar division.
 template<typename Scalar>
@@ -298,7 +297,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       m_eivalues.coeffRef(j).real() = matH.coeff(j,j);
       m_eivalues.coeffRef(j).imag() = 0.0;
     }
-    norm += matH.col(j).start(std::min(j+1,nn)).cwise().abs().sum();
+    norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwise().abs().sum();
   }
 
   // Outer loop over eigenvalue index
@@ -571,7 +570,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       for (int i = n-1; i >= 0; i--)
       {
         w = matH.coeff(i,i) - p;
-        r = (matH.row(i).end(nn-l) * matH.col(n).end(nn-l))(0,0);
+        r = (matH.row(i).segment(l,n-l+1) * matH.col(n).segment(l, n-l+1))(0,0);
 
         if (m_eivalues.coeff(i).imag() < 0.0)
         {
@@ -630,8 +629,8 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       for (int i = n-2; i >= 0; i--)
       {
         Scalar ra,sa,vr,vi;
-        ra = (matH.row(i).end(nn-l) * matH.col(n-1).end(nn-l)).lazy()(0,0);
-        sa = (matH.row(i).end(nn-l) * matH.col(n).end(nn-l)).lazy()(0,0);
+        ra = (matH.block(i,l, 1, n-l+1) * matH.block(l,n-1, n-l+1, 1)).lazy()(0,0);
+        sa = (matH.block(i,l, 1, n-l+1) * matH.block(l,n, n-l+1, 1)).lazy()(0,0);
         w = matH.coeff(i,i) - p;
 
         if (m_eivalues.coeff(i).imag() < 0.0)
