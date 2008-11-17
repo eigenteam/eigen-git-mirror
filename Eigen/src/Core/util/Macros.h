@@ -111,6 +111,10 @@ using Eigen::ei_cos;
 
 #define EIGEN_RESTRICT __restrict
 
+#ifndef EIGEN_DEFAULT_IO_FORMAT
+#define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat()
+#endif
+
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherDerived> \
 Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \

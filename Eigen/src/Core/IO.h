@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob@math.jussieu.fr>
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -121,8 +122,7 @@ MatrixBase<Derived>::format(const IOFormat& fmt) const
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */
 template<typename Derived>
-std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
-                               const IOFormat& fmt = IOFormat())
+std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m, const IOFormat& fmt)
 {
   const typename Derived::Nested m = _m;
   int width = 0;
@@ -163,8 +163,12 @@ std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
 
 /** \relates MatrixBase
   *
-  * Outputs the matrix, laid out as an array as usual, to the given stream.
-  * You can control the way the matrix is printed using MatrixBase::format().
+  * Outputs the matrix, to the given stream.
+  *
+  * If you wish to print the matrix with a format different than the default, use MatrixBase::format().
+  *
+  * It is also possible to change the default format by defining EIGEN_DEFAULT_IO_FORMAT before including Eigen headers.
+  * If not defined, this will automatically be defined to Eigen::IOFormat(), that is the Eigen::IOFormat with default parameters.
   *
   * \sa MatrixBase::format()
   */
@@ -173,7 +177,7 @@ std::ostream & operator <<
 (std::ostream & s,
  const MatrixBase<Derived> & m)
 {
-  return ei_print_matrix(s, m.eval());
+  return ei_print_matrix(s, m.eval(), EIGEN_DEFAULT_IO_FORMAT);
 }
 
 #endif // EIGEN_IO_H
