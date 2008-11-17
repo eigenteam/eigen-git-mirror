@@ -27,7 +27,7 @@ namespace Eigen {
 
 <hr>
 
-<a href="#" class="top">top</a>\section TutorialCoreGettingStarted Getting started
+\section TutorialCoreGettingStarted Getting started
 
 In order to use Eigen, you just need to download and extract Eigen's source code. It is not necessary to use CMake or install anything.
 
@@ -38,6 +38,9 @@ Here are some quick compilation instructions with GCC. To quickly test an exampl
 There is no library to link to. For good performance, add the \c -O2 compile-flag. Note however that this makes it impossible to debug inside Eigen code, as many functions get inlined. In some cases, performance can be further improved by disabling Eigen assertions: use \c -DEIGEN_NO_DEBUG or \c -DNDEBUG to disable them.
 
 On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default.
+
+<a name="warningarraymodule" />
+\warning \redstar In most cases it is enough to include the \c Eigen/Core header only to get started with Eigen. However, some features presented in this tutorial require the Array module to be included (\c \#include \c <Eigen/Array>). Those features are highlighted with a red star \redstar.
 
 \section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
@@ -50,8 +53,6 @@ By fixed-size, we mean that the number of rows and columns are fixed at compile-
 output:
 \include Tutorial_simple_example_fixed_size.out
 </td></tr></table>
-
-
 
 <a href="#" class="top">top</a>\section TutorialCoreSimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
@@ -101,7 +102,7 @@ Eigen offers several static methods to create special matrix expressions, and no
   <td>Dynamic-size matrix</td>
   <td>Dynamic-size vector</td>
 </tr>
-<tr>
+<tr style="border-bottom-style: none;">
   <td>
 \code
 Matrix3f x;
@@ -154,6 +155,7 @@ x.setRandom(size);
 \endcode
   </td>
 </tr>
+<tr style="border-top-style: none;"><td colspan="3">\redstar the Random() and setRandom() functions require the inclusion of the Array module (\c \#include \c <Eigen/Array>)</td></tr>
 <tr><td colspan="3">Basis vectors \link MatrixBase::Unit [details]\endlink</td></tr>
 <tr><td>\code
 Vector3f::UnitX() // 1 0 0
@@ -262,7 +264,7 @@ mat3 = mat1 / s1;   mat3 /= s1;\endcode
 In Eigen, only traditional mathematical operators can be used right away.
 But don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
 Eigen's matrices are also very powerful as a numerical container supporting
-most common coefficient-wise operators:
+most common coefficient-wise operators.
 <table class="noborder">
 <tr><td>
 <table class="tutorial_code" style="margin-right:10pt">
@@ -270,22 +272,22 @@ most common coefficient-wise operators:
 <td>\code mat3 = mat1.cwise() * mat2; \endcode
 </td></tr>
 <tr><td>
-Add a scalar to all coefficients</td><td>\code
+Add a scalar to all coefficients \redstar</td><td>\code
 mat3 = mat1.cwise() + scalar;
 mat3.cwise() += scalar;
 mat3.cwise() -= scalar;
 \endcode
 </td></tr>
 <tr><td>
-Coefficient wise \link Cwise::operator/() division \endlink</td><td>\code
+Coefficient wise \link Cwise::operator/() division \endlink \redstar</td><td>\code
 mat3 = mat1.cwise() / mat2; \endcode
 </td></tr>
 <tr><td>
-Coefficient wise \link Cwise::inverse() reciprocal \endlink</td><td>\code
+Coefficient wise \link Cwise::inverse() reciprocal \endlink \redstar</td><td>\code
 mat3 = mat1.cwise().inverse(); \endcode
 </td></tr>
 <tr><td>
-Coefficient wise comparisons \n
+Coefficient wise comparisons \redstar \n
 (support all operators)</td><td>\code
 mat3 = mat1.cwise() < mat2;
 mat3 = mat1.cwise() <= mat2;
@@ -296,14 +298,14 @@ etc.
 </td>
 <td><table class="tutorial_code">
 <tr><td>
-\b Trigo: \n
+\b Trigo \redstar: \n
 \link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink</td><td>\code
 mat3 = mat1.cwise().sin();
 etc.
 \endcode
 </td></tr>
 <tr><td>
-\b Power: \n \link Cwise::pow() pow \endlink,
+\b Power \redstar: \n \link Cwise::pow() pow \endlink,
 \link Cwise::square square \endlink,
 \link Cwise::cube cube \endlink, \n
 \link Cwise::sqrt sqrt \endlink,
@@ -326,6 +328,7 @@ mat3 = mat1.cwise().abs2(mat2);
 \endcode</td></tr>
 </table>
 </td></tr></table>
+\redstar Those functions require the inclusion of the Array module (\c \#include \c <Eigen/Array>).
 
 <span class="note">\b Side \b note: If you think that the \c .cwise() syntax is too verbose for your own taste and prefer to have non-conventional mathematical operators directly available, then feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
 
@@ -353,10 +356,10 @@ Eigen provides several reduction methods such as:
 \link MatrixBase::minCoeff() minCoeff() \endlink, \link MatrixBase::maxCoeff() maxCoeff() \endlink,
 \link MatrixBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink,
 \link MatrixBase::norm() norm() \endlink, \link MatrixBase::squaredNorm() squaredNorm() \endlink,
-\link MatrixBase::all() all() \endlink,and \link MatrixBase::any() any() \endlink.
+\link MatrixBase::all() all() \endlink \redstar,and \link MatrixBase::any() any() \endlink \redstar.
 All reduction operations can be done matrix-wise,
-\link MatrixBase::colwise() column-wise \endlink or
-\link MatrixBase::rowwise() row-wise \endlink. Usage example:
+\link MatrixBase::colwise() column-wise \endlink \redstar or
+\link MatrixBase::rowwise() row-wise \endlink \redstar. Usage example:
 <table class="tutorial_code">
 <tr><td rowspan="3" style="border-right-style:dashed">\code
       5 3 1
