@@ -188,6 +188,15 @@ v = 6 6 6
 </td></tr></table>
 
 
+\subsection TutorialCasting Casting
+
+In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitely casted to another one using the template cast() function:
+\code
+Matrix3d md(1,2,3);
+Matrix3f mf = md.cast<float>();
+\endcode
+Note that casting to the same scalar type in an expression is free.
+
 
 \subsection TutorialMap Map
 Any memory buffer can be mapped as an Eigen expression:
