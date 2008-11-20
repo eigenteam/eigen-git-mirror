@@ -190,12 +190,20 @@ v = 6 6 6
 
 \subsection TutorialCasting Casting
 
-In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitely casted to another one using the template cast() function:
+In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitely casted to another one using the template MatrixBase::cast() function:
 \code
 Matrix3d md(1,2,3);
 Matrix3f mf = md.cast<float>();
 \endcode
 Note that casting to the same scalar type in an expression is free.
+
+The sizes of a resizable destination matrix can be changed automatically using the Matrix::set() function:
+\code
+MatrixXf res(10,10);
+Matrix3f a, b;
+res = a + b;  // does not work (no automatic resizing)
+res.set(a+b); // OK
+\endcode
 
 
 \subsection TutorialMap Map
