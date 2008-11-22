@@ -67,7 +67,7 @@ might still be interesting to write generic and efficient algorithms taking as i
 kind of transformations.
 
 Any of the above transformation types can be converted to any other types of the same nature,
-or to a more generic type. Here are come additional examples:
+or to a more generic type. Here are some additional examples:
 <table class="tutorial_code">
 <tr><td>\code
 Rotation2Df r = Matrix2f(..);       // assumes a pure rotation matrix
@@ -176,7 +176,7 @@ t.pretranslate(Vector_(tx,ty,..));
 t *= Translation_(tx,ty,..);
 t = Translation_(tx,ty,..) * t;
 \endcode</td></tr>
-<tr><td>\b Rotation \n <em class="note">In 2D, any_rotation can also \n be an angle in radian</em></td><td>\code
+<tr><td>\b Rotation \n <em class="note">In 2D and for the procedural API, any_rotation can also \n be an angle in radian</em></td><td>\code
 t.rotate(any_rotation);
 t.prerotate(any_rotation);
 \endcode</td><td>\code
@@ -216,7 +216,7 @@ t = Translation_(..) * t * RotationType(..) * Translation_(..) * Scaling_(..);
 <table class="tutorial_code">
 <tr><td style="max-width:30em;">
 Euler angles might be convenient to create rotation objects.
-On the other hand, since there exist 24 differents convensions,they are pretty confusing to use. This example shows how
+On the other hand, since there exist 24 differents convension,they are pretty confusing to use. This example shows how
 to create a rotation matrix according to the 2-1-2 convention.</td><td>\code
 Matrix3f m;
 m = AngleAxisf(angle1, Vector3f::UnitZ())

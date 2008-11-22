@@ -26,6 +26,7 @@
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
 /** \qr_module \ingroup QR_Module
+  * \nonstableyet
   *
   * \class SelfAdjointEigenSolver
   *
@@ -225,7 +226,7 @@ void SelfAdjointEigenSolver<MatrixType>::
 compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors)
 {
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
-  
+
   // Compute the cholesky decomposition of matB = L L'
   LLT<MatrixType> cholB(matB);
 

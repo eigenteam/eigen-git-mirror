@@ -44,7 +44,7 @@ template <typename T, int Size> struct ei_aligned_array<T,Size,false>
   T array[Size];
 };
 
-/** \internal allocates \a size * sizeof(\a T) bytes with a 16 bytes based alignment */
+/** \internal allocates \a size * sizeof(\a T) bytes with 16 bytes alignment */
 template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {
@@ -91,7 +91,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 /** \internal
   * ei_alloc_stack(TYPE,SIZE) allocates sizeof(TYPE)*SIZE bytes on the stack if sizeof(TYPE)*SIZE is
   * smaller than EIGEN_STACK_ALLOCATION_LIMIT. Otherwise the memory is allocated using the operator new.
-  * Data allocated with ei_alloc_stack \b must be freed calling ei_free_stack(PTR,TYPE,SIZE).
+  * Data allocated with ei_alloc_stack \b must be freed by calling ei_free_stack(PTR,TYPE,SIZE).
   * \code
   * float * data = ei_alloc_stack(float,array.size());
   * // ...
@@ -108,15 +108,15 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 
 /** \class WithAlignedOperatorNew
   *
-  * \brief Enforces inherited classes to be 16 bytes aligned when dynamicalled allocated with operator new
+  * \brief Enforces instances of inherited classes to be 16 bytes aligned when allocated with operator new
   *
   * When Eigen's explicit vectorization is enabled, Eigen assumes that some fixed sizes types are aligned
-  * on a 16 bytes boundary. Such types include:
+  * on a 16 bytes boundary. Those include all Matrix types having a sizeof multiple of 16 bytes, e.g.:
   *  - Vector2d, Vector4f, Vector4i, Vector4d,
   *  - Matrix2d, Matrix4f, Matrix4i, Matrix4d,
   *  - etc.
-  * When objects are statically allocated, the compiler will automatically and always enforces 16 bytes
-  * alignment of the data. However some troubles might appear when data are dynamically allocated.
+  * When an object is statically allocated, the compiler will automatically and always enforces 16 bytes
+  * alignment of the data when needed. However some troubles might appear when data are dynamically allocated.
   * Let's pick an example:
   * \code
   * struct Foo {
@@ -130,8 +130,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * pObj2->some_vector = Vector4f(..);  // =>  !! might segfault !!
   * \endcode
   * Here, the problem is that operator new is not aware of the compile time alignment requirement of the
-  * type Vector4f (and hence of the type Foo). Therefore "new Foo" does not necessarily returned a 16 bytes
-  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exactly to overcome this issue, by
+  * type Vector4f (and hence of the type Foo). Therefore "new Foo" does not necessarily returns a 16 bytes
+  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exactly to overcome this issue by
   * overloading the operator new to return aligned data when the vectorization is enabled.
   * Here is a similar safe example:
   * \code
@@ -139,12 +139,9 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   *   char dummy;
   *   Vector4f some_vector;
   * };
-  * Foo obj1;                           // static allocation
-  * obj1.some_vector = Vector4f(..);    // =>   OK
-  *
   * Foo *pObj2 = new Foo;               // dynamic allocation
   * pObj2->some_vector = Vector4f(..);  // =>  SAFE !
-  * \endcode 
+  * \endcode
   *
   * \sa class ei_new_allocator
   */
@@ -172,7 +169,7 @@ struct WithAlignedOperatorNew
 
   void operator delete(void * ptr) { free(ptr); }
   void operator delete[](void * ptr) { free(ptr); }
-  
+
   #endif
 };
 
@@ -190,14 +187,14 @@ struct ei_with_aligned_operator_new<T,SizeAtCompileTime,false> {};
   * STL allocator simply wrapping operators new[] and delete[]. Unlike GCC's default new_allocator,
   * ei_new_allocator call operator new on the type \a T and not the general new operator ignoring
   * overloaded version of operator new.
-  * 
+  *
   * Example:
   * \code
   * // Vector4f requires 16 bytes alignment:
   * std::vector<Vector4f,ei_new_allocator<Vector4f> > dataVec4;
   * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
   * std::vector<Vector3f> dataVec3;
-  * 
+  *
   * struct Foo : WithAlignedOperatorNew {
   *   char dummy;
   *   Vector4f some_vector;

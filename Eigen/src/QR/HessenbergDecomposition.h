@@ -26,6 +26,7 @@
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
 /** \ingroup QR_Module
+  * \nonstableyet
   *
   * \class HessenbergDecomposition
   *

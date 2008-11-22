@@ -26,6 +26,7 @@
 #define EIGEN_SVD_H
 
 /** \ingroup SVD_Module
+  * \nonstableyet
   *
   * \class SVD
   *

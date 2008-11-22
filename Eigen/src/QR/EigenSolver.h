@@ -26,6 +26,7 @@
 #define EIGEN_EIGENSOLVER_H
 
 /** \ingroup QR_Module
+  * \nonstableyet
   *
   * \class EigenSolver
   *

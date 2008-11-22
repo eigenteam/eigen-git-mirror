@@ -26,6 +26,7 @@
 #define EIGEN_TRIDIAGONALIZATION_H
 
 /** \ingroup QR_Module
+  * \nonstableyet
   *
   * \class Tridiagonalization
   *
@@ -219,7 +220,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
 
       matA.col(i).coeffRef(i+1) = 1;
-      
+
       /* This is the initial algorithm which minimize operation counts and maximize
        * the use of Eigen's expression. Unfortunately, the first matrix-vector product
        * using Part<Lower|Selfadjoint>  is very very slow */
@@ -284,7 +285,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 
       hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
                             * matA.col(i).end(n-i-1);
-      
+
       const Scalar* EIGEN_RESTRICT pb = &matA.coeffRef(0,i);
       const Scalar* EIGEN_RESTRICT pa = (&hCoeffs.coeffRef(0)) - 1;
       for (int j1=i+1; j1<n; ++j1)
@@ -295,11 +296,11 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
         {
           int alignedStart = (starti) + ei_alignmentOffset(&matA.coeffRef(starti,j1), n-starti);
           alignedEnd = alignedStart + ((n-alignedStart)/PacketSize)*PacketSize;
-          
+
           for (int i1=starti; i1<alignedStart; ++i1)
             matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
                                   + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
-          
+
           Packet tmp0 = ei_pset1(hCoeffs.coeff(j1-1));
           Packet tmp1 = ei_pset1(matA.coeff(j1,i));
           Scalar* pc = &matA.coeffRef(0,j1);
