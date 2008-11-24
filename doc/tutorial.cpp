@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   m4 = -m4 + m4 + 5 * m4; // same here, Eigen chooses lazy evaluation for all that.
   m4 = m4 * (m4 + m4); // here Eigen chooses to first evaluate m4 + m4 into a temporary.
                        // indeed, here it is an optimization to cache this intermediate result.
-  m3 = m3 * m4.block<3,3>(1,1); // here Eigen chooses NOT to evaluate transpose() into a temporary
+  m3 = m3 * m4.block<3,3>(1,1); // here Eigen chooses NOT to evaluate block() into a temporary
     // because accessing coefficients of that block expression is not more costly than accessing
     // coefficients of a plain matrix.
   m4 = m4 * m4.transpose(); // same here, lazy evaluation of the transpose.
