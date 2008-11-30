@@ -41,6 +41,10 @@ class ei_no_assignment_operator
     ei_no_assignment_operator& operator=(const ei_no_assignment_operator&);
 };
 
+/** \internal If the template parameter Value is Dynamic, this class is just a wrapper around an int variable that
+  * can be accessed using value() and setValue().
+  * Otherwise, this class is an empty structure and value() just returns the template parameter Value.
+  */
 template<int Value> class ei_int_if_dynamic EIGEN_EMPTY_STRUCT
 {
   public:
@@ -136,6 +140,24 @@ template<typename T> struct ei_eval_to_column_major
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 
+/** \internal Determines how a given expression should be nested into another one.
+  * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
+  * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
+  * evaluating that expression b+c into a temporary variable d, and nest d so that the resulting expression is
+  * a*d. Evaluating can be beneficial for example if every coefficient access in the resulting expression causes
+  * many coefficient accesses in the nested expressions -- as is the case with matrix product for example.
+  *
+  * \param T the type of the expression being nested
+  * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
+  *
+  * Example. Suppose that a, b, and c are of type Matrix3d. The user forms the expression a*(b+c).
+  * b+c is an expression "sum of matrices", which we will denote by S. In order to determine how to nest it,
+  * the Product expression uses: ei_nested<S, 3>::ret, which turns out to be Matrix3d because the internal logic of
+  * ei_nested determined that in this case it was better to evaluate the expression b+c into a temporary. On the other hand,
+  * since a is of type Matrix3d, the Product expression nests it as ei_nested<Matrix3d, 3>::ret, which turns out to be
+  * const Matrix3d&, because the internal logic of ei_nested determined that since a was already a matrix, there was no point
+  * in copying it into another matrix.
+  */
 template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> struct ei_nested
 {
   enum {

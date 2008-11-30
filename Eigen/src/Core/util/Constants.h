@@ -26,7 +26,25 @@
 #ifndef EIGEN_CONSTANTS_H
 #define EIGEN_CONSTANTS_H
 
+/** This value means that a quantity is not known at compile-time, and that instead the value is
+  * stored in some runtime variable.
+  *
+  * Explanation for the choice of this value:
+  * - It should be positive and larger than any reasonable compile-time-fixed number of rows or columns.
+  *   This means that it should be at least 128 or so.
+  * - It should be smaller than the sqrt of INT_MAX. Indeed, we often multiply a number of rows with a number
+  *   of columns in order to compute a number of coefficients. Even if we guard that with an "if" checking whether
+  *   the values are Dynamic, we still get a compiler warning "integer overflow". So the only way to get around
+  *   it would be a meta-selector. Doing this everywhere would reduce code readability and lenghten compilation times.
+  *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
+  *
+  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 250.
+  */
 const int Dynamic = 10000;
+
+/** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
+  * The value Infinity there means the L-infinity norm.
+  */
 const int Infinity = -1;
 
 /** \defgroup flags flags
@@ -199,9 +217,9 @@ enum {
 };
 
 enum {
-  CompleteUnrolling,
+  NoUnrolling,
   InnerUnrolling,
-  NoUnrolling
+  CompleteUnrolling
 };
 
 enum {
@@ -211,9 +229,9 @@ enum {
 
 enum {
   IsDense         = 0,
+  IsSparse        = SparseBit,
   NoDirectAccess  = 0,
-  HasDirectAccess = DirectAccessBit,
-  IsSparse        = SparseBit
+  HasDirectAccess = DirectAccessBit
 };
 
 const int FullyCoherentAccessPattern  = 0x1;

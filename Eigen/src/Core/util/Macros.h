@@ -28,7 +28,10 @@
 
 #undef minor
 
-/** \internal  Defines the maximal loop size to enable meta unrolling of loops */
+/** \internal  Defines the maximal loop size to enable meta unrolling of loops.
+  *            Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
+  *            it does not correspond to the number of iterations or the number of instructions
+  */
 #ifndef EIGEN_UNROLLING_LIMIT
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
@@ -36,7 +39,7 @@
 /** \internal Define the maximal size in Bytes of L2 blocks.
   * The current value is set to generate blocks of 256x256 for float */
 #ifndef EIGEN_TUNE_FOR_L2_CACHE_SIZE
-#define EIGEN_TUNE_FOR_L2_CACHE_SIZE (1024*256)
+#define EIGEN_TUNE_FOR_L2_CACHE_SIZE (sizeof(float)*256*256)
 #endif
 
 #define USING_PART_OF_NAMESPACE_EIGEN \
