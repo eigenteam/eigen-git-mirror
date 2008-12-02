@@ -39,7 +39,7 @@ PROJECT_NUMBER         = "${EIGEN_VERSION}"
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ${EIGEN_BINARY_DIR}/doc
+OUTPUT_DIRECTORY       = ${Eigen_BINARY_DIR}/doc
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -556,9 +556,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ${EIGEN_SOURCE_DIR}/Eigen \
-                         ${EIGEN_SOURCE_DIR}/doc \
-                         ${EIGEN_BINARY_DIR}/doc
+INPUT                  = ${Eigen_SOURCE_DIR}/Eigen \
+                         ${Eigen_SOURCE_DIR}/doc \
+                         ${Eigen_BINARY_DIR}/doc
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -618,10 +618,10 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = ${EIGEN_SOURCE_DIR}/doc/snippets \
-                         ${EIGEN_BINARY_DIR}/doc/snippets \
-                         ${EIGEN_SOURCE_DIR}/doc/examples \
-                         ${EIGEN_BINARY_DIR}/doc/examples
+EXAMPLE_PATH           = ${Eigen_SOURCE_DIR}/doc/snippets \
+                         ${Eigen_BINARY_DIR}/doc/snippets \
+                         ${Eigen_SOURCE_DIR}/doc/examples \
+                         ${Eigen_BINARY_DIR}/doc/examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
@@ -771,14 +771,14 @@ HTML_FILE_EXTENSION    = .html
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard header.
 
-HTML_HEADER             = ${EIGEN_BINARY_DIR}/doc/eigendoxy_header.html
+HTML_HEADER             = ${Eigen_BINARY_DIR}/doc/eigendoxy_header.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard footer.
 
 # the footer has not been customized yet, so let's use the default one
-# ${EIGEN_BINARY_DIR}/doc/eigendoxy_footer.html
+# ${Eigen_BINARY_DIR}/doc/eigendoxy_footer.html
 HTML_FOOTER             =
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading
@@ -788,7 +788,7 @@ HTML_FOOTER             =
 # the style sheet file to the HTML output directory, so don't put your own
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET         = ${EIGEN_SOURCE_DIR}/doc/eigendoxy.css
+HTML_STYLESHEET         = ${Eigen_SOURCE_DIR}/doc/eigendoxy.css
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes,
 # files or namespaces will be aligned in HTML using tables. If set to
