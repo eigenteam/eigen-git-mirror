@@ -1,20 +1,20 @@
-FIND_PACKAGE(Qt4 REQUIRED)
+find_package(Qt4 REQUIRED)
 
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
-   SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-   ADD_DEFINITIONS ( "-DNDEBUG" )
-ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_COMPILER_IS_GNUCXX)
+   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+   add_definitions ( "-DNDEBUG" )
+endif (CMAKE_COMPILER_IS_GNUCXX)
 
-INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} )
+include_directories( ${QT_INCLUDE_DIR} )
 
-SET(mandelbrot_SRCS
+set(mandelbrot_SRCS
     mandelbrot.cpp
 )
 
-QT4_AUTOMOC(${mandelbrot_SRCS})
+qt4_automoc(${mandelbrot_SRCS})
 
-ADD_EXECUTABLE(mandelbrot ${mandelbrot_SRCS})
+add_executable(mandelbrot ${mandelbrot_SRCS})
 
-TARGET_LINK_LIBRARIES(mandelbrot ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+target_link_libraries(mandelbrot ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})

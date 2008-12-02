@@ -1,4 +1,3 @@
-IF(BUILD_DEMOS)
-ADD_SUBDIRECTORY(mandelbrot)
-ADD_SUBDIRECTORY(opengl)
-ENDIF(BUILD_DEMOS)
+
+add_subdirectory(mandelbrot)
+add_subdirectory(opengl)

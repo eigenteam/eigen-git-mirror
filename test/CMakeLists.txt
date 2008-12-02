@@ -1,4 +1,3 @@
-if(BUILD_TESTS)
 
 find_package(GSL)
 if(GSL_FOUND)
@@ -174,4 +173,3 @@ ei_add_test(regression)
 ei_add_test(sparse_basic " " "${SPARSE_LIBS}")
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
 
-endif(BUILD_TESTS)

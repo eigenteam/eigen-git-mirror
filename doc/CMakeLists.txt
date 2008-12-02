@@ -1,34 +1,34 @@
 
-SET_DIRECTORY_PROPERTIES(PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
-IF(CMAKE_COMPILER_IS_GNUCXX)
-  IF(CMAKE_SYSTEM_NAME MATCHES Linux)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g1")
-  ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  if(CMAKE_SYSTEM_NAME MATCHES Linux)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g1")
+  endif(CMAKE_SYSTEM_NAME MATCHES Linux)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
-CONFIGURE_FILE(
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 )
 
-CONFIGURE_FILE(
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_header.html.in
   ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_header.html
 )
 
-CONFIGURE_FILE(
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_footer.html.in
   ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_footer.html
 )
 
-SET(examples_targets "")
-SET(snippets_targets "")
+set(examples_targets "")
+set(snippets_targets "")
 
-ADD_SUBDIRECTORY(examples)
-ADD_SUBDIRECTORY(snippets)
+add_subdirectory(examples)
+add_subdirectory(snippets)
 
-ADD_CUSTOM_TARGET(
+add_custom_target(
   doc
   ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/html/
@@ -42,4 +42,4 @@ ADD_CUSTOM_TARGET(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-ADD_DEPENDENCIES(doc all_snippets all_examples)
+add_dependencies(doc all_snippets all_examples)
