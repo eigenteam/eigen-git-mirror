@@ -25,6 +25,7 @@ else(CHOLMOD_FOUND)
   message("CHOLMOD not found, this optional backend won't be tested")
 endif(CHOLMOD_FOUND)
 
+enable_language(Fortran OPTIONAL)
 find_package(Umfpack)
 if(UMFPACK_FOUND)
   add_definitions("-DEIGEN_UMFPACK_SUPPORT")
