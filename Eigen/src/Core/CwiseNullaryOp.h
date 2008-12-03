@@ -561,7 +561,7 @@ inline Derived& MatrixBase<Derived>::setIdentity()
 template<typename Derived>
 const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int size, int i)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return BasisReturnType(SquareMatrixType::Identity(size,size), i);
 }
 
@@ -576,7 +576,7 @@ const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(in
 template<typename Derived>
 const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::Unit(int i)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return BasisReturnType(SquareMatrixType::Identity(),i);
 }
 

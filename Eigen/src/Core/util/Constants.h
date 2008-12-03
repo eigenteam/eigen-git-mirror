@@ -31,14 +31,14 @@
   *
   * Explanation for the choice of this value:
   * - It should be positive and larger than any reasonable compile-time-fixed number of rows or columns.
-  *   This means that it should be at least 128 or so.
+  *   This allows to simplify many compile-time conditions throughout Eigen.
   * - It should be smaller than the sqrt of INT_MAX. Indeed, we often multiply a number of rows with a number
   *   of columns in order to compute a number of coefficients. Even if we guard that with an "if" checking whether
   *   the values are Dynamic, we still get a compiler warning "integer overflow". So the only way to get around
   *   it would be a meta-selector. Doing this everywhere would reduce code readability and lenghten compilation times.
   *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
   *
-  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 250.
+  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 100.
   */
 const int Dynamic = 10000;
 

@@ -122,7 +122,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
         m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
     {
-      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size);
+      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size)
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
@@ -340,7 +340,7 @@ template<typename Derived>
 inline typename BlockReturnType<Derived>::SubVectorType MatrixBase<Derived>
   ::segment(int start, int size)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -352,7 +352,7 @@ template<typename Derived>
 inline const typename BlockReturnType<Derived>::SubVectorType
 MatrixBase<Derived>::segment(int start, int size) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return typename BlockReturnType<Derived>::SubVectorType(derived(), RowsAtCompileTime == 1 ? 0 : start,
                                    ColsAtCompileTime == 1 ? 0 : start,
                                    RowsAtCompileTime == 1 ? 1 : size,
@@ -380,7 +380,7 @@ template<typename Derived>
 inline typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::start(int size)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,
                RowsAtCompileTime == 1 ? 1 : Dynamic,
                ColsAtCompileTime == 1 ? 1 : Dynamic>
@@ -394,7 +394,7 @@ template<typename Derived>
 inline const typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::start(int size) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,
                RowsAtCompileTime == 1 ? 1 : Dynamic,
                ColsAtCompileTime == 1 ? 1 : Dynamic>
@@ -424,7 +424,7 @@ template<typename Derived>
 inline typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::end(int size)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,
                RowsAtCompileTime == 1 ? 1 : Dynamic,
                ColsAtCompileTime == 1 ? 1 : Dynamic>
@@ -440,7 +440,7 @@ template<typename Derived>
 inline const typename BlockReturnType<Derived,Dynamic>::SubVectorType
 MatrixBase<Derived>::end(int size) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,
                RowsAtCompileTime == 1 ? 1 : Dynamic,
                ColsAtCompileTime == 1 ? 1 : Dynamic>
@@ -469,7 +469,7 @@ template<int Size>
 inline typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::segment(int start)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),
                          (ColsAtCompileTime == 1 ? 1 : Size)>
               (derived(), RowsAtCompileTime == 1 ? 0 : start,
@@ -482,7 +482,7 @@ template<int Size>
 inline const typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::segment(int start) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived,  (RowsAtCompileTime == 1 ? 1 : Size),
                          (ColsAtCompileTime == 1 ? 1 : Size)>
               (derived(), RowsAtCompileTime == 1 ? 0 : start,
@@ -507,7 +507,7 @@ template<int Size>
 inline typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::start()
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
                         (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
@@ -518,7 +518,7 @@ template<int Size>
 inline const typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::start() const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived, (RowsAtCompileTime == 1 ? 1 : Size),
                         (ColsAtCompileTime == 1 ? 1 : Size)>(derived(), 0, 0);
 }
@@ -539,7 +539,7 @@ template<int Size>
 inline typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::end()
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
                         ColsAtCompileTime == 1 ? 1 : Size>
            (derived(),
@@ -553,7 +553,7 @@ template<int Size>
 inline const typename BlockReturnType<Derived,Size>::SubVectorType
 MatrixBase<Derived>::end() const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return Block<Derived, RowsAtCompileTime == 1 ? 1 : Size,
                         ColsAtCompileTime == 1 ? 1 : Size>
            (derived(),

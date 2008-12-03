@@ -348,7 +348,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-// NOTE quick hack:
+// FIXME quick hack:
 // all functors allow linear access, except ei_scalar_identity_op. So we fix here a quick meta
 // to indicate whether a functor allows linear access, just always answering 'yes' except for
 // ei_scalar_identity_op.

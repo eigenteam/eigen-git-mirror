@@ -263,9 +263,9 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   typedef typename ei_unref<Nested>::type _Nested;
   typedef typename ei_unref<OtherNested>::type _OtherNested;
 
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested);
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested);
-  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested)
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested)
+  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested)
   ei_assert(size() == other.size());
 
   return ei_dot_impl<_Nested, _OtherNested>::run(derived(), other.derived());

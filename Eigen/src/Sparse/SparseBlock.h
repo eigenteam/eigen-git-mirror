@@ -59,7 +59,7 @@ public:
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
         m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
     {
-      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size);
+      EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && RowsAtCompileTime!=Dynamic,this_method_is_only_for_fixed_size)
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
           && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }

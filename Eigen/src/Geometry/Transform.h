@@ -302,7 +302,7 @@ Transform<Scalar,Dim>::Transform(const QMatrix& other)
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
   m_matrix << other.m11(), other.m21(), other.dx(),
               other.m12(), other.m22(), other.dy(),
               0, 0, 1;
@@ -318,7 +318,7 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
   return QMatrix(other.coeffRef(0,0), other.coeffRef(1,0),
                  other.coeffRef(0,1), other.coeffRef(1,1),
                  other.coeffRef(0,2), other.coeffRef(1,2));
@@ -341,7 +341,7 @@ Transform<Scalar,Dim>::Transform(const QTransform& other)
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
   m_matrix << other.m11(), other.m21(), other.dx(),
               other.m12(), other.m22(), other.dy(),
               other.m13(), other.m23(), other.m33();
@@ -355,7 +355,7 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
 template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQTransform(void) const
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
   return QTransform(other.coeffRef(0,0), other.coeffRef(1,0), other.coeffRef(2,0)
                     other.coeffRef(0,1), other.coeffRef(1,1), other.coeffRef(2,1)
                     other.coeffRef(0,2), other.coeffRef(1,2), other.coeffRef(2,2);
@@ -375,7 +375,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::scale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
   linear() = (linear() * other.asDiagonal()).lazy();
   return *this;
 }
@@ -400,7 +400,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::prescale(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
   m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
   return *this;
 }
@@ -425,7 +425,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::translate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
   translation() += linear() * other;
   return *this;
 }
@@ -439,7 +439,7 @@ template<typename OtherDerived>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::pretranslate(const MatrixBase<OtherDerived> &other)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim));
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
   translation() += other;
   return *this;
 }
@@ -496,7 +496,7 @@ template<typename Scalar, int Dim>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::shear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(int(Dim)==2, you_made_a_programming_mistake)
   VectorType tmp = linear().col(0)*sy + linear().col(1);
   linear() << linear().col(0) + linear().col(1)*sx, tmp;
   return *this;
@@ -511,7 +511,7 @@ template<typename Scalar, int Dim>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(Dim)==2, you_did_a_programming_error);
+  EIGEN_STATIC_ASSERT(int(Dim)==2, you_made_a_programming_mistake)
   m_matrix.template block<Dim,HDim>(0,0) = LinearMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }

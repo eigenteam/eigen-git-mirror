@@ -60,23 +60,24 @@
         you_mixed_matrices_of_different_sizes,
         this_method_is_only_for_vectors_of_a_specific_size,
         this_method_is_only_for_matrices_of_a_specific_size,
-        you_did_a_programming_error,
+        you_made_a_programming_mistake,
         you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
         unaligned_load_and_store_operations_unimplemented_on_AltiVec,
-        scalar_type_must_be_floating_point,
-        default_writting_to_selfadjoint_not_supported,
-        writting_to_triangular_part_with_unit_diag_is_not_supported,
+        numeric_type_must_be_floating_point,
+        default_writing_to_selfadjoint_not_supported,
+        writing_to_triangular_part_with_unit_diagonal_is_not_supported,
         this_method_is_only_for_fixed_size,
         invalid_matrix_product,
         invalid_vector_vector_product__if_you_wanted_a_dot_or_coeff_wise_product_you_must_use_the_explicit_functions,
-        invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function
+        invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function,
+	you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly
       };
     };
 
     #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
       if (Eigen::ei_static_assert<CONDITION ? true : false>::MSG) {}
 
-  #endif // CXX0X
+  #endif // not CXX0X
 
 #else // EIGEN_NO_STATIC_ASSERT
 
@@ -121,7 +122,7 @@
     || int(TYPE1::ColsAtCompileTime)==Eigen::Dynamic \
     || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime)))
 
-// static assertion failing if the two matrix expression types are not compatible (same fixed-size or dynamic size)
+// static assertion failing if it is guaranteed at compile-time that the two matrix expression types have different sizes
 #define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
      EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1),\

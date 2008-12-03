@@ -37,7 +37,7 @@ template<typename OtherDerived>
 inline typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3)
 
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
@@ -112,7 +112,7 @@ template<typename Derived>
 typename MatrixBase<Derived>::EvalType
 MatrixBase<Derived>::unitOrthogonal() const
 {
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return ei_unitOrthogonal_selector<Derived>::run(derived());
 }
 

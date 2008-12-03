@@ -90,7 +90,7 @@ template<typename MatrixType, int PacketAccess> class Map
 
     inline void resize(int size)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType)
       EIGEN_ONLY_USED_FOR_DEBUG(size);
       ei_assert(size == this->size());
     }

@@ -400,7 +400,7 @@ template<typename OtherDerived>
 inline Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived);
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   ei_assert(rows() == other.rows() && cols() == other.cols());
   ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
   return derived();

@@ -100,8 +100,8 @@ template<typename MatrixType, unsigned int Mode> class Part
 
     inline Scalar& coeffRef(int row, int col)
     {
-      EIGEN_STATIC_ASSERT(!(Flags & UnitDiagBit), writting_to_triangular_part_with_unit_diag_is_not_supported);
-      EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), default_writting_to_selfadjoint_not_supported);
+      EIGEN_STATIC_ASSERT(!(Flags & UnitDiagBit), writing_to_triangular_part_with_unit_diagonal_is_not_supported)
+      EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), default_writing_to_selfadjoint_not_supported)
       ei_assert(   (Mode==Upper && col>=row)
                 || (Mode==Lower && col<=row)
                 || (Mode==StrictlyUpper && col>row)

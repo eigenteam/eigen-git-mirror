@@ -53,8 +53,8 @@ void makeNoisyCohyperplanarPoints(int numPoints,
       // project cur_point onto the hyperplane
       Scalar x = - (hyperplane->coeffs().start(size).cwise()*cur_point).sum();
       cur_point *= hyperplane->coeffs().coeff(size) / x;
-    } while( ei_abs(cur_point.norm()) < 0.5
-          || ei_abs(cur_point.norm()) > 2.0 );
+    } while( cur_point.norm() < 0.5
+          || cur_point.norm() > 2.0 );
   }
 
   // add some noise to these points
@@ -96,7 +96,7 @@ void test_regression()
       Vector4d points4d [1000];
       Vector4d *points4d_ptrs [1000];
       for(int i = 0; i < 1000; i++) points4d_ptrs[i] = &(points4d[i]);
-      Hyperplane<float,4> coeffs5d;
+      Hyperplane<double,4> coeffs5d;
       makeNoisyCohyperplanarPoints(1000, points4d_ptrs, &coeffs5d, 0.01);
       CALL_SUBTEST(check_fitHyperplane(10, points4d_ptrs, coeffs5d, 0.05));
       CALL_SUBTEST(check_fitHyperplane(100, points4d_ptrs, coeffs5d, 0.01));

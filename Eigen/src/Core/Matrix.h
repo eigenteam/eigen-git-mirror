@@ -369,21 +369,21 @@ class Matrix
     /** constructs an initialized 2D vector with given coefficients */
     inline Matrix(const float& x, const float& y)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2);
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
     inline Matrix(const double& x, const double& y)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2);
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
     inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3);
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;
@@ -391,7 +391,7 @@ class Matrix
     /** constructs an initialized 4D vector with given coefficients */
     inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4);
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;

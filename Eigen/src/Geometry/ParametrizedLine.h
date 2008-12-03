@@ -141,7 +141,7 @@ protected:
 template <typename _Scalar, int _AmbientDim>
 inline ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
 {
-  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2)
   direction() = hyperplane.normal().unitOrthogonal();
   origin() = -hyperplane.normal()*hyperplane.offset();
 }

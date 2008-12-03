@@ -220,7 +220,7 @@ inline void MatrixBase<Derived>::computeInverse(EvalType *result) const
 {
   typedef typename ei_eval<Derived>::type MatrixType;
   ei_assert(rows() == cols());
-  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,scalar_type_must_be_floating_point);
+  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,numeric_type_must_be_floating_point)
   ei_compute_inverse<MatrixType>::run(eval(), result);
 }
 
