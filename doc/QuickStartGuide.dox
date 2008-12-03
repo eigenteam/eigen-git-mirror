@@ -511,11 +511,7 @@ todo
 
 <a href="#" class="top">top</a>\section TutorialCoreSpecialTopics Special Topics
 
-There are some \ref SpecialTopics "other topics" about which we suggest that you read.
-
-In particular, thanks to expression templates, Eigen is able to apply \ref TopicLazyEvaluation "lazy evaluation" whenever that is beneficial.
-
-todo
+\ref TopicLazyEvaluation "Lazy Evaluation and Aliasing": Thanks to expression templates, Eigen is able to apply lazy evaluation wherever that is beneficial.
 
 */
 
