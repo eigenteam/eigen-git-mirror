@@ -93,7 +93,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
       // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
-      // that would take two operands of different types. If there were such an example, then this check should then be
+      // that would take two operands of different types. If there were such an example, then this check should be
       // moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as 
       // currently they take only one typename Scalar template parameter.
       // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
@@ -101,7 +101,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       // add together a float matrix and a double matrix.
       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
         you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly)
-      // require the sizes to be the same
+      // require the sizes to match
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
