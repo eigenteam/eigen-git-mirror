@@ -318,6 +318,28 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
+
+  m = q1;
+
+  #define VERIFY_EULER(I,J,K, X,Y,Z) { \
+    Vector3 ea = m.eulerAngles(I,J,K); \
+    Matrix3 m1 = Matrix3(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z())); \
+    VERIFY_IS_APPROX(m,  Matrix3(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z()))); \
+  }
+  VERIFY_EULER(0,1,2, X,Y,Z);
+  VERIFY_EULER(0,1,0, X,Y,X);
+  VERIFY_EULER(0,2,1, X,Z,Y);
+  VERIFY_EULER(0,2,0, X,Z,X);
+
+  VERIFY_EULER(1,2,0, Y,Z,X);
+  VERIFY_EULER(1,2,1, Y,Z,Y);
+  VERIFY_EULER(1,0,2, Y,X,Z);
+  VERIFY_EULER(1,0,1, Y,X,Y);
+
+  VERIFY_EULER(2,0,1, Z,X,Y);
+  VERIFY_EULER(2,0,2, Z,X,Z);
+  VERIFY_EULER(2,1,0, Z,Y,X);
+  VERIFY_EULER(2,1,2, Z,Y,Z);
 }
 
 void test_geometry()

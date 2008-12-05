@@ -593,6 +593,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     EvalType cross(const MatrixBase<OtherDerived>& other) const;
     EvalType unitOrthogonal(void) const;
+    Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

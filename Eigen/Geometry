@@ -29,6 +29,7 @@ namespace Eigen {
 #include "src/Geometry/Rotation2D.h"
 #include "src/Geometry/Quaternion.h"
 #include "src/Geometry/AngleAxis.h"
+#include "src/Geometry/EulerAngles.h"
 #include "src/Geometry/Transform.h"
 #include "src/Geometry/Translation.h"
 #include "src/Geometry/Scaling.h"
