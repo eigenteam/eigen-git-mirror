@@ -320,7 +320,9 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
 
   m = q1;
-
+//   m.col(1) = Vector3(0,ei_random<Scalar>(),ei_random<Scalar>()).normalized();
+//   m.col(0) = Vector3(-1,0,0).normalized();
+//   m.col(2) = m.col(0).cross(m.col(1));
   #define VERIFY_EULER(I,J,K, X,Y,Z) { \
     Vector3 ea = m.eulerAngles(I,J,K); \
     Matrix3 m1 = Matrix3(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z())); \

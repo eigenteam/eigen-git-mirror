@@ -48,6 +48,7 @@ template<typename Derived>
 inline Matrix<typename MatrixBase<Derived>::Scalar,3,1>
 MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
 {
+  /* Implemented from Graphics Gems IV */
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived,3,3)
 
   Matrix<Scalar,3,1> res;
@@ -62,7 +63,6 @@ MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
   if (a0==a2)
   {
     Scalar s = Vector2(coeff(j,i) , coeff(k,i)).norm();
-
     res[1] = std::atan2(s, coeff(i,i));
     if (s > epsilon)
     {
@@ -72,13 +72,12 @@ MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
     else
     {
       res[0] = Scalar(0);
-      res[2] = std::atan2(-coeff(k,j), coeff(j,j));
+      res[2] = (coeff(i,i)>0?1:-1)*std::atan2(-coeff(k,j), coeff(j,j));
     }
   }
   else
   {
     Scalar c = Vector2(coeff(i,i) , coeff(i,j)).norm();
-
     res[1] = std::atan2(-coeff(i,k), c);
     if (c > epsilon)
     {
@@ -88,7 +87,7 @@ MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
     else
     {
       res[0] = Scalar(0);
-      res[2] = -std::atan2(-coeff(k,j), coeff(j,j));
+      res[2] = (coeff(i,k)>0?1:-1)*std::atan2(-coeff(k,j), coeff(j,j));
     }
   }
   if (!odd)
