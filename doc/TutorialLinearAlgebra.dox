@@ -11,13 +11,13 @@ namespace Eigen {
 </div>
 
 \b Table \b of \b contents
-  - \ref TutorialAdvLinearSolvers
+  - \ref TutorialAdvSolvers
   - \ref TutorialAdvLU
   - \ref TutorialAdvCholesky
   - \ref TutorialAdvQR
   - \ref TutorialAdvEigenProblems
 
-\section TutorialAdvLinearSolvers Solving linear problems
+\section TutorialAdvSolvers Solving linear problems
 
 This part of the tutorial focuses on solving linear problem of the form \f$ A \mathbf{x} = b \f$,
 where both \f$ A \f$ and \f$ b \f$ are known, and \f$ x \f$ is the unknown. Moreover, \f$ A \f$
@@ -26,7 +26,7 @@ involve the product of an inverse matrix with a vector or another matrix: \f$ A^
 Eigen offers various algorithms to this problem, and its choice mainly depends on the nature of
 the matrix \f$ A \f$, such as its shape, size and numerical properties.
 
-\subsection TutorialAdv_Triangular Triangular solver
+\subsection TutorialAdvSolvers_Triangular Triangular solver
 If the matrix \f$ A \f$ is triangular (upper or lower) and invertible (the coefficients of the diagonal
 are all not zero), then the problem can be solved directly using MatrixBase::solveTriangular(), or better,
 MatrixBase::solveTriangularInPlace(). Here is an example:
@@ -41,9 +41,9 @@ output:
 See MatrixBase::solveTriangular() for more details.
 
 
-\subsection TutorialAdv_Inverse Direct inversion (for small matrices)
-If the matrix \f$ A \f$ is small (\f$ \leq 4 \f$) and invertible, then the problem can be solved
-by directly computing the inverse of the matrix \f$ A \f$: \f$ \mathbf{x} = A^{-1} b \f$. With Eigen,
+\subsection TutorialAdvSolvers_Inverse Direct inversion (for small matrices)
+If the matrix \f$ A \f$ is small (\f$ \leq 4 \f$) and invertible, then a good approach is to directly compute
+the inverse of the matrix \f$ A \f$, and then obtain the solution \f$ x \f$ by \f$ \mathbf{x} = A^{-1} b \f$. With Eigen,
 this can be implemented like this:
 
 \code
@@ -57,10 +57,10 @@ Note that the function inverse() is defined in the LU module.
 See MatrixBase::inverse() for more details.
 
 
-\subsection TutorialAdv_Symmetric Cholesky (for symmetric matrices)
-If the matrix \f$ A \f$ is \b symmetric, or more generally selfadjoint, and \b positive \b definite (SPD), then
+\subsection TutorialAdvSolvers_Symmetric Cholesky (for positive definite matrices)
+If the matrix \f$ A \f$ is \b positive \b definite, then
 the best method is to use a Cholesky decomposition.
-Such SPD matrices often arise when solving overdetermined problems in a least square sense (see below).
+Such positive definite matrices often arise when solving overdetermined problems in a least square sense (see below).
 Eigen offers two different Cholesky decompositions: a \f$ LL^T \f$ decomposition where L is a lower triangular matrix,
 and a \f$ LDL^T \f$ decomposition where L is lower triangular with unit diagonal and D is a diagonal matrix.
 The latter avoids square roots and is therefore slightly more stable than the former one.
@@ -93,16 +93,16 @@ lltOfA.solveInPlace(b1);
 \sa Cholesky_Module, LLT::solve(), LLT::solveInPlace(), LDLT::solve(), LDLT::solveInPlace(), class LLT, class LDLT.
 
 
-\subsection TutorialAdv_LU LU decomposition (for most cases)
-If the matrix \f$ A \f$ does not fit in one of the previous category, or if you are unsure about the numerical
-stability of your problem, then you can use the LU solver based on a decomposition of the same name.
-Actually, Eigen's LU module does not implement a standard LU decomposition, but rather a so called LU decomposition
-with full pivoting and rank update which has the advantages to be numerically much more stable.
+\subsection TutorialAdvSolvers_LU LU decomposition (for most cases)
+If the matrix \f$ A \f$ does not fit in any of the previous categories, or if you are unsure about the numerical
+stability of your problem, then you can use the LU solver based on a decomposition of the same name : see the section \ref TutorialAdvLU below. Actually, Eigen's LU module does not implement a standard LU decomposition, but rather a so-called LU decomposition
+with full pivoting and rank update which has much better numerical stability.
 The API of the LU solver is the same than the Cholesky one, except that there is no \em in \em place variant:
 \code
-Matrix4f A = Matrix4f::Random();
-Vector4f b = Vector4f::Random();
-Vector4f x;
+#include <Eigen/LU>
+MatrixXf A = MatrixXf::Random(20,20);
+VectorXf b = VectorXf::Random(20);
+VectorXf x;
 A.lu().solve(b, &x);
 \endcode
 
@@ -114,18 +114,21 @@ luOfA.solve(b, &x);
 // ...
 \endcode
 
+See the section \ref TutorialAdvLU below.
+
 \sa class LU, LU::solve(), LU_Module
 
 
-\subsection TutorialAdv_LU SVD solver (for singular matrices and special cases)
+\subsection TutorialAdvSolvers_SVD SVD solver (for singular matrices and special cases)
 Finally, Eigen also offer a solver based on a singular value decomposition (SVD). Again, the API is the
 same than with Cholesky or LU:
 \code
-Matrix4f A = Matrix4f::Random();
-Vector4f b = Vector4f::Random();
-Vector4f x;
+#include <Eigen/SVD>
+MatrixXf A = MatrixXf::Random(20,20);
+VectorXf b = VectorXf::Random(20);
+VectorXf x;
 A.svd().solve(b, &x);
-SVD<MatrixXf> luOfA(A);
+SVD<MatrixXf> svdOfA(A);
 svdOfA.solve(b, &x);
 \endcode
 
@@ -135,7 +138,29 @@ svdOfA.solve(b, &x);
 
 
 <a href="#" class="top">top</a>\section TutorialAdvLU LU
-todo
+
+Eigen provides a rank-revealing LU decomposition with full pivoting, which has very good numerical stability.
+
+You can obtain the LU decomposition of a matrix by calling \link MatrixBase::lu() lu() \endlink, which is the easiest way if you're going to use the LU decomposition only once, as in
+\code
+#include <Eigen/LU>
+MatrixXf A = MatrixXf::Random(20,20);
+VectorXf b = VectorXf::Random(20);
+VectorXf x;
+A.lu().solve(b, &x);
+\endcode
+
+Alternatively, you can construct a named LU decomposition, which allows you to reuse it for more than one operation:
+\code
+#include <Eigen/LU>
+MatrixXf A = MatrixXf::Random(20,20);
+Eigen::LUDecomposition<MatrixXf> lu(A);
+cout << "The rank of A is" << lu.rank() << endl;
+if(lu.isInvertible()) {
+  cout << "A is invertible, its inverse is:" << endl << lu.inverse() << endl;
+cout << "Here's a matrix whose columns form a basis of the kernel a.k.a. nullspace of A:"
+     << endl << lu.kernel() << endl;
+\endcode
 
 \sa LU_Module, LU::solve(), class LU
 

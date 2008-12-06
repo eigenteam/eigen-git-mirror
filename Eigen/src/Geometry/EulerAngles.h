@@ -41,9 +41,6 @@
   *      * AngleAxisf(ea[2], Vector3f::UnitZ()); \endcode
   * This corresponds to the right-multiply conventions (with right hand side frames).
   */
-// FIXME perhaps the triplet could be template parameters
-// and/or packed into constants: EulerXYZ, EulerXYX, etc....
-// FIXME should we support the reversed conventions ? (left multiply)
 template<typename Derived>
 inline Matrix<typename MatrixBase<Derived>::Scalar,3,1>
 MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const

@@ -88,8 +88,10 @@ template<typename MatrixType, unsigned int Mode> class Part
 
     inline Scalar coeff(int row, int col) const
     {
+      // SelfAdjointBit doesn't play any role here: just because a matrix is selfadjoint doesn't say anything about
+      // each individual coefficient, except for the not-very-useful-here fact that diagonal coefficients are real.
       if( ((Flags & LowerTriangularBit) && (col>row)) || ((Flags & UpperTriangularBit) && (row>col)) )
-        return (Flags & SelfAdjointBit) ? ei_conj(m_matrix.coeff(col, row)) : (Scalar)0;
+        return (Scalar)0;
       if(Flags & UnitDiagBit)
         return col==row ? (Scalar)1 : m_matrix.coeff(row, col);
       else if(Flags & ZeroDiagBit)
@@ -101,7 +103,7 @@ template<typename MatrixType, unsigned int Mode> class Part
     inline Scalar& coeffRef(int row, int col)
     {
       EIGEN_STATIC_ASSERT(!(Flags & UnitDiagBit), writing_to_triangular_part_with_unit_diagonal_is_not_supported)
-      EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), default_writing_to_selfadjoint_not_supported)
+      EIGEN_STATIC_ASSERT(!(Flags & SelfAdjointBit), coefficient_write_access_to_selfadjoint_not_supported)
       ei_assert(   (Mode==Upper && col>=row)
                 || (Mode==Lower && col<=row)
                 || (Mode==StrictlyUpper && col>row)

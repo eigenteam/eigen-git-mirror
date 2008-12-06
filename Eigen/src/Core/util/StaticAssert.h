@@ -64,13 +64,13 @@
         you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
         unaligned_load_and_store_operations_unimplemented_on_AltiVec,
         numeric_type_must_be_floating_point,
-        default_writing_to_selfadjoint_not_supported,
+        coefficient_write_access_to_selfadjoint_not_supported,
         writing_to_triangular_part_with_unit_diagonal_is_not_supported,
         this_method_is_only_for_fixed_size,
         invalid_matrix_product,
         invalid_vector_vector_product__if_you_wanted_a_dot_or_coeff_wise_product_you_must_use_the_explicit_functions,
         invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function,
-	you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly
+        you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly
       };
     };
 

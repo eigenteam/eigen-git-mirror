@@ -507,7 +507,37 @@ vec1.normalize();\endcode
 
 <a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
 
-todo
+Read/write access to special parts of a matrix can be achieved. See \link MatrixBase::part() const this \endlink for read access and \link MatrixBase::part() this \endlink for write access..
+
+<table class="tutorial_code">
+<tr><td>
+Extract triangular matrices \n from a given matrix m:
+</td><td>\code
+m.part<Eigen::Upper>()
+m.part<Eigen::StrictlyUpper>()
+m.part<Eigen::UnitUpper>()
+m.part<Eigen::Lower>()
+m.part<Eigen::StrictlyLower>()
+m.part<Eigen::UnitLower>()\endcode
+</td></tr>
+<tr><td>
+Write to triangular parts \n of a matrix m:
+</td><td>\code
+m1.part<Eigen::Upper>() = m2;
+m1.part<Eigen::StrictlyUpper>() = m2;
+m1.part<Eigen::Lower>() = m2;
+m1.part<Eigen::StrictlyLower>() = m2;\endcode
+</td></tr>
+<tr><td>
+Special: take advantage of symmetry \n (selfadjointness) when copying \n an expression into a matrix
+</td><td>\code
+m.part<Eigen::SelfAdjoint>() = someSelfadjointMatrix;
+m1.part<Eigen::SelfAdjoint>() = m2 + m2.adjoint(); // m2 + m2.adjoint() is selfadjoint \endcode
+</td></tr>
+
+
+</table>
+
 
 <a href="#" class="top">top</a>\section TutorialCoreSpecialTopics Special Topics
 

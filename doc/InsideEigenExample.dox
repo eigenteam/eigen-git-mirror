@@ -79,15 +79,15 @@ First of all, VectorXf is the following typedef:
   typedef Matrix<float, Dynamic, 1> VectorXf;
 \endcode
 
-The class template Matrix is declared in src/Core/util/ForwardDeclarations.h with default values for the 3 last template parameters, so that the actual type is:
+The class template Matrix is declared in src/Core/util/ForwardDeclarations.h with 6 template parameters, but the last 3 are automatically determined by the first 3. So you don't need to worry about them for now. Here, Matrix\<float, Dynamic, 1\> means a matrix of floats, with a dynamic number of rows and 1 column.
+
+The Matrix class inherits a base class, MatrixBase. Don't worry about it, for now it suffices to say that MatrixBase is what unifies matrices/vectors and all the expressions types -- more on that below.
+
+When we do
 \code
-  typedef Matrix<float, Dynamic, 1, ColMajor, Dynamic, 1> VectorXf;
+  Eigen::VectorXf u(size);
 \endcode
-However, in most cases you don't have to worry about the 3 last parameters.
-
-Notice that Matrix has a base class, MatrixBase. Don't worry about it, for now it suffices to say that MatrixBase is what unifies matrices/vectors and all the expressions types -- more on that below.
-
-We now enter the Matrix::Matrix(int) constructor, in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type ei_matrix_storage\<float, Dynamic, Dynamic, 1\>.
+the constructor that is called is Matrix::Matrix(int), in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type ei_matrix_storage\<float, Dynamic, Dynamic, 1\>.
 
 You may wonder, isn't it overengineering to have the storage in a separate class? The reason is that the Matrix class template covers all kinds of matrices and vector: both fixed-size and dynamic-size. The storage method is not the same in these two cases. For fixed-size, the matrix coefficients are stored as a plain member array. For dynamic-size, the coefficients will be stored as a pointer to a dynamically-allocated array. Because of this, we need to abstract storage away from the Matrix class. That's ei_matrix_storage.
 
