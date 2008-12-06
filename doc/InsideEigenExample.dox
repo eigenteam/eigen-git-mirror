@@ -146,7 +146,7 @@ Now you might ask, what if we did something like
 v + w + u;
 \endcode
 
-The first v + w would return a CwiseBinaryOp as above, so in order for this to compile, we'd need to define an operator+ also in the class CwiseBinaryOp... at this point it starts looking for a nightmare: are we going to have to define all operators in each of the expression classes (as you guessed, CwiseBinaryOp is only one of many) ? This looks like a dead end!
+The first v + w would return a CwiseBinaryOp as above, so in order for this to compile, we'd need to define an operator+ also in the class CwiseBinaryOp... at this point it starts looking like a nightmare: are we going to have to define all operators in each of the expression classes (as you guessed, CwiseBinaryOp is only one of many) ? This looks like a dead end!
 
 The solution is that CwiseBinaryOp itself, as well as Matrix and all the other expression types, is a subclass of MatrixBase. So it is enough to define once and for all the operators in class MatrixBase.
 
@@ -276,7 +276,7 @@ struct ei_assign_selector;
 
 So ei_assign_selector takes 4 template parameters, but the 2 last ones are automatically determined by the 2 first ones.
 
-EvalBeforeAssigning is here to enforce the EvalBeforeAssigningBit. As explained <a href="LazyEvaluation.html">here</a>, certain expressions have this flag which makes them automatically evaluate into temporaries before assigning them to another expression. This is the case of the Product expression, in order to avoid strange aliasing effects when doing "m = m * m;" However, of course here our CwiseBinaryOp expression doesn't have the EvalBeforeAssigningBit: we said since the beginning that we didn't want a temporary to be introduced here. So if you go to src/Core/CwiseBinaryOp.h, you'll see that the Flags in ei_traits\<CwiseBinaryOp\> don't include the EvalBeforeAssigningBit. The Flags member of CwiseBinaryOp is then imported from the ei_traits by the EIGEN_GENERIC_PUBLIC_INTERFACE macro. Anyway, here the template parameter EvalBeforeAssigning has the value \c false.
+EvalBeforeAssigning is here to enforce the EvalBeforeAssigningBit. As explained <a href="TopicLazyEvaluation.html">here</a>, certain expressions have this flag which makes them automatically evaluate into temporaries before assigning them to another expression. This is the case of the Product expression, in order to avoid strange aliasing effects when doing "m = m * m;" However, of course here our CwiseBinaryOp expression doesn't have the EvalBeforeAssigningBit: we said since the beginning that we didn't want a temporary to be introduced here. So if you go to src/Core/CwiseBinaryOp.h, you'll see that the Flags in ei_traits\<CwiseBinaryOp\> don't include the EvalBeforeAssigningBit. The Flags member of CwiseBinaryOp is then imported from the ei_traits by the EIGEN_GENERIC_PUBLIC_INTERFACE macro. Anyway, here the template parameter EvalBeforeAssigning has the value \c false.
 
 NeedToTranspose is here for the case where the user wants to copy a row-vector into a column-vector. We allow this as a special exception to the general rule that in assignments we require the dimesions to match. Anyway, here both the left-hand and right-hand sides are column vectors, in the sense that ColsAtCompileTime is equal to 1. So NeedToTranspose is \c false too.
 

@@ -73,7 +73,7 @@ using Eigen::ei_cos;
 #endif
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
-#define ei_internal_assert(x) ei_assert(x);
+#define ei_internal_assert(x) ei_assert(x)
 #else
 #define ei_internal_assert(x)
 #endif

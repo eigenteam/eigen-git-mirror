@@ -44,7 +44,7 @@
   #ifdef __GXX_EXPERIMENTAL_CXX0X__
 
     // if native static_assert is enabled, let's use it
-    #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG)
+    #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG);
 
   #else // CXX0X
 
@@ -81,7 +81,7 @@
 
 #else // EIGEN_NO_STATIC_ASSERT
 
-  #define EIGEN_STATIC_ASSERT(CONDITION,MSG) ei_assert((CONDITION) && #MSG)
+  #define EIGEN_STATIC_ASSERT(CONDITION,MSG) ei_assert((CONDITION) && #MSG);
 
 #endif // EIGEN_NO_STATIC_ASSERT
 
