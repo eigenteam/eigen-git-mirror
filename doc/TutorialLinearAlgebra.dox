@@ -158,8 +158,11 @@ Eigen::LUDecomposition<MatrixXf> lu(A);
 cout << "The rank of A is" << lu.rank() << endl;
 if(lu.isInvertible()) {
   cout << "A is invertible, its inverse is:" << endl << lu.inverse() << endl;
-cout << "Here's a matrix whose columns form a basis of the kernel a.k.a. nullspace of A:"
-     << endl << lu.kernel() << endl;
+}
+else {
+  cout << "Here's a matrix whose columns form a basis of the kernel a.k.a. nullspace of A:"
+       << endl << lu.kernel() << endl;
+}
 \endcode
 
 \sa LU_Module, LU::solve(), class LU

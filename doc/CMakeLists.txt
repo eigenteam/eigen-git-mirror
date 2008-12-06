@@ -25,6 +25,8 @@ configure_file(
 set(examples_targets "")
 set(snippets_targets "")
 
+add_definitions("-DEIGEN_DEFAULT_IO_FORMAT=EIGEN_DOCS_IO_FORMAT")
+
 add_subdirectory(examples)
 add_subdirectory(snippets)
 
