@@ -313,6 +313,13 @@ inline void MatrixBase<Derived>::writePacket
   derived().template writePacket<StoreMode>(index,x);
 }
 
+/** \internal Copies the coefficient at position (row,col) of other into *this.
+  *
+  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+  * with usual assignments.
+  *
+  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+  */
 template<typename Derived>
 template<typename OtherDerived>
 inline void MatrixBase<Derived>::copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other)
@@ -322,6 +329,13 @@ inline void MatrixBase<Derived>::copyCoeff(int row, int col, const MatrixBase<Ot
   derived().coeffRef(row, col) = other.derived().coeff(row, col);
 }
 
+/** \internal Copies the coefficient at the given index of other into *this.
+  *
+  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+  * with usual assignments.
+  *
+  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+  */
 template<typename Derived>
 template<typename OtherDerived>
 inline void MatrixBase<Derived>::copyCoeff(int index, const MatrixBase<OtherDerived>& other)
@@ -330,6 +344,13 @@ inline void MatrixBase<Derived>::copyCoeff(int index, const MatrixBase<OtherDeri
   derived().coeffRef(index) = other.derived().coeff(index);
 }
 
+/** \internal Copies the packet at position (row,col) of other into *this.
+  *
+  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+  * with usual assignments.
+  *
+  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+  */
 template<typename Derived>
 template<typename OtherDerived, int StoreMode, int LoadMode>
 inline void MatrixBase<Derived>::copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
@@ -340,6 +361,13 @@ inline void MatrixBase<Derived>::copyPacket(int row, int col, const MatrixBase<O
     other.derived().template packet<LoadMode>(row, col));
 }
 
+/** \internal Copies the packet at the given index of other into *this.
+  *
+  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+  * with usual assignments.
+  *
+  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+  */
 template<typename Derived>
 template<typename OtherDerived, int StoreMode, int LoadMode>
 inline void MatrixBase<Derived>::copyPacket(int index, const MatrixBase<OtherDerived>& other)

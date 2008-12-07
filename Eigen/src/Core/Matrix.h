@@ -25,73 +25,82 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-
 /** \class Matrix
   *
   * \brief The matrix class, also used for vectors and row-vectors
   *
-  * The Matrix class is the work-horse for all \em dense matrices and vectors within Eigen. Vectors are matrices with one column,
-  * and row-vectors are matrices with one row.
+  * The %Matrix class is the work-horse for all \em dense (\ref dense "note") matrices and vectors within Eigen.
+  * Vectors are matrices with one column, and row-vectors are matrices with one row.
   *
-  * The Matrix class encompasses \em both fixed-size and dynamic-size objects (see note below).
+  * The %Matrix class encompasses \em both fixed-size and dynamic-size objects (\ref fixedsize "note").
   *
+  * The first three template parameters are required:
   * \param _Scalar Numeric type, i.e. float, double, int
   * \param _Rows Number of rows, or \b Dynamic
   * \param _Cols Number of columns, or \b Dynamic
+  *
+  * The remaining template parameters are optional -- in most cases you don't have to worry about them.
   * \param _StorageOrder Either \b RowMajor or \b ColMajor. The default is \b ColMajor.
-  * \param _MaxRows Maximum number of rows. Defaults to \a _Rows.  See note below.
-  * \param _MaxCols Maximum number of columns. Defaults to \a _Cols.  See note below.
+  * \param _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
+  * \param _MaxCols Maximum number of columns. Defaults to \a _Cols (\ref maxrows "note").
   *
-  * \note <b>Fixed-size versus dynamic-size:</b>
-  * Fixed-size means that the numbers of rows and columns are known are compile-time. In this case, Eigen allocates the array
-  * of coefficients as a fixed-size array, as a class member. This makes sense for very small matrices, typically up to 4x4, sometimes up
-  * to 16x16. Larger matrices should be declared as dynamic-size even if one happens to know their size at compile-time.
+  * Eigen provides a number of typedefs covering the usual cases. Here are some examples:
   *
-  * Dynamic-size means that the numbers of rows or columns are not necessarily known at compile-time. In this case they are runtime variables,
-  * and the array of coefficients is allocated dynamically, typically on the heap (See note on Usage of alloca() below).
-  *
-  * Note that dense matrices, be they Fixed-size or Dynamic-size, <em>do not</em> expand dynamically in the sense of a std::map.
-  * If you want this behavior, see the Sparse module.
-  *
-  * \note <b>_MaxRows and _MaxCols:</b>
-  * In most cases, one just leaves these parameters to the default values.
-  * These parameters mean the maximum size of rows and columns that the matrix may have. They are useful in cases
-  * when the exact numbers of rows and columns are not known are compile-time, but it is known at compile-time that they cannot
-  * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
-  * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.
-  *
-  * \note <b> Usage of alloca():</b>
-  * On the Linux platform, for small enough arrays, Eigen will avoid heap allocation and instead will use alloca() to perform a dynamic
-  * allocation on the stack.
-  *
-  * Eigen provides a number of typedefs to make working with matrices and vector simpler:
-  *
-  * For example:
+  * \li \c Matrix2d is a 2x2 square matrix of doubles (\c Matrix<double, 2, 2>)
+  * \li \c Vector4f is a vector of 4 floats (\c Matrix<float, 4, 1>)
+  * \li \c RowVector3i is a row-vector of 3 ints (\c Matrix<int, 1, 3>)
   *
   * \li \c MatrixXf is a dynamic-size matrix of floats (\c Matrix<float, Dynamic, Dynamic>)
   * \li \c VectorXf is a dynamic-size vector of floats (\c Matrix<float, Dynamic, 1>)
   *
-  * \li \c Matrix2d is a 2x2 square matrix of doubles (\c Matrix<double, 2, 2>)
-  * \li \c RowVector3i is a row-vector with three elements containing integers (\c Matrix<int, 1, 3>)
-  *
-  * \see matrixtypedefs for a complete list of predefined \em Matrix and \em Vector types.
+  * See \link matrixtypedefs this page \endlink for a complete list of predefined \em %Matrix and \em Vector typedefs.
   *
   * You can access elements of vectors and matrices using normal subscripting:
   *
   * \code
-  *
-  * Eigen::VectorXf v(10);
+  * Eigen::VectorXd v(10);
   * v[0] = 0.1;
   * v[1] = 0.2;
-  * v(0) = 0.1;
-  * v(1) = 0.2;
+  * v(0) = 0.3;
+  * v(1) = 0.4;
   *
   * Eigen::MatrixXi m(10, 10);
   * m(0, 1) = 1;
   * m(0, 2) = 2;
   * m(0, 3) = 3;
-  *
   * \endcode
+  *
+  * <i><b>Some notes:</b></i>
+  *
+  * <dl>
+  * <dt><b>\anchor dense Dense versus sparse:</b></dt>
+  * <dd>This %Matrix class handles dense, not sparse matrices and vectors. For sparse matrices and vectors, see the Sparse module.
+  *
+  * Dense matrices and vectors are plain usual arrays of coefficients. All the coefficients are stored, in an ordinary contiguous array.
+  * This is unlike Sparse matrices and vectors where the coefficients are stored as a list of nonzero coefficients.</dd>
+  *
+  * <dt><b>\anchor fixedsize Fixed-size versus dynamic-size:</b></dt>
+  * <dd>Fixed-size means that the numbers of rows and columns are known are compile-time. In this case, Eigen allocates the array
+  * of coefficients as a fixed-size array, as a class member. This makes sense for very small matrices, typically up to 4x4, sometimes up
+  * to 16x16. Larger matrices should be declared as dynamic-size even if one happens to know their size at compile-time.
+  *
+  * Dynamic-size means that the numbers of rows or columns are not necessarily known at compile-time. In this case they are runtime
+  * variables, and the array of coefficients is allocated dynamically, typically on the heap (\ref alloca "note").
+  *
+  * Note that \em dense matrices, be they Fixed-size or Dynamic-size, <em>do not</em> expand dynamically in the sense of a std::map.
+  * If you want this behavior, see the Sparse module.</dd>
+  *
+  * <dt><b>\anchor maxrows _MaxRows and _MaxCols:</b></dt>
+  * <dd>In most cases, one just leaves these parameters to the default values.
+  * These parameters mean the maximum size of rows and columns that the matrix may have. They are useful in cases
+  * when the exact numbers of rows and columns are not known are compile-time, but it is known at compile-time that they cannot
+  * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
+  * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.</dd>
+  *
+  * <dt><b>\anchor alloca Usage of alloca():</b></dt>
+  * <dd>On the Linux platform, for small enough arrays, Eigen will avoid heap allocation and instead will use alloca() to perform a dynamic
+  * allocation on the stack.</dd>
+  * </dl>
   *
   * \see MatrixBase for the majority of the API methods for matrices
   */
