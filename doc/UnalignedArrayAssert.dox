@@ -43,7 +43,7 @@ By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of f
 
 \section how How to fix this bug?
 
-Your structure having this Eigen object as member needs to have an aligned operator new. Eigen makes it easy for you to do that, you only have one line of code to change:
+Very easy, you just need to let your struct Foo inherit Eigen::WithAlignedOperatorNew, like this:
 
 \code
 struct Foo : Eigen::WithAlignedOperatorNew
@@ -85,11 +85,11 @@ For this reason, Eigen takes care by itself to require 128-bit alignment for Eig
 
 Thus, normally, you don't have to worry about anything, Eigen handles alignment for you...
 
-... except in one case. When you have a struct Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned operator new, the returned pointer foo is not necessarily 128-bit aligned.
+... except in one case. When you have a struct Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned "operator new", the returned pointer foo is not necessarily 128-bit aligned.
 
 The alignment attribute of the member v is then relative to the start of the struct, foo. If the foo pointer wasn't aligned, then foo->v won't be aligned either!
 
-The solution is to let struct Foo have an aligned operator new, as we showed in the previous section.
+The solution is to let struct Foo have an aligned "operator new", as we showed in the previous section.
 
 \section movetotop Should I then put all the members of Eigen types at the beginning of my struct?
 
@@ -119,7 +119,7 @@ Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically
 
 \section bugineigen So is this a bug in Eigen?
 
-No, it's not our bug. It's more like an inherent problem of the C++ language -- though it must be said that any other existing language probably has the same problem. The problem is that there is no way that you can specify an alignment property that would propagate to classes having you as member data.
+No, it's not our bug. It's more like an inherent problem of the C++ language -- though it must be said that any other existing language probably has the same problem. The problem is that there is no way that you can specify an aligned "operator new" that would propagate to classes having you as member data.
 
 */
 

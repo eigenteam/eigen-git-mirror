@@ -107,7 +107,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
     { return mat.MEMBER(); }                                        \
   }
 
-EIGEN_MEMBER_FUNCTOR(norm2, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -204,11 +204,11 @@ template<typename ExpressionType, int Direction> class PartialRedux
     /** \returns a row (or column) vector expression of the squared norm
       * of each column (or row) of the referenced expression.
       *
-      * Example: \include PartialRedux_norm2.cpp
-      * Output: \verbinclude PartialRedux_norm2.out
+      * Example: \include PartialRedux_squaredNorm.cpp
+      * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa MatrixBase::squaredNorm() */
-    const typename ReturnType<ei_member_norm2>::Type squaredNorm() const
+    const typename ReturnType<ei_member_squaredNorm>::Type squaredNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the norm
