@@ -56,10 +56,12 @@ template<typename Derived> class MatrixBase
 {
   public:
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     class InnerIterator;
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     enum {
 
@@ -140,6 +142,7 @@ template<typename Derived> class MatrixBase
       ei_assert(ei_are_flags_consistent<Flags>::ret);
     }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
       * \a Scalar is \a std::complex<T> then RealScalar is \a T.
@@ -151,6 +154,7 @@ template<typename Derived> class MatrixBase
     /** type of the equivalent square matrix */
     typedef Matrix<Scalar,EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime),
                           EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime)> SquareMatrixType;
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
     inline int rows() const { return derived().rows(); }
@@ -174,6 +178,7 @@ template<typename Derived> class MatrixBase
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the type to which the expression gets evaluated (needed by MSVC) */
     typedef typename ei_eval<Derived>::type EvalType;
     /** \internal Represents a constant matrix */
@@ -206,6 +211,7 @@ template<typename Derived> class MatrixBase
     typedef Block<CwiseNullaryOp<ei_scalar_identity_op<Scalar>, SquareMatrixType>,
                   ei_traits<Derived>::RowsAtCompileTime,
                   ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
 
     /** Copies \a other into *this. \returns a reference to *this. */
@@ -256,6 +262,7 @@ template<typename Derived> class MatrixBase
     Scalar& operator[](int index);
     Scalar& operator()(int index);
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename OtherDerived>
     void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
@@ -264,6 +271,7 @@ template<typename Derived> class MatrixBase
     void copyPacket(int row, int col, const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int index, const MatrixBase<OtherDerived>& other);
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<int LoadMode>
     PacketScalar packet(int row, int col) const;
@@ -524,11 +532,12 @@ template<typename Derived> class MatrixBase
     template<typename Visitor>
     void visit(Visitor& func) const;
 
-
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     const Cwise<Derived> cwise() const;
     Cwise<Derived> cwise();
