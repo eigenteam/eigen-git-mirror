@@ -37,6 +37,17 @@ extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 template <typename T, int Size, bool Align> struct ei_aligned_array
 {
   EIGEN_ALIGN_128 T array[Size];
+
+  ei_aligned_array()
+  {
+    ei_assert(reinterpret_cast<unsigned int>(array)%16 == 0
+              && "An array that should have been aligned was allocated at a non-aligned location! "
+                 "Basically, if a struct Foo has a member that's a fixed-size vectorizable Eigen object (like "
+                 "a Eigen::Vector2d) and you dynamically allocate objects of struct Foo, then you need to "
+                 "let struct Foo have an aligned operator new, which you can do like this: "
+                 "struct Foo : Eigen::WithAlignedOperatorNew {... "
+                 "See this page for details: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html");
+  }
 };
 
 template <typename T, int Size> struct ei_aligned_array<T,Size,false>

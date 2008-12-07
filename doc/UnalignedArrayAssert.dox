@@ -1,0 +1,126 @@
+namespace Eigen {
+
+/** \page UnalignedArrayAssert Explanation of the assertion on unaligned arrays
+
+\b Table \b of \b contents
+  - \ref what
+  - \ref how
+  - \ref why
+  - \ref movetotop
+  - \ref bugineigen
+
+<hr>
+
+\section what What kind of code made this assertion fail?
+
+If you saw the assertion failure that links to this page, then you probably have done something like that in your code:
+
+\code
+struct Foo
+{
+  ...
+  Eigen::Vector2d v;
+  ...
+};
+
+...
+
+Foo *foo = new Foo;
+\endcode
+
+In other words: you have probably in your code a structure that has as a member a vectorizable fixed-size Eigen object, and you then dynamically allocated an object of that structure.
+
+By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of fixed size, and whose size is a multiple of 128 bits. Examples include:
+\li Eigen::Vector2d
+\li Eigen::Vector4d
+\li Eigen::Vector4f
+\li Eigen::Matrix2d
+\li Eigen::Matrix2f
+\li Eigen::Matrix4d
+\li Eigen::Matrix4f
+\li Eigen::Transform3d
+\li Eigen::Transform3f
+
+\section how How to fix this bug?
+
+Your structure having this Eigen object as member needs to have an aligned operator new. Eigen makes it easy for you to do that, you only have one line of code to change:
+
+\code
+struct Foo : Eigen::WithAlignedOperatorNew
+{
+  ...
+  Eigen::Vector2d v;
+  ...
+};
+
+...
+
+Foo *foo = new Foo;
+\endcode
+
+With this, you should be out of trouble.
+
+\section why So can you explain what's happening here?
+
+OK let's say that your code looks like this:
+
+\code
+struct Foo
+{
+  ...
+  Eigen::Vector2d v;
+  ...
+};
+
+...
+
+Foo *foo = new Foo;
+\endcode
+
+A Eigen::Vector2d consists of 2 doubles, which is 128 bits. Which is exactly the size of a SSE packet, which makes it possible to use SSE for all sorts of operations on this vector. But SSE instructions (at least the ones that Eigen uses, which are the fast ones) require 128-bit alignment. Otherwise you get a segmentation fault.
+
+For this reason, Eigen takes care by itself to require 128-bit alignment for Eigen::Vector2d, by doing two things:
+\li Eigen requires 128-bit alignment for the Eigen::Vector2d's array (of 2 doubles). With GCC, this is done with a __attribute__ ((aligned(16))).
+\li Eigen overloads the "operator new" of Eigen::Vector2d so it will always return 128-bit aligned pointers.
+
+Thus, normally, you don't have to worry about anything, Eigen handles alignment for you...
+
+... except in one case. When you have a struct Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned operator new, the returned pointer foo is not necessarily 128-bit aligned.
+
+The alignment attribute of the member v is then relative to the start of the struct, foo. If the foo pointer wasn't aligned, then foo->v won't be aligned either!
+
+The solution is to let struct Foo have an aligned operator new, as we showed in the previous section.
+
+\section movetotop Should I then put all the members of Eigen types at the beginning of my struct?
+
+No, that's not needed. Since Eigen takes care of declaring 128-bit alignment, all members that need it are automatically 128-bit aligned relatively to the struct. So when you have code like
+
+\code
+struct Foo : Eigen::WithAlignedOperatorNew
+{
+  double x;
+  Eigen::Vector2d v;
+};
+\endcode
+
+it will work just fine. You do \b not need to rewrite it as
+
+\code
+struct Foo : Eigen::WithAlignedOperatorNew
+{
+  Eigen::Vector2d v;
+  double x;
+};
+\endcode
+
+\section dynamicsize What about dynamic-size matrices and vectors?
+
+Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically their own array of coefficients, so they take care of requiring absolute alignment automatically. So they don't cause this bug. The bug discussed here is only with fixed-size matrices and vectors.
+
+\section bugineigen So is this a bug in Eigen?
+
+No, it's not our bug. It's more like an inherent problem of the C++ language -- though it must be said that any other existing language probably has the same problem. The problem is that there is no way that you can specify an alignment property that would propagate to classes having you as member data.
+
+*/
+
+}
