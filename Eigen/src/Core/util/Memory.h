@@ -40,7 +40,7 @@ template <typename T, int Size, bool Align> struct ei_aligned_array
 
   ei_aligned_array()
   {
-    ei_assert(reinterpret_cast<unsigned int>(array)%16 == 0
+    ei_assert((reinterpret_cast<unsigned int>(array) & 0xf) == 0
               && "this assertion is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
   }
 };

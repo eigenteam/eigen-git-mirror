@@ -100,6 +100,11 @@ public:
   inline Transform(const Transform& other)
   { m_matrix = other.m_matrix; }
 
+  inline explicit Transform(const TranslationType& t) { *this = t; }
+  inline explicit Transform(const ScalingType& s) { *this = s; }
+  template<typename Derived>
+  inline explicit Transform(const RotationBase<Derived, Dim>& r) { *this = r; }
+
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
@@ -226,8 +231,8 @@ public:
     return res;
   }
 
-//   template<typename Derived>
-//   inline Transform& operator=(const Rotation<Derived,Dim>& t);
+  template<typename Derived>
+  inline Transform& operator=(const RotationBase<Derived,Dim>& r);
   template<typename Derived>
   inline Transform& operator*=(const RotationBase<Derived,Dim>& r) { return rotate(r.toRotationMatrix()); }
   template<typename Derived>
@@ -523,8 +528,10 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 template<typename Scalar, int Dim>
 inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const TranslationType& t)
 {
-  setIdentity();
+  linear().setIdentity;
   translation() = t.vector();
+  m_matrix.template block<1,Dim>(Dim,0).setZero();
+  m_matrix(Dim,Dim) = Scalar(1);
   return *this;
 }
 
@@ -551,6 +558,17 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType&
   Transform res = *this;
   res.scale(s.coeffs());
   return res;
+}
+
+template<typename Scalar, int Dim>
+template<typename Derived>
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const RotationBase<Derived,Dim>& r)
+{
+  linear() = ei_toRotationMatrix<Scalar,Dim>(r);
+  translation().setZero();
+  m_matrix.template block<1,Dim>(Dim,0).setZero();
+  m_matrix(Dim,Dim) = Scalar(1);
+  return *this;
 }
 
 template<typename Scalar, int Dim>
@@ -617,8 +635,8 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   linear() = ei_toRotationMatrix<Scalar,Dim>(orientation);
   linear() *= scale.asDiagonal();
   translation() = position;
-  m_matrix(Dim,Dim) = 1.;
   m_matrix.template block<1,Dim>(Dim,0).setZero();
+  m_matrix(Dim,Dim) = Scalar(1);
   return *this;
 }
 
