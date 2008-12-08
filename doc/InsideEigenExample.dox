@@ -60,7 +60,7 @@ SSE2, like AltiVec, is a set of instructions allowing to perform computations on
 However, in the above program, we have chosen size=50, so our vectors consist of 50 float's, and 50 is not a multiple of 4. This means that we cannot hope to do all of that computation using SSE2 instructions. The second best thing, to which we should aim, is to handle the 48 first coefficients with SSE2 instructions, since 48 is the biggest multiple of 4 below 50, and then handle separately, without SSE2, the 49th and 50th coefficients. Something like this:
 
 \code
-  for(int i = 0; i < size/4; i++) u.packet(i)  = v.packet(i) + w.packet(i);
+  for(int i = 0; i < 4*(size/4); i+=4) u.packet(i)  = v.packet(i) + w.packet(i);
   for(int i = 4*(size/4); i < size; i++) u[i] = v[i] + w[i];
 \endcode
 
