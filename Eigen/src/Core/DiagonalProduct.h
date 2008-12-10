@@ -26,12 +26,31 @@
 #ifndef EIGEN_DIAGONALPRODUCT_H
 #define EIGEN_DIAGONALPRODUCT_H
 
+/** \internal Specialization of ei_nested for DiagonalMatrix.
+ *  Unlike ei_nested, if the argument is a DiagonalMatrix and if it must be evaluated,
+ *  then it evaluated to a DiagonalMatrix having its own argument evaluated.
+ */
+template<typename T, int N> struct ei_nested_diagonal : ei_nested<T,N> {};
+template<typename T, int N> struct ei_nested_diagonal<DiagonalMatrix<T>,N >
+ : ei_nested<DiagonalMatrix<T>, N, DiagonalMatrix<NestByValue<typename ei_eval<T>::type> > >
+{};
+
+// specialization of ProductReturnType
+template<typename Lhs, typename Rhs>
+struct ProductReturnType<Lhs,Rhs,DiagonalProduct>
+{
+  typedef typename ei_nested_diagonal<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
+  typedef typename ei_nested_diagonal<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
+
+  typedef Product<LhsNested, RhsNested, DiagonalProduct> Type;
+};
+
 template<typename LhsNested, typename RhsNested>
 struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
 {
   // clean the nested types:
-  typedef typename ei_unconst<typename ei_unref<LhsNested>::type>::type _LhsNested;
-  typedef typename ei_unconst<typename ei_unref<RhsNested>::type>::type _RhsNested;
+  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename _LhsNested::Scalar Scalar;
 
   enum {

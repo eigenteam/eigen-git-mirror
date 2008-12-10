@@ -62,10 +62,19 @@ class DiagonalMatrix : ei_no_assignment_operator,
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
 
+    // needed to evaluate a DiagonalMatrix<Xpr> to a DiagonalMatrix<NestByValue<Vector> >
+    template<typename OtherCoeffsVectorType>
+    inline DiagonalMatrix(const DiagonalMatrix<OtherCoeffsVectorType>& other) : m_coeffs(other.diagonal())
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(CoeffsVectorType);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherCoeffsVectorType);
+      ei_assert(m_coeffs.size() > 0);
+    }
+
     inline DiagonalMatrix(const CoeffsVectorType& coeffs) : m_coeffs(coeffs)
     {
-      ei_assert(CoeffsVectorType::IsVectorAtCompileTime
-          && coeffs.size() > 0);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(CoeffsVectorType);
+      ei_assert(coeffs.size() > 0);
     }
 
     inline int rows() const { return m_coeffs.size(); }
@@ -75,6 +84,8 @@ class DiagonalMatrix : ei_no_assignment_operator,
     {
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
+
+    inline const CoeffsVectorType& diagonal() const { return m_coeffs; }
 
   protected:
     const typename CoeffsVectorType::Nested m_coeffs;

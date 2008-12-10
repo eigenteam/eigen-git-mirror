@@ -62,6 +62,7 @@ struct ProductReturnType
 };
 
 // cache friendly specialization
+// note that there is a DiagonalProduct specialization in DiagonalProduct.h
 template<typename Lhs, typename Rhs>
 struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 {
@@ -77,7 +78,8 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 /*  Helper class to determine the type of the product, can be either:
  *    - NormalProduct
  *    - CacheFriendlyProduct
- *    - NormalProduct
+ *    - DiagonalProduct
+ *    - SparseProduct
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
