@@ -63,8 +63,8 @@ class SparseMatrixBase : public MatrixBase<Derived>
     inline Derived& operator=(const MatrixBase<OtherDerived>& other)
     {
 //       std::cout << "Derived& operator=(const MatrixBase<OtherDerived>& other)\n";
-      const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      ei_assert((!transpose) && "the transpose operation is supposed to be handled in SparseMatrix::operator=");
+      //const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+      ei_assert((!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit))) && "the transpose operation is supposed to be handled in SparseMatrix::operator=");
       const int outerSize = other.outerSize();
       //typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       // thanks to shallow copies, we always eval to a tempary

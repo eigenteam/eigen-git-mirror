@@ -131,6 +131,10 @@ class SparseMatrix
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
 
+    /** Initializes the filling process of \c *this.
+      * \param reserveSize approximate number of nonzeros
+      * Note that the matrix \c *this is zero-ed.
+      */
     inline void startFill(int reserveSize = 1000)
     {
       m_data.clear();
@@ -139,13 +143,16 @@ class SparseMatrix
         m_outerIndex[i] = 0;
     }
 
+    /**
+      */
     inline Scalar& fill(int row, int col)
     {
       const int outer = RowMajor ? row : col;
       const int inner = RowMajor ? col : row;
-//       std::cout << " fill " << outer << "," << inner << "\n";
+
       if (m_outerIndex[outer+1]==0)
       {
+        // we start a new inner vector
         int i = outer;
         while (i>=0 && m_outerIndex[i]==0)
         {
@@ -160,6 +167,42 @@ class SparseMatrix
 
       m_data.append(0, inner);
       return m_data.value(id);
+    }
+
+    /** Like fill() but with random inner coordinates.
+      */
+    inline Scalar& fillrand(int row, int col)
+    {
+      const int outer = RowMajor ? row : col;
+      const int inner = RowMajor ? col : row;
+
+      if (m_outerIndex[outer+1]==0)
+      {
+        // we start a new inner vector
+        // nothing special to do here
+        int i = outer;
+        while (i>=0 && m_outerIndex[i]==0)
+        {
+          m_outerIndex[i] = m_data.size();
+          --i;
+        }
+        m_outerIndex[outer+1] = m_outerIndex[outer];
+      }
+      //
+      assert(m_outerIndex[outer+1] == m_data.size() && "invalid outer index");
+      int startId = m_outerIndex[outer];
+      int id = m_outerIndex[outer+1]-1;
+      m_outerIndex[outer+1]++;
+      m_data.resize(id+2);
+
+      while ( (id >= startId) && (m_data.index(id) > inner) )
+      {
+        m_data.index(id+1) = m_data.index(id);
+        m_data.value(id+1) = m_data.value(id);
+        --id;
+      }
+      m_data.index(id+1) = inner;
+      return (m_data.value(id+1) = 0);
     }
 
     inline void endFill()

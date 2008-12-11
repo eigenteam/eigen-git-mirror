@@ -138,8 +138,8 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
     // make sure to call innerSize/outerSize since we fake the storage order.
     int rows = lhs.innerSize();
     int cols = rhs.outerSize();
-    int size = lhs.outerSize();
-    ei_assert(size == rhs.innerSize());
+    //int size = lhs.outerSize();
+    ei_assert(lhs.outerSize() == rhs.innerSize());
 
     // allocate a temporary buffer
     AmbiVector<Scalar> tempVector(rows);

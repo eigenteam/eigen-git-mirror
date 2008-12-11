@@ -153,6 +153,26 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     #ifdef _SPARSE_HASH_MAP_H_
     VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
+
+    // test fillrand
+    {
+      DenseMatrix m1(rows,cols);
+      m1.setZero();
+      SparseMatrix<Scalar> m2(rows,cols);
+      m2.startFill();
+      for (int j=0; j<cols; ++j)
+      {
+        for (int k=0; k<rows/2; ++k)
+        {
+          int i = ei_random<int>(0,rows-1);
+          if (m1.coeff(i,j)==Scalar(0))
+            m2.fillrand(i,j) = m1(i,j) = ei_random<Scalar>();
+        }
+      }
+      m2.endFill();
+      std::cerr << m1 << "\n\n" << m2 << "\n";
+      VERIFY_IS_APPROX(m1,m2);
+    }
 //   {
 //     m.setZero();
 //     VERIFY_IS_NOT_APPROX(m, refMat);
