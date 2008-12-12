@@ -254,7 +254,7 @@ inline long double ei_pow(long double x, long double y)  { return std::pow(x, y)
 
 template<> inline long double ei_random(long double a, long double b)
 {
-  return static_cast<long double>(ei_random<double>(a,b));
+  return ei_random<double>(static_cast<double>(a),static_cast<double>(b));
 }
 template<> inline long double ei_random()
 {
