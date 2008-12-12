@@ -53,7 +53,7 @@ template<typename Derived> class MapBase
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
       SizeAtCompileTime = Base::SizeAtCompileTime
     };
-    
+
     typedef typename ei_traits<Derived>::AlignedDerivedType AlignedDerivedType;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
@@ -83,7 +83,7 @@ template<typename Derived> class MapBase
       else // column-major
         return const_cast<Scalar*>(m_data)[row + col * stride()];
     }
-    
+
     inline const Scalar coeff(int index) const
     {
       ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
@@ -138,28 +138,29 @@ template<typename Derived> class MapBase
               m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-      ei_assert(size > 0);
+      ei_assert(size > 0 || data == 0);
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
     }
 
     inline MapBase(const Scalar* data, int rows, int cols)
             : m_data(data), m_rows(rows), m_cols(cols)
     {
-      ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-             && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      ei_assert( (data == 0)
+              || (   rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+                  && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
     { return derived() = forceAligned() + other; }
-    
+
     template<typename OtherDerived>
     Derived& operator-=(const MatrixBase<OtherDerived>& other)
     { return derived() = forceAligned() - other; }
 
     Derived& operator*=(const Scalar& other)
     { return derived() = forceAligned() * other; }
-    
+
     Derived& operator/=(const Scalar& other)
     { return derived() = forceAligned() / other; }
 

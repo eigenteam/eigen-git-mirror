@@ -51,7 +51,7 @@ inline int ei_sin(int)  { ei_assert(false); return 0; }
 inline int ei_cos(int)  { ei_assert(false); return 0; }
 
 #if EIGEN_GNUC_AT_LEAST(4,3)
-inline int ei_pow(int x, int y) { return std::pow(x, y); }
+inline int ei_pow(int x, int y) { return int(std::pow(x, y)); }
 #else
 inline int ei_pow(int x, int y) { return int(std::pow(double(x), y)); }
 #endif
@@ -103,7 +103,7 @@ template<> inline float ei_random(float a, float b)
   } while(i==0);
   return i/256.f;
 #else
-  return a + (b-a) * std::rand() / RAND_MAX;
+  return a + (b-a) * float(std::rand()) / float(RAND_MAX);
 #endif
 }
 template<> inline float ei_random()
@@ -254,7 +254,7 @@ inline long double ei_pow(long double x, long double y)  { return std::pow(x, y)
 
 template<> inline long double ei_random(long double a, long double b)
 {
-  return ei_random<double>(a,b);
+  return static_cast<long double>(ei_random<double>(a,b));
 }
 template<> inline long double ei_random()
 {
