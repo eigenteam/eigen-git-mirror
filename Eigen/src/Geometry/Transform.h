@@ -528,7 +528,7 @@ Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 template<typename Scalar, int Dim>
 inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const TranslationType& t)
 {
-  linear().setIdentity;
+  linear().setIdentity();
   translation() = t.vector();
   m_matrix.template block<1,Dim>(Dim,0).setZero();
   m_matrix(Dim,Dim) = Scalar(1);
