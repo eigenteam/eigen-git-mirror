@@ -27,8 +27,10 @@
 #define EIGEN_MEMORY_H
 
 #ifdef EIGEN_VECTORIZE
+#ifndef _MSC_VER
 // it seems we cannot assume posix_memalign is defined in the stdlib header
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
+#endif
 #endif
 
 /** \internal
@@ -165,24 +167,16 @@ struct WithAlignedOperatorNew
 
   void *operator new(size_t size) throw()
   {
-    void* ptr = 0;
-    if (posix_memalign(&ptr, 16, size)==0)
-      return ptr;
-    else
-      return 0;
+    return ei_aligned_malloc<char>(size);
   }
 
   void *operator new[](size_t size) throw()
   {
-    void* ptr = 0;
-    if (posix_memalign(&ptr, 16, size)==0)
-      return ptr;
-    else
-      return 0;
+    return ei_aligned_malloc<char>(size);
   }
 
-  void operator delete(void * ptr) { free(ptr); }
-  void operator delete[](void * ptr) { free(ptr); }
+  void operator delete(void * ptr) { ei_aligned_free(static_cast<char *>(ptr)); }
+  void operator delete[](void * ptr) { ei_aligned_free(static_cast<char *>(ptr)); }
 
   #endif
 };
