@@ -42,8 +42,13 @@ template <typename T, int Size, bool Align> struct ei_aligned_array
 
   ei_aligned_array()
   {
+    #ifdef EIGEN_VECTORIZE // we only want this assertion if EIGEN_VECTORIZE is defined.
+       // indeed, if it's not defined then WithAlignedOperatorNew is empty and hence there's not much point
+       // requiring the user to inherit it! Would be best practice, but we already decided at several places
+       // to only do special alignment if vectorization is enabled.
     ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
               && "this assertion is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
+    #endif
   }
 };
 
