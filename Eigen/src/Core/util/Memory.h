@@ -89,7 +89,6 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   const int PacketAlignedMask = PacketSize-1;
   const bool Vectorized = PacketSize>1;
   return Vectorized
-          ? std::min<int>( (PacketSize - ((size_t(ptr)/sizeof(Scalar)) & PacketAlignedMask))
           ? std::min<int>( (PacketSize - (int((size_t(ptr)/sizeof(Scalar))) & PacketAlignedMask))
                            & PacketAlignedMask, maxOffset)
           : 0;
