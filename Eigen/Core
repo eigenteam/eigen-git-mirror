@@ -12,7 +12,9 @@
 #endif
 
 #ifndef EIGEN_DONT_VECTORIZE
-  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+  #define EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC ((defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) ))
+  #define EIGEN_HAVE_MSVC_SSE2 (defined(_M_IX86_FP) && (_M_IX86_FP >= 2))
+  #if (EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC || EIGEN_HAVE_MSVC_SSE2)
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
     #include <emmintrin.h>
