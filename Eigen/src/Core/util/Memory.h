@@ -57,15 +57,15 @@ inline T* ei_aligned_malloc(size_t size)
   #ifdef EIGEN_VECTORIZE
   if(ei_packet_traits<T>::size>1)
   {
-    void* ptr;
     #ifdef _MSC_VER
-    if(ptr = _aligned_malloc(size*sizeof(T), 16))
+      return static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
     #else
-    if(posix_memalign(&ptr, 16, size*sizeof(T))==0)
+      void* ptr;
+      if(posix_memalign(&ptr, 16, size*sizeof(T))==0)
+        return static_cast<T*>(ptr);
+      else
+        return 0;
     #endif
-      return static_cast<T*>(ptr);
-    else
-      return 0;
   }
   else
   #endif
