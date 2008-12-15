@@ -55,10 +55,14 @@ template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {
   #ifdef EIGEN_VECTORIZE
-  if (ei_packet_traits<T>::size>1)
+  if(ei_packet_traits<T>::size>1)
   {
     void* ptr;
-    if (posix_memalign(&ptr, 16, size*sizeof(T))==0)
+    #ifdef _MSC_VER
+    if(ptr = _aligned_malloc(size*sizeof(T), 16))
+    #else
+    if(posix_memalign(&ptr, 16, size*sizeof(T))==0)
+    #endif
       return static_cast<T*>(ptr);
     else
       return 0;
@@ -74,7 +78,11 @@ inline void ei_aligned_free(T* ptr)
 {
   #ifdef EIGEN_VECTORIZE
   if (ei_packet_traits<T>::size>1)
+  #ifdef _MSC_VER
+    _aligned_free(ptr);
+  #else
     free(ptr);
+  #endif
   else
   #endif
     delete[] ptr;

@@ -44,6 +44,10 @@
 #include <cstring>
 #include <string>
 
+#if(defined(_MSC_VER) && defined(EIGEN_VECTORIZE))
+#include <malloc.h> // for _aligned_malloc
+#endif
+
 namespace Eigen {
 
 /** \defgroup Core_Module Core module
