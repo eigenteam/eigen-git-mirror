@@ -52,12 +52,21 @@ template <typename T, int Size> struct ei_aligned_array<T,Size,false>
   T array[Size];
 };
 
-/** \internal allocates \a size * sizeof(\a T) bytes with 16 bytes alignment */
+struct ei_byte_forcing_aligned_malloc
+{
+  unsigned char c; // sizeof must be 1.
+};
+
+template<typename T> struct ei_force_aligned_malloc { enum { ret = 0 }; };
+template<> struct ei_force_aligned_malloc<ei_byte_forcing_aligned_malloc> { enum { ret = 1 }; };
+
+/** \internal allocates \a size * sizeof(\a T) bytes with 16 bytes alignment.
+  * */
 template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {
   #ifdef EIGEN_VECTORIZE
-  if(ei_packet_traits<T>::size>1)
+  if(ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
   {
     #ifdef _MSC_VER
       return static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
@@ -71,7 +80,11 @@ inline T* ei_aligned_malloc(size_t size)
   }
   else
   #endif
-    return new T[size];
+    return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
+      // some fancy scalar type such as multiple-precision numbers, and this type has a custom operator new,
+      // then we want to honor this operator new! Anyway this type won't have vectorization so the vectorizing path
+      // is irrelevant here. Yes, we should say somewhere in the docs that if the user uses a custom scalar type then
+      // he can't have both vectorization and a custom operator new on his scalar type.
 }
 
 /** \internal free memory allocated with ei_aligned_malloc */
@@ -79,7 +92,7 @@ template<typename T>
 inline void ei_aligned_free(T* ptr)
 {
   #ifdef EIGEN_VECTORIZE
-  if (ei_packet_traits<T>::size>1)
+  if (ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
   #ifdef _MSC_VER
     _aligned_free(ptr);
   #else
@@ -167,16 +180,16 @@ struct WithAlignedOperatorNew
 
   void *operator new(size_t size) throw()
   {
-    return ei_aligned_malloc<char>(size);
+    return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
   }
 
   void *operator new[](size_t size) throw()
   {
-    return ei_aligned_malloc<char>(size);
+    return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
   }
 
-  void operator delete(void * ptr) { ei_aligned_free(static_cast<char *>(ptr)); }
-  void operator delete[](void * ptr) { ei_aligned_free(static_cast<char *>(ptr)); }
+  void operator delete(void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr)); }
+  void operator delete[](void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr)); }
 
   #endif
 };
