@@ -13,7 +13,17 @@
 
 #ifndef EIGEN_DONT_VECTORIZE
   #define EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC ((defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) ))
-  #define EIGEN_HAVE_MSVC_SSE2 ((defined(_M_IX86_FP)) && (_M_IX86_FP >= 2)) // the parentheses around defined are really needed by MSVC
+
+  // Now check for SSE2 with MSVC. Normally we'd formulate this in 1 line using defined() but this triggers MSVC bugs.  
+  #ifdef _M_IX86_FP
+    #if (_M_IX86_FP >= 2)
+      #define EIGEN_HAVE_MSVC_SSE2 1
+    #endif
+  #endif
+  #ifndef EIGEN_HAVE_MSVC_SSE2
+    #define EIGEN_HAVE_MSVC_SSE2 0
+  #endif
+
   #if (EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC || EIGEN_HAVE_MSVC_SSE2)
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
