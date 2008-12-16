@@ -47,6 +47,8 @@ namespace Eigen
 #define EI_PP_CAT2(a,b) a ## b
 #define EI_PP_CAT(a,b) EI_PP_CAT2(a,b)
 
+#define EIGEN_NO_EXCEPTIONS // disabling throwing assertions on bad alloc -- somehow makes the tests crawl
+
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
   namespace Eigen

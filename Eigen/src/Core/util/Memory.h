@@ -26,11 +26,9 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#ifdef EIGEN_VECTORIZE
-#ifndef _MSC_VER
+#if defined(EIGEN_VECTORIZE) && !defined(_MSC_VER)
 // it seems we cannot assume posix_memalign is defined in the stdlib header
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
-#endif
 #endif
 
 /** \internal
@@ -61,35 +59,47 @@ struct ei_byte_forcing_aligned_malloc
 {
   unsigned char c; // sizeof must be 1.
 };
-
 template<typename T> struct ei_force_aligned_malloc { enum { ret = 0 }; };
 template<> struct ei_force_aligned_malloc<ei_byte_forcing_aligned_malloc> { enum { ret = 1 }; };
 
-/** \internal allocates \a size * sizeof(\a T) bytes with 16 bytes alignment.
-  * */
+/** \internal allocates \a size * sizeof(\a T) bytes. If vectorization is enabled and T is such that a packet
+  * containts more than one T, then the returned pointer is guaranteed to have 16 bytes alignment.
+  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  */
 template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {
+  T* result;
+
   #ifdef EIGEN_VECTORIZE
   if(ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
   {
     #ifdef _MSC_VER
-      return static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
-    #else
-      void* ptr;
-      if(posix_memalign(&ptr, 16, size*sizeof(T))==0)
-        return static_cast<T*>(ptr);
-      else
-        return 0;
+      result = static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
+      #ifdef EIGEN_EXCEPTIONS
+        const int failed = (result == 0);
+      #endif
+    #else // not MSVC
+      #ifdef EIGEN_EXCEPTIONS
+        const int failed =
+      #endif
+      posix_memalign(reinterpret_cast<void**>(&result), 16, size*sizeof(T));
+    #endif
+	
+    #ifdef EIGEN_EXCEPTIONS
+      if(failed)
+        throw std::bad_alloc();
     #endif
   }
   else
   #endif
-    return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
+    result = new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
       // some fancy scalar type such as multiple-precision numbers, and this type has a custom operator new,
       // then we want to honor this operator new! Anyway this type won't have vectorization so the vectorizing path
       // is irrelevant here. Yes, we should say somewhere in the docs that if the user uses a custom scalar type then
       // he can't have both vectorization and a custom operator new on his scalar type.
+	  
+  return result;
 }
 
 /** \internal free memory allocated with ei_aligned_malloc */

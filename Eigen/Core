@@ -1,30 +1,32 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+// first thing Eigen does: prevent MSVC from committing suicide
 #ifdef _MSC_VER
-#pragma warning( disable : 4181 4244 )
+  #pragma warning( disable : 4181 4244 )
+  #if (_MSC_VER >= 1500) // 2008 or later
+    // Remember that usage of defined() in a #define is undefined by the standard
+    #ifdef _M_IX86_FP
+      #if _M_IX86_FP >= 2
+        #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
+      #endif
+    #endif   
+  #endif
 #endif
 
 #ifdef __GNUC__
-#define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
 #else
-#define EIGEN_GNUC_AT_LEAST(x,y) 0
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+
+// Remember that usage of defined() in a #define is undefined by the standard
+#if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+  #define EIGEN_SSE2_BUT_NOT_OLD_GCC
 #endif
 
 #ifndef EIGEN_DONT_VECTORIZE
-  #define EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC ((defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) ))
-
-  // Now check for SSE2 with MSVC. Normally we'd formulate this in 1 line using defined() but this triggers MSVC bugs.  
-  #ifdef _M_IX86_FP
-    #if (_M_IX86_FP >= 2)
-      #define EIGEN_HAVE_MSVC_SSE2 1
-    #endif
-  #endif
-  #ifndef EIGEN_HAVE_MSVC_SSE2
-    #define EIGEN_HAVE_MSVC_SSE2 0
-  #endif
-
-  #if (EIGEN_HAVE__SSE2__BUT_NOT_OLD_GCC || EIGEN_HAVE_MSVC_SSE2)
+  #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
     #include <emmintrin.h>
@@ -35,11 +37,11 @@
     #ifdef __SSSE3__
       #include <tmmintrin.h>
     #endif
-  #elif (defined __ALTIVEC__)
+  #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
     #include <altivec.h>
-    // We _need_ to #undef all these ugly tokens defined in <altivec.h>
+    // We need to #undef all these ugly tokens defined in <altivec.h>
     // => use __vector instead of vector
     #undef bool
     #undef vector
@@ -56,8 +58,16 @@
 #include <cstring>
 #include <string>
 
-#if(defined(_MSC_VER) && defined(EIGEN_VECTORIZE))
-#include <malloc.h> // for _aligned_malloc
+#if defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER) && defined(EIGEN_VECTORIZE)
+  #include <malloc.h> // for _aligned_malloc
+#endif
+
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
+  #define EIGEN_EXCEPTIONS
+#endif
+
+#ifdef EIGEN_EXCEPTIONS
+  #include <new>
 #endif
 
 namespace Eigen {
@@ -85,9 +95,9 @@ namespace Eigen {
 #include "src/Core/GenericPacketMath.h"
 
 #if defined EIGEN_VECTORIZE_SSE
-#include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/PacketMath.h"
 #elif defined EIGEN_VECTORIZE_ALTIVEC
-#include "src/Core/arch/AltiVec/PacketMath.h"
+  #include "src/Core/arch/AltiVec/PacketMath.h"
 #endif
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
@@ -97,10 +107,12 @@ namespace Eigen {
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/Coeffs.h"
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN // work around Doxygen bug triggered by Assign.h r814874
                                 // at least confirmed with Doxygen 1.5.5 and 1.5.6
-#include "src/Core/Assign.h"
+  #include "src/Core/Assign.h"
 #endif
+
 #include "src/Core/MatrixStorage.h"
 #include "src/Core/NestByValue.h"
 #include "src/Core/Flagged.h"
