@@ -116,6 +116,10 @@ using Eigen::ei_cos;
 
 #define EIGEN_RESTRICT __restrict
 
+#ifndef EIGEN_STACK_ALLOCATION_LIMIT
+#define EIGEN_STACK_ALLOCATION_LIMIT 16000000
+#endif
+
 #ifndef EIGEN_DEFAULT_IO_FORMAT
 #define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat()
 #endif

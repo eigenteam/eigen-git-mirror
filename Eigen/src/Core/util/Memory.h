@@ -143,11 +143,12 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * \endcode
   */
 #ifdef __linux__
-# define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>16000000) ? new TYPE[SIZE] : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
-# define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>16000000) delete[] PTR
+  #define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>EIGEN_STACK_ALLOCATION_LIMIT) ? \
+                                    new TYPE[SIZE] : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
+  #define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) delete[] PTR
 #else
-# define ei_alloc_stack(TYPE,SIZE) new TYPE[SIZE]
-# define ei_free_stack(PTR,TYPE,SIZE) delete[] PTR
+  #define ei_alloc_stack(TYPE,SIZE) new TYPE[SIZE]
+  #define ei_free_stack(PTR,TYPE,SIZE) delete[] PTR
 #endif
 
 /** \class WithAlignedOperatorNew
