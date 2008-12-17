@@ -100,8 +100,6 @@ namespace Eigen {
 # include "src/Sparse/UmfPackSupport.h"
 #endif
 
-#include "src/Sparse/ConstrainedCG.h"
-
 } // namespace Eigen
 
 #endif // EIGEN_SPARSE_MODULE_H
