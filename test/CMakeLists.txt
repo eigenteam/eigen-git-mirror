@@ -2,6 +2,8 @@
 find_package(GSL)
 if(GSL_FOUND)
   add_definitions("-DHAS_GSL")
+else(GSL_FOUND)
+  set(GSL_LIBRARIES " ")
 endif(GSL_FOUND)
 
 set(SPARSE_LIBS "")
@@ -24,7 +26,10 @@ else(CHOLMOD_FOUND)
   message("CHOLMOD not found, this optional backend won't be tested")
 endif(CHOLMOD_FOUND)
 
-enable_language(Fortran OPTIONAL)
+if(NOT WIN32)
+  enable_language(Fortran OPTIONAL)
+endif(NOT WIN32)
+
 find_package(Umfpack)
 if(UMFPACK_FOUND)
   add_definitions("-DEIGEN_UMFPACK_SUPPORT")

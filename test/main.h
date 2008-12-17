@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
           std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
-        seed = strtoul(argv[i]+1, 0, 10);
+        seed = int(strtoul(argv[i]+1, 0, 10));
         has_set_seed = true;
         bool ok = seed!=0;
         if(!ok)
