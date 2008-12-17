@@ -35,8 +35,9 @@
   *
   * This class represents a LU decomposition of any matrix, with complete pivoting: the matrix A
   * is decomposed as A = PLUQ where L is unit-lower-triangular, U is upper-triangular, and P and Q
-  * are permutation matrices. This is a rank-revealing LU decomposition. The eigenvalues of U are
-  * in non-increasing order.
+  * are permutation matrices. This is a rank-revealing LU decomposition. The eigenvalues (diagonal
+  * coefficients) of U are sorted in such a way that any zeros are at the end, so that the rank
+  * of A is the index of the first zero on the diagonal of U (with indices starting at 0) if any.
   *
   * This decomposition provides the generic approach to solving systems of linear equations, computing
   * the rank, invertibility, inverse, kernel, and determinant.
@@ -71,9 +72,24 @@ template<typename MatrixType> class LU
              MatrixType::MaxRowsAtCompileTime)
     };
 
-  typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, Dynamic,
-                 MatrixType::Flags&RowMajorBit,
-                 MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime> KernelResultType;
+    typedef Matrix<typename MatrixType::Scalar,
+                  MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix" is the number of cols of the original matrix
+                                                 // so that the product "matrix * kernel = zero" makes sense
+                  Dynamic,                       // we don't know at compile-time the dimension of the kernel
+                  MatrixType::Flags&RowMajorBit, // small optimization as we construct the kernel row by row
+                  MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
+                  MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space, whose dimension is the number
+                                                   // of columns of the original matrix
+    > KernelResultType;
+
+    typedef Matrix<typename MatrixType::Scalar,
+                   MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose dimension is the number
+                                                  // of rows of the original matrix
+                   Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
+                   MatrixType::Flags,
+                   MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
+                   MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
+    > ImageResultType;
 
     /** Constructor.
       *
@@ -105,8 +121,6 @@ template<typename MatrixType> class LU
 
     /** \returns an expression of the U matrix, i.e. the upper-triangular part of the LU matrix.
       *
-      * \note The eigenvalues of U are sorted in non-increasing order.
-      *
       * \sa matrixLU(), matrixL()
       */
     inline const Part<MatrixType, Upper> matrixU() const
@@ -136,10 +150,10 @@ template<typename MatrixType> class LU
       return m_q;
     }
 
-    /** Computes the kernel of the matrix.
+    /** Computes a basis of the kernel of the matrix, also called the null-space of the matrix.
       *
-      * \note: this method is only allowed on non-invertible matrices, as determined by
-      * isInvertible(). Calling it on an invertible matrice will make an assertion fail.
+      * \note This method is only allowed on non-invertible matrices, as determined by
+      * isInvertible(). Calling it on an invertible matrix will make an assertion fail.
       *
       * \param result a pointer to the matrix in which to store the kernel. The columns of this
       * matrix will be set to form a basis of the kernel (it will be resized
@@ -148,15 +162,30 @@ template<typename MatrixType> class LU
       * Example: \include LU_computeKernel.cpp
       * Output: \verbinclude LU_computeKernel.out
       *
-      * \sa kernel()
+      * \sa kernel(), computeImage(), image()
       */
     void computeKernel(KernelResultType *result) const;
 
-    /** \returns the kernel of the matrix. The columns of the returned matrix
+    /** Computes a basis of the image of the matrix, also called the column-space or range of he matrix.
+      *
+      * \note Calling this method on the zero matrix will make an assertion fail.
+      *
+      * \param result a pointer to the matrix in which to store the image. The columns of this
+      * matrix will be set to form a basis of the image (it will be resized
+      * if necessary).
+      *
+      * Example: \include LU_computeImage.cpp
+      * Output: \verbinclude LU_computeImage.out
+      *
+      * \sa image(), computeKernel(), kernel()
+      */
+    void computeImage(ImageResultType *result) const;
+
+    /** \returns the kernel of the matrix, also called its null-space. The columns of the returned matrix
       * will form a basis of the kernel.
       *
       * \note: this method is only allowed on non-invertible matrices, as determined by
-      * isInvertible(). Calling it on an invertible matrice will make an assertion fail.
+      * isInvertible(). Calling it on an invertible matrix will make an assertion fail.
       *
       * \note: this method returns a matrix by value, which induces some inefficiency.
       *        If you prefer to avoid this overhead, use computeKernel() instead.
@@ -164,9 +193,24 @@ template<typename MatrixType> class LU
       * Example: \include LU_kernel.cpp
       * Output: \verbinclude LU_kernel.out
       *
-      * \sa computeKernel()
+      * \sa computeKernel(), image()
       */
     const KernelResultType kernel() const;
+
+    /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
+      * will form a basis of the kernel.
+      *
+      * \note: Calling this method on the zero matrix will make an assertion fail.
+      *
+      * \note: this method returns a matrix by value, which induces some inefficiency.
+      *        If you prefer to avoid this overhead, use computeImage() instead.
+      *
+      * Example: \include LU_image.cpp
+      * Output: \verbinclude LU_image.out
+      *
+      * \sa computeImage(), kernel()
+      */
+    const ImageResultType image() const;
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition, if any exists.
@@ -290,6 +334,7 @@ template<typename MatrixType> class LU
     }
 
   protected:
+    const MatrixType& m_originalMatrix;
     MatrixType m_lu;
     IntColVectorType m_p;
     IntRowVectorType m_q;
@@ -299,7 +344,8 @@ template<typename MatrixType> class LU
 
 template<typename MatrixType>
 LU<MatrixType>::LU(const MatrixType& matrix)
-  : m_lu(matrix),
+  : m_originalMatrix(matrix),
+    m_lu(matrix),
     m_p(matrix.rows()),
     m_q(matrix.cols())
 {
@@ -344,7 +390,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   }
 
   for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;
-  for(int k = size-1; k >= 0; k--)
+  for(int k = size-1; k >= 0; --k)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
   for(int k = 0; k < matrix.cols(); ++k) m_q.coeffRef(k) = k;
@@ -381,8 +427,8 @@ void LU<MatrixType>::computeKernel(KernelResultType *result) const
 
   /* Thus, all we need to do is to compute Ker U, and then apply Q.
     *
-    * U is upper triangular, with eigenvalues sorted in decreasing order of
-    * absolute value. Thus, the diagonal of U ends with exactly
+    * U is upper triangular, with eigenvalues sorted so that any zeros appear at the end.
+    * Thus, the diagonal of U ends with exactly
     * m_dimKer zero's. Let us use that to construct m_dimKer linearly
     * independent vectors in Ker U.
     */
@@ -407,6 +453,24 @@ LU<MatrixType>::kernel() const
 {
   KernelResultType result(m_lu.cols(), dimensionOfKernel());
   computeKernel(&result);
+  return result;
+}
+
+template<typename MatrixType>
+void LU<MatrixType>::computeImage(ImageResultType *result) const
+{
+  ei_assert(m_rank > 0);
+  result->resize(m_originalMatrix.rows(), m_rank);
+  for(int i = 0; i < m_rank; ++i)
+    result->col(i) = m_originalMatrix.col(m_q.coeff(i));
+}
+
+template<typename MatrixType>
+const typename LU<MatrixType>::ImageResultType
+LU<MatrixType>::image() const
+{
+  ImageResultType result(m_originalMatrix.rows(), m_rank);
+  computeImage(&result);
   return result;
 }
 

@@ -64,14 +64,19 @@ template<typename MatrixType> void lu_non_invertible()
   doSomeRankPreservingOperations(m1);
 
   LU<MatrixType> lu(m1);
+  typename LU<MatrixType>::KernelResultType m1kernel = lu.kernel();
+  typename LU<MatrixType>::ImageResultType m1image = lu.image();
+
   VERIFY(cols - rank == lu.dimensionOfKernel());
   VERIFY(rank == lu.rank());
   VERIFY(!lu.isInjective());
   VERIFY(!lu.isInvertible());
   VERIFY(lu.isSurjective() == (lu.rank() == rows));
-  VERIFY((m1 * lu.kernel()).isMuchSmallerThan(m1));
-  lu.computeKernel(&k);
-  VERIFY((m1 * k).isMuchSmallerThan(m1));
+  VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
+  VERIFY(m1image.lu().rank() == rank);
+  MatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
+  sidebyside << m1, m1image;
+  VERIFY(sidebyside.lu().rank() == rank);
   m2 = MatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
@@ -105,6 +110,7 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.isInjective());
   VERIFY(lu.isSurjective());
   VERIFY(lu.isInvertible());
+  VERIFY(lu.image().lu().isInvertible());
   m3 = MatrixType::Random(size,size);
   lu.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
