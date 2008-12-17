@@ -295,8 +295,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     // FIXME what's the purpose of the following since the condition is always false
     if ((j < low) || (j > high))
     {
-      m_eivalues.coeffRef(j).real() = matH.coeff(j,j);
-      m_eivalues.coeffRef(j).imag() = 0.0;
+      m_eivalues.coeffRef(j) = Complex(matH.coeff(j,j), 0.0);
     }
     norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwise().abs().sum();
   }
@@ -322,8 +321,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     if (l == n)
     {
       matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
-      m_eivalues.coeffRef(n).real() = matH.coeff(n,n);
-      m_eivalues.coeffRef(n).imag() = 0.0;
+      m_eivalues.coeffRef(n) = Complex(matH.coeff(n,n), 0.0);
       n--;
       iter = 0;
     }
@@ -345,13 +343,9 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
         else
           z = p - z;
 
-        m_eivalues.coeffRef(n-1).real() = x + z;
-        m_eivalues.coeffRef(n).real() = m_eivalues.coeff(n-1).real();
-        if (z != 0.0)
-          m_eivalues.coeffRef(n).real() = x - w / z;
+        m_eivalues.coeffRef(n-1) = Complex(x + z, 0.0);
+        m_eivalues.coeffRef(n) = Complex(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
 
-        m_eivalues.coeffRef(n-1).imag() = 0.0;
-        m_eivalues.coeffRef(n).imag() = 0.0;
         x = matH.coeff(n,n-1);
         s = ei_abs(x) + ei_abs(z);
         p = x / s;
@@ -386,10 +380,8 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       }
       else // Complex pair
       {
-        m_eivalues.coeffRef(n-1).real() = x + p;
-        m_eivalues.coeffRef(n).real() = x + p;
-        m_eivalues.coeffRef(n-1).imag() = z;
-        m_eivalues.coeffRef(n).imag() = -z;
+        m_eivalues.coeffRef(n-1) = Complex(x + p, z);
+        m_eivalues.coeffRef(n)   = Complex(x + p, -z);
       }
       n = n - 2;
       iter = 0;
