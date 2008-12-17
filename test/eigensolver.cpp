@@ -124,7 +124,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
   typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
 
-  RealScalar largerEps = 10*test_precision<RealScalar>();
+  // RealScalar largerEps = 10*test_precision<RealScalar>();
 
   MatrixType a = MatrixType::Random(rows,cols);
   MatrixType a1 = MatrixType::Random(rows,cols);

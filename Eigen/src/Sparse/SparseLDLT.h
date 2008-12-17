@@ -203,10 +203,10 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
   if (P)
   {
     /* If P is present then compute Pinv, the inverse of P */
-    for (int k = 0; k < size; k++)
+    for (int k = 0; k < size; ++k)
       Pinv[P[k]] = k;
   }
-  for (int k = 0; k < size; k++)
+  for (int k = 0; k < size; ++k)
   {
     /* L(k,:) pattern: all nodes reachable in etree from nz in A(0:k-1,k) */
     m_parent[k] = -1;             /* parent of k is not yet known */
@@ -214,7 +214,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
     m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
     int kk = P ? P[k] : k;  /* kth original, or permuted, column */
     int p2 = Ap[kk+1];
-    for (int p = Ap[kk]; p < p2; p++)
+    for (int p = Ap[kk]; p < p2; ++p)
     {
       /* A (i,k) is nonzero (original or permuted A) */
       int i = Pinv ? Pinv[Ai[p]] : Ai[p];
@@ -226,7 +226,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
           /* find parent of i if not yet determined */
           if (m_parent[i] == -1)
             m_parent[i] = k;
-          m_nonZerosPerCol[i]++;        /* L (k,i) is nonzero */
+          ++m_nonZerosPerCol[i];        /* L (k,i) is nonzero */
           tags[i] = k;                  /* mark i as visited */
         }
       }
@@ -234,7 +234,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
   }
   /* construct Lp index array from m_nonZerosPerCol column counts */
   Lp[0] = 0;
-  for (int k = 0; k < size; k++)
+  for (int k = 0; k < size; ++k)
     Lp[k+1] = Lp[k] + m_nonZerosPerCol[k];
 
   m_matrix.resizeNonZeros(Lp[size]);
@@ -265,7 +265,7 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
   const int* Pinv = 0;
   bool ok = true;
 
-  for (int k = 0; k < size; k++)
+  for (int k = 0; k < size; ++k)
   {
     /* compute nonzero pattern of kth row of L, in topological order */
     y[k] = 0.0;                   /* Y(0:k) is now all zero */
@@ -274,7 +274,7 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
     m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
     int kk = (P) ? (P[k]) : (k);  /* kth original, or permuted, column */
     int p2 = Ap[kk+1];
-    for (int p = Ap[kk]; p < p2; p++)
+    for (int p = Ap[kk]; p < p2; ++p)
     {
       int i = Pinv ? Pinv[Ai[p]] : Ai[p]; /* get A(i,k) */
       if (i <= k)
@@ -293,20 +293,20 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
     /* compute numerical values kth row of L (a sparse triangular solve) */
     m_diag[k] = y[k];                       /* get D(k,k) and clear Y(k) */
     y[k] = 0.0;
-    for (; top < size; top++)
+    for (; top < size; ++top)
     {
       int i = pattern[top];      /* pattern[top:n-1] is pattern of L(:,k) */
       Scalar yi = y[i];          /* get and clear Y(i) */
       y[i] = 0.0;
       int p2 = Lp[i] + m_nonZerosPerCol[i];
       int p;
-      for (p = Lp[i]; p < p2; p++)
+      for (p = Lp[i]; p < p2; ++p)
         y[Li[p]] -= Lx[p] * yi;
       Scalar l_ki = yi / m_diag[i];       /* the nonzero entry L(k,i) */
       m_diag[k] -= l_ki * yi;
       Li[p] = k;                          /* store L(k,i) in column form of L */
       Lx[p] = l_ki;
-      m_nonZerosPerCol[i]++;              /* increment count of nonzeros in col i */
+      ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
     }
     if (m_diag[k] == 0.0)
     {

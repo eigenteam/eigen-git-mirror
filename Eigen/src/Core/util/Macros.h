@@ -107,7 +107,7 @@ using Eigen::ei_cos;
 #endif
 
 #if (defined __GNUC__)
-#define EIGEN_ALIGN_128 __attribute__ ((aligned(16)))
+#define EIGEN_ALIGN_128 __attribute__((aligned(16)))
 #elif (defined _MSC_VER)
 #define EIGEN_ALIGN_128 __declspec(align(16))
 #else

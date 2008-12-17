@@ -115,7 +115,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   // in s and the super-diagonal elements in e.
   int nct = std::min(m-1,n);
   int nrt = std::max(0,std::min(n-2,m));
-  for (k = 0; k < std::max(nct,nrt); k++)
+  for (k = 0; k < std::max(nct,nrt); ++k)
   {
     if (k < nct)
     {
@@ -132,7 +132,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       m_sigma[k] = -m_sigma[k];
     }
 
-    for (j = k+1; j < n; j++)
+    for (j = k+1; j < n; ++j)
     {
       if ((k < nct) && (m_sigma[k] != 0.0))
       {
@@ -168,7 +168,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         // Apply the transformation.
         work.end(m-k-1) = matA.corner(BottomRight,m-k-1,n-k-1) * e.end(n-k-1);
-        for (j = k+1; j < n; j++)
+        for (j = k+1; j < n; ++j)
           matA.col(j).end(m-k-1) += (-e[j]/e[k+1]) * work.end(m-k-1);
       }
 
@@ -192,7 +192,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   // If required, generate U.
   if (wantu)
   {
-    for (j = nct; j < nu; j++)
+    for (j = nct; j < nu; ++j)
     {
       m_matU.col(j).setZero();
       m_matU(j,j) = 1.0;
@@ -201,7 +201,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     {
       if (m_sigma[k] != 0.0)
       {
-        for (j = k+1; j < nu; j++)
+        for (j = k+1; j < nu; ++j)
         {
           Scalar t = m_matU.col(k).end(m-k).dot(m_matU.col(j).end(m-k)); // FIXME is it really a dot product we want ?
           t = -t/m_matU(k,k);
@@ -227,7 +227,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     {
       if ((k < nrt) & (e[k] != 0.0))
       {
-        for (j = k+1; j < nu; j++)
+        for (j = k+1; j < nu; ++j)
         {
           Scalar t = m_matV.col(k).end(n-k-1).dot(m_matV.col(j).end(n-k-1)); // FIXME is it really a dot product we want ?
           t = -t/m_matV(k+1,k);
@@ -302,7 +302,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         k = ks;
       }
     }
-    k++;
+    ++k;
 
     // Perform the task indicated by kase.
     switch (kase)
@@ -326,7 +326,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           }
           if (wantv)
           {
-            for (i = 0; i < n; i++)
+            for (i = 0; i < n; ++i)
             {
               t = cs*m_matV(i,j) + sn*m_matV(i,p-1);
               m_matV(i,p-1) = -sn*m_matV(i,j) + cs*m_matV(i,p-1);
@@ -342,7 +342,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         Scalar f(e[k-1]);
         e[k-1] = 0.0;
-        for (j = k; j < p; j++)
+        for (j = k; j < p; ++j)
         {
           Scalar t(hypot(m_sigma[j],f));
           Scalar cs( m_sigma[j]/t);
@@ -352,7 +352,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           e[j] = cs*e[j];
           if (wantu)
           {
-            for (i = 0; i < m; i++)
+            for (i = 0; i < m; ++i)
             {
               t = cs*m_matU(i,j) + sn*m_matU(i,k-1);
               m_matU(i,k-1) = -sn*m_matU(i,j) + cs*m_matU(i,k-1);
@@ -390,7 +390,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 
         // Chase zeros.
 
-        for (j = k; j < p-1; j++)
+        for (j = k; j < p-1; ++j)
         {
           Scalar t = hypot(f,g);
           Scalar cs = f/t;
@@ -403,7 +403,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           m_sigma[j+1] = cs*m_sigma[j+1];
           if (wantv)
           {
-            for (i = 0; i < n; i++)
+            for (i = 0; i < n; ++i)
             {
               t = cs*m_matV(i,j) + sn*m_matV(i,j+1);
               m_matV(i,j+1) = -sn*m_matV(i,j) + cs*m_matV(i,j+1);
@@ -420,7 +420,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           e[j+1] = cs*e[j+1];
           if (wantu && (j < m-1))
           {
-            for (i = 0; i < m; i++)
+            for (i = 0; i < m; ++i)
             {
               t = cs*m_matU(i,j) + sn*m_matU(i,j+1);
               m_matU(i,j+1) = -sn*m_matU(i,j) + cs*m_matU(i,j+1);
@@ -456,7 +456,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
             m_matV.col(k).swap(m_matV.col(k+1));
           if (wantu && (k < m-1))
             m_matU.col(k).swap(m_matU.col(k+1));
-          k++;
+          ++k;
         }
         iter = 0;
         p--;
@@ -473,12 +473,12 @@ SVD<MatrixType>& SVD<MatrixType>::sort()
   int mv = m_matV.rows();
   int n  = m_matU.cols();
 
-  for (int i=0; i<n; i++)
+  for (int i=0; i<n; ++i)
   {
     int  k = i;
     Scalar p = m_sigma.coeff(i);
 
-    for (int j=i+1; j<n; j++)
+    for (int j=i+1; j<n; ++j)
     {
       if (m_sigma.coeff(j) > p)
       {
@@ -520,7 +520,7 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
   {
     Matrix<Scalar,MatrixUType::RowsAtCompileTime,1> aux = m_matU.transpose() * b.col(j);
 
-    for (int i = 0; i <m_matU.cols(); i++)
+    for (int i = 0; i <m_matU.cols(); ++i)
     {
       Scalar si = m_sigma.coeff(i);
       if (ei_isMuchSmallerThan(ei_abs(si),maxVal))

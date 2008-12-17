@@ -219,8 +219,8 @@ struct ei_part_assignment_impl<Derived1, Derived2, Upper, Dynamic>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); j++)
-      for(int i = 0; i <= j; i++)
+    for(int j = 0; j < dst.cols(); ++j)
+      for(int i = 0; i <= j; ++i)
         dst.copyCoeff(i, j, src);
   }
 };
@@ -230,8 +230,8 @@ struct ei_part_assignment_impl<Derived1, Derived2, Lower, Dynamic>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); j++)
-      for(int i = j; i < dst.rows(); i++)
+    for(int j = 0; j < dst.cols(); ++j)
+      for(int i = j; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
   }
 };
@@ -241,8 +241,8 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyUpper, Dynamic>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); j++)
-      for(int i = 0; i < j; i++)
+    for(int j = 0; j < dst.cols(); ++j)
+      for(int i = 0; i < j; ++i)
         dst.copyCoeff(i, j, src);
   }
 };
@@ -251,8 +251,8 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyLower, Dynamic>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); j++)
-      for(int i = j+1; i < dst.rows(); i++)
+    for(int j = 0; j < dst.cols(); ++j)
+      for(int i = j+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
   }
 };
@@ -261,9 +261,9 @@ struct ei_part_assignment_impl<Derived1, Derived2, SelfAdjoint, Dynamic>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); j++)
+    for(int j = 0; j < dst.cols(); ++j)
     {
-      for(int i = 0; i < j; i++)
+      for(int i = 0; i < j; ++i)
         dst.coeffRef(j, i) = ei_conj(dst.coeffRef(i, j) = src.coeff(i, j));
       dst.coeffRef(j, j) = ei_real(src.coeff(j, j));
     }
@@ -312,14 +312,14 @@ bool MatrixBase<Derived>::isUpper(RealScalar prec) const
 {
   if(cols() != rows()) return false;
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); j++)
-    for(int i = 0; i <= j; i++)
+  for(int j = 0; j < cols(); ++j)
+    for(int i = 0; i <= j; ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
       if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
     }
-  for(int j = 0; j < cols()-1; j++)
-    for(int i = j+1; i < rows(); i++)
+  for(int j = 0; j < cols()-1; ++j)
+    for(int i = j+1; i < rows(); ++i)
       if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnUpperPart, prec)) return false;
   return true;
 }
@@ -334,14 +334,14 @@ bool MatrixBase<Derived>::isLower(RealScalar prec) const
 {
   if(cols() != rows()) return false;
   RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); j++)
-    for(int i = j; i < rows(); i++)
+  for(int j = 0; j < cols(); ++j)
+    for(int i = j; i < rows(); ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
       if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
     }
-  for(int j = 1; j < cols(); j++)
-    for(int i = 0; i < j; i++)
+  for(int j = 1; j < cols(); ++j)
+    for(int i = 0; i < j; ++i)
       if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnLowerPart, prec)) return false;
   return true;
 }

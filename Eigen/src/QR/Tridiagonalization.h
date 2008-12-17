@@ -268,7 +268,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
        * if we remove the specialization of Block for Matrix then it is even worse, much worse ! */
       #ifdef EIGEN_NEVER_DEFINED
       for (int j1=i+1; j1<n; ++j1)
-      for (int i1=j1;  i1<n; i1++)
+      for (int i1=j1;  i1<n; ++i1)
         matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
                               + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
       #endif

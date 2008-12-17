@@ -29,7 +29,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
   double density = std::max(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
-  Scalar eps = 1e-6;
+  // Scalar eps = 1e-6;
 
   DenseVector vec1 = DenseVector::Random(rows);
 
@@ -128,7 +128,9 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     LU<DenseMatrix> refLu(refMat2);
     refLu.solve(b, &refX);
+    #if defined(EIGEN_SUPERLU_SUPPORT) || defined(EIGEN_UMFPACK_SUPPORT)
     Scalar refDet = refLu.determinant();
+    #endif
     x.setZero();
     // // SparseLU<SparseMatrix<Scalar> > (m2).solve(b,&x);
     // // VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: default");

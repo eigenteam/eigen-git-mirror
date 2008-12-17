@@ -123,13 +123,13 @@ bool MatrixBase<Derived>::isDiagonal
 {
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); j++)
+  for(int j = 0; j < cols(); ++j)
   {
     RealScalar absOnDiagonal = ei_abs(coeff(j,j));
     if(absOnDiagonal > maxAbsOnDiagonal) maxAbsOnDiagonal = absOnDiagonal;
   }
-  for(int j = 0; j < cols(); j++)
-    for(int i = 0; i < j; i++)
+  for(int j = 0; j < cols(); ++j)
+    for(int i = 0; i < j; ++i)
     {
       if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnDiagonal, prec)) return false;
       if(!ei_isMuchSmallerThan(coeff(j, i), maxAbsOnDiagonal, prec)) return false;

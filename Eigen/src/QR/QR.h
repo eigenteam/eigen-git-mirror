@@ -87,7 +87,7 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
   int rows = matrix.rows();
   int cols = matrix.cols();
 
-  for (int k = 0; k < cols; k++)
+  for (int k = 0; k < cols; ++k)
   {
     int remainingSize = rows-k;
 

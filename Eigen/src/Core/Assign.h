@@ -214,8 +214,8 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
   {
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
-    for(int j = 0; j < outerSize; j++)
-      for(int i = 0; i < innerSize; i++)
+    for(int j = 0; j < outerSize; ++j)
+      for(int i = 0; i < innerSize; ++i)
       {
         if(int(Derived1::Flags)&RowMajorBit)
           dst.copyCoeff(j, i, src);
@@ -243,7 +243,7 @@ struct ei_assign_impl<Derived1, Derived2, NoVectorization, InnerUnrolling>
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
     const int outerSize = dst.outerSize();
-    for(int j = 0; j < outerSize; j++)
+    for(int j = 0; j < outerSize; ++j)
       ei_assign_novec_InnerUnrolling<Derived1, Derived2, 0, innerSize>
         ::run(dst, src, j);
   }
@@ -261,7 +261,7 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, NoUnrolling>
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    for(int j = 0; j < outerSize; j++)
+    for(int j = 0; j < outerSize; ++j)
       for(int i = 0; i < innerSize; i+=packetSize)
       {
         if(int(Derived1::Flags)&RowMajorBit)
@@ -290,7 +290,7 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorization, InnerUnrolling>
     const bool rowMajor = int(Derived1::Flags)&RowMajorBit;
     const int innerSize = rowMajor ? Derived1::ColsAtCompileTime : Derived1::RowsAtCompileTime;
     const int outerSize = dst.outerSize();
-    for(int j = 0; j < outerSize; j++)
+    for(int j = 0; j < outerSize; ++j)
       ei_assign_innervec_InnerUnrolling<Derived1, Derived2, 0, innerSize>
         ::run(dst, src, j);
   }
@@ -311,7 +311,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
                            : ei_alignmentOffset(&dst.coeffRef(0), size);
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-    for(int index = 0; index < alignedStart; index++)
+    for(int index = 0; index < alignedStart; ++index)
       dst.copyCoeff(index, src);
 
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
@@ -319,7 +319,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
       dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
     }
 
-    for(int index = alignedEnd; index < size; index++)
+    for(int index = alignedEnd; index < size; ++index)
       dst.copyCoeff(index, src);
   }
 };
@@ -355,12 +355,12 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
     int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
                      : ei_alignmentOffset(&dst.coeffRef(0), innerSize);
 
-    for(int i = 0; i < outerSize; i++)
+    for(int i = 0; i < outerSize; ++i)
     {
       const int alignedEnd = alignedStart + ((innerSize-alignedStart) & ~packetAlignedMask);
 
       // do the non-vectorizable part of the assignment
-      for (int index = 0; index<alignedStart ; index++)
+      for (int index = 0; index<alignedStart ; ++index)
       {
         if(Derived1::Flags&RowMajorBit)
           dst.copyCoeff(i, index, src);
@@ -378,7 +378,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
       }
 
       // do the non-vectorizable part of the assignment
-      for (int index = alignedEnd; index<innerSize ; index++)
+      for (int index = alignedEnd; index<innerSize ; ++index)
       {
         if(Derived1::Flags&RowMajorBit)
           dst.copyCoeff(i, index, src);

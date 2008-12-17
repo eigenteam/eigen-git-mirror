@@ -202,7 +202,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   // Sort eigenvalues and corresponding vectors.
   // TODO make the sort optional ?
   // TODO use a better sort algorithm !!
-  for (int i = 0; i < n-1; i++)
+  for (int i = 0; i < n-1; ++i)
   {
     int k;
     m_eivalues.segment(i,n-i).minCoeff(&k);

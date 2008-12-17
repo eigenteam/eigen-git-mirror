@@ -129,8 +129,8 @@ std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
   if (fmt.flags & AlignCols)
   {
     // compute the largest width
-    for(int j = 1; j < m.cols(); j++)
-      for(int i = 0; i < m.rows(); i++)
+    for(int j = 1; j < m.cols(); ++j)
+      for(int i = 0; i < m.rows(); ++i)
       {
         std::stringstream sstr;
         sstr.precision(fmt.precision);
@@ -140,14 +140,14 @@ std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m,
   }
   s.precision(fmt.precision);
   s << fmt.matPrefix;
-  for(int i = 0; i < m.rows(); i++)
+  for(int i = 0; i < m.rows(); ++i)
   {
     if (i)
       s << fmt.rowSpacer;
     s << fmt.rowPrefix;
     if(width) s.width(width);
     s << m.coeff(i, 0);
-    for(int j = 1; j < m.cols(); j++)
+    for(int j = 1; j < m.cols(); ++j)
     {
       s << fmt.coeffSeparator;
       if (width) s.width(width);

@@ -140,7 +140,7 @@ class RandomSetter
       m_keyBitsOffset = 0;
       while (aux)
       {
-        m_keyBitsOffset++;
+        ++m_keyBitsOffset;
         aux = aux >> 1;
       }
       KeyType ik = (1<<(OuterPacketBits+m_keyBitsOffset));
@@ -183,7 +183,7 @@ class RandomSetter
           for (typename HashMapType::iterator it = m_hashmaps[k].begin(); it!=end; ++it)
           {
             const int outer = it->first & keyBitsMask;
-            positions[outer]++;
+            ++positions[outer];
           }
         }
         // prefix sum

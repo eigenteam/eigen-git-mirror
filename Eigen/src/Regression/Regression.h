@@ -111,18 +111,18 @@ void linearRegression(int numPoints,
          Dynamic, VectorType::MaxSizeAtCompileTime, RowMajorBit>
     m(numPoints, size);
   if(funcOfOthers>0)
-    for(int i = 0; i < numPoints; i++)
+    for(int i = 0; i < numPoints; ++i)
       m.row(i).start(funcOfOthers) = points[i]->start(funcOfOthers);
   if(funcOfOthers<size-1)
-    for(int i = 0; i < numPoints; i++)
+    for(int i = 0; i < numPoints; ++i)
       m.row(i).block(funcOfOthers, size-funcOfOthers-1)
         = points[i]->end(size-funcOfOthers-1);
-  for(int i = 0; i < numPoints; i++)
+  for(int i = 0; i < numPoints; ++i)
     m.row(i).coeffRef(size-1) = Scalar(1);
 
   VectorType v(size);
   v.setZero();
-  for(int i = 0; i < numPoints; i++)
+  for(int i = 0; i < numPoints; ++i)
     v += m.row(i).adjoint() * points[i]->coeff(funcOfOthers);
 
   ei_assert((m.adjoint()*m).lu().solve(v, result));
@@ -170,14 +170,14 @@ void fitHyperplane(int numPoints,
 
   // compute the mean of the data
   VectorType mean = VectorType::Zero(size);
-  for(int i = 0; i < numPoints; i++)
+  for(int i = 0; i < numPoints; ++i)
     mean += *(points[i]);
   mean /= numPoints;
 
   // compute the covariance matrix
   CovMatrixType covMat = CovMatrixType::Zero(size, size);
   VectorType remean = VectorType::Zero(size);
-  for(int i = 0; i < numPoints; i++)
+  for(int i = 0; i < numPoints; ++i)
   {
     VectorType diff = (*(points[i]) - mean).conjugate();
     covMat += diff * diff.adjoint();

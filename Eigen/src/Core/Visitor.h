@@ -55,10 +55,10 @@ struct ei_visitor_impl<Visitor, Derived, Dynamic>
   inline static void run(const Derived& mat, Visitor& visitor)
   {
     visitor.init(mat.coeff(0,0), 0, 0);
-    for(int i = 1; i < mat.rows(); i++)
+    for(int i = 1; i < mat.rows(); ++i)
       visitor(mat.coeff(i, 0), i, 0);
-    for(int j = 1; j < mat.cols(); j++)
-      for(int i = 0; i < mat.rows(); i++)
+    for(int j = 1; j < mat.cols(); ++j)
+      for(int i = 0; i < mat.rows(); ++i)
         visitor(mat.coeff(i, j), i, j);
   }
 };

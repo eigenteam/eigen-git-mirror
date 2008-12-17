@@ -236,8 +236,8 @@ template<typename Derived>
 bool MatrixBase<Derived>::isApproxToConstant
 (const Scalar& value, RealScalar prec) const
 {
-  for(int j = 0; j < cols(); j++)
-    for(int i = 0; i < rows(); i++)
+  for(int j = 0; j < cols(); ++j)
+    for(int i = 0; i < rows(); ++i)
       if(!ei_isApprox(coeff(i, j), value, prec))
         return false;
   return true;
@@ -330,8 +330,8 @@ template<typename Derived>
 bool MatrixBase<Derived>::isZero
 (RealScalar prec) const
 {
-  for(int j = 0; j < cols(); j++)
-    for(int i = 0; i < rows(); i++)
+  for(int j = 0; j < cols(); ++j)
+    for(int i = 0; i < rows(); ++i)
       if(!ei_isMuchSmallerThan(coeff(i, j), static_cast<Scalar>(1), prec))
         return false;
   return true;
@@ -499,9 +499,9 @@ template<typename Derived>
 bool MatrixBase<Derived>::isIdentity
 (RealScalar prec) const
 {
-  for(int j = 0; j < cols(); j++)
+  for(int j = 0; j < cols(); ++j)
   {
-    for(int i = 0; i < rows(); i++)
+    for(int i = 0; i < rows(); ++i)
     {
       if(i == j)
       {
@@ -534,7 +534,7 @@ struct ei_setIdentity_impl<Derived, true>
   {
     m.setZero();
     const int size = std::min(m.rows(), m.cols());
-    for(int i = 0; i < size; i++) m.coeffRef(i,i) = typename Derived::Scalar(1);
+    for(int i = 0; i < size; ++i) m.coeffRef(i,i) = typename Derived::Scalar(1);
     return m;
   }
 };

@@ -163,7 +163,7 @@ class SparseMatrix
       }
       assert(m_outerIndex[outer+1] == m_data.size());
       int id = m_outerIndex[outer+1];
-      m_outerIndex[outer+1]++;
+      ++m_outerIndex[outer+1];
 
       m_data.append(0, inner);
       return m_data.value(id);
@@ -192,7 +192,7 @@ class SparseMatrix
       assert(m_outerIndex[outer+1] == m_data.size() && "invalid outer index");
       int startId = m_outerIndex[outer];
       int id = m_outerIndex[outer+1]-1;
-      m_outerIndex[outer+1]++;
+      ++m_outerIndex[outer+1];
       m_data.resize(id+2);
 
       while ( (id >= startId) && (m_data.index(id) > inner) )
@@ -212,7 +212,7 @@ class SparseMatrix
       // find the last filled column
       while (i>=0 && m_outerIndex[i]==0)
         --i;
-      i++;
+      ++i;
       while (i<=m_outerSize)
       {
         m_outerIndex[i] = size;
@@ -299,7 +299,7 @@ class SparseMatrix
         // FIXME the above copy could be merged with that pass
         for (int j=0; j<otherCopy.outerSize(); ++j)
           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
-            m_outerIndex[it.index()]++;
+            ++m_outerIndex[it.index()];
 
         // prefix sum
         int count = 0;

@@ -68,10 +68,10 @@ struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
     ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
     res = mat.coeff(0,0);
-    for(int i = 1; i < mat.rows(); i++)
+    for(int i = 1; i < mat.rows(); ++i)
       res = func(res, mat.coeff(i, 0));
-    for(int j = 1; j < mat.cols(); j++)
-      for(int i = 0; i < mat.rows(); i++)
+    for(int j = 1; j < mat.cols(); ++j)
+      for(int i = 0; i < mat.rows(); ++i)
         res = func(res, mat.coeff(i, j));
     return res;
   }

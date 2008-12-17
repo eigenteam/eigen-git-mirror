@@ -67,7 +67,7 @@ struct CommaInitializer
     ei_assert(m_col<m_matrix.cols()
       && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==1);
-    m_matrix.coeffRef(m_row, m_col++) = s;
+    m_matrix.coeffRef(m_row, ++m_col) = s;
     return *this;
   }
 

@@ -156,7 +156,7 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
     ei_assert(v1.size()>0 && "you are using a non initialized vector");
     Scalar res;
     res = v1.coeff(0) * ei_conj(v2.coeff(0));
-    for(int i = 1; i < v1.size(); i++)
+    for(int i = 1; i < v1.size(); ++i)
       res += v1.coeff(i) * ei_conj(v2.coeff(i));
     return res;
   }
@@ -211,7 +211,7 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
     }
 
     // do the remainder of the vector
-    for(int index = alignedSize; index < size; index++)
+    for(int index = alignedSize; index < size; ++index)
     {
       res += v1.coeff(index) * v2.coeff(index);
     }
@@ -370,11 +370,11 @@ template<typename Derived>
 bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
 {
   typename Derived::Nested nested(derived());
-  for(int i = 0; i < cols(); i++)
+  for(int i = 0; i < cols(); ++i)
   {
     if(!ei_isApprox(nested.col(i).squaredNorm(), static_cast<Scalar>(1), prec))
       return false;
-    for(int j = 0; j < i; j++)
+    for(int j = 0; j < i; ++j)
       if(!ei_isMuchSmallerThan(nested.col(i).dot(nested.col(j)), static_cast<Scalar>(1), prec))
         return false;
   }

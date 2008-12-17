@@ -433,7 +433,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
     {
       /* explicit vectorization */
       // process initial unaligned coeffs
-      for (int j=0; j<alignedStart; j++)
+      for (int j=0; j<alignedStart; ++j)
         res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
 
       if (alignedSize>alignedStart)
@@ -493,7 +493,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
     } // end explicit vectorization
 
     /* process remaining coeffs (or all if there is no explicit vectorization) */
-    for (int j=alignedSize; j<size; j++)
+    for (int j=alignedSize; j<size; ++j)
       res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
   }
 
@@ -502,7 +502,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   int start = columnBound;
   do
   {
-    for (int i=start; i<end; i++)
+    for (int i=start; i<end; ++i)
     {
       Packet ptmp0 = ei_pset1(rhs[i]);
       const Scalar* lhs0 = lhs + i*lhsStride;
@@ -511,7 +511,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
       {
         /* explicit vectorization */
         // process first unaligned result's coeffs
-        for (int j=0; j<alignedStart; j++)
+        for (int j=0; j<alignedStart; ++j)
           res[j] += ei_pfirst(ptmp0) * lhs0[j];
 
         // process aligned result's coeffs
@@ -524,7 +524,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
       }
 
       // process remaining scalars (or all if no explicit vectorization)
-      for (int j=alignedSize; j<size; j++)
+      for (int j=alignedSize; j<size; ++j)
         res[j] += ei_pfirst(ptmp0) * lhs0[j];
     }
     if (skipColumns)
@@ -624,7 +624,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
       
       // process initial unaligned coeffs
       // FIXME this loop get vectorized by the compiler !
-      for (int j=0; j<alignedStart; j++)
+      for (int j=0; j<alignedStart; ++j)
       {
         Scalar b = rhs[j];
         tmp0 += b*lhs0[j]; tmp1 += b*lhs1[j]; tmp2 += b*lhs2[j]; tmp3 += b*lhs3[j];
@@ -695,7 +695,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
     // process remaining coeffs (or all if no explicit vectorization)
     // FIXME this loop get vectorized by the compiler !
-    for (int j=alignedSize; j<size; j++)
+    for (int j=alignedSize; j<size; ++j)
     {
       Scalar b = rhs[j];
       tmp0 += b*lhs0[j]; tmp1 += b*lhs1[j]; tmp2 += b*lhs2[j]; tmp3 += b*lhs3[j];
@@ -708,14 +708,14 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   int start = rowBound;
   do
   {
-    for (int i=start; i<end; i++)
+    for (int i=start; i<end; ++i)
     {
       Scalar tmp0 = Scalar(0);
       Packet ptmp0 = ei_pset1(tmp0);
       const Scalar* lhs0 = lhs + i*lhsStride;
       // process first unaligned result's coeffs
       // FIXME this loop get vectorized by the compiler !
-      for (int j=0; j<alignedStart; j++)
+      for (int j=0; j<alignedStart; ++j)
         tmp0 += rhs[j] * lhs0[j];
 
       if (alignedSize>alignedStart)
@@ -732,7 +732,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
       // process remaining scalars
       // FIXME this loop get vectorized by the compiler !
-      for (int j=alignedSize; j<size; j++)
+      for (int j=alignedSize; j<size; ++j)
         tmp0 += rhs[j] * lhs0[j];
       res[i] += tmp0;
     }

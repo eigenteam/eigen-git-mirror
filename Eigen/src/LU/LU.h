@@ -312,7 +312,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   int number_of_transpositions = 0;
 
   RealScalar biggest = RealScalar(0);
-  for(int k = 0; k < size; k++)
+  for(int k = 0; k < size; ++k)
   {
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
@@ -326,11 +326,11 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
       m_lu.row(k).swap(m_lu.row(row_of_biggest_in_corner));
-      number_of_transpositions++;
+      ++number_of_transpositions;
     }
     if(k != col_of_biggest_in_corner) {
       m_lu.col(k).swap(m_lu.col(col_of_biggest_in_corner));
-      number_of_transpositions++;
+      ++number_of_transpositions;
     }
 
     if(k==0) biggest = biggest_in_corner;
@@ -339,21 +339,21 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= lu_k_k;
     if(k<size-1)
-      for( int col = k + 1; col < cols; col++ )
+      for(int col = k + 1; col < cols; ++col)
         m_lu.col(col).end(rows-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.coeff(k,col);
   }
 
-  for(int k = 0; k < matrix.rows(); k++) m_p.coeffRef(k) = k;
+  for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;
   for(int k = size-1; k >= 0; k--)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
-  for(int k = 0; k < matrix.cols(); k++) m_q.coeffRef(k) = k;
-  for(int k = 0; k < size; k++)
+  for(int k = 0; k < matrix.cols(); ++k) m_q.coeffRef(k) = k;
+  for(int k = 0; k < size; ++k)
     std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
-  for(m_rank = 0; m_rank < size; m_rank++)
+  for(m_rank = 0; m_rank < size; ++m_rank)
     if(ei_isMuchSmallerThan(m_lu.diagonal().coeff(m_rank), m_lu.diagonal().coeff(0)))
       break;
 }
@@ -374,7 +374,7 @@ void LU<MatrixType>::computeKernel(KernelResultType *result) const
   /* Let us use the following lemma:
     *
     * Lemma: If the matrix A has the LU decomposition PAQ = LU,
-    * then Ker A = Q( Ker U ).
+    * then Ker A = Q(Ker U).
     *
     * Proof: trivial: just keep in mind that P, Q, L are invertible.
     */
@@ -395,10 +395,10 @@ void LU<MatrixType>::computeKernel(KernelResultType *result) const
       .template marked<Upper>()
       .solveTriangularInPlace(y);
 
-  for(int i = 0; i < m_rank; i++)
+  for(int i = 0; i < m_rank; ++i)
     result->row(m_q.coeff(i)) = y.row(i);
-  for(int i = m_rank; i < cols; i++) result->row(m_q.coeff(i)).setZero();
-  for(int k = 0; k < dimker; k++) result->coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
+  for(int i = m_rank; i < cols; ++i) result->row(m_q.coeff(i)).setZero();
+  for(int k = 0; k < dimker; ++k) result->coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
 }
 
 template<typename MatrixType>
@@ -432,7 +432,7 @@ bool LU<MatrixType>::solve(
   typename OtherDerived::Eval c(b.rows(), b.cols());
 
   // Step 1
-  for(int i = 0; i < rows; i++) c.row(m_p.coeff(i)) = b.row(i);
+  for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
@@ -449,8 +449,8 @@ bool LU<MatrixType>::solve(
   {
     // is c is in the image of U ?
     RealScalar biggest_in_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
-    for(int col = 0; col < c.cols(); col++)
-      for(int row = m_rank; row < c.rows(); row++)
+    for(int col = 0; col < c.cols(); ++col)
+      for(int row = m_rank; row < c.rows(); ++row)
         if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c))
           return false;
   }
@@ -464,8 +464,8 @@ bool LU<MatrixType>::solve(
 
   // Step 4
   result->resize(m_lu.cols(), b.cols());
-  for(int i = 0; i < m_rank; i++) result->row(m_q.coeff(i)) = d.row(i);
-  for(int i = m_rank; i < m_lu.cols(); i++) result->row(m_q.coeff(i)).setZero();
+  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = d.row(i);
+  for(int i = m_rank; i < m_lu.cols(); ++i) result->row(m_q.coeff(i)).setZero();
   return true;
 }
 

@@ -202,7 +202,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
       // this is the first element
       m_llStart = 0;
       m_llCurrent = 0;
-      m_llSize++;
+      ++m_llSize;
       llElements[0].value = Scalar(0);
       llElements[0].index = i;
       llElements[0].next = -1;
@@ -216,7 +216,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
       el.index = i;
       el.next = m_llStart;
       m_llStart = m_llSize;
-      m_llSize++;
+      ++m_llSize;
       m_llCurrent = m_llStart;
       return el.value;
     }
@@ -246,7 +246,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
         el.index = i;
         el.next = llElements[m_llCurrent].next;
         llElements[m_llCurrent].next = m_llSize;
-        m_llSize++;
+        ++m_llSize;
         return el.value;
       }
     }
@@ -332,7 +332,7 @@ class AmbiVector<_Scalar>::Iterator
       if (m_isDense)
       {
         do {
-          m_cachedIndex++;
+          ++m_cachedIndex;
         } while (m_cachedIndex<m_vector.m_end && ei_abs(m_vector.m_buffer[m_cachedIndex])<m_epsilon);
         if (m_cachedIndex<m_vector.m_end)
           m_cachedValue = m_vector.m_buffer[m_cachedIndex];

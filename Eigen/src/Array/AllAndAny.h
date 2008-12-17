@@ -99,8 +99,8 @@ inline bool MatrixBase<Derived>::all(void) const
      >::run(derived());
   else
   {
-    for(int j = 0; j < cols(); j++)
-      for(int i = 0; i < rows(); i++)
+    for(int j = 0; j < cols(); ++j)
+      for(int i = 0; i < rows(); ++i)
         if (!coeff(i, j)) return false;
     return true;
   }
@@ -123,8 +123,8 @@ inline bool MatrixBase<Derived>::any(void) const
            >::run(derived());
   else
   {
-    for(int j = 0; j < cols(); j++)
-      for(int i = 0; i < rows(); i++)
+    for(int j = 0; j < cols(); ++j)
+      for(int i = 0; i < rows(); ++i)
         if (coeff(i, j)) return true;
     return false;
   }
