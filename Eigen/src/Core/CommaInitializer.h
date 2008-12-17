@@ -27,13 +27,13 @@
 #define EIGEN_COMMAINITIALIZER_H
 
 /** \class CommaInitializer
-  * 
+  *
   * \brief Helper class used by the comma initializer operator
   *
   * This class is internally used to implement the comma initializer feature. It is
   * the return type of MatrixBase::operator<<, and most of the time this is the only
   * way it is used.
-  * 
+  *
   * \sa \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::finished()
   */
 template<typename MatrixType>
@@ -67,7 +67,7 @@ struct CommaInitializer
     ei_assert(m_col<m_matrix.cols()
       && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==1);
-    m_matrix.coeffRef(m_row, ++m_col) = s;
+    m_matrix.coeffRef(m_row, m_col++) = s;
     return *this;
   }
 
@@ -128,7 +128,7 @@ struct CommaInitializer
   *
   * Example: \include MatrixBase_set.cpp
   * Output: \verbinclude MatrixBase_set.out
-  * 
+  *
   * \sa CommaInitializer::finished(), class CommaInitializer
   */
 template<typename Derived>

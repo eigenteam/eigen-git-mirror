@@ -101,7 +101,7 @@ template<> inline float ei_random(float a, float b)
   int i;
   do { i = ei_random<int>(256*int(a),256*int(b));
   } while(i==0);
-  return i/256.f;
+  return float(i)/256.f;
 #else
   return a + (b-a) * float(std::rand()) / float(RAND_MAX);
 #endif
