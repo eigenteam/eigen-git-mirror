@@ -70,7 +70,7 @@ public:
   /** Construct a plane from its normal \a n and a point \a e onto the plane.
     * \warning the vector normal is assumed to be normalized.
     */
-  inline Hyperplane(const VectorType& n, const VectorType e)
+  inline Hyperplane(const VectorType& n, const VectorType& e)
     : m_coeffs(n.size()+1)
   {
     normal() = n;

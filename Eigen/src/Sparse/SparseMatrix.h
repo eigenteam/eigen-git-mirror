@@ -336,14 +336,14 @@ class SparseMatrix
     {
       EIGEN_DBG_SPARSE(
         s << "Nonzero entries:\n";
-        for (uint i=0; i<m.nonZeros(); ++i)
+        for (unsigned int i=0; i<m.nonZeros(); ++i)
         {
           s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";
         }
         s << std::endl;
         s << std::endl;
         s << "Column pointers:\n";
-        for (uint i=0; i<m.cols(); ++i)
+        for (unsigned int i=0; i<m.cols(); ++i)
         {
           s << m.m_outerIndex[i] << " ";
         }
