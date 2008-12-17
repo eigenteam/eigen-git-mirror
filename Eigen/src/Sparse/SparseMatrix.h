@@ -128,6 +128,17 @@ class SparseMatrix
 
     class InnerIterator;
 
+    inline void setZero()
+    {
+      m_data.clear();
+      //if (m_outerSize)
+      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(int));
+//       for (int i=0; i<m_outerSize; ++i)
+//         m_outerIndex[i] = 0;
+//       if (m_outerSize)
+//         m_outerIndex[i] = 0;
+    }
+
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
 
@@ -137,10 +148,9 @@ class SparseMatrix
       */
     inline void startFill(int reserveSize = 1000)
     {
-      m_data.clear();
+      std::cerr << this << " startFill\n";
+      setZero();
       m_data.reserve(reserveSize);
-      for (int i=0; i<=m_outerSize; ++i)
-        m_outerIndex[i] = 0;
     }
 
     /**
@@ -188,7 +198,7 @@ class SparseMatrix
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
       }
-      //
+//       std::cerr << this << "  " << outer << " " << inner << " - " << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
       assert(m_outerIndex[outer+1] == m_data.size() && "invalid outer index");
       int startId = m_outerIndex[outer];
       int id = m_outerIndex[outer+1]-1;
@@ -202,11 +212,17 @@ class SparseMatrix
         --id;
       }
       m_data.index(id+1) = inner;
-      return (m_data.value(id+1) = 0);
+      //return (m_data.value(id+1) = 0);
+      m_data.value(id+1) = 0;
+      std::cerr << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
+      return m_data.value(id+1);
     }
+
+//     inline void
 
     inline void endFill()
     {
+      std::cerr << this << " endFill\n";
       int size = m_data.size();
       int i = m_outerSize;
       // find the last filled column
@@ -222,6 +238,7 @@ class SparseMatrix
 
     void resize(int rows, int cols)
     {
+      std::cerr << this << " resize " << rows << "x" << cols << "\n";
       const int outerSize = RowMajor ? rows : cols;
       m_innerSize = RowMajor ? cols : rows;
       m_data.clear();
@@ -238,8 +255,10 @@ class SparseMatrix
     }
 
     inline SparseMatrix()
-      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
-    {}
+      : m_outerSize(-1), m_innerSize(0), m_outerIndex(0)
+    {
+      resize(0, 0);
+    }
 
     inline SparseMatrix(int rows, int cols)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)

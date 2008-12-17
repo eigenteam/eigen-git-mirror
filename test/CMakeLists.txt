@@ -26,9 +26,9 @@ else(CHOLMOD_FOUND)
   message("CHOLMOD not found, this optional backend won't be tested")
 endif(CHOLMOD_FOUND)
 
-if(NOT WIN32)
+if(NOT MSVC)
   enable_language(Fortran OPTIONAL)
-endif(NOT WIN32)
+endif(NOT MSVC)
 
 find_package(Umfpack)
 if(UMFPACK_FOUND)
@@ -102,7 +102,12 @@ macro(ei_add_test testname)
 
   if(NOT EIGEN_NO_ASSERTION_CHECKING)
 
-    set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
+    if(MSVC)
+      set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
+    else(MSVC)
+      set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
+    endif(MSVC)
+
     option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
     if(EIGEN_DEBUG_ASSERTS)
       set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_DEBUG_ASSERTS=1")
