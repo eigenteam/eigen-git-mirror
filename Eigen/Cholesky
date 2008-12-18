@@ -3,6 +3,8 @@
 
 #include "Core"
 
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 // Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
 #if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)
   #ifndef EIGEN_HIDE_HEAVY_CODE
@@ -56,5 +58,7 @@ namespace Eigen {
   EIGEN_CHOLESKY_MODULE_INSTANTIATE(extern);
 } // namespace Eigen
 #endif
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_CHOLESKY_MODULE_H

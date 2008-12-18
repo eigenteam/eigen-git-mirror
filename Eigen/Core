@@ -2,8 +2,8 @@
 #define EIGEN_CORE_H
 
 // first thing Eigen does: prevent MSVC from committing suicide
+#include "src/Core/util/DisableMSVCWarnings.h"
 #ifdef _MSC_VER
-  #pragma warning( disable : 4181 4244 )
   #if (_MSC_VER >= 1500) // 2008 or later
     // Remember that usage of defined() in a #define is undefined by the standard
     #ifdef _M_IX86_FP
@@ -143,5 +143,7 @@ namespace Eigen {
 #include "src/Core/CacheFriendlyProduct.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_CORE_H

@@ -1,6 +1,10 @@
 #ifndef EIGEN_GEOMETRY_MODULE_H
 #define EIGEN_GEOMETRY_MODULE_H
 
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 #include "Array"
 #include <limits>
 
@@ -38,5 +42,7 @@ namespace Eigen {
 #include "src/Geometry/AlignedBox.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_GEOMETRY_MODULE_H

@@ -1,6 +1,10 @@
 #ifndef EIGEN_REGRESSION_MODULE_H
 #define EIGEN_REGRESSION_MODULE_H
 
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 #include "LU"
 #include "QR"
 #include "Geometry"
@@ -18,5 +22,7 @@ namespace Eigen {
 #include "src/Regression/Regression.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_REGRESSION_MODULE_H

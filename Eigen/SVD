@@ -3,6 +3,8 @@
 
 #include "Core"
 
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 namespace Eigen {
 
 /** \defgroup SVD_Module SVD module
@@ -18,5 +20,7 @@ namespace Eigen {
 #include "src/SVD/SVD.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_SVD_MODULE_H

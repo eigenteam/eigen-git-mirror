@@ -279,7 +279,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const Quaternion& other
 template<typename Scalar>
 inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const AngleAxisType& aa)
 {
-  Scalar ha = 0.5*aa.angle();
+  Scalar ha = Scalar(0.5)*aa.angle(); // Scalar(0.5) to suppress precision loss warnings
   this->w() = ei_cos(ha);
   this->vec() = ei_sin(ha) * aa.axis();
   return *this;

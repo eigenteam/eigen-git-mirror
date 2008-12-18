@@ -2,6 +2,9 @@
 #define EIGEN_QR_MODULE_H
 
 #include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 #include "Cholesky"
 
 // Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
@@ -61,5 +64,7 @@ namespace Eigen {
 #endif // EIGEN_EXTERN_INSTANTIATIONS
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_QR_MODULE_H

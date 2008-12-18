@@ -3,6 +3,8 @@
 
 #include "Core"
 
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 namespace Eigen {
 
 /** \defgroup Array Array module
@@ -31,5 +33,7 @@ namespace Eigen {
 #include "src/Array/Norms.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_ARRAY_MODULE_H

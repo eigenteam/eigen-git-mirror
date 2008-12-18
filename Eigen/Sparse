@@ -2,6 +2,9 @@
 #define EIGEN_SPARSE_MODULE_H
 
 #include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 #include <vector>
 #include <map>
 #include <cstdlib>
@@ -101,5 +104,7 @@ namespace Eigen {
 #endif
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_SPARSE_MODULE_H

@@ -3,6 +3,8 @@
 
 #include "Core"
 
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 namespace Eigen {
 
 /** \defgroup LU_Module LU module
@@ -21,5 +23,7 @@ namespace Eigen {
 #include "src/LU/Inverse.h"
 
 } // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_LU_MODULE_H

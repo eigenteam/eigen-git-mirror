@@ -74,8 +74,20 @@
       };
     };
 
-    #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-      if (Eigen::ei_static_assert<CONDITION ? true : false>::MSG) {}
+    // Specialized implementation for MSVC to avoid "conditional
+    // expression is constant" warnings.  This implementation doesn't
+    // appear to work under GCC, hence the multiple implementations.
+    #ifdef _MSC_VER
+
+      #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
+        {Eigen::ei_static_assert<CONDITION ? true : false>::MSG;}
+
+    #else
+
+      #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
+        if (Eigen::ei_static_assert<CONDITION ? true : false>::MSG) {}
+
+    #endif
 
   #endif // not CXX0X
 
