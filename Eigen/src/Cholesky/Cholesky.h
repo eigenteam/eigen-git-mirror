@@ -58,7 +58,7 @@ template<typename MatrixType> class Cholesky
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
-    typename Derived::Eval solve(const MatrixBase<Derived> &b) const EIGEN_DEPRECATED;
+    typename MatrixBase<Derived>::PlainMatrixType_ColMajor solve(const MatrixBase<Derived> &b) const EIGEN_DEPRECATED;
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -119,11 +119,11 @@ void Cholesky<MatrixType>::compute(const MatrixType& a)
 /** \deprecated */
 template<typename MatrixType>
 template<typename Derived>
-typename Derived::Eval Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b) const
+typename MatrixBase<Derived>::PlainMatrixType_ColMajor Cholesky<MatrixType>::solve(const MatrixBase<Derived> &b) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
-  typename ei_eval_to_column_major<Derived>::type x(b);
+  typename MatrixBase<Derived>::PlainMatrixType_ColMajor x(b);
   solveInPlace(x);
   return x;
 }
@@ -156,10 +156,10 @@ bool Cholesky<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   * \deprecated has been renamed llt()
   */
 template<typename Derived>
-inline const Cholesky<typename MatrixBase<Derived>::EvalType>
+inline const Cholesky<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::cholesky() const
 {
-  return Cholesky<typename ei_eval<Derived>::type>(derived());
+  return Cholesky<PlainMatrixType>(derived());
 }
 
 #endif // EIGEN_CHOLESKY_H

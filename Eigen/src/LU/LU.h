@@ -76,7 +76,7 @@ template<typename MatrixType> class LU
                   MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix" is the number of cols of the original matrix
                                                  // so that the product "matrix * kernel = zero" makes sense
                   Dynamic,                       // we don't know at compile-time the dimension of the kernel
-                  MatrixType::Flags&RowMajorBit, // small optimization as we construct the kernel row by row
+                  MatrixType::Flags&RowMajorBit,
                   MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
                   MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space, whose dimension is the number
                                                    // of columns of the original matrix
@@ -164,7 +164,8 @@ template<typename MatrixType> class LU
       *
       * \sa kernel(), computeImage(), image()
       */
-    void computeKernel(KernelResultType *result) const;
+    template<typename KernelMatrixType>
+    void computeKernel(KernelMatrixType *result) const;
 
     /** Computes a basis of the image of the matrix, also called the column-space or range of he matrix.
       *
@@ -179,7 +180,8 @@ template<typename MatrixType> class LU
       *
       * \sa image(), computeKernel(), kernel()
       */
-    void computeImage(ImageResultType *result) const;
+    template<typename ImageMatrixType>
+    void computeImage(ImageMatrixType *result) const;
 
     /** \returns the kernel of the matrix, also called its null-space. The columns of the returned matrix
       * will form a basis of the kernel.
@@ -411,7 +413,8 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 }
 
 template<typename MatrixType>
-void LU<MatrixType>::computeKernel(KernelResultType *result) const
+template<typename KernelMatrixType>
+void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
 {
   ei_assert(!isInvertible());
   const int dimker = dimensionOfKernel(), cols = m_lu.cols();
@@ -434,7 +437,7 @@ void LU<MatrixType>::computeKernel(KernelResultType *result) const
     */
 
   Matrix<Scalar, Dynamic, Dynamic, MatrixType::Flags&RowMajorBit,
-         MatrixType::MaxColsAtCompileTime, MaxSmallDimAtCompileTime>
+         MatrixType::MaxColsAtCompileTime, MatrixType::MaxColsAtCompileTime>
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
   m_lu.corner(TopLeft, m_rank, m_rank)
@@ -457,7 +460,8 @@ LU<MatrixType>::kernel() const
 }
 
 template<typename MatrixType>
-void LU<MatrixType>::computeImage(ImageResultType *result) const
+template<typename ImageMatrixType>
+void LU<MatrixType>::computeImage(ImageMatrixType *result) const
 {
   ei_assert(m_rank > 0);
   result->resize(m_originalMatrix.rows(), m_rank);
@@ -493,7 +497,7 @@ bool LU<MatrixType>::solve(
   ei_assert(b.rows() == rows);
   const int smalldim = std::min(rows, m_lu.cols());
 
-  typename OtherDerived::Eval c(b.rows(), b.cols());
+  typename OtherDerived::PlainMatrixType c(b.rows(), b.cols());
 
   // Step 1
   for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
@@ -540,10 +544,10 @@ bool LU<MatrixType>::solve(
   * \sa class LU
   */
 template<typename Derived>
-inline const LU<typename MatrixBase<Derived>::EvalType>
+inline const LU<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::lu() const
 {
-  return eval();
+  return LU<PlainMatrixType>(eval());
 }
 
 #endif // EIGEN_LU_H

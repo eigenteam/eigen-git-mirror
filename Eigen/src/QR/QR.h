@@ -169,10 +169,10 @@ MatrixType QR<MatrixType>::matrixQ(void) const
   * \sa class QR
   */
 template<typename Derived>
-const QR<typename MatrixBase<Derived>::EvalType>
+const QR<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::qr() const
 {
-  return eval();
+  return QR<PlainMatrixType>(eval());
 }
 
 

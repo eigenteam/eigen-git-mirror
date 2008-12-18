@@ -177,10 +177,10 @@ bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   * \returns the LLT decomposition of \c *this
   */
 template<typename Derived>
-inline const LLT<typename MatrixBase<Derived>::EvalType>
+inline const LLT<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::llt() const
 {
-  return LLT<typename ei_eval<Derived>::type>(derived());
+  return LLT<PlainMatrixType>(derived());
 }
 
 #endif // EIGEN_LLT_H

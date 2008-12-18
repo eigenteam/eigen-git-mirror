@@ -548,7 +548,7 @@ inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const ScalingType
 {
   m_matrix.setZero();
   linear().diagonal() = s.coeffs();
-  m_matrix(Dim,Dim) = Scalar(1);
+  m_matrix.coeffRef(Dim,Dim) = Scalar(1);
   return *this;
 }
 
@@ -567,7 +567,7 @@ inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const RotationBas
   linear() = ei_toRotationMatrix<Scalar,Dim>(r);
   translation().setZero();
   m_matrix.template block<1,Dim>(Dim,0).setZero();
-  m_matrix(Dim,Dim) = Scalar(1);
+  m_matrix.coeffRef(Dim,Dim) = Scalar(1);
   return *this;
 }
 
@@ -610,7 +610,7 @@ Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
     LinearMatrixType matQ = qr.matrixQ();
     LinearMatrixType matR = qr.matrixR();
     for (int i=0 ; i<Dim; ++i)
-      if (matR(i,i)<0)
+      if (matR.coeff(i,i)<0)
         matQ.col(i) = -matQ.col(i);
     return matQ;
   }

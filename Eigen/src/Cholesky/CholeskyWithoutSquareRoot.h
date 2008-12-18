@@ -175,7 +175,7 @@ bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bA
   * \deprecated has been renamed ldlt()
   */
 template<typename Derived>
-inline const CholeskyWithoutSquareRoot<typename MatrixBase<Derived>::EvalType>
+inline const CholeskyWithoutSquareRoot<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::choleskyNoSqrt() const
 {
   return derived();

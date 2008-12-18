@@ -189,7 +189,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   * \returns the Cholesky decomposition without square root of \c *this
   */
 template<typename Derived>
-inline const LDLT<typename MatrixBase<Derived>::EvalType>
+inline const LDLT<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::ldlt() const
 {
   return derived();

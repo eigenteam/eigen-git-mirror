@@ -32,7 +32,7 @@
  */
 template<typename T, int N> struct ei_nested_diagonal : ei_nested<T,N> {};
 template<typename T, int N> struct ei_nested_diagonal<DiagonalMatrix<T>,N >
- : ei_nested<DiagonalMatrix<T>, N, DiagonalMatrix<NestByValue<typename ei_eval<T>::type> > >
+ : ei_nested<DiagonalMatrix<T>, N, DiagonalMatrix<NestByValue<typename ei_plain_matrix_type<T>::type> > >
 {};
 
 // specialization of ProductReturnType

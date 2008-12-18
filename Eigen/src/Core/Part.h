@@ -157,7 +157,7 @@ inline Part<MatrixType, Mode>& Part<MatrixType, Mode>::operator=(const Other& ot
 {
   if(Other::Flags & EvalBeforeAssigningBit)
   {
-    typename ei_eval<Other>::type other_evaluated(other.rows(), other.cols());
+    typename MatrixBase<Other>::PlainMatrixType other_evaluated(other.rows(), other.cols());
     other_evaluated.template part<Mode>().lazyAssign(other);
     lazyAssign(other_evaluated);
   }

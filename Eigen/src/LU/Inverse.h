@@ -92,7 +92,7 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
     * R' = -S' * (R*P_inverse)
     */
   typedef Block<MatrixType,2,2> XprBlock22;
-  typedef typename XprBlock22::Eval Block22;
+  typedef typename MatrixBase<XprBlock22>::PlainMatrixType Block22;
   Block22 P_inverse;
   if(ei_compute_inverse_in_size2_case_with_check(matrix.template block<2,2>(0,0), &P_inverse))
   {
@@ -216,12 +216,11 @@ struct ei_compute_inverse<MatrixType, 4>
   * \sa inverse()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::computeInverse(EvalType *result) const
+inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
 {
-  typedef typename ei_eval<Derived>::type MatrixType;
   ei_assert(rows() == cols());
   EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,numeric_type_must_be_floating_point)
-  ei_compute_inverse<MatrixType>::run(eval(), result);
+  ei_compute_inverse<PlainMatrixType>::run(eval(), result);
 }
 
 /** \lu_module
@@ -239,9 +238,9 @@ inline void MatrixBase<Derived>::computeInverse(EvalType *result) const
   * \sa computeInverse()
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::EvalType MatrixBase<Derived>::inverse() const
+inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::inverse() const
 {
-  EvalType result(rows(), cols());
+  PlainMatrixType result(rows(), cols());
   computeInverse(&result);
   return result;
 }

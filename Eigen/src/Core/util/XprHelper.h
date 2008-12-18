@@ -112,6 +112,10 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
   enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
 };
 
+/* ei_eval : the return type of eval(). For matrices, this is just a const reference
+ * in order to avoid a useless copy
+ */
+
 template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
 
 template<typename T> struct ei_eval<T,IsDense>
@@ -125,8 +129,30 @@ template<typename T> struct ei_eval<T,IsDense>
           > type;
 };
 
+// for matrices, no need to evaluate, just use a const reference to avoid a useless copy
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, IsDense>
+{
+  typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
+};
 
-template<typename T> struct ei_eval_to_column_major
+/* ei_plain_matrix_type : the difference from ei_eval is that ei_plain_matrix_type is always a plain matrix type,
+ * whereas ei_eval is a const reference in the case of a matrix
+ */
+template<typename T> struct ei_plain_matrix_type
+{
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor,
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
+};
+
+/* ei_plain_matrix_type_column_major : same as ei_plain_matrix_type but guaranteed to be column-major
+ */
+template<typename T> struct ei_plain_matrix_type_column_major
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
@@ -158,7 +184,7 @@ template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret 
   * const Matrix3d&, because the internal logic of ei_nested determined that since a was already a matrix, there was no point
   * in copying it into another matrix.
   */
-template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> struct ei_nested
+template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::type> struct ei_nested
 {
   enum {
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
@@ -170,7 +196,7 @@ template<typename T, int n=1, typename EvalType = typename ei_eval<T>::type> str
     typename ei_meta_if<
       (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
       || ( int(CostEval) <= int(CostNoEval) ),
-      EvalType,
+      PlainMatrixType,
       const T&
     >::ret
   >::ret type;

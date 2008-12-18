@@ -318,7 +318,7 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   * \sa norm(), normalize()
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::EvalType
+inline const typename MatrixBase<Derived>::PlainMatrixType
 MatrixBase<Derived>::normalized() const
 {
   typedef typename ei_nested<Derived>::type Nested;

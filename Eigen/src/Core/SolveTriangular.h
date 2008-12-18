@@ -236,7 +236,7 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
 
   typedef typename ei_meta_if<copy,
-    typename ei_eval_to_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+    typename ei_plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
   OtherCopy otherCopy(other.derived());
 
   ei_solve_triangular_selector<Derived, typename ei_unref<OtherCopy>::type>::run(derived(), otherCopy);
@@ -278,10 +278,10 @@ void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other
   */
 template<typename Derived>
 template<typename OtherDerived>
-typename ei_eval_to_column_major<OtherDerived>::type
+typename ei_plain_matrix_type_column_major<OtherDerived>::type
 MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
-  typename ei_eval_to_column_major<OtherDerived>::type res(other);
+  typename ei_plain_matrix_type_column_major<OtherDerived>::type res(other);
   solveTriangularInPlace(res);
   return res;
 }

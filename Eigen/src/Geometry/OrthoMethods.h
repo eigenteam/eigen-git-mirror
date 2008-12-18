@@ -34,7 +34,7 @@
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline typename MatrixBase<Derived>::EvalType
+inline typename MatrixBase<Derived>::PlainMatrixType
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3)
@@ -43,7 +43,7 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
   // optimize such a small temporary very well (even within a complex expression)
   const typename ei_nested<Derived,2>::type lhs(derived());
   const typename ei_nested<OtherDerived,2>::type rhs(other.derived());
-  return typename ei_eval<Derived>::type(
+  return typename ei_plain_matrix_type<Derived>::type(
     lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1),
     lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
     lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)
@@ -53,7 +53,7 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 template<typename Derived, int Size = Derived::SizeAtCompileTime>
 struct ei_unitOrthogonal_selector
 {
-  typedef typename ei_eval<Derived>::type VectorType;
+  typedef typename ei_plain_matrix_type<Derived>::type VectorType;
   typedef typename ei_traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   inline static VectorType run(const Derived& src)
@@ -96,7 +96,7 @@ struct ei_unitOrthogonal_selector
 template<typename Derived>
 struct ei_unitOrthogonal_selector<Derived,2>
 {
-  typedef typename ei_eval<Derived>::type VectorType;
+  typedef typename ei_plain_matrix_type<Derived>::type VectorType;
   inline static VectorType run(const Derived& src)
   { return VectorType(-ei_conj(src.y()), ei_conj(src.x())).normalized(); }
 };
@@ -109,7 +109,7 @@ struct ei_unitOrthogonal_selector<Derived,2>
   * \sa cross()
   */
 template<typename Derived>
-typename MatrixBase<Derived>::EvalType
+typename MatrixBase<Derived>::PlainMatrixType
 MatrixBase<Derived>::unitOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)

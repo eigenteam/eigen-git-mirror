@@ -122,9 +122,10 @@ MatrixBase<Derived>::format(const IOFormat& fmt) const
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */
 template<typename Derived>
-std::ostream & ei_print_matrix(std::ostream & s, const MatrixBase<Derived> & _m, const IOFormat& fmt)
+std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
   const typename Derived::Nested m = _m;
+
   int width = 0;
   if (fmt.flags & AlignCols)
   {

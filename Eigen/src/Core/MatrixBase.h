@@ -179,9 +179,20 @@ template<typename Derived> class MatrixBase
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** \internal the type to which the expression gets evaluated (needed by MSVC) */
-    typedef typename ei_eval<Derived>::type EvalType;
-    /** \internal Represents a constant matrix */
+    /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
+      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
+      * reference to a matrix, not a matrix! It guaranteed however, that the return type of eval() is either
+      * PlainMatrixType or const PlainMatrixType&.
+      */
+    typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+    /** \internal the column-major plain matrix type corresponding to this expression. Note that is not necessarily
+      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
+      * reference to a matrix, not a matrix!
+      * The only difference from PlainMatrixType is that PlainMatrixType_ColMajor is guaranteed to be column-major.
+      */
+    typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType_ColMajor;
+
+    /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal Represents a scalar multiple of a matrix */
     typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
@@ -331,7 +342,7 @@ template<typename Derived> class MatrixBase
     Derived& operator*=(const MatrixBase<OtherDerived>& other);
 
     template<typename OtherDerived>
-    typename ei_eval_to_column_major<OtherDerived>::type
+    typename ei_plain_matrix_type_column_major<OtherDerived>::type
 		solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
@@ -343,7 +354,7 @@ template<typename Derived> class MatrixBase
     RealScalar squaredNorm() const;
     RealScalar norm2() const;
     RealScalar norm()  const;
-    const EvalType normalized() const;
+    const PlainMatrixType normalized() const;
     void normalize();
 
     Eigen::Transpose<Derived> transpose();
@@ -481,6 +492,8 @@ template<typename Derived> class MatrixBase
 
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
+      * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
+      * a const reference, in order to avoid a useless copy.
       */
     EIGEN_ALWAYS_INLINE const typename ei_eval<Derived>::type eval() const
     {
@@ -573,35 +586,35 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const LU<EvalType> lu() const;
-    const EvalType inverse() const;
-    void computeInverse(EvalType *result) const;
+    const LU<PlainMatrixType> lu() const;
+    const PlainMatrixType inverse() const;
+    void computeInverse(PlainMatrixType *result) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
 
-    const LLT<EvalType>  llt() const;
-    const LDLT<EvalType> ldlt() const;
+    const LLT<PlainMatrixType>  llt() const;
+    const LDLT<PlainMatrixType> ldlt() const;
     // deprecated:
-    const Cholesky<EvalType> cholesky() const;
-    const CholeskyWithoutSquareRoot<EvalType> choleskyNoSqrt() const;
+    const Cholesky<PlainMatrixType> cholesky() const;
+    const CholeskyWithoutSquareRoot<PlainMatrixType> choleskyNoSqrt() const;
 
 /////////// QR module ///////////
 
-    const QR<EvalType> qr() const;
+    const QR<PlainMatrixType> qr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
 
 /////////// SVD module ///////////
 
-    SVD<EvalType> svd() const;
+    SVD<PlainMatrixType> svd() const;
 
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>
-    EvalType cross(const MatrixBase<OtherDerived>& other) const;
-    EvalType unitOrthogonal(void) const;
+    PlainMatrixType cross(const MatrixBase<OtherDerived>& other) const;
+    PlainMatrixType unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN

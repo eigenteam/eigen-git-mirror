@@ -538,10 +538,10 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
   * \returns the SVD decomposition of \c *this
   */
 template<typename Derived>
-inline SVD<typename MatrixBase<Derived>::EvalType>
+inline SVD<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::svd() const
 {
-  return SVD<typename ei_eval<Derived>::type>(derived());
+  return SVD<PlainMatrixType>(derived());
 }
 
 #endif // EIGEN_SVD_H

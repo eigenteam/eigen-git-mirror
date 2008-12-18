@@ -69,7 +69,7 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
 
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime,
-                             typename ei_eval_to_column_major<Rhs>::type
+                             typename ei_plain_matrix_type_column_major<Rhs>::type
                    >::type RhsNested;
 
   typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
@@ -735,7 +735,7 @@ template<typename T> struct ei_product_copy_rhs
   typedef typename ei_meta_if<
          (ei_traits<T>::Flags & RowMajorBit)
       || (!(ei_traits<T>::Flags & DirectAccessBit)),
-      typename ei_eval_to_column_major<T>::type,
+      typename ei_plain_matrix_type_column_major<T>::type,
       const T&
     >::ret type;
 };
@@ -744,7 +744,7 @@ template<typename T> struct ei_product_copy_lhs
 {
   typedef typename ei_meta_if<
       (!(int(ei_traits<T>::Flags) & DirectAccessBit)),
-      typename ei_eval<T>::type,
+      typename ei_plain_matrix_type<T>::type,
       const T&
     >::ret type;
 };

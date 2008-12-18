@@ -267,7 +267,7 @@ inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_
 MatrixBase<Derived>::eigenvalues() const
 {
   ei_assert(Flags&SelfAdjointBit);
-  return SelfAdjointEigenSolver<typename Derived::Eval>(eval(),false).eigenvalues();
+  return SelfAdjointEigenSolver<typename Derived::PlainMatrixType>(eval(),false).eigenvalues();
 }
 
 template<typename Derived, bool IsSelfAdjoint>
@@ -287,7 +287,7 @@ template<typename Derived> struct ei_operatorNorm_selector<Derived, false>
   static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
   operatorNorm(const MatrixBase<Derived>& m)
   {
-    typename Derived::Eval m_eval(m);
+    typename Derived::PlainMatrixType m_eval(m);
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
     // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
     return ei_sqrt(

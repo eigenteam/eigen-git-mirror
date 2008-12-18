@@ -171,7 +171,6 @@ typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
 typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
 typedef typename Base::PacketScalar PacketScalar; \
 typedef typename Eigen::ei_nested<Derived>::type Nested; \
-typedef typename Eigen::ei_eval<Derived>::type Eval; \
 enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
        MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
