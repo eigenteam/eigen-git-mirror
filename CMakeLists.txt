@@ -12,7 +12,7 @@ else(EIGEN_SVN_REVISION)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 endif(EIGEN_SVN_REVISION)
 
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -35,24 +35,43 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     if(NOT EIGEN_TEST_LIB)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
     endif(NOT EIGEN_TEST_LIB)
+
+    option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
     if(EIGEN_TEST_SSE2)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
       message("Enabling SSE2 in tests/examples")
     endif(EIGEN_TEST_SSE2)
+
+    option(EIGEN_TEST_SSE3 "Enable/Disable SSE3 in tests/examples" OFF)
     if(EIGEN_TEST_SSE3)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3")
       message("Enabling SSE3 in tests/examples")
     endif(EIGEN_TEST_SSE3)
+
+    option(EIGEN_TEST_SSSE3 "Enable/Disable SSSE3 in tests/examples" OFF)
     if(EIGEN_TEST_SSSE3)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mssse3")
       message("Enabling SSSE3 in tests/examples")
     endif(EIGEN_TEST_SSSE3)
+
+    option(EIGEN_TEST_ALTIVEC "Enable/Disable altivec in tests/examples" OFF)
     if(EIGEN_TEST_ALTIVEC)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")
       message("Enabling AltiVec in tests/examples")
     endif(EIGEN_TEST_ALTIVEC)
+
   endif(CMAKE_SYSTEM_NAME MATCHES Linux)
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
+
+  option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
+  if(EIGEN_TEST_SSE2)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+    message("Enabling SSE2 in tests/examples")
+  endif(EIGEN_TEST_SSE2)
+endif(MSVC)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
