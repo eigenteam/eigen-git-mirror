@@ -90,22 +90,34 @@ using Eigen::ei_cos;
 //    : function body not available
 #if EIGEN_GNUC_AT_LEAST(4,0)
 #define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
+#elif (defined _MSC_VER)
+#define EIGEN_ALWAYS_INLINE __forceinline
 #else
 #define EIGEN_ALWAYS_INLINE inline
 #endif
 
 #if (defined __GNUC__)
 #define EIGEN_DONT_INLINE __attribute__((noinline))
+#elif (defined _MSC_VER)
+#define EIGEN_DONT_INLINE __declspec(noinline)
 #else
 #define EIGEN_DONT_INLINE
 #endif
 
 #if (defined __GNUC__)
 #define EIGEN_DEPRECATED __attribute__((deprecated))
+#elif (defined _MSC_VER)
+#define EIGEN_DEPRECATED __declspec(deprecated)
 #else
 #define EIGEN_DEPRECATED
 #endif
 
+/* EIGEN_ALIGN_128 forces data to be 16-byte aligned, EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
+ * so that vectorization doesn't affect binary compatibility.
+ *
+ * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
+ * vectorized and non-vectorized code.
+ */
 #if (defined __GNUC__)
 #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
 #elif (defined _MSC_VER)

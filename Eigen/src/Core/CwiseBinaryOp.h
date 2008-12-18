@@ -101,8 +101,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       // add together a float matrix and a double matrix.
       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
         you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly)
-      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
       // require the sizes to match
+      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
