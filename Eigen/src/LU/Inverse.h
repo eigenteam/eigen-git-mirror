@@ -219,7 +219,7 @@ template<typename Derived>
 inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
 {
   ei_assert(rows() == cols());
-  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,numeric_type_must_be_floating_point)
+  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
   ei_compute_inverse<PlainMatrixType>::run(eval(), result);
 }
 

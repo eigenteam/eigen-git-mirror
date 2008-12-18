@@ -307,7 +307,7 @@ Transform<Scalar,Dim>::Transform(const QMatrix& other)
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   m_matrix << other.m11(), other.m21(), other.dx(),
               other.m12(), other.m22(), other.dy(),
               0, 0, 1;
@@ -323,7 +323,7 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QMatrix& other)
 template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   return QMatrix(other.coeffRef(0,0), other.coeffRef(1,0),
                  other.coeffRef(0,1), other.coeffRef(1,1),
                  other.coeffRef(0,2), other.coeffRef(1,2));
@@ -346,7 +346,7 @@ Transform<Scalar,Dim>::Transform(const QTransform& other)
 template<typename Scalar, int Dim>
 Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   m_matrix << other.m11(), other.m21(), other.dx(),
               other.m12(), other.m22(), other.dy(),
               other.m13(), other.m23(), other.m33();
@@ -360,7 +360,7 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
 template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQTransform(void) const
 {
-  EIGEN_STATIC_ASSERT(Dim==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   return QTransform(other.coeffRef(0,0), other.coeffRef(1,0), other.coeffRef(2,0)
                     other.coeffRef(0,1), other.coeffRef(1,1), other.coeffRef(2,1)
                     other.coeffRef(0,2), other.coeffRef(1,2), other.coeffRef(2,2);
@@ -501,7 +501,7 @@ template<typename Scalar, int Dim>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::shear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(Dim)==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   VectorType tmp = linear().col(0)*sy + linear().col(1);
   linear() << linear().col(0) + linear().col(1)*sx, tmp;
   return *this;
@@ -516,7 +516,7 @@ template<typename Scalar, int Dim>
 Transform<Scalar,Dim>&
 Transform<Scalar,Dim>::preshear(Scalar sx, Scalar sy)
 {
-  EIGEN_STATIC_ASSERT(int(Dim)==2, you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   m_matrix.template block<Dim,HDim>(0,0) = LinearMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }

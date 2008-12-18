@@ -199,7 +199,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
       // We still allow to mix T and complex<T>.
       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
-        you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly)
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       ei_assert(lhs.cols() == rhs.rows()
         && "invalid matrix product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
@@ -284,10 +284,10 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   //    * for a dot product use: v1.dot(v2)
   //    * for a coeff-wise product use: v1.cwise()*v2
   EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
-    invalid_vector_vector_product__if_you_wanted_a_dot_or_coeff_wise_product_you_must_use_the_explicit_functions)
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
   EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
-    invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function)
-  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, invalid_matrix_product)
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 

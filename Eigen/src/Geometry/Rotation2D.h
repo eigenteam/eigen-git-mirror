@@ -140,7 +140,7 @@ template<typename Scalar>
 template<typename Derived>
 Rotation2D<Scalar>& Rotation2D<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
 {
-  EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==2 && Derived::ColsAtCompileTime==2,you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==2 && Derived::ColsAtCompileTime==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
   m_angle = ei_atan2(mat.coeff(1,0), mat.coeff(0,0));
   return *this;
 }

@@ -116,7 +116,7 @@ Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>
 template<typename Scalar, int Dim>
 inline static Matrix<Scalar,2,2> ei_toRotationMatrix(const Scalar& s)
 {
-  EIGEN_STATIC_ASSERT(Dim==2,you_made_a_programming_mistake)
+  EIGEN_STATIC_ASSERT(Dim==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
   return Rotation2D<Scalar>(s).toRotationMatrix();
 }
 
@@ -130,7 +130,7 @@ template<typename Scalar, int Dim, typename OtherDerived>
 inline static const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBase<OtherDerived>& mat)
 {
   EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
-    you_made_a_programming_mistake)
+    YOU_MADE_A_PROGRAMMING_MISTAKE)
   return mat;
 }
 

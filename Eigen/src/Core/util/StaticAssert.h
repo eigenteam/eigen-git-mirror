@@ -55,22 +55,22 @@
     struct ei_static_assert<true>
     {
       enum {
-        you_tried_calling_a_vector_method_on_a_matrix,
-        you_mixed_vectors_of_different_sizes,
-        you_mixed_matrices_of_different_sizes,
-        this_method_is_only_for_vectors_of_a_specific_size,
-        this_method_is_only_for_matrices_of_a_specific_size,
-        you_made_a_programming_mistake,
-        you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector,
-        unaligned_load_and_store_operations_unimplemented_on_AltiVec,
-        numeric_type_must_be_floating_point,
-        coefficient_write_access_to_selfadjoint_not_supported,
-        writing_to_triangular_part_with_unit_diagonal_is_not_supported,
-        this_method_is_only_for_fixed_size,
-        invalid_matrix_product,
-        invalid_vector_vector_product__if_you_wanted_a_dot_or_coeff_wise_product_you_must_use_the_explicit_functions,
-        invalid_matrix_product__if_you_wanted_a_coeff_wise_product_you_must_use_the_explicit_function,
-        you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly
+        YOU_TRIED_CALLING_A_VECTOR_METHOD_ON_A_MATRIX,
+        YOU_MIXED_VECTORS_OF_DIFFERENT_SIZES,
+        YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES,
+        THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE,
+        THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE,
+        YOU_MADE_A_PROGRAMMING_MISTAKE,
+        YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR,
+        UNALIGNED_LOAD_AND_STORE_OPERATIONS_UNIMPLEMENTED_ON_ALTIVEC,
+        NUMERIC_TYPE_MUST_BE_FLOATING_POINT,
+        COEFFICIENT_WRITE_ACCESS_TO_SELFADJOINT_NOT_SUPPORTED,
+        WRITING_TO_TRIANGULAR_PART_WITH_UNIT_DIAGONAL_IS_NOT_SUPPORTED,
+        THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE,
+        INVALID_MATRIX_PRODUCT,
+        INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS,
+        INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION,
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY
       };
     };
 
@@ -101,22 +101,22 @@
 // static assertion failing if the type \a TYPE is not a vector type
 #define EIGEN_STATIC_ASSERT_VECTOR_ONLY(TYPE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime, \
-                      you_tried_calling_a_vector_method_on_a_matrix)
+                      YOU_TRIED_CALLING_A_VECTOR_METHOD_ON_A_MATRIX)
 
 // static assertion failing if the type \a TYPE is not fixed-size
 #define EIGEN_STATIC_ASSERT_FIXED_SIZE(TYPE) \
   EIGEN_STATIC_ASSERT(TYPE::SizeAtCompileTime!=Eigen::Dynamic, \
-                      you_called_a_fixed_size_method_on_a_dynamic_size_matrix_or_vector)
+                      YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR)
 
 // static assertion failing if the type \a TYPE is not a vector type of the given size
 #define EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(TYPE, SIZE) \
   EIGEN_STATIC_ASSERT(TYPE::IsVectorAtCompileTime && TYPE::SizeAtCompileTime==SIZE, \
-                      this_method_is_only_for_vectors_of_a_specific_size)
+                      THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE)
 
 // static assertion failing if the type \a TYPE is not a vector type of the given size
 #define EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(TYPE, ROWS, COLS) \
   EIGEN_STATIC_ASSERT(TYPE::RowsAtCompileTime==ROWS && TYPE::ColsAtCompileTime==COLS, \
-                      this_method_is_only_for_matrices_of_a_specific_size)
+                      THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE)
 
 // static assertion failing if the two vector expression types are not compatible (same fixed-size or dynamic size)
 #define EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(TYPE0,TYPE1) \
@@ -124,7 +124,7 @@
       (int(TYPE0::SizeAtCompileTime)==Eigen::Dynamic \
     || int(TYPE1::SizeAtCompileTime)==Eigen::Dynamic \
     || int(TYPE0::SizeAtCompileTime)==int(TYPE1::SizeAtCompileTime)),\
-    you_mixed_vectors_of_different_sizes)
+    YOU_MIXED_VECTORS_OF_DIFFERENT_SIZES)
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
       ((int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
@@ -138,6 +138,6 @@
 #define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
   EIGEN_STATIC_ASSERT( \
      EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1),\
-    you_mixed_matrices_of_different_sizes)
+    YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES)
 
 #endif // EIGEN_STATIC_ASSERT_H

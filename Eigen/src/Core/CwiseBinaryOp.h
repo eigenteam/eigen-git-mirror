@@ -100,7 +100,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
       // add together a float matrix and a double matrix.
       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
-        you_mixed_different_numeric_types__you_need_to_use_the_cast_method_of_MatrixBase_to_cast_numeric_types_explicitly)
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       // require the sizes to match
       EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
