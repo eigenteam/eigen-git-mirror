@@ -177,6 +177,37 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t0.scale(a).matrix(), t1.scale(Vector3::Constant(a)).matrix());
   VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
 
+  // More transform constructors and operator='s
+  
+  Scalar a3 = ei_random<Scalar>(-M_PI, M_PI);
+  Vector3 v3 = Vector3::Random().normalized();
+  AngleAxisx aa3(a3, v3);
+  Transform3 t3(aa3);
+  Transform3 t4;
+  t4 = aa3;
+  VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
+  t4.rotate(AngleAxisx(-a,v3));
+  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+
+  v3 = Vector3::Random();
+  Translation3 tv3(v3);
+  Transform3 t5(tv3);
+  t4 = tv3;
+  VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
+  t4.translate(-v3);
+  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+
+  Scaling3 sv3(v3);
+  Transform3 t6(sv3);
+  t4 = sv3;
+  VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
+  t4.scale(v3.cwise().inverse());
+  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+
+  // chained Transform product
+
+  VERIFY_IS_APPROX(Transform3((t3*t4)*t5).matrix(), Transform3(t3*(t4*t5)).matrix());
+
   // 2D transformation
   Transform2 t20, t21;
   Vector2 v20 = Vector2::Random();
@@ -283,7 +314,7 @@ template<typename Scalar> void geometry(void)
   // test extract rotation
   t0.setIdentity();
   t0.translate(v0).rotate(q1).scale(v1);
-  VERIFY_IS_APPROX(t0.extractRotation(Affine) * v1, Matrix3(q1) * v1);
+  VERIFY_IS_APPROX(t0.rotation(Affine) * v1, Matrix3(q1) * v1);
 
   // test casting
   Transform<float,3> t1f = t1.template cast<float>();

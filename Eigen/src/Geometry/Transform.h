@@ -238,7 +238,8 @@ public:
   template<typename Derived>
   inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  LinearMatrixType extractRotation(TransformTraits traits = Affine) const;
+  EIGEN_DEPRECATED LinearMatrixType extractRotation(TransformTraits traits = Affine) const { return rotation(traits); }
+  LinearMatrixType rotation(TransformTraits traits = Affine) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
@@ -600,7 +601,7 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const RotationBase
   */
 template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::LinearMatrixType
-Transform<Scalar,Dim>::extractRotation(TransformTraits traits) const
+Transform<Scalar,Dim>::rotation(TransformTraits traits) const
 {
   ei_assert(traits!=Projective && "you cannot extract a rotation from a non affine transformation");
   if (traits == Affine)
