@@ -103,9 +103,9 @@ public :
   }
 
   BTL_DONT_INLINE void calculate( void ) {
-      asm("#begin matrix_vector_product");
+      BTL_ASM_COMMENT("#begin matrix_vector_product");
       Interface::matrix_vector_product(A,B,X,_size);
-      asm("#end matrix_vector_product");
+      BTL_ASM_COMMENT("end matrix_vector_product");
   }
 
   BTL_DONT_INLINE void check_result( void ){

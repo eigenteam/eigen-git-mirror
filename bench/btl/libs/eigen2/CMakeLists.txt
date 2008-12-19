@@ -40,5 +40,5 @@ if (EIGEN2_FOUND)
       set_target_properties(btl_tiny_eigen2_novec PROPERTIES COMPILE_FLAGS "-DEIGEN_DONT_VECTORIZE")
     endif(BUILD_btl_tiny_eigen2_novec)
   ENDIF(NOT BTL_NOVEC)
-
+  
 endif (EIGEN2_FOUND)

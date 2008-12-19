@@ -26,10 +26,6 @@
 #include <cstdlib>
 
 #include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
-#include <sys/times.h>
 
 
 #define USEC_IN_SEC 1000000
@@ -38,38 +34,65 @@
 //  timer  -------------------------------------------------------------------//
 
 //  A timer object measures CPU time.
+#ifdef _MSC_VER
 
-// class Portable_Timer
-// {
-//  public:
-//
-//   Portable_Timer( void )
-//   {
-//   }
-//
-//
-//   void start() { m_val = getTime(); }
-//
-//   void stop() { m_val = getTime() - m_val; }
-//
-//   double elapsed() { return  m_val; }
-//
-//   double user_time() { return elapsed(); }
-//
-//
-// private:
-//
-//   static inline double getTime(void)
-//   {
-//       struct timeval tv;
-//       struct timezone tz;
-//       gettimeofday(&tv, &tz);
-//       return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
-//   }
-//
-//   double m_val;
-//
-// }; // Portable_Timer
+#define NOMINMAX
+#include <windows.h>
+
+/*#ifndef hr_timer
+#include "hr_time.h"
+#define hr_timer
+#endif*/
+
+ class Portable_Timer
+ {
+  public:
+
+   typedef struct {
+    LARGE_INTEGER start;
+    LARGE_INTEGER stop;
+   } stopWatch;
+
+
+   Portable_Timer()
+   {
+	 startVal.QuadPart = 0;
+	 stopVal.QuadPart = 0;
+	 QueryPerformanceFrequency(&frequency);
+   }
+
+   void start() { QueryPerformanceCounter(&startVal); }
+
+   void stop() { QueryPerformanceCounter(&stopVal); }
+
+   double elapsed() {
+	 LARGE_INTEGER time;
+     time.QuadPart = stopVal.QuadPart - startVal.QuadPart;
+     return LIToSecs(time);
+   }
+
+   double user_time() { return elapsed(); }
+
+
+ private:
+   
+   double LIToSecs(LARGE_INTEGER& L) {
+     return ((double)L.QuadPart /(double)frequency.QuadPart) ;
+   }
+
+   LARGE_INTEGER startVal;
+   LARGE_INTEGER stopVal;
+   LARGE_INTEGER frequency;
+
+
+ }; // Portable_Timer
+
+#else
+
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <sys/times.h>
 
 class Portable_Timer
 {
@@ -137,5 +160,6 @@ private:
 
 }; // Portable_Timer
 
+#endif
 
 #endif  // PORTABLE_TIMER_HPP

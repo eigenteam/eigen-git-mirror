@@ -109,7 +109,7 @@ public :
     X = (A*A.transpose()).lazy();
   }
 
-  static inline void matrix_vector_product(const gene_matrix &  __restrict__  A, const gene_vector & __restrict__ B, gene_vector &  __restrict__ X, int N){
+  static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
     X = (A*B)/*.lazy()*/;
   }
 

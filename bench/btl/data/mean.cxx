@@ -117,9 +117,7 @@ int main( int argc , char *argv[] )
   cout << "    <TH ALIGN=CENTER> comments </TH>" << endl ;
   cout << "  </TR>" << endl ;
 
-  set<Lib_Mean>::iterator is ;
-
-  is=s_lib_mean.begin();
+  multiset<Lib_Mean>::iterator is = s_lib_mean.begin();
   Lib_Mean best(*is);  
   
 

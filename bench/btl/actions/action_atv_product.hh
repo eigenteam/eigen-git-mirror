@@ -86,9 +86,9 @@ public :
   }
 
   BTL_DONT_INLINE void calculate( void ) {
-    asm("#begin atv");
+    BTL_ASM_COMMENT("begin atv");
     Interface::atv_product(A,B,X,_size);
-    asm("#end atv");
+    BTL_ASM_COMMENT("end atv");
   }
 
   void check_result( void )

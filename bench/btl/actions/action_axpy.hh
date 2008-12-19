@@ -96,9 +96,9 @@ public :
   }
 
   inline void calculate( void ) {
-    asm("#mybegin axpy");
+    BTL_ASM_COMMENT("mybegin axpy");
     Interface::axpy(_coef,X,Y,_size);
-    asm("#myend axpy");
+    BTL_ASM_COMMENT("myend axpy");
   }
 
   void check_result( void ){
