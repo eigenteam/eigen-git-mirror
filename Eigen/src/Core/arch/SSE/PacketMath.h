@@ -37,17 +37,17 @@ template<> struct ei_unpacket_traits<__m128>  { typedef float  type; enum {size=
 template<> struct ei_unpacket_traits<__m128d> { typedef double type; enum {size=2}; };
 template<> struct ei_unpacket_traits<__m128i> { typedef int    type; enum {size=4}; };
 
-template<> inline __m128  ei_padd<__m128>(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
-template<> inline __m128d ei_padd<__m128d>(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
-template<> inline __m128i ei_padd<__m128i>(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
+template<> EIGEN_STRONG_INLINE __m128  ei_padd<__m128>(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_padd<__m128d>(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128i ei_padd<__m128i>(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
 
-template<> inline __m128  ei_psub<__m128>(const __m128&  a, const __m128&  b) { return _mm_sub_ps(a,b); }
-template<> inline __m128d ei_psub<__m128d>(const __m128d& a, const __m128d& b) { return _mm_sub_pd(a,b); }
-template<> inline __m128i ei_psub<__m128i>(const __m128i& a, const __m128i& b) { return _mm_sub_epi32(a,b); }
+template<> EIGEN_STRONG_INLINE __m128  ei_psub<__m128>(const __m128&  a, const __m128&  b) { return _mm_sub_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_psub<__m128d>(const __m128d& a, const __m128d& b) { return _mm_sub_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128i ei_psub<__m128i>(const __m128i& a, const __m128i& b) { return _mm_sub_epi32(a,b); }
 
-template<> inline __m128  ei_pmul<__m128>(const __m128&  a, const __m128&  b) { return _mm_mul_ps(a,b); }
-template<> inline __m128d ei_pmul<__m128d>(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
-template<> inline __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
+template<> EIGEN_STRONG_INLINE __m128  ei_pmul<__m128>(const __m128&  a, const __m128&  b) { return _mm_mul_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pmul<__m128d>(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
 {
   return _mm_or_si128(
     _mm_and_si128(
@@ -59,108 +59,108 @@ template<> inline __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
         _mm_setr_epi32(0xffffffff,0,0xffffffff,0)), 4));
 }
 
-template<> inline __m128  ei_pdiv<__m128>(const __m128&  a, const __m128&  b) { return _mm_div_ps(a,b); }
-template<> inline __m128d ei_pdiv<__m128d>(const __m128d& a, const __m128d& b) { return _mm_div_pd(a,b); }
-template<> inline __m128i ei_pdiv<__m128i>(const __m128i& /*a*/, const __m128i& /*b*/)
+template<> EIGEN_STRONG_INLINE __m128  ei_pdiv<__m128>(const __m128&  a, const __m128&  b) { return _mm_div_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pdiv<__m128d>(const __m128d& a, const __m128d& b) { return _mm_div_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pdiv<__m128i>(const __m128i& /*a*/, const __m128i& /*b*/)
 { ei_assert(false && "packet integer division are not supported by SSE");
   __m128i dummy;
   return dummy;
 }
 
 // for some weird raisons, it has to be overloaded for packet integer
-template<> inline __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pmadd(const __m128i& a, const __m128i& b, const __m128i& c) { return ei_padd(ei_pmul(a,b), c); }
 
-template<> inline __m128  ei_pmin<__m128>(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
-template<> inline __m128d ei_pmin<__m128d>(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128  ei_pmin<__m128>(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pmin<__m128d>(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
 // FIXME this vectorized min operator is likely to be slower than the standard one
-template<> inline __m128i ei_pmin<__m128i>(const __m128i& a, const __m128i& b)
+template<> EIGEN_STRONG_INLINE __m128i ei_pmin<__m128i>(const __m128i& a, const __m128i& b)
 {
   __m128i mask = _mm_cmplt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
 
-template<> inline __m128  ei_pmax<__m128>(const __m128&  a, const __m128&  b) { return _mm_max_ps(a,b); }
-template<> inline __m128d ei_pmax<__m128d>(const __m128d& a, const __m128d& b) { return _mm_max_pd(a,b); }
+template<> EIGEN_STRONG_INLINE __m128  ei_pmax<__m128>(const __m128&  a, const __m128&  b) { return _mm_max_ps(a,b); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pmax<__m128d>(const __m128d& a, const __m128d& b) { return _mm_max_pd(a,b); }
 // FIXME this vectorized max operator is likely to be slower than the standard one
-template<> inline __m128i ei_pmax<__m128i>(const __m128i& a, const __m128i& b)
+template<> EIGEN_STRONG_INLINE __m128i ei_pmax<__m128i>(const __m128i& a, const __m128i& b)
 {
   __m128i mask = _mm_cmpgt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
 
-template<> inline __m128  ei_pload<float>(const float*   from) { return _mm_load_ps(from); }
-template<> inline __m128d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
-template<> inline __m128i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
+template<> EIGEN_STRONG_INLINE __m128  ei_pload<float>(const float*   from) { return _mm_load_ps(from); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
-template<> inline __m128  ei_ploadu<float>(const float*   from) { return _mm_loadu_ps(from); }
-// template<> inline __m128  ei_ploadu(const float*   from) {
+template<> EIGEN_STRONG_INLINE __m128  ei_ploadu<float>(const float*   from) { return _mm_loadu_ps(from); }
+// template<> EIGEN_STRONG_INLINE __m128  ei_ploadu(const float*   from) {
 //   if (size_t(from)&0xF)
 //     return _mm_loadu_ps(from);
 //   else 
 //     return _mm_loadu_ps(from);
 // }
-template<> inline __m128d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
-template<> inline __m128i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
+template<> EIGEN_STRONG_INLINE __m128d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
+template<> EIGEN_STRONG_INLINE __m128i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
 
-template<> inline __m128  ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
-template<> inline __m128d ei_pset1<double>(const double& from) { return _mm_set1_pd(from); }
-template<> inline __m128i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
+template<> EIGEN_STRONG_INLINE __m128  ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pset1<double>(const double& from) { return _mm_set1_pd(from); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
 
-template<> inline void ei_pstore<float>(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
-template<> inline void ei_pstore<double>(double* to, const __m128d& from) { _mm_store_pd(to, from); }
-template<> inline void ei_pstore<int>(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const __m128d& from) { _mm_store_pd(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
 
-template<> inline void ei_pstoreu<float>(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
-template<> inline void ei_pstoreu<double>(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
-template<> inline void ei_pstoreu<int>(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
 
-template<> inline float  ei_pfirst<__m128>(const __m128&  a) { return _mm_cvtss_f32(a); }
-template<> inline double ei_pfirst<__m128d>(const __m128d& a) { return _mm_cvtsd_f64(a); }
-template<> inline int    ei_pfirst<__m128i>(const __m128i& a) { return _mm_cvtsi128_si32(a); }
+template<> EIGEN_STRONG_INLINE float  ei_pfirst<__m128>(const __m128&  a) { return _mm_cvtss_f32(a); }
+template<> EIGEN_STRONG_INLINE double ei_pfirst<__m128d>(const __m128d& a) { return _mm_cvtsd_f64(a); }
+template<> EIGEN_STRONG_INLINE int    ei_pfirst<__m128i>(const __m128i& a) { return _mm_cvtsi128_si32(a); }
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions
-template<> inline __m128 ei_preduxp<__m128>(const __m128* vecs)
+template<> EIGEN_STRONG_INLINE __m128 ei_preduxp<__m128>(const __m128* vecs)
 {
   return _mm_hadd_ps(_mm_hadd_ps(vecs[0], vecs[1]),_mm_hadd_ps(vecs[2], vecs[3]));
 }
-template<> inline __m128d ei_preduxp<__m128d>(const __m128d* vecs)
+template<> EIGEN_STRONG_INLINE __m128d ei_preduxp<__m128d>(const __m128d* vecs)
 {
   return _mm_hadd_pd(vecs[0], vecs[1]);
 }
 // SSSE3 version:
-// inline __m128i ei_preduxp(const __m128i* vecs)
+// EIGEN_STRONG_INLINE __m128i ei_preduxp(const __m128i* vecs)
 // {
 //   return _mm_hadd_epi32(_mm_hadd_epi32(vecs[0], vecs[1]),_mm_hadd_epi32(vecs[2], vecs[3]));
 // }
 
-template<> inline float ei_predux<__m128>(const __m128& a)
+template<> EIGEN_STRONG_INLINE float ei_predux<__m128>(const __m128& a)
 {
   __m128 tmp0 = _mm_hadd_ps(a,a);
   return ei_pfirst(_mm_hadd_ps(tmp0, tmp0));
 }
 
-template<> inline double ei_predux<__m128d>(const __m128d& a) { return ei_pfirst(_mm_hadd_pd(a, a)); }
+template<> EIGEN_STRONG_INLINE double ei_predux<__m128d>(const __m128d& a) { return ei_pfirst(_mm_hadd_pd(a, a)); }
 
 // SSSE3 version:
-// inline float ei_predux(const __m128i& a)
+// EIGEN_STRONG_INLINE float ei_predux(const __m128i& a)
 // {
 //   __m128i tmp0 = _mm_hadd_epi32(a,a);
 //   return ei_pfirst(_mm_hadd_epi32(tmp0, tmp0));
 // }
 #else
 // SSE2 versions
-template<> inline float ei_predux<__m128>(const __m128& a)
+template<> EIGEN_STRONG_INLINE float ei_predux<__m128>(const __m128& a)
 {
   __m128 tmp = _mm_add_ps(a, _mm_movehl_ps(a,a));
   return ei_pfirst(_mm_add_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
 }
-template<> inline double ei_predux<__m128d>(const __m128d& a)
+template<> EIGEN_STRONG_INLINE double ei_predux<__m128d>(const __m128d& a)
 {
   return ei_pfirst(_mm_add_sd(a, _mm_unpackhi_pd(a,a)));
 }
 
-template<> inline __m128 ei_preduxp<__m128>(const __m128* vecs)
+template<> EIGEN_STRONG_INLINE __m128 ei_preduxp<__m128>(const __m128* vecs)
 {
   __m128 tmp0, tmp1, tmp2;
   tmp0 = _mm_unpacklo_ps(vecs[0], vecs[1]);
@@ -174,19 +174,19 @@ template<> inline __m128 ei_preduxp<__m128>(const __m128* vecs)
   return _mm_add_ps(tmp0, tmp2);
 }
 
-template<> inline __m128d ei_preduxp<__m128d>(const __m128d* vecs)
+template<> EIGEN_STRONG_INLINE __m128d ei_preduxp<__m128d>(const __m128d* vecs)
 {
   return _mm_add_pd(_mm_unpacklo_pd(vecs[0], vecs[1]), _mm_unpackhi_pd(vecs[0], vecs[1]));
 }
 #endif  // SSE3
 
-template<> inline int ei_predux<__m128i>(const __m128i& a)
+template<> EIGEN_STRONG_INLINE int ei_predux<__m128i>(const __m128i& a)
 {
   __m128i tmp = _mm_add_epi32(a, _mm_unpackhi_epi64(a,a));
   return ei_pfirst(tmp) + ei_pfirst(_mm_shuffle_epi32(tmp, 1));
 }
 
-template<> inline __m128i ei_preduxp<__m128i>(const __m128i* vecs)
+template<> EIGEN_STRONG_INLINE __m128i ei_preduxp<__m128i>(const __m128i* vecs)
 {
   __m128i tmp0, tmp1, tmp2;
   tmp0 = _mm_unpacklo_epi32(vecs[0], vecs[1]);
@@ -201,13 +201,13 @@ template<> inline __m128i ei_preduxp<__m128i>(const __m128i* vecs)
 }
 
 #if (defined __GNUC__)
-// template <> inline __m128 ei_pmadd(const __m128&  a, const __m128&  b, const __m128&  c)
+// template <> EIGEN_STRONG_INLINE __m128 ei_pmadd(const __m128&  a, const __m128&  b, const __m128&  c)
 // {
 //   __m128 res = b;
 //   asm("mulps %[a], %[b] \n\taddps %[c], %[b]" : [b] "+x" (res) : [a] "x" (a), [c] "x" (c));
 //   return res;
 // }
-// inline __m128i _mm_alignr_epi8(const __m128i&  a, const __m128i&  b, const int i)
+// EIGEN_STRONG_INLINE __m128i _mm_alignr_epi8(const __m128i&  a, const __m128i&  b, const int i)
 // {
 //   __m128i res = a;
 //   asm("palignr %[i], %[a], %[b] " : [b] "+x" (res) : [a] "x" (a), [i] "i" (i));
@@ -220,7 +220,7 @@ template<> inline __m128i ei_preduxp<__m128i>(const __m128i* vecs)
 template<int Offset>
 struct ei_palign_impl<Offset,__m128>
 {
-  inline static void run(__m128& first, const __m128& second)
+  EIGEN_STRONG_INLINE static void run(__m128& first, const __m128& second)
   {
     if (Offset!=0)
       first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(second), _mm_castps_si128(first), Offset*4));
@@ -230,7 +230,7 @@ struct ei_palign_impl<Offset,__m128>
 template<int Offset>
 struct ei_palign_impl<Offset,__m128i>
 {
-  inline static void run(__m128i& first, const __m128i& second)
+  EIGEN_STRONG_INLINE static void run(__m128i& first, const __m128i& second)
   {
     if (Offset!=0)
       first = _mm_alignr_epi8(second,first, Offset*4);
@@ -240,7 +240,7 @@ struct ei_palign_impl<Offset,__m128i>
 template<int Offset>
 struct ei_palign_impl<Offset,__m128d>
 {
-  inline static void run(__m128d& first, const __m128d& second)
+  EIGEN_STRONG_INLINE static void run(__m128d& first, const __m128d& second)
   {
     if (Offset==1)
       first = _mm_castsi128_pd(_mm_alignr_epi8(_mm_castpd_si128(second), _mm_castpd_si128(first), 8));
@@ -251,7 +251,7 @@ struct ei_palign_impl<Offset,__m128d>
 template<int Offset>
 struct ei_palign_impl<Offset,__m128>
 {
-  inline static void run(__m128& first, const __m128& second)
+  EIGEN_STRONG_INLINE static void run(__m128& first, const __m128& second)
   {
     if (Offset==1)
     {
@@ -274,7 +274,7 @@ struct ei_palign_impl<Offset,__m128>
 template<int Offset>
 struct ei_palign_impl<Offset,__m128i>
 {
-  inline static void run(__m128i& first, const __m128i& second)
+  EIGEN_STRONG_INLINE static void run(__m128i& first, const __m128i& second)
   {
     if (Offset==1)
     {
@@ -297,7 +297,7 @@ struct ei_palign_impl<Offset,__m128i>
 template<int Offset>
 struct ei_palign_impl<Offset,__m128d>
 {
-  inline static void run(__m128d& first, const __m128d& second)
+  EIGEN_STRONG_INLINE static void run(__m128d& first, const __m128d& second)
   {
     if (Offset==1)
     {

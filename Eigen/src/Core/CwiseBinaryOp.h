@@ -89,7 +89,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
     class InnerIterator;
 
-    inline CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
+    EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
       // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
@@ -106,27 +106,27 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    inline int rows() const { return m_lhs.rows(); }
-    inline int cols() const { return m_lhs.cols(); }
+    EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
+    EIGEN_STRONG_INLINE int cols() const { return m_lhs.cols(); }
 
-    inline const Scalar coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
       return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(row, col), m_rhs.template packet<LoadMode>(row, col));
     }
 
-    inline const Scalar coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
       return m_functor(m_lhs.coeff(index), m_rhs.coeff(index));
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(index), m_rhs.template packet<LoadMode>(index));
     }
@@ -145,7 +145,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
+EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
                                  Derived, OtherDerived>
 MatrixBase<Derived>::operator-(const MatrixBase<OtherDerived> &other) const
 {
@@ -159,7 +159,7 @@ MatrixBase<Derived>::operator-(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline Derived &
+EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
   return *this = *this - other;
@@ -175,7 +175,7 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 MatrixBase<Derived>::operator+(const MatrixBase<OtherDerived> &other) const
 {
   return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
@@ -187,7 +187,7 @@ MatrixBase<Derived>::operator+(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline Derived &
+EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
   return *this = *this + other;
@@ -202,7 +202,7 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
 Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)(_expression(), other.derived());
@@ -217,7 +217,7 @@ Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
 Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
@@ -232,7 +232,7 @@ Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
 Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
@@ -247,7 +247,7 @@ Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-inline const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
 Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
@@ -268,7 +268,7 @@ Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename CustomBinaryOp, typename OtherDerived>
-inline const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
 MatrixBase<Derived>::binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
 {
   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);

@@ -33,9 +33,9 @@
   * \sa class CwiseBinaryOp, MatrixBase::operator+, class PartialRedux, MatrixBase::sum()
   */
 template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_padd(a,b); }
 };
 template<typename Scalar>
@@ -52,9 +52,9 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   * \sa class CwiseBinaryOp, Cwise::operator*(), class PartialRedux, MatrixBase::redux()
   */
 template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmul(a,b); }
 };
 template<typename Scalar>
@@ -71,9 +71,9 @@ struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class PartialRedux, MatrixBase::minCoeff()
   */
 template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmin(a,b); }
 };
 template<typename Scalar>
@@ -90,9 +90,9 @@ struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class PartialRedux, MatrixBase::maxCoeff()
   */
 template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmax(a,b); }
 };
 template<typename Scalar>
@@ -112,9 +112,9 @@ struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
 template<typename Scalar> struct ei_scalar_difference_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_psub(a,b); }
 };
 template<typename Scalar>
@@ -131,9 +131,9 @@ struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   * \sa class CwiseBinaryOp, Cwise::operator/()
   */
 template<typename Scalar> struct ei_scalar_quotient_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pdiv(a,b); }
 };
 template<typename Scalar>
@@ -155,7 +155,7 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
   * \sa class CwiseUnaryOp, MatrixBase::operator-
   */
 template<typename Scalar> struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a) const { return -a; }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return -a; }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
@@ -168,7 +168,7 @@ struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  inline const result_type operator() (const Scalar& a) const { return ei_abs(a); }
+  EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { return ei_abs(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
@@ -186,9 +186,9 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_abs2_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  inline const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
+  EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { return ei_abs2(a); }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a) const
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a,a); }
 };
 template<typename Scalar>
@@ -201,9 +201,9 @@ struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
   * \sa class CwiseUnaryOp, MatrixBase::conjugate()
   */
 template<typename Scalar> struct ei_scalar_conjugate_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
   template<typename PacketScalar>
-  inline const PacketScalar packetOp(const PacketScalar& a) const { return a; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const { return a; }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
@@ -222,7 +222,7 @@ struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
 template<typename Scalar, typename NewType>
 struct ei_scalar_cast_op EIGEN_EMPTY_STRUCT {
   typedef NewType result_type;
-  inline const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
+  EIGEN_STRONG_INLINE const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
 };
 template<typename Scalar, typename NewType>
 struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
@@ -236,7 +236,7 @@ struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >
 template<typename Scalar>
 struct ei_scalar_real_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  inline result_type operator() (const Scalar& a) const { return ei_real(a); }
+  EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_real(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_real_op<Scalar> >
@@ -250,7 +250,7 @@ struct ei_functor_traits<ei_scalar_real_op<Scalar> >
 template<typename Scalar>
 struct ei_scalar_imag_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
-  inline result_type operator() (const Scalar& a) const { return ei_imag(a); }
+  EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_imag(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_imag_op<Scalar> >
@@ -273,10 +273,10 @@ template<typename Scalar>
 struct ei_scalar_multiple_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   // FIXME default copy constructors seems bugged with std::complex<>
-  inline ei_scalar_multiple_op(const ei_scalar_multiple_op& other) : m_other(other.m_other) { }
-  inline ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
-  inline Scalar operator() (const Scalar& a) const { return a * m_other; }
-  inline const PacketScalar packetOp(const PacketScalar& a) const
+  EIGEN_STRONG_INLINE ei_scalar_multiple_op(const ei_scalar_multiple_op& other) : m_other(other.m_other) { }
+  EIGEN_STRONG_INLINE ei_scalar_multiple_op(const Scalar& other) : m_other(other) { }
+  EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a * m_other; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
 };
@@ -288,10 +288,10 @@ template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   // FIXME default copy constructors seems bugged with std::complex<>
-  inline ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
-  inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
-  inline Scalar operator() (const Scalar& a) const { return a * m_other; }
-  inline const PacketScalar packetOp(const PacketScalar& a) const
+  EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
+  EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const Scalar& other) : m_other(static_cast<Scalar>(1) / other) {}
+  EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a * m_other; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
 };
@@ -302,9 +302,9 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,false> {
   // FIXME default copy constructors seems bugged with std::complex<>
-  inline ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
-  inline ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
-  inline Scalar operator() (const Scalar& a) const { return a / m_other; }
+  EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
+  EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
+  EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -321,7 +321,7 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
   */
 template<typename Scalar>
 struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint > {
-  inline ei_scalar_quotient1_op(const Scalar& other)
+  EIGEN_STRONG_INLINE ei_scalar_quotient1_op(const Scalar& other)
     : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
 };
 
@@ -330,10 +330,10 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
 template<typename Scalar>
 struct ei_scalar_constant_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  inline ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
-  inline ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
-  inline const Scalar operator() (int, int = 0) const { return m_other; }
-  inline const PacketScalar packetOp() const { return ei_pset1(m_other); }
+  EIGEN_STRONG_INLINE ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
+  EIGEN_STRONG_INLINE ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
+  EIGEN_STRONG_INLINE const Scalar operator() (int, int = 0) const { return m_other; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp() const { return ei_pset1(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -341,8 +341,8 @@ struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
 { enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
 
 template<typename Scalar> struct ei_scalar_identity_op EIGEN_EMPTY_STRUCT {
-  inline ei_scalar_identity_op(void) {}
-  inline const Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
+  EIGEN_STRONG_INLINE ei_scalar_identity_op(void) {}
+  EIGEN_STRONG_INLINE const Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >

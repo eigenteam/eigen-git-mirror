@@ -138,10 +138,10 @@ class Matrix
 
   public:
 
-    inline int rows() const { return m_storage.rows(); }
-    inline int cols() const { return m_storage.cols(); }
+    EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
+    EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
 
-    inline int stride(void) const
+    EIGEN_STRONG_INLINE int stride(void) const
     {
       if(Flags & RowMajorBit)
         return m_storage.cols();
@@ -149,7 +149,7 @@ class Matrix
         return m_storage.rows();
     }
 
-    inline const Scalar& coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -157,12 +157,12 @@ class Matrix
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    inline const Scalar& coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar& coeff(int index) const
     {
       return m_storage.data()[index];
     }
 
-    inline Scalar& coeffRef(int row, int col)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -170,13 +170,13 @@ class Matrix
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    inline Scalar& coeffRef(int index)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
     {
       return m_storage.data()[index];
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
       return ei_ploadt<Scalar, LoadMode>
                (m_storage.data() + (Flags & RowMajorBit
@@ -185,13 +185,13 @@ class Matrix
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
       return ei_ploadt<Scalar, LoadMode>(m_storage.data() + index);
     }
 
     template<int StoreMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(int row, int col, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
               (m_storage.data() + (Flags & RowMajorBit
@@ -200,17 +200,17 @@ class Matrix
     }
 
     template<int StoreMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(int index, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
     }
 
     /** \returns a const pointer to the data array of this matrix */
-    inline const Scalar *data() const
+    EIGEN_STRONG_INLINE const Scalar *data() const
     { return m_storage.data(); }
 
     /** \returns a pointer to the data array of this matrix */
-    inline Scalar *data()
+    EIGEN_STRONG_INLINE Scalar *data()
     { return m_storage.data(); }
 
     /** Resizes \c *this to a \a rows x \a cols matrix.
@@ -260,7 +260,7 @@ class Matrix
       * \sa set()
       */
     template<typename OtherDerived>
-    inline Matrix& operator=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
       ei_assert(m_storage.data()!=0 && "you cannot use operator= with a non initialized matrix (instead use set()");
       return Base::operator=(other.derived());
@@ -297,7 +297,7 @@ class Matrix
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
-    inline Matrix& operator=(const Matrix& other)
+    EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
       return operator=<Matrix>(other);
     }
@@ -332,7 +332,7 @@ class Matrix
       *
       * \sa resize(int,int), set()
       */
-    inline explicit Matrix() : m_storage()
+    EIGEN_STRONG_INLINE explicit Matrix() : m_storage()
     {
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
@@ -343,7 +343,7 @@ class Matrix
       * it is redundant to pass the dimension here, so it makes more sense to use the default
       * constructor Matrix() instead.
       */
-    inline explicit Matrix(int dim)
+    EIGEN_STRONG_INLINE explicit Matrix(int dim)
       : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
@@ -361,7 +361,7 @@ class Matrix
       *     it is redundant to pass these parameters, so one should use the default constructor
       *     Matrix() instead.
       */
-    inline Matrix(int x, int y) : m_storage(x*y, x, y)
+    EIGEN_STRONG_INLINE Matrix(int x, int y) : m_storage(x*y, x, y)
     {
       if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
       || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
@@ -376,21 +376,21 @@ class Matrix
       }
     }
     /** constructs an initialized 2D vector with given coefficients */
-    inline Matrix(const float& x, const float& y)
+    EIGEN_STRONG_INLINE Matrix(const float& x, const float& y)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 2D vector with given coefficients */
-    inline Matrix(const double& x, const double& y)
+    EIGEN_STRONG_INLINE Matrix(const double& x, const double& y)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
     /** constructs an initialized 3D vector with given coefficients */
-    inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
+    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
       m_storage.data()[0] = x;
@@ -398,7 +398,7 @@ class Matrix
       m_storage.data()[2] = z;
     }
     /** constructs an initialized 4D vector with given coefficients */
-    inline Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4)
       m_storage.data()[0] = x;
@@ -411,14 +411,14 @@ class Matrix
 
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
-    inline Matrix(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
       //Base::operator=(other.derived());
     }
     /** Copy constructor */
-    inline Matrix(const Matrix& other)
+    EIGEN_STRONG_INLINE Matrix(const Matrix& other)
             : Base(), m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
       Base::lazyAssign(other);

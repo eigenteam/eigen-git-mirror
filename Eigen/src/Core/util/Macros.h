@@ -84,16 +84,23 @@ using Eigen::ei_cos;
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
+// EIGEN_ALWAYS_INLINE_ATTRIB should be use in the declaration of function
+// which should be inlined even in debug mode.
 // FIXME with the always_inline attribute,
 // gcc 3.4.x reports the following compilation error:
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
 //    : function body not available
 #if EIGEN_GNUC_AT_LEAST(4,0)
-#define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
-#elif (defined _MSC_VER)
-#define EIGEN_ALWAYS_INLINE __forceinline
+#define EIGEN_ALWAYS_INLINE_ATTRIB __attribute__((always_inline))
 #else
-#define EIGEN_ALWAYS_INLINE inline
+#define EIGEN_ALWAYS_INLINE_ATTRIB
+#endif
+
+// EIGEN_FORCE_INLINE means "inline as much as possible"
+#if (defined _MSC_VER)
+#define EIGEN_STRONG_INLINE __forceinline
+#else
+#define EIGEN_STRONG_INLINE inline
 #endif
 
 #if (defined __GNUC__)
@@ -142,18 +149,18 @@ using Eigen::ei_cos;
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherDerived> \
-Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \
+EIGEN_STRONG_INLINE Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \
 { \
   return Eigen::MatrixBase<Derived>::operator Op(other.derived()); \
 } \
-Derived& operator Op(const Derived& other) \
+EIGEN_STRONG_INLINE Derived& operator Op(const Derived& other) \
 { \
   return Eigen::MatrixBase<Derived>::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
-Derived& operator Op(const Other& scalar) \
+EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 { \
   return Eigen::MatrixBase<Derived>::operator Op(scalar); \
 }

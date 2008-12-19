@@ -74,18 +74,22 @@ inline T* ei_aligned_malloc(size_t size)
   #ifdef EIGEN_VECTORIZE
   if(ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
   {
-    #ifdef _MSC_VER
-      result = static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
-      #ifdef EIGEN_EXCEPTIONS
-        const int failed = (result == 0);
-      #endif
-    #else // not MSVC
+    #ifdef __linux
       #ifdef EIGEN_EXCEPTIONS
         const int failed =
       #endif
       posix_memalign(reinterpret_cast<void**>(&result), 16, size*sizeof(T));
+    #else
+      #ifdef _MSC_VER
+        result = static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
+      #else
+        result = static_cast<T*>(_mm_malloc(size*sizeof(T),16));
+      #endif
+      
+      #ifdef EIGEN_EXCEPTIONS
+        const int failed = (result == 0);
+      #endif
     #endif
-	
     #ifdef EIGEN_EXCEPTIONS
       if(failed)
         throw std::bad_alloc();
@@ -107,13 +111,15 @@ template<typename T>
 inline void ei_aligned_free(T* ptr)
 {
   #ifdef EIGEN_VECTORIZE
-  if (ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
-  #ifdef _MSC_VER
-    _aligned_free(ptr);
-  #else
-    free(ptr);
-  #endif
-  else
+    if (ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
+    #if defined(__linux)
+      free(ptr);
+    #elif defined(_MSC_VER)
+      _aligned_free(ptr);
+    #else
+      _mm_free(ptr);
+    #endif
+    else
   #endif
     delete[] ptr;
 }

@@ -74,27 +74,27 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     inline CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())
       : m_matrix(mat), m_functor(func) {}
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
+    EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
 
-    inline const Scalar coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
       return m_functor(m_matrix.coeff(row, col));
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
       return m_functor.packetOp(m_matrix.template packet<LoadMode>(row, col));
     }
 
-    inline const Scalar coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
       return m_functor(m_matrix.coeff(index));
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
       return m_functor.packetOp(m_matrix.template packet<LoadMode>(index));
     }
@@ -119,7 +119,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   */
 template<typename Derived>
 template<typename CustomUnaryOp>
-inline const CwiseUnaryOp<CustomUnaryOp, Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<CustomUnaryOp, Derived>
 MatrixBase<Derived>::unaryExpr(const CustomUnaryOp& func) const
 {
   return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
@@ -128,7 +128,7 @@ MatrixBase<Derived>::unaryExpr(const CustomUnaryOp& func) const
 /** \returns an expression of the opposite of \c *this
   */
 template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
 MatrixBase<Derived>::operator-() const
 {
   return derived();
@@ -142,7 +142,7 @@ MatrixBase<Derived>::operator-() const
   * \sa abs2()
   */
 template<typename ExpressionType>
-inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
 Cwise<ExpressionType>::abs() const
 {
   return _expression();
@@ -156,7 +156,7 @@ Cwise<ExpressionType>::abs() const
   * \sa abs(), square()
   */
 template<typename ExpressionType>
-inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)
 Cwise<ExpressionType>::abs2() const
 {
   return _expression();
@@ -166,7 +166,7 @@ Cwise<ExpressionType>::abs2() const
   *
   * \sa adjoint() */
 template<typename Derived>
-inline typename MatrixBase<Derived>::ConjugateReturnType
+EIGEN_STRONG_INLINE typename MatrixBase<Derived>::ConjugateReturnType
 MatrixBase<Derived>::conjugate() const
 {
   return ConjugateReturnType(derived());
@@ -176,14 +176,14 @@ MatrixBase<Derived>::conjugate() const
   *
   * \sa imag() */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::RealReturnType
+EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::RealReturnType
 MatrixBase<Derived>::real() const { return derived(); }
 
 /** \returns an expression of the imaginary part of \c *this.
   *
   * \sa real() */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ImagReturnType
+EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::ImagReturnType
 MatrixBase<Derived>::imag() const { return derived(); }
 
 /** \returns an expression of *this with the \a Scalar type casted to
@@ -195,7 +195,7 @@ MatrixBase<Derived>::imag() const { return derived(); }
   */
 template<typename Derived>
 template<typename NewType>
-inline const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
 MatrixBase<Derived>::cast() const
 {
   return derived();
@@ -203,7 +203,7 @@ MatrixBase<Derived>::cast() const
 
 /** \relates MatrixBase */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ScalarMultipleReturnType
+EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::ScalarMultipleReturnType
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
@@ -212,7 +212,7 @@ MatrixBase<Derived>::operator*(const Scalar& scalar) const
 
 /** \relates MatrixBase */
 template<typename Derived>
-inline const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived>
@@ -220,14 +220,14 @@ MatrixBase<Derived>::operator/(const Scalar& scalar) const
 }
 
 template<typename Derived>
-inline Derived&
+EIGEN_STRONG_INLINE Derived&
 MatrixBase<Derived>::operator*=(const Scalar& other)
 {
   return *this = *this * other;
 }
 
 template<typename Derived>
-inline Derived&
+EIGEN_STRONG_INLINE Derived&
 MatrixBase<Derived>::operator/=(const Scalar& other)
 {
   return *this = *this / other;
