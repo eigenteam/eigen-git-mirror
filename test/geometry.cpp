@@ -96,8 +96,10 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
   VERIFY_IS_APPROX(q1 * q2 * v2,
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
-  VERIFY( !(q2 * q1 * v2).isApprox(
+
+  VERIFY( (q2*q1).isApprox(q1*q2) || !(q2 * q1 * v2).isApprox(
     q1.toRotationMatrix() * q2.toRotationMatrix() * v2));
+
   q2 = q1.toRotationMatrix();
   VERIFY_IS_APPROX(q1*v1,q2*v1);
 
@@ -177,7 +179,7 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t0.scale(a).matrix(), t1.scale(Vector3::Constant(a)).matrix());
   VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
 
-  // More transform constructors and operator='s
+  // More transform constructors, operator=, operator*=
   
   Scalar a3 = ei_random<Scalar>(-M_PI, M_PI);
   Vector3 v3 = Vector3::Random().normalized();
@@ -188,6 +190,8 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
   t4.rotate(AngleAxisx(-a3,v3));
   VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  t4 *= aa3;
+  VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
 
   v3 = Vector3::Random();
   Translation3 tv3(v3);
@@ -196,6 +200,8 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
   t4.translate(-v3);
   VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  t4 *= tv3;
+  VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
 
   Scaling3 sv3(v3);
   Transform3 t6(sv3);
@@ -203,10 +209,18 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
   t4.scale(v3.cwise().inverse());
   VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  t4 *= sv3;
+  VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
 
   // chained Transform product
+  VERIFY_IS_APPROX(((t3*t4)*t5).matrix(), (t3*(t4*t5)).matrix());
 
-  VERIFY_IS_APPROX(Transform3((t3*t4)*t5).matrix(), Transform3(t3*(t4*t5)).matrix());
+  // check that Transform product doesn't have aliasing problems
+  t5 = t4;
+  t5 = t5*t5;
+  VERIFY_IS_APPROX(t5, t4*t4);
+
+
 
   // 2D transformation
   Transform2 t20, t21;
