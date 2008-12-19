@@ -180,7 +180,7 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
 
   // More transform constructors, operator=, operator*=
-  
+
   Scalar a3 = ei_random<Scalar>(-M_PI, M_PI);
   Vector3 v3 = Vector3::Random().normalized();
   AngleAxisx aa3(a3, v3);
@@ -212,6 +212,9 @@ template<typename Scalar> void geometry(void)
   t4 *= sv3;
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
 
+  // matrix * transform
+  VERIFY_IS_APPROX(Transform3(t3.matrix()*t4).matrix(), Transform3(t3*t4).matrix());
+
   // chained Transform product
   VERIFY_IS_APPROX(((t3*t4)*t5).matrix(), (t3*(t4*t5)).matrix());
 
@@ -219,8 +222,6 @@ template<typename Scalar> void geometry(void)
   t5 = t4;
   t5 = t5*t5;
   VERIFY_IS_APPROX(t5, t4*t4);
-
-
 
   // 2D transformation
   Transform2 t20, t21;

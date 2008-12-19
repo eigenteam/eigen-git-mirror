@@ -184,6 +184,13 @@ public:
   operator * (const MatrixBase<OtherDerived> &other) const
   { return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
 
+  /** \returns the product expression of a transformation matrix \a a times a transform \a b
+    * The transformation matrix \a a must have a Dim+1 x Dim+1 sizes. */
+  template<typename OtherDerived>
+  friend inline const typename ProductReturnType<OtherDerived,MatrixType>::Type
+  operator * (const MatrixBase<OtherDerived> &a, const Transform &b)
+  { return a.derived() * b.matrix(); }
+
   /** Contatenates two transformations */
   inline const Transform
   operator * (const Transform& other) const
