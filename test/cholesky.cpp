@@ -63,9 +63,9 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     convert<VectorType>(vecB, gVecX);
     Gsl::cholesky(gMatA);
     Gsl::cholesky_solve(gMatA, gVecB, gVecX);
-    VectorType vecX, _vecX, _vecB;
+    VectorType vecX(rows), _vecX, _vecB;
     convert(gVecX, _vecX);
-    vecX.set( symm.cholesky().solve(vecB) );
+    symm.llt().solve(vecB, &vecX);
     Gsl::prod(gSymm, gVecX, gVecB);
     convert(gVecB, _vecB);
     // test gsl itself !

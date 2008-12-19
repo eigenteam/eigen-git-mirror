@@ -58,7 +58,7 @@ template<typename MatrixType> class Cholesky
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
     template<typename Derived>
-    typename MatrixBase<Derived>::PlainMatrixType_ColMajor solve(const MatrixBase<Derived> &b) const EIGEN_DEPRECATED;
+    EIGEN_DEPRECATED typename MatrixBase<Derived>::PlainMatrixType_ColMajor solve(const MatrixBase<Derived> &b) const;
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;

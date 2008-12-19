@@ -495,7 +495,12 @@ template<typename Derived> class MatrixBase
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
       */
-    EIGEN_ALWAYS_INLINE const typename ei_eval<Derived>::type eval() const
+    #ifdef _MSC_VER
+      inline // MSVC 2008 can't force-inline this method and emits a warning, so do just 'inline'
+    #else
+      EIGEN_ALWAYS_INLINE
+    #endif
+    const typename ei_eval<Derived>::type eval() const
     {
       return typename ei_eval<Derived>::type(derived());
     }
