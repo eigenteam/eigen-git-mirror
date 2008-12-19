@@ -105,6 +105,25 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     /** \returns the computed eigen values */
     RealVectorType eigenvalues(void) const { return m_eivalues; }
 
+    /** \returns the positive square root of the matrix
+      *
+      * \note the matrix itself must be positive in order for this to make sense.
+      */
+    MatrixType operatorSqrt() const
+    {
+      return m_eivec * m_eivalues.cwise().sqrt().asDiagonal() * m_eivec.adjoint();
+    }
+
+    /** \returns the positive inverse square root of the matrix
+      *
+      * \note the matrix itself must be positive definite in order for this to make sense.
+      */
+    MatrixType operatorInverseSqrt() const
+    {
+      return m_eivec * m_eivalues.cwise().inverse().cwise().sqrt().asDiagonal() * m_eivec.adjoint();
+    }
+
+
   protected:
     MatrixType m_eivec;
     RealVectorType m_eivalues;

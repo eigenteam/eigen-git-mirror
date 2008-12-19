@@ -108,6 +108,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
           symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal().eval()), largerEps));
 
+  MatrixType sqrtSymmA = eiSymm.operatorSqrt();
+  VERIFY(symmA.isApprox(sqrtSymmA*sqrtSymmA, ei_sqrt(test_precision<RealScalar>())));
+  VERIFY(sqrtSymmA.isApprox(symmA*eiSymm.operatorInverseSqrt(), ei_sqrt(test_precision<RealScalar>())));
 }
 
 template<typename MatrixType> void eigensolver(const MatrixType& m)
