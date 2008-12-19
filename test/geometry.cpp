@@ -186,7 +186,7 @@ template<typename Scalar> void geometry(void)
   Transform3 t4;
   t4 = aa3;
   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
-  t4.rotate(AngleAxisx(-a,v3));
+  t4.rotate(AngleAxisx(-a3,v3));
   VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
 
   v3 = Vector3::Random();
@@ -222,7 +222,7 @@ template<typename Scalar> void geometry(void)
   t21.setIdentity();
   t21.linear() = Rotation2D<Scalar>(-a).toRotationMatrix();
   VERIFY( (t20.fromPositionOrientationScale(v20,a,v21)
-        * (t21.prescale(v21.cwise().inverse()).translate(-v20))).isIdentity(test_precision<Scalar>()) );
+        * (t21.prescale(v21.cwise().inverse()).translate(-v20))).matrix().isIdentity(test_precision<Scalar>()) );
 
   // Transform - new API
   // 3D

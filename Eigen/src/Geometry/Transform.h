@@ -185,9 +185,9 @@ public:
   { return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
 
   /** Contatenates two transformations */
-  inline const typename ProductReturnType<MatrixType,MatrixType>::Type
+  inline const Transform
   operator * (const Transform& other) const
-  { return m_matrix * other.matrix(); }
+  { return Transform(m_matrix * other.matrix()); }
 
   /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
