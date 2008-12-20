@@ -7,7 +7,7 @@ cout << "Here is, up to permutations, its LU decomposition matrix:"
      << endl << lu.matrixLU() << endl;
 cout << "Here is the actual L matrix in this decomposition:" << endl;
 Matrix5x5 l = Matrix5x5::Identity();
-l.block<5,3>(0,0).part<StrictlyLower>() = lu.matrixLU();
+l.block<5,3>(0,0).part<StrictlyLowerTriangular>() = lu.matrixLU();
 cout << l << endl;
 cout << "Let us now reconstruct the original matrix m:" << endl;
 Matrix5x3 x = l * lu.matrixU();

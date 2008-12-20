@@ -167,8 +167,8 @@ Tridiagonalization<MatrixType>::matrixT(void) const
   matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().conjugate();
   if (n>2)
   {
-    matT.corner(TopRight,n-2, n-2).template part<Upper>().setZero();
-    matT.corner(BottomLeft,n-2, n-2).template part<Lower>().setZero();
+    matT.corner(TopRight,n-2, n-2).template part<UpperTriangular>().setZero();
+    matT.corner(BottomLeft,n-2, n-2).template part<LowerTriangular>().setZero();
   }
   return matT;
 }
@@ -223,17 +223,17 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 
       /* This is the initial algorithm which minimize operation counts and maximize
        * the use of Eigen's expression. Unfortunately, the first matrix-vector product
-       * using Part<Lower|Selfadjoint>  is very very slow */
+       * using Part<LowerTriangular|Selfadjoint>  is very very slow */
       #ifdef EIGEN_NEVER_DEFINED
       // matrix - vector product
-      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower|SelfAdjoint>()
+      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular|SelfAdjoint>()
                                 * (h * matA.col(i).end(n-i-1))).lazy();
       // simple axpy
       hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
                             * matA.col(i).end(n-i-1);
       // rank-2 update
       //Block<MatrixType,Dynamic,1> B(matA,i+1,i,n-i-1,1);
-      matA.corner(BottomRight,n-i-1,n-i-1).template part<Lower>() -=
+      matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular>() -=
             (matA.col(i).end(n-i-1) * hCoeffs.end(n-i-1).adjoint()).lazy()
           + (hCoeffs.end(n-i-1) * matA.col(i).end(n-i-1).adjoint()).lazy();
       #endif
@@ -256,7 +256,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
             Block<MatrixType,Dynamic,4>(matA,b+4,b,n-b-4,4).adjoint() * Block<MatrixType,Dynamic,1>(matA,b+4,i,n-b-4,1);
         // the 4x4 block diagonal:
         Block<CoeffVectorType,4,1>(hCoeffs, b, 0, 4,1) +=
-            (Block<MatrixType,4,4>(matA,b,b,4,4).template part<Lower|SelfAdjoint>()
+            (Block<MatrixType,4,4>(matA,b,b,4,4).template part<LowerTriangular|SelfAdjoint>()
              * (h * Block<MatrixType,4,1>(matA,b,i,4,1))).lazy();
       }
       #endif

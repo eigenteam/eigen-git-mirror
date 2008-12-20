@@ -1,5 +1,5 @@
 Matrix3d m = Matrix3i::Zero();
-m.part<Eigen::StrictlyUpper>().setOnes();
+m.part<Eigen::StrictlyUpperTriangular>().setOnes();
 cout << "Here is the matrix m:" << endl << m << endl;
 cout << "And let us now compute m*m.adjoint() in a very optimized way" << endl
      << "taking advantage of the symmetry." << endl;

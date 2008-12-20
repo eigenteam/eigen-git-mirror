@@ -37,8 +37,8 @@
         X  \
   } timer.stop(); }
 
-// typedef SparseMatrix<Scalar,Upper> EigenSparseTriMatrix;
-typedef SparseMatrix<Scalar,SelfAdjoint|Lower> EigenSparseSelfAdjointMatrix;
+// typedef SparseMatrix<Scalar,UpperTriangular> EigenSparseTriMatrix;
+typedef SparseMatrix<Scalar,SelfAdjoint|LowerTriangular> EigenSparseSelfAdjointMatrix;
 
 void fillSpdMatrix(float density, int rows, int cols,  EigenSparseSelfAdjointMatrix& dst)
 {

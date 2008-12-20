@@ -41,7 +41,7 @@ class SparseLU
   protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar,Lower> LUMatrixType;
+    typedef SparseMatrix<Scalar,LowerTriangular> LUMatrixType;
 
     enum {
       MatrixLUIsDirty             = 0x10000

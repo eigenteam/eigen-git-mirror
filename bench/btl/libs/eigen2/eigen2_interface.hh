@@ -134,11 +134,11 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
-    X = L.template marked<Lower>().solveTriangular(B);
+    X = L.template marked<LowerTriangular>().solveTriangular(B);
   }
 
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
-    X = L.template marked<Lower>().solveTriangular(B);
+    X = L.template marked<LowerTriangular>().solveTriangular(B);
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){

@@ -60,11 +60,11 @@ template<typename MatrixType> class QR
     bool isFullRank() const { return ei_isMuchSmallerThan(m_hCoeffs.cwise().abs().minCoeff(), Scalar(1)); }
 
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
-    const Part<NestByValue<MatrixRBlockType>, Upper>
+    const Part<NestByValue<MatrixRBlockType>, UpperTriangular>
     matrixR(void) const
     {
       int cols = m_qr.cols();
-      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template part<Upper>();
+      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template part<UpperTriangular>();
     }
 
     MatrixType matrixQ(void) const;

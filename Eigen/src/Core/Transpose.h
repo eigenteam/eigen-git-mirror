@@ -167,7 +167,7 @@ struct ei_inplace_transpose_selector;
 template<typename MatrixType>
 struct ei_inplace_transpose_selector<MatrixType,true> { // square matrix
   static void run(MatrixType& m) {
-    m.template part<StrictlyUpper>().swap(m.transpose());
+    m.template part<StrictlyUpperTriangular>().swap(m.transpose());
   }
 };
 
@@ -175,7 +175,7 @@ template<typename MatrixType>
 struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
-      m.template part<StrictlyUpper>().swap(m.transpose());
+      m.template part<StrictlyUpperTriangular>().swap(m.transpose());
     else
       m.set(m.transpose().eval());
   }

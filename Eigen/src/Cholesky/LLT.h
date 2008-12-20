@@ -67,7 +67,7 @@ template<typename MatrixType> class LLT
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, Lower> matrixL(void) const { return m_matrix; }
+    inline Part<MatrixType, LowerTriangular> matrixL(void) const { return m_matrix; }
 
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
@@ -169,7 +169,7 @@ bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   if (!m_isPositiveDefinite)
     return false;
   matrixL().solveTriangularInPlace(bAndX);
-  m_matrix.adjoint().template part<Upper>().solveTriangularInPlace(bAndX);
+  m_matrix.adjoint().template part<UpperTriangular>().solveTriangularInPlace(bAndX);
   return true;
 }
 

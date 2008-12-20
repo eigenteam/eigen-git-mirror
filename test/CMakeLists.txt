@@ -131,9 +131,11 @@ macro(ei_add_test testname)
 
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   if(${ARGC} GREATER 2)
-    if(ARGV2)
+    string(STRIP "${ARGV2}" ARGV2_stripped)
+    string(LENGTH "${ARGV2_stripped}" ARGV2_stripped_length)
+    if(${ARGV2_stripped_length} GREATER 0)
       target_link_libraries(${targetname} ${ARGV2})
-    endif(ARGV2)
+    endif(${ARGV2_stripped_length} GREATER 0)
   endif(${ARGC} GREATER 2)
 
   if(WIN32)

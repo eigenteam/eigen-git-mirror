@@ -41,7 +41,7 @@ class SparseLLT
   protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar,Lower> CholMatrixType;
+    typedef SparseMatrix<Scalar,LowerTriangular> CholMatrixType;
 
     enum {
       SupernodalFactorIsDirty      = 0x10000,

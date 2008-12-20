@@ -513,20 +513,20 @@ Read/write access to special parts of a matrix can be achieved. See \link Matrix
 <tr><td>
 Extract triangular matrices \n from a given matrix m:
 </td><td>\code
-m.part<Eigen::Upper>()
-m.part<Eigen::StrictlyUpper>()
-m.part<Eigen::UnitUpper>()
-m.part<Eigen::Lower>()
-m.part<Eigen::StrictlyLower>()
-m.part<Eigen::UnitLower>()\endcode
+m.part<Eigen::UpperTriangular>()
+m.part<Eigen::StrictlyUpperTriangular>()
+m.part<Eigen::UnitUpperTriangular>()
+m.part<Eigen::LowerTriangular>()
+m.part<Eigen::StrictlyLowerTriangular>()
+m.part<Eigen::UnitLowerTriangular>()\endcode
 </td></tr>
 <tr><td>
 Write to triangular parts \n of a matrix m:
 </td><td>\code
-m1.part<Eigen::Upper>() = m2;
-m1.part<Eigen::StrictlyUpper>() = m2;
-m1.part<Eigen::Lower>() = m2;
-m1.part<Eigen::StrictlyLower>() = m2;\endcode
+m1.part<Eigen::UpperTriangular>() = m2;
+m1.part<Eigen::StrictlyUpperTriangular>() = m2;
+m1.part<Eigen::LowerTriangular>() = m2;
+m1.part<Eigen::StrictlyLowerTriangular>() = m2;\endcode
 </td></tr>
 <tr><td>
 Special: take advantage of symmetry \n (selfadjointness) when copying \n an expression into a matrix

@@ -79,7 +79,7 @@ class SparseLDLT
   protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar,Lower|UnitDiagBit> CholMatrixType;
+    typedef SparseMatrix<Scalar,LowerTriangular|UnitDiagBit> CholMatrixType;
     typedef Matrix<Scalar,MatrixType::ColsAtCompileTime,1> VectorType;
 
     enum {

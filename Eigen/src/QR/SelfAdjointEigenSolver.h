@@ -254,22 +254,22 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   cholB.matrixL().solveTriangularInPlace(matC);
   // FIXME since we currently do not support A * inv(L'), let's do (inv(L) A')' :
   matC = matC.adjoint().eval();
-  cholB.matrixL().template marked<Lower>().solveTriangularInPlace(matC);
+  cholB.matrixL().template marked<LowerTriangular>().solveTriangularInPlace(matC);
   matC = matC.adjoint().eval();
   // this version works too:
 //   matC = matC.transpose();
-//   cholB.matrixL().conjugate().template marked<Lower>().solveTriangularInPlace(matC);
+//   cholB.matrixL().conjugate().template marked<LowerTriangular>().solveTriangularInPlace(matC);
 //   matC = matC.transpose();
   // FIXME: this should work: (currently it only does for small matrices)
 //   Transpose<MatrixType> trMatC(matC);
-//   cholB.matrixL().conjugate().eval().template marked<Lower>().solveTriangularInPlace(trMatC);
+//   cholB.matrixL().conjugate().eval().template marked<LowerTriangular>().solveTriangularInPlace(trMatC);
 
   compute(matC, computeEigenvectors);
 
   if (computeEigenvectors)
   {
     // transform back the eigen vectors: evecs = inv(U) * evecs
-    cholB.matrixL().adjoint().template marked<Upper>().solveTriangularInPlace(m_eivec);
+    cholB.matrixL().adjoint().template marked<UpperTriangular>().solveTriangularInPlace(m_eivec);
     for (int i=0; i<m_eivec.cols(); ++i)
       m_eivec.col(i) = m_eivec.col(i).normalized();
   }

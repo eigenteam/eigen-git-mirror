@@ -470,8 +470,8 @@ template<typename Derived> class MatrixBase
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
 
-    bool isUpper(RealScalar prec = precision<Scalar>()) const;
-    bool isLower(RealScalar prec = precision<Scalar>()) const;
+    bool isUpperTriangular(RealScalar prec = precision<Scalar>()) const;
+    bool isLowerTriangular(RealScalar prec = precision<Scalar>()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,

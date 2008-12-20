@@ -60,7 +60,7 @@ template<typename MatrixType> class LDLT
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, UnitLower> matrixL(void) const { return m_matrix; }
+    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const { return m_matrix; }
 
     /** \returns the coefficients of the diagonal matrix D */
     inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
@@ -181,7 +181,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
     return false;
   matrixL().solveTriangularInPlace(bAndX);
   bAndX = (m_matrix.cwise().inverse().template part<Diagonal>() * bAndX).lazy();
-  m_matrix.adjoint().template part<UnitUpper>().solveTriangularInPlace(bAndX);
+  m_matrix.adjoint().template part<UnitUpperTriangular>().solveTriangularInPlace(bAndX);
   return true;
 }
 

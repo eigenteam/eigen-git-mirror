@@ -185,16 +185,16 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | SparseBit;
 
 // Possible values for the Mode parameter of part() and of extract()
-const unsigned int Upper = UpperTriangularBit;
-const unsigned int StrictlyUpper = UpperTriangularBit | ZeroDiagBit;
-const unsigned int Lower = LowerTriangularBit;
-const unsigned int StrictlyLower = LowerTriangularBit | ZeroDiagBit;
+const unsigned int UpperTriangular = UpperTriangularBit;
+const unsigned int StrictlyUpperTriangular = UpperTriangularBit | ZeroDiagBit;
+const unsigned int LowerTriangular = LowerTriangularBit;
+const unsigned int StrictlyLowerTriangular = LowerTriangularBit | ZeroDiagBit;
 const unsigned int SelfAdjoint = SelfAdjointBit;
 
 // additional possible values for the Mode parameter of extract()
-const unsigned int UnitUpper = UpperTriangularBit | UnitDiagBit;
-const unsigned int UnitLower = LowerTriangularBit | UnitDiagBit;
-const unsigned int Diagonal = Upper | Lower;
+const unsigned int UnitUpperTriangular = UpperTriangularBit | UnitDiagBit;
+const unsigned int UnitLowerTriangular = LowerTriangularBit | UnitDiagBit;
+const unsigned int Diagonal = UpperTriangular | LowerTriangular;
 
 enum { Aligned, Unaligned };
 enum { ForceAligned, AsRequested };

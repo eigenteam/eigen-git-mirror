@@ -27,7 +27,7 @@
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,Lower,RowMajor|IsSparse>
+struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,RowMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -59,7 +59,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Lower,RowMajor|IsSparse>
 
 // backward substitution, row-major
 template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,Upper,RowMajor|IsSparse>
+struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,RowMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -92,7 +92,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Upper,RowMajor|IsSparse>
 
 // forward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor|IsSparse>
+struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,ColMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -120,7 +120,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Lower,ColMajor|IsSparse>
 
 // backward substitution, col-major
 template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,Upper,ColMajor|IsSparse>
+struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,ColMajor|IsSparse>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)

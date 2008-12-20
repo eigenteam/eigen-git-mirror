@@ -69,9 +69,9 @@ cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
 
   if (Flags & SelfAdjoint)
   {
-    if (Flags & Upper)
+    if (Flags & UpperTriangular)
       res.stype = 1;
-    else if (Flags & Lower)
+    else if (Flags & LowerTriangular)
       res.stype = -1;
     else
       res.stype = 0;

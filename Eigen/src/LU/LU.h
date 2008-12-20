@@ -114,7 +114,7 @@ template<typename MatrixType> class LU
       *
       * \sa matrixLU(), matrixU()
       */
-    inline const Part<MatrixType, UnitLower> matrixL() const
+    inline const Part<MatrixType, UnitLowerTriangular> matrixL() const
     {
       return m_lu;
     }
@@ -123,7 +123,7 @@ template<typename MatrixType> class LU
       *
       * \sa matrixLU(), matrixL()
       */
-    inline const Part<MatrixType, Upper> matrixU() const
+    inline const Part<MatrixType, UpperTriangular> matrixU() const
     {
       return m_lu;
     }
@@ -441,7 +441,7 @@ void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
   m_lu.corner(TopLeft, m_rank, m_rank)
-      .template marked<Upper>()
+      .template marked<UpperTriangular>()
       .solveTriangularInPlace(y);
 
   for(int i = 0; i < m_rank; ++i)
@@ -510,7 +510,7 @@ bool LU<MatrixType>::solve(
   l.setZero();
   l.corner(Eigen::TopLeft,rows,smalldim)
     = m_lu.corner(Eigen::TopLeft,rows,smalldim);
-  l.template marked<UnitLower>().solveTriangularInPlace(c);
+  l.template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
 
   // Step 3
   if(!isSurjective())
@@ -527,7 +527,7 @@ bool LU<MatrixType>::solve(
          MatrixType::MaxRowsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
     d(c.corner(TopLeft, m_rank, c.cols()));
   m_lu.corner(TopLeft, m_rank, m_rank)
-      .template marked<Upper>()
+      .template marked<UpperTriangular>()
       .solveTriangularInPlace(d);
 
   // Step 4

@@ -34,8 +34,8 @@
         X  \
   } timer.stop(); }
 
-typedef SparseMatrix<Scalar,Upper> EigenSparseTriMatrix;
-typedef SparseMatrix<Scalar,RowMajorBit|Upper> EigenSparseTriMatrixRow;
+typedef SparseMatrix<Scalar,UpperTriangular> EigenSparseTriMatrix;
+typedef SparseMatrix<Scalar,RowMajorBit|UpperTriangular> EigenSparseTriMatrixRow;
 
 void fillMatrix(float density, int rows, int cols,  EigenSparseTriMatrix& dst)
 {
@@ -83,11 +83,11 @@ int main(int argc, char *argv[])
       eiToDense(sm1, m1);
       m2 = m1;
 
-      BENCH(x = m1.marked<Upper>().solveTriangular(b);)
+      BENCH(x = m1.marked<UpperTriangular>().solveTriangular(b);)
       std::cout << "   colmajor^-1 * b:\t" << timer.value() << endl;
 //       std::cerr << x.transpose() << "\n";
 
-      BENCH(x = m2.marked<Upper>().solveTriangular(b);)
+      BENCH(x = m2.marked<UpperTriangular>().solveTriangular(b);)
       std::cout << "   rowmajor^-1 * b:\t" << timer.value() << endl;
 //       std::cerr << x.transpose() << "\n";
     }

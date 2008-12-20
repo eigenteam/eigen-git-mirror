@@ -44,13 +44,13 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     // lower
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template marked<Lower>().solveTriangular(vec2),
-                     m2.template marked<Lower>().solveTriangular(vec3));
+    VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().solveTriangular(vec2),
+                     m2.template marked<LowerTriangular>().solveTriangular(vec3));
 
     // upper
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template marked<Upper>().solveTriangular(vec2),
-                     m2.template marked<Upper>().solveTriangular(vec3));
+    VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().solveTriangular(vec2),
+                     m2.template marked<UpperTriangular>().solveTriangular(vec3));
 
     // TODO test row major
   }
@@ -70,7 +70,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     refMat2.diagonal() *= 0.5;
 
     refMat2.llt().solve(b, &refX);
-    typedef SparseMatrix<Scalar,Lower|SelfAdjoint> SparseSelfAdjointMatrix;
+    typedef SparseMatrix<Scalar,LowerTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLLT<SparseSelfAdjointMatrix> (m2).solveInPlace(x);
     //VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: default");
@@ -107,7 +107,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     refMat2.diagonal() *= 0.5;
 
     refMat2.ldlt().solve(b, &refX);
-    typedef SparseMatrix<Scalar,Lower|SelfAdjoint> SparseSelfAdjointMatrix;
+    typedef SparseMatrix<Scalar,LowerTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLDLT<SparseSelfAdjointMatrix> ldlt(m2);
     if (ldlt.succeeded())

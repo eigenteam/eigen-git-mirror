@@ -46,7 +46,7 @@ template<typename MatrixType> class CholeskyWithoutSquareRoot
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, UnitLower> matrixL(void) const { return m_matrix; }
+    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const { return m_matrix; }
 
     /** \returns the coefficients of the diagonal matrix D */
     inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
@@ -137,7 +137,7 @@ typename Derived::Eval CholeskyWithoutSquareRoot<MatrixType>::solve(const Matrix
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  return m_matrix.adjoint().template part<UnitUpper>()
+  return m_matrix.adjoint().template part<UnitUpperTriangular>()
     .solveTriangular(
       (  m_matrix.cwise().inverse().template part<Diagonal>()
        * matrixL().solveTriangular(b))
@@ -167,7 +167,7 @@ bool CholeskyWithoutSquareRoot<MatrixType>::solveInPlace(MatrixBase<Derived> &bA
     return false;
   matrixL().solveTriangularInPlace(bAndX);
   bAndX = (m_matrix.cwise().inverse().template part<Diagonal>() * bAndX).lazy();
-  m_matrix.adjoint().template part<UnitUpper>().solveTriangularInPlace(bAndX);
+  m_matrix.adjoint().template part<UnitUpperTriangular>().solveTriangularInPlace(bAndX);
   return true;
 }
 

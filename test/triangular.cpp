@@ -51,14 +51,14 @@ template<typename MatrixType> void triangular(const MatrixType& m)
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
-  MatrixType m1up = m1.template part<Eigen::Upper>();
-  MatrixType m2up = m2.template part<Eigen::Upper>();
+  MatrixType m1up = m1.template part<Eigen::UpperTriangular>();
+  MatrixType m2up = m2.template part<Eigen::UpperTriangular>();
 
   if (rows*cols>1)
   {
-    VERIFY(m1up.isUpper());
-    VERIFY(m2up.transpose().isLower());
-    VERIFY(!m2.isLower());
+    VERIFY(m1up.isUpperTriangular());
+    VERIFY(m2up.transpose().isLowerTriangular());
+    VERIFY(!m2.isLowerTriangular());
   }
 
 //   VERIFY_IS_APPROX(m1up.transpose() * m2, m1.upper().transpose().lower() * m2);
@@ -66,20 +66,20 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   // test overloaded operator+=
   r1.setZero();
   r2.setZero();
-  r1.template part<Eigen::Upper>() +=  m1;
+  r1.template part<Eigen::UpperTriangular>() +=  m1;
   r2 += m1up;
   VERIFY_IS_APPROX(r1,r2);
 
   // test overloaded operator=
   m1.setZero();
-  m1.template part<Eigen::Upper>() = (m2.transpose() * m2).lazy();
+  m1.template part<Eigen::UpperTriangular>() = (m2.transpose() * m2).lazy();
   m3 = m2.transpose() * m2;
-  VERIFY_IS_APPROX(m3.template part<Eigen::Lower>().transpose(), m1);
+  VERIFY_IS_APPROX(m3.template part<Eigen::LowerTriangular>().transpose(), m1);
 
   // test overloaded operator=
   m1.setZero();
-  m1.template part<Eigen::Lower>() = (m2.transpose() * m2).lazy();
-  VERIFY_IS_APPROX(m3.template part<Eigen::Lower>(), m1);
+  m1.template part<Eigen::LowerTriangular>() = (m2.transpose() * m2).lazy();
+  VERIFY_IS_APPROX(m3.template part<Eigen::LowerTriangular>(), m1);
 
   VERIFY_IS_APPROX(m3.template part<Diagonal>(), m3.diagonal().asDiagonal());
 
@@ -89,30 +89,30 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
   Transpose<MatrixType> trm4(m4);
   // test back and forward subsitution
-  m3 = m1.template part<Eigen::Lower>();
-  VERIFY(m3.template marked<Eigen::Lower>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
-  VERIFY(m3.transpose().template marked<Eigen::Upper>()
+  m3 = m1.template part<Eigen::LowerTriangular>();
+  VERIFY(m3.template marked<Eigen::LowerTriangular>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.transpose().template marked<Eigen::UpperTriangular>()
     .solveTriangular(m3.transpose()).cwise().abs().isIdentity(test_precision<RealScalar>()));
   // check M * inv(L) using in place API
   m4 = m3;
-  m3.transpose().template marked<Eigen::Upper>().solveTriangularInPlace(trm4);
+  m3.transpose().template marked<Eigen::UpperTriangular>().solveTriangularInPlace(trm4);
   VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
 
-  m3 = m1.template part<Eigen::Upper>();
-  VERIFY(m3.template marked<Eigen::Upper>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
-  VERIFY(m3.transpose().template marked<Eigen::Lower>()
+  m3 = m1.template part<Eigen::UpperTriangular>();
+  VERIFY(m3.template marked<Eigen::UpperTriangular>().solveTriangular(m3).cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m3.transpose().template marked<Eigen::LowerTriangular>()
     .solveTriangular(m3.transpose()).cwise().abs().isIdentity(test_precision<RealScalar>()));
   // check M * inv(U) using in place API
   m4 = m3;
-  m3.transpose().template marked<Eigen::Lower>().solveTriangularInPlace(trm4);
+  m3.transpose().template marked<Eigen::LowerTriangular>().solveTriangularInPlace(trm4);
   VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
 
-  m3 = m1.template part<Eigen::Upper>();
-  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::Upper>().solveTriangular(m2)), largerEps));
-  m3 = m1.template part<Eigen::Lower>();
-  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::Lower>().solveTriangular(m2)), largerEps));
+  m3 = m1.template part<Eigen::UpperTriangular>();
+  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::UpperTriangular>().solveTriangular(m2)), largerEps));
+  m3 = m1.template part<Eigen::LowerTriangular>();
+  VERIFY(m2.isApprox(m3 * (m3.template marked<Eigen::LowerTriangular>().solveTriangular(m2)), largerEps));
 
-  VERIFY((m1.template part<Eigen::Upper>() * m2.template part<Eigen::Upper>()).isUpper());
+  VERIFY((m1.template part<Eigen::UpperTriangular>() * m2.template part<Eigen::UpperTriangular>()).isUpperTriangular());
 
 }
 
