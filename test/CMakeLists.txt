@@ -131,7 +131,9 @@ macro(ei_add_test testname)
 
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   if(${ARGC} GREATER 2)
-    target_link_libraries(${targetname} ${ARGV2})
+    if(ARGV2)
+      target_link_libraries(${targetname} ${ARGV2})
+    endif(ARGV2)
   endif(${ARGC} GREATER 2)
 
   if(WIN32)
