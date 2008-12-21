@@ -69,7 +69,7 @@ template<typename T> struct ei_cleantype<T*>        { typedef typename ei_cleant
   *
   * It supports both the current STL mechanism (using the result_type member) as well as
   * upcoming next STL generation (using a templated result member).
-  * If none of these members is provided, then the type of the first argument is returned.
+  * If none of these members is provided, then the type of the first argument is returned. FIXME, that behavior is a pretty bad hack.
   */
 template<typename T> struct ei_result_of {};
 
@@ -145,5 +145,39 @@ class ei_meta_sqrt
 
 template<int Y, int InfX, int SupX>
 class ei_meta_sqrt<Y, InfX, SupX, true> { public:  enum { ret = (SupX*SupX <= Y) ? SupX : InfX }; };
+
+/** \internal determines whether the product of two numeric types is allowed and what the return type is */
+template<typename T, typename U> struct ei_scalar_product_traits
+{
+  // dummy general case where T and U aren't compatible -- not allowed anyway but we catch it elsewhere
+  //enum { Cost = NumTraits<T>::MulCost };
+  typedef T ReturnType;
+};
+
+template<typename T> struct ei_scalar_product_traits<T,T>
+{
+  //enum { Cost = NumTraits<T>::MulCost };
+  typedef T ReturnType;
+};
+
+template<typename T> struct ei_scalar_product_traits<T,std::complex<T> >
+{
+  //enum { Cost = 2*NumTraits<T>::MulCost };
+  typedef std::complex<T> ReturnType;
+};
+
+template<typename T> struct ei_scalar_product_traits<std::complex<T>, T>
+{
+  //enum { Cost = 2*NumTraits<T>::MulCost  };
+  typedef std::complex<T> ReturnType;
+};
+
+// FIXME quick workaround around current limitation of ei_result_of
+template<typename Scalar, typename ArgType0, typename ArgType1>
+struct ei_result_of<ei_scalar_product_op<Scalar>(ArgType0,ArgType1)> {
+typedef typename ei_scalar_product_traits<typename ei_cleantype<ArgType0>::type, typename ei_cleantype<ArgType1>::type>::ReturnType type;
+};
+
+
 
 #endif // EIGEN_META_H

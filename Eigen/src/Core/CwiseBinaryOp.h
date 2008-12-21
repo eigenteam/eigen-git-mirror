@@ -54,7 +54,6 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                        typename Rhs::Scalar
                      )
                    >::type Scalar;
-
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
   typedef typename ei_unref<LhsNested>::type _LhsNested;
@@ -99,7 +98,9 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
       // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
       // add together a float matrix and a double matrix.
-      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+      EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
+                           ? int(ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret)
+                           : int(ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       // require the sizes to match
       EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
@@ -202,10 +203,10 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)
+EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
 Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_product_op)(_expression(), other.derived());
+  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other

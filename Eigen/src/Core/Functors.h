@@ -348,11 +348,15 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-// FIXME quick hack:
 // all functors allow linear access, except ei_scalar_identity_op. So we fix here a quick meta
 // to indicate whether a functor allows linear access, just always answering 'yes' except for
 // ei_scalar_identity_op.
 template<typename Functor> struct ei_functor_has_linear_access { enum { ret = 1 }; };
 template<typename Scalar> struct ei_functor_has_linear_access<ei_scalar_identity_op<Scalar> > { enum { ret = 0 }; };
+
+// in CwiseBinaryOp, we require the Lhs and Rhs to have the same scalar type, except for multiplication
+// where we only require them to have the same _real_ scalar type so one may multiply, say, float by complex<float>.
+template<typename Functor> struct ei_functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
+template<typename Scalar> struct ei_functor_allows_mixing_real_and_complex<ei_scalar_product_op<Scalar> > { enum { ret = 1 }; };
 
 #endif // EIGEN_FUNCTORS_H
