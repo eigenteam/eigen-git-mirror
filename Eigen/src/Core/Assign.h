@@ -437,6 +437,8 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
+  EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
 }
 

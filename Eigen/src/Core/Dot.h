@@ -266,6 +266,9 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested)
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested)
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested)
+  EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
   ei_assert(size() == other.size());
 
   return ei_dot_impl<_Nested, _OtherNested>::run(derived(), other.derived());
