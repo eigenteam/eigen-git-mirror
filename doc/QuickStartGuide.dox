@@ -14,6 +14,7 @@ namespace Eigen {
   - \ref TutorialCoreSimpleExampleFixedSize
   - \ref TutorialCoreSimpleExampleDynamicSize
   - \ref TutorialCoreMatrixTypes
+  - \ref TutorialCoreCoefficients
   - \ref TutorialCoreMatrixInitialization
   - \ref TutorialCoreArithmeticOperators
   - \ref TutorialCoreReductions
@@ -87,8 +88,23 @@ For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 For dynamic-size, that is in order to left the number of rows or of columns unspecified at compile-time, use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
 
 
+<a href="#" class="top">top</a>\section TutorialCoreCoefficients Coefficient access
 
+Eigen supports the following syntaxes for read and write coefficient access:
 
+\code
+matrix(i,j);
+vector(i)
+vector[i]
+vector.x() // first coefficient
+vector.y() // second coefficient
+vector.z() // third coefficient
+vector.w() // fourth coefficient
+\endcode
+
+Notice that these coefficient access methods have assertions checking the ranges. So if you do a lot of coefficient access, these assertion can have an important cost. There are then two possibilities if you want avoid paying this cost:
+\li Either you can disable assertions altogether, by defining EIGEN_NO_DEBUG or NDEBUG. Notice that some IDEs like MS Visual Studio define NDEBUG automatically in "Release Mode".
+\li Or you can disable the checks on a case-by-case basis by using the coeff() and coeffRef() methods: see MatrixBase::coeff(int,int) const, MatrixBase::coeffRef(int,int), etc.
 
 <a href="#" class="top">top</a>\section TutorialCoreMatrixInitialization Matrix and vector creation and initialization
 

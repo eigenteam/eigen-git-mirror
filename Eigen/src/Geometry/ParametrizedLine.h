@@ -118,8 +118,8 @@ public:
   template<typename OtherScalarType>
   inline explicit ParametrizedLine(const ParametrizedLine<OtherScalarType,AmbientDimAtCompileTime>& other)
   {
-    m_origin = other.origin().template cast<OtherScalarType>();
-    m_direction = other.direction().template cast<OtherScalarType>();
+    m_origin = other.origin().template cast<Scalar>();
+    m_direction = other.direction().template cast<Scalar>();
   }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

@@ -143,7 +143,7 @@ public:
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
   inline explicit Translation(const Translation<OtherScalarType,Dim>& other)
-  { m_coeffs = other.vector().template cast<OtherScalarType>(); }
+  { m_coeffs = other.vector().template cast<Scalar>(); }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.

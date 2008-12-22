@@ -142,8 +142,8 @@ public:
   template<typename OtherScalarType>
   inline explicit AlignedBox(const AlignedBox<OtherScalarType,AmbientDimAtCompileTime>& other)
   {
-    m_min = other.min().template cast<OtherScalarType>();
-    m_max = other.max().template cast<OtherScalarType>();
+    m_min = other.min().template cast<Scalar>();
+    m_max = other.max().template cast<Scalar>();
   }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

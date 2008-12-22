@@ -146,7 +146,7 @@ public:
   template<typename OtherScalarType>
   inline explicit AngleAxis(const AngleAxis<OtherScalarType>& other)
   {
-    m_axis = other.axis().template cast<OtherScalarType>();
+    m_axis = other.axis().template cast<Scalar>();
     m_angle = other.angle();
   }
 

@@ -271,7 +271,7 @@ public:
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
   inline explicit Transform(const Transform<OtherScalarType,Dim>& other)
-  { m_matrix = other.matrix().template cast<OtherScalarType>(); }
+  { m_matrix = other.matrix().template cast<Scalar>(); }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.

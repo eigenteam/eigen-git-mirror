@@ -1193,7 +1193,8 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = EIGEN_EMPTY_STRUCT \
                          EIGEN_PARSED_BY_DOXYGEN \
                          EIGEN_VECTORIZE \
-                         EIGEN_QT_SUPPORT
+                         EIGEN_QT_SUPPORT \
+                         EIGEN_STRONG_INLINE=inline
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

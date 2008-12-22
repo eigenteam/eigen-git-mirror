@@ -150,7 +150,7 @@ typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigen
     if (ei_isMuchSmallerThan(ei_abs(ei_imag(m_eivalues.coeff(j))), ei_abs(ei_real(m_eivalues.coeff(j)))))
     {
       // we have a real eigen value
-      matV.col(j) = m_eivec.col(j);
+      matV.col(j) = m_eivec.col(j).template cast<Complex>();
     }
     else
     {
