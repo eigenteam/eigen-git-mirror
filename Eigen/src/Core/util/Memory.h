@@ -139,8 +139,9 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 }
 
 /** \internal
-  * ei_alloc_stack(TYPE,SIZE) allocates sizeof(TYPE)*SIZE bytes on the stack if sizeof(TYPE)*SIZE is
-  * smaller than EIGEN_STACK_ALLOCATION_LIMIT. Otherwise the memory is allocated using the operator new.
+  * ei_alloc_stack(TYPE,SIZE) allocates an aligned buffer of sizeof(TYPE)*SIZE bytes
+  * on the stack if sizeof(TYPE)*SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT.
+  * Otherwise the memory is allocated on the heap.
   * Data allocated with ei_alloc_stack \b must be freed by calling ei_free_stack(PTR,TYPE,SIZE).
   * \code
   * float * data = ei_alloc_stack(float,array.size());
@@ -149,12 +150,13 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * \endcode
   */
 #ifdef __linux__
-  #define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>EIGEN_STACK_ALLOCATION_LIMIT) ? \
-                                    new TYPE[SIZE] : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
-  #define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) delete[] PTR
+  #define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>EIGEN_STACK_ALLOCATION_LIMIT) \
+                                    ? ei_aligned_malloc<TYPE>(SIZE) \
+                                    : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
+  #define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
 #else
-  #define ei_alloc_stack(TYPE,SIZE) new TYPE[SIZE]
-  #define ei_free_stack(PTR,TYPE,SIZE) delete[] PTR
+  #define ei_alloc_stack(TYPE,SIZE) ei_aligned_malloc<TYPE>(SIZE)
+  #define ei_free_stack(PTR,TYPE,SIZE) ei_aligned_free(PTR)
 #endif
 
 /** \class WithAlignedOperatorNew
