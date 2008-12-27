@@ -91,6 +91,7 @@ cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
 template<typename Derived>
 cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
 {
+  EIGEN_STATIC_ASSERT((ei_traits<Derived>::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   typedef typename Derived::Scalar Scalar;
 
   cholmod_dense res;
@@ -225,15 +226,15 @@ void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
   ei_assert(size==b.rows());
 
   // this uses Eigen's triangular sparse solver
-  if (m_status & MatrixLIsDirty)
-    matrixL();
-  Base::solveInPlace(b);
+//   if (m_status & MatrixLIsDirty)
+//     matrixL();
+//   Base::solveInPlace(b);
   // as long as our own triangular sparse solver is not fully optimal,
   // let's use CHOLMOD's one:
-//   cholmod_dense cdb = ei_cholmod_map_eigen_to_dense(b);
-//   cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, m_cholmodFactor, &cdb, &m_cholmod);
-//   b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
-//   cholmod_free_dense(&x, &m_cholmod);
+  cholmod_dense cdb = ei_cholmod_map_eigen_to_dense(b);
+  cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, m_cholmodFactor, &cdb, &m_cholmod);
+  b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
+  cholmod_free_dense(&x, &m_cholmod);
 }
 
 #endif // EIGEN_CHOLMODSUPPORT_H
