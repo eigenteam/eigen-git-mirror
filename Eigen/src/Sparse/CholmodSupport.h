@@ -25,6 +25,35 @@
 #ifndef EIGEN_CHOLMODSUPPORT_H
 #define EIGEN_CHOLMODSUPPORT_H
 
+template<typename Scalar, typename CholmodType>
+void ei_cholmod_configure_matrix(CholmodType& mat)
+{
+  if (ei_is_same_type<Scalar,float>::ret)
+  {
+    mat.xtype = CHOLMOD_REAL;
+    mat.dtype = 1;
+  }
+  else if (ei_is_same_type<Scalar,double>::ret)
+  {
+    mat.xtype = CHOLMOD_REAL;
+    mat.dtype = 0;
+  }
+  else if (ei_is_same_type<Scalar,std::complex<float> >::ret)
+  {
+    mat.xtype = CHOLMOD_COMPLEX;
+    mat.dtype = 1;
+  }
+  else if (ei_is_same_type<Scalar,std::complex<double> >::ret)
+  {
+    mat.xtype = CHOLMOD_COMPLEX;
+    mat.dtype = 0;
+  }
+  else
+  {
+    ei_assert(false && "Scalar type not supported by CHOLMOD");
+  }
+}
+
 template<typename Scalar, int Flags>
 cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
 {
@@ -42,30 +71,7 @@ cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
   res.dtype = 0;
   res.stype = -1;
 
-  if (ei_is_same_type<Scalar,float>::ret)
-  {
-    res.xtype = CHOLMOD_REAL;
-    res.dtype = 1;
-  }
-  else if (ei_is_same_type<Scalar,double>::ret)
-  {
-    res.xtype = CHOLMOD_REAL;
-    res.dtype = 0;
-  }
-  else if (ei_is_same_type<Scalar,std::complex<float> >::ret)
-  {
-    res.xtype = CHOLMOD_COMPLEX;
-    res.dtype = 1;
-  }
-  else if (ei_is_same_type<Scalar,std::complex<double> >::ret)
-  {
-    res.xtype = CHOLMOD_COMPLEX;
-    res.dtype = 0;
-  }
-  else
-  {
-    ei_assert(false && "Scalar type not supported by CHOLMOD");
-  }
+  ei_cholmod_configure_matrix<Scalar>(res);
 
   if (Flags & SelfAdjoint)
   {
@@ -78,6 +84,24 @@ cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
   }
   else
     res.stype = 0;
+
+  return res;
+}
+
+template<typename Derived>
+cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
+{
+  typedef typename Derived::Scalar Scalar;
+
+  cholmod_dense res;
+  res.nrow   = mat.rows();
+  res.ncol   = mat.cols();
+  res.nzmax  = res.nrow * res.ncol;
+  res.d      = mat.derived().stride();
+  res.x      = mat.derived().data();
+  res.z      = 0;
+
+  ei_cholmod_configure_matrix<Scalar>(res);
 
   return res;
 }
@@ -103,7 +127,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
 {
   protected:
     typedef SparseLLT<MatrixType> Base;
-    using Base::Scalar;
+    using typename Base::Scalar;
     using Base::RealScalar;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
@@ -155,11 +179,12 @@ void SparseLLT<MatrixType,Cholmod>::compute(const MatrixType& a)
   }
 
   cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
+  m_cholmod.supernodal = CHOLMOD_AUTO;
   // TODO
   if (m_flags&IncompleteFactorization)
   {
     m_cholmod.nmethods = 1;
-    m_cholmod.method [0].ordering = CHOLMOD_NATURAL;
+    m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
     m_cholmod.postorder = 0;
   }
   else
@@ -196,13 +221,19 @@ template<typename MatrixType>
 template<typename Derived>
 void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  if (m_status & MatrixLIsDirty)
-    matrixL();
-
-  const int size = m_matrix.rows();
+  const int size = m_cholmodFactor->n;
   ei_assert(size==b.rows());
 
+  // this uses Eigen's triangular sparse solver
+  if (m_status & MatrixLIsDirty)
+    matrixL();
   Base::solveInPlace(b);
+  // as long as our own triangular sparse solver is not fully optimal,
+  // let's use CHOLMOD's one:
+//   cholmod_dense cdb = ei_cholmod_map_eigen_to_dense(b);
+//   cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, m_cholmodFactor, &cdb, &m_cholmod);
+//   b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
+//   cholmod_free_dense(&x, &m_cholmod);
 }
 
 #endif // EIGEN_CHOLMODSUPPORT_H

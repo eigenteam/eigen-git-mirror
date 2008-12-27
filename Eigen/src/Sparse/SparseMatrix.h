@@ -148,7 +148,7 @@ class SparseMatrix
       */
     inline void startFill(int reserveSize = 1000)
     {
-      std::cerr << this << " startFill\n";
+//       std::cerr << this << " startFill\n";
       setZero();
       m_data.reserve(reserveSize);
     }
@@ -214,7 +214,7 @@ class SparseMatrix
       m_data.index(id+1) = inner;
       //return (m_data.value(id+1) = 0);
       m_data.value(id+1) = 0;
-      std::cerr << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
+//       std::cerr << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
       return m_data.value(id+1);
     }
 
@@ -222,7 +222,7 @@ class SparseMatrix
 
     inline void endFill()
     {
-      std::cerr << this << " endFill\n";
+//       std::cerr << this << " endFill\n";
       int size = m_data.size();
       int i = m_outerSize;
       // find the last filled column
@@ -238,7 +238,7 @@ class SparseMatrix
 
     void resize(int rows, int cols)
     {
-      std::cerr << this << " resize " << rows << "x" << cols << "\n";
+//       std::cerr << this << " resize " << rows << "x" << cols << "\n";
       const int outerSize = RowMajor ? rows : cols;
       m_innerSize = RowMajor ? cols : rows;
       m_data.clear();
@@ -268,6 +268,12 @@ class SparseMatrix
 
     template<typename OtherDerived>
     inline SparseMatrix(const MatrixBase<OtherDerived>& other)
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
+    {
+      *this = other.derived();
+    }
+
+    inline SparseMatrix(const SparseMatrix& other)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       *this = other.derived();
