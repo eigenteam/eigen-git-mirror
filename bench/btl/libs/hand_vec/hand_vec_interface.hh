@@ -38,11 +38,11 @@ public :
   typedef typename f77_interface_base<real>::gene_vector gene_vector;
 
   static void free_matrix(gene_matrix & A, int N){
-    ei_aligned_free(A);
+    ei_aligned_free(A, 0);
   }
 
   static void free_vector(gene_vector & B){
-    ei_aligned_free(B);
+    ei_aligned_free(B, 0);
   }
 
   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){

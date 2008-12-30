@@ -45,8 +45,8 @@ template<typename VectorType> void map_class(const VectorType& m)
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
   
-  ei_aligned_free(array1);
-  ei_aligned_free(array2);
+  ei_aligned_free(array1, size);
+  ei_aligned_free(array2, size);
   delete[] array3;
 }
 
@@ -71,8 +71,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
   
-  ei_aligned_free(array1);
-  ei_aligned_free(array2);
+  ei_aligned_free(array1, size);
+  ei_aligned_free(array2, size);
   delete[] array3;
 }
 

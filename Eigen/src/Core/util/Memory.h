@@ -26,7 +26,7 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#if defined(EIGEN_VECTORIZE) && !defined(_MSC_VER)
+#ifdef __linux
 // it seems we cannot assume posix_memalign is defined in the stdlib header
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 #endif
@@ -40,13 +40,8 @@ template <typename T, int Size, bool Align> struct ei_aligned_array
 
   ei_aligned_array()
   {
-    #ifdef EIGEN_VECTORIZE // we only want this assertion if EIGEN_VECTORIZE is defined.
-       // indeed, if it's not defined then WithAlignedOperatorNew is empty and hence there's not much point
-       // requiring the user to inherit it! Would be best practice, but we already decided at several places
-       // to only do special alignment if vectorization is enabled.
     ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
               && "this assertion is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
-    #endif
   }
 };
 
@@ -69,59 +64,64 @@ template<> struct ei_force_aligned_malloc<ei_byte_forcing_aligned_malloc> { enum
 template<typename T>
 inline T* ei_aligned_malloc(size_t size)
 {
-  T* result;
-
-  #ifdef EIGEN_VECTORIZE
   if(ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
   {
+    void *void_result;
     #ifdef __linux
       #ifdef EIGEN_EXCEPTIONS
         const int failed =
       #endif
-      posix_memalign(reinterpret_cast<void**>(&result), 16, size*sizeof(T));
+      posix_memalign(&void_result, 16, size*sizeof(T));
     #else
       #ifdef _MSC_VER
-        result = static_cast<T*>(_aligned_malloc(size*sizeof(T), 16));
+        void_result = _aligned_malloc(size*sizeof(T), 16);
       #else
-        result = static_cast<T*>(_mm_malloc(size*sizeof(T),16));
+        void_result = _mm_malloc(size*sizeof(T), 16);
       #endif
-      
       #ifdef EIGEN_EXCEPTIONS
-        const int failed = (result == 0);
+        const int failed = (void_result == 0);
       #endif
     #endif
     #ifdef EIGEN_EXCEPTIONS
       if(failed)
         throw std::bad_alloc();
     #endif
+    // if the user uses Eigen on some fancy scalar type such as multiple-precision numbers,
+    // and this type has a custom operator new, then we want to honor this operator new!
+    // so when we use C functions to allocate memory, we must be careful to call manually the constructor using
+    // the special placement-new syntax.
+    return new(void_result) T[size];    
   }
   else
-  #endif
-    result = new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
+    return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
       // some fancy scalar type such as multiple-precision numbers, and this type has a custom operator new,
       // then we want to honor this operator new! Anyway this type won't have vectorization so the vectorizing path
       // is irrelevant here. Yes, we should say somewhere in the docs that if the user uses a custom scalar type then
       // he can't have both vectorization and a custom operator new on his scalar type.
-	  
-  return result;
 }
 
-/** \internal free memory allocated with ei_aligned_malloc */
+/** \internal free memory allocated with ei_aligned_malloc
+  * The \a size parameter is used to determine on how many elements to call the destructor. If you don't
+  * want any destructor to be called, just pass 0.
+  */
 template<typename T>
-inline void ei_aligned_free(T* ptr)
+inline void ei_aligned_free(T* ptr, size_t size)
 {
-  #ifdef EIGEN_VECTORIZE
     if (ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
-    #if defined(__linux)
-      free(ptr);
-    #elif defined(_MSC_VER)
-      _aligned_free(ptr);
-    #else
-      _mm_free(ptr);
-    #endif
+    {
+      // need to call manually the dtor in case T is some user-defined fancy numeric type.
+      // always destruct an array starting from the end.
+      while(size) ptr[--size].~T();
+      #if defined(__linux)
+        free(ptr);
+      #elif defined(_MSC_VER)
+        _aligned_free(ptr);
+      #else
+        _mm_free(ptr);
+      #endif
+    }
     else
-  #endif
-    delete[] ptr;
+      delete[] ptr;
 }
 
 /** \internal \returns the number of elements which have to be skipped such that data are 16 bytes aligned */
@@ -153,10 +153,10 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   #define ei_alloc_stack(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>EIGEN_STACK_ALLOCATION_LIMIT) \
                                     ? ei_aligned_malloc<TYPE>(SIZE) \
                                     : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
-  #define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
+  #define ei_free_stack(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR,SIZE)
 #else
   #define ei_alloc_stack(TYPE,SIZE) ei_aligned_malloc<TYPE>(SIZE)
-  #define ei_free_stack(PTR,TYPE,SIZE) ei_aligned_free(PTR)
+  #define ei_free_stack(PTR,TYPE,SIZE) ei_aligned_free(PTR,SIZE)
 #endif
 
 /** \class WithAlignedOperatorNew
@@ -200,8 +200,6 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   */
 struct WithAlignedOperatorNew
 {
-  #ifdef EIGEN_VECTORIZE
-
   void *operator new(size_t size) throw()
   {
     return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
@@ -212,10 +210,8 @@ struct WithAlignedOperatorNew
     return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
   }
 
-  void operator delete(void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr)); }
-  void operator delete[](void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr)); }
-
-  #endif
+  void operator delete(void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr), 0); }
+  void operator delete[](void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr), 0); }
 };
 
 template<typename T, int SizeAtCompileTime,
