@@ -89,9 +89,9 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
           ? DiagonalProduct
           : (Rhs::Flags & Lhs::Flags & SparseBit)
           ? SparseProduct
-          : Lhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-            && ( Lhs::MaxRowsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-              || Rhs::MaxColsAtCompileTime >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD )
+          : Lhs::MaxColsAtCompileTime == Dynamic
+            && ( Lhs::MaxRowsAtCompileTime == Dynamic
+              || Rhs::MaxColsAtCompileTime == Dynamic )
             && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!(Lhs::Flags&DirectAccessBit))))
             && (!(Lhs::IsVectorAtCompileTime && (!(Rhs::Flags&RowMajorBit)) && (!(Rhs::Flags&DirectAccessBit))))
             && (ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)

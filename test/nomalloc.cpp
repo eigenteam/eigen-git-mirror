@@ -25,8 +25,11 @@
 
 // this hack is needed to make this file compiles with -pedantic (gcc)
 #define throw(X)
-// discard vectorization since operator new is not called in that case
+// discard vectorization since the global operator new is not called in that case
 #define EIGEN_DONT_VECTORIZE 1
+// discard stack allocation as that too bypasses the global operator new
+#define EIGEN_STACK_ALLOCATION_LIMIT 0
+
 #include "main.h"
 
 void* operator new[] (size_t n)
@@ -84,4 +87,5 @@ void test_nomalloc()
   VERIFY_RAISES_ASSERT(MatrixXd dummy = MatrixXd::Random(3,3));
   CALL_SUBTEST( nomalloc(Matrix<float, 1, 1>()) );
   CALL_SUBTEST( nomalloc(Matrix4d()) );
+  CALL_SUBTEST( nomalloc(Matrix<float,32,32>()) );
 }
