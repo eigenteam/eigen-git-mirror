@@ -62,8 +62,7 @@ enum {
 
 template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SparseMatrix;
-template<typename _Scalar, int _Flags = 0> class HashMatrix;
-template<typename _Scalar, int _Flags = 0> class LinkedVectorMatrix;
+template<typename _Scalar, int _Flags = 0> class SparseVector;
 
 const int AccessPatternNotSupported = 0x0;
 const int AccessPatternSupported    = 0x1;

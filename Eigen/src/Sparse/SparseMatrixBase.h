@@ -32,6 +32,7 @@ class SparseMatrixBase : public MatrixBase<Derived>
 
     typedef MatrixBase<Derived> Base;
     typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     enum {
       Flags = Base::Flags,
       RowMajor = ei_traits<Derived>::Flags&RowMajorBit ? 1 : 0

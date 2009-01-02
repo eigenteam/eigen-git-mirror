@@ -415,13 +415,13 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
         m_start(m_id), m_end(m_matrix.m_outerIndex[outer+1])
     {}
 
-    InnerIterator& operator++() { m_id++; return *this; }
+    inline InnerIterator& operator++() { m_id++; return *this; }
 
-    Scalar value() const { return m_matrix.m_data.value(m_id); }
+    inline Scalar value() const { return m_matrix.m_data.value(m_id); }
 
-    int index() const { return m_matrix.m_data.index(m_id); }
+    inline int index() const { return m_matrix.m_data.index(m_id); }
 
-    operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
+    inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
 
   protected:
     const SparseMatrix& m_matrix;
