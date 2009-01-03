@@ -122,12 +122,11 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 class Matrix
   : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-    #ifdef EIGEN_VECTORIZE
     , public ei_with_aligned_operator_new<_Scalar,ei_size_at_compile_time<_Rows,_Cols>::ret>
-    #endif
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
+    enum { StorageOrder = _StorageOrder };
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
     friend class Eigen::Map<Matrix, Aligned>;

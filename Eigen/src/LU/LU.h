@@ -76,7 +76,7 @@ template<typename MatrixType> class LU
                   MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix" is the number of cols of the original matrix
                                                  // so that the product "matrix * kernel = zero" makes sense
                   Dynamic,                       // we don't know at compile-time the dimension of the kernel
-                  MatrixType::Flags&RowMajorBit,
+                  MatrixType::StorageOrder,
                   MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
                   MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space, whose dimension is the number
                                                    // of columns of the original matrix
@@ -86,7 +86,7 @@ template<typename MatrixType> class LU
                    MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose dimension is the number
                                                   // of rows of the original matrix
                    Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
-                   MatrixType::Flags,
+                   MatrixType::StorageOrder,
                    MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
                    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
     > ImageResultType;
@@ -436,7 +436,7 @@ void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
     * independent vectors in Ker U.
     */
 
-  Matrix<Scalar, Dynamic, Dynamic, MatrixType::Flags&RowMajorBit,
+  Matrix<Scalar, Dynamic, Dynamic, MatrixType::StorageOrder,
          MatrixType::MaxColsAtCompileTime, MatrixType::MaxColsAtCompileTime>
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
@@ -504,7 +504,7 @@ bool LU<MatrixType>::solve(
 
   // Step 2
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
-         MatrixType::Flags&RowMajorBit,
+         MatrixType::StorageOrder,
          MatrixType::MaxRowsAtCompileTime,
          MatrixType::MaxRowsAtCompileTime> l(rows, rows);
   l.setZero();
@@ -523,7 +523,7 @@ bool LU<MatrixType>::solve(
           return false;
   }
   Matrix<Scalar, Dynamic, OtherDerived::ColsAtCompileTime,
-         MatrixType::Flags&RowMajorBit,
+         MatrixType::StorageOrder,
          MatrixType::MaxRowsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
     d(c.corner(TopLeft, m_rank, c.cols()));
   m_lu.corner(TopLeft, m_rank, m_rank)

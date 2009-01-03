@@ -24,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
+#define EIGEN_DONT_VECTORIZE // SSE intrinsics aren't designed to allow mixing types
 #include "main.h"
 
 

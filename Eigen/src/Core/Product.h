@@ -573,7 +573,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
        _res = &res.coeffRef(0);
     else
     {
-      _res = ei_alloc_stack(Scalar,res.size());
+      _res = ei_aligned_stack_alloc(Scalar,res.size());
       Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
@@ -583,7 +583,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
     if (!EvalToRes)
     {
       res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
-      ei_free_stack(_res, Scalar, res.size());
+      ei_aligned_stack_free(_res, Scalar, res.size());
     }
   }
 };
@@ -619,7 +619,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
        _res = &res.coeffRef(0);
     else
     {
-      _res = ei_alloc_stack(Scalar, res.size());
+      _res = ei_aligned_stack_alloc(Scalar, res.size());
       Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
@@ -629,7 +629,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     if (!EvalToRes)
     {
       res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
-      ei_free_stack(_res, Scalar, res.size());
+      ei_aligned_stack_free(_res, Scalar, res.size());
     }
   }
 };
@@ -652,13 +652,13 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
        _rhs = &product.rhs().const_cast_derived().coeffRef(0);
     else
     {
-      _rhs = ei_alloc_stack(Scalar, product.rhs().size());
+      _rhs = ei_aligned_stack_alloc(Scalar, product.rhs().size());
       Map<Matrix<Scalar,Rhs::SizeAtCompileTime,1> >(_rhs, product.rhs().size()) = product.rhs();
     }
     ei_cache_friendly_product_rowmajor_times_vector(&product.lhs().const_cast_derived().coeffRef(0,0), product.lhs().stride(),
                                                     _rhs, product.rhs().size(), res);
 
-    if (!UseRhsDirectly) ei_free_stack(_rhs, Scalar, product.rhs().size());
+    if (!UseRhsDirectly) ei_aligned_stack_free(_rhs, Scalar, product.rhs().size());
   }
 };
 
@@ -680,13 +680,13 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
        _lhs = &product.lhs().const_cast_derived().coeffRef(0);
     else
     {
-      _lhs = ei_alloc_stack(Scalar, product.lhs().size());
+      _lhs = ei_aligned_stack_alloc(Scalar, product.lhs().size());
       Map<Matrix<Scalar,Lhs::SizeAtCompileTime,1> >(_lhs, product.lhs().size()) = product.lhs();
     }
     ei_cache_friendly_product_rowmajor_times_vector(&product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
                                                     _lhs, product.lhs().size(), res);
 
-    if(!UseLhsDirectly) ei_free_stack(_lhs, Scalar, product.lhs().size());
+    if(!UseLhsDirectly) ei_aligned_stack_free(_lhs, Scalar, product.lhs().size());
   }
 };
 
