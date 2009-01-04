@@ -31,25 +31,6 @@
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 #endif
 
-/** \internal
-  * Static array automatically aligned if the total byte size is a multiple of 16
-  */
-template <typename T, int Size, bool Align> struct ei_aligned_array
-{
-  EIGEN_ALIGN_128 T array[Size];
-
-  ei_aligned_array()
-  {
-    ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
-              && "this assertion is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
-  }
-};
-
-template <typename T, int Size> struct ei_aligned_array<T,Size,false>
-{
-  T array[Size];
-};
-
 struct ei_byte_forcing_aligned_malloc
 {
   unsigned char c; // sizeof must be 1.

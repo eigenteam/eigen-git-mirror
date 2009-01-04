@@ -28,6 +28,12 @@
 
 #undef minor
 
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Matrix_RowMajor
+#else
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Matrix_ColMajor
+#endif
+
 /** \internal  Defines the maximal loop size to enable meta unrolling of loops.
   *            Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
   *            it does not correspond to the number of iterations or the number of instructions

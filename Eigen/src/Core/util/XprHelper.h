@@ -85,22 +85,16 @@ template<typename T> struct ei_unpacket_traits
   enum {size=1};
 };
 
-
-template<typename Scalar, int Rows, int Cols, int StorageOrder, int MaxRows, int MaxCols>
+template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 class ei_compute_matrix_flags
 {
     enum {
-      row_major_bit = (Rows != 1 && Cols != 1)  // if this is not a vector,
-                                                // then the storage order really matters,
-                                                // so let us strictly honor the user's choice.
-                    ? StorageOrder
-                    : Cols > 1 ? RowMajorBit : 0,
+      row_major_bit = Options&Matrix_RowMajor ? RowMajorBit : 0,
       inner_max_size = row_major_bit ? MaxCols : MaxRows,
       is_big = inner_max_size == Dynamic,
-      is_packet_size_multiple = (Cols * Rows)%ei_packet_traits<Scalar>::size==0,
-      packet_access_bit = ei_packet_traits<Scalar>::size > 1
-                          && (is_big || is_packet_size_multiple) ? PacketAccessBit : 0,
-      aligned_bit = packet_access_bit && (is_big || is_packet_size_multiple) ? AlignedBit : 0
+      is_packet_size_multiple = (Cols*Rows) % ei_packet_traits<Scalar>::size == 0,
+      aligned_bit = ((Options&Matrix_AutoAlign) && (is_big || is_packet_size_multiple)) ? AlignedBit : 0,
+      packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0
     };
 
   public:
@@ -123,7 +117,7 @@ template<typename T> struct ei_eval<T,IsDense>
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
                 ei_traits<T>::ColsAtCompileTime,
-                ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor,
+                Matrix_AutoAlign | (ei_traits<T>::Flags&RowMajorBit ? Matrix_RowMajor : Matrix_ColMajor),
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;
@@ -144,7 +138,7 @@ template<typename T> struct ei_plain_matrix_type
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
                 ei_traits<T>::ColsAtCompileTime,
-                ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor,
+                Matrix_AutoAlign | (ei_traits<T>::Flags&RowMajorBit ? Matrix_RowMajor : Matrix_ColMajor),
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;
@@ -157,7 +151,7 @@ template<typename T> struct ei_plain_matrix_type_column_major
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
                 ei_traits<T>::ColsAtCompileTime,
-                ColMajor,
+                Matrix_AutoAlign | Matrix_ColMajor,
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;

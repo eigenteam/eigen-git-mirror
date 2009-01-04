@@ -67,6 +67,12 @@ struct Good8 : Eigen::WithAlignedOperatorNew
   Matrix4f m;
 };
 
+struct Good9
+{
+  Matrix<float,2,2,Matrix_DontAlign> m; // good: no alignment requested
+  float f;
+};
+
 template<typename T>
 void check_unalignedassert_good()
 {
@@ -80,7 +86,7 @@ void check_unalignedassert_good()
 template<typename T>
 void check_unalignedassert_bad()
 {
-  float buf[1000];
+  float buf[sizeof(T)+16];
   float *unaligned = buf;
   while((reinterpret_cast<size_t>(unaligned)&0xf)==0) ++unaligned; // make sure unaligned is really unaligned
   T *x = new(static_cast<void*>(unaligned)) T;
@@ -97,6 +103,7 @@ void unalignedassert()
   VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad6>());
   check_unalignedassert_good<Good7>();
   check_unalignedassert_good<Good8>();
+  check_unalignedassert_good<Good9>();
 }
 
 void test_unalignedassert()

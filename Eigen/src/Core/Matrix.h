@@ -40,7 +40,10 @@
   * \param _Cols Number of columns, or \b Dynamic
   *
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
-  * \param _StorageOrder Either \b RowMajor or \b ColMajor. The default is \b ColMajor.
+  * \param _Options A combination of either \b Matrix_RowMajor or \b Matrix_ColMajor, and of either
+  *                 \b Matrix_AutoAlign or \b Matrix_DontAlign.
+  *                 The former controls storage order, and defaults to column-major. The latter controls alignment, which is required
+  *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
   * \param _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
   * \param _MaxCols Maximum number of columns. Defaults to \a _Cols (\ref maxrows "note").
   *
@@ -85,7 +88,7 @@
   * to 16x16. Larger matrices should be declared as dynamic-size even if one happens to know their size at compile-time.
   *
   * Dynamic-size means that the numbers of rows or columns are not necessarily known at compile-time. In this case they are runtime
-  * variables, and the array of coefficients is allocated dynamically, typically on the heap (\ref alloca "note").
+  * variables, and the array of coefficients is allocated dynamically on the heap.
   *
   * Note that \em dense matrices, be they Fixed-size or Dynamic-size, <em>do not</em> expand dynamically in the sense of a std::map.
   * If you want this behavior, see the Sparse module.</dd>
@@ -97,15 +100,10 @@
   * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
   * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.</dd>
   *
-  * <dt><b>\anchor alloca Usage of alloca():</b></dt>
-  * <dd>On the Linux platform, for small enough arrays, Eigen will avoid heap allocation and instead will use alloca() to perform a dynamic
-  * allocation on the stack.</dd>
-  * </dl>
-  *
   * \see MatrixBase for the majority of the API methods for matrices
   */
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   enum {
@@ -113,27 +111,34 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>::ret,
+    Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = RandomAccessPattern
   };
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+template<int Options,
+         bool NeedsToAlign = (Options&Matrix_AutoAlign)>
+struct ei_matrix_with_aligned_operator_new : WithAlignedOperatorNew {};
+
+template<int Options>
+struct ei_matrix_with_aligned_operator_new<Options, false> {};
+
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
-  : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols> >
-    , public ei_with_aligned_operator_new<_Scalar,ei_size_at_compile_time<_Rows,_Cols>::ret>
+  : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+  , public ei_matrix_with_aligned_operator_new<_Options>
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
-    enum { StorageOrder = _StorageOrder };
+    enum { Options = _Options };
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
     friend class Eigen::Map<Matrix, Aligned>;
     typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
 
   protected:
-    ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime> m_storage;
+    ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
 
   public:
 

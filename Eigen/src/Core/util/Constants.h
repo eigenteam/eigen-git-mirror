@@ -223,8 +223,15 @@ enum {
 };
 
 enum {
-  ColMajor = 0,
-  RowMajor = RowMajorBit
+  Matrix_ColMajor = 0,
+  Matrix_RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
+  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be
+                requested to be aligned) */
+  ColMajor = Matrix_ColMajor, // deprecated
+  RowMajor = Matrix_RowMajor, // deprecated
+  Matrix_DontAlign = 0,
+  /** \internal Align the matrix itself */
+  Matrix_AutoAlign = 0x2
 };
 
 enum {

@@ -38,8 +38,8 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   m2.setRandom();
   typedef typename MatrixType::Scalar Scalar;
   Scalar x = ei_random<Scalar>();
-  VERIFY(ei_isApprox(MatrixType::Identity(size, size).determinant(), Scalar(1)));
-  VERIFY(ei_isApprox((m1*m2).determinant(), m1.determinant() * m2.determinant()));
+  VERIFY_IS_APPROX(MatrixType::Identity(size, size).determinant(), Scalar(1));
+  VERIFY_IS_APPROX((m1*m2).determinant(), m1.determinant() * m2.determinant());
   if(size==1) return;
   int i = ei_random<int>(0, size-1);
   int j;
@@ -48,18 +48,18 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   } while(j==i);
   m2 = m1;
   m2.row(i).swap(m2.row(j));
-  VERIFY(ei_isApprox(m2.determinant(), -m1.determinant()));
+  VERIFY_IS_APPROX(m2.determinant(), -m1.determinant());
   m2 = m1;
   m2.col(i).swap(m2.col(j));
-  VERIFY(ei_isApprox(m2.determinant(), -m1.determinant()));
-  VERIFY(ei_isApprox(m2.determinant(), m2.transpose().determinant()));
-  VERIFY(ei_isApprox(ei_conj(m2.determinant()), m2.adjoint().determinant()));
+  VERIFY_IS_APPROX(m2.determinant(), -m1.determinant());
+  VERIFY_IS_APPROX(m2.determinant(), m2.transpose().determinant());
+  VERIFY_IS_APPROX(ei_conj(m2.determinant()), m2.adjoint().determinant());
   m2 = m1;
   m2.row(i) += x*m2.row(j);
-  VERIFY(ei_isApprox(m2.determinant(), m1.determinant()));
+  VERIFY_IS_APPROX(m2.determinant(), m1.determinant());
   m2 = m1;
   m2.row(i) *= x;
-  VERIFY(ei_isApprox(m2.determinant(), m1.determinant() * x));
+  VERIFY_IS_APPROX(m2.determinant(), m1.determinant() * x);
 }
 
 void test_determinant()
@@ -72,4 +72,5 @@ void test_determinant()
     CALL_SUBTEST( determinant(Matrix<std::complex<double>, 10, 10>()) );
     CALL_SUBTEST( determinant(MatrixXd(20, 20)) );
   }
+  CALL_SUBTEST( determinant(MatrixXd(200, 200)) );
 }

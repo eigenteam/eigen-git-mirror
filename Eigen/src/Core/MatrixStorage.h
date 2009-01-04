@@ -27,6 +27,27 @@
 #define EIGEN_MATRIXSTORAGE_H
 
 /** \internal
+  * Static array automatically aligned if the total byte size is a multiple of 16 and the matrix options require auto alignment
+  */
+template <typename T, int Size, int MatrixOptions,
+          bool Align = (MatrixOptions&Matrix_AutoAlign) && (((Size*sizeof(T))&0xf)==0)
+> struct ei_matrix_array
+{
+  EIGEN_ALIGN_128 T array[Size];
+
+  ei_matrix_array()
+  {
+    ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
+              && "this assertion is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
+  }
+};
+
+template <typename T, int Size, int MatrixOptions> struct ei_matrix_array<T,Size,MatrixOptions,false>
+{
+  T array[Size];
+};
+
+/** \internal
   *
   * \class ei_matrix_storage
   *
@@ -37,12 +58,12 @@
   *
   * \sa Matrix
   */
-template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage;
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage;
 
 // purely fixed-size matrix
-template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage
 {
-    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
+    ei_matrix_array<T,Size,_Options> m_data;
   public:
     inline explicit ei_matrix_storage() {}
     inline ei_matrix_storage(int,int,int) {}
@@ -55,9 +76,9 @@ template<typename T, int Size, int _Rows, int _Cols> class ei_matrix_storage
 };
 
 // dynamic-size matrix with fixed-size storage
-template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic>
+template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dynamic, Dynamic, _Options>
 {
-    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
+    ei_matrix_array<T,Size,_Options> m_data;
     int m_rows;
     int m_cols;
   public:
@@ -78,9 +99,9 @@ template<typename T, int Size> class ei_matrix_storage<T, Size, Dynamic, Dynamic
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
-template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynamic, _Cols>
+template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<T, Size, Dynamic, _Cols, _Options>
 {
-    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
+    ei_matrix_array<T,Size,_Options> m_data;
     int m_rows;
   public:
     inline explicit ei_matrix_storage() : m_rows(0) {}
@@ -98,9 +119,9 @@ template<typename T, int Size, int _Cols> class ei_matrix_storage<T, Size, Dynam
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
-template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows, Dynamic>
+template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<T, Size, _Rows, Dynamic, _Options>
 {
-    ei_aligned_array<T,Size,((Size*sizeof(T))%16)==0> m_data;
+    ei_matrix_array<T,Size,_Options> m_data;
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_cols(0) {}
@@ -118,7 +139,7 @@ template<typename T, int Size, int _Rows> class ei_matrix_storage<T, Size, _Rows
 };
 
 // purely dynamic matrix.
-template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
+template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic, _Options>
 {
     T *m_data;
     int m_rows;
@@ -147,7 +168,7 @@ template<typename T> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic>
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
-template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic>
+template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic, _Options>
 {
     T *m_data;
     int m_cols;
@@ -172,7 +193,7 @@ template<typename T, int _Rows> class ei_matrix_storage<T, Dynamic, _Rows, Dynam
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
-template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols>
+template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols, _Options>
 {
     T *m_data;
     int m_rows;
