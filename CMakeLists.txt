@@ -1,5 +1,5 @@
 project(Eigen)
-set(EIGEN_VERSION_NUMBER "2.0-beta3")
+set(EIGEN_VERSION_NUMBER "2.0-beta4")
 
 #if the svnversion program is absent, this will leave the SVN_REVISION string empty,
 #but won't stop CMake.
@@ -12,7 +12,7 @@ else(EIGEN_SVN_REVISION)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 endif(EIGEN_SVN_REVISION)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.6.2)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
