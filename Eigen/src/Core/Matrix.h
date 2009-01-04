@@ -117,17 +117,17 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
   };
 };
 
-template<int Options,
-         bool NeedsToAlign = (Options&Matrix_AutoAlign)>
+template<typename T, int Rows, int Cols, int Options,
+         bool NeedsToAlign = (Options&Matrix_AutoAlign == Matrix_AutoAlign) && Rows!=Dynamic && Cols!=Dynamic && ((sizeof(T)*Rows*Cols)%16==0)>
 struct ei_matrix_with_aligned_operator_new : WithAlignedOperatorNew {};
 
-template<int Options>
-struct ei_matrix_with_aligned_operator_new<Options, false> {};
+template<typename T, int Rows, int Cols, int Options>
+struct ei_matrix_with_aligned_operator_new<T, Rows, Cols, Options, false> {};
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
   : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-  , public ei_matrix_with_aligned_operator_new<_Options>
+  , public ei_matrix_with_aligned_operator_new<_Scalar, _Rows, _Cols, _Options>
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
