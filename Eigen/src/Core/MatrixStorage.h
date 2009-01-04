@@ -130,7 +130,7 @@ template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return _Rows;}
     inline int cols(void) const {return m_cols;}
-    inline void resize(int size, int, int cols)
+    inline void resize(int, int, int cols)
     {
       m_cols = cols;
     }

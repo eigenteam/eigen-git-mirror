@@ -4,7 +4,10 @@ set(EIGEN_VERSION_NUMBER "2.0-beta4")
 #if the svnversion program is absent, this will leave the SVN_REVISION string empty,
 #but won't stop CMake.
 execute_process(COMMAND svnversion -n ${CMAKE_SOURCE_DIR}
-                OUTPUT_VARIABLE EIGEN_SVN_REVISION)
+                OUTPUT_VARIABLE EIGEN_SVNVERSION_OUTPUT)
+
+#we only want EIGEN_SVN_REVISION if it is an actual revision number, not a string like "exported"
+string(REGEX MATCH "^[0-9]+.*" EIGEN_SVN_REVISION "${EIGEN_SVNVERSION_OUTPUT}")
 
 if(EIGEN_SVN_REVISION)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (SVN revision ${EIGEN_SVN_REVISION})")
