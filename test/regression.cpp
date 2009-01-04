@@ -23,14 +23,14 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/Regression>
+#include <Eigen/LeastSquares>
 
 template<typename VectorType,
          typename HyperplaneType>
 void makeNoisyCohyperplanarPoints(int numPoints,
                                   VectorType **points,
                                   HyperplaneType *hyperplane,
-                                  typename VectorType::Scalar noiseAmplitude )
+                                  typename VectorType::Scalar noiseAmplitude)
 {
   typedef typename VectorType::Scalar Scalar;
   const int size = points[0]->size();
