@@ -16,7 +16,7 @@ namespace Eigen {
 If you saw the assertion failure that links to this page, then you probably have done something like that in your code:
 
 \code
-struct Foo
+class Foo
 {
   ...
   Eigen::Vector2d v;
@@ -28,7 +28,7 @@ struct Foo
 Foo *foo = new Foo;
 \endcode
 
-In other words: you have probably in your code a structure that has as a member a vectorizable fixed-size Eigen object, and you then dynamically allocated an object of that structure.
+In other words: you have probably in your code a class that has as a member a vectorizable fixed-size Eigen object, and you then dynamically allocated an object of that class.
 
 By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of fixed size, and whose size is a multiple of 128 bits. Examples include:
 \li Eigen::Vector2d
@@ -43,10 +43,10 @@ By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of f
 
 \section how How to fix this bug?
 
-Very easy, you just need to let your struct Foo inherit Eigen::WithAlignedOperatorNew, like this:
+Very easy, you just need to let your class Foo publicly inherit Eigen::WithAlignedOperatorNew, like this:
 
 \code
-struct Foo : Eigen::WithAlignedOperatorNew
+class Foo : public Eigen::WithAlignedOperatorNew
 {
   ...
   Eigen::Vector2d v;
@@ -65,7 +65,7 @@ With this, you should be out of trouble.
 OK let's say that your code looks like this:
 
 \code
-struct Foo
+class Foo
 {
   ...
   Eigen::Vector2d v;
@@ -85,18 +85,18 @@ For this reason, Eigen takes care by itself to require 128-bit alignment for Eig
 
 Thus, normally, you don't have to worry about anything, Eigen handles alignment for you...
 
-... except in one case. When you have a struct Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned "operator new", the returned pointer foo is not necessarily 128-bit aligned.
+... except in one case. When you have a class Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned "operator new", the returned pointer foo is not necessarily 128-bit aligned.
 
-The alignment attribute of the member v is then relative to the start of the struct, foo. If the foo pointer wasn't aligned, then foo->v won't be aligned either!
+The alignment attribute of the member v is then relative to the start of the class, foo. If the foo pointer wasn't aligned, then foo->v won't be aligned either!
 
-The solution is to let struct Foo have an aligned "operator new", as we showed in the previous section.
+The solution is to let class Foo have an aligned "operator new", as we showed in the previous section.
 
-\section movetotop Should I then put all the members of Eigen types at the beginning of my struct?
+\section movetotop Should I then put all the members of Eigen types at the beginning of my class?
 
-No, that's not needed. Since Eigen takes care of declaring 128-bit alignment, all members that need it are automatically 128-bit aligned relatively to the struct. So when you have code like
+No, that's not needed. Since Eigen takes care of declaring 128-bit alignment, all members that need it are automatically 128-bit aligned relatively to the class. So when you have code like
 
 \code
-struct Foo : Eigen::WithAlignedOperatorNew
+class Foo : public Eigen::WithAlignedOperatorNew
 {
   double x;
   Eigen::Vector2d v;
@@ -106,7 +106,7 @@ struct Foo : Eigen::WithAlignedOperatorNew
 it will work just fine. You do \b not need to rewrite it as
 
 \code
-struct Foo : Eigen::WithAlignedOperatorNew
+class Foo : public Eigen::WithAlignedOperatorNew
 {
   Eigen::Vector2d v;
   double x;

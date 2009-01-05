@@ -132,7 +132,7 @@ class Matrix
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
 
-  public: // FIXME should this be public? I'd say yes but I still don't understand then why at other places we've been having private new and delete operators.
+  public:
     enum { NeedsToAlign = (Options&Matrix_AutoAlign) == Matrix_AutoAlign
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     typedef typename ei_meta_if<NeedsToAlign, ei_byte_forcing_aligned_malloc, char>::ret ByteAlignedAsNeeded;

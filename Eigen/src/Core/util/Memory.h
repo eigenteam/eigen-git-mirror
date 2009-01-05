@@ -173,7 +173,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * overloading the operator new to return aligned data when the vectorization is enabled.
   * Here is a similar safe example:
   * \code
-  * struct Foo : WithAlignedOperatorNew {
+  * struct Foo : public WithAlignedOperatorNew {
   *   char dummy;
   *   Vector4f some_vector;
   * };
@@ -201,7 +201,7 @@ struct WithAlignedOperatorNew
 
 template<typename T, int SizeAtCompileTime,
          bool NeedsToAlign = (SizeAtCompileTime!=Dynamic) && ((sizeof(T)*SizeAtCompileTime)%16==0)>
-struct ei_with_aligned_operator_new : WithAlignedOperatorNew {};
+struct ei_with_aligned_operator_new : public WithAlignedOperatorNew {};
 
 template<typename T, int SizeAtCompileTime>
 struct ei_with_aligned_operator_new<T,SizeAtCompileTime,false> {};
