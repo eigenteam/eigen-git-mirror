@@ -57,7 +57,7 @@ public:
   { setNull(); }
 
   /** Constructs a box with extremities \a _min and \a _max. */
-  inline AlignedBox(const VectorType& _min, const VectorType _max) : m_min(_min), m_max(_max) {}
+  inline AlignedBox(const VectorType& _min, const VectorType& _max) : m_min(_min), m_max(_max) {}
 
   /** Constructs a box containing a single point \a p. */
   inline explicit AlignedBox(const VectorType& p) : m_min(p), m_max(p) {}
