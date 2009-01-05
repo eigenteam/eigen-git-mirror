@@ -306,7 +306,7 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   *
   * \only_for_vectors
   *
-  * \sa dot(), normSquared()
+  * \sa dot(), squaredNorm()
   */
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
