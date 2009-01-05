@@ -45,9 +45,7 @@
   */
 template <typename _Scalar, int _AmbientDim>
 class Hyperplane
-  #ifdef EIGEN_VECTORIZE
   : public ei_with_aligned_operator_new<_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1>
-  #endif
 {
 public:
 

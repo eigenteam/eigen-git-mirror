@@ -41,9 +41,7 @@
   */
 template<typename _Scalar, int _Dim>
 class Translation
-  #ifdef EIGEN_VECTORIZE
   : public ei_with_aligned_operator_new<_Scalar,_Dim>
-  #endif
 {
 public:
   /** dimension of the space */

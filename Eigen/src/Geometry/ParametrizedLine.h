@@ -41,9 +41,7 @@
   */
 template <typename _Scalar, int _AmbientDim>
 class ParametrizedLine
-  #ifdef EIGEN_VECTORIZE
   : public ei_with_aligned_operator_new<_Scalar,_AmbientDim>
-  #endif
 {
 public:
 

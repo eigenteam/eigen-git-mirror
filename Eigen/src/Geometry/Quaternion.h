@@ -59,9 +59,7 @@ template<typename _Scalar> struct ei_traits<Quaternion<_Scalar> >
 
 template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
-  #ifdef EIGEN_VECTORIZE
   , public ei_with_aligned_operator_new<_Scalar,4>
-  #endif
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
   typedef Matrix<_Scalar, 4, 1> Coefficients;

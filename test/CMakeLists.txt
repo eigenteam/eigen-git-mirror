@@ -27,7 +27,7 @@ else(CHOLMOD_FOUND)
 endif(CHOLMOD_FOUND)
 
 if(NOT MSVC)
-  enable_language(Fortran OPTIONAL)
+#  enable_language(Fortran OPTIONAL)
 endif(NOT MSVC)
 
 find_package(Umfpack)
