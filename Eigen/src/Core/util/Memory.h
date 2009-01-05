@@ -56,6 +56,8 @@ inline T* ei_aligned_malloc(size_t size)
     #else
       #ifdef _MSC_VER
         void_result = _aligned_malloc(size*sizeof(T), 16);
+      #elif defined(__APPLE__)
+        void_result = malloc(size*sizeof(T)); // Apple's malloc() already returns aligned ptrs
       #else
         void_result = _mm_malloc(size*sizeof(T), 16);
       #endif
@@ -71,7 +73,7 @@ inline T* ei_aligned_malloc(size_t size)
     // and this type has a custom operator new, then we want to honor this operator new!
     // so when we use C functions to allocate memory, we must be careful to call manually the constructor using
     // the special placement-new syntax.
-    return new(void_result) T[size];    
+    return new(void_result) T[size];
   }
   else
     return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
@@ -94,6 +96,8 @@ inline void ei_aligned_free(T* ptr, size_t size)
       // always destruct an array starting from the end.
       while(size) ptr[--size].~T();
       #if defined(__linux)
+        free(ptr);
+      #elif defined(__APPLE__)
         free(ptr);
       #elif defined(_MSC_VER)
         _aligned_free(ptr);
