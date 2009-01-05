@@ -119,7 +119,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 
 template<typename T, int Rows, int Cols, int Options,
          bool NeedsToAlign = ((Options&Matrix_AutoAlign) == Matrix_AutoAlign) && Rows!=Dynamic && Cols!=Dynamic && ((sizeof(T)*Rows*Cols)%16==0)>
-struct ei_matrix_with_aligned_operator_new : public WithAlignedOperatorNew {};
+struct ei_matrix_with_aligned_operator_new : WithAlignedOperatorNew {};
 
 template<typename T, int Rows, int Cols, int Options>
 struct ei_matrix_with_aligned_operator_new<T, Rows, Cols, Options, false> {};

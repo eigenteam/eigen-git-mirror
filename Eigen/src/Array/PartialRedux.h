@@ -172,6 +172,8 @@ template<typename ExpressionType, int Direction> class PartialRedux
                               > Type;
     };
 
+    typedef typename ExpressionType::PlainMatrixType CrossReturnType;
+
     inline PartialRedux(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
@@ -244,6 +246,32 @@ template<typename ExpressionType, int Direction> class PartialRedux
       * \sa MatrixBase::any() */
     const typename ReturnType<ei_member_any>::Type any() const
     { return _expression(); }
+
+    /** \returns a 3x3 matrix expression of the cross product
+      * of each column or row of the referenced expression with the \a other vector.
+      *
+      * \geometry_module
+      *
+      * \sa MatrixBase::cross() */
+    template<typename OtherDerived>
+    const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(CrossReturnType,3,3)
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
+      EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
+      if(Direction==Vertical)
+        return (CrossReturnType()
+                                 << _expression().col(0).cross(other),
+                                    _expression().col(1).cross(other),
+                                    _expression().col(2).cross(other)).finished();
+      else
+        return (CrossReturnType() 
+                                 << _expression().row(0).cross(other),
+                                    _expression().row(1).cross(other),
+                                    _expression().row(2).cross(other)).finished();
+    }
 
   protected:
     ExpressionTypeNested m_matrix;

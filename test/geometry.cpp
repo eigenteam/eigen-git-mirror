@@ -181,6 +181,13 @@ template<typename Scalar> void geometry(void)
 
   // More transform constructors, operator=, operator*=
 
+  Matrix3 mat3 = Matrix3::Random();
+  Matrix4 mat4;
+  mat4 << mat3 , Vector3::Zero() , Vector4::Zero().transpose();
+  Transform3 tmat3(mat3), tmat4(mat4);
+  tmat4.matrix()(3,3) = Scalar(1);
+  VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
+
   Scalar a3 = ei_random<Scalar>(-M_PI, M_PI);
   Vector3 v3 = Vector3::Random().normalized();
   AngleAxisx aa3(a3, v3);
@@ -388,6 +395,18 @@ template<typename Scalar> void geometry(void)
   VERIFY_EULER(2,0,2, Z,X,Z);
   VERIFY_EULER(2,1,0, Z,Y,X);
   VERIFY_EULER(2,1,2, Z,Y,Z);
+
+  // colwise/rowwise cross product
+  mat3.setRandom();
+  Vector3 vec3 = Vector3::Random();
+  Matrix3 mcross;
+  int i = ei_random<int>(0,2);
+  mcross = mat3.colwise().cross(vec3);
+  VERIFY_IS_APPROX(mcross.col(i), mat3.col(i).cross(vec3));
+  mcross = mat3.rowwise().cross(vec3);
+  VERIFY_IS_APPROX(mcross.row(i), mat3.row(i).cross(vec3));
+
+
 }
 
 void test_geometry()
