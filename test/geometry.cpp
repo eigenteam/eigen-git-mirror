@@ -59,7 +59,7 @@ template<typename Scalar> void geometry(void)
   Vector2 u0 = Vector2::Random();
   Matrix3 matrot1;
 
-  Scalar a = ei_random<Scalar>(-M_PI, M_PI);
+  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
   // cross product
   VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
@@ -77,7 +77,7 @@ template<typename Scalar> void geometry(void)
 
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
-  VERIFY_IS_APPROX(-v0, AngleAxisx(M_PI, v0.unitOrthogonal()) * v0);
+  VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
   VERIFY_IS_APPROX(ei_cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
   m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
@@ -88,8 +88,8 @@ template<typename Scalar> void geometry(void)
 
   // angular distance
   Scalar refangle = ei_abs(AngleAxisx(q1.inverse()*q2).angle());
-  if (refangle>M_PI)
-    refangle = 2.*M_PI - refangle;
+  if (refangle>Scalar(M_PI))
+    refangle = 2.*Scalar(M_PI) - refangle;
   VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
 
   // rotation matrix conversion
@@ -138,7 +138,7 @@ template<typename Scalar> void geometry(void)
   // TODO complete the tests !
   a = 0;
   while (ei_abs(a)<0.1)
-    a = ei_random<Scalar>(-0.4*M_PI, 0.4*M_PI);
+    a = ei_random<Scalar>(-0.4*Scalar(M_PI), 0.4*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
   t0.setIdentity();
@@ -188,7 +188,7 @@ template<typename Scalar> void geometry(void)
   tmat4.matrix()(3,3) = Scalar(1);
   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
 
-  Scalar a3 = ei_random<Scalar>(-M_PI, M_PI);
+  Scalar a3 = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
   Vector3 v3 = Vector3::Random().normalized();
   AngleAxisx aa3(a3, v3);
   Transform3 t3(aa3);

@@ -106,7 +106,7 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
-  template<typename OtherDerived, bool select = OtherDerived::RowsAtCompileTime == Dim>
+  template<typename OtherDerived, bool BigMatrix> // MSVC 2005 will commit suicide if BigMatrix has a default value
   struct construct_from_matrix
   {
     static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
@@ -130,7 +130,7 @@ public:
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
   {
-    construct_from_matrix<OtherDerived>::run(this, other);
+    construct_from_matrix<OtherDerived, int(OtherDerived::RowsAtCompileTime) == Dim>::run(this, other);
   }
 
   /** Set \c *this from a (Dim+1)^2 matrix. */
