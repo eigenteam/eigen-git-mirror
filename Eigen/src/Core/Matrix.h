@@ -141,7 +141,7 @@ class Matrix
       return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
     }
 
-    void *operator new(size_t, Matrix *ptr) throw()
+    void *operator new(size_t, void *ptr) throw()
     {
       return static_cast<void*>(ptr);
     }
@@ -151,7 +151,7 @@ class Matrix
       return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
     }
 
-    void *operator new[](size_t, Matrix *ptr) throw()
+    void *operator new[](size_t, void *ptr) throw()
     {
       return static_cast<void*>(ptr);
     }
