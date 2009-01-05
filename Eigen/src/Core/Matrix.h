@@ -143,7 +143,7 @@ class Matrix
 
     void *operator new(size_t, void *ptr) throw()
     {
-      return static_cast<void*>(ptr);
+      return ptr;
     }
 
     void *operator new[](size_t size) throw()
@@ -153,7 +153,7 @@ class Matrix
 
     void *operator new[](size_t, void *ptr) throw()
     {
-      return static_cast<void*>(ptr);
+      return ptr;
     }
 
     void operator delete(void * ptr) { ei_aligned_free(static_cast<ByteAlignedAsNeeded *>(ptr), 0); }
