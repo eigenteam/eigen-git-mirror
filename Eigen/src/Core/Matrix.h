@@ -117,17 +117,9 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
   };
 };
 
-template<typename T, int Rows, int Cols, int Options,
-         bool NeedsToAlign = ((Options&Matrix_AutoAlign) == Matrix_AutoAlign) && Rows!=Dynamic && Cols!=Dynamic && ((sizeof(T)*Rows*Cols)%16==0)>
-struct ei_matrix_with_aligned_operator_new : WithAlignedOperatorNew {};
-
-template<typename T, int Rows, int Cols, int Options>
-struct ei_matrix_with_aligned_operator_new<T, Rows, Cols, Options, false> {};
-
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
   : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-  , public ei_matrix_with_aligned_operator_new<_Scalar, _Rows, _Cols, _Options>
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
@@ -139,6 +131,23 @@ class Matrix
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
+
+  public: // FIXME should this be public? I'd say yes but I still don't understand then why at other places we've been having private new and delete operators.
+    enum { NeedsToAlign = (Options&Matrix_AutoAlign) == Matrix_AutoAlign
+                          && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
+    typedef typename ei_meta_if<NeedsToAlign, ei_byte_forcing_aligned_malloc, char>::ret ByteAlignedAsNeeded;
+    void *operator new(size_t size) throw()
+    {
+      return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
+    }
+
+    void *operator new[](size_t size) throw()
+    {
+      return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
+    }
+
+    void operator delete(void * ptr) { ei_aligned_free(static_cast<ByteAlignedAsNeeded *>(ptr), 0); }
+    void operator delete[](void * ptr) { ei_aligned_free(static_cast<ByteAlignedAsNeeded *>(ptr), 0); }
 
   public:
 
