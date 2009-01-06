@@ -70,7 +70,7 @@ struct Good8
 
 struct Good9
 {
-  Matrix<float,2,2,Matrix_DontAlign> m; // good: no alignment requested
+  Matrix<float,2,2,DontAlign> m; // good: no alignment requested
   float f;
 };
 

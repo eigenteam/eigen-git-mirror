@@ -30,7 +30,7 @@
   * Static array automatically aligned if the total byte size is a multiple of 16 and the matrix options require auto alignment
   */
 template <typename T, int Size, int MatrixOptions,
-          bool Align = (MatrixOptions&Matrix_AutoAlign) && (((Size*sizeof(T))&0xf)==0)
+          bool Align = (MatrixOptions&AutoAlign) && (((Size*sizeof(T))&0xf)==0)
 > struct ei_matrix_array
 {
   EIGEN_ALIGN_128 T array[Size];

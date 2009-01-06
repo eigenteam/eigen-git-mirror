@@ -37,9 +37,9 @@
                                                                  EIGEN_MINOR_VERSION>=z))))
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Matrix_RowMajor
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION RowMajor
 #else
-#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Matrix_ColMajor
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
 #endif
 
 /** \internal  Defines the maximal loop size to enable meta unrolling of loops.

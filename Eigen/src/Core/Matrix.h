@@ -40,8 +40,8 @@
   * \param _Cols Number of columns, or \b Dynamic
   *
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
-  * \param _Options A combination of either \b Matrix_RowMajor or \b Matrix_ColMajor, and of either
-  *                 \b Matrix_AutoAlign or \b Matrix_DontAlign.
+  * \param _Options A combination of either \b RowMajor or \b ColMajor, and of either
+  *                 \b AutoAlign or \b DontAlign.
   *                 The former controls storage order, and defaults to column-major. The latter controls alignment, which is required
   *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
   * \param _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
@@ -133,7 +133,7 @@ class Matrix
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
 
   public:
-    enum { NeedsToAlign = (Options&Matrix_AutoAlign) == Matrix_AutoAlign
+    enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
