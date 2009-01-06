@@ -150,19 +150,19 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
                                        char \
                                       >::ret Eigen_ByteAlignedAsNeeded; \
     void *operator new(size_t size) throw() { \
-      return ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
+      return Eigen::ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
     } \
     void *operator new(size_t, void *ptr) throw() { \
       return ptr; \
     } \
     void *operator new[](size_t size) throw() { \
-      return ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
+      return Eigen::ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
     } \
     void *operator new[](size_t, void *ptr) throw() { \
       return ptr; \
     } \
-    void operator delete(void * ptr) { ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); } \
-    void operator delete[](void * ptr) { ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); }
+    void operator delete(void * ptr) { Eigen::ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); } \
+    void operator delete[](void * ptr) { Eigen::ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); }
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW \
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(true, )
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)\
