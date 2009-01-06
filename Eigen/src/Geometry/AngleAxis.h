@@ -147,7 +147,7 @@ public:
   inline explicit AngleAxis(const AngleAxis<OtherScalarType>& other)
   {
     m_axis = other.axis().template cast<Scalar>();
-    m_angle = other.angle();
+    m_angle = Scalar(other.angle());
   }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

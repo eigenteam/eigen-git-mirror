@@ -334,7 +334,7 @@ MatrixBase<Derived>::operatorNorm() const
 template<typename RealScalar, typename Scalar>
 static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n)
 {
-  RealScalar td = (diag[end-1] - diag[end])*0.5;
+  RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
   RealScalar e2 = ei_abs2(subdiag[end-1]);
   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * ei_sqrt(td*td + e2));
   RealScalar x = diag[start] - mu;

@@ -150,7 +150,7 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
     float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
     res.resize(rows, cols);
-    res.startFill(ratioRes*rows*cols);
+    res.startFill(int(ratioRes*rows*cols));
     for (int j=0; j<cols; ++j)
     {
       // let's do a more accurate determination of the nnz ratio for the current column j of res

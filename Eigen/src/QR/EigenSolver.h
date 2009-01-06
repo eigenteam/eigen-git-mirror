@@ -282,7 +282,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
   int n = nn-1;
   int low = 0;
   int high = nn-1;
-  Scalar eps = pow(2.0,-52.0);
+  Scalar eps = Scalar(pow(2.0,-52.0));
   Scalar exshift = 0.0;
   Scalar p=0,q=0,r=0,s=0,z=0,t,w,x,y;
 
@@ -328,7 +328,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     else if (l == n-1) // Two roots found
     {
       w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
-      p = (matH.coeff(n-1,n-1) - matH.coeff(n,n)) / 2.0;
+      p = Scalar((matH.coeff(n-1,n-1) - matH.coeff(n,n)) / 2.0);
       q = p * p + w;
       z = ei_sqrt(ei_abs(q));
       matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
@@ -405,25 +405,25 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
         for (int i = low; i <= n; ++i)
           matH.coeffRef(i,i) -= x;
         s = ei_abs(matH.coeff(n,n-1)) + ei_abs(matH.coeff(n-1,n-2));
-        x = y = 0.75 * s;
-        w = -0.4375 * s * s;
+        x = y = Scalar(0.75 * s);
+        w = Scalar(-0.4375 * s * s);
       }
 
       // MATLAB's new ad hoc shift
       if (iter == 30)
       {
-        s = (y - x) / 2.0;
+        s = Scalar((y - x) / 2.0);
         s = s * s + w;
         if (s > 0)
         {
           s = ei_sqrt(s);
           if (y < x)
             s = -s;
-          s = x - w / ((y - x) / 2.0 + s);
+          s = Scalar(x - w / ((y - x) / 2.0 + s));
           for (int i = low; i <= n; ++i)
             matH.coeffRef(i,i) -= s;
           exshift += s;
-          x = y = w = 0.964;
+          x = y = w = Scalar(0.964);
         }
       }
 
@@ -469,7 +469,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
         if (k != m) {
           p = matH.coeff(k,k-1);
           q = matH.coeff(k+1,k-1);
-          r = (notlast ? matH.coeff(k+2,k-1) : 0.0);
+          r = Scalar(notlast ? matH.coeff(k+2,k-1) : 0.0);
           x = ei_abs(p) + ei_abs(q) + ei_abs(r);
           if (x != 0.0)
           {
@@ -647,7 +647,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
             x = matH.coeff(i,i+1);
             y = matH.coeff(i+1,i);
             vr = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag() - q * q;
-            vi = (m_eivalues.coeff(i).real() - p) * 2.0 * q;
+            vi = Scalar((m_eivalues.coeff(i).real() - p) * 2.0 * q);
             if ((vr == 0.0) && (vi == 0.0))
               vr = eps * norm * (ei_abs(w) + ei_abs(q) + ei_abs(x) + ei_abs(y) + ei_abs(z));
 

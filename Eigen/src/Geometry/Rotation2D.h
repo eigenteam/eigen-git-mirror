@@ -114,7 +114,7 @@ public:
   template<typename OtherScalarType>
   inline explicit Rotation2D(const Rotation2D<OtherScalarType>& other)
   {
-    m_angle = other.angle();
+    m_angle = Scalar(other.angle());
   }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

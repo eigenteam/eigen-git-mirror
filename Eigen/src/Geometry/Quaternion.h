@@ -459,7 +459,7 @@ struct ei_quaternion_assign_impl<Other,3,3>
       int j = (i+1)%3;
       int k = (j+1)%3;
 
-      t = ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + 1.0);
+      t = Scalar(ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + 1.0));
       q.coeffs().coeffRef(i) = Scalar(0.5) * t;
       t = Scalar(0.5)/t;
       q.w() = (mat.coeff(k,j)-mat.coeff(j,k))*t;
