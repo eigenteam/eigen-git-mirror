@@ -59,13 +59,13 @@ template<typename _Scalar> struct ei_traits<Quaternion<_Scalar> >
 
 template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
-  , public ei_with_aligned_operator_new<_Scalar,4>
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
   typedef Matrix<_Scalar, 4, 1> Coefficients;
   Coefficients m_coeffs;
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,4)
 
   using Base::operator*;
 

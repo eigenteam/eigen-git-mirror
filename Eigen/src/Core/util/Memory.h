@@ -144,6 +144,33 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   #define ei_aligned_stack_free(PTR,TYPE,SIZE) ei_aligned_free(PTR,SIZE)
 #endif
 
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(NeedsToAlign, TYPENAME) \
+    typedef TYPENAME Eigen::ei_meta_if<(NeedsToAlign), \
+                                       Eigen::ei_byte_forcing_aligned_malloc, \
+                                       char \
+                                      >::ret Eigen_ByteAlignedAsNeeded; \
+    void *operator new(size_t size) throw() { \
+      return ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
+    } \
+    void *operator new(size_t, void *ptr) throw() { \
+      return ptr; \
+    } \
+    void *operator new[](size_t size) throw() { \
+      return ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
+    } \
+    void *operator new[](size_t, void *ptr) throw() { \
+      return ptr; \
+    } \
+    void operator delete(void * ptr) { ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); } \
+    void operator delete[](void * ptr) { ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); }
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW \
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(true, )
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)\
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(NeedsToAlign, typename)
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Type,Size)\
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Type)*(Size))%16==0))
+
+
 /** \class WithAlignedOperatorNew
   *
   * \brief Enforces instances of inherited classes to be 16 bytes aligned when allocated with operator new
@@ -185,26 +212,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   */
 struct WithAlignedOperatorNew
 {
-  void *operator new(size_t size) throw()
-  {
-    return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
-  }
-
-  void *operator new[](size_t size) throw()
-  {
-    return ei_aligned_malloc<ei_byte_forcing_aligned_malloc>(size);
-  }
-
-  void operator delete(void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr), 0); }
-  void operator delete[](void * ptr) { ei_aligned_free(static_cast<ei_byte_forcing_aligned_malloc *>(ptr), 0); }
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
-template<typename T, int SizeAtCompileTime,
-         bool NeedsToAlign = (SizeAtCompileTime!=Dynamic) && ((sizeof(T)*SizeAtCompileTime)%16==0)>
-struct ei_with_aligned_operator_new : public WithAlignedOperatorNew {};
-
-template<typename T, int SizeAtCompileTime>
-struct ei_with_aligned_operator_new<T,SizeAtCompileTime,false> {};
 
 /** \class ei_new_allocator
   *

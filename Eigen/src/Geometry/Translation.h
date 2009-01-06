@@ -41,9 +41,9 @@
   */
 template<typename _Scalar, int _Dim>
 class Translation
-  : public ei_with_aligned_operator_new<_Scalar,_Dim>
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_Dim)
   /** dimension of the space */
   enum { Dim = _Dim };
   /** the scalar type of the coefficients */

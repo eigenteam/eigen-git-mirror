@@ -6,9 +6,11 @@ namespace Eigen {
   - \ref what
   - \ref how
   - \ref why
+  - \ref stillstuck
+  - \ref stillstillstuck
   - \ref movetotop
   - \ref bugineigen
-
+  - \ref nomacro
 <hr>
 
 \section what What kind of code made this assertion fail?
@@ -43,14 +45,16 @@ By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of f
 
 \section how How to fix this bug?
 
-Very easy, you just need to let your class Foo publicly inherit Eigen::WithAlignedOperatorNew, like this:
+Very easy, you just need to put a EIGEN_MAKE_ALIGNED_OPERATOR_NEW macro in a public part of your class, like this:
 
 \code
-class Foo : public Eigen::WithAlignedOperatorNew
+class Foo
 {
   ...
   Eigen::Vector2d v;
   ...
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 ...
@@ -91,25 +95,68 @@ The alignment attribute of the member v is then relative to the start of the cla
 
 The solution is to let class Foo have an aligned "operator new", as we showed in the previous section.
 
+\section stillstuck It still doesn't work!
+
+If you followed these instructions and you still get this assertion failure, the most likely cause is that you are passing some Eigen objects (or classes containing Eigen objects) by value. Something like
+
+\code
+void my_function(Eigen::Vector2d v);
+\endcode
+
+This will easily make this assertion fail because when the parameter v is passed to the function, it is copied onto the stack at a location that may be unaligned. Normally the compiler will catch that (since v has an alignment modifier) but we have seen cases where MSVC let that compile without catching this error.
+
+Anyway, the solution is then to pass the parameter by reference instead of passing it by value:
+
+\code
+void my_function(const Eigen::Vector2d& v);
+\endcode
+
+Likewise if you have a class having a Eigen object as member:
+
+\code
+struct Foo
+{
+  Eigen::Vector2d v;
+};
+void my_function(Foo v);
+\endcode
+
+This function also needs to be rewritten like this:
+\code
+void my_function(const Foo& v);
+\endcode
+
+Notice that passing objects by value is always a bad idea, as it is inefficient to copy the parameters onto the stack. So this change is something that you should do anyway.
+
+On the other hand, there is no problem with functions that return objects by value.
+
+\section stillstillstuck It still, STILL doesn't work!
+
+Then you may have found a bug in Eigen. Please report it to our mailing list. Ideally, you would attach to your report a self-contained test case.
+
 \section movetotop Should I then put all the members of Eigen types at the beginning of my class?
 
 No, that's not needed. Since Eigen takes care of declaring 128-bit alignment, all members that need it are automatically 128-bit aligned relatively to the class. So when you have code like
 
 \code
-class Foo : public Eigen::WithAlignedOperatorNew
+class Foo
 {
   double x;
   Eigen::Vector2d v;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 \endcode
 
 it will work just fine. You do \b not need to rewrite it as
 
 \code
-class Foo : public Eigen::WithAlignedOperatorNew
+class Foo
 {
   Eigen::Vector2d v;
   double x;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 \endcode
 
@@ -120,6 +167,51 @@ Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically
 \section bugineigen So is this a bug in Eigen?
 
 No, it's not our bug. It's more like an inherent problem of the C++ language -- though it must be said that any other existing language probably has the same problem. The problem is that there is no way that you can specify an aligned "operator new" that would propagate to classes having you as member data.
+
+\section nomacro I don't like macros! Any solution with inheritance?
+
+Yes, you can let your class Foo publicly inherit Eigen::WithAlignedOperatorNew, like this:
+
+\code
+class Foo : public Eigen::WithAlignedOperatorNew
+{
+  ...
+  Eigen::Vector2d v;
+  ...
+};
+
+...
+
+Foo *foo = new Foo;
+\endcode
+
+This solution gives the same result as the macro. It has the disadvantage that if Foo already had a base class, you are now doing multiple inheritance, and this situation is sometimes handled wrongly by certain compilers -- we've been having trouble with MSVC. The solution with the macro is therefore safer.
+
+\section conditional What if I want to do this conditionnally (depending on template parameters) ?
+
+For this situation, we offer the macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign). It will generate aligned operators like EIGEN_MAKE_ALIGNED_OPERATOR_NEW if NeedsToAlign is true. It will generate operators with the default alignment if NeedsToAlign is false.
+
+Example:
+
+\code
+template<int n> class Foo
+{
+  typedef Eigen::Matrix<float,n,1> Vector;
+  enum { NeedsToAlign = (sizeof(Vector)%16)==0 };
+  ...
+  Vector v;
+  ...
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
+};
+
+...
+
+Foo<4> *foo4 = new Foo<4>; // foo4 is guaranteed to be 128bit-aligned
+Foo<3> *foo3 = new Foo<3>; // foo3 has only the system default alignment guarantee
+\endcode
+
+Nore that the argument of EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF must depend on some template parameter(s). Passing an argument that does not depend on any template parameter will give a compilation error. Anyway if the argument does not depend on any template parameter, you could use EIGEN_MAKE_ALIGNED_OPERATOR_NEW instead.
 
 */
 

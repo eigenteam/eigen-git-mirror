@@ -45,10 +45,9 @@
   */
 template <typename _Scalar, int _AmbientDim>
 class Hyperplane
-  : public ei_with_aligned_operator_new<_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1>
 {
 public:
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

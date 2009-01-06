@@ -61,8 +61,9 @@ struct Good7 : Eigen::WithAlignedOperatorNew
   float f; // make the struct have sizeof%16!=0 to make it a little more tricky when we allow an array of 2 such objects
 };
 
-struct Good8 : Eigen::WithAlignedOperatorNew
+struct Good8
 {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   float f; // try the f at first -- the EIGEN_ALIGN_128 attribute of m should make that still work
   Matrix4f m;
 };
@@ -70,6 +71,13 @@ struct Good8 : Eigen::WithAlignedOperatorNew
 struct Good9
 {
   Matrix<float,2,2,Matrix_DontAlign> m; // good: no alignment requested
+  float f;
+};
+
+template<bool Align> struct Depends
+{
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Align)
+  Vector2d m;
   float f;
 };
 
@@ -104,6 +112,8 @@ void unalignedassert()
   check_unalignedassert_good<Good7>();
   check_unalignedassert_good<Good8>();
   check_unalignedassert_good<Good9>();
+  check_unalignedassert_good<Depends<true> >();
+  VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Depends<false> >());
 }
 
 void test_unalignedassert()

@@ -26,7 +26,7 @@ So in the basic example,
 
 \code matrix1 = matrix2 + matrix3; \endcode
 
-Eigen chooses lazy evaluation. Thus the arrays are traversed only once, producing optimized code. If you really want to force immediate evaluation, use \link MatrixBase::eval() eval() \endlink:
+Eigen chooses lazy evaluation. Thus the arrays are traversed only once, producing optimized code. If you really want to force immediate evaluation, use \link MatrixBase::eval() eval()\endlink:
 
 \code matrix1 = (matrix2 + matrix3).eval(); \endcode
 
@@ -36,25 +36,25 @@ Here is now a more involved example:
 
 Eigen chooses lazy evaluation at every stage in that example, which is clearly the correct choice. In fact, lazy evaluation is the "default choice" and Eigen will choose it except in a few circumstances.
 
-<b>The first circumstance</b> in which Eigen chooses immediate evaluation, is when it sees an assignment <tt>a = b;</tt> and the expression \c b has the evaluate-before-assigning \link flags flag \endlink. The most importat example of such an expression is the \link Product matrix product expression \endlink. For example, when you do
+<b>The first circumstance</b> in which Eigen chooses immediate evaluation, is when it sees an assignment <tt>a = b;</tt> and the expression \c b has the evaluate-before-assigning \link flags flag\endlink. The most important example of such an expression is the \link Product matrix product expression\endlink. For example, when you do
 
 \code matrix = matrix * matrix; \endcode
 
 Eigen first evaluates <tt>matrix * matrix</tt> into a temporary matrix, and then copies it into the original \c matrix. This guarantees a correct result as we saw above that lazy evaluation gives wrong results with matrix products. It also doesn't cost much, as the cost of the matrix product itself is much higher.
 
-What if you know what you are doing and want to force lazy evaluation? Then use \link MatrixBase::lazy() .lazy() \endlink instead. Here is an example:
+What if you know what you are doing and want to force lazy evaluation? Then use \link MatrixBase::lazy() .lazy()\endlink instead. Here is an example:
 
 \code matrix1 = (matrix2 * matrix2).lazy(); \endcode
 
-Here, since we know that matrix2 is not the same matrix as matrix1, we know that lazy evaluation is not dangerous, so we may force lazy evaluation. Concretely, the effect of lazy() here is to remove the evaluate-before-assigning \link flags flag \endlink and also the evaluate-before-nesting \link flags flag \endlink which we now discuss.
+Here, since we know that matrix2 is not the same matrix as matrix1, we know that lazy evaluation is not dangerous, so we may force lazy evaluation. Concretely, the effect of lazy() here is to remove the evaluate-before-assigning \link flags flag\endlink and also the evaluate-before-nesting \link flags flag\endlink which we now discuss.
 
-<b>The second circumstance</b> in which Eigen chooses immediate evaluation, is when it sees a nested expression such as <tt>a + b</tt> where \c b is already an expression having the evaluate-before-nesting \link flags flag \endlink. Again, the most importat example of such an expression is the \link Product matrix product expression \endlink. For example, when you do
+<b>The second circumstance</b> in which Eigen chooses immediate evaluation, is when it sees a nested expression such as <tt>a + b</tt> where \c b is already an expression having the evaluate-before-nesting \link flags flag\endlink. Again, the most important example of such an expression is the \link Product matrix product expression\endlink. For example, when you do
 
 \code matrix1 = matrix2 + matrix3 * matrix4; \endcode
 
 the product <tt>matrix3 * matrix4</tt> gets evaluated immediately into a temporary matrix. Indeed, experiments showed that it is often beneficial for performance to evaluate immediately matrix products when they are nested into bigger expressions.
 
-Again, \link MatrixBase::lazy() .lazy() \endlink can be used to force lazy evaluation here.
+Again, \link MatrixBase::lazy() .lazy()\endlink can be used to force lazy evaluation here.
 
 <b>The third circumstance</b> in which Eigen chooses immediate evaluation, is when its cost model shows that the total cost of an operation is reduced if a sub-expression gets evaluated into a temporary. Indeed, in certain cases, an intermediate result is sufficiently costly to compute and is reused sufficiently many times, that is worth "caching". Here is an example:
 

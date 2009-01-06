@@ -135,31 +135,7 @@ class Matrix
   public:
     enum { NeedsToAlign = (Options&Matrix_AutoAlign) == Matrix_AutoAlign
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
-    typedef typename ei_meta_if<NeedsToAlign, ei_byte_forcing_aligned_malloc, char>::ret ByteAlignedAsNeeded;
-    void *operator new(size_t size) throw()
-    {
-      return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
-    }
-
-    void *operator new(size_t, void *ptr) throw()
-    {
-      return ptr;
-    }
-
-    void *operator new[](size_t size) throw()
-    {
-      return ei_aligned_malloc<ByteAlignedAsNeeded>(size);
-    }
-
-    void *operator new[](size_t, void *ptr) throw()
-    {
-      return ptr;
-    }
-
-    void operator delete(void * ptr) { ei_aligned_free(static_cast<ByteAlignedAsNeeded *>(ptr), 0); }
-    void operator delete[](void * ptr) { ei_aligned_free(static_cast<ByteAlignedAsNeeded *>(ptr), 0); }
-
-  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
