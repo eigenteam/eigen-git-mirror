@@ -34,6 +34,16 @@ template<typename T> inline T ei_random_amplitude()
   else return static_cast<T>(10);
 }
 
+template<typename T> inline T ei_hypot(T x, T y)
+{
+  T _x = ei_abs(x);
+  T _y = ei_abs(y);
+  T p = std::max(_x, _y);
+  T q = std::min(_x, _y);
+  T qp = q/p;
+  return p * ei_sqrt(T(1) + qp*qp);
+}
+
 /**************
 ***   int   ***
 **************/
@@ -94,7 +104,6 @@ inline float ei_log(float x)   { return std::log(x); }
 inline float ei_sin(float x)   { return std::sin(x); }
 inline float ei_cos(float x)   { return std::cos(x); }
 inline float ei_pow(float x, float y)  { return std::pow(x, y); }
-inline float ei_hypot(float x, float y) { return float(hypot(double(x),double(y))); }
 
 template<> inline float ei_random(float a, float b)
 {
@@ -140,7 +149,6 @@ inline double ei_log(double x)   { return std::log(x); }
 inline double ei_sin(double x)   { return std::sin(x); }
 inline double ei_cos(double x)   { return std::cos(x); }
 inline double ei_pow(double x, double y) { return std::pow(x, y); }
-inline double ei_hypot(double x, double y) { return hypot(x,y); }
 
 template<> inline double ei_random(double a, double b)
 {
