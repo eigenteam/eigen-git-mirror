@@ -94,7 +94,7 @@ inline float ei_log(float x)   { return std::log(x); }
 inline float ei_sin(float x)   { return std::sin(x); }
 inline float ei_cos(float x)   { return std::cos(x); }
 inline float ei_pow(float x, float y)  { return std::pow(x, y); }
-inline float ei_hypot(float x, float y)  { return hypotf(x,y); }
+inline float ei_hypot(float x, float y) { return float(hypot(double(x),double(y))); }
 
 template<> inline float ei_random(float a, float b)
 {
@@ -139,8 +139,8 @@ inline double ei_exp(double x)   { return std::exp(x); }
 inline double ei_log(double x)   { return std::log(x); }
 inline double ei_sin(double x)   { return std::sin(x); }
 inline double ei_cos(double x)   { return std::cos(x); }
-inline double ei_pow(double x, double y)  { return std::pow(x, y); }
-inline double ei_hypot(double x, double y)  { return hypot(x,y); }
+inline double ei_pow(double x, double y) { return std::pow(x, y); }
+inline double ei_hypot(double x, double y) { return hypot(x,y); }
 
 template<> inline double ei_random(double a, double b)
 {
