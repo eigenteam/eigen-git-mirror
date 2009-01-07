@@ -354,7 +354,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
     // set to identity
     this->w() = 1; this->vec().setZero();
   }
-  Scalar s = ei_sqrt((1+c)*2);
+  Scalar s = ei_sqrt((Scalar(1)+c)*Scalar(2));
   Scalar invs = Scalar(1)/s;
   this->vec() = axis * invs;
   this->w() = s * Scalar(0.5);
@@ -459,7 +459,7 @@ struct ei_quaternion_assign_impl<Other,3,3>
       int j = (i+1)%3;
       int k = (j+1)%3;
 
-      t = Scalar(ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + 1.0));
+      t = ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + Scalar(1.0));
       q.coeffs().coeffRef(i) = Scalar(0.5) * t;
       t = Scalar(0.5)/t;
       q.w() = (mat.coeff(k,j)-mat.coeff(j,k))*t;
