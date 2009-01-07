@@ -242,7 +242,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   // Main iteration loop for the singular values.
   int pp = p-1;
   int iter = 0;
-  Scalar eps(Scalar(pow(2.0,-52.0)));
+  Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
   while (p > 0)
   {
     int k=0;
@@ -281,7 +281,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         if (ks == k)
           break;
-        Scalar t( Scalar((ks != p ? ei_abs(e[ks]) : 0.) + (ks != k+1 ? ei_abs(e[ks-1]) : 0.)) );
+        Scalar t = (ks != p ? ei_abs(e[ks]) : Scalar(0)) + (ks != k+1 ? ei_abs(e[ks-1]) : Scalar(0));
         if (ei_abs(m_sigma[ks]) <= eps*t)
         {
           m_sigma[ks] = 0.0;
@@ -315,7 +315,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         e[p-2] = 0.0;
         for (j = p-2; j >= k; --j)
         {
-          Scalar t(Scalar(hypot(m_sigma[j],f)));
+          Scalar t(ei_hypot(m_sigma[j],f));
           Scalar cs(m_sigma[j]/t);
           Scalar sn(f/t);
           m_sigma[j] = t;
@@ -344,7 +344,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         e[k-1] = 0.0;
         for (j = k; j < p; ++j)
         {
-          Scalar t(Scalar(hypot(m_sigma[j],f)));
+          Scalar t(ei_hypot(m_sigma[j],f));
           Scalar cs( m_sigma[j]/t);
           Scalar sn(f/t);
           m_sigma[j] = t;
@@ -375,7 +375,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         Scalar epm1 = e[p-2]/scale;
         Scalar sk = m_sigma[k]/scale;
         Scalar ek = e[k]/scale;
-        Scalar b = Scalar(((spm1 + sp)*(spm1 - sp) + epm1*epm1)/2.0);
+        Scalar b = ((spm1 + sp)*(spm1 - sp) + epm1*epm1)/Scalar(2);
         Scalar c = (sp*epm1)*(sp*epm1);
         Scalar shift = 0.0;
         if ((b != 0.0) || (c != 0.0))
@@ -392,7 +392,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 
         for (j = k; j < p-1; ++j)
         {
-          Scalar t = Scalar(hypot(f,g));
+          Scalar t = ei_hypot(f,g);
           Scalar cs = f/t;
           Scalar sn = g/t;
           if (j != k)
@@ -410,7 +410,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
               m_matV(i,j) = t;
             }
           }
-          t = Scalar(hypot(f,g));
+          t = ei_hypot(f,g);
           cs = f/t;
           sn = g/t;
           m_sigma[j] = t;
@@ -439,7 +439,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         // Make the singular values positive.
         if (m_sigma[k] <= 0.0)
         {
-          m_sigma[k] = Scalar((m_sigma[k] < 0.0 ? -m_sigma[k] : 0.0));
+          m_sigma[k] = m_sigma[k] < Scalar(0) ? -m_sigma[k] : Scalar(0);
           if (wantv)
             m_matV.col(k).start(pp+1) = -m_matV.col(k).start(pp+1);
         }

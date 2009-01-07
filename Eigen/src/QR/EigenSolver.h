@@ -282,7 +282,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
   int n = nn-1;
   int low = 0;
   int high = nn-1;
-  Scalar eps = Scalar(pow(2.0,-52.0));
+  Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
   Scalar exshift = 0.0;
   Scalar p=0,q=0,r=0,s=0,z=0,t,w,x,y;
 
@@ -328,7 +328,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     else if (l == n-1) // Two roots found
     {
       w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
-      p = Scalar((matH.coeff(n-1,n-1) - matH.coeff(n,n)) / 2.0);
+      p = (matH.coeff(n-1,n-1) - matH.coeff(n,n)) * Scalar(0.5);
       q = p * p + w;
       z = ei_sqrt(ei_abs(q));
       matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
@@ -405,8 +405,8 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
         for (int i = low; i <= n; ++i)
           matH.coeffRef(i,i) -= x;
         s = ei_abs(matH.coeff(n,n-1)) + ei_abs(matH.coeff(n-1,n-2));
-        x = y = Scalar(0.75 * s);
-        w = Scalar(-0.4375 * s * s);
+        x = y = Scalar(0.75) * s;
+        w = Scalar(-0.4375) * s * s;
       }
 
       // MATLAB's new ad hoc shift
@@ -469,7 +469,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
         if (k != m) {
           p = matH.coeff(k,k-1);
           q = matH.coeff(k+1,k-1);
-          r = Scalar(notlast ? matH.coeff(k+2,k-1) : 0.0);
+          r = notlast ? matH.coeff(k+2,k-1) : Scalar(0);
           x = ei_abs(p) + ei_abs(q) + ei_abs(r);
           if (x != 0.0)
           {
@@ -647,7 +647,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
             x = matH.coeff(i,i+1);
             y = matH.coeff(i+1,i);
             vr = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag() - q * q;
-            vi = Scalar((m_eivalues.coeff(i).real() - p) * 2.0 * q);
+            vi = (m_eivalues.coeff(i).real() - p) * Scalar(2) * q;
             if ((vr == 0.0) && (vi == 0.0))
               vr = eps * norm * (ei_abs(w) + ei_abs(q) + ei_abs(x) + ei_abs(y) + ei_abs(z));
 
