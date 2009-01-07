@@ -73,7 +73,7 @@ inline T* ei_aligned_malloc(size_t size)
     // and this type has a custom operator new, then we want to honor this operator new!
     // so when we use C functions to allocate memory, we must be careful to call manually the constructor using
     // the special placement-new syntax.
-    return new(void_result) T[size];
+    return ::new(void_result) T[size];
   }
   else
     return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on

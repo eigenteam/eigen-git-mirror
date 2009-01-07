@@ -143,12 +143,13 @@ struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
 
 template<typename Derived1, typename Derived2,
          int Vectorization = ei_dot_traits<Derived1, Derived2>::Vectorization,
-         int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling
+         int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling,
+         int Storage = (ei_traits<Derived1>::Flags | ei_traits<Derived2>::Flags) & SparseBit
 >
 struct ei_dot_impl;
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling, IsDense>
 {
   typedef typename Derived1::Scalar Scalar;
   static Scalar run(const Derived1& v1, const Derived2& v2)
@@ -163,12 +164,12 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling, IsDense>
   : public ei_dot_novec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
 {};
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling, IsDense>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -221,7 +222,7 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling, IsDense>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -258,20 +259,15 @@ template<typename OtherDerived>
 typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
-  typedef typename Derived::Nested Nested;
-  typedef typename OtherDerived::Nested OtherNested;
-  typedef typename ei_unref<Nested>::type _Nested;
-  typedef typename ei_unref<OtherNested>::type _OtherNested;
-
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_Nested)
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(_OtherNested)
-  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(_Nested,_OtherNested)
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
   ei_assert(size() == other.size());
 
-  return ei_dot_impl<_Nested, _OtherNested>::run(derived(), other.derived());
+  return ei_dot_impl<Derived, OtherDerived>::run(derived(), other.derived());
 }
 
 /** \returns the squared norm of *this, i.e. the dot product of *this with itself.
@@ -287,7 +283,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 template<typename Derived>
 EIGEN_DEPRECATED inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm2() const
 {
-  return ei_real(dot(*this));
+  return ei_real((*this).cwise().abs2().sum());
 }
 
 /** \returns the squared norm of *this, i.e. the dot product of *this with itself.
@@ -299,7 +295,7 @@ EIGEN_DEPRECATED inline typename NumTraits<typename ei_traits<Derived>::Scalar>:
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
 {
-  return ei_real(dot(*this));
+  return ei_real((*this).cwise().abs2().sum());
 }
 
 /** \returns the \em l2 norm of *this, i.e. the square root of the dot product of *this with itself.
