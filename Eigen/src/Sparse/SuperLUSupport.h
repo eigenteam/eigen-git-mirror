@@ -114,13 +114,13 @@ struct SluMatrix : SuperMatrix
   }
 };
 
-template<typename Scalar, int Rows, int Cols, int StorageOrder, int MRows, int MCols>
-struct SluMatrixMapHelper<Matrix<Scalar,Rows,Cols,StorageOrder,MRows,MCols> >
+template<typename Scalar, int Rows, int Cols, int Options, int MRows, int MCols>
+struct SluMatrixMapHelper<Matrix<Scalar,Rows,Cols,Options,MRows,MCols> >
 {
-  typedef Matrix<Scalar,Rows,Cols,StorageOrder,MRows,MCols> MatrixType;
+  typedef Matrix<Scalar,Rows,Cols,Options,MRows,MCols> MatrixType;
   static void run(MatrixType& mat, SluMatrix& res)
   {
-    assert(StorageOrder==0 && "row-major dense matrices is not supported by SuperLU");
+    ei_assert( ((Options&RowMajor)!=RowMajor) && "row-major dense matrices is not supported by SuperLU");
     res.setStorageType(SLU_DN);
     res.setScalarType<Scalar>();
     res.Mtype     = SLU_GE;
@@ -139,7 +139,7 @@ struct SluMatrixMapHelper<SparseMatrix<Scalar,Flags> >
   typedef SparseMatrix<Scalar,Flags> MatrixType;
   static void run(MatrixType& mat, SluMatrix& res)
   {
-    if (Flags&RowMajorBit)
+    if ((Flags&RowMajorBit)==RowMajorBit)
     {
       res.setStorageType(SLU_NR);
       res.nrow      = mat.cols();
@@ -181,7 +181,7 @@ template<typename Scalar, int Flags>
 SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(SluMatrix& sluMat)
 {
   SparseMatrix res;
-  if (Flags&RowMajorBit)
+  if ((Flags&RowMajorBit)==RowMajorBit)
   {
     assert(sluMat.Stype == SLU_NR);
     res.m_innerSize   = sluMat.ncol;
@@ -276,7 +276,7 @@ class SparseLU<MatrixType,SuperLU> : public SparseLU<MatrixType>
     mutable UMatrixType m_u;
     mutable IntColVectorType m_p;
     mutable IntRowVectorType m_q;
-    
+
     mutable SparseMatrix<Scalar> m_matrix;
     mutable SluMatrix m_sluA;
     mutable SuperMatrix m_sluL, m_sluU;
@@ -423,7 +423,7 @@ void SparseLU<MatrixType,SuperLU>::extractData() const
     int* Ucol = m_u._outerIndexPtr();
     int* Urow = m_u._innerIndexPtr();
     Scalar* Uval = m_u._valuePtr();
-    
+
     Ucol[0] = 0;
     Ucol[0] = 0;
 
@@ -434,7 +434,7 @@ void SparseLU<MatrixType,SuperLU>::extractData() const
       istart  = L_SUB_START(fsupc);
       nsupr   = L_SUB_START(fsupc+1) - istart;
       upper   = 1;
-      
+
       /* for each column in the supernode */
       for (int j = fsupc; j < L_FST_SUPC(k+1); ++j)
       {

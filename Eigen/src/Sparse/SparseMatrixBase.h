@@ -167,6 +167,49 @@ class SparseMatrixBase : public MatrixBase<Derived>
       return s;
     }
 
+//     template<typename OtherDerived>
+//     Scalar dot(const MatrixBase<OtherDerived>& other) const
+//     {
+//       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+//       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+//       EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+//         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+//
+//       ei_assert(derived().size() == other.size());
+//       // short version, but the assembly looks more complicated because
+//       // of the CwiseBinaryOp iterator complexity
+//       // return res = (derived().cwise() * other.derived().conjugate()).sum();
+//
+//       // optimized, generic version
+//       typename Derived::InnerIterator i(derived(),0);
+//       typename OtherDerived::InnerIterator j(other.derived(),0);
+//       Scalar res = 0;
+//       while (i && j)
+//       {
+//         if (i.index()==j.index())
+//         {
+// //           std::cerr << i.value() << " * " << j.value() << "\n";
+//           res += i.value() * ei_conj(j.value());
+//           ++i; ++j;
+//         }
+//         else if (i.index()<j.index())
+//           ++i;
+//         else
+//           ++j;
+//       }
+//       return res;
+//     }
+//
+//     Scalar sum() const
+//     {
+//       Scalar res = 0;
+//       for (typename Derived::InnerIterator iter(*this,0); iter; ++iter)
+//       {
+//         res += iter.value();
+//       }
+//       return res;
+//     }
+
   protected:
 
     bool m_isRValue;

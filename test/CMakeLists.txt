@@ -187,5 +187,5 @@ ei_add_test(parametrizedline)
 ei_add_test(alignedbox)
 ei_add_test(regression)
 ei_add_test(sparse_basic " " "${SPARSE_LIBS}")
+ei_add_test(sparse_vector " " "${SPARSE_LIBS}")
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
-

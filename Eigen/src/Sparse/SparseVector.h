@@ -272,6 +272,28 @@ class SparseVector
       return s;
     }
 
+    // this specialized version does not seems to be faster
+//     Scalar dot(const SparseVector& other) const
+//     {
+//       int i=0, j=0;
+//       Scalar res = 0;
+//       asm("#begindot");
+//       while (i<nonZeros() && j<other.nonZeros())
+//       {
+//         if (m_data.index(i)==other.m_data.index(j))
+//         {
+//           res += m_data.value(i) * ei_conj(other.m_data.value(j));
+//           ++i; ++j;
+//         }
+//         else if (m_data.index(i)<other.m_data.index(j))
+//           ++i;
+//         else
+//           ++j;
+//       }
+//       asm("#enddot");
+//       return res;
+//     }
+
     /** Destructor */
     inline ~SparseVector() {}
 };

@@ -89,4 +89,28 @@ initSparse(double density,
   sparseMat.endFill();
 }
 
+template<typename Scalar> void
+initSparse(double density,
+           Matrix<Scalar,Dynamic,1>& refVec,
+           SparseVector<Scalar>& sparseVec,
+           std::vector<int>* zeroCoords = 0,
+           std::vector<int>* nonzeroCoords = 0)
+{
+  sparseVec.reserve(refVec.size()*density);
+  sparseVec.setZero();
+  for(int i=0; i<refVec.size(); i++)
+  {
+    Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
+    if (v!=Scalar(0))
+    {
+      sparseVec.fill(i) = v;
+      if (nonzeroCoords)
+        nonzeroCoords->push_back(i);
+    }
+    else if (zeroCoords)
+        zeroCoords->push_back(i);
+    refVec[i] = v;
+  }
+}
+
 #endif // EIGEN_TESTSPARSE_H

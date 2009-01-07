@@ -79,6 +79,7 @@ namespace Eigen {
 #include "src/Sparse/SparseMatrix.h"
 #include "src/Sparse/SparseVector.h"
 #include "src/Sparse/CoreIterators.h"
+#include "src/Sparse/SparseRedux.h"
 #include "src/Sparse/SparseProduct.h"
 #include "src/Sparse/TriangularSolver.h"
 #include "src/Sparse/SparseLLT.h"
