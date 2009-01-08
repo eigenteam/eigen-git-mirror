@@ -41,7 +41,7 @@ template <typename _Scalar, int _AmbientDim>
 class AlignedBox
 {
 public:
-EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(AlignedBox,_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1)
+EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

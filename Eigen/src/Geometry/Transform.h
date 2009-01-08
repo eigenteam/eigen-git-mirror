@@ -63,7 +63,7 @@ template<typename _Scalar, int _Dim>
 class Transform
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Transform,_Scalar,_Dim==Dynamic ? Dynamic : (_Dim+1)*(_Dim+1))
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_Dim==Dynamic ? Dynamic : (_Dim+1)*(_Dim+1))
   enum {
     Dim = _Dim,     ///< space dimension in which the transformation holds
     HDim = _Dim+1   ///< size of a respective homogeneous vector

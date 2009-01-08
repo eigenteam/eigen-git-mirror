@@ -57,14 +57,14 @@ struct Bad6
 
 struct Good7
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Good7)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Vector2d m;
   float f; // make the struct have sizeof%16!=0 to make it a little more tricky when we allow an array of 2 such objects
 };
 
 struct Good8
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Good8)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   float f; // try the f at first -- the EIGEN_ALIGN_128 attribute of m should make that still work
   Matrix4f m;
 };
@@ -77,7 +77,7 @@ struct Good9
 
 template<bool Align> struct Depends
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Depends,Align)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Align)
   Vector2d m;
   float f;
 };

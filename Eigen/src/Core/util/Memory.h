@@ -219,7 +219,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * Here is a similar safe example:
   * \code
   * struct Foo {
-  *   EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Foo)
+  *   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   *   char dummy;
   *   Vector4f some_vector;
   * };
@@ -229,7 +229,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   *
   * \sa class ei_new_allocator
   */
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,NeedsToAlign) \
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
     void *operator new(size_t size) throw() { \
       return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
     } \
@@ -239,14 +239,14 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
     void operator delete(void * ptr) { Eigen::ei_aligned_free(ptr); } \
     void operator delete[](void * ptr) { Eigen::ei_aligned_free(ptr); }
 
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Type) EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,true)
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Type,Scalar,Size) \
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Scalar,Size) \
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
 
-/** Deprecated, use the EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Class) macro instead in your own class */
+/** Deprecated, use the EIGEN_MAKE_ALIGNED_OPERATOR_NEW macro instead in your own class */
 struct WithAlignedOperatorNew
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(WithAlignedOperatorNew)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /** \class ei_new_allocator

@@ -27,7 +27,7 @@
 // test compilation with both a struct and a class...
 struct MyStruct
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(MyStruct)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   char dummychar;
   Vector4f avec;
 };
@@ -35,7 +35,7 @@ struct MyStruct
 class MyClassA
 {
   public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW(MyClassA)
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     char dummychar;
     Vector4f avec;
 };

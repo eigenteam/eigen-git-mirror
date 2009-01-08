@@ -135,7 +135,7 @@ class Matrix
   public:
     enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Matrix,NeedsToAlign)
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
