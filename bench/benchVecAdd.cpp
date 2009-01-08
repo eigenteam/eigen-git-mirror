@@ -21,9 +21,9 @@ int main(int argc, char* argv[])
 {
     int size = SIZE * 8;
     int size2 = size * size;
-    Scalar* a = ei_aligned_malloc<Scalar>(size2);
-    Scalar* b = ei_aligned_malloc<Scalar>(size2+4)+1;
-    Scalar* c = ei_aligned_malloc<Scalar>(size2); 
+    Scalar* a = ei_aligned_new<Scalar>(size2);
+    Scalar* b = ei_aligned_new<Scalar>(size2+4)+1;
+    Scalar* c = ei_aligned_new<Scalar>(size2); 
     
     for (int i=0; i<size; ++i)
     {

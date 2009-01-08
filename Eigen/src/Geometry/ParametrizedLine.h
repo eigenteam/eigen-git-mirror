@@ -43,7 +43,7 @@ template <typename _Scalar, int _AmbientDim>
 class ParametrizedLine
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_AmbientDim)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(ParametrizedLine,_Scalar,_AmbientDim)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

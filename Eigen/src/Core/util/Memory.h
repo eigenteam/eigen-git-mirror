@@ -31,82 +31,125 @@
 extern "C" int posix_memalign (void **, size_t, size_t) throw ();
 #endif
 
-struct ei_byte_forcing_aligned_malloc
-{
-  unsigned char c; // sizeof must be 1.
-};
-template<typename T> struct ei_force_aligned_malloc { enum { ret = 0 }; };
-template<> struct ei_force_aligned_malloc<ei_byte_forcing_aligned_malloc> { enum { ret = 1 }; };
-
-/** \internal allocates \a size * sizeof(\a T) bytes. If vectorization is enabled and T is such that a packet
-  * containts more than one T, then the returned pointer is guaranteed to have 16 bytes alignment.
+/** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   */
-template<typename T>
-inline T* ei_aligned_malloc(size_t size)
+inline void* ei_aligned_malloc(size_t size)
 {
-  if(ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
-  {
-    void *void_result;
-    #ifdef __linux
-      #ifdef EIGEN_EXCEPTIONS
-        const int failed =
-      #endif
-      posix_memalign(&void_result, 16, size*sizeof(T));
+  #ifdef EIGEN_NO_MALLOC
+    ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
+  #endif
+
+  void *result;
+  #ifdef __linux
+    #ifdef EIGEN_EXCEPTIONS
+      const int failed =
+    #endif
+    posix_memalign(&result, 16, size);
+  #else
+    #ifdef _MSC_VER
+      result = _aligned_malloc(size, 16);
+    #elif defined(__APPLE__)
+      result = malloc(size); // Apple's malloc() already returns 16-byte-aligned ptrs
     #else
-      #ifdef _MSC_VER
-        void_result = _aligned_malloc(size*sizeof(T), 16);
-      #elif defined(__APPLE__)
-        void_result = malloc(size*sizeof(T)); // Apple's malloc() already returns aligned ptrs
-      #else
-        void_result = _mm_malloc(size*sizeof(T), 16);
-      #endif
-      #ifdef EIGEN_EXCEPTIONS
-        const int failed = (void_result == 0);
-      #endif
+      result = _mm_malloc(size, 16);
     #endif
     #ifdef EIGEN_EXCEPTIONS
-      if(failed)
-        throw std::bad_alloc();
+      const int failed = (result == 0);
     #endif
-    // if the user uses Eigen on some fancy scalar type such as multiple-precision numbers,
-    // and this type has a custom operator new, then we want to honor this operator new!
-    // so when we use C functions to allocate memory, we must be careful to call manually the constructor using
-    // the special placement-new syntax.
-    return ::new(void_result) T[size];
-  }
-  else
-    return new T[size]; // here we really want a new, not a malloc. Justification: if the user uses Eigen on
-      // some fancy scalar type such as multiple-precision numbers, and this type has a custom operator new,
-      // then we want to honor this operator new! Anyway this type won't have vectorization so the vectorizing path
-      // is irrelevant here. Yes, we should say somewhere in the docs that if the user uses a custom scalar type then
-      // he can't have both vectorization and a custom operator new on his scalar type.
+  #endif
+  #ifdef EIGEN_EXCEPTIONS
+    if(failed)
+      throw std::bad_alloc();
+  #endif
+  return result;
+}
+
+/** allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
+  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  */
+template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
+{
+  return ei_aligned_malloc(size);
+}
+
+template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
+{
+  void *void_result = malloc(size);
+  #ifdef EIGEN_EXCEPTIONS
+    if(!void_result) throw std::bad_alloc();
+  #endif
+  return void_result;
+}
+
+/** allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
+  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * The default constructor of T is called.
+  */
+template<typename T> T* ei_aligned_new(size_t size)
+{
+  void *void_result = ei_aligned_malloc(sizeof(T)*size);
+  return ::new(void_result) T[size];
+}
+
+template<typename T, bool Align> T* ei_conditional_aligned_new(size_t size)
+{
+  void *void_result = ei_conditional_aligned_malloc<Align>(sizeof(T)*size);
+  return ::new(void_result) T[size];
 }
 
 /** \internal free memory allocated with ei_aligned_malloc
-  * The \a size parameter is used to determine on how many elements to call the destructor. If you don't
-  * want any destructor to be called, just pass 0.
   */
-template<typename T>
-inline void ei_aligned_free(T* ptr, size_t size)
+inline void ei_aligned_free(void *ptr)
 {
-    if (ei_packet_traits<T>::size>1 || ei_force_aligned_malloc<T>::ret)
-    {
-      // need to call manually the dtor in case T is some user-defined fancy numeric type.
-      // always destruct an array starting from the end.
-      while(size) ptr[--size].~T();
-      #if defined(__linux)
-        free(ptr);
-      #elif defined(__APPLE__)
-        free(ptr);
-      #elif defined(_MSC_VER)
-        _aligned_free(ptr);
-      #else
-        _mm_free(ptr);
-      #endif
-    }
-    else
-      delete[] ptr;
+  #if defined(__linux)
+    free(ptr);
+  #elif defined(__APPLE__)
+    free(ptr);
+  #elif defined(_MSC_VER)
+    _aligned_free(ptr);
+  #else
+    _mm_free(ptr);
+  #endif
+}
+
+/** \internal free memory allocated with ei_conditional_aligned_malloc
+  */
+template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
+{
+  ei_aligned_free(ptr);
+}
+
+template<> void ei_conditional_aligned_free<false>(void *ptr)
+{
+  free(ptr);
+}
+
+/** \internal delete the elements of an array.
+  * The \a size parameters tells on how many objects to call the destructor of T.
+  */
+template<typename T> inline void ei_delete_elements_of_array(T *ptr, size_t size)
+{
+  // always destruct an array starting from the end.
+  while(size) ptr[--size].~T();
+}
+
+/** \internal delete objects constructed with ei_aligned_new
+  * The \a size parameters tells on how many objects to call the destructor of T.
+  */
+template<typename T> void ei_aligned_delete(T *ptr, size_t size)
+{
+  ei_delete_elements_of_array<T>(ptr, size);
+  ei_aligned_free(ptr);
+}
+
+/** \internal delete objects constructed with ei_conditional_aligned_new
+  * The \a size parameters tells on how many objects to call the destructor of T.
+  */
+template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *ptr, size_t size)
+{
+  ei_delete_elements_of_array<T>(ptr, size);
+  ei_conditional_aligned_free<Align>(ptr);
 }
 
 /** \internal \returns the number of elements which have to be skipped such that data are 16 bytes aligned */
@@ -124,10 +167,10 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 }
 
 /** \internal
-  * ei_aligned_stack_alloc(TYPE,SIZE) allocates an aligned buffer of sizeof(TYPE)*SIZE bytes
-  * on the stack if sizeof(TYPE)*SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT.
+  * ei_aligned_stack_alloc(SIZE) allocates an aligned buffer of SIZE bytes
+  * on the stack if SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT.
   * Otherwise the memory is allocated on the heap.
-  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling ei_aligned_stack_free(PTR,TYPE,SIZE).
+  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling ei_aligned_stack_free(PTR,SIZE).
   * \code
   * float * data = ei_aligned_stack_alloc(float,array.size());
   * // ...
@@ -135,45 +178,20 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * \endcode
   */
 #ifdef __linux__
-  #define ei_aligned_stack_alloc(TYPE,SIZE) ((sizeof(TYPE)*(SIZE)>EIGEN_STACK_ALLOCATION_LIMIT) \
-                                    ? ei_aligned_malloc<TYPE>(SIZE) \
-                                    : (TYPE*)alloca(sizeof(TYPE)*(SIZE)))
-  #define ei_aligned_stack_free(PTR,TYPE,SIZE) if (sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR,SIZE)
+  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
+                                    ? alloca(SIZE) \
+                                    : ei_aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
 #else
-  #define ei_aligned_stack_alloc(TYPE,SIZE) ei_aligned_malloc<TYPE>(SIZE)
-  #define ei_aligned_stack_free(PTR,TYPE,SIZE) ei_aligned_free(PTR,SIZE)
+  #define ei_aligned_stack_alloc(SIZE) ei_aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) ei_aligned_free(PTR)
 #endif
 
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(NeedsToAlign, TYPENAME) \
-    typedef TYPENAME Eigen::ei_meta_if<(NeedsToAlign), \
-                                       Eigen::ei_byte_forcing_aligned_malloc, \
-                                       char \
-                                      >::ret Eigen_ByteAlignedAsNeeded; \
-    void *operator new(size_t size) throw() { \
-      return Eigen::ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
-    } \
-    void *operator new(size_t, void *ptr) throw() { \
-      return ptr; \
-    } \
-    void *operator new[](size_t size) throw() { \
-      return Eigen::ei_aligned_malloc<Eigen_ByteAlignedAsNeeded>(size); \
-    } \
-    void *operator new[](size_t, void *ptr) throw() { \
-      return ptr; \
-    } \
-    void operator delete(void * ptr) { Eigen::ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); } \
-    void operator delete[](void * ptr) { Eigen::ei_aligned_free(static_cast<Eigen_ByteAlignedAsNeeded *>(ptr), 0); }
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW \
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(true, )
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)\
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF__INTERNAL(NeedsToAlign, typename)
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Type,Size)\
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Type)*(Size))%16==0))
+#define ei_aligned_stack_new(TYPE,SIZE) ::new(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)) TYPE[SIZE]
+#define ei_aligned_stack_delete(TYPE,PTR,SIZE) ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
+                                               ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE)
 
-
-/** \class WithAlignedOperatorNew
-  *
-  * \brief Enforces instances of inherited classes to be 16 bytes aligned when allocated with operator new
+/** \brief Overloads the operator new and delete of the class Type with operators that are aligned if NeedsToAlign is true
   *
   * When Eigen's explicit vectorization is enabled, Eigen assumes that some fixed sizes types are aligned
   * on a 16 bytes boundary. Those include all Matrix types having a sizeof multiple of 16 bytes, e.g.:
@@ -200,7 +218,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   * overloading the operator new to return aligned data when the vectorization is enabled.
   * Here is a similar safe example:
   * \code
-  * struct Foo : public WithAlignedOperatorNew {
+  * struct Foo {
+  *   EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Foo)
   *   char dummy;
   *   Vector4f some_vector;
   * };
@@ -210,9 +229,24 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   *
   * \sa class ei_new_allocator
   */
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,NeedsToAlign) \
+    void *operator new(size_t size) throw() { \
+      return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+    } \
+    void *operator new[](size_t size) throw() { \
+      return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+    } \
+    void operator delete(void * ptr) { Eigen::ei_aligned_free(ptr); } \
+    void operator delete[](void * ptr) { Eigen::ei_aligned_free(ptr); }
+
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Type) EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,true)
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Type,Scalar,Size) \
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(Type,((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
+
+/** Deprecated, use the EIGEN_MAKE_ALIGNED_OPERATOR_NEW(Class) macro instead in your own class */
 struct WithAlignedOperatorNew
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(WithAlignedOperatorNew)
 };
 
 /** \class ei_new_allocator

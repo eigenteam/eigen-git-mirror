@@ -192,7 +192,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
   m_matrix.resize(size, size);
   m_parent.resize(size);
   m_nonZerosPerCol.resize(size);
-  int * tags = ei_aligned_stack_alloc(int, size);
+  int * tags = ei_aligned_stack_new(int, size);
 
   const int* Ap = a._outerIndexPtr();
   const int* Ai = a._innerIndexPtr();
@@ -238,7 +238,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
     Lp[k+1] = Lp[k] + m_nonZerosPerCol[k];
 
   m_matrix.resizeNonZeros(Lp[size]);
-  ei_aligned_stack_free(tags, int, size);
+  ei_aligned_stack_delete(int, tags, size);
 }
 
 template<typename MatrixType, int Backend>
@@ -257,9 +257,9 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
   Scalar* Lx = m_matrix._valuePtr();
   m_diag.resize(size);
 
-  Scalar * y = ei_aligned_stack_alloc(Scalar, size);
-  int * pattern = ei_aligned_stack_alloc(int, size);
-  int * tags = ei_aligned_stack_alloc(int, size);
+  Scalar * y = ei_aligned_stack_new(Scalar, size);
+  int * pattern = ei_aligned_stack_new(int, size);
+  int * tags = ei_aligned_stack_new(int, size);
 
   const int* P = 0;
   const int* Pinv = 0;
@@ -315,9 +315,9 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
     }
   }
 
-  ei_aligned_stack_free(y, Scalar, size);
-  ei_aligned_stack_free(pattern, int, size);
-  ei_aligned_stack_free(tags, int, size);
+  ei_aligned_stack_delete(Scalar, y, size);
+  ei_aligned_stack_delete(int, pattern, size);
+  ei_aligned_stack_delete(int, tags, size);
 
   return ok;  /* success, diagonal of D is all nonzero */
 }

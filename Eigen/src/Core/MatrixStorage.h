@@ -147,8 +147,8 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0), m_cols(0) {}
     inline ei_matrix_storage(int size, int rows, int cols)
-      : m_data(ei_aligned_malloc<T>(size)), m_rows(rows), m_cols(cols) {}
-    inline ~ei_matrix_storage() { ei_aligned_free(m_data, m_rows*m_cols); }
+      : m_data(ei_aligned_new<T>(size)), m_rows(rows), m_cols(cols) {}
+    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, m_rows*m_cols); }
     inline void swap(ei_matrix_storage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return m_rows;}
@@ -157,8 +157,8 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     {
       if(size != m_rows*m_cols)
       {
-        ei_aligned_free(m_data, m_rows*m_cols);
-        m_data = ei_aligned_malloc<T>(size);
+        ei_aligned_delete(m_data, m_rows*m_cols);
+        m_data = ei_aligned_new<T>(size);
       }
       m_rows = rows;
       m_cols = cols;
@@ -174,8 +174,8 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_malloc<T>(size)), m_cols(cols) {}
-    inline ~ei_matrix_storage() { ei_aligned_free(m_data, _Rows*m_cols); }
+    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_new<T>(size)), m_cols(cols) {}
+    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Rows*m_cols); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static int rows(void) {return _Rows;}
     inline int cols(void) const {return m_cols;}
@@ -183,8 +183,8 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
     {
       if(size != _Rows*m_cols)
       {
-        ei_aligned_free(m_data, _Rows*m_cols);
-        m_data = ei_aligned_malloc<T>(size);
+        ei_aligned_delete(m_data, _Rows*m_cols);
+        m_data = ei_aligned_new<T>(size);
       }
       m_cols = cols;
     }
@@ -199,8 +199,8 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
     int m_rows;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
-    inline ~ei_matrix_storage() { ei_aligned_free(m_data, _Cols*m_rows); }
+    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
+    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Cols*m_rows); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline static int cols(void) {return _Cols;}
@@ -208,8 +208,8 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
     {
       if(size != m_rows*_Cols)
       {
-        ei_aligned_free(m_data, _Cols*m_rows);
-        m_data = ei_aligned_malloc<T>(size);
+        ei_aligned_delete(m_data, _Cols*m_rows);
+        m_data = ei_aligned_new<T>(size);
       }
       m_rows = rows;
     }

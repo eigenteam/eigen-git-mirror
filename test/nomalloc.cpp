@@ -25,27 +25,12 @@
 
 // this hack is needed to make this file compiles with -pedantic (gcc)
 #define throw(X)
-// discard vectorization since the global operator new is not called in that case
-#define EIGEN_DONT_VECTORIZE 1
-// discard stack allocation as that too bypasses the global operator new
+// discard stack allocation as that too bypasses malloc
 #define EIGEN_STACK_ALLOCATION_LIMIT 0
+// any heap allocation will raise an assert
+#define EIGEN_NO_MALLOC
 
 #include "main.h"
-
-void* operator new[] (size_t n)
-{
-  ei_assert(false && "operator new should never be called with fixed size path");
-  // the following is in case assertion are disabled
-  std::cerr << "operator new should never be called with fixed size path" << std::endl;
-  exit(2);
-  void* p = malloc(n);
-  return p;
-}
-
-void operator delete[](void* p) throw()
-{
-  free(p);
-}
 
 template<typename MatrixType> void nomalloc(const MatrixType& m)
 {

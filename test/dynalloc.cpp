@@ -25,38 +25,17 @@
 #include "main.h"
 
 // test compilation with both a struct and a class...
-struct MyStruct : WithAlignedOperatorNew
+struct MyStruct
 {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW(MyStruct)
   char dummychar;
   Vector4f avec;
 };
 
-class MyClassA : public WithAlignedOperatorNew
+class MyClassA
 {
   public:
-    char dummychar;
-    Vector4f avec;
-};
-
-// ..as well as with some other base classes
-
-class MyBaseClass
-{
-  public:
-    char dummychar;
-    float afloat;
-};
-
-class MyClassB : public WithAlignedOperatorNew, public MyBaseClass
-{
-  public:
-    char dummychar;
-    Vector4f avec;
-};
-
-class MyClassC : public MyBaseClass, public WithAlignedOperatorNew
-{
-  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW(MyClassA)
     char dummychar;
     Vector4f avec;
 };
@@ -85,8 +64,6 @@ void test_dynalloc()
   {
     MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%16==0);
     MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%16==0);
-    MyClassB fooB;  VERIFY(size_t(fooB.avec.data())%16==0);
-    MyClassC fooC;  VERIFY(size_t(fooC.avec.data())%16==0);
   }
 
   // dynamic allocation, single object
@@ -94,12 +71,8 @@ void test_dynalloc()
   {
     MyStruct *foo0 = new MyStruct();  VERIFY(size_t(foo0->avec.data())%16==0);
     MyClassA *fooA = new MyClassA();  VERIFY(size_t(fooA->avec.data())%16==0);
-    MyClassB *fooB = new MyClassB();  VERIFY(size_t(fooB->avec.data())%16==0);
-    MyClassC *fooC = new MyClassC();  VERIFY(size_t(fooC->avec.data())%16==0);
     delete foo0;
     delete fooA;
-    delete fooB;
-    delete fooC;
   }
 
   // dynamic allocation, array
@@ -108,12 +81,8 @@ void test_dynalloc()
   {
     MyStruct *foo0 = new MyStruct[N];  VERIFY(size_t(foo0->avec.data())%16==0);
     MyClassA *fooA = new MyClassA[N];  VERIFY(size_t(fooA->avec.data())%16==0);
-    MyClassB *fooB = new MyClassB[N];  VERIFY(size_t(fooB->avec.data())%16==0);
-    MyClassC *fooC = new MyClassC[N];  VERIFY(size_t(fooC->avec.data())%16==0);
     delete[] foo0;
     delete[] fooA;
-    delete[] fooB;
-    delete[] fooC;
   }
 
   // std::vector

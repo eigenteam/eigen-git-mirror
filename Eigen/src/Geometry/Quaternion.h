@@ -65,7 +65,7 @@ class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
   Coefficients m_coeffs;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,4)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Quaternion,_Scalar,4)
 
   using Base::operator*;
 

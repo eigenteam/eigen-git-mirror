@@ -38,16 +38,16 @@ public :
   typedef typename f77_interface_base<real>::gene_vector gene_vector;
 
   static void free_matrix(gene_matrix & A, int N){
-    ei_aligned_free(A, 0);
+    ei_aligned_delete(A);
   }
 
   static void free_vector(gene_vector & B){
-    ei_aligned_free(B, 0);
+    ei_aligned_delete(B);
   }
 
   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     int N = A_stl.size();
-    A = ei_aligned_malloc<real>(N*N);
+    A = ei_aligned_new<real>(N*N);
     for (int j=0;j<N;j++)
       for (int i=0;i<N;i++)
         A[i+N*j] = A_stl[j][i];
@@ -55,7 +55,7 @@ public :
 
   static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
     int N = B_stl.size();
-    B = ei_aligned_malloc<real>(N);
+    B = ei_aligned_new<real>(N);
     for (int i=0;i<N;i++)
       B[i] = B_stl[i];
   }

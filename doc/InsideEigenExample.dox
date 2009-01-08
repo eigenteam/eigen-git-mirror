@@ -101,10 +101,10 @@ with size=50, rows=50, columns=1.
 
 Here is this constructor:
 \code
-inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_malloc<T>(size)), m_rows(rows) {}
+inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
 \endcode
 
-Here, the \a m_data member is the actual array of coefficients of the matrix. As you see, it is dynamically allocated. Rather than calling new[] or malloc(), as you can see, we have our own ei_aligned_malloc defined in src/Core/util/Memory.h. What it does is that if vectorization is enabled, then it uses a platform-specific call to allocate a 128-bit-aligned array, as that is very useful for vectorization with both SSE2 and AltiVec. If vectorization is disabled, it amounts to the standard new[].
+Here, the \a m_data member is the actual array of coefficients of the matrix. As you see, it is dynamically allocated. Rather than calling new[] or malloc(), as you can see, we have our own ei_aligned_new defined in src/Core/util/Memory.h. What it does is that if vectorization is enabled, then it uses a platform-specific call to allocate a 128-bit-aligned array, as that is very useful for vectorization with both SSE2 and AltiVec. If vectorization is disabled, it amounts to the standard new[].
 
 As you can see, the constructor also sets the \a m_rows member to \a size. Notice that there is no \a m_columns member: indeed, in this partial specialization of ei_matrix_storage, we know the number of columns at compile-time, since the _Cols template parameter is different from Dynamic. Namely, in our case, _Cols is 1, which is to say that our vector is just a matrix with 1 column. Hence, there is no need to store the number of columns as a runtime variable.
 

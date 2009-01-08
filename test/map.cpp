@@ -31,8 +31,8 @@ template<typename VectorType> void map_class(const VectorType& m)
   int size = m.size();
 
   // test Map.h
-  Scalar* array1 = ei_aligned_malloc<Scalar>(size);
-  Scalar* array2 = ei_aligned_malloc<Scalar>(size);
+  Scalar* array1 = ei_aligned_new<Scalar>(size);
+  Scalar* array2 = ei_aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
   
@@ -45,8 +45,8 @@ template<typename VectorType> void map_class(const VectorType& m)
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
   
-  ei_aligned_free(array1, size);
-  ei_aligned_free(array2, size);
+  ei_aligned_delete(array1, size);
+  ei_aligned_delete(array2, size);
   delete[] array3;
 }
 
@@ -57,8 +57,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   int size = m.size();
 
   // test Map.h
-  Scalar* array1 = ei_aligned_malloc<Scalar>(size);
-  Scalar* array2 = ei_aligned_malloc<Scalar>(size);
+  Scalar* array1 = ei_aligned_new<Scalar>(size);
+  Scalar* array2 = ei_aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
   
@@ -71,8 +71,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
   
-  ei_aligned_free(array1, size);
-  ei_aligned_free(array2, size);
+  ei_aligned_delete(array1, size);
+  ei_aligned_delete(array2, size);
   delete[] array3;
 }
 
