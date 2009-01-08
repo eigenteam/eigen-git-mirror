@@ -86,13 +86,13 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
-template<typename T> T* ei_aligned_new(size_t size)
+template<typename T> inline T* ei_aligned_new(size_t size)
 {
   void *void_result = ei_aligned_malloc(sizeof(T)*size);
   return ::new(void_result) T[size];
 }
 
-template<typename T, bool Align> T* ei_conditional_aligned_new(size_t size)
+template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t size)
 {
   void *void_result = ei_conditional_aligned_malloc<Align>(sizeof(T)*size);
   return ::new(void_result) T[size];
@@ -120,7 +120,7 @@ template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
   ei_aligned_free(ptr);
 }
 
-template<> void ei_conditional_aligned_free<false>(void *ptr)
+template<> inline void ei_conditional_aligned_free<false>(void *ptr)
 {
   free(ptr);
 }
@@ -137,7 +137,7 @@ template<typename T> inline void ei_delete_elements_of_array(T *ptr, size_t size
 /** \internal delete objects constructed with ei_aligned_new
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> void ei_aligned_delete(T *ptr, size_t size)
+template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
 {
   ei_delete_elements_of_array<T>(ptr, size);
   ei_aligned_free(ptr);
