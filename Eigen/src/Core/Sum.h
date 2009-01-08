@@ -231,11 +231,18 @@ template<typename Derived>
 struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling, IsDense>
 {
   typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  enum {
+    PacketSize = ei_packet_traits<Scalar>::size,
+    Size = Derived::SizeAtCompileTime,
+    VectorizationSize = (Size / PacketSize) * PacketSize
+  };
   static Scalar run(const Derived& mat)
   {
-    return ei_predux(
-      ei_sum_vec_unroller<Derived, 0, Derived::SizeAtCompileTime>::run(mat)
-    );
+    Scalar res = ei_predux(ei_sum_vec_unroller<Derived, 0, VectorizationSize>::run(mat));
+    if (VectorizationSize != Size)
+      res += ei_sum_novec_unroller<Derived, VectorizationSize, Size-VectorizationSize>::run(mat);
+    return res;
   }
 };
 
