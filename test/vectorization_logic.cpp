@@ -81,6 +81,9 @@ void test_vectorization_logic()
     LinearVectorization,NoUnrolling));
 
   VERIFY(test_sum(Matrix<float,5,2>(),
+    NoVectorization,CompleteUnrolling));
+  
+  VERIFY(test_sum(Matrix<float,6,2>(),
     LinearVectorization,CompleteUnrolling));
 
   VERIFY(test_sum(Matrix<float,16,16>(),

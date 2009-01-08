@@ -81,6 +81,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(Eigen)
 
 if(EIGEN_BUILD_TESTS)
+  include(CTest)
   add_subdirectory(test)
 endif(EIGEN_BUILD_TESTS)
 

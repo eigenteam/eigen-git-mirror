@@ -146,7 +146,6 @@ macro(ei_add_test testname)
 
 endmacro(ei_add_test)
 
-
 enable_testing()
 
 if(TEST_LIB)
