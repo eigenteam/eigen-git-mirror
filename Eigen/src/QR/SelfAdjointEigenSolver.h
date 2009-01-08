@@ -357,10 +357,12 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
       subdiag[k - 1] = c * subdiag[k-1] - s * z;
 
     x = subdiag[k];
-    z = -s * subdiag[k+1];
 
     if (k < end - 1)
+    {
+      z = -s * subdiag[k+1];
       subdiag[k + 1] = c * subdiag[k+1];
+    }
 
     // apply the givens rotation to the unit matrix Q = Q * G
     // G only modifies the two columns k and k+1
