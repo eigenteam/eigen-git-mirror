@@ -52,6 +52,8 @@ template <typename T, int Size, int MatrixOptions,
 template <typename T, int Size, int MatrixOptions> struct ei_matrix_array<T,Size,MatrixOptions,false>
 {
   T array[Size];
+  ei_matrix_array() {}
+  ei_matrix_array(ei_select_matrix_array_constructor_doing_absolutely_nothing) {}
 };
 
 /** \internal
