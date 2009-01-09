@@ -136,14 +136,14 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
   */
 inline void ei_aligned_free(void *ptr)
 {
-  #if EIGEN_HAS_POSIX_MEMALIGN
+  #if EIGEN_MALLOC_ALREADY_ALIGNED
     free(ptr);
-  #elif EIGEN_MALLOC_ALREADY_ALIGNED
+  #elif EIGEN_HAS_POSIX_MEMALIGN
     free(ptr);
-  #elif defined(_MSC_VER)
-    _aligned_free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
+  #elif defined(_MSC_VER)
+    _aligned_free(ptr);
   #else
     ei_handmade_aligned_free(ptr);
   #endif
