@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Kenneth Riddile <kfriddile@yahoo.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -271,33 +272,118 @@ struct WithAlignedOperatorNew
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
+/** \class aligned_allocator
+*
+* \brief stl compatible allocator to use with with 16 byte aligned types
+*
+* Example:
+* \code
+* // Vector4f requires 16 bytes alignment:
+* std::vector<Vector4f, aligned_allocator<Vector4f> > dataVec4;
+* // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
+* std::vector<Vector3f> dataVec3;
+* \endcode
+*
+*/
+template<class T>
+class aligned_allocator
+{
+public:
+    typedef size_t    size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T*        pointer;
+    typedef const T*  const_pointer;
+    typedef T&        reference;
+    typedef const T&  const_reference;
+    typedef T         value_type;
+
+    template<class U>
+    struct rebind
+    {
+        typedef aligned_allocator<U> other;
+    };
+
+    pointer address( reference value ) const 
+    {
+        return &value;
+    }
+
+    const_pointer address( const_reference value ) const 
+    {
+        return &value;
+    }
+
+    aligned_allocator() throw() 
+    {
+    }
+
+    aligned_allocator( const aligned_allocator& ) throw() 
+    {
+    }
+
+    template<class U>
+    aligned_allocator( const aligned_allocator<U>& ) throw() 
+    {
+    }
+
+    ~aligned_allocator() throw() 
+    {
+    }
+
+    size_type max_size() const throw() 
+    {
+        return std::numeric_limits<size_type>::max();
+    }
+
+    pointer allocate( size_type num, const_pointer* hint = 0 )
+    {
+        static_cast<void>( hint ); // suppress unused variable warning
+        return static_cast<pointer>( ei_aligned_malloc( num * sizeof(T) ) );
+    }
+
+    void construct( pointer p, const T& value ) 
+    {
+        ::new( p ) T( value );
+    }
+
+    void destroy( pointer p ) 
+    {
+        p->~T();
+    }
+
+    void deallocate( pointer p, size_type /*num*/ ) 
+    {
+        ei_aligned_free( p );
+    }
+};
+
 /** \class ei_new_allocator
-  *
-  * \brief stl compatible allocator to use with with fixed-size vector and matrix types
-  *
-  * STL allocator simply wrapping operators new[] and delete[]. Unlike GCC's default new_allocator,
-  * ei_new_allocator call operator new on the type \a T and not the general new operator ignoring
-  * overloaded version of operator new.
-  *
-  * Example:
-  * \code
-  * // Vector4f requires 16 bytes alignment:
-  * std::vector<Vector4f,ei_new_allocator<Vector4f> > dataVec4;
-  * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
-  * std::vector<Vector3f> dataVec3;
-  *
-  * struct Foo : WithAlignedOperatorNew {
-  *   char dummy;
-  *   Vector4f some_vector;
-  * };
-  * std::vector<Foo,ei_new_allocator<Foo> > dataFoo;
-  * \endcode
-  *
-  * \sa class WithAlignedOperatorNew
-  */
+*
+* \brief stl compatible allocator to use with with fixed-size vector and matrix types
+*
+* STL allocator simply wrapping operators new[] and delete[]. Unlike GCC's default new_allocator,
+* ei_new_allocator call operator new on the type \a T and not the general new operator ignoring
+* overloaded version of operator new.
+*
+* Example:
+* \code
+* // Vector4f requires 16 bytes alignment:
+* std::vector<Vector4f,ei_new_allocator<Vector4f> > dataVec4;
+* // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
+* std::vector<Vector3f> dataVec3;
+*
+* struct Foo : WithAlignedOperatorNew {
+*   char dummy;
+*   Vector4f some_vector;
+* };
+* std::vector<Foo,ei_new_allocator<Foo> > dataFoo;
+* \endcode
+*
+* \sa class WithAlignedOperatorNew
+*/
 template<typename T> class ei_new_allocator
 {
-  public:
+public:
     typedef T         value_type;
     typedef T*        pointer;
     typedef const T*  const_pointer;

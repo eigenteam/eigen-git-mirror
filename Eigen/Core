@@ -57,6 +57,7 @@
 #include <iostream>
 #include <cstring>
 #include <string>
+#include <limits>
 
 #if defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER) && defined(EIGEN_VECTORIZE)
   #include <malloc.h> // for _aligned_malloc
