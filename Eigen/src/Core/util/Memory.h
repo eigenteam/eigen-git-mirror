@@ -293,8 +293,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
     void *operator new[](size_t size) throw() { \
       return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
     } \
-    void operator delete(void * ptr) { Eigen::ei_conditinal_aligned_free<NeedsToAlign>(ptr); } \
-    void operator delete[](void * ptr) { Eigen::ei_conditinal_aligned_free<NeedsToAlign>(ptr); } \
+    void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+    void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
     EIGEN_WORKAROUND_FOR_QT_BUG_CALLING_WRONG_OPERATOR_NEW
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
