@@ -27,10 +27,41 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#ifdef __linux
-// it seems we cannot assume posix_memalign is defined in the stdlib header
-extern "C" int posix_memalign (void **, size_t, size_t) throw ();
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(_WIN64)
+  #define EIGEN_MALLOC_ALREADY_ALIGNED 1
+#else
+  #define EIGEN_MALLOC_ALREADY_ALIGNED 0
 #endif
+
+#if (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))
+  #define EIGEN_HAS_POSIX_MEMALIGN 1
+#else
+  #define EIGEN_HAS_POSIX_MEMALIGN 0
+#endif
+
+#ifdef EIGEN_VECTORIZE_SSE
+  #define EIGEN_HAS_MM_MALLOC 1
+#else
+  #define EIGEN_HAS_MM_MALLOC 0
+#endif
+
+/** \internal like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
+  * Fast, but wastes 16 additional bytes of memory.
+  * Does not throw any exception.
+  */
+inline void* ei_handmade_aligned_malloc(size_t size)
+{
+  void *original = malloc(size+16);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
+  *(reinterpret_cast<void**>(aligned) - 1) = original;
+  return aligned;
+}
+
+/** \internal frees memory allocated with ei_handmade_aligned_malloc */
+inline void ei_handmade_aligned_free(void *ptr)
+{
+  free(*(reinterpret_cast<void**>(ptr) - 1));
+}
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
@@ -42,18 +73,20 @@ inline void* ei_aligned_malloc(size_t size)
   #endif
 
   void *result;
-  #ifdef __linux
+  #if EIGEN_HAS_POSIX_MEMALIGN && !EIGEN_MALLOC_ALREADY_ALIGNED
     #ifdef EIGEN_EXCEPTIONS
       const int failed =
     #endif
     posix_memalign(&result, 16, size);
   #else
-    #ifdef _MSC_VER
-      result = _aligned_malloc(size, 16);
-    #elif defined(__APPLE__)
-      result = malloc(size); // Apple's malloc() already returns 16-byte-aligned ptrs
-    #else
+    #if EIGEN_MALLOC_ALREADY_ALIGNED
+      result = malloc(size);
+    #elif EIGEN_HAS_MM_MALLOC
       result = _mm_malloc(size, 16);
+    #elif (defined _MSC_VER)
+      result = _aligned_malloc(size, 16);
+    #else
+      result = ei_handmade_aligned_malloc(size);
     #endif
     #ifdef EIGEN_EXCEPTIONS
       const int failed = (result == 0);
@@ -103,14 +136,16 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
   */
 inline void ei_aligned_free(void *ptr)
 {
-  #if defined(__linux)
+  #if EIGEN_HAS_POSIX_MEMALIGN
     free(ptr);
-  #elif defined(__APPLE__)
+  #elif EIGEN_MALLOC_ALREADY_ALIGNED
     free(ptr);
   #elif defined(_MSC_VER)
     _aligned_free(ptr);
-  #else
+  #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
+  #else
+    ei_handmade_aligned_free(ptr);
   #endif
 }
 
