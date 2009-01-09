@@ -134,7 +134,7 @@ class Matrix
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
     Matrix(ei_select_matrix_constructor_doing_absolutely_nothing) // this ctor does not even do an assertion
-      : m_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing) {}
+      : m_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing()) {}
 
   public:
     enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
