@@ -109,6 +109,10 @@ template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
 
 template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
 {
+  #ifdef EIGEN_NO_MALLOC
+    ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
+  #endif
+
   void *void_result = malloc(size);
   #ifdef EIGEN_EXCEPTIONS
     if(!void_result) throw std::bad_alloc();
