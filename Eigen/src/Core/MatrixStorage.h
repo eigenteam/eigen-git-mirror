@@ -26,8 +26,7 @@
 #ifndef EIGEN_MATRIXSTORAGE_H
 #define EIGEN_MATRIXSTORAGE_H
 
-struct ei_select_matrix_storage_constructor_doing_absolutely_nothing {};
-struct ei_select_matrix_array_constructor_doing_absolutely_nothing {};
+struct ei_constructor_without_unaligned_array_assert {};
 
 /** \internal
   * Static array automatically aligned if the total byte size is a multiple of 16 and the matrix options require auto alignment
@@ -46,14 +45,14 @@ template <typename T, int Size, int MatrixOptions,
     #endif
   }
 
-  ei_matrix_array(ei_select_matrix_array_constructor_doing_absolutely_nothing) {}
+  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 
 template <typename T, int Size, int MatrixOptions> struct ei_matrix_array<T,Size,MatrixOptions,false>
 {
   T array[Size];
   ei_matrix_array() {}
-  ei_matrix_array(ei_select_matrix_array_constructor_doing_absolutely_nothing) {}
+  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 
 /** \internal
@@ -75,8 +74,8 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matr
     ei_matrix_array<T,Size,_Options> m_data;
   public:
     inline explicit ei_matrix_storage() {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+      : m_data(ei_constructor_without_unaligned_array_assert()) {}
     inline ei_matrix_storage(int,int,int) {}
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); }
     inline static int rows(void) {return _Rows;}
@@ -94,8 +93,8 @@ template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dy
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+      : m_data(ei_constructor_without_unaligned_array_assert()), m_rows(0), m_cols(0) {}
     inline ei_matrix_storage(int, int rows, int cols) : m_rows(rows), m_cols(cols) {}
     inline ~ei_matrix_storage() {}
     inline void swap(ei_matrix_storage& other)
@@ -118,8 +117,8 @@ template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<
     int m_rows;
   public:
     inline explicit ei_matrix_storage() : m_rows(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+      : m_data(ei_constructor_without_unaligned_array_assert()), m_rows(0) {}
     inline ei_matrix_storage(int, int rows, int) : m_rows(rows) {}
     inline ~ei_matrix_storage() {}
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
@@ -140,8 +139,8 @@ template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_cols(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+      : m_data(ei_constructor_without_unaligned_array_assert()), m_cols(0) {}
     inline ei_matrix_storage(int, int, int cols) : m_cols(cols) {}
     inline ~ei_matrix_storage() {}
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
@@ -163,8 +162,8 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+       : m_data(0), m_rows(0), m_cols(0) {}
     inline ei_matrix_storage(int size, int rows, int cols)
       : m_data(ei_aligned_new<T>(size)), m_rows(rows), m_cols(cols) {}
     inline ~ei_matrix_storage() { ei_aligned_delete(m_data, m_rows*m_cols); }
@@ -193,8 +192,7 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
     inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_new<T>(size)), m_cols(cols) {}
     inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Rows*m_cols); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
@@ -220,8 +218,7 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
     int m_rows;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing)
-      : m_data(ei_select_matrix_array_constructor_doing_absolutely_nothing()) {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
     inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
     inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Cols*m_rows); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }

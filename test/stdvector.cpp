@@ -26,10 +26,12 @@
 #include <Eigen/StdVector>
 
 template<typename MatrixType>
-void check_stdvector_fixedsize()
+void check_stdvector(const MatrixType& m)
 {
-  MatrixType x = MatrixType::Random(), y = MatrixType::Random();
-  std::vector<MatrixType> v(10), w(20, y);
+  int rows = m.rows();
+  int cols = m.cols();
+  MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
+  std::vector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -38,27 +40,33 @@ void check_stdvector_fixedsize()
   {
     VERIFY_IS_APPROX(w[i], v[i]);
   }
+  
   v.resize(21);
-  v[20] = x;
+  v[20].set(x);
   VERIFY_IS_APPROX(v[20], x);
   v.resize(22,y);
-  VERIFY_IS_APPROX(v[21], y);
+  VERIFY_IS_APPROX(v[21], y);  
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
+  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(MatrixType));
 }
-
 
 void test_stdvector()
 {
   // some non vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector_fixedsize<Vector2f>());
-  CALL_SUBTEST(check_stdvector_fixedsize<Matrix3f>());
-  CALL_SUBTEST(check_stdvector_fixedsize<Matrix3d>());
+  CALL_SUBTEST(check_stdvector(Vector2f()));
+  CALL_SUBTEST(check_stdvector(Matrix3f()));
+  CALL_SUBTEST(check_stdvector(Matrix3d()));
 
   // some vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector_fixedsize<Vector2d>());
-  CALL_SUBTEST(check_stdvector_fixedsize<Vector4f>());
-  CALL_SUBTEST(check_stdvector_fixedsize<Matrix4f>());
-  CALL_SUBTEST(check_stdvector_fixedsize<Matrix4d>());
-  
+  CALL_SUBTEST(check_stdvector(Matrix2f()));
+  CALL_SUBTEST(check_stdvector(Vector4f()));
+  CALL_SUBTEST(check_stdvector(Matrix4f()));
+  CALL_SUBTEST(check_stdvector(Matrix4d()));  
+
+  // some dynamic sizes
+  CALL_SUBTEST(check_stdvector(MatrixXd(1,1)));
+  CALL_SUBTEST(check_stdvector(VectorXd(20)));
+  CALL_SUBTEST(check_stdvector(RowVectorXf(20)));
+  CALL_SUBTEST(check_stdvector(MatrixXcf(10,10)));
 }

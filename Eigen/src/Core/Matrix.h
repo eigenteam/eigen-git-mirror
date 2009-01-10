@@ -25,7 +25,6 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
-struct ei_select_matrix_constructor_doing_absolutely_nothing {};
 
 /** \class Matrix
   *
@@ -133,8 +132,8 @@ class Matrix
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
-    Matrix(ei_select_matrix_constructor_doing_absolutely_nothing) // this ctor does not even do an assertion
-      : m_storage(ei_select_matrix_storage_constructor_doing_absolutely_nothing()) {}
+    Matrix(ei_constructor_without_unaligned_array_assert)
+      : m_storage(ei_constructor_without_unaligned_array_assert()) {}
 
   public:
     enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
