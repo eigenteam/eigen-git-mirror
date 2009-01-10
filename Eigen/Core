@@ -3,7 +3,9 @@
 
 // first thing Eigen does: prevent MSVC from committing suicide
 #include "src/Core/util/DisableMSVCWarnings.h"
+
 #ifdef _MSC_VER
+  #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
   #if (_MSC_VER >= 1500) // 2008 or later
     // Remember that usage of defined() in a #define is undefined by the standard
     #ifdef _M_IX86_FP
@@ -58,10 +60,6 @@
 #include <cstring>
 #include <string>
 #include <limits>
-
-#if defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER) && defined(EIGEN_VECTORIZE)
-  #include <malloc.h> // for _aligned_malloc
-#endif
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS
