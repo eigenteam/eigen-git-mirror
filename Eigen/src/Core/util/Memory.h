@@ -313,10 +313,10 @@ struct WithAlignedOperatorNew
 *
 * Example:
 * \code
-* // Vector4f requires 16 bytes alignment:
-* std::vector<Vector4f, aligned_allocator<Vector4f> > dataVec4;
+* // Matrix4f requires 16 bytes alignment:
+* std::map< int, Matrix4f, std::less<int>, aligned_allocator<Matrix4f> > my_map_mat4;
 * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
-* std::vector<Vector3f> dataVec3;
+* std::map< int, Vector3f > my_map_vec3;
 * \endcode
 *
 */
@@ -390,53 +390,6 @@ public:
     {
         ei_aligned_free( p );
     }
-};
-
-/** \class ei_new_allocator
-*
-* \brief stl compatible allocator to use with with fixed-size vector and matrix types
-*
-* STL allocator simply wrapping operators new[] and delete[]. Unlike GCC's default new_allocator,
-* ei_new_allocator call operator new on the type \a T and not the general new operator ignoring
-* overloaded version of operator new.
-*
-* Example:
-* \code
-* // Vector4f requires 16 bytes alignment:
-* std::vector<Vector4f,ei_new_allocator<Vector4f> > dataVec4;
-* // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
-* std::vector<Vector3f> dataVec3;
-*
-* struct Foo : WithAlignedOperatorNew {
-*   char dummy;
-*   Vector4f some_vector;
-* };
-* std::vector<Foo,ei_new_allocator<Foo> > dataFoo;
-* \endcode
-*
-* \sa class WithAlignedOperatorNew
-*/
-template<typename T> class ei_new_allocator
-{
-public:
-    typedef T         value_type;
-    typedef T*        pointer;
-    typedef const T*  const_pointer;
-    typedef T&        reference;
-    typedef const T&  const_reference;
-
-    template<typename OtherType>
-    struct rebind
-    { typedef ei_new_allocator<OtherType> other; };
-
-    T* address(T& ref) const { return &ref; }
-    const T* address(const T& ref) const { return &ref; }
-    T* allocate(size_t size, const void* = 0) { return new T[size]; }
-    void deallocate(T* ptr, size_t) { delete[] ptr; }
-    size_t max_size() const { return size_t(-1) / sizeof(T); }
-    // FIXME I'm note sure about this construction...
-    void construct(T* ptr, const T& refObj) { ::new(ptr) T(refObj); }
-    void destroy(T* ptr) { ptr->~T(); }
 };
 
 #endif // EIGEN_MEMORY_H

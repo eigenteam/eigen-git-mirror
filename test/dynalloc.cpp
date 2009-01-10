@@ -137,20 +137,5 @@ void test_dynalloc()
     delete[] foo0;
     delete[] fooA;
   }
-
-  // std::vector
-  for (int i=0; i<g_repeat*100; ++i)
-  {
-    std::vector<Vector4f, ei_new_allocator<Vector4f> > vecs(N);
-    for (int j=0; j<N; ++j)
-    {
-      VERIFY(size_t(vecs[j].data())%16==0);
-    }
-    std::vector<MyStruct,ei_new_allocator<MyStruct> > foos(N);
-    for (int j=0; j<N; ++j)
-    {
-      VERIFY(size_t(foos[j].avec.data())%16==0);
-    }
-  }
   
 }
