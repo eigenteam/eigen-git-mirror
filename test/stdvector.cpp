@@ -40,15 +40,25 @@ void check_stdvector(const MatrixType& m)
   {
     VERIFY_IS_APPROX(w[i], v[i]);
   }
-  
+
   v.resize(21);
   v[20].set(x);
   VERIFY_IS_APPROX(v[20], x);
   v.resize(22,y);
-  VERIFY_IS_APPROX(v[21], y);  
+  VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
   VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(MatrixType));
+
+  // do a lot of push_back such that the vector gets internally resized
+  // (with memory reallocation)
+  MatrixType* ref = &w[0];
+  for(int i=0; i<30 | ((ref==&w[0]) && i<300); ++i)
+    v.push_back(w[i%w.size()]);
+  for(int i=23; i<v.size(); ++i)
+  {
+    VERIFY(v[i]==w[(i-23)%w.size()]);
+  }
 }
 
 void test_stdvector()
@@ -62,7 +72,7 @@ void test_stdvector()
   CALL_SUBTEST(check_stdvector(Matrix2f()));
   CALL_SUBTEST(check_stdvector(Vector4f()));
   CALL_SUBTEST(check_stdvector(Matrix4f()));
-  CALL_SUBTEST(check_stdvector(Matrix4d()));  
+  CALL_SUBTEST(check_stdvector(Matrix4d()));
 
   // some dynamic sizes
   CALL_SUBTEST(check_stdvector(MatrixXd(1,1)));
