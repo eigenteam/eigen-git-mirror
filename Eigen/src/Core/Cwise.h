@@ -128,6 +128,12 @@ template<typename ExpressionType> class Cwise
 
     ExpressionType& operator-=(const Scalar& scalar);
 
+    template<typename OtherDerived>
+    inline ExpressionType& operator*=(const MatrixBase<OtherDerived> &other);
+
+    template<typename OtherDerived>
+    inline ExpressionType& operator/=(const MatrixBase<OtherDerived> &other);
+
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
     operator<(const MatrixBase<OtherDerived>& other) const;
 

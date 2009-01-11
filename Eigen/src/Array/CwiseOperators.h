@@ -418,6 +418,43 @@ inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
   return m_matrix.const_cast_derived() = *this + scalar;
 }
 
+
+//=============
+
+/** \array_module
+  *
+  * Replaces this expression by its coefficient-wise product with \a other.
+  *
+  * Example: \include Cwise_times_equal.cpp
+  * Output: \verbinclude Cwise_times_equal.out
+  *
+  * \sa operator*(), operator/=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator*=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this * other;
+}
+
+/** \array_module
+  *
+  * Replaces this expression by its coefficient-wise quotient with \a other.
+  *
+  * Example: \include Cwise_slash_equal.cpp
+  * Output: \verbinclude Cwise_slash_equal.out
+  *
+  * \sa operator/(), operator*=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this / other;
+}
+
+//=============
+
 /** \array_module
   *
   * \returns an expression of \c *this with each coeff decremented by the constant \a scalar
