@@ -73,6 +73,9 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 
   VERIFY_IS_APPROX(m2, m2.cwise() * mones);
   VERIFY_IS_APPROX(m1.cwise() * m2,  m2.cwise() * m1);
+  m3 = m1;
+  m3.cwise() *= m2;
+  VERIFY_IS_APPROX(m3, m1.cwise() * m2);
   
   VERIFY_IS_APPROX(mones,    m2.cwise()/m2);
   if(NumTraits<Scalar>::HasFloatingPoint)
@@ -87,6 +90,9 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 //     VERIFY_IS_APPROX(m1.cwise().pow(0.5), m1.cwise().sqrt());
 //     VERIFY_IS_APPROX(m1.cwise().tan(), m1.cwise().sin().cwise() / m1.cwise().cos());
     VERIFY_IS_APPROX(mones, m1.cwise().sin().cwise().square() + m1.cwise().cos().cwise().square());
+    m3 = m1;
+    m3.cwise() /= m2;
+    VERIFY_IS_APPROX(m3, m1.cwise() / m2);
   }
 
   // check min
