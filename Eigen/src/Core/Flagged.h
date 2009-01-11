@@ -40,18 +40,9 @@
   * \sa MatrixBase::flagged()
   */
 template<typename ExpressionType, unsigned int Added, unsigned int Removed>
-struct ei_traits<Flagged<ExpressionType, Added, Removed> >
+struct ei_traits<Flagged<ExpressionType, Added, Removed> > : ei_traits<ExpressionType>
 {
-  typedef typename ExpressionType::Scalar Scalar;
-
-  enum {
-    RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
-    ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = (ExpressionType::Flags | Added) & ~Removed,
-    CoeffReadCost = ExpressionType::CoeffReadCost
-  };
+  enum { Flags = (ExpressionType::Flags | Added) & ~Removed };
 };
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged

@@ -41,6 +41,7 @@
   */
 template<typename UnaryOp, typename MatrixType>
 struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
+ : ei_traits<MatrixType>
 {
   typedef typename ei_result_of<
                      UnaryOp(typename MatrixType::Scalar)
@@ -48,16 +49,10 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    MatrixTypeCoeffReadCost = _MatrixTypeNested::CoeffReadCost,
-    MatrixTypeFlags = _MatrixTypeNested::Flags,
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (MatrixTypeFlags & (
+    Flags = (_MatrixTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
       | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))),
-    CoeffReadCost = MatrixTypeCoeffReadCost + ei_functor_traits<UnaryOp>::Cost
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
 

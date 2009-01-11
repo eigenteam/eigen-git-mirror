@@ -43,16 +43,11 @@
   * \sa MatrixBase::part()
   */
 template<typename MatrixType, unsigned int Mode>
-struct ei_traits<Part<MatrixType, Mode> >
+struct ei_traits<Part<MatrixType, Mode> > : ei_traits<MatrixType>
 {
-  typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (_MatrixTypeNested::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };

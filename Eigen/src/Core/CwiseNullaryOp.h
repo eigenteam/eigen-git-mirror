@@ -41,14 +41,9 @@
   * \sa class CwiseUnaryOp, class CwiseBinaryOp, MatrixBase::NullaryExpr()
   */
 template<typename NullaryOp, typename MatrixType>
-struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> >
+struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> > : ei_traits<MatrixType>
 {
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum {
-    RowsAtCompileTime = ei_traits<MatrixType>::RowsAtCompileTime,
-    ColsAtCompileTime = ei_traits<MatrixType>::ColsAtCompileTime,
-    MaxRowsAtCompileTime = ei_traits<MatrixType>::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = ei_traits<MatrixType>::MaxColsAtCompileTime,
     Flags = (ei_traits<MatrixType>::Flags
       & (  HereditaryBits
          | (ei_functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
