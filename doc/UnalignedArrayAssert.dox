@@ -2,197 +2,75 @@ namespace Eigen {
 
 /** \page UnalignedArrayAssert Explanation of the assertion on unaligned arrays
 
+Hello! You are seeing this webpage because your program terminated on an assertion failure like this one:
+<pre>
+my_program: path/to/eigen2/Eigen/src/Core/MatrixStorage.h:44:
+Eigen::ei_matrix_array<T, Size, MatrixOptions, Align>::ei_matrix_array()
+[with T = double, int Size = 2, int MatrixOptions = 2, bool Align = true]:
+Assertion `(reinterpret_cast<size_t>(array) & 0xf) == 0 && "this assertion
+is explained here: http://eigen.tuxfamily.org/api/UnalignedArrayAssert.html
+**** READ THIS WEB PAGE !!! ****"' failed.
+</pre>
+
+There are 3 known causes for this issue. Please read on to understand them and learn how to fix them.
+
 \b Table \b of \b contents
-  - \ref what
-  - \ref how
-  - \ref why
-  - \ref stillstuck
-  - \ref stillstillstuck
-  - \ref movetotop
-  - \ref bugineigen
-  - \ref conditional
-<hr>
+ - \ref c1
+ - \ref c2
+ - \ref c3
+ - \ref explanation
 
-\section what What kind of code made this assertion fail?
+\section c1 Cause 1: Structures having Eigen objects as members
 
-If you saw the assertion failure that links to this page, then you probably have done something like that in your code:
+If you have code like this,
 
 \code
 class Foo
 {
-  ...
+  //...
   Eigen::Vector2d v;
-  ...
+  //...
 };
-
-...
-
+//...
 Foo *foo = new Foo;
 \endcode
 
-In other words: you have probably in your code a class that has as a member a vectorizable fixed-size Eigen object, and you then dynamically allocated an object of that class.
+then you need to read this separate page: \ref StructHavingEigenMembers "Structures Having Eigen Members".
 
-By "vectorizable fixed-size Eigen object" we mean an Eigen matrix or vector of fixed size, and whose size is a multiple of 128 bits. Examples include:
-\li Eigen::Vector2d
-\li Eigen::Vector4d
-\li Eigen::Vector4f
-\li Eigen::Matrix2d
-\li Eigen::Matrix2f
-\li Eigen::Matrix4d
-\li Eigen::Matrix4f
-\li Eigen::Transform3d
-\li Eigen::Transform3f
+Note that here, Eigen::Vector2d is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
 
-\section how How to fix this bug?
+\section c2 Cause 2: STL Containers
 
-Very easy, you just need to put a EIGEN_MAKE_ALIGNED_OPERATOR_NEW macro in a public part of your class, like this:
+If you use STL Containers such as std::vector, std::map, ..., with Eigen objects, like this,
 
 \code
-class Foo
-{
-  ...
-  Eigen::Vector2d v;
-  ...
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-
-...
-
-Foo *foo = new Foo;
+std::vector<Eigen::Matrix2f> my_vector;
+std::map<int, Eigen::Matrix2f> my_map;
 \endcode
 
-With this, you should be out of trouble.
+then you need to read this separate page: \ref StlContainers "Using STL Containers with Eigen".
 
-\section why So can you explain what's happening here?
+Note that here, Eigen::Matrix2f is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
 
-OK let's say that your code looks like this:
+\section c3 Cause 3: Passing Eigen objects by value
+
+If some function in your code is getting an Eigen object passed by value, like this,
 
 \code
-class Foo
-{
-  ...
-  Eigen::Vector2d v;
-  ...
-};
-
-...
-
-Foo *foo = new Foo;
+void func(Eigen::Vector4d v);
 \endcode
 
-A Eigen::Vector2d consists of 2 doubles, which is 128 bits. Which is exactly the size of a SSE packet, which makes it possible to use SSE for all sorts of operations on this vector. But SSE instructions (at least the ones that Eigen uses, which are the fast ones) require 128-bit alignment. Otherwise you get a segmentation fault.
+then you need to read this separate page: \ref PassingByValue "Passing Eigen objects by value to functions".
 
-For this reason, Eigen takes care by itself to require 128-bit alignment for Eigen::Vector2d, by doing two things:
-\li Eigen requires 128-bit alignment for the Eigen::Vector2d's array (of 2 doubles). With GCC, this is done with a __attribute__ ((aligned(16))).
-\li Eigen overloads the "operator new" of Eigen::Vector2d so it will always return 128-bit aligned pointers.
+Note that here, Eigen::Vector4d is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
 
-Thus, normally, you don't have to worry about anything, Eigen handles alignment for you...
+\section explanation General explanation of this assertion
 
-... except in one case. When you have a class Foo like above, and you dynamically allocate a new Foo as above, then, since Foo doesn't have aligned "operator new", the returned pointer foo is not necessarily 128-bit aligned.
+\ref FixedSizeVectorizable "fixed-size vectorizable Eigen objects" must absolutely be created at 16-byte-aligned locations, otherwise SIMD instructions adressing them will crash.
 
-The alignment attribute of the member v is then relative to the start of the class, foo. If the foo pointer wasn't aligned, then foo->v won't be aligned either!
+Eigen normally takes care of these alignment issues for you, by setting an alignment attribute on them and by overloading their "operator new".
 
-The solution is to let class Foo have an aligned "operator new", as we showed in the previous section.
-
-\section stillstuck It still doesn't work!
-
-If you followed these instructions and you still get this assertion failure, the most likely cause is that you are passing some Eigen objects (or classes containing Eigen objects) by value. Something like
-
-\code
-void my_function(Eigen::Vector2d v);
-\endcode
-
-This will easily make this assertion fail because when the parameter v is passed to the function, it is copied onto the stack at a location that may be unaligned. Normally the compiler will catch that (since v has an alignment modifier) but we have seen cases where MSVC let that compile without catching this error.
-
-Anyway, the solution is then to pass the parameter by reference instead of passing it by value:
-
-\code
-void my_function(const Eigen::Vector2d& v);
-\endcode
-
-Likewise if you have a class having a Eigen object as member:
-
-\code
-struct Foo
-{
-  Eigen::Vector2d v;
-};
-void my_function(Foo v);
-\endcode
-
-This function also needs to be rewritten like this:
-\code
-void my_function(const Foo& v);
-\endcode
-
-Notice that passing objects by value is always a bad idea, as it is inefficient to copy the parameters onto the stack. So this change is something that you should do anyway.
-
-On the other hand, there is no problem with functions that return objects by value.
-
-\section stillstillstuck It still, STILL doesn't work!
-
-Then you may have found a bug in Eigen. Please report it to our mailing list. Ideally, you would attach to your report a self-contained test case.
-
-\section movetotop Should I then put all the members of Eigen types at the beginning of my class?
-
-No, that's not needed. Since Eigen takes care of declaring 128-bit alignment, all members that need it are automatically 128-bit aligned relatively to the class. So when you have code like
-
-\code
-class Foo
-{
-  double x;
-  Eigen::Vector2d v;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-\endcode
-
-it will work just fine. You do \b not need to rewrite it as
-
-\code
-class Foo
-{
-  Eigen::Vector2d v;
-  double x;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-\endcode
-
-\section dynamicsize What about dynamic-size matrices and vectors?
-
-Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically their own array of coefficients, so they take care of requiring absolute alignment automatically. So they don't cause this bug. The bug discussed here is only with fixed-size matrices and vectors.
-
-\section bugineigen So is this a bug in Eigen?
-
-No, it's not our bug. It's more like an inherent problem of the C++ language -- though it must be said that any other existing language probably has the same problem. The problem is that there is no way that you can specify an aligned "operator new" that would propagate to classes having you as member data.
-
-\section conditional What if I want to do this conditionnally (depending on template parameters) ?
-
-For this situation, we offer the macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign). It will generate aligned operators like EIGEN_MAKE_ALIGNED_OPERATOR_NEW if NeedsToAlign is true. It will generate operators with the default alignment if NeedsToAlign is false.
-
-Example:
-
-\code
-template<int n> class Foo
-{
-  typedef Eigen::Matrix<float,n,1> Vector;
-  enum { NeedsToAlign = (sizeof(Vector)%16)==0 };
-  ...
-  Vector v;
-  ...
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
-};
-
-...
-
-Foo<4> *foo4 = new Foo<4>; // foo4 is guaranteed to be 128bit-aligned
-Foo<3> *foo3 = new Foo<3>; // foo3 has only the system default alignment guarantee
-\endcode
-
-Nore that the argument of EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF must depend on some template parameter(s). Passing an argument that does not depend on any template parameter will give a compilation error. Anyway if the argument does not depend on any template parameter, you could use EIGEN_MAKE_ALIGNED_OPERATOR_NEW instead.
+However there are a few corner cases where these alignment settings get overridden: they are the possible causes for this assertion.
 
 */
 

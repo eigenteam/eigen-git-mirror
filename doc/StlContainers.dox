@@ -1,0 +1,52 @@
+namespace Eigen {
+
+/** \page StlContainers Using STL Containers with Eigen
+
+\b Table \b of \b contents
+  - \ref summary
+  - \ref allocator
+  - \ref vector
+
+\section summary Executive summary
+
+Using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" requires taking the following two steps:
+
+\li A 16-byte-aligned allocator must be used. Eigen does provide one ready for use: aligned_allocator.
+\li If you want to use the std::vector container, you need to #include <Eigen/StdVector>.
+
+These issues happen only with \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types". For other Eigen types, such as Vector3f or MatrixXd, no special care is needed when using STL containers.
+
+\section allocator Using an aligned allocator
+
+STL containers take an optional template parameter, the allocator type. When using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types", you need tell the container to use an allocator that will always allocate memory at 16-byte-aligned locations. Fortunately, Eigen does provide such an allocator: Eigen::aligned_allocator.
+
+For example, instead of
+\code
+std::map<int, Eigen::Vector4f>
+\endcode
+you need to use
+\code
+std::map<int, Eigen::Vector4f, std::less<int>, Eigen::aligned_allocator<Eigen::Vector4f> >
+\endcode
+Note that here, the 3rd parameter "std::less<int>" is just the default value, we only had to specify it because we needed to specify the allocator type, that is the 4th parameter.
+
+\section vector The case of std::vector
+
+The situation with std::vector was even worse (explanation below) so we had to specialize it for Eigen types. The upside is that our specialization takes care of specifying the aligned allocator, so you don't need to worry about it. All you need to do is to #include <Eigen/StdVector>.
+
+So as soon as you have
+\code
+#include<Eigen/StdVector>
+\endcode
+you can simply use
+\code
+std::vector<Eigen::Vector4f>
+\endcode
+without having to worry about anything.
+
+<span class="note">\b Explanation: The resize() method of std::vector takes a value_type argument (defaulting to value_type()). So with std::vector<Eigen::Vector4f>, some Eigen::Vector4f objects will be passed by value, which discards any alignment modifiers, so a Eigen::Vector4f can be created at an unaligned location. In order to avoid that, the only solution we saw was to specialize std::vector to make it work on a slight modification of, here, Eigen::Vector4f, that is able to deal properly with this situation.
+</span>
+
+*/
+
+}
