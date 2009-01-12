@@ -58,7 +58,7 @@ initSparse(double density,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  sparseMat.startFill(refMat.rows()*refMat.cols()*density);
+  sparseMat.startFill(int(refMat.rows()*refMat.cols()*density));
   for(int j=0; j<refMat.cols(); j++)
   {
     for(int i=0; i<refMat.rows(); i++)
