@@ -96,7 +96,7 @@ initSparse(double density,
            std::vector<int>* zeroCoords = 0,
            std::vector<int>* nonzeroCoords = 0)
 {
-  sparseVec.reserve(refVec.size()*density);
+  sparseVec.reserve(int(refVec.size()*density));
   sparseVec.setZero();
   for(int i=0; i<refVec.size(); i++)
   {
