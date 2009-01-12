@@ -36,6 +36,7 @@ class ei_unaligned_type<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
     typedef Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> aligned_base;
     ei_unaligned_type() : aligned_base(ei_constructor_without_unaligned_array_assert()) {}
     ei_unaligned_type(const aligned_base& other)
+      : aligned_base(ei_constructor_without_unaligned_array_assert())
     {
       resize(other.rows(), other.cols());
       ei_assign_impl<ei_unaligned_type,aligned_base,NoVectorization>::run(*this, other);
