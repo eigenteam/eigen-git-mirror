@@ -8,11 +8,18 @@
 #
 # Options:
 #  - EIGEN_CXX: compiler, eg.: g++-4.2
-#  - EIGEN_SITE: eg, INRIA-Bdx_pc-gael
-#  - EIGEN_ARCH: can be: i386, x86_64, ia64, powerpc, etc.
-#  - EIGEN_OS_VERSION: e.g.: opensuse-11.1, cygwin, windows-vista, freebsd, debian, solaris, osx-leopard
-#  - EIGEN_BUILD_NAME_PREFIX: a string appended to the build-name
-#     The default build name is: EIGEN_OS_VERSION-EIGEN_ARCH-EIGEN_CXX-EIGEN_BUILD_NAME_PREFIX
+#      default: default c++ compiler
+#  - EIGEN_SITE: eg, INRIA-Bdx_pc-gael, or the name of the contributor, etc.
+#      default: hostname
+#  - EIGEN_BUILD_STRING: a string which identify the system/compiler. It should be formed like that:
+#        <OS_name>-<OS_version>-<arch>-<compiler-version>
+#      with:
+#        <OS_name> = opensuse, debian, osx, windows, cygwin, freebsd, solaris, etc.
+#        <OS_version> = 11.1, XP, vista, leopard, etc.
+#        <arch> = i386, x86_64, ia64, powerpc, etc.
+#        <compiler-version> = gcc-4.3.2, icc-11.0, MSVC-2008, etc.
+#  - EIGEN_EXPLICIT_VECTORIZATION: novec, SSE2, Altivec
+#      default: SSE2 for x86_64 systems, novec otherwise
 #  - EIGEN_CMAKE_DIR: path to cmake executable
 #  - EIGEN_MODE: dashboard model, can be Experimental, Nightly, or Continuous
 #      default: Nightly
@@ -23,16 +30,16 @@
 #  - CTEST_BINARY_DIRECTORY: build directory
 #      default: <EIGEN_WORK_DIRECTORY>/nightly-<EIGEN_CXX>
 #
-# Here is an example running several compiler on the same system:
+# Here is an example running several compilers on a linux system:
 # #!/bin/bash
 # EIGEN_ARCH=`uname -m`
 # EIGEN_SITE=`hostname`
 # EIGEN_OS_VERSION=opensuse-11.1
-# COMMON=EIGEN_ARCH=$EIGEN_ARCH,EIGEN_SITE=$EIGEN_SITE,EIGEN_OS_VERSION=$EIGEN_OS_VERSION
-# ctest -S testsuite.cmake,$COMMON,EIGEN_CXX=g++-3.3
-# ctest -S testsuite.cmake,$COMMON,EIGEN_CXX=g++-4.1
-# ctest -S testsuite.cmake,$COMMON,EIGEN_CXX=g++-4.3
-# ctest -S testsuite.cmake,$COMMON,EIGEN_CXX=icpc,EIGEN_BUILD_NAME_PREFIX=-11.0
+# COMMON=/home/gael/Coding/eigen2/test/testsuite.cmake,EIGEN_WORK_DIRECTORY=/home/gael/Coding/eigen2/cdash,EIGEN_SITE=$EIGEN_SITE,EIGEN_MODE=$1,EIGEN_BUILD_STRING=$EIGEN_OS_VERSION-$EIGEN_ARCH
+# ctest -S $COMMON-gcc-3.4.6,EIGEN_CXX=g++-3.4
+# ctest -S $COMMON-gcc-4.0.1,EIGEN_CXX=g++-4.0.1
+# ctest -S $COMMON-gcc-4.3.2,EIGEN_CXX=g++-4.3
+# ctest -S $COMMON-icc-11.0,EIGEN_CXX=icpc
 #
 ####################################################################
 
@@ -65,7 +72,6 @@ while(${ARGLIST} MATCHES  ".+.*")
   
 endwhile(${ARGLIST} MATCHES ".+.*")
 
-
 ####################################################################
 # Automatically set some user variables if they have not been defined manually
 ####################################################################
@@ -83,32 +89,38 @@ if(NOT EIGEN_CMAKE_DIR)
   endif(WIN32)
 endif(NOT EIGEN_CMAKE_DIR)
 
-if(NOT EIGEN_OS_VERSION)
-  if(CYGWIN)
-    SET(EIGEN_OS_VERSION cygwin)
-  elseif(WIN32)
-    SET(EIGEN_OS_VERSION windows)
-  elseif(UNIX)
-    SET(EIGEN_OS_VERSION unix)
-  elseif(APPLE)
-    SET(EIGEN_OS_VERSION osx)
-  else(CYGWIN)
+if(NOT EIGEN_BUILD_STRING)
+
+  # let's try to find all information we need to make the build string ourself
+
+  # OS
+#   if(CYGWIN)
+#     SET(EIGEN_OS_VERSION cygwin)
+#   elseif(WIN32)
+#     SET(EIGEN_OS_VERSION windows)
+#   elseif(UNIX)
+#     SET(EIGEN_OS_VERSION unix)
+#   elseif(APPLE)
+#     SET(EIGEN_OS_VERSION osx)
+#   else(CYGWIN)
     build_name(EIGEN_OS_VERSION)
-  endif(CYGWIN)
-endif(NOT EIGEN_OS_VERSION)
+#   endif(CYGWIN)
 
-if(NOT EIGEN_ARCH)
-  set(EIGEN_ARCH unknown)
-endif(NOT EIGEN_ARCH)
+  # arch
+  set(EIGEN_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+  if(WIN32)
+    set(EIGEN_ARCH $ENV{PROCESSOR_ARCHITECTURE})
+  else(WIN32)
+    execute_process(COMMAND uname -m OUTPUT_VARIABLE EIGEN_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif(WIN32)
 
-if(NOT EIGEN_BUILD_NAME)
-  set(EIGEN_BUILD_NAME ${EIGEN_OS_VERSION}-${EIGEN_ARCH}-${EIGEN_CXX})
-  
-  if(EIGEN_BUILD_NAME_PREFIX)
-    set(EIGEN_BUILD_NAME ${EIGEN_BUILD_NAME}${EIGEN_BUILD_NAME_PREFIX})
-  endif(EIGEN_BUILD_NAME_PREFIX)
+  set(EIGEN_BUILD_STRING ${EIGEN_OS_VERSION}${EIGEN_ARCH}-${EIGEN_CXX})
 
-endif(NOT EIGEN_BUILD_NAME)
+endif(NOT EIGEN_BUILD_STRING)
+
+if(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
+  set(EIGEN_BUILD_STRING ${EIGEN_BUILD_STRING}-${EIGEN_EXPLICIT_VECTORIZATION})
+endif(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
 
 if(NOT EIGEN_WORK_DIRECTORY)
   set(EIGEN_WORK_DIRECTORY ${CTEST_SCRIPT_DIRECTORY})
@@ -142,10 +154,11 @@ SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_BUILD_TESTS=on ")
 ####################################################################
 
 # this make sure we get consistent outputs
-SET( $ENV{LC_MESSAGES} "en_EN")
+SET($ENV{LC_MESSAGES} "en_EN")
 
 # should ctest wipe the binary tree before running
-SET (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
+SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
+SET(CTEST_BACKUP_AND_RESTORE TRUE)
 
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
@@ -154,16 +167,12 @@ if(WIN32)
     MAKECOMMAND:STRING=nmake -i
     CMAKE_MAKE_PROGRAM:FILEPATH=nmake
     CMAKE_GENERATOR:INTERNAL=NMake Makefiles
-    SITE:STRING=${EIGEN_SITE}
-  ")
-elseif(APPLE)
-  SET (CTEST_INITIAL_CACHE "
-    BUILDNAME:STRING=${EIGEN_BUILD_NAME}
+    BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
 else(WIN32)
   SET (CTEST_INITIAL_CACHE "
-    BUILDNAME:STRING=${EIGEN_BUILD_NAME}
+    BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
 endif(WIN32)
@@ -182,3 +191,17 @@ SET (CTEST_INITIAL_CACHE "
 if(EIGEN_CXX)
   set(CTEST_ENVIRONMENT "CXX=${EIGEN_CXX}")
 endif(EIGEN_CXX)
+
+if(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
+  if(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE2)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -DEIGEN_TEST_SSE2=ON")
+  elseif(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE3)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -DEIGEN_TEST_SSE2=ON -DEIGEN_TEST_SSE3=ON")
+  elseif(EIGEN_EXPLICIT_VECTORIZATION MATCHES Altivec)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -DEIGEN_TEST_ALTIVEC=ON")
+  elseif(EIGEN_EXPLICIT_VECTORIZATION MATCHES novec)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -DEIGEN_TEST_NO_EXPLICIT_VECTORIZATION=ON")
+  else(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE2)
+    message(FATAL_ERROR "Invalid value for EIGEN_EXPLICIT_VECTORIZATION (${EIGEN_EXPLICIT_VECTORIZATION}), must be: novec, SSE2, SSE3, Altivec")
+  endif(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE2)
+endif(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
