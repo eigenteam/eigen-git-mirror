@@ -53,9 +53,9 @@ void check_stdvector(const MatrixType& m)
   // do a lot of push_back such that the vector gets internally resized
   // (with memory reallocation)
   MatrixType* ref = &w[0];
-  for(int i=0; i<30 | ((ref==&w[0]) && i<300); ++i)
+  for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
     v.push_back(w[i%w.size()]);
-  for(int i=23; i<v.size(); ++i)
+  for(unsigned int i=23; i<v.size(); ++i)
   {
     VERIFY(v[i]==w[(i-23)%w.size()]);
   }

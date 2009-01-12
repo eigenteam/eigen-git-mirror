@@ -224,6 +224,34 @@ Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
 }
 
+/** Replaces this expression by its coefficient-wise product with \a other.
+  *
+  * Example: \include Cwise_times_equal.cpp
+  * Output: \verbinclude Cwise_times_equal.out
+  *
+  * \sa operator*(), operator/=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator*=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this * other;
+}
+
+/** Replaces this expression by its coefficient-wise quotient by \a other.
+  *
+  * Example: \include Cwise_slash_equal.cpp
+  * Output: \verbinclude Cwise_slash_equal.out
+  *
+  * \sa operator/(), operator*=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this / other;
+}
+
 /** \returns an expression of the coefficient-wise min of *this and \a other
   *
   * Example: \include Cwise_min.cpp
