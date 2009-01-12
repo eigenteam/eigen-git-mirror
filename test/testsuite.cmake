@@ -158,7 +158,7 @@ SET(CTEST_BACKUP_AND_RESTORE TRUE)
 
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
-if(WIN32)
+if(WIN32 AND NOT CYGWIN)
   #message(SEND_ERROR "win32")
   set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
   SET (CTEST_INITIAL_CACHE "
@@ -168,21 +168,12 @@ if(WIN32)
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
-else(WIN32)
+else(WIN32 AND NOT CYGWIN)
   SET (CTEST_INITIAL_CACHE "
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
-endif(WIN32)
-
-# MAKECOMMAND:STRING=nmake -i
-# CMAKE_MAKE_PROGRAM:FILEPATH=make
-# CMAKE_GENERATOR:INTERNAL=Makefiles
-SET (CTEST_INITIAL_CACHE "
-  BUILDNAME:STRING=opensuse-11_1-x86_64-${EIGEN_CXX}
-  SITE:STRING=pc-gael
-  CVSCOMMAND:FILEPATH=/usr/bin/svn"
-)
+endif(WIN32 AND NOT CYGWIN)
 
 # set any extra environment variables to use during the execution of the script here:
 
