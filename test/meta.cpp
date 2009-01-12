@@ -57,9 +57,7 @@ void test_meta()
   VERIFY(( ei_is_same_type<float,ei_unpointer<float* const >::type >::ret));
   
   VERIFY(ei_meta_sqrt<1>::ret == 1);
-  #define VERIFY_META_SQRT(X) \
-    std::cerr << ei_meta_sqrt<X>::ret << " == " <<  int(ei_sqrt(double(X))) << "\n"; \
-    VERIFY(ei_meta_sqrt<X>::ret == int(ei_sqrt(double(X))))
+  #define VERIFY_META_SQRT(X) VERIFY(ei_meta_sqrt<X>::ret == int(ei_sqrt(double(X))))
   VERIFY_META_SQRT(2);
   VERIFY_META_SQRT(3);
   VERIFY_META_SQRT(4);
