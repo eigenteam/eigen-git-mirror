@@ -26,9 +26,10 @@ else(CHOLMOD_FOUND)
   message("CHOLMOD not found, this optional backend won't be tested")
 endif(CHOLMOD_FOUND)
 
-if(NOT MSVC)
+option(EIGEN_TEST_NO_FORTRAN "Disable Fortran" OFF)
+if(NOT MSVC AND NOT EIGEN_TEST_NO_FORTRAN)
   enable_language(Fortran OPTIONAL)
-endif(NOT MSVC)
+endif(NOT MSVC AND NOT EIGEN_TEST_NO_FORTRAN)
 
 find_package(Umfpack)
 if(UMFPACK_FOUND)
