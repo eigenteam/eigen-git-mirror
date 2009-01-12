@@ -82,11 +82,7 @@ if(NOT EIGEN_SITE)
 endif(NOT EIGEN_SITE)
 
 if(NOT EIGEN_CMAKE_DIR)
-  if(WIN32)
-    SET(EIGEN_CMAKE_DIR "C:/Program Files/CMake/bin/")
-  else(WIN32)
-    SET(EIGEN_CMAKE_DIR "")
-  endif(WIN32)
+  SET(EIGEN_CMAKE_DIR "")
 endif(NOT EIGEN_CMAKE_DIR)
 
 if(NOT EIGEN_BUILD_STRING)
@@ -163,6 +159,8 @@ SET(CTEST_BACKUP_AND_RESTORE TRUE)
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
 if(WIN32)
+  #message(SEND_ERROR "win32")
+  set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
   SET (CTEST_INITIAL_CACHE "
     MAKECOMMAND:STRING=nmake -i
     CMAKE_MAKE_PROGRAM:FILEPATH=nmake
