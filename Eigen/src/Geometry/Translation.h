@@ -43,7 +43,7 @@ template<typename _Scalar, int _Dim>
 class Translation
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_Dim)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_Dim)
   /** dimension of the space */
   enum { Dim = _Dim };
   /** the scalar type of the coefficients */

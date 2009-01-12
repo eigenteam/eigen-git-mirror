@@ -61,17 +61,17 @@ template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
-  typedef Matrix<_Scalar, 4, 1> Coefficients;
-  Coefficients m_coeffs;
-
+  
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,4)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,4)
 
   using Base::operator*;
-
+  
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
 
+  /** the type of the Coefficients 4-vector */
+  typedef Matrix<Scalar, 4, 1> Coefficients;
   /** the type of a 3D vector */
   typedef Matrix<Scalar,3,1> Vector3;
   /** the equivalent rotation matrix type */
@@ -110,8 +110,11 @@ public:
   inline Coefficients& coeffs() { return m_coeffs; }
 
   /** Default constructor and initializing an identity quaternion. */
-  inline Quaternion()
-  { m_coeffs << 0, 0, 0, 1; }
+  inline Quaternion() {}
+
+  inline Quaternion(ei_constructor_without_unaligned_array_assert)
+    : m_coeffs(ei_constructor_without_unaligned_array_assert()) {}
+
 
   /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
     * its four coefficients \a w, \a x, \a y and \a z.
@@ -149,7 +152,7 @@ public:
 
   /** \sa Quaternion::Identity(), MatrixBase::setIdentity()
     */
-  inline Quaternion& setIdentity() { m_coeffs << 1, 0, 0, 0; return *this; }
+  inline Quaternion& setIdentity() { m_coeffs << 0, 0, 0, 1; return *this; }
 
   /** \returns the squared norm of the quaternion's coefficients
     * \sa Quaternion::norm(), MatrixBase::squaredNorm()
@@ -214,6 +217,8 @@ public:
   bool isApprox(const Quaternion& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
+protected: 
+  Coefficients m_coeffs;
 };
 
 /** \ingroup GeometryModule

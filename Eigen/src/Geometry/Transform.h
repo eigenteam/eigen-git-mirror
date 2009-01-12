@@ -63,7 +63,7 @@ template<typename _Scalar, int _Dim>
 class Transform
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(_Scalar,_Dim==Dynamic ? Dynamic : (_Dim+1)*(_Dim+1))
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_Dim==Dynamic ? Dynamic : (_Dim+1)*(_Dim+1))
   enum {
     Dim = _Dim,     ///< space dimension in which the transformation holds
     HDim = _Dim+1   ///< size of a respective homogeneous vector
@@ -93,6 +93,9 @@ public:
 
   /** Default constructor without initialization of the coefficients. */
   inline Transform() { }
+
+  inline Transform(ei_constructor_without_unaligned_array_assert)
+    : m_matrix(ei_constructor_without_unaligned_array_assert()) {}
 
   inline Transform(const Transform& other)
   { 

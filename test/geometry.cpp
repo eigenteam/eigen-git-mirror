@@ -52,7 +52,6 @@ template<typename Scalar> void geometry(void)
   if (ei_is_same_type<Scalar,float>::ret)
     largeEps = 1e-3f;
 
-  Quaternionx q1, q2;
   Vector3 v0 = Vector3::Random(),
     v1 = Vector3::Random(),
     v2 = Vector3::Random();
@@ -68,6 +67,13 @@ template<typename Scalar> void geometry(void)
       (v0.cross(v1)).normalized(),
       (v0.cross(v1).cross(v0)).normalized();
   VERIFY(m.isUnitary());
+
+  // Quaternion: Identity(), setIdentity();
+  Quaternionx q1, q2;
+  q2.setIdentity();
+  VERIFY_IS_APPROX(Quaternionx(Quaternionx::Identity()).coeffs(), q2.coeffs());
+  q1.coeffs().setRandom();
+  VERIFY_IS_APPROX(q1.coeffs(), (q1*q2).coeffs());
 
   // unitOrthogonal
   VERIFY_IS_MUCH_SMALLER_THAN(u0.unitOrthogonal().dot(u0), Scalar(1));

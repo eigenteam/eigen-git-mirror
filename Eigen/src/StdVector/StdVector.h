@@ -26,6 +26,20 @@
 #ifndef EIGEN_STDVECTOR_H
 #define EIGEN_STDVECTOR_H
 
+#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
+  typedef Eigen::aligned_allocator<value_type> allocator_type; \
+  typedef vector<value_type, allocator_type > unaligned_base; \
+  typedef typename unaligned_base::size_type size_type; \
+  typedef typename unaligned_base::iterator iterator; \
+  explicit vector(const allocator_type& __a = allocator_type()) : unaligned_base(__a) {} \
+  vector(const vector& c) : unaligned_base(c) {} \
+  vector(size_type num, const value_type& val = value_type()) : unaligned_base(num, val) {}\
+  vector(iterator start, iterator end) : unaligned_base(start, end) {} \
+  vector& operator=(const vector& __x) { \
+    unaligned_base::operator=(__x); \
+    return *this; \
+  }
+
 template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols, typename _Alloc>
 class vector<Eigen::Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols>, _Alloc>
   : public vector<Eigen::ei_unaligned_type<Eigen::Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >,
@@ -33,19 +47,27 @@ class vector<Eigen::Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols>, _All
 {
 public:
   typedef Eigen::ei_unaligned_type<Eigen::Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> > value_type;
-  typedef Eigen::aligned_allocator<value_type> allocator_type;
-  typedef vector<value_type, allocator_type > unaligned_base;
-  typedef typename unaligned_base::size_type size_type;
-  typedef typename unaligned_base::iterator iterator;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+};
 
-  explicit vector(const allocator_type& __a = allocator_type()) : unaligned_base(__a) {}
-  vector(const vector& c) : unaligned_base(c) {}
-  vector(size_type num, const value_type& val = value_type()) : unaligned_base(num, val) {}
-  vector(iterator start, iterator end) : unaligned_base(start, end) {}
-  vector& operator=(const vector& __x) {
-    unaligned_base::operator=(__x);
-    return *this;
-  }
+template <typename _Scalar, int _Dim, typename _Alloc>
+class vector<Eigen::Transform<_Scalar,_Dim>, _Alloc>
+  : public vector<Eigen::ei_unaligned_type<Eigen::Transform<_Scalar,_Dim> >,
+                  Eigen::aligned_allocator<Eigen::ei_unaligned_type<Eigen::Transform<_Scalar,_Dim> > > >
+{
+public:
+  typedef Eigen::ei_unaligned_type<Eigen::Transform<_Scalar,_Dim> > value_type;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+};
+
+template <typename _Scalar, typename _Alloc>
+class vector<Eigen::Quaternion<_Scalar>, _Alloc>
+  : public vector<Eigen::ei_unaligned_type<Eigen::Quaternion<_Scalar> >,
+                  Eigen::aligned_allocator<Eigen::ei_unaligned_type<Eigen::Quaternion<_Scalar> > > >
+{
+public:
+  typedef Eigen::ei_unaligned_type<Eigen::Quaternion<_Scalar> > value_type;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
 };
 
 #endif // EIGEN_STDVECTOR_H

@@ -35,12 +35,42 @@ class ei_unaligned_type<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
   public:
     typedef Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> aligned_base;
     ei_unaligned_type() : aligned_base(ei_constructor_without_unaligned_array_assert()) {}
-    ei_unaligned_type(const aligned_base& other)
-      : aligned_base(ei_constructor_without_unaligned_array_assert())
+    ei_unaligned_type(const aligned_base& other) : aligned_base(ei_constructor_without_unaligned_array_assert())
     {
       resize(other.rows(), other.cols());
       ei_assign_impl<ei_unaligned_type,aligned_base,NoVectorization>::run(*this, other);
     }
 };
+
+template<typename _Scalar, int _Dim>
+class ei_unaligned_type<Transform<_Scalar,_Dim> >
+  : public Transform<_Scalar,_Dim>
+{
+  public:
+    typedef Transform<_Scalar,_Dim> aligned_base;
+    typedef typename aligned_base::MatrixType MatrixType;
+    ei_unaligned_type() : aligned_base(ei_constructor_without_unaligned_array_assert()) {}
+    ei_unaligned_type(const aligned_base& other) : aligned_base(ei_constructor_without_unaligned_array_assert())
+    {
+      // no resizing here, it's fixed-size anyway
+      ei_assign_impl<MatrixType,MatrixType,NoVectorization>::run(this->matrix(), other.matrix());
+    }
+};
+
+template<typename _Scalar>
+class ei_unaligned_type<Quaternion<_Scalar> >
+  : public Quaternion<_Scalar>
+{
+  public:
+    typedef Quaternion<_Scalar> aligned_base;
+    typedef typename aligned_base::Coefficients Coefficients;
+    ei_unaligned_type() : aligned_base(ei_constructor_without_unaligned_array_assert()) {}
+    ei_unaligned_type(const aligned_base& other) : aligned_base(ei_constructor_without_unaligned_array_assert())
+    {
+      // no resizing here, it's fixed-size anyway
+      ei_assign_impl<Coefficients,Coefficients,NoVectorization>::run(this->coeffs(), other.coeffs());
+    }
+};
+
 
 #endif // EIGEN_UNALIGNEDTYPE_H

@@ -132,8 +132,6 @@ class Matrix
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
-    Matrix(ei_constructor_without_unaligned_array_assert)
-      : m_storage(ei_constructor_without_unaligned_array_assert()) {}
 
   public:
     enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
@@ -338,6 +336,9 @@ class Matrix
     {
       ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
     }
+
+    Matrix(ei_constructor_without_unaligned_array_assert)
+      : m_storage(ei_constructor_without_unaligned_array_assert()) {}
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *

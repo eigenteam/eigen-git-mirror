@@ -24,9 +24,10 @@
 
 #include "main.h"
 #include <Eigen/StdVector>
+#include <Eigen/Geometry>
 
 template<typename MatrixType>
-void check_stdvector(const MatrixType& m)
+void check_stdvector_matrix(const MatrixType& m)
 {
   int rows = m.rows();
   int cols = m.cols();
@@ -61,22 +62,102 @@ void check_stdvector(const MatrixType& m)
   }
 }
 
+template<typename TransformType>
+void check_stdvector_transform(const TransformType&)
+{
+  typedef typename TransformType::MatrixType MatrixType;
+  TransformType x(MatrixType::Random()), y(MatrixType::Random());
+  std::vector<TransformType> v(10), w(20, y);
+  v[5] = x;
+  w[6] = v[5];
+  VERIFY_IS_APPROX(w[6], v[5]);
+  v = w;
+  for(int i = 0; i < 20; i++)
+  {
+    VERIFY_IS_APPROX(w[i], v[i]);
+  }
+
+  v.resize(21);
+  v[20] = x;
+  VERIFY_IS_APPROX(v[20], x);
+  v.resize(22,y);
+  VERIFY_IS_APPROX(v[21], y);
+  v.push_back(x);
+  VERIFY_IS_APPROX(v[22], x);
+  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(TransformType));
+
+  // do a lot of push_back such that the vector gets internally resized
+  // (with memory reallocation)
+  TransformType* ref = &w[0];
+  for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
+    v.push_back(w[i%w.size()]);
+  for(unsigned int i=23; i<v.size(); ++i)
+  {
+    VERIFY(v[i].matrix()==w[(i-23)%w.size()].matrix());
+  }
+}
+
+template<typename QuaternionType>
+void check_stdvector_quaternion(const QuaternionType&)
+{
+  typedef typename QuaternionType::Coefficients Coefficients;
+  QuaternionType x(Coefficients::Random()), y(Coefficients::Random());
+  std::vector<QuaternionType> v(10), w(20, y);
+  v[5] = x;
+  w[6] = v[5];
+  VERIFY_IS_APPROX(w[6], v[5]);
+  v = w;
+  for(int i = 0; i < 20; i++)
+  {
+    VERIFY_IS_APPROX(w[i], v[i]);
+  }
+
+  v.resize(21);
+  v[20] = x;
+  VERIFY_IS_APPROX(v[20], x);
+  v.resize(22,y);
+  VERIFY_IS_APPROX(v[21], y);
+  v.push_back(x);
+  VERIFY_IS_APPROX(v[22], x);
+  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(QuaternionType));
+
+  // do a lot of push_back such that the vector gets internally resized
+  // (with memory reallocation)
+  QuaternionType* ref = &w[0];
+  for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
+    v.push_back(w[i%w.size()]);
+  for(unsigned int i=23; i<v.size(); ++i)
+  {
+    VERIFY(v[i].coeffs()==w[(i-23)%w.size()].coeffs());
+  }
+}
+
 void test_stdvector()
 {
   // some non vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector(Vector2f()));
-  CALL_SUBTEST(check_stdvector(Matrix3f()));
-  CALL_SUBTEST(check_stdvector(Matrix3d()));
+  CALL_SUBTEST(check_stdvector_matrix(Vector2f()));
+  CALL_SUBTEST(check_stdvector_matrix(Matrix3f()));
+  CALL_SUBTEST(check_stdvector_matrix(Matrix3d()));
 
   // some vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector(Matrix2f()));
-  CALL_SUBTEST(check_stdvector(Vector4f()));
-  CALL_SUBTEST(check_stdvector(Matrix4f()));
-  CALL_SUBTEST(check_stdvector(Matrix4d()));
+  CALL_SUBTEST(check_stdvector_matrix(Matrix2f()));
+  CALL_SUBTEST(check_stdvector_matrix(Vector4f()));
+  CALL_SUBTEST(check_stdvector_matrix(Matrix4f()));
+  CALL_SUBTEST(check_stdvector_matrix(Matrix4d()));
 
   // some dynamic sizes
-  CALL_SUBTEST(check_stdvector(MatrixXd(1,1)));
-  CALL_SUBTEST(check_stdvector(VectorXd(20)));
-  CALL_SUBTEST(check_stdvector(RowVectorXf(20)));
-  CALL_SUBTEST(check_stdvector(MatrixXcf(10,10)));
+  CALL_SUBTEST(check_stdvector_matrix(MatrixXd(1,1)));
+  CALL_SUBTEST(check_stdvector_matrix(VectorXd(20)));
+  CALL_SUBTEST(check_stdvector_matrix(RowVectorXf(20)));
+  CALL_SUBTEST(check_stdvector_matrix(MatrixXcf(10,10)));
+
+  // some Transform
+  CALL_SUBTEST(check_stdvector_transform(Transform2f()));
+  CALL_SUBTEST(check_stdvector_transform(Transform3f()));
+  CALL_SUBTEST(check_stdvector_transform(Transform3d()));
+  //CALL_SUBTEST(check_stdvector_transform(Transform4d()));
+
+  // some Quaternion
+  CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
+  CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
 }

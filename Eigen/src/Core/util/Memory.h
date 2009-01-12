@@ -303,7 +303,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
     EIGEN_WORKAROUND_FOR_QT_BUG_CALLING_WRONG_OPERATOR_NEW
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE(Scalar,Size) \
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
 
 /** Deprecated, use the EIGEN_MAKE_ALIGNED_OPERATOR_NEW macro instead in your own class */
