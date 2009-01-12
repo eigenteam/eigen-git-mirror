@@ -27,7 +27,8 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(_WIN64)
+// for NetBSD I didn't see any clear statement in the docs, but Mark Davies is confident about this.
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(_WIN64)
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
