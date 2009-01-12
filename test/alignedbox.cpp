@@ -48,7 +48,7 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
 
   b0.extend(p0);
   b0.extend(p1);
-  VERIFY(b0.contains(p0*s1+(1.-s1)*p1));
+  VERIFY(b0.contains(p0*s1+(Scalar(1)-s1)*p1));
   VERIFY(!b0.contains(p0 + (1+s1)*(p1-p0)));
 
   (b2 = b0).extend(b1);
