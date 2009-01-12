@@ -1,7 +1,7 @@
 
 ####################################################################
 #
-# Usage: 
+# Usage:
 #  - create a new folder, let's call it cdash
 #  - in that folder, do:
 #    ctest -S path/to/eigen2/test/testsuite.cmake[,option1=value1[,option2=value2]]
@@ -51,25 +51,25 @@ while(${ARGLIST} MATCHES  ".+.*")
   # pick first
   string(REGEX MATCH "([^,]*)(,.*)?" DUMMY ${ARGLIST})
   SET(TOP ${CMAKE_MATCH_1})
-  
+
   # remove first
   string(REGEX MATCHALL "[^,]*,(.*)" DUMMY ${ARGLIST})
   SET(ARGLIST ${CMAKE_MATCH_1})
-  
+
   # decompose as a pair key=value
   string(REGEX MATCH "([^=]*)(=.*)?" DUMMY ${TOP})
   SET(KEY ${CMAKE_MATCH_1})
-  
+
   string(REGEX MATCH "[^=]*=(.*)" DUMMY ${TOP})
   SET(VALUE ${CMAKE_MATCH_1})
-  
+
   # set the variable to the specified value
   if(VALUE)
     SET(${KEY} ${VALUE})
   else(VALUE)
     SET(${KEY} ON)
   endif(VALUE)
-  
+
 endwhile(${ARGLIST} MATCHES ".+.*")
 
 ####################################################################
@@ -158,7 +158,7 @@ SET(CTEST_BACKUP_AND_RESTORE TRUE)
 
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
-if(WIN32 AND NOT CYGWIN)
+if(WIN32 AND NOT UNIX)
   #message(SEND_ERROR "win32")
   set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
   SET (CTEST_INITIAL_CACHE "
@@ -168,12 +168,12 @@ if(WIN32 AND NOT CYGWIN)
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
-else(WIN32 AND NOT CYGWIN)
+else(WIN32 AND NOT UNIX)
   SET (CTEST_INITIAL_CACHE "
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
-endif(WIN32 AND NOT CYGWIN)
+endif(WIN32 AND NOT UNIX)
 
 # set any extra environment variables to use during the execution of the script here:
 
