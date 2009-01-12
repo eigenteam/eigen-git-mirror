@@ -18,6 +18,8 @@ Examples include:
 \li Eigen::Matrix4f
 \li Eigen::Transform3d
 \li Eigen::Transform3f
+\li Eigen::Quaterniond
+\li Eigen::Quaternionf
 
 \section explanation Explanation
 
