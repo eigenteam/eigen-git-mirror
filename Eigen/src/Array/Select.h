@@ -45,15 +45,18 @@ template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMat
 struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 {
   typedef typename ei_traits<ThenMatrixType>::Scalar Scalar;
+  typedef typename ConditionMatrixType::Nested ConditionMatrixNested;
+  typedef typename ThenMatrixType::Nested ThenMatrixNested;
+  typedef typename ElseMatrixType::Nested ElseMatrixNested;
   enum {
     RowsAtCompileTime = ConditionMatrixType::RowsAtCompileTime,
     ColsAtCompileTime = ConditionMatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ConditionMatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ConditionMatrixType::MaxColsAtCompileTime,
     Flags = (unsigned int)ThenMatrixType::Flags & ElseMatrixType::Flags & HereditaryBits,
-    CoeffReadCost = ei_traits<ConditionMatrixType>::CoeffReadCost
-                  + EIGEN_ENUM_MAX(ei_traits<ThenMatrixType>::CoeffReadCost,
-                                   ei_traits<ElseMatrixType>::CoeffReadCost)
+	CoeffReadCost = ei_traits<typename ei_cleantype<ConditionMatrixNested>::type>::CoeffReadCost
+	+ EIGEN_ENUM_MAX(ei_traits<typename ei_cleantype<ThenMatrixNested>::type>::CoeffReadCost,
+	                 ei_traits<typename ei_cleantype<ElseMatrixNested>::type>::CoeffReadCost)
   };
 };
 
