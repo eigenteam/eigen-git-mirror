@@ -60,7 +60,8 @@ inline void* ei_handmade_aligned_malloc(size_t size)
 /** \internal frees memory allocated with ei_handmade_aligned_malloc */
 inline void ei_handmade_aligned_free(void *ptr)
 {
-  free(*(reinterpret_cast<void**>(ptr) - 1));
+  if(ptr)
+    free(*(reinterpret_cast<void**>(ptr) - 1));
 }
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
