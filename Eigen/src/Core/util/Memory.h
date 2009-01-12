@@ -229,8 +229,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 #endif
 
 #define ei_aligned_stack_new(TYPE,SIZE) ::new(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)) TYPE[SIZE]
-#define ei_aligned_stack_delete(TYPE,PTR,SIZE) ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
-                                               ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE)
+#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
+                                                   ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
 /** Qt <= 4.4 has a bug where it calls new(ptr) T instead of ::new(ptr) T.
   * This fails as we overload other operator new but not this one. What Qt really means is placement new.
