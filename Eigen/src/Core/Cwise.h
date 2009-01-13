@@ -171,6 +171,11 @@ template<typename ExpressionType> class Cwise
     const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)
     operator!=(Scalar s) const;
 
+    // allow to extend Cwise outside Eigen
+    #ifdef EIGEN_CWISE_PLUGIN
+    #include EIGEN_CWISE_PLUGIN
+    #endif
+
   protected:
     ExpressionTypeNested m_matrix;
 };
