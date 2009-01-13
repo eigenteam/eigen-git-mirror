@@ -313,6 +313,8 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::writePacket
   derived().template writePacket<StoreMode>(index,x);
 }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+
 /** \internal Copies the coefficient at position (row,col) of other into *this.
   *
   * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
@@ -376,5 +378,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyPacket(int index, const Matrix
   derived().template writePacket<StoreMode>(index,
     other.derived().template packet<LoadMode>(index));
 }
+
+#endif
 
 #endif // EIGEN_COEFFS_H

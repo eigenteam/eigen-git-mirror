@@ -207,7 +207,7 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "regression_module=This is defined in the %Regression module. \code #include <Eigen/Regression> \endcode" \
                          "addexample=\anchor"  \
                          "label=\bug" \
-                         "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'><span style='color:red'>*</span></a>" \
+                         "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'>*</a>" \
                          "nonstableyet=\warning This class/function is not considered to be part of the stable public API yet. Some (minor) changes might happen in future releases."
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C

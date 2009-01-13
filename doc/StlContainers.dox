@@ -12,7 +12,7 @@ namespace Eigen {
 Using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" requires taking the following two steps:
 
 \li A 16-byte-aligned allocator must be used. Eigen does provide one ready for use: aligned_allocator.
-\li If you want to use the std::vector container, you need to #include <Eigen/StdVector>.
+\li If you want to use the std::vector container, you need to \#include <Eigen/StdVector>.
 
 These issues arise only with \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types". For other Eigen types, such as Vector3f or MatrixXd, no special care is needed when using STL containers.
 
@@ -32,7 +32,7 @@ Note that here, the 3rd parameter "std::less<int>" is just the default value, we
 
 \section vector The case of std::vector
 
-The situation with std::vector was even worse (explanation below) so we had to specialize it for Eigen types. The upside is that our specialization takes care of specifying the aligned allocator, so you don't need to worry about it. All you need to do is to #include <Eigen/StdVector>.
+The situation with std::vector was even worse (explanation below) so we had to specialize it for Eigen types. The upside is that our specialization takes care of specifying the aligned allocator, so you don't need to worry about it. All you need to do is to \#include <Eigen/StdVector>.
 
 So as soon as you have
 \code

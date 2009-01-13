@@ -100,6 +100,7 @@
   * when the exact numbers of rows and columns are not known are compile-time, but it is known at compile-time that they cannot
   * exceed a certain value. This happens when taking dynamic-size blocks inside fixed-size matrices: in this case _MaxRows and _MaxCols
   * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.</dd>
+  * </dl>
   *
   * \see MatrixBase for the majority of the API methods for matrices
   */
