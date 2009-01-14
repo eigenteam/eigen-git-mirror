@@ -19,27 +19,32 @@
 #        <arch> = i386, x86_64, ia64, powerpc, etc.
 #        <compiler-version> = gcc-4.3.2, icc-11.0, MSVC-2008, etc.
 #  - EIGEN_EXPLICIT_VECTORIZATION: novec, SSE2, Altivec
-#      default: SSE2 for x86_64 systems, novec otherwise
+#       default: SSE2 for x86_64 systems, novec otherwise
+#       Its value is automatically appended to EIGEN_BUILD_STRING
 #  - EIGEN_CMAKE_DIR: path to cmake executable
 #  - EIGEN_MODE: dashboard model, can be Experimental, Nightly, or Continuous
 #      default: Nightly
-#  - EIGEN_WORK_DIRECTORY: directory used to download the source files and make the builds
+#  - EIGEN_WORK_DIR: directory used to download the source files and make the builds
 #      default: folder which contains this script
 #  - CTEST_SOURCE_DIRECTORY: path to eigen's src (use a new and empty folder, not the one you are working on)
-#      default: <EIGEN_WORK_DIRECTORY>/src
+#      default: <EIGEN_WORK_DIR>/src
 #  - CTEST_BINARY_DIRECTORY: build directory
-#      default: <EIGEN_WORK_DIRECTORY>/nightly-<EIGEN_CXX>
+#      default: <EIGEN_WORK_DIR>/nightly-<EIGEN_CXX>
 #
 # Here is an example running several compilers on a linux system:
 # #!/bin/bash
-# EIGEN_ARCH=`uname -m`
-# EIGEN_SITE=`hostname`
-# EIGEN_OS_VERSION=opensuse-11.1
-# COMMON=/home/gael/Coding/eigen2/test/testsuite.cmake,EIGEN_WORK_DIRECTORY=/home/gael/Coding/eigen2/cdash,EIGEN_SITE=$EIGEN_SITE,EIGEN_MODE=$1,EIGEN_BUILD_STRING=$EIGEN_OS_VERSION-$EIGEN_ARCH
-# ctest -S $COMMON-gcc-3.4.6,EIGEN_CXX=g++-3.4
-# ctest -S $COMMON-gcc-4.0.1,EIGEN_CXX=g++-4.0.1
-# ctest -S $COMMON-gcc-4.3.2,EIGEN_CXX=g++-4.3
-# ctest -S $COMMON-icc-11.0,EIGEN_CXX=icpc
+# ARCH=`uname -m`
+# SITE=`hostname`
+# VERSION=opensuse-11.1
+# WORK_DIR=/home/gael/Coding/eigen2/cdash
+# # get the last version of the script
+# svn cat svn://anonsvn.kde.org/home/kde/trunk/kdesupport/eigen2/test/testsuite.cmake > $WORK_DIR/testsuite.cmake
+# COMMON="ctest -S $WORK_DIR/testsuite.cmake,EIGEN_WORK_DIR=$WORK_DIR,EIGEN_SITE=$SITE,EIGEN_MODE=$1,EIGEN_BUILD_STRING=$OS_VERSION-$ARCH"
+# $COMMON-gcc-3.4.6,EIGEN_CXX=g++-3.4
+# $COMMON-gcc-4.0.1,EIGEN_CXX=g++-4.0.1
+# $COMMON-gcc-4.3.2,EIGEN_CXX=g++-4.3,EIGEN_EXPLICIT_VECTORIZATION=novec
+# $COMMON-gcc-4.3.2,EIGEN_CXX=g++-4.3,EIGEN_EXPLICIT_VECTORIZATION=SSE2
+# $COMMON-icc-11.0,EIGEN_CXX=icpc
 #
 ####################################################################
 
@@ -90,17 +95,7 @@ if(NOT EIGEN_BUILD_STRING)
   # let's try to find all information we need to make the build string ourself
 
   # OS
-#   if(CYGWIN)
-#     SET(EIGEN_OS_VERSION cygwin)
-#   elseif(WIN32)
-#     SET(EIGEN_OS_VERSION windows)
-#   elseif(UNIX)
-#     SET(EIGEN_OS_VERSION unix)
-#   elseif(APPLE)
-#     SET(EIGEN_OS_VERSION osx)
-#   else(CYGWIN)
-    build_name(EIGEN_OS_VERSION)
-#   endif(CYGWIN)
+  build_name(EIGEN_OS_VERSION)
 
   # arch
   set(EIGEN_ARCH ${CMAKE_SYSTEM_PROCESSOR})
@@ -118,16 +113,16 @@ if(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
   set(EIGEN_BUILD_STRING ${EIGEN_BUILD_STRING}-${EIGEN_EXPLICIT_VECTORIZATION})
 endif(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
 
-if(NOT EIGEN_WORK_DIRECTORY)
-  set(EIGEN_WORK_DIRECTORY ${CTEST_SCRIPT_DIRECTORY})
-endif(NOT EIGEN_WORK_DIRECTORY)
+if(NOT EIGEN_WORK_DIR)
+  set(EIGEN_WORK_DIR ${CTEST_SCRIPT_DIRECTORY})
+endif(NOT EIGEN_WORK_DIR)
 
 if(NOT CTEST_SOURCE_DIRECTORY)
-  SET (CTEST_SOURCE_DIRECTORY "${EIGEN_WORK_DIRECTORY}/src")
+  SET (CTEST_SOURCE_DIRECTORY "${EIGEN_WORK_DIR}/src")
 endif(NOT CTEST_SOURCE_DIRECTORY)
 
 if(NOT CTEST_BINARY_DIRECTORY)
-  SET (CTEST_BINARY_DIRECTORY "${EIGEN_WORK_DIRECTORY}/nightly_${EIGEN_CXX}")
+  SET (CTEST_BINARY_DIRECTORY "${EIGEN_WORK_DIR}/nightly_${EIGEN_CXX}")
 endif(NOT CTEST_BINARY_DIRECTORY)
 
 if(NOT EIGEN_MODE)
