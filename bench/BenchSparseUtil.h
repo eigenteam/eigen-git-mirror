@@ -21,6 +21,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 typedef SCALAR Scalar;
 typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
+typedef Matrix<Scalar,Dynamic,1> DenseVector;
 typedef SparseMatrix<Scalar> EigenSparseMatrix;
 
 void fillMatrix(float density, int rows, int cols,  EigenSparseMatrix& dst)
