@@ -77,7 +77,9 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
 
   VERIFY_IS_APPROX(v1*s1-v2, refV1*s1-refV2);
 
-//   std::cerr << v1.dot(v2) << " == " << refV1.dot(refV2) << "\n";
+  VERIFY_IS_APPROX(v1*=s1, refV1*=s1);
+  VERIFY_IS_APPROX(v1/=s1, refV1/=s1);
+
   VERIFY_IS_APPROX(v1.dot(v2), refV1.dot(refV2));
 
 }

@@ -73,8 +73,16 @@ template<typename ExpressionType> class SparseCwise
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
-    operator/(const SparseMatrixBase<OtherDerived> &other) const;
+    const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+    operator*(const MatrixBase<OtherDerived> &other) const;
+
+//     template<typename OtherDerived>
+//     const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
+//     operator/(const SparseMatrixBase<OtherDerived> &other) const;
+//
+//     template<typename OtherDerived>
+//     const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
+//     operator/(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
@@ -96,27 +104,13 @@ template<typename ExpressionType> class SparseCwise
 //     const EIGEN_SPARSE_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)      sin() const;
 //     const EIGEN_SPARSE_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)      pow(const Scalar& exponent) const;
 
+    template<typename OtherDerived>
+    inline ExpressionType& operator*=(const SparseMatrixBase<OtherDerived> &other);
+
+//     template<typename OtherDerived>
+//     inline ExpressionType& operator/=(const SparseMatrixBase<OtherDerived> &other);
+
     /*
-    const ScalarAddReturnType
-    operator+(const Scalar& scalar) const;
-
-    friend const ScalarAddReturnType
-    operator+(const Scalar& scalar, const Cwise& mat)
-    { return mat + scalar; }
-
-    ExpressionType& operator+=(const Scalar& scalar);
-
-    const ScalarAddReturnType
-    operator-(const Scalar& scalar) const;
-
-    ExpressionType& operator-=(const Scalar& scalar);
-
-    template<typename OtherDerived>
-    inline ExpressionType& operator*=(const MatrixBase<OtherDerived> &other);
-
-    template<typename OtherDerived>
-    inline ExpressionType& operator/=(const MatrixBase<OtherDerived> &other);
-
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
     operator<(const MatrixBase<OtherDerived>& other) const;
 

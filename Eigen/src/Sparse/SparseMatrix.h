@@ -419,6 +419,7 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
     inline InnerIterator& operator++() { m_id++; return *this; }
 
     inline Scalar value() const { return m_matrix.m_data.value(m_id); }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.m_data.value(m_id)); }
 
     inline int index() const { return m_matrix.m_data.index(m_id); }
 

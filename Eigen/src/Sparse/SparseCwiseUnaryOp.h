@@ -162,14 +162,20 @@ template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
 SparseMatrixBase<Derived>::operator*=(const Scalar& other)
 {
-  return *this = *this * other;
+  for (int j=0; j<outerSize(); ++j)
+    for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+      i.valueRef() *= other;
+  return derived();
 }
 
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
 SparseMatrixBase<Derived>::operator/=(const Scalar& other)
 {
-  return *this = *this / other;
+  for (int j=0; j<outerSize(); ++j)
+    for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+      i.valueRef() /= other;
+  return derived();
 }
 
 #endif // EIGEN_SPARSE_CWISE_UNARY_OP_H
