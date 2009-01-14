@@ -58,7 +58,7 @@ class SparseVector
   : public SparseMatrixBase<SparseVector<_Scalar, _Flags> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(SparseVector)
+    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
 
   protected:
   public:

@@ -31,6 +31,46 @@
 #define EIGEN_DBG_SPARSE(X) X
 #endif
 
+#define EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename OtherDerived> \
+EIGEN_STRONG_INLINE Derived& operator Op(const Eigen::SparseMatrixBase<OtherDerived>& other) \
+{ \
+  return Base::operator Op(other.derived()); \
+} \
+EIGEN_STRONG_INLINE Derived& operator Op(const Derived& other) \
+{ \
+  return Base::operator Op(other); \
+}
+
+#define EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+template<typename Other> \
+EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
+{ \
+  return Base::operator Op(scalar); \
+}
+
+#define EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+
+#define _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
+typedef BaseClass Base; \
+typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+typedef typename Eigen::ei_nested<Derived>::type Nested; \
+enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+       ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+       Flags = Eigen::ei_traits<Derived>::Flags, \
+       CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+       SizeAtCompileTime = Base::SizeAtCompileTime, \
+       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+
+#define EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived) \
+_EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
+
 enum SparseBackend {
   DefaultBackend,
   Taucs,
@@ -63,6 +103,16 @@ enum {
 template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SparseMatrix;
 template<typename _Scalar, int _Flags = 0> class SparseVector;
+
+template<typename MatrixType> class SparseTranspose;
+template<typename MatrixType> class SparseInnerVector;
+template<typename Derived> class SparseCwise;
+template<typename UnaryOp,   typename MatrixType>         class SparseCwiseUnaryOp;
+template<typename BinaryOp,  typename Lhs, typename Rhs>  class SparseCwiseBinaryOp;
+template<typename Lhs, typename Rhs>                      class SparseProduct;
+template<typename ExpressionType, unsigned int Added, unsigned int Removed> class SparseFlagged;
+
+template<typename Lhs, typename Rhs> struct SparseProductReturnType;
 
 const int AccessPatternNotSupported = 0x0;
 const int AccessPatternSupported    = 0x1;

@@ -143,13 +143,12 @@ struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
 
 template<typename Derived1, typename Derived2,
          int Vectorization = ei_dot_traits<Derived1, Derived2>::Vectorization,
-         int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling,
-         int Storage = (ei_traits<Derived1>::Flags | ei_traits<Derived2>::Flags) & SparseBit
+         int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling
 >
 struct ei_dot_impl;
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling, IsDense>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   static Scalar run(const Derived1& v1, const Derived2& v2)
@@ -164,12 +163,12 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling, IsDense>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling, IsDense>
+struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling>
   : public ei_dot_novec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
 {};
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling, IsDense>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -222,7 +221,7 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling, IsDense
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling, IsDense>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;

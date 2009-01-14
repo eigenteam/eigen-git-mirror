@@ -251,8 +251,8 @@ template<typename Derived> class MatrixBase
     { return lazyAssign(other._expression()); }
 
     /** Overloaded for sparse product evaluation */
-    template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const Product<Derived1,Derived2,SparseProduct>& product);
+    /*template<typename Derived1, typename Derived2>
+    Derived& lazyAssign(const Product<Derived1,Derived2,SparseProduct>& product);*/
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 

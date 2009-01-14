@@ -22,19 +22,20 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SPARSEREDUX_H
-#define EIGEN_SPARSEREDUX_H
+#ifndef EIGEN_SPARSE_FUZZY_H
+#define EIGEN_SPARSE_FUZZY_H
 
-template<typename Derived>
-typename ei_traits<Derived>::Scalar
-SparseMatrixBase<Derived>::sum() const
-{
-  ei_assert(rows()>0 && cols()>0 && "you are using a non initialized matrix");
-  Scalar res = 0;
-  for (int j=0; j<outerSize(); ++j)
-    for (typename Derived::InnerIterator iter(derived(),j); iter; ++iter)
-      res += iter.value();
-  return res;
-}
+// template<typename Derived>
+// template<typename OtherDerived>
+// bool SparseMatrixBase<Derived>::isApprox(
+//   const OtherDerived& other,
+//   typename NumTraits<Scalar>::Real prec
+// ) const
+// {
+//   const typename ei_nested<Derived,2>::type nested(derived());
+//   const typename ei_nested<OtherDerived,2>::type otherNested(other.derived());
+//   return    (nested - otherNested).cwise().abs2().sum()
+//          <= prec * prec * std::min(nested.cwise().abs2().sum(), otherNested.cwise().abs2().sum());
+// }
 
-#endif // EIGEN_SPARSEREDUX_H
+#endif // EIGEN_SPARSE_FUZZY_H

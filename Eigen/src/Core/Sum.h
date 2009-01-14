@@ -154,13 +154,12 @@ struct ei_sum_vec_unroller<Derived, Index, Stop, true>
 
 template<typename Derived,
          int Vectorization = ei_sum_traits<Derived>::Vectorization,
-         int Unrolling = ei_sum_traits<Derived>::Unrolling,
-         int Storage = ei_traits<Derived>::Flags & SparseBit
+         int Unrolling = ei_sum_traits<Derived>::Unrolling
 >
 struct ei_sum_impl;
 
 template<typename Derived>
-struct ei_sum_impl<Derived, NoVectorization, NoUnrolling, IsDense>
+struct ei_sum_impl<Derived, NoVectorization, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   static Scalar run(const Derived& mat)
@@ -178,12 +177,12 @@ struct ei_sum_impl<Derived, NoVectorization, NoUnrolling, IsDense>
 };
 
 template<typename Derived>
-struct ei_sum_impl<Derived, NoVectorization, CompleteUnrolling, IsDense>
+struct ei_sum_impl<Derived, NoVectorization, CompleteUnrolling>
   : public ei_sum_novec_unroller<Derived, 0, Derived::SizeAtCompileTime>
 {};
 
 template<typename Derived>
-struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling,IsDense>
+struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -228,7 +227,7 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling,IsDense>
 };
 
 template<typename Derived>
-struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling, IsDense>
+struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;

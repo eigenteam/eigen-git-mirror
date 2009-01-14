@@ -63,8 +63,6 @@ template<typename MatrixType> class Transpose
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
-    class InnerIterator;
-
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
@@ -185,7 +183,7 @@ struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
   *
   * In most cases it is probably better to simply use the transposed expression
   * of a matrix. However, when transposing the matrix data itself is really needed,
-  * then this "in-place" version is probably the right choice because it provides 
+  * then this "in-place" version is probably the right choice because it provides
   * the following additional features:
   *  - less error prone: doing the same operation with .transpose() requires special care:
   *    \code m.set(m.transpose().eval()); \endcode

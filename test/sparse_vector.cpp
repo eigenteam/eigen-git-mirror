@@ -62,7 +62,8 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
     for (typename SparseVectorType::InnerIterator it(v1); it; ++it,++j)
     {
       VERIFY(nonzerocoords[j]==it.index());
-      VERIFY(it.value()==v1[it.index()]);
+      VERIFY(it.value()==v1.coeff(it.index()));
+      VERIFY(it.value()==refV1.coeff(it.index()));
     }
   }
   VERIFY_IS_APPROX(v1, refV1);
@@ -76,7 +77,7 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
 
   VERIFY_IS_APPROX(v1*s1-v2, refV1*s1-refV2);
 
-  std::cerr << v1.dot(v2) << " == " << refV1.dot(refV2) << "\n";
+//   std::cerr << v1.dot(v2) << " == " << refV1.dot(refV2) << "\n";
   VERIFY_IS_APPROX(v1.dot(v2), refV1.dot(refV2));
 
 }
@@ -85,7 +86,7 @@ void test_sparse_vector()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( sparse_vector<double>(8, 8) );
-//     CALL_SUBTEST( sparse_vector<std::complex<double> >(16, 16) );
+    CALL_SUBTEST( sparse_vector<std::complex<double> >(16, 16) );
     CALL_SUBTEST( sparse_vector<double>(299, 535) );
   }
 }

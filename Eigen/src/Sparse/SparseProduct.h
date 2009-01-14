@@ -27,7 +27,7 @@
 
 // sparse product return type specialization
 template<typename Lhs, typename Rhs>
-struct ProductReturnType<Lhs,Rhs,SparseProduct>
+struct SparseProductReturnType
 {
   typedef typename ei_traits<Lhs>::Scalar Scalar;
   enum {
@@ -47,12 +47,11 @@ struct ProductReturnType<Lhs,Rhs,SparseProduct>
     SparseMatrix<Scalar,0>,
     const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
 
-  typedef Product<LhsNested,
-                  RhsNested, SparseProduct> Type;
+  typedef SparseProduct<LhsNested, RhsNested> Type;
 };
 
 template<typename LhsNested, typename RhsNested>
-struct ei_traits<Product<LhsNested, RhsNested, SparseProduct> >
+struct ei_traits<SparseProduct<LhsNested, RhsNested> >
 {
   // clean the nested types:
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
@@ -87,29 +86,27 @@ struct ei_traits<Product<LhsNested, RhsNested, SparseProduct> >
   };
 };
 
-template<typename LhsNested, typename RhsNested> class Product<LhsNested,RhsNested,SparseProduct> : ei_no_assignment_operator,
-  public MatrixBase<Product<LhsNested, RhsNested, SparseProduct> >
+template<typename LhsNested, typename RhsNested>
+class SparseProduct : ei_no_assignment_operator,
+  public SparseMatrixBase<SparseProduct<LhsNested, RhsNested> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(SparseProduct)
 
   private:
 
-    typedef typename ei_traits<Product>::_LhsNested _LhsNested;
-    typedef typename ei_traits<Product>::_RhsNested _RhsNested;
+    typedef typename ei_traits<SparseProduct>::_LhsNested _LhsNested;
+    typedef typename ei_traits<SparseProduct>::_RhsNested _RhsNested;
 
   public:
 
     template<typename Lhs, typename Rhs>
-    inline Product(const Lhs& lhs, const Rhs& rhs)
+    inline SparseProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows());
     }
-
-    Scalar coeff(int, int) const { ei_assert(false && "eigen internal error"); }
-    Scalar& coeffRef(int, int) { ei_assert(false && "eigen internal error"); }
 
     inline int rows() const { return m_lhs.rows(); }
     inline int cols() const { return m_rhs.cols(); }
@@ -231,21 +228,21 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
 // by ProductReturnType which transform it to (col col *) by evaluating rhs.
 
 
-template<typename Derived>
-template<typename Lhs, typename Rhs>
-inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,SparseProduct>& product)
-{
-//   std::cout << "sparse product to dense\n";
-  ei_sparse_product_selector<
-    typename ei_cleantype<Lhs>::type,
-    typename ei_cleantype<Rhs>::type,
-    typename ei_cleantype<Derived>::type>::run(product.lhs(),product.rhs(),derived());
-  return derived();
-}
+// template<typename Derived>
+// template<typename Lhs, typename Rhs>
+// inline Derived& SparseMatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs>& product)
+// {
+// //   std::cout << "sparse product to dense\n";
+//   ei_sparse_product_selector<
+//     typename ei_cleantype<Lhs>::type,
+//     typename ei_cleantype<Rhs>::type,
+//     typename ei_cleantype<Derived>::type>::run(product.lhs(),product.rhs(),derived());
+//   return derived();
+// }
 
 template<typename Derived>
 template<typename Lhs, typename Rhs>
-inline Derived& SparseMatrixBase<Derived>::operator=(const Product<Lhs,Rhs,SparseProduct>& product)
+inline Derived& SparseMatrixBase<Derived>::operator=(const SparseProduct<Lhs,Rhs>& product)
 {
 //   std::cout << "sparse product to sparse\n";
   ei_sparse_product_selector<
@@ -253,6 +250,29 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const Product<Lhs,Rhs,Spars
     typename ei_cleantype<Rhs>::type,
     Derived>::run(product.lhs(),product.rhs(),derived());
   return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+inline const typename SparseProductReturnType<Derived,OtherDerived>::Type
+SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other) const
+{
+  enum {
+    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
+                   || OtherDerived::RowsAtCompileTime==Dynamic
+                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
+    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
+    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
+  };
+  // note to the lost user:
+  //    * for a dot product use: v1.dot(v2)
+  //    * for a coeff-wise product use: v1.cwise()*v2
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+  return typename SparseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
 #endif // EIGEN_SPARSEPRODUCT_H

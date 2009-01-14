@@ -23,9 +23,76 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SPARSEBLOCK_H
-#define EIGEN_SPARSEBLOCK_H
+#ifndef EIGEN_SPARSE_BLOCK_H
+#define EIGEN_SPARSE_BLOCK_H
 
+template<typename MatrixType>
+struct ei_traits<SparseInnerVector<MatrixType> >
+{
+  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  enum {
+    IsRowMajor = (int(MatrixType::Flags)&RowMajorBit)==RowMajorBit,
+    Flags = MatrixType::Flags,
+    RowsAtCompileTime = IsRowMajor ? 1 : MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = IsRowMajor ? MatrixType::ColsAtCompileTime : 1,
+    CoeffReadCost = MatrixType::CoeffReadCost
+  };
+};
+
+template<typename MatrixType>
+class SparseInnerVector : ei_no_assignment_operator,
+  public SparseMatrixBase<SparseInnerVector<MatrixType> >
+{
+    enum {
+      IsRowMajor = ei_traits<SparseInnerVector>::IsRowMajor
+    };
+public:
+
+    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseInnerVector)
+    class InnerIterator;
+
+    inline SparseInnerVector(const MatrixType& matrix, int outer)
+      : m_matrix(matrix), m_outer(outer)
+    {
+      ei_assert( (outer>=0) && (outer<matrix.outerSize()) );
+    }
+
+    EIGEN_STRONG_INLINE int rows() const { return IsRowMajor ? 1 : m_matrix.rows(); }
+    EIGEN_STRONG_INLINE int cols() const { return IsRowMajor ? m_matrix.cols() : 1; }
+
+  protected:
+
+    const typename MatrixType::Nested m_matrix;
+    int m_outer;
+
+};
+
+template<typename MatrixType>
+class SparseInnerVector<MatrixType>::InnerIterator : public MatrixType::InnerIterator
+{
+public:
+  inline InnerIterator(const SparseInnerVector& xpr, int outer=0)
+    : MatrixType::InnerIterator(xpr.m_matrix, xpr.m_outer)
+  {
+    ei_assert(outer==0);
+  }
+};
+
+/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+  * is col-major (resp. row-major).
+  */
+template<typename Derived>
+SparseInnerVector<Derived> SparseMatrixBase<Derived>::innerVector(int outer)
+{ return SparseInnerVector<Derived>(derived(), outer); }
+
+/** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
+  * is col-major (resp. row-major). Read-only.
+  */
+template<typename Derived>
+const SparseInnerVector<Derived> SparseMatrixBase<Derived>::innerVector(int outer) const
+{ return SparseInnerVector<Derived>(derived(), outer); }
+
+# if 0
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess>
 class Block<MatrixType,BlockRows,BlockCols,PacketAccess,IsSparse>
   : public SparseMatrixBase<Block<MatrixType,BlockRows,BlockCols,PacketAccess,IsSparse> >
@@ -117,6 +184,6 @@ public:
     const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 
 };
+#endif
 
-
-#endif // EIGEN_SPARSEBLOCK_H
+#endif // EIGEN_SPARSE_BLOCK_H

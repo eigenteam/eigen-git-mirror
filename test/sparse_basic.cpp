@@ -72,7 +72,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
   refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
 
   VERIFY_IS_APPROX(m, refMat);
-/*
+  /*
   // test InnerIterators and Block expressions
   for (int t=0; t<10; ++t)
   {
@@ -81,23 +81,23 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     int w = ei_random<int>(1,cols-j-1);
     int h = ei_random<int>(1,rows-i-1);
 
-    VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
+//     VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
     for(int c=0; c<w; c++)
     {
       VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
       for(int r=0; r<h; r++)
       {
-        VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
+//         VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
       }
     }
-    for(int r=0; r<h; r++)
-    {
-      VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
-      for(int c=0; c<w; c++)
-      {
-        VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
-      }
-    }
+//     for(int r=0; r<h; r++)
+//     {
+//       VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
+//       for(int c=0; c<w; c++)
+//       {
+//         VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
+//       }
+//     }
   }
 
   for(int c=0; c<cols; c++)
@@ -171,7 +171,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
       }
       m2.endFill();
       std::cerr << m1 << "\n\n" << m2 << "\n";
-      VERIFY_IS_APPROX(m1,m2);
+      VERIFY_IS_APPROX(m2,m1);
     }
 //   {
 //     m.setZero();
@@ -190,6 +190,17 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
 //   }
 //   std::cerr << m.transpose() << "\n\n"  << refMat.transpose() << "\n\n";
 //   VERIFY_IS_APPROX(m, refMat);
+
+  // test innerVector()
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrix<Scalar> m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    int j0 = ei_random(0,rows-1);
+    int j1 = ei_random(0,rows-1);
+//     VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
+//     VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
+  }
 
   // test transpose
   {

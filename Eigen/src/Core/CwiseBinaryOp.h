@@ -86,14 +86,12 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
 
-    class InnerIterator;
-
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
       // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
       // that would take two operands of different types. If there were such an example, then this check should be
-      // moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as 
+      // moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as
       // currently they take only one typename Scalar template parameter.
       // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
       // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to

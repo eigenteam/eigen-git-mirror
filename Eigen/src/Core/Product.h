@@ -79,7 +79,6 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
  *    - NormalProduct
  *    - CacheFriendlyProduct
  *    - DiagonalProduct
- *    - SparseProduct
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
@@ -87,8 +86,6 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
 
     value = ((Rhs::Flags&Diagonal)==Diagonal) || ((Lhs::Flags&Diagonal)==Diagonal)
           ? DiagonalProduct
-          : (Rhs::Flags & Lhs::Flags & SparseBit)
-          ? SparseProduct
           : Lhs::MaxColsAtCompileTime == Dynamic
             && ( Lhs::MaxRowsAtCompileTime == Dynamic
               || Rhs::MaxColsAtCompileTime == Dynamic )

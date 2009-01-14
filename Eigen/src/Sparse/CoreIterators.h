@@ -28,19 +28,26 @@
 /* This file contains the respective InnerIterator definition of the expressions defined in Eigen/Core
  */
 
-template<typename Derived>
-class MatrixBase<Derived>::InnerIterator
+/** \class InnerIterator
+  * \brief An InnerIterator allows to loop over the element of a sparse (or dense) matrix or expression
+  *
+  * todo
+  */
+// template<typename XprType> InnerIterator;
+
+// generic version for dense matrix and expressions
+template<typename Derived> class MatrixBase<Derived>::InnerIterator
 {
     typedef typename Derived::Scalar Scalar;
   public:
-    EIGEN_STRONG_INLINE InnerIterator(const Derived& mat, int outer)
-      : m_matrix(mat), m_inner(0), m_outer(outer), m_end(mat.rows())
+    EIGEN_STRONG_INLINE InnerIterator(const Derived& expr, int outer)
+      : m_expression(expr), m_inner(0), m_outer(outer), m_end(expr.rows())
     {}
 
     EIGEN_STRONG_INLINE Scalar value() const
     {
-      return (Derived::Flags&RowMajorBit) ? m_matrix.coeff(m_outer, m_inner)
-                                          : m_matrix.coeff(m_inner, m_outer);
+      return (Derived::Flags&RowMajorBit) ? m_expression.coeff(m_outer, m_inner)
+                                          : m_expression.coeff(m_inner, m_outer);
     }
 
     EIGEN_STRONG_INLINE InnerIterator& operator++() { m_inner++; return *this; }
@@ -50,22 +57,14 @@ class MatrixBase<Derived>::InnerIterator
     EIGEN_STRONG_INLINE operator bool() const { return m_inner < m_end && m_inner>=0; }
 
   protected:
-    const Derived& m_matrix;
+    const Derived& m_expression;
     int m_inner;
     const int m_outer;
     const int m_end;
 };
 
-template<typename MatrixType>
-class Transpose<MatrixType>::InnerIterator : public MatrixType::InnerIterator
-{
-  public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const Transpose& trans, int outer)
-      : MatrixType::InnerIterator(trans.m_matrix, outer)
-    {}
-};
-
+/*
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus>
 class Block<MatrixType, BlockRows, BlockCols, PacketAccess, _DirectAccessStatus>::InnerIterator
 {
@@ -138,50 +137,9 @@ class Block<MatrixType, BlockRows, BlockCols, PacketAccess, IsSparse>::InnerIter
     int m_start;
     int m_end;
     int m_offset;
-};
+};*/
 
-template<typename UnaryOp, typename MatrixType>
-class CwiseUnaryOp<UnaryOp,MatrixType>::InnerIterator
-{
-    typedef typename CwiseUnaryOp::Scalar Scalar;
-    typedef typename ei_traits<CwiseUnaryOp>::_MatrixTypeNested _MatrixTypeNested;
-    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
-  public:
-
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOp& unaryOp, int outer)
-      : m_iter(unaryOp.m_matrix,outer), m_functor(unaryOp.m_functor), m_id(-1)
-    {
-      this->operator++();
-    }
-
-    EIGEN_STRONG_INLINE InnerIterator& operator++()
-    {
-      if (m_iter)
-      {
-        m_id = m_iter.index();
-        m_value = m_functor(m_iter.value());
-        ++m_iter;
-      }
-      else
-      {
-        m_id = -1;
-      }
-      return *this;
-    }
-
-    EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
-
-    EIGEN_STRONG_INLINE int index() const { return m_id; }
-
-    EIGEN_STRONG_INLINE operator bool() const { return m_id>=0; }
-
-  protected:
-    MatrixTypeIterator m_iter;
-    const UnaryOp& m_functor;
-    Scalar m_value;
-    int m_id;
-};
-
+/*
 template<typename T> struct ei_is_scalar_product { enum { ret = false }; };
 template<typename T> struct ei_is_scalar_product<ei_scalar_product_op<T> > { enum { ret = true }; };
 
@@ -204,8 +162,8 @@ class CwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
     EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOp& binOp, int outer)
       : Base(binOp.m_lhs,binOp.m_rhs,binOp.m_functor,outer)
     {}
-};
-
+};*/
+/*
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived>
 class CwiseBinaryOpInnerIterator
 {
@@ -270,7 +228,7 @@ class CwiseBinaryOpInnerIterator
     Scalar m_value;
     int m_id;
 };
-/*
+
 template<typename T, typename Lhs, typename Rhs, typename Derived>
 class CwiseBinaryOpInnerIterator<ei_scalar_product_op<T>,Lhs,Rhs,Derived>
 {

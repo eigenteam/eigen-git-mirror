@@ -76,6 +76,12 @@ if(MSVC)
   endif(EIGEN_TEST_SSE2)
 endif(MSVC)
 
+option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
+if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+  add_definitions(EIGEN_DONT_VECTORIZE=1)
+  message("Disabling vectorization in tests/examples")
+endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(Eigen)

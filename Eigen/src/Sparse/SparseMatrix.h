@@ -56,14 +56,14 @@ class SparseMatrix
   : public SparseMatrixBase<SparseMatrix<_Scalar, _Flags> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
+    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
 
   protected:
   public:
 
     typedef SparseMatrixBase<SparseMatrix> SparseBase;
     enum {
-      RowMajor = SparseBase::RowMajor
+      RowMajor = SparseBase::IsRowMajor
     };
     typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(RowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
@@ -267,7 +267,7 @@ class SparseMatrix
     }
 
     template<typename OtherDerived>
-    inline SparseMatrix(const MatrixBase<OtherDerived>& other)
+    inline SparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       *this = other.derived();
@@ -305,7 +305,7 @@ class SparseMatrix
     }
 
     template<typename OtherDerived>
-    inline SparseMatrix& operator=(const MatrixBase<OtherDerived>& other)
+    inline SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       if (needToTranspose)
