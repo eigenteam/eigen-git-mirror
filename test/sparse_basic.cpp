@@ -216,6 +216,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refMat3 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refMat4 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix dm4 = DenseMatrix::Zero(rows, rows);
     SparseMatrix<Scalar> m2(rows, rows);
     SparseMatrix<Scalar> m3(rows, rows);
     SparseMatrix<Scalar> m4(rows, rows);
@@ -226,6 +227,18 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     VERIFY_IS_APPROX(m4=m2.transpose()*m3, refMat4=refMat2.transpose()*refMat3);
     VERIFY_IS_APPROX(m4=m2.transpose()*m3.transpose(), refMat4=refMat2.transpose()*refMat3.transpose());
     VERIFY_IS_APPROX(m4=m2*m3.transpose(), refMat4=refMat2*refMat3.transpose());
+    
+    // sparse * dense
+    VERIFY_IS_APPROX(dm4=m2*refMat3, refMat4=refMat2*refMat3);
+    VERIFY_IS_APPROX(dm4=m2*refMat3.transpose(), refMat4=refMat2*refMat3.transpose());
+    VERIFY_IS_APPROX(dm4=m2.transpose()*refMat3, refMat4=refMat2.transpose()*refMat3);
+    VERIFY_IS_APPROX(dm4=m2.transpose()*refMat3.transpose(), refMat4=refMat2.transpose()*refMat3.transpose());
+    
+    // dense * sparse
+    VERIFY_IS_APPROX(dm4=refMat2*m3, refMat4=refMat2*refMat3);
+    VERIFY_IS_APPROX(dm4=refMat2*m3.transpose(), refMat4=refMat2*refMat3.transpose());
+    VERIFY_IS_APPROX(dm4=refMat2.transpose()*m3, refMat4=refMat2.transpose()*refMat3);
+    VERIFY_IS_APPROX(dm4=refMat2.transpose()*m3.transpose(), refMat4=refMat2.transpose()*refMat3.transpose());
   }
 }
 

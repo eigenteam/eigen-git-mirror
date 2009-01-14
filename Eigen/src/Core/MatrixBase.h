@@ -250,10 +250,6 @@ template<typename Derived> class MatrixBase
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
 
-    /** Overloaded for sparse product evaluation */
-    /*template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const Product<Derived1,Derived2,SparseProduct>& product);*/
-
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
     template<typename OtherDerived>
@@ -614,6 +610,15 @@ template<typename Derived> class MatrixBase
     PlainMatrixType cross(const MatrixBase<OtherDerived>& other) const;
     PlainMatrixType unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
+
+/////////// Sparse module ///////////
+
+    // dense = spasre * dense
+    template<typename Derived1, typename Derived2>
+    Derived& lazyAssign(const SparseProduct<Derived1,Derived2,SparseTimeDenseProduct>& product);
+    // dense = dense * spasre
+    template<typename Derived1, typename Derived2>
+    Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

@@ -213,7 +213,7 @@ template<typename Derived> class SparseMatrixBase
     }
 
     template<typename Lhs, typename Rhs>
-    inline Derived& operator=(const SparseProduct<Lhs,Rhs>& product);
+    inline Derived& operator=(const SparseProduct<Lhs,Rhs,SparseTimeSparseProduct>& product);
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
@@ -291,6 +291,16 @@ template<typename Derived> class SparseMatrixBase
     template<typename OtherDerived>
     const typename SparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
+    
+    // dense * sparse (return a dense object)
+    template<typename OtherDerived> friend 
+    const typename SparseProductReturnType<OtherDerived,Derived>::Type
+    operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
+    { return typename SparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
+    
+    template<typename OtherDerived>
+    const typename SparseProductReturnType<Derived,OtherDerived>::Type
+    operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);

@@ -122,4 +122,7 @@ template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar,int Dim> class Translation;
 template<typename Scalar,int Dim> class Scaling;
 
+// Sparse module:
+template<typename Lhs, typename Rhs, int ProductMode> class SparseProduct;
+
 #endif // EIGEN_FORWARDDECLARATIONS_H

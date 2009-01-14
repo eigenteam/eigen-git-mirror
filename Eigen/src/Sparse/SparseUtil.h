@@ -109,10 +109,10 @@ template<typename MatrixType> class SparseInnerVector;
 template<typename Derived> class SparseCwise;
 template<typename UnaryOp,   typename MatrixType>         class SparseCwiseUnaryOp;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class SparseCwiseBinaryOp;
-template<typename Lhs, typename Rhs>                      class SparseProduct;
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class SparseFlagged;
 
-template<typename Lhs, typename Rhs> struct SparseProductReturnType;
+template<typename Lhs, typename Rhs> struct ei_sparse_product_mode;
+template<typename Lhs, typename Rhs, int ProductMode = ei_sparse_product_mode<Lhs,Rhs>::value> struct SparseProductReturnType;
 
 const int AccessPatternNotSupported = 0x0;
 const int AccessPatternSupported    = 0x1;

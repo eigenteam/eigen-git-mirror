@@ -314,9 +314,10 @@ class SparseMatrix
         //  1 - compute the number of coeffs per dest inner vector
         //  2 - do the actual copy/eval
         // Since each coeff of the rhs has to be evaluated twice, let's evauluate it if needed
-        typedef typename ei_nested<OtherDerived,2>::type OtherCopy;
-        OtherCopy otherCopy(other.derived());
+        //typedef typename ei_nested<OtherDerived,2>::type OtherCopy;
+        typedef typename ei_eval<OtherDerived>::type OtherCopy;
         typedef typename ei_cleantype<OtherCopy>::type _OtherCopy;
+        OtherCopy otherCopy(other.derived());
 
         resize(other.rows(), other.cols());
         Eigen::Map<VectorXi>(m_outerIndex,outerSize()).setZero();
