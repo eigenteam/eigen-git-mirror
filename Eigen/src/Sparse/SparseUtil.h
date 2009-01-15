@@ -103,6 +103,7 @@ enum {
 template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SparseMatrix;
 template<typename _Scalar, int _Flags = 0> class SparseVector;
+template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
 template<typename MatrixType> class SparseTranspose;
 template<typename MatrixType> class SparseInnerVector;

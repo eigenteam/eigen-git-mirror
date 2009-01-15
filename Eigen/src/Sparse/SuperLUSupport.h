@@ -104,12 +104,58 @@ struct SluMatrix : SuperMatrix
       ei_assert(false && "Scalar type not supported by SuperLU");
     }
   }
+  
+  template<typename Scalar, int Rows, int Cols, int Options, int MRows, int MCols>
+  static SluMatrix Map(Matrix<Scalar,Rows,Cols,Options,MRows,MCols>& mat)
+  {
+    typedef Matrix<Scalar,Rows,Cols,Options,MRows,MCols> MatrixType;
+    ei_assert( ((Options&RowMajor)!=RowMajor) && "row-major dense matrices is not supported by SuperLU");
+    SluMatrix res;
+    res.setStorageType(SLU_DN);
+    res.setScalarType<Scalar>();
+    res.Mtype     = SLU_GE;
+
+    res.nrow      = mat.rows();
+    res.ncol      = mat.cols();
+
+    res.storage.lda       = mat.stride();
+    res.storage.values    = mat.data();
+    return res;
+  }
 
   template<typename MatrixType>
-  static SluMatrix Map(MatrixType& mat)
+  static SluMatrix Map(SparseMatrixBase<MatrixType>& mat)
   {
     SluMatrix res;
-    SluMatrixMapHelper<MatrixType>::run(mat, res);
+    if ((MatrixType::Flags&RowMajorBit)==RowMajorBit)
+    {
+      res.setStorageType(SLU_NR);
+      res.nrow      = mat.cols();
+      res.ncol      = mat.rows();
+    }
+    else
+    {
+      res.setStorageType(SLU_NC);
+      res.nrow      = mat.rows();
+      res.ncol      = mat.cols();
+    }
+
+    res.Mtype     = SLU_GE;
+
+    res.storage.nnz       = mat.nonZeros();
+    res.storage.values    = mat.derived()._valuePtr();
+    res.storage.innerInd  = mat.derived()._innerIndexPtr();
+    res.storage.outerInd  = mat.derived()._outerIndexPtr();
+
+    res.setScalarType<typename MatrixType::Scalar>();
+
+    // FIXME the following is not very accurate
+    if (MatrixType::Flags & UpperTriangular)
+      res.Mtype = SLU_TRU;
+    if (MatrixType::Flags & LowerTriangular)
+      res.Mtype = SLU_TRL;
+    if (MatrixType::Flags & SelfAdjoint)
+      ei_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
     return res;
   }
 };
@@ -133,13 +179,13 @@ struct SluMatrixMapHelper<Matrix<Scalar,Rows,Cols,Options,MRows,MCols> >
   }
 };
 
-template<typename Scalar, int Flags>
-struct SluMatrixMapHelper<SparseMatrix<Scalar,Flags> >
+template<typename Derived>
+struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
 {
-  typedef SparseMatrix<Scalar,Flags> MatrixType;
+  typedef Derived MatrixType;
   static void run(MatrixType& mat, SluMatrix& res)
   {
-    if ((Flags&RowMajorBit)==RowMajorBit)
+    if ((MatrixType::Flags&RowMajorBit)==RowMajorBit)
     {
       res.setStorageType(SLU_NR);
       res.nrow      = mat.cols();
@@ -159,48 +205,43 @@ struct SluMatrixMapHelper<SparseMatrix<Scalar,Flags> >
     res.storage.innerInd  = mat._innerIndexPtr();
     res.storage.outerInd  = mat._outerIndexPtr();
 
-    res.setScalarType<Scalar>();
+    res.setScalarType<typename MatrixType::Scalar>();
 
     // FIXME the following is not very accurate
-    if (Flags & UpperTriangular)
+    if (MatrixType::Flags & UpperTriangular)
       res.Mtype = SLU_TRU;
-    if (Flags & LowerTriangular)
+    if (MatrixType::Flags & LowerTriangular)
       res.Mtype = SLU_TRL;
-    if (Flags & SelfAdjoint)
+    if (MatrixType::Flags & SelfAdjoint)
       ei_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
   }
 };
 
-template<typename Scalar, int Flags>
-SluMatrix SparseMatrix<Scalar,Flags>::asSluMatrix()
+template<typename Derived>
+SluMatrix SparseMatrixBase<Derived>::asSluMatrix()
 {
-  return SluMatrix::Map(*this);
+  return SluMatrix::Map(derived());
 }
 
 template<typename Scalar, int Flags>
-SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(SluMatrix& sluMat)
+MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(SluMatrix& sluMat)
 {
-  SparseMatrix res;
   if ((Flags&RowMajorBit)==RowMajorBit)
   {
     assert(sluMat.Stype == SLU_NR);
-    res.m_innerSize   = sluMat.ncol;
-    res.m_outerSize   = sluMat.nrow;
+    m_innerSize   = sluMat.ncol;
+    m_outerSize   = sluMat.nrow;
   }
   else
   {
     assert(sluMat.Stype == SLU_NC);
-    res.m_innerSize   = sluMat.nrow;
-    res.m_outerSize   = sluMat.ncol;
+    m_innerSize   = sluMat.nrow;
+    m_outerSize   = sluMat.ncol;
   }
-  res.m_outerIndex  = sluMat.storage.outerInd;
-  SparseArray<Scalar> data = SparseArray<Scalar>::Map(
-                                sluMat.storage.innerInd,
-                                reinterpret_cast<Scalar*>(sluMat.storage.values),
-                                sluMat.storage.outerInd[res.m_outerSize]);
-  res.m_data.swap(data);
-  res.markAsRValue();
-  return res;
+  m_outerIndex = sluMat.storage.outerInd;
+  m_innerIndices = sluMat.storage.innerInd;
+  m_values = reinterpret_cast<Scalar*>(sluMat.storage.values);
+  m_nnz = sluMat.storage.outerInd[m_outerSize];
 }
 
 template<typename MatrixType>

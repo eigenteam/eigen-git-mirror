@@ -22,32 +22,32 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SPARSE_ARRAY_H
-#define EIGEN_SPARSE_ARRAY_H
+#ifndef EIGEN_COMPRESSED_STORAGE_H
+#define EIGEN_COMPRESSED_STORAGE_H
 
 /** Stores a sparse set of values as a list of values and a list of indices.
   *
   */
 template<typename Scalar>
-class SparseArray
+class CompressedStorage
 {
   public:
-    SparseArray()
+    CompressedStorage()
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {}
 
-    SparseArray(int size)
+    CompressedStorage(int size)
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {
       resize(size);
     }
 
-    SparseArray(const SparseArray& other)
+    CompressedStorage(const CompressedStorage& other)
     {
       *this = other;
     }
 
-    SparseArray& operator=(const SparseArray& other)
+    CompressedStorage& operator=(const CompressedStorage& other)
     {
       resize(other.size());
       memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
@@ -55,7 +55,7 @@ class SparseArray
       return *this;
     }
 
-    void swap(SparseArray& other)
+    void swap(CompressedStorage& other)
     {
       std::swap(m_values, other.m_values);
       std::swap(m_indices, other.m_indices);
@@ -63,7 +63,7 @@ class SparseArray
       std::swap(m_allocatedSize, other.m_allocatedSize);
     }
 
-    ~SparseArray()
+    ~CompressedStorage()
     {
       delete[] m_values;
       delete[] m_indices;
@@ -106,9 +106,9 @@ class SparseArray
     int& index(int i) { return m_indices[i]; }
     const int& index(int i) const { return m_indices[i]; }
 
-    static SparseArray Map(int* indices, Scalar* values, int size)
+    static CompressedStorage Map(int* indices, Scalar* values, int size)
     {
-      SparseArray res;
+      CompressedStorage res;
       res.m_indices = indices;
       res.m_values = values;
       res.m_allocatedSize = res.m_size = size;
@@ -141,4 +141,4 @@ class SparseArray
 
 };
 
-#endif // EIGEN_SPARSE_ARRAY_H
+#endif // EIGEN_COMPRESSED_STORAGE_H

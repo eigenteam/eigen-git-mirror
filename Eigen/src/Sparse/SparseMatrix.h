@@ -57,20 +57,17 @@ class SparseMatrix
 {
   public:
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
+    typedef MappedSparseMatrix<Scalar,Flags> Map;
 
   protected:
-  public:
 
-    typedef SparseMatrixBase<SparseMatrix> SparseBase;
-    enum {
-      RowMajor = SparseBase::IsRowMajor
-    };
+    enum { RowMajor = Base::IsRowMajor };
     typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(RowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
     int m_outerSize;
     int m_innerSize;
     int* m_outerIndex;
-    SparseArray<Scalar> m_data;
+    CompressedStorage<Scalar> m_data;
 
 
   public:
@@ -379,21 +376,6 @@ class SparseMatrix
       s << static_cast<const SparseMatrixBase<SparseMatrix>&>(m);
       return s;
     }
-
-    #ifdef EIGEN_TAUCS_SUPPORT
-    static SparseMatrix Map(taucs_ccs_matrix& taucsMatrix);
-    taucs_ccs_matrix asTaucsMatrix();
-    #endif
-
-    #ifdef EIGEN_CHOLMOD_SUPPORT
-    static SparseMatrix Map(cholmod_sparse& cholmodMatrix);
-    cholmod_sparse asCholmodMatrix();
-    #endif
-
-    #ifdef EIGEN_SUPERLU_SUPPORT
-    static SparseMatrix Map(SluMatrix& sluMatrix);
-    SluMatrix asSluMatrix();
-    #endif
 
     /** Destructor */
     inline ~SparseMatrix()

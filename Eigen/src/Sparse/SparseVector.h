@@ -68,7 +68,7 @@ class SparseVector
       IsColVector = ei_traits<SparseVector>::IsColVector
     };
 
-    SparseArray<Scalar> m_data;
+    CompressedStorage<Scalar> m_data;
     int m_size;
 
 

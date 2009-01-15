@@ -72,11 +72,12 @@ namespace Eigen {
 
 #include "src/Sparse/SparseUtil.h"
 #include "src/Sparse/SparseMatrixBase.h"
-#include "src/Sparse/SparseArray.h"
+#include "src/Sparse/CompressedStorage.h"
 #include "src/Sparse/AmbiVector.h"
 #include "src/Sparse/RandomSetter.h"
 #include "src/Sparse/SparseBlock.h"
 #include "src/Sparse/SparseMatrix.h"
+#include "src/Sparse/MappedSparseMatrix.h"
 #include "src/Sparse/SparseVector.h"
 #include "src/Sparse/CoreIterators.h"
 #include "src/Sparse/SparseTranspose.h"

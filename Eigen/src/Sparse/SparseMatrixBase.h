@@ -119,7 +119,7 @@ template<typename Derived> class SparseMatrixBase
     inline int size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline int nonZeros() const { return derived.nonZeros(); }
+    inline int nonZeros() const { return derived().nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -595,6 +595,18 @@ template<typename Derived> class SparseMatrixBase
 //       }
 //       return res;
 //     }
+
+    #ifdef EIGEN_TAUCS_SUPPORT
+    taucs_ccs_matrix asTaucsMatrix();
+    #endif
+
+    #ifdef EIGEN_CHOLMOD_SUPPORT
+    cholmod_sparse asCholmodMatrix();
+    #endif
+
+    #ifdef EIGEN_SUPERLU_SUPPORT
+    SluMatrix asSluMatrix();
+    #endif
 
   protected:
 

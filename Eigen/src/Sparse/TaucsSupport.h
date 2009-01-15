@@ -25,8 +25,8 @@
 #ifndef EIGEN_TAUCSSUPPORT_H
 #define EIGEN_TAUCSSUPPORT_H
 
-template<typename Scalar, int Flags>
-taucs_ccs_matrix SparseMatrix<Scalar,Flags>::asTaucsMatrix()
+template<typename Derived>
+taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
 {
   taucs_ccs_matrix res;
   res.n         = cols();
@@ -63,19 +63,14 @@ taucs_ccs_matrix SparseMatrix<Scalar,Flags>::asTaucsMatrix()
 }
 
 template<typename Scalar, int Flags>
-SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(taucs_ccs_matrix& taucsMat)
+MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
 {
-  SparseMatrix res;
-  res.m_innerSize = taucsMat.m;
-  res.m_outerSize = taucsMat.n;
-  res.m_outerIndex = taucsMat.colptr;
-  SparseArray<Scalar> data = SparseArray<Scalar>::Map(
-                                taucsMat.rowind,
-                                reinterpret_cast<Scalar*>(taucsMat.values.v),
-                                taucsMat.colptr[taucsMat.n]);
-  res.m_data.swap(data);
-  res.markAsRValue();
-  return res;
+  m_innerSize = taucsMat.m;
+  m_outerSize = taucsMat.n;
+  m_outerIndex = taucsMat.colptr;
+  m_innerIndices = taucsMat.rowind;
+  m_values = reinterpret_cast<Scalar*>(taucsMat.values.v);
+  m_nnz = taucsMat.colptr[taucsMat.n];
 }
 
 template<typename MatrixType>

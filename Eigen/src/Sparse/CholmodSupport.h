@@ -55,7 +55,7 @@ void ei_cholmod_configure_matrix(CholmodType& mat)
 }
 
 template<typename Scalar, int Flags>
-cholmod_sparse SparseMatrix<Scalar,Flags>::asCholmodMatrix()
+cholmod_sparse SparseMatrixBase<Scalar,Flags>::asCholmodMatrix()
 {
   cholmod_sparse res;
   res.nzmax   = nonZeros();
@@ -108,19 +108,14 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
 }
 
 template<typename Scalar, int Flags>
-SparseMatrix<Scalar,Flags> SparseMatrix<Scalar,Flags>::Map(cholmod_sparse& cm)
+MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
 {
-  SparseMatrix res;
-  res.m_innerSize = cm.nrow;
-  res.m_outerSize = cm.ncol;
-  res.m_outerIndex = reinterpret_cast<int*>(cm.p);
-  SparseArray<Scalar> data = SparseArray<Scalar>::Map(
-                                reinterpret_cast<int*>(cm.i),
-                                reinterpret_cast<Scalar*>(cm.x),
-                                res.m_outerIndex[cm.ncol]);
-  res.m_data.swap(data);
-  res.markAsRValue();
-  return res;
+  m_innerSize = cm.nrow;
+  m_outerSize = cm.ncol;
+  m_outerIndex = reinterpret_cast<int*>(cm.p);
+  m_innerIndices = reinterpret_cast<int*>(cm.i);
+  m_values = reinterpret_cast<Scalar*>(cm.x);
+  m_nnz = res.m_outerIndex[cm.ncol]);
 }
 
 template<typename MatrixType>
