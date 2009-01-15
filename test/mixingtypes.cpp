@@ -23,8 +23,14 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef EIGEN_NO_STATIC_ASSERT
 #define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
+#endif
+
+#ifndef EIGEN_DONT_VECTORIZE
 #define EIGEN_DONT_VECTORIZE // SSE intrinsics aren't designed to allow mixing types
+#endif
+
 #include "main.h"
 
 

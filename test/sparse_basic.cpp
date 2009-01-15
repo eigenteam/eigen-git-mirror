@@ -174,21 +174,19 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
       std::cerr << m1 << "\n\n" << m2 << "\n";
       VERIFY_IS_APPROX(m2,m1);
     }
-//   {
-//     m.setZero();
-//     VERIFY_IS_NOT_APPROX(m, refMat);
-// //     RandomSetter<SparseMatrix<Scalar> > w(m);
-//     RandomSetter<SparseMatrix<Scalar>, GoogleDenseHashMapTraits > w(m);
-//     // RandomSetter<SparseMatrix<Scalar>, GnuHashMapTraits > w(m);
-//     std::vector<Vector2i> remaining = nonzeroCoords;
-//     while(!remaining.empty())
-//     {
-//       int i = ei_random<int>(0,remaining.size()-1);
-//       w(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
-//       remaining[i] = remaining.back();
-//       remaining.pop_back();
-//     }
-//   }
+  // test RandomSetter
+  {
+    SparseMatrix<Scalar> m1(rows,cols), m2(rows,cols);
+    DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
+    initSparse<Scalar>(density, refM1, m1);
+    {
+      Eigen::RandomSetter<SparseMatrix<Scalar> > setter(m2);
+      for (int j=0; j<m1.outerSize(); ++j)
+        for (typename SparseMatrix<Scalar>::InnerIterator i(m1,j); i; ++i)
+          setter(i.index(), j) = i.value();
+    }
+    VERIFY_IS_APPROX(m1, m2);
+  }
 //   std::cerr << m.transpose() << "\n\n"  << refMat.transpose() << "\n\n";
 //   VERIFY_IS_APPROX(m, refMat);
 

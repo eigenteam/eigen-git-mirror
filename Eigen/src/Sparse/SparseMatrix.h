@@ -244,6 +244,7 @@ class SparseMatrix
         delete[] m_outerIndex;
         m_outerIndex = new int [outerSize+1];
         m_outerSize = outerSize;
+        memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(int));
       }
     }
     void resizeNonZeros(int size)

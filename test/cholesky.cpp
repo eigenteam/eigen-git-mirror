@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
-#define EIGEN_DONT_VECTORIZE
+
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
