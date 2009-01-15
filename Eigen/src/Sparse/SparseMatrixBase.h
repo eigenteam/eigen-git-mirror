@@ -88,7 +88,7 @@ template<typename Derived> class SparseMatrixBase
     /** \internal the return type of MatrixBase::imag() */
     typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef Eigen::Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
+    typedef SparseTranspose</*NestByValue<*/typename ei_cleantype<ConjugateReturnType>::type> /*>*/
             AdjointReturnType;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -322,7 +322,7 @@ template<typename Derived> class SparseMatrixBase
     SparseTranspose<Derived> transpose() { return derived(); }
     const SparseTranspose<Derived> transpose() const { return derived(); }
     // void transposeInPlace();
-    // const AdjointReturnType adjoint() const;
+    const AdjointReturnType adjoint() const { return conjugate()/*.nestByValue()*/; }
 
     SparseInnerVector<Derived> innerVector(int outer);
     const SparseInnerVector<Derived> innerVector(int outer) const;

@@ -294,17 +294,60 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const SparseProduct<Lhs,Rhs
 }
 
 // dense = sparse * dense
+// template<typename Derived>
+// template<typename Lhs, typename Rhs>
+// Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeDenseProduct>& product)
+// {
+//   typedef typename ei_cleantype<Lhs>::type _Lhs;
+//   typedef typename _Lhs::InnerIterator LhsInnerIterator;
+//   enum { LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit };
+//   derived().setZero();
+//   for (int j=0; j<product.lhs().outerSize(); ++j)
+//     for (LhsInnerIterator i(product.lhs(),j); i; ++i)
+//       derived().row(LhsIsRowMajor ? j : i.index()) += i.value() * product.rhs().row(LhsIsRowMajor ? i.index() : j);
+//   return derived();
+// }
+
 template<typename Derived>
 template<typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeDenseProduct>& product)
 {
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename _Lhs::InnerIterator LhsInnerIterator;
-  enum { LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit };
+  enum {
+    LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
+    LhsIsSelfAdjoint = (_Lhs::Flags&SelfAdjointBit)==SelfAdjointBit,
+    ProcessFirstHalf = LhsIsSelfAdjoint
+      && (   ((_Lhs::Flags&(UpperTriangularBit|LowerTriangularBit))==0)
+          || ( (_Lhs::Flags&UpperTriangularBit) && !LhsIsRowMajor)
+          || ( (_Lhs::Flags&LowerTriangularBit) && LhsIsRowMajor) ),
+    ProcessSecondHalf = LhsIsSelfAdjoint && (!ProcessFirstHalf)
+  };
   derived().setZero();
   for (int j=0; j<product.lhs().outerSize(); ++j)
-    for (LhsInnerIterator i(product.lhs(),j); i; ++i)
-      derived().row(LhsIsRowMajor ? j : i.index()) += i.value() * product.rhs().row(LhsIsRowMajor ? i.index() : j);
+  {
+    LhsInnerIterator i(product.lhs(),j);
+    if (ProcessSecondHalf && i && (i.index()==j))
+    {
+      derived().row(j) += i.value() * product.rhs().row(j);
+      ++i;
+    }
+    for (; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
+    {
+      if (LhsIsSelfAdjoint)
+      {
+        int a = LhsIsRowMajor ? j : i.index();
+        int b = LhsIsRowMajor ? i.index() : j;
+        Scalar v = i.value();
+        derived().row(a) += (v) * product.rhs().row(b);
+        derived().row(b) += ei_conj(v) * product.rhs().row(a);
+      }
+      else
+        derived().row(LhsIsRowMajor ? j : i.index()) += i.value() * product.rhs().row(LhsIsRowMajor ? i.index() : j);
+    }
+    if (ProcessFirstHalf && i && (i.index()==j))
+      derived().row(j) += i.value() * product.rhs().row(j);
+  }
   return derived();
 }
 

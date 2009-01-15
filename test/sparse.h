@@ -40,7 +40,8 @@
 enum {
   ForceNonZeroDiag = 1,
   MakeLowerTriangular = 2,
-  MakeUpperTriangular = 4
+  MakeUpperTriangular = 4,
+  ForceRealDiag = 8
 };
 
 /* Initializes both a sparse and dense matrix with same random values,
@@ -73,6 +74,10 @@ initSparse(double density,
         v = Scalar(0);
       else if ((flags & MakeUpperTriangular) && j<i)
         v = Scalar(0);
+      
+      if ((flags&ForceRealDiag) && (i==j))
+        v = ei_real(v);
+        
       if (v!=Scalar(0))
       {
         sparseMat.fill(i,j) = v;
