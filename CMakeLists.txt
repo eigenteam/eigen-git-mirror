@@ -78,7 +78,7 @@ endif(MSVC)
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
 if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
-  add_definitions(EIGEN_DONT_VECTORIZE=1)
+  add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
 endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 

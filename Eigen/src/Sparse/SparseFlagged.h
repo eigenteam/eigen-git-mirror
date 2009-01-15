@@ -43,7 +43,6 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     
     typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
-    typedef typename ExpressionType::InnerIterator InnerIterator;
 
     inline SparseFlagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
