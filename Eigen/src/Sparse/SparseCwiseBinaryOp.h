@@ -190,6 +190,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
     EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
 
     EIGEN_STRONG_INLINE int index() const { return m_id; }
+    EIGEN_STRONG_INLINE int row() const { return m_lhsIter.row(); }
+    EIGEN_STRONG_INLINE int col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_id>=0; }
 
@@ -243,6 +245,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_lhsIter.value(), m_rhsIter.value()); }
 
     EIGEN_STRONG_INLINE int index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE int row() const { return m_lhsIter.row(); }
+    EIGEN_STRONG_INLINE int col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return (m_lhsIter && m_rhsIter); }
 
@@ -279,6 +283,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
                        m_xpr.rhs().coeff(IsRowMajor?m_outer:m_lhsIter.index(),IsRowMajor?m_lhsIter.index():m_outer)); }
 
     EIGEN_STRONG_INLINE int index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE int row() const { return m_lhsIter.row(); }
+    EIGEN_STRONG_INLINE int col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_lhsIter; }
 
@@ -315,6 +321,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     { return m_functor(m_xpr.lhs().coeff(IsRowMajor?m_outer:m_rhsIter.index(),IsRowMajor?m_rhsIter.index():m_outer), m_rhsIter.value()); }
 
     EIGEN_STRONG_INLINE int index() const { return m_rhsIter.index(); }
+    EIGEN_STRONG_INLINE int row() const { return m_rhsIter.row(); }
+    EIGEN_STRONG_INLINE int col() const { return m_rhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_rhsIter; }
 

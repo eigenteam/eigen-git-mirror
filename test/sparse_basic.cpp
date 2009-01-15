@@ -174,6 +174,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
       std::cerr << m1 << "\n\n" << m2 << "\n";
       VERIFY_IS_APPROX(m2,m1);
     }
+  
   // test RandomSetter
   {
     SparseMatrix<Scalar> m1(rows,cols), m2(rows,cols);

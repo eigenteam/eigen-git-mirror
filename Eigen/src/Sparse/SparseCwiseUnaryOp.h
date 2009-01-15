@@ -82,6 +82,8 @@ class SparseCwiseUnaryOp<UnaryOp,MatrixType>::InnerIterator
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_iter.value()); }
 
     EIGEN_STRONG_INLINE int index() const { return m_iter.index(); }
+    EIGEN_STRONG_INLINE int row() const { return m_iter.row(); }
+    EIGEN_STRONG_INLINE int col() const { return m_iter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_iter; }
 

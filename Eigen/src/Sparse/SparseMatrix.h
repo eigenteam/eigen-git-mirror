@@ -61,8 +61,8 @@ class SparseMatrix
 
   protected:
 
-    enum { RowMajor = Base::IsRowMajor };
-    typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(RowMajor?RowMajorBit:0)> TransposedSparseMatrix;
+    enum { IsRowMajor = Base::IsRowMajor };
+    typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
     int m_outerSize;
     int m_innerSize;
@@ -72,8 +72,8 @@ class SparseMatrix
 
   public:
 
-    inline int rows() const { return RowMajor ? m_outerSize : m_innerSize; }
-    inline int cols() const { return RowMajor ? m_innerSize : m_outerSize; }
+    inline int rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    inline int cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_outerSize; }
     inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
@@ -89,8 +89,8 @@ class SparseMatrix
 
     inline Scalar coeff(int row, int col) const
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       int start = m_outerIndex[outer];
       int end = m_outerIndex[outer+1];
@@ -108,8 +108,8 @@ class SparseMatrix
 
     inline Scalar& coeffRef(int row, int col)
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       int start = m_outerIndex[outer];
       int end = m_outerIndex[outer+1];
@@ -154,8 +154,8 @@ class SparseMatrix
       */
     inline Scalar& fill(int row, int col)
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       if (m_outerIndex[outer+1]==0)
       {
@@ -180,8 +180,8 @@ class SparseMatrix
       */
     inline Scalar& fillrand(int row, int col)
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       if (m_outerIndex[outer+1]==0)
       {
@@ -236,8 +236,8 @@ class SparseMatrix
     void resize(int rows, int cols)
     {
 //       std::cerr << this << " resize " << rows << "x" << cols << "\n";
-      const int outerSize = RowMajor ? rows : cols;
-      m_innerSize = RowMajor ? cols : rows;
+      const int outerSize = IsRowMajor ? rows : cols;
+      m_innerSize = IsRowMajor ? cols : rows;
       m_data.clear();
       if (m_outerSize != outerSize)
       {
@@ -390,12 +390,12 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, int outer)
-      : m_matrix(mat), m_id(mat.m_outerIndex[outer]), m_start(m_id), m_end(mat.m_outerIndex[outer+1])
+      : m_matrix(mat), m_outer(outer), m_id(mat.m_outerIndex[outer]), m_start(m_id), m_end(mat.m_outerIndex[outer+1])
     {}
 
     template<unsigned int Added, unsigned int Removed>
     InnerIterator(const Flagged<SparseMatrix,Added,Removed>& mat, int outer)
-      : m_matrix(mat._expression()), m_id(m_matrix.m_outerIndex[outer]),
+      : m_matrix(mat._expression()), m_outer(outer), m_id(m_matrix.m_outerIndex[outer]),
         m_start(m_id), m_end(m_matrix.m_outerIndex[outer+1])
     {}
 
@@ -405,11 +405,14 @@ class SparseMatrix<Scalar,_Flags>::InnerIterator
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.m_data.value(m_id)); }
 
     inline int index() const { return m_matrix.m_data.index(m_id); }
+    inline int row() const { return IsRowMajor ? m_outer : index(); }
+    inline int col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
 
   protected:
     const SparseMatrix& m_matrix;
+    const int m_outer;
     int m_id;
     const int m_start;
     const int m_end;

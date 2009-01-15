@@ -140,7 +140,7 @@ class MappedSparseMatrix<Scalar,_Flags>::InnerIterator
 {
   public:
     InnerIterator(const MappedSparseMatrix& mat, int outer)
-      : m_matrix(mat), m_id(mat._outerIndexPtr[outer]), m_start(m_id), m_end(mat._outerIndexPtr[outer+1])
+      : m_matrix(mat), m_outer(outer), m_id(mat._outerIndexPtr[outer]), m_start(m_id), m_end(mat._outerIndexPtr[outer+1])
     {}
 
     template<unsigned int Added, unsigned int Removed>
@@ -155,11 +155,14 @@ class MappedSparseMatrix<Scalar,_Flags>::InnerIterator
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix._valuePtr[m_id]); }
 
     inline int index() const { return m_matrix._innerIndexPtr(m_id); }
+    inline int row() const { return IsRowMajor ? m_outer : index(); }
+    inline int col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
 
   protected:
     const MappedSparseMatrix& m_matrix;
+    const int m_outer;
     int m_id;
     const int m_start;
     const int m_end;
