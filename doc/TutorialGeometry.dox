@@ -7,6 +7,7 @@ namespace Eigen {
   | \ref TutorialCore "Core features"
   | \b Geometry
   | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
+  | \ref TutorialSparse "Sparse matrix"
 </div>
 
 In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref GeometryModule "geometry module",

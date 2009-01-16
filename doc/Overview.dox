@@ -6,6 +6,7 @@ o /** \mainpage Eigen
   | \ref TutorialCore "Core features"
   | \ref TutorialGeometry "Geometry"
   | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
+  | \ref TutorialSparse "Sparse matrix"
 </div>
 
 This is the API documentation for Eigen.

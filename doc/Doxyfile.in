@@ -1,4 +1,10 @@
-# Doxyfile 1.5.6
+################################################################################
+##                                                                            ##
+##                                  WARNING                                   ##
+##                                                                            ##
+##  all modifications in this file must be reported in eigen2/Mainpage.dox    ##
+##                                                                            ##
+################################################################################
 
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project

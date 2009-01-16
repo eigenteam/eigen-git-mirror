@@ -4,7 +4,7 @@
 // to api.kde.org's scripts
 
 // DOXYGEN_SET_PROJECT_NAME         = Eigen2
-// DOXYGEN_SET_PROJECT_NUMBER       = "2.0-beta1"
+// DOXYGEN_SET_PROJECT_NUMBER       = "2.0-beta6"
 
 // DOXYGEN_SET_CREATE_SUBDIRS         = NO
 // DOXYGEN_SET_BRIEF_MEMBER_DESC      = YES
@@ -18,7 +18,7 @@
 // DOXYGEN_SET_MULTILINE_CPP_IS_BRIEF = NO
 // DOXYGEN_SET_DETAILS_AT_TOP         = YES
 // DOXYGEN_SET_INHERIT_DOCS           = YES
-// DOXYGEN_SET_ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column."                          "array_module=This is defined in the %Array module. \code #include <Eigen/Array> \endcode"                          "lu_module=This is defined in the %LU module. \code #include <Eigen/LU> \endcode"                          "cholesky_module=This is defined in the %Cholesky module. \code #include <Eigen/Cholesky> \endcode"                          "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode"                          "svd_module=This is defined in the %SVD module. \code #include <Eigen/SVD> \endcode"                          "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode"                          "regression_module=This is defined in the %Regression module. \code #include <Eigen/Regression> \endcode"                          "addexample=\anchor"             "label=\bug"             "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'><span style='color:red'>*</span></a>"
+// DOXYGEN_SET_ALIASES                = "only_for_vectors=This is only for vectors (either row-vectors or column-vectors), i.e. matrices which are known at compile-time to have either one row or one column."                          "array_module=This is defined in the %Array module. \code #include <Eigen/Array> \endcode"                          "lu_module=This is defined in the %LU module. \code #include <Eigen/LU> \endcode"                          "cholesky_module=This is defined in the %Cholesky module. \code #include <Eigen/Cholesky> \endcode"                          "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode"                          "svd_module=This is defined in the %SVD module. \code #include <Eigen/SVD> \endcode"                          "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode"                          "regression_module=This is defined in the %Regression module. \code #include <Eigen/Regression> \endcode"                          "addexample=\anchor"             "label=\bug"             "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'>*</a>"
 // DOXYGEN_SET_DISTRIBUTE_GROUP_DOC   = NO
 // DOXYGEN_SET_SUBGROUPING            = YES
 // DOXYGEN_SET_TYPEDEF_HIDES_STRUCT   = NO
@@ -84,7 +84,7 @@
 // DOXYGEN_SET_MACRO_EXPANSION        = YES
 // DOXYGEN_SET_EXPAND_ONLY_PREDEF     = YES
 // DOXYGEN_SET_SEARCH_INCLUDES        = YES
-// DOXYGEN_SET_PREDEFINED             = EIGEN_EMPTY_STRUCT EIGEN_PARSED_BY_DOXYGEN EIGEN_VECTORIZE EIGEN_QT_SUPPORT
+// DOXYGEN_SET_PREDEFINED             = EIGEN_EMPTY_STRUCT EIGEN_PARSED_BY_DOXYGEN EIGEN_VECTORIZE EIGEN_QT_SUPPORT EIGEN_STRONG_INLINE=inline
 // DOXYGEN_SET_EXPAND_AS_DEFINED      = EIGEN_MAKE_SCALAR_OPS EIGEN_MAKE_TYPEDEFS EIGEN_MAKE_TYPEDEFS_ALL_SIZES EIGEN_CWISE_UNOP_RETURN_TYPE EIGEN_CWISE_BINOP_RETURN_TYPE
 // DOXYGEN_SET_SKIP_FUNCTION_MACROS   = YES
 

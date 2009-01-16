@@ -8,6 +8,7 @@ namespace Eigen {
   | \ref TutorialCore "Core features"
   | \ref TutorialGeometry "Geometry"
   | \b Advanced \b linear \b algebra
+  | \ref TutorialSparse "Sparse matrix"
 </div>
 
 \b Table \b of \b contents
