@@ -146,8 +146,6 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
     inline int rows() const { return m_blockRows.value(); }
     inline int cols() const { return m_blockCols.value(); }
 
-    inline int stride(void) const { return m_matrix.stride(); }
-
     inline Scalar& coeffRef(int row, int col)
     {
       return m_matrix.const_cast_derived()

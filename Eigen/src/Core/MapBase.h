@@ -63,6 +63,7 @@ template<typename Derived> class MapBase
     inline int cols() const { return m_cols.value(); }
 
     inline int stride() const { return derived().stride(); }
+    inline const Scalar* data() const { return m_data; }
 
     /** \returns an expression equivalent to \c *this but having the \c PacketAccess constant
       * set to \c ForceAligned. Must be reimplemented by the derived class. */
@@ -149,7 +150,7 @@ template<typename Derived> class MapBase
               || (   rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
-
+    
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
     { return derived() = forceAligned() + other; }
