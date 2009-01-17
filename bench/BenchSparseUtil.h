@@ -91,5 +91,14 @@ void eiToCSparse(const EigenSparseMatrix& src, cs* &dst)
    dst = cs_compress(aux);
 //    cs_spfree(aux);
 }
+#endif // CSPARSE
+
+#ifndef NOUBLAS
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/vector_sparse.hpp>
+#include <boost/numeric/ublas/matrix_sparse.hpp>
 
 #endif
