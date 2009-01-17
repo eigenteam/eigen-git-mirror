@@ -100,5 +100,6 @@ void eiToCSparse(const EigenSparseMatrix& src, cs* &dst)
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/vector_sparse.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
+#include <boost/numeric/ublas/vector_of_vector.hpp>
 
 #endif

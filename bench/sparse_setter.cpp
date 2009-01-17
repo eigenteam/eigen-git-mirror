@@ -4,19 +4,22 @@
 // -DNOGMM -DNOMTL -DCSPARSE
 // -I /home/gael/Coding/LinearAlgebra/CSparse/Include/ /home/gael/Coding/LinearAlgebra/CSparse/Lib/libcsparse.a
 #ifndef SIZE
-#define SIZE 300000
+#define SIZE 1000000
 #endif
 
 #ifndef NBPERROW
-#define NBPERROW 12
+#define NBPERROW 24
 #endif
 
 #ifndef REPEAT
 #define REPEAT 1
 #endif
 
+#ifndef NOGOOGLE
 #define EIGEN_GOOGLEHASH_SUPPORT
 #include <google/sparse_hash_map>
+#endif
+
 #include "BenchSparseUtil.h"
 
 
@@ -37,6 +40,7 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_google_sparse(const Coordinates& coords,
 EIGEN_DONT_INLINE Scalar* setrand_ublas_mapped(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_ublas_coord(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_ublas_compressed(const Coordinates& coords, const Values& vals);
+EIGEN_DONT_INLINE Scalar* setrand_ublas_genvec(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_mtl(const Coordinates& coords, const Values& vals);
 
 int main(int argc, char *argv[])
@@ -74,8 +78,9 @@ int main(int argc, char *argv[])
       for (int k=0; k<REPEAT; ++k)
         setrand_eigen_gnu_hash(coords,values);
       timer.stop();
-      std::cout << "Eigen gnu hashmap\t" << timer.value() << "\n";
+      std::cout << "Eigen std::map\t" << timer.value() << "\n";
     }
+    #ifndef NOGOOGLE
     {
       timer.reset();
       timer.start();
@@ -92,6 +97,7 @@ int main(int argc, char *argv[])
       timer.stop();
       std::cout << "Eigen google sparse\t" << timer.value() << "\n";
     }
+    #endif
     
     #ifndef NOUBLAS
     {
@@ -106,6 +112,14 @@ int main(int argc, char *argv[])
       timer.reset();
       timer.start();
       for (int k=0; k<REPEAT; ++k)
+        setrand_ublas_genvec(coords,values);
+      timer.stop();
+      std::cout << "ublas vecofvec\t" << timer.value() << "\n";
+    }
+    /*{
+      timer.reset();
+      timer.start();
+      for (int k=0; k<REPEAT; ++k)
         setrand_ublas_compressed(coords,values);
       timer.stop();
       std::cout << "ublas comp\t" << timer.value() << "\n";
@@ -117,7 +131,7 @@ int main(int argc, char *argv[])
         setrand_ublas_coord(coords,values);
       timer.stop();
       std::cout << "ublas coord\t" << timer.value() << "\n";
-    }
+    }*/
     #endif
     
     
@@ -151,6 +165,7 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_gnu_hash(const Coordinates& coords, cons
   return 0;//&mat.coeffRef(coords[0].x(), coords[0].y());
 }
 
+#ifndef NOGOOGLE
 EIGEN_DONT_INLINE Scalar* setrand_eigen_google_dense(const Coordinates& coords, const Values& vals)
 {
   using namespace Eigen;
@@ -176,6 +191,8 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_google_sparse(const Coordinates& coords,
   }
   return 0;//&mat.coeffRef(coords[0].x(), coords[0].y());
 }
+#endif
+
 #ifndef NOUBLAS
 EIGEN_DONT_INLINE Scalar* setrand_ublas_mapped(const Coordinates& coords, const Values& vals)
 {
@@ -191,7 +208,7 @@ EIGEN_DONT_INLINE Scalar* setrand_ublas_mapped(const Coordinates& coords, const 
   compressed_matrix<Scalar> mat(aux);
   return 0;// &mat(coords[0].x(), coords[0].y());
 }
-EIGEN_DONT_INLINE Scalar* setrand_ublas_coord(const Coordinates& coords, const Values& vals)
+/*EIGEN_DONT_INLINE Scalar* setrand_ublas_coord(const Coordinates& coords, const Values& vals)
 {
   using namespace boost;
   using namespace boost::numeric;
@@ -214,6 +231,21 @@ EIGEN_DONT_INLINE Scalar* setrand_ublas_compressed(const Coordinates& coords, co
   {
     mat(coords[i].x(), coords[i].y()) = vals[i];
   }
+  return 0;//&mat(coords[0].x(), coords[0].y());
+}*/
+EIGEN_DONT_INLINE Scalar* setrand_ublas_genvec(const Coordinates& coords, const Values& vals)
+{
+  using namespace boost;
+  using namespace boost::numeric;
+  using namespace boost::numeric::ublas;
+  
+//   ublas::vector<coordinate_vector<Scalar> > foo;
+  generalized_vector_of_vector<Scalar, row_major, ublas::vector<coordinate_vector<Scalar> > > aux(SIZE,SIZE);
+  for (int i=0; i<coords.size(); ++i)
+  {
+    aux(coords[i].x(), coords[i].y()) = vals[i];
+  }
+  compressed_matrix<Scalar,row_major> mat(aux);
   return 0;//&mat(coords[0].x(), coords[0].y());
 }
 #endif
