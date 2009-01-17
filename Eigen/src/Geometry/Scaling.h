@@ -118,7 +118,7 @@ public:
 
   /** \returns the inverse scaling */
   inline Scaling inverse() const
-  { return Scaling(coeffs.cwise().inverse()); }
+  { return Scaling(coeffs().cwise().inverse()); }
 
   inline Scaling& operator=(const Scaling& other)
   {
