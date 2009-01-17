@@ -108,6 +108,9 @@ class Select : ei_no_assignment_operator,
   * \returns a matrix where each coefficient (i,j) is equal to \a thenMatrix(i,j)
   * if \c *this(i,j), and \a elseMatrix(i,j) otherwise.
   *
+  * Example: \include MatrixBase_select.cpp
+  * Output: \verbinclude MatrixBase_select.out
+  *
   * \sa class Select
   */
 template<typename Derived>
