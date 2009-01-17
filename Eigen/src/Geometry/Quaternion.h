@@ -109,7 +109,7 @@ public:
   /** \returns a vector expression of the coefficients (x,y,z,w) */
   inline Coefficients& coeffs() { return m_coeffs; }
 
-  /** Default constructor and initializing an identity quaternion. */
+  /** Default constructor leaving the quaternion uninitialized. */
   inline Quaternion() {}
 
   inline Quaternion(ei_constructor_without_unaligned_array_assert)
