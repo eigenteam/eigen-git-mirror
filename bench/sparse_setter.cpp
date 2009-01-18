@@ -4,7 +4,7 @@
 // -DNOGMM -DNOMTL -DCSPARSE
 // -I /home/gael/Coding/LinearAlgebra/CSparse/Include/ /home/gael/Coding/LinearAlgebra/CSparse/Lib/libcsparse.a
 #ifndef SIZE
-#define SIZE 1000000
+#define SIZE 100000
 #endif
 
 #ifndef NBPERROW
@@ -22,6 +22,8 @@
 
 #include "BenchSparseUtil.h"
 
+#define CHECK_MEM 
+// #define CHECK_MEM  std/**/::cout << "check mem\n"; getchar();
 
 #define BENCH(X) \
   timer.reset(); \
@@ -34,6 +36,7 @@
 typedef std::vector<Vector2i> Coordinates;
 typedef std::vector<float> Values;
 
+EIGEN_DONT_INLINE Scalar* setinnerrand_eigen(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_eigen_gnu_hash(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_eigen_google_dense(const Coordinates& coords, const Values& vals);
 EIGEN_DONT_INLINE Scalar* setrand_eigen_google_sparse(const Coordinates& coords, const Values& vals);
@@ -47,17 +50,31 @@ int main(int argc, char *argv[])
 {
   int rows = SIZE;
   int cols = SIZE;
+  bool fullyrand = false;
   //float density = float(NBPERROW)/float(SIZE);
   
   BenchTimer timer;
   Coordinates coords;
   Values values;
-  for (int i=0; i<cols*NBPERROW; ++i)
+  if(fullyrand)
   {
-    coords.push_back(Vector2i(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)));
-    values.push_back(ei_random<Scalar>());
+    for (int i=0; i<cols*NBPERROW; ++i)
+    {
+      coords.push_back(Vector2i(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1)));
+      values.push_back(ei_random<Scalar>());
+    }
+  }
+  else
+  {
+    for (int j=0; j<cols; ++j)
+    for (int i=0; i<NBPERROW; ++i)
+    {
+      coords.push_back(Vector2i(ei_random<int>(0,rows-1),j));
+      values.push_back(ei_random<Scalar>());
+    }
   }
   std::cout << "nnz = " << coords.size()  << "\n";
+  CHECK_MEM
 
     // dense matrices
     #ifdef DENSEMATRIX
@@ -72,6 +89,15 @@ int main(int argc, char *argv[])
     #endif
 
     // eigen sparse matrices
+    if (!fullyrand)
+    {
+      timer.reset();
+      timer.start();
+      for (int k=0; k<REPEAT; ++k)
+        setinnerrand_eigen(coords,values);
+      timer.stop();
+      std::cout << "Eigen fillrand\t" << timer.value() << "\n";
+    }
     {
       timer.reset();
       timer.start();
@@ -150,6 +176,20 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+EIGEN_DONT_INLINE Scalar* setinnerrand_eigen(const Coordinates& coords, const Values& vals)
+{
+  using namespace Eigen;
+  SparseMatrix<Scalar> mat(SIZE,SIZE);
+  mat.startFill(2000000/*coords.size()*/);
+  for (int i=0; i<coords.size(); ++i)
+  {
+    mat.fillrand(coords[i].x(), coords[i].y()) = vals[i];
+  }
+  mat.endFill();
+  CHECK_MEM;
+  return 0;
+}
+
 EIGEN_DONT_INLINE Scalar* setrand_eigen_gnu_hash(const Coordinates& coords, const Values& vals)
 {
   using namespace Eigen;
@@ -160,7 +200,7 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_gnu_hash(const Coordinates& coords, cons
     {
       setter(coords[i].x(), coords[i].y()) = vals[i];
     }
-//     std::cout << "check mem\n"; getchar();
+    CHECK_MEM;
   }
   return 0;//&mat.coeffRef(coords[0].x(), coords[0].y());
 }
@@ -174,7 +214,7 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_google_dense(const Coordinates& coords, 
     RandomSetter<SparseMatrix<Scalar>, GoogleDenseHashMapTraits> setter(mat);
     for (int i=0; i<coords.size(); ++i)
       setter(coords[i].x(), coords[i].y()) = vals[i];
-//     std::cout << "check mem\n"; getchar();
+    CHECK_MEM;
   }
   return 0;//&mat.coeffRef(coords[0].x(), coords[0].y());
 }
@@ -187,7 +227,7 @@ EIGEN_DONT_INLINE Scalar* setrand_eigen_google_sparse(const Coordinates& coords,
     RandomSetter<SparseMatrix<Scalar>, GoogleSparseHashMapTraits> setter(mat);
     for (int i=0; i<coords.size(); ++i)
       setter(coords[i].x(), coords[i].y()) = vals[i];
-//     std::cout << "check mem\n"; getchar();
+    CHECK_MEM;
   }
   return 0;//&mat.coeffRef(coords[0].x(), coords[0].y());
 }
@@ -204,7 +244,7 @@ EIGEN_DONT_INLINE Scalar* setrand_ublas_mapped(const Coordinates& coords, const 
   {
     aux(coords[i].x(), coords[i].y()) = vals[i];
   }
-//   std::cout << "check mem\n"; getchar();
+  CHECK_MEM;
   compressed_matrix<Scalar> mat(aux);
   return 0;// &mat(coords[0].x(), coords[0].y());
 }
@@ -245,6 +285,7 @@ EIGEN_DONT_INLINE Scalar* setrand_ublas_genvec(const Coordinates& coords, const 
   {
     aux(coords[i].x(), coords[i].y()) = vals[i];
   }
+  CHECK_MEM;
   compressed_matrix<Scalar,row_major> mat(aux);
   return 0;//&mat(coords[0].x(), coords[0].y());
 }

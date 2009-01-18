@@ -85,7 +85,7 @@ template<typename MatrixType, int PacketAccess> class Map
       EIGEN_ONLY_USED_FOR_DEBUG(rows);
       EIGEN_ONLY_USED_FOR_DEBUG(cols);
       ei_assert(rows == this->rows());
-      ei_assert(rows == this->cols());
+      ei_assert(cols == this->cols());
     }
 
     inline void resize(int size)

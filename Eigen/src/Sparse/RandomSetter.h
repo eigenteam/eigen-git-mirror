@@ -25,6 +25,10 @@
 #ifndef EIGEN_RANDOMSETTER_H
 #define EIGEN_RANDOMSETTER_H
 
+/** Represents a std::map
+  *
+  * \see RandomSetter
+  */
 template<typename Scalar> struct StdMapTraits
 {
   typedef int KeyType;
@@ -37,6 +41,10 @@ template<typename Scalar> struct StdMapTraits
 };
 
 #ifdef _HASH_MAP
+/** Represents a __gnu_cxx::hash_map
+  *
+  * \see RandomSetter
+  */
 template<typename Scalar> struct GnuHashMapTraits
 {
   typedef int KeyType;
@@ -50,6 +58,10 @@ template<typename Scalar> struct GnuHashMapTraits
 #endif
 
 #ifdef _DENSE_HASH_MAP_H_
+/** Represents a google::dense_hash_map
+  *
+  * \see RandomSetter
+  */
 template<typename Scalar> struct GoogleDenseHashMapTraits
 {
   typedef int KeyType;
@@ -64,6 +76,10 @@ template<typename Scalar> struct GoogleDenseHashMapTraits
 #endif
 
 #ifdef _SPARSE_HASH_MAP_H_
+/** Represents a google::sparse_hash_map
+  *
+  * \see RandomSetter
+  */
 template<typename Scalar> struct GoogleSparseHashMapTraits
 {
   typedef int KeyType;
@@ -78,7 +94,19 @@ template<typename Scalar> struct GoogleSparseHashMapTraits
 
 /** \class RandomSetter
   *
-  * Typical usage:
+  * \brief The RandomSetter is a wrapper object allowing to set/update a sparse matrix with random access
+  *
+  * \param SparseMatrixType the type of the sparse matrix we are updating
+  * \param MapTraits a traits class representing the map implementation used for the temporary sparse storage.
+  *                  Its default value depends on the system.
+  * \param OuterPacketBits defines the number of rows (or columns) manage by a single map object
+  *                        as a power of two exponent.
+  *
+  * This class temporarily represents a sparse matrix object using a generic map implementation allowing for
+  * efficient random access. The conversion from the compressed representation to a hash_map object is performed
+  * in the RandomSetter constructor, while the sparse matrix is updated back at destruction time. This strategy
+  * suggest the use of nested blocks as in this example:
+  *
   * \code
   * SparseMatrix<double> m(rows,cols);
   * {
@@ -91,11 +119,28 @@ template<typename Scalar> struct GoogleSparseHashMapTraits
   * // and m is ready to use.
   * \endcode
   *
-  * \note for performance and memory consumption reasons it is highly recommended to use
-  * Google's hash library. To do so you have two options:
-  *  - include <google/dense_hash_map> yourself \b before Eigen/Sparse header
+  * Since hash_map objects are not fully sorted, representing a full matrix as a single hash_map would
+  * involve a big and costly sort to update the compressed matrix back. To overcome this issue, a RandomSetter
+  * use multiple hash_map, each representing 2^OuterPacketBits columns or rows according to the storage order.
+  * To reach optimal performance, this value should be adjusted according to the average number of nonzeros
+  * per rows/columns.
+  *
+  * The possible values for the template parameter MapTraits are:
+  *  - \b StdMapTraits: corresponds to std::map. (does not perform very well)
+  *  - \b GnuHashMapTraits: corresponds to __gnu_cxx::hash_map (available only with GCC)
+  *  - \b GoogleDenseHashMapTraits: corresponds to google::dense_hash_map (best efficiency, reasonable memory consumption)
+  *  - \b GoogleSparseHashMapTraits: corresponds to google::sparse_hash_map (best memory consumption, relatively good performance)
+  *
+  * The default map implementation depends on the availability, and the preferred order is:
+  * GoogleSparseHashMapTraits, GnuHashMapTraits, and finally StdMapTraits.
+  *
+  * For performance and memory consumption reasons it is highly recommended to use one of
+  * the Google's hash_map implementation. To enable the support for them, you have two options:
+  *  - \#include <google/dense_hash_map> yourself \b before Eigen/Sparse header
   *  - define EIGEN_GOOGLEHASH_SUPPORT
   * In the later case the inclusion of <google/dense_hash_map> is made for you.
+  * 
+  * \see http://code.google.com/p/google-sparsehash/
   */
 template<typename SparseMatrixType,
          template <typename T> class MapTraits =
@@ -121,11 +166,19 @@ class RandomSetter
     enum {
       SwapStorage = 1 - MapTraits<ScalarWrapper>::IsSorted,
       TargetRowMajor = (SparseMatrixType::Flags & RowMajorBit) ? 1 : 0,
-      SetterRowMajor = SwapStorage ? 1-TargetRowMajor : TargetRowMajor
+      SetterRowMajor = SwapStorage ? 1-TargetRowMajor : TargetRowMajor,
+      IsUpperTriangular = SparseMatrixType::Flags & UpperTriangularBit,
+      IsLowerTriangular = SparseMatrixType::Flags & LowerTriangularBit
     };
 
   public:
 
+    /** Constructs a random setter object from the sparse matrix \a target
+      *
+      * Note that the initial value of \a target are imported. If you want to re-set
+      * a sparse matrix from scratch, then you must set it to zero first using the
+      * setZero() function.
+      */
     inline RandomSetter(SparseMatrixType& target)
       : mp_target(&target)
     {
@@ -153,6 +206,7 @@ class RandomSetter
           (*this)(TargetRowMajor?j:it.index(), TargetRowMajor?it.index():j) = it.value();
     }
 
+    /** Destructor updating back the sparse matrix target */
     ~RandomSetter()
     {
       KeyType keyBitsMask = (1<<m_keyBitsOffset)-1;
@@ -226,8 +280,11 @@ class RandomSetter
       delete[] m_hashmaps;
     }
 
+    /** \returns a reference to the coefficient at given coordinates \a row, \a col */
     Scalar& operator() (int row, int col)
     {
+      ei_assert(((!IsUpperTriangular) || (row<=col)) && "Invalid access to an upper triangular matrix");
+      ei_assert(((!IsLowerTriangular) || (col<=row)) && "Invalid access to an upper triangular matrix");
       const int outer = SetterRowMajor ? row : col;
       const int inner = SetterRowMajor ? col : row;
       const int outerMajor = outer >> OuterPacketBits; // index of the packet/map
@@ -236,7 +293,11 @@ class RandomSetter
       return m_hashmaps[outerMajor][key].value;
     }
 
-    // might be slow
+    /** \returns the number of non zero coefficients 
+      *
+      * \note According to the underlying map/hash_map implementation,
+      * this function might be quite expensive.
+      */
     int nonZeros() const
     {
       int nz = 0;
