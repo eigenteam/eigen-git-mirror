@@ -200,7 +200,21 @@ class SparseMatrix
       int startId = m_outerIndex[outer];
       int id = m_outerIndex[outer+1]-1;
       ++m_outerIndex[outer+1];
-      m_data.resize(id+2);
+      
+      float reallocRatio = 1;
+      if (m_data.allocatedSize()<id+2)
+      {
+        // we need to reallocate the data, to reduce multiple reallocations
+        // we use a smart resize algorithm based on the current filling ratio
+        // we use float to avoid overflows
+        float nnzEstimate = float(m_outerIndex[outer])*float(m_outerSize)/float(outer);
+        reallocRatio = (nnzEstimate-float(m_data.size()))/float(m_data.size());
+        // let's bounds the realloc ratio to
+        //   1) reduce multiple minor realloc when the matrix is almost filled
+        //   2) avoid to allocate too much memory when the matrix is almost empty
+        reallocRatio = std::min(std::max(reallocRatio,1.5f),8.f);
+      }
+      m_data.resize(id+2,reallocRatio);
 
       while ( (id >= startId) && (m_data.index(id) > inner) )
       {
@@ -209,10 +223,7 @@ class SparseMatrix
         --id;
       }
       m_data.index(id+1) = inner;
-      //return (m_data.value(id+1) = 0);
-      m_data.value(id+1) = 0;
-//       std::cerr << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
-      return m_data.value(id+1);
+      return (m_data.value(id+1) = 0);
     }
 
 //     inline void

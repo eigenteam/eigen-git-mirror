@@ -151,7 +151,7 @@ class SparseVector
     {
       int startId = 0;
       int id = m_data.size() - 1;
-      m_data.resize(id+2);
+      m_data.resize(id+2,1);
 
       while ( (id >= startId) && (m_data.index(id) > i) )
       {
@@ -172,7 +172,7 @@ class SparseVector
 
     void resizeNonZeros(int size) { m_data.resize(size); }
 
-    inline SparseVector() : m_size(0) { resize(0, 0); }
+    inline SparseVector() : m_size(0) { resize(0); }
 
     inline SparseVector(int size) : m_size(0) { resize(size); }
 

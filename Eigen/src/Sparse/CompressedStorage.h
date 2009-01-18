@@ -82,7 +82,7 @@ class CompressedStorage
         reallocate(m_size);
     }
 
-    void resize(int size, int reserveSizeFactor = 0)
+    void resize(int size, float reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
         reallocate(size + reserveSizeFactor*size);
@@ -98,6 +98,7 @@ class CompressedStorage
     }
 
     int size() const { return m_size; }
+    int allocatedSize() const { return m_allocatedSize; }
     void clear() { m_size = 0; }
 
     Scalar& value(int i) { return m_values[i]; }
