@@ -307,12 +307,6 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
 
-/** Deprecated, use the EIGEN_MAKE_ALIGNED_OPERATOR_NEW macro instead in your own class */
-struct WithAlignedOperatorNew
-{
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
-
 /** \class aligned_allocator
 *
 * \brief stl compatible allocator to use with with 16 byte aligned types

@@ -1,5 +1,0 @@
-#ifdef __GNUC__
-#warning "The Eigen/Regression header file has been renamed to Eigen/LeastSquares. The old name is deprecated, please update your code."
-#endif
-
-#include "LeastSquares"

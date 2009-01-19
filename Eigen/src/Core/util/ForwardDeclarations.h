@@ -106,9 +106,6 @@ template<typename MatrixType> class QR;
 template<typename MatrixType> class SVD;
 template<typename MatrixType> class LLT;
 template<typename MatrixType> class LDLT;
-// deprecated:
-template<typename MatrixType> class Cholesky;
-template<typename MatrixType> class CholeskyWithoutSquareRoot;
 
 // Geometry module:
 template<typename Derived, int _Dim> class RotationBase;

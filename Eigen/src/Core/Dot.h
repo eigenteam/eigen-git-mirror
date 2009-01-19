@@ -271,22 +271,6 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
 /** \returns the squared norm of *this, i.e. the dot product of *this with itself.
   *
-  * \note This is \em not the \em l2 norm, but its square.
-  *
-  * \deprecated Use squaredNorm() instead. This norm2() function is kept only for compatibility and will be removed in Eigen 2.0.
-  *
-  * \only_for_vectors
-  *
-  * \sa dot(), norm()
-  */
-template<typename Derived>
-EIGEN_DEPRECATED inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm2() const
-{
-  return ei_real((*this).cwise().abs2().sum());
-}
-
-/** \returns the squared norm of *this, i.e. the dot product of *this with itself.
-  *
   * \only_for_vectors
   *
   * \sa dot(), norm()

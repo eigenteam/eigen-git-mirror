@@ -229,10 +229,6 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator=(const MatrixBase<OtherDerived>& other);
 
-    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
-    template<typename OtherDerived>
-    Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
-
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
@@ -240,6 +236,11 @@ template<typename Derived> class MatrixBase
     {
       return this->operator=<Derived>(other);
     }
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
+    template<typename OtherDerived>
+    Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
 
     /** Overloaded for cache friendly product evaluation */
     template<typename Lhs, typename Rhs>
@@ -249,6 +250,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
@@ -589,9 +591,6 @@ template<typename Derived> class MatrixBase
 
     const LLT<PlainMatrixType>  llt() const;
     const LDLT<PlainMatrixType> ldlt() const;
-    // deprecated:
-    const Cholesky<PlainMatrixType> cholesky() const;
-    const CholeskyWithoutSquareRoot<PlainMatrixType> choleskyNoSqrt() const;
 
 /////////// QR module ///////////
 

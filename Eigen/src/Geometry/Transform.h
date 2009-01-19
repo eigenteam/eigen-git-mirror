@@ -247,7 +247,6 @@ public:
   template<typename Derived>
   inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  EIGEN_DEPRECATED LinearMatrixType extractRotation(TransformTraits traits = Affine) const { return rotation(traits); }
   LinearMatrixType rotation(TransformTraits traits = Affine) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
@@ -595,6 +594,7 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const RotationBase
 ***************************/
 
 /** \returns the rotation part of the transformation
+  * \nonstableyet
   *
   * \param traits allows to optimize the extraction process when the transformion
   * is known to be not a general aafine transformation. The possible values are:
@@ -625,10 +625,10 @@ Transform<Scalar,Dim>::rotation(TransformTraits traits) const
     return matQ;
   }
   else if (traits == Isometry) // though that's stupid let's handle it !
-    return linear();
+    return linear(); // FIXME needs to divide by determinant
   else
   {
-    ei_assert("invalid traits value in Transform::extractRotation()");
+    ei_assert("invalid traits value in Transform::rotation()");
     return LinearMatrixType();
   }
 }
@@ -650,7 +650,9 @@ Transform<Scalar,Dim>::fromPositionOrientationScale(const MatrixBase<PositionDer
   return *this;
 }
 
-/** \returns the inverse transformation matrix according to some given knowledge
+/** \nonstableyet
+  *
+  * \returns the inverse transformation matrix according to some given knowledge
   * on \c *this.
   *
   * \param traits allows to optimize the inversion process when the transformion

@@ -8,10 +8,11 @@ template<typename InputVector, typename OutputVector>
 void ei_compute_householder(const InputVector& x, OutputVector *v, typename OutputVector::RealScalar *beta)
 {
   EIGEN_STATIC_ASSERT(ei_is_same_type<typename InputVector::Scalar, typename OutputVector::Scalar>::ret,
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   EIGEN_STATIC_ASSERT((InputVector::SizeAtCompileTime == OutputVector::SizeAtCompileTime+1)
                       || InputVector::SizeAtCompileTime == Dynamic
-                      || OutputVector::SizeAtCompileTime == Dynamic)
+                      || OutputVector::SizeAtCompileTime == Dynamic,
+    YOU_MIXED_VECTORS_OF_DIFFERENT_SIZES)
   typedef typename OutputVector::RealScalar RealScalar;
   ei_assert(x.size() == v->size()+1);
   int n = x.size();

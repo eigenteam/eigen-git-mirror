@@ -26,7 +26,8 @@
 #ifndef EIGEN_PART_H
 #define EIGEN_PART_H
 
-/** \class Part
+/** \nonstableyet 
+  * \class Part
   *
   * \brief Expression of a triangular matrix extracted from a given matrix
   *
@@ -127,7 +128,8 @@ template<typename MatrixType, unsigned int Mode> class Part
     const typename MatrixType::Nested m_matrix;
 };
 
-/** \returns an expression of a triangular matrix extracted from the current matrix
+/** \nonstableyet 
+  * \returns an expression of a triangular matrix extracted from the current matrix
   *
   * The parameter \a Mode can have the following values: \c UpperTriangular, \c StrictlyUpperTriangular, \c UnitUpperTriangular,
   * \c LowerTriangular, \c StrictlyLowerTriangular, \c UnitLowerTriangular.
@@ -278,7 +280,8 @@ void Part<MatrixType, Mode>::lazyAssign(const Other& other)
     >::run(m_matrix.const_cast_derived(), other.derived());
 }
 
-/** \returns a lvalue pseudo-expression allowing to perform special operations on \c *this.
+/** \nonstableyet 
+  * \returns a lvalue pseudo-expression allowing to perform special operations on \c *this.
   *
   * The \a Mode parameter can have the following values: \c UpperTriangular, \c StrictlyUpperTriangular, \c LowerTriangular,
   * \c StrictlyLowerTriangular, \c SelfAdjoint.

@@ -1,4 +1,4 @@
-set(Eigen_HEADERS Core LU Cholesky QR Geometry Sparse Array SVD Regression LeastSquares StdVector)
+set(Eigen_HEADERS Core LU Cholesky QR Geometry Sparse Array SVD LeastSquares StdVector)
 
 if(EIGEN_BUILD_LIB)
     set(Eigen_SRCS

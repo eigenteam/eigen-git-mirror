@@ -214,7 +214,7 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "addexample=\anchor"  \
                          "label=\bug" \
                          "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'>*</a>" \
-                         "nonstableyet=\warning This class/function is not considered to be part of the stable public API yet. Some (minor) changes might happen in future releases."
+                         "nonstableyet=\warning This class/function is not considered to be part of the stable public API yet. Changes may happen in future releases. See \ref Experimental \"Experimental parts of Eigen\""
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C
 # sources only. Doxygen will then generate output that is more tailored for C.

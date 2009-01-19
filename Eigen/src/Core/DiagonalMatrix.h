@@ -26,6 +26,7 @@
 #define EIGEN_DIAGONALMATRIX_H
 
 /** \class DiagonalMatrix
+  * \nonstableyet 
   *
   * \brief Expression of a diagonal matrix
   *
@@ -91,7 +92,8 @@ class DiagonalMatrix : ei_no_assignment_operator,
     const typename CoeffsVectorType::Nested m_coeffs;
 };
 
-/** \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients
+/** \nonstableyet 
+  * \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients
   *
   * \only_for_vectors
   *
@@ -109,7 +111,8 @@ MatrixBase<Derived>::asDiagonal() const
   return derived();
 }
 
-/** \returns true if *this is approximately equal to a diagonal matrix,
+/** \nonstableyet 
+  * \returns true if *this is approximately equal to a diagonal matrix,
   *          within the precision given by \a prec.
   *
   * Example: \include MatrixBase_isDiagonal.cpp
