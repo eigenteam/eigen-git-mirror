@@ -114,7 +114,7 @@ using Eigen::ei_cos;
 #if (defined _MSC_VER)
 #define EIGEN_STRONG_INLINE __forceinline
 #else
-#define EIGEN_STRONG_INLINE __attribute__((always_inline))
+#define EIGEN_STRONG_INLINE inline
 #endif
 
 #if (defined __GNUC__)
