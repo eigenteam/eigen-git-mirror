@@ -96,6 +96,49 @@ initSparse(double density,
 
 template<typename Scalar> void
 initSparse(double density,
+           Matrix<Scalar,Dynamic,Dynamic>& refMat,
+           DynamicSparseMatrix<Scalar>& sparseMat,
+           int flags = 0,
+           std::vector<Vector2i>* zeroCoords = 0,
+           std::vector<Vector2i>* nonzeroCoords = 0)
+{
+  sparseMat.startFill(int(refMat.rows()*refMat.cols()*density));
+  for(int j=0; j<refMat.cols(); j++)
+  {
+    for(int i=0; i<refMat.rows(); i++)
+    {
+      Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
+      if ((flags&ForceNonZeroDiag) && (i==j))
+      {
+        v = ei_random<Scalar>()*Scalar(3.);
+        v = v*v + Scalar(5.);
+      }
+      if ((flags & MakeLowerTriangular) && j>i)
+        v = Scalar(0);
+      else if ((flags & MakeUpperTriangular) && j<i)
+        v = Scalar(0);
+      
+      if ((flags&ForceRealDiag) && (i==j))
+        v = ei_real(v);
+        
+      if (v!=Scalar(0))
+      {
+        sparseMat.fill(i,j) = v;
+        if (nonzeroCoords)
+          nonzeroCoords->push_back(Vector2i(i,j));
+      }
+      else if (zeroCoords)
+      {
+        zeroCoords->push_back(Vector2i(i,j));
+      }
+      refMat(i,j) = v;
+    }
+  }
+  sparseMat.endFill();
+}
+
+template<typename Scalar> void
+initSparse(double density,
            Matrix<Scalar,Dynamic,1>& refVec,
            SparseVector<Scalar>& sparseVec,
            std::vector<int>* zeroCoords = 0,

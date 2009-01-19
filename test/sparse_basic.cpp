@@ -42,14 +42,34 @@ bool test_random_setter(SparseType& sm, const DenseType& ref, const std::vector<
   return sm.isApprox(ref);
 }
 
-template<typename Scalar> void sparse_basic(int rows, int cols)
+template<typename SetterType,typename DenseType, typename T>
+bool test_random_setter(DynamicSparseMatrix<T>& sm, const DenseType& ref, const std::vector<Vector2i>& nonzeroCoords)
 {
+  sm.setZero();
+  std::vector<Vector2i> remaining = nonzeroCoords;
+  while(!remaining.empty())
+  {
+    int i = ei_random<int>(0,remaining.size()-1);
+    sm.coeffRef(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
+    remaining[i] = remaining.back();
+    remaining.pop_back();
+  }
+  return sm.isApprox(ref);
+}
+
+template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
+{
+  const int rows = ref.rows();
+  const int cols = ref.cols();
+  typedef typename SparseMatrixType::Scalar Scalar;
+  enum { Flags = SparseMatrixType::Flags };
+  
   double density = std::max(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
   Scalar eps = 1e-6;
 
-  SparseMatrix<Scalar> m(rows, cols);
+  SparseMatrixType m(rows, cols);
   DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
   DenseVector vec1 = DenseVector::Random(rows);
   Scalar s1 = ei_random<Scalar>();
@@ -57,7 +77,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
   std::vector<Vector2i> zeroCoords;
   std::vector<Vector2i> nonzeroCoords;
   initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
-
+  
   if (zeroCoords.size()==0 || nonzeroCoords.size()==0)
     return;
 
@@ -65,7 +85,8 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
   for (int i=0; i<(int)zeroCoords.size(); ++i)
   {
     VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
-    VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
+    if(ei_is_same_type<SparseMatrixType,SparseMatrix<Scalar,Flags> >::ret)
+      VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
   }
   VERIFY_IS_APPROX(m, refMat);
 
@@ -120,7 +141,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
 //   {
 //     m.setZero();
 //     VERIFY_IS_NOT_APPROX(m, refMat);
-//     SparseSetter<SparseMatrix<Scalar>, FullyCoherentAccessPattern> w(m);
+//     SparseSetter<SparseMatrixType, FullyCoherentAccessPattern> w(m);
 //     for (int i=0; i<nonzeroCoords.size(); ++i)
 //     {
 //       w->coeffRef(nonzeroCoords[i].x(),nonzeroCoords[i].y()) = refMat.coeff(nonzeroCoords[i].x(),nonzeroCoords[i].y());
@@ -132,7 +153,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
 //   {
 //     m.setZero();
 //     VERIFY_IS_NOT_APPROX(m, refMat);
-//     SparseSetter<SparseMatrix<Scalar>, RandomAccessPattern> w(m);
+//     SparseSetter<SparseMatrixType, RandomAccessPattern> w(m);
 //     std::vector<Vector2i> remaining = nonzeroCoords;
 //     while(!remaining.empty())
 //     {
@@ -144,22 +165,22 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
 //   }
 //   VERIFY_IS_APPROX(m, refMat);
 
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, StdMapTraits> >(m,refMat,nonzeroCoords) ));
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, StdMapTraits> >(m,refMat,nonzeroCoords) ));
     #ifdef _HASH_MAP
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GnuHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GnuHashMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
     #ifdef _DENSE_HASH_MAP_H_
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GoogleDenseHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleDenseHashMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
     #ifdef _SPARSE_HASH_MAP_H_
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrix<Scalar>, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
 
     // test fillrand
     {
       DenseMatrix m1(rows,cols);
       m1.setZero();
-      SparseMatrix<Scalar> m2(rows,cols);
+      SparseMatrixType m2(rows,cols);
       m2.startFill();
       for (int j=0; j<cols; ++j)
       {
@@ -171,23 +192,23 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
         }
       }
       m2.endFill();
-      std::cerr << m1 << "\n\n" << m2 << "\n";
+      //std::cerr << m1 << "\n\n" << m2 << "\n";
       VERIFY_IS_APPROX(m2,m1);
     }
   
   // test RandomSetter
-  {
-    SparseMatrix<Scalar> m1(rows,cols), m2(rows,cols);
+  /*{
+    SparseMatrixType m1(rows,cols), m2(rows,cols);
     DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
     initSparse<Scalar>(density, refM1, m1);
     {
-      Eigen::RandomSetter<SparseMatrix<Scalar> > setter(m2);
+      Eigen::RandomSetter<SparseMatrixType > setter(m2);
       for (int j=0; j<m1.outerSize(); ++j)
-        for (typename SparseMatrix<Scalar>::InnerIterator i(m1,j); i; ++i)
+        for (typename SparseMatrixType::InnerIterator i(m1,j); i; ++i)
           setter(i.index(), j) = i.value();
     }
     VERIFY_IS_APPROX(m1, m2);
-  }
+  }*/
 //   std::cerr << m.transpose() << "\n\n"  << refMat.transpose() << "\n\n";
 //   VERIFY_IS_APPROX(m, refMat);
 
@@ -197,10 +218,10 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     DenseMatrix refM2 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refM3 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refM4 = DenseMatrix::Zero(rows, rows);
-    SparseMatrix<Scalar> m1(rows, rows);
-    SparseMatrix<Scalar> m2(rows, rows);
-    SparseMatrix<Scalar> m3(rows, rows);
-    SparseMatrix<Scalar> m4(rows, rows);
+    SparseMatrixType m1(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    SparseMatrixType m3(rows, rows);
+    SparseMatrixType m4(rows, rows);
     initSparse<Scalar>(density, refM1, m1);
     initSparse<Scalar>(density, refM2, m2);
     initSparse<Scalar>(density, refM3, m3);
@@ -223,7 +244,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
   // test innerVector()
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
-    SparseMatrix<Scalar> m2(rows, rows);
+    SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
     int j0 = ei_random(0,rows-1);
     int j1 = ei_random(0,rows-1);
@@ -234,7 +255,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
   // test transpose
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
-    SparseMatrix<Scalar> m2(rows, rows);
+    SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
     VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
@@ -246,9 +267,9 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     DenseMatrix refMat3 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refMat4 = DenseMatrix::Zero(rows, rows);
     DenseMatrix dm4 = DenseMatrix::Zero(rows, rows);
-    SparseMatrix<Scalar> m2(rows, rows);
-    SparseMatrix<Scalar> m3(rows, rows);
-    SparseMatrix<Scalar> m4(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    SparseMatrixType m3(rows, rows);
+    SparseMatrixType m4(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
     initSparse<Scalar>(density, refMat3, m3);
     initSparse<Scalar>(density, refMat4, m4);
@@ -278,9 +299,9 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     DenseMatrix refUp = DenseMatrix::Zero(rows, rows);
     DenseMatrix refLo = DenseMatrix::Zero(rows, rows);
     DenseMatrix refS = DenseMatrix::Zero(rows, rows);
-    SparseMatrix<Scalar> mUp(rows, rows);
-    SparseMatrix<Scalar> mLo(rows, rows);
-    SparseMatrix<Scalar> mS(rows, rows);
+    SparseMatrixType mUp(rows, rows);
+    SparseMatrixType mLo(rows, rows);
+    SparseMatrixType mS(rows, rows);
     do {
       initSparse<Scalar>(density, refUp, mUp, ForceRealDiag|/*ForceNonZeroDiag|*/MakeUpperTriangular);
     } while (refUp.isZero());
@@ -290,7 +311,7 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
     refS.diagonal() *= 0.5;
     mS = mUp + mLo;
     for (int k=0; k<mS.outerSize(); ++k)
-      for (typename SparseMatrix<Scalar>::InnerIterator it(mS,k); it; ++it)
+      for (typename SparseMatrixType::InnerIterator it(mS,k); it; ++it)
         if (it.index() == k)
           it.valueRef() *= 0.5;
     
@@ -307,8 +328,10 @@ template<typename Scalar> void sparse_basic(int rows, int cols)
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( sparse_basic<double>(8, 8) );
-    CALL_SUBTEST( sparse_basic<std::complex<double> >(16, 16) );
-    CALL_SUBTEST( sparse_basic<double>(33, 33) );
+//     CALL_SUBTEST( sparse_basic(SparseMatrix<double>(8, 8)) );
+//     CALL_SUBTEST( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
+//     CALL_SUBTEST( sparse_basic(SparseMatrix<double>(33, 33)) );
+    
+    CALL_SUBTEST( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
   }
 }

@@ -47,11 +47,9 @@ struct ei_traits<SparseVector<_Scalar, _Flags> >
     MaxColsAtCompileTime = ColsAtCompileTime,
     Flags = SparseBit | _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
-    SupportedAccessPatterns = FullyCoherentAccessPattern
+    SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
-
-
 
 template<typename _Scalar, int _Flags>
 class SparseVector
@@ -89,22 +87,7 @@ class SparseVector
       ei_assert((IsColVector ? col : row)==0);
       return coeff(IsColVector ? row : col);
     }
-    inline Scalar coeff(int i) const
-    {
-      int start = 0;
-      int end = m_data.size();
-      if (start==end)
-        return Scalar(0);
-      else if (end>0 && i==m_data.index(end-1))
-        return m_data.value(end-1);
-      // ^^  optimization: let's first check if it is the last coefficient
-      // (very common in high level algorithms)
-
-      // TODO move this search to ScalarArray
-      const int* r = std::lower_bound(&m_data.index(start),&m_data.index(end-1),i);
-      const int id = r-&m_data.index(0);
-      return ((*r==i) && (id<end)) ? m_data.value(id) : Scalar(0);
-    }
+    inline Scalar coeff(int i) const { return m_data.at(i); }
 
     inline Scalar& coeffRef(int row, int col)
     {
@@ -112,16 +95,15 @@ class SparseVector
       return coeff(IsColVector ? row : col);
     }
 
+    /** \returns a reference to the coefficient value at given index \a i
+      * This operation involes a log(rho*size) binary search. If the coefficient does not
+      * exist yet, then a sorted insertion into a sequential buffer is performed.
+      * 
+      * This insertion might be very costly if the number of nonzeros above \a i is large.
+      */
     inline Scalar& coeffRef(int i)
     {
-      int start = 0;
-      int end = m_data.size();
-      ei_assert(end>=start && "you probably called coeffRef on a non finalized vector");
-      ei_assert(end>start && "coeffRef cannot be called on a zero coefficient");
-      int* r = std::lower_bound(&m_data.index(start),&m_data.index(end),i);
-      const int id = r-&m_data.index(0);
-      ei_assert((*r==i) && (id<end) && "coeffRef cannot be called on a zero coefficient");
-      return m_data.value(id);
+      return m_data.atWithInsertiob(i);
     }
 
   public:
@@ -301,29 +283,33 @@ class SparseVector<Scalar,_Flags>::InnerIterator
 {
   public:
     InnerIterator(const SparseVector& vec, int outer=0)
-      : m_vector(vec), m_id(0), m_end(vec.nonZeros())
+      : m_data(vec.m_data), m_id(0), m_end(m_data.size())
     {
       ei_assert(outer==0);
     }
+    
+    InnerIterator(const CompressedStorage<Scalar>& data)
+      : m_data(data), m_id(0), m_end(m_data.size())
+    {}
 
     template<unsigned int Added, unsigned int Removed>
     InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, int outer)
-      : m_vector(vec._expression()), m_id(0), m_end(m_vector.nonZeros())
+      : m_data(vec._expression().m_data), m_id(0), m_end(m_data.size())
     {}
 
     inline InnerIterator& operator++() { m_id++; return *this; }
 
-    inline Scalar value() const { return m_vector.m_data.value(m_id); }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_vector.m_data.value(m_id)); }
+    inline Scalar value() const { return m_data.value(m_id); }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id)); }
 
-    inline int index() const { return m_vector.m_data.index(m_id); }
+    inline int index() const { return m_data.index(m_id); }
     inline int row() const { return IsColVector ? index() : 0; }
     inline int col() const { return IsColVector ? 0 : index(); }
 
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const SparseVector& m_vector;
+    const CompressedStorage<Scalar>& m_data;
     int m_id;
     const int m_end;
 };

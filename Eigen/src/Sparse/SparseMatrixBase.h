@@ -69,7 +69,7 @@ template<typename Derived> class SparseMatrixBase
         /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
           * constructed from this one. See the \ref flags "list of flags".
           */
-
+      
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
@@ -153,7 +153,10 @@ template<typename Derived> class SparseMatrixBase
     {
 //       std::cout << "Derived& operator=(const MatrixBase<OtherDerived>& other)\n";
       //const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      ei_assert((!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit))) && "the transpose operation is supposed to be handled in SparseMatrix::operator=");
+      ei_assert(( ((ei_traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
+                  (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
+                  "the transpose operation is supposed to be handled in SparseMatrix::operator=");
+
       const int outerSize = other.outerSize();
       //typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       // thanks to shallow copies, we always eval to a tempary

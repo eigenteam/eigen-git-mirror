@@ -114,8 +114,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
-    SupportedAccessPatterns = RandomAccessPattern
+    CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 

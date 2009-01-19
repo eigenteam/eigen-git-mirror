@@ -45,7 +45,7 @@ struct ei_traits<SparseMatrix<_Scalar, _Flags> >
     MaxColsAtCompileTime = Dynamic,
     Flags = SparseBit | _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
-    SupportedAccessPatterns = FullyCoherentAccessPattern
+    SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
 
@@ -91,19 +91,7 @@ class SparseMatrix
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
-
-      int start = m_outerIndex[outer];
-      int end = m_outerIndex[outer+1];
-      if (start==end)
-        return Scalar(0);
-      else if (end>0 && inner==m_data.index(end-1))
-        return m_data.value(end-1);
-      // ^^  optimization: let's first check if it is the last coefficient
-      // (very common in high level algorithms)
-
-      const int* r = std::lower_bound(&m_data.index(start),&m_data.index(end-1),inner);
-      const int id = r-&m_data.index(0);
-      return ((*r==inner) && (id<end)) ? m_data.value(id) : Scalar(0);
+      return m_data.atInRange(m_outerIndex[outer], m_outerIndex[outer+1], inner);
     }
 
     inline Scalar& coeffRef(int row, int col)
@@ -115,9 +103,8 @@ class SparseMatrix
       int end = m_outerIndex[outer+1];
       ei_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
       ei_assert(end>start && "coeffRef cannot be called on a zero coefficient");
-      int* r = std::lower_bound(&m_data.index(start),&m_data.index(end),inner);
-      const int id = r-&m_data.index(0);
-      ei_assert((*r==inner) && (id<end) && "coeffRef cannot be called on a zero coefficient");
+      const int id = m_data.searchLowerIndex(start,end-1,inner);
+      ei_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
       return m_data.value(id);
     }
 

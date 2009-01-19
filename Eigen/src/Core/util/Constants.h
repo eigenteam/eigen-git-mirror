@@ -239,9 +239,4 @@ enum {
   HasDirectAccess = DirectAccessBit
 };
 
-const int FullyCoherentAccessPattern  = 0x1;
-const int InnerCoherentAccessPattern  = 0x2 | FullyCoherentAccessPattern;
-const int OuterCoherentAccessPattern  = 0x4 | InnerCoherentAccessPattern;
-const int RandomAccessPattern         = 0x8 | OuterCoherentAccessPattern;
-
 #endif // EIGEN_CONSTANTS_H

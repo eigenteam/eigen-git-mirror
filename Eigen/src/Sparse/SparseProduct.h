@@ -246,7 +246,7 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
   {
     // let's transpose the product to get a column x column product
     SparseTemporaryType _res(res.cols(), res.rows());
-    ei_sparse_product_selector<Rhs,Lhs,ResultType,ColMajor,ColMajor,ColMajor>
+    ei_sparse_product_selector<Rhs,Lhs,SparseTemporaryType,ColMajor,ColMajor,ColMajor>
       ::run(rhs, lhs, _res);
     res = _res.transpose();
   }

@@ -43,6 +43,7 @@ class CompressedStorage
     }
 
     CompressedStorage(const CompressedStorage& other)
+      : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {
       *this = other;
     }
@@ -97,15 +98,15 @@ class CompressedStorage
       m_indices[id] = i;
     }
 
-    int size() const { return m_size; }
-    int allocatedSize() const { return m_allocatedSize; }
-    void clear() { m_size = 0; }
+    inline int size() const { return m_size; }
+    inline int allocatedSize() const { return m_allocatedSize; }
+    inline void clear() { m_size = 0; }
 
-    Scalar& value(int i) { return m_values[i]; }
-    const Scalar& value(int i) const { return m_values[i]; }
+    inline Scalar& value(int i) { return m_values[i]; }
+    inline const Scalar& value(int i) const { return m_values[i]; }
 
-    int& index(int i) { return m_indices[i]; }
-    const int& index(int i) const { return m_indices[i]; }
+    inline int& index(int i) { return m_indices[i]; }
+    inline const int& index(int i) const { return m_indices[i]; }
 
     static CompressedStorage Map(int* indices, Scalar* values, int size)
     {
@@ -115,10 +116,77 @@ class CompressedStorage
       res.m_allocatedSize = res.m_size = size;
       return res;
     }
+    
+    /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
+    inline int searchLowerIndex(int key) const
+    {
+      return searchLowerIndex(0, m_size, key);
+    }
+    
+    /** \returns the largest \c k in [start,end) such that for all \c j in [start,k) index[\c j]\<\a key */
+    inline int searchLowerIndex(int start, int end, int key) const
+    {
+      while(end>start)
+      {
+        int mid = (end+start)>>1;
+        if (m_indices[mid]<key)
+          start = mid+1;
+        else
+          end = mid;
+      }
+      return start;
+    }
+    
+    /** \returns the stored value at index \a key
+      * If the value does not exist, then the value \a defaultValue is returned without any insertion. */
+    inline Scalar at(int key, Scalar defaultValue = Scalar(0)) const
+    {
+      if (m_size==0)
+        return defaultValue;
+      else if (key==m_indices[m_size-1])
+        return m_values[m_size-1];
+      // ^^  optimization: let's first check if it is the last coefficient
+      // (very common in high level algorithms)
+      const int id = searchLowerIndex(0,m_size-1,key);
+      return ((id<m_size) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
+    }
+    
+    /** Like at(), but the search is performed in the range [start,end) */
+    inline Scalar atInRange(int start, int end, int key, Scalar defaultValue = Scalar(0)) const
+    {
+      if (start==end)
+        return Scalar(0);
+      else if (end>start && key==m_indices[end-1])
+        return m_values[end-1];
+      // ^^  optimization: let's first check if it is the last coefficient
+      // (very common in high level algorithms)
+      const int id = searchLowerIndex(start,end-1,key);
+      return ((id<end) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
+    }
+    
+    /** \returns a reference to the value at index \a key
+      * If the value does not exist, then the value \a defaultValue is inserted
+      * such that the keys are sorted. */
+    inline Scalar& atWithInsertion(int key, Scalar defaultValue = Scalar(0))
+    {
+      int id = searchLowerIndex(0,m_size,key);
+      if (id>=m_size || m_indices[id]!=key)
+      {
+        resize(m_size+1,1);
+        for (int j=m_size-1; j>id; --j)
+        {
+          m_indices[j] = m_indices[j-1];
+          m_values[j] = m_values[j-1];
+        }
+        m_indices[id] = key;
+        m_values[id] = defaultValue;
+      }
+      return m_values[id];
+    }
 
   protected:
 
-    void reallocate(int size)
+    inline void reallocate(int size)
     {
       Scalar* newValues  = new Scalar[size];
       int* newIndices = new int[size];
