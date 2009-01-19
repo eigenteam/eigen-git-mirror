@@ -313,6 +313,7 @@ template<typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeDenseProduct>& product)
 {
   typedef typename ei_cleantype<Lhs>::type _Lhs;
+  typedef typename ei_cleantype<Rhs>::type _Rhs;
   typedef typename _Lhs::InnerIterator LhsInnerIterator;
   enum {
     LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
@@ -332,6 +333,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeD
       derived().row(j) += i.value() * product.rhs().row(j);
       ++i;
     }
+    Block<Derived,1,Derived::ColsAtCompileTime> foo = derived().row(j);
     for (; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
     {
       if (LhsIsSelfAdjoint)
@@ -342,8 +344,10 @@ Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeD
         derived().row(a) += (v) * product.rhs().row(b);
         derived().row(b) += ei_conj(v) * product.rhs().row(a);
       }
+      else if (LhsIsRowMajor)
+        foo += i.value() * product.rhs().row(i.index());
       else
-        derived().row(LhsIsRowMajor ? j : i.index()) += i.value() * product.rhs().row(LhsIsRowMajor ? i.index() : j);
+        derived().row(i.index()) += i.value() * product.rhs().row(j);
     }
     if (ProcessFirstHalf && i && (i.index()==j))
       derived().row(j) += i.value() * product.rhs().row(j);

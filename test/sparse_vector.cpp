@@ -54,7 +54,7 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
   for (unsigned int i=0; i<zerocoords.size(); ++i)
   {
     VERIFY_IS_MUCH_SMALLER_THAN( v1.coeff(zerocoords[i]), eps );
-    VERIFY_RAISES_ASSERT( v1.coeffRef(zerocoords[i]) = 5 );
+    //VERIFY_RAISES_ASSERT( v1.coeffRef(zerocoords[i]) = 5 );
   }
   {
     VERIFY(int(nonzerocoords.size()) == v1.nonZeros());

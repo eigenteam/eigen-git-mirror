@@ -103,7 +103,7 @@ class SparseVector
       */
     inline Scalar& coeffRef(int i)
     {
-      return m_data.atWithInsertiob(i);
+      return m_data.atWithInsertion(i);
     }
 
   public:
