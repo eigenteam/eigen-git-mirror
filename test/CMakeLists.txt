@@ -66,7 +66,6 @@ endif(GOOGLEHASH_FOUND)
 
 find_package(Qt4)
 if(QT4_FOUND)
-  add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
   include(${QT_USE_FILE})
   set(EIGEN_TESTED_BACKENDS ${EIGEN_TESTED_BACKENDS} "Qt4 support")
 else(QT4_FOUND)
