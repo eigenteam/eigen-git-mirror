@@ -401,9 +401,11 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
 
-  for(m_rank = 0; m_rank < size; ++m_rank)
-    if(ei_isMuchSmallerThan(m_lu.diagonal().coeff(m_rank), m_lu.diagonal().coeff(0)))
-      break;
+  RealScalar biggest_diagonal_coeff = m_lu.diagonal().cwise().abs().maxCoeff();
+  m_rank = 0;
+  for(int k = 0; k < size; ++k)
+    if(!ei_isMuchSmallerThan(m_lu.diagonal().coeff(k), biggest_diagonal_coeff))
+      ++m_rank;
 }
 
 template<typename MatrixType>
