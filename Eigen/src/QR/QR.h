@@ -57,7 +57,7 @@ template<typename MatrixType> class QR
     }
 
     /** \returns whether or not the matrix is of full rank */
-    bool isFullRank() const { return ei_isMuchSmallerThan(m_hCoeffs.cwise().abs().minCoeff(), Scalar(1)); }
+    bool isFullRank() const { return !ei_isMuchSmallerThan(m_qr.diagonal().cwise().abs().minCoeff(), Scalar(1)); }
 
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
     const Part<NestByValue<MatrixRBlockType>, UpperTriangular>
