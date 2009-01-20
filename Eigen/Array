@@ -26,7 +26,7 @@ namespace Eigen {
 
 #include "src/Array/CwiseOperators.h"
 #include "src/Array/Functors.h"
-#include "src/Array/AllAndAny.h"
+#include "src/Array/BooleanRedux.h"
 #include "src/Array/Select.h"
 #include "src/Array/PartialRedux.h"
 #include "src/Array/Random.h"

@@ -557,6 +557,7 @@ template<typename Derived> class MatrixBase
 
     bool all(void) const;
     bool any(void) const;
+    int count() const;
 
     const PartialRedux<Derived,Horizontal> rowwise() const;
     const PartialRedux<Derived,Vertical> colwise() const;

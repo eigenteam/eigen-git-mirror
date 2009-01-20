@@ -57,7 +57,9 @@ template<typename MatrixType> class QR
     }
 
     /** \returns whether or not the matrix is of full rank */
-    bool isFullRank() const { return !ei_isMuchSmallerThan(m_qr.diagonal().cwise().abs().minCoeff(), Scalar(1)); }
+    bool isFullRank() const { return rank() == std::min(m_qr.rows(),m_qr.cols()); }
+    
+    int rank() const;
 
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
     const Part<NestByValue<MatrixRBlockType>, UpperTriangular>
@@ -76,13 +78,33 @@ template<typename MatrixType> class QR
   protected:
     MatrixType m_qr;
     VectorType m_hCoeffs;
+    mutable int m_rank;
+    mutable bool m_rankIsUptodate;
 };
+
+/** \returns the rank of the matrix of which *this is the QR decomposition. */
+template<typename MatrixType>
+int QR<MatrixType>::rank() const
+{
+  if (!m_rankIsUptodate)
+  {
+    RealScalar maxCoeff = m_qr.diagonal().maxCoeff();
+    int n = std::min(m_qr.rows(),m_qr.cols());
+    m_rank = n;
+    for (int i=0; i<n; ++i)
+      if (ei_isMuchSmallerThan(m_qr.diagonal().coeff(i), maxCoeff))
+        --m_rank;
+    m_rankIsUptodate = true;
+  }
+  return m_rank;
+}
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
 
 template<typename MatrixType>
 void QR<MatrixType>::_compute(const MatrixType& matrix)
 {
+  m_rankIsUptodate = false;
   m_qr = matrix;
   int rows = matrix.rows();
   int cols = matrix.cols();

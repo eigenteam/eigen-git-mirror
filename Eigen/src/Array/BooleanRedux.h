@@ -89,7 +89,7 @@ struct ei_any_unroller<Derived, Dynamic>
   * \sa MatrixBase::any(), Cwise::operator<()
   */
 template<typename Derived>
-inline bool MatrixBase<Derived>::all(void) const
+inline bool MatrixBase<Derived>::all() const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;
@@ -113,7 +113,7 @@ inline bool MatrixBase<Derived>::all(void) const
   * \sa MatrixBase::all()
   */
 template<typename Derived>
-inline bool MatrixBase<Derived>::any(void) const
+inline bool MatrixBase<Derived>::any() const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;
@@ -128,6 +128,18 @@ inline bool MatrixBase<Derived>::any(void) const
         if (coeff(i, j)) return true;
     return false;
   }
+}
+
+/** \array_module
+  * 
+  * \returns the number of coefficients which evaluate to true
+  *
+  * \sa MatrixBase::all(), MatrixBase::any()
+  */
+template<typename Derived>
+inline int MatrixBase<Derived>::count() const
+{
+  return this->cast<bool>().cast<int>().sum();
 }
 
 #endif // EIGEN_ALLANDANY_H

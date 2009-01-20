@@ -200,7 +200,6 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_cube_op<Scalar> >
 { enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
 
-
 // default ei_functor_traits for STL functors:
 
 template<typename T>
