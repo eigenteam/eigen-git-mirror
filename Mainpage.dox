@@ -4,7 +4,7 @@
 // to api.kde.org's scripts
 
 // DOXYGEN_SET_PROJECT_NAME         = Eigen2
-// DOXYGEN_SET_PROJECT_NUMBER       = "2.0-beta6"
+// DOXYGEN_SET_PROJECT_NUMBER       = "2.0 - trunk"
 
 // DOXYGEN_SET_CREATE_SUBDIRS         = NO
 // DOXYGEN_SET_BRIEF_MEMBER_DESC      = YES

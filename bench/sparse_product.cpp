@@ -137,6 +137,44 @@ int main(int argc, char *argv[])
 //       timer.stop();
       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
+    
+    // eigen dyn-sparse matrices
+    {
+      DynamicSparseMatrix<Scalar> m1(sm1), m2(sm2), m3(sm3);
+      std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/float(m1.rows()*m1.cols())*100 << "% * "
+                << m2.nonZeros()/float(m2.rows()*m2.cols())*100 << "%\n";
+
+//       timer.reset();
+//       timer.start();
+      BENCH(for (int k=0; k<REPEAT; ++k) m3 = m1 * m2;)
+//       timer.stop();
+      std::cout << "   a * b:\t" << timer.value() << endl;
+//       std::cout << sm3 << "\n";
+
+      timer.reset();
+      timer.start();
+//       std::cerr << "transpose...\n";
+//       EigenSparseMatrix sm4 = sm1.transpose();
+//       std::cout << sm4.nonZeros() << " == " << sm1.nonZeros() << "\n";
+//       exit(1);
+//       std::cerr << "transpose OK\n";
+//       std::cout << sm1 << "\n\n" << sm1.transpose() << "\n\n" << sm4.transpose() << "\n\n";
+      BENCH(for (int k=0; k<REPEAT; ++k) m3 = m1.transpose() * m2;)
+//       timer.stop();
+      std::cout << "   a' * b:\t" << timer.value() << endl;
+
+//       timer.reset();
+//       timer.start();
+      BENCH( for (int k=0; k<REPEAT; ++k) m3 = m1.transpose() * m2.transpose(); )
+//       timer.stop();
+      std::cout << "   a' * b':\t" << timer.value() << endl;
+
+//       timer.reset();
+//       timer.start();
+      BENCH( for (int k=0; k<REPEAT; ++k) m3 = m1 * m2.transpose(); )
+//       timer.stop();
+      std::cout << "   a * b' :\t" << timer.value() << endl;
+    }
 
     // CSparse
     #ifdef CSPARSE

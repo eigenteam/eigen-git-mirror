@@ -91,51 +91,25 @@ int main(int argc, char *argv[])
     {
       std::cout << "Eigen sparse\t" << sm1.nonZeros()/float(sm1.rows()*sm1.cols())*100 << "%\n";
 
-//       timer.reset();
-//       timer.start();
       BENCH(for (int k=0; k<REPEAT; ++k) v2 = sm1 * v1;)
-//       timer.stop();
       std::cout << "   a * v:\t" << timer.value() << endl;
-//       std::cout << sm3 << "\n";
 
-      timer.reset();
-      timer.start();
-//       std::cerr << "transpose...\n";
-//       EigenSparseMatrix sm4 = sm1.transpose();
-//       std::cout << sm4.nonZeros() << " == " << sm1.nonZeros() << "\n";
-//       exit(1);
-//       std::cerr << "transpose OK\n";
-//       std::cout << sm1 << "\n\n" << sm1.transpose() << "\n\n" << sm4.transpose() << "\n\n";
-      BENCH(for (int k=0; k<REPEAT; ++k) v2 = sm1.transpose() * v1;)
-//       timer.stop();
+      
+      BENCH(for (int k=0; k<REPEAT; ++k) { asm("#mya"); v2 = sm1.transpose() * v1; asm("#myb"); })
+      
       std::cout << "   a' * v:\t" << timer.value() << endl;
     }
-
-    // CSparse
-    #ifdef CSPARSE
-    {
-      std::cout << "CSparse \t" << density*100 << "%\n";
-      cs *m1, *m2, *m3;
-      eiToCSparse(sm1, m1);
-      eiToCSparse(sm2, m2);
-
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-      {
-        m3 = cs_sorted_multiply(m1, m2);
-        if (!m3)
-        {
-          std::cerr << "cs_multiply failed\n";
-//           break;
-        }
-//         cs_print(m3, 0);
-        cs_spfree(m3);
-      }
-      timer.stop();
-      std::cout << "   a * b:\t" << timer.value() << endl;
-    }
-    #endif
+    
+//     {
+//       DynamicSparseMatrix<Scalar> m1(sm1);
+//       std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/float(m1.rows()*m1.cols())*100 << "%\n";
+// 
+//       BENCH(for (int k=0; k<REPEAT; ++k) v2 = m1 * v1;)
+//       std::cout << "   a * v:\t" << timer.value() << endl;
+// 
+//       BENCH(for (int k=0; k<REPEAT; ++k) v2 = m1.transpose() * v1;)
+//       std::cout << "   a' * v:\t" << timer.value() << endl;
+//     }
 
     // GMM++
     #ifndef NOGMM

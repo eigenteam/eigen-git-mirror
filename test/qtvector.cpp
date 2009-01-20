@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -22,17 +23,20 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN_WORK_AROUND_QT_BUG_CALLING_WRONG_OPERATOR_NEW_FIXED_IN_QT_4_5
+
 #include "main.h"
-#include <Eigen/StdVector>
+#include <QtCore/QVector>
 #include <Eigen/Geometry>
+#include <Eigen/QtAlignedMalloc>
 
 template<typename MatrixType>
-void check_stdvector_matrix(const MatrixType& m)
+void check_qtvector_matrix(const MatrixType& m)
 {
   int rows = m.rows();
   int cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
-  std::vector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
+  QVector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -45,7 +49,8 @@ void check_stdvector_matrix(const MatrixType& m)
   v.resize(21);
   v[20].set(x);
   VERIFY_IS_APPROX(v[20], x);
-  v.resize(22,y);
+  v.fill(y,22);
+  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
@@ -56,18 +61,18 @@ void check_stdvector_matrix(const MatrixType& m)
   MatrixType* ref = &w[0];
   for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
     v.push_back(w[i%w.size()]);
-  for(unsigned int i=23; i<v.size(); ++i)
+  for(int i=23; i<v.size(); ++i)
   {
     VERIFY(v[i]==w[(i-23)%w.size()]);
   }
 }
 
 template<typename TransformType>
-void check_stdvector_transform(const TransformType&)
+void check_qtvector_transform(const TransformType&)
 {
   typedef typename TransformType::MatrixType MatrixType;
   TransformType x(MatrixType::Random()), y(MatrixType::Random());
-  std::vector<TransformType> v(10), w(20, y);
+  QVector<TransformType> v(10), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -80,7 +85,8 @@ void check_stdvector_transform(const TransformType&)
   v.resize(21);
   v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
-  v.resize(22,y);
+  v.fill(y,22);
+  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
@@ -98,11 +104,11 @@ void check_stdvector_transform(const TransformType&)
 }
 
 template<typename QuaternionType>
-void check_stdvector_quaternion(const QuaternionType&)
+void check_qtvector_quaternion(const QuaternionType&)
 {
   typedef typename QuaternionType::Coefficients Coefficients;
   QuaternionType x(Coefficients::Random()), y(Coefficients::Random());
-  std::vector<QuaternionType> v(10), w(20, y);
+  QVector<QuaternionType> v(10), w(20, y);
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -115,7 +121,8 @@ void check_stdvector_quaternion(const QuaternionType&)
   v.resize(21);
   v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
-  v.resize(22,y);
+  v.fill(y,22);
+  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
@@ -132,32 +139,32 @@ void check_stdvector_quaternion(const QuaternionType&)
   }
 }
 
-void test_stdvector()
+void test_qtvector()
 {
   // some non vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector_matrix(Vector2f()));
-  CALL_SUBTEST(check_stdvector_matrix(Matrix3f()));
-  CALL_SUBTEST(check_stdvector_matrix(Matrix3d()));
+  CALL_SUBTEST(check_qtvector_matrix(Vector2f()));
+  CALL_SUBTEST(check_qtvector_matrix(Matrix3f()));
+  CALL_SUBTEST(check_qtvector_matrix(Matrix3d()));
 
   // some vectorizable fixed sizes
-  CALL_SUBTEST(check_stdvector_matrix(Matrix2f()));
-  CALL_SUBTEST(check_stdvector_matrix(Vector4f()));
-  CALL_SUBTEST(check_stdvector_matrix(Matrix4f()));
-  CALL_SUBTEST(check_stdvector_matrix(Matrix4d()));
+  CALL_SUBTEST(check_qtvector_matrix(Matrix2f()));
+  CALL_SUBTEST(check_qtvector_matrix(Vector4f()));
+  CALL_SUBTEST(check_qtvector_matrix(Matrix4f()));
+  CALL_SUBTEST(check_qtvector_matrix(Matrix4d()));
 
   // some dynamic sizes
-  CALL_SUBTEST(check_stdvector_matrix(MatrixXd(1,1)));
-  CALL_SUBTEST(check_stdvector_matrix(VectorXd(20)));
-  CALL_SUBTEST(check_stdvector_matrix(RowVectorXf(20)));
-  CALL_SUBTEST(check_stdvector_matrix(MatrixXcf(10,10)));
+  CALL_SUBTEST(check_qtvector_matrix(MatrixXd(1,1)));
+  CALL_SUBTEST(check_qtvector_matrix(VectorXd(20)));
+  CALL_SUBTEST(check_qtvector_matrix(RowVectorXf(20)));
+  CALL_SUBTEST(check_qtvector_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST(check_stdvector_transform(Transform2f()));
-  CALL_SUBTEST(check_stdvector_transform(Transform3f()));
-  CALL_SUBTEST(check_stdvector_transform(Transform3d()));
-  //CALL_SUBTEST(check_stdvector_transform(Transform4d()));
+  CALL_SUBTEST(check_qtvector_transform(Transform2f()));
+  CALL_SUBTEST(check_qtvector_transform(Transform3f()));
+  CALL_SUBTEST(check_qtvector_transform(Transform3d()));
+  //CALL_SUBTEST(check_qtvector_transform(Transform4d()));
 
   // some Quaternion
-  CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
-  CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
+  CALL_SUBTEST(check_qtvector_quaternion(Quaternionf()));
+  CALL_SUBTEST(check_qtvector_quaternion(Quaternionf()));
 }
