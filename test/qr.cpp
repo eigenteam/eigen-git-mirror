@@ -66,4 +66,13 @@ void test_qr()
     CALL_SUBTEST( qr(MatrixXcd(5,5)) );
     CALL_SUBTEST( qr(MatrixXcd(7,3)) );
   }
+
+  // small isFullRank test
+  {
+    Matrix3d mat;
+    mat << 1, 45, 1, 2, 2, 2, 1, 2, 3;
+    VERIFY(mat.qr().isFullRank());
+    mat << 1, 1, 1, 2, 2, 2, 1, 2, 3;
+    VERIFY(!mat.qr().isFullRank());
+  }
 }
