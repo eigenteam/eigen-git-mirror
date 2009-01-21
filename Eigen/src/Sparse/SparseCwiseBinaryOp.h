@@ -117,14 +117,9 @@ template<typename BinaryOp, typename Lhs, typename Rhs>
 class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
   : public ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp,Lhs,Rhs, typename SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator>
 {
+  public:
     typedef ei_sparse_cwise_binary_op_inner_iterator_selector<
       BinaryOp,Lhs,Rhs, typename SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator> Base;
-  public:
-    typedef typename SparseCwiseBinaryOp::Scalar Scalar;
-    typedef typename ei_traits<SparseCwiseBinaryOp>::_LhsNested _LhsNested;
-    typedef typename _LhsNested::InnerIterator LhsIterator;
-    typedef typename ei_traits<SparseCwiseBinaryOp>::_RhsNested _RhsNested;
-    typedef typename _RhsNested::InnerIterator RhsIterator;
 
     EIGEN_STRONG_INLINE InnerIterator(const SparseCwiseBinaryOp& binOp, int outer)
       : Base(binOp,outer)
