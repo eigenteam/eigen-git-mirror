@@ -102,17 +102,13 @@ template<typename MatrixType, int PacketAccess> class Map
   * Only for fixed-size matrices and vectors.
   * \param data The array of data to copy
   *
-  * For dynamic-size matrices and vectors, see the variants taking additional int parameters
-  * for the dimensions.
-  *
-  * \sa Matrix(const Scalar *, int), Matrix(const Scalar *, int, int),
-  * Matrix::Map(const Scalar *)
+  * \sa Matrix::Map(const Scalar *)
   */
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 inline Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
-  *this = Eigen::Map<Matrix>(data);
+  _set_noalias(Eigen::Map<Matrix>(data));
 }
 
 #endif // EIGEN_MAP_H

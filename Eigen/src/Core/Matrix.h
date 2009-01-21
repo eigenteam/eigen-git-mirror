@@ -226,12 +226,11 @@ class Matrix
       */
     inline void resize(int rows, int cols)
     {
-      ei_assert(rows > 0
-          && (MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
-          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-          && cols > 0
-          && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
-          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      ei_assert(rows > 0 && cols > 0 && "a matrix cannot be resized to 0 size");
+      ei_assert((MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
+             && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+             && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
+             && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows * cols, rows, cols);
     }
 
@@ -249,49 +248,19 @@ class Matrix
         m_storage.resize(size, size, 1);
     }
 
-    /** Copies the value of the expression \a other into \c *this.
-      *
-      * \warning Note that the sizes of \c *this and \a other must match.
-      * If you want automatic resizing, then you must use the function set().
-      *
-      * As a special exception, copying a row-vector into a vector (and conversely)
-      * is allowed.
-      *
-      * \sa set()
-      */
-    template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      ei_assert(m_storage.data()!=0 && "you cannot use operator= with a non initialized matrix (instead use set()");
-      return Base::operator=(other.derived());
-    }
-
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
-      * This function is the same than the assignment operator = excepted that \c *this might
-      * be resized to match the dimensions of \a other.
+      * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
+      * it will be initialized.
       *
       * Note that copying a row-vector into a vector (and conversely) is allowed.
       * The resizing, if any, is then done in the appropriate way so that row-vectors
       * remain row-vectors and vectors remain vectors.
-      *
-      * \sa operator=()
       */
     template<typename OtherDerived>
-    inline Matrix& set(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
-      if(RowsAtCompileTime == 1)
-      {
-        ei_assert(other.isVector());
-        resize(1, other.size());
-      }
-      else if(ColsAtCompileTime == 1)
-      {
-        ei_assert(other.isVector());
-        resize(other.size(), 1);
-      }
-      else resize(other.rows(), other.cols());
-      return Base::operator=(other.derived());
+      return _set(other);
     }
 
     /** This is a special case of the templated operator=. Its purpose is to
@@ -299,7 +268,7 @@ class Matrix
       */
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
-      return operator=<Matrix>(other);
+      return _set(other);
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
@@ -311,34 +280,23 @@ class Matrix
       *
       * For fixed-size matrices, does nothing.
       *
-      * For dynamic-size matrices, creates an empty matrix of size null.
-      * \warning while creating such an \em null matrix is allowed, it \b cannot
-      * \b be \b used before having being resized or initialized with the function set().
-      * In particular, initializing a null matrix with operator = is not supported.
-      * Finally, this constructor is the unique way to create null matrices: resizing
+      * For dynamic-size matrices, creates an empty matrix of size 0. Does not allocate any array. Such a matrix
+      * is called a null matrix. This constructor is the unique way to create null matrices: resizing
       * a matrix to 0 is not supported.
-      * Here are some examples:
-      * \code
-      * MatrixXf r = MatrixXf::Random(3,4); // create a random matrix of floats
-      * MatrixXf m1, m2;  // creates two null matrices of float
       *
-      * m1 = r;           // illegal (raise an assertion)
-      * r = m1;           // illegal (raise an assertion)
-      * m1 = m2;          // illegal (raise an assertion)
-      * m1.set(r);        // OK
-      * m2.resize(3,4);
-      * m2 = r;           // OK
-      * \endcode
-      *
-      * \sa resize(int,int), set()
+      * \sa resize(int,int)
       */
     EIGEN_STRONG_INLINE explicit Matrix() : m_storage()
     {
-      ei_assert(RowsAtCompileTime > 0 && ColsAtCompileTime > 0);
+      _check_template_params();
     }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+    /** \internal */
     Matrix(ei_constructor_without_unaligned_array_assert)
-      : m_storage(ei_constructor_without_unaligned_array_assert()) {}
+      : m_storage(ei_constructor_without_unaligned_array_assert())
+    {}
+#endif
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
@@ -349,6 +307,7 @@ class Matrix
     EIGEN_STRONG_INLINE explicit Matrix(int dim)
       : m_storage(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
+      _check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       ei_assert(dim > 0);
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
@@ -366,6 +325,7 @@ class Matrix
       */
     EIGEN_STRONG_INLINE Matrix(int x, int y) : m_storage(x*y, x, y)
     {
+      _check_template_params();
       if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
       || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
       {
@@ -381,6 +341,7 @@ class Matrix
     /** constructs an initialized 2D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const float& x, const float& y)
     {
+      _check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -388,6 +349,7 @@ class Matrix
     /** constructs an initialized 2D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const double& x, const double& y)
     {
+      _check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -395,6 +357,7 @@ class Matrix
     /** constructs an initialized 3D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
+      _check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -403,6 +366,7 @@ class Matrix
     /** constructs an initialized 4D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
+      _check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
@@ -417,14 +381,15 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
              : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
-      ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
-      //Base::operator=(other.derived());
+      _check_template_params();
+      _set_noalias(other);
     }
     /** Copy constructor */
     EIGEN_STRONG_INLINE Matrix(const Matrix& other)
             : Base(), m_storage(other.rows() * other.cols(), other.rows(), other.cols())
     {
-      Base::lazyAssign(other);
+      _check_template_params();
+      _set_noalias(other);
     }
     /** Destructor */
     inline ~Matrix() {}
@@ -486,6 +451,72 @@ class Matrix
     #ifdef EIGEN_MATRIX_PLUGIN
     #include EIGEN_MATRIX_PLUGIN
     #endif
+
+  private:
+    /** \internal Resizes *this in preparation for assigning \a other to it.
+      * Takes care of doing all the checking that's needed.
+      *
+      * Note that copying a row-vector into a vector (and conversely) is allowed.
+      * The resizing, if any, is then done in the appropriate way so that row-vectors
+      * remain row-vectors and vectors remain vectors.
+      */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void _resize_to_match(const MatrixBase<OtherDerived>& other)
+    {
+      if(RowsAtCompileTime == 1)
+      {
+        ei_assert(other.isVector());
+        resize(1, other.size());
+      }
+      else if(ColsAtCompileTime == 1)
+      {
+        ei_assert(other.isVector());
+        resize(other.size(), 1);
+      }
+      else resize(other.rows(), other.cols());
+    }
+
+    /** \internal Copies the value of the expression \a other into \c *this with automatic resizing.
+      *
+      * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
+      * it will be initialized.
+      *
+      * Note that copying a row-vector into a vector (and conversely) is allowed.
+      * The resizing, if any, is then done in the appropriate way so that row-vectors
+      * remain row-vectors and vectors remain vectors.
+      *
+      * \sa operator=(const MatrixBase<OtherDerived>&), _set_noalias()
+      */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& _set(const MatrixBase<OtherDerived>& other)
+    {
+      _resize_to_match(other);
+      return Base::operator=(other);
+    }
+
+    /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
+      * is the case when creating a new matrix) so one can enforce lazy evaluation.
+      *
+      * \sa operator=(const MatrixBase<OtherDerived>&), _set()
+      */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& _set_noalias(const MatrixBase<OtherDerived>& other)
+    {
+      _resize_to_match(other);
+      // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
+      // it wouldn't allow to copy a row-vector into a column-vector.
+      return ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
+    }
+
+  static EIGEN_STRONG_INLINE void _check_template_params()
+  {
+      EIGEN_STATIC_ASSERT((_Rows > 0
+                       && _Cols > 0
+                       && _MaxRows <= _Rows
+                       && _MaxCols <= _Cols
+                       && (_Options & (AutoAlign|RowMajor)) == _Options),
+        INVALID_MATRIX_TEMPLATE_PARAMETERS)
+  }
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs

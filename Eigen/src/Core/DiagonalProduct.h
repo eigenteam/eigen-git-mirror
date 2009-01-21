@@ -73,7 +73,7 @@ struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
     RemovedBits = ~((RhsFlags & RowMajorBit) && (!CanVectorizeLhs) ? 0 : RowMajorBit),
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-          | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0),
+          | (((CanVectorizeLhs&&RhsIsDiagonal) || (CanVectorizeRhs&&LhsIsDiagonal)) ? PacketAccessBit : 0),
 
     CoeffReadCost = NumTraits<Scalar>::MulCost + _LhsNested::CoeffReadCost + _RhsNested::CoeffReadCost
   };
@@ -114,12 +114,10 @@ template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNes
     {
       if (RhsIsDiagonal)
       {
-        ei_assert((_LhsNested::Flags&RowMajorBit)==0);
         return ei_pmul(m_lhs.template packet<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
       }
       else
       {
-        ei_assert(_RhsNested::Flags&RowMajorBit);
         return ei_pmul(ei_pset1(m_lhs.coeff(row, row)), m_rhs.template packet<LoadMode>(row, col));
       }
     }

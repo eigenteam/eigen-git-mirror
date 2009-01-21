@@ -214,13 +214,13 @@ Matrix3f mf = md.cast<float>();
 \endcode
 Note that casting to the same scalar type in an expression is free.
 
-The sizes of a resizable destination matrix can be changed automatically using the Matrix::set() function:
+The destination matrix is automatically resized in any assignment:
 \code
 MatrixXf res(10,10);
 Matrix3f a, b;
-res = a + b;  // does not work (no automatic resizing)
-res.set(a+b); // OK
+res = a+b; // OK: res is resized to size 3x3
 \endcode
+Of course, fixed-size matrices can't be resized.
 
 
 \subsection TutorialMap Map

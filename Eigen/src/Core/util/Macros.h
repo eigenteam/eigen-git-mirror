@@ -50,10 +50,18 @@
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
 
-/** \internal Define the maximal size in Bytes of L2 blocks.
-  * The current value is set to generate blocks of 256x256 for float */
-#ifndef EIGEN_TUNE_FOR_L2_CACHE_SIZE
-#define EIGEN_TUNE_FOR_L2_CACHE_SIZE (sizeof(float)*256*256)
+/** \internal Define the maximal size in Bytes of blocks fitting in CPU cache.
+  * The current value is set to generate blocks of 256x256 for float
+  *
+  * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
+  */
+#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
+#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
+#endif
+
+// FIXME this should go away quickly
+#ifdef EIGEN_TUNE_FOR_L2_CACHE_SIZE
+#error EIGEN_TUNE_FOR_L2_CACHE_SIZE is now called EIGEN_TUNE_FOR_CPU_CACHE_SIZE.
 #endif
 
 #define USING_PART_OF_NAMESPACE_EIGEN \

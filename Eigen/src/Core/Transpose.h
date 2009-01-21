@@ -175,7 +175,7 @@ struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
     if (m.rows()==m.cols())
       m.template part<StrictlyUpperTriangular>().swap(m.transpose());
     else
-      m.set(m.transpose().eval());
+      m = m.transpose().eval();
   }
 };
 
@@ -186,7 +186,7 @@ struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
   * then this "in-place" version is probably the right choice because it provides
   * the following additional features:
   *  - less error prone: doing the same operation with .transpose() requires special care:
-  *    \code m.set(m.transpose().eval()); \endcode
+  *    \code m = m.transpose().eval(); \endcode
   *  - no temporary object is created (currently only for squared matrices)
   *  - it allows future optimizations (cache friendliness, etc.)
   *

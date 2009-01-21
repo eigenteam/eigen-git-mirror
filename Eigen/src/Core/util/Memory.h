@@ -115,11 +115,11 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
     ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
-  void *void_result = malloc(size);
+  void *result = malloc(size);
   #ifdef EIGEN_EXCEPTIONS
-    if(!void_result) throw std::bad_alloc();
+    if(!result) throw std::bad_alloc();
   #endif
-  return void_result;
+  return result;
 }
 
 /** allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.

@@ -43,7 +43,7 @@ void check_stdvector_matrix(const MatrixType& m)
   }
 
   v.resize(21);
-  v[20].set(x);
+  v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
   v.resize(22,y);
   VERIFY_IS_APPROX(v[21], y);

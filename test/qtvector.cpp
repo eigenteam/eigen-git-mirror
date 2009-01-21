@@ -47,7 +47,7 @@ void check_qtvector_matrix(const MatrixType& m)
   }
 
   v.resize(21);
-  v[20].set(x);
+  v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
   v.fill(y,22);
   //v.resize(22);
@@ -97,7 +97,7 @@ void check_qtvector_transform(const TransformType&)
   TransformType* ref = &w[0];
   for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
     v.push_back(w[i%w.size()]);
-  for(unsigned int i=23; i<v.size(); ++i)
+  for(unsigned int i=23; int(i)<v.size(); ++i)
   {
     VERIFY(v[i].matrix()==w[(i-23)%w.size()].matrix());
   }
@@ -133,7 +133,7 @@ void check_qtvector_quaternion(const QuaternionType&)
   QuaternionType* ref = &w[0];
   for(int i=0; i<30 || ((ref==&w[0]) && i<300); ++i)
     v.push_back(w[i%w.size()]);
-  for(unsigned int i=23; i<v.size(); ++i)
+  for(unsigned int i=23; int(i)<v.size(); ++i)
   {
     VERIFY(v[i].coeffs()==w[(i-23)%w.size()].coeffs());
   }
