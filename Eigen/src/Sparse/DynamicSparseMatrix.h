@@ -74,7 +74,7 @@ class DynamicSparseMatrix
     std::vector<CompressedStorage<Scalar> > m_data;
 
   public:
-
+  
     inline int rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
     inline int innerSize() const { return m_innerSize; }
@@ -101,8 +101,6 @@ class DynamicSparseMatrix
       const int inner = IsRowMajor ? col : row;
       return m_data[outer].atWithInsertion(inner);
     }
-
-  public:
 
     class InnerIterator;
 
@@ -176,6 +174,12 @@ class DynamicSparseMatrix
 
     /** Does nothing. Provided for compatibility with SparseMatrix. */
     inline void endFill() {}
+    
+    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    {
+      for (int j=0; j<outerSize(); ++j)
+        m_data[j].prune(reference,epsilon);
+    }
 
     /** Resize the matrix without preserving the data (the matrix is set to zero)
       */

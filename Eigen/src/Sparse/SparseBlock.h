@@ -78,6 +78,40 @@ public:
   }
 };
 
+/** \returns the i-th row of the matrix \c *this. For row-major matrix only. */
+template<typename Derived>
+SparseInnerVector<Derived> SparseMatrixBase<Derived>::row(int i)
+{
+  EIGEN_STATIC_ASSERT(IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
+  return innerVector(i);
+}
+
+/** \returns the i-th row of the matrix \c *this. For row-major matrix only. 
+  * (read-only version) */
+template<typename Derived>
+const SparseInnerVector<Derived> SparseMatrixBase<Derived>::row(int i) const
+{
+  EIGEN_STATIC_ASSERT(IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
+  return innerVector(i);
+}
+
+/** \returns the i-th column of the matrix \c *this. For column-major matrix only. */
+template<typename Derived>
+SparseInnerVector<Derived> SparseMatrixBase<Derived>::col(int i)
+{
+  EIGEN_STATIC_ASSERT(!IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
+  return innerVector(i);
+}
+
+/** \returns the i-th column of the matrix \c *this. For column-major matrix only. 
+  * (read-only version) */
+template<typename Derived>
+const SparseInnerVector<Derived> SparseMatrixBase<Derived>::col(int i) const
+{
+  EIGEN_STATIC_ASSERT(!IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
+  return innerVector(i);
+}
+
 /** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
   * is col-major (resp. row-major).
   */

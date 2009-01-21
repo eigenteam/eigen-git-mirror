@@ -323,14 +323,49 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(x=mLo.template marked<LowerTriangular|SelfAdjoint>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template marked<SelfAdjoint>()*b, refX=refS*b);
   }
+  
+  // test prune
+  {
+    SparseMatrixType m2(rows, rows);
+    DenseMatrix refM2(rows, rows);
+    refM2.setZero();
+    int countFalseNonZero = 0;
+    int countTrueNonZero = 0;
+    m2.startFill();
+    for (int j=0; j<m2.outerSize(); ++j)
+      for (int i=0; i<m2.innerSize(); ++i)
+      {
+        float x = ei_random<float>(0,1);
+        if (x<0.1)
+        {
+          // do nothing
+        }
+        else if (x<0.5)
+        {
+          countFalseNonZero++;
+          m2.fill(i,j) = Scalar(0);
+        }
+        else
+        {
+          countTrueNonZero++;
+          m2.fill(i,j) = refM2(i,j) = Scalar(1);
+        }
+      }
+    m2.endFill();
+    VERIFY(countFalseNonZero+countTrueNonZero == m2.nonZeros());
+    VERIFY_IS_APPROX(m2, refM2);
+    m2.prune(1);
+    VERIFY(countTrueNonZero==m2.nonZeros());
+    VERIFY_IS_APPROX(m2, refM2);
+  }
 }
 
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( sparse_basic(SparseMatrix<double>(8, 8)) );
-//     CALL_SUBTEST( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
-//     CALL_SUBTEST( sparse_basic(SparseMatrix<double>(33, 33)) );
+    CALL_SUBTEST( sparse_basic(SparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
+    CALL_SUBTEST( sparse_basic(SparseMatrix<double>(33, 33)) );
     
     CALL_SUBTEST( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
   }

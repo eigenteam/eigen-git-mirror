@@ -31,6 +31,7 @@
 template<typename Scalar>
 class CompressedStorage
 {
+    typedef typename NumTraits<Scalar>::Real RealScalar;
   public:
     CompressedStorage()
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
@@ -182,6 +183,22 @@ class CompressedStorage
         m_values[id] = defaultValue;
       }
       return m_values[id];
+    }
+    
+    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    {
+      int k = 0;
+      int n = size();
+      for (int i=0; i<n; ++i)
+      {
+        if (!ei_isMuchSmallerThan(value(i), reference, epsilon))
+        {
+          value(k) = value(i);
+          index(k) = index(i);
+          ++k;
+        }
+      }
+      resize(k,0);
     }
 
   protected:

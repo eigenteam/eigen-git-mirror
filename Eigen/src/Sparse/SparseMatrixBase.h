@@ -327,6 +327,10 @@ template<typename Derived> class SparseMatrixBase
     // void transposeInPlace();
     const AdjointReturnType adjoint() const { return conjugate()/*.nestByValue()*/; }
 
+    SparseInnerVector<Derived> row(int i);
+    const SparseInnerVector<Derived> row(int i) const;
+    SparseInnerVector<Derived> col(int j);
+    const SparseInnerVector<Derived> col(int j) const;
     SparseInnerVector<Derived> innerVector(int outer);
     const SparseInnerVector<Derived> innerVector(int outer) const;
 

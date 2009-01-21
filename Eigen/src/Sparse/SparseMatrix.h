@@ -69,11 +69,11 @@ class SparseMatrix
     int* m_outerIndex;
     CompressedStorage<Scalar> m_data;
 
-
   public:
 
     inline int rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
+    
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_outerSize; }
     inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
@@ -229,6 +229,28 @@ class SparseMatrix
         m_outerIndex[i] = size;
         ++i;
       }
+    }
+    
+    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    {
+      int k = 0;
+      for (int j=0; j<m_outerSize; ++j)
+      {
+        int previousStart = m_outerIndex[j];
+        m_outerIndex[j] = k;
+        int end = m_outerIndex[j+1];
+        for (int i=previousStart; i<end; ++i)
+        {
+          if (!ei_isMuchSmallerThan(m_data.value(i), reference, epsilon))
+          {
+            m_data.value(k) = m_data.value(i);
+            m_data.index(k) = m_data.index(i);
+            ++k;
+          }
+        }
+      }
+      m_outerIndex[m_outerSize] = k;
+      m_data.resize(k,0);
     }
 
     void resize(int rows, int cols)

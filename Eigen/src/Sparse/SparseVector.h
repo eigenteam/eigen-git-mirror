@@ -67,20 +67,19 @@ class SparseVector
     CompressedStorage<Scalar> m_data;
     int m_size;
 
-
   public:
 
-    inline int rows() const { return IsColVector ? m_size : 1; }
-    inline int cols() const { return IsColVector ? 1 : m_size; }
-    inline int innerSize() const { return m_size; }
-    inline int outerSize() const { return 1; }
-    inline int innerNonZeros(int j) const { ei_assert(j==0); return m_size; }
+    EIGEN_STRONG_INLINE int rows() const { return IsColVector ? m_size : 1; }
+    EIGEN_STRONG_INLINE int cols() const { return IsColVector ? 1 : m_size; }
+    EIGEN_STRONG_INLINE int innerSize() const { return m_size; }
+    EIGEN_STRONG_INLINE int outerSize() const { return 1; }
+    EIGEN_STRONG_INLINE int innerNonZeros(int j) const { ei_assert(j==0); return m_size; }
 
-    inline const Scalar* _valuePtr() const { return &m_data.value(0); }
-    inline Scalar* _valuePtr() { return &m_data.value(0); }
+    EIGEN_STRONG_INLINE const Scalar* _valuePtr() const { return &m_data.value(0); }
+    EIGEN_STRONG_INLINE Scalar* _valuePtr() { return &m_data.value(0); }
 
-    inline const int* _innerIndexPtr() const { return &m_data.index(0); }
-    inline int* _innerIndexPtr() { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE const int* _innerIndexPtr() const { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE int* _innerIndexPtr() { return &m_data.index(0); }
 
     inline Scalar coeff(int row, int col) const
     {
@@ -144,6 +143,11 @@ class SparseVector
       m_data.index(id+1) = i;
       m_data.value(id+1) = 0;
       return m_data.value(id+1);
+    }
+    
+    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    {
+      m_data.prune(reference,epsilon);
     }
 
     void resize(int newSize)
