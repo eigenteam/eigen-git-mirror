@@ -95,7 +95,7 @@ template<typename Scalar> void geometry(void)
   // angular distance
   Scalar refangle = ei_abs(AngleAxisx(q1.inverse()*q2).angle());
   if (refangle>Scalar(M_PI))
-    refangle = 2.*Scalar(M_PI) - refangle;
+    refangle = Scalar(2)*Scalar(M_PI) - refangle;
   VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
 
   // rotation matrix conversion
@@ -109,13 +109,13 @@ template<typename Scalar> void geometry(void)
   q2 = q1.toRotationMatrix();
   VERIFY_IS_APPROX(q1*v1,q2*v1);
 
-  matrot1 = AngleAxisx(0.1, Vector3::UnitX())
-          * AngleAxisx(0.2, Vector3::UnitY())
-          * AngleAxisx(0.3, Vector3::UnitZ());
+  matrot1 = AngleAxisx(Scalar(0.1), Vector3::UnitX())
+          * AngleAxisx(Scalar(0.2), Vector3::UnitY())
+          * AngleAxisx(Scalar(0.3), Vector3::UnitZ());
   VERIFY_IS_APPROX(matrot1 * v1,
-       AngleAxisx(0.1, Vector3(1,0,0)).toRotationMatrix()
-    * (AngleAxisx(0.2, Vector3(0,1,0)).toRotationMatrix()
-    * (AngleAxisx(0.3, Vector3(0,0,1)).toRotationMatrix() * v1)));
+       AngleAxisx(Scalar(0.1), Vector3(1,0,0)).toRotationMatrix()
+    * (AngleAxisx(Scalar(0.2), Vector3(0,1,0)).toRotationMatrix()
+    * (AngleAxisx(Scalar(0.3), Vector3(0,0,1)).toRotationMatrix() * v1)));
 
   // angle-axis conversion
   AngleAxisx aa = q1;
@@ -143,8 +143,8 @@ template<typename Scalar> void geometry(void)
   // Transform
   // TODO complete the tests !
   a = 0;
-  while (ei_abs(a)<0.1)
-    a = ei_random<Scalar>(-0.4*Scalar(M_PI), 0.4*Scalar(M_PI));
+  while (ei_abs(a)<Scalar(0.1))
+    a = ei_random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
   t0.setIdentity();
@@ -241,7 +241,7 @@ template<typename Scalar> void geometry(void)
   Vector2 v20 = Vector2::Random();
   Vector2 v21 = Vector2::Random();
   for (int k=0; k<2; ++k)
-    if (ei_abs(v21[k])<1e-3) v21[k] = 1e-3;
+    if (ei_abs(v21[k])<Scalar(1e-3)) v21[k] = Scalar(1e-3);
   t21.setIdentity();
   t21.linear() = Rotation2D<Scalar>(a).toRotationMatrix();
   VERIFY_IS_APPROX(t20.fromPositionOrientationScale(v20,a,v21).matrix(),
