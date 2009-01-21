@@ -17,11 +17,32 @@ namespace Eigen {
   - \ref TutorialSparseDirectSolvers
 <hr>
 
-\section TutorialSparseIntro Introduction
+\section TutorialSparseIntro Sparse matrix representations
 
 In many applications (e.g., finite element methods) it is common to deal with very large matrices where only a few coefficients are different than zero. Both in term of memory consumption and performance, it is fundamental to use an adequate representation storing only nonzero coefficients. Such a matrix is called a sparse matrix.
 
-In order to get the best of the Eigen's sparse matrix, it is important to have a rough idea of the way they are internally stored. In Eigen we chose to use the common and generic Compressed Column/Row Storage scheme. Let m be a column-major sparse matrix. Then its nonzero coefficients are sequentially stored in memory in a col-major order (\em values). A second array of integer stores the respective row index of each coefficient (\em inner \em indices). Finally, a third array of integer, having the same length than the number of columns, stores the index in the previous arrays of the first element of each column (\em outer \em indices).
+
+\b Declaring \b sparse \b matrices \b and \b vectors \n
+The SparseMatrix class is the main sparse matrix representation of the Eigen's sparse module which offers high performance, low memory usage, and compatibility with most of sparse linear algebra packages. Because of its limited flexibility, we also provide a DynamicSparseMatrix variante taillored for low-level sparse matrix assembly. Both of them can be either row major or column major:
+
+\code
+#include <Eigen/Sparse>
+SparseMatrix<std::complex<float> > m1(1000,2000); // declare a 1000x2000 col-major compressed sparse matrix of complex<float>
+SparseMatrix<double,RowMajor> m2(1000,2000);      // declare a 1000x2000 row-major compressed sparse matrix of double
+DynamicSparseMatrix<std::complex<float> > m1(1000,2000); // declare a 1000x2000 col-major dynamic sparse matrix of complex<float>
+DynamicSparseMatrix<double,RowMajor> m2(1000,2000);      // declare a 1000x2000 row-major dynamic sparse matrix of double
+\endcode
+
+Although a sparse matrix could also be used to represent a sparse vector, for that purpose it is better to use the specialized SparseVector class:
+\code
+SparseVector<std::complex<float> > v1(1000); // declare a column sparse vector of complex<float> of size 1000
+SparseVector<double,RowMajor> v2(1000);      // declare a row sparse vector of double of size 1000
+\endcode
+Note that here the size of a vector denotes its dimension and not the number of nonzero coefficients which is initially zero (like sparse matrices).
+
+
+\b Overview \b of \b the \b internal \b sparse \b storage \n
+In order to get the best of the Eigen's sparse objects, it is important to have a rough idea of the way they are internally stored. The SparseMatrix class implements the common and generic Compressed Column/Row Storage scheme. It consists of three compact arrays storing the values with their respective inner coordinates, and pointer indices to the begining of each outer vector. For instance, let \c m be a column-major sparse matrix. Then its nonzero coefficients are sequentially stored in memory in a column-major order (\em values). A second array of integer stores the respective row index of each coefficient (\em inner \em indices). Finally, a third array of integer, having the same length than the number of columns, stores the index in the previous arrays of the first element of each column (\em outer \em indices).
 
 Here is an example, with the matrix:
 <table>
@@ -39,29 +60,34 @@ and its internal representation using the Compressed Column Storage format:
 </table>
 Outer indices:<table><tr><td>0</td><td>2</td><td>4</td><td>5</td><td>6</td><td>\em 7 </td></tr></table>
 
-As you can guess, here the storage order is even more important than with dense matrix. We will therefore often make a clear difference between the \em inner dimension and the \em outer dimension. For instance, it is easy to loop over the coefficients of an \em inner \em vector (e.g., a column of a col-major matrix), but very inefficient to do the same for an \em outer \em vector (e.g., a row of a col-major matrix).
+As you can guess, here the storage order is even more important than with dense matrix. We will therefore often make a clear difference between the \em inner and \em outer dimensions. For instance, it is easy to loop over the coefficients of an \em inner \em vector (e.g., a column of a column-major matrix), but completely inefficient to do the same for an \em outer \em vector (e.g., a row of a col-major matrix).
 
+The SparseVector class implements the same compressed storage scheme but, of course, without any outer index buffer.
 
-\b Eigen's \b sparse \b matrix \b and \b vector \b class \n
-Before using any sparse feature you must include the Sparse header file:
-\code
-#include <Eigen/Sparse>
-\endcode
-In Eigen, sparse matrices are handled by the SparseMatrix class:
-\code
-SparseMatrix<std::complex<float> > m1(1000,2000); // declare a 1000x2000 col-major sparse matrix of complex<float>
-SparseMatrix<double,RowMajor> m2(1000,2000);      // declare a 1000x2000 row-major sparse matrix of double
-\endcode
-where \c Scalar is the type of the coefficient and \c Options is a set of bit flags allowing to control the shape and storage of the matrix. A typical choice for \c Options is \c RowMajor to get a row-major matrix (the default is col-major).
+Since all nonzero coefficients of such a matrix are sequentially stored in memory, random insertion of new nonzeros can be extremely costly. To overcome this limitation, Eigen's sparse module provides a DynamicSparseMatrix class which is basically implemented as an array of SparseVector. In other words, a DynamicSparseMatrix is a SparseMatrix where the values and inner-indices arrays have been splitted into multiple small and resizable arrays. Assuming the number of nonzeros per inner vector is relatively low, this slight modification allow for very fast random insertion at the cost of a slight memory overhead and a lost of compatibility with other sparse libraries used by some of our highlevel solvers. Note that the major memory overhead comes from the extra memory preallocated by each inner vector to avoid an expensive memory reallocation at every insertion.
 
-Unlike the dense path, the sparse module provides a special class to declare a sparse vector:
-\code
-SparseVector<std::complex<float> > v1(1000); // declare a column sparse vector of complex<float> of size 1000
-SparseVector<double,RowMajor> v2(1000);      // declare a row sparse vector of double of size 1000
-\endcode
-Note that here the size of a vector denotes its dimension and not the number of nonzero coefficients which is initially zero.
+To summarize, it is recommanded to use a SparseMatrix whenever this is possible, and reserve the use of DynamicSparseMatrix for matrix assembly purpose when a SparseMatrix is not flexible enough. The respective pro/cons of both representations are summarized in the following table:
+
+<table>
+<tr><td></td> <td>SparseMatrix</td><td>DynamicSparseMatrix</td></tr>
+<tr><td>memory usage</td><td>***</td><td>**</td></tr>
+<tr><td>sorted insertion</td><td>***</td><td>***</td></tr>
+<tr><td>random insertion \n in sorted inner vector</td><td>**</td><td>**</td></tr>
+<tr><td>sorted insertion \n in random inner vector</td><td>-</td><td>***</td></tr>
+<tr><td>random insertion</td><td>-</td><td>**</td></tr>
+<tr><td>coeff wise unary operators</td><td>***</td><td>***</td></tr>
+<tr><td>coeff wise binary operators</td><td>***</td><td>***</td></tr>
+<tr><td>matrix products</td><td>***</td><td>**(*)</td></tr>
+<tr><td>transpose</td><td>**</td><td>***</td></tr>
+<tr><td>redux</td><td>***</td><td>**</td></tr>
+<tr><td>*= scalar</td><td>***</td><td>**</td></tr>
+<tr><td>Compatibility with highlevel solvers \n (TAUCS, Cholmod, SuperLU, UmfPack)</td><td>***</td><td>-</td></tr>
+</table>
+
 
 \b Matrix \b and \b vector \b properties \n
+
+Here mat and vec represents any sparse-matrix and sparse-vector types respectively.
 
 <table>
 <tr><td>Standard \n dimensions</td><td>\code
@@ -81,15 +107,16 @@ mat.nonZeros() \endcode</td>
 vec.nonZeros() \endcode</td></tr>
 </table>
 
+
 \b Iterating \b over \b the \b nonzero \b coefficients \n
 
 Iterating over the coefficients of a sparse matrix can be done only in the same order than the storage order. Here is an example:
 <table>
 <tr><td>
 \code
-SparseMatrix<double> m1(rows,cols);
-for (int k=0; k<m1.outerSize(); ++k)
-  for (SparseMatrix<double>::InnerIterator it(m1,k); it; ++it)
+SparseMatrixType mat(rows,cols);
+for (int k=0; k\<m1.outerSize(); ++k)
+  for (SparseMatrixType::InnerIterator it(mat,k); it; ++it)
   {
     it.value();
     it.row();   // row index
@@ -99,10 +126,10 @@ for (int k=0; k<m1.outerSize(); ++k)
 \endcode
 </td><td>
 \code
-SparseVector<double> v1(size);
-for (SparseVector<double>::InnerIterator it(v1); it; ++it)
+SparseVector<double> vec(size);
+for (SparseVector<double>::InnerIterator it(vec); it; ++it)
 {
-  it.value(); // == v1[ it.index() ]
+  it.value(); // == vec[ it.index() ]
   it.index(); 
 }
 \endcode
@@ -112,7 +139,25 @@ for (SparseVector<double>::InnerIterator it(v1); it; ++it)
 
 \section TutorialSparseFilling Filling a sparse matrix
 
-Unlike dense matrix, filling a sparse matrix efficiently is a though problem which requires some special care from the user. Indeed, directly filling in a random order a matrix in a compressed storage format would requires a lot of searches and memory copies, and some trade of between the efficiency and the ease of use have to be found. In Eigen we currently provide three ways to set the elements of a sparse matrix:
+A DynamicSparseMatrix object can be set and updated just like any dense matrix using the coeffRef(row,col) method. If the coefficient is not stored yet, then it will be inserted in the matrix. Here is an example:
+\code
+DynamicSparseMatrix<float> aux(1000,1000);
+for (...)
+  for each i
+    for each j interacting with i
+      aux.coeffRef(i,j) += foo(o1,o2);
+SparseMatrix<float> mat(aux); // convert the DynamicSparseMatrix to a SparseMatrix
+\endcode
+
+Sometimes, however, we simply want to set all the coefficients of a matrix before using it through standard matrix operations (addition, product, etc.). In that case it faster to use the low-level startFill()/fill()/fillrand()/endFill() interface. Even though this interface is availabe for both sparse matrix types, their respective restrictions slightly differ from one representation to the other. In all case, a call to startFill() set the matrix to zero, and the fill*() functions will fail if the coefficient already exist.
+
+As a first difference, for SparseMatrix, the fill*() functions can only be called inside a startFill()/endFill() pair, and no other member functions are allowed during the filling process, i.e., until endFill() has been called. On the other hand, a DynamicSparseMatrix is always in a stable state, and the startFill()/endFill() functions are only for compatibility purpose.
+
+Another difference is that the fill*() functions must be called with increasing outer indices for a SparseMatrix, while they can be random for a DynamicSparseMatrix.
+
+Finally, the fill() function assumes the coefficient are inserted in a sorted order per inner vector, while the fillrand() variante allows random insertions (the outer indices must still be sorted for SparseMatrix).
+
+Some examples:
 
 1 - If you can set the coefficients in exactly the same order that the storage order, then the matrix can be filled directly and very efficiently. Here is an example initializing a random, row-major sparse matrix:
 \code
