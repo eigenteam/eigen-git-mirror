@@ -28,9 +28,10 @@
 template<typename Derived>
 void doSomeRankPreservingOperations(Eigen::MatrixBase<Derived>& m)
 {
+  typedef typename Derived::RealScalar RealScalar;
   for(int a = 0; a < 3*(m.rows()+m.cols()); a++)
   {
-    double d = Eigen::ei_random<double>(-1,1);
+    RealScalar d = Eigen::ei_random<RealScalar>(-1,1);
     int i = Eigen::ei_random<int>(0,m.rows()-1); // i is a random row number
     int j;
     do {

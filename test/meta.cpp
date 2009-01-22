@@ -45,9 +45,7 @@ void test_meta()
 
   VERIFY(( ei_is_same_type<float*,ei_unconst<const float*>::type >::ret));
   VERIFY(( ei_is_same_type<float&,ei_unconst<const float&>::type >::ret));
-  VERIFY(( ei_is_same_type<float&,ei_unconst<const FloatRef>::type >::ret));
   VERIFY(( ei_is_same_type<float&,ei_unconst<ConstFloatRef>::type >::ret));
-  VERIFY(( ei_is_same_type<float&,ei_unconst<const ConstFloatRef>::type >::ret));
   
   VERIFY(( ei_is_same_type<float&,ei_unconst<float&>::type >::ret));
   VERIFY(( ei_is_same_type<float,ei_unref<float&>::type >::ret));

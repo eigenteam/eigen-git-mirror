@@ -24,7 +24,9 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 // this hack is needed to make this file compiles with -pedantic (gcc)
+#ifdef __GNUC__
 #define throw(X)
+#endif
 // discard stack allocation as that too bypasses malloc
 #define EIGEN_STACK_ALLOCATION_LIMIT 0
 // any heap allocation will raise an assert

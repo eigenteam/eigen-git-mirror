@@ -37,6 +37,10 @@ template<> struct ei_unpacket_traits<__m128>  { typedef float  type; enum {size=
 template<> struct ei_unpacket_traits<__m128d> { typedef double type; enum {size=2}; };
 template<> struct ei_unpacket_traits<__m128i> { typedef int    type; enum {size=4}; };
 
+template<> EIGEN_STRONG_INLINE __m128  ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
+template<> EIGEN_STRONG_INLINE __m128d ei_pset1<double>(const double& from) { return _mm_set1_pd(from); }
+template<> EIGEN_STRONG_INLINE __m128i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
+
 template<> EIGEN_STRONG_INLINE __m128  ei_padd<__m128>(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
 template<> EIGEN_STRONG_INLINE __m128d ei_padd<__m128d>(const __m128d& a, const __m128d& b) { return _mm_add_pd(a,b); }
 template<> EIGEN_STRONG_INLINE __m128i ei_padd<__m128i>(const __m128i& a, const __m128i& b) { return _mm_add_epi32(a,b); }
@@ -63,7 +67,7 @@ template<> EIGEN_STRONG_INLINE __m128  ei_pdiv<__m128>(const __m128&  a, const _
 template<> EIGEN_STRONG_INLINE __m128d ei_pdiv<__m128d>(const __m128d& a, const __m128d& b) { return _mm_div_pd(a,b); }
 template<> EIGEN_STRONG_INLINE __m128i ei_pdiv<__m128i>(const __m128i& /*a*/, const __m128i& /*b*/)
 { ei_assert(false && "packet integer division are not supported by SSE");
-  __m128i dummy;
+  __m128i dummy = ei_pset1<int>(0);
   return dummy;
 }
 
@@ -101,10 +105,6 @@ template<> EIGEN_STRONG_INLINE __m128  ei_ploadu<float>(const float*   from) { r
 // }
 template<> EIGEN_STRONG_INLINE __m128d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
 template<> EIGEN_STRONG_INLINE __m128i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
-
-template<> EIGEN_STRONG_INLINE __m128  ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
-template<> EIGEN_STRONG_INLINE __m128d ei_pset1<double>(const double& from) { return _mm_set1_pd(from); }
-template<> EIGEN_STRONG_INLINE __m128i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const __m128d& from) { _mm_store_pd(to, from); }

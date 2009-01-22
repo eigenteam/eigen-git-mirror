@@ -34,7 +34,7 @@ template<typename MatrixType> void matrixSum(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols);
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
-  VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(rows*cols));
+  VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(float(rows*cols))); // the float() here to shut up excessive MSVC warning about int->complex conversion being lossy
   Scalar x = Scalar(0);
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) x += m1(i,j);
   VERIFY_IS_APPROX(m1.sum(), x);
