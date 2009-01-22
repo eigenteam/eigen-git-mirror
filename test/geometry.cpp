@@ -25,7 +25,7 @@
 #include "main.h"
 #include <Eigen/Geometry>
 #include <Eigen/LU>
-#include <Eigen/QR>
+#include <Eigen/SVD>
 
 template<typename Scalar> void geometry(void)
 {
@@ -339,10 +339,22 @@ template<typename Scalar> void geometry(void)
   t0.translate(v0).rotate(q1);
   VERIFY_IS_APPROX(t0.inverse(Isometry), t0.matrix().inverse());
 
-  // test extract rotation
+  // test extract rotation and scaling
   t0.setIdentity();
   t0.translate(v0).rotate(q1).scale(v1);
-  VERIFY_IS_APPROX(t0.rotation(Affine) * v1, Matrix3(q1) * v1);
+  VERIFY_IS_APPROX(t0.rotation() * v1, Matrix3(q1) * v1);
+
+  Matrix3 mat_rotation, mat_scaling;
+  t0.setIdentity();
+  t0.translate(v0).rotate(q1).scale(v1);
+  t0.computeRotationScaling(&mat_rotation, &mat_scaling);
+  VERIFY_IS_APPROX(t0.linear(), mat_rotation * mat_scaling);
+  VERIFY_IS_APPROX(mat_rotation*mat_rotation.adjoint(), Matrix3::Identity());
+  VERIFY_IS_APPROX(mat_rotation.determinant(), Scalar(1));
+  t0.computeScalingRotation(&mat_scaling, &mat_rotation);
+  VERIFY_IS_APPROX(t0.linear(), mat_scaling * mat_rotation);
+  VERIFY_IS_APPROX(mat_rotation*mat_rotation.adjoint(), Matrix3::Identity());
+  VERIFY_IS_APPROX(mat_rotation.determinant(), Scalar(1));
 
   // test casting
   Transform<float,3> t1f = t1.template cast<float>();

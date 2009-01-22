@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -247,7 +248,11 @@ public:
   template<typename Derived>
   inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  LinearMatrixType rotation(TransformTraits traits = Affine) const;
+  LinearMatrixType rotation() const;
+  template<typename RotationMatrixType, typename ScalingMatrixType>
+  void computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const;
+  template<typename ScalingMatrixType, typename RotationMatrixType>
+  void computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const;
 
   template<typename PositionDerived, typename OrientationType, typename ScaleDerived>
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
@@ -589,48 +594,61 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const RotationBase
   return res;
 }
 
-/***************************
-*** Specialial functions ***
-***************************/
+/************************
+*** Special functions ***
+************************/
 
 /** \returns the rotation part of the transformation
   * \nonstableyet
   *
-  * \param traits allows to optimize the extraction process when the transformion
-  * is known to be not a general aafine transformation. The possible values are:
-  *  - Affine which use a QR decomposition (default),
-  *  - Isometry which simply returns the linear part !
+  * \svd_module
   *
-  * \warning this function consider the scaling is positive
-  *
-  * \warning to use this method in the general case (traits==GenericAffine), you need
-  * to include the QR module.
-  *
-  * \sa inverse(), class QR
+  * \sa computeRotationScaling(), computeScalingRotation(), class SVD
   */
 template<typename Scalar, int Dim>
 typename Transform<Scalar,Dim>::LinearMatrixType
-Transform<Scalar,Dim>::rotation(TransformTraits traits) const
+Transform<Scalar,Dim>::rotation() const
 {
-  ei_assert(traits!=Projective && "you cannot extract a rotation from a non affine transformation");
-  if (traits == Affine)
-  {
-    // FIXME maybe QR should be fixed to return a R matrix with a positive diagonal ??
-    QR<LinearMatrixType> qr(linear());
-    LinearMatrixType matQ = qr.matrixQ();
-    LinearMatrixType matR = qr.matrixR();
-    for (int i=0 ; i<Dim; ++i)
-      if (matR.coeff(i,i)<0)
-        matQ.col(i) = -matQ.col(i);
-    return matQ;
-  }
-  else if (traits == Isometry) // though that's stupid let's handle it !
-    return linear(); // FIXME needs to divide by determinant
-  else
-  {
-    ei_assert("invalid traits value in Transform::rotation()");
-    return LinearMatrixType();
-  }
+  LinearMatrixType result;
+  computeRotationScaling(&result, (LinearMatrixType*)0);
+  return result;
+}
+
+
+/** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
+  * not necessarily positive.
+  *
+  * If either pointer is zero, the corresponding computation is skipped.
+  *
+  * \nonstableyet
+  *
+  * \svd_module
+  *
+  * \sa computeScalingRotation(), rotation(), class SVD
+  */
+template<typename Scalar, int Dim>
+template<typename RotationMatrixType, typename ScalingMatrixType>
+void Transform<Scalar,Dim>::computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const
+{
+  linear().svd().computeRotationScaling(rotation, scaling);
+}
+
+/** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
+  * not necessarily positive.
+  *
+  * If either pointer is zero, the corresponding computation is skipped.
+  *
+  * \nonstableyet
+  *
+  * \svd_module
+  *
+  * \sa computeRotationScaling(), rotation(), class SVD
+  */
+template<typename Scalar, int Dim>
+template<typename ScalingMatrixType, typename RotationMatrixType>
+void Transform<Scalar,Dim>::computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const
+{
+  linear().svd().computeScalingRotation(scaling, rotation);  
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale
