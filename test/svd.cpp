@@ -44,13 +44,15 @@ template<typename MatrixType> void svd(const MatrixType& m)
   if (ei_is_same_type<RealScalar,float>::ret)
     largerEps = 1e-3f;
 
-  SVD<MatrixType> svd(a);
-  MatrixType sigma = MatrixType::Zero(rows,cols);
-  MatrixType matU  = MatrixType::Zero(rows,rows);
-  sigma.block(0,0,cols,cols) = svd.singularValues().asDiagonal();
-  matU.block(0,0,rows,cols) = svd.matrixU();
+  {
+    SVD<MatrixType> svd(a);
+    MatrixType sigma = MatrixType::Zero(rows,cols);
+    MatrixType matU  = MatrixType::Zero(rows,rows);
+    sigma.block(0,0,cols,cols) = svd.singularValues().asDiagonal();
+    matU.block(0,0,rows,cols) = svd.matrixU();
+    VERIFY_IS_APPROX(a, matU * sigma * svd.matrixV().transpose());
+  }
 
-  VERIFY_IS_APPROX(a, matU * sigma * svd.matrixV().transpose());
 
   if (rows==cols)
   {
@@ -62,6 +64,24 @@ template<typename MatrixType> void svd(const MatrixType& m)
     SVD<MatrixType> svd(a);
     svd.solve(b, &x);
     VERIFY_IS_APPROX(a * x,b);
+  }
+
+
+  if(rows==cols)
+  {
+    SVD<MatrixType> svd(a);
+    MatrixType unitary, positive;
+    svd.computeUnitaryPositive(&unitary, &positive);
+    VERIFY_IS_APPROX(unitary * unitary.adjoint(), MatrixType::Identity(unitary.rows(),unitary.rows()));
+    VERIFY_IS_APPROX(positive, positive.adjoint());
+    for(int i = 0; i < rows; i++) VERIFY(positive.diagonal()[i] >= 0); // cheap necessary (not sufficient) condition for positivity
+    VERIFY_IS_APPROX(unitary*positive, a);
+
+    svd.computePositiveUnitary(&positive, &unitary);
+    VERIFY_IS_APPROX(unitary * unitary.adjoint(), MatrixType::Identity(unitary.rows(),unitary.rows()));
+    VERIFY_IS_APPROX(positive, positive.adjoint());
+    for(int i = 0; i < rows; i++) VERIFY(positive.diagonal()[i] >= 0); // cheap necessary (not sufficient) condition for positivity
+    VERIFY_IS_APPROX(positive*unitary, a);
   }
 }
 

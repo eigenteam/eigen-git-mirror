@@ -79,6 +79,9 @@ template<typename MatrixType> class SVD
     void compute(const MatrixType& matrix);
     SVD& sort();
 
+    void computeUnitaryPositive(MatrixUType *unitary, MatrixType *positive) const;
+    void computePositiveUnitary(MatrixType *positive, MatrixVType *unitary) const;
+
   protected:
     /** \internal */
     MatrixUType m_matU;
@@ -532,6 +535,36 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
     result->col(j) = m_matV * aux;
   }
   return true;
+}
+
+/** Computes the polar decomposition of the matrix, as a product unitary x positive.
+  *
+  * If either pointer is zero, the corresponding computation is skipped.
+  *
+  * Only for square matrices.
+  */
+template<typename MatrixType>
+void SVD<MatrixType>::computeUnitaryPositive(typename SVD<MatrixType>::MatrixUType *unitary,
+                                             MatrixType *positive) const
+{
+  ei_assert(m_matU.cols() == m_matV.cols() && "Polar decomposition is only for square matrices");
+  if(unitary) *unitary = m_matU * m_matV.adjoint();
+  if(positive) *positive = m_matV * m_sigma.asDiagonal() * m_matV.adjoint();
+}
+
+/** Computes the polar decomposition of the matrix, as a product positive x unitary.
+  *
+  * If either pointer is zero, the corresponding computation is skipped.
+  *
+  * Only for square matrices.
+  */
+template<typename MatrixType>
+void SVD<MatrixType>::computePositiveUnitary(MatrixType *positive,
+                                             typename SVD<MatrixType>::MatrixVType *unitary) const
+{
+  ei_assert(m_matU.rows() == m_matV.rows() && "Polar decomposition is only for square matrices");
+  if(unitary) *unitary = m_matU * m_matV.adjoint();
+  if(positive) *positive = m_matU * m_sigma.asDiagonal() * m_matU.adjoint();
 }
 
 /** \svd_module
