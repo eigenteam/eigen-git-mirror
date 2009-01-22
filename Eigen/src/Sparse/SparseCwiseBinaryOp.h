@@ -119,7 +119,7 @@ class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
 {
   public:
     typedef ei_sparse_cwise_binary_op_inner_iterator_selector<
-      BinaryOp,Lhs,Rhs, typename SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator> Base;
+      BinaryOp,Lhs,Rhs, InnerIterator> Base;
 
     EIGEN_STRONG_INLINE InnerIterator(const SparseCwiseBinaryOp& binOp, int outer)
       : Base(binOp,outer)
@@ -202,8 +202,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
 template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsSparse>
 {
-    typedef ei_scalar_product_op<T> BinaryOp;
-    typedef SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
+    typedef ei_scalar_product_op<T> BinaryFunc;
+    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
@@ -248,15 +248,15 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
   protected:
     LhsIterator m_lhsIter;
     RhsIterator m_rhsIter;
-    const BinaryOp& m_functor;
+    const BinaryFunc& m_functor;
 };
 
 // sparse - dense  (product)
 template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsDense>
 {
-    typedef ei_scalar_product_op<T> BinaryOp;
-    typedef SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
+    typedef ei_scalar_product_op<T> BinaryFunc;
+    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
@@ -286,7 +286,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
   protected:
     const CwiseBinaryXpr& m_xpr;
     LhsIterator m_lhsIter;
-    const BinaryOp& m_functor;
+    const BinaryFunc& m_functor;
     const int m_outer;
 };
 
@@ -294,8 +294,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsDense, IsSparse>
 {
-    typedef ei_scalar_product_op<T> BinaryOp;
-    typedef SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
+    typedef ei_scalar_product_op<T> BinaryFunc;
+    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
     typedef typename _RhsNested::InnerIterator RhsIterator;
@@ -324,7 +324,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
   protected:
     const CwiseBinaryXpr& m_xpr;
     RhsIterator m_rhsIter;
-    const BinaryOp& m_functor;
+    const BinaryFunc& m_functor;
     const int m_outer;
 };
 
