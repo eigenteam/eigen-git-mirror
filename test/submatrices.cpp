@@ -57,6 +57,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
      Row.h Column.h Block.h Minor.h DiagonalCoeffs.h
   */
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
   int rows = m.rows();
@@ -140,11 +141,11 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   }
 
   // stress some basic stuffs with block matrices
-  VERIFY(ones.col(c1).sum() == Scalar(rows));
-  VERIFY(ones.row(r1).sum() == Scalar(cols));
+  VERIFY(ei_real(ones.col(c1).sum()) == RealScalar(rows));
+  VERIFY(ei_real(ones.row(r1).sum()) == RealScalar(cols));
 
-  VERIFY(ones.col(c1).dot(ones.col(c2)) == Scalar(rows));
-  VERIFY(ones.row(r1).dot(ones.row(r2)) == Scalar(cols));
+  VERIFY(ei_real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
+  VERIFY(ei_real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
 }
 
 void test_submatrices()

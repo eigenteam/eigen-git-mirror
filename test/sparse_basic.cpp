@@ -167,8 +167,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 //   VERIFY_IS_APPROX(m, refMat);
 
     VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, StdMapTraits> >(m,refMat,nonzeroCoords) ));
-    #ifdef _HASH_MAP
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GnuHashMapTraits> >(m,refMat,nonzeroCoords) ));
+    #ifdef EIGEN_UNORDERED_MAP_SUPPORT
+    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, StdUnorderedMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
     #ifdef _DENSE_HASH_MAP_H_
     VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleDenseHashMapTraits> >(m,refMat,nonzeroCoords) ));

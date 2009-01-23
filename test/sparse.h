@@ -24,15 +24,20 @@
 
 #ifndef EIGEN_TESTSPARSE_H
 
-#ifdef __GNUC__
-#include <ext/hash_map>
+#include "main.h"
+
+#if EIGEN_GNUC_AT_LEAST(4,0)
+#include <tr1/unordered_map>
+#define EIGEN_UNORDERED_MAP_SUPPORT
+namespace std {
+  using std::tr1::unordered_map;
+}
 #endif
 
 #ifdef EIGEN_GOOGLEHASH_SUPPORT
   #include <google/sparse_hash_map>
 #endif
 
-#include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
 #include <Eigen/Sparse>

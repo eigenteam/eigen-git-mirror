@@ -40,22 +40,34 @@ template<typename Scalar> struct StdMapTraits
   static void setInvalidKey(Type&, const KeyType&) {}
 };
 
-#ifdef _HASH_MAP
-/** Represents a __gnu_cxx::hash_map
+#ifdef EIGEN_UNORDERED_MAP_SUPPORT
+/** Represents a std::unordered_map
+  *
+  * To use it you need to both define EIGEN_UNORDERED_MAP_SUPPORT and include the unordered_map header file
+  * yourself making sure that unordered_map is defined in the std namespace.
+  * 
+  * For instance, with current version of gcc you can either enable C++0x standard (-std=c++0x) or do:
+  * \code
+  * #include <tr1/unordered_map>
+  * #define EIGEN_UNORDERED_MAP_SUPPORT
+  * namespace std {
+  *   using std::tr1::unordered_map;
+  * }
+  * \endcode
   *
   * \see RandomSetter
   */
-template<typename Scalar> struct GnuHashMapTraits
+template<typename Scalar> struct StdUnorderedMapTraits
 {
   typedef int KeyType;
-  typedef __gnu_cxx::hash_map<KeyType,Scalar> Type;
+  typedef std::unordered_map<KeyType,Scalar> Type;
   enum {
     IsSorted = 0
   };
 
   static void setInvalidKey(Type&, const KeyType&) {}
 };
-#endif
+#endif // EIGEN_UNORDERED_MAP_SUPPORT
 
 #ifdef _DENSE_HASH_MAP_H_
 /** Represents a google::dense_hash_map
