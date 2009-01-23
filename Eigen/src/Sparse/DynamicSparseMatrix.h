@@ -63,6 +63,9 @@ class DynamicSparseMatrix
 {
   public:
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(DynamicSparseMatrix)
+    // FIXME: why are these operator already alvailable ???
+    // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, +=)
+    // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, -=)
     typedef MappedSparseMatrix<Scalar,Flags> Map;
 
   protected:

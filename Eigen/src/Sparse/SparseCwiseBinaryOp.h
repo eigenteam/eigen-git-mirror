@@ -344,7 +344,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &other)
 {
-  return *this = *this - other;
+  return *this = derived() - other.derived();
 }
 
 template<typename Derived>
@@ -360,7 +360,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& other)
 {
-  return *this = *this + other;
+  return *this = derived() + other.derived();
 }
 
 template<typename ExpressionType>
@@ -399,7 +399,7 @@ template<typename ExpressionType>
 template<typename OtherDerived>
 inline ExpressionType& SparseCwise<ExpressionType>::operator*=(const SparseMatrixBase<OtherDerived> &other)
 {
-  return m_matrix.const_cast_derived() = *this * other;
+  return m_matrix.const_cast_derived() = _expression() * other.derived();
 }
 
 // template<typename ExpressionType>

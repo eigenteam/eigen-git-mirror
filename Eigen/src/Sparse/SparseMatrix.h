@@ -57,6 +57,12 @@ class SparseMatrix
 {
   public:
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
+    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
+    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
+    // FIXME: why are these operator already alvailable ???
+    // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, *=)
+    // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, /=)
+    
     typedef MappedSparseMatrix<Scalar,Flags> Map;
 
   protected:

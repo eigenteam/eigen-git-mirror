@@ -57,6 +57,8 @@ class SparseVector
 {
   public:
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
+    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
+    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
 
   protected:
   public:
@@ -117,13 +119,31 @@ class SparseVector
     /**
       */
     inline void reserve(int reserveSize) { m_data.reserve(reserveSize); }
+    
+    inline void startFill(int reserve)
+    {
+      setZero();
+      m_data.reserve(reserve);
+    }
 
     /**
       */
+    inline Scalar& fill(int r, int c)
+    {
+      ei_assert(r==0 || c==0);
+      return fill(IsColVector ? r : c);
+    }
+    
     inline Scalar& fill(int i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
+    }
+    
+    inline Scalar& fillrand(int r, int c)
+    {
+      ei_assert(r==0 || c==0);
+      return fillrand(IsColVector ? r : c);
     }
 
     /** Like fill() but with random coordinates.
@@ -145,9 +165,17 @@ class SparseVector
       return m_data.value(id+1);
     }
     
+    inline void endFill() {}
+    
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       m_data.prune(reference,epsilon);
+    }
+    
+    void resize(int rows, int cols)
+    {
+      ei_assert(rows==1 || cols==1);
+      resize(IsColVector ? rows : cols);
     }
 
     void resize(int newSize)
@@ -161,6 +189,8 @@ class SparseVector
     inline SparseVector() : m_size(0) { resize(0); }
 
     inline SparseVector(int size) : m_size(0) { resize(size); }
+    
+    inline SparseVector(int rows, int cols) : m_size(0) { resize(rows,cols); }
 
     template<typename OtherDerived>
     inline SparseVector(const MatrixBase<OtherDerived>& other)
