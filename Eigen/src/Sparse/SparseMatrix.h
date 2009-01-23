@@ -155,7 +155,7 @@ class SparseMatrix
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
       }
-      assert(m_outerIndex[outer+1] == m_data.size());
+      assert(size_t(m_outerIndex[outer+1]) == m_data.size());
       int id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
 
@@ -183,9 +183,9 @@ class SparseMatrix
         m_outerIndex[outer+1] = m_outerIndex[outer];
       }
 //       std::cerr << this << "  " << outer << " " << inner << " - " << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
-      assert(m_outerIndex[outer+1] == m_data.size() && "invalid outer index");
-      int startId = m_outerIndex[outer];
-      int id = m_outerIndex[outer+1]-1;
+      assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "invalid outer index");
+      size_t startId = m_outerIndex[outer];
+      size_t id = m_outerIndex[outer+1]-1;
       ++m_outerIndex[outer+1];
       
       float reallocRatio = 1;
@@ -292,7 +292,7 @@ class SparseMatrix
     }
 
     inline SparseMatrix(const SparseMatrix& other)
-      : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
+      : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       *this = other.derived();
     }

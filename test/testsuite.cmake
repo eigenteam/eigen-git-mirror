@@ -26,6 +26,7 @@
 #      default: Nightly
 #  - EIGEN_WORK_DIR: directory used to download the source files and make the builds
 #      default: folder which contains this script
+#  - EIGEN_CMAKE_ARGS: additional arguments passed to cmake
 #  - CTEST_SOURCE_DIRECTORY: path to eigen's src (use a new and empty folder, not the one you are working on)
 #      default: <EIGEN_WORK_DIR>/src
 #  - CTEST_BINARY_DIRECTORY: build directory
@@ -189,3 +190,7 @@ if(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
     message(FATAL_ERROR "Invalid value for EIGEN_EXPLICIT_VECTORIZATION (${EIGEN_EXPLICIT_VECTORIZATION}), must be: novec, SSE2, SSE3, Altivec")
   endif(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE2)
 endif(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
+
+if(DEFINED EIGEN_CMAKE_ARGS)
+  set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} ${EIGEN_CMAKE_ARGS}")
+endif(DEFINED EIGEN_CMAKE_ARGS)

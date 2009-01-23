@@ -231,7 +231,7 @@ class DynamicSparseMatrix
     }
 
     inline DynamicSparseMatrix(const DynamicSparseMatrix& other)
-      : m_innerSize(0)
+      : Base(), m_innerSize(0)
     {
       *this = other.derived();
     }
