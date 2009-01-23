@@ -233,27 +233,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 #define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
-/** Qt <= 4.4 has a bug where it calls new(ptr) T instead of ::new(ptr) T.
-  * This fails as we overload other operator new but not this one. What Qt really means is placement new.
-  * Since this is getting used only with fixed-size Eigen matrices where the ctor does nothing, it is OK to
-  * emulate placement new by just returning the ptr -- no need to call ctors. Good, because we don't know the
-  * class in this macro. So this can safely be used for QVector<Eigen::Vector4f> but definitely not for
-  * QVector<Eigen::VectorXf>.
-  *
-  * This macro will go away as soon as Qt >= 4.5 is prevalent -- most likely it should go away in Eigen 2.1.
-  */
-#ifdef EIGEN_WORK_AROUND_QT_BUG_CALLING_WRONG_OPERATOR_NEW_FIXED_IN_QT_4_5
-#define EIGEN_WORKAROUND_FOR_QT_BUG_CALLING_WRONG_OPERATOR_NEW \
-    void *operator new(size_t, void *ptr) throw() { \
-      return ptr; \
-    } \
-    void *operator new[](size_t, void *ptr) throw() { \
-      return ptr; \
-    }
-#else
-#define EIGEN_WORKAROUND_FOR_QT_BUG_CALLING_WRONG_OPERATOR_NEW
-#endif
-
+    
 /** \brief Overloads the operator new and delete of the class Type with operators that are aligned if NeedsToAlign is true
   *
   * When Eigen's explicit vectorization is enabled, Eigen assumes that some fixed sizes types are aligned
@@ -301,7 +281,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
     } \
     void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
     void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-    EIGEN_WORKAROUND_FOR_QT_BUG_CALLING_WRONG_OPERATOR_NEW
+    void *operator new(size_t, void *ptr) throw() { return ptr; }
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \

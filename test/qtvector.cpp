@@ -37,6 +37,10 @@ void check_qtvector_matrix(const MatrixType& m)
   int cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
   QVector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
+  for(int i = 0; i < 20; i++)
+  {
+    VERIFY_IS_APPROX(w[i], y);
+  }
   v[5] = x;
   w[6] = v[5];
   VERIFY_IS_APPROX(w[6], v[5]);
@@ -50,7 +54,6 @@ void check_qtvector_matrix(const MatrixType& m)
   v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
   v.fill(y,22);
-  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
@@ -86,7 +89,6 @@ void check_qtvector_transform(const TransformType&)
   v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
   v.fill(y,22);
-  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
@@ -122,7 +124,6 @@ void check_qtvector_quaternion(const QuaternionType&)
   v[20] = x;
   VERIFY_IS_APPROX(v[20], x);
   v.fill(y,22);
-  //v.resize(22);
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
