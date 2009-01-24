@@ -111,6 +111,11 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
                         .select(m1,0), m3);
   // even shorter version:
   VERIFY_IS_APPROX( (m1.cwise().abs().cwise()<mid).select(0,m1), m3);
+  
+  // count
+  VERIFY(((m1.cwise().abs().cwise()+1).cwise()>0.5).count() == rows*cols);
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>0.5).colwise().count(), RowVectorXi::Constant(cols,rows));
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>0.5).rowwise().count(), VectorXi::Constant(rows, cols));
 }
 
 template<typename VectorType> void lpNorm(const VectorType& v)

@@ -114,6 +114,7 @@ EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(all, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(any, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(count, (Size-1)*NumTraits<Scalar>::AddCost);
 
 /** \internal */
 template <typename BinaryOp, typename Scalar>
@@ -173,7 +174,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
     };
 
     typedef typename ExpressionType::PlainMatrixType CrossReturnType;
-
+    
     inline PartialRedux(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
@@ -245,6 +246,16 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * \sa MatrixBase::any() */
     const typename ReturnType<ei_member_any>::Type any() const
+    { return _expression(); }
+    
+    /** \returns a row (or column) vector expression representing
+      * the number of \c true coefficients of each respective column (or row).
+      *
+      * Example: \include PartialRedux_count.cpp
+      * Output: \verbinclude PartialRedux_count.out
+      *
+      * \sa MatrixBase::count() */
+    const PartialReduxExpr<ExpressionType, ei_member_count<int>, Direction> count() const
     { return _expression(); }
 
     /** \returns a 3x3 matrix expression of the cross product
