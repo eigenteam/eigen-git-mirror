@@ -46,6 +46,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
+             m4(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              mones = MatrixType::Ones(rows, cols),
              identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
@@ -57,6 +58,24 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
+  
+  Scalar s1 = ei_random<Scalar>();
+  
+  // test Zero, Ones, Constant, and the set* variants
+  m3 = MatrixType::Constant(rows, cols, s1);
+  for (int j=0; j<cols; ++j)
+    for (int i=0; i<rows; ++i)
+    {
+      VERIFY_IS_APPROX(mzero(i,j), Scalar(0));
+      VERIFY_IS_APPROX(mones(i,j), Scalar(1));
+      VERIFY_IS_APPROX(m3(i,j), s1);
+    }
+  VERIFY_IS_APPROX(m4.setConstant(s1), m3);
+  VERIFY_IS_APPROX(m4.setZero(), mzero);
+  VERIFY_IS_APPROX(m4.setOnes(), mones);
+  m4.fill(s1);
+  VERIFY_IS_APPROX(m4, m3);
+  
 
   m2 = m2.template binaryExpr<AddIfNull<Scalar> >(mones);
 
@@ -85,9 +104,13 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
     VERIFY_IS_APPROX(m3.cwise().square(), m1.cwise().abs());
     VERIFY_IS_APPROX(m1.cwise().square().cwise().sqrt(), m1.cwise().abs());
     VERIFY_IS_APPROX(m1.cwise().abs().cwise().log().cwise().exp() , m1.cwise().abs());
+
+    VERIFY_IS_APPROX(m1.cwise().pow(2), m1.cwise().square());
+    m3 = (m1.cwise().abs().cwise()<0.01).select(mones,m1);
+    VERIFY_IS_APPROX(m3.cwise().pow(-1), m3.cwise().inverse());
+    m3 = m1.cwise().abs();
+    VERIFY_IS_APPROX(m3.cwise().pow(0.5), m3.cwise().sqrt());
     
-//     VERIFY_IS_APPROX(m1.cwise().pow(-1), m1.cwise().inverse());
-//     VERIFY_IS_APPROX(m1.cwise().pow(0.5), m1.cwise().sqrt());
 //     VERIFY_IS_APPROX(m1.cwise().tan(), m1.cwise().sin().cwise() / m1.cwise().cos());
     VERIFY_IS_APPROX(mones, m1.cwise().sin().cwise().square() + m1.cwise().cos().cwise().square());
     m3 = m1;

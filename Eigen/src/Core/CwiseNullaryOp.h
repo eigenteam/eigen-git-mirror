@@ -238,9 +238,19 @@ bool MatrixBase<Derived>::isApproxToConstant
   return true;
 }
 
+/** Alias for setConstant(): sets all coefficients in this expression to \a value.
+  *
+  * \sa setConstant(), Constant(), class CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE void MatrixBase<Derived>::fill(const Scalar& value)
+{
+  setConstant(value);
+}
+
 /** Sets all coefficients in this expression to \a value.
   *
-  * \sa class CwiseNullaryOp, Zero(), Ones()
+  * \sa fill(), Constant(), class CwiseNullaryOp, setZero(), setOnes()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setConstant(const Scalar& value)

@@ -446,6 +446,7 @@ template<typename Derived> class MatrixBase
 
     const DiagonalMatrix<Derived> asDiagonal() const;
 
+    void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
     Derived& setZero();
     Derived& setOnes();
