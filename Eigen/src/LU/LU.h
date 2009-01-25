@@ -45,14 +45,9 @@
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(),
   * permutationP(), permutationQ(). Convenience methods matrixL(), matrixU() are also provided.
   *
-  * As an exemple, here is how the original matrix can be retrieved, in the square case:
-  * \include class_LU_1.cpp
-  * Output: \verbinclude class_LU_1.out
-  *
-  * When the matrix is not square, matrixL() is no longer very useful: if one needs it, one has
-  * to construct the L matrix by hand, as shown in this example:
-  * \include class_LU_2.cpp
-  * Output: \verbinclude class_LU_2.out
+  * As an exemple, here is how the original matrix can be retrieved:
+  * \include class_LU.cpp
+  * Output: \verbinclude class_LU.out
   *
   * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse(), MatrixBase::computeInverse()
   */
@@ -91,6 +86,14 @@ template<typename MatrixType> class LU
                    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
     > ImageResultType;
 
+    typedef Matrix<typename MatrixType::Scalar,
+                   MatrixType::RowsAtCompileTime,
+                   MatrixType::RowsAtCompileTime,
+                   MatrixType::Options,
+                   MatrixType::MaxRowsAtCompileTime,
+                   MatrixType::MaxRowsAtCompileTime
+    > MatrixLType;
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -104,26 +107,6 @@ template<typename MatrixType> class LU
       * \sa matrixL(), matrixU()
       */
     inline const MatrixType& matrixLU() const
-    {
-      return m_lu;
-    }
-
-    /** \returns an expression of the unit-lower-triangular part of the LU matrix. In the square case,
-      *          this is the L matrix. In the non-square, actually obtaining the L matrix takes some
-      *          more care, see the documentation of class LU.
-      *
-      * \sa matrixLU(), matrixU()
-      */
-    inline const Part<MatrixType, UnitLowerTriangular> matrixL() const
-    {
-      return m_lu;
-    }
-
-    /** \returns an expression of the U matrix, i.e. the upper-triangular part of the LU matrix.
-      *
-      * \sa matrixLU(), matrixL()
-      */
-    inline const Part<MatrixType, UpperTriangular> matrixU() const
     {
       return m_lu;
     }
@@ -495,7 +478,7 @@ bool LU<MatrixType>::solve(
    * Step 4: result = Qd;
    */
 
-  const int rows = m_lu.rows();
+  const int rows = m_lu.rows(), cols = m_lu.cols();
   ei_assert(b.rows() == rows);
   const int smalldim = std::min(rows, m_lu.cols());
 
@@ -505,14 +488,20 @@ bool LU<MatrixType>::solve(
   for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
-  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
-         MatrixType::Options,
-         MatrixType::MaxRowsAtCompileTime,
-         MatrixType::MaxRowsAtCompileTime> l(rows, rows);
-  l.setZero();
-  l.corner(Eigen::TopLeft,rows,smalldim)
-    = m_lu.corner(Eigen::TopLeft,rows,smalldim);
-  l.template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
+  if(rows <= cols)
+    m_lu.corner(Eigen::TopLeft,rows,smalldim).template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
+  else
+  {
+    // construct the L matrix. We shouldn't do that everytime, it is a very large overhead in the case of vector solving.
+    // However the case rows>cols is rather unusual with LU so this is probably not a huge priority.
+    Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
+           MatrixType::Options,
+           MatrixType::MaxRowsAtCompileTime,
+           MatrixType::MaxRowsAtCompileTime> l(rows, rows);
+    l.setZero();
+    l.corner(Eigen::TopLeft,rows,smalldim) = m_lu.corner(Eigen::TopLeft,rows,smalldim);
+    l.template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
+  }
 
   // Step 3
   if(!isSurjective())
