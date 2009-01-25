@@ -474,13 +474,13 @@ bool LU<MatrixType>::solve(
    * So we proceed as follows:
    * Step 1: compute c = Pb.
    * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
-   * Step 3: compute d such that Ud = c. Check if such d really exists.
-   * Step 4: result = Qd;
+   * Step 3: replace c by the solution x to Ux = c. Check if a solution really exists.
+   * Step 4: result = Qc;
    */
 
   const int rows = m_lu.rows(), cols = m_lu.cols();
   ei_assert(b.rows() == rows);
-  const int smalldim = std::min(rows, m_lu.cols());
+  const int smalldim = std::min(rows, cols);
 
   typename OtherDerived::PlainMatrixType c(b.rows(), b.cols());
 
@@ -488,19 +488,13 @@ bool LU<MatrixType>::solve(
   for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
-  if(rows <= cols)
-    m_lu.corner(Eigen::TopLeft,rows,smalldim).template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
-  else
+  m_lu.corner(Eigen::TopLeft,smalldim,smalldim).template marked<UnitLowerTriangular>()
+    .solveTriangularInPlace(
+      c.corner(Eigen::TopLeft, smalldim, c.cols()));
+  if(rows>cols)
   {
-    // construct the L matrix. We shouldn't do that everytime, it is a very large overhead in the case of vector solving.
-    // However the case rows>cols is rather unusual with LU so this is probably not a huge priority.
-    Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime,
-           MatrixType::Options,
-           MatrixType::MaxRowsAtCompileTime,
-           MatrixType::MaxRowsAtCompileTime> l(rows, rows);
-    l.setZero();
-    l.corner(Eigen::TopLeft,rows,smalldim) = m_lu.corner(Eigen::TopLeft,rows,smalldim);
-    l.template marked<UnitLowerTriangular>().solveTriangularInPlace(c);
+    c.corner(Eigen::BottomLeft, rows-cols, c.cols())
+      -= m_lu.corner(Eigen::BottomLeft, rows-cols, cols) * c.corner(Eigen::TopLeft, cols, c.cols());
   }
 
   // Step 3
@@ -513,17 +507,13 @@ bool LU<MatrixType>::solve(
         if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c))
           return false;
   }
-  Matrix<Scalar, Dynamic, OtherDerived::ColsAtCompileTime,
-         MatrixType::Options,
-         MatrixType::MaxRowsAtCompileTime, OtherDerived::MaxColsAtCompileTime>
-    d(c.corner(TopLeft, m_rank, c.cols()));
   m_lu.corner(TopLeft, m_rank, m_rank)
       .template marked<UpperTriangular>()
-      .solveTriangularInPlace(d);
+      .solveTriangularInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
   // Step 4
   result->resize(m_lu.cols(), b.cols());
-  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = d.row(i);
+  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = c.row(i);
   for(int i = m_rank; i < m_lu.cols(); ++i) result->row(m_q.coeff(i)).setZero();
   return true;
 }

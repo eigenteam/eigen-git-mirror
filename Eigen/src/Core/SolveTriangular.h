@@ -222,12 +222,16 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
 
 /** "in-place" version of MatrixBase::solveTriangular() where the result is written in \a other
   *
+  * The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
+  * This function will const_cast it, so constness isn't honored here.
+  *
   * See MatrixBase:solveTriangular() for the details.
   */
 template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
+void MatrixBase<Derived>::solveTriangularInPlace(const MatrixBase<OtherDerived>& _other) const
 {
+  MatrixBase<OtherDerived>& other = _other.const_cast_derived();
   ei_assert(derived().cols() == derived().rows());
   ei_assert(derived().cols() == other.rows());
   ei_assert(!(Flags & ZeroDiagBit));

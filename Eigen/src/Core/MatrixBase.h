@@ -344,13 +344,12 @@ template<typename Derived> class MatrixBase
 		solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
-    void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
+    void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
 
 
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
-    RealScalar norm2() const;
     RealScalar norm()  const;
     const PlainMatrixType normalized() const;
     void normalize();
