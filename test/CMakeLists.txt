@@ -1,7 +1,8 @@
 
 find_package(GSL)
 if(GSL_FOUND)
-  add_definitions("-DHAS_GSL")
+  add_definitions("-DHAS_GSL" ${GSL_DEFINITIONS})
+  include_directories(${GSL_INCLUDE_DIR})
 else(GSL_FOUND)
   set(GSL_LIBRARIES " ")
 endif(GSL_FOUND)
