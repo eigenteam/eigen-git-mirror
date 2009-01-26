@@ -175,7 +175,6 @@ class SparseMatrix
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
-
       if (m_outerIndex[outer+1]==0)
       {
         // we start a new inner vector
@@ -188,14 +187,14 @@ class SparseMatrix
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
       }
-//       std::cerr << this << "  " << outer << " " << inner << " - " << m_outerIndex[outer] << " " << m_outerIndex[outer+1] << "\n";
       assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "invalid outer index");
       size_t startId = m_outerIndex[outer];
-      size_t id = m_outerIndex[outer+1]-1;
+      // FIXME let's make sure sizeof(long int) == sizeof(size_t)
+      size_t id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       
       float reallocRatio = 1;
-      if (m_data.allocatedSize()<id+2)
+      if (m_data.allocatedSize()<id+1)
       {
         // we need to reallocate the data, to reduce multiple reallocations
         // we use a smart resize algorithm based on the current filling ratio
@@ -207,23 +206,21 @@ class SparseMatrix
         //   2) avoid to allocate too much memory when the matrix is almost empty
         reallocRatio = std::min(std::max(reallocRatio,1.5f),8.f);
       }
-      m_data.resize(id+2,reallocRatio);
+      m_data.resize(id+1,reallocRatio);
 
-      while ( (id >= startId) && (m_data.index(id) > inner) )
+      while ( (id > startId) && (m_data.index(id-1) > inner) )
       {
-        m_data.index(id+1) = m_data.index(id);
-        m_data.value(id+1) = m_data.value(id);
+        m_data.index(id) = m_data.index(id-1);
+        m_data.value(id) = m_data.value(id-1);
         --id;
       }
-      m_data.index(id+1) = inner;
-      return (m_data.value(id+1) = 0);
+      
+      m_data.index(id) = inner;
+      return (m_data.value(id) = 0);
     }
-
-//     inline void
 
     inline void endFill()
     {
-//       std::cerr << this << " endFill\n";
       int size = m_data.size();
       int i = m_outerSize;
       // find the last filled column
