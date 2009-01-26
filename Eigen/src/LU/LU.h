@@ -86,14 +86,6 @@ template<typename MatrixType> class LU
                    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
     > ImageResultType;
 
-    typedef Matrix<typename MatrixType::Scalar,
-                   MatrixType::RowsAtCompileTime,
-                   MatrixType::RowsAtCompileTime,
-                   MatrixType::Options,
-                   MatrixType::MaxRowsAtCompileTime,
-                   MatrixType::MaxRowsAtCompileTime
-    > MatrixLType;
-
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -343,16 +335,31 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   int number_of_transpositions = 0;
 
   RealScalar biggest = RealScalar(0);
+  m_rank = size;
   for(int k = 0; k < size; ++k)
   {
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
 
     biggest_in_corner = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
-                  .cwise().abs()
-                  .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
+                        .cwise().abs()
+                        .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
     row_of_biggest_in_corner += k;
     col_of_biggest_in_corner += k;
+    if(k==0) biggest = biggest_in_corner;
+
+    // if the corner is negligible, then we have less than full rank, and we can finish early
+    if(ei_isMuchSmallerThan(biggest_in_corner, biggest))
+    {
+      m_rank = k;
+      for(int i = k; i < size; i++)
+      {
+        rows_transpositions.coeffRef(i) = i;
+        cols_transpositions.coeffRef(i) = i;
+      }
+      break;
+    }
+
     rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
     cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
@@ -363,12 +370,8 @@ LU<MatrixType>::LU(const MatrixType& matrix)
       m_lu.col(k).swap(m_lu.col(col_of_biggest_in_corner));
       ++number_of_transpositions;
     }
-
-    if(k==0) biggest = biggest_in_corner;
-    const Scalar lu_k_k = m_lu.coeff(k,k);
-    if(ei_isMuchSmallerThan(lu_k_k, biggest)) continue;
     if(k<rows-1)
-      m_lu.col(k).end(rows-k-1) /= lu_k_k;
+      m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
       for(int col = k + 1; col < cols; ++col)
         m_lu.col(col).end(rows-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.coeff(k,col);
@@ -383,12 +386,6 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
-
-  RealScalar biggest_diagonal_coeff = m_lu.diagonal().cwise().abs().maxCoeff();
-  m_rank = 0;
-  for(int k = 0; k < size; ++k)
-    if(!ei_isMuchSmallerThan(m_lu.diagonal().coeff(k), biggest_diagonal_coeff))
-      ++m_rank;
 }
 
 template<typename MatrixType>
