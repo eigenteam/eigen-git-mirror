@@ -67,6 +67,7 @@ template<typename MatrixType> void array(const MatrixType& m)
 template<typename MatrixType> void comparisons(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   int rows = m.rows();
@@ -113,9 +114,9 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   VERIFY_IS_APPROX( (m1.cwise().abs().cwise()<mid).select(0,m1), m3);
   
   // count
-  VERIFY(((m1.cwise().abs().cwise()+1).cwise()>0.5).count() == rows*cols);
-  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>0.5).colwise().count(), RowVectorXi::Constant(cols,rows));
-  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>0.5).rowwise().count(), VectorXi::Constant(rows, cols));
+  VERIFY(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).count() == rows*cols);
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).colwise().count(), RowVectorXi::Constant(cols,rows));
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).rowwise().count(), VectorXi::Constant(rows, cols));
 }
 
 template<typename VectorType> void lpNorm(const VectorType& v)

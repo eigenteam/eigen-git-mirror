@@ -106,10 +106,10 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
     VERIFY_IS_APPROX(m1.cwise().abs().cwise().log().cwise().exp() , m1.cwise().abs());
 
     VERIFY_IS_APPROX(m1.cwise().pow(2), m1.cwise().square());
-    m3 = (m1.cwise().abs().cwise()<0.01).select(mones,m1);
+    m3 = (m1.cwise().abs().cwise()<=RealScalar(0.01)).select(mones,m1);
     VERIFY_IS_APPROX(m3.cwise().pow(-1), m3.cwise().inverse());
     m3 = m1.cwise().abs();
-    VERIFY_IS_APPROX(m3.cwise().pow(0.5), m3.cwise().sqrt());
+    VERIFY_IS_APPROX(m3.cwise().pow(RealScalar(0.5)), m3.cwise().sqrt());
     
 //     VERIFY_IS_APPROX(m1.cwise().tan(), m1.cwise().sin().cwise() / m1.cwise().cos());
     VERIFY_IS_APPROX(mones, m1.cwise().sin().cwise().square() + m1.cwise().cos().cwise().square());
