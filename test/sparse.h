@@ -26,7 +26,7 @@
 
 #include "main.h"
 
-#if EIGEN_GNUC_AT_LEAST(4,0)
+#if EIGEN_GNUC_AT_LEAST(4,0) && !defined __ICC
 #include <tr1/unordered_map>
 #define EIGEN_UNORDERED_MAP_SUPPORT
 namespace std {
