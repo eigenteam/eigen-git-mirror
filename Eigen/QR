@@ -19,6 +19,9 @@
 namespace Eigen {
 
 /** \defgroup QR_Module QR module
+  *
+  * \nonstableyet
+  *
   * This module mainly provides QR decomposition and an eigen value solver.
   * This module also provides some MatrixBase methods, including:
   *  - MatrixBase::qr(),

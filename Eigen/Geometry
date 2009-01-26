@@ -14,7 +14,10 @@
 
 namespace Eigen {
 
-/** \defgroup GeometryModule Geometry module
+/** \defgroup Geometry_Module Geometry module
+  *
+  * \nonstableyet
+  *
   * This module provides support for:
   *  - fixed-size homogeneous transformations
   *  - translation, scaling, 2D and 3D rotations

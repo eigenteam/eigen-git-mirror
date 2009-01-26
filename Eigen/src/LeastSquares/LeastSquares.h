@@ -22,12 +22,12 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_REGRESSION_H
-#define EIGEN_REGRESSION_H
+#ifndef EIGEN_LEASTSQUARES_H
+#define EIGEN_LEASTSQUARES_H
 
-/** \ingroup Regression_Module
+/** \ingroup LeastSquares_Module
   *
-  * \regression_module
+  * \leastsquares_module
   *
   * For a set of points, this function tries to express
   * one of the coords as a linear (affine) function of the other coords.
@@ -128,9 +128,9 @@ void linearRegression(int numPoints,
   ei_assert((m.adjoint()*m).lu().solve(v, result));
 }
 
-/** \ingroup Regression_Module
+/** \ingroup LeastSquares_Module
   *
-  * \regression_module
+  * \leastsquares_module
   *
   * This function is quite similar to linearRegression(), so we refer to the
   * documentation of this function and only list here the differences.
@@ -195,4 +195,4 @@ void fitHyperplane(int numPoints,
 }
 
 
-#endif // EIGEN_REGRESSION_H
+#endif // EIGEN_LEASTSQUARES_H

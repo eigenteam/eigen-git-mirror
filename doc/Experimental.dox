@@ -12,7 +12,7 @@ namespace Eigen {
 Experimental features may at any time:
 \li be removed;
 \li be subject to an API incompatible change;
-\li introduce API or ABI incompatible changes in your own application if you let them affect your API or ABI.
+\li introduce API or ABI incompatible changes in your own code if you let them affect your API or ABI.
 
 \section modules Experimental modules
 
@@ -20,6 +20,7 @@ The following modules are considered entirely experimental:
 \li SVD
 \li QR
 \li Sparse
+\li Geometry
 
 \section core Experimental parts of the Core module
 

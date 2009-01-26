@@ -429,8 +429,7 @@ void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
       .template marked<UpperTriangular>()
       .solveTriangularInPlace(y);
 
-  for(int i = 0; i < m_rank; ++i)
-    result->row(m_q.coeff(i)) = y.row(i);
+  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = y.row(i);
   for(int i = m_rank; i < cols; ++i) result->row(m_q.coeff(i)).setZero();
   for(int k = 0; k < dimker; ++k) result->coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
 }

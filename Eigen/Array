@@ -7,7 +7,7 @@
 
 namespace Eigen {
 
-/** \defgroup Array Array module
+/** \defgroup Array_Module Array module
   * This module provides several handy features to manipulate matrices as simple array of values.
   * In addition to listed classes, it defines various methods of the Cwise interface
   * (accessible from MatrixBase::cwise()), including:

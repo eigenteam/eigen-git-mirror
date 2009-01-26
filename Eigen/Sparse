@@ -70,6 +70,17 @@
 
 namespace Eigen {
 
+/** \defgroup Sparse_Module Sparse module
+  *
+  * \nonstableyet
+  *
+  * See the \ref TutorialSparse "Sparse tutorial"
+  *
+  * \code
+  * #include <Eigen/QR>
+  * \endcode
+  */
+
 #include "src/Sparse/SparseUtil.h"
 #include "src/Sparse/SparseMatrixBase.h"
 #include "src/Sparse/CompressedStorage.h"

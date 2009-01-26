@@ -11,15 +11,15 @@
 
 namespace Eigen {
 
-/** \defgroup Regression_Module Regression module
+/** \defgroup LeastSquares_Module LeastSquares module
   * This module provides linear regression and related features.
   *
   * \code
-  * #include <Eigen/Regression>
+  * #include <Eigen/LeastSquares>
   * \endcode
   */
 
-#include "src/Regression/Regression.h"
+#include "src/LeastSquares/LeastSquares.h"
 
 } // namespace Eigen
 
