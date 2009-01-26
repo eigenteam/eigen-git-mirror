@@ -42,8 +42,14 @@
   * This decomposition provides the generic approach to solving systems of linear equations, computing
   * the rank, invertibility, inverse, kernel, and determinant.
   *
+  * This LU decomposition is very stable and well tested with large matrices. Even exact rank computation
+  * works at sizes larger than 1000x1000. However there are use cases where the SVD decomposition is inherently
+  * more stable when dealing with numerically damaged input. For example, computing the kernel is more stable with
+  * SVD because the SVD can determine which singular values are negligible while LU has to work at the level of matrix
+  * coefficients that are less meaningful in this respect.
+  *
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(),
-  * permutationP(), permutationQ(). Convenience methods matrixL(), matrixU() are also provided.
+  * permutationP(), permutationQ().
   *
   * As an exemple, here is how the original matrix can be retrieved:
   * \include class_LU.cpp
