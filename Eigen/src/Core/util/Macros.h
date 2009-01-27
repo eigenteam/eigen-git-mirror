@@ -168,6 +168,9 @@ using Eigen::ei_cos;
 // just an empty macro !
 #define EIGEN_EMPTY
 
+#define EIGEN_CAT2(a,b) a ## b
+#define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
+
 // format used in Eigen's documentation
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, AlignCols, " ", "\n", "", "")

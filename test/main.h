@@ -44,8 +44,7 @@ namespace Eigen
 #define EI_PP_MAKE_STRING2(S) #S
 #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
 
-#define EI_PP_CAT2(a,b) a ## b
-#define EI_PP_CAT(a,b) EI_PP_CAT2(a,b)
+
 
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
@@ -236,7 +235,7 @@ template<typename T> struct GetDifferentType<std::complex<T> >
 { typedef std::complex<typename GetDifferentType<T>::type> type; };
 
 // forward declaration of the main test function
-void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
+void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
 
@@ -305,7 +304,7 @@ int main(int argc, char *argv[])
     Eigen::g_repeat = repeat;
     Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));
 
-    EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
+    EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
     return 0;
 }
 

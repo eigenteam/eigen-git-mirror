@@ -366,8 +366,10 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
     ei_pstore(&res[j OFFSET], \
       ei_padd(ei_pload(&res[j OFFSET]), \
         ei_padd( \
-          ei_padd(ei_pmul(ptmp0,ei_pload ## A0(&lhs0[j OFFSET])),ei_pmul(ptmp1,ei_pload ## A13(&lhs1[j OFFSET]))), \
-          ei_padd(ei_pmul(ptmp2,ei_pload ## A2(&lhs2[j OFFSET])),ei_pmul(ptmp3,ei_pload ## A13(&lhs3[j OFFSET]))) )))
+          ei_padd(ei_pmul(ptmp0,EIGEN_CAT(ei_pload , A0)(&lhs0[j OFFSET])), \
+                  ei_pmul(ptmp1,EIGEN_CAT(ei_pload , A13)(&lhs1[j OFFSET]))), \
+          ei_padd(ei_pmul(ptmp2,EIGEN_CAT(ei_pload , A2)(&lhs2[j OFFSET])), \
+                  ei_pmul(ptmp3,EIGEN_CAT(ei_pload , A13)(&lhs3[j OFFSET]))) )))
 
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
@@ -552,10 +554,10 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2,OFFSET) {\
     Packet b = ei_pload(&rhs[j]); \
-    ptmp0 = ei_pmadd(b, ei_pload##A0 (&lhs0[j]), ptmp0); \
-    ptmp1 = ei_pmadd(b, ei_pload##A13(&lhs1[j]), ptmp1); \
-    ptmp2 = ei_pmadd(b, ei_pload##A2 (&lhs2[j]), ptmp2); \
-    ptmp3 = ei_pmadd(b, ei_pload##A13(&lhs3[j]), ptmp3); }
+    ptmp0 = ei_pmadd(b, EIGEN_CAT(ei_pload,A0) (&lhs0[j]), ptmp0); \
+    ptmp1 = ei_pmadd(b, EIGEN_CAT(ei_pload,A13)(&lhs1[j]), ptmp1); \
+    ptmp2 = ei_pmadd(b, EIGEN_CAT(ei_pload,A2) (&lhs2[j]), ptmp2); \
+    ptmp3 = ei_pmadd(b, EIGEN_CAT(ei_pload,A13)(&lhs3[j]), ptmp3); }
 
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
