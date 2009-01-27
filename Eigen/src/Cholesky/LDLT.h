@@ -97,7 +97,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   const int size = a.rows();
   m_matrix.resize(size, size);
   m_isPositiveDefinite = true;
-  const RealScalar eps = ei_sqrt(precision<Scalar>());
+  const RealScalar eps = precision<Scalar>();
 
   if (size<=1)
   {

@@ -97,7 +97,7 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
-  const RealScalar eps = ei_sqrt(precision<Scalar>());
+  const RealScalar eps = precision<Scalar>();
 
   RealScalar x;
   x = ei_real(a.coeff(0,0));
