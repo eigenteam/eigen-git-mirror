@@ -503,8 +503,6 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix& _set_noalias(const MatrixBase<OtherDerived>& other)
     {
       _resize_to_match(other);
-      EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
       // it wouldn't allow to copy a row-vector into a column-vector.
       return ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
