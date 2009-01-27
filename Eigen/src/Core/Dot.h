@@ -269,9 +269,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   return ei_dot_impl<Derived, OtherDerived>::run(derived(), other.derived());
 }
 
-/** \returns the squared norm of *this, i.e. the dot product of *this with itself.
-  *
-  * \only_for_vectors
+/** \returns the squared \em l2 norm of *this, i.e., for vectors, the dot product of *this with itself.
   *
   * \sa dot(), norm()
   */
@@ -281,9 +279,7 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   return ei_real((*this).cwise().abs2().sum());
 }
 
-/** \returns the \em l2 norm of *this, i.e. the square root of the dot product of *this with itself.
-  *
-  * \only_for_vectors
+/** \returns the \em l2 norm of *this, i.e., for vectors, the square root of the dot product of *this with itself.
   *
   * \sa dot(), squaredNorm()
   */
