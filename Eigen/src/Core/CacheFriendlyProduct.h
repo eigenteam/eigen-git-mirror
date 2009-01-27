@@ -442,11 +442,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
         {
           case AllAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,,,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY);
             break;
           case EvenAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,u,,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,EIGEN_EMPTY,EIGEN_EMPTY);
             break;
           case FirstAligned:
             if(peels>1)
@@ -482,11 +482,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
               }
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,u,u,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,u,EIGEN_EMPTY);
             break;
           default:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(u,u,u,);
+              _EIGEN_ACCUMULATE_PACKETS(u,u,u,EIGEN_EMPTY);
             break;
         }
       }
@@ -636,11 +636,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
         {
           case AllAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,,,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY);
             break;
           case EvenAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,u,,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,EIGEN_EMPTY,EIGEN_EMPTY);
             break;
           case FirstAligned:
             if (peels>1)
@@ -679,11 +679,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
               }
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(,u,u,);
+              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,u,EIGEN_EMPTY);
             break;
           default:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(u,u,u,);
+              _EIGEN_ACCUMULATE_PACKETS(u,u,u,EIGEN_EMPTY);
             break;
         }
         tmp0 += ei_predux(ptmp0);

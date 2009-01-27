@@ -165,6 +165,9 @@ using Eigen::ei_cos;
 #define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat()
 #endif
 
+// just an empty macro !
+#define EIGEN_EMPTY
+
 // format used in Eigen's documentation
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, AlignCols, " ", "\n", "", "")
