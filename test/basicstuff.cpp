@@ -103,7 +103,10 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   m3 = m1;
   m1.swap(m2);
   VERIFY_IS_APPROX(m3, m2);
-  VERIFY_IS_NOT_APPROX(m3, m1);
+  if(rows*cols>=3)
+  {
+    VERIFY_IS_NOT_APPROX(m3, m1);
+  }
 }
 
 void test_basicstuff()
