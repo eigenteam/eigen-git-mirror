@@ -113,6 +113,17 @@ ELSE(WIN32)
       EXEC_PROGRAM(${GSL_CONFIG}
         ARGS --libs
         OUTPUT_VARIABLE GSL_CONFIG_LIBS )
+      
+      # extract version
+      EXEC_PROGRAM(${GSL_CONFIG}
+        ARGS --version
+        OUTPUT_VARIABLE GSL_FULL_VERSION )
+      
+      # split version as major/minor
+      STRING(REGEX MATCH "(.)\\..*" GSL_VERSION_MAJOR_ "${GSL_FULL_VERSION}")
+      SET(GSL_VERSION_MAJOR ${CMAKE_MATCH_1})
+      STRING(REGEX MATCH ".\\.(.*)" GSL_VERSION_MINOR_ "${GSL_FULL_VERSION}")
+      SET(GSL_VERSION_MINOR ${CMAKE_MATCH_1})
 
       # split off the link dirs (for rpath)
       # use regular expression to match wildcard equivalent "-L*<endchar>"

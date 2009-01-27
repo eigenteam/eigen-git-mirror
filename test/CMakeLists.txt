@@ -1,5 +1,8 @@
 
 find_package(GSL)
+if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
+  set(GSL_FOUND "")
+endif(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
 if(GSL_FOUND)
   add_definitions("-DHAS_GSL" ${GSL_DEFINITIONS})
   include_directories(${GSL_INCLUDE_DIR})
