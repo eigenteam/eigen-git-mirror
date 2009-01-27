@@ -327,18 +327,21 @@ template<typename Derived> class SparseMatrixBase
     // void transposeInPlace();
     const AdjointReturnType adjoint() const { return conjugate()/*.nestByValue()*/; }
 
-    SparseInnerVector<Derived> row(int i);
-    const SparseInnerVector<Derived> row(int i) const;
-    SparseInnerVector<Derived> col(int j);
-    const SparseInnerVector<Derived> col(int j) const;
-    SparseInnerVector<Derived> innerVector(int outer);
-    const SparseInnerVector<Derived> innerVector(int outer) const;
-
-//     RowXpr row(int i);
-//     const RowXpr row(int i) const;
-
-//     ColXpr col(int i);
-//     const ColXpr col(int i) const;
+    // sub-vector
+    SparseInnerVectorSet<Derived,1> row(int i);
+    const SparseInnerVectorSet<Derived,1> row(int i) const;
+    SparseInnerVectorSet<Derived,1> col(int j);
+    const SparseInnerVectorSet<Derived,1> col(int j) const;
+    SparseInnerVectorSet<Derived,1> innerVector(int outer);
+    const SparseInnerVectorSet<Derived,1> innerVector(int outer) const;
+    
+    // set of sub-vectors
+    SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size);
+    const SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size) const;
+    SparseInnerVectorSet<Derived,Dynamic> subcols(int start, int size);
+    const SparseInnerVectorSet<Derived,Dynamic> subcols(int start, int size) const;
+    SparseInnerVectorSet<Derived,Dynamic> innerVectors(int outerStart, int outerSize);
+    const SparseInnerVectorSet<Derived,Dynamic> innerVectors(int outerStart, int outerSize) const;
 
 //     typename BlockReturnType<Derived>::Type block(int startRow, int startCol, int blockRows, int blockCols);
 //     const typename BlockReturnType<Derived>::Type

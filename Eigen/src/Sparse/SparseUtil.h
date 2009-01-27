@@ -107,7 +107,7 @@ template<typename _Scalar, int _Flags = 0> class SparseVector;
 template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
 template<typename MatrixType>                            class SparseTranspose;
-template<typename MatrixType>                            class SparseInnerVector;
+template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
 template<typename Derived>                               class SparseCwise;
 template<typename UnaryOp,   typename MatrixType>        class SparseCwiseUnaryOp;
 template<typename BinaryOp,  typename Lhs, typename Rhs> class SparseCwiseBinaryOp;

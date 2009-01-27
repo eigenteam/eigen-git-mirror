@@ -83,6 +83,9 @@ class DynamicSparseMatrix
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_data.size(); }
     inline int innerNonZeros(int j) const { return m_data[j].size(); }
+    
+    std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
+    const std::vector<CompressedStorage<Scalar> >& _data() const { return m_data; }
 
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.

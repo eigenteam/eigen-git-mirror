@@ -254,6 +254,24 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     int j1 = ei_random(0,rows-1);
     VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
     VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
+    //m2.innerVector(j0) = 2*m2.innerVector(j1);
+    //refMat2.col(j0) = 2*refMat2.col(j1);
+    //VERIFY_IS_APPROX(m2, refMat2);
+  }
+  
+  // test innerVectors()
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    int j0 = ei_random(0,rows-2);
+    int j1 = ei_random(0,rows-2);
+    int n0 = ei_random<int>(1,rows-std::max(j0,j1));
+    VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
+    VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
+                     refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
+    //m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
+    //refMat2.block(0,j0,rows,n0) = refMat2.block(0,j0,rows,n0) + refMat2.block(0,j1,rows,n0);
   }
 
   // test transpose

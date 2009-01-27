@@ -59,6 +59,7 @@ class SparseVector
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
+//     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, =)
 
   protected:
   public:
@@ -68,6 +69,9 @@ class SparseVector
 
     CompressedStorage<Scalar> m_data;
     int m_size;
+    
+    CompressedStorage<Scalar>& _data() { return m_data; }
+    CompressedStorage<Scalar>& _data() const { return m_data; }
 
   public:
 
@@ -198,6 +202,13 @@ class SparseVector
     {
       *this = other.derived();
     }
+    
+    template<typename OtherDerived>
+    inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
+      : m_size(0)
+    {
+      *this = other.derived();
+    }
 
     inline SparseVector(const SparseVector& other)
       : m_size(0)
@@ -225,9 +236,12 @@ class SparseVector
       return *this;
     }
 
-//     template<typename OtherDerived>
-//     inline SparseVector& operator=(const MatrixBase<OtherDerived>& other)
-//     {
+    template<typename OtherDerived>
+    inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
+    {
+      return Base::operator=(other);
+    }
+    
 //       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
 //       if (needToTranspose)
 //       {

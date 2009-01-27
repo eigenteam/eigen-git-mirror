@@ -86,6 +86,8 @@ class SparseCwiseBinaryOp : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE SparseCwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
+      EIGEN_STATIC_ASSERT((_LhsNested::Flags&RowMajorBit)==(_RhsNested::Flags&RowMajorBit),
+        BOTH_MATRICES_MUST_HAVE_THE_SAME_STORAGE_ORDER)
       EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
                            ? int(ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret)
                            : int(ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)),
