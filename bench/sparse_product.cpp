@@ -7,8 +7,8 @@
 #define SIZE 10000
 #endif
 
-#ifndef DENSITY
-#define DENSITY 0.01
+#ifndef NNZPERCOL
+#define NNZPERCOL 2
 #endif
 
 #ifndef REPEAT
@@ -17,12 +17,8 @@
 
 #include "BenchSparseUtil.h"
 
-#ifndef MINDENSITY
-#define MINDENSITY 0.0004
-#endif
-
 #ifndef NBTRIES
-#define NBTRIES 10
+#define NBTRIES 1
 #endif
 
 #define BENCH(X) \
@@ -58,15 +54,15 @@ int main(int argc, char *argv[])
   EigenSparseMatrix sm1(rows,cols), sm2(rows,cols), sm3(rows,cols), sm4(rows,cols);
 
   BenchTimer timer;
-  for (float density = DENSITY; density>=MINDENSITY; density*=0.5)
+  for (int nnzPerCol = NNZPERCOL; nnzPerCol>1; nnzPerCol/=2)
   {
-    fillMatrix(density, rows, cols, sm1);
-    fillMatrix(density, rows, cols, sm2);
+    fillMatrix2(nnzPerCol, rows, cols, sm1);
+    fillMatrix2(nnzPerCol, rows, cols, sm2);
 
     // dense matrices
     #ifdef DENSEMATRIX
     {
-      std::cout << "Eigen Dense\t" << density*100 << "%\n";
+      std::cout << "Eigen Dense\t" << nnzPerCol << "%\n";
       DenseMatrix m1(rows,cols), m2(rows,cols), m3(rows,cols);
       eiToDense(sm1, m1);
       eiToDense(sm2, m2);
@@ -103,8 +99,8 @@ int main(int argc, char *argv[])
 
     // eigen sparse matrices
     {
-      std::cout << "Eigen sparse\t" << sm1.nonZeros()/float(sm1.rows()*sm1.cols())*100 << "% * "
-                << sm2.nonZeros()/float(sm2.rows()*sm2.cols())*100 << "%\n";
+      std::cout << "Eigen sparse\t" << sm1.nonZeros()/(float(sm1.rows())*float(sm1.cols()))*100 << "% * "
+                << sm2.nonZeros()/(float(sm2.rows())*float(sm2.cols()))*100 << "%\n";
 
 //       timer.reset();
 //       timer.start();
@@ -137,12 +133,12 @@ int main(int argc, char *argv[])
 //       timer.stop();
       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
-    
+
     // eigen dyn-sparse matrices
     {
       DynamicSparseMatrix<Scalar> m1(sm1), m2(sm2), m3(sm3);
-      std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/float(m1.rows()*m1.cols())*100 << "% * "
-                << m2.nonZeros()/float(m2.rows()*m2.cols())*100 << "%\n";
+      std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/(float(m1.rows())*float(m1.cols()))*100 << "% * "
+                << m2.nonZeros()/(float(m2.rows())*float(m2.cols()))*100 << "%\n";
 
 //       timer.reset();
 //       timer.start();
@@ -179,7 +175,7 @@ int main(int argc, char *argv[])
     // CSparse
     #ifdef CSPARSE
     {
-      std::cout << "CSparse \t" << density*100 << "%\n";
+      std::cout << "CSparse \t" << nnzPerCol << "%\n";
       cs *m1, *m2, *m3;
       eiToCSparse(sm1, m1);
       eiToCSparse(sm2, m2);
@@ -205,7 +201,7 @@ int main(int argc, char *argv[])
     // GMM++
     #ifndef NOGMM
     {
-      std::cout << "GMM++ sparse\t" << density*100 << "%\n";
+      std::cout << "GMM++ sparse\t" << nnzPerCol << "%\n";
       GmmDynSparse  gmmT3(rows,cols);
       GmmSparse m1(rows,cols), m2(rows,cols), m3(rows,cols);
       eiToGmm(sm1, m1);
@@ -252,7 +248,7 @@ int main(int argc, char *argv[])
     // MTL4
     #ifndef NOMTL
     {
-      std::cout << "MTL4\t" << density*100 << "%\n";
+      std::cout << "MTL4\t" << nnzPerCol << "%\n";
       MtlSparse m1(rows,cols), m2(rows,cols), m3(rows,cols);
       eiToMtl(sm1, m1);
       eiToMtl(sm2, m2);

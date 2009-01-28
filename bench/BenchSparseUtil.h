@@ -2,6 +2,7 @@
 #include <Eigen/Array>
 #include <Eigen/Sparse>
 #include <bench/BenchTimer.h>
+#include <set>
 
 using namespace std;
 using namespace Eigen;
@@ -33,7 +34,27 @@ void fillMatrix(float density, int rows, int cols,  EigenSparseMatrix& dst)
     {
       Scalar v = (ei_random<float>(0,1) < density) ? ei_random<Scalar>() : 0;
       if (v!=0)
-        dst.fill(i,j) = v;
+        dst.fillrand(i,j) = v;
+    }
+  }
+  dst.endFill();
+}
+
+void fillMatrix2(int nnzPerCol, int rows, int cols,  EigenSparseMatrix& dst)
+{
+  std::cout << "alloc " << nnzPerCol*cols << "\n";
+  dst.startFill(nnzPerCol*cols);
+  for(int j = 0; j < cols; j++)
+  {
+    std::set<int> aux;
+    for(int i = 0; i < nnzPerCol; i++)
+    {
+      int k = ei_random<int>(0,rows-1);
+      while (aux.find(k)!=aux.end())
+        k = ei_random<int>(0,rows-1);
+      aux.insert(k);
+
+      dst.fillrand(k,j) = ei_random<Scalar>();
     }
   }
   dst.endFill();
