@@ -105,7 +105,7 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
 
     CoeffReadCost = Dynamic
   };
-  
+
   typedef typename ei_meta_if<ResultIsSparse,
     SparseMatrixBase<SparseProduct<LhsNested, RhsNested, ProductMode> >,
     MatrixBase<SparseProduct<LhsNested, RhsNested, ProductMode> > >::ret Base;
@@ -130,7 +130,7 @@ class SparseProduct : ei_no_assignment_operator, public ei_traits<SparseProduct<
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows());
-      
+
       enum {
         ProductIsValid = _LhsNested::ColsAtCompileTime==Dynamic
                       || _RhsNested::RowsAtCompileTime==Dynamic
@@ -182,7 +182,7 @@ struct ei_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
     AmbiVector<Scalar> tempVector(rows);
 
     // estimate the number of non zero entries
-    float ratioLhs = float(lhs.nonZeros())/float(lhs.rows()*lhs.cols());
+    float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
     float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
     float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
