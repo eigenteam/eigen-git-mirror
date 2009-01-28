@@ -59,9 +59,19 @@ class RotationBase
     inline Transform<Scalar,Dim> operator*(const Translation<Scalar,Dim>& t) const
     { return toRotationMatrix() * t; }
 
-    /** \returns the concatenation of the rotation \c *this with a scaling \a s */
-    inline RotationMatrixType operator*(const Scaling<Scalar,Dim>& s) const
-    { return toRotationMatrix() * s; }
+    /** \returns the concatenation of the rotation \c *this with a uniform scaling \a s */
+    inline RotationMatrixType operator*(const UniformScaling<Scalar>& s) const
+    { return toRotationMatrix() * s.factor(); }
+    
+    /** \returns the concatenation of the rotation \c *this with a linear transformation \a l */
+    template<typename OtherDerived>
+    inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l) const
+    { return toRotationMatrix() * l.derived(); }
+    
+    /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
+    template<typename OtherDerived> friend
+    inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l, const Derived& r)
+    { return l.derived() * r.toRotationMatrix(); }
 
     /** \returns the concatenation of the rotation \c *this with an affine transformation \a t */
     inline Transform<Scalar,Dim> operator*(const Transform<Scalar,Dim>& t) const

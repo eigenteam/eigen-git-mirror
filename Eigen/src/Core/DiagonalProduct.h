@@ -30,9 +30,9 @@
  *  Unlike ei_nested, if the argument is a DiagonalMatrix and if it must be evaluated,
  *  then it evaluated to a DiagonalMatrix having its own argument evaluated.
  */
-template<typename T, int N> struct ei_nested_diagonal : ei_nested<T,N> {};
-template<typename T, int N> struct ei_nested_diagonal<DiagonalMatrix<T>,N >
- : ei_nested<DiagonalMatrix<T>, N, DiagonalMatrix<NestByValue<typename ei_plain_matrix_type<T>::type> > >
+template<typename T, int N, bool IsDiagonal = (T::Flags&Diagonal)==Diagonal> struct ei_nested_diagonal : ei_nested<T,N> {};
+template<typename T, int N> struct ei_nested_diagonal<T,N,true>
+ : ei_nested<T, N, DiagonalMatrix<typename T::Scalar, EIGEN_ENUM_MIN(T::RowsAtCompileTime,T::ColsAtCompileTime)> >
 {};
 
 // specialization of ProductReturnType

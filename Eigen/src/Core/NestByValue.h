@@ -97,6 +97,8 @@ template<typename ExpressionType> class NestByValue
     {
       m_expression.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
+    
+    operator const ExpressionType&() const { return m_expression; }
 
   protected:
     const ExpressionType m_expression;

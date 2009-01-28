@@ -41,7 +41,14 @@ template< typename Other,
           int HDim,
           int OtherRows=Other::RowsAtCompileTime,
           int OtherCols=Other::ColsAtCompileTime>
-struct ei_transform_product_impl;
+struct ei_transform_right_product_impl;
+
+template< typename Other,
+          int Dim,
+          int HDim,
+          int OtherRows=Other::RowsAtCompileTime,
+          int OtherCols=Other::ColsAtCompileTime>
+struct ei_transform_left_product_impl;
 
 /** \geometry_module \ingroup GeometryModule
   *
@@ -83,8 +90,6 @@ public:
   typedef Block<MatrixType,Dim,1> TranslationPart;
   /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
-  /** corresponding scaling transformation type */
-  typedef Scaling<Scalar,Dim> ScalingType;
 
 protected:
 
@@ -104,7 +109,7 @@ public:
   }
 
   inline explicit Transform(const TranslationType& t) { *this = t; }
-  inline explicit Transform(const ScalingType& s) { *this = s; }
+  inline explicit Transform(const UniformScaling<Scalar>& s) { *this = s; }
   template<typename Derived>
   inline explicit Transform(const RotationBase<Derived, Dim>& r) { *this = r; }
 
@@ -138,10 +143,13 @@ public:
     construct_from_matrix<OtherDerived, int(OtherDerived::RowsAtCompileTime) == Dim>::run(this, other);
   }
 
-  /** Set \c *this from a (Dim+1)^2 matrix. */
+  /** Set \c *this from a Dim^2 or (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline Transform& operator=(const MatrixBase<OtherDerived>& other)
-  { m_matrix = other; return *this; }
+  {
+    construct_from_matrix<OtherDerived, int(OtherDerived::RowsAtCompileTime) == Dim>::run(this, other);
+    return *this;
+  }
 
   #ifdef EIGEN_QT_SUPPORT
   inline Transform(const QMatrix& other);
@@ -175,24 +183,32 @@ public:
   inline TranslationPart translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
   /** \returns an expression of the product between the transform \c *this and a matrix expression \a other
-  *
-  * The right hand side \a other might be either:
-  * \li a vector of size Dim,
-  * \li an homogeneous vector of size Dim+1,
-  * \li a transformation matrix of size Dim+1 x Dim+1.
-  */
+    *
+    * The right hand side \a other might be either:
+    * \li a vector of size Dim,
+    * \li an homogeneous vector of size Dim+1,
+    * \li a linear transformation matrix of size Dim x Dim
+    * \li a transformation matrix of size Dim+1 x Dim+1.
+    */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  inline const typename ei_transform_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
+  inline const typename ei_transform_right_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
   operator * (const MatrixBase<OtherDerived> &other) const
-  { return ei_transform_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
+  { return ei_transform_right_product_impl<OtherDerived,Dim,HDim>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
-    * The transformation matrix \a a must have a Dim+1 x Dim+1 sizes. */
-  template<typename OtherDerived>
-  friend inline const typename ProductReturnType<OtherDerived,MatrixType>::Type
+    *
+    * The right hand side \a other might be either:
+    * \li a linear transformation matrix of size Dim x Dim
+    * \li a transformation matrix of size Dim+1 x Dim+1.
+    */
+  template<typename OtherDerived> friend
+  inline const typename ei_transform_left_product_impl<OtherDerived,_Dim,_Dim+1>::ResultType
   operator * (const MatrixBase<OtherDerived> &a, const Transform &b)
-  { return a.derived() * b.matrix(); }
+  { return ei_transform_left_product_impl<OtherDerived,Dim,HDim>::run(a.derived(),b); }
+  
+  template<typename OtherDerived>
+  inline Transform& operator*=(const MatrixBase<OtherDerived>& other) { return *this = *this * other; }
 
   /** Contatenates two transformations */
   inline const Transform
@@ -230,16 +246,17 @@ public:
   inline Transform& operator*=(const TranslationType& t) { return translate(t.vector()); }
   inline Transform operator*(const TranslationType& t) const;
 
-  inline Transform& operator=(const ScalingType& t);
-  inline Transform& operator*=(const ScalingType& s) { return scale(s.coeffs()); }
-  inline Transform operator*(const ScalingType& s) const;
-  friend inline Transform operator*(const LinearMatrixType& mat, const Transform& t)
-  {
-    Transform res = t;
-    res.matrix().row(Dim) = t.matrix().row(Dim);
-    res.matrix().template block<Dim,HDim>(0,0) = (mat * t.matrix().template block<Dim,HDim>(0,0)).lazy();
-    return res;
-  }
+  inline Transform& operator=(const UniformScaling<Scalar>& t);
+  inline Transform& operator*=(const UniformScaling<Scalar>& s) { return scale(s.factor()); }
+  inline Transform operator*(const UniformScaling<Scalar>& s) const;
+  
+//   friend inline Transform operator*(const LinearMatrixType& mat, const Transform& t)
+//   {
+//     Transform res = t;
+//     res.matrix().row(Dim) = t.matrix().row(Dim);
+//     res.matrix().template block<Dim,HDim>(0,0) = (mat * t.matrix().template block<Dim,HDim>(0,0)).lazy();
+//     return res;
+//   }
 
   template<typename Derived>
   inline Transform& operator=(const RotationBase<Derived,Dim>& r);
@@ -558,19 +575,19 @@ inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const TranslationT
 }
 
 template<typename Scalar, int Dim>
-inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const ScalingType& s)
+inline Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const UniformScaling<Scalar>& s)
 {
   m_matrix.setZero();
-  linear().diagonal() = s.coeffs();
+  linear().diagonal().fill(s.factor());
   m_matrix.coeffRef(Dim,Dim) = Scalar(1);
   return *this;
 }
 
 template<typename Scalar, int Dim>
-inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const ScalingType& s) const
+inline Transform<Scalar,Dim> Transform<Scalar,Dim>::operator*(const UniformScaling<Scalar>& s) const
 {
   Transform res = *this;
-  res.scale(s.coeffs());
+  res.scale(s.factor());
   return res;
 }
 
@@ -722,8 +739,9 @@ Transform<Scalar,Dim>::inverse(TransformTraits traits) const
 *** Specializations of operator* with a MatrixBase ***
 *****************************************************/
 
+// T * affine matrix
 template<typename Other, int Dim, int HDim>
-struct ei_transform_product_impl<Other,Dim,HDim, HDim,HDim>
+struct ei_transform_right_product_impl<Other,Dim,HDim, HDim,HDim>
 {
   typedef Transform<typename Other::Scalar,Dim> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -732,8 +750,9 @@ struct ei_transform_product_impl<Other,Dim,HDim, HDim,HDim>
   { return tr.matrix() * other; }
 };
 
+// T * linear matrix
 template<typename Other, int Dim, int HDim>
-struct ei_transform_product_impl<Other,Dim,HDim, Dim,Dim>
+struct ei_transform_right_product_impl<Other,Dim,HDim, Dim,Dim>
 {
   typedef Transform<typename Other::Scalar,Dim> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -748,8 +767,9 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,Dim>
   }
 };
 
+// T * homogeneous vector
 template<typename Other, int Dim, int HDim>
-struct ei_transform_product_impl<Other,Dim,HDim, HDim,1>
+struct ei_transform_right_product_impl<Other,Dim,HDim, HDim,1>
 {
   typedef Transform<typename Other::Scalar,Dim> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -758,8 +778,9 @@ struct ei_transform_product_impl<Other,Dim,HDim, HDim,1>
   { return tr.matrix() * other; }
 };
 
+// T * vector
 template<typename Other, int Dim, int HDim>
-struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
+struct ei_transform_right_product_impl<Other,Dim,HDim, Dim,1>
 {
   typedef typename Other::Scalar Scalar;
   typedef Transform<Scalar,Dim> TransformType;
@@ -775,6 +796,33 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
   static ResultType run(const TransformType& tr, const Other& other)
   { return ((tr.linear().nestByValue() * other).nestByValue() + tr.translation().nestByValue()).nestByValue()
           * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
+};
+
+// affine matrix * T
+template<typename Other, int Dim, int HDim>
+struct ei_transform_left_product_impl<Other,Dim,HDim, HDim,HDim>
+{
+  typedef Transform<typename Other::Scalar,Dim> TransformType;
+  typedef typename TransformType::MatrixType MatrixType;
+  typedef typename ProductReturnType<MatrixType,Other>::Type ResultType;
+  static ResultType run(const Other& other,const TransformType& tr)
+  { return other * tr.matrix(); }
+};
+
+// linear matrix * T
+template<typename Other, int Dim, int HDim>
+struct ei_transform_left_product_impl<Other,Dim,HDim, Dim,Dim>
+{
+  typedef Transform<typename Other::Scalar,Dim> TransformType;
+  typedef typename TransformType::MatrixType MatrixType;
+  typedef TransformType ResultType;
+  static ResultType run(const Other& other, const TransformType& tr)
+  {
+    TransformType res;
+    res.matrix().row(Dim) = tr.matrix().row(Dim);
+    res.matrix().template corner<Dim,HDim>(TopLeft) = (other * tr.matrix().template corner<Dim,HDim>(TopLeft)).lazy();
+    return res;
+  }
 };
 
 #endif // EIGEN_TRANSFORM_H

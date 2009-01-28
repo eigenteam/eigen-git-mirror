@@ -193,8 +193,7 @@ public:
 
   Quaternion slerp(Scalar t, const Quaternion& other) const;
 
-  template<typename Derived>
-  Vector3 operator* (const MatrixBase<Derived>& vec) const;
+  Vector3 operator* (const Vector3& vec) const;
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -256,17 +255,15 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator*= (const Quaternion& oth
   *   - Via a Matrix3: 24 + 15n
   */
 template <typename Scalar>
-template<typename Derived>
 inline typename Quaternion<Scalar>::Vector3
-Quaternion<Scalar>::operator* (const MatrixBase<Derived>& v) const
+Quaternion<Scalar>::operator* (const Vector3& v) const
 {
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.
     // It appears to be much faster than the common algorithm found
     // in the litterature (30 versus 39 flops). It also requires two
     // Vector3 as temporaries.
-    Vector3 uv;
-    uv = 2 * this->vec().cross(v);
+    Vector3 uv = Scalar(2) * this->vec().cross(v);
     return v + this->w() * uv + this->vec().cross(uv);
 }
 

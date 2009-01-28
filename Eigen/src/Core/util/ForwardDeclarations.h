@@ -45,7 +45,9 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename Lhs, typename Rhs, int ProductMode> class Product;
-template<typename CoeffsVectorType> class DiagonalMatrix;
+template<typename CoeffsVectorType, typename Derived> class DiagonalMatrixBase;
+template<typename CoeffsVectorType> class DiagonalMatrixWrapper;
+template<typename _Scalar, int _Size> class DiagonalMatrix;
 template<typename MatrixType> class DiagonalCoeffs;
 template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename MatrixType, unsigned int Mode> class Part;
@@ -117,7 +119,7 @@ template<typename Scalar,int Dim> class Transform;
 template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar,int Dim> class Translation;
-template<typename Scalar,int Dim> class Scaling;
+template<typename Scalar> class UniformScaling;
 
 // Sparse module:
 template<typename Lhs, typename Rhs, int ProductMode> class SparseProduct;

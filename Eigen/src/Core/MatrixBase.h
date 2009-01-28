@@ -443,7 +443,7 @@ template<typename Derived> class MatrixBase
     static const BasisReturnType UnitZ();
     static const BasisReturnType UnitW();
 
-    const DiagonalMatrix<Derived> asDiagonal() const;
+    const DiagonalMatrixWrapper<Derived> asDiagonal() const;
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
