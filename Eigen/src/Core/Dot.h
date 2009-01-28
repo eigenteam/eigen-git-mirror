@@ -292,6 +292,18 @@ inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<
   return ei_sqrt(squaredNorm());
 }
 
+/** \returns the \em l2 norm of \c *this using a numerically more stable
+  * algorithm.
+  *
+  * \sa norm(), dot(), squaredNorm()
+  */
+template<typename Derived>
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
+MatrixBase<Derived>::stableNorm() const
+{
+  return this->cwise().abs().redux(ei_scalar_hypot_op<RealScalar>());
+}
+
 /** \returns an expression of the quotient of *this by its own norm.
   *
   * \only_for_vectors

@@ -351,6 +351,7 @@ template<typename Derived> class MatrixBase
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
     RealScalar norm()  const;
+    RealScalar stableNorm()  const;
     const PlainMatrixType normalized() const;
     void normalize();
 
