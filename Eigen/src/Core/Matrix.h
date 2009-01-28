@@ -463,6 +463,12 @@ class Matrix
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE void _resize_to_match(const MatrixBase<OtherDerived>& other)
     {
+      #ifdef EIGEN_NO_AUTOMATIC_RESIZING
+      ei_assert((this->size()==0 || (IsVectorAtCompileTime ? (this->size() == other.size())
+                 : (rows() == other.rows() && cols() == other.cols())))
+        && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
+      #endif
+
       if(RowsAtCompileTime == 1)
       {
         ei_assert(other.isVector());
