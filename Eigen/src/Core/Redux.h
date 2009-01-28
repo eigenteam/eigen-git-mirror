@@ -92,7 +92,8 @@ MatrixBase<Derived>::redux(const BinaryOp& func) const
   const bool unroll = SizeAtCompileTime * CoeffReadCost
                     + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
                     <= EIGEN_UNROLLING_LIMIT;
-  return ei_redux_impl<BinaryOp, Derived, 0, unroll ? int(SizeAtCompileTime) : Dynamic>
+  typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
+  return ei_redux_impl<BinaryOp, ThisNested, 0, unroll ? int(SizeAtCompileTime) : Dynamic>
             ::run(derived(), func);
 }
 

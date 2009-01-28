@@ -252,7 +252,8 @@ template<typename Derived>
 inline typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::sum() const
 {
-  return ei_sum_impl<Derived>::run(derived());
+  typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
+  return ei_sum_impl<ThisNested>::run(derived());
 }
 
 /** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.

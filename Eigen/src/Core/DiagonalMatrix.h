@@ -38,6 +38,27 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
 
   protected:
     typedef typename ei_cleantype<CoeffsVectorType>::type _CoeffsVectorType;
+    
+    template<typename OtherDerived,
+      bool IsVector = OtherDerived::IsVectorAtCompileTime,
+      bool IsDiagonal = (OtherDerived::Flags&Diagonal)==Diagonal>
+    struct construct_from_expression;
+
+    // = vector
+    template<typename OtherDerived>
+    struct construct_from_expression<OtherDerived,true,false>
+    {
+      static void run(Derived& dst, const OtherDerived& src)
+      { dst.diagonal() = src; }
+    };
+
+    // = diagonal expression
+    template<typename OtherDerived, bool IsVector>
+    struct construct_from_expression<OtherDerived,IsVector,true>
+    {
+      static void run(Derived& dst, const OtherDerived& src)
+      { dst.diagonal() = src.diagonal(); }
+    };
 
     /** Default constructor without initialization */
     inline DiagonalMatrixBase() {}
@@ -50,27 +71,6 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
       construct_from_expression<OtherDerived>::run(derived(),other.derived());
     }
 
-    template<typename OtherDerived,
-      bool IsVector = OtherDerived::IsVectorAtCompileTime,
-      bool IsDiagonal = (OtherDerived::Flags&Diagonal)==Diagonal>
-    struct construct_from_expression;
-
-    // = vector
-    template<typename OtherDerived>
-    struct construct_from_expression<OtherDerived,true,false>
-    {
-      static void run(Derived& dst, const OtherDerived& src)
-      { dst.m_coeffs = src; }
-    };
-
-    // = diagonal
-    template<typename OtherDerived, bool IsVector>
-    struct construct_from_expression<OtherDerived,IsVector,true>
-    {
-      static void run(Derived& dst, const OtherDerived& src)
-      { dst.m_coeffs = src.diagonal(); }
-    };
-
   public:
 
     inline DiagonalMatrixBase(const _CoeffsVectorType& coeffs) : m_coeffs(coeffs)
@@ -78,21 +78,6 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(_CoeffsVectorType);
       ei_assert(coeffs.size() > 0);
     }
-
-    template<typename OtherDerived, bool IsVector=OtherDerived::IsVectorAtCompileTime>
-    struct ei_diagonal_product_ctor {
-      static void run(DiagonalMatrixBase& dst, const OtherDerived& src)
-      { dst.m_coeffs = src; }
-    };
-
-    template<typename OtherDerived>
-    struct ei_diagonal_product_ctor<OtherDerived,false> {
-      static void run(DiagonalMatrixBase& dst, const OtherDerived& src)
-      {
-        EIGEN_STATIC_ASSERT((OtherDerived::Flags&Diagonal)==Diagonal, THIS_METHOD_IS_ONLY_FOR_DIAGONAL_MATRIX);
-        dst.m_coeffs = src.diagonal();
-      }
-    };
 
     template<typename NewType>
     inline DiagonalMatrixWrapper<NestByValue<CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, _CoeffsVectorType> > > cast() const
