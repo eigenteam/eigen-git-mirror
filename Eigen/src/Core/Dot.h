@@ -266,7 +266,10 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
   ei_assert(size() == other.size());
 
-  return ei_dot_impl<Derived, OtherDerived>::run(derived(), other.derived());
+  // dot() must honor EvalBeforeNestingBit (eg: v.dot(M*v) )
+  typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
+  typedef typename ei_cleantype<typename OtherDerived::Nested>::type OtherNested;
+  return ei_dot_impl<ThisNested, OtherNested>::run(derived(), other.derived());
 }
 
 /** \returns the squared \em l2 norm of *this, i.e., for vectors, the dot product of *this with itself.
