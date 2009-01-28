@@ -435,8 +435,13 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
     {
       /* explicit vectorization */
       // process initial unaligned coeffs
-      for (int j=0; j<alignedStart; ++j)
-        res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
+      for (int j=0; j<alignedStart; ++j) {
+        Scalar s = ei_pfirst(ptmp0)*lhs0[j];
+        s += ei_pfirst(ptmp1)*lhs1[j]; 
+        s += ei_pfirst(ptmp2)*lhs2[j];
+        s += ei_pfirst(ptmp3)*lhs3[j];
+        res[j] += s;
+      }
 
       if (alignedSize>alignedStart)
       {
