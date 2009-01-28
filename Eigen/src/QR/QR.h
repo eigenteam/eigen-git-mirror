@@ -62,7 +62,7 @@ template<typename MatrixType> class QR
       * \note Since the rank is computed only once, i.e. the first time it is needed, this
       *       method almost does not perform any further computation.
       */
-    bool isFullRank() const EIGEN_DEPRECATED { return rank() == m_qr.cols(); }
+    EIGEN_DEPRECATED bool isFullRank() const { return rank() == m_qr.cols(); }
     
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
