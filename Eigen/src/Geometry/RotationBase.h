@@ -42,10 +42,31 @@ class RotationBase
     enum { Dim = _Dim };
     /** the scalar type of the coefficients */
     typedef typename ei_traits<Derived>::Scalar Scalar;
-    
+
     /** corresponding linear transformation matrix type */
     typedef Matrix<Scalar,Dim,Dim> RotationMatrixType;
+    typedef Matrix<Scalar,Dim,1> VectorType;
 
+  protected:
+    template<typename MatrixType, bool IsVector=MatrixType::IsVectorAtCompileTime>
+    struct generic_product_selector
+    {
+      typedef RotationMatrixType ReturnType;
+      inline static RotationMatrixType run(const Derived& r, const MatrixType& m)
+      { return r.toRotationMatrix() * m; }
+    };
+
+    template<typename OtherVectorType>
+    struct generic_product_selector<OtherVectorType,true>
+    {
+      typedef VectorType ReturnType;
+      inline static VectorType run(const Derived& r, const OtherVectorType& v)
+      {
+        return r._transformVector(v);
+      }
+    };
+
+  public:
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
     inline Derived& derived() { return *static_cast<Derived*>(this); }
 
@@ -62,12 +83,17 @@ class RotationBase
     /** \returns the concatenation of the rotation \c *this with a uniform scaling \a s */
     inline RotationMatrixType operator*(const UniformScaling<Scalar>& s) const
     { return toRotationMatrix() * s.factor(); }
-    
-    /** \returns the concatenation of the rotation \c *this with a linear transformation \a l */
+
+    /** \returns the concatenation of the rotation \c *this with a generic expression \a e
+      * \a e can be:
+      *  - a DimxDim linear transformation matrix (including an axis aligned scaling)
+      *  - a vector of size Dim
+      */
     template<typename OtherDerived>
-    inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l) const
-    { return toRotationMatrix() * l.derived(); }
-    
+    inline typename generic_product_selector<OtherDerived>::ReturnType
+    operator*(const MatrixBase<OtherDerived>& e) const
+    { return generic_product_selector<OtherDerived>::run(derived(), e.derived()); }
+
     /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
     template<typename OtherDerived> friend
     inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l, const Derived& r)
@@ -76,6 +102,10 @@ class RotationBase
     /** \returns the concatenation of the rotation \c *this with an affine transformation \a t */
     inline Transform<Scalar,Dim> operator*(const Transform<Scalar,Dim>& t) const
     { return toRotationMatrix() * t; }
+
+    template<typename OtherVectorType>
+    inline VectorType _transformVector(const OtherVectorType& v) const
+    { return toRotationMatrix() * v; }
 };
 
 /** \geometry_module

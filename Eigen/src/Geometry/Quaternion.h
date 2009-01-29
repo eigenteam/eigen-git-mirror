@@ -61,12 +61,14 @@ template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
-  
+
+
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,4)
 
   using Base::operator*;
-  
+
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
 
@@ -193,8 +195,6 @@ public:
 
   Quaternion slerp(Scalar t, const Quaternion& other) const;
 
-  Vector3 operator* (const Vector3& vec) const;
-
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
     * Note that if \a NewScalarType is equal to the current scalar type of \c *this
@@ -216,7 +216,9 @@ public:
   bool isApprox(const Quaternion& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
-protected: 
+  Vector3 _transformVector(Vector3 v) const;
+
+protected:
   Coefficients m_coeffs;
 };
 
@@ -256,7 +258,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator*= (const Quaternion& oth
   */
 template <typename Scalar>
 inline typename Quaternion<Scalar>::Vector3
-Quaternion<Scalar>::operator* (const Vector3& v) const
+Quaternion<Scalar>::_transformVector(Vector3 v) const
 {
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.

@@ -109,18 +109,6 @@ public:
   friend inline QuaternionType operator* (const QuaternionType& a, const AngleAxis& b)
   { return a * QuaternionType(b); }
 
-  /** Concatenates two rotations */
-  inline Matrix3 operator* (const Matrix3& other) const
-  { return toRotationMatrix() * other; }
-
-  /** Concatenates two rotations */
-  inline friend Matrix3 operator* (const Matrix3& a, const AngleAxis& b)
-  { return a * b.toRotationMatrix(); }
-
-  /** Applies rotation to vector */
-  inline Vector3 operator* (const Vector3& other) const
-  { return toRotationMatrix() * other; }
-
   /** \returns the inverse rotation, i.e., an angle-axis with opposite rotation angle */
   AngleAxis inverse() const
   { return AngleAxis(-m_angle, m_axis); }
