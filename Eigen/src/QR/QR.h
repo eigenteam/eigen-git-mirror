@@ -185,6 +185,7 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
   m_qr = matrix;
   int rows = matrix.rows();
   int cols = matrix.cols();
+  RealScalar eps2 = precision<RealScalar>()*precision<RealScalar>();
 
   for (int k = 0; k < cols; ++k)
   {
@@ -209,7 +210,8 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
         m_hCoeffs.coeffRef(k) = 0;
       }
     }
-    else if ( (!ei_isMuchSmallerThan(beta=m_qr.col(k).end(remainingSize-1).squaredNorm(),static_cast<Scalar>(1))) ) // FIXME what about ei_imag(v0) ??
+    else if ((beta=m_qr.col(k).end(remainingSize-1).squaredNorm())>eps2)
+    // FIXME what about ei_imag(v0) ??
     {
       // form k-th Householder vector
       beta = ei_sqrt(ei_abs2(v0)+beta);
