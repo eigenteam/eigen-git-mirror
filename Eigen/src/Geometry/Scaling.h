@@ -25,7 +25,7 @@
 #ifndef EIGEN_SCALING_H
 #define EIGEN_SCALING_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Scaling
   *
@@ -144,7 +144,7 @@ template<typename Derived>
 const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
-/** \addtogroup GeometryModule */
+/** \addtogroup Geometry_Module */
 //@{
 /** \deprecated */
 typedef DiagonalMatrix<float, 2> AlignedScaling2f;

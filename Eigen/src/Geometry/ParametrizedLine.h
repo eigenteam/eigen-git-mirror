@@ -26,7 +26,7 @@
 #ifndef EIGEN_PARAMETRIZEDLINE_H
 #define EIGEN_PARAMETRIZEDLINE_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class ParametrizedLine
   *

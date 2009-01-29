@@ -25,7 +25,7 @@
 #ifndef EIGEN_ROTATION2D_H
 #define EIGEN_ROTATION2D_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Rotation2D
   *
@@ -125,10 +125,10 @@ public:
   { return ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
-/** \ingroup GeometryModule
+/** \ingroup Geometry_Module
   * single precision 2D rotation type */
 typedef Rotation2D<float> Rotation2Df;
-/** \ingroup GeometryModule
+/** \ingroup Geometry_Module
   * double precision 2D rotation type */
 typedef Rotation2D<double> Rotation2Dd;
 

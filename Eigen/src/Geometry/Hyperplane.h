@@ -26,7 +26,7 @@
 #ifndef EIGEN_HYPERPLANE_H
 #define EIGEN_HYPERPLANE_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Hyperplane
   *

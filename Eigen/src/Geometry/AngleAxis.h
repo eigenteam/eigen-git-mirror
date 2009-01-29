@@ -25,7 +25,7 @@
 #ifndef EIGEN_ANGLEAXIS_H
 #define EIGEN_ANGLEAXIS_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class AngleAxis
   *
@@ -146,10 +146,10 @@ public:
   { return m_axis.isApprox(other.m_axis, prec) && ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
-/** \ingroup GeometryModule
+/** \ingroup Geometry_Module
   * single precision angle-axis type */
 typedef AngleAxis<float> AngleAxisf;
-/** \ingroup GeometryModule
+/** \ingroup Geometry_Module
   * double precision angle-axis type */
 typedef AngleAxis<double> AngleAxisd;
 

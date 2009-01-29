@@ -25,7 +25,7 @@
 #ifndef EIGEN_TRANSLATION_H
 #define EIGEN_TRANSLATION_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Translation
   *
@@ -153,7 +153,7 @@ public:
 
 };
 
-/** \addtogroup GeometryModule */
+/** \addtogroup Geometry_Module */
 //@{
 typedef Translation<float, 2> Translation2f;
 typedef Translation<double,2> Translation2d;
