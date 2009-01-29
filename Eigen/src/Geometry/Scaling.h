@@ -25,7 +25,7 @@
 #ifndef EIGEN_SCALING_H
 #define EIGEN_SCALING_H
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Scaling
   *
@@ -149,7 +149,7 @@ public:
 
 };
 
-/** \addtogroup GeometryModule */
+/** \addtogroup Geometry_Module */
 //@{
 typedef Scaling<float, 2> Scaling2f;
 typedef Scaling<double,2> Scaling2d;

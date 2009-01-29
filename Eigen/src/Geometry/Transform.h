@@ -43,7 +43,7 @@ template< typename Other,
           int OtherCols=Other::ColsAtCompileTime>
 struct ei_transform_product_impl;
 
-/** \geometry_module \ingroup GeometryModule
+/** \geometry_module \ingroup Geometry_Module
   *
   * \class Transform
   *
@@ -290,13 +290,13 @@ protected:
 
 };
 
-/** \ingroup GeometryModule */
+/** \ingroup Geometry_Module */
 typedef Transform<float,2> Transform2f;
-/** \ingroup GeometryModule */
+/** \ingroup Geometry_Module */
 typedef Transform<float,3> Transform3f;
-/** \ingroup GeometryModule */
+/** \ingroup Geometry_Module */
 typedef Transform<double,2> Transform2d;
-/** \ingroup GeometryModule */
+/** \ingroup Geometry_Module */
 typedef Transform<double,3> Transform3d;
 
 /**************************
