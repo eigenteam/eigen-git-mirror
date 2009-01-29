@@ -39,11 +39,9 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
 
   protected:
     typedef typename ei_cleantype<CoeffsVectorType>::type _CoeffsVectorType;
-    
-    template<typename OtherDerived,
-      bool IsVector = OtherDerived::IsVectorAtCompileTime,
-      bool IsDiagonal = (OtherDerived::Flags&Diagonal)==Diagonal>
-    struct construct_from_expression;
+
+    // MSVC gets crazy if we define default parameters
+    template<typename OtherDerived, bool IsVector, bool IsDiagonal> struct construct_from_expression;
 
     // = vector
     template<typename OtherDerived>
@@ -69,7 +67,8 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     template<typename OtherDerived>
     inline DiagonalMatrixBase(const MatrixBase<OtherDerived>& other)
     {
-      construct_from_expression<OtherDerived>::run(derived(),other.derived());
+      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,(OtherDerived::Flags&Diagonal)==Diagonal>
+        ::run(derived(),other.derived());
     }
 
   public:
@@ -93,7 +92,8 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     template<typename OtherDerived>
     inline Derived& operator=(const MatrixBase<OtherDerived>& other)
     {
-      construct_from_expression<OtherDerived>::run(derived(),other);
+      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,(OtherDerived::Flags&Diagonal)==Diagonal>
+        ::run(derived(),other);
       return derived();
     }
 
