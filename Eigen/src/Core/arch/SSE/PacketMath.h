@@ -114,9 +114,16 @@ template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const __m128& 
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
 
+#ifdef _MSC_VER
+// this fix internal compilation error
+template<> EIGEN_STRONG_INLINE float  ei_pfirst<__m128>(const __m128&  a) { float x = _mm_cvtss_f32(a); return x; }
+template<> EIGEN_STRONG_INLINE double ei_pfirst<__m128d>(const __m128d& a) { double x = _mm_cvtsd_f64(a); return x; }
+template<> EIGEN_STRONG_INLINE int    ei_pfirst<__m128i>(const __m128i& a) { int x = _mm_cvtsi128_si32(a); return x; }
+#else
 template<> EIGEN_STRONG_INLINE float  ei_pfirst<__m128>(const __m128&  a) { return _mm_cvtss_f32(a); }
 template<> EIGEN_STRONG_INLINE double ei_pfirst<__m128d>(const __m128d& a) { return _mm_cvtsd_f64(a); }
 template<> EIGEN_STRONG_INLINE int    ei_pfirst<__m128i>(const __m128i& a) { return _mm_cvtsi128_si32(a); }
+#endif
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions
