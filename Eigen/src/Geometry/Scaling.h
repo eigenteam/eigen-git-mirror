@@ -120,20 +120,20 @@ public:
 };
 
 /** Constructs a uniform scaling from scale factor \a s */
-UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }
+inline UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }
 /** Constructs a uniform scaling from scale factor \a s */
-UniformScaling<double> Scaling(double s) { return UniformScaling<double>(s); }
+inline UniformScaling<double> Scaling(double s) { return UniformScaling<double>(s); }
 /** Constructs a uniform scaling from scale factor \a s */
-template<typename RealScalar> UniformScaling<std::complex<RealScalar> >
+template<typename RealScalar> inline UniformScaling<std::complex<RealScalar> >
 Scaling(const std::complex<RealScalar>& s)
 { return UniformScaling<std::complex<RealScalar> >(s); }
 
 /** Constructs a 2D axis aligned scaling */
-template<typename Scalar> DiagonalMatrix<Scalar,2>
+template<typename Scalar> inline DiagonalMatrix<Scalar,2>
 Scaling(Scalar sx, Scalar sy)
 { return DiagonalMatrix<Scalar,2>(sx, sy); }
 /** Constructs a 3D axis aligned scaling */
-template<typename Scalar> DiagonalMatrix<Scalar,3>
+template<typename Scalar> inline DiagonalMatrix<Scalar,3>
 Scaling(Scalar sx, Scalar sy, Scalar sz)
 { return DiagonalMatrix<Scalar,3>(sx, sy, sz); }
 
@@ -141,7 +141,7 @@ Scaling(Scalar sx, Scalar sy, Scalar sz)
   * This is an alias for coeffs.asDiagonal()
   */
 template<typename Derived>
-const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
+inline const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
 /** \addtogroup Geometry_Module */
