@@ -357,8 +357,8 @@ absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endli
 </td><td>\code
 mat3 = mat1.cwise().min(mat2);
 mat3 = mat1.cwise().max(mat2);
-mat3 = mat1.cwise().abs(mat2);
-mat3 = mat1.cwise().abs2(mat2);
+mat3 = mat1.cwise().abs();
+mat3 = mat1.cwise().abs2();
 \endcode</td></tr>
 </table>
 </td></tr></table>
