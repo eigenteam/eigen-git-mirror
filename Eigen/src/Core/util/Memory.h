@@ -2,7 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009 Kenneth Riddile <kfriddile@yahoo.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -27,8 +27,7 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-// for NetBSD I didn't see any clear statement in the docs, but Mark Davies is confident about this.
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(_WIN64)
+#if defined(__APPLE__) || defined(_WIN64)
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
