@@ -508,15 +508,15 @@ class Matrix
       return ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
     }
 
-  static EIGEN_STRONG_INLINE void _check_template_params()
-  {
-      EIGEN_STATIC_ASSERT((_Rows > 0
-                       && _Cols > 0
-                       && _MaxRows <= _Rows
-                       && _MaxCols <= _Cols
-                       && (_Options & (AutoAlign|RowMajor)) == _Options),
-        INVALID_MATRIX_TEMPLATE_PARAMETERS)
-  }
+    static EIGEN_STRONG_INLINE void _check_template_params()
+    {
+        EIGEN_STATIC_ASSERT((_Rows > 0
+                        && _Cols > 0
+                        && _MaxRows <= _Rows
+                        && _MaxCols <= _Cols
+                        && (_Options & (AutoAlign|RowMajor)) == _Options),
+          INVALID_MATRIX_TEMPLATE_PARAMETERS)
+    }
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
