@@ -222,6 +222,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
 
 /** "in-place" version of MatrixBase::solveTriangular() where the result is written in \a other
   *
+  * \nonstableyet
+  *
   * The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
   * This function will const_cast it, so constness isn't honored here.
   *
@@ -250,6 +252,8 @@ void MatrixBase<Derived>::solveTriangularInPlace(const MatrixBase<OtherDerived>&
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
+  *
+  * \nonstableyet
   *
   * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other.
   * The matrix \c *this must be triangular and invertible (i.e., all the coefficients of the
