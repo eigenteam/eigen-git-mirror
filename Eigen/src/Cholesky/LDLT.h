@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,16 +30,18 @@
   *
   * \class LDLT
   *
-  * \brief Robust Cholesky decomposition of a matrix and associated features
+  * \brief Robust Cholesky decomposition of a matrix
   *
-  * \param MatrixType the type of the matrix of which we are computing the LDL^T Cholesky decomposition
+  * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
   *
-  * This class performs a Cholesky decomposition without square root of a symmetric, positive definite
-  * matrix A such that A = L D L^* = U^* D U, where L is lower triangular with a unit diagonal
-  * and D is a diagonal matrix.
+  * Perform a robust Cholesky decomposition of a symmetric positive semidefinite
+  * matrix \f$ A \f$ such that \f$ A =  P^TLDL^*P \f$, where P is a permutation matrix, L
+  * is lower triangular with a unit diagonal and D is a diagonal matrix.
   *
-  * Compared to a standard Cholesky decomposition, avoiding the square roots allows for faster and more
-  * stable computation.
+  * The decomposition uses pivoting to ensure stability, such that if A is
+  * positive semidefinite (i.e. eigenvalues are non-negative), then L will have
+  * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
+  * on D also stabilizes the computation.
   *
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
@@ -52,9 +55,13 @@ template<typename MatrixType> class LDLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
+    typedef Matrix<int, 1, MatrixType::RowsAtCompileTime> IntRowVectorType;
 
     LDLT(const MatrixType& matrix)
-      : m_matrix(matrix.rows(), matrix.cols())
+      : m_matrix(matrix.rows(), matrix.cols()),
+        m_p(matrix.rows()),
+        m_transpositions(matrix.rows())
     {
       compute(matrix);
     }
@@ -62,11 +69,30 @@ template<typename MatrixType> class LDLT
     /** \returns the lower triangular matrix L */
     inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const { return m_matrix; }
 
+    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
+      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
+      * see the examples given in the documentation of class LU.
+      */
+    inline const IntColVectorType& permutationP() const
+    {
+      return m_p;
+    }
+
     /** \returns the coefficients of the diagonal matrix D */
     inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
 
     /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
+    inline bool isPositiveDefinite(void) const { return m_rank == m_matrix.rows(); }
+
+    /** \returns the rank of the matrix of which *this is the LDLT decomposition.
+      *
+      * \note This is computed at the time of the construction of the LDLT decomposition. This
+      *       method does not perform any further computation.
+      */
+    inline int rank() const
+    {
+      return m_rank;
+    }
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -78,14 +104,15 @@ template<typename MatrixType> class LDLT
 
   protected:
     /** \internal
-      * Used to compute and store the cholesky decomposition A = L D L^* = U^* D U.
+      * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
       * The strict upper part is used during the decomposition, the strict lower
       * part correspond to the coefficients of L (its diagonal is equal to 1 and
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
-
-    bool m_isPositiveDefinite;
+    IntColVectorType m_p;
+    IntColVectorType m_transpositions;
+    int m_rank;
 };
 
 /** Compute / recompute the LLT decomposition A = L D L^* = U^* D U of \a matrix
@@ -95,49 +122,91 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
-  m_matrix.resize(size, size);
-  m_isPositiveDefinite = true;
-  const RealScalar eps = precision<Scalar>();
+  m_rank = size;
 
-  if (size<=1)
-  {
-    m_matrix = a;
+  m_matrix = a;
+
+  if (size <= 1) {
     return;
   }
 
-  // Let's preallocate a temporay vector to evaluate the matrix-vector product into it.
-  // Unlike the standard LLT decomposition, here we cannot evaluate it to the destination
-  // matrix because it a sub-row which is not compatible suitable for efficient packet evaluation.
-  // (at least if we assume the matrix is col-major)
+  RealScalar cutoff, biggest_in_corner;
+
+  // By using a temorary, packet-aligned products are guarenteed. In the LLT
+  // case this is unnecessary because the diagonal is included and will always
+  // have optimal alignment.
   Matrix<Scalar,MatrixType::RowsAtCompileTime,1> _temporary(size);
 
-  // Note that, in this algorithm the rows of the strict upper part of m_matrix is used to store
-  // column vector, thus the strange .conjugate() and .transpose()...
-
-  m_matrix.row(0) = a.row(0).conjugate();
-  m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix.coeff(0,0);
-  for (int j = 1; j < size; ++j)
+  for (int j = 0; j < size; ++j)
   {
-    RealScalar tmp = ei_real(a.coeff(j,j) - (m_matrix.row(j).start(j) * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
-    m_matrix.coeffRef(j,j) = tmp;
+    // Find largest element diagonal and pivot it upward for processing next.
+    int row_of_biggest_in_corner, col_of_biggest_in_corner;
+    biggest_in_corner = m_matrix.diagonal().end(size-j).cwise().abs()
+                       .maxCoeff(&row_of_biggest_in_corner,
+                                 &col_of_biggest_in_corner);
 
-    if (tmp < eps)
+    // The biggest overall is the point of reference to which further diagonals
+    // are compared; if any diagonal is negligible to machine epsilon compared
+    // to the largest overall, the algorithm bails.  This cutoff is suggested
+    // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
+    // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
+    // Algorithms" page 208, also by Higham.
+    if(j == 0) cutoff = ei_abs(precision<RealScalar>() * size * biggest_in_corner);
+
+    // Finish early if the matrix is not full rank.
+    if(biggest_in_corner < cutoff)
     {
-      m_isPositiveDefinite = false;
-      return;
+      for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
+      m_matrix.block(j, j, size-j, size-j).fill(0);  // Zero unreliable data.
+      m_rank = j;
+      break;
     }
 
-    int endSize = size-j-1;
-    if (endSize>0)
+    row_of_biggest_in_corner += j;
+    m_transpositions.coeffRef(j) = row_of_biggest_in_corner;
+    if(j != row_of_biggest_in_corner)
     {
-      _temporary.end(endSize) = ( m_matrix.block(j+1,0, endSize, j)
-                                  * m_matrix.col(j).start(j).conjugate() ).lazy();
+      m_matrix.row(j).swap(m_matrix.row(row_of_biggest_in_corner));
+      m_matrix.col(j).swap(m_matrix.col(row_of_biggest_in_corner));
+    }
 
-      m_matrix.row(j).end(endSize) = a.row(j).end(endSize).conjugate()
+    if (j == 0) {
+      m_matrix.row(0) = m_matrix.row(0).conjugate();
+      m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix.coeff(0,0);
+      continue;
+    }
+
+    RealScalar Djj = ei_real(m_matrix.coeff(j,j) - (m_matrix.row(j).start(j)
+                                                  * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
+    m_matrix.coeffRef(j,j) = Djj;
+
+    // Finish early if the matrix is not full rank or is indefinite.  This
+    // check is deliberately not against eps, so that the decomposition works
+    // regardless of overall matrix scale.
+    if(Djj <= 0)
+    {
+      for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
+      m_matrix.block(j, j, size-j, size-j).fill(0);  // Zero unreliable data.
+      m_rank = j;
+      break;
+    }
+
+    int endSize = size - j - 1;
+    if (endSize > 0) {
+      _temporary.end(endSize) = ( m_matrix.block(j+1,0, endSize, j)
+                                * m_matrix.col(j).start(j).conjugate() ).lazy();
+
+      m_matrix.row(j).end(endSize) = m_matrix.row(j).end(endSize).conjugate()
                                    - _temporary.end(endSize).transpose();
 
-      m_matrix.col(j).end(endSize) = m_matrix.row(j).end(endSize) / tmp;
+      m_matrix.col(j).end(endSize) = m_matrix.row(j).end(endSize) / Djj;
     }
+  }
+
+  // Reverse applied swaps to get P matrix.
+  for(int k = 0; k < size; ++k) m_p.coeffRef(k) = k;
+  for(int k = size-1; k >= 0; --k) {
+    std::swap(m_p.coeffRef(k), m_p.coeffRef(m_transpositions.coeff(k)));
   }
 }
 
@@ -147,7 +216,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   * \returns true in case of success, false otherwise.
   *
   * In other words, it computes \f$ b = A^{-1} b \f$ with
-  * \f$ {L^{*}}^{-1} D^{-1} L^{-1} b \f$ from right to left.
+  * \f$ P^T{L^{*}}^{-1} D^{-1} L^{-1} P b \f$ from right to left.
   *
   * \sa LDLT::solveInPlace(), MatrixBase::ldlt()
   */
@@ -176,17 +245,30 @@ template<typename Derived>
 bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==bAndX.rows());
-  if (!m_isPositiveDefinite)
-    return false;
+  ei_assert(size == bAndX.rows());
+
+  if (m_rank != size) return false;
+
+  // z = P b
+  for(int i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+
+  // y = L^-1 z
   matrixL().solveTriangularInPlace(bAndX);
-  bAndX = (m_matrix.cwise().inverse().template part<Diagonal>() * bAndX).lazy();
+
+  // w = D^-1 y
+  bAndX = (m_matrix.diagonal().cwise().inverse().asDiagonal() * bAndX).lazy();
+
+  // u = L^-T w
   m_matrix.adjoint().template part<UnitUpperTriangular>().solveTriangularInPlace(bAndX);
+
+  // x = P^T u
+  for (int i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+
   return true;
 }
 
 /** \cholesky_module
-  * \returns the Cholesky decomposition without square root of \c *this
+  * \returns the Cholesky decomposition with full pivoting without square root of \c *this
   */
 template<typename Derived>
 inline const LDLT<typename MatrixBase<Derived>::PlainMatrixType>

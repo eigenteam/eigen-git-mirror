@@ -83,7 +83,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   {
     LDLT<SquareMatrixType> ldlt(symm);
     VERIFY(ldlt.isPositiveDefinite());
-    VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
+    // TODO(keir): This doesn't make sense now that LDLT pivots.
+    //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
     ldlt.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     ldlt.solve(matB, &matX);
