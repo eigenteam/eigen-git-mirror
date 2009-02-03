@@ -248,6 +248,29 @@ class Matrix
         m_storage.resize(size, size, 1);
     }
 
+    /** Resizes *this to have the same dimensions as \a other.
+      * Takes care of doing all the checking that's needed.
+      *
+      * Note that copying a row-vector into a vector (and conversely) is allowed.
+      * The resizing, if any, is then done in the appropriate way so that row-vectors
+      * remain row-vectors and vectors remain vectors.
+      */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void resizeLike(const MatrixBase<OtherDerived>& other)
+    {
+      if(RowsAtCompileTime == 1)
+      {
+        ei_assert(other.isVector());
+        resize(1, other.size());
+      }
+      else if(ColsAtCompileTime == 1)
+      {
+        ei_assert(other.isVector());
+        resize(other.size(), 1);
+      }
+      else resize(other.rows(), other.cols());
+    }
+
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
@@ -468,18 +491,7 @@ class Matrix
                  : (rows() == other.rows() && cols() == other.cols())))
         && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
       #endif
-
-      if(RowsAtCompileTime == 1)
-      {
-        ei_assert(other.isVector());
-        resize(1, other.size());
-      }
-      else if(ColsAtCompileTime == 1)
-      {
-        ei_assert(other.isVector());
-        resize(other.size(), 1);
-      }
-      else resize(other.rows(), other.cols());
+      resizeLike(other);
     }
 
     /** \internal Copies the value of the expression \a other into \c *this with automatic resizing.
