@@ -1,0 +1,96 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra. Eigen itself is part of the KDE project.
+//
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef EIGEN_ADLOC_FORWARD_H
+#define EIGEN_ADLOC_FORWARD_H
+
+//--------------------------------------------------------------------------------
+//
+// This file provides support for adolc's adouble type in forward mode.
+// ADOL-C is a C++ automatic differentiation library,
+// see http://www.math.tu-dresden.de/~adol-c/ for more information.
+//
+// Note that the maximal number of directions is controlled by
+// the preprocessor token NUMBER_DIRECTIONS. The default is 2.
+//
+//--------------------------------------------------------------------------------
+
+#define ADOLC_TAPELESS
+#ifndef NUMBER_DIRECTIONS
+# define NUMBER_DIRECTIONS 2
+#endif
+#include <adolc/adouble.h>
+
+// adolc defines some very stupid macros:
+#if defined(malloc)
+# undef malloc
+#endif
+
+#if defined(calloc)
+# undef calloc
+#endif
+
+#if defined(realloc)
+# undef realloc
+#endif
+
+#include <Eigen/Core>
+
+namespace Eigen {
+
+template<> struct NumTraits<adtl::adouble>
+{
+  typedef adtl::adouble Real;
+  typedef adtl::adouble FloatingPoint;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 1,
+    MulCost = 1
+  };
+};
+
+}
+
+// the Adolc's type adouble is defined in the adtl namespace
+// therefore, the following ei_* functions *must* be defined
+// in the same namespace
+namespace adtl {
+
+  inline const adouble& ei_conj(const adouble& x)  { return x; }
+  inline const adouble& ei_real(const adouble& x)  { return x; }
+  inline adouble ei_imag(const adouble&)    { return 0.; }
+  inline adouble ei_abs(const adouble&  x)  { return fabs(x); }
+  inline adouble ei_abs2(const adouble& x)  { return x*x; }
+  inline adouble ei_sqrt(const adouble& x)  { return sqrt(x); }
+  inline adouble ei_exp(const adouble&  x)  { return exp(x); }
+  inline adouble ei_log(const adouble&  x)  { return log(x); }
+  inline adouble ei_sin(const adouble&  x)  { return sin(x); }
+  inline adouble ei_cos(const adouble&  x)  { return cos(x); }
+  inline adouble ei_pow(const adouble& x, adouble y)  { return pow(x, y); }
+
+}
+
+#endif // EIGEN_ADLOC_FORWARD_H
