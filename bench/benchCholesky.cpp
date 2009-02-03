@@ -9,7 +9,7 @@
 //  -DSCALAR=double
 
 #include <Eigen/Array>
-#include <Eigen/LLT>
+#include <Eigen/Cholesky>
 #include <bench/BenchUtil.h>
 using namespace Eigen;
 
@@ -76,7 +76,8 @@ __attribute__ ((noinline)) void benchLLT(const MatrixType& m)
   else
     std::cout << "fixed ";
   std::cout << covMat.rows() << " \t"
-            << (timerNoSqrt.value() * REPEAT) / repeats << "s \t"
+            << (timerNoSqrt.value() * REPEAT) / repeats << "s "
+            << "(" << 1e-6 * cost*repeats/timerNoSqrt.value() << " MFLOPS)\t"
             << (timerSqrt.value() * REPEAT) / repeats << "s "
             << "(" << 1e-6 * cost*repeats/timerSqrt.value() << " MFLOPS)\n";
 
@@ -88,7 +89,7 @@ __attribute__ ((noinline)) void benchLLT(const MatrixType& m)
 
     gsl_matrix* gslCovMat = gsl_matrix_alloc(covMat.rows(),covMat.cols());
     gsl_matrix* gslCopy = gsl_matrix_alloc(covMat.rows(),covMat.cols());
-    
+
     eiToGsl(covMat, &gslCovMat);
     for (int t=0; t<TRIES; ++t)
     {
@@ -116,25 +117,25 @@ __attribute__ ((noinline)) void benchLLT(const MatrixType& m)
 
 int main(int argc, char* argv[])
 {
-  const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,900,0};
-  std::cout << "size            no sqrt         standard";
-  #ifdef BENCH_GSL
-  std::cout << "       GSL (standard + double + ATLAS)  ";
-  #endif
+//   const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,900,0};
+  std::cout << "size            no sqrt                           standard";
+//   #ifdef BENCH_GSL
+//   std::cout << "       GSL (standard + double + ATLAS)  ";
+//   #endif
   std::cout << "\n";
+//
+//   for (uint i=0; dynsizes[i]>0; ++i)
+//     benchLLT(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
 
-  for (uint i=0; dynsizes[i]>0; ++i)
-    benchLLT(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
-
-//   benchLLT(Matrix<Scalar,2,2>());
-//   benchLLT(Matrix<Scalar,3,3>());
-//   benchLLT(Matrix<Scalar,4,4>());
-//   benchLLT(Matrix<Scalar,5,5>());
-//   benchLLT(Matrix<Scalar,6,6>());
-//   benchLLT(Matrix<Scalar,7,7>());
-//   benchLLT(Matrix<Scalar,8,8>());
-//   benchLLT(Matrix<Scalar,12,12>());
-//   benchLLT(Matrix<Scalar,16,16>());
+  benchLLT(Matrix<Scalar,2,2>());
+  benchLLT(Matrix<Scalar,3,3>());
+  benchLLT(Matrix<Scalar,4,4>());
+  benchLLT(Matrix<Scalar,5,5>());
+  benchLLT(Matrix<Scalar,6,6>());
+  benchLLT(Matrix<Scalar,7,7>());
+  benchLLT(Matrix<Scalar,8,8>());
+  benchLLT(Matrix<Scalar,12,12>());
+  benchLLT(Matrix<Scalar,16,16>());
   return 0;
 }
 
