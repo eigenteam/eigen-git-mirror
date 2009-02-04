@@ -32,9 +32,9 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
   res.n         = cols();
   res.m         = rows();
   res.flags     = 0;
-  res.colptr    = _outerIndexPtr();
-  res.rowind    = _innerIndexPtr();
-  res.values.v  = _valuePtr();
+  res.colptr    = derived()._outerIndexPtr();
+  res.rowind    = derived()._innerIndexPtr();
+  res.values.v  = derived()._valuePtr();
   if (ei_is_same_type<Scalar,int>::ret)
     res.flags |= TAUCS_INT;
   else if (ei_is_same_type<Scalar,float>::ret)
@@ -129,7 +129,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
   {
     taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, Base::m_precision, 0);
-    m_matrix = Base::CholMatrixType::Map(*taucsRes);
+    m_matrix = MappedSparseMatrix(*taucsRes);
     free(taucsRes);
     m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
              | IncompleteFactorization
@@ -161,7 +161,7 @@ SparseLLT<MatrixType,Taucs>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     taucs_ccs_matrix* taucsL = taucs_supernodal_factor_to_ccs(m_taucsSupernodalFactor);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = Base::CholMatrixType::Map(*taucsL);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix(*taucsL);
     free(taucsL);
     m_status = (m_status & ~MatrixLIsDirty);
   }

@@ -108,7 +108,7 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
 }
 
 template<typename Scalar, int Flags>
-MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
+MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(cholmod_sparse& cm)
 {
   m_innerSize = cm.nrow;
   m_outerSize = cm.ncol;
@@ -205,7 +205,7 @@ SparseLLT<MatrixType,Cholmod>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = Base::CholMatrixType::Map(*cmRes);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix(*cmRes);
     free(cmRes);
 
     m_status = (m_status & ~MatrixLIsDirty);
