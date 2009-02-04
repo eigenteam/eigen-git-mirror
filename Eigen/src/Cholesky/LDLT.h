@@ -127,6 +127,8 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   m_matrix = a;
 
   if (size <= 1) {
+    m_p.setZero();
+    m_transpositions.setZero();
     return;
   }
 
