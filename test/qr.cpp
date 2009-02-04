@@ -95,7 +95,9 @@ template<typename MatrixType> void qr_non_invertible()
   QR<MatrixType> lu(m1);
 //   typename LU<MatrixType>::KernelResultType m1kernel = lu.kernel();
 //   typename LU<MatrixType>::ImageResultType m1image = lu.image();
-
+  std::cerr << rows << "x" << cols << "   " << rank << " " << lu.rank() << "\n";
+  if (rank != lu.rank())
+    std::cerr << lu.matrixR().diagonal().transpose() << "\n";
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -150,21 +152,21 @@ template<typename MatrixType> void qr_invertible()
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
-    CALL_SUBTEST( qr(Matrix2f()) );
-    CALL_SUBTEST( qr(Matrix4d()) );
-    CALL_SUBTEST( qr(MatrixXf(12,8)) );
-    CALL_SUBTEST( qr(MatrixXcd(5,5)) );
-    CALL_SUBTEST( qr(MatrixXcd(7,3)) );
+//     CALL_SUBTEST( qr(Matrix2f()) );
+//     CALL_SUBTEST( qr(Matrix4d()) );
+//     CALL_SUBTEST( qr(MatrixXf(12,8)) );
+//     CALL_SUBTEST( qr(MatrixXcd(5,5)) );
+//     CALL_SUBTEST( qr(MatrixXcd(7,3)) );
   }
-  
+
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( qr_non_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_non_invertible<MatrixXd>() );
+//     CALL_SUBTEST( qr_non_invertible<MatrixXd>() );
     // TODO fix issue with complex
 //     CALL_SUBTEST( qr_non_invertible<MatrixXcf>() );
 //     CALL_SUBTEST( qr_non_invertible<MatrixXcd>() );
-    CALL_SUBTEST( qr_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXd>() );
+//     CALL_SUBTEST( qr_invertible<MatrixXf>() );
+//     CALL_SUBTEST( qr_invertible<MatrixXd>() );
     // TODO fix issue with complex
 //     CALL_SUBTEST( qr_invertible<MatrixXcf>() );
 //     CALL_SUBTEST( qr_invertible<MatrixXcd>() );

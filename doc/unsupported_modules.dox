@@ -1,8 +1,6 @@
 
 namespace Eigen {
 
-namespace unsupported {
-
 /** \defgroup Unsupported_modules Unsupported modules
   *
   * The unsupported modules are contributions from various users. They are
@@ -10,6 +8,9 @@ namespace unsupported {
   * included in Eigen in the future.
   */
 
-} // namespace unsupported
+// please list here all unsupported modules
+
+/** \ingroup Unsupported_modules
+  * \defgroup AdolcForward_Module Adolc forward module */
 
 } // namespace Eigen

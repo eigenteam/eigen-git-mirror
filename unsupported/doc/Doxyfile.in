@@ -31,7 +31,7 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = Eigen
+PROJECT_NAME           = Eigen - unsupported modules
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
@@ -45,7 +45,7 @@ PROJECT_NUMBER         = "${EIGEN_VERSION}"
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = "${Eigen_BINARY_DIR}/doc"
+OUTPUT_DIRECTORY       = "${Eigen_BINARY_DIR}/doc/unsupported"
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -562,9 +562,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = "${Eigen_SOURCE_DIR}/Eigen" \
-                         "${Eigen_SOURCE_DIR}/doc" \
-                         "${Eigen_BINARY_DIR}/doc"
+INPUT                  = "${Eigen_BINARY_DIR}/doc" \
+                         "${Eigen_SOURCE_DIR}/unsupported/Eigen" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -765,7 +765,7 @@ GENERATE_HTML          = YES
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be
 # put in front of it. If left blank `html' will be used as the default path.
 
-HTML_OUTPUT            = html
+HTML_OUTPUT            = "${Eigen_BINARY_DIR}/doc/html/unsupported"
 
 # The HTML_FILE_EXTENSION tag can be used to specify the file extension for
 # each generated HTML page (for example: .htm,.php,.asp). If it is left blank
@@ -1240,12 +1240,12 @@ SKIP_FUNCTION_MACROS   = YES
 # If a tag file is not located in the directory in which doxygen
 # is run, you must also specify the path to the tagfile here.
 
-TAGFILES               = "${Eigen_BINARY_DIR}/doc/eigen-unsupported.doxytags"=unsupported
+TAGFILES               = "${Eigen_BINARY_DIR}/doc/eigen.doxytags"=../
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       = "${Eigen_BINARY_DIR}/doc/eigen.doxytags"
+GENERATE_TAGFILE       = "${Eigen_BINARY_DIR}/doc/eigen-unsupported.doxytags"
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed
 # in the class index. If set to NO only the inherited external classes

@@ -8,6 +8,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 configure_file(
+  ${Eigen_SOURCE_DIR}/unsupported/doc/Doxyfile.in
+  ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile-unsupported
+)
+
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 )
@@ -31,7 +36,7 @@ add_subdirectory(examples)
 add_subdirectory(snippets)
 
 add_custom_target(
-  doc
+  doc-eigen
   ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
@@ -42,4 +47,20 @@ add_custom_target(
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_dependencies(doc all_snippets all_examples)
+add_custom_target(
+  doc-unsupported
+  ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${Eigen_BINARY_DIR}/doc/html/unsupported
+  COMMAND ${CMAKE_COMMAND} -E copy ${Eigen_SOURCE_DIR}/doc/eigendoxy_tabs.css
+                                   ${Eigen_BINARY_DIR}/doc/html/unsupported/
+  COMMAND ${CMAKE_COMMAND} -E copy ${Eigen_SOURCE_DIR}/doc/Eigen_Silly_Professor_64x64.png
+                                   ${Eigen_BINARY_DIR}/doc/html/unsupported/
+  COMMAND doxygen Doxyfile-unsupported
+  WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc
+)
+
+add_dependencies(doc-eigen all_snippets all_examples)
+add_dependencies(doc-unsupported doc-eigen)
+# rerun doxygen to get eigen => unsupported cross references
+add_custom_target(doc ALL COMMAND doxygen WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc)
+add_dependencies(doc doc-eigen doc-unsupported)

@@ -19,6 +19,8 @@ In fact, except for advanced use, the only class that you'll have to explicitly 
 
 Most of the other classes are just return types for MatrixBase methods.
 
+Want more? Checkout the \ref Unsupported_modules "unsupported modules" <a href="unsupported/index.html">documentation</a>.
+
 */
 
 }

@@ -20,12 +20,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g1 -O2")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-set(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
-    CACHE PATH
-    "The directory where we install the header files"
-    FORCE)
-
 install(FILES
   ${Eigen_HEADERS}
   DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen
