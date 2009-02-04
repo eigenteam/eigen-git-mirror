@@ -1,0 +1,15 @@
+
+namespace Eigen {
+
+namespace unsupported {
+
+/** \defgroup Unsupported_modules Unsupported modules
+  *
+  * The unsupported modules are contributions from various users. They are
+  * provided "as is", without any support. Nevertheless, they are subject to be
+  * included in Eigen in the future.
+  */
+
+} // namespace unsupported
+
+} // namespace Eigen

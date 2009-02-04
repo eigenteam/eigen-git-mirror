@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page StructHavingEigenMembers Structures Having Eigen Members
+/** \page StructHavingEigenMembers Troubleshooting - Structures Having Eigen Members
 
 \b Table \b of \b contents
   - \ref summary

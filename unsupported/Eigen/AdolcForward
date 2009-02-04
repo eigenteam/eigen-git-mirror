@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ADLOC_FORWARD_H
-#define EIGEN_ADLOC_FORWARD_H
+#ifndef EIGEN_ADLOC_FORWARD
+#define EIGEN_ADLOC_FORWARD
 
 //--------------------------------------------------------------------------------
 //
@@ -59,20 +59,29 @@
 
 namespace Eigen {
 
-template<> struct NumTraits<adtl::adouble>
-{
-  typedef adtl::adouble Real;
-  typedef adtl::adouble FloatingPoint;
-  enum {
-    IsComplex = 0,
-    HasFloatingPoint = 1,
-    ReadCost = 1,
-    AddCost = 1,
-    MulCost = 1
-  };
-};
+namespace unsupported {
 
-}
+/** \ingroup Unsupported_modules
+  * \defgroup AdolcForward_Module Adolc forward module
+  * This module provides support for adolc's adouble type in forward mode.
+  * ADOL-C is a C++ automatic differentiation library,
+  * see http://www.math.tu-dresden.de/~adol-c/ for more information.
+  * It mainly consists in:
+  *  - a struct Eigen::NumTraits<adtl::adouble> specialization
+  *  - overloads of ei_* math function for adtl::adouble type.
+  *
+  * Note that the maximal number of directions is controlled by
+  * the preprocessor token NUMBER_DIRECTIONS. The default is 2.
+  *
+  * \code
+  * #include <unsupported/Eigen/AdolcSupport>
+  * \endcode
+  */
+  //@{
+
+} // namespace unsupported
+
+} // namespace Eigen
 
 // the Adolc's type adouble is defined in the adtl namespace
 // therefore, the following ei_* functions *must* be defined
@@ -93,4 +102,19 @@ namespace adtl {
 
 }
 
-#endif // EIGEN_ADLOC_FORWARD_H
+namespace Eigen { namespace unsupported { /*@}*/ } }
+
+template<> struct EigenNumTraits<adtl::adouble>
+{
+  typedef adtl::adouble Real;
+  typedef adtl::adouble FloatingPoint;
+  enum {
+    IsComplex = 0,
+    HasFloatingPoint = 1,
+    ReadCost = 1,
+    AddCost = 1,
+    MulCost = 1
+  };
+};
+
+#endif // EIGEN_ADLOC_FORWARD

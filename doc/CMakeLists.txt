@@ -38,9 +38,7 @@ add_custom_target(
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Eigen_Silly_Professor_64x64.png
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/buildexamplelist.sh ${Eigen_SOURCE_DIR} > ${CMAKE_CURRENT_BINARY_DIR}/ExampleList.dox
   COMMAND doxygen
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cleanhierarchy.sh ${CMAKE_CURRENT_BINARY_DIR}/html/hierarchy.html
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 

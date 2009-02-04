@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page FixedSizeVectorizable Fixed-size vectorizable Eigen objects
+/** \page FixedSizeVectorizable Advanced - Fixed-size vectorizable Eigen objects
 
 The goal of this page is to explain what we mean by "fixed-size vectorizable".
 

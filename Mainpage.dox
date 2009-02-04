@@ -54,7 +54,7 @@
 // DOXYGEN_SET_WARN_IF_UNDOCUMENTED   = NO
 // DOXYGEN_SET_WARN_NO_PARAMDOC       = NO
 
-// DOXYGEN_SET_INPUT                  = @topdir@/eigen2/Eigen @topdir@/eigen2/doc @topdir@/eigen2/build/doc
+// DOXYGEN_SET_INPUT                  = @topdir@/eigen2/Eigen @topdir@/eigen2/doc @topdir@/eigen2/build/doc @topdir@/eigen2/unsupported/Eigen
 // DOXYGEN_SET_EXCLUDE                = *.sh *.in
 
 // DOXYGEN_SET_EXAMPLE_PATH           = @topdir@/eigen2/doc/snippets/ @topdir@/eigen2/doc/examples/ @topdir@/eigen2/build/doc/examples/ @topdir@/eigen2/build/doc/snippets/
@@ -62,6 +62,8 @@
 // DOXYGEN_SET_FILE_PATTERNS          = *
 // DOXYGEN_SET_RECURSIVE              = NO
 // DOXYGEN_SET_FILTER_SOURCE_FILES    = YES
+
+// DOXYGEN_EXCLUDE_SYMBOLS        = MatrixBase<* MapBase<* RotationBase<* Matrix<*
 
 // DOXYGEN_SET_SOURCE_BROWSER         = NO
 // DOXYGEN_SET_INLINE_SOURCES         = NO

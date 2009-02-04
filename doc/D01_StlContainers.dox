@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page StlContainers Using STL Containers with Eigen
+/** \page StlContainers Troubleshooting - Using STL Containers with Eigen
 
 \b Table \b of \b contents
   - \ref summary

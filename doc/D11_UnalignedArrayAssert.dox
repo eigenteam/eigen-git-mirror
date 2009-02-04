@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page UnalignedArrayAssert Explanation of the assertion on unaligned arrays
+/** \page UnalignedArrayAssert Troubleshooting - Explanation of the assertion on unaligned arrays
 
 Hello! You are seeing this webpage because your program terminated on an assertion failure like this one:
 <pre>
