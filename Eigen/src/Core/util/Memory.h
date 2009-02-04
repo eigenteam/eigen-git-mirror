@@ -74,13 +74,15 @@ inline void* ei_aligned_malloc(size_t size)
   #endif
 
   void *result;
-  #if EIGEN_HAS_POSIX_MEMALIGN && !EIGEN_MALLOC_ALREADY_ALIGNED
+  #if EIGEN_HAS_POSIX_MEMALIGN && EIGEN_ARCH_WANTS_ALIGNMENT && !EIGEN_MALLOC_ALREADY_ALIGNED
     #ifdef EIGEN_EXCEPTIONS
       const int failed =
     #endif
     posix_memalign(&result, 16, size);
   #else
-    #if EIGEN_MALLOC_ALREADY_ALIGNED
+    #if !EIGEN_ARCH_WANTS_ALIGNMENT
+      result = malloc(size);
+    #elif EIGEN_MALLOC_ALREADY_ALIGNED
       result = malloc(size);
     #elif EIGEN_HAS_MM_MALLOC
       result = _mm_malloc(size, 16);
@@ -141,7 +143,9 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
   */
 inline void ei_aligned_free(void *ptr)
 {
-  #if EIGEN_MALLOC_ALREADY_ALIGNED
+  #if !EIGEN_ARCH_WANTS_ALIGNMENT
+    free(ptr);
+  #elif EIGEN_MALLOC_ALREADY_ALIGNED
     free(ptr);
   #elif EIGEN_HAS_POSIX_MEMALIGN
     free(ptr);
@@ -232,59 +236,26 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 #define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
-    
-/** \brief Overloads the operator new and delete of the class Type with operators that are aligned if NeedsToAlign is true
-  *
-  * When Eigen's explicit vectorization is enabled, Eigen assumes that some fixed sizes types are aligned
-  * on a 16 bytes boundary. Those include all Matrix types having a sizeof multiple of 16 bytes, e.g.:
-  *  - Vector2d, Vector4f, Vector4i, Vector4d,
-  *  - Matrix2d, Matrix4f, Matrix4i, Matrix4d,
-  *  - etc.
-  * When an object is statically allocated, the compiler will automatically and always enforces 16 bytes
-  * alignment of the data when needed. However some troubles might appear when data are dynamically allocated.
-  * Let's pick an example:
-  * \code
-  * struct Foo {
-  *   char dummy;
-  *   Vector4f some_vector;
-  * };
-  * Foo obj1;                           // static allocation
-  * obj1.some_vector = Vector4f(..);    // =>   OK
-  *
-  * Foo *pObj2 = new Foo;               // dynamic allocation
-  * pObj2->some_vector = Vector4f(..);  // =>  !! might segfault !!
-  * \endcode
-  * Here, the problem is that operator new is not aware of the compile time alignment requirement of the
-  * type Vector4f (and hence of the type Foo). Therefore "new Foo" does not necessarily returns a 16 bytes
-  * aligned pointer. The purpose of the class WithAlignedOperatorNew is exactly to overcome this issue by
-  * overloading the operator new to return aligned data when the vectorization is enabled.
-  * Here is a similar safe example:
-  * \code
-  * struct Foo {
-  *   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  *   char dummy;
-  *   Vector4f some_vector;
-  * };
-  * Foo *pObj2 = new Foo;               // dynamic allocation
-  * pObj2->some_vector = Vector4f(..);  // =>  SAFE !
-  * \endcode
-  *
-  * \sa class ei_new_allocator
-  */
-#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
-    void *operator new(size_t size) throw() { \
-      return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
-    } \
-    void *operator new[](size_t size) throw() { \
-      return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
-    } \
-    void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-    void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-    void *operator new(size_t, void *ptr) throw() { return ptr; }
+
+#if EIGEN_ARCH_WANTS_ALIGNMENT
+  #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
+      void *operator new(size_t size) throw() { \
+        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+      } \
+      void *operator new[](size_t size) throw() { \
+        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+      } \
+      void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void *operator new(size_t, void *ptr) throw() { return ptr; }
+#else
+  #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
+#endif
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
+
 
 /** \class aligned_allocator
 *

@@ -36,6 +36,24 @@
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
 
+// if the compiler is GNUC, disable 16 byte alignment on exotic archs that probably don't need it, and on which
+// it may be extra trouble to get aligned memory allocation to work (example: on ARM, overloading new[] is a PITA
+// because extra memory must be allocated for bookkeeping).
+// if the compiler is not GNUC, just cross fingers that the architecture isn't too exotic, because we don't want
+// to keep track of all the different preprocessor symbols for all compilers.
+#if !defined(__GNUC__) || defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || defined(__ia64__)
+  #define EIGEN_ARCH_WANTS_ALIGNMENT 1
+#else
+  #ifdef EIGEN_VECTORIZE
+    #error Vectorization enabled, but the architecture is not listed among those for which we require 16 byte alignment. If you added vectorization for another architecture, you also need to edit this list.
+  #endif
+  #define EIGEN_ARCH_WANTS_ALIGNMENT 0
+  #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+    #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+  #endif
+#endif
+
+
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION RowMajor
 #else
@@ -147,12 +165,14 @@ using Eigen::ei_cos;
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if (defined __GNUC__)
+#if !EIGEN_ARCH_WANTS_ALIGNMENT
+#define EIGEN_ALIGN_128
+#elif (defined __GNUC__)
 #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
 #elif (defined _MSC_VER)
 #define EIGEN_ALIGN_128 __declspec(align(16))
 #else
-#define EIGEN_ALIGN_128
+#error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
 #endif
 
 #define EIGEN_RESTRICT __restrict

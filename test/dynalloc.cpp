@@ -24,12 +24,18 @@
 
 #include "main.h"
 
+#if EIGEN_ARCH_WANTS_ALIGNMENT
+#define ALIGNMENT 16
+#else
+#define ALIGNMENT 1
+#endif
+
 void check_handmade_aligned_malloc()
 {
   for(int i = 1; i < 1000; i++)
   {
     char *p = (char*)ei_handmade_aligned_malloc(i);
-    VERIFY(size_t(p)%16==0);
+    VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
     ei_handmade_aligned_free(p);
@@ -41,7 +47,7 @@ void check_aligned_malloc()
   for(int i = 1; i < 1000; i++)
   {
     char *p = (char*)ei_aligned_malloc(i);
-    VERIFY(size_t(p)%16==0);
+    VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
     ei_aligned_free(p);
@@ -53,7 +59,7 @@ void check_aligned_new()
   for(int i = 1; i < 1000; i++)
   {
     float *p = ei_aligned_new<float>(i);
-    VERIFY(size_t(p)%16==0);
+    VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
     ei_aligned_delete(p,i);
@@ -65,7 +71,7 @@ void check_aligned_stack_alloc()
   for(int i = 1; i < 1000; i++)
   {
     float *p = ei_aligned_stack_new(float,i);
-    VERIFY(size_t(p)%16==0);
+    VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
     ei_aligned_stack_delete(float,p,i);
@@ -92,7 +98,7 @@ class MyClassA
 template<typename T> void check_dynaligned()
 {
   T* obj = new T;
-  VERIFY(size_t(obj)%16==0);
+  VERIFY(size_t(obj)%ALIGNMENT==0);
   delete obj;
 }
 
@@ -115,15 +121,15 @@ void test_dynalloc()
   
   // check static allocation, who knows ?
   {
-    MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%16==0);
-    MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%16==0);
+    MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%ALIGNMENT==0);
+    MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%ALIGNMENT==0);
   }
 
   // dynamic allocation, single object
   for (int i=0; i<g_repeat*100; ++i)
   {
-    MyStruct *foo0 = new MyStruct();  VERIFY(size_t(foo0->avec.data())%16==0);
-    MyClassA *fooA = new MyClassA();  VERIFY(size_t(fooA->avec.data())%16==0);
+    MyStruct *foo0 = new MyStruct();  VERIFY(size_t(foo0->avec.data())%ALIGNMENT==0);
+    MyClassA *fooA = new MyClassA();  VERIFY(size_t(fooA->avec.data())%ALIGNMENT==0);
     delete foo0;
     delete fooA;
   }
@@ -132,8 +138,8 @@ void test_dynalloc()
   const int N = 10;
   for (int i=0; i<g_repeat*100; ++i)
   {
-    MyStruct *foo0 = new MyStruct[N];  VERIFY(size_t(foo0->avec.data())%16==0);
-    MyClassA *fooA = new MyClassA[N];  VERIFY(size_t(fooA->avec.data())%16==0);
+    MyStruct *foo0 = new MyStruct[N];  VERIFY(size_t(foo0->avec.data())%ALIGNMENT==0);
+    MyClassA *fooA = new MyClassA[N];  VERIFY(size_t(fooA->avec.data())%ALIGNMENT==0);
     delete[] foo0;
     delete[] fooA;
   }
