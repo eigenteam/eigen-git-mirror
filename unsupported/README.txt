@@ -1,9 +1,30 @@
 This directory contains several contributions from various users. They are
 provided "as is", without any support. Nevertheless, they are subject to be
 included in Eigen in the future.
+
+In order to use an unsupported module you have to do either:
+
+ - add the path_to_eigen2/unsupported directory to your include path and do:
+   #include <Eigen/ModuleHeader>
+
+ - or directly do:
+   #include <unsupported/Eigen/ModuleHeader>
+
+
 If you are interested in contributing to one of them, or have other stuff
 you would like to share, feel free to contact us:
 http://eigen.tuxfamily.org/index.php?title=Main_Page#Mailing_list
+
+Any kind of contributions are much appreciated, even very preliminary ones.
+However, it:
+ - must rely on Eigen,
+ - must be highly related to math,
+ - should have some general purpose in the sense that it could
+   potentially become an offical Eigen module (or be merged into another one).
+
+In doubt feel free to contact us. For instance, if your addons is very too specific
+but it shows an interesting way of using Eigen, then it could be a nice demo.
+
 
 This diectory is organized as follow:
 
@@ -25,5 +46,5 @@ unsupported/doc/...
 unsupported/test/.cpp           <- unit test files
 
 The documentation is generated at the same time than the main Eigen documentation.
-The .html files are generate in:
-build_dir/doc/html/unsupported/
+The .html files are generate in: build_dir/doc/html/unsupported/
+
