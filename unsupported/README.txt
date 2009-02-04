@@ -1,6 +1,6 @@
-This directory contains several contributions from various users. They are
-provided "as is", without any support. Nevertheless, they are subject to be
-included in Eigen in the future.
+This directory contains contributions from various users.
+They are provided "as is", without any support. Nevertheless,
+most of them are subject to be included in Eigen in the future.
 
 In order to use an unsupported module you have to do either:
 
@@ -26,7 +26,7 @@ In doubt feel free to contact us. For instance, if your addons is very too speci
 but it shows an interesting way of using Eigen, then it could be a nice demo.
 
 
-This diectory is organized as follow:
+This directory is organized as follow:
 
 unsupported/Eigen/ModuleHeader1
 unsupported/Eigen/ModuleHeader2
@@ -46,5 +46,5 @@ unsupported/doc/...
 unsupported/test/.cpp           <- unit test files
 
 The documentation is generated at the same time than the main Eigen documentation.
-The .html files are generate in: build_dir/doc/html/unsupported/
+The .html files are generated in: build_dir/doc/html/unsupported/
 
