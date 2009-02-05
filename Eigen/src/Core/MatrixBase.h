@@ -34,7 +34,7 @@
   * types. Most of the Eigen API is contained in this class. Other important classes for
   * the Eigen API are Matrix, Cwise, and PartialRedux.
   *
-  * Note that some methods are defined in the \ref Array module.
+  * Note that some methods are defined in the \ref Array_Module array module.
   *
   * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *

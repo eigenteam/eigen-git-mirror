@@ -79,16 +79,6 @@ namespace unsupported {
   */
   //@{
 
-  /** \class Foo
-    * \brief a foo class
-    */
-  class Foo : public MatrixBase<Foo> {
-    public:
-      /** a member
-        * \see MatrixBase::sum() */
-      void member() {}
-  };
-
 } // namespace unsupported
 
 } // namespace Eigen

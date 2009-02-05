@@ -10,7 +10,7 @@ namespace Eigen {
   | \ref TutorialSparse "Sparse matrix"
 </div>
 
-In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref GeometryModule "geometry module",
+In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref Geometry_Module "geometry module",
 namely 2D and 3D rotations and affine transformations.
 
 \b Table \b of \b contents
@@ -106,7 +106,7 @@ Transform3f m = Translation3f(..);  Transform3f m = Matrix3f(..);
 
 <a href="#" class="top">top</a>\section TutorialGeoCommontransformationAPI Common API across transformation types
 
-To some extent, Eigen's \ref GeometryModule "geometry module" allows you to write
+To some extent, Eigen's \ref Geometry_Module "geometry module" allows you to write
 generic algorithms working on any kind of transformation representations:
 <table class="tutorial_code">
 <tr><td>

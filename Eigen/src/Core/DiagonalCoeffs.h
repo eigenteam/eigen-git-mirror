@@ -49,12 +49,12 @@ struct ei_traits<DiagonalCoeffs<MatrixType,DiagId> >
   enum {
     AbsDiagId = DiagId<0 ? -DiagId : DiagId,
     RowsAtCompileTime = int(MatrixType::SizeAtCompileTime) == Dynamic ? Dynamic
-                      : EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
-                                       MatrixType::ColsAtCompileTime) - AbsDiagId,
+                      : (EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
+                                        MatrixType::ColsAtCompileTime) - AbsDiagId),
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
-                            : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
-                                             MatrixType::MaxColsAtCompileTime),
+                         : (EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
+                                          MatrixType::MaxColsAtCompileTime) - AbsDiagId),
     MaxColsAtCompileTime = 1,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
@@ -134,6 +134,9 @@ MatrixBase<Derived>::diagonal() const
   *
   * The template parameter \a Id represent a super diagonal if \a Id > 0
   * and a sub diagonal otherwise. \a Id == 0 is equivalent to the main diagonal.
+  *
+  * Example: \include MatrixBase_diagonal_int.cpp
+  * Output: \verbinclude MatrixBase_diagonal_int.out
   *
   * \sa MatrixBase::diagonal(), class DiagonalCoeffs */
 template<typename Derived>
