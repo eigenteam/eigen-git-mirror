@@ -84,6 +84,12 @@ endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
+set(INCLUDE_INSTALL_DIR
+    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
+    CACHE PATH
+    "The directory where we install the header files"
+    FORCE)
+
 add_subdirectory(Eigen)
 
 if(EIGEN_BUILD_TESTS)
@@ -92,6 +98,8 @@ if(EIGEN_BUILD_TESTS)
 endif(EIGEN_BUILD_TESTS)
 
 add_subdirectory(doc)
+
+add_subdirectory(unsupported)
 
 if(EIGEN_BUILD_DEMOS)
   add_subdirectory(demos)
