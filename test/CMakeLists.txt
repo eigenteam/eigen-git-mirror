@@ -34,11 +34,6 @@ else(CHOLMOD_FOUND)
   set(EIGEN_MISSING_BACKENDS ${EIGEN_MISSING_BACKENDS} Cholmod)
 endif(CHOLMOD_FOUND)
 
-# option(EIGEN_TEST_NO_FORTRAN "Disable Fortran" OFF)
-# if(NOT MSVC AND NOT EIGEN_TEST_NO_FORTRAN)
-#   enable_language(Fortran OPTIONAL)
-# endif(NOT MSVC AND NOT EIGEN_TEST_NO_FORTRAN)
-
 find_package(Umfpack)
 if(UMFPACK_FOUND)
   add_definitions("-DEIGEN_UMFPACK_SUPPORT")
