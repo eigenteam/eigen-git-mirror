@@ -78,8 +78,8 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
 {
   protected:
     typedef SparseLLT<MatrixType> Base;
-    using Base::Scalar;
-    using Base::RealScalar;
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
@@ -129,7 +129,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
   {
     taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, Base::m_precision, 0);
-    m_matrix = MappedSparseMatrix(*taucsRes);
+    m_matrix = MappedSparseMatrix<Scalar>(*taucsRes);
     free(taucsRes);
     m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
              | IncompleteFactorization
@@ -161,7 +161,7 @@ SparseLLT<MatrixType,Taucs>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     taucs_ccs_matrix* taucsL = taucs_supernodal_factor_to_ccs(m_taucsSupernodalFactor);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix(*taucsL);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix<Scalar>(*taucsL);
     free(taucsL);
     m_status = (m_status & ~MatrixLIsDirty);
   }

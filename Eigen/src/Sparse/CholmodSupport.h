@@ -54,16 +54,17 @@ void ei_cholmod_configure_matrix(CholmodType& mat)
   }
 }
 
-template<typename Scalar, int Flags>
-cholmod_sparse SparseMatrixBase<Scalar,Flags>::asCholmodMatrix()
+template<typename Derived>
+cholmod_sparse SparseMatrixBase<Derived>::asCholmodMatrix()
 {
+  typedef typename Derived::Scalar Scalar;
   cholmod_sparse res;
   res.nzmax   = nonZeros();
   res.nrow    = rows();;
   res.ncol    = cols();
-  res.p       = _outerIndexPtr();
-  res.i       = _innerIndexPtr();
-  res.x       = _valuePtr();
+  res.p       = derived()._outerIndexPtr();
+  res.i       = derived()._innerIndexPtr();
+  res.x       = derived()._valuePtr();
   res.xtype = CHOLMOD_REAL;
   res.itype = CHOLMOD_INT;
   res.sorted = 1;
@@ -73,11 +74,11 @@ cholmod_sparse SparseMatrixBase<Scalar,Flags>::asCholmodMatrix()
 
   ei_cholmod_configure_matrix<Scalar>(res);
 
-  if (Flags & SelfAdjoint)
+  if (Derived::Flags & SelfAdjoint)
   {
-    if (Flags & UpperTriangular)
+    if (Derived::Flags & UpperTriangular)
       res.stype = 1;
-    else if (Flags & LowerTriangular)
+    else if (Derived::Flags & LowerTriangular)
       res.stype = -1;
     else
       res.stype = 0;
@@ -115,7 +116,7 @@ MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(cholmod_sparse& cm)
   m_outerIndex = reinterpret_cast<int*>(cm.p);
   m_innerIndices = reinterpret_cast<int*>(cm.i);
   m_values = reinterpret_cast<Scalar*>(cm.x);
-  m_nnz = res.m_outerIndex[cm.ncol]);
+  m_nnz = m_outerIndex[cm.ncol];
 }
 
 template<typename MatrixType>
@@ -123,8 +124,8 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
 {
   protected:
     typedef SparseLLT<MatrixType> Base;
-    using typename Base::Scalar;
-    using Base::RealScalar;
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
@@ -205,7 +206,7 @@ SparseLLT<MatrixType,Cholmod>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix(*cmRes);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix<Scalar>(*cmRes);
     free(cmRes);
 
     m_status = (m_status & ~MatrixLIsDirty);

@@ -22,7 +22,6 @@
 #endif
 
 #ifdef EIGEN_TAUCS_SUPPORT
-
   // taucs.h declares a lot of mess
   #define isnan
   #define finite
@@ -40,7 +39,9 @@
   #ifdef max
     #undef max
   #endif
-
+  #ifdef complex
+    #undef complex
+  #endif
 #endif
 
 #ifdef EIGEN_SUPERLU_SUPPORT

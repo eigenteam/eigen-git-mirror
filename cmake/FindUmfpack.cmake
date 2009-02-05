@@ -3,11 +3,9 @@ if (UMFPACK_INCLUDES AND UMFPACK_LIBRARIES)
   set(UMFPACK_FIND_QUIETLY TRUE)
 endif (UMFPACK_INCLUDES AND UMFPACK_LIBRARIES)
 
-if(CMAKE_Fortran_COMPILER_WORKS)
+find_package(BLAS)
 
-  find_package(BLAS)
-
-  if(BLAS_FOUND)
+if(BLAS_FOUND)
 
   find_path(UMFPACK_INCLUDES
     NAMES
@@ -49,12 +47,11 @@ if(CMAKE_Fortran_COMPILER_WORKS)
     set(UMFPACK_LIBRARIES ${UMFPACK_LIBRARIES} ${BLAS_LIBRARIES})
   endif(UMFPACK_LIBRARIES)
 
-  endif(BLAS_FOUND)
+endif(BLAS_FOUND)
 
-endif(CMAKE_Fortran_COMPILER_WORKS)
 
-  include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(UMFPACK DEFAULT_MSG
-                                    UMFPACK_INCLUDES UMFPACK_LIBRARIES)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(UMFPACK DEFAULT_MSG
+                                  UMFPACK_INCLUDES UMFPACK_LIBRARIES)
 
 mark_as_advanced(UMFPACK_INCLUDES UMFPACK_LIBRARIES AMD_LIBRARY COLAMD_LIBRARY)
