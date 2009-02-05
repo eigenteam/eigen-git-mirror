@@ -180,7 +180,7 @@ static void ei_cache_friendly_product(
         {
           int offsetblock = l2k * (l2blockRowEnd-l2i) + (l1i-l2i)*(l2blockSizeEnd-l2k) - l2k*MaxBlockRows;
           const Scalar* EIGEN_RESTRICT localB = &block[offsetblock];
-          
+
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
             const Scalar* EIGEN_RESTRICT rhsColumn;
@@ -399,7 +399,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   if (PacketSize>1)
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0 || size<PacketSize);
-    
+
     while (skipColumns<PacketSize &&
            alignedStart != ((lhsAlignmentOffset + alignmentStep*skipColumns)%PacketSize))
       ++skipColumns;
@@ -420,7 +420,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
 
   int offset1 = (FirstAligned && alignmentStep==1?3:1);
   int offset3 = (FirstAligned && alignmentStep==1?1:3);
-  
+
   int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
@@ -435,13 +435,8 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
     {
       /* explicit vectorization */
       // process initial unaligned coeffs
-      for (int j=0; j<alignedStart; ++j) {
-        Scalar s = ei_pfirst(ptmp0)*lhs0[j];
-        s += ei_pfirst(ptmp1)*lhs1[j]; 
-        s += ei_pfirst(ptmp2)*lhs2[j];
-        s += ei_pfirst(ptmp3)*lhs3[j];
-        res[j] += s;
-      }
+      for (int j=0; j<alignedStart; ++j)
+        res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
 
       if (alignedSize>alignedStart)
       {
@@ -587,13 +582,13 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   // we cannot assume the first element is aligned because of sub-matrices
   const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
-  
+
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   int skipRows = 0;
   if (PacketSize>1)
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || size<PacketSize);
-    
+
     while (skipRows<PacketSize &&
            alignedStart != ((lhsAlignmentOffset + alignmentStep*skipRows)%PacketSize))
       ++skipRows;
@@ -614,7 +609,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   int offset1 = (FirstAligned && alignmentStep==1?3:1);
   int offset3 = (FirstAligned && alignmentStep==1?1:3);
-  
+
   int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (int i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
@@ -628,7 +623,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
     {
       /* explicit vectorization */
       Packet ptmp0 = ei_pset1(Scalar(0)), ptmp1 = ei_pset1(Scalar(0)), ptmp2 = ei_pset1(Scalar(0)), ptmp3 = ei_pset1(Scalar(0));
-      
+
       // process initial unaligned coeffs
       // FIXME this loop get vectorized by the compiler !
       for (int j=0; j<alignedStart; ++j)
