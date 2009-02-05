@@ -562,8 +562,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = "${Eigen_BINARY_DIR}/doc" \
-                         "${Eigen_SOURCE_DIR}/unsupported/Eigen" \
+INPUT                  = "${Eigen_SOURCE_DIR}/unsupported/Eigen" \
                          "${Eigen_SOURCE_DIR}/unsupported/doc"
 
 # This tag can be used to specify the character encoding of the source files

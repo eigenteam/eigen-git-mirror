@@ -59,8 +59,6 @@
 
 namespace Eigen {
 
-namespace unsupported {
-
 /** \ingroup Unsupported_modules
   * \defgroup AdolcForward_Module Adolc forward module
   * This module provides support for adolc's adouble type in forward mode.
@@ -78,8 +76,6 @@ namespace unsupported {
   * \endcode
   */
   //@{
-
-} // namespace unsupported
 
 } // namespace Eigen
 
