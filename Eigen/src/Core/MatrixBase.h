@@ -408,6 +408,9 @@ template<typename Derived> class MatrixBase
     DiagonalCoeffs<Derived> diagonal();
     const DiagonalCoeffs<Derived> diagonal() const;
 
+    template<int Id> DiagonalCoeffs<Derived,Id> diagonal();
+    template<int Id> const DiagonalCoeffs<Derived,Id> diagonal() const;
+
     template<unsigned int Mode> Part<Derived, Mode> part();
     template<unsigned int Mode> const Part<Derived, Mode> part() const;
 

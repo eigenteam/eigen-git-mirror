@@ -138,6 +138,20 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
     VERIFY_IS_APPROX(v1.template end<2>(), v1.template segment<2>(i));
     i = ei_random(0,rows-2);
     VERIFY_IS_APPROX(v1.segment(i,2), v1.template segment<2>(i));
+
+    enum {
+      N1 = MatrixType::RowsAtCompileTime>1 ?  1 : 0,
+      N2 = MatrixType::RowsAtCompileTime>2 ? -2 : 0
+    };
+
+    // check sub/super diagonal
+    m2.template diagonal<N1>() = 2 * m1.template diagonal<N1>();
+    m2.template diagonal<N1>()[0] *= 3;
+    VERIFY_IS_APPROX(m2.template diagonal<N1>()[0], static_cast<Scalar>(6) * m1.template diagonal<N1>()[0]);
+
+    m2.template diagonal<N2>() = 2 * m1.template diagonal<N2>();
+    m2.template diagonal<N2>()[0] *= 3;
+    VERIFY_IS_APPROX(m2.template diagonal<N2>()[0], static_cast<Scalar>(6) * m1.template diagonal<N2>()[0]);
   }
 
   // stress some basic stuffs with block matrices

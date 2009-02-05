@@ -39,16 +39,17 @@
   *
   * \sa MatrixBase::diagonal()
   */
-template<typename MatrixType>
-struct ei_traits<DiagonalCoeffs<MatrixType> >
+template<typename MatrixType, int DiagId>
+struct ei_traits<DiagonalCoeffs<MatrixType,DiagId> >
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
+    AbsDiagId = DiagId<0 ? -DiagId : DiagId,
     RowsAtCompileTime = int(MatrixType::SizeAtCompileTime) == Dynamic ? Dynamic
                       : EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,
-                                       MatrixType::ColsAtCompileTime),
+                                       MatrixType::ColsAtCompileTime) - AbsDiagId,
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
                             : EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
@@ -59,9 +60,14 @@ struct ei_traits<DiagonalCoeffs<MatrixType> >
   };
 };
 
-template<typename MatrixType> class DiagonalCoeffs
-   : public MatrixBase<DiagonalCoeffs<MatrixType> >
+template<typename MatrixType, int DiagId> class DiagonalCoeffs
+   : public MatrixBase<DiagonalCoeffs<MatrixType, DiagId> >
 {
+    enum {
+      AbsDiagId = DiagId<0 ? -DiagId : DiagId,
+      OffsetRow = DiagId<0 ? -DiagId : 0,
+      OffsetCol = DiagId<0 ? 0 : DiagId
+    };
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalCoeffs)
@@ -70,27 +76,27 @@ template<typename MatrixType> class DiagonalCoeffs
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(DiagonalCoeffs)
 
-    inline int rows() const { return std::min(m_matrix.rows(), m_matrix.cols()); }
+    inline int rows() const { return std::min(m_matrix.rows(), m_matrix.cols()) - AbsDiagId; }
     inline int cols() const { return 1; }
 
     inline Scalar& coeffRef(int row, int)
     {
-      return m_matrix.const_cast_derived().coeffRef(row, row);
+      return m_matrix.const_cast_derived().coeffRef(row+OffsetRow, row+OffsetCol);
     }
 
     inline const Scalar coeff(int row, int) const
     {
-      return m_matrix.coeff(row, row);
+      return m_matrix.coeff(row+OffsetRow, row+OffsetCol);
     }
 
     inline Scalar& coeffRef(int index)
     {
-      return m_matrix.const_cast_derived().coeffRef(index, index);
+      return m_matrix.const_cast_derived().coeffRef(index+OffsetRow, index+OffsetCol);
     }
 
     inline const Scalar coeff(int index) const
     {
-      return m_matrix.coeff(index, index);
+      return m_matrix.coeff(index+OffsetRow, index+OffsetCol);
     }
 
   protected:
@@ -119,6 +125,31 @@ inline const DiagonalCoeffs<Derived>
 MatrixBase<Derived>::diagonal() const
 {
   return DiagonalCoeffs<Derived>(derived());
+}
+
+/** \returns an expression of the \a Id-th sub or super diagonal of the matrix \c *this
+  *
+  * \c *this is not required to be square.
+  *
+  * The template parameter \a Id represent a super diagonal if \a Id > 0
+  * and a sub diagonal otherwise. \a Id == 0 is equivalent to the main diagonal.
+  *
+  * \sa class DiagonalCoeffs */
+template<typename Derived>
+template<int Id>
+inline DiagonalCoeffs<Derived,Id>
+MatrixBase<Derived>::diagonal()
+{
+  return DiagonalCoeffs<Derived,Id>(derived());
+}
+
+/** This is the const version of diagonal<int>(). */
+template<typename Derived>
+template<int Id>
+inline const DiagonalCoeffs<Derived,Id>
+MatrixBase<Derived>::diagonal() const
+{
+  return DiagonalCoeffs<Derived,Id>(derived());
 }
 
 #endif // EIGEN_DIAGONALCOEFFS_H
