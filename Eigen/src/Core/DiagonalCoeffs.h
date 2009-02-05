@@ -27,15 +27,16 @@
 
 /** \class DiagonalCoeffs
   *
-  * \brief Expression of the main diagonal of a matrix
+  * \brief Expression of a sub/main/super diagonal of a matrix
   *
-  * \param MatrixType the type of the object in which we are taking the main diagonal
+  * \param MatrixType the type of the object in which we are taking s sub/main/super diagonal
+  * \param DiagId the index of the sub/super diagonal. The default is 0 and it means the main diagonal.
   *
   * The matrix is not required to be square.
   *
-  * This class represents an expression of the main diagonal of a square matrix.
-  * It is the return type of MatrixBase::diagonal() and most of the time this is
-  * the only way it is used.
+  * This class represents an expression of the main diagonal, or any sub/super diagonal
+  * of a square matrix. It is the return type of MatrixBase::diagonal() and most of the
+  * time this is the only way it is used.
   *
   * \sa MatrixBase::diagonal()
   */
@@ -134,7 +135,7 @@ MatrixBase<Derived>::diagonal() const
   * The template parameter \a Id represent a super diagonal if \a Id > 0
   * and a sub diagonal otherwise. \a Id == 0 is equivalent to the main diagonal.
   *
-  * \sa class DiagonalCoeffs */
+  * \sa MatrixBase::diagonal(), class DiagonalCoeffs */
 template<typename Derived>
 template<int Id>
 inline DiagonalCoeffs<Derived,Id>
