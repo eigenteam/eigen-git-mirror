@@ -185,4 +185,9 @@ void test_reverse()
     CALL_SUBTEST( reverse(Matrix<float, 100, 100>()) );
     CALL_SUBTEST( reverse(Matrix<long double,Dynamic,Dynamic>(10,10)) );
   }
+  Vector4f x; x << 1, 2, 3, 4;
+  Vector4f y; y << 4, 3, 2, 1;
+  VERIFY(x.reverse()[1] == 3);
+  VERIFY(x.reverse() == y);
+
 }

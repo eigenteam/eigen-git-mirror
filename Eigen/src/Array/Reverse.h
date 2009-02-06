@@ -92,8 +92,7 @@ template<typename MatrixType, int Direction> class Reverse
                             ((Direction == Horizontal) || (Direction == BothDirections)) ? m_matrix.cols() - col - 1 : col);
     }
 
-    /* could be removed */
-    /*
+    /* TODO have to be updated for vector expression only */
     inline const Scalar coeff(int index) const
     {
       switch ( Direction )
@@ -113,6 +112,7 @@ template<typename MatrixType, int Direction> class Reverse
 
     }
 
+    /* TODO have to be updated for vector expression only */
     inline Scalar& coeffRef(int index)
     {
       switch ( Direction )
@@ -130,9 +130,8 @@ template<typename MatrixType, int Direction> class Reverse
           break;
         }
     }
-    */
 
-    /* the following is not ready yet */
+    // the following is not ready yet
     /*
     // TODO: We must reverse the packet reading and writing, which is currently not done here, I think
     template<int LoadMode>
@@ -150,6 +149,7 @@ template<typename MatrixType, int Direction> class Reverse
                                                                    x);
     }
 
+    // TODO have to be updated for vector expression only
     template<int LoadMode>
     inline const PacketScalar packet(int index) const
     {
@@ -168,10 +168,8 @@ template<typename MatrixType, int Direction> class Reverse
           break;
         }
     }
-    */
 
-    /* could be removed */
-    /*
+    // TODO have to be updated for vector expression only
     template<int LoadMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
