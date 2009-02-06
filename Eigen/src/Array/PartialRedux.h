@@ -257,7 +257,21 @@ template<typename ExpressionType, int Direction> class PartialRedux
       * \sa MatrixBase::count() */
     const PartialReduxExpr<ExpressionType, ei_member_count<int>, Direction> count() const
     { return _expression(); }
-
+    
+    
+    /** \returns a matrix expression
+      * where each column (or row) are reversed.
+      *
+      * Example: \include PartialRedux_reverse.cpp
+      * Output: \verbinclude PartialRedux_reverse.out
+      *
+      * \sa MatrixBase::reverse() */
+    const Reverse<ExpressionType, Direction> reverse() const
+    {
+      return Reverse<ExpressionType, Direction>( _expression() );
+    }
+  
+    
     /** \returns a 3x3 matrix expression of the cross product
       * of each column or row of the referenced expression with the \a other vector.
       *

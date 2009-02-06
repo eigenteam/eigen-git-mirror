@@ -40,6 +40,7 @@ template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int 
          int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit ? DirectAccessBit
                                  : ei_traits<MatrixType>::Flags&SparseBit> class Block;
 template<typename MatrixType> class Transpose;
+template<typename MatrixType, int Direction = BothDirections> class Reverse;
 template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;

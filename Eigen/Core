@@ -12,7 +12,7 @@
       #if _M_IX86_FP >= 2
         #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
       #endif
-    #endif   
+    #endif
   #endif
 #endif
 

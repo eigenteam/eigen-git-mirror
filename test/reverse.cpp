@@ -1,0 +1,188 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra. Eigen itself is part of the KDE project.
+//
+// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Ricard Marxer <email@ricardmarxer.com>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#include "main.h"
+#include <iostream>
+
+using namespace std;
+
+template<typename MatrixType> void reverse(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+
+  int rows = m.rows();
+  int cols = m.cols();
+
+  // this test relies a lot on Random.h, and there's not much more that we can do
+  // to test it, hence I consider that we will have tested Random.h
+  MatrixType m1 = MatrixType::Random(rows, cols);
+  VectorType v1 = VectorType::Random(rows);
+
+  MatrixType m1_r = m1.reverse();
+  // Verify that MatrixBase::reverse() works
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_r(i, j), m1(rows - 1 - i, cols - 1 - j));
+    }
+  }
+
+  Reverse<MatrixType> m1_rd(m1);
+  // Verify that a Reverse default (in both directions) of an expression works
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_rd(i, j), m1(rows - 1 - i, cols - 1 - j));
+    }
+  }
+
+  Reverse<MatrixType, BothDirections> m1_rb(m1);
+  // Verify that a Reverse in both directions of an expression works
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_rb(i, j), m1(rows - 1 - i, cols - 1 - j));
+    }
+  }
+
+  Reverse<MatrixType, Vertical> m1_rv(m1);
+  // Verify that a Reverse in the vertical directions of an expression works
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_rv(i, j), m1(rows - 1 - i, j));
+    }
+  }
+
+  Reverse<MatrixType, Horizontal> m1_rh(m1);
+  // Verify that a Reverse in the horizontal directions of an expression works
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_rh(i, j), m1(i, cols - 1 - j));
+    }
+  }
+
+  VectorType v1_r = v1.reverse();
+  // Verify that a VectorType::reverse() of an expression works
+  for ( int i = 0; i < rows; i++ ) {
+    VERIFY_IS_APPROX(v1_r(i), v1(rows - 1 - i));
+  }
+
+  MatrixType m1_cr = m1.colwise().reverse();
+  // Verify that PartialRedux::reverse() works (for colwise())
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_cr(i, j), m1(rows - 1 - i, j));
+    }
+  }
+
+  MatrixType m1_rr = m1.rowwise().reverse();
+  // Verify that PartialRedux::reverse() works (for rowwise())
+  for ( int i = 0; i < rows; i++ ) {
+    for ( int j = 0; j < cols; j++ ) {
+      VERIFY_IS_APPROX(m1_rr(i, j), m1(i, cols - 1 - j));
+    }
+  }
+
+  int ind = ei_random<int>(0, (rows*cols) - 1);
+
+  /* Reverse::coeff(int) is for vector only */
+  /*
+  MatrixType m1_reversed(m1.reverse());
+  VERIFY_IS_APPROX( m1_reversed.reverse().coeff( ind ), m1.coeff( ind ) );
+
+  MatrixType m1c_reversed = m1.colwise().reverse();
+  VERIFY_IS_APPROX( m1c_reversed.colwise().reverse().coeff( ind ), m1.coeff( ind ) );
+
+  MatrixType m1r_reversed = m1.rowwise().reverse();
+  VERIFY_IS_APPROX( m1r_reversed.rowwise().reverse().coeff( ind ), m1.coeff( ind ) );
+  */
+
+  /*
+  cout << "m1:" << endl << m1 << endl;
+  cout << "m1c_reversed:" << endl << m1c_reversed << endl;
+
+  cout << "----------------" << endl;
+
+  for ( int i=0; i< rows*cols; i++){
+    cout << m1c_reversed.coeff(i) << endl;
+  }
+
+  cout << "----------------" << endl;
+
+  for ( int i=0; i< rows*cols; i++){
+    cout << m1c_reversed.colwise().reverse().coeff(i) << endl;
+  }
+
+  cout << "================" << endl;
+
+  cout << "m1.coeff( ind ): " << m1.coeff( ind ) << endl;
+  cout << "m1c_reversed.colwise().reverse().coeff( ind ): " << m1c_reversed.colwise().reverse().coeff( ind ) << endl;
+  */
+
+  //MatrixType m1r_reversed = m1.rowwise().reverse();
+  //VERIFY_IS_APPROX( m1r_reversed.rowwise().reverse().coeff( ind ), m1.coeff( ind ) );
+
+  /*
+  cout << "m1" << endl << m1 << endl;
+  cout << "m1 using coeff(int index)" << endl;
+  for ( int i = 0; i < rows*cols; i++) {
+    cout << m1.coeff(i) << " ";
+  }
+  cout << endl;
+
+  cout << "m1.transpose()" << endl << m1.transpose() << endl;
+  cout << "m1.transpose() using coeff(int index)" << endl;
+  for ( int i = 0; i < rows*cols; i++) {
+    cout << m1.transpose().coeff(i) << " ";
+  }
+  cout << endl;
+  */
+  /*
+  Scalar x = ei_random<Scalar>();
+
+  int r = ei_random<int>(0, rows-1),
+      c = ei_random<int>(0, cols-1);
+
+  m1.reverse()(r, c) = x;
+  VERIFY_IS_APPROX(x, m1(rows - 1 - r, cols - 1 - c));
+
+  m1.colwise().reverse()(r, c) = x;
+  VERIFY_IS_APPROX(x, m1(rows - 1 - r, c));
+
+  m1.rowwise().reverse()(r, c) = x;
+  VERIFY_IS_APPROX(x, m1(r, cols - 1 - c));
+  */
+}
+
+void test_reverse()
+{
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( reverse(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( reverse(Matrix4d()) );
+    CALL_SUBTEST( reverse(MatrixXcf(3, 3)) );
+    CALL_SUBTEST( reverse(MatrixXi(8, 12)) );
+    CALL_SUBTEST( reverse(MatrixXcd(20, 20)) );
+    CALL_SUBTEST( reverse(Matrix<float, 100, 100>()) );
+    CALL_SUBTEST( reverse(Matrix<long double,Dynamic,Dynamic>(10,10)) );
+  }
+}
