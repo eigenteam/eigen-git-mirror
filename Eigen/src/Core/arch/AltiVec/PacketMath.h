@@ -111,7 +111,7 @@ template<> inline v4i  ei_pmul(const v4i&   a, const v4i&   b)
   USE_CONST_v1i;
   USE_CONST_v16i_;
 
-  // Get the absolute values 
+  // Get the absolute values
   a1  = vec_abs(a);
   b1  = vec_abs(b);
 
@@ -146,7 +146,7 @@ template<> inline v4f  ei_pdiv(const v4f&   a, const v4f&   b) {
 
   // Altivec does not offer a divide instruction, we have to do a reciprocal approximation
   y_0 = vec_re(b);
-  
+
   // Do one Newton-Raphson iteration to get the needed accuracy
   t = vec_nmsub(y_0, b, v1f);
   y_1 = vec_madd(y_0, t, y_0);
@@ -258,6 +258,17 @@ template<> inline int    ei_pfirst(const v4i&  a)
   int __attribute__(aligned(16)) ai[4];
   vec_st(a, 0, ai);
   return ai[0];
+}
+
+template<> EIGEN_STRONG_INLINE v4f ei_preverse(const v4f& a)
+{
+  static const unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  return (v4f)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
+}
+template<> EIGEN_STRONG_INLINE v4i ei_preverse(const v4i& a)
+{
+  static const unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  return (v4i)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
 }
 
 inline v4f ei_preduxp(const v4f* vecs)

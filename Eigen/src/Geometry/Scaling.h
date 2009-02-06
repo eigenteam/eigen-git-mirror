@@ -120,28 +120,28 @@ public:
 };
 
 /** Constructs a uniform scaling from scale factor \a s */
-inline UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }
+static inline UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }
 /** Constructs a uniform scaling from scale factor \a s */
-inline UniformScaling<double> Scaling(double s) { return UniformScaling<double>(s); }
+static inline UniformScaling<double> Scaling(double s) { return UniformScaling<double>(s); }
 /** Constructs a uniform scaling from scale factor \a s */
-template<typename RealScalar> inline UniformScaling<std::complex<RealScalar> >
-Scaling(const std::complex<RealScalar>& s)
+template<typename RealScalar>
+static inline UniformScaling<std::complex<RealScalar> > Scaling(const std::complex<RealScalar>& s)
 { return UniformScaling<std::complex<RealScalar> >(s); }
 
 /** Constructs a 2D axis aligned scaling */
-template<typename Scalar> inline DiagonalMatrix<Scalar,2>
-Scaling(Scalar sx, Scalar sy)
+template<typename Scalar>
+static inline DiagonalMatrix<Scalar,2> Scaling(Scalar sx, Scalar sy)
 { return DiagonalMatrix<Scalar,2>(sx, sy); }
 /** Constructs a 3D axis aligned scaling */
-template<typename Scalar> inline DiagonalMatrix<Scalar,3>
-Scaling(Scalar sx, Scalar sy, Scalar sz)
+template<typename Scalar>
+static inline DiagonalMatrix<Scalar,3> Scaling(Scalar sx, Scalar sy, Scalar sz)
 { return DiagonalMatrix<Scalar,3>(sx, sy, sz); }
 
 /** Constructs an axis aligned scaling expression from vector expression \a coeffs
   * This is an alias for coeffs.asDiagonal()
   */
 template<typename Derived>
-inline const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
+static inline const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
 /** \addtogroup Geometry_Module */
