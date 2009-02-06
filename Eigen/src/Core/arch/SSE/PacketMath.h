@@ -100,7 +100,7 @@ template<> EIGEN_STRONG_INLINE __m128  ei_ploadu<float>(const float*   from) { r
 // template<> EIGEN_STRONG_INLINE __m128  ei_ploadu(const float*   from) {
 //   if (size_t(from)&0xF)
 //     return _mm_loadu_ps(from);
-//   else 
+//   else
 //     return _mm_loadu_ps(from);
 // }
 template<> EIGEN_STRONG_INLINE __m128d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
@@ -124,6 +124,13 @@ template<> EIGEN_STRONG_INLINE float  ei_pfirst<__m128>(const __m128&  a) { retu
 template<> EIGEN_STRONG_INLINE double ei_pfirst<__m128d>(const __m128d& a) { return _mm_cvtsd_f64(a); }
 template<> EIGEN_STRONG_INLINE int    ei_pfirst<__m128i>(const __m128i& a) { return _mm_cvtsi128_si32(a); }
 #endif
+
+template<> EIGEN_STRONG_INLINE __m128 ei_preverse(const __m128& a)
+{ return _mm_shuffle_ps(a,a,0x1B); }
+template<> EIGEN_STRONG_INLINE __m128d ei_preverse(const __m128d& a)
+{ return _mm_shuffle_pd(a,a,0x1); }
+template<> EIGEN_STRONG_INLINE __m128i ei_preverse(const __m128i& a)
+{ return _mm_shuffle_epi32(a,0x1B); }
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions

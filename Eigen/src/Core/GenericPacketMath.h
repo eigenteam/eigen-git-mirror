@@ -96,6 +96,9 @@ ei_preduxp(const Packet* vecs) { return vecs[0]; }
 template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux(const Packet& a)
 { return a; }
 
+/** \internal \returns the reversed elements of \a a*/
+template<typename Packet> inline Packet ei_preverse(const Packet& a)
+{ return a; }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

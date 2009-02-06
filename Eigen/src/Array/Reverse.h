@@ -55,15 +55,25 @@ struct ei_traits<Reverse<MatrixType, Direction> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
 
-    // TODO: check how to correctly set the new flags
-    Flags = ((int(_MatrixTypeNested::Flags) & HereditaryBits)
-          & ~(LowerTriangularBit | UpperTriangularBit))
+    // let's enable LinearAccess only with vectorization because of the product overhead
+    LinearAccess = ( (Direction==BothDirections) && (int(_MatrixTypeNested::Flags)&PacketAccessBit) )
+                 ? LinearAccessBit : 0,
+
+    Flags = (int(_MatrixTypeNested::Flags) & (HereditaryBits | PacketAccessBit | LinearAccess))
           | (int(_MatrixTypeNested::Flags)&UpperTriangularBit ? LowerTriangularBit : 0)
           | (int(_MatrixTypeNested::Flags)&LowerTriangularBit ? UpperTriangularBit : 0),
 
-    // TODO: should add two add costs (due to the -1) or only one, and add the cost of calling .rows() and .cols()
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
+};
+
+template<typename PacketScalar, bool ReversePacket> struct ei_reverse_packet_cond
+{
+  static inline PacketScalar run(const PacketScalar& x) { return ei_preverse(x); }
+};
+template<typename PacketScalar> struct ei_reverse_packet_cond<PacketScalar,false>
+{
+  static inline PacketScalar run(const PacketScalar& x) { return x; }
 };
 
 template<typename MatrixType, int Direction> class Reverse
@@ -72,6 +82,22 @@ template<typename MatrixType, int Direction> class Reverse
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Reverse)
+
+  protected:
+    enum {
+      PacketSize = ei_packet_traits<Scalar>::size,
+      IsRowMajor = Flags & RowMajorBit,
+      IsColMajor = !IsRowMajor,
+      ReverseRow = (Direction == Vertical)   || (Direction == BothDirections),
+      ReverseCol = (Direction == Horizontal) || (Direction == BothDirections),
+      OffsetRow  = ReverseRow && IsColMajor ? PacketSize : 1,
+      OffsetCol  = ReverseCol && IsRowMajor ? PacketSize : 1,
+      ReversePacket = (Direction == BothDirections)
+                    || ((Direction == Vertical)   && IsColMajor)
+                    || ((Direction == Horizontal) && IsRowMajor)
+    };
+    typedef ei_reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
+  public:
 
     inline Reverse(const MatrixType& matrix) : m_matrix(matrix) { }
 
@@ -82,113 +108,54 @@ template<typename MatrixType, int Direction> class Reverse
 
     inline Scalar& coeffRef(int row, int col)
     {
-      return m_matrix.const_cast_derived().coeffRef(((Direction == Vertical) || (Direction == BothDirections)) ? m_matrix.rows() - row - 1 : row,
-                                                    ((Direction == Horizontal) || (Direction == BothDirections)) ? m_matrix.cols() - col - 1 : col);
+      return m_matrix.const_cast_derived().coeffRef(ReverseRow ? m_matrix.rows() - row - 1 : row,
+                                                    ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
     inline const Scalar coeff(int row, int col) const
     {
-      return m_matrix.coeff(((Direction == Vertical) || (Direction == BothDirections)) ? m_matrix.rows() - row - 1 : row,
-                            ((Direction == Horizontal) || (Direction == BothDirections)) ? m_matrix.cols() - col - 1 : col);
+      return m_matrix.coeff(ReverseRow ? m_matrix.rows() - row - 1 : row,
+                            ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    /* TODO have to be updated for vector expression only */
     inline const Scalar coeff(int index) const
     {
-      switch ( Direction )
-        {
-        case Vertical:
-          return m_matrix.coeff( index + m_matrix.rows() - 2 * (index % m_matrix.rows()) - 1 );
-          break;
-
-        case Horizontal:
-          return m_matrix.coeff( (index % m_matrix.rows()) + (m_matrix.cols() - 1 - index/m_matrix.rows()) * m_matrix.rows() );
-          break;
-
-        case BothDirections:
-          return m_matrix.coeff((m_matrix.rows() * m_matrix.cols()) - index - 1);
-          break;
-        }
-
+      return m_matrix.coeff(m_matrix.size() - index - 1);
     }
 
-    /* TODO have to be updated for vector expression only */
     inline Scalar& coeffRef(int index)
     {
-      switch ( Direction )
-        {
-        case Vertical:
-          return m_matrix.const_cast_derived().coeffRef( index + m_matrix.rows() - 2 * (index % m_matrix.rows()) - 1 );
-          break;
-
-        case Horizontal:
-          return m_matrix.const_cast_derived().coeffRef( (index % m_matrix.rows()) + (m_matrix.cols() - 1 - index/m_matrix.rows()) * m_matrix.rows() );
-          break;
-
-        case BothDirections:
-          return m_matrix.const_cast_derived().coeffRef( (m_matrix.rows() * m_matrix.cols()) - index - 1 );
-          break;
-        }
+      return m_matrix.const_cast_derived().coeffRef(m_matrix.size() - index - 1);
     }
 
-    // the following is not ready yet
-    /*
-    // TODO: We must reverse the packet reading and writing, which is currently not done here, I think
     template<int LoadMode>
     inline const PacketScalar packet(int row, int col) const
     {
-      return m_matrix.template packet<LoadMode>(((Direction == Vertical) || (Direction == BothDirections)) ? m_matrix.rows() - row - 1 : row,
-                                                ((Direction == Horizontal) || (Direction == BothDirections)) ? m_matrix.cols() - col - 1 : col);
+      return reverse_packet::run(m_matrix.template packet<LoadMode>(
+                                    ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
+                                    ReverseCol ? m_matrix.cols() - col - OffsetCol : col));
     }
 
     template<int LoadMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacket<LoadMode>(((Direction == Vertical) || (Direction == BothDirections)) ? m_matrix.rows() - row - 1 : row,
-                                                                   ((Direction == Horizontal) || (Direction == BothDirections)) ? m_matrix.cols() - col - 1 : col,
-                                                                   x);
+      m_matrix.const_cast_derived().template writePacket<LoadMode>(
+                                      ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
+                                      ReverseCol ? m_matrix.cols() - col - OffsetCol : col,
+                                      reverse_packet::run(x));
     }
 
-    // TODO have to be updated for vector expression only
     template<int LoadMode>
     inline const PacketScalar packet(int index) const
     {
-      switch ( Direction )
-        {
-        case Vertical:
-          return m_matrix.template packet<LoadMode>( index + m_matrix.rows() - 2 * (index % m_matrix.rows()) - 1 );
-          break;
-
-        case Horizontal:
-          return m_matrix.template packet<LoadMode>( (index % m_matrix.rows()) + (m_matrix.cols() - 1 - index/m_matrix.rows()) * m_matrix.rows() );
-          break;
-
-        case BothDirections:
-          return m_matrix.template packet<LoadMode>( (m_matrix.rows() * m_matrix.cols()) - index - 1 );
-          break;
-        }
+      return ei_preverse(m_matrix.template packet<LoadMode>( m_matrix.size() - index - PacketSize ));
     }
 
-    // TODO have to be updated for vector expression only
     template<int LoadMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      switch ( Direction )
-        {
-        case Vertical:
-          return m_matrix.const_cast_derived().template packet<LoadMode>( index + m_matrix.rows() - 2 * (index % m_matrix.rows()) - 1, x );
-          break;
-
-        case Horizontal:
-          return m_matrix.const_cast_derived().template packet<LoadMode>( (index % m_matrix.rows()) + (m_matrix.cols() - 1 - index/m_matrix.rows()) * m_matrix.rows(), x );
-          break;
-
-        case BothDirections:
-          return m_matrix.const_cast_derived().template packet<LoadMode>( (m_matrix.rows() * m_matrix.cols()) - index - 1, x );
-          break;
-        }
+      m_matrix.const_cast_derived().template writePacket<LoadMode>(m_matrix.size() - index - PacketSize, ei_preverse(x));
     }
-    */
 
   protected:
     const typename MatrixType::Nested m_matrix;

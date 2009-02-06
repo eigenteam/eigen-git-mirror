@@ -134,6 +134,11 @@ template<typename Scalar> void packetmath()
   }
   ei_pstore(data2, ei_preduxp(packets));
   VERIFY(areApprox(ref, data2, PacketSize) && "ei_preduxp");
+
+  for (int i=0; i<PacketSize; ++i)
+    ref[i] = data1[PacketSize-i-1];
+  ei_pstore(data2, ei_preverse(ei_pload(data1)));
+  VERIFY(areApprox(ref, data2, PacketSize) && "ei_preverse");
 }
 
 void test_packetmath()

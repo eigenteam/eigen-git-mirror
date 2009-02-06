@@ -103,20 +103,6 @@ template<typename MatrixType> void reverse(const MatrixType& m)
     }
   }
 
-  int ind = ei_random<int>(0, (rows*cols) - 1);
-
-  /* Reverse::coeff(int) is for vector only */
-  /*
-  MatrixType m1_reversed(m1.reverse());
-  VERIFY_IS_APPROX( m1_reversed.reverse().coeff( ind ), m1.coeff( ind ) );
-
-  MatrixType m1c_reversed = m1.colwise().reverse();
-  VERIFY_IS_APPROX( m1c_reversed.colwise().reverse().coeff( ind ), m1.coeff( ind ) );
-
-  MatrixType m1r_reversed = m1.rowwise().reverse();
-  VERIFY_IS_APPROX( m1r_reversed.rowwise().reverse().coeff( ind ), m1.coeff( ind ) );
-  */
-
   /*
   cout << "m1:" << endl << m1 << endl;
   cout << "m1c_reversed:" << endl << m1c_reversed << endl;
@@ -178,12 +164,14 @@ void test_reverse()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( reverse(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( reverse(Matrix2f()) );
+    CALL_SUBTEST( reverse(Matrix4f()) );
     CALL_SUBTEST( reverse(Matrix4d()) );
     CALL_SUBTEST( reverse(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( reverse(MatrixXi(8, 12)) );
+    CALL_SUBTEST( reverse(MatrixXi(6, 3)) );
     CALL_SUBTEST( reverse(MatrixXcd(20, 20)) );
     CALL_SUBTEST( reverse(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST( reverse(Matrix<long double,Dynamic,Dynamic>(10,10)) );
+    CALL_SUBTEST( reverse(Matrix<float,Dynamic,Dynamic,RowMajor>(6,3)) );
   }
   Vector4f x; x << 1, 2, 3, 4;
   Vector4f y; y << 4, 3, 2, 1;
