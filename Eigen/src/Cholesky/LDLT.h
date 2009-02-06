@@ -132,7 +132,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
     return;
   }
 
-  RealScalar cutoff, biggest_in_corner;
+  RealScalar cutoff = 0, biggest_in_corner;
 
   // By using a temorary, packet-aligned products are guarenteed. In the LLT
   // case this is unnecessary because the diagonal is included and will always

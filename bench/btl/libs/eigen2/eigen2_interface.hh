@@ -142,7 +142,7 @@ public :
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
-    C = X.cholesky().matrixL();
+    C = X.llt().matrixL();
 //     C = X;
 //     Cholesky<gene_matrix>::computeInPlace(C);
 //     Cholesky<gene_matrix>::computeInPlaceBlock(C);

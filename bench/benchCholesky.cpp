@@ -117,15 +117,14 @@ __attribute__ ((noinline)) void benchLLT(const MatrixType& m)
 
 int main(int argc, char* argv[])
 {
-//   const int dynsizes[] = {/*4,6,8,12,16,24,32,49,64,67,128,129,130,131,132,*/256,257,258,259,260,512,900,0};
+  const int dynsizes[] = {4,6,8,16,24,32,49,64,128,256,512,900,0};
   std::cout << "size            no sqrt                           standard";
 //   #ifdef BENCH_GSL
 //   std::cout << "       GSL (standard + double + ATLAS)  ";
 //   #endif
   std::cout << "\n";
-//
-//   for (uint i=0; dynsizes[i]>0; ++i)
-//     benchLLT(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
+  for (uint i=0; dynsizes[i]>0; ++i)
+    benchLLT(Matrix<Scalar,Dynamic,Dynamic>(dynsizes[i],dynsizes[i]));
 
   benchLLT(Matrix<Scalar,2,2>());
   benchLLT(Matrix<Scalar,3,3>());
