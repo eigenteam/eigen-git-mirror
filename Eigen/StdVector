@@ -30,7 +30,7 @@ struct ei_has_aligned_operator_new {
               == sizeof(ei_has_aligned_operator_new_marker_sizeof) };
 };
 
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
   
   // sometimes, MSVC detects, at compile time, that the argument x
   // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
