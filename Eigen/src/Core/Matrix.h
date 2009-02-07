@@ -226,7 +226,6 @@ class Matrix
       */
     inline void resize(int rows, int cols)
     {
-      ei_assert(rows > 0 && cols > 0 && "a matrix cannot be resized to 0 size");
       ei_assert((MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
@@ -240,7 +239,6 @@ class Matrix
       */
     inline void resize(int size)
     {
-      ei_assert(size>0 && "a vector cannot be resized to 0 length");
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       if(RowsAtCompileTime == 1)
         m_storage.resize(size, 1, size);

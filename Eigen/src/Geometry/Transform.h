@@ -100,9 +100,6 @@ public:
   /** Default constructor without initialization of the coefficients. */
   inline Transform() { }
 
-  inline Transform(ei_constructor_without_unaligned_array_assert)
-    : m_matrix(ei_constructor_without_unaligned_array_assert()) {}
-
   inline Transform(const Transform& other)
   { 
     m_matrix = other.m_matrix;

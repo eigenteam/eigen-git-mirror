@@ -114,10 +114,6 @@ public:
   /** Default constructor leaving the quaternion uninitialized. */
   inline Quaternion() {}
 
-  inline Quaternion(ei_constructor_without_unaligned_array_assert)
-    : m_coeffs(ei_constructor_without_unaligned_array_assert()) {}
-
-
   /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
     * its four coefficients \a w, \a x, \a y and \a z.
     *
