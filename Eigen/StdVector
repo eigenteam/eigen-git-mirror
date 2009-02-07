@@ -5,6 +5,14 @@
 #error you must include Eigen/StdVector before std::vector
 #endif                                                    
 
+#ifndef EIGEN_GNUC_AT_LEAST
+#ifdef __GNUC__
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+#else
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+#endif
+
 #define vector std_vector
 #include <vector>        
 #undef vector
@@ -115,7 +123,8 @@ class vector<T,DummyAlloc,true>
     else                       
       vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x); 
   }                                                              
-  
+  #else
+  using vector_base::resize;
   #endif  
 };
 
