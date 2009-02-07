@@ -83,8 +83,8 @@ class vector : public std::std_vector<T,AllocT>
   EIGEN_STD_VECTOR_SPECIALIZATION_BODY
 };
 
-template<typename T>
-class vector<T,Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)>,true>
+template<typename T,typename DummyAlloc>
+class vector<T,DummyAlloc,true>
   : public std::std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
                            Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >          
 {
