@@ -95,15 +95,8 @@ class vector<T,DummyAlloc,true>
   void resize(size_type __new_size)
   { resize(__new_size, T()); }     
 
-  #if defined(_GLIBCXX_VECTOR)
-  void resize(size_type __new_size, const value_type& __x)
-  {                                              
-    if (__new_size < vector_base::size())               
-      vector_base::_M_erase_at_end(this->_M_impl._M_start + __new_size);
-    else                       
-      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x); 
-  }                                                              
-  #elif defined(_VECTOR_)                                        
+  #if defined(_VECTOR_)
+  // workaround MSVC std::vector implementation
   void resize(size_type __new_size, const value_type& __x)                 
   {                                                              
     if (vector_base::size() < __new_size)                                 
@@ -111,6 +104,18 @@ class vector<T,DummyAlloc,true>
     else if (__new_size < vector_base::size())
       vector_base::erase(vector_base::begin() + __new_size, vector_base::end());
   }
+  #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
+  // workaround GCC std::vector implementation
+  // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
+  // no no need to workaround !
+  void resize(size_type __new_size, const value_type& __x)
+  {                                              
+    if (__new_size < vector_base::size())               
+      vector_base::_M_erase_at_end(this->_M_impl._M_start + __new_size);
+    else                       
+      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x); 
+  }                                                              
+  
   #endif  
 };
 
