@@ -41,7 +41,7 @@
 // because extra memory must be allocated for bookkeeping).
 // if the compiler is not GNUC, just cross fingers that the architecture isn't too exotic, because we don't want
 // to keep track of all the different preprocessor symbols for all compilers.
-#if (!defined(__GNUC__)) || defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || defined(__ia64__)
+#if (!defined(__GNUC__)) || defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__)
   #define EIGEN_ARCH_WANTS_ALIGNMENT 1
 #else
   #ifdef EIGEN_VECTORIZE
