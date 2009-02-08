@@ -6,6 +6,7 @@ Eigen2 can be extended in several ways, for instance, by defining global methods
 
 \b Table \b of \b contents
   - \ref ExtendingMatrixBase
+  - \ref InheritingFromMatrix
   - \ref CustomScalarType
   - \ref PreprocessorDirectives
 
@@ -69,7 +70,50 @@ Then one can the following declaration in the config.h or whatever prerequisites
 #define EIGEN_MATRIXBASE_PLUGIN "MatrixBaseAddons.h"
 \endcode
 
+\section InheritingFromMatrix Inheriting from Matrix
 
+Before inheriting from Matrix, be really, i mean REALLY sure that using
+EIGEN_MATRIX_PLUGIN is not what you really want (see previous section).
+If you just need to add few members to Matrix, this is the way to go.
+
+An example of when you actually need to inherit Matrix, is when you have
+several layers of heritage such as  MyVerySpecificVector1,MyVerySpecificVector1 -> MyVector1 -> Matrix and.
+MyVerySpecificVector3,MyVerySpecificVector4 -> MyVector2 -> Matrix.
+
+In order for your object to work within the Eigen framework, you need to
+define a few members in your inherited class.
+
+Here is a minimalistic example:\n
+\code
+class MyVectorType : public  Eigen::VectorXd
+{
+public:
+    MyVectorType(void):Eigen::VectorXd() {}
+
+    // You need to define this for your object to work
+    typedef Eigen::VectorXd Base;
+    template<typename OtherDerived>
+    MyVectorType & operator= (const Eigen::MatrixBase <OtherDerived>& other)
+    {
+        this->Base::operator=(other);
+        return *this;
+    }
+};
+\endcode
+
+This is the kind of error you can get if you don't provide those methods
+\code
+error: no match for ‘operator=’ in ‘delta =
+(((Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000,
+1> >*)(& delta)) + 8u)->Eigen::MatrixBase<Derived>::cwise [with Derived =
+Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000,
+1>]().Eigen::Cwise<ExpressionType>::operator* [with OtherDerived =
+Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>, ExpressionType =
+Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>](((const
+Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>
+>&)(((const Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1,
+>2, 10000, 1> >*)((const spectral1d*)where)) + 8u)))’                                                    
+\endcode
 
 \section CustomScalarType Using custom scalar types
 
