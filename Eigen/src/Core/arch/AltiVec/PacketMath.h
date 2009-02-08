@@ -262,12 +262,12 @@ template<> inline int    ei_pfirst(const v4i&  a)
 
 template<> EIGEN_STRONG_INLINE v4f ei_preverse(const v4f& a)
 {
-  static const unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  static const __vector unsigned char reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
   return (v4f)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
 }
 template<> EIGEN_STRONG_INLINE v4i ei_preverse(const v4i& a)
 {
-  static const unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  static const __vector unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
   return (v4i)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
 }
 
