@@ -36,9 +36,9 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::derived;
+    typedef typename ei_cleantype<CoeffsVectorType>::type _CoeffsVectorType;
 
   protected:
-    typedef typename ei_cleantype<CoeffsVectorType>::type _CoeffsVectorType;
 
     // MSVC gets crazy if we define default parameters
     template<typename OtherDerived, bool IsVector, bool IsDiagonal> struct construct_from_expression;
@@ -105,7 +105,7 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
       return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
     }
 
-    inline const Scalar coeffRef(int row, int col) const
+    inline Scalar& coeffRef(int row, int col)
     {
       ei_assert(row==col);
       return m_coeffs.coeffRef(row);
@@ -196,6 +196,19 @@ class DiagonalMatrix
       m_coeffs = other.diagonal();
       return *this;
     }
+    
+    inline void resize(int size)
+    {
+      m_coeffs.resize(size);
+    }
+    
+    inline void resize(int rows, int cols)
+    {
+      ei_assert(rows==cols && "a diagonal matrix must be square");
+      m_coeffs.resize(rows);
+    }
+    
+    inline void setZero() { m_coeffs.setZero(); }
 };
 
 /** \class DiagonalMatrixWrapper
