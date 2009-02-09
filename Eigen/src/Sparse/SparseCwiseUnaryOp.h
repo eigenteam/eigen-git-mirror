@@ -89,7 +89,7 @@ class SparseCwiseUnaryOp<UnaryOp,MatrixType>::InnerIterator
 
   protected:
     MatrixTypeIterator m_iter;
-    const UnaryOp& m_functor;
+    const UnaryOp m_functor;
 };
 
 template<typename Derived>

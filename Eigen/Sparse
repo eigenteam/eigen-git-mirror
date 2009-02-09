@@ -103,6 +103,7 @@ namespace Eigen {
 #include "src/Sparse/SparseFuzzy.h"
 #include "src/Sparse/SparseFlagged.h"
 #include "src/Sparse/SparseProduct.h"
+#include "src/Sparse/SparseDiagonalProduct.h"
 #include "src/Sparse/TriangularSolver.h"
 #include "src/Sparse/SparseLLT.h"
 #include "src/Sparse/SparseLDLT.h"

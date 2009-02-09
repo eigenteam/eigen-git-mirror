@@ -29,7 +29,9 @@ template<typename Lhs, typename Rhs> struct ei_sparse_product_mode
 {
   enum {
 
-    value = (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
+    value = ((Lhs::Flags&Diagonal)==Diagonal || (Rhs::Flags&Diagonal)==Diagonal)
+          ? DiagonalProduct
+          :  (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
           ? SparseTimeSparseProduct
           : (Lhs::Flags&SparseBit)==SparseBit
           ? SparseTimeDenseProduct
@@ -43,6 +45,15 @@ struct SparseProductReturnType
   typedef const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
 
   typedef SparseProduct<LhsNested, RhsNested, ProductMode> Type;
+};
+
+template<typename Lhs, typename Rhs>
+struct SparseProductReturnType<Lhs,Rhs,DiagonalProduct>
+{
+  typedef const typename ei_nested<Lhs,Rhs::RowsAtCompileTime>::type LhsNested;
+  typedef const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
+
+  typedef SparseDiagonalProduct<LhsNested, RhsNested> Type;
 };
 
 // sparse product return type specialization
@@ -95,7 +106,7 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
 //     RhsIsRowMajor = (RhsFlags & RowMajorBit)==RowMajorBit,
 
     EvalToRowMajor = (RhsFlags & LhsFlags & RowMajorBit),
-    ResultIsSparse = ProductMode==SparseTimeSparseProduct,
+    ResultIsSparse = ProductMode==SparseTimeSparseProduct || ProductMode==DiagonalProduct,
 
     RemovedBits = ~( (EvalToRowMajor ? 0 : RowMajorBit) | (ResultIsSparse ? 0 : SparseBit) ),
 
@@ -112,7 +123,8 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
 };
 
 template<typename LhsNested, typename RhsNested, int ProductMode>
-class SparseProduct : ei_no_assignment_operator, public ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >::Base
+class SparseProduct : ei_no_assignment_operator,
+  public ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >::Base
 {
   public:
 
@@ -285,7 +297,6 @@ template<typename Derived>
 template<typename Lhs, typename Rhs>
 inline Derived& SparseMatrixBase<Derived>::operator=(const SparseProduct<Lhs,Rhs,SparseTimeSparseProduct>& product)
 {
-//   std::cout << "sparse product to sparse\n";
   ei_sparse_product_selector<
     typename ei_cleantype<Lhs>::type,
     typename ei_cleantype<Rhs>::type,
@@ -311,7 +322,7 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const SparseProduct<Lhs,Rhs
 template<typename Derived>
 template<typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeDenseProduct>& product)
-{
+{ 
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   typedef typename _Lhs::InnerIterator LhsInnerIterator;
@@ -333,7 +344,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeD
       derived().row(j) += i.value() * product.rhs().row(j);
       ++i;
     }
-    Block<Derived,1,Derived::ColsAtCompileTime> foo = derived().row(j);
+    Block<Derived,1,Derived::ColsAtCompileTime> res(derived().row(LhsIsRowMajor ? j : 0));
     for (; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
     {
       if (LhsIsSelfAdjoint)
@@ -345,7 +356,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const SparseProduct<Lhs,Rhs,SparseTimeD
         derived().row(b) += ei_conj(v) * product.rhs().row(a);
       }
       else if (LhsIsRowMajor)
-        foo += i.value() * product.rhs().row(i.index());
+        res += i.value() * product.rhs().row(i.index());
       else
         derived().row(i.index()) += i.value() * product.rhs().row(j);
     }

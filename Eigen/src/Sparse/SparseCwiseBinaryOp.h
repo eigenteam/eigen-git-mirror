@@ -132,11 +132,10 @@ class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
 * Implementation of inner-iterators
 ***************************************************************************/
 
-// template<typename T> struct ei_is_scalar_product { enum { ret = false }; };
-// template<typename T> struct ei_is_scalar_product<ei_scalar_product_op<T> > { enum { ret = true }; };
+// template<typename T> struct ei_func_is_conjunction { enum { ret = false }; };
+// template<typename T> struct ei_func_is_conjunction<ei_scalar_product_op<T> > { enum { ret = true }; };
 
-// helper class
-
+// TODO generalize the ei_scalar_product_op specialization to all conjunctions if any !
 
 // sparse - sparse  (generic)
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived>
@@ -261,12 +260,13 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
+    typedef typename ei_traits<CwiseBinaryXpr>::RhsNested RhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
   public:
 
     EIGEN_STRONG_INLINE ei_sparse_cwise_binary_op_inner_iterator_selector(const CwiseBinaryXpr& xpr, int outer)
-      : m_xpr(xpr), m_lhsIter(xpr.lhs(),outer), m_functor(xpr.functor()), m_outer(outer)
+      : m_rhs(xpr.rhs()), m_lhsIter(xpr.lhs(),outer), m_functor(xpr.functor()), m_outer(outer)
     {}
 
     EIGEN_STRONG_INLINE Derived& operator++()
@@ -277,7 +277,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 
     EIGEN_STRONG_INLINE Scalar value() const
     { return m_functor(m_lhsIter.value(),
-                       m_xpr.rhs().coeff(IsRowMajor?m_outer:m_lhsIter.index(),IsRowMajor?m_lhsIter.index():m_outer)); }
+                       m_rhs.coeff(IsRowMajor?m_outer:m_lhsIter.index(),IsRowMajor?m_lhsIter.index():m_outer)); }
 
     EIGEN_STRONG_INLINE int index() const { return m_lhsIter.index(); }
     EIGEN_STRONG_INLINE int row() const { return m_lhsIter.row(); }
@@ -286,9 +286,9 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     EIGEN_STRONG_INLINE operator bool() const { return m_lhsIter; }
 
   protected:
-    const CwiseBinaryXpr& m_xpr;
+    const RhsNested m_rhs;
     LhsIterator m_lhsIter;
-    const BinaryFunc& m_functor;
+    const BinaryFunc m_functor;
     const int m_outer;
 };
 
@@ -330,6 +330,10 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     const int m_outer;
 };
 
+
+/***************************************************************************
+* Implementation of SparseMatrixBase and SparseCwise functions/operators
+***************************************************************************/
 
 template<typename Derived>
 template<typename OtherDerived>
