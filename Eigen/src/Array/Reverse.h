@@ -27,7 +27,7 @@
 #ifndef EIGEN_REVERSE_H
 #define EIGEN_REVERSE_H
 
-/** \array_module \ingroup Array
+/** \array_module \ingroup Array_Module
   *
   * \class Reverse
   *

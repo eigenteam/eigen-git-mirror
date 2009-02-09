@@ -25,7 +25,7 @@
 #ifndef EIGEN_SELECT_H
 #define EIGEN_SELECT_H
 
-/** \array_module \ingroup Array
+/** \array_module \ingroup Array_Module
   *
   * \class Select
   *

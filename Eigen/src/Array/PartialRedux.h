@@ -26,7 +26,7 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
-/** \array_module \ingroup Array
+/** \array_module \ingroup Array_Module
   *
   * \class PartialReduxExpr
   *
@@ -131,7 +131,7 @@ struct ei_member_redux {
   const BinaryOp m_functor;
 };
 
-/** \array_module \ingroup Array
+/** \array_module \ingroup Array_Module
   *
   * \class PartialRedux
   *
