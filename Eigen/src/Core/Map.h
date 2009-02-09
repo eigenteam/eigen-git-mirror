@@ -39,6 +39,12 @@
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
   * such as plain C arrays or structures from other libraries.
+  * 
+  * \b Tips: to change the array of data mapped by a Map object, you can use the C++
+  * placement new syntax:
+  *
+  * Example: \include Map_placement_new.cpp
+  * Output: \verbinclude Map_placement_new.out
   *
   * This class is the return type of Matrix::Map() but can also be used directly.
   *
@@ -79,7 +85,7 @@ template<typename MatrixType, int PacketAccess> class Map
     inline Map(const Scalar* data, int size) : Base(data, size) {}
 
     inline Map(const Scalar* data, int rows, int cols) : Base(data, rows, cols) {}
-
+    
     inline void resize(int rows, int cols)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(rows);
