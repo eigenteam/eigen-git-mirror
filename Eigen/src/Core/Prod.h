@@ -23,15 +23,15 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SUM_H
-#define EIGEN_SUM_H
+#ifndef EIGEN_PROD_H
+#define EIGEN_PROD_H
 
 /***************************************************************************
 * Part 1 : the logic deciding a strategy for vectorization and unrolling
 ***************************************************************************/
 
 template<typename Derived>
-struct ei_sum_traits
+struct ei_prod_traits
 {
 private:
   enum {
@@ -49,7 +49,7 @@ public:
 private:
   enum {
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
-           + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,
+           + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::MulCost,
     UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
   };
 
@@ -68,7 +68,7 @@ public:
 /*** no vectorization ***/
 
 template<typename Derived, int Start, int Length>
-struct ei_sum_novec_unroller
+struct ei_prod_novec_unroller
 {
   enum {
     HalfLength = Length/2
@@ -78,13 +78,13 @@ struct ei_sum_novec_unroller
 
   inline static Scalar run(const Derived &mat)
   {
-    return ei_sum_novec_unroller<Derived, Start, HalfLength>::run(mat)
-         + ei_sum_novec_unroller<Derived, Start+HalfLength, Length-HalfLength>::run(mat);
+    return ei_prod_novec_unroller<Derived, Start, HalfLength>::run(mat)
+         * ei_prod_novec_unroller<Derived, Start+HalfLength, Length-HalfLength>::run(mat);
   }
 };
 
 template<typename Derived, int Start>
-struct ei_sum_novec_unroller<Derived, Start, 1>
+struct ei_prod_novec_unroller<Derived, Start, 1>
 {
   enum {
     col = Start / Derived::RowsAtCompileTime,
@@ -102,7 +102,7 @@ struct ei_sum_novec_unroller<Derived, Start, 1>
 /*** vectorization ***/
   
 template<typename Derived, int Start, int Length>
-struct ei_sum_vec_unroller
+struct ei_prod_vec_unroller
 {
   enum {
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
@@ -114,14 +114,14 @@ struct ei_sum_vec_unroller
 
   inline static PacketScalar run(const Derived &mat)
   {
-    return ei_padd(
-            ei_sum_vec_unroller<Derived, Start, HalfLength>::run(mat),
-            ei_sum_vec_unroller<Derived, Start+HalfLength, Length-HalfLength>::run(mat) );
+    return ei_pmul(
+            ei_prod_vec_unroller<Derived, Start, HalfLength>::run(mat),
+            ei_prod_vec_unroller<Derived, Start+HalfLength, Length-HalfLength>::run(mat) );
   }
 };
 
 template<typename Derived, int Start>
-struct ei_sum_vec_unroller<Derived, Start, 1>
+struct ei_prod_vec_unroller<Derived, Start, 1>
 {
   enum {
     index = Start * ei_packet_traits<typename Derived::Scalar>::size,
@@ -148,13 +148,13 @@ struct ei_sum_vec_unroller<Derived, Start, 1>
 ***************************************************************************/
 
 template<typename Derived,
-         int Vectorization = ei_sum_traits<Derived>::Vectorization,
-         int Unrolling = ei_sum_traits<Derived>::Unrolling
+         int Vectorization = ei_prod_traits<Derived>::Vectorization,
+         int Unrolling = ei_prod_traits<Derived>::Unrolling
 >
-struct ei_sum_impl;
+struct ei_prod_impl;
 
 template<typename Derived>
-struct ei_sum_impl<Derived, NoVectorization, NoUnrolling>
+struct ei_prod_impl<Derived, NoVectorization, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   static Scalar run(const Derived& mat)
@@ -163,21 +163,21 @@ struct ei_sum_impl<Derived, NoVectorization, NoUnrolling>
     Scalar res;
     res = mat.coeff(0, 0);
     for(int i = 1; i < mat.rows(); ++i)
-      res += mat.coeff(i, 0);
+      res *= mat.coeff(i, 0);
     for(int j = 1; j < mat.cols(); ++j)
       for(int i = 0; i < mat.rows(); ++i)
-        res += mat.coeff(i, j);
+        res *= mat.coeff(i, j);
     return res;
   }
 };
 
 template<typename Derived>
-struct ei_sum_impl<Derived, NoVectorization, CompleteUnrolling>
-  : public ei_sum_novec_unroller<Derived, 0, Derived::SizeAtCompileTime>
+struct ei_prod_impl<Derived, NoVectorization, CompleteUnrolling>
+  : public ei_prod_novec_unroller<Derived, 0, Derived::SizeAtCompileTime>
 {};
 
 template<typename Derived>
-struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
+struct ei_prod_impl<Derived, LinearVectorization, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -202,27 +202,27 @@ struct ei_sum_impl<Derived, LinearVectorization, NoUnrolling>
     {
       PacketScalar packet_res = mat.template packet<alignment>(alignedStart);
       for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
-        packet_res = ei_padd(packet_res, mat.template packet<alignment>(index));
-      res = ei_predux(packet_res);
+        packet_res = ei_pmul(packet_res, mat.template packet<alignment>(index));
+      res = ei_predux_mul(packet_res);
     }
     else // too small to vectorize anything.
          // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
     {
-      res = Scalar(0);
+      res = Scalar(1);
     }
 
     for(int index = 0; index < alignedStart; ++index)
-      res += mat.coeff(index);
+      res *= mat.coeff(index);
 
     for(int index = alignedEnd; index < size; ++index)
-      res += mat.coeff(index);
+      res *= mat.coeff(index);
 
     return res;
   }
 };
 
 template<typename Derived>
-struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling>
+struct ei_prod_impl<Derived, LinearVectorization, CompleteUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -233,9 +233,9 @@ struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling>
   };
   static Scalar run(const Derived& mat)
   {
-    Scalar res = ei_predux(ei_sum_vec_unroller<Derived, 0, Size / PacketSize>::run(mat));
+    Scalar res = ei_predux_mul(ei_prod_vec_unroller<Derived, 0, Size / PacketSize>::run(mat));
     if (VectorizationSize != Size)
-      res += ei_sum_novec_unroller<Derived, VectorizationSize, Size-VectorizationSize>::run(mat);
+      res *= ei_prod_novec_unroller<Derived, VectorizationSize, Size-VectorizationSize>::run(mat);
     return res;
   }
 };
@@ -244,29 +244,19 @@ struct ei_sum_impl<Derived, LinearVectorization, CompleteUnrolling>
 * Part 4 : implementation of MatrixBase methods
 ***************************************************************************/
 
-/** \returns the sum of all coefficients of *this
+/** \returns the product of all coefficients of *this
   *
-  * \sa trace(), prod()
+  * Example: \include MatrixBase_prod.cpp
+  * Output: \verbinclude MatrixBase_prod.out
+  *
+  * \sa sum()
   */
 template<typename Derived>
 inline typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::sum() const
+MatrixBase<Derived>::prod() const
 {
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
-  return ei_sum_impl<ThisNested>::run(derived());
+  return ei_prod_impl<ThisNested>::run(derived());
 }
 
-/** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.
-  *
-  * \c *this can be any matrix, not necessarily square.
-  *
-  * \sa diagonal(), sum()
-  */
-template<typename Derived>
-inline typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::trace() const
-{
-  return diagonal().sum();
-}
-
-#endif // EIGEN_SUM_H
+#endif // EIGEN_PROD_H

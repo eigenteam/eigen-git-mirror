@@ -149,6 +149,7 @@ ei_add_test(sparse_basic)
 ei_add_test(sparse_product)
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
 ei_add_test(reverse)
+ei_add_test(prod)
 
 # print a summary of the different options
 message("************************************************************")

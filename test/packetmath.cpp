@@ -124,6 +124,11 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(ei_isApprox(ref[0], ei_predux(ei_pload(data1))) && "ei_predux");
+  
+  ref[0] = 1;
+  for (int i=0; i<PacketSize; ++i)
+    ref[0] *= data1[i];
+  VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload(data1))) && "ei_predux_mul");
 
   for (int j=0; j<PacketSize; ++j)
   {

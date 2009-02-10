@@ -214,6 +214,23 @@ template<> EIGEN_STRONG_INLINE __m128i ei_preduxp<__m128i>(const __m128i* vecs)
   return _mm_add_epi32(tmp0, tmp2);
 }
 
+// Other reduction functions:
+
+template<> EIGEN_STRONG_INLINE float ei_predux_mul<__m128>(const __m128& a)
+{
+  __m128 tmp = _mm_mul_ps(a, _mm_movehl_ps(a,a));
+  return ei_pfirst(_mm_mul_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
+}
+template<> EIGEN_STRONG_INLINE double ei_predux_mul<__m128d>(const __m128d& a)
+{
+  return ei_pfirst(_mm_mul_sd(a, _mm_unpackhi_pd(a,a)));
+}
+template<> EIGEN_STRONG_INLINE int ei_predux_mul<__m128i>(const __m128i& a)
+{
+  __m128i tmp = ei_pmul(a, _mm_unpackhi_epi64(a,a));
+  return ei_pfirst(tmp) * ei_pfirst(_mm_shuffle_epi32(tmp, 1));
+}
+
 #if (defined __GNUC__)
 // template <> EIGEN_STRONG_INLINE __m128 ei_pmadd(const __m128&  a, const __m128&  b, const __m128&  c)
 // {

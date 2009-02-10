@@ -115,6 +115,8 @@ EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(all, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(any, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(count, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(prod, (Size-1)*NumTraits<Scalar>::MulCost);
+
 
 /** \internal */
 template <typename BinaryOp, typename Scalar>
@@ -256,6 +258,16 @@ template<typename ExpressionType, int Direction> class PartialRedux
       *
       * \sa MatrixBase::count() */
     const PartialReduxExpr<ExpressionType, ei_member_count<int>, Direction> count() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the product
+      * of each column (or row) of the referenced expression.
+      *
+      * Example: \include PartialRedux_prod.cpp
+      * Output: \verbinclude PartialRedux_prod.out
+      *
+      * \sa MatrixBase::prod() */
+    const typename ReturnType<ei_member_prod>::Type prod() const
     { return _expression(); }
     
     

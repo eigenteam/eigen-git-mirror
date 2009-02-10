@@ -96,6 +96,10 @@ ei_preduxp(const Packet* vecs) { return vecs[0]; }
 template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux(const Packet& a)
 { return a; }
 
+/** \internal \returns the product of the elements of \a a*/
+template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux_mul(const Packet& a)
+{ return a; }
+
 /** \internal \returns the reversed elements of \a a*/
 template<typename Packet> inline Packet ei_preverse(const Packet& a)
 { return a; }

@@ -535,6 +535,8 @@ template<typename Derived> class MatrixBase
     Scalar sum() const;
     Scalar trace() const;
 
+    Scalar prod() const;
+
     typename ei_traits<Derived>::Scalar minCoeff() const;
     typename ei_traits<Derived>::Scalar maxCoeff() const;
 
