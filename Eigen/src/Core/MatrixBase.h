@@ -359,7 +359,7 @@ template<typename Derived> class MatrixBase
     const Eigen::Transpose<Derived> transpose() const;
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
-  
+
     Eigen::Reverse<Derived, BothDirections> reverse();
     const Eigen::Reverse<Derived, BothDirections> reverse() const;
     void reverseInPlace();
@@ -617,6 +617,7 @@ template<typename Derived> class MatrixBase
     PlainMatrixType cross(const MatrixBase<OtherDerived>& other) const;
     PlainMatrixType unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
+    const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
 
 /////////// Sparse module ///////////
 

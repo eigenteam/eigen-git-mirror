@@ -60,8 +60,8 @@ public:
   /** Constructs and initialize a uniform scaling transformation */
   explicit inline UniformScaling(const Scalar& s) : m_factor(s) {}
 
-  const Scalar& factor() const { return m_factor; }
-  Scalar& factor() { return m_factor; }
+  inline const Scalar& factor() const { return m_factor; }
+  inline Scalar& factor() { return m_factor; }
 
   /** Concatenates two uniform scaling */
   inline UniformScaling operator* (const UniformScaling& other) const
@@ -80,13 +80,6 @@ public:
   template<typename Derived>
   inline typename ei_eval<Derived>::type operator* (const MatrixBase<Derived>& other) const
   { return other * m_factor; }
-
-  /** Concatenates a linear transformation matrix and a uniform scaling */
-  // TODO returns an expression
-  template<typename Derived>
-  friend inline typename ei_eval<Derived>::type
-  operator* (const MatrixBase<Derived>& other, const UniformScaling& s)
-  { return other * s.factor(); }
 
   template<typename Derived,int Dim>
   inline Matrix<Scalar,Dim,Dim> operator*(const RotationBase<Derived,Dim>& r) const
@@ -118,6 +111,13 @@ public:
   { return ei_isApprox(m_factor, other.factor(), prec); }
 
 };
+
+/** Concatenates a linear transformation matrix and a uniform scaling */
+// NOTE this operator is defiend in MatrixBase and not as a friend function
+// of UniformScaling to fix an internal crash of Intel's ICC
+template<typename Derived> const typename MatrixBase<Derived>::ScalarMultipleReturnType
+MatrixBase<Derived>::operator*(const UniformScaling<Scalar>& s) const
+{ return derived() * s.factor(); }
 
 /** Constructs a uniform scaling from scale factor \a s */
 static inline UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }
