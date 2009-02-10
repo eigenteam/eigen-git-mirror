@@ -42,7 +42,7 @@ struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> > : ei_traits<SparseProduct<Lhs
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   enum {
-    SparseFlags = ((int(_Lhs::Flags)&Diagonal)==Diagonal) ? _Rhs::Flags : _Lhs::Flags,
+    SparseFlags = ((int(_Lhs::Flags)&Diagonal)==Diagonal) ? int(_Rhs::Flags) : int(_Lhs::Flags),
     Flags = SparseBit | (SparseFlags&RowMajorBit)
   };
 };

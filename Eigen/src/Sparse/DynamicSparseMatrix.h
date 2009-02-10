@@ -128,11 +128,14 @@ class DynamicSparseMatrix
     /** Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
     inline void startFill(int reserveSize = 1000)
     {
-      int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
-      for (int j=0; j<outerSize(); ++j)
+      if (outerSize()>0)
       {
-        m_data[j].clear();
-        m_data[j].reserve(reserveSizePerVector);
+        int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
+        for (int j=0; j<outerSize(); ++j)
+        {
+          m_data[j].clear();
+          m_data[j].reserve(reserveSizePerVector);
+        }
       }
     }
 
@@ -218,7 +221,7 @@ class DynamicSparseMatrix
     }
 
     inline DynamicSparseMatrix()
-      : m_innerSize(0)
+      : m_innerSize(0), m_data(0)
     {
       ei_assert(innerSize()==0 && outerSize()==0);
     }

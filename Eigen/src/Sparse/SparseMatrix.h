@@ -138,7 +138,6 @@ class SparseMatrix
       */
     inline void startFill(int reserveSize = 1000)
     {
-//       std::cerr << this << " startFill\n";
       setZero();
       m_data.reserve(reserveSize);
     }
@@ -160,6 +159,10 @@ class SparseMatrix
           --i;
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
+      }
+      else
+      {
+        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
       }
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());
       int id = m_outerIndex[outer+1];
@@ -390,11 +393,11 @@ class SparseMatrix
         s << std::endl;
         s << std::endl;
         s << "Column pointers:\n";
-        for (int i=0; i<m.cols(); ++i)
+        for (int i=0; i<m.outerSize(); ++i)
         {
           s << m.m_outerIndex[i] << " ";
         }
-        s << std::endl;
+        s << " $" << std::endl;
         s << std::endl;
       );
       s << static_cast<const SparseMatrixBase<SparseMatrix>&>(m);
