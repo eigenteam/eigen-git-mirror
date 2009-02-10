@@ -298,16 +298,6 @@ inline v4f ei_preduxp(const v4f* vecs)
   return sum[0];
 }
 
-inline float ei_predux(const v4f& a)
-{
-  v4f b, sum;
-  b = (v4f)vec_sld(a, a, 8);
-  sum = vec_add(a, b);
-  b = (v4f)vec_sld(sum, sum, 4);
-  sum = vec_add(sum, b);
-  return ei_pfirst(sum);
-}
-
 inline v4i  ei_preduxp(const v4i* vecs)
 {
   v4i v[4], sum[4];
@@ -335,12 +325,42 @@ inline v4i  ei_preduxp(const v4i* vecs)
   return sum[0];
 }
 
+inline float ei_predux(const v4f& a)
+{
+  v4f b, sum;
+  b = (v4f)vec_sld(a, a, 8);
+  sum = vec_add(a, b);
+  b = (v4f)vec_sld(sum, sum, 4);
+  sum = vec_add(sum, b);
+  return ei_pfirst(sum);
+}
+
 inline int ei_predux(const v4i& a)
 {
   USE_CONST_v0i;
   v4i sum;
   sum = vec_sums(a, v0i);
   sum = vec_sld(sum, v0i, 12);
+  return ei_pfirst(sum);
+}
+
+inline float ei_predux_mul(const v4f& a)
+{
+  v4f b, sum;
+  b = (v4f)vec_sld(a, a, 8);
+  sum = ei_pmul(a, b);
+  b = (v4f)vec_sld(sum, sum, 4);
+  sum = ei_pmul(sum, b);
+  return ei_pfirst(sum);
+}
+
+inline int ei_predux_mul(const v4i& a)
+{
+  v4i b, sum;
+  b = (v4i)vec_sld(a, a, 8);
+  sum = ei_pmul(a, b);
+  b = (v4i)vec_sld(sum, sum, 4);
+  sum = ei_pmul(sum, b);
   return ei_pfirst(sum);
 }
 
