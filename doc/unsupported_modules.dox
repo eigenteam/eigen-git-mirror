@@ -13,4 +13,7 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup AdolcForward_Module Adolc forward module */
 
+/** \ingroup Unsupported_modules
+  * \defgroup IterativeSolvers_Module Iterative solvers module */
+
 } // namespace Eigen

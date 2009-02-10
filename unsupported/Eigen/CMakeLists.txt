@@ -1,4 +1,4 @@
-set(Eigen_HEADERS AdolcForward)
+set(Eigen_HEADERS AdolcForward IterativeSolvers)
 
 install(FILES
   ${Eigen_HEADERS}
