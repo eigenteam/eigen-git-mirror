@@ -363,38 +363,38 @@ inline int ei_predux_mul(const v4i& a)
 
 inline float ei_predux_min(const v4f& a)
 {
-  EIGEN_ALIGN_128 float aux[4];
-  ei_pstore(aux, a);
-  register float aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
-  register float aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
-  return aux0<aux2 ? aux0 : aux2;
+  v4f b, c, res;
+  b = vec_min(a, vec_sld(a, a, 4));
+  c = vec_min(a, vec_sld(b, b, 4));
+  res = vec_min(a, vec_sld(c, c, 4));
+  return ei_pfirst(res);
 }
 
 inline int ei_predux_min(const v4i& a)
 {
-  EIGEN_ALIGN_128 int aux[4];
-  ei_pstore(aux, a);
-  register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
-  register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
-  return aux0<aux2 ? aux0 : aux2;
+  v4i b, c, res;
+  b = vec_min(a, vec_sld(a, a, 4));
+  c = vec_min(a, vec_sld(b, b, 4));
+  res = vec_min(a, vec_sld(c, c, 4));
+  return ei_pfirst(res);
 }
 
 inline float ei_predux_max(const v4f& a)
 {
-  EIGEN_ALIGN_128 float aux[4];
-  ei_pstore(aux, a);
-  register float aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
-  register float aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
-  return aux0>aux2 ? aux0 : aux2;
+  v4f b, c, res;
+  b = vec_max(a, vec_sld(a, a, 4));
+  c = vec_max(a, vec_sld(b, b, 4));
+  res = vec_max(a, vec_sld(c, c, 4));
+  return ei_pfirst(res);
 }
 
 inline int ei_predux_max(const v4i& a)
 {
-  EIGEN_ALIGN_128 int aux[4];
-  ei_pstore(aux, a);
-  register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
-  register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
-  return aux0>aux2 ? aux0 : aux2;
+  v4i b, c, res;
+  b = vec_max(a, vec_sld(a, a, 4));
+  c = vec_max(a, vec_sld(b, b, 4));
+  res = vec_max(a, vec_sld(c, c, 4));
+  return ei_pfirst(res);
 }
 
 
