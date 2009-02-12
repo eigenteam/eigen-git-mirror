@@ -26,48 +26,147 @@
 #ifndef EIGEN_REDUX_H
 #define EIGEN_REDUX_H
 
-template<typename BinaryOp, typename Derived, int Start, int Length>
-struct ei_redux_impl
+// TODO
+//  * implement other kind of vectorization
+//  * factorize code
+
+/***************************************************************************
+* Part 1 : the logic deciding a strategy for vectorization and unrolling
+***************************************************************************/
+
+template<typename Func, typename Derived>
+struct ei_redux_traits
+{
+private:
+  enum {
+    PacketSize = ei_packet_traits<typename Derived::Scalar>::size
+  };
+
+public:
+  enum {
+    Vectorization = (int(Derived::Flags)&ActualPacketAccessBit)
+                 && (int(Derived::Flags)&LinearAccessBit)
+                 && (ei_functor_traits<Func>::PacketAccess)
+                  ? LinearVectorization
+                  : NoVectorization
+  };
+
+private:
+  enum {
+    Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
+           + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,
+    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
+  };
+
+public:
+  enum {
+    Unrolling = Cost <= UnrollingLimit
+              ? CompleteUnrolling
+              : NoUnrolling
+  };
+};
+
+/***************************************************************************
+* Part 2 : unrollers
+***************************************************************************/
+
+/*** no vectorization ***/
+
+template<typename Func, typename Derived, int Start, int Length>
+struct ei_redux_novec_unroller
 {
   enum {
     HalfLength = Length/2
   };
 
-  typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
+  typedef typename Derived::Scalar Scalar;
 
-  static Scalar run(const Derived &mat, const BinaryOp& func)
+  EIGEN_STRONG_INLINE static Scalar run(const Derived &mat, const Func& func)
   {
-    return func(
-      ei_redux_impl<BinaryOp, Derived, Start, HalfLength>::run(mat, func),
-      ei_redux_impl<BinaryOp, Derived, Start+HalfLength, Length - HalfLength>::run(mat, func));
+    return func(ei_redux_novec_unroller<Func, Derived, Start, HalfLength>::run(mat,func),
+                ei_redux_novec_unroller<Func, Derived, Start+HalfLength, Length-HalfLength>::run(mat,func));
   }
 };
 
-template<typename BinaryOp, typename Derived, int Start>
-struct ei_redux_impl<BinaryOp, Derived, Start, 1>
+template<typename Func, typename Derived, int Start>
+struct ei_redux_novec_unroller<Func, Derived, Start, 1>
 {
   enum {
     col = Start / Derived::RowsAtCompileTime,
     row = Start % Derived::RowsAtCompileTime
   };
 
-  typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
+  typedef typename Derived::Scalar Scalar;
 
-  static Scalar run(const Derived &mat, const BinaryOp &)
+  EIGEN_STRONG_INLINE static Scalar run(const Derived &mat, const Func&)
   {
     return mat.coeff(row, col);
   }
 };
 
-template<typename BinaryOp, typename Derived, int Start>
-struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
+/*** vectorization ***/
+  
+template<typename Func, typename Derived, int Start, int Length>
+struct ei_redux_vec_unroller
 {
-  typedef typename ei_result_of<BinaryOp(typename Derived::Scalar)>::type Scalar;
-  static Scalar run(const Derived& mat, const BinaryOp& func)
+  enum {
+    PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
+    HalfLength = Length/2
+  };
+
+  typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  EIGEN_STRONG_INLINE static PacketScalar run(const Derived &mat, const Func& func)
+  {
+    return func.packetOp(
+            ei_redux_vec_unroller<Func, Derived, Start, HalfLength>::run(mat,func),
+            ei_redux_vec_unroller<Func, Derived, Start+HalfLength, Length-HalfLength>::run(mat,func) );
+  }
+};
+
+template<typename Func, typename Derived, int Start>
+struct ei_redux_vec_unroller<Func, Derived, Start, 1>
+{
+  enum {
+    index = Start * ei_packet_traits<typename Derived::Scalar>::size,
+    row = int(Derived::Flags)&RowMajorBit
+        ? index / int(Derived::ColsAtCompileTime)
+        : index % Derived::RowsAtCompileTime,
+    col = int(Derived::Flags)&RowMajorBit
+        ? index % int(Derived::ColsAtCompileTime)
+        : index / Derived::RowsAtCompileTime,
+    alignment = (Derived::Flags & AlignedBit) ? Aligned : Unaligned
+  };
+
+  typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  EIGEN_STRONG_INLINE static PacketScalar run(const Derived &mat, const Func&)
+  {
+    return mat.template packet<alignment>(row, col);
+  }
+};
+
+/***************************************************************************
+* Part 3 : implementation of all cases
+***************************************************************************/
+
+template<typename Func, typename Derived,
+         int Vectorization = ei_redux_traits<Func, Derived>::Vectorization,
+         int Unrolling = ei_redux_traits<Func, Derived>::Unrolling
+>
+struct ei_redux_impl;
+
+template<typename Func, typename Derived>
+struct ei_redux_impl<Func, Derived, NoVectorization, NoUnrolling>
+{
+  typedef typename Derived::Scalar Scalar;
+  static Scalar run(const Derived& mat, const Func& func)
   {
     ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
-    res = mat.coeff(0,0);
+    res = mat.coeff(0, 0);
     for(int i = 1; i < mat.rows(); ++i)
       res = func(res, mat.coeff(i, 0));
     for(int j = 1; j < mat.cols(); ++j)
@@ -77,6 +176,77 @@ struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
   }
 };
 
+template<typename Func, typename Derived>
+struct ei_redux_impl<Func,Derived, NoVectorization, CompleteUnrolling>
+  : public ei_redux_novec_unroller<Func,Derived, 0, Derived::SizeAtCompileTime>
+{};
+
+template<typename Func, typename Derived>
+struct ei_redux_impl<Func, Derived, LinearVectorization, NoUnrolling>
+{
+  typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  static Scalar run(const Derived& mat, const Func& func)
+  {
+    const int size = mat.size();
+    const int packetSize = ei_packet_traits<Scalar>::size;
+    const int alignedStart =  (Derived::Flags & AlignedBit)
+                           || !(Derived::Flags & DirectAccessBit)
+                           ? 0
+                           : ei_alignmentOffset(&mat.const_cast_derived().coeffRef(0), size);
+    enum {
+      alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
+                ? Aligned : Unaligned
+    };
+    const int alignedSize = ((size-alignedStart)/packetSize)*packetSize;
+    const int alignedEnd = alignedStart + alignedSize;
+    Scalar res;
+    if(alignedSize)
+    {
+      PacketScalar packet_res = mat.template packet<alignment>(alignedStart);
+      for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
+        packet_res = func.packetOp(packet_res, mat.template packet<alignment>(index));
+      res = func.predux(packet_res);
+      
+      for(int index = 0; index < alignedStart; ++index)
+        res = func(res,mat.coeff(index));
+
+      for(int index = alignedEnd; index < size; ++index)
+        res = func(res,mat.coeff(index));
+    }
+    else // too small to vectorize anything.
+         // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
+    {
+      res = mat.coeff(0);
+      for(int index = 1; index < size; ++index)
+        res = func(res,mat.coeff(index));
+    }
+
+    return res;
+  }
+};
+
+template<typename Func, typename Derived>
+struct ei_redux_impl<Func, Derived, LinearVectorization, CompleteUnrolling>
+{
+  typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  enum {
+    PacketSize = ei_packet_traits<Scalar>::size,
+    Size = Derived::SizeAtCompileTime,
+    VectorizationSize = (Size / PacketSize) * PacketSize
+  };
+  EIGEN_STRONG_INLINE static Scalar run(const Derived& mat, const Func& func)
+  {
+    Scalar res = func.predux(ei_redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
+    if (VectorizationSize != Size)
+      res = func(res,ei_redux_novec_unroller<Func, Derived, VectorizationSize, Size-VectorizationSize>::run(mat,func));
+    return res;
+  }
+};
+
+
 /** \returns the result of a full redux operation on the whole matrix or vector using \a func
   *
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
@@ -85,22 +255,20 @@ struct ei_redux_impl<BinaryOp, Derived, Start, Dynamic>
   * \sa MatrixBase::sum(), MatrixBase::minCoeff(), MatrixBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
 template<typename Derived>
-template<typename BinaryOp>
-typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
-MatrixBase<Derived>::redux(const BinaryOp& func) const
+template<typename Func>
+inline typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
+MatrixBase<Derived>::redux(const Func& func) const
 {
-  const bool unroll = SizeAtCompileTime * CoeffReadCost
-                    + (SizeAtCompileTime-1) * ei_functor_traits<BinaryOp>::Cost
-                    <= EIGEN_UNROLLING_LIMIT;
+  typename Derived::Nested nested(derived());
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
-  return ei_redux_impl<BinaryOp, ThisNested, 0, unroll ? int(SizeAtCompileTime) : Dynamic>
-            ::run(derived(), func);
+  return ei_redux_impl<Func, ThisNested>
+            ::run(nested, func);
 }
 
 /** \returns the minimum of all coefficients of *this
   */
 template<typename Derived>
-inline typename ei_traits<Derived>::Scalar
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::minCoeff() const
 {
   return this->redux(Eigen::ei_scalar_min_op<Scalar>());
@@ -109,10 +277,48 @@ MatrixBase<Derived>::minCoeff() const
 /** \returns the maximum of all coefficients of *this
   */
 template<typename Derived>
-inline typename ei_traits<Derived>::Scalar
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::maxCoeff() const
 {
   return this->redux(Eigen::ei_scalar_max_op<Scalar>());
+}
+
+/** \returns the sum of all coefficients of *this
+  *
+  * \sa trace(), prod()
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::sum() const
+{
+  return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
+}
+
+/** \returns the product of all coefficients of *this
+  *
+  * Example: \include MatrixBase_prod.cpp
+  * Output: \verbinclude MatrixBase_prod.out
+  *
+  * \sa sum()
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::prod() const
+{
+  return this->redux(Eigen::ei_scalar_product_op<Scalar>());
+}
+
+/** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.
+  *
+  * \c *this can be any matrix, not necessarily square.
+  *
+  * \sa diagonal(), sum()
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::trace() const
+{
+  return diagonal().sum();
 }
 
 #endif // EIGEN_REDUX_H

@@ -53,6 +53,7 @@ template<> EIGEN_STRONG_INLINE __m128  ei_pmul<__m128>(const __m128&  a, const _
 template<> EIGEN_STRONG_INLINE __m128d ei_pmul<__m128d>(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
 template<> EIGEN_STRONG_INLINE __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
 {
+  // this version is very slightly faster than 4 scalar products
   return _mm_or_si128(
     _mm_and_si128(
       _mm_mul_epu32(a,b),
@@ -76,18 +77,18 @@ template<> EIGEN_STRONG_INLINE __m128i ei_pmadd(const __m128i& a, const __m128i&
 
 template<> EIGEN_STRONG_INLINE __m128  ei_pmin<__m128>(const __m128&  a, const __m128&  b) { return _mm_min_ps(a,b); }
 template<> EIGEN_STRONG_INLINE __m128d ei_pmin<__m128d>(const __m128d& a, const __m128d& b) { return _mm_min_pd(a,b); }
-// FIXME this vectorized min operator is likely to be slower than the standard one
 template<> EIGEN_STRONG_INLINE __m128i ei_pmin<__m128i>(const __m128i& a, const __m128i& b)
 {
+  // after some bench, this version *is* faster than a scalar implementation
   __m128i mask = _mm_cmplt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
 
 template<> EIGEN_STRONG_INLINE __m128  ei_pmax<__m128>(const __m128&  a, const __m128&  b) { return _mm_max_ps(a,b); }
 template<> EIGEN_STRONG_INLINE __m128d ei_pmax<__m128d>(const __m128d& a, const __m128d& b) { return _mm_max_pd(a,b); }
-// FIXME this vectorized max operator is likely to be slower than the standard one
 template<> EIGEN_STRONG_INLINE __m128i ei_pmax<__m128i>(const __m128i& a, const __m128i& b)
 {
+  // after some bench, this version *is* faster than a scalar implementation
   __m128i mask = _mm_cmpgt_epi32(a,b);
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 }
@@ -216,6 +217,7 @@ template<> EIGEN_STRONG_INLINE __m128i ei_preduxp<__m128i>(const __m128i* vecs)
 
 // Other reduction functions:
 
+// mul
 template<> EIGEN_STRONG_INLINE float ei_predux_mul<__m128>(const __m128& a)
 {
   __m128 tmp = _mm_mul_ps(a, _mm_movehl_ps(a,a));
@@ -227,8 +229,54 @@ template<> EIGEN_STRONG_INLINE double ei_predux_mul<__m128d>(const __m128d& a)
 }
 template<> EIGEN_STRONG_INLINE int ei_predux_mul<__m128i>(const __m128i& a)
 {
-  __m128i tmp = ei_pmul(a, _mm_unpackhi_epi64(a,a));
-  return ei_pfirst(tmp) * ei_pfirst(_mm_shuffle_epi32(tmp, 1));
+  // after some experiments, it is seems this is the fastest way to implement it
+  // for GCC (eg., reusing ei_pmul is very slow !)
+  // TODO try to call _mm_mul_epu32 directly
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  return  (aux[0] * aux[1]) * (aux[2] * aux[3]);;
+}
+
+// min
+template<> EIGEN_STRONG_INLINE float ei_predux_min<__m128>(const __m128& a)
+{
+  __m128 tmp = _mm_min_ps(a, _mm_movehl_ps(a,a));
+  return ei_pfirst(_mm_min_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
+}
+template<> EIGEN_STRONG_INLINE double ei_predux_min<__m128d>(const __m128d& a)
+{
+  return ei_pfirst(_mm_min_sd(a, _mm_unpackhi_pd(a,a)));
+}
+template<> EIGEN_STRONG_INLINE int ei_predux_min<__m128i>(const __m128i& a)
+{
+  // after some experiments, it is seems this is the fastest way to implement it
+  // for GCC (eg., it does not like using std::min after the ei_pstore !!)
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
+  register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
+  return aux0<aux2 ? aux0 : aux2;
+}
+
+// max
+template<> EIGEN_STRONG_INLINE float ei_predux_max<__m128>(const __m128& a)
+{
+  __m128 tmp = _mm_max_ps(a, _mm_movehl_ps(a,a));
+  return ei_pfirst(_mm_max_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
+}
+template<> EIGEN_STRONG_INLINE double ei_predux_max<__m128d>(const __m128d& a)
+{
+  return ei_pfirst(_mm_max_sd(a, _mm_unpackhi_pd(a,a)));
+}
+template<> EIGEN_STRONG_INLINE int ei_predux_max<__m128i>(const __m128i& a)
+{
+  // after some experiments, it is seems this is the fastest way to implement it
+  // for GCC (eg., it does not like using std::min after the ei_pstore !!)
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
+  register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
+  return aux0>aux2 ? aux0 : aux2;
 }
 
 #if (defined __GNUC__)

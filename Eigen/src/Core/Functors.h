@@ -37,6 +37,9 @@ template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
   template<typename PacketScalar>
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_padd(a,b); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const Scalar predux(const PacketScalar& a) const
+  { return ei_predux(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
@@ -56,6 +59,9 @@ template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   template<typename PacketScalar>
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmul(a,b); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const Scalar predux(const PacketScalar& a) const
+  { return ei_predux_mul(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
@@ -75,6 +81,9 @@ template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
   template<typename PacketScalar>
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmin(a,b); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const Scalar predux(const PacketScalar& a) const
+  { return ei_predux_min(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
@@ -94,6 +103,9 @@ template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
   template<typename PacketScalar>
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
   { return ei_pmax(a,b); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const Scalar predux(const PacketScalar& a) const
+  { return ei_predux_max(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
@@ -123,7 +135,7 @@ template<typename Scalar> struct ei_scalar_hypot_op EIGEN_EMPTY_STRUCT {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_hypot_op<Scalar> > {
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost };
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess=0 };
 };
 
 // other binary functors:
@@ -197,7 +209,7 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = false // this could actually be vectorized with SSSE3.
+    PacketAccess = false // FIXME this could actually be vectorized with SSSE3.
   };
 };
 

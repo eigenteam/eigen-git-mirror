@@ -100,6 +100,14 @@ template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_pr
 template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux_mul(const Packet& a)
 { return a; }
 
+/** \internal \returns the min of the elements of \a a*/
+template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux_min(const Packet& a)
+{ return a; }
+
+/** \internal \returns the max of the elements of \a a*/
+template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_predux_max(const Packet& a)
+{ return a; }
+
 /** \internal \returns the reversed elements of \a a*/
 template<typename Packet> inline Packet ei_preverse(const Packet& a)
 { return a; }

@@ -129,6 +129,16 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i)
     ref[0] *= data1[i];
   VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload(data1))) && "ei_predux_mul");
+  
+  ref[0] = data1[0];
+  for (int i=0; i<PacketSize; ++i)
+    ref[0] = std::min(ref[0],data1[i]);
+  VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload(data1))) && "ei_predux_min");
+  
+  ref[0] = data1[0];
+  for (int i=0; i<PacketSize; ++i)
+    ref[0] = std::min(ref[0],data1[i]);
+  VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload(data1))) && "ei_predux_max");
 
   for (int j=0; j<PacketSize; ++j)
   {

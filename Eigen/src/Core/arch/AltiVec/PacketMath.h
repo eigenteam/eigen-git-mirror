@@ -177,7 +177,7 @@ template<> inline v4f  ei_ploadu(const float*  from)
   return (v4f) vec_perm(MSQ, LSQ, mask);           // align the data
 }
 
-template<> inline v4i    ei_ploadu(const int*    from)
+template<> inline v4i  ei_ploadu(const int*    from)
 {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   __vector unsigned char MSQ, LSQ;
@@ -198,7 +198,7 @@ template<> inline v4f  ei_pset1(const float&  from)
   return vc;
 }
 
-template<> inline v4i    ei_pset1(const int&    from)
+template<> inline v4i  ei_pset1(const int&    from)
 {
   int __attribute__(aligned(16)) ai[4];
   ai[0] = from;
@@ -248,26 +248,28 @@ template<> inline void ei_pstoreu(int*    to , const v4i&    from )
 
 template<> inline float  ei_pfirst(const v4f&  a)
 {
-  float __attribute__(aligned(16)) af[4];
+  float EIGEN_ALIGN_128 af[4];
   vec_st(a, 0, af);
   return af[0];
 }
 
 template<> inline int    ei_pfirst(const v4i&  a)
 {
-  int __attribute__(aligned(16)) ai[4];
+  int EIGEN_ALIGN_128 ai[4];
   vec_st(a, 0, ai);
   return ai[0];
 }
 
 template<> EIGEN_STRONG_INLINE v4f ei_preverse(const v4f& a)
 {
-  static const __vector unsigned char reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  static const __vector unsigned char reverse_mask =
+    {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
   return (v4f)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
 }
 template<> EIGEN_STRONG_INLINE v4i ei_preverse(const v4i& a)
 {
-  static const __vector unsigned char __attribute__(aligned(16)) reverse_mask = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+  static const __vector unsigned char __attribute__(aligned(16)) reverse_mask =
+    {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
   return (v4i)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
 }
 
@@ -344,25 +346,58 @@ inline int ei_predux(const v4i& a)
   return ei_pfirst(sum);
 }
 
+// implement other reductions operators
 inline float ei_predux_mul(const v4f& a)
 {
-  v4f b, sum;
-  b = (v4f)vec_sld(a, a, 8);
-  sum = ei_pmul(a, b);
-  b = (v4f)vec_sld(sum, sum, 4);
-  sum = ei_pmul(sum, b);
-  return ei_pfirst(sum);
+  v4f prod;
+  prod = ei_pmul(a, (v4f)vec_sld(a, a, 8));
+  return ei_pfirst(ei_pmul(prod, (v4f)vec_sld(prod, prod, 4)));
 }
 
 inline int ei_predux_mul(const v4i& a)
 {
-  v4i b, sum;
-  b = (v4i)vec_sld(a, a, 8);
-  sum = ei_pmul(a, b);
-  b = (v4i)vec_sld(sum, sum, 4);
-  sum = ei_pmul(sum, b);
-  return ei_pfirst(sum);
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  return aux[0] * aux[1] * aux[2] * aux[3];
 }
+
+inline float ei_predux_min(const v4f& a)
+{
+  EIGEN_ALIGN_128 float aux[4];
+  ei_pstore(aux, a);
+  register float aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
+  register float aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
+  return aux0<aux2 ? aux0 : aux2;
+}
+
+inline int ei_predux_min(const v4i& a)
+{
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
+  register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
+  return aux0<aux2 ? aux0 : aux2;
+}
+
+inline float ei_predux_max(const v4f& a)
+{
+  EIGEN_ALIGN_128 float aux[4];
+  ei_pstore(aux, a);
+  register float aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
+  register float aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
+  return aux0>aux2 ? aux0 : aux2;
+}
+
+inline int ei_predux_max(const v4i& a)
+{
+  EIGEN_ALIGN_128 int aux[4];
+  ei_pstore(aux, a);
+  register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
+  register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
+  return aux0>aux2 ? aux0 : aux2;
+}
+
+
 
 template<int Offset>
 struct ei_palign_impl<Offset, v4f>
