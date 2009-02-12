@@ -104,7 +104,7 @@ struct SluMatrix : SuperMatrix
       ei_assert(false && "Scalar type not supported by SuperLU");
     }
   }
-  
+
   template<typename Scalar, int Rows, int Cols, int Options, int MRows, int MCols>
   static SluMatrix Map(Matrix<Scalar,Rows,Cols,Options,MRows,MCols>& mat)
   {
