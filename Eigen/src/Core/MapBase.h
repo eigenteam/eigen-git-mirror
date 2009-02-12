@@ -96,7 +96,11 @@ template<typename Derived> class MapBase
 
     inline Scalar& coeffRef(int index)
     {
-      return *const_cast<Scalar*>(m_data + index);
+      ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
+      if ( ((RowsAtCompileTime == 1) == IsRowMajor) )
+        return const_cast<Scalar*>(m_data)[index];
+      else
+        return const_cast<Scalar*>(m_data)[index*stride()];
     }
 
     template<int LoadMode>
@@ -150,7 +154,7 @@ template<typename Derived> class MapBase
               || (   rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
-    
+
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
     { return derived() = forceAligned() + other; }
