@@ -363,37 +363,33 @@ inline int ei_predux_mul(const v4i& a)
 
 inline float ei_predux_min(const v4f& a)
 {
-  v4f b, c, res;
-  b = vec_min(a, vec_sld(a, a, 4));
-  c = vec_min(a, vec_sld(b, b, 4));
-  res = vec_min(a, vec_sld(c, c, 4));
+  v4f b, res;
+  b = vec_min(a, vec_sld(a, a, 8));
+  res = vec_min(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
 inline int ei_predux_min(const v4i& a)
 {
-  v4i b, c, res;
-  b = vec_min(a, vec_sld(a, a, 4));
-  c = vec_min(a, vec_sld(b, b, 4));
-  res = vec_min(a, vec_sld(c, c, 4));
+  v4i b, res;
+  b = vec_min(a, vec_sld(a, a, 8));
+  res = vec_min(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
 inline float ei_predux_max(const v4f& a)
 {
-  v4f b, c, res;
-  b = vec_max(a, vec_sld(a, a, 4));
-  c = vec_max(a, vec_sld(b, b, 4));
-  res = vec_max(a, vec_sld(c, c, 4));
+  v4f b, res;
+  b = vec_max(a, vec_sld(a, a, 8));
+  res = vec_max(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
 inline int ei_predux_max(const v4i& a)
 {
-  v4i b, c, res;
-  b = vec_max(a, vec_sld(a, a, 4));
-  c = vec_max(a, vec_sld(b, b, 4));
-  res = vec_max(a, vec_sld(c, c, 4));
+  v4i b, res;
+  b = vec_max(a, vec_sld(a, a, 8));
+  res = vec_max(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
