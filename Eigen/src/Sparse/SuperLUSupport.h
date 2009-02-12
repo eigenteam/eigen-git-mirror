@@ -35,7 +35,8 @@
          FLOATTYPE *recip_pivot_growth,                      \
          FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr, \
          SuperLUStat_t *stats, int *info, KEYTYPE) {         \
-    NAMESPACE::mem_usage_t mem_usage;                                    \
+    using namespace NAMESPACE; \
+    mem_usage_t mem_usage;                                    \
     NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
          U, work, lwork, B, X, recip_pivot_growth, rcond,    \
          ferr, berr, &mem_usage, stats, info);               \
