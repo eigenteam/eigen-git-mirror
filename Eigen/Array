@@ -16,8 +16,12 @@ namespace Eigen {
   *  - sin, cos, sqrt, pow, exp, log, square, cube, inverse (reciprocal).
   *
   * This module also provides various MatrixBase methods, including:
-  *  - \ref MatrixBase::all() "all", \ref MatrixBase::any() "any",
-  *  - \ref MatrixBase::Random() "random matrix initialization"
+  *  - boolean reductions: \ref MatrixBase::all() "all", \ref MatrixBase::any() "any", \ref MatrixBase::count() "count",
+  *  - \ref MatrixBase::Random() "random matrix initialization",
+  *  - a \ref MatrixBase::select() "select" function mimicking the trivariate ?: operator,
+  *  - \ref MatrixBase::colwise() "column-wise" and \ref MatrixBase::rowwise() "row-wise" reductions,
+  *  - \ref MatrixBase::reverse() "matrix reverse",
+  *  - \ref MatrixBase::lpNorm() "generic matrix norm".
   *
   * \code
   * #include <Eigen/Array>
