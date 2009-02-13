@@ -33,10 +33,10 @@ bool test_assign(const Dst&, const Src&, int vectorization, int unrolling)
 }
 
 template<typename Xpr>
-bool test_sum(const Xpr&, int vectorization, int unrolling)
+bool test_redux(const Xpr&, int vectorization, int unrolling)
 {
-  return ei_sum_traits<Xpr>::Vectorization==vectorization
-    && ei_sum_traits<Xpr>::Unrolling==unrolling;
+  typedef ei_redux_traits<ei_scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
+  return traits::Vectorization==vectorization && traits::Unrolling==unrolling;
 }
 
 void test_vectorization_logic()
@@ -77,25 +77,25 @@ void test_vectorization_logic()
     SliceVectorization,NoUnrolling));
 
 
-  VERIFY(test_sum(VectorXf(10),
+  VERIFY(test_redux(VectorXf(10),
     LinearVectorization,NoUnrolling));
 
-  VERIFY(test_sum(Matrix<float,5,2>(),
+  VERIFY(test_redux(Matrix<float,5,2>(),
     NoVectorization,CompleteUnrolling));
-  
-  VERIFY(test_sum(Matrix<float,6,2>(),
+
+  VERIFY(test_redux(Matrix<float,6,2>(),
     LinearVectorization,CompleteUnrolling));
 
-  VERIFY(test_sum(Matrix<float,16,16>(),
+  VERIFY(test_redux(Matrix<float,16,16>(),
     LinearVectorization,NoUnrolling));
 
-  VERIFY(test_sum(Matrix<float,16,16>().block<4,4>(1,2),
+  VERIFY(test_redux(Matrix<float,16,16>().block<4,4>(1,2),
     NoVectorization,CompleteUnrolling));
 
-  VERIFY(test_sum(Matrix<float,16,16>().block<8,1>(1,2),
+  VERIFY(test_redux(Matrix<float,16,16>().block<8,1>(1,2),
     LinearVectorization,CompleteUnrolling));
 
-  VERIFY(test_sum(Matrix<double,7,3>(),
+  VERIFY(test_redux(Matrix<double,7,3>(),
     NoVectorization,CompleteUnrolling));
 
 #endif // EIGEN_VECTORIZE
