@@ -76,6 +76,15 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
   VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
   VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
 
+  if (size>3)
+  {
+    v0.template start<3>().setZero();
+    v0.end(size-3).setRandom();
+
+    VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
+    VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
+  }
+
   // colwise/rowwise cross product
   Vector3 vec3 = Vector3::Random();
   int i = ei_random<int>(0,size-1);
@@ -89,7 +98,6 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
   matN3.setRandom();
   mcrossN3 = matN3.rowwise().cross(vec3);
   VERIFY_IS_APPROX(mcrossN3.row(i), matN3.row(i).cross(vec3));
-
 }
 
 void test_geo_orthomethods()
