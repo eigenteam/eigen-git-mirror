@@ -55,7 +55,7 @@ class FancySpheres
       mCenters.push_back(Vector3f::Zero());
       parents.push_back(-1);
       mRadii.push_back(radius);
-      
+
       // generate level 1 using icosphere vertices
       radius *= 0.45;
       {
@@ -89,7 +89,7 @@ class FancySpheres
           Vector3f ax1 = ax0.unitOrthogonal();
           Quaternionf q;
           q.setFromTwoVectors(Vector3f::UnitZ(), ax0);
-          Transform3f t = Translation3f(c) * q * Scaling3f(mRadii[i]+radius);
+          Transform3f t = Translation3f(c) * q * Scaling(mRadii[i]+radius);
           for (int j=0; j<5; ++j)
           {
             Vector3f newC = c + ( (AngleAxisf(angles[j*2+1], ax0)
@@ -103,14 +103,14 @@ class FancySpheres
         start = end;
       }
     }
-    
+
     void draw()
     {
       int end = mCenters.size();
       glEnable(GL_NORMALIZE);
       for (int i=0; i<end; ++i)
       {
-        Transform3f t = Translation3f(mCenters[i]) * Scaling3f(mRadii[i]);
+        Transform3f t = Translation3f(mCenters[i]) * Scaling(mRadii[i]);
         gpu.pushMatrix(GL_MODELVIEW);
         gpu.multMatrix(t.matrix(),GL_MODELVIEW);
         mIcoSphere.draw(2);
@@ -135,7 +135,7 @@ template<typename T> T lerp(float t, const T& a, const T& b)
 template<> Quaternionf lerp(float t, const Quaternionf& a, const Quaternionf& b)
 { return a.slerp(t,b); }
 
-// linear interpolation of a frame using the type OrientationType 
+// linear interpolation of a frame using the type OrientationType
 // to perform the interpolation of the orientations
 template<typename OrientationType>
 inline static Frame lerpFrame(float alpha, const Frame& a, const Frame& b)
@@ -171,7 +171,7 @@ public:
     Matrix3 m = q.toRotationMatrix();
     return *this = m;
   }
-  
+
   EulerAngles& operator=(const Matrix3& m)
   {
     // mat =  cy*cz          -cy*sz           sy
@@ -240,7 +240,7 @@ void RenderingWidget::grabFrame(void)
 void RenderingWidget::drawScene()
 {
   static FancySpheres sFancySpheres;
-  float length = 200;
+  float length = 50;
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitX(), Color(1,0,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitY(), Color(0,1,0,1));
   gpu.drawVector(Vector3f::Zero(), length*Vector3f::UnitZ(), Color(0,0,1,1));
@@ -262,12 +262,60 @@ void RenderingWidget::drawScene()
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4f(1, 1, 1, 1).data());
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64);
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_LIGHT1);
-  
+//   glEnable(GL_LIGHTING);
+//   glEnable(GL_LIGHT0);
+//   glEnable(GL_LIGHT1);
+
   glColor3f(0.4, 0.7, 0.4);
-  sFancySpheres.draw();
+
+  {IcoSphere s(5);
+  float length = 6;
+//   const std::vector<int>& indices = s.indices(2);
+  for (unsigned int i=0; i<s.vertices().size() ; ++i)
+  {
+    Vector3f n = s.vertices()[i].normalized();
+    Vector3f p = n*100;
+
+    int i,j;
+    float minc = n.minCoeff(&i);
+    float maxc = n.maxCoeff(&j);
+    Vector3f o = n;
+    o[i] = -n[j];
+    o[j] = n[i];
+
+    //Vector3f u = n.unitOrthogonal().normalized();
+    Vector3f u = n.cross(o).normalized();
+    Vector3f v = n.cross(u).normalized();
+    gpu.drawVector(p, length*u, Color(1,0,0,1));
+    gpu.drawVector(p, length*v, Color(0,1,0,1));
+//     gpu.drawVector(p, length*n, Color(0,0,1,1));
+  }}
+
+  for(;;)
+  {
+    Vector3f n = Vector3f::Random().normalized();
+//     Vector3f p = n*100;
+    //Vector3f u = n.unitOrthogonal().normalized();
+//     int i,j;
+//     float minc = n.minCoeff(&i);
+//     float maxc = n.maxCoeff(&j);
+
+//     Vector3f o = n;
+//     o[i] = -n[j];
+//     o[j] =  n[i];
+    Vector3f o = Vector3f(-n.y(),n.z(),n.x()).normalized();
+    Vector3f u = n.cross(o).normalized();
+
+    float d = ei_abs(o.dot(n));
+
+    if (d>0.9999)
+      std::cout << d << "  " << n.transpose() << "\n";
+
+//     Vector3f v = n.cross(u).normalized();
+  }
+
+
+//   sFancySpheres.draw();
 //   glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
 //   glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
 //   glEnableClientState(GL_VERTEX_ARRAY);
@@ -275,7 +323,7 @@ void RenderingWidget::drawScene()
 //   glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
 //   glDisableClientState(GL_VERTEX_ARRAY);
 //   glDisableClientState(GL_NORMAL_ARRAY);
-  
+
   glDisable(GL_LIGHTING);
 }
 
@@ -318,7 +366,7 @@ void RenderingWidget::animate()
   currentFrame.orientation = currentFrame.orientation.inverse();
   currentFrame.position = - (currentFrame.orientation * currentFrame.position);
   mCamera.setFrame(currentFrame);
-  
+
   updateGL();
 }
 
@@ -542,7 +590,7 @@ void RenderingWidget::resetCamera()
 
   // put the camera at that time step:
   aux1 = aux0.lerp(duration/2,mInitFrame);
-  // and make it look at teh target again
+  // and make it look at the target again
   aux1.orientation = aux1.orientation.inverse();
   aux1.position = - (aux1.orientation * aux1.position);
   mCamera.setFrame(aux1);
@@ -647,6 +695,17 @@ QuaternionDemo::QuaternionDemo()
 
 int main(int argc, char *argv[])
 {
+  std::cout << "Navigation:\n";
+  std::cout << "  left button:           rotate around the target\n";
+  std::cout << "  middle button:         zoom\n";
+  std::cout << "  left button + ctrl     quake rotate (rotate around camera position)\n";
+  std::cout << "  middle button + ctrl   walk (progress along camera's z direction)\n";
+  std::cout << "  left button:           pan (translate in the XY camera's plane)\n\n";
+  std::cout << "R : move the camera to initial position\n";
+  std::cout << "A : start/stop animation\n";
+  std::cout << "C : clear the animation\n";
+  std::cout << "G : add a key frame\n";
+
   QApplication app(argc, argv);
   QuaternionDemo demo;
   demo.resize(600,500);

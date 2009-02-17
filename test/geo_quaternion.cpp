@@ -1,0 +1,116 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra. Eigen itself is part of the KDE project.
+//
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#include "main.h"
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/SVD>
+
+template<typename Scalar> void quaternion(void)
+{
+  /* this test covers the following files:
+     Quaternion.h
+  */
+
+  typedef Matrix<Scalar,3,3> Matrix3;
+  typedef Matrix<Scalar,3,1> Vector3;
+  typedef Quaternion<Scalar> Quaternionx;
+  typedef AngleAxis<Scalar> AngleAxisx;
+
+  Scalar largeEps = test_precision<Scalar>();
+  if (ei_is_same_type<Scalar,float>::ret)
+    largeEps = 1e-3f;
+
+  Scalar eps = ei_random<Scalar>() * 1e-2;
+
+  Vector3 v0 = Vector3::Random(),
+          v1 = Vector3::Random(),
+          v2 = Vector3::Random(),
+          v3 = Vector3::Random();
+
+  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+
+  // Quaternion: Identity(), setIdentity();
+  Quaternionx q1, q2;
+  q2.setIdentity();
+  VERIFY_IS_APPROX(Quaternionx(Quaternionx::Identity()).coeffs(), q2.coeffs());
+  q1.coeffs().setRandom();
+  VERIFY_IS_APPROX(q1.coeffs(), (q1*q2).coeffs());
+
+  q1 = AngleAxisx(a, v0.normalized());
+  q2 = AngleAxisx(a, v1.normalized());
+
+  // angular distance
+  Scalar refangle = ei_abs(AngleAxisx(q1.inverse()*q2).angle());
+  if (refangle>Scalar(M_PI))
+    refangle = Scalar(2)*Scalar(M_PI) - refangle;
+
+  if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
+  {
+    VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
+  }
+
+  // rotation matrix conversion
+  VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
+  VERIFY_IS_APPROX(q1 * q2 * v2,
+    q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
+
+  VERIFY(  (q2*q1).isApprox(q1*q2, largeEps)
+        || !(q2 * q1 * v2).isApprox(q1.toRotationMatrix() * q2.toRotationMatrix() * v2));
+
+  q2 = q1.toRotationMatrix();
+  VERIFY_IS_APPROX(q1*v1,q2*v1);
+
+
+  // angle-axis conversion
+  AngleAxisx aa = q1;
+  VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
+  VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
+
+  // from two vector creation
+  VERIFY_IS_APPROX( v2.normalized(),(q2.setFromTwoVectors(v1, v2)*v1).normalized());
+  VERIFY_IS_APPROX( v1.normalized(),(q2.setFromTwoVectors(v1, v1)*v1).normalized());
+  VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
+  v3 = v1.cwise()+eps;
+  VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());
+  VERIFY_IS_APPROX(-v3.normalized(),(q2.setFromTwoVectors(v1,-v3)*v1).normalized());
+
+  // inverse and conjugate
+  VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
+  VERIFY_IS_APPROX(q1 * (q1.conjugate() * v1), v1);
+
+  // test casting
+  Quaternion<float> q1f = q1.template cast<float>();
+  VERIFY_IS_APPROX(q1f.template cast<Scalar>(),q1);
+  Quaternion<double> q1d = q1.template cast<double>();
+  VERIFY_IS_APPROX(q1d.template cast<Scalar>(),q1);
+}
+
+void test_geo_quaternion()
+{
+  for(int i = 0; i < g_repeat; i++) {
+//     CALL_SUBTEST( quaternion<float>() );
+    CALL_SUBTEST( quaternion<double>() );
+  }
+}

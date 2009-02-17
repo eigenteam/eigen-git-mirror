@@ -66,7 +66,7 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),l0);
 }
 
-void test_parametrizedline()
+void test_geo_parametrizedline()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( parametrizedline(ParametrizedLine<float,2>()) );

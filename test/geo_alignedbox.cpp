@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),b0);
 }
 
-void test_alignedbox()
+void test_geo_alignedbox()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( alignedbox(AlignedBox<float,2>()) );

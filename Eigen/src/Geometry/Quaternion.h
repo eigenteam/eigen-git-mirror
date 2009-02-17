@@ -345,7 +345,6 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
 {
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();
-  Vector3 axis = v0.cross(v1);
   Scalar c = v0.dot(v1);
 
   // if dot == 1, vectors are the same
@@ -353,7 +352,17 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
   {
     // set to identity
     this->w() = 1; this->vec().setZero();
+    return *this;
   }
+  // if dot == -1, vectors are opposites
+  if (ei_isApprox(c,Scalar(-1)))
+  {
+    this->vec() = v0.unitOrthogonal();
+    this->w() = 0;
+    return *this;
+  }
+
+  Vector3 axis = v0.cross(v1);
   Scalar s = ei_sqrt((Scalar(1)+c)*Scalar(2));
   Scalar invs = Scalar(1)/s;
   this->vec() = axis * invs;

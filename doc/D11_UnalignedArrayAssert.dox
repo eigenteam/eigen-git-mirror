@@ -50,7 +50,7 @@ std::map<int, Eigen::Matrix2f> my_map;
 
 then you need to read this separate page: \ref StlContainers "Using STL Containers with Eigen".
 
-Note that here, Eigen::Matrix2f is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
+Note that here, Eigen::Matrix2f is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" and \ref StructHavingEigenMembers "structures having such Eigen objects as member".
 
 \section c3 Cause 3: Passing Eigen objects by value
 

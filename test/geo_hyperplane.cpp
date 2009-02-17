@@ -127,7 +127,7 @@ template<typename Scalar> void lines()
   }
 }
 
-void test_hyperplane()
+void test_geo_hyperplane()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( hyperplane(Hyperplane<float,2>()) );

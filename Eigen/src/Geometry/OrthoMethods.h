@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -48,6 +48,42 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
     lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
     lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)
   );
+}
+
+/** \returns a matrix expression of the cross product of each column or row
+  * of the referenced expression with the \a other vector.
+  *
+  * The referenced matrix must have one dimension equal to 3.
+  * The result matrix has the same dimensions than the referenced one.
+  *
+  * \geometry_module
+  *
+  * \sa MatrixBase::cross() */
+template<typename ExpressionType, int Direction>
+template<typename OtherDerived>
+const typename PartialRedux<ExpressionType,Direction>::CrossReturnType
+PartialRedux<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& other) const
+{
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
+  EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
+  CrossReturnType res(_expression().rows(),_expression().cols());
+  if(Direction==Vertical)
+  {
+    ei_assert(CrossReturnType::RowsAtCompileTime==3 && "the matrix must have exactly 3 rows");
+    res.row(0) = _expression().row(1) * other.coeff(2) - _expression().row(2) * other.coeff(1);
+    res.row(1) = _expression().row(2) * other.coeff(0) - _expression().row(0) * other.coeff(2);
+    res.row(2) = _expression().row(0) * other.coeff(1) - _expression().row(1) * other.coeff(0);
+  }
+  else
+  {
+    ei_assert(CrossReturnType::ColsAtCompileTime==3 && "the matrix must have exactly 3 columns");
+    res.col(0) = _expression().col(1) * other.coeff(2) - _expression().col(2) * other.coeff(1);
+    res.col(1) = _expression().col(2) * other.coeff(0) - _expression().col(0) * other.coeff(2);
+    res.col(2) = _expression().col(0) * other.coeff(1) - _expression().col(1) * other.coeff(0);
+  }
+  return res;
 }
 
 template<typename Derived, int Size = Derived::SizeAtCompileTime>

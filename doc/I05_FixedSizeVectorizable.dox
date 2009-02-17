@@ -31,7 +31,7 @@ Fixed-size objects are typically very small, which means that we want to handle 
 
 Now, vectorization (both SSE and AltiVec) works with 128-bit packets. Moreover, for performance reasons, these packets need to be have 128-bit alignment.
 
-So it turns out that the only way that fixed-size Eigen objects can be vectorized, is if their size is a multiple of 128 bits, or 16 bytes. Eigen will then request 16-byte alignment for these object, and henceforth rely on these objects being aligned so no runtime check for alignment is performed.
+So it turns out that the only way that fixed-size Eigen objects can be vectorized, is if their size is a multiple of 128 bits, or 16 bytes. Eigen will then request 16-byte alignment for these objects, and henceforth rely on these objects being aligned so no runtime check for alignment is performed.
 
 */
 

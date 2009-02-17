@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-template<typename Scalar> void geometry(void)
+template<typename Scalar> void transformations(void)
 {
   /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
@@ -56,31 +56,9 @@ template<typename Scalar> void geometry(void)
     v1 = Vector3::Random(),
     v2 = Vector3::Random();
   Vector2 u0 = Vector2::Random();
-  Matrix3 matrot1;
+  Matrix3 matrot1, m;
 
   Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
-
-  // cross product
-  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
-  Matrix3 m;
-  m << v0.normalized(),
-      (v0.cross(v1)).normalized(),
-      (v0.cross(v1).cross(v0)).normalized();
-  VERIFY(m.isUnitary());
-
-  // Quaternion: Identity(), setIdentity();
-  Quaternionx q1, q2;
-  q2.setIdentity();
-  VERIFY_IS_APPROX(Quaternionx(Quaternionx::Identity()).coeffs(), q2.coeffs());
-  q1.coeffs().setRandom();
-  VERIFY_IS_APPROX(q1.coeffs(), (q1*q2).coeffs());
-
-  // unitOrthogonal
-  VERIFY_IS_MUCH_SMALLER_THAN(u0.unitOrthogonal().dot(u0), Scalar(1));
-  VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
-  VERIFY_IS_APPROX(u0.unitOrthogonal().norm(), Scalar(1));
-  VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
-
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
@@ -89,30 +67,11 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
   VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
 
+  Quaternionx q1, q2;
   q1 = AngleAxisx(a, v0.normalized());
   q2 = AngleAxisx(a, v1.normalized());
 
-  // angular distance
-  Scalar refangle = ei_abs(AngleAxisx(q1.inverse()*q2).angle());
-  if (refangle>Scalar(M_PI))
-    refangle = Scalar(2)*Scalar(M_PI) - refangle;
-  
-  if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
-  {
-    VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
-  }
-
   // rotation matrix conversion
-  VERIFY_IS_APPROX(q1 * v2, q1.toRotationMatrix() * v2);
-  VERIFY_IS_APPROX(q1 * q2 * v2,
-    q1.toRotationMatrix() * q2.toRotationMatrix() * v2);
-
-  VERIFY( (q2*q1).isApprox(q1*q2, largeEps) || !(q2 * q1 * v2).isApprox(
-    q1.toRotationMatrix() * q2.toRotationMatrix() * v2));
-
-  q2 = q1.toRotationMatrix();
-  VERIFY_IS_APPROX(q1*v1,q2*v1);
-
   matrot1 = AngleAxisx(Scalar(0.1), Vector3::UnitX())
           * AngleAxisx(Scalar(0.2), Vector3::UnitY())
           * AngleAxisx(Scalar(0.3), Vector3::UnitZ());
@@ -125,14 +84,6 @@ template<typename Scalar> void geometry(void)
   AngleAxisx aa = q1;
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
   VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
-
-  // from two vector creation
-  VERIFY_IS_APPROX(v2.normalized(),(q2.setFromTwoVectors(v1,v2)*v1).normalized());
-  VERIFY_IS_APPROX(v2.normalized(),(q2.setFromTwoVectors(v1,v2)*v1).normalized());
-
-  // inverse and conjugate
-  VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
-  VERIFY_IS_APPROX(q1 * (q1.conjugate() * v1), v1);
 
   // AngleAxis
   VERIFY_IS_APPROX(AngleAxisx(a,v1.normalized()).toRotationMatrix(),
@@ -382,11 +333,6 @@ template<typename Scalar> void geometry(void)
   DiagonalMatrix<double,3> sc1d; sc1d = (sc1.template cast<double>());
   VERIFY_IS_APPROX(sc1d.template cast<Scalar>(),sc1);
 
-  Quaternion<float> q1f = q1.template cast<float>();
-  VERIFY_IS_APPROX(q1f.template cast<Scalar>(),q1);
-  Quaternion<double> q1d = q1.template cast<double>();
-  VERIFY_IS_APPROX(q1d.template cast<Scalar>(),q1);
-
   AngleAxis<float> aa1f = aa1.template cast<float>();
   VERIFY_IS_APPROX(aa1f.template cast<Scalar>(),aa1);
   AngleAxis<double> aa1d = aa1.template cast<double>();
@@ -397,47 +343,12 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
-
-  m = q1;
-//   m.col(1) = Vector3(0,ei_random<Scalar>(),ei_random<Scalar>()).normalized();
-//   m.col(0) = Vector3(-1,0,0).normalized();
-//   m.col(2) = m.col(0).cross(m.col(1));
-  #define VERIFY_EULER(I,J,K, X,Y,Z) { \
-    Vector3 ea = m.eulerAngles(I,J,K); \
-    Matrix3 m1 = Matrix3(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z())); \
-    VERIFY_IS_APPROX(m,  Matrix3(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z()))); \
-  }
-  VERIFY_EULER(0,1,2, X,Y,Z);
-  VERIFY_EULER(0,1,0, X,Y,X);
-  VERIFY_EULER(0,2,1, X,Z,Y);
-  VERIFY_EULER(0,2,0, X,Z,X);
-
-  VERIFY_EULER(1,2,0, Y,Z,X);
-  VERIFY_EULER(1,2,1, Y,Z,Y);
-  VERIFY_EULER(1,0,2, Y,X,Z);
-  VERIFY_EULER(1,0,1, Y,X,Y);
-
-  VERIFY_EULER(2,0,1, Z,X,Y);
-  VERIFY_EULER(2,0,2, Z,X,Z);
-  VERIFY_EULER(2,1,0, Z,Y,X);
-  VERIFY_EULER(2,1,2, Z,Y,Z);
-
-  // colwise/rowwise cross product
-  mat3.setRandom();
-  Vector3 vec3 = Vector3::Random();
-  Matrix3 mcross;
-  int i = ei_random<int>(0,2);
-  mcross = mat3.colwise().cross(vec3);
-  VERIFY_IS_APPROX(mcross.col(i), mat3.col(i).cross(vec3));
-  mcross = mat3.rowwise().cross(vec3);
-  VERIFY_IS_APPROX(mcross.row(i), mat3.row(i).cross(vec3));
-
 }
 
-void test_geometry()
+void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( geometry<float>() );
-    CALL_SUBTEST( geometry<double>() );
+    CALL_SUBTEST( transformations<float>() );
+    CALL_SUBTEST( transformations<double>() );
   }
 }

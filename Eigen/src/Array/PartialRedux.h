@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -176,7 +176,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
     };
 
     typedef typename ExpressionType::PlainMatrixType CrossReturnType;
-    
+
     inline PartialRedux(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
@@ -249,7 +249,7 @@ template<typename ExpressionType, int Direction> class PartialRedux
       * \sa MatrixBase::any() */
     const typename ReturnType<ei_member_any>::Type any() const
     { return _expression(); }
-    
+
     /** \returns a row (or column) vector expression representing
       * the number of \c true coefficients of each respective column (or row).
       *
@@ -269,8 +269,8 @@ template<typename ExpressionType, int Direction> class PartialRedux
       * \sa MatrixBase::prod() */
     const typename ReturnType<ei_member_prod>::Type prod() const
     { return _expression(); }
-    
-    
+
+
     /** \returns a matrix expression
       * where each column (or row) are reversed.
       *
@@ -282,33 +282,9 @@ template<typename ExpressionType, int Direction> class PartialRedux
     {
       return Reverse<ExpressionType, Direction>( _expression() );
     }
-  
-    
-    /** \returns a 3x3 matrix expression of the cross product
-      * of each column or row of the referenced expression with the \a other vector.
-      *
-      * \geometry_module
-      *
-      * \sa MatrixBase::cross() */
-    template<typename OtherDerived>
-    const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const
-    {
-      EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(CrossReturnType,3,3)
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
-      EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
-      if(Direction==Vertical)
-        return (CrossReturnType()
-                                 << _expression().col(0).cross(other),
-                                    _expression().col(1).cross(other),
-                                    _expression().col(2).cross(other)).finished();
-      else
-        return (CrossReturnType() 
-                                 << _expression().row(0).cross(other),
-                                    _expression().row(1).cross(other),
-                                    _expression().row(2).cross(other)).finished();
-    }
+    template<typename OtherDerived>
+    const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const;
 
   protected:
     ExpressionTypeNested m_matrix;
