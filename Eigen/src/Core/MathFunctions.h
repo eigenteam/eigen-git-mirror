@@ -60,12 +60,20 @@ inline int ei_exp(int)  { ei_assert(false); return 0; }
 inline int ei_log(int)  { ei_assert(false); return 0; }
 inline int ei_sin(int)  { ei_assert(false); return 0; }
 inline int ei_cos(int)  { ei_assert(false); return 0; }
-
-#if EIGEN_GNUC_AT_LEAST(4,3)
-inline int ei_pow(int x, int y) { return int(std::pow(x, y)); }
-#else
-inline int ei_pow(int x, int y) { return int(std::pow(double(x), y)); }
-#endif
+inline int ei_pow(int x, int y)
+{
+  int res = 1;
+  if(y < 0) return 0;
+  if(y & 1) res *= x;
+  y >>= 1;
+  while(y)
+  {
+    x *= x;
+    if(y&1) res *= x;
+    y >>= 1;
+  }
+  return res;
+}
 
 template<> inline int ei_random(int a, int b)
 {
