@@ -50,8 +50,8 @@
 
  // Views, transpose, etc; all read-write except for .adjoint().
  // Eigen                          // Matlab
- R.adjoint()                       // conj(R')
- R.transpose()                     // R'
+ R.adjoint()                       // R'
+ R.transpose()                     // R.' or conj(R')
  R.diagonal()                      // diag(R)
  x.asDiagonal()                    // diag(x)
 
