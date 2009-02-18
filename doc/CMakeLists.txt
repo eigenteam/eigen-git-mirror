@@ -43,6 +43,8 @@ add_custom_target(
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Eigen_Silly_Professor_64x64.png
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/AsciiQuickReference.txt
+                                   ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND doxygen
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )

@@ -11,7 +11,7 @@ o /** \mainpage Eigen
 
 This is the API documentation for Eigen.
 
-For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial".
+For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial". For an even shorter overview, we have an <a href="AsciiQuickReference.txt">ASCII quick reference</a> with Matlab translations.
 
 Most of the API is available as methods in MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there. Other notable classes for the Eigen API are Cwise, which contains the methods for doing certain coefficient-wise operations, and Part.
 
