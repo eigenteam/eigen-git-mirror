@@ -7,6 +7,14 @@
  RowVector3f a, b, c;                 // 1x3 float matrix.
  double s;
 
+// Basic usage
+// Eigen          // Matlab           // comments
+x.size()          // length(x)        // vector size
+C.rows()          // size(C)(1)       // number of rows
+C.cols()          // size(C)(2)       // number of columns
+x(i)              // x(i+1)           // Matlab is 1-based
+C(i,j)            // C(i+1,j+1)       //
+
  A.resize(4, 4);  // Runtime error if assertions are on.
  B.resize(4, 9);  // Runtime error if assertions are on.
  A.resize(3, 3);  // Ok; size didn't change.
