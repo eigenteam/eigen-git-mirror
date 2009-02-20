@@ -99,6 +99,7 @@ static void ei_cache_friendly_product(
   Scalar* EIGEN_RESTRICT rhsCopy
     = ei_aligned_stack_new(Scalar, l2BlockSizeAligned*l2BlockSizeAligned);
 
+#ifndef EIGEN_USE_NEW_PRODUCT
   // loops on each L2 cache friendly blocks of the result
   for(int l2i=0; l2i<rows; l2i+=l2BlockRows)
   {
@@ -337,6 +338,67 @@ static void ei_cache_friendly_product(
         }
     }
   }
+
+#else
+  // loops on each L2 cache friendly blocks of the result
+
+  for(int l2i=0; l2i<rows; l2i+=l2BlockRows)
+  {
+    for(int l2j=0; l2j<cols; l2j+=l2BlockCols)
+    {
+      // We have selected a block of lhs
+      // Packs this block into 'block'
+      for(int j=0; j<l2BlockCols; ++j)
+      {
+        int count = 0;
+        for(int i=0; i<l2BlockRows; ++i)
+        {
+          block[ (j*l2BlockCols) + i] = lhs[(j+l2j)*rows+l2i+count++];
+        }
+      }
+
+      // loops on each L2 cache firendly block of the result/rhs
+      for(int l2k=0; l2k<cols; l2k+=l2BlockCols)
+      {
+        for(int j=0; j<l2BlockCols; ++j)
+        {
+          for(int i=0; i<l2BlockRows; i+=PacketSize)
+          {
+            PacketType A0, A1, A2, A3, A4, A5;
+
+            // Load the packets from rhs and reorder them
+
+            // Here we need some vector reordering
+            // Right now its hardcoded to packets of 4 elements
+            A0 = ei_pset1(rhs[(j+l2k)*rows+(i+l2j)]);
+            A1 = ei_pset1(rhs[(j+l2k)*rows+(i+l2j)+1]);
+            A2 = ei_pset1(rhs[(j+l2k)*rows+(i+l2j)+2]);
+            A3 = ei_pset1(rhs[(j+l2k)*rows+(i+l2j)+3]);
+
+            for(int k=0; k<l2BlockRows; k+=PacketSize)
+            {
+              PacketType L0, L1, L2, L3;
+
+              // We perform "cross products" of vectors to avoid
+              // reductions (horizontal ops) afterwards
+              A4 = ei_pload(&res[(j+l2k)*rows+l2i+k]);
+              L0 = ei_pload(&block[ k + (i + 0)*l2BlockRows ]);
+              L1 = ei_pload(&block[ k + (i + 1)*l2BlockRows ]);
+              A4 = ei_pmadd(L0, A0, A4);
+              L2 = ei_pload(&block[ k + (i + 2)*l2BlockRows ]);
+              A4 = ei_pmadd(L1, A1, A4);
+              L3 = ei_pload(&block[ k + (i + 3)*l2BlockRows ]);
+              A4 = ei_pmadd(L2, A2, A4);
+              A4 = ei_pmadd(L3, A3, A4);
+
+              ei_pstore(&res[(j+l2k)*rows+l2i+k], A4);
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
 
   ei_aligned_stack_delete(Scalar, block, allocBlockSize);
   ei_aligned_stack_delete(Scalar, rhsCopy, l2BlockSizeAligned*l2BlockSizeAligned);
