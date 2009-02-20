@@ -130,6 +130,23 @@ public :
     }
   }
 
+  static inline void symv(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
+  {
+    for (int j=0; j<N; ++j)
+      X[j] = 0;
+    for (int j=0; j<N; ++j)
+    {
+      real t1 = B[j];
+      real t2 = 0;
+      X[j] += t1 * A[j][j];
+      for (int i=j+1; i<N; ++i) {
+        X[i] += t1 * A[j][i];
+        t2 += A[j][i] * B[i];
+      }
+      X[j] += t2;
+    }
+  }
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
   {
     real somme;

@@ -33,11 +33,11 @@
 // min matrix size for matrix vector product bench
 #define MIN_MV 5
 // max matrix size for matrix vector product bench
-#define MAX_MV 1024
+#define MAX_MV 2048
 // min matrix size for matrix matrix product bench
 #define MIN_MM 5
 // max matrix size for matrix matrix product bench
-#define MAX_MM 1024
+#define MAX_MM 2048
 // min matrix size for LU bench
 #define MIN_LU 5
 // max matrix size for LU bench

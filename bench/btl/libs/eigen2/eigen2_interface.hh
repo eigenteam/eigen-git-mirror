@@ -113,6 +113,10 @@ public :
     X = (A*B)/*.lazy()*/;
   }
 
+  static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
+    X = (A.template marked<SelfAdjoint|LowerTriangular>() * B)/*.lazy()*/;
+  }
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     X = (A.transpose()*B)/*.lazy()*/;
   }

@@ -19,6 +19,7 @@
 #include "eigen2_interface.hh"
 #include "bench.hh"
 #include "basic_actions.hh"
+#include "action_symv.hh"
 
 BTL_MAIN;
 
@@ -26,6 +27,7 @@ int main()
 {
   bench<Action_matrix_vector_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_atv_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_symv<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
 
   return 0;
 }
