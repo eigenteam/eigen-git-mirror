@@ -75,9 +75,6 @@ inline void* ei_aligned_malloc(size_t size)
 
   void *result;
   #if EIGEN_HAS_POSIX_MEMALIGN && EIGEN_ARCH_WANTS_ALIGNMENT && !EIGEN_MALLOC_ALREADY_ALIGNED
-    #ifdef EIGEN_EXCEPTIONS
-      const int failed =
-    #endif
     if(posix_memalign(&result, 16, size))
       result = 0;
   #else
@@ -92,12 +89,9 @@ inline void* ei_aligned_malloc(size_t size)
     #else
       result = ei_handmade_aligned_malloc(size);
     #endif
-    #ifdef EIGEN_EXCEPTIONS
-      const int failed = (result == 0);
-    #endif
   #endif
   #ifdef EIGEN_EXCEPTIONS
-    if(failed)
+    if(result == 0)
       throw std::bad_alloc();
   #endif
   return result;
