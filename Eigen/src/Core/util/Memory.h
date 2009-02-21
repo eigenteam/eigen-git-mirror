@@ -78,7 +78,8 @@ inline void* ei_aligned_malloc(size_t size)
     #ifdef EIGEN_EXCEPTIONS
       const int failed =
     #endif
-    posix_memalign(&result, 16, size);
+    if(posix_memalign(&result, 16, size))
+      result = 0;
   #else
     #if !EIGEN_ARCH_WANTS_ALIGNMENT
       result = malloc(size);
