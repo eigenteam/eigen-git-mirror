@@ -155,7 +155,7 @@ Alternatively, you can construct a named LU decomposition, which allows you to r
 \code
 #include <Eigen/LU>
 MatrixXf A = MatrixXf::Random(20,20);
-Eigen::LUDecomposition<MatrixXf> lu(A);
+Eigen::LU<MatrixXf> lu(A);
 cout << "The rank of A is" << lu.rank() << endl;
 if(lu.isInvertible()) {
   cout << "A is invertible, its inverse is:" << endl << lu.inverse() << endl;
