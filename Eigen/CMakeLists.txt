@@ -22,7 +22,7 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 install(FILES
   ${Eigen_HEADERS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen
+  DESTINATION ${INCLUDE_INSTALL_DIR}/Eigen COMPONENT Devel
   )
 
 add_subdirectory(src)
