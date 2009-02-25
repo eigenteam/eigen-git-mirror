@@ -92,9 +92,32 @@ struct ei_unitOrthogonal_selector
   typedef typename ei_plain_matrix_type<Derived>::type VectorType;
   typedef typename ei_traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar,2,1> Vector2;
   inline static VectorType run(const Derived& src)
   {
-    VectorType perp(src.size());
+    VectorType perp = VectorType::Zero(src.size());
+    int maxi = 0;
+    int sndi = 0;
+    src.cwise().abs().maxCoeff(&maxi);
+    if (maxi==0)
+      sndi = 1;
+    RealScalar invnm = RealScalar(1)/Vector2(src.coeff(sndi),src.coeff(maxi)).norm();
+    perp.coeffRef(maxi) = -ei_conj(src.coeff(sndi)) * invnm;
+    perp.coeffRef(sndi) =  ei_conj(src.coeff(maxi)) * invnm;
+
+    return perp;
+   }
+};
+
+template<typename Derived>
+struct ei_unitOrthogonal_selector<Derived,3>
+{
+  typedef typename ei_plain_matrix_type<Derived>::type VectorType;
+  typedef typename ei_traits<Derived>::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  inline static VectorType run(const Derived& src)
+  {
+    VectorType perp;
     /* Let us compute the crossed product of *this with a vector
      * that is not too close to being colinear to *this.
      */
@@ -121,9 +144,6 @@ struct ei_unitOrthogonal_selector
       perp.coeffRef(1) = -ei_conj(src.z())*invnm;
       perp.coeffRef(2) = ei_conj(src.y())*invnm;
     }
-    if( (Derived::SizeAtCompileTime!=Dynamic && Derived::SizeAtCompileTime>3)
-     || (Derived::SizeAtCompileTime==Dynamic && src.size()>3) )
-      perp.end(src.size()-3).setZero();
 
     return perp;
    }
