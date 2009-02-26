@@ -63,6 +63,7 @@ template<typename Scalar> void orthomethods_3()
 
 template<typename Scalar, int Size> void orthomethods(int size=Size)
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar,Size,1> VectorType;
   typedef Matrix<Scalar,3,Size> Matrix3N;
   typedef Matrix<Scalar,Size,3> MatrixN3;
@@ -74,7 +75,7 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
 
   // unitOrthogonal
   VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
-  VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
+  VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), RealScalar(1));
 
   if (size>3)
   {
@@ -82,7 +83,7 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
     v0.end(size-3).setRandom();
 
     VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
-    VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
+    VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), RealScalar(1));
   }
 
   // colwise/rowwise cross product
@@ -110,7 +111,7 @@ void test_geo_orthomethods()
     CALL_SUBTEST( (orthomethods<float,3>()) );
     CALL_SUBTEST( (orthomethods<double,3>()) );
     CALL_SUBTEST( (orthomethods<float,7>()) );
-    CALL_SUBTEST( (orthomethods<double,8>()) );
+    CALL_SUBTEST( (orthomethods<std::complex<double>,8>()) );
     CALL_SUBTEST( (orthomethods<float,Dynamic>(36)) );
     CALL_SUBTEST( (orthomethods<double,Dynamic>(35)) );
   }

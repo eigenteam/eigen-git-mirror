@@ -101,7 +101,7 @@ struct ei_unitOrthogonal_selector
     src.cwise().abs().maxCoeff(&maxi);
     if (maxi==0)
       sndi = 1;
-    RealScalar invnm = RealScalar(1)/Vector2(src.coeff(sndi),src.coeff(maxi)).norm();
+    RealScalar invnm = RealScalar(1)/(Vector2() << src.coeff(sndi),src.coeff(maxi)).finished().norm();
     perp.coeffRef(maxi) = -ei_conj(src.coeff(sndi)) * invnm;
     perp.coeffRef(sndi) =  ei_conj(src.coeff(maxi)) * invnm;
 
