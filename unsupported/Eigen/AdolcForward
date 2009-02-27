@@ -98,9 +98,9 @@ namespace adtl {
 
 }
 
-namespace Eigen { namespace unsupported { /*@}*/ } }
+namespace Eigen {
 
-template<> struct EigenNumTraits<adtl::adouble>
+template<> struct NumTraits<adtl::adouble>
 {
   typedef adtl::adouble Real;
   typedef adtl::adouble FloatingPoint;
@@ -112,5 +112,61 @@ template<> struct EigenNumTraits<adtl::adouble>
     MulCost = 1
   };
 };
+
+template<typename Functor> class AdolcForwardJacobian : public Functor
+{
+  typedef adtl::adouble ActiveScalar;
+public:
+
+  AdolcForwardJacobian() : Functor() {}
+  AdolcForwardJacobian(const Functor& f) : Functor(f) {}
+
+  // forward constructors
+  template<typename T0>
+  AdolcForwardJacobian(const T0& a0) : Functor(a0) {}
+  template<typename T0, typename T1>
+  AdolcForwardJacobian(const T0& a0, const T1& a1) : Functor(a0, a1) {}
+  template<typename T0, typename T1, typename T2>
+  AdolcForwardJacobian(const T0& a0, const T1& a1, const T1& a2) : Functor(a0, a1, a2) {}
+
+  typedef typename Functor::InputType InputType;
+  typedef typename Functor::ValueType ValueType;
+  typedef typename Functor::JacobianType JacobianType;
+
+  typedef Matrix<ActiveScalar, InputType::SizeAtCompileTime, 1> ActiveInput;
+  typedef Matrix<ActiveScalar, ValueType::SizeAtCompileTime, 1> ActiveValue;
+
+  void operator() (const InputType& x, ValueType* v, JacobianType* _jac) const
+  {
+    ei_assert(v!=0);
+    if (!_jac)
+    {
+      Functor::operator()(x, v);
+      return;
+    }
+
+    JacobianType& jac = *_jac;
+
+    ActiveInput ax = x.template cast<ActiveScalar>();
+    ActiveValue av(jac.rows());
+
+    for (int j=0; j<jac.cols(); j++)
+      for (int i=0; i<jac.cols(); i++)
+        ax[i].setADValue(j, i==j ? 1 : 0);
+
+    Functor::operator()(ax, &av);
+
+    for (int i=0; i<jac.rows(); i++)
+    {
+      (*v)[i] = av[i].getValue();
+      for (int j=0; j<jac.cols(); j++)
+        jac.coeffRef(i,j) = av[i].getADValue(j);
+    }
+  }
+protected:
+
+};
+
+}
 
 #endif // EIGEN_ADLOC_FORWARD

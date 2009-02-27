@@ -10,6 +10,11 @@ macro(ei_add_target_property target prop value)
 
 endmacro(ei_add_target_property)
 
+macro(ei_add_property prop value)
+  get_property(previous GLOBAL PROPERTY ${prop})
+  set_property(GLOBAL PROPERTY ${prop} "${previous}${value}")
+endmacro(ei_add_property)
+
 # Macro to add a test
 #
 # the unique parameter testname must correspond to a file
@@ -73,7 +78,90 @@ macro(ei_add_test testname)
   if(WIN32)
     add_test(${testname} "${targetname}")
   else(WIN32)
-    add_test(${testname} "${CMAKE_CURRENT_SOURCE_DIR}/runtest.sh" "${testname}")
+    add_test(${testname} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname}")
   endif(WIN32)
 
 endmacro(ei_add_test)
+
+# print a summary of the different options
+macro(ei_testing_print_summary)
+
+  message("************************************************************")
+  message("***    Eigen's unit tests configuration summary          ***")
+  message("************************************************************")
+
+  get_property(EIGEN_TESTING_SUMMARY GLOBAL PROPERTY EIGEN_TESTING_SUMMARY)
+  get_property(EIGEN_TESTED_BACKENDS GLOBAL PROPERTY EIGEN_TESTED_BACKENDS)
+  get_property(EIGEN_MISSING_BACKENDS GLOBAL PROPERTY EIGEN_MISSING_BACKENDS)
+  message("Enabled backends:      ${EIGEN_TESTED_BACKENDS}")
+  message("Disabled backends:     ${EIGEN_MISSING_BACKENDS}")
+
+  if(EIGEN_TEST_SSE2)
+    message("SSE2:              ON")
+  else(EIGEN_TEST_SSE2)
+    message("SSE2:              AUTO")
+  endif(EIGEN_TEST_SSE2)
+
+  if(EIGEN_TEST_SSE3)
+    message("SSE3:              ON")
+  else(EIGEN_TEST_SSE3)
+    message("SSE3:              AUTO")
+  endif(EIGEN_TEST_SSE3)
+
+  if(EIGEN_TEST_SSSE3)
+    message("SSSE3:             ON")
+  else(EIGEN_TEST_SSSE3)
+    message("SSSE3:             AUTO")
+  endif(EIGEN_TEST_SSSE3)
+
+  if(EIGEN_TEST_ALTIVEC)
+    message("Altivec:           ON")
+  else(EIGEN_TEST_ALTIVEC)
+    message("Altivec:           AUTO")
+  endif(EIGEN_TEST_ALTIVEC)
+
+  if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+    message("Explicit vec:      OFF")
+  else(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+    message("Explicit vec:      AUTO")
+  endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+
+  message("\n${EIGEN_TESTING_SUMMARY}")
+  #   message("CXX:               ${CMAKE_CXX_COMPILER}")
+  # if(CMAKE_COMPILER_IS_GNUCXX)
+  #   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
+  #   message("CXX_VERSION:       ${EIGEN_CXX_VERSION_STRING}")
+  # endif(CMAKE_COMPILER_IS_GNUCXX)
+  #   message("CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
+  #   message("Sparse lib flags:  ${SPARSE_LIBS}")
+
+  message("************************************************************")
+
+endmacro(ei_testing_print_summary)
+
+macro(ei_init_testing)
+  define_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
+  define_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
+  define_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY BRIEF_DOCS " " FULL_DOCS " ")
+
+  set_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS "")
+  set_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS "")
+  set_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY "")
+endmacro(ei_init_testing)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  if(CMAKE_SYSTEM_NAME MATCHES Linux)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g2")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g2")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-inline-functions")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g2")
+  endif(CMAKE_SYSTEM_NAME MATCHES Linux)
+  set(EI_OFLAG "-O2")
+# MSVC fails with:
+# cl : Command line warning D9025 : overriding '/Od' with '/O2'
+# cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
+# elseif(MSVC)
+#   set(EI_OFLAG "/O2")
+else(CMAKE_COMPILER_IS_GNUCXX)
+  set(EI_OFLAG "")
+endif(CMAKE_COMPILER_IS_GNUCXX)

@@ -1,6 +1,16 @@
 
-enable_testing()
-
 include(EigenTesting)
 
-# ei_add_test(foo "CXXFLAGS" "libs")
+enable_testing()
+
+find_package(Adolc)
+
+include_directories(../../test)
+
+if(ADOLC_FOUND)
+  include_directories(${ADOLC_INCLUDES})
+  ei_add_property(EIGEN_TESTED_BACKENDS "Adolc")
+  ei_add_test(forward_adolc " " ${ADOLC_LIBRARIES})
+else(ADOLC_FOUND)
+  ei_add_property(EIGEN_MISSING_BACKENDS "Adolc")
+endif(ADOLC_FOUND)

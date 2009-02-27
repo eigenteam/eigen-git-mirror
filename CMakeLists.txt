@@ -92,12 +92,12 @@ set(INCLUDE_INSTALL_DIR
 
 add_subdirectory(Eigen)
 
+add_subdirectory(doc)
+
 if(EIGEN_BUILD_TESTS)
   include(CTest)
   add_subdirectory(test)
 endif(EIGEN_BUILD_TESTS)
-
-add_subdirectory(doc)
 
 add_subdirectory(unsupported)
 
@@ -108,3 +108,7 @@ endif(EIGEN_BUILD_DEMOS)
 if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl)
 endif(EIGEN_BUILD_BTL)
+
+if(EIGEN_BUILD_TESTS)
+  ei_testing_print_summary()
+endif(EIGEN_BUILD_TESTS)
