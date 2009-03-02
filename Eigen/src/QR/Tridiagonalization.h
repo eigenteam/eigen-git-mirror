@@ -220,100 +220,22 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
 
       matA.col(i).coeffRef(i+1) = 1;
+      Scalar* EIGEN_RESTRICT t = &hCoeffs.coeffRef(-1);
 
-      /* This is the initial algorithm which minimize operation counts and maximize
-       * the use of Eigen's expression. Unfortunately, the first matrix-vector product
-       * using Part<LowerTriangular|Selfadjoint>  is very very slow */
-      #ifdef EIGEN_NEVER_DEFINED
-      // matrix - vector product
-      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular|SelfAdjoint>()
-                                * (h * matA.col(i).end(n-i-1))).lazy();
-      // simple axpy
-      hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
-                            * matA.col(i).end(n-i-1);
-      // rank-2 update
-      //Block<MatrixType,Dynamic,1> B(matA,i+1,i,n-i-1,1);
-      matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular>() -=
-            (matA.col(i).end(n-i-1) * hCoeffs.end(n-i-1).adjoint()).lazy()
-          + (hCoeffs.end(n-i-1) * matA.col(i).end(n-i-1).adjoint()).lazy();
-      #endif
-      /* end initial algorithm */
+      // hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular|SelfAdjoint>()
+      //                    *  matA.col(i).end(n-i-1)).lazy();
+      // TODO map the above code to the function call below:
+      ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangularBit>
+        (n-i-1,matA.corner(BottomRight,n-i-1,n-i-1).data(), matA.stride(), matA.col(i).end(n-i-1).data(), const_cast<Scalar*>(hCoeffs.end(n-i-1).data()));
 
-      /* If we still want to minimize operation count (i.e., perform operation on the lower part only)
-       * then we could provide the following algorithm for selfadjoint - vector product. However, a full
-       * matrix-vector product is still faster (at least for dynamic size, and not too small, did not check
-       * small matrices). The algo performs block matrix-vector and transposed matrix vector products. */
-      #ifdef EIGEN_NEVER_DEFINED
-      int n4 = (std::max(0,n-4)/4)*4;
-      hCoeffs.end(n-i-1).setZero();
-      for (int b=i+1; b<n4; b+=4)
-      {
-        // the ?x4 part:
-        hCoeffs.end(b-4) +=
-            Block<MatrixType,Dynamic,4>(matA,b+4,b,n-b-4,4) * matA.template block<4,1>(b,i);
-        // the respective transposed part:
-        Block<CoeffVectorType,4,1>(hCoeffs, b, 0, 4,1) +=
-            Block<MatrixType,Dynamic,4>(matA,b+4,b,n-b-4,4).adjoint() * Block<MatrixType,Dynamic,1>(matA,b+4,i,n-b-4,1);
-        // the 4x4 block diagonal:
-        Block<CoeffVectorType,4,1>(hCoeffs, b, 0, 4,1) +=
-            (Block<MatrixType,4,4>(matA,b,b,4,4).template part<LowerTriangular|SelfAdjoint>()
-             * (h * Block<MatrixType,4,1>(matA,b,i,4,1))).lazy();
-      }
-      #endif
-      // todo: handle the remaining part
-      /* end optimized selfadjoint - vector product */
+      hCoeffs.end(n-i-1) = hCoeffs.end(n-i-1)*h
+                         + (h*ei_conj(h)*Scalar(-0.5)*matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1))) *
+                           matA.col(i).end(n-i-1);
 
-      /* Another interesting note: the above rank-2 update is much slower than the following hand written loop.
-       * After an analyze of the ASM, it seems GCC (4.2) generate poor code because of the Block. Moreover,
-       * if we remove the specialization of Block for Matrix then it is even worse, much worse ! */
-      #ifdef EIGEN_NEVER_DEFINED
+      // symmetric rank-2 update
       for (int j1=i+1; j1<n; ++j1)
-      for (int i1=j1;  i1<n; ++i1)
-        matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
-                              + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
-      #endif
-      /* end hand writen partial rank-2 update */
-
-      /* The current fastest implementation: the full matrix is used, no "optimization" to use/compute
-       * only half of the matrix. Custom vectorization of the inner col -= alpha X + beta Y such that access
-       * to col are always aligned. Once we support that in Assign, then the algorithm could be rewriten as
-       * a single compact expression. This code is therefore a good benchmark when will do that. */
-
-      // let's use the end of hCoeffs to store temporary values:
-      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1) * (h * matA.col(i).end(n-i-1))).lazy();
-      // FIXME in the above expr a temporary is created because of the scalar multiple by h
-
-      hCoeffs.end(n-i-1) += (h * Scalar(-0.5) * matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))
-                            * matA.col(i).end(n-i-1);
-
-      const Scalar* EIGEN_RESTRICT pb = &matA.coeffRef(0,i);
-      const Scalar* EIGEN_RESTRICT pa = (&hCoeffs.coeffRef(0)) - 1;
-      for (int j1=i+1; j1<n; ++j1)
-      {
-        int starti = i+1;
-        int alignedEnd = starti;
-        if (PacketSize>1)
-        {
-          int alignedStart = (starti) + ei_alignmentOffset(&matA.coeffRef(starti,j1), n-starti);
-          alignedEnd = alignedStart + ((n-alignedStart)/PacketSize)*PacketSize;
-
-          for (int i1=starti; i1<alignedStart; ++i1)
-            matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
-                                  + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
-
-          Packet tmp0 = ei_pset1(hCoeffs.coeff(j1-1));
-          Packet tmp1 = ei_pset1(matA.coeff(j1,i));
-          Scalar* pc = &matA.coeffRef(0,j1);
-          for (int i1=alignedStart ; i1<alignedEnd; i1+=PacketSize)
-            ei_pstore(pc+i1,ei_psub(ei_pload(pc+i1),
-              ei_padd(ei_pmul(tmp0, ei_ploadu(pb+i1)),
-                      ei_pmul(tmp1, ei_ploadu(pa+i1)))));
-        }
-        for (int i1=alignedEnd; i1<n; ++i1)
-          matA.coeffRef(i1,j1) -= matA.coeff(i1,i)*ei_conj(hCoeffs.coeff(j1-1))
-                                + hCoeffs.coeff(i1-1)*ei_conj(matA.coeff(j1,i));
-      }
-      /* end optimized implementation */
+        matA.col(j1).end(n-j1) -= matA.col(i).end(n-j1) * ei_conj(hCoeffs.coeff(j1-1))
+                                + hCoeffs.end(n-j1) * ei_conj(matA.coeff(j1,i));
 
       // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
       // note: the sequence of the beta values leads to the subdiagonal entries
