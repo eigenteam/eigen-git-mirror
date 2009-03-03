@@ -97,23 +97,25 @@ template<> EIGEN_STRONG_INLINE __m128  ei_pload<float>(const float*   from) { re
 template<> EIGEN_STRONG_INLINE __m128d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE __m128i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
-template<> EIGEN_STRONG_INLINE __m128  ei_ploadu<float>(const float*   from) { return _mm_loadu_ps(from); }
-// template<> EIGEN_STRONG_INLINE __m128  ei_ploadu(const float*   from) {
-//   if (size_t(from)&0xF)
-//     return _mm_loadu_ps(from);
-//   else
-//     return _mm_loadu_ps(from);
-// }
-template<> EIGEN_STRONG_INLINE __m128d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
-template<> EIGEN_STRONG_INLINE __m128i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(from)); }
+template<> EIGEN_STRONG_INLINE __m128  ei_ploadu(const float*   from) {
+  __m128 r;
+  r = _mm_castpd_ps(_mm_load_sd((double*)(from)));
+  r = _mm_loadh_pi(r, (const __m64*)(from+2));
+  return r;
+}
+template<> EIGEN_STRONG_INLINE __m128d ei_ploadu<double>(const double*  from) { return _mm_castps_pd(ei_ploadu((const float*)(from))); }
+template<> EIGEN_STRONG_INLINE __m128i ei_ploadu<int>(const int* from) { return _mm_castpd_si128(ei_ploadu((const double*)(from))); }
 
-template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const __m128&  from) { _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const __m128d& from) { _mm_store_pd(to, from); }
-template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*    to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const __m128i& from) { _mm_store_si128(reinterpret_cast<__m128i*>(to), from); }
 
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const __m128&  from) { _mm_storeu_ps(to, from); }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const __m128d& from) { _mm_storeu_pd(to, from); }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*    to, const __m128i& from) { _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const __m128d& from) {
+  _mm_storel_pd((to), from);
+  _mm_storeh_pd((to+1), from);
+}
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const __m128&  from) { ei_pstoreu((double*)to, _mm_castps_pd(from)); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const __m128i& from) { ei_pstoreu((double*)to, _mm_castsi128_pd(from)); }
 
 #ifdef _MSC_VER
 // this fix internal compilation error
