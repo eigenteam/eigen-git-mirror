@@ -289,8 +289,12 @@ class Matrix
       */
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
-      return _set(other);
+      return  _set(other);
     }
+
+    template<typename OtherDerived,typename OtherEvalType>
+    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func)
+    { return Base::operator=(func); }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
     EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
@@ -412,6 +416,10 @@ class Matrix
       _check_template_params();
       _set_noalias(other);
     }
+    /** Copy constructor with in-place evaluation */
+    template<typename OtherDerived,typename OtherEvalType>
+    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+    { other.evalTo(*this); }
     /** Destructor */
     inline ~Matrix() {}
 

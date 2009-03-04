@@ -630,6 +630,9 @@ template<typename Derived> class MatrixBase
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
 
+    template<typename OtherDerived,typename OtherEvalType>
+    Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
+
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif

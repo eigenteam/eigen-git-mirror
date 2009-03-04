@@ -56,6 +56,7 @@ template<typename MatrixType, unsigned int Mode> class Extract;
 template<typename ExpressionType> class Cwise;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
+template<typename Functor, typename EvalType> class ReturnByValue;
 
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
