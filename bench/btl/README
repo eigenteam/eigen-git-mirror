@@ -43,10 +43,10 @@ Finally, if bench results already exist (the bench*.dat files) then they merges 
   BTL_CONFIG="-a axpy:vector_matrix:trisolve:ata --overwrite" ctest -V -R eigen2
 
 4 : Analyze the result. different data files (.dat) are produced in each libs directories.
- If gnuplot is available, choose a directory name in the data directory to store the results and type
-	cd data
-	mkdir my_directory
-        cp ../libs/*/*.dat my_directory
+ If gnuplot is available, choose a directory name in the data directory to store the results and type:
+        $ cd data
+        $ mkdir my_directory
+        $ cp ../libs/*/*.dat my_directory
  Build the data utilities in this (data) directory
         make
  Then you can look the raw data,

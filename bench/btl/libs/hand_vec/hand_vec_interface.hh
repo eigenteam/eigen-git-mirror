@@ -38,16 +38,16 @@ public :
   typedef typename f77_interface_base<real>::gene_vector gene_vector;
 
   static void free_matrix(gene_matrix & A, int N){
-    ei_aligned_delete(A);
+    ei_aligned_free(A);
   }
 
   static void free_vector(gene_vector & B){
-    ei_aligned_delete(B);
+    ei_aligned_free(B);
   }
 
   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     int N = A_stl.size();
-    A = ei_aligned_new<real>(N*N);
+    A = (real*)ei_aligned_malloc(N*N*sizeof(real));
     for (int j=0;j<N;j++)
       for (int i=0;i<N;i++)
         A[i+N*j] = A_stl[j][i];
@@ -55,7 +55,7 @@ public :
 
   static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
     int N = B_stl.size();
-    B = ei_aligned_new<real>(N);
+    B = (real*)ei_aligned_malloc(N*sizeof(real));
     for (int i=0;i<N;i++)
       B[i] = B_stl[i];
   }
@@ -235,6 +235,129 @@ public :
         X[j] += tmp0 * A[j+iN0];
     }
     asm("#end matrix_vector_product");
+  }
+  
+  static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)
+  {
+    
+//     int AN = (N/PacketSize)*PacketSize;
+//     int ANP = (AN/(2*PacketSize))*2*PacketSize;
+//     int bound = (N/4)*4;
+    for (int i=0;i<N;i++)
+      X[i] = 0;
+    
+    int bound = std::max(0,N-8) & 0xfffffffE;
+
+    for (int j=0;j<bound;j+=2)
+    {
+      register real* __restrict__ A0 = A + j*N;
+      register real* __restrict__ A1 = A + (j+1)*N;
+      
+      real t0 = B[j];
+      Packet ptmp0 = ei_pset1(t0);
+      real t1 = B[j+1];
+      Packet ptmp1 = ei_pset1(t1);
+      
+      real t2 = 0;
+      Packet ptmp2 = ei_pset1(t2);
+      real t3 = 0;
+      Packet ptmp3 = ei_pset1(t3);
+      
+      int starti = j+2;
+      int alignedEnd = starti;
+      int alignedStart = (starti) + ei_alignmentOffset(&X[starti], N-starti);
+      alignedEnd = alignedStart + ((N-alignedStart)/(PacketSize))*(PacketSize);
+
+      X[j]   += t0 * A0[j];
+      X[j+1] += t1 * A1[j];
+      
+      X[j+1] += t0 * A0[j+1];
+      t2 += A0[j+1] * B[j+1];
+      
+//       alignedStart = alignedEnd;
+      for (int i=starti; i<alignedStart; ++i) {
+        X[i] += t0 * A0[i] + t1 * A1[i];
+        t2 += A0[i] * B[i];
+        t3 += A1[i] * B[i];
+      }
+      asm("#begin symv");
+      for (size_t i=alignedStart; i<alignedEnd; i+=PacketSize) {
+        Packet A0i = ei_ploadu(&A0[i]);
+        Packet A1i = ei_ploadu(&A1[i]);
+//         Packet A0i1 = ei_ploadu(&A0[i+PacketSize]);
+        Packet Xi = ei_pload(&X[i]);
+        Packet Bi = ei_pload/*u*/(&B[i]);
+//         Packet Xi1 = ei_pload(&X[i+PacketSize]);
+//         Packet Bi1 = ei_pload/*u*/(&B[i+PacketSize]);
+        Xi = ei_padd(ei_padd(Xi, ei_pmul(ptmp0, A0i)), ei_pmul(ptmp1, A1i));
+        ptmp2 = ei_padd(ptmp2, ei_pmul(A0i, Bi));
+        ptmp3 = ei_padd(ptmp3, ei_pmul(A1i, Bi));
+//         Xi1 = ei_padd(Xi1, ei_pmul(ptmp1, A0i1));
+//         ptmp2 = ei_padd(ptmp2, ei_pmul(A0i1, Bi1));
+//         
+        ei_pstore(&X[i],Xi);
+//         ei_pstore(&X[i+PacketSize],Xi1);
+//         asm(
+//           "prefetchnta   64(%[A0],%[i],4)   \n\t"
+//           //"movups     (%[A0],%[i],4), %%xmm8  \n\t"
+//           "movsd       (%[A0],%[i],4), %%xmm8  \n\t"
+//           "movhps     8(%[A0],%[i],4), %%xmm8  \n\t"
+// //           "movups   16(%[A0],%[i],4), %%xmm9  \n\t"
+// //           "movups   64(%[A0],%[i],4), %%xmm15  \n\t"
+//           "movaps     (%[B], %[i],4), %%xmm12 \n\t"
+// //           "movaps   16(%[B], %[i],4), %%xmm13 \n\t"
+//           "movaps     (%[X], %[i],4), %%xmm10 \n\t"
+// //           "movaps   16(%[X], %[i],4), %%xmm11 \n\t"
+//           
+//           "mulps %%xmm8, %%xmm12  \n\t"
+// //           "mulps %%xmm9, %%xmm13  \n\t"
+//           
+//           "mulps %[ptmp1], %%xmm8  \n\t"
+//           "addps %%xmm12, %[ptmp2]  \n\t"
+//           "addps %%xmm8, %%xmm10  \n\t"
+//           
+//           
+//           
+//           
+// //           "mulps %[ptmp1], %%xmm9  \n\t"
+//           
+// //           "addps %%xmm9, %%xmm11  \n\t"
+// //           "addps %%xmm13, %[ptmp2]  \n\t"
+//           
+//           "movaps %%xmm10,   (%[X],%[i],4) \n\t"
+// //           "movaps %%xmm11, 16(%[X],%[i],4) \n\t"
+//           : 
+//           : [X] "r" (X), [i] "r" (i), [A0] "r" (A0),
+//             [B] "r" (B),
+//             [ptmp1] "x" (ptmp1),
+//             [ptmp2] "x" (ptmp2)
+//           : "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm15");
+      }
+      asm("#end symv");
+      for (int i=alignedEnd; i<N; i++) {
+        X[i] += t0 * A0[i] + t1 * A1[i];
+        t2 += A0[i] * B[i];
+        t3 += A1[i] * B[i];
+      }
+      
+      
+      X[j]   += t2 + ei_predux(ptmp2);
+      X[j+1] += t3 + ei_predux(ptmp3);
+    }
+    for (int j=bound;j<N;j++)
+    {
+      register real* __restrict__ A0 = A + j*N;
+      
+      real t1 = B[j];
+      real t2 = 0;
+      X[j] += t1 * A0[j];
+      for (int i=j+1; i<N; i+=PacketSize) {
+        X[i] += t1 * A0[i];
+        t2 += A0[i] * B[i];
+      }
+      X[j] += t2;
+    }
+    
   }
 
 //   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N)

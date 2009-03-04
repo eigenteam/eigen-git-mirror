@@ -37,11 +37,11 @@
 // min matrix size for matrix matrix product bench
 #define MIN_MM 5
 // max matrix size for matrix matrix product bench
-#define MAX_MM 2048
+#define MAX_MM MAX_MV
 // min matrix size for LU bench
 #define MIN_LU 5
 // max matrix size for LU bench
-#define MAX_LU 1024
+#define MAX_LU 2048
 // max size for tiny vector and matrix
 #define TINY_MV_MAX_SIZE 16
 // default nb_sample for x86 timer

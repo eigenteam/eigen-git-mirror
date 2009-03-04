@@ -132,7 +132,7 @@ static char notrans = 'N';
 static char trans = 'T';
 static char nonunit = 'N';
 static char lower = 'L';
-static blasint intone = 1;
+static int intone = 1;
 
 template<>
 class C_BLAS_interface<float> : public f77_interface_base<float>
@@ -158,6 +158,14 @@ public :
     ssymv_(&lower, &N,&fone,A,&N,B,&intone,&fzero,X,&intone);
     #else
     cblas_ssymv(CblasColMajor,CblasLower,N,1.0,A,N,B,1,0.0,X,1);
+    #endif
+  }
+  
+  static inline void syr2(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
+    #ifdef PUREBLAS
+    ssyr2_(&lower,&N,&fone,B,&intone,X,&intone,A,&N);
+    #else
+    cblas_ssyr2(CblasColMajor,CblasLower,N,1.0,B,1,X,1,A,N);
     #endif
   }
 

@@ -41,6 +41,7 @@ int main()
   bench<Action_matrix_vector_product<C_BLAS_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_atv_product<C_BLAS_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
   bench<Action_symv<C_BLAS_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_syr2<C_BLAS_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
 
   bench<Action_matrix_matrix_product<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_ata_product<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);

@@ -18,7 +18,7 @@
 #ifndef EIGEN2_INTERFACE_HH
 #define EIGEN2_INTERFACE_HH
 // #include <cblas.h>
-#include <Eigen/Core>
+#include <Eigen/Array>
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
 #include <Eigen/QR>
@@ -45,7 +45,9 @@ public :
 
   static inline std::string name( void )
   {
-    #if defined(EIGEN_VECTORIZE_SSE)
+    #if defined(EIGEN_USE_NEW_PRODUCT)
+    if (SIZE==Dynamic) return "eigen2_newprod"; else return "tiny_eigen2";
+    #elif defined(EIGEN_VECTORIZE_SSE)
     if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
     #elif defined(EIGEN_VECTORIZE_ALTIVEC)
     if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
@@ -114,7 +116,57 @@ public :
   }
 
   static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
-    X = (A.template marked<SelfAdjoint|LowerTriangular>() * B)/*.lazy()*/;
+    //X = (A.template marked<SelfAdjoint|LowerTriangular>() * B)/*.lazy()*/;
+    ei_product_selfadjoint_vector<real,0,LowerTriangularBit>(N,A.data(),N, B.data(), X.data());
+  }
+  
+  template<typename Dest, typename Src> static void triassign(Dest& dst, const Src& src)
+  {
+    typedef typename Dest::Scalar Scalar;
+    typedef typename ei_packet_traits<Scalar>::type Packet;
+    const int PacketSize = sizeof(Packet)/sizeof(Scalar);
+    int size = dst.cols();
+    for(int j=0; j<size; j+=1)
+    {
+//       const int alignedEnd = alignedStart + ((innerSize-alignedStart) & ~packetAlignedMask);
+      Scalar* A0 = dst.data() + j*dst.stride();
+      int starti = j;
+      int alignedEnd = starti;
+      int alignedStart = (starti) + ei_alignmentOffset(&A0[starti], size-starti);
+      alignedEnd = alignedStart + ((size-alignedStart)/(2*PacketSize))*(PacketSize*2);
+
+      // do the non-vectorizable part of the assignment
+      for (int index = starti; index<alignedStart ; ++index)
+      {
+        if(Dest::Flags&RowMajorBit)
+          dst.copyCoeff(j, index, src);
+        else
+          dst.copyCoeff(index, j, src);
+      }
+
+      // do the vectorizable part of the assignment
+      for (int index = alignedStart; index<alignedEnd; index+=PacketSize)
+      {
+        if(Dest::Flags&RowMajorBit)
+          dst.template copyPacket<Src, Aligned, Unaligned>(j, index, src);
+        else
+          dst.template copyPacket<Src, Aligned, Unaligned>(index, j, src);
+      }
+
+      // do the non-vectorizable part of the assignment
+      for (int index = alignedEnd; index<size; ++index)
+      {
+        if(Dest::Flags&RowMajorBit)
+          dst.copyCoeff(j, index, src);
+        else
+          dst.copyCoeff(index, j, src);
+      }
+      //dst.col(j).end(N-j) = src.col(j).end(N-j);
+    }
+  }
+  
+  static EIGEN_DONT_INLINE void syr2(gene_matrix & A,  gene_vector & X, gene_vector & Y, int N){
+    // ei_product_selfadjoint_rank2_update<real,0,LowerTriangularBit>(N,A.data(),N, X.data(), 1, Y.data(), 1, -1);
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -126,7 +178,9 @@ public :
   }
 
   static inline void axpby(real a, const gene_vector & X, real b, gene_vector & Y, int N){
+  asm("#begin axpby");
     Y = a*X + b*Y;
+  asm("#end axpby");
   }
 
   static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){
@@ -158,7 +212,10 @@ public :
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
-    C = Tridiagonalization<gene_matrix>(X).packedMatrix();
+    typename Tridiagonalization<gene_matrix>::CoeffVectorType aux(N-1);
+    C = X;
+    Tridiagonalization<gene_matrix>::_compute(C, aux);
+//     C = Tridiagonalization<gene_matrix>(X).packedMatrix();
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){

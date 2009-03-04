@@ -146,6 +146,15 @@ public :
       X[j] += t2;
     }
   }
+  
+  static inline void syr2(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
+  {
+    for (int j=0; j<N; ++j)
+    {
+      for (int i=j; i<N; ++i)
+        A[j][i] += B[i]*X[j] + B[j]*X[i];
+    }
+  }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
   {

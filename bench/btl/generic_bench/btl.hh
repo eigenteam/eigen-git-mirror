@@ -169,7 +169,7 @@ class BtlConfig
 {
 public:
   BtlConfig()
-    : overwriteResults(false)
+    : overwriteResults(false), checkResults(true)
   {
     char * _config;
     _config = getenv ("BTL_CONFIG");
@@ -193,6 +193,10 @@ public:
         {
           Instance.overwriteResults = true;
         }
+        else if (config[i].beginsWith("--nocheck"))
+        {
+          Instance.checkResults = false;
+        }
       }
     }
 
@@ -214,6 +218,7 @@ public:
 
   static BtlConfig Instance;
   bool overwriteResults;
+  bool checkResults;
 
 protected:
   std::vector<BtlString> m_selectedActionNames;

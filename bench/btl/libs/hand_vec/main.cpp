@@ -26,6 +26,7 @@
 #include "action_axpy.hh"
 #include "action_ata_product.hh"
 #include "action_aat_product.hh"
+#include "basic_actions.hh"
 //#include "action_lu_solve.hh"
 // #include "timers/mixed_perf_analyzer.hh"
 
@@ -39,6 +40,7 @@ int main()
 //   bench<Action_matrix_matrix_product<hand_vec_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 //   bench<Action_aat_product<hand_vec_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 //   bench<Action_ata_product<hand_vec_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_symv<hand_vec_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_axpy<hand_vec_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
 
 

@@ -5,6 +5,7 @@ MINIC=$3
 MAXIC=$4
 MINOC=$5
 MAXOC=$6
+prefix=$8
 
 meanstatsfilename=$2/mean.html
 
@@ -37,7 +38,7 @@ echo '<br/>' >> $meanstatsfilename
 
 webpagefilename=$2/index.html
 # echo '<h3>'${WHAT}'</h3>'  >> $webpagefilename
-echo '<hr/><a href="/btl/'$1'.pdf"><img src="/btl/'$1'.png" alt="'${WHAT}'" /></a><br/>'  >> $webpagefilename
+echo '<hr/><a href="'$prefix$1'.pdf"><img src="'$prefix$1'.png" alt="'${WHAT}'" /></a><br/>'  >> $webpagefilename
 
 
 

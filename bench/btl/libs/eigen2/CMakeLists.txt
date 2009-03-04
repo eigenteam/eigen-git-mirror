@@ -7,7 +7,7 @@ if (EIGEN2_FOUND)
   btl_add_bench(btl_eigen2_vecmat main_vecmat.cpp)
   btl_add_bench(btl_eigen2_matmat main_matmat.cpp)
   btl_add_bench(btl_eigen2_adv main_adv.cpp)
-
+  
   IF(NOT BTL_NOVEC)
     btl_add_bench(btl_eigen2_novec_linear main_linear.cpp)
     btl_add_bench(btl_eigen2_novec_vecmat main_vecmat.cpp)

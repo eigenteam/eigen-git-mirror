@@ -65,9 +65,12 @@ public:
     time_action = time_action / (double(_nb_calc));
 
     // check
-    action.initialize();
-    action.calculate();
-    action.check_result();
+    if (BtlConfig::Instance.checkResults)
+    {
+      action.initialize();
+      action.calculate();
+      action.check_result();
+    }
     return action.nb_op_base()/(time_action*1000000.0);
   }
 

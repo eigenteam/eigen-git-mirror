@@ -12,7 +12,7 @@
 #include "action_trisolve.hh"
 
 #include "action_symv.hh"
-#include "action_symm.hh"
+// #include "action_symm.hh"
 #include "action_syr2.hh"
 
 // #include "action_lu_solve.hh"
