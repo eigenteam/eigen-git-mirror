@@ -59,6 +59,9 @@ struct ei_traits<Homogeneous<MatrixType,Direction> >
   };
 };
 
+template<typename MatrixType,typename Lhs> struct ei_homogeneous_left_product_impl;
+template<typename MatrixType,typename Rhs> struct ei_homogeneous_right_product_impl;
+
 template<typename MatrixType,int Direction> class Homogeneous
   : public MatrixBase<Homogeneous<MatrixType,Direction> >
 {
@@ -79,6 +82,22 @@ template<typename MatrixType,int Direction> class Homogeneous
         || (Direction==Horizontal && col==m_matrix.cols()))
         return 1;
       return m_matrix.coeff(row, col);
+    }
+    
+    template<typename Rhs>
+    inline const ei_homogeneous_right_product_impl<Homogeneous,Rhs>
+    operator* (const MatrixBase<Rhs>& rhs) const
+    {
+      ei_assert(Direction==Horizontal);
+      return ei_homogeneous_right_product_impl<Homogeneous,Rhs>(m_matrix,rhs.derived());
+    }
+    
+    template<typename Lhs> friend 
+    inline const ei_homogeneous_left_product_impl<Homogeneous,Lhs>
+    operator* (const MatrixBase<Lhs>& lhs, const Homogeneous& rhs)
+    {
+      ei_assert(Direction==Vertical);
+      return ei_homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
     }
 
   protected:
@@ -164,5 +183,58 @@ PartialRedux<ExpressionType,Direction>::hnormalized() const
          Direction==Vertical   ? _expression().rows()-1 : 1,
          Direction==Horizontal ? _expression().cols()-1 : 1).nestByValue();
 }
+
+template<typename MatrixType,typename Lhs>
+struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
+  : public ReturnByValue<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>,
+                         Matrix<typename ei_traits<MatrixType>::Scalar,
+                                Lhs::RowsAtCompileTime,MatrixType::ColsAtCompileTime> >
+{
+  typedef typename ei_cleantype<typename Lhs::Nested>::type LhsNested;
+  ei_homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
+    : m_lhs(lhs), m_rhs(rhs)
+  {}
+  
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    // FIXME investigate how to allow lazy evaluation of this product when possible
+    dst = Block<LhsNested,
+              LhsNested::RowsAtCompileTime,
+              LhsNested::ColsAtCompileTime==Dynamic?Dynamic:LhsNested::ColsAtCompileTime-1>
+            (m_lhs,0,0,m_lhs.rows(),m_lhs.cols()-1) * m_rhs;
+    dst += m_lhs.col(m_lhs.cols()-1).rowwise()
+            .template replicate<MatrixType::ColsAtCompileTime>(m_rhs.cols());
+  }
+  
+  const typename Lhs::Nested m_lhs;
+  const typename MatrixType::Nested m_rhs;
+};
+
+template<typename MatrixType,typename Rhs>
+struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
+  : public ReturnByValue<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>,
+                         Matrix<typename ei_traits<MatrixType>::Scalar,
+                                MatrixType::RowsAtCompileTime, Rhs::ColsAtCompileTime> >
+{
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  ei_homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
+    : m_lhs(lhs), m_rhs(rhs)
+  {}
+  
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    // FIXME investigate how to allow lazy evaluation of this product when possible
+    dst = m_lhs * Block<RhsNested,
+                        RhsNested::RowsAtCompileTime==Dynamic?Dynamic:RhsNested::RowsAtCompileTime-1,
+                        RhsNested::ColsAtCompileTime>
+            (m_rhs,0,0,m_rhs.rows()-1,m_rhs.cols());
+    dst += m_rhs.row(m_rhs.rows()-1).colwise()
+            .template replicate<MatrixType::RowsAtCompileTime>(m_lhs.rows());
+  }
+  
+  const typename MatrixType::Nested m_lhs;
+  const typename Rhs::Nested m_rhs;
+  
+};
 
 #endif // EIGEN_HOMOGENEOUS_H

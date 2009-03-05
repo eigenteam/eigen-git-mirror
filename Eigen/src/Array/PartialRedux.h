@@ -281,16 +281,16 @@ template<typename ExpressionType, int Direction> class PartialRedux
       return Reverse<ExpressionType, Direction>( _expression() );
     }
     
+    template<int Factor>
+    const Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
+    replicate(int factor = Factor) const;
+    
 /////////// Geometry module ///////////
 
     const Homogeneous<ExpressionType,Direction> homogeneous() const;
     
     const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
     replicate(int factor) const;
-    
-    template<int Factor>
-    const Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
-    replicate() const;
 
     typedef typename ExpressionType::PlainMatrixType CrossReturnType;
     template<typename OtherDerived>
