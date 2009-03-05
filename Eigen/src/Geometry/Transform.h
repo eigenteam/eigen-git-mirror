@@ -26,12 +26,16 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
-/** Represents some traits of a transformation */
-enum TransformTraits {
-  Isometry,       ///< the transformation is a concatenation of translations and rotations
-  Affine,         ///< the transformation is affine (linear transformation + translation)
-  Projective      ///< the transformation might not be affine
-};
+// Definition of TransformTraits commented out (by andrew_coles@yahoo.co.uk)
+// Is already defined (differently) in Constants.h, and gave duplicate
+// definition compile-time errors
+
+///** Represents some traits of a transformation */
+//enum TransformTraits {
+//  Isometry,       ///< the transformation is a concatenation of translations and rotations
+//  Affine,         ///< the transformation is affine (linear transformation + translation)
+//  Projective      ///< the transformation might not be affine
+//};
 
 // Note that we have to pass Dim and HDim because it is not allowed to use a template
 // parameter to define a template specialization. To be more precise, in the following
