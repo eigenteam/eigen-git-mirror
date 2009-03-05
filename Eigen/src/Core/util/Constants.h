@@ -239,4 +239,12 @@ enum {
   HasDirectAccess = DirectAccessBit
 };
 
+enum TransformTraits {
+  Affine        = 0x1,
+  Isometry      = 0x2,
+  AffineSquare  = Affine|0x10,
+  AffineCompact = Affine|0x20,
+  Projective    = 0x30
+};
+
 #endif // EIGEN_CONSTANTS_H

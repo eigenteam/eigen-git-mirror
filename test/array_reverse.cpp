@@ -160,7 +160,7 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   */
 }
 
-void test_reverse()
+void test_array_reverse()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( reverse(Matrix<float, 1, 1>()) );

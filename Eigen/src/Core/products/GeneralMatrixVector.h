@@ -38,19 +38,18 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
   Scalar* res)
-{
+{asm("#ei_cache_friendly_product_colmajor_times_vector");
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif
-
-  #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2,OFFSET) \
-    ei_pstore(&res[j OFFSET], \
-      ei_padd(ei_pload(&res[j OFFSET]), \
+  #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2) \
+    ei_pstore(&res[j], \
+      ei_padd(ei_pload(&res[j]), \
         ei_padd( \
-          ei_padd(ei_pmul(ptmp0,EIGEN_CAT(ei_pload , A0)(&lhs0[j OFFSET])), \
-                  ei_pmul(ptmp1,EIGEN_CAT(ei_pload , A13)(&lhs1[j OFFSET]))), \
-          ei_padd(ei_pmul(ptmp2,EIGEN_CAT(ei_pload , A2)(&lhs2[j OFFSET])), \
-                  ei_pmul(ptmp3,EIGEN_CAT(ei_pload , A13)(&lhs3[j OFFSET]))) )))
+          ei_padd(ei_pmul(ptmp0,EIGEN_CAT(ei_ploa , A0)(&lhs0[j])), \
+                  ei_pmul(ptmp1,EIGEN_CAT(ei_ploa , A13)(&lhs1[j]))), \
+          ei_padd(ei_pmul(ptmp2,EIGEN_CAT(ei_ploa , A2)(&lhs2[j])), \
+                  ei_pmul(ptmp3,EIGEN_CAT(ei_ploa , A13)(&lhs3[j]))) )))
 
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
@@ -125,11 +124,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
         {
           case AllAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,d,d);
             break;
           case EvenAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,EIGEN_EMPTY,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
             if(peels>1)
@@ -165,11 +164,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
               }
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,u,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
           default:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(u,u,u,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(du,du,du);
             break;
         }
       }
@@ -233,12 +232,12 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif
 
-  #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2,OFFSET) {\
+  #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2) {\
     Packet b = ei_pload(&rhs[j]); \
-    ptmp0 = ei_pmadd(b, EIGEN_CAT(ei_pload,A0) (&lhs0[j]), ptmp0); \
-    ptmp1 = ei_pmadd(b, EIGEN_CAT(ei_pload,A13)(&lhs1[j]), ptmp1); \
-    ptmp2 = ei_pmadd(b, EIGEN_CAT(ei_pload,A2) (&lhs2[j]), ptmp2); \
-    ptmp3 = ei_pmadd(b, EIGEN_CAT(ei_pload,A13)(&lhs3[j]), ptmp3); }
+    ptmp0 = ei_pmadd(b, EIGEN_CAT(ei_ploa,A0) (&lhs0[j]), ptmp0); \
+    ptmp1 = ei_pmadd(b, EIGEN_CAT(ei_ploa,A13)(&lhs1[j]), ptmp1); \
+    ptmp2 = ei_pmadd(b, EIGEN_CAT(ei_ploa,A2) (&lhs2[j]), ptmp2); \
+    ptmp3 = ei_pmadd(b, EIGEN_CAT(ei_ploa,A13)(&lhs3[j]), ptmp3); }
 
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
@@ -319,11 +318,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
         {
           case AllAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,d,d);
             break;
           case EvenAligned:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,EIGEN_EMPTY,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
             if (peels>1)
@@ -362,11 +361,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
               }
             }
             for (int j = peeledSize; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(EIGEN_EMPTY,u,u,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
           default:
             for (int j = alignedStart; j<alignedSize; j+=PacketSize)
-              _EIGEN_ACCUMULATE_PACKETS(u,u,u,EIGEN_EMPTY);
+              _EIGEN_ACCUMULATE_PACKETS(du,du,du);
             break;
         }
         tmp0 += ei_predux(ptmp0);

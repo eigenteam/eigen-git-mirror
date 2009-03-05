@@ -40,7 +40,6 @@ template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int 
          int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit ? DirectAccessBit
                                  : ei_traits<MatrixType>::Flags&SparseBit> class Block;
 template<typename MatrixType> class Transpose;
-template<typename MatrixType, int Direction = BothDirections> class Reverse;
 template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
@@ -104,6 +103,8 @@ void ei_cache_friendly_product(
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> class Select;
 template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
 template<typename ExpressionType, int Direction> class PartialRedux;
+template<typename MatrixType,int RowFactor,int ColFactor> class Replicate;
+template<typename MatrixType, int Direction = BothDirections> class Reverse;
 
 template<typename MatrixType> class LU;
 template<typename MatrixType> class QR;
@@ -117,11 +118,12 @@ template<typename Lhs, typename Rhs> class Cross;
 template<typename Scalar> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
-template<typename Scalar,int Dim> class Transform;
+template<typename Scalar,int Dim/*,int Mode=AffineSquare*/> class Transform;
 template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar,int Dim> class Translation;
 template<typename Scalar> class UniformScaling;
+template<typename MatrixType,int Direction> class Homogeneous;
 
 // Sparse module:
 template<typename Lhs, typename Rhs, int ProductMode> class SparseProduct;

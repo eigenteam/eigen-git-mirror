@@ -360,10 +360,6 @@ template<typename Derived> class MatrixBase
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
 
-    Eigen::Reverse<Derived, BothDirections> reverse();
-    const Eigen::Reverse<Derived, BothDirections> reverse() const;
-    void reverseInPlace();
-
     RowXpr row(int i);
     const RowXpr row(int i) const;
 
@@ -589,6 +585,14 @@ template<typename Derived> class MatrixBase
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;
+    
+    template<int RowFactor, int ColFactor>
+    const Replicate<Derived,RowFactor,ColFactor> replicate() const;
+    const Replicate<Derived,Dynamic,Dynamic> replicate(int rowFacor,int colFactor) const;
+    
+    Eigen::Reverse<Derived, BothDirections> reverse();
+    const Eigen::Reverse<Derived, BothDirections> reverse() const;
+    void reverseInPlace();
 
 /////////// LU module ///////////
 
@@ -620,6 +624,17 @@ template<typename Derived> class MatrixBase
     PlainMatrixType unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
     const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
+    enum {
+      SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
+    };
+    typedef Block<Derived,
+                  ei_traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
+                  ei_traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
+    typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, 
+                NestByValue<StartMinusOne> > HNormalizedReturnType;
+    
+    const HNormalizedReturnType hnormalized() const;
+    const Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> homogeneous() const;
 
 /////////// Sparse module ///////////
 

@@ -140,37 +140,6 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     }
     res[j] += t2;
   }
-  /*
-  // colmajor - upper
-  for (int j=0;j<size;j++)
-  {
-    register const Scalar* __restrict__ A0 = lhs + j*lhsStride;
-    
-    Scalar t1 = rhs[j];
-    Scalar t2 = 0;
-    for (int i=0; i<j; i+=PacketSize) {
-      res[i] += t1 * A0[i];
-      t2 += A0[i] * rhs[i];
-    }
-    res[j] += t1 * A0[j];
-    res[j] += t2;
-  }
-  
-  // rowmajor - lower
-  for (int j=0;j<size;j++)
-  {
-    register const Scalar* __restrict__ A0 = lhs + j*lhsStride;
-    
-    Scalar t1 = rhs[j];
-    Scalar t2 = 0;
-    for (int i=0; i<j; i+=PacketSize) {
-      res[i] += t1 * A0[i];
-      t2 += A0[i] * rhs[i];
-    }
-    res[j] += t1 * A0[j];
-    res[j] += t2;
-  }
-  */
 }
 
 

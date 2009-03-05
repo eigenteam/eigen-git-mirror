@@ -262,6 +262,7 @@ static void ei_cache_friendly_product(
             blB += 4*nr*PacketSize;
             blA += 4*mr;
           }
+          // process remaining peeled loop
           for(int k=peeled_kc; k<actual_kc; k++)
           {
             PacketType B0, B1, B2, B3, A0, A1;

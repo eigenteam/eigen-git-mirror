@@ -299,7 +299,7 @@ struct ei_functor_traits<ei_scalar_imag_op<Scalar> >
  * indeed it seems better to declare m_other as a PacketScalar and do the ei_pset1() once
  * in the constructor. However, in practice:
  *  - GCC does not like m_other as a PacketScalar and generate a load every time it needs it
- *  - one the other hand GCC is able to moves the ei_pset1() away the loop :)
+ *  - on the other hand GCC is able to moves the ei_pset1() away the loop :)
  *  - simpler code ;)
  * (ICC and gcc 4.4 seems to perform well in both cases, the issue is visible with y = a*x + b*y)
  */

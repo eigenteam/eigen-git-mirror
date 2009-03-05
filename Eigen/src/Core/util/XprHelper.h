@@ -211,6 +211,19 @@ template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> stru
   typedef Block<ExpressionType, RowsOrSize, Cols> Type;
 };
 
+template<typename ExpressionType> struct HNormalizedReturnType {
+
+  enum {
+    SizeAtCompileTime = ExpressionType::SizeAtCompileTime,
+    SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
+  };
+  typedef Block<ExpressionType,
+                ei_traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
+                ei_traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
+  typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>, 
+              NestByValue<StartMinusOne> > Type;
+};
+
 template<typename CurrentType, typename NewType> struct ei_cast_return_type
 {
   typedef typename ei_meta_if<ei_is_same_type<CurrentType,NewType>::ret,const CurrentType&,NewType>::ret type;

@@ -28,28 +28,38 @@
 /** \class ReturnByValue
   *
   */
-template<typename Functor,typename EvalType>
-struct ei_traits<ReturnByValue<Functor,EvalType> > : public ei_traits<EvalType>
+template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int _MaxRows,int _MaxCols>
+struct ei_traits<ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> > >
+  : public ei_traits<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
 {
   enum {
-    Flags = ei_traits<EvalType>::Flags | EvalBeforeNestingBit
+    Flags = ei_traits<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >::Flags | EvalBeforeNestingBit
   };
 };
 
-template<typename Functor,typename EvalType,int n>
-struct ei_nested<ReturnByValue<Functor,EvalType>, n, EvalType>
+template<typename Functor,typename EvalTypeDerived,int n>
+struct ei_nested<ReturnByValue<Functor,MatrixBase<EvalTypeDerived> >, n, EvalTypeDerived>
 {
-  typedef EvalType type;
+  typedef EvalTypeDerived type;
 };
 
 template<typename Functor, typename EvalType> class ReturnByValue
-  : public MatrixBase<ReturnByValue<Functor,EvalType> >
+{
+  public:
+    template<typename Dest>
+    inline void evalTo(Dest& dst) const
+    { static_cast<const Functor*>(this)->evalTo(dst); }
+};
+
+template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int _MaxRows,int _MaxCols>
+  class ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
+  : public MatrixBase<ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> > >
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(ReturnByValue)
     template<typename Dest>
     inline void evalTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->evalTo(dst); }
+    { static_cast<const Functor* const>(this)->evalTo(dst); }
 };
 
 template<typename Derived>

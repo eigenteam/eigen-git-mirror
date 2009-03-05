@@ -35,6 +35,7 @@ namespace Eigen {
 #include "src/Array/PartialRedux.h"
 #include "src/Array/Random.h"
 #include "src/Array/Norms.h"
+#include "src/Array/Replicate.h"
 #include "src/Array/Reverse.h"
 
 } // namespace Eigen
