@@ -149,7 +149,6 @@ namespace Eigen {
 #include "src/Core/products/GeneralMatrixMatrix.h"
 #include "src/Core/products/GeneralMatrixVector.h"
 #include "src/Core/products/SelfadjointMatrixVector.h"
-#include "src/Core/products/SelfadjointRank2Update.h"
 
 } // namespace Eigen
 
