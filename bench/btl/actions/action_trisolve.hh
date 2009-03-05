@@ -130,7 +130,7 @@ private :
   typename Interface::gene_vector B;
 
   int _size;
-  int _cost;
+  double _cost;
 };
 
 #endif

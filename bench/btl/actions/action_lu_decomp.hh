@@ -40,7 +40,7 @@ public :
 
     // STL vector initialization
     init_matrix<pseudo_random>(X_stl,_size);
-    
+
     init_matrix<null_function>(C_stl,_size);
     init_matrix<null_function>(resu_stl,_size);
 
@@ -96,10 +96,10 @@ public :
     Interface::matrix_to_stl(C,resu_stl);
 
 //     STL_interface<typename Interface::real_type>::lu_decomp(X_stl,C_stl,_size);
-// 
+//
 //     typename Interface::real_type error=
 //       STL_interface<typename Interface::real_type>::norm_diff(C_stl,resu_stl);
-// 
+//
 //     if (error>1.e-6){
 //       INFOS("WRONG CALCULATION...residual=" << error);
 //       exit(0);
@@ -118,7 +118,7 @@ private :
   typename Interface::gene_matrix C;
 
   int _size;
-  int _cost;
+  double _cost;
 };
 
 #endif

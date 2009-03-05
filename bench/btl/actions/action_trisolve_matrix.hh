@@ -125,12 +125,12 @@ public :
     // calculation check
 
 //     Interface::matrix_to_stl(X,resu_stl);
-// 
+//
 //     STL_interface<typename Interface::real_type>::matrix_matrix_product(A_stl,B_stl,X_stl,_size);
-// 
+//
 //     typename Interface::real_type error=
 //       STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
-// 
+//
 //     if (error>1.e-6){
 //       INFOS("WRONG CALCULATION...residual=" << error);
 // //       exit(1);

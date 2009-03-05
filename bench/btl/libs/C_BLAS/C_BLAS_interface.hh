@@ -248,7 +248,15 @@ public :
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
+#ifdef PUREBLAS
+    {
+    int N2 = N*N;
+    int inc = 1;
+    scopy_(&N2, X, &inc, C, &inc);
+    }
+#else
     cblas_scopy(N*N, X, 1, C, 1);
+#endif
     int info = 0;
     int ilo = 1;
     int ihi = N;
@@ -260,7 +268,15 @@ public :
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
+#ifdef PUREBLAS
+    {
+    int N2 = N*N;
+    int inc = 1;
+    scopy_(&N2, X, &inc, C, &inc);
+    }
+#else
     cblas_scopy(N*N, X, 1, C, 1);
+#endif
     char uplo = 'U';
     int info = 0;
     int ilo = 1;

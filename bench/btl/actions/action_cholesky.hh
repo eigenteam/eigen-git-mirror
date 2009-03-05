@@ -43,7 +43,7 @@ public :
     init_matrix<pseudo_random>(tmp,_size);
     init_matrix<null_function>(X_stl,_size);
     STL_interface<typename Interface::real_type>::ata_product(tmp,X_stl,_size);
-    
+
     init_matrix<null_function>(C_stl,_size);
     init_matrix<null_function>(resu_stl,_size);
 
@@ -55,7 +55,7 @@ public :
     _cost = 0;
     for (int j=0; j<_size; ++j)
     {
-      int r = std::max(_size - j -1,0);
+      double r = std::max(_size - j -1,0);
       _cost += 2*(r*j+r+j);
     }
   }
@@ -104,10 +104,10 @@ public :
     Interface::matrix_to_stl(C,resu_stl);
 
 //     STL_interface<typename Interface::real_type>::cholesky(X_stl,C_stl,_size);
-// 
+//
 //     typename Interface::real_type error=
 //       STL_interface<typename Interface::real_type>::norm_diff(C_stl,resu_stl);
-// 
+//
 //     if (error>1.e-6){
 //       INFOS("WRONG CALCULATION...residual=" << error);
 //       exit(0);
@@ -126,7 +126,7 @@ private :
   typename Interface::gene_matrix C;
 
   int _size;
-  int _cost;
+  double _cost;
 };
 
 #endif

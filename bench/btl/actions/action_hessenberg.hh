@@ -52,8 +52,8 @@ public :
     _cost = 0;
     for (int j=0; j<_size-2; ++j)
     {
-      int r = std::max(0,_size-j-1);
-      int b = std::max(0,_size-j-2);
+      double r = std::max(0,_size-j-1);
+      double b = std::max(0,_size-j-2);
       _cost += 6 + 3*b + r*r*4 + r*_size*4;
     }
   }
