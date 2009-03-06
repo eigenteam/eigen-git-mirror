@@ -90,7 +90,7 @@ class RotationBase
       *  - a vector of size Dim
       */
     template<typename OtherDerived>
-    inline typename generic_product_selector<OtherDerived>::ReturnType
+    inline typename generic_product_selector<OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
     operator*(const MatrixBase<OtherDerived>& e) const
     { return generic_product_selector<OtherDerived>::run(derived(), e.derived()); }
 
