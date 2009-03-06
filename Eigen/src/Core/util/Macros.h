@@ -178,7 +178,7 @@ using Eigen::ei_cos;
 #define EIGEN_RESTRICT __restrict
 
 #ifndef EIGEN_STACK_ALLOCATION_LIMIT
-#define EIGEN_STACK_ALLOCATION_LIMIT 16000000
+#define EIGEN_STACK_ALLOCATION_LIMIT 1000000
 #endif
 
 #ifndef EIGEN_DEFAULT_IO_FORMAT
@@ -188,8 +188,13 @@ using Eigen::ei_cos;
 // just an empty macro !
 #define EIGEN_EMPTY
 
+// concatenate two tokens
 #define EIGEN_CAT2(a,b) a ## b
 #define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
+
+// convert a token to a string
+#define EIGEN_MAKESTRING2(a) #a
+#define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
 
 // format used in Eigen's documentation
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
