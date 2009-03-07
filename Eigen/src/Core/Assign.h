@@ -353,7 +353,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
     const int outerSize = dst.outerSize();
     const int alignedStep = (packetSize - dst.stride() % packetSize) & packetAlignedMask;
     int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                     : ei_alignmentOffset(&dst.coeffRef(0), innerSize);
+                     : ei_alignmentOffset(&dst.coeffRef(0,0), innerSize);
 
     for(int i = 0; i < outerSize; ++i)
     {
