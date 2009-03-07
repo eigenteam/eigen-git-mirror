@@ -247,4 +247,16 @@ enum TransformTraits {
   Projective    = 0x30
 };
 
+const int EiArch_Generic = 0x0;
+const int EiArch_SSE     = 0x1;
+const int EiArch_AltiVec = 0x2;
+
+#if defined EIGEN_VECTORIZE_SSE
+  const int EiArch = EiArch_SSE;
+#elif defined EIGEN_VECTORIZE_ALTIVEC
+  const int EiArch = EiArch_AltiVec;
+#else
+  const int EiArch = EiArch_Generic;
+#endif
+
 #endif // EIGEN_CONSTANTS_H

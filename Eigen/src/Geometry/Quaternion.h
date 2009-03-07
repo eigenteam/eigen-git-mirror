@@ -225,17 +225,24 @@ typedef Quaternion<float> Quaternionf;
   * double precision quaternion type */
 typedef Quaternion<double> Quaterniond;
 
+// Generic Quaternion * Quaternion product
+template<int Arch,typename Scalar> inline Quaternion<Scalar>
+ei_quaternion_product(const Quaternion<Scalar>& a, const Quaternion<Scalar>& b)
+{
+  return Quaternion<Scalar>
+  (
+    a.w() * b.w() - a.x() * b.x() - a.y() * b.y() - a.z() * b.z(),
+    a.w() * b.x() + a.x() * b.w() + a.y() * b.z() - a.z() * b.y(),
+    a.w() * b.y() + a.y() * b.w() + a.z() * b.x() - a.x() * b.z(),
+    a.w() * b.z() + a.z() * b.w() + a.x() * b.y() - a.y() * b.x()
+  );
+}
+
 /** \returns the concatenation of two rotations as a quaternion-quaternion product */
 template <typename Scalar>
 inline Quaternion<Scalar> Quaternion<Scalar>::operator* (const Quaternion& other) const
 {
-  return Quaternion
-  (
-    this->w() * other.w() - this->x() * other.x() - this->y() * other.y() - this->z() * other.z(),
-    this->w() * other.x() + this->x() * other.w() + this->y() * other.z() - this->z() * other.y(),
-    this->w() * other.y() + this->y() * other.w() + this->z() * other.x() - this->x() * other.z(),
-    this->w() * other.z() + this->z() * other.w() + this->x() * other.y() - this->y() * other.x()
-  );
+  return ei_quaternion_product<EiArch>(*this,other);
 }
 
 /** \sa operator*(Quaternion) */
