@@ -29,6 +29,18 @@
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
 #endif
 
+#define ei_vec4f_swizzle1(v,p,q,r,s) \
+  (_mm_castsi128_ps(_mm_shuffle_epi32( _mm_castps_si128(v), ((s)<<6|(r)<<4|(q)<<2|(p)))))
+
+#define ei_vec4i_swizzle1(v,p,q,r,s) \
+  (_mm_shuffle_epi32( v, ((s)<<6|(r)<<4|(q)<<2|(p))))
+  
+#define ei_vec4f_swizzle2(a,b,p,q,r,s) \
+  (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
+
+#define ei_vec4i_swizzle2(a,b,p,q,r,s) \
+  (_mm_castps_si128( (_mm_shuffle_ps( _mm_castsi128_ps(a), _mm_castsi128_ps(b), ((s)<<6|(r)<<4|(q)<<2|(p))))))
+
 template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}; };
 template<> struct ei_packet_traits<double> { typedef __m128d type; enum {size=2}; };
 template<> struct ei_packet_traits<int>    { typedef __m128i type; enum {size=4}; };
@@ -54,14 +66,13 @@ template<> EIGEN_STRONG_INLINE __m128d ei_pmul<__m128d>(const __m128d& a, const 
 template<> EIGEN_STRONG_INLINE __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
 {
   // this version is very slightly faster than 4 scalar products
-  return _mm_or_si128(
-    _mm_and_si128(
-      _mm_mul_epu32(a,b),
-      _mm_setr_epi32(0xffffffff,0,0xffffffff,0)),
-    _mm_slli_si128(
-      _mm_and_si128(
-        _mm_mul_epu32(_mm_srli_si128(a,4),_mm_srli_si128(b,4)),
-        _mm_setr_epi32(0xffffffff,0,0xffffffff,0)), 4));
+  return ei_vec4i_swizzle1(
+            ei_vec4i_swizzle2(
+              _mm_mul_epu32(a,b),
+              _mm_mul_epu32(ei_vec4i_swizzle1(a,1,0,3,2),
+                            ei_vec4i_swizzle1(b,1,0,3,2)),
+              0,2,0,2),
+            0,2,1,3);
 }
 
 template<> EIGEN_STRONG_INLINE __m128  ei_pdiv<__m128>(const __m128&  a, const __m128&  b) { return _mm_div_ps(a,b); }
