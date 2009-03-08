@@ -139,6 +139,15 @@ template<typename Lhs,typename Rhs> struct ei_transform_transform_product_impl;
   * that case the last matrix row can be ignored, and the product returns non
   * homogeneous vectors.
   * 
+  * Since, for instance, a Dim x Dim matrix is interpreted as a linear transformation,
+  * it is not possible to directly transform Dim vectors stored in a Dim x Dim matrix.
+  * The solution is either to use a Dim x Dynamic matrix or explicitely request a
+  * vector transformation by making the vector homogeneous:
+  * \code
+  * m' = T * m.colwise().homogeneous();
+  * \endcode
+  * Note that there is zero overhead.
+  * 
   * Conversion methods from/to Qt's QMatrix and QTransform are available if the
   * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
