@@ -99,6 +99,26 @@ template<typename MatrixType,int Direction> class Homogeneous
       ei_assert(Direction==Vertical);
       return ei_homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
     }
+    
+    template<typename Scalar, int Dim, int Mode> friend 
+    inline const ei_homogeneous_left_product_impl<Homogeneous,
+      typename Transform<Scalar,Dim,Mode>::AffinePart>
+    operator* (const Transform<Scalar,Dim,Mode>& tr, const Homogeneous& rhs)
+    {
+      ei_assert(Direction==Vertical);
+      return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Mode>::AffinePart>
+        (tr.affine(),rhs.m_matrix);
+    }
+    
+    template<typename Scalar, int Dim> friend 
+    inline const ei_homogeneous_left_product_impl<Homogeneous,
+      typename Transform<Scalar,Dim,Projective>::MatrixType>
+    operator* (const Transform<Scalar,Dim,Projective>& tr, const Homogeneous& rhs)
+    {
+      ei_assert(Direction==Vertical);
+      return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Projective>::MatrixType>
+        (tr.matrix(),rhs.m_matrix);
+    }
 
   protected:
     const typename MatrixType::Nested m_matrix;

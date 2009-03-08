@@ -99,8 +99,9 @@ class RotationBase
     inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l, const Derived& r)
     { return l.derived() * r.toRotationMatrix(); }
 
-    /** \returns the concatenation of the rotation \c *this with an affine transformation \a t */
-    inline Transform<Scalar,Dim> operator*(const Transform<Scalar,Dim>& t) const
+    /** \returns the concatenation of the rotation \c *this with a transformation \a t */
+    template<int Mode>
+    inline Transform<Scalar,Dim,Mode> operator*(const Transform<Scalar,Dim,Mode>& t) const
     { return toRotationMatrix() * t; }
 
     template<typename OtherVectorType>

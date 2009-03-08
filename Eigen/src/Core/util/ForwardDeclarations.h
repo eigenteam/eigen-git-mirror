@@ -118,7 +118,7 @@ template<typename Lhs, typename Rhs> class Cross;
 template<typename Scalar> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
-template<typename Scalar,int Dim/*,int Mode=AffineSquare*/> class Transform;
+template<typename Scalar,int Dim,int Mode=Affine> class Transform;
 template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar,int Dim> class Translation;

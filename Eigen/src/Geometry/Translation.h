@@ -53,7 +53,7 @@ public:
   /** corresponding linear transformation matrix type */
   typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** corresponding affine transformation type */
-  typedef Transform<Scalar,Dim> TransformType;
+  typedef Transform<Scalar,Dim> AffineTransformType;
 
 protected:
 
@@ -89,23 +89,23 @@ public:
   { return Translation(m_coeffs + other.m_coeffs); }
 
   /** Concatenates a translation and a uniform scaling */
-  inline TransformType operator* (const UniformScaling<Scalar>& other) const;
+  inline AffineTransformType operator* (const UniformScaling<Scalar>& other) const;
 
   /** Concatenates a translation and a linear transformation */
   template<typename OtherDerived>
-  inline TransformType operator* (const MatrixBase<OtherDerived>& linear) const;
+  inline AffineTransformType operator* (const MatrixBase<OtherDerived>& linear) const;
 
   /** Concatenates a translation and a rotation */
   template<typename Derived>
-  inline TransformType operator*(const RotationBase<Derived,Dim>& r) const
+  inline AffineTransformType operator*(const RotationBase<Derived,Dim>& r) const
   { return *this * r.toRotationMatrix(); }
 
   /** \returns the concatenation of a linear transformation \a l with the translation \a t */
   // its a nightmare to define a templated friend function outside its declaration
   template<typename OtherDerived> friend
-  inline TransformType operator*(const MatrixBase<OtherDerived>& linear, const Translation& t)
+  inline AffineTransformType operator*(const MatrixBase<OtherDerived>& linear, const Translation& t)
   {
-    TransformType res;
+    AffineTransformType res;
     res.matrix().setZero();
     res.linear() = linear.derived();
     res.translation() = linear.derived() * t.m_coeffs;
@@ -115,7 +115,13 @@ public:
   }
 
   /** Concatenates a translation and an affine transformation */
-  inline TransformType operator* (const TransformType& t) const;
+  template<int Mode>
+  inline Transform<Scalar,Dim,Mode> operator* (const Transform<Scalar,Dim,Mode>& t) const
+  {
+    Transform<Scalar,Dim,Mode> res = t;
+    res.pretranslate(m_coeffs);
+    return res;
+  }
 
   /** Applies translation to vector */
   inline VectorType operator* (const VectorType& other) const
@@ -162,10 +168,10 @@ typedef Translation<double,3> Translation3d;
 //@}
 
 template<typename Scalar, int Dim>
-inline typename Translation<Scalar,Dim>::TransformType
+inline typename Translation<Scalar,Dim>::AffineTransformType
 Translation<Scalar,Dim>::operator* (const UniformScaling<Scalar>& other) const
 {
-  TransformType res;
+  AffineTransformType res;
   res.matrix().setZero();
   res.linear().diagonal().fill(other.factor());
   res.translation() = m_coeffs;
@@ -175,24 +181,15 @@ Translation<Scalar,Dim>::operator* (const UniformScaling<Scalar>& other) const
 
 template<typename Scalar, int Dim>
 template<typename OtherDerived>
-inline typename Translation<Scalar,Dim>::TransformType
+inline typename Translation<Scalar,Dim>::AffineTransformType
 Translation<Scalar,Dim>::operator* (const MatrixBase<OtherDerived>& linear) const
 {
-  TransformType res;
+  AffineTransformType res;
   res.matrix().setZero();
   res.linear() = linear.derived();
   res.translation() = m_coeffs;
   res.matrix().row(Dim).setZero();
   res(Dim,Dim) = Scalar(1);
-  return res;
-}
-
-template<typename Scalar, int Dim>
-inline typename Translation<Scalar,Dim>::TransformType
-Translation<Scalar,Dim>::operator* (const TransformType& t) const
-{
-  TransformType res = t;
-  res.pretranslate(m_coeffs);
   return res;
 }
 

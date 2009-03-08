@@ -27,12 +27,11 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-template<typename Scalar> void transformations(void)
+template<typename Scalar, int Mode> void transformations(void)
 {
   /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
   */
-
   typedef Matrix<Scalar,2,2> Matrix2;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,4,4> Matrix4;
@@ -41,8 +40,9 @@ template<typename Scalar> void transformations(void)
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
-  typedef Transform<Scalar,2> Transform2;
-  typedef Transform<Scalar,3> Transform3;
+  typedef Transform<Scalar,2,Mode> Transform2;
+  typedef Transform<Scalar,3,Mode> Transform3;
+  typedef typename Transform3::MatrixType MatrixType;
   typedef DiagonalMatrix<Scalar,2> AlignedScaling2;
   typedef DiagonalMatrix<Scalar,3> AlignedScaling3;
   typedef Translation<Scalar,2> Translation2;
@@ -111,7 +111,7 @@ template<typename Scalar> void transformations(void)
   t0.scale(v0);
   t1.prescale(v0);
 
-  VERIFY_IS_APPROX( (t0 * Vector3(1,0,0)).norm(), v0.x());
+  VERIFY_IS_APPROX( (t0 * Vector3(1,0,0)).template start<3>().norm(), v0.x());
   //VERIFY(!ei_isApprox((t1 * Vector3(1,0,0)).norm(), v0.x()));
 
   t0.setIdentity();
@@ -124,7 +124,7 @@ template<typename Scalar> void transformations(void)
   t1.prescale(v1.cwise().inverse());
   t1.translate(-v0);
 
-  VERIFY((t0.matrix() * t1.matrix()).isIdentity(test_precision<Scalar>()));
+  VERIFY((t0 * t1).matrix().isIdentity(test_precision<Scalar>()));
 
   t1.fromPositionOrientationScale(v0, q1, v1);
   VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
@@ -146,7 +146,9 @@ template<typename Scalar> void transformations(void)
   Matrix4 mat4;
   mat4 << mat3 , Vector3::Zero() , Vector4::Zero().transpose();
   Transform3 tmat3(mat3), tmat4(mat4);
-  tmat4.matrix()(3,3) = Scalar(1);
+  if(Mode!=int(AffineCompact))
+    tmat4.matrix()(3,3) = Scalar(1);
+  std::cerr << tmat3.matrix() << "\n\n" << tmat4.matrix() << "\n\n";
   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
 
   Scalar a3 = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
@@ -157,7 +159,7 @@ template<typename Scalar> void transformations(void)
   t4 = aa3;
   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
   t4.rotate(AngleAxisx(-a3,v3));
-  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
   t4 *= aa3;
   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
 
@@ -167,7 +169,7 @@ template<typename Scalar> void transformations(void)
   t4 = tv3;
   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
   t4.translate(-v3);
-  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
   t4 *= tv3;
   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
 
@@ -176,12 +178,12 @@ template<typename Scalar> void transformations(void)
   t4 = sv3;
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
   t4.scale(v3.cwise().inverse());
-  VERIFY_IS_APPROX(t4.matrix(), Matrix4::Identity());
+  VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
   t4 *= sv3;
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
 
   // matrix * transform
-  VERIFY_IS_APPROX(Transform3(t3.matrix()*t4).matrix(), Transform3(t3*t4).matrix());
+  VERIFY_IS_APPROX((t3.matrix()*t4).matrix(), (t3*t4).matrix());
 
   // chained Transform product
   VERIFY_IS_APPROX(((t3*t4)*t5).matrix(), (t3*(t4*t5)).matrix());
@@ -282,21 +284,24 @@ template<typename Scalar> void transformations(void)
   // translation * vector
   t0.setIdentity();
   t0.translate(v0);
-  VERIFY_IS_APPROX(t0 * v1, Translation3(v0) * v1);
+  VERIFY_IS_APPROX((t0 * v1).template start<3>(), Translation3(v0) * v1);
 
   // AlignedScaling * vector
   t0.setIdentity();
   t0.scale(v0);
-  VERIFY_IS_APPROX(t0 * v1, AlignedScaling3(v0) * v1);
+  VERIFY_IS_APPROX((t0 * v1).template start<3>(), AlignedScaling3(v0) * v1);
 
   // test transform inversion
-  t0.setIdentity();
-  t0.translate(v0);
-  t0.linear().setRandom();
-  VERIFY_IS_APPROX(t0.inverse(Affine), t0.matrix().inverse());
-  t0.setIdentity();
-  t0.translate(v0).rotate(q1);
-  VERIFY_IS_APPROX(t0.inverse(Isometry), t0.matrix().inverse());
+  if(Mode!=AffineCompact)
+  {
+    t0.setIdentity();
+    t0.translate(v0);
+    t0.linear().setRandom();
+    VERIFY_IS_APPROX(t0.inverse(Affine), t0.matrix().inverse());
+    t0.setIdentity();
+    t0.translate(v0).rotate(q1);
+    VERIFY_IS_APPROX(t0.inverse(Isometry), t0.matrix().inverse());
+  }
 
   // test extract rotation and aligned scaling
 //   t0.setIdentity();
@@ -316,9 +321,9 @@ template<typename Scalar> void transformations(void)
   VERIFY_IS_APPROX(mat_rotation.determinant(), Scalar(1));
 
   // test casting
-  Transform<float,3> t1f = t1.template cast<float>();
+  Transform<float,3,Mode> t1f = t1.template cast<float>();
   VERIFY_IS_APPROX(t1f.template cast<Scalar>(),t1);
-  Transform<double,3> t1d = t1.template cast<double>();
+  Transform<double,3,Mode> t1d = t1.template cast<double>();
   VERIFY_IS_APPROX(t1d.template cast<Scalar>(),t1);
 
   Translation3 tr1(v0);
@@ -343,12 +348,15 @@ template<typename Scalar> void transformations(void)
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
+  
 }
 
 void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( transformations<float>() );
-    CALL_SUBTEST( transformations<double>() );
+//     CALL_SUBTEST( transformations<float>() );
+    CALL_SUBTEST(( transformations<double,Affine>() ));
+    CALL_SUBTEST(( transformations<double,AffineCompact>() ));
+    CALL_SUBTEST(( transformations<double,Projective>() ));
   }
 }
