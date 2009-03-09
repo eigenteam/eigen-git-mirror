@@ -45,15 +45,7 @@ public :
 
   static inline std::string name( void )
   {
-    #if defined(EIGEN_USE_NEW_PRODUCT)
-    if (SIZE==Dynamic) return "eigen2_newprod"; else return "tiny_eigen2";
-    #elif defined(EIGEN_VECTORIZE_SSE)
-    if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
-    #elif defined(EIGEN_VECTORIZE_ALTIVEC)
-    if (SIZE==Dynamic) return "eigen2"; else return "tiny_eigen2";
-    #else
-    if (SIZE==Dynamic) return "eigen2_novec"; else return "tiny_eigen2_novec";
-    #endif
+    return EIGEN_MAKESTRING(BTL_PREFIX);
   }
 
   static void free_matrix(gene_matrix & A, int N) {}
@@ -119,7 +111,7 @@ public :
     //X = (A.template marked<SelfAdjoint|LowerTriangular>() * B)/*.lazy()*/;
     ei_product_selfadjoint_vector<real,0,LowerTriangularBit>(N,A.data(),N, B.data(), X.data());
   }
-  
+
   template<typename Dest, typename Src> static void triassign(Dest& dst, const Src& src)
   {
     typedef typename Dest::Scalar Scalar;
@@ -164,9 +156,11 @@ public :
       //dst.col(j).end(N-j) = src.col(j).end(N-j);
     }
   }
-  
+
   static EIGEN_DONT_INLINE void syr2(gene_matrix & A,  gene_vector & X, gene_vector & Y, int N){
     // ei_product_selfadjoint_rank2_update<real,0,LowerTriangularBit>(N,A.data(),N, X.data(), 1, Y.data(), 1, -1);
+    for(int j=0; j<N; ++j)
+      A.col(j).end(N-j) += X[j] * Y.end(N-j) + Y[j] * X.end(N-j);
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -183,11 +177,11 @@ public :
   asm("#end axpby");
   }
 
-  static inline void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){
+  static EIGEN_DONT_INLINE void copy_matrix(const gene_matrix & source, gene_matrix & cible, int N){
     cible = source;
   }
 
-  static inline void copy_vector(const gene_vector & source, gene_vector & cible, int N){
+  static EIGEN_DONT_INLINE void copy_vector(const gene_vector & source, gene_vector & cible, int N){
     cible = source;
   }
 
