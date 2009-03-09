@@ -75,6 +75,18 @@ MACRO(BTL_ADD_BENCH targetname)
 
 ENDMACRO(BTL_ADD_BENCH)
 
+macro(btl_add_target_property target prop value)
+
+  if(BUILD_${target})
+    get_target_property(previous ${target} ${prop})
+    if(NOT previous)
+      set(previous "")
+    endif()
+    set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
+  endif()
+
+endmacro(btl_add_target_property)
+
 ENABLE_TESTING()
 
 add_subdirectory(libs/eigen2)
