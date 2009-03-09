@@ -361,6 +361,10 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
   EIGEN_STRONG_INLINE ei_scalar_quotient1_op(const Scalar& other)
     : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
 };
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_quotient1_op<Scalar> > 
+: ei_functor_traits<ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint> >
+{};
 
 // nullary functors
 
