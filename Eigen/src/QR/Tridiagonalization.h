@@ -73,8 +73,7 @@ template<typename _MatrixType> class Tridiagonalization
     {}
 
     Tridiagonalization(const MatrixType& matrix)
-      : m_matrix(matrix),
-        m_hCoeffs(matrix.cols()-1)
+      : m_matrix(matrix), m_hCoeffs(matrix.cols()-1)
     {
       _compute(m_matrix, m_hCoeffs);
     }
@@ -122,13 +121,12 @@ template<typename _MatrixType> class Tridiagonalization
 
     static void decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
 
-  private:
-
     static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
+
+  protected:
 
     static void _decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
 
-  protected:
     MatrixType m_matrix;
     CoeffVectorType m_hCoeffs;
 };
@@ -192,7 +190,6 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-//   std::cerr << matA << "\n\n";
   for (int i = 0; i<n-2; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1
@@ -220,7 +217,6 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
 
       matA.col(i).coeffRef(i+1) = 1;
-      Scalar* EIGEN_RESTRICT t = &hCoeffs.coeffRef(-1);
 
       // hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular|SelfAdjoint>()
       //                    *  matA.col(i).end(n-i-1)).lazy();
@@ -229,7 +225,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
         (n-i-1,matA.corner(BottomRight,n-i-1,n-i-1).data(), matA.stride(), matA.col(i).end(n-i-1).data(), const_cast<Scalar*>(hCoeffs.end(n-i-1).data()));
 
       hCoeffs.end(n-i-1) = hCoeffs.end(n-i-1)*h
-                         + (h*ei_conj(h)*Scalar(-0.5)*matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1))) *
+                         + (h*ei_conj(h)*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) *
                            matA.col(i).end(n-i-1);
 
       // symmetric rank-2 update
