@@ -39,18 +39,26 @@ struct ei_redux_traits
 {
 private:
   enum {
-    PacketSize = ei_packet_traits<typename Derived::Scalar>::size
+    PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
+    InnerMaxSize = int(Derived::Flags)&RowMajorBit
+                 ? Derived::MaxColsAtCompileTime
+                 : Derived::MaxRowsAtCompileTime
+  };
+
+  enum {
+    MightVectorize = (int(Derived::Flags)&ActualPacketAccessBit)
+                  && (ei_functor_traits<Func>::PacketAccess),
+    MayLinearVectorize = MightVectorize && (int(Derived::Flags)&LinearAccessBit),
+    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize 
   };
 
 public:
   enum {
-    Vectorization = (int(Derived::Flags)&ActualPacketAccessBit)
-                 && (int(Derived::Flags)&LinearAccessBit)
-                 && (ei_functor_traits<Func>::PacketAccess)
-                  ? LinearVectorization
-                  : NoVectorization
+    Vectorization = int(MayLinearVectorize) ? int(LinearVectorization)
+                  : int(MaySliceVectorize)  ? int(SliceVectorization)
+                                            : int(NoVectorization)
   };
-
+  
 private:
   enum {
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
@@ -221,6 +229,45 @@ struct ei_redux_impl<Func, Derived, LinearVectorization, NoUnrolling>
       res = mat.coeff(0);
       for(int index = 1; index < size; ++index)
         res = func(res,mat.coeff(index));
+    }
+
+    return res;
+  }
+};
+
+template<typename Func, typename Derived>
+struct ei_redux_impl<Func, Derived, SliceVectorization, NoUnrolling>
+{
+  typedef typename Derived::Scalar Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  static Scalar run(const Derived& mat, const Func& func)
+  {
+    const int innerSize = mat.innerSize();
+    const int outerSize = mat.outerSize();
+    enum {
+      packetSize = ei_packet_traits<Scalar>::size,
+      isRowMajor = Derived::Flags&RowMajorBit?1:0
+    };
+    const int packetedInnerSize = ((innerSize)/packetSize)*packetSize;
+    Scalar res;
+    if(packetedInnerSize)
+    {
+      PacketScalar packet_res = mat.template packet<Unaligned>(0,0);
+      for(int j=0; j<outerSize; ++j)
+        for(int i=0; i<packetedInnerSize; i+=int(packetSize))
+          packet_res = func.packetOp(packet_res, mat.template packet<Unaligned>
+                                                 (isRowMajor?j:i, isRowMajor?i:j));
+      
+      res = func.predux(packet_res);
+      for(int j=0; j<outerSize; ++j)
+        for(int i=packetedInnerSize; i<innerSize; ++i)
+          res = func(res, mat.coeff(isRowMajor?j:i, isRowMajor?i:j));
+    }
+    else // too small to vectorize anything.
+         // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
+    {
+      res = ei_redux_impl<Func, Derived, NoVectorization, NoUnrolling>::run(mat, func);
     }
 
     return res;
