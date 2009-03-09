@@ -65,9 +65,20 @@ template<typename Derived> class MapBase
     inline int stride() const { return derived().stride(); }
     inline const Scalar* data() const { return m_data; }
 
+    template<bool IsForceAligned,typename Dummy> struct force_aligned_impl {
+      AlignedDerivedType static run(MapBase& a) { return a.derived(); }
+    };
+
+    template<typename Dummy> struct force_aligned_impl<false,Dummy> {
+      AlignedDerivedType static run(MapBase& a) { return a.derived()._convertToForceAligned(); }
+    };
+
     /** \returns an expression equivalent to \c *this but having the \c PacketAccess constant
       * set to \c ForceAligned. Must be reimplemented by the derived class. */
-    AlignedDerivedType forceAligned() { return derived().forceAligned(); }
+    AlignedDerivedType forceAligned()
+    {
+      return force_aligned_impl<int(PacketAccess)==int(ForceAligned),Derived>::run(*this);
+    }
 
     inline const Scalar& coeff(int row, int col) const
     {
@@ -153,6 +164,17 @@ template<typename Derived> class MapBase
       ei_assert( (data == 0)
               || (   rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
+    }
+
+    Derived& operator=(const MapBase& other)
+    {
+      return Base::operator=(other);
+    }
+
+    template<typename OtherDerived>
+    Derived& operator=(const MatrixBase<OtherDerived>& other)
+    {
+      return Base::operator=(other);
     }
 
     template<typename OtherDerived>
