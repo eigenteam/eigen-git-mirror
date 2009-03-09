@@ -37,7 +37,7 @@ int main()
 //   bench<Action_aat_product<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   bench<Action_trisolve<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_cholesky<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+//   bench<Action_cholesky<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 //   bench<Action_lu_decomp<mtl4_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
   return 0;

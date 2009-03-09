@@ -19,7 +19,8 @@
 #define MTL4_INTERFACE_HH
 
 #include <boost/numeric/mtl/mtl.hpp>
-#include <boost/numeric/mtl/operation/cholesky.hpp>
+#include <boost/numeric/mtl/utility/range_generator.hpp>
+// #include <boost/numeric/mtl/operation/cholesky.hpp>
 #include <vector>
 
 using namespace mtl;
@@ -115,10 +116,10 @@ public :
     Y = a*X + b*Y;
   }
 
-  static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
-    C = X;
-    recursive_cholesky(C);
-  }
+//   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
+//     C = X;
+//     recursive_cholesky(C);
+//   }
 
 //   static inline void lu_decomp(const gene_matrix & X, gene_matrix & R, int N){
 //     R = X;
