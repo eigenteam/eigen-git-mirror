@@ -163,6 +163,9 @@ template<> inline v4i  ei_pmin(const v4i&   a, const v4i&   b) { return vec_min(
 template<> inline v4f  ei_pmax(const v4f&   a, const v4f&   b) { return vec_max(a,b); }
 template<> inline v4i  ei_pmax(const v4i&   a, const v4i&   b) { return vec_max(a,b); }
 
+template<> EIGEN_STRONG_INLINE v4f ei_pabs(const v4f& a) { return vec_abs(a); }
+template<> EIGEN_STRONG_INLINE v4i ei_pabs(const v4i& a) { return vec_abs(a); }
+
 template<> inline v4f  ei_pload(const float* from) { return vec_ld(0, from); }
 template<> inline v4i  ei_pload(const int*   from) { return vec_ld(0, from); }
 

@@ -203,13 +203,16 @@ struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
 template<typename Scalar> struct ei_scalar_abs_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { return ei_abs(a); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pabs(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = false // FIXME this could actually be vectorized with SSSE3.
+    PacketAccess = int(ei_packet_traits<Scalar>::size)>1
   };
 };
 

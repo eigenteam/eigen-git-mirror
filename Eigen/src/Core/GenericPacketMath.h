@@ -64,6 +64,10 @@ template<typename Packet> inline Packet
 ei_pmax(const Packet& a,
         const Packet& b) { return std::max(a, b); }
 
+/** \internal \returns the absolute value of \a a */
+template<typename Packet> inline Packet
+ei_pabs(const Packet& a) { return ei_abs(a); }
+
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
 ei_pload(const Scalar* from) { return *from; }

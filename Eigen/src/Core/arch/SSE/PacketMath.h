@@ -34,7 +34,7 @@
 
 #define ei_vec4i_swizzle1(v,p,q,r,s) \
   (_mm_shuffle_epi32( v, ((s)<<6|(r)<<4|(q)<<2|(p))))
-  
+
 #define ei_vec4f_swizzle2(a,b,p,q,r,s) \
   (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
 
@@ -145,6 +145,28 @@ template<> EIGEN_STRONG_INLINE __m128d ei_preverse(const __m128d& a)
 { return _mm_shuffle_pd(a,a,0x1); }
 template<> EIGEN_STRONG_INLINE __m128i ei_preverse(const __m128i& a)
 { return _mm_shuffle_epi32(a,0x1B); }
+
+
+template<> EIGEN_STRONG_INLINE __m128 ei_pabs(const __m128& a)
+{
+  const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF));
+  return _mm_and_ps(a,mask);
+}
+template<> EIGEN_STRONG_INLINE __m128d ei_pabs(const __m128d& a)
+{
+  const __m128d mask = _mm_castsi128_pd(_mm_setr_epi32(0xFFFFFFFF,0x7FFFFFFF,0xFFFFFFFF,0x7FFFFFFF));
+  return _mm_and_pd(a,mask);
+}
+template<> EIGEN_STRONG_INLINE __m128i ei_pabs(const __m128i& a)
+{
+  #ifdef __SSSE3__
+  return _mm_abs_epi32(a);
+  #else
+  __m128i aux = _mm_srai_epi32(a,31);
+  return _mm_sub_epi32(_mm_xor_si128(a,aux),aux);
+  #endif
+}
+
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions

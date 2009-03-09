@@ -33,10 +33,17 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
   return true;
 }
 
-#define CHECK_CWISE(REFOP, POP) { \
+#define CHECK_CWISE2(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i], data1[i+PacketSize]); \
   ei_pstore(data2, POP(ei_pload(data1), ei_pload(data1+PacketSize))); \
+  VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
+}
+
+#define CHECK_CWISE1(REFOP, POP) { \
+  for (int i=0; i<PacketSize; ++i) \
+    ref[i] = REFOP(data1[i]); \
+  ei_pstore(data2, POP(ei_pload(data1))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
@@ -103,15 +110,16 @@ template<typename Scalar> void packetmath()
     VERIFY(areApprox(ref, data2, PacketSize) && "ei_palign");
   }
 
-  CHECK_CWISE(REF_ADD,  ei_padd);
-  CHECK_CWISE(REF_SUB,  ei_psub);
-  CHECK_CWISE(REF_MUL,  ei_pmul);
+  CHECK_CWISE2(REF_ADD,  ei_padd);
+  CHECK_CWISE2(REF_SUB,  ei_psub);
+  CHECK_CWISE2(REF_MUL,  ei_pmul);
   #ifndef EIGEN_VECTORIZE_ALTIVEC
   if (!ei_is_same_type<Scalar,int>::ret)
-    CHECK_CWISE(REF_DIV,  ei_pdiv);
+    CHECK_CWISE2(REF_DIV,  ei_pdiv);
   #endif
-  CHECK_CWISE(std::min, ei_pmin);
-  CHECK_CWISE(std::max, ei_pmax);
+  CHECK_CWISE2(std::min, ei_pmin);
+  CHECK_CWISE2(std::max, ei_pmax);
+  CHECK_CWISE1(ei_abs, ei_pabs);
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0];
@@ -124,17 +132,17 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(ei_isApprox(ref[0], ei_predux(ei_pload(data1))) && "ei_predux");
-  
+
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
     ref[0] *= data1[i];
   VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload(data1))) && "ei_predux_mul");
-  
+
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::min(ref[0],data1[i]);
   VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload(data1))) && "ei_predux_min");
-  
+
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::max(ref[0],data1[i]);
