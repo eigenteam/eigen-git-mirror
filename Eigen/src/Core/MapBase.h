@@ -176,6 +176,8 @@ template<typename Derived> class MapBase
     {
       return Base::operator=(other);
     }
+    
+    using Base::operator*=;
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
