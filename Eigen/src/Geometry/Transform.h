@@ -49,6 +49,14 @@ struct ei_transform_left_product_impl;
 
 template<typename Lhs,typename Rhs> struct ei_transform_transform_product_impl;
 
+template< typename Other,
+          int Mode,
+          int Dim,
+          int HDim,
+          int OtherRows=Other::RowsAtCompileTime,
+          int OtherCols=Other::ColsAtCompileTime>
+struct ei_transform_construct_from_matrix;
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class Transform
@@ -69,19 +77,19 @@ template<typename Lhs,typename Rhs> struct ei_transform_transform_product_impl;
   * is available through the matrix() method. To understand the behavior of
   * this class you have to think a Transform object as its internal
   * matrix representation. The chosen convention is right multiply:
-  * 
+  *
   * \code v' = T * v \endcode
-  * 
+  *
   * Thefore, an affine transformation matrix M is shaped like this:
-  * 
+  *
   * \f$ \left( \begin{array}{cc}
   * linear & translation\\
   * 0 ... 0 & 1
   * \end{array} \right) \f$
-  * 
+  *
   * Note that for a provective transformation the last row can be anything,
   * and then the interpretation of different parts might be sighlty different.
-  * 
+  *
   * However, unlike a plain matrix, the Transform class provides many features
   * simplifying both its assembly and usage. In particular, it can be composed
   * with any other transformations (Transform,Trnaslation,RotationBase,Matrix)
@@ -138,7 +146,7 @@ template<typename Lhs,typename Rhs> struct ei_transform_transform_product_impl;
   * transformation of non homogeneous vectors by an affine transformation. In
   * that case the last matrix row can be ignored, and the product returns non
   * homogeneous vectors.
-  * 
+  *
   * Since, for instance, a Dim x Dim matrix is interpreted as a linear transformation,
   * it is not possible to directly transform Dim vectors stored in a Dim x Dim matrix.
   * The solution is either to use a Dim x Dynamic matrix or explicitely request a
@@ -147,7 +155,7 @@ template<typename Lhs,typename Rhs> struct ei_transform_transform_product_impl;
   * m' = T * m.colwise().homogeneous();
   * \endcode
   * Note that there is zero overhead.
-  * 
+  *
   * Conversion methods from/to Qt's QMatrix and QTransform are available if the
   * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
@@ -193,7 +201,7 @@ public:
   inline Transform() { }
 
   inline Transform(const Transform& other)
-  { 
+  {
     m_matrix = other.m_matrix;
   }
 
@@ -205,95 +213,37 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
-  template<typename OtherDerived, bool IsCompact, int _Rows, int _Cols>
-  struct construct_from_matrix;
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, false, Dim, Dim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    {
-      transform->linear() = other;
-      transform->translation().setZero();
-      transform->makeAffine();
-    }
-  };
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, true, Dim, Dim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    {
-      transform->linear() = other;
-      transform->translation().setZero();
-    }
-  };
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, false, Dim, HDim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    {
-      transform->affine() = other;
-      transform->makeAffine();
-    }
-  };
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, true, Dim, HDim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    { transform->affine() = other; }
-  };
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, false, HDim, HDim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    { transform->matrix() = other; }
-  };
-  
-  template<typename OtherDerived> struct construct_from_matrix<OtherDerived, true, HDim, HDim>
-  {
-    static inline void run(Transform *transform, const MatrixBase<OtherDerived>& other)
-    { transform->matrix() = other.template block<Dim,HDim>(0,0); }
-  };
-  
   typedef ei_transform_take_affine_part<Transform> take_affine_part;
 
   /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline explicit Transform(const MatrixBase<OtherDerived>& other)
   {
-    construct_from_matrix<OtherDerived,
-                          int(Mode)==int(AffineCompact),
-                          int(OtherDerived::RowsAtCompileTime),
-                          int(OtherDerived::ColsAtCompileTime)>::run(this, other);
+    ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
   }
 
   /** Set \c *this from a Dim^2 or (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline Transform& operator=(const MatrixBase<OtherDerived>& other)
   {
-    construct_from_matrix<OtherDerived,
-                          int(Mode)==int(AffineCompact),
-                          int(OtherDerived::RowsAtCompileTime),
-                          int(OtherDerived::ColsAtCompileTime)>::run(this, other);
+    ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
     return *this;
   }
-  
+
   template<int OtherMode>
   inline Transform(const Transform<Scalar,Dim,OtherMode>& other)
   {
     ei_assert(OtherMode!=Projective && "You cannot directly assign a projective transform to an affine one.");
     typedef typename Transform<Scalar,Dim,OtherMode>::MatrixType OtherMatrixType;
-    construct_from_matrix<OtherMatrixType,
-                          int(Mode)==int(AffineCompact),
-                          int(OtherMatrixType::RowsAtCompileTime),
-                          int(OtherMatrixType::ColsAtCompileTime)>::run(this, other.matrix());
+    ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
   }
-  
+
   template<typename OtherDerived,typename OtherEvalType>
   Transform(const ReturnByValue<OtherDerived,OtherEvalType>& other)
   {
     other.evalTo(*this);
   }
-  
+
   template<typename OtherDerived,typename OtherEvalType>
   Transform& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
   {
@@ -326,7 +276,7 @@ public:
   inline const LinearPart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
   /** \returns a writable expression of the linear part of the transformation */
   inline LinearPart linear() { return m_matrix.template block<Dim,Dim>(0,0); }
-  
+
   /** \returns a read-only expression of the Dim x HDim affine part of the transformation */
   inline const AffinePart affine() const { return take_affine_part::run(m_matrix); }
   /** \returns a writable expression of the Dim x HDim affine part of the transformation */
@@ -365,7 +315,7 @@ public:
   inline const typename ei_transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
   operator * (const MatrixBase<OtherDerived> &a, const Transform &b)
   { return ei_transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
-  
+
   template<typename OtherDerived>
   inline Transform& operator*=(const MatrixBase<OtherDerived>& other) { return *this = *this * other; }
 
@@ -374,7 +324,7 @@ public:
   {
     return ei_transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
-  
+
   /** Contatenates two different transformations */
   template<int OtherMode>
   inline const typename ei_transform_transform_product_impl<
@@ -474,7 +424,7 @@ public:
       matrix().coeffRef(Dim,Dim) = 1;
     }
   }
-  
+
   /** \internal
     * \returns the Dim x Dim linear part if the transformation is affine,
     *          and the HDim x Dim part for projective transformations.
@@ -487,7 +437,7 @@ public:
     */
   inline const Block<MatrixType,int(Mode)==int(Projective)?HDim:Dim,Dim> linearExt() const
   { return m_matrix.template block<int(Mode)==int(Projective)?HDim:Dim,Dim>(0,0); }
-  
+
   /** \internal
     * \returns the translation part if the transformation is affine,
     *          and the last column for projective transformations.
@@ -500,7 +450,7 @@ public:
     */
   inline const Block<MatrixType,int(Mode)==int(Projective)?HDim:Dim,1> translationExt() const
   { return m_matrix.template block<int(Mode)==int(Projective)?HDim:Dim,1>(0,Dim); }
-    
+
 };
 
 /** \ingroup Geometry_Module */
@@ -889,7 +839,7 @@ template<typename Scalar, int Dim, int Mode>
 template<typename ScalingMatrixType, typename RotationMatrixType>
 void Transform<Scalar,Dim,Mode>::computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const
 {
-  linear().svd().computeScalingRotation(scaling, rotation);  
+  linear().svd().computeScalingRotation(scaling, rotation);
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale
@@ -958,6 +908,10 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
   }
 }
 
+/*****************************************************
+*** Specializations of take affine part            ***
+*****************************************************/
+
 template<typename TransformType> struct ei_transform_take_affine_part {
   typedef typename TransformType::MatrixType MatrixType;
   typedef typename TransformType::AffinePart AffinePart;
@@ -972,6 +926,45 @@ struct ei_transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
   typedef typename Transform<Scalar,Dim,AffineCompact>::MatrixType MatrixType;
   static inline MatrixType& run(MatrixType& m) { return m; }
   static inline const MatrixType& run(const MatrixType& m) { return m; }
+};
+
+/*****************************************************
+*** Specializations of construct from matix        ***
+*****************************************************/
+
+template<typename Other, int Mode, int Dim, int HDim>
+struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
+{
+  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  {
+    transform->linear() = other;
+    transform->translation().setZero();
+    transform->makeAffine();
+  }
+};
+
+template<typename Other, int Mode, int Dim, int HDim>
+struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
+{
+  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  {
+    transform->affine() = other;
+    transform->makeAffine();
+  }
+};
+
+template<typename Other, int Mode, int Dim, int HDim>
+struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, HDim,HDim>
+{
+  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  { transform->matrix() = other; }
+};
+
+template<typename Other, int Dim, int HDim>
+struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HDim>
+{
+  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,AffineCompact> *transform, const Other& other)
+  { transform->matrix() = other.template block<Dim,HDim>(0,0); }
 };
 
 /*****************************************************

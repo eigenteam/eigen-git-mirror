@@ -26,7 +26,7 @@
 #define EIGEN_HOMOGENEOUS_H
 
 /** \geometry_module \ingroup Geometry_Module
-  * \nonstableyet 
+  * \nonstableyet
   * \class Homogeneous
   *
   * \brief Expression of one (or a set of) homogeneous vector(s)
@@ -83,7 +83,7 @@ template<typename MatrixType,int Direction> class Homogeneous
         return 1;
       return m_matrix.coeff(row, col);
     }
-    
+
     template<typename Rhs>
     inline const ei_homogeneous_right_product_impl<Homogeneous,Rhs>
     operator* (const MatrixBase<Rhs>& rhs) const
@@ -91,16 +91,16 @@ template<typename MatrixType,int Direction> class Homogeneous
       ei_assert(Direction==Horizontal);
       return ei_homogeneous_right_product_impl<Homogeneous,Rhs>(m_matrix,rhs.derived());
     }
-    
-    template<typename Lhs> friend 
+
+    template<typename Lhs> friend
     inline const ei_homogeneous_left_product_impl<Homogeneous,Lhs>
     operator* (const MatrixBase<Lhs>& lhs, const Homogeneous& rhs)
     {
       ei_assert(Direction==Vertical);
       return ei_homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
     }
-    
-    template<typename Scalar, int Dim, int Mode> friend 
+
+    template<typename Scalar, int Dim, int Mode> friend
     inline const ei_homogeneous_left_product_impl<Homogeneous,
       typename Transform<Scalar,Dim,Mode>::AffinePart>
     operator* (const Transform<Scalar,Dim,Mode>& tr, const Homogeneous& rhs)
@@ -109,8 +109,8 @@ template<typename MatrixType,int Direction> class Homogeneous
       return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Mode>::AffinePart>
         (tr.affine(),rhs.m_matrix);
     }
-    
-    template<typename Scalar, int Dim> friend 
+
+    template<typename Scalar, int Dim> friend
     inline const ei_homogeneous_left_product_impl<Homogeneous,
       typename Transform<Scalar,Dim,Projective>::MatrixType>
     operator* (const Transform<Scalar,Dim,Projective>& tr, const Homogeneous& rhs)
@@ -125,9 +125,9 @@ template<typename MatrixType,int Direction> class Homogeneous
 };
 
 /** \geometry_module
-  * \nonstableyet 
+  * \nonstableyet
   * \return an expression of the equivalent homogeneous vector
-  * 
+  *
   * \vectoronly
   *
   * Example: \include MatrixBase_homogeneous.cpp
@@ -136,7 +136,7 @@ template<typename MatrixType,int Direction> class Homogeneous
   * \sa class Homogeneous
   */
 template<typename Derived>
-inline const Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal>
+inline const typename MatrixBase<Derived>::HomogeneousReturnType
 MatrixBase<Derived>::homogeneous() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -144,7 +144,7 @@ MatrixBase<Derived>::homogeneous() const
 }
 
 /** \geometry_module
-  * \nonstableyet 
+  * \nonstableyet
   * \returns a matrix expression of homogeneous column (or row) vectors
   *
   * Example: \include PartialRedux_homogeneous.cpp
@@ -159,7 +159,7 @@ PartialRedux<ExpressionType,Direction>::homogeneous() const
 }
 
 /** \geometry_module
-  * \nonstableyet 
+  * \nonstableyet
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
   * Example: \include MatrixBase_hnormalized.cpp
@@ -177,7 +177,7 @@ MatrixBase<Derived>::hnormalized() const
 }
 
 /** \geometry_module
-  * \nonstableyet 
+  * \nonstableyet
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
   * Example: \include DirectionWise_hnormalized.cpp
@@ -214,7 +214,7 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
   ei_homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
-  
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     // FIXME investigate how to allow lazy evaluation of this product when possible
@@ -225,7 +225,7 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
     dst += m_lhs.col(m_lhs.cols()-1).rowwise()
             .template replicate<MatrixType::ColsAtCompileTime>(m_rhs.cols());
   }
-  
+
   const typename Lhs::Nested m_lhs;
   const typename MatrixType::Nested m_rhs;
 };
@@ -240,7 +240,7 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   ei_homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
-  
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     // FIXME investigate how to allow lazy evaluation of this product when possible
@@ -251,10 +251,10 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
     dst += m_rhs.row(m_rhs.rows()-1).colwise()
             .template replicate<MatrixType::RowsAtCompileTime>(m_lhs.rows());
   }
-  
+
   const typename MatrixType::Nested m_lhs;
   const typename Rhs::Nested m_rhs;
-  
+
 };
 
 #endif // EIGEN_HOMOGENEOUS_H

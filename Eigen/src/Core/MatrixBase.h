@@ -585,11 +585,11 @@ template<typename Derived> class MatrixBase
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;
-    
+
     template<int RowFactor, int ColFactor>
     const Replicate<Derived,RowFactor,ColFactor> replicate() const;
     const Replicate<Derived,Dynamic,Dynamic> replicate(int rowFacor,int colFactor) const;
-    
+
     Eigen::Reverse<Derived, BothDirections> reverse();
     const Eigen::Reverse<Derived, BothDirections> reverse() const;
     void reverseInPlace();
@@ -630,11 +630,12 @@ template<typename Derived> class MatrixBase
     typedef Block<Derived,
                   ei_traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                   ei_traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
-    typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, 
+    typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>,
                 NestByValue<StartMinusOne> > HNormalizedReturnType;
-    
+
     const HNormalizedReturnType hnormalized() const;
-    const Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> homogeneous() const;
+    typedef Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> HomogeneousReturnType;
+    const HomogeneousReturnType homogeneous() const;
 
 /////////// Sparse module ///////////
 
