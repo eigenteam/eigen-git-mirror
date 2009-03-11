@@ -386,7 +386,7 @@ public:
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
-  inline const MatrixType inverse(TransformTraits traits = Mode) const;
+  inline const MatrixType inverse(TransformTraits traits = (TransformTraits)Mode) const;
 
   /** \returns a const pointer to the column major internal matrix */
   const Scalar* data() const { return m_matrix.data(); }

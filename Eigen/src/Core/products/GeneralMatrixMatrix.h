@@ -69,7 +69,7 @@ static void ei_cache_friendly_product(
 
   typedef typename ei_packet_traits<Scalar>::type PacketType;
 
-  
+
 
 #ifndef EIGEN_USE_ALT_PRODUCT
 
@@ -83,31 +83,31 @@ static void ei_cache_friendly_product(
 
     // register block size along the N direction
     nr = HalfRegisterCount/2,
-    
+
     // register block size along the M direction
     mr = 2 * PacketSize,
-    
+
     // max cache block size along the K direction
     Max_kc = ei_L2_block_traits<EIGEN_TUNE_FOR_CPU_CACHE_SIZE,Scalar>::width,
-    
+
     // max cache block size along the M direction
     Max_mc = 2*Max_kc
   };
 
   int kc = std::min<int>(Max_kc,depth);  // cache block size along the K direction
   int mc = std::min<int>(Max_mc,rows);   // cache block size along the M direction
-  
+
   Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
   Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*PacketSize);
-  
+
   // number of columns which can be processed by packet of nr columns
   int packet_cols = (cols/nr)*nr;
-  
+
   // GEMM_VAR1
   for(int k2=0; k2<depth; k2+=kc)
   {
     const int actual_kc = std::min(k2+kc,depth)-k2;
-    
+
     // we have selected one row panel of rhs and one column panel of lhs
     // pack rhs's panel into a sequential chunk of memory
     // and expand each coeff to a constant packet for further reuse
@@ -132,12 +132,12 @@ static void ei_cache_friendly_product(
         }
       }
     }
-    
+
     // => GEPP_VAR1
     for(int i2=0; i2<rows; i2+=mc)
     {
       const int actual_mc = std::min(i2+mc,rows)-i2;
-      
+
       // We have selected a mc x kc block of lhs
       // Let's pack it in a clever order for further purely sequential access
       int count = 0;
@@ -176,11 +176,11 @@ static void ei_cache_friendly_product(
         {
           const Scalar* blA = &blockA[i*actual_kc];
           #ifdef EIGEN_VECTORIZE_SSE
-          _mm_prefetch(&blA[0], _MM_HINT_T0);
+          _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
           #endif
-          
+
           // TODO move the res loads to the stores
-          
+
           // gets res block as register
           PacketType C0, C1, C2, C3, C4, C5, C6, C7;
                     C0 = ei_ploadu(&res[(j2+0)*resStride + i2 + i]);
@@ -191,7 +191,7 @@ static void ei_cache_friendly_product(
                     C5 = ei_ploadu(&res[(j2+1)*resStride + i2 + i + PacketSize]);
           if(nr==4) C6 = ei_ploadu(&res[(j2+2)*resStride + i2 + i + PacketSize]);
           if(nr==4) C7 = ei_ploadu(&res[(j2+3)*resStride + i2 + i + PacketSize]);
-          
+
           // performs "inner" product
           // TODO let's check wether the flowing peeled loop could not be
           //      optimized via optimal prefetching from one loop to the other
@@ -258,7 +258,7 @@ static void ei_cache_friendly_product(
             if(nr==4) C6 = ei_pmadd(B2, A1, C6);
             if(nr==4) C3 = ei_pmadd(B3, A0, C3);
             if(nr==4) C7 = ei_pmadd(B3, A1, C7);
-            
+
             blB += 4*nr*PacketSize;
             blA += 4*mr;
           }
@@ -281,7 +281,7 @@ static void ei_cache_friendly_product(
             if(nr==4) C6 = ei_pmadd(B2, A1, C6);
             if(nr==4) C3 = ei_pmadd(B3, A0, C3);
             if(nr==4) C7 = ei_pmadd(B3, A1, C7);
-            
+
             blB += nr*PacketSize;
             blA += mr;
           }
@@ -299,9 +299,9 @@ static void ei_cache_friendly_product(
         {
           const Scalar* blA = &blockA[i*actual_kc];
           #ifdef EIGEN_VECTORIZE_SSE
-          _mm_prefetch(&blA[0], _MM_HINT_T0);
+          _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
           #endif
-          
+
           // gets a 1 x nr res block as registers
           Scalar C0(0), C1(0), C2(0), C3(0);
           const Scalar* blB = &blockB[j2*actual_kc*PacketSize];
@@ -318,7 +318,7 @@ static void ei_cache_friendly_product(
                       C1 += B1 * A0;
             if(nr==4) C2 += B2 * A0;
             if(nr==4) C3 += B3 * A0;
-            
+
             blB += nr*PacketSize;
           }
           res[(j2+0)*resStride + i2 + i] += C0;
@@ -344,10 +344,10 @@ static void ei_cache_friendly_product(
       }
     }
   }
-  
+
   ei_aligned_stack_delete(Scalar, blockA, kc*mc);
   ei_aligned_stack_delete(Scalar, blockB, kc*cols*PacketSize);
-  
+
 #else // alternate product from cylmor
 
   enum {
@@ -364,18 +364,18 @@ static void ei_cache_friendly_product(
     // maximal size of the blocks fitted in L2 cache
     MaxL2BlockSize = ei_L2_block_traits<EIGEN_TUNE_FOR_CPU_CACHE_SIZE,Scalar>::width
   };
-  
+
   const bool resIsAligned = (PacketSize==1) || (((resStride%PacketSize) == 0) && (size_t(res)%16==0));
 
   const int remainingSize = depth % PacketSize;
   const int size = depth - remainingSize; // third dimension of the product clamped to packet boundaries
-  
+
   const int l2BlockRows = MaxL2BlockSize > rows ? rows : 512;
   const int l2BlockCols = MaxL2BlockSize > cols ? cols : 128;
   const int l2BlockSize = MaxL2BlockSize > size ? size : 256;
   const int l2BlockSizeAligned = (1 + std::max(l2BlockSize,l2BlockCols)/PacketSize)*PacketSize;
   const bool needRhsCopy = (PacketSize>1) && ((rhsStride%PacketSize!=0) || (size_t(rhs)%16!=0));
-  
+
   Scalar* EIGEN_RESTRICT block = new Scalar[l2BlockRows*size];
 //   for(int i=0; i<l2BlockRows*l2BlockSize; ++i)
 //     block[i] = 0;
@@ -491,7 +491,7 @@ static void ei_cache_friendly_product(
   delete[] block;
 #endif
 
-  
+
 }
 
 #endif // EIGEN_EXTERN_INSTANTIATIONS

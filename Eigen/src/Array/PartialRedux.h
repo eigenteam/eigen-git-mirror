@@ -280,22 +280,22 @@ template<typename ExpressionType, int Direction> class PartialRedux
     {
       return Reverse<ExpressionType, Direction>( _expression() );
     }
-    
+
+    const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
+    replicate(int factor) const;
+
     template<int Factor>
-    const Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
+    const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
     replicate(int factor = Factor) const;
-    
+
 /////////// Geometry module ///////////
 
     const Homogeneous<ExpressionType,Direction> homogeneous() const;
-    
-    const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
-    replicate(int factor) const;
 
     typedef typename ExpressionType::PlainMatrixType CrossReturnType;
     template<typename OtherDerived>
     const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const;
-    
+
     enum {
       HNormalized_Size = Direction==Vertical ? ei_traits<ExpressionType>::RowsAtCompileTime
                                              : ei_traits<ExpressionType>::ColsAtCompileTime,
@@ -311,13 +311,13 @@ template<typename ExpressionType, int Direction> class PartialRedux
                   Direction==Vertical   ? 1 : int(ei_traits<ExpressionType>::RowsAtCompileTime),
                   Direction==Horizontal ? 1 : int(ei_traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Factors;
-    typedef CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<ExpressionType>::Scalar>, 
+    typedef CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<ExpressionType>::Scalar>,
                 NestByValue<HNormalized_Block>,
                 NestByValue<Replicate<NestByValue<HNormalized_Factors>,
                   Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                   Direction==Horizontal ? HNormalized_SizeMinusOne : 1> > >
             HNormalizedReturnType;
-    
+
     const HNormalizedReturnType hnormalized() const;
 
   protected:

@@ -25,7 +25,7 @@
 #ifndef EIGEN_REPLICATE_H
 #define EIGEN_REPLICATE_H
 
-/** \nonstableyet 
+/** \nonstableyet
   * \class Replicate
   *
   * \brief Expression of the multiple replication of a matrix or vector
@@ -70,11 +70,11 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     EIGEN_GENERIC_PUBLIC_INTERFACE(Replicate)
 
     inline Replicate(const MatrixType& matrix)
-      : m_matrix(matrix)
+      : m_matrix(matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
     {
       ei_assert(RowFactor!=Dynamic && ColFactor!=Dynamic);
     }
-    
+
     inline Replicate(const MatrixType& matrix, int rowFactor, int colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
     {}
@@ -93,9 +93,9 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     const ei_int_if_dynamic<ColFactor> m_colFactor;
 };
 
-/** \nonstableyet 
+/** \nonstableyet
   * \return an expression of the replication of \c *this
-  * 
+  *
   * Example: \include MatrixBase_replicate.cpp
   * Output: \verbinclude MatrixBase_replicate.out
   *
@@ -109,9 +109,9 @@ MatrixBase<Derived>::replicate() const
   return derived();
 }
 
-/** \nonstableyet 
+/** \nonstableyet
   * \return an expression of the replication of \c *this
-  * 
+  *
   * Example: \include MatrixBase_replicate_int_int.cpp
   * Output: \verbinclude MatrixBase_replicate_int_int.out
   *
@@ -124,9 +124,9 @@ MatrixBase<Derived>::replicate(int rowFactor,int colFactor) const
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
 }
 
-/** \nonstableyet 
+/** \nonstableyet
   * \return an expression of the replication of each column (or row) of \c *this
-  * 
+  *
   * Example: \include DirectionWise_replicate_int.cpp
   * Output: \verbinclude DirectionWise_replicate_int.out
   *
@@ -140,9 +140,9 @@ PartialRedux<ExpressionType,Direction>::replicate(int factor) const
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
 
-/** \nonstableyet 
+/** \nonstableyet
   * \return an expression of the replication of each column (or row) of \c *this
-  * 
+  *
   * Example: \include DirectionWise_replicate.cpp
   * Output: \verbinclude DirectionWise_replicate.out
   *
@@ -156,5 +156,5 @@ PartialRedux<ExpressionType,Direction>::replicate(int factor) const
   return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
-    
+
 #endif // EIGEN_REPLICATE_H
