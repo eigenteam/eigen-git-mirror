@@ -621,6 +621,8 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     PlainMatrixType cross(const MatrixBase<OtherDerived>& other) const;
+    template<typename OtherDerived>
+    PlainMatrixType cross3(const MatrixBase<OtherDerived>& other) const;
     PlainMatrixType unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
     const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;

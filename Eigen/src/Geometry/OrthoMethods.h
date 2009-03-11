@@ -31,6 +31,7 @@
   * \returns the cross product of \c *this and \a other
   *
   * Here is a very good explanation of cross-product: http://xkcd.com/199/
+  * \sa MatrixBase::cross3()
   */
 template<typename Derived>
 template<typename OtherDerived>
@@ -38,6 +39,7 @@ inline typename MatrixBase<Derived>::PlainMatrixType
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3)
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
 
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
@@ -48,6 +50,48 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
     lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
     lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0)
   );
+}
+
+template< int Arch,typename VectorLhs,typename VectorRhs,
+          typename Scalar = typename VectorLhs::Scalar,
+          int Vectorizable = (VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit>
+struct ei_cross3_impl {
+  inline static typename ei_plain_matrix_type<VectorLhs>::type
+  run(const VectorLhs& lhs, const VectorRhs& rhs)
+  {
+    return typename ei_plain_matrix_type<VectorLhs>::type(
+      lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1),
+      lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2),
+      lhs.coeff(0) * rhs.coeff(1) - lhs.coeff(1) * rhs.coeff(0),
+      0
+    );
+  }
+};
+
+/** \geometry_module
+  *
+  * \returns the cross product of \c *this and \a other using only the x, y, and z coefficients
+  *
+  * The size of \c *this and \a other must be four. This function is especially useful
+  * when using 4D vectors instead of 3D ones to get advantage of SSE/AltiVec vectorization.
+  *
+  * \sa MatrixBase::cross()
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline typename MatrixBase<Derived>::PlainMatrixType
+MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
+{
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,4)
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,4)
+
+  typedef typename ei_nested<Derived,2>::type DerivedNested;
+  typedef typename ei_nested<OtherDerived,2>::type OtherDerivedNested;
+  const DerivedNested lhs(derived());
+  const OtherDerivedNested rhs(other.derived());
+
+  return ei_cross3_impl<EiArch,typename ei_cleantype<DerivedNested>::type,
+                               typename ei_cleantype<OtherDerivedNested>::type>::run(lhs,rhs);
 }
 
 /** \returns a matrix expression of the cross product of each column or row

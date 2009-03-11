@@ -36,6 +36,8 @@ template<typename Scalar> void orthomethods_3()
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
 
+  typedef Matrix<Scalar,4,1> Vector4;
+
   Vector3 v0 = Vector3::Random(),
           v1 = Vector3::Random(),
           v2 = Vector3::Random();
@@ -59,6 +61,13 @@ template<typename Scalar> void orthomethods_3()
   mcross = mat3.rowwise().cross(vec3);
   VERIFY_IS_APPROX(mcross.row(i), mat3.row(i).cross(vec3));
 
+  // cross3
+  Vector4 v40 = Vector4::Random(),
+          v41 = Vector4::Random(),
+          v42 = Vector4::Random();
+  v40.w() = v41.w() = v42.w() = 0;
+  v42.template start<3>() = v40.template start<3>().cross(v41.template start<3>());
+  VERIFY_IS_APPROX(v40.cross3(v41), v42);
 }
 
 template<typename Scalar, int Size> void orthomethods(int size=Size)
