@@ -41,7 +41,7 @@ template <typename _Scalar, int _AmbientDim>
 class AlignedBox
 {
 public:
-EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==Dynamic ? Dynamic : _AmbientDim+1)
+EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -85,6 +85,9 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   /** \returns a non const reference to the maximal corner */
   inline VectorType& max() { return m_max; }
 
+  /** \returns the center of the box */
+  inline VectorType center() const { return (m_min + m_max) / 2; }
+
   /** \returns true if the point \a p is inside the box \c *this. */
   inline bool contains(const VectorType& p) const
   { return (m_min.cwise()<=p).all() && (p.cwise()<=m_max).all(); }
@@ -105,6 +108,14 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   inline AlignedBox& clamp(const AlignedBox& b)
   { m_min = m_min.cwise().max(b.m_min); m_max = m_max.cwise().min(b.m_max); return *this; }
 
+  /** Returns an AlignedBox that is the intersection of \a b and \c *this */
+  inline AlignedBox intersection(const AlignedBox &b) const
+  { return AlignedBox(m_min.cwise().max(b.m_min), m_max.cwise().min(b.m_max)); }
+
+  /** Returns an AlignedBox that is the union of \a b and \c *this */
+  inline AlignedBox merged(const AlignedBox &b) const
+  { return AlignedBox(m_min.cwise().min(b.m_min), m_max.cwise().max(b.m_max)); }
+
   /** Translate \c *this by the vector \a t and returns a reference to \c *this. */
   inline AlignedBox& translate(const VectorType& t)
   { m_min += t; m_max += t; return *this; }
@@ -115,12 +126,25 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
     */
   inline Scalar squaredExteriorDistance(const VectorType& p) const;
 
+  /** \returns the squared distance between the boxes \a b and \c *this,
+    * and zero if the boxes intersect.
+    * \sa exteriorDistance()
+    */
+  inline Scalar squaredExteriorDistance(const AlignedBox& b) const;
+
   /** \returns the distance between the point \a p and the box \c *this,
     * and zero if \a p is inside the box.
     * \sa squaredExteriorDistance()
     */
   inline Scalar exteriorDistance(const VectorType& p) const
   { return ei_sqrt(squaredExteriorDistance(p)); }
+
+  /** \returns the distance between the boxes \a b and \c *this,
+    * and zero if the boxes intersect.
+    * \sa squaredExteriorDistance()
+    */
+  inline Scalar exteriorDistance(const AlignedBox& b) const
+  { return ei_sqrt(squaredExteriorDistance(b)); }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -165,6 +189,21 @@ inline Scalar AlignedBox<Scalar,AmbiantDim>::squaredExteriorDistance(const Vecto
     if ((aux = (p[k]-m_min[k]))<0.)
       dist2 += aux*aux;
     else if ( (aux = (m_max[k]-p[k]))<0. )
+      dist2 += aux*aux;
+  }
+  return dist2;
+}
+
+template<typename Scalar,int AmbiantDim>
+inline Scalar AlignedBox<Scalar,AmbiantDim>::squaredExteriorDistance(const AlignedBox& b) const
+{
+  Scalar dist2 = 0.;
+  Scalar aux;
+  for (int k=0; k<dim(); ++k)
+  {
+    if ((aux = (b.m_min[k]-m_max[k]))>0.)
+      dist2 += aux*aux;
+    else if ( (aux = (m_min[k]-b.m_max[k]))>0. )
       dist2 += aux*aux;
   }
   return dist2;
