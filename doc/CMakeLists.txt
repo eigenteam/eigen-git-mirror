@@ -36,7 +36,7 @@ add_subdirectory(examples)
 add_subdirectory(snippets)
 
 add_custom_target(
-  doc-eigen
+  doc-eigen-prerequisites
   ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
@@ -45,24 +45,25 @@ add_custom_target(
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/AsciiQuickReference.txt
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
-  COMMAND doxygen
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 add_custom_target(
-  doc-unsupported
+  doc-unsupported-prerequisites
   ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${Eigen_BINARY_DIR}/doc/html/unsupported
   COMMAND ${CMAKE_COMMAND} -E copy ${Eigen_SOURCE_DIR}/doc/eigendoxy_tabs.css
                                    ${Eigen_BINARY_DIR}/doc/html/unsupported/
   COMMAND ${CMAKE_COMMAND} -E copy ${Eigen_SOURCE_DIR}/doc/Eigen_Silly_Professor_64x64.png
                                    ${Eigen_BINARY_DIR}/doc/html/unsupported/
-  COMMAND doxygen Doxyfile-unsupported
   WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc
 )
 
-add_dependencies(doc-eigen all_snippets all_examples)
-add_dependencies(doc-unsupported doc-eigen)
-# rerun doxygen to get eigen => unsupported cross references
-add_custom_target(doc ALL COMMAND doxygen WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc)
-add_dependencies(doc doc-eigen doc-unsupported)
+add_dependencies(doc-eigen-prerequisites all_snippets all_examples)
+add_dependencies(doc-unsupported-prerequisites unsupported_examples)
+add_custom_target(doc ALL
+  COMMAND doxygen Doxyfile-unsupported
+  COMMAND doxygen
+  COMMAND doxygen Doxyfile-unsupported # run doxygen twice to get proper eigen <=> unsupported cross references
+  WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc)
+add_dependencies(doc doc-eigen-prerequisites doc-unsupported-prerequisites)
