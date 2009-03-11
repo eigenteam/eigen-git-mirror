@@ -1013,6 +1013,29 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,1>
   { return tr.linear() * other + tr.translation(); }
 };
 
+// Affine *  homogeneous column vector
+// FIXME added for backward compatibility, but I'm not sure we should keep it
+template<typename Other, int Mode, int Dim, int HDim>
+struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, HDim,1>
+{
+  typedef Transform<typename Other::Scalar,Dim,Mode> TransformType;
+  typedef Matrix<typename Other::Scalar,HDim,1> ResultType;
+  static ResultType run(const TransformType& tr, const Other& other)
+  { return tr.matrix() * other; }
+};
+template<typename Other, int Dim, int HDim>
+struct ei_transform_right_product_impl<Other,AffineCompact, Dim,HDim, HDim,1>
+{
+  typedef Transform<typename Other::Scalar,Dim,AffineCompact> TransformType;
+  typedef Matrix<typename Other::Scalar,HDim,1> ResultType;
+  static ResultType run(const TransformType& tr, const Other& other)
+  {
+    ResultType res;
+    res.template start<HDim>() = tr.matrix() * other;
+    res.coeffRef(Dim) = other.coeff(Dim);
+  }
+};
+
 // T * linear matrix => T
 template<typename Other, int Mode, int Dim, int HDim>
 struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,Dim>
