@@ -44,6 +44,8 @@ using namespace Eigen;
 class FancySpheres
 {
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
     FancySpheres()
     {
       const int levels = 4;
@@ -262,67 +264,18 @@ void RenderingWidget::drawScene()
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4f(1, 1, 1, 1).data());
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 64);
 
-//   glEnable(GL_LIGHTING);
-//   glEnable(GL_LIGHT0);
-//   glEnable(GL_LIGHT1);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
 
-  glColor3f(0.4, 0.7, 0.4);
-
-  {IcoSphere s(5);
-  float length = 6;
-//   const std::vector<int>& indices = s.indices(2);
-  for (unsigned int i=0; i<s.vertices().size() ; ++i)
-  {
-    Vector3f n = s.vertices()[i].normalized();
-    Vector3f p = n*100;
-
-    int i,j;
-    float minc = n.minCoeff(&i);
-    float maxc = n.maxCoeff(&j);
-    Vector3f o = n;
-    o[i] = -n[j];
-    o[j] = n[i];
-
-    //Vector3f u = n.unitOrthogonal().normalized();
-    Vector3f u = n.cross(o).normalized();
-    Vector3f v = n.cross(u).normalized();
-    gpu.drawVector(p, length*u, Color(1,0,0,1));
-    gpu.drawVector(p, length*v, Color(0,1,0,1));
-//     gpu.drawVector(p, length*n, Color(0,0,1,1));
-  }}
-
-  for(;;)
-  {
-    Vector3f n = Vector3f::Random().normalized();
-//     Vector3f p = n*100;
-    //Vector3f u = n.unitOrthogonal().normalized();
-//     int i,j;
-//     float minc = n.minCoeff(&i);
-//     float maxc = n.maxCoeff(&j);
-
-//     Vector3f o = n;
-//     o[i] = -n[j];
-//     o[j] =  n[i];
-    Vector3f o = Vector3f(-n.y(),n.z(),n.x()).normalized();
-    Vector3f u = n.cross(o).normalized();
-
-    float d = ei_abs(o.dot(n));
-
-    if (d>0.9999)
-      std::cout << d << "  " << n.transpose() << "\n";
-
-//     Vector3f v = n.cross(u).normalized();
-  }
-
-
-//   sFancySpheres.draw();
-//   glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
-//   glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
-//   glEnableClientState(GL_VERTEX_ARRAY);
-//   glEnableClientState(GL_NORMAL_ARRAY);
-//   glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
-//   glDisableClientState(GL_VERTEX_ARRAY);
-//   glDisableClientState(GL_NORMAL_ARRAY);
+  sFancySpheres.draw();
+  glVertexPointer(3, GL_FLOAT, 0, mVertices[0].data());
+  glNormalPointer(GL_FLOAT, 0, mNormals[0].data());
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glDrawArrays(GL_TRIANGLES, 0, mVertices.size());
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
 
   glDisable(GL_LIGHTING);
 }

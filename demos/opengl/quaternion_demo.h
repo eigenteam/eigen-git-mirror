@@ -108,7 +108,9 @@ class RenderingWidget : public QGLWidget
     virtual void keyPressEvent(QKeyEvent * e);
     //--------------------------------------------------------------------------------
 
-  public:
+  public: 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
     RenderingWidget();
     ~RenderingWidget() { }
 

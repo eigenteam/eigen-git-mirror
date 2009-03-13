@@ -32,6 +32,8 @@
 class Frame
 {
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    
     inline Frame(const Eigen::Vector3f& pos = Eigen::Vector3f::Zero(),
                  const Eigen::Quaternionf& o = Eigen::Quaternionf())
       : orientation(o), position(pos)
@@ -49,6 +51,7 @@ class Frame
 class Camera
 {
   public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     Camera(void);
     
