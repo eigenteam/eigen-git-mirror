@@ -47,19 +47,19 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
-  
+
   enum {
     IsRowMajor = StorageOrder==RowMajorBit ? 1 : 0,
     IsLower = UpLo == LowerTriangularBit ? 1 : 0,
     FirstTriangular = IsRowMajor == IsLower
   };
-  
+
   ei_conj_if<NumTraits<Scalar>::IsComplex && IsRowMajor> conj0;
   ei_conj_if<NumTraits<Scalar>::IsComplex && !IsRowMajor> conj1;
 
   for (int i=0;i<size;i++)
     res[i] = 0;
-  
+
   int bound = std::max(0,size-8) & 0xfffffffE;
   if (FirstTriangular)
     bound = size - bound;
@@ -67,19 +67,19 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
   for (int j=FirstTriangular ? bound : 0;
        j<(FirstTriangular ? size : bound);j+=2)
   {
-    register const Scalar* __restrict__ A0 = lhs + j*lhsStride;
-    register const Scalar* __restrict__ A1 = lhs + (j+1)*lhsStride;
-    
+    register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
+    register const Scalar* EIGEN_RESTRICT A1 = lhs + (j+1)*lhsStride;
+
     Scalar t0 = rhs[j];
     Packet ptmp0 = ei_pset1(t0);
     Scalar t1 = rhs[j+1];
     Packet ptmp1 = ei_pset1(t1);
-    
+
     Scalar t2 = 0;
     Packet ptmp2 = ei_pset1(t2);
     Scalar t3 = 0;
     Packet ptmp3 = ei_pset1(t3);
-    
+
     size_t starti = FirstTriangular ? 0 : j+2;
     size_t endi   = FirstTriangular ? j : size;
     size_t alignedEnd = starti;
@@ -98,7 +98,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       res[j+1] += t0 * conj0(A0[j+1]) + t1 * conj0(A1[j+1]);
       t2 += conj1(A0[j+1]) * rhs[j+1];
     }
-    
+
     for (size_t i=starti; i<alignedStart; ++i)
     {
       res[i] += t0 * A0[i] + t1 * A1[i];
@@ -111,7 +111,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       Packet A1i = ei_ploadu(&A1[i]);
       Packet Bi = ei_ploadu(&rhs[i]); // FIXME should be aligned in most cases
       Packet Xi = ei_pload(&res[i]);
-      
+
       Xi = ei_padd(ei_padd(Xi, ei_pmul(ptmp0, conj0(A0i))), ei_pmul(ptmp1, conj0(A1i)));
       ptmp2 = ei_padd(ptmp2, ei_pmul(conj1(A0i), Bi));
       ptmp3 = ei_padd(ptmp3, ei_pmul(conj1(A1i), Bi));
@@ -123,14 +123,14 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       t2 += conj1(A0[i]) * rhs[i];
       t3 += conj1(A1[i]) * rhs[i];
     }
-    
+
     res[j]   += t2 + ei_predux(ptmp2);
     res[j+1] += t3 + ei_predux(ptmp3);
   }
   for (int j=FirstTriangular ? 0 : bound;j<(FirstTriangular ? bound : size);j++)
   {
-    register const Scalar* __restrict__ A0 = lhs + j*lhsStride;
-    
+    register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
+
     Scalar t1 = rhs[j];
     Scalar t2 = 0;
     res[j] += t1 * conj0(A0[j]);
