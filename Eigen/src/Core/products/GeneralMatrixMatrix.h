@@ -425,16 +425,11 @@ static void ei_cache_friendly_product(
             for(int i=0; i<l2BlockRows; i+=2*PacketSize)
             {
               PacketType R0, R1, L0, L1, T0, T1;
-              asm("#begin sgemm");
-//               asm(".byte 0x66;");
 
               // We perform "cross products" of vectors to avoid
               // reductions (horizontal ops) afterwards
               T0 = ei_pload(&res[(j+l2j)*resStride+l2i+i]);
               T1 = ei_pload(&res[(j+l2j)*resStride+l2i+i+PacketSize]);
-              // uncomment to remove res cache miss
-//               T0 = ei_pload(&res[k]);
-//               T1 = ei_pload(&res[k+PacketSize]);
 
               R0 = ei_pload(&lb[0*PacketSize]);
               L0 = ei_pload(&lb[1*PacketSize]);
@@ -478,10 +473,6 @@ static void ei_cache_friendly_product(
 
               ei_pstore(&res[(j+l2j)*resStride+l2i+i], T0);
               ei_pstore(&res[(j+l2j)*resStride+l2i+i+PacketSize], T1);
-              // uncomment to remove res cache miss
-//               ei_pstore(&res[0], T0);
-//               ei_pstore(&res[4/*k+PacketSize*/], T1);
-              asm("#end sgemm");
             }
           }
         }

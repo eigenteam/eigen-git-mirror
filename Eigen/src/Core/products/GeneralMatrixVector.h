@@ -38,7 +38,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
   Scalar* res)
-{asm("#ei_cache_friendly_product_colmajor_times_vector");
+{
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif

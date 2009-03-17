@@ -159,6 +159,12 @@ using Eigen::ei_cos;
 #define EIGEN_DEPRECATED
 #endif
 
+#if (defined __GNUC__)
+#define EIGEN_ASM_COMMENT(X)  asm("#"X)
+#else
+#define EIGEN_ASM_COMMENT(X)
+#endif
+
 /* EIGEN_ALIGN_128 forces data to be 16-byte aligned, EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
  * so that vectorization doesn't affect binary compatibility.
  *
