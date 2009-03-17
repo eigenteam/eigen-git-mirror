@@ -133,7 +133,7 @@ MatrixBase<Derived>::replicate(int rowFactor,int colFactor) const
   * \sa PartialRedux::replicate(), MatrixBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
-const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
+const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
 PartialRedux<ExpressionType,Direction>::replicate(int factor) const
 {
   return Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
@@ -150,7 +150,7 @@ PartialRedux<ExpressionType,Direction>::replicate(int factor) const
   */
 template<typename ExpressionType, int Direction>
 template<int Factor>
-const Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
+const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
 PartialRedux<ExpressionType,Direction>::replicate(int factor) const
 {
   return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
