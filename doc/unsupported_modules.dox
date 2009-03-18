@@ -16,4 +16,7 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup IterativeSolvers_Module Iterative solvers module */
 
+/** \ingroup Unsupported_modules
+  * \defgroup BVH_Module BVH module */
+
 } // namespace Eigen

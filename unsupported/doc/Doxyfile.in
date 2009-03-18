@@ -626,7 +626,11 @@ EXCLUDE_SYMBOLS        = MatrixBase<* MapBase<* RotationBase<* Matrix<*
 EXAMPLE_PATH           = "${Eigen_SOURCE_DIR}/doc/snippets" \
                          "${Eigen_BINARY_DIR}/doc/snippets" \
                          "${Eigen_SOURCE_DIR}/doc/examples" \
-                         "${Eigen_BINARY_DIR}/doc/examples"
+                         "${Eigen_BINARY_DIR}/doc/examples" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/snippets" \
+                         "${Eigen_BINARY_DIR}/unsupported/doc/snippets" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/examples" \
+                         "${Eigen_BINARY_DIR}/unsupported/doc/examples"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp

@@ -25,6 +25,8 @@
 #ifndef EIGEN_ITERATIVE_SOLVERS_MODULE_H
 #define EIGEN_ITERATIVE_SOLVERS_MODULE_H
 
+#include <Eigen/Core>
+
 namespace Eigen {
 
 /** \ingroup Unsupported_modules
@@ -38,7 +40,7 @@ namespace Eigen {
   * \endcode
   */
 //@{
-  
+
 #include "src/IterativeSolvers/IterationController.h"
 #include "src/IterativeSolvers/ConstrainedConjGrad.h"
 
