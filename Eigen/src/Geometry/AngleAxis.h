@@ -33,6 +33,8 @@
   *
   * \param _Scalar the scalar type, i.e., the type of the coefficients.
   *
+  * \warning When setting up an AngleAxis object, the axis vector \b must \b be \b normalized.
+  *
   * The following two typedefs are provided for convenience:
   * \li \c AngleAxisf for \c float
   * \li \c AngleAxisd for \c double
@@ -82,7 +84,10 @@ public:
   /** Default constructor without initialization. */
   AngleAxis() {}
   /** Constructs and initialize the angle-axis rotation from an \a angle in radian
-    * and an \a axis which must be normalized. */
+    * and an \a axis which \b must \b be \b normalized.
+    * 
+    * \warning If the \a axis vector is not normalized, then the angle-axis object
+    *          represents an invalid rotation. */
   template<typename Derived>
   inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
   /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
