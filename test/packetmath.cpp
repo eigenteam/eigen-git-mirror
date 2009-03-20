@@ -26,6 +26,8 @@
 
 // using namespace Eigen;
 
+template<typename T> T ei_negate(const T& x) { return -x; }
+
 template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int size)
 {
   for (int i=0; i<size; ++i)
@@ -120,6 +122,7 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE2(std::min, ei_pmin);
   CHECK_CWISE2(std::max, ei_pmax);
   CHECK_CWISE1(ei_abs, ei_pabs);
+  CHECK_CWISE1(ei_negate, ei_pnegate);
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0];

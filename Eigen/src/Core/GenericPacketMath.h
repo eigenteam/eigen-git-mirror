@@ -44,6 +44,10 @@ template<typename Packet> inline Packet
 ei_psub(const Packet& a,
         const Packet& b) { return a-b; }
 
+/** \internal \returns -a (coeff-wise) */
+template<typename Packet> inline Packet
+ei_pnegate(const Packet& a) { return -a; }
+
 /** \internal \returns a * b (coeff-wise) */
 template<typename Packet> inline Packet
 ei_pmul(const Packet& a,

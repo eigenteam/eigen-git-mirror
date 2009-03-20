@@ -101,6 +101,17 @@ template<> inline v4i  ei_padd(const v4i&   a, const v4i&   b) { return vec_add(
 template<> inline v4f  ei_psub(const v4f&   a, const v4f&   b) { return vec_sub(a,b); }
 template<> inline v4i  ei_psub(const v4i&   a, const v4i&   b) { return vec_sub(a,b); }
 
+template<> EIGEN_STRONG_INLINE v4f ei_pnegate(const v4f& a)
+{
+  v4i mask(0x80000000,0x80000000,0x80000000,0x80000000);
+  return vec_xor(a,(v4f) mask);
+}
+template<> EIGEN_STRONG_INLINE v4i ei_pnegate(const v4i& a)
+{
+  v4f zero;
+  return ei_psub(vec_xor(zero,zero), a);
+}
+
 template<> inline v4f  ei_pmul(const v4f&   a, const v4f&   b) { USE_CONST_v0f; return vec_madd(a,b, v0f); }
 template<> inline v4i  ei_pmul(const v4i&   a, const v4i&   b)
 {

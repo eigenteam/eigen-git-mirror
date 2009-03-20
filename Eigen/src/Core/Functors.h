@@ -190,10 +190,16 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
   */
 template<typename Scalar> struct ei_scalar_opposite_op EIGEN_EMPTY_STRUCT {
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return -a; }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pnegate(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false }; };
+{ enum {
+    Cost = NumTraits<Scalar>::AddCost,
+    PacketAccess = int(ei_packet_traits<Scalar>::size)>1 };
+};
 
 /** \internal
   * \brief Template functor to compute the absolute value of a scalar

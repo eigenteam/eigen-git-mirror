@@ -61,6 +61,21 @@ template<> EIGEN_STRONG_INLINE __m128  ei_psub<__m128>(const __m128&  a, const _
 template<> EIGEN_STRONG_INLINE __m128d ei_psub<__m128d>(const __m128d& a, const __m128d& b) { return _mm_sub_pd(a,b); }
 template<> EIGEN_STRONG_INLINE __m128i ei_psub<__m128i>(const __m128i& a, const __m128i& b) { return _mm_sub_epi32(a,b); }
 
+template<> EIGEN_STRONG_INLINE __m128 ei_pnegate(const __m128& a)
+{
+  const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x80000000,0x80000000,0x80000000));
+  return _mm_xor_ps(a,mask);
+}
+template<> EIGEN_STRONG_INLINE __m128d ei_pnegate(const __m128d& a)
+{
+  const __m128d mask = _mm_castsi128_pd(_mm_setr_epi32(0x0,0x80000000,0x0,0x80000000));
+  return _mm_xor_pd(a,mask);
+}
+template<> EIGEN_STRONG_INLINE __m128i ei_pnegate(const __m128i& a)
+{
+  return ei_psub(_mm_setr_epi32(0,0,0,0), a);
+}
+
 template<> EIGEN_STRONG_INLINE __m128  ei_pmul<__m128>(const __m128&  a, const __m128&  b) { return _mm_mul_ps(a,b); }
 template<> EIGEN_STRONG_INLINE __m128d ei_pmul<__m128d>(const __m128d& a, const __m128d& b) { return _mm_mul_pd(a,b); }
 template<> EIGEN_STRONG_INLINE __m128i ei_pmul<__m128i>(const __m128i& a, const __m128i& b)
