@@ -113,39 +113,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(sqrtSymmA, symmA*eiSymm.operatorInverseSqrt());
 }
 
-template<typename MatrixType> void eigensolver(const MatrixType& m)
-{
-  /* this test covers the following files:
-     EigenSolver.h
-  */
-  int rows = m.rows();
-  int cols = m.cols();
-
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
-  typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
-
-  // RealScalar largerEps = 10*test_precision<RealScalar>();
-
-  MatrixType a = MatrixType::Random(rows,cols);
-  MatrixType a1 = MatrixType::Random(rows,cols);
-  MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
-
-  EigenSolver<MatrixType> ei0(symmA);
-  VERIFY_IS_APPROX(symmA * ei0.pseudoEigenvectors(), ei0.pseudoEigenvectors() * ei0.pseudoEigenvalueMatrix());
-  VERIFY_IS_APPROX((symmA.template cast<Complex>()) * (ei0.pseudoEigenvectors().template cast<Complex>()),
-    (ei0.pseudoEigenvectors().template cast<Complex>()) * (ei0.eigenvalues().asDiagonal()));
-
-  EigenSolver<MatrixType> ei1(a);
-  VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
-  VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
-                   ei1.eigenvectors() * ei1.eigenvalues().asDiagonal().eval());
-
-}
-
-void test_eigensolver()
+void test_eigensolver_selfadjoint()
 {
   for(int i = 0; i < g_repeat; i++) {
     // very important to test a 3x3 matrix since we provide a special path for it
@@ -155,8 +123,11 @@ void test_eigensolver()
     CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(5,5)) );
     CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
 
-    CALL_SUBTEST( eigensolver(Matrix4f()) );
-    CALL_SUBTEST( eigensolver(MatrixXd(17,17)) );
+    // some trivial but implementation-wise tricky cases
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(1,1)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(2,2)) );
+    CALL_SUBTEST( selfadjointeigensolver(Matrix<double,1,1>()) );
+    CALL_SUBTEST( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
 }
 
