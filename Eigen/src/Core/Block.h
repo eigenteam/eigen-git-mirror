@@ -68,8 +68,8 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum{
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : BlockRows,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : BlockCols,
+    RowsAtCompileTime = BlockRows,
+    ColsAtCompileTime = BlockCols,
     MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1
       : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1

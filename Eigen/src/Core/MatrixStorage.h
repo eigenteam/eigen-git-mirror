@@ -85,6 +85,21 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matr
     inline T *data() { return m_data.array; }
 };
 
+// null matrix
+template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage<T, 0, _Rows, _Cols, _Options>
+{
+  public:
+    inline explicit ei_matrix_storage() {}
+    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) {}
+    inline ei_matrix_storage(int,int,int) {}
+    inline void swap(ei_matrix_storage& other) {}
+    inline static int rows(void) {return _Rows;}
+    inline static int cols(void) {return _Cols;}
+    inline void resize(int,int,int) {}
+    inline const T *data() const { return 0; }
+    inline T *data() { return 0; }
+};
+
 // dynamic-size matrix with fixed-size storage
 template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dynamic, Dynamic, _Options>
 {

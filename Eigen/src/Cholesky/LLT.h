@@ -103,6 +103,8 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   x = ei_real(a.coeff(0,0));
   m_isPositiveDefinite = x > eps && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
+  if(size==1)
+    return;
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {

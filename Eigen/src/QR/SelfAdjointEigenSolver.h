@@ -189,6 +189,14 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
+
+  if(n==1)
+  {
+    m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
+    m_eivec.setOnes();
+    return;
+  }
+
   m_eivec = matrix;
 
   // FIXME, should tridiag be a local variable of this function or an attribute of SelfAdjointEigenSolver ?
