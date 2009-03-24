@@ -176,7 +176,10 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
       if(size != m_rows*m_cols)
       {
         ei_aligned_delete(m_data, m_rows*m_cols);
-        m_data = ei_aligned_new<T>(size);
+        if (size)
+          m_data = ei_aligned_new<T>(size);
+        else
+          m_data = 0;
       }
       m_rows = rows;
       m_cols = cols;
@@ -203,7 +206,10 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
       if(size != _Rows*m_cols)
       {
         ei_aligned_delete(m_data, _Rows*m_cols);
-        m_data = ei_aligned_new<T>(size);
+        if (size)
+          m_data = ei_aligned_new<T>(size);
+        else
+          m_data = 0;
       }
       m_cols = cols;
     }
@@ -229,7 +235,10 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
       if(size != m_rows*_Cols)
       {
         ei_aligned_delete(m_data, _Cols*m_rows);
-        m_data = ei_aligned_new<T>(size);
+        if (size)
+          m_data = ei_aligned_new<T>(size);
+        else
+          m_data = 0;
       }
       m_rows = rows;
     }

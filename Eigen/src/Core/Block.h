@@ -221,15 +221,13 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     class InnerIterator;
     typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
+    friend class Block<MatrixType,BlockRows,BlockCols,AsRequested,HasDirectAccess>;
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
-    AlignedDerivedType forceAligned()
+    AlignedDerivedType _convertToForceAligned()
     {
-      if (PacketAccess==ForceAligned)
-        return *this;
-      else
-        return Block<MatrixType,BlockRows,BlockCols,ForceAligned,HasDirectAccess>
+      return Block<MatrixType,BlockRows,BlockCols,ForceAligned,HasDirectAccess>
                     (m_matrix, Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 
@@ -454,7 +452,7 @@ MatrixBase<Derived>::end(int size) const
   * \only_for_vectors
   *
   * The template parameter \a Size is the number of coefficients in the block
-  * 
+  *
   * \param start the index of the first element of the sub-vector
   *
   * Example: \include MatrixBase_template_int_segment.cpp

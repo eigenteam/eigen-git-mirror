@@ -247,7 +247,8 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
       } \
       void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
       void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-      void *operator new(size_t, void *ptr) throw() { return ptr; }
+      void *operator new(size_t, void *ptr) throw() { return ptr; } \
+      typedef void ei_operator_new_marker_type;
 #else
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 #endif
@@ -288,34 +289,34 @@ public:
         typedef aligned_allocator<U> other;
     };
 
-    pointer address( reference value ) const 
+    pointer address( reference value ) const
     {
         return &value;
     }
 
-    const_pointer address( const_reference value ) const 
+    const_pointer address( const_reference value ) const
     {
         return &value;
     }
 
-    aligned_allocator() throw() 
+    aligned_allocator() throw()
     {
     }
 
-    aligned_allocator( const aligned_allocator& ) throw() 
+    aligned_allocator( const aligned_allocator& ) throw()
     {
     }
 
     template<class U>
-    aligned_allocator( const aligned_allocator<U>& ) throw() 
+    aligned_allocator( const aligned_allocator<U>& ) throw()
     {
     }
 
-    ~aligned_allocator() throw() 
+    ~aligned_allocator() throw()
     {
     }
 
-    size_type max_size() const throw() 
+    size_type max_size() const throw()
     {
         return std::numeric_limits<size_type>::max();
     }
@@ -326,17 +327,17 @@ public:
         return static_cast<pointer>( ei_aligned_malloc( num * sizeof(T) ) );
     }
 
-    void construct( pointer p, const T& value ) 
+    void construct( pointer p, const T& value )
     {
         ::new( p ) T( value );
     }
 
-    void destroy( pointer p ) 
+    void destroy( pointer p )
     {
         p->~T();
     }
 
-    void deallocate( pointer p, size_type /*num*/ ) 
+    void deallocate( pointer p, size_type /*num*/ )
     {
         ei_aligned_free( p );
     }

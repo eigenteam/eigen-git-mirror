@@ -95,11 +95,8 @@ public:
   /** Default constructor without initialization of the coefficients. */
   inline Transform() { }
 
-  inline Transform(ei_constructor_without_unaligned_array_assert)
-    : m_matrix(ei_constructor_without_unaligned_array_assert()) {}
-
   inline Transform(const Transform& other)
-  { 
+  {
     m_matrix = other.m_matrix;
   }
 
@@ -648,7 +645,7 @@ template<typename Scalar, int Dim>
 template<typename ScalingMatrixType, typename RotationMatrixType>
 void Transform<Scalar,Dim>::computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const
 {
-  linear().svd().computeScalingRotation(scaling, rotation);  
+  linear().svd().computeScalingRotation(scaling, rotation);
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale

@@ -66,12 +66,9 @@ template<typename MatrixType, int PacketAccess> class Map
 
     inline int stride() const { return this->innerSize(); }
 
-    AlignedDerivedType forceAligned()
+    AlignedDerivedType _convertToForceAligned()
     {
-      if (PacketAccess==ForceAligned)
-        return *this;
-      else
-        return Map<MatrixType,ForceAligned>(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
+      return Map<MatrixType,ForceAligned>(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 
     inline Map(const Scalar* data) : Base(data) {}

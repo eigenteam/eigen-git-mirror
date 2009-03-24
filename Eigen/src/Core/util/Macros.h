@@ -193,18 +193,18 @@ using Eigen::ei_cos;
 template<typename OtherDerived> \
 EIGEN_STRONG_INLINE Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \
 { \
-  return Eigen::MatrixBase<Derived>::operator Op(other.derived()); \
+  return Base::operator Op(other.derived()); \
 } \
 EIGEN_STRONG_INLINE Derived& operator Op(const Derived& other) \
 { \
-  return Eigen::MatrixBase<Derived>::operator Op(other); \
+  return Base::operator Op(other); \
 }
 
 #define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 { \
-  return Eigen::MatrixBase<Derived>::operator Op(scalar); \
+  return Base::operator Op(scalar); \
 }
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

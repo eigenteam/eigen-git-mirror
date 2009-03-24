@@ -61,12 +61,12 @@ template<typename _Scalar>
 class Quaternion : public RotationBase<Quaternion<_Scalar>,3>
 {
   typedef RotationBase<Quaternion<_Scalar>,3> Base;
-  
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,4)
 
   using Base::operator*;
-  
+
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
 
@@ -111,10 +111,6 @@ public:
 
   /** Default constructor leaving the quaternion uninitialized. */
   inline Quaternion() {}
-
-  inline Quaternion(ei_constructor_without_unaligned_array_assert)
-    : m_coeffs(ei_constructor_without_unaligned_array_assert()) {}
-
 
   /** Constructs and initializes the quaternion \f$ w+xi+yj+zk \f$ from
     * its four coefficients \a w, \a x, \a y and \a z.
@@ -217,7 +213,7 @@ public:
   bool isApprox(const Quaternion& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
-protected: 
+protected:
   Coefficients m_coeffs;
 };
 
