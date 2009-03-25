@@ -63,6 +63,15 @@ template<typename T> struct ei_packet_traits : ei_default_packet_traits
 {
   typedef T type;
   enum {size=1};
+  enum {
+    HasAdd    = 0,
+    HasSub    = 0,
+    HasMul    = 0,
+    HasNegate = 0,
+    HasAbs    = 0,
+    HasMin    = 0,
+    HasMax    = 0
+  };
 };
 
 /** \internal \returns a + b (coeff-wise) */
@@ -172,16 +181,16 @@ template<typename Packet> inline Packet ei_preverse(const Packet& a)
 ***************************/
 
 /** \internal \returns the sin of \a a (coeff-wise) */
-template<typename Packet> inline Packet ei_psin(const Packet& a) { return ei_sin(a); }
+template<typename Packet> inline Packet ei_psin(Packet a) { return ei_sin(a); }
 
 /** \internal \returns the cos of \a a (coeff-wise) */
-template<typename Packet> inline Packet ei_pcos(const Packet& a) { return ei_cos(a); }
+template<typename Packet> inline Packet ei_pcos(Packet a) { return ei_cos(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
-template<typename Packet> inline Packet ei_pexp(const Packet& a) { return ei_exp(a); }
+template<typename Packet> inline Packet ei_pexp(Packet a) { return ei_exp(a); }
 
 /** \internal \returns the log of \a a (coeff-wise) */
-template<typename Packet> inline Packet ei_plog(const Packet& a) { return ei_log(a); }
+template<typename Packet> inline Packet ei_plog(Packet a) { return ei_log(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

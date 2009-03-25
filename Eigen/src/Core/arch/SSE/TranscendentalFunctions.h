@@ -84,9 +84,8 @@ _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375);
 
-template<> EIGEN_DONT_INLINE Packet4f ei_plog(const Packet4f& _x)
+template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
 {
-  Packet4f x = _x;
   Packet4i emm0;
 
   Packet4f invalid_mask = _mm_cmple_ps(x, _mm_setzero_ps());
@@ -113,26 +112,27 @@ template<> EIGEN_DONT_INLINE Packet4f ei_plog(const Packet4f& _x)
   e = ei_psub(e, _mm_and_ps(ei_p4f_1, mask));
   x = ei_padd(x, tmp);
 
-  Packet4f z = ei_pmul(x,x);
-
-  Packet4f y = ei_p4f_cephes_log_p0;
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p1);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p2);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p3);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p4);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p5);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p6);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p7);
-  y = ei_pmadd(y, x, ei_p4f_cephes_log_p8);
-  y = ei_pmul(y, x);
-  y = ei_pmul(y, z);
+  Packet4f x2 = ei_pmul(x,x);
+  Packet4f x3 = ei_pmul(x2,x);
   
-  y = ei_pmadd(e, ei_p4f_cephes_log_q1, y);
-  y = ei_psub(y, ei_pmul(z, ei_p4f_half));
-
-  tmp = ei_pmul(e, ei_p4f_cephes_log_q2);
+  Packet4f y, y1, y2;
+  y  = ei_pmadd(ei_p4f_cephes_log_p0, x, ei_p4f_cephes_log_p1);
+  y1 = ei_pmadd(ei_p4f_cephes_log_p3, x, ei_p4f_cephes_log_p4);
+  y2 = ei_pmadd(ei_p4f_cephes_log_p6, x, ei_p4f_cephes_log_p7);
+  y  = ei_pmadd(y , x, ei_p4f_cephes_log_p2);
+  y1 = ei_pmadd(y1, x, ei_p4f_cephes_log_p5);
+  y2 = ei_pmadd(y2, x, ei_p4f_cephes_log_p8);
+  y = ei_pmadd(y, x3, y1);
+  y = ei_pmadd(y, x3, y2);
+  y = ei_pmul(y, x3);
+  
+  y1 = ei_pmul(e, ei_p4f_cephes_log_q1);
+  tmp = ei_pmul(x2, ei_p4f_half);
+  y = ei_padd(y, y1);
+  x = ei_psub(x, tmp);
+  y2 = ei_pmul(e, ei_p4f_cephes_log_q2);
   x = ei_padd(x, y);
-  x = ei_padd(x, tmp);
+  x = ei_padd(x, y2);
   return _mm_or_ps(x, invalid_mask); // negative arg will be NAN
 }
 
@@ -150,9 +150,8 @@ _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1);
 
-template<> EIGEN_DONT_INLINE Packet4f ei_pexp(const Packet4f& _x)
+template<> EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
 {
-  Packet4f x = _x;
   Packet4f tmp = _mm_setzero_ps(), fx;
   Packet4i emm0;
 
@@ -215,16 +214,17 @@ _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005);
 _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003);
 _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516); // 4 / M_PI
+_EIGEN_DECLARE_CONST_Packet4f(2pi, 2.*M_PI);
 
-template<> EIGEN_DONT_INLINE Packet4f ei_psin(const Packet4f& _x)
+template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 {
-  Packet4f x = _x;
   Packet4f xmm1, xmm2 = _mm_setzero_ps(), xmm3, sign_bit, y;
 
   Packet4i emm0, emm2;
   sign_bit = x;
   /* take the absolute value */
   x = ei_pabs(x);
+  
   /* extract the sign bit (upper one) */
   sign_bit = _mm_and_ps(sign_bit, ei_p4f_sign_mask);
   
@@ -292,9 +292,8 @@ template<> EIGEN_DONT_INLINE Packet4f ei_psin(const Packet4f& _x)
 }
 
 /* almost the same as ei_psin */
-template<> EIGEN_DONT_INLINE Packet4f ei_pcos(const Packet4f& _x)
+template<> Packet4f ei_pcos(Packet4f x)
 {
-  Packet4f x = _x;
   Packet4f xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
   Packet4i emm0, emm2;
   
