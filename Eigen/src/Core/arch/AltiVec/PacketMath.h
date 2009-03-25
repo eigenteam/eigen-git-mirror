@@ -45,8 +45,10 @@ typedef __vector __bool int     v4bi;
 #define USE_CONST_v1i_    const v4ui  v1i_  = vec_splat_u32(-1)
 #define USE_CONST_v0f_    USE_CONST_v1i_; const v4f v0f_ = (v4f) vec_sl(v1i_, v1i_)
 
-template<> struct ei_packet_traits<float>  { typedef v4f type; enum {size=4}; };
-template<> struct ei_packet_traits<int>    { typedef v4i type; enum {size=4}; };
+template<> struct ei_packet_traits<float> : ei_default_packet_traits
+{ typedef v4f type; enum {size=4}; };
+template<> struct ei_packet_traits<int>   : ei_default_packet_traits
+{ typedef v4i type; enum {size=4}; };
 
 template<> struct ei_unpacket_traits<v4f>  { typedef float  type; enum {size=4}; };
 template<> struct ei_unpacket_traits<v4i>  { typedef int    type; enum {size=4}; };

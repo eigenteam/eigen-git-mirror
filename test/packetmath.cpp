@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -46,6 +47,34 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i]); \
   ei_pstore(data2, POP(ei_pload(data1))); \
+  VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
+}
+
+template<bool Cond,typename Packet>
+struct packet_helper
+{
+  template<typename T>
+  inline Packet load(const T* from) const { return ei_pload(from); }
+  
+  template<typename T>
+  inline void store(T* to, const Packet& x) const { ei_pstore(to,x); }
+};
+
+template<typename Packet>
+struct packet_helper<false,Packet>
+{
+  template<typename T>
+  inline T load(const T* from) const { return *from; }
+  
+  template<typename T>
+  inline void store(T* to, const T& x) const { *to = x; }
+};
+
+#define CHECK_CWISE1_IF(COND, REFOP, POP) if(COND) { \
+  packet_helper<COND,Packet> h; \
+  for (int i=0; i<PacketSize; ++i) \
+    ref[i] = REFOP(data1[i]); \
+  h.store(data2, POP(h.load(data1))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
@@ -167,6 +196,39 @@ template<typename Scalar> void packetmath()
   VERIFY(areApprox(ref, data2, PacketSize) && "ei_preverse");
 }
 
+template<typename Scalar> void packetmath_real()
+{
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  const int PacketSize = ei_packet_traits<Scalar>::size;
+
+  const int size = PacketSize*4;
+  EIGEN_ALIGN_128 Scalar data1[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_128 Scalar data2[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_128 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = ei_random<Scalar>(-1e3,1e3);
+    data2[i] = ei_random<Scalar>(-1e3,1e3);
+  }
+  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasSin, ei_sin, ei_psin);
+  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasCos, ei_cos, ei_pcos);
+  
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = ei_random<Scalar>(-87,88);
+    data2[i] = ei_random<Scalar>(-87,88);
+  }
+  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasExp, ei_exp, ei_pexp);
+  
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = ei_random<Scalar>(0,1e6);
+    data2[i] = ei_random<Scalar>(0,1e6);
+  }
+  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasLog, ei_log, ei_plog);
+}
+
 void test_packetmath()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -174,5 +236,8 @@ void test_packetmath()
     CALL_SUBTEST( packetmath<double>() );
     CALL_SUBTEST( packetmath<int>() );
     CALL_SUBTEST( packetmath<std::complex<float> >() );
+    
+    CALL_SUBTEST( packetmath_real<float>() );
+    CALL_SUBTEST( packetmath_real<double>() );
   }
 }

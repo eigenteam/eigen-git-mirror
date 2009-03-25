@@ -34,6 +34,37 @@
   * of generic vectorized code.
   */
 
+struct ei_default_packet_traits
+{
+  enum {
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasNegate = 1,
+    HasAbs    = 1,
+    HasMin    = 1,
+    HasMax    = 1,
+    
+    HasDiv    = 0,
+    HasExp    = 0,
+    HasLog    = 0,
+    HasPow    = 0,
+    
+    HasSin    = 0,
+    HasCos    = 0,
+    HasTan    = 0,
+    HasASin   = 0,
+    HasACos   = 0,
+    HasATan   = 0
+  };
+};
+
+template<typename T> struct ei_packet_traits : ei_default_packet_traits
+{
+  typedef T type;
+  enum {size=1};
+};
+
 /** \internal \returns a + b (coeff-wise) */
 template<typename Packet> inline Packet
 ei_padd(const Packet& a,
@@ -72,6 +103,22 @@ ei_pmax(const Packet& a,
 template<typename Packet> inline Packet
 ei_pabs(const Packet& a) { return ei_abs(a); }
 
+/** \internal \returns the bitwise and of \a a and \a b */
+template<typename Packet> inline Packet
+ei_pand(const Packet& a, const Packet& b) { return a & b; }
+
+/** \internal \returns the bitwise or of \a a and \a b */
+template<typename Packet> inline Packet
+ei_por(const Packet& a, const Packet& b) { return a | b; }
+
+/** \internal \returns the bitwise xor of \a a and \a b */
+template<typename Packet> inline Packet
+ei_pxor(const Packet& a, const Packet& b) { return a ^ b; }
+
+/** \internal \returns the bitwise andnot of \a a and \a b */
+template<typename Packet> inline Packet
+ei_pandnot(const Packet& a, const Packet& b) { return a & (!b); }
+        
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
 ei_pload(const Scalar* from) { return *from; }
@@ -119,6 +166,22 @@ template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_pr
 /** \internal \returns the reversed elements of \a a*/
 template<typename Packet> inline Packet ei_preverse(const Packet& a)
 { return a; }
+
+/**************************
+* Trnascendental functions
+***************************/
+
+/** \internal \returns the sin of \a a (coeff-wise) */
+template<typename Packet> inline Packet ei_psin(const Packet& a) { return ei_sin(a); }
+
+/** \internal \returns the cos of \a a (coeff-wise) */
+template<typename Packet> inline Packet ei_pcos(const Packet& a) { return ei_cos(a); }
+
+/** \internal \returns the exp of \a a (coeff-wise) */
+template<typename Packet> inline Packet ei_pexp(const Packet& a) { return ei_exp(a); }
+
+/** \internal \returns the log of \a a (coeff-wise) */
+template<typename Packet> inline Packet ei_plog(const Packet& a) { return ei_log(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

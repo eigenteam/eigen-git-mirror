@@ -102,6 +102,7 @@ namespace Eigen {
 
 #if defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/TranscendentalFunctions.h"
 #elif defined EIGEN_VECTORIZE_ALTIVEC
   #include "src/Core/arch/AltiVec/PacketMath.h"
 #endif
