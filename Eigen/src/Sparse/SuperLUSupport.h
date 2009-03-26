@@ -224,6 +224,7 @@ SluMatrix SparseMatrixBase<Derived>::asSluMatrix()
   return SluMatrix::Map(derived());
 }
 
+/** View a Super LU matrix as an Eigen expression */
 template<typename Scalar, int Flags>
 MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(SluMatrix& sluMat)
 {

@@ -129,7 +129,10 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
   {
     taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, Base::m_precision, 0);
-    m_matrix = MappedSparseMatrix<Scalar>(*taucsRes);
+    // the matrix returned by Taucs is not necessarily sorted,
+    // so let's copy it in two steps
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsRes);
+    m_matrix = tmp;
     free(taucsRes);
     m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
              | IncompleteFactorization
@@ -161,7 +164,11 @@ SparseLLT<MatrixType,Taucs>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     taucs_ccs_matrix* taucsL = taucs_supernodal_factor_to_ccs(m_taucsSupernodalFactor);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix<Scalar>(*taucsL);
+
+    // the matrix returned by Taucs is not necessarily sorted,
+    // so let's copy it in two steps
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsL);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = tmp;
     free(taucsL);
     m_status = (m_status & ~MatrixLIsDirty);
   }
@@ -172,21 +179,31 @@ template<typename MatrixType>
 template<typename Derived>
 void SparseLLT<MatrixType,Taucs>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  if (m_status & MatrixLIsDirty)
+  bool inputIsCompatibleWithTaucs = (Derived::Flags&RowMajorBit)==0;
+
+  if (!inputIsCompatibleWithTaucs)
   {
-    // TODO use taucs's supernodal solver, in particular check types, storage order, etc.
-    // VectorXb x(b.rows());
-    // for (int j=0; j<b.cols(); ++j)
-    // {
-    //   taucs_supernodal_solve_llt(m_taucsSupernodalFactor,x.data(),&b.col(j).coeffRef(0));
-    //   b.col(j) = x;
-    // }
     matrixL();
-  }
-
-
-  {
     Base::solveInPlace(b);
+  }
+  else if (m_flags & IncompleteFactorization)
+  {
+    taucs_ccs_matrix taucsLLT = const_cast<typename Base::CholMatrixType&>(m_matrix).asTaucsMatrix();
+    typename ei_plain_matrix_type<Derived>::type x(b.rows());
+    for (int j=0; j<b.cols(); ++j)
+    {
+      taucs_ccs_solve_llt(&taucsLLT,x.data(),&b.col(j).coeffRef(0));
+      b.col(j) = x;
+    }
+  }
+  else
+  {
+    typename ei_plain_matrix_type<Derived>::type x(b.rows());
+    for (int j=0; j<b.cols(); ++j)
+    {
+      taucs_supernodal_solve_llt(m_taucsSupernodalFactor,x.data(),&b.col(j).coeffRef(0));
+      b.col(j) = x;
+    }
   }
 }
 

@@ -62,7 +62,7 @@ class SparseMatrix
     // FIXME: why are these operator already alvailable ???
     // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, *=)
     // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, /=)
-    
+
     typedef MappedSparseMatrix<Scalar,Flags> Map;
 
   protected:
@@ -79,7 +79,7 @@ class SparseMatrix
 
     inline int rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
-    
+
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_outerSize; }
     inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
@@ -195,7 +195,7 @@ class SparseMatrix
       // FIXME let's make sure sizeof(long int) == sizeof(size_t)
       size_t id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
-      
+
       float reallocRatio = 1;
       if (m_data.allocatedSize()<id+1)
       {
@@ -217,7 +217,7 @@ class SparseMatrix
         m_data.value(id) = m_data.value(id-1);
         --id;
       }
-      
+
       m_data.index(id) = inner;
       return (m_data.value(id) = 0);
     }
@@ -236,7 +236,7 @@ class SparseMatrix
         ++i;
       }
     }
-    
+
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       int k = 0;
