@@ -82,7 +82,7 @@ Cwise<ExpressionType>::log() const
   * Example: \include Cwise_cos.cpp
   * Output: \verbinclude Cwise_cos.out
   *
-  * \sa sin(), exp()
+  * \sa sin(), exp(), EIGEN_FAST_MATH
   */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cos_op)
@@ -99,7 +99,7 @@ Cwise<ExpressionType>::cos() const
   * Example: \include Cwise_sin.cpp
   * Output: \verbinclude Cwise_sin.out
   *
-  * \sa cos(), exp()
+  * \sa cos(), exp(), EIGEN_FAST_MATH
   */
 template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)

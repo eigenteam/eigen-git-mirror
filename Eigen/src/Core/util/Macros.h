@@ -60,15 +60,15 @@
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
 #endif
 
-/** \internal  Defines the maximal loop size to enable meta unrolling of loops.
-  *            Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
-  *            it does not correspond to the number of iterations or the number of instructions
+/** Defines the maximal loop size to enable meta unrolling of loops.
+  * Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
+  * it does not correspond to the number of iterations or the number of instructions
   */
 #ifndef EIGEN_UNROLLING_LIMIT
 #define EIGEN_UNROLLING_LIMIT 100
 #endif
 
-/** \internal Define the maximal size in Bytes of blocks fitting in CPU cache.
+/** Defines the maximal size in Bytes of blocks fitting in CPU cache.
   * The current value is set to generate blocks of 256x256 for float
   *
   * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
@@ -80,6 +80,15 @@
 // FIXME this should go away quickly
 #ifdef EIGEN_TUNE_FOR_L2_CACHE_SIZE
 #error EIGEN_TUNE_FOR_L2_CACHE_SIZE is now called EIGEN_TUNE_FOR_CPU_CACHE_SIZE.
+#endif
+
+/** Allows to disable some optimizations which might affect the accuracy of the result.
+  * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
+  * They currently include:
+  *   - single precision Cwise::sin() and Cwise::cos() when SSE vectorization is enabled. 
+  */
+#ifndef EIGEN_FAST_MATH
+#define EIGEN_FAST_MATH 1
 #endif
 
 #define USING_PART_OF_NAMESPACE_EIGEN \

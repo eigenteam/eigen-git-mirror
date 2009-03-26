@@ -198,6 +198,28 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   };
 };
 
+/** \internal Helper base class to add a scalar multiple operator
+  * overloads for complex types */
+template<typename Derived,typename Scalar,typename OtherScalar,
+         bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
+struct ei_special_scalar_op_base
+{
+  // dummy operator* so that the 
+  // "using ei_special_scalar_op_base::operator*" compiles
+  void operator*() const;
+};
+
+template<typename Derived,typename Scalar,typename OtherScalar>
+struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>
+{
+  const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+  operator*(const OtherScalar& scalar) const
+  {
+    return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+      (*static_cast<const Derived*>(this), ei_scalar_multiple2_op<Scalar,OtherScalar>(scalar));
+  }
+};
+
 /** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size
   * TODO: could be a good idea to define a big ReturnType struct ??
   */

@@ -73,10 +73,12 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_pexp(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasExp }; };
 
 /** \internal
   *
@@ -88,10 +90,12 @@ struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_log(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_plog(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_log_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasLog }; };
 
 /** \internal
   *
@@ -102,11 +106,18 @@ struct ei_functor_traits<ei_scalar_log_op<Scalar> >
   * \sa class CwiseUnaryOp, Cwise::cos()
   */
 template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a) const { return ei_cos(a); }
+  inline Scalar operator() (const Scalar& a) const { return ei_cos(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_pcos(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasCos && EIGEN_FAST_MATH
+  };
+};
 
 /** \internal
   *
@@ -118,10 +129,17 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_psin(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasSin && EIGEN_FAST_MATH
+  };
+};
 
 /** \internal
   *

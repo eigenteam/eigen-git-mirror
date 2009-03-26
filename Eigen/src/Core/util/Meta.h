@@ -64,6 +64,14 @@ template<typename T> struct ei_cleantype<T&>        { typedef typename ei_cleant
 template<typename T> struct ei_cleantype<const T*>  { typedef typename ei_cleantype<T>::type type; };
 template<typename T> struct ei_cleantype<T*>        { typedef typename ei_cleantype<T>::type type; };
 
+/** \internal Allows to enable/disable an overload
+  * according to a compile time condition.
+  */
+template<bool Condition, typename T> struct ei_enable_if;
+
+template<typename T> struct ei_enable_if<true,T>
+{ typedef T type; };
+
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
   *

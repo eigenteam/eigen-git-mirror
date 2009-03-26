@@ -90,6 +90,8 @@ template<typename Scalar> struct ei_scalar_add_op;
 template<typename Scalar> struct ei_scalar_constant_op;
 template<typename Scalar> struct ei_scalar_identity_op;
 
+template<typename Scalar1,typename Scalar2> struct ei_scalar_multiple2_op;
+
 struct IOFormat;
 
 template<typename Scalar>

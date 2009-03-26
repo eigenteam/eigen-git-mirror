@@ -327,6 +327,18 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
 
+template<typename Scalar1, typename Scalar2>
+struct ei_scalar_multiple2_op {
+  typedef typename ei_scalar_product_traits<Scalar1,Scalar2>::ReturnType result_type;
+  EIGEN_STRONG_INLINE ei_scalar_multiple2_op(const ei_scalar_multiple2_op& other) : m_other(other.m_other) { }
+  EIGEN_STRONG_INLINE ei_scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
+  EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
+  const Scalar2 m_other;
+};
+template<typename Scalar1,typename Scalar2>
+struct ei_functor_traits<ei_scalar_multiple2_op<Scalar1,Scalar2> >
+{ enum { Cost = NumTraits<Scalar1>::MulCost, PacketAccess = false }; };
+
 template<typename Scalar, bool HasFloatingPoint>
 struct ei_scalar_quotient1_impl {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
