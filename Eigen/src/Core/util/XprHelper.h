@@ -73,11 +73,7 @@ template<typename T> struct ei_functor_traits
   };
 };
 
-template<typename T> struct ei_packet_traits
-{
-  typedef T type;
-  enum {size=1};
-};
+template<typename T> struct ei_packet_traits;
 
 template<typename T> struct ei_unpacket_traits
 {
