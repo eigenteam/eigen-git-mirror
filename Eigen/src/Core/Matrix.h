@@ -134,7 +134,7 @@ class Matrix
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
 
   public:
-    enum { NeedsToAlign = (Options&AutoAlign) == AutoAlign
+    enum { NeedsToAlign = (!(Options&DontAlign))
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
@@ -536,7 +536,8 @@ class Matrix
     {
         EIGEN_STATIC_ASSERT(((_MaxRows >= _Rows || _Rows==Dynamic)
                           && (_MaxCols >= _Cols || _Cols==Dynamic)
-                          && (_Options & (AutoAlign|RowMajor)) == _Options),
+                          && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
+                          && (_Options & (DontAlign|RowMajor)) == _Options),
           INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
 };

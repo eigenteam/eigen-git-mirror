@@ -30,17 +30,19 @@
   * stored in some runtime variable.
   *
   * Explanation for the choice of this value:
-  * - It should be positive and larger than any reasonable compile-time-fixed number of rows or columns.
+  * - It should be positive and larger than the number of entries in any reasonable fixed-size matrix.
   *   This allows to simplify many compile-time conditions throughout Eigen.
   * - It should be smaller than the sqrt of INT_MAX. Indeed, we often multiply a number of rows with a number
   *   of columns in order to compute a number of coefficients. Even if we guard that with an "if" checking whether
   *   the values are Dynamic, we still get a compiler warning "integer overflow". So the only way to get around
   *   it would be a meta-selector. Doing this everywhere would reduce code readability and lenghten compilation times.
   *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
+  * - It should be a prime number, because for example the old value 10000 led to bugs with 100x100 matrices.
   *
-  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 100.
+  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 97.
+  * However, changing the value of Dynamic breaks the ABI, as Dynamic is often used as a template parameter for Matrix.
   */
-const int Dynamic = 10000;
+const int Dynamic = 33331;
 
 /** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
   * The value Infinity there means the L-infinity norm.
@@ -227,9 +229,9 @@ enum {
   RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
   /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be
                 requested to be aligned) */
-  DontAlign = 0,
   /** \internal Align the matrix itself if it is vectorizable fixed-size */
-  AutoAlign = 0x2
+  AutoAlign = 0,
+  DontAlign = 0x2
 };
 
 enum {
