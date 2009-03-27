@@ -61,7 +61,8 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
     HasSin  = 1,
     HasCos  = 1,
     HasLog  = 1,
-    HasExp  = 1
+    HasExp  = 1,
+    HasSqrt = 1
   };
 };
 template<> struct ei_packet_traits<double> : ei_default_packet_traits

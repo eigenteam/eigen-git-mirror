@@ -58,10 +58,16 @@ struct ei_functor_traits<ei_scalar_add_op<Scalar> >
   */
 template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_psqrt(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasSqrt
+  };
+};
 
 /** \internal
   *

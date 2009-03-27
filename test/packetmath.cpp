@@ -227,6 +227,7 @@ template<typename Scalar> void packetmath_real()
     data2[i] = ei_random<Scalar>(0,1e6);
   }
   CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasLog, ei_log, ei_plog);
+  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasSqrt, ei_sqrt, ei_psqrt);
 }
 
 void test_packetmath()

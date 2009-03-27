@@ -23,9 +23,9 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-/* The functions of this file come from Julien Pommier's sse math library.
- * which is itself inspired by Intel Approximate Math library, and based on the
- * corresponding algorithms of the cephes math library.
+/* The sin, cos, exp, and log functions of this file come from Julien Pommier's sse
+ * math library, which is itself inspired by Intel Approximate Math library,
+ * and based on the corresponding algorithms of the cephes math library.
  */
 
 /* Copyright (C) 2007  Julien Pommier
@@ -49,18 +49,16 @@
   (this is the zlib license)
 */
 
-#ifndef EIGEN_TRANSCENDENTAL_FUNCTIONS_SSE_H
-#define EIGEN_TRANSCENDENTAL_FUNCTIONS_SSE_H
+#ifndef EIGEN_MATH_FUNCTIONS_SSE_H
+#define EIGEN_MATH_FUNCTIONS_SSE_H
 
 _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0);
 _EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
 /* the smallest non denormalized float number */
 _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
-// _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(mant_mask, 0x7f800000);
 _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_mant_mask, ~0x7f800000);
 
 _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(sign_mask, 0x80000000);
-// _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_sign_mask, ~0x80000000);
 
 _EIGEN_DECLARE_CONST_Packet4i(1, 1);
 _EIGEN_DECLARE_CONST_Packet4i(not1, ~1);
@@ -214,7 +212,6 @@ _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005);
 _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003);
 _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002);
 _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516); // 4 / M_PI
-_EIGEN_DECLARE_CONST_Packet4f(2pi, 2.*M_PI);
 
 template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 {
@@ -358,4 +355,12 @@ template<> Packet4f ei_pcos(Packet4f x)
   return _mm_xor_ps(y, sign_bit);
 }
 
-#endif // EIGEN_TRANSCENDENTAL_FUNCTIONS_SSE_H
+template<> Packet4f ei_psqrt(Packet4f _x)
+{
+  Packet4f half = ei_pmul(_x, ei_pset1(.5f));
+  Packet4f x = _mm_rsqrt_ps(_x);
+  x = ei_pmul(x, ei_psub(ei_pset1(1.5f), ei_pmul(half, ei_pmul(x,x))));
+  return ei_pmul(_x,x);
+}
+
+#endif // EIGEN_MATH_FUNCTIONS_SSE_H

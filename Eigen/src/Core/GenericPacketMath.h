@@ -46,6 +46,7 @@ struct ei_default_packet_traits
     HasMax    = 1,
     
     HasDiv    = 0,
+    HasSqrt   = 0,
     HasExp    = 0,
     HasLog    = 0,
     HasPow    = 0,
@@ -191,6 +192,9 @@ template<typename Packet> inline Packet ei_pexp(Packet a) { return ei_exp(a); }
 
 /** \internal \returns the log of \a a (coeff-wise) */
 template<typename Packet> inline Packet ei_plog(Packet a) { return ei_log(a); }
+
+/** \internal \returns the square-root of \a a (coeff-wise) */
+template<typename Packet> inline Packet ei_psqrt(Packet a) { return ei_log(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
