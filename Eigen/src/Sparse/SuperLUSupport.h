@@ -60,13 +60,24 @@ struct SluMatrixMapHelper;
   */
 struct SluMatrix : SuperMatrix
 {
-  SluMatrix() {}
+  SluMatrix()
+  {
+    Store = &storage;
+  }
 
   SluMatrix(const SluMatrix& other)
     : SuperMatrix(other)
   {
     Store = &storage;
     storage = other.storage;
+  }
+  
+  SluMatrix& operator=(const SluMatrix& other)
+  {
+    SuperMatrix::operator=(static_cast<const SuperMatrix&>(other));
+    Store = &storage;
+    storage = other.storage;
+    return *this;
   }
 
   struct
