@@ -25,7 +25,7 @@
 #define EIGEN_NO_ASSERTION_CHECKING
 #include "main.h"
 #include <Eigen/Cholesky>
-#include <Eigen/LU>
+#include <Eigen/QR>
 
 #ifdef HAS_GSL
 #include "gsl_helper.h"
@@ -51,6 +51,10 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   // let's make sure the matrix is not singular or near singular
   MatrixType a1 = MatrixType::Random(rows,cols);
   symm += a1 * a1.adjoint();
+
+  // to test if really Cholesky only uses the upper triangular part, uncomment the following
+  // FIXME: currently that fails !!
+  //symm.template part<StrictlyLowerTriangular>().setZero();
 
   #ifdef HAS_GSL
   if (ei_is_same_type<RealScalar,double>::ret)
@@ -81,23 +85,41 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   #endif
 
   {
-    LDLT<SquareMatrixType> ldlt(symm);
-    VERIFY(ldlt.isPositiveDefinite());
-    // TODO(keir): This doesn't make sense now that LDLT pivots.
-    //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
-    ldlt.solve(vecB, &vecX);
-    VERIFY_IS_APPROX(symm * vecX, vecB);
-    ldlt.solve(matB, &matX);
-    VERIFY_IS_APPROX(symm * matX, matB);
-  }
-
-  {
     LLT<SquareMatrixType> chol(symm);
     VERIFY(chol.isPositiveDefinite());
     VERIFY_IS_APPROX(symm, chol.matrixL() * chol.matrixL().adjoint());
     chol.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     chol.solve(matB, &matX);
+    VERIFY_IS_APPROX(symm * matX, matB);
+  }
+
+  int sign = ei_random<int>()%2 ? 1 : -1;
+
+  if(sign == -1)
+  {
+    symm = -symm; // test a negative matrix
+  }
+
+  {
+    LDLT<SquareMatrixType> ldlt(symm);
+    VERIFY(ldlt.isInvertible());
+    if(sign == 1)
+    {
+      VERIFY(ldlt.isPositive());
+      VERIFY(ldlt.isPositiveDefinite());
+    }
+    if(sign == -1)
+    {
+      VERIFY(ldlt.isNegative());
+      VERIFY(ldlt.isNegativeDefinite());
+    }
+
+    // TODO(keir): This doesn't make sense now that LDLT pivots.
+    //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
+    ldlt.solve(vecB, &vecX);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+    ldlt.solve(matB, &matX);
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
@@ -112,6 +134,52 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   }
 }
 
+template<typename Derived>
+void doSomeRankPreservingOperations(Eigen::MatrixBase<Derived>& m)
+{
+  typedef typename Derived::RealScalar RealScalar;
+  for(int a = 0; a < 3*(m.rows()+m.cols()); a++)
+  {
+    RealScalar d = Eigen::ei_random<RealScalar>(-1,1);
+    int i = Eigen::ei_random<int>(0,m.rows()-1); // i is a random row number
+    int j;
+    do {
+      j = Eigen::ei_random<int>(0,m.rows()-1);
+    } while (i==j); // j is another one (must be different)
+    m.row(i) += d * m.row(j);
+
+    i = Eigen::ei_random<int>(0,m.cols()-1); // i is a random column number
+    do {
+      j = Eigen::ei_random<int>(0,m.cols()-1);
+    } while (i==j); // j is another one (must be different)
+    m.col(i) += d * m.col(j);
+  }
+}
+
+template<typename MatrixType> void ldlt_rank()
+{
+  // NOTE there seems to be a problem with too small sizes -- could easily lie in the doSomeRankPreservingOperations function
+  int rows = ei_random<int>(50,200);
+  int rank = ei_random<int>(40, rows-1);
+
+
+  // generate a random positive matrix a of given rank
+  MatrixType m = MatrixType::Random(rows,rows);
+  QR<MatrixType> qr(m);
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> DiagVectorType;
+  DiagVectorType d(rows);
+  d.setZero();
+  for(int i = 0; i < rank; i++) d(i)=RealScalar(1);
+  MatrixType a = qr.matrixQ() * d.asDiagonal() * qr.matrixQ().adjoint();
+
+  LDLT<MatrixType> ldlt(a);
+
+  VERIFY( ei_abs(ldlt.rank() - rank) <= rank / 20 ); // yes, LDLT::rank is a bit inaccurate...
+}
+
+
 void test_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -120,7 +188,12 @@ void test_cholesky()
     CALL_SUBTEST( cholesky(Matrix3f()) );
     CALL_SUBTEST( cholesky(Matrix4d()) );
     CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
-    CALL_SUBTEST( cholesky(MatrixXf(17,17)) );
-    CALL_SUBTEST( cholesky(MatrixXd(33,33)) );
+    CALL_SUBTEST( cholesky(MatrixXd(17,17)) );
+    CALL_SUBTEST( cholesky(MatrixXf(200,200)) );
+  }
+  for(int i = 0; i < g_repeat/3; i++) {
+    CALL_SUBTEST( ldlt_rank<MatrixXd>() );
+    CALL_SUBTEST( ldlt_rank<MatrixXf>() );
+    CALL_SUBTEST( ldlt_rank<MatrixXcd>() );
   }
 }

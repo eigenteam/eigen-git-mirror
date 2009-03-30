@@ -34,19 +34,19 @@
   *
   * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
   *
-  * Perform a robust Cholesky decomposition of a symmetric positive semidefinite
+  * Perform a robust Cholesky decomposition of a positive semidefinite or negative semidefinite
   * matrix \f$ A \f$ such that \f$ A =  P^TLDL^*P \f$, where P is a permutation matrix, L
   * is lower triangular with a unit diagonal and D is a diagonal matrix.
   *
-  * The decomposition uses pivoting to ensure stability, such that if A is
-  * positive semidefinite (i.e. eigenvalues are non-negative), then L will have
+  * The decomposition uses pivoting to ensure stability, so that L will have
   * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
   * on D also stabilizes the computation.
   *
+  * \sa MatrixBase::ldlt(), class LLT
+  */
+ /* THIS PART OF THE DOX IS CURRENTLY DISABLED BECAUSE INACCURATE BECAUSE OF BUG IN THE DECOMPOSITION CODE
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
-  *
-  * \sa MatrixBase::ldlt(), class LLT
   */
 template<typename MatrixType> class LDLT
 {
@@ -81,8 +81,20 @@ template<typename MatrixType> class LDLT
     /** \returns the coefficients of the diagonal matrix D */
     inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
 
+    /** \returns true if the matrix is positive (semidefinite) */
+    inline bool isPositive(void) const { return m_sign == 1; }
+
+    /** \returns true if the matrix is negative (semidefinite) */
+    inline bool isNegative(void) const { return m_sign == -1; }
+
+    /** \returns true if the matrix is invertible */
+    inline bool isInvertible(void) const { return m_rank == m_matrix.rows(); }
+
     /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return m_rank == m_matrix.rows(); }
+    inline bool isPositiveDefinite(void) const { return isPositive() && isInvertible(); }
+
+    /** \returns true if the matrix is negative definite */
+    inline bool isNegativeDefinite(void) const { return isNegative() && isInvertible(); }
 
     /** \returns the rank of the matrix of which *this is the LDLT decomposition.
       *
@@ -112,15 +124,15 @@ template<typename MatrixType> class LDLT
     MatrixType m_matrix;
     IntColVectorType m_p;
     IntColVectorType m_transpositions;
-    int m_rank;
+    int m_rank, m_sign;
 };
 
-/** Compute / recompute the LLT decomposition A = L D L^* = U^* D U of \a matrix
+/** Compute / recompute the LDLT decomposition A = L D L^* = U^* D U of \a matrix
   */
 template<typename MatrixType>
 void LDLT<MatrixType>::compute(const MatrixType& a)
 {
-  assert(a.rows()==a.cols());
+  ei_assert(a.rows()==a.cols());
   const int size = a.rows();
   m_rank = size;
 
@@ -129,6 +141,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   if (size <= 1) {
     m_p.setZero();
     m_transpositions.setZero();
+    m_sign = ei_real(a.coeff(0,0))>0 ? 1:-1;
     return;
   }
 
@@ -141,35 +154,38 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
 
   for (int j = 0; j < size; ++j)
   {
-    // Find largest element diagonal and pivot it upward for processing next.
-    int row_of_biggest_in_corner, col_of_biggest_in_corner;
+    // Find largest diagonal element
+    int index_of_biggest_in_corner;
     biggest_in_corner = m_matrix.diagonal().end(size-j).cwise().abs()
-                       .maxCoeff(&row_of_biggest_in_corner,
-                                 &col_of_biggest_in_corner);
+                       .maxCoeff(&index_of_biggest_in_corner);
+    index_of_biggest_in_corner += j;
 
-    // The biggest overall is the point of reference to which further diagonals
-    // are compared; if any diagonal is negligible to machine epsilon compared
-    // to the largest overall, the algorithm bails.  This cutoff is suggested
-    // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
-    // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-    // Algorithms" page 208, also by Higham.
-    if(j == 0) cutoff = ei_abs(precision<RealScalar>() * size * biggest_in_corner);
+    if(j == 0)
+    {
+      // The biggest overall is the point of reference to which further diagonals
+      // are compared; if any diagonal is negligible compared
+      // to the largest overall, the algorithm bails.  This cutoff is suggested
+      // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
+      // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
+      // Algorithms" page 208, also by Higham.
+      cutoff = ei_abs(precision<RealScalar>() * size * biggest_in_corner);
+
+      m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
+    }
 
     // Finish early if the matrix is not full rank.
     if(biggest_in_corner < cutoff)
     {
       for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      m_matrix.block(j, j, size-j, size-j).fill(0);  // Zero unreliable data.
       m_rank = j;
       break;
     }
 
-    row_of_biggest_in_corner += j;
-    m_transpositions.coeffRef(j) = row_of_biggest_in_corner;
-    if(j != row_of_biggest_in_corner)
+    m_transpositions.coeffRef(j) = index_of_biggest_in_corner;
+    if(j != index_of_biggest_in_corner)
     {
-      m_matrix.row(j).swap(m_matrix.row(row_of_biggest_in_corner));
-      m_matrix.col(j).swap(m_matrix.col(row_of_biggest_in_corner));
+      m_matrix.row(j).swap(m_matrix.row(index_of_biggest_in_corner));
+      m_matrix.col(j).swap(m_matrix.col(index_of_biggest_in_corner));
     }
 
     if (j == 0) {
@@ -182,13 +198,11 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
                                                   * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
     m_matrix.coeffRef(j,j) = Djj;
 
-    // Finish early if the matrix is not full rank or is indefinite.  This
-    // check is deliberately not against eps, so that the decomposition works
-    // regardless of overall matrix scale.
-    if(Djj <= 0)
+    // Finish early if the matrix is not full rank.
+    if(ei_abs(Djj) < cutoff) // i made experiments, this is better than isMuchSmallerThan(biggest_in_corner), and of course
+                             // much better than plain sign comparison as used to be done before.
     {
       for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      m_matrix.block(j, j, size-j, size-j).fill(0);  // Zero unreliable data.
       m_rank = j;
       break;
     }
@@ -228,7 +242,7 @@ bool LDLT<MatrixType>
 ::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
   const int size = m_matrix.rows();
-  ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
+  ei_assert(size==b.rows() && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
   *result = b;
   return solveInPlace(*result);
 }

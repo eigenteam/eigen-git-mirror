@@ -41,10 +41,11 @@
   * and even faster. Nevertheless, this standard Cholesky decomposition remains useful in many other
   * situations like generalised eigen problems with hermitian matrices.
   *
+  * \sa MatrixBase::llt(), class LDLT
+  */
+ /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
-  *
-  * \sa MatrixBase::llt(), class LDLT
   */
 template<typename MatrixType> class LLT
 {
@@ -72,6 +73,9 @@ template<typename MatrixType> class LLT
     /** \returns true if the matrix is positive definite */
     inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
 
+    /** \returns true if the matrix is invertible, which in this context is equivalent to positive definite */
+    inline bool isInvertible(void) const { return m_isPositiveDefinite; }
+
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
 
@@ -97,11 +101,10 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
-  const RealScalar eps = precision<Scalar>();
-
+  const RealScalar reference = size * a.diagonal().cwise().abs().maxCoeff();
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = x > eps && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
+  m_isPositiveDefinite = !ei_isMuchSmallerThan(x, reference) && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), reference);
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
   if(size==1)
     return;
@@ -110,7 +113,7 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   {
     Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
     x = ei_real(tmp);
-    if (x < eps || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
+    if (ei_isMuchSmallerThan(x, reference) || (!ei_isMuchSmallerThan(ei_imag(tmp), reference)))
     {
       m_isPositiveDefinite = false;
       return;
