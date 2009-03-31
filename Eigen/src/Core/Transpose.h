@@ -125,7 +125,20 @@ template<typename MatrixType> class Transpose
   * Example: \include MatrixBase_transpose.cpp
   * Output: \verbinclude MatrixBase_transpose.out
   *
-  * \sa adjoint(), class DiagonalCoeffs */
+  * \warning If you want to replace a matrix by its own transpose, do \b NOT do this:
+  * \code
+  * m = m.transpose(); // bug!!! caused by aliasing effect
+  * \endcode
+  * Instead, use the transposeInPlace() method:
+  * \code
+  * m.transposeInPlace();
+  * \endcode
+  * which gives Eigen good opportunities for optimization, or alternatively you can also do:
+  * \code
+  * m = m.transpose().eval();
+  * \endcode
+  *
+  * \sa transposeInPlace(), adjoint(), class DiagonalCoeffs */
 template<typename Derived>
 inline Transpose<Derived>
 MatrixBase<Derived>::transpose()
@@ -133,7 +146,11 @@ MatrixBase<Derived>::transpose()
   return derived();
 }
 
-/** This is the const version of transpose(). \sa adjoint() */
+/** This is the const version of transpose().
+  *
+  * Make sure you read the warning for transpose() !
+  *
+  * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
 inline const Transpose<Derived>
 MatrixBase<Derived>::transpose() const
@@ -146,7 +163,20 @@ MatrixBase<Derived>::transpose() const
   * Example: \include MatrixBase_adjoint.cpp
   * Output: \verbinclude MatrixBase_adjoint.out
   *
-  * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
+  * \warning If you want to replace a matrix by its own adjoint, do \b NOT do this:
+  * \code
+  * m = m.adjoint(); // bug!!! caused by aliasing effect
+  * \endcode
+  * Instead, use the adjointInPlace() method:
+  * \code
+  * m.adjointInPlace();
+  * \endcode
+  * which gives Eigen good opportunities for optimization, or alternatively you can also do:
+  * \code
+  * m = m.adjoint().eval();
+  * \endcode
+  *
+  * \sa adjointInPlace(), transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
@@ -179,24 +209,56 @@ struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
   }
 };
 
-/** This is the "in place" version of transpose: it transposes \c *this.
+/** This is the "in place" version of transpose(): it replaces \c *this by its own transpose.
+  * Thus, doing
+  * \code
+  * m.transposeInPlace();
+  * \endcode
+  * has the same effect on m as doing
+  * \code
+  * m = m.transpose().eval();
+  * \endcode
+  * and is faster and also safer because in the latter line of code, forgetting the eval() results
+  * in a bug caused by aliasing.
   *
-  * In most cases it is probably better to simply use the transposed expression
-  * of a matrix. However, when transposing the matrix data itself is really needed,
-  * then this "in-place" version is probably the right choice because it provides
-  * the following additional features:
-  *  - less error prone: doing the same operation with .transpose() requires special care:
-  *    \code m = m.transpose().eval(); \endcode
-  *  - no temporary object is created (currently only for squared matrices)
-  *  - it allows future optimizations (cache friendliness, etc.)
+  * Notice however that this method is only useful if you want to replace a matrix by its own transpose.
+  * If you just need the transpose of a matrix, use transpose().
   *
   * \note if the matrix is not square, then \c *this must be a resizable matrix.
   *
-  * \sa transpose(), adjoint() */
+  * \sa transpose(), adjoint(), adjointInPlace() */
 template<typename Derived>
 inline void MatrixBase<Derived>::transposeInPlace()
 {
   ei_inplace_transpose_selector<Derived>::run(derived());
+}
+
+/***************************************************************************
+* "in place" adjoint implementation
+***************************************************************************/
+
+/** This is the "in place" version of adjoint(): it replaces \c *this by its own transpose.
+  * Thus, doing
+  * \code
+  * m.adjointInPlace();
+  * \endcode
+  * has the same effect on m as doing
+  * \code
+  * m = m.adjoint().eval();
+  * \endcode
+  * and is faster and also safer because in the latter line of code, forgetting the eval() results
+  * in a bug caused by aliasing.
+  *
+  * Notice however that this method is only useful if you want to replace a matrix by its own adjoint.
+  * If you just need the adjoint of a matrix, use adjoint().
+  *
+  * \note if the matrix is not square, then \c *this must be a resizable matrix.
+  *
+  * \sa transpose(), adjoint(), transposeInPlace() */
+template<typename Derived>
+inline void MatrixBase<Derived>::adjointInPlace()
+{
+  derived() = adjoint().eval();
 }
 
 #endif // EIGEN_TRANSPOSE_H

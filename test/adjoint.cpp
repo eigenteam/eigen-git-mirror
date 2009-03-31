@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
-
+#define EIGEN_NO_ASSERTION_CHECKING
 #include "main.h"
 
 template<typename MatrixType> void adjoint(const MatrixType& m)
@@ -100,6 +100,14 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m3,m1.transpose());
   m3.transposeInPlace();
   VERIFY_IS_APPROX(m3,m1);
+
+  // check inplace adjoint
+  m3 = m1;
+  m3.adjointInPlace();
+  VERIFY_IS_APPROX(m3,m1.adjoint());
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1.conjugate());
+
   
 }
 

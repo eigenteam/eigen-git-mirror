@@ -369,6 +369,7 @@ template<typename Derived> class MatrixBase
     const Eigen::Transpose<Derived> transpose() const;
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
+    void adjointInPlace();
 
     RowXpr row(int i);
     const RowXpr row(int i) const;
