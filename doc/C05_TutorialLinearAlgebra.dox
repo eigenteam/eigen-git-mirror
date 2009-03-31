@@ -69,7 +69,7 @@ The latter avoids square roots and is therefore slightly more stable than the fo
 #include <Eigen/Cholesky>
 MatrixXf D = MatrixXf::Random(8,4);
 MatrixXf A = D.transpose() * D;
-VectorXf b = D.transpose() * VectorXf::Random(4);
+VectorXf b = A * VectorXf::Random(4);
 VectorXf x;
 A.llt().solve(b,&x);   // using a LLT factorization
 A.ldlt().solve(b,&x);  // using a LDLT factorization
