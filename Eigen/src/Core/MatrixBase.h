@@ -199,6 +199,10 @@ template<typename Derived> class MatrixBase
       */
     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType_ColMajor;
 
+    /** \internal the return type of coeff()
+      */
+    typedef typename ei_meta_if<int(Flags)&DirectAccessBit, const Scalar&, Scalar>::ret CoeffReturnType;
+
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal Represents a scalar multiple of a matrix */
@@ -264,15 +268,15 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     CommaInitializer<Derived> operator<< (const MatrixBase<OtherDerived>& other);
 
-    const Scalar coeff(int row, int col) const;
-    const Scalar operator()(int row, int col) const;
+    const CoeffReturnType coeff(int row, int col) const;
+    const CoeffReturnType operator()(int row, int col) const;
 
     Scalar& coeffRef(int row, int col);
     Scalar& operator()(int row, int col);
 
-    const Scalar coeff(int index) const;
-    const Scalar operator[](int index) const;
-    const Scalar operator()(int index) const;
+    const CoeffReturnType coeff(int index) const;
+    const CoeffReturnType operator[](int index) const;
+    const CoeffReturnType operator()(int index) const;
 
     Scalar& coeffRef(int index);
     Scalar& operator[](int index);
@@ -299,10 +303,10 @@ template<typename Derived> class MatrixBase
     template<int StoreMode>
     void writePacket(int index, const PacketScalar& x);
 
-    const Scalar x() const;
-    const Scalar y() const;
-    const Scalar z() const;
-    const Scalar w() const;
+    const CoeffReturnType x() const;
+    const CoeffReturnType y() const;
+    const CoeffReturnType z() const;
+    const CoeffReturnType w() const;
     Scalar& x();
     Scalar& y();
     Scalar& z();
