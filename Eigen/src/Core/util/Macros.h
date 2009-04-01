@@ -245,6 +245,7 @@ typedef BaseClass Base; \
 typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
 typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
 typedef typename Base::PacketScalar PacketScalar; \
+typedef typename Base::CoeffReturnType CoeffReturnType; \
 typedef typename Eigen::ei_nested<Derived>::type Nested; \
 enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \

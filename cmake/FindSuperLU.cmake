@@ -9,10 +9,12 @@ if(BLAS_FOUND)
   
   find_path(SUPERLU_INCLUDES
     NAMES
-    superlu/supermatrix.h
+    supermatrix.h
     PATHS
     $ENV{SUPERLUDIR}
     ${INCLUDE_INSTALL_DIR}
+    PATH_SUFFIXES
+    superlu
   )
 
   find_library(SUPERLU_LIBRARIES superlu PATHS $ENV{SUPERLUDIR} ${LIB_INSTALL_DIR})

@@ -46,21 +46,21 @@
 
 #ifdef EIGEN_SUPERLU_SUPPORT
   typedef int int_t;
-  #include "superlu/slu_Cnames.h"
-  #include "superlu/supermatrix.h"
-  #include "superlu/slu_util.h"
+  #include "slu_Cnames.h"
+  #include "supermatrix.h"
+  #include "slu_util.h"
 
   namespace SuperLU_S {
-  #include "superlu/slu_sdefs.h"
+  #include "slu_sdefs.h"
   }
   namespace SuperLU_D {
-  #include "superlu/slu_ddefs.h"
+  #include "slu_ddefs.h"
   }
   namespace SuperLU_C {
-  #include "superlu/slu_cdefs.h"
+  #include "slu_cdefs.h"
   }
   namespace SuperLU_Z {
-  #include "superlu/slu_zdefs.h"
+  #include "slu_zdefs.h"
   }
   namespace Eigen { struct SluMatrix; }
 #endif

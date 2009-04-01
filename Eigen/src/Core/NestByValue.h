@@ -54,7 +54,7 @@ template<typename ExpressionType> class NestByValue
     inline int cols() const { return m_expression.cols(); }
     inline int stride() const { return m_expression.stride(); }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const CoeffReturnType coeff(int row, int col) const
     {
       return m_expression.coeff(row, col);
     }
@@ -64,7 +64,7 @@ template<typename ExpressionType> class NestByValue
       return m_expression.const_cast_derived().coeffRef(row, col);
     }
 
-    inline const Scalar coeff(int index) const
+    inline const CoeffReturnType coeff(int index) const
     {
       return m_expression.coeff(index);
     }

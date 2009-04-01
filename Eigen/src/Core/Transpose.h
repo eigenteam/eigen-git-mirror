@@ -77,19 +77,19 @@ template<typename MatrixType> class Transpose
       return m_matrix.const_cast_derived().coeffRef(col, row);
     }
 
-    inline const Scalar coeff(int row, int col) const
+    inline Scalar& coeffRef(int index)
+    {
+      return m_matrix.const_cast_derived().coeffRef(index);
+    }
+
+    inline const CoeffReturnType coeff(int row, int col) const
     {
       return m_matrix.coeff(col, row);
     }
 
-    inline const Scalar coeff(int index) const
+    inline const CoeffReturnType coeff(int index) const
     {
       return m_matrix.coeff(index);
-    }
-
-    inline Scalar& coeffRef(int index)
-    {
-      return m_matrix.const_cast_derived().coeffRef(index);
     }
 
     template<int LoadMode>

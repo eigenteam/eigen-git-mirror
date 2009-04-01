@@ -152,7 +152,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const CoeffReturnType coeff(int row, int col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
@@ -164,7 +164,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
-    inline const Scalar coeff(int index) const
+    inline const CoeffReturnType coeff(int index) const
     {
       return m_matrix
              .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
