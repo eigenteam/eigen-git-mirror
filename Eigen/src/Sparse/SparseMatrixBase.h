@@ -84,9 +84,9 @@ template<typename Derived> class SparseMatrixBase
                         const Derived&
                      >::ret ConjugateReturnType;
     /** \internal the return type of MatrixBase::real() */
-    typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
+    typedef SparseCwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
     /** \internal the return type of MatrixBase::imag() */
-    typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
+    typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef SparseTranspose</*NestByValue<*/typename ei_cleantype<ConjugateReturnType>::type> /*>*/
             AdjointReturnType;
