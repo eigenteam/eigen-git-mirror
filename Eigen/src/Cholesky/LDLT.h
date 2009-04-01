@@ -43,6 +43,9 @@
   * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
   * on D also stabilizes the computation.
   *
+  * Remember that Cholesky decompositions are not rank-revealing.  Also, do not use a Cholesky decomposition to determine
+  * whether a system of equations has a solution.
+  *
   * \sa MatrixBase::ldlt(), class LLT
   */
  /* THIS PART OF THE DOX IS CURRENTLY DISABLED BECAUSE INACCURATE BECAUSE OF BUG IN THE DECOMPOSITION CODE
@@ -88,25 +91,6 @@ template<typename MatrixType> class LDLT
     /** \returns true if the matrix is negative (semidefinite) */
     inline bool isNegative(void) const { return m_sign == -1; }
 
-    /** \returns true if the matrix is invertible */
-    inline bool isInvertible(void) const { return m_rank == m_matrix.rows(); }
-
-    /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return isPositive() && isInvertible(); }
-
-    /** \returns true if the matrix is negative definite */
-    inline bool isNegativeDefinite(void) const { return isNegative() && isInvertible(); }
-
-    /** \returns the rank of the matrix of which *this is the LDLT decomposition.
-      *
-      * \note This is computed at the time of the construction of the LDLT decomposition. This
-      *       method does not perform any further computation.
-      */
-    inline int rank() const
-    {
-      return m_rank;
-    }
-
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
 
@@ -125,7 +109,7 @@ template<typename MatrixType> class LDLT
     MatrixType m_matrix;
     IntColVectorType m_p;
     IntColVectorType m_transpositions;
-    int m_rank, m_sign;
+    int m_sign;
 };
 
 /** Compute / recompute the LDLT decomposition A = L D L^* = U^* D U of \a matrix
@@ -135,7 +119,6 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
 {
   ei_assert(a.rows()==a.cols());
   const int size = a.rows();
-  m_rank = size;
 
   m_matrix = a;
 
@@ -168,8 +151,8 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
       // to the largest overall, the algorithm bails.  This cutoff is suggested
       // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
       // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-      // Algorithms" page 208, also by Higham.
-      cutoff = ei_abs(precision<RealScalar>() * size * biggest_in_corner);
+      // Algorithms" page 217, also by Higham.
+      cutoff = ei_abs(machine_epsilon<Scalar>() * size * biggest_in_corner);
 
       m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
     }
@@ -178,7 +161,6 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
     if(biggest_in_corner < cutoff)
     {
       for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      m_rank = j;
       break;
     }
 
@@ -200,11 +182,9 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
     m_matrix.coeffRef(j,j) = Djj;
 
     // Finish early if the matrix is not full rank.
-    if(ei_abs(Djj) < cutoff) // i made experiments, this is better than isMuchSmallerThan(biggest_in_corner), and of course
-                             // much better than plain sign comparison as used to be done before.
+    if(ei_abs(Djj) < cutoff)
     {
       for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      m_rank = j;
       break;
     }
 
@@ -230,7 +210,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
   * The result is stored in \a result
   *
-  * \returns true in case of success, false otherwise.
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
   *
   * In other words, it computes \f$ b = A^{-1} b \f$ with
   * \f$ P^T{L^{*}}^{-1} D^{-1} L^{-1} P b \f$ from right to left.
@@ -252,6 +232,8 @@ bool LDLT<MatrixType>
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
+  *
   * This version avoids a copy when the right hand side matrix b is not
   * needed anymore.
   *
@@ -263,8 +245,6 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   const int size = m_matrix.rows();
   ei_assert(size == bAndX.rows());
-
-  if (m_rank != size) return false;
 
   // z = P b
   for(int i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));

@@ -41,6 +41,10 @@
   * and even faster. Nevertheless, this standard Cholesky decomposition remains useful in many other
   * situations like generalised eigen problems with hermitian matrices.
   *
+  * Remember that Cholesky decompositions are not rank-revealing. This LLT decomposition is only stable on positive definite matrices,
+  * use LDLT instead for the semidefinite case. Also, do not use a Cholesky decomposition to determine whether a system of equations
+  * has a solution.
+  *
   * \sa MatrixBase::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
@@ -70,12 +74,6 @@ template<typename MatrixType> class LLT
     /** \returns the lower triangular matrix L */
     inline Part<MatrixType, LowerTriangular> matrixL(void) const { return m_matrix; }
 
-    /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
-
-    /** \returns true if the matrix is invertible, which in this context is equivalent to positive definite */
-    inline bool isInvertible(void) const { return m_isPositiveDefinite; }
-
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
 
@@ -90,7 +88,6 @@ template<typename MatrixType> class LLT
       * The strict upper part is not used and even not initialized.
       */
     MatrixType m_matrix;
-    bool m_isPositiveDefinite;
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
@@ -101,23 +98,24 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);
-  const RealScalar reference = size * a.diagonal().cwise().abs().maxCoeff();
+  // The biggest overall is the point of reference to which further diagonals
+  // are compared; if any diagonal is negligible compared
+  // to the largest overall, the algorithm bails.  This cutoff is suggested
+  // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
+  // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
+  // Algorithms" page 217, also by Higham.
+  const RealScalar cutoff = machine_epsilon<Scalar>() * size * a.diagonal().cwise().abs().maxCoeff();
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = !ei_isMuchSmallerThan(x, reference) && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), reference);
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
   if(size==1)
     return;
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
-    Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
-    x = ei_real(tmp);
-    if (ei_isMuchSmallerThan(x, reference) || (!ei_isMuchSmallerThan(ei_imag(tmp), reference)))
-    {
-      m_isPositiveDefinite = false;
-      return;
-    }
+    x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
+    if (ei_abs(x) < cutoff) continue;
+
     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
 
     int endSize = size-j-1;
@@ -137,7 +135,7 @@ void LLT<MatrixType>::compute(const MatrixType& a)
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
   * The result is stored in \a result
   *
-  * \returns true in case of success, false otherwise.
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
   *
   * In other words, it computes \f$ b = A^{-1} b \f$ with
   * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
@@ -160,6 +158,8 @@ bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDeriv
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
+  *
   * This version avoids a copy when the right hand side matrix b is not
   * needed anymore.
   *
@@ -171,8 +171,6 @@ bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
-  if (!m_isPositiveDefinite)
-    return false;
   matrixL().solveTriangularInPlace(bAndX);
   m_matrix.adjoint().template part<UpperTriangular>().solveTriangularInPlace(bAndX);
   return true;

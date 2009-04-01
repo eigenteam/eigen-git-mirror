@@ -86,7 +86,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   {
     LLT<SquareMatrixType> chol(symm);
-    VERIFY(chol.isPositiveDefinite());
     VERIFY_IS_APPROX(symm, chol.matrixL() * chol.matrixL().adjoint());
     chol.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
@@ -103,18 +102,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   {
     LDLT<SquareMatrixType> ldlt(symm);
-    VERIFY(ldlt.isInvertible());
-    if(sign == 1)
-    {
-      VERIFY(ldlt.isPositive());
-      VERIFY(ldlt.isPositiveDefinite());
-    }
-    if(sign == -1)
-    {
-      VERIFY(ldlt.isNegative());
-      VERIFY(ldlt.isNegativeDefinite());
-    }
-
     // TODO(keir): This doesn't make sense now that LDLT pivots.
     //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
     ldlt.solve(vecB, &vecX);
@@ -123,15 +110,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
-  // test isPositiveDefinite on non definite matrix
-  if (rows>4)
-  {
-    SquareMatrixType symm =  a0.block(0,0,rows,cols-4) * a0.block(0,0,rows,cols-4).adjoint();
-    LLT<SquareMatrixType> chol(symm);
-    VERIFY(!chol.isPositiveDefinite());
-    LDLT<SquareMatrixType> cholnosqrt(symm);
-    VERIFY(!cholnosqrt.isPositiveDefinite());
-  }
 }
 
 template<typename Derived>
@@ -156,29 +134,6 @@ void doSomeRankPreservingOperations(Eigen::MatrixBase<Derived>& m)
   }
 }
 
-template<typename MatrixType> void ldlt_rank()
-{
-  // NOTE there seems to be a problem with too small sizes -- could easily lie in the doSomeRankPreservingOperations function
-  int rows = ei_random<int>(50,200);
-  int rank = ei_random<int>(40, rows-1);
-
-
-  // generate a random positive matrix a of given rank
-  MatrixType m = MatrixType::Random(rows,rows);
-  QR<MatrixType> qr(m);
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> DiagVectorType;
-  DiagVectorType d(rows);
-  d.setZero();
-  for(int i = 0; i < rank; i++) d(i)=RealScalar(1);
-  MatrixType a = qr.matrixQ() * d.asDiagonal() * qr.matrixQ().adjoint();
-
-  LDLT<MatrixType> ldlt(a);
-
-  VERIFY( ei_abs(ldlt.rank() - rank) <= rank / 20 ); // yes, LDLT::rank is a bit inaccurate...
-}
-
 
 void test_cholesky()
 {
@@ -190,10 +145,5 @@ void test_cholesky()
     CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
     CALL_SUBTEST( cholesky(MatrixXd(17,17)) );
     CALL_SUBTEST( cholesky(MatrixXf(200,200)) );
-  }
-  for(int i = 0; i < g_repeat/3; i++) {
-    CALL_SUBTEST( ldlt_rank<MatrixXd>() );
-    CALL_SUBTEST( ldlt_rank<MatrixXf>() );
-    CALL_SUBTEST( ldlt_rank<MatrixXcd>() );
   }
 }

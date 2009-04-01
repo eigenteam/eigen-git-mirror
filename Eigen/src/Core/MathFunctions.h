@@ -26,6 +26,7 @@
 #define EIGEN_MATHFUNCTIONS_H
 
 template<typename T> inline typename NumTraits<T>::Real precision();
+template<typename T> inline typename NumTraits<T>::Real machine_epsilon();
 template<typename T> inline T ei_random(T a, T b);
 template<typename T> inline T ei_random();
 template<typename T> inline T ei_random_amplitude()
@@ -50,6 +51,7 @@ template<typename T> inline typename NumTraits<T>::Real ei_hypot(T x, T y)
 **************/
 
 template<> inline int precision<int>() { return 0; }
+template<> inline int machine_epsilon<int>() { return 0; }
 inline int ei_real(int x)  { return x; }
 inline int ei_imag(int)    { return 0; }
 inline int ei_conj(int x)  { return x; }
@@ -102,6 +104,7 @@ inline bool ei_isApproxOrLessThan(int a, int b, int = precision<int>())
 **************/
 
 template<> inline float precision<float>() { return 1e-5f; }
+template<> inline float machine_epsilon<float>() { return 1.192e-07f; }
 inline float ei_real(float x)  { return x; }
 inline float ei_imag(float)    { return 0.f; }
 inline float ei_conj(float x)  { return x; }
@@ -147,6 +150,8 @@ inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float
 **************/
 
 template<> inline double precision<double>() { return 1e-11; }
+template<> inline double machine_epsilon<double>() { return 2.220e-16; }
+
 inline double ei_real(double x)  { return x; }
 inline double ei_imag(double)    { return 0.; }
 inline double ei_conj(double x)  { return x; }
@@ -192,6 +197,7 @@ inline bool ei_isApproxOrLessThan(double a, double b, double prec = precision<do
 *********************/
 
 template<> inline float precision<std::complex<float> >() { return precision<float>(); }
+template<> inline float machine_epsilon<std::complex<float> >() { return machine_epsilon<float>(); }
 inline float ei_real(const std::complex<float>& x) { return std::real(x); }
 inline float ei_imag(const std::complex<float>& x) { return std::imag(x); }
 inline std::complex<float> ei_conj(const std::complex<float>& x) { return std::conj(x); }
@@ -225,6 +231,7 @@ inline bool ei_isApprox(const std::complex<float>& a, const std::complex<float>&
 **********************/
 
 template<> inline double precision<std::complex<double> >() { return precision<double>(); }
+template<> inline double machine_epsilon<std::complex<double> >() { return machine_epsilon<double>(); }
 inline double ei_real(const std::complex<double>& x) { return std::real(x); }
 inline double ei_imag(const std::complex<double>& x) { return std::imag(x); }
 inline std::complex<double> ei_conj(const std::complex<double>& x) { return std::conj(x); }
@@ -259,6 +266,7 @@ inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double
 ******************/
 
 template<> inline long double precision<long double>() { return precision<double>(); }
+template<> inline long double machine_epsilon<long double>() { return 1.084e-19l; }
 inline long double ei_real(long double x)  { return x; }
 inline long double ei_imag(long double)    { return 0.; }
 inline long double ei_conj(long double x)  { return x; }
