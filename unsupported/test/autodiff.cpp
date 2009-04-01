@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,17 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#define NUMBER_DIRECTIONS 16
-#include <unsupported/Eigen/AdolcForward>
+#include <unsupported/Eigen/AutoDiff>
 
-int adtl::ADOLC_numDir;
+template<typename Scalar>
+EIGEN_DONT_INLINE Scalar foo(const Scalar& x, const Scalar& y)
+{
+//   return x+std::sin(y);
+  asm("#mybegin");
+  return x*2 - std::pow(x,2) + 2*std::sqrt(y*y) - 4 * std::sin(x) + 2 * std::cos(y) - std::exp(-0.5*x*x);
+//   return y/x;// - y*2;
+  asm("#myend");
+}
 
 template<typename _Scalar, int NX=Dynamic, int NY=Dynamic>
 struct TestFunc1
@@ -46,7 +53,7 @@ struct TestFunc1
   TestFunc1(int inputs, int values) : m_inputs(inputs), m_values(values) {}
   
   int inputs() const { return m_inputs; }
-  int values() const { return m_values }
+  int values() const { return m_values; }
 
   template<typename T>
   void operator() (const Matrix<T,InputsAtCompileTime,1>& x, Matrix<T,ValuesAtCompileTime,1>* _v) const
@@ -106,9 +113,9 @@ struct TestFunc1
 
 template<typename Func> void adolc_forward_jacobian(const Func& f)
 {
-    typename Func::InputType x = Func::InputType::Random();
-    typename Func::ValueType y, yref;
-    typename Func::JacobianType j, jref;
+    typename Func::InputType x = Func::InputType::Random(f.inputs());
+    typename Func::ValueType y(f.values()), yref(f.values());
+    typename Func::JacobianType j(f.values(),f.inputs()), jref(f.values(),f.inputs());
 
     jref.setZero();
     yref.setZero();
@@ -118,7 +125,7 @@ template<typename Func> void adolc_forward_jacobian(const Func& f)
 
     j.setZero();
     y.setZero();
-    AdolcForwardJacobian<Func> autoj(f);
+    AutoDiffJacobian<Func> autoj(f);
     autoj(x, &y, &j);
 //     std::cerr << y.transpose() << "\n\n";;
 //     std::cerr << j << "\n\n";;
@@ -127,10 +134,16 @@ template<typename Func> void adolc_forward_jacobian(const Func& f)
     VERIFY_IS_APPROX(j, jref);
 }
 
-void test_forward_adolc()
+void test_autodiff()
 {
-  adtl::ADOLC_numDir = NUMBER_DIRECTIONS;
-
+  std::sqrt(3);
+  std::sin(3);
+  std::cerr << foo<float>(1,2) << "\n";
+  AutoDiffScalar<Vector2f> ax(1,Vector2f::UnitX());
+  AutoDiffScalar<Vector2f> ay(2,Vector2f::UnitY());
+  std::cerr << foo<AutoDiffScalar<Vector2f> >(ax,ay).value() << " <> "
+            << foo<AutoDiffScalar<Vector2f> >(ax,ay).derivatives().transpose() << "\n\n";
+  
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,2,2>()) ));
     CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,2,3>()) ));
@@ -138,4 +151,6 @@ void test_forward_adolc()
     CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,3,3>()) ));
     CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double>(3,3)) ));
   }
+  
+//   exit(1);
 }
