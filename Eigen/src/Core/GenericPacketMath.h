@@ -194,7 +194,7 @@ template<typename Packet> inline static Packet ei_pexp(Packet a) { return ei_exp
 template<typename Packet> inline static Packet ei_plog(Packet a) { return ei_log(a); }
 
 /** \internal \returns the square-root of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_psqrt(Packet a) { return ei_log(a); }
+template<typename Packet> inline static Packet ei_psqrt(Packet a) { return ei_sqrt(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
