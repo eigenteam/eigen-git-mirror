@@ -201,7 +201,7 @@ template<typename Derived> class MatrixBase
 
     /** \internal the return type of coeff()
       */
-    typedef typename ei_meta_if<int(Flags)&DirectAccessBit, const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename ei_meta_if<bool(int(Flags)&DirectAccessBit), const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
