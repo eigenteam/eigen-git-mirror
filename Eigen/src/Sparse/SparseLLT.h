@@ -147,6 +147,8 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
     // init with current matrix a
     {
       typename MatrixType::InnerIterator it(a,j);
+      ei_assert(it.index()==j &&
+        "matrix must has non zero diagonal entries and only the lower triangular part must be stored");
       ++it; // skip diagonal element
       for (; it; ++it)
         tempVector.coeffRef(it.index()) = it.value();
@@ -189,15 +191,15 @@ bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  m_matrix.solveTriangularInPlace(b);
+  m_matrix.template triangular<LowerTriangular>.solveInPlace(b);
   // FIXME should be simply .adjoint() but it fails to compile...
   if (NumTraits<Scalar>::IsComplex)
   {
     CholMatrixType aux = m_matrix.conjugate();
-    aux.transpose().solveTriangularInPlace(b);
+    aux.transpose().template triangular<UpperTriangular>.solveInPlace(b);
   }
   else
-    m_matrix.transpose().solveTriangularInPlace(b);
+    m_matrix.transpose().template triangular<UpperTriangular>.solveInPlace(b);
 
   return true;
 }
