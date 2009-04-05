@@ -79,7 +79,7 @@ class SparseLDLT
   protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar,LowerTriangular|UnitDiagBit> CholMatrixType;
+    typedef SparseMatrix<Scalar> CholMatrixType;
     typedef Matrix<Scalar,MatrixType::ColsAtCompileTime,1> VectorType;
 
     enum {
@@ -137,7 +137,7 @@ class SparseLDLT
       *                              overloads the MemoryEfficient flags)
       *
       * \sa flags() */
-    void settagss(int f) { m_flags = f; }
+    void settags(int f) { m_flags = f; }
     /** \returns the current flags */
     int flags() const { return m_flags; }
 
@@ -333,12 +333,12 @@ bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
     return false;
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.solveTriangularInPlace(b);
+    m_matrix.template triangular<LowerTriangular|UnitDiagBit>().solveInPlace(b);
   b = b.cwise() / m_diag;
   // FIXME should be .adjoint() but it fails to compile...
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-  m_matrix.transpose().solveTriangularInPlace(b);
+    m_matrix.transpose().template triangular<UpperTriangular|UnitDiagBit>().solveInPlace(b);
 
   return true;
 }

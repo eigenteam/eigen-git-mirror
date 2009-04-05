@@ -25,9 +25,18 @@
 #ifndef EIGEN_SPARSETRIANGULARSOLVER_H
 #define EIGEN_SPARSETRIANGULARSOLVER_H
 
+template<typename Lhs, typename Rhs, int Mode,
+  int UpLo = (Mode & LowerTriangularBit)
+           ? LowerTriangular
+           : (Mode & UpperTriangularBit)
+           ? UpperTriangular
+           : -1,
+  int StorageOrder = int(ei_traits<Lhs>::Flags) & RowMajorBit>
+struct ei_sparse_solve_triangular_selector;
+
 // forward substitution, row-major
-template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,RowMajor|IsSparse>
+template<typename Lhs, typename Rhs, int Mode>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -45,7 +54,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,RowMajor|IsSparse>
           lastIndex = it.index();
           tmp -= lastVal * other.coeff(lastIndex,col);
         }
-        if (Lhs::Flags & UnitDiagBit)
+        if (Mode & UnitDiagBit)
           other.coeffRef(i,col) = tmp;
         else
         {
@@ -58,8 +67,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,RowMajor|IsSparse>
 };
 
 // backward substitution, row-major
-template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,RowMajor|IsSparse>
+template<typename Lhs, typename Rhs, int Mode>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -77,7 +86,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,RowMajor|IsSparse>
           tmp -= it.value() * other.coeff(it.index(),col);
         }
 
-        if (Lhs::Flags & UnitDiagBit)
+        if (Mode & UnitDiagBit)
           other.coeffRef(i,col) = tmp;
         else
         {
@@ -91,8 +100,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,RowMajor|IsSparse>
 };
 
 // forward substitution, col-major
-template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,ColMajor|IsSparse>
+template<typename Lhs, typename Rhs, int Mode>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -101,26 +110,28 @@ struct ei_solve_triangular_selector<Lhs,Rhs,LowerTriangular,ColMajor|IsSparse>
     {
       for(int i=0; i<lhs.cols(); ++i)
       {
-        typename Lhs::InnerIterator it(lhs, i);
-        if(!(Lhs::Flags & UnitDiagBit))
+        Scalar& tmp = other.coeffRef(i,col);
+        if (tmp!=Scalar(0)) // optimization when other is actually sparse
         {
-          // std::cerr << it.value() << " ; " << it.index() << " == " << i << "\n";
-          ei_assert(it.index()==i);
-          other.coeffRef(i,col) /= it.value();
+          typename Lhs::InnerIterator it(lhs, i);
+          if(!(Mode & UnitDiagBit))
+          {
+            ei_assert(it.index()==i);
+            tmp /= it.value();
+          }
+          if (it.index()==i)
+            ++it;
+          for(; it; ++it)
+            other.coeffRef(it.index(), col) -= tmp * it.value();
         }
-        Scalar tmp = other.coeffRef(i,col);
-        if (it.index()==i)
-          ++it;
-        for(; it; ++it)
-          other.coeffRef(it.index(), col) -= tmp * it.value();
       }
     }
   }
 };
 
 // backward substitution, col-major
-template<typename Lhs, typename Rhs>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,ColMajor|IsSparse>
+template<typename Lhs, typename Rhs, int Mode>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -129,29 +140,32 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpperTriangular,ColMajor|IsSparse>
     {
       for(int i=lhs.cols()-1; i>=0; --i)
       {
-        if(!(Lhs::Flags & UnitDiagBit))
+        Scalar& tmp = other.coeffRef(i,col);
+        if (tmp!=Scalar(0)) // optimization when other is actually sparse
         {
-          // FIXME lhs.coeff(i,i) might not be always efficient while it must simply be the
-          // last element of the column !
-          other.coeffRef(i,col) /= lhs.coeff(i,i);
+          if(!(Mode & UnitDiagBit))
+          {
+            // FIXME lhs.coeff(i,i) might not be always efficient while it must simply be the
+            // last element of the column !
+            other.coeffRef(i,col) /= lhs.innerVector(i).lastCoeff();
+          }
+          typename Lhs::InnerIterator it(lhs, i);
+          for(; it && it.index()<i; ++it)
+            other.coeffRef(it.index(), col) -= tmp * it.value();
         }
-        Scalar tmp = other.coeffRef(i,col);
-        typename Lhs::InnerIterator it(lhs, i);
-        for(; it && it.index()<i; ++it)
-          other.coeffRef(it.index(), col) -= tmp * it.value();
       }
     }
   }
 };
 
-template<typename Derived>
+template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
-void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
+void SparseTriangular<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDerived>& other) const
 {
-  ei_assert(derived().cols() == derived().rows());
-  ei_assert(derived().cols() == other.rows());
-  ei_assert(!(Flags & ZeroDiagBit));
-  ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
+  ei_assert(m_matrix.cols() == m_matrix.rows());
+  ei_assert(m_matrix.cols() == other.rows());
+  ei_assert(!(Mode & ZeroDiagBit));
+  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
 
   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
 
@@ -159,19 +173,151 @@ void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>&
     typename ei_plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
   OtherCopy otherCopy(other.derived());
 
-  ei_solve_triangular_selector<Derived, typename ei_unref<OtherCopy>::type>::run(derived(), otherCopy);
+  ei_sparse_solve_triangular_selector<ExpressionType, typename ei_unref<OtherCopy>::type, Mode>::run(m_matrix, otherCopy);
 
   if (copy)
     other = otherCopy;
 }
 
+template<typename ExpressionType,int Mode>
+template<typename OtherDerived>
+typename ei_plain_matrix_type_column_major<OtherDerived>::type
+SparseTriangular<ExpressionType,Mode>::solve(const MatrixBase<OtherDerived>& other) const
+{
+  typename ei_plain_matrix_type_column_major<OtherDerived>::type res(other);
+  solveInPlace(res);
+  return res;
+}
+
+// pure sparse path
+
+template<typename Lhs, typename Rhs, int Mode,
+  int UpLo = (Mode & LowerTriangularBit)
+           ? LowerTriangular
+           : (Mode & UpperTriangularBit)
+           ? UpperTriangular
+           : -1,
+  int StorageOrder = int(Lhs::Flags) & (RowMajorBit)>
+struct ei_sparse_solve_triangular_sparse_selector;
+
+// forward substitution, col-major
+template<typename Lhs, typename Rhs, int Mode, int UpLo>
+struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
+{
+  typedef typename Rhs::Scalar Scalar;
+  static void run(const Lhs& lhs, Rhs& other)
+  {
+    const bool IsLowerTriangular = (UpLo==LowerTriangular);
+    AmbiVector<Scalar> tempVector(other.rows()*2);
+    tempVector.setBounds(0,other.rows());
+    
+    Rhs res(other.rows(), other.cols());
+    res.startFill(other.nonZeros());
+    
+    for(int col=0 ; col<other.cols() ; ++col)
+    {
+      // FIXME estimate number of non zeros
+      tempVector.init(.99/*float(other.col(col).nonZeros())/float(other.rows())*/);
+      tempVector.setZero();
+      tempVector.restart();
+      for (typename Rhs::InnerIterator rhsIt(other, col); rhsIt; ++rhsIt)
+      {
+        tempVector.coeffRef(rhsIt.index()) = rhsIt.value();
+      }
+      
+      for(int i=IsLowerTriangular?0:lhs.cols()-1;
+          IsLowerTriangular?i<lhs.cols():i>=0;
+          i+=IsLowerTriangular?1:-1)
+      {
+        tempVector.restart();
+        Scalar& ci = tempVector.coeffRef(i);
+        if (ci!=Scalar(0))
+        {
+          // find 
+          typename Lhs::InnerIterator it(lhs, i);
+          if(!(Mode & UnitDiagBit))
+          {
+            if (IsLowerTriangular)
+            {
+              ei_assert(it.index()==i);
+              ci /= it.value();
+            }
+            else
+              ci /= lhs.coeff(i,i);
+          }
+          tempVector.restart();
+          if (IsLowerTriangular)
+          {
+            if (it.index()==i)
+              ++it;
+            for(; it; ++it)
+              tempVector.coeffRef(it.index()) -= ci * it.value();
+          }
+          else
+          {
+            for(; it && it.index()<i; ++it)
+              tempVector.coeffRef(it.index()) -= ci * it.value();
+          }
+        }
+      }
+      
+      
+      int count = 0;
+      // FIXME compute a reference value to filter zeros
+      for (typename AmbiVector<Scalar>::Iterator it(tempVector/*,1e-12*/); it; ++it)
+      {
+        ++ count;
+//         std::cerr << "fill " << it.index() << ", " << col << "\n";
+//         std::cout << it.value() << "  ";
+        res.fill(it.index(), col) = it.value();
+      }
+//       std::cout << "tempVector.nonZeros() == " << int(count) << " / " << (other.rows()) << "\n";
+    }
+    res.endFill();
+    other = res.markAsRValue();
+  }
+};
+
+template<typename ExpressionType,int Mode>
+template<typename OtherDerived>
+void SparseTriangular<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<OtherDerived>& other) const
+{
+  ei_assert(m_matrix.cols() == m_matrix.rows());
+  ei_assert(m_matrix.cols() == other.rows());
+  ei_assert(!(Mode & ZeroDiagBit));
+  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
+
+//   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
+
+//   typedef typename ei_meta_if<copy,
+//     typename ei_plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+//   OtherCopy otherCopy(other.derived());
+
+  ei_sparse_solve_triangular_sparse_selector<ExpressionType, OtherDerived, Mode>::run(m_matrix, other.derived());
+
+//   if (copy)
+//     other = otherCopy;
+}
+
+
+// deprecated stuff:
+
+/** \deprecated */
+template<typename Derived>
+template<typename OtherDerived>
+void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
+{
+  this->template triangular<Flags&(UpperTriangularBit|LowerTriangularBit)>().solveInPlace(other);
+}
+
+/** \deprecated */
 template<typename Derived>
 template<typename OtherDerived>
 typename ei_plain_matrix_type_column_major<OtherDerived>::type
 SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
   typename ei_plain_matrix_type_column_major<OtherDerived>::type res(other);
-  solveTriangularInPlace(res);
+  derived().solveTriangularInPlace(res);
   return res;
 }
 

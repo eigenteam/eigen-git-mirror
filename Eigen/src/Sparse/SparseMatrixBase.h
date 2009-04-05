@@ -308,12 +308,19 @@ template<typename Derived> class SparseMatrixBase
     template<typename OtherDerived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
+    // deprecated
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
     solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
+    // deprecated
     template<typename OtherDerived>
     void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
+//     template<typename OtherDerived>
+//     void solveTriangularInPlace(SparseMatrixBase<OtherDerived>& other) const;
+
+    template<int Mode>
+    inline const SparseTriangular<Derived, Mode> triangular() const;
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;

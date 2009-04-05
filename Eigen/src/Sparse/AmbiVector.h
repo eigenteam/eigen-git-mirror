@@ -36,7 +36,7 @@ template<typename _Scalar> class AmbiVector
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     AmbiVector(int size)
-      : m_buffer(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
+      : m_buffer(0), m_zero(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
       resize(size);
     }
@@ -44,7 +44,7 @@ template<typename _Scalar> class AmbiVector
     void init(RealScalar estimatedDensity);
     void init(int mode);
 
-    void nonZeros() const;
+    int nonZeros() const;
 
     /** Specifies a sub-vector to work on */
     void setBounds(int start, int end) { m_start = start; m_end = end; }
@@ -53,7 +53,7 @@ template<typename _Scalar> class AmbiVector
 
     void restart();
     Scalar& coeffRef(int i);
-    Scalar coeff(int i);
+    Scalar& coeff(int i);
 
     class Iterator;
 
@@ -112,6 +112,7 @@ template<typename _Scalar> class AmbiVector
 
     // used to store data in both mode
     Scalar* m_buffer;
+    Scalar m_zero;
     int m_size;
     int m_start;
     int m_end;
@@ -131,7 +132,7 @@ template<typename _Scalar> class AmbiVector
 
 /** \returns the number of non zeros in the current sub vector */
 template<typename Scalar>
-void AmbiVector<Scalar>::nonZeros() const
+int AmbiVector<Scalar>::nonZeros() const
 {
   if (m_mode==IsSparse)
     return m_llSize;
@@ -254,7 +255,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
 }
 
 template<typename Scalar>
-Scalar AmbiVector<Scalar>::coeff(int i)
+Scalar& AmbiVector<Scalar>::coeff(int i)
 {
   if (m_mode==IsDense)
     return m_buffer[i];
@@ -264,7 +265,7 @@ Scalar AmbiVector<Scalar>::coeff(int i)
     ei_assert(m_mode==IsSparse);
     if ((m_llSize==0) || (i<llElements[m_llStart].index))
     {
-      return Scalar(0);
+      return m_zero;
     }
     else
     {
@@ -275,7 +276,7 @@ Scalar AmbiVector<Scalar>::coeff(int i)
       if (llElements[elid].index==i)
         return llElements[m_llCurrent].value;
       else
-        return Scalar(0);
+        return m_zero;
     }
   }
 }

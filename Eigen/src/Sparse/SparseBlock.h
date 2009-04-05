@@ -150,6 +150,21 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
     {
       return operator=<SparseInnerVectorSet>(other);
     }
+    
+    int nonZeros() const
+    { 
+      int count = 0;
+      for (int j=0; j<m_outerSize; ++j)
+        count += m_matrix._data()[m_outerStart+j].size();
+      return count;
+    }
+    
+    const Scalar& lastCoeff() const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
+      ei_assert(m_matrix.data()[m_outerStart].size()>0);
+      return m_matrix.data()[m_outerStart].vale(m_matrix.data()[m_outerStart].size()-1);
+    }
 
 //     template<typename Sparse>
 //     inline SparseInnerVectorSet& operator=(const SparseMatrixBase<OtherDerived>& other)
@@ -172,12 +187,12 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
 /***************************************************************************
 * specialisation for SparseMatrix
 ***************************************************************************/
-/*
+
 template<typename _Scalar, int _Options, int Size>
 class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
   : public SparseMatrixBase<SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size> >
 {
-    typedef DynamicSparseMatrix<_Scalar, _Options> MatrixType;
+    typedef SparseMatrix<_Scalar, _Options> MatrixType;
     enum { IsRowMajor = ei_traits<SparseInnerVectorSet>::IsRowMajor };
   public:
 
@@ -233,7 +248,20 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
     { return m_matrix._valuePtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
     inline const int* _innerIndexPtr() const
     { return m_matrix._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
-    inline const int* _outerIndexPtr() const { return m_matrix._outerIndexPtr() + m_outerStart; }
+    inline const int* _outerIndexPtr() const
+    { return m_matrix._outerIndexPtr() + m_outerStart; }
+    
+    int nonZeros() const
+    {
+      return  size_t(m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()])
+            - size_t(m_matrix._outerIndexPtr()[m_outerStart]); }
+    
+    const Scalar& lastCoeff() const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
+      ei_assert(nonZeros()>0);
+      return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart+1]-1];
+    }
 
 //     template<typename Sparse>
 //     inline SparseInnerVectorSet& operator=(const SparseMatrixBase<OtherDerived>& other)
@@ -251,7 +279,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
     const ei_int_if_dynamic<Size> m_outerSize;
 
 };
-*/
+
 //----------
 
 /** \returns the i-th row of the matrix \c *this. For row-major matrix only. */

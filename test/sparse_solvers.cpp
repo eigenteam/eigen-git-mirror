@@ -63,17 +63,39 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     SparseMatrix<Scalar> m2(rows, cols);
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
 
-    // lower
+    // lower - dense
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().solveTriangular(vec2),
+                     m2.template triangular<LowerTriangular>().solve(vec3));
+
+    // upper - dense
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().solveTriangular(vec2),
+                     m2.template triangular<UpperTriangular>().solve(vec3));
+    
+    // TODO test row major
+    
+    SparseMatrix<Scalar> matB(rows, rows);
+    DenseMatrix refMatB = DenseMatrix::Zero(rows, rows);
+    
+    // lower - sparse
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular);
+    initSparse<Scalar>(density, refMatB, matB);
+    refMat2.template marked<LowerTriangular>().solveTriangularInPlace(refMatB);
+    m2.template triangular<LowerTriangular>().solveInPlace(matB);
+    VERIFY_IS_APPROX(matB.toDense(), refMatB);
+
+    // upper - sparse
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular);
+    initSparse<Scalar>(density, refMatB, matB);
+    refMat2.template marked<UpperTriangular>().solveTriangularInPlace(refMatB);
+    m2.template triangular<UpperTriangular>().solveInPlace(matB);
+    VERIFY_IS_APPROX(matB, refMatB);
+    
+    // test deprecated API
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().solveTriangular(vec2),
                      m2.template marked<LowerTriangular>().solveTriangular(vec3));
-
-    // upper
-    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().solveTriangular(vec2),
-                     m2.template marked<UpperTriangular>().solveTriangular(vec3));
-
-    // TODO test row major
   }
 
   // test LLT

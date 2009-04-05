@@ -543,7 +543,7 @@ typename SparseLU<MatrixType,SuperLU>::Scalar SparseLU<MatrixType,SuperLU>::dete
   if (m_extractedDataAreDirty)
     extractData();
 
-  // TODO this code coule be moved to the default/base backend
+  // TODO this code could be moved to the default/base backend
   // FIXME perhaps we have to take into account the scale factors m_sluRscale and m_sluCscale ???
   Scalar det = Scalar(1);
   for (int j=0; j<m_u.cols(); ++j)

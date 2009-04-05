@@ -40,6 +40,7 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refMat3 = DenseMatrix::Zero(rows, rows);
     DenseMatrix refMat4 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refMat5 = DenseMatrix::Random(rows, rows);
     DenseMatrix dm4 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     SparseMatrixType m3(rows, rows);
@@ -57,7 +58,10 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
     VERIFY_IS_APPROX(dm4=m2*refMat3.transpose(), refMat4=refMat2*refMat3.transpose());
     VERIFY_IS_APPROX(dm4=m2.transpose()*refMat3, refMat4=refMat2.transpose()*refMat3);
     VERIFY_IS_APPROX(dm4=m2.transpose()*refMat3.transpose(), refMat4=refMat2.transpose()*refMat3.transpose());
-
+    
+    VERIFY_IS_APPROX(dm4=m2*(refMat3+refMat3), refMat4=refMat2*(refMat3+refMat3));
+    VERIFY_IS_APPROX(dm4=m2.transpose()*(refMat3+refMat5)*0.5, refMat4=refMat2.transpose()*(refMat3+refMat5)*0.5);
+    
     // dense * sparse
     VERIFY_IS_APPROX(dm4=refMat2*m3, refMat4=refMat2*refMat3);
     VERIFY_IS_APPROX(dm4=refMat2*m3.transpose(), refMat4=refMat2*refMat3.transpose());

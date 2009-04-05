@@ -164,6 +164,7 @@ class SparseMatrix
       {
         ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
       }
+//       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());
       int id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
