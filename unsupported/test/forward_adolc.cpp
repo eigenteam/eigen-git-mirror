@@ -46,7 +46,7 @@ struct TestFunc1
   TestFunc1(int inputs, int values) : m_inputs(inputs), m_values(values) {}
   
   int inputs() const { return m_inputs; }
-  int values() const { return m_values }
+  int values() const { return m_values; }
 
   template<typename T>
   void operator() (const Matrix<T,InputsAtCompileTime,1>& x, Matrix<T,ValuesAtCompileTime,1>* _v) const
