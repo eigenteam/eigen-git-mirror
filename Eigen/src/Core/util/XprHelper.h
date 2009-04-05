@@ -89,7 +89,7 @@ class ei_compute_matrix_flags
       inner_max_size = row_major_bit ? MaxCols : MaxRows,
       is_big = inner_max_size == Dynamic,
       is_packet_size_multiple = (Cols*Rows) % ei_packet_traits<Scalar>::size == 0,
-      aligned_bit = ((Options&AutoAlign) && (is_big || is_packet_size_multiple)) ? AlignedBit : 0,
+      aligned_bit = (((Options&DontAlign)==0) && (is_big || is_packet_size_multiple)) ? AlignedBit : 0,
       packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0
     };
 
