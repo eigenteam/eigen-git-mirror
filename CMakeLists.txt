@@ -1,5 +1,5 @@
 project(Eigen)
-set(EIGEN_VERSION_NUMBER "2.0.51-unstable")
+set(EIGEN_VERSION_NUMBER "2.0.52-unstable")
 
 #if the svnversion program is absent, this will leave the SVN_REVISION string empty,
 #but won't stop CMake.

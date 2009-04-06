@@ -65,7 +65,7 @@ inline void ei_handmade_aligned_free(void *ptr)
 }
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
-  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 inline void* ei_aligned_malloc(size_t size)
 {
@@ -98,7 +98,7 @@ inline void* ei_aligned_malloc(size_t size)
 }
 
 /** allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
-  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
 {
