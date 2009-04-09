@@ -32,8 +32,8 @@
 
 template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
 {
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
+  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
+  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
   _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
 
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_mant_mask, ~0x7f800000);
@@ -44,18 +44,18 @@ template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
   /* natural logarithm computed for 4 simultaneous float 
     return NaN for x <= 0
   */
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p0, 7.0376836292E-2);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p1, - 1.1514610310E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p2, 1.1676998740E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p3, - 1.2420140846E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p4, + 1.4249322787E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p5, - 1.6668057665E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p6, + 2.0000714765E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p7, - 2.4999993993E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p0, 7.0376836292E-2f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p1, - 1.1514610310E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p2, 1.1676998740E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p3, - 1.2420140846E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p4, + 1.4249322787E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p5, - 1.6668057665E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p6, + 2.0000714765E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p7, - 2.4999993993E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375f);
 
 
   Packet4i emm0;
@@ -110,24 +110,24 @@ template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
 
 template<> EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
 {
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
+  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
+  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
   _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
 
 
   _EIGEN_DECLARE_CONST_Packet4f(exp_hi, 88.3762626647949f);
   _EIGEN_DECLARE_CONST_Packet4f(exp_lo, -88.3762626647949f);
 
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4f);
 
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
 
   Packet4f tmp = _mm_setzero_ps(), fx;
   Packet4i emm0;
@@ -183,8 +183,8 @@ template<> EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
 
 template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 {
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
+  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
+  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
 
   _EIGEN_DECLARE_CONST_Packet4i(1, 1);
   _EIGEN_DECLARE_CONST_Packet4i(not1, ~1);
@@ -193,16 +193,16 @@ template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(sign_mask, 0x80000000);
 
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP1,-0.78515625);
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP2, -2.4187564849853515625e-4);
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP3, -3.77489497744594108e-8);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p0, -1.9515295891E-4);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p1,  8.3321608736E-3);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p2, -1.6666654611E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516); // 4 / M_PI
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP1,-0.78515625f);
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP2, -2.4187564849853515625e-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP3, -3.77489497744594108e-8f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p0, -1.9515295891E-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p1,  8.3321608736E-3f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p2, -1.6666654611E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516f); // 4 / M_PI
 
   Packet4f xmm1, xmm2 = _mm_setzero_ps(), xmm3, sign_bit, y;
 
@@ -280,24 +280,24 @@ template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 /* almost the same as ei_psin */
 template<> Packet4f ei_pcos(Packet4f x)
 {
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5);
+  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
+  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
 
   _EIGEN_DECLARE_CONST_Packet4i(1, 1);
   _EIGEN_DECLARE_CONST_Packet4i(not1, ~1);
   _EIGEN_DECLARE_CONST_Packet4i(2, 2);
   _EIGEN_DECLARE_CONST_Packet4i(4, 4);
 
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP1,-0.78515625);
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP2, -2.4187564849853515625e-4);
-  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP3, -3.77489497744594108e-8);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p0, -1.9515295891E-4);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p1,  8.3321608736E-3);
-  _EIGEN_DECLARE_CONST_Packet4f(sincof_p2, -1.6666654611E-1);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003);
-  _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516); // 4 / M_PI
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP1,-0.78515625f);
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP2, -2.4187564849853515625e-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(minus_cephes_DP3, -3.77489497744594108e-8f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p0, -1.9515295891E-4f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p1,  8.3321608736E-3f);
+  _EIGEN_DECLARE_CONST_Packet4f(sincof_p2, -1.6666654611E-1f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p0,  2.443315711809948E-005f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p1, -1.388731625493765E-003f);
+  _EIGEN_DECLARE_CONST_Packet4f(coscof_p2,  4.166664568298827E-002f);
+  _EIGEN_DECLARE_CONST_Packet4f(cephes_FOPI, 1.27323954473516f); // 4 / M_PI
 
   Packet4f xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
   Packet4i emm0, emm2;

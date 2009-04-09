@@ -81,7 +81,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
-    CoeffReadCost = MatrixType::CoeffReadCost,
+    CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost,
     PacketAccess = _PacketAccess
   };
   typedef typename ei_meta_if<int(PacketAccess)==ForceAligned,
