@@ -61,27 +61,28 @@
   *
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
+
 template<typename MatrixType, int BlockRows, int BlockCols, int _PacketAccess, int _DirectAccessStatus>
 struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus> >
 {
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Nested MatrixTypeNested;
+  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum{
-    RowsAtCompileTime = MatrixType::RowsAtCompileTime == 1 ? 1 : BlockRows,
-    ColsAtCompileTime = MatrixType::ColsAtCompileTime == 1 ? 1 : BlockCols,
+    RowsAtCompileTime = ei_traits<MatrixType>::RowsAtCompileTime == 1 ? 1 : BlockRows,
+    ColsAtCompileTime = ei_traits<MatrixType>::ColsAtCompileTime == 1 ? 1 : BlockCols,
     MaxRowsAtCompileTime = RowsAtCompileTime == 1 ? 1
-      : (BlockRows==Dynamic ? MatrixType::MaxRowsAtCompileTime : BlockRows),
+      : (BlockRows==Dynamic ? ei_traits<MatrixType>::MaxRowsAtCompileTime : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
-      : (BlockCols==Dynamic ? MatrixType::MaxColsAtCompileTime : BlockCols),
-    RowMajor = int(MatrixType::Flags)&RowMajorBit,
+      : (BlockCols==Dynamic ? ei_traits<MatrixType>::MaxColsAtCompileTime : BlockCols),
+    RowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit,
     InnerSize = RowMajor ? ColsAtCompileTime : RowsAtCompileTime,
     InnerMaxSize = RowMajor ? MaxColsAtCompileTime : MaxRowsAtCompileTime,
     MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (MatrixType::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
-    CoeffReadCost = MatrixType::CoeffReadCost,
+    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
+    CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost,
     PacketAccess = _PacketAccess
   };
   typedef typename ei_meta_if<int(PacketAccess)==ForceAligned,
