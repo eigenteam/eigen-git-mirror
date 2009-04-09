@@ -77,4 +77,10 @@ void test_inverse()
     CALL_SUBTEST( inverse(MatrixXf(8,8)) );
     CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
   }
+  
+  // test some tricky cases for 4x4 matrices
+  VERIFY_IS_APPROX((Matrix4f() << 0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).finished().inverse(),
+                   (Matrix4f() << 0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).finished());
+  VERIFY_IS_APPROX((Matrix4f() << 1,0,0,0, 0,0,1,0, 0,0,0,1, 0,1,0,0).finished().inverse(),
+                   (Matrix4f() << 1,0,0,0, 0,0,0,1, 0,1,0,0, 0,0,1,0).finished());
 }
