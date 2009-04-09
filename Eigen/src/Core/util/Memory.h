@@ -341,6 +341,12 @@ public:
     {
         ei_aligned_free( p );
     }
+    
+    bool operator!=(const aligned_allocator<T>& other) const
+    { return false; }
+    
+    bool operator==(const aligned_allocator<T>& other) const
+    { return true; }
 };
 
 #endif // EIGEN_MEMORY_H
