@@ -29,10 +29,10 @@ template<typename Scalar>
 EIGEN_DONT_INLINE Scalar foo(const Scalar& x, const Scalar& y)
 {
 //   return x+std::sin(y);
-  asm("#mybegin");
+  EIGEN_ASM_COMMENT("mybegin");
   return x*2 - std::pow(x,2) + 2*std::sqrt(y*y) - 4 * std::sin(x) + 2 * std::cos(y) - std::exp(-0.5*x*x);
 //   return y/x;// - y*2;
-  asm("#myend");
+  EIGEN_ASM_COMMENT("myend");
 }
 
 template<typename _Scalar, int NX=Dynamic, int NY=Dynamic>
