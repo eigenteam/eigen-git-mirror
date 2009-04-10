@@ -25,6 +25,12 @@
 #ifndef EIGEN_SPARSELU_H
 #define EIGEN_SPARSELU_H
 
+enum {
+    SvNoTrans   = 0,
+    SvTranspose = 1,
+    SvAdjoint   = 2
+};
+
 /** \ingroup Sparse_Module
   *
   * \class SparseLU
@@ -115,7 +121,8 @@ class SparseLU
     //inline const MatrixType& matrixU() const { return m_matrixU; }
 
     template<typename BDerived, typename XDerived>
-    bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x) const;
+    bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x,
+               const int transposed = SvNoTrans) const;
 
     /** \returns true if the factorization succeeded */
     inline bool succeeded(void) const { return m_succeeded; }
@@ -136,10 +143,17 @@ void SparseLU<MatrixType,Backend>::compute(const MatrixType& a)
   ei_assert(false && "not implemented yet");
 }
 
-/** Computes *x = U^-1 L^-1 b */
+/** Computes *x = U^-1 L^-1 b
+  *
+  * If \a transpose is set to SvTranspose or SvAdjoint, the solution
+  * of the transposed/adjoint system is computed instead.
+  *
+  * Not all backends implement the solution of the transposed or
+  * adjoint system.
+  */
 template<typename MatrixType, int Backend>
 template<typename BDerived, typename XDerived>
-bool SparseLU<MatrixType,Backend>::solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x) const
+bool SparseLU<MatrixType,Backend>::solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x, const int transposed) const
 {
   ei_assert(false && "not implemented yet");
   return false;

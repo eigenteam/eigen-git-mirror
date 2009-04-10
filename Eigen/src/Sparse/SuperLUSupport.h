@@ -318,7 +318,7 @@ class SparseLU<MatrixType,SuperLU> : public SparseLU<MatrixType>
     Scalar determinant() const;
 
     template<typename BDerived, typename XDerived>
-    bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x) const;
+    bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x, const int transposed = SvNoTrans) const;
 
     void compute(const MatrixType& matrix);
 
@@ -413,11 +413,21 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
 
 template<typename MatrixType>
 template<typename BDerived,typename XDerived>
-bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived> *x) const
+bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b,
+                        MatrixBase<XDerived> *x, const int transposed) const
 {
   const int size = m_matrix.rows();
   const int rhsCols = b.cols();
   ei_assert(size==b.rows());
+
+  switch (transposed) {
+      case SvNoTrans    :  m_sluOptions.Trans = NOTRANS; break;
+      case SvTranspose  :  m_sluOptions.Trans = TRANS;   break;
+      case SvAdjoint    :  m_sluOptions.Trans = CONJ;    break;
+      default:
+        std::cerr << "Eigen: tranpsiotion  option \"" << transposed << "\" not supported by the SuperLU backend\n";
+        m_sluOptions.Trans = NOTRANS;
+  }
 
   m_sluOptions.Fact = FACTORED;
   m_sluOptions.IterRefine = NOREFINE;
@@ -443,6 +453,8 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b, MatrixBa
     &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
 
+  // reset to previous state
+  m_sluOptions.Trans = NOTRANS;
   return info==0;
 }
 

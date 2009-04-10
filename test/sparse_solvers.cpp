@@ -191,6 +191,14 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
           VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: SuperLU");
         }
         // std::cerr << refDet << " == " << slu.determinant() << "\n";
+        if (slu.solve(b, &x, SvTranspose)) {
+          VERIFY(b.isApprox(m2.transpose() * x, test_precision<Scalar>()));
+        }
+
+        if (slu.solve(b, &x, SvAdjoint)) {
+//          VERIFY(b.isApprox(m2.adjoint() * x, test_precision<Scalar>()));
+        }
+
         if (count==0) {
           VERIFY_IS_APPROX(refDet,slu.determinant()); // FIXME det is not very stable for complex
         }
