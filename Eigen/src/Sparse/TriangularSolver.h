@@ -79,7 +79,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor
       {
         Scalar tmp = other.coeff(i,col);
         typename Lhs::InnerIterator it(lhs, i);
-        if (it.index() == i)
+        if (it && it.index() == i)
           ++it;
         for(; it; ++it)
         {
@@ -91,7 +91,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor
         else
         {
           typename Lhs::InnerIterator it(lhs, i);
-          ei_assert(it.index() == i);
+          ei_assert(it && it.index() == i);
           other.coeffRef(i,col) = tmp/it.value();
         }
       }
@@ -119,7 +119,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,ColMajor
             ei_assert(it.index()==i);
             tmp /= it.value();
           }
-          if (it.index()==i)
+          if (it && it.index()==i)
             ++it;
           for(; it; ++it)
             other.coeffRef(it.index(), col) -= tmp * it.value();
