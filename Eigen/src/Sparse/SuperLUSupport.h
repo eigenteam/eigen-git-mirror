@@ -287,6 +287,8 @@ class SparseLU<MatrixType,SuperLU> : public SparseLU<MatrixType>
 
     ~SparseLU()
     {
+      Destroy_SuperNode_Matrix(&m_sluL);
+      Destroy_CompCol_Matrix(&m_sluU);
     }
 
     inline const LMatrixType& matrixL() const
