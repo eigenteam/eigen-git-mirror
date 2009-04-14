@@ -1,4 +1,4 @@
-set(Eigen_HEADERS AdolcForward BVH IterativeSolvers)
+set(Eigen_HEADERS AdolcForward BVH IterativeSolvers MoreVectorization)
 
 install(FILES
   ${Eigen_HEADERS}
