@@ -54,8 +54,8 @@ namespace Eigen {
   *   - Determine all points where a ray intersects a triangle mesh
   *   - Given a set of points, determine which are contained in a query sphere
   *   - Given a set of spheres, determine which contain the query point
-  *   - Given a set of spheres, determine if any is completely contained in a query box (not an intersection query,
-        but can still be accelerated by pruning all spheres that do not intersect the query box)
+  *   - Given a set of disks, determine if any is completely contained in a query rectangle (represent each 2D disk as a point \f$(x,y,r)\f$
+  *     in 3D and represent the rectangle as a pyramid based on the original rectangle and shrinking in the \f$r\f$ direction)
   *   - Given a set of points, count how many pairs are \f$d\pm\epsilon\f$ apart (done by looking at the cartesian product of the set
   *     of points with itself)
   *

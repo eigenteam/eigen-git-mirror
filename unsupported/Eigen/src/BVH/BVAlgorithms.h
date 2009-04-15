@@ -42,9 +42,11 @@ template<typename BVH, typename Intersector>
 bool ei_intersect_helper(const BVH &tree, Intersector &intersector, typename BVH::Index root)
 {
   typedef typename BVH::Index Index;
+  typedef typename BVH::VolumeIterator VolIter;
+  typedef typename BVH::ObjectIterator ObjIter;
 
-  typename BVH::VolumeIterator vBegin, vEnd;
-  typename BVH::ObjectIterator oBegin, oEnd;
+  VolIter vBegin = VolIter(), vEnd = VolIter();
+  ObjIter oBegin = ObjIter(), oEnd = ObjIter();
 
   std::vector<Index> todo(1, root);
 
@@ -99,11 +101,15 @@ void BVIntersect(const BVH1 &tree1, const BVH2 &tree2, Intersector &intersector)
   typedef typename BVH2::Index Index2;
   typedef ei_intersector_helper1<typename BVH1::Volume, typename BVH1::Object, typename BVH2::Object, Intersector> Helper1;
   typedef ei_intersector_helper2<typename BVH2::Volume, typename BVH2::Object, typename BVH1::Object, Intersector> Helper2;
+  typedef typename BVH1::VolumeIterator VolIter1;
+  typedef typename BVH1::ObjectIterator ObjIter1;
+  typedef typename BVH2::VolumeIterator VolIter2;
+  typedef typename BVH2::ObjectIterator ObjIter2;
 
-  typename BVH1::VolumeIterator vBegin1, vEnd1;
-  typename BVH1::ObjectIterator oBegin1, oEnd1;
-  typename BVH2::VolumeIterator vBegin2, vEnd2, vCur2;
-  typename BVH2::ObjectIterator oBegin2, oEnd2, oCur2;
+  VolIter1 vBegin1 = VolIter1(), vEnd1 = VolIter1();
+  ObjIter1 oBegin1 = ObjIter1(), oEnd1 = ObjIter1();
+  VolIter2 vBegin2 = VolIter2(), vEnd2 = VolIter2(), vCur2 = VolIter2();
+  ObjIter2 oBegin2 = ObjIter2(), oEnd2 = ObjIter2(), oCur2 = ObjIter2();
 
   std::vector<std::pair<Index1, Index2> > todo(1, std::make_pair(tree1.getRootIndex(), tree2.getRootIndex()));
 
@@ -162,9 +168,11 @@ typename Minimizer::Scalar ei_minimize_helper(const BVH &tree, Minimizer &minimi
   typedef typename Minimizer::Scalar Scalar;
   typedef typename BVH::Index Index;
   typedef std::pair<Scalar, Index> QueueElement; //first element is priority
+  typedef typename BVH::VolumeIterator VolIter;
+  typedef typename BVH::ObjectIterator ObjIter;
 
-  typename BVH::VolumeIterator vBegin = 0, vEnd = 0;
-  typename BVH::ObjectIterator oBegin = 0, oEnd = 0;
+  VolIter vBegin = VolIter(), vEnd = VolIter();
+  ObjIter oBegin = ObjIter(), oEnd = ObjIter();
   std::priority_queue<QueueElement, std::vector<QueueElement>, std::greater<QueueElement> > todo; //smallest is at the top
 
   todo.push(std::make_pair(Scalar(), root));
@@ -229,11 +237,15 @@ typename Minimizer::Scalar BVMinimize(const BVH1 &tree1, const BVH2 &tree2, Mini
   typedef ei_minimizer_helper1<typename BVH1::Volume, typename BVH1::Object, typename BVH2::Object, Minimizer> Helper1;
   typedef ei_minimizer_helper2<typename BVH2::Volume, typename BVH2::Object, typename BVH1::Object, Minimizer> Helper2;
   typedef std::pair<Scalar, std::pair<Index1, Index2> > QueueElement; //first element is priority
+  typedef typename BVH1::VolumeIterator VolIter1;
+  typedef typename BVH1::ObjectIterator ObjIter1;
+  typedef typename BVH2::VolumeIterator VolIter2;
+  typedef typename BVH2::ObjectIterator ObjIter2;
 
-  typename BVH1::VolumeIterator vBegin1, vEnd1 = 0;
-  typename BVH1::ObjectIterator oBegin1 = 0, oEnd1 = 0;
-  typename BVH2::VolumeIterator vBegin2, vEnd2 = 0, vCur2;
-  typename BVH2::ObjectIterator oBegin2 = 0, oEnd2 = 0, oCur2;
+  VolIter1 vBegin1 = VolIter1(), vEnd1 = VolIter1();
+  ObjIter1 oBegin1 = ObjIter1(), oEnd1 = ObjIter1();
+  VolIter2 vBegin2 = VolIter2(), vEnd2 = VolIter2(), vCur2 = VolIter2();
+  ObjIter2 oBegin2 = ObjIter2(), oEnd2 = ObjIter2(), oCur2 = ObjIter2();
   std::priority_queue<QueueElement, std::vector<QueueElement>, std::greater<QueueElement> > todo; //smallest is at the top
 
   Scalar minimum = std::numeric_limits<Scalar>::max();
