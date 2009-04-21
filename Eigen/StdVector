@@ -120,8 +120,17 @@ class vector<T,Eigen::aligned_allocator<T> >
     else
       vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
   }
-#else
+#elif defined(_GLIBCXX_VECTOR)
   using vector_base::resize;
+#else
+  // default implementation which should always work.
+  void resize(size_type new_size, const value_type& x)
+  {
+    if (new_size < vector_base::size())
+      vector_base::erase(vector_base::begin() + new_size, vector_base::end());
+    else if (new_size > vector_base::size())
+      vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
+  }
 #endif
 
 };
