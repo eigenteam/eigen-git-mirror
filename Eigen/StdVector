@@ -3,7 +3,7 @@
 
 #if defined(_GLIBCXX_VECTOR) || defined(_VECTOR_)
 #error you must include Eigen/StdVector before std::vector
-#endif                                                    
+#endif
 
 #ifndef EIGEN_GNUC_AT_LEAST
 #ifdef __GNUC__
@@ -14,7 +14,7 @@
 #endif
 
 #define vector std_vector
-#include <vector>        
+#include <vector>
 #undef vector
 
 namespace Eigen {
@@ -34,12 +34,12 @@ struct ei_has_aligned_operator_new {
     test(...);
 
     // note that the following indirection is needed for gcc-3.3
-    enum {ret =  sizeof(test(static_cast<ClassType*>(0))) 
+    enum {ret =  sizeof(test(static_cast<ClassType*>(0)))
               == sizeof(ei_has_aligned_operator_new_marker_sizeof) };
 };
 
 #ifdef _MSC_VER
-  
+
   // sometimes, MSVC detects, at compile time, that the argument x
   // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
   // even if this function is never called. Whence this little wrapper.
@@ -94,38 +94,45 @@ class vector : public std::std_vector<T,AllocT>
 template<typename T,typename DummyAlloc>
 class vector<T,DummyAlloc,true>
   : public std::std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
-                           Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >          
+                           Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >
 {
   typedef std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
                      Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
   EIGEN_STD_VECTOR_SPECIALIZATION_BODY
 
   void resize(size_type __new_size)
-  { resize(__new_size, T()); }     
+  { resize(__new_size, T()); }
 
   #if defined(_VECTOR_)
   // workaround MSVC std::vector implementation
-  void resize(size_type __new_size, const value_type& __x)                 
-  {                                                              
-    if (vector_base::size() < __new_size)                                 
+  void resize(size_type __new_size, const value_type& __x)
+  {
+    if (vector_base::size() < __new_size)
       vector_base::_Insert_n(vector_base::end(), __new_size - vector_base::size(), __x);
     else if (__new_size < vector_base::size())
       vector_base::erase(vector_base::begin() + __new_size, vector_base::end());
   }
+  void push_back(const value_type& __x)
+  { vector_base::push_back(__x); }
+  iterator insert(iterator __position, const value_type& __x)
+  { return vector_base::insert(__position,__x); }
+  iterator insert(iterator __position, size_type __n, const value_type& __x)
+  { return vector_base::insert(__position, __n, __x); }
   #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
   // workaround GCC std::vector implementation
   // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
   // no no need to workaround !
   void resize(size_type __new_size, const value_type& __x)
-  {                                              
-    if (__new_size < vector_base::size())               
+  {
+    if (__new_size < vector_base::size())
       vector_base::_M_erase_at_end(this->_M_impl._M_start + __new_size);
-    else                       
-      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x); 
-  }                                                              
+    else
+      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x);
+  }
   #else
   using vector_base::resize;
-  #endif  
+  #endif
+
 };
 
 }
