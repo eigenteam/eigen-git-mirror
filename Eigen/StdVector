@@ -67,38 +67,40 @@ struct ei_has_aligned_operator_new {
 
 namespace std {
 
-#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
+#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY(VECTOR) \
   public:  \
     typedef T value_type; \
     typedef typename vector_base::allocator_type allocator_type; \
     typedef typename vector_base::size_type size_type;  \
     typedef typename vector_base::iterator iterator;  \
-    explicit vector(const allocator_type& __a = allocator_type()) : vector_base(__a) {}  \
-    vector(const vector& c) : vector_base(c) {}  \
-    vector(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
-    vector(iterator start, iterator end) : vector_base(start, end) {}  \
-    vector& operator=(const vector& __x) {  \
+    explicit VECTOR(const allocator_type& __a = allocator_type()) : vector_base(__a) {}  \
+    VECTOR(const VECTOR& c) : vector_base(c) {}  \
+    VECTOR(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
+    VECTOR(iterator start, iterator end) : vector_base(start, end) {}  \
+    VECTOR& operator=(const VECTOR& __x) {  \
       vector_base::operator=(__x);  \
       return *this;  \
     }
 
+
+
 template<typename T,
          typename AllocT = std::allocator<T>,
          bool HasAlignedNew = Eigen::ei_has_aligned_operator_new<T>::ret>
-class vector : public std::std_vector<T,AllocT>
+class ei_vector : public std::std_vector<T,AllocT>
 {
   typedef std_vector<T, AllocT> vector_base;
-  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(ei_vector)
 };
 
 template<typename T,typename DummyAlloc>
-class vector<T,DummyAlloc,true>
+class ei_vector<T,DummyAlloc,true>
   : public std::std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
                            Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >
 {
   typedef std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
                      Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
-  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(ei_vector)
 
   void resize(size_type __new_size)
   { resize(__new_size, T()); }
@@ -133,6 +135,14 @@ class vector<T,DummyAlloc,true>
   using vector_base::resize;
   #endif
 
+};
+
+template<typename T,
+         typename AllocT = std::allocator<T> >
+class vector : public ei_vector<T,AllocT>
+{
+  typedef ei_vector<T, AllocT> vector_base;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(vector)
 };
 
 }
