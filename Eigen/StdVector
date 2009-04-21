@@ -74,6 +74,9 @@ namespace std {
     typedef typename vector_base::size_type size_type;  \
     typedef typename vector_base::iterator iterator;  \
     explicit VECTOR(const allocator_type& __a = allocator_type()) : vector_base(__a) {}  \
+    template<typename InputIterator> \
+    VECTOR(InputIterator first, InputIterator last, const allocator_type& __a = allocator_type()) \
+    : vector_base(first, last, __a) {} \
     VECTOR(const VECTOR& c) : vector_base(c) {}  \
     VECTOR(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
     VECTOR(iterator start, iterator end) : vector_base(start, end) {}  \
