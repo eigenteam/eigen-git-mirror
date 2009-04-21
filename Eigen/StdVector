@@ -1,41 +1,38 @@
 #ifndef EIGEN_STDVECTOR_MODULE_H
 #define EIGEN_STDVECTOR_MODULE_H
 
-#if defined(_GLIBCXX_VECTOR) || defined(_VECTOR_)
-#error you must include Eigen/StdVector before std::vector
-#endif
-
-#ifndef EIGEN_GNUC_AT_LEAST
-#ifdef __GNUC__
-  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
-#else
-  #define EIGEN_GNUC_AT_LEAST(x,y) 0
-#endif
-#endif
-
-#define vector std_vector
+#include "Core"
 #include <vector>
-#undef vector
 
 namespace Eigen {
 
-template<typename T> class aligned_allocator;
+// This one is needed to prevent reimplementing the whole std::vector.
+template <class T>
+class aligned_allocator_indirection : public aligned_allocator<T>
+{
+public:
+  typedef size_t    size_type;
+  typedef ptrdiff_t difference_type;
+  typedef T*        pointer;
+  typedef const T*  const_pointer;
+  typedef T&        reference;
+  typedef const T&  const_reference;
+  typedef T         value_type;
 
-// meta programming to determine if a class has a given member
-struct ei_does_not_have_aligned_operator_new_marker_sizeof {int a[1];};
-struct ei_has_aligned_operator_new_marker_sizeof {int a[2];};
+  template<class U>
+  struct rebind
+  {
+    typedef aligned_allocator_indirection<U> other;
+  };
 
-template<typename ClassType>
-struct ei_has_aligned_operator_new {
-    template<typename T>
-    static ei_has_aligned_operator_new_marker_sizeof
-    test(T const *, typename T::ei_operator_new_marker_type const * = 0);
-    static ei_does_not_have_aligned_operator_new_marker_sizeof
-    test(...);
-
-    // note that the following indirection is needed for gcc-3.3
-    enum {ret =  sizeof(test(static_cast<ClassType*>(0)))
-              == sizeof(ei_has_aligned_operator_new_marker_sizeof) };
+  aligned_allocator_indirection() throw() {}
+  aligned_allocator_indirection(const aligned_allocator_indirection& ) throw() {}
+  aligned_allocator_indirection(const aligned_allocator<T>& ) throw() {}
+  template<class U>
+  aligned_allocator_indirection(const aligned_allocator_indirection<U>& ) throw() {}
+  template<class U>
+  aligned_allocator_indirection(const aligned_allocator<U>& ) throw() {}
+  ~aligned_allocator_indirection() throw() {}
 };
 
 #ifdef _MSC_VER
@@ -43,7 +40,7 @@ struct ei_has_aligned_operator_new {
   // sometimes, MSVC detects, at compile time, that the argument x
   // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
   // even if this function is never called. Whence this little wrapper.
-  #define _EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) Eigen::ei_workaround_msvc_std_vector<T>
+  #define EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) Eigen::ei_workaround_msvc_std_vector<T>
   template<typename T> struct ei_workaround_msvc_std_vector : public T
   {
     inline ei_workaround_msvc_std_vector() : T() {}
@@ -59,7 +56,7 @@ struct ei_has_aligned_operator_new {
 
 #else
 
-  #define _EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) T
+  #define EIGEN_WORKAROUND_MSVC_STD_VECTOR(T) T
 
 #endif
 
@@ -67,85 +64,66 @@ struct ei_has_aligned_operator_new {
 
 namespace std {
 
-#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY(VECTOR) \
+#define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
   public:  \
     typedef T value_type; \
     typedef typename vector_base::allocator_type allocator_type; \
     typedef typename vector_base::size_type size_type;  \
     typedef typename vector_base::iterator iterator;  \
-    explicit VECTOR(const allocator_type& __a = allocator_type()) : vector_base(__a) {}  \
+    explicit vector(const allocator_type& a = allocator_type()) : vector_base(a) {}  \
     template<typename InputIterator> \
-    VECTOR(InputIterator first, InputIterator last, const allocator_type& __a = allocator_type()) \
-    : vector_base(first, last, __a) {} \
-    VECTOR(const VECTOR& c) : vector_base(c) {}  \
-    VECTOR(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
-    VECTOR(iterator start, iterator end) : vector_base(start, end) {}  \
-    VECTOR& operator=(const VECTOR& __x) {  \
-      vector_base::operator=(__x);  \
+    vector(InputIterator first, InputIterator last, const allocator_type& a = allocator_type()) \
+    : vector_base(first, last, a) {} \
+    vector(const vector& c) : vector_base(c) {}  \
+    explicit vector(size_type num, const value_type& val = value_type()) : vector_base(num, val) {} \
+    vector(iterator start, iterator end) : vector_base(start, end) {}  \
+    vector& operator=(const vector& x) {  \
+      vector_base::operator=(x);  \
       return *this;  \
     }
 
-
-
-template<typename T,
-         typename AllocT = std::allocator<T>,
-         bool HasAlignedNew = Eigen::ei_has_aligned_operator_new<T>::ret>
-class ei_vector : public std::std_vector<T,AllocT>
+template<typename T>
+class vector<T,Eigen::aligned_allocator<T> >
+  : public vector<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >
 {
-  typedef std_vector<T, AllocT> vector_base;
-  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(ei_vector)
-};
+  typedef vector<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
+                 Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
+  EIGEN_STD_VECTOR_SPECIALIZATION_BODY
 
-template<typename T,typename DummyAlloc>
-class ei_vector<T,DummyAlloc,true>
-  : public std::std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
-                           Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> >
-{
-  typedef std_vector<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T),
-                     Eigen::aligned_allocator<_EIGEN_WORKAROUND_MSVC_STD_VECTOR(T)> > vector_base;
-  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(ei_vector)
+  void resize(size_type new_size)
+  { resize(new_size, T()); }
 
-  void resize(size_type __new_size)
-  { resize(__new_size, T()); }
-
-  #if defined(_VECTOR_)
+#if defined(_VECTOR_)
   // workaround MSVC std::vector implementation
-  void resize(size_type __new_size, const value_type& __x)
+  void resize(size_type new_size, const value_type& x)
   {
-    if (vector_base::size() < __new_size)
-      vector_base::_Insert_n(vector_base::end(), __new_size - vector_base::size(), __x);
-    else if (__new_size < vector_base::size())
-      vector_base::erase(vector_base::begin() + __new_size, vector_base::end());
+    if (vector_base::size() < new_size)
+      vector_base::_Insert_n(vector_base::end(), new_size - vector_base::size(), x);
+    else if (new_size < vector_base::size())
+      vector_base::erase(vector_base::begin() + new_size, vector_base::end());
   }
-  void push_back(const value_type& __x)
-  { vector_base::push_back(__x); }
-  iterator insert(iterator __position, const value_type& __x)
-  { return vector_base::insert(__position,__x); }
-  iterator insert(iterator __position, size_type __n, const value_type& __x)
-  { return vector_base::insert(__position, __n, __x); }
-  #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
+  void push_back(const value_type& x)
+  { vector_base::push_back(x); }
+  iterator insert(iterator position, const value_type& x)
+  { return vector_base::insert(position,x); }
+  iterator insert(iterator position, size_type new_size, const value_type& x)
+  { return vector_base::insert(position, new_size, x); }
+#elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
   // workaround GCC std::vector implementation
   // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
   // no no need to workaround !
-  void resize(size_type __new_size, const value_type& __x)
+  void resize(size_type new_size, const value_type& x)
   {
-    if (__new_size < vector_base::size())
-      vector_base::_M_erase_at_end(this->_M_impl._M_start + __new_size);
+    if (new_size < vector_base::size())
+      vector_base::_M_erase_at_end(this->_M_impl._M_start + new_size);
     else
-      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x);
+      vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
   }
-  #else
+#else
   using vector_base::resize;
-  #endif
+#endif
 
-};
-
-template<typename T,
-         typename AllocT = std::allocator<T> >
-class vector : public ei_vector<T,AllocT>
-{
-  typedef ei_vector<T, AllocT> vector_base;
-  EIGEN_STD_VECTOR_SPECIALIZATION_BODY(vector)
 };
 
 }
