@@ -32,17 +32,14 @@ Note that here, the 3rd parameter "std::less<int>" is just the default value, we
 
 \section vector The case of std::vector
 
-The situation with std::vector was even worse (explanation below) so we had to specialize it for Eigen types. The upside is that our specialization takes care of specifying the aligned allocator, so you don't need to worry about it. All you need to do is to \#include <Eigen/StdVector> instead of (or before) \#include <vector>.
+The situation with std::vector was even worse (explanation below) so we had to specialize it for the Eigen::aligned_allocator type. In practice you \b must use the Eigen::aligned_allocator (not another aligned allocator), \b and \#include <Eigen/StdVector>.
 
-So as soon as you have
+Here is an example:
 \code
 #include<Eigen/StdVector>
+\/* ... *\/
+std::vector<Eigen::Vector4f,Eigen::aligned_allocator<Eigen::Vector4f> >
 \endcode
-you can simply use
-\code
-std::vector<Eigen::Vector4f>
-\endcode
-without having to worry about anything.
 
 <span class="note">\b Explanation: The resize() method of std::vector takes a value_type argument (defaulting to value_type()). So with std::vector<Eigen::Vector4f>, some Eigen::Vector4f objects will be passed by value, which discards any alignment modifiers, so a Eigen::Vector4f can be created at an unaligned location. In order to avoid that, the only solution we saw was to specialize std::vector to make it work on a slight modification of, here, Eigen::Vector4f, that is able to deal properly with this situation.
 </span>
