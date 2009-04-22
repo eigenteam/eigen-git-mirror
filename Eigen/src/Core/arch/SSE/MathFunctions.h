@@ -30,7 +30,7 @@
 #ifndef EIGEN_MATH_FUNCTIONS_SSE_H
 #define EIGEN_MATH_FUNCTIONS_SSE_H
 
-template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
+static EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
 {
   _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
   _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
@@ -108,7 +108,7 @@ template<> EIGEN_DONT_INLINE Packet4f ei_plog(Packet4f x)
   return _mm_or_ps(x, invalid_mask); // negative arg will be NAN
 }
 
-template<> EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
+static EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
 {
   _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
   _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
@@ -181,7 +181,7 @@ template<> EIGEN_DONT_INLINE Packet4f ei_pexp(Packet4f x)
    surprising but correct result.
 */
 
-template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
+static EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 {
   _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
   _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
@@ -210,6 +210,8 @@ template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
   sign_bit = x;
   /* take the absolute value */
   x = ei_pabs(x);
+  
+  /* take the modulo */
   
   /* extract the sign bit (upper one) */
   sign_bit = _mm_and_ps(sign_bit, ei_p4f_sign_mask);
@@ -278,7 +280,7 @@ template<> EIGEN_DONT_INLINE Packet4f ei_psin(Packet4f x)
 }
 
 /* almost the same as ei_psin */
-template<> Packet4f ei_pcos(Packet4f x)
+static Packet4f ei_pcos(Packet4f x)
 {
   _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
   _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
@@ -363,7 +365,7 @@ template<> Packet4f ei_pcos(Packet4f x)
   return _mm_xor_ps(y, sign_bit);
 }
 
-template<> Packet4f ei_psqrt(Packet4f _x)
+static Packet4f ei_psqrt(Packet4f _x)
 {
   Packet4f half = ei_pmul(_x, ei_pset1(.5f));
   Packet4f x = _mm_rsqrt_ps(_x);
