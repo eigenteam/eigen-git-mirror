@@ -26,7 +26,7 @@ public:
   };
 
   aligned_allocator_indirection() throw() {}
-  aligned_allocator_indirection(const aligned_allocator_indirection& ) throw() {}
+  aligned_allocator_indirection(const aligned_allocator_indirection& ) throw() : aligned_allocator<T>() {}
   aligned_allocator_indirection(const aligned_allocator<T>& ) throw() {}
   template<class U>
   aligned_allocator_indirection(const aligned_allocator_indirection<U>& ) throw() {}

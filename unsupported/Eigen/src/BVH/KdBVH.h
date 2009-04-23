@@ -40,18 +40,18 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar, Dim)
 
 //these templates help the tree initializer get the bounding boxes either from a provided
 //iterator range or using ei_bounding_box in a unified way
-template<typename Object, typename Volume, typename BoxIter>
+template<typename ObjectList, typename VolumeList, typename BoxIter>
 struct ei_get_boxes_helper {
-  void operator()(const std::vector<Object> &objects, BoxIter boxBegin, BoxIter boxEnd, std::vector<Volume> &outBoxes)
+  void operator()(const ObjectList &objects, BoxIter boxBegin, BoxIter boxEnd, VolumeList &outBoxes)
   {
     outBoxes.insert(outBoxes.end(), boxBegin, boxEnd);
     ei_assert(outBoxes.size() == objects.size());
   }
 };
 
-template<typename Object, typename Volume>
-struct ei_get_boxes_helper<Object, Volume, int> {
-  void operator()(const std::vector<Object> &objects, int, int, std::vector<Volume> &outBoxes)
+template<typename ObjectList, typename VolumeList>
+struct ei_get_boxes_helper<ObjectList, VolumeList, int> {
+  void operator()(const ObjectList &objects, int, int, VolumeList &outBoxes)
   {
     outBoxes.reserve(objects.size());
     for(int i = 0; i < (int)objects.size(); ++i)
@@ -78,8 +78,10 @@ template<typename _Scalar, int _Dim, typename _Object> class KdBVH
 public:
   enum { Dim = _Dim };
   typedef _Object Object;
+  typedef std::vector<Object, aligned_allocator<Object> > ObjectList;
   typedef _Scalar Scalar;
   typedef AlignedBox<Scalar, Dim> Volume;
+  typedef std::vector<Volume, aligned_allocator<Volume> > VolumeList;
   typedef int Index;
   typedef const int *VolumeIterator; //the iterators are just pointers into the tree's vectors
   typedef const Object *ObjectIterator;
@@ -110,10 +112,11 @@ public:
     if(n < 2)
       return; //if we have at most one object, we don't need any internal nodes
 
-    std::vector<Volume> objBoxes;
-    std::vector<VIPair> objCenters;
+    VolumeList objBoxes;
+    VIPairList objCenters;
 
-    ei_get_boxes_helper<Object, Volume, BIter>()(objects, boxBegin, boxEnd, objBoxes); //compute the bounding boxes depending on BIter type
+    //compute the bounding boxes depending on BIter type
+    ei_get_boxes_helper<ObjectList, VolumeList, BIter>()(objects, boxBegin, boxEnd, objBoxes);
 
     objCenters.reserve(n);
     boxes.reserve(n - 1);
@@ -124,7 +127,7 @@ public:
 
     build(objCenters, 0, n, objBoxes, 0); //the recursive part of the algorithm
 
-    std::vector<Object> tmp(n);
+    ObjectList tmp(n);
     tmp.swap(objects);
     for(int i = 0; i < n; ++i)
       objects[i] = tmp[objCenters[i].second];
@@ -174,6 +177,7 @@ public:
 
 private:
   typedef ei_vector_int_pair<Scalar, Dim> VIPair;
+  typedef std::vector<VIPair, aligned_allocator<VIPair> > VIPairList;
   typedef Matrix<Scalar, Dim, 1> VectorType;
   struct VectorComparator //compares vectors, or, more specificall, VIPairs along a particular dimension
   {
@@ -185,7 +189,7 @@ private:
   //Build the part of the tree between objects[from] and objects[to] (not including objects[to]).
   //This routine partitions the objCenters in [from, to) along the dimension dim, recursively constructs
   //the two halves, and adds their parent node.  TODO: a cache-friendlier layout
-  void build(std::vector<VIPair> &objCenters, int from, int to, const std::vector<Volume> &objBoxes, int dim)
+  void build(VIPairList &objCenters, int from, int to, const VolumeList &objBoxes, int dim)
   {
     ei_assert(to - from > 1);
     if(to - from == 2) {
@@ -218,8 +222,8 @@ private:
   }
 
   std::vector<int> children; //children of x are children[2x] and children[2x+1], indices bigger than boxes.size() index into objects.
-  std::vector<Volume> boxes;
-  std::vector<Object> objects;
+  VolumeList boxes;
+  ObjectList objects;
 };
 
 #endif //KDBVH_H_INCLUDED

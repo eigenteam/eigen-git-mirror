@@ -42,9 +42,11 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(double, Dim)
   double radius;
 };
 
+
 template<int Dim> AlignedBox<double, Dim> ei_bounding_box(const Matrix<double, Dim, 1> &v) { return AlignedBox<double, Dim>(v); }
 template<int Dim> AlignedBox<double, Dim> ei_bounding_box(const Ball<Dim> &b)
 { return AlignedBox<double, Dim>(b.center.cwise() - b.radius, b.center.cwise() + b.radius); }
+
 
 template<int Dim>
 struct BallPointStuff //this class provides functions to be both an intersector and a minimizer, both for a ball and a point and for two trees
@@ -97,16 +99,19 @@ struct BallPointStuff //this class provides functions to be both an intersector 
   int count;
 };
 
+
 template<int Dim>
 struct TreeTest
 {
   typedef Matrix<double, Dim, 1> VectorType;
+  typedef std::vector<VectorType, aligned_allocator<VectorType> > VectorTypeList;
   typedef Ball<Dim> BallType;
+  typedef std::vector<BallType, aligned_allocator<BallType> > BallTypeList;
   typedef AlignedBox<double, Dim> BoxType;
 
   void testIntersect1()
   {
-    std::vector<BallType> b;
+    BallTypeList b;
     for(int i = 0; i < 500; ++i) {
         b.push_back(BallType(VectorType::Random(), 0.5 * ei_random(0., 1.)));
     }
@@ -125,7 +130,7 @@ struct TreeTest
 
   void testMinimize1()
   {
-    std::vector<BallType> b;
+    BallTypeList b;
     for(int i = 0; i < 500; ++i) {
         b.push_back(BallType(VectorType::Random(), 0.01 * ei_random(0., 1.)));
     }
@@ -146,8 +151,8 @@ struct TreeTest
 
   void testIntersect2()
   {
-    std::vector<BallType> b;
-    std::vector<VectorType> v;
+    BallTypeList b;
+    VectorTypeList v;
 
     for(int i = 0; i < 50; ++i) {
         b.push_back(BallType(VectorType::Random(), 0.5 * ei_random(0., 1.)));
@@ -171,8 +176,8 @@ struct TreeTest
 
   void testMinimize2()
   {
-    std::vector<BallType> b;
-    std::vector<VectorType> v;
+    BallTypeList b;
+    VectorTypeList v;
 
     for(int i = 0; i < 50; ++i) {
         b.push_back(BallType(VectorType::Random(), 1e-7 + 1e-6 * ei_random(0., 1.)));
@@ -196,6 +201,7 @@ struct TreeTest
     VERIFY_IS_APPROX(m1, m2);
   }
 };
+
 
 void test_BVH()
 {
