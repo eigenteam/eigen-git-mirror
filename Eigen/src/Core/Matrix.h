@@ -338,47 +338,24 @@ class Matrix
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
     }
 
-    /** This constructor has two very different behaviors, depending on the type of *this.
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename T0, typename T1>
+    EIGEN_STRONG_INLINE Matrix(const T0& x, const T1& y)
+    {
+      _check_template_params();
+      _init2<T0,T1>(x, y);
+    }
+    #else
+    /** constructs an uninitialized matrix with \a rows rows and \a cols columns.
       *
-      * \li When Matrix is a fixed-size vector type of size 2, this constructor constructs
-      *     an initialized vector. The parameters \a x, \a y are copied into the first and second
-      *     coords of the vector respectively.
-      * \li Otherwise, this constructor constructs an uninitialized matrix with \a x rows and
-      *     \a y columns. This is useful for dynamic-size matrices. For fixed-size matrices,
-      *     it is redundant to pass these parameters, so one should use the default constructor
-      *     Matrix() instead.
-      */
-    EIGEN_STRONG_INLINE Matrix(int x, int y) : m_storage(x*y, x, y)
-    {
-      _check_template_params();
-      if((RowsAtCompileTime == 1 && ColsAtCompileTime == 2)
-      || (RowsAtCompileTime == 2 && ColsAtCompileTime == 1))
-      {
-        m_storage.data()[0] = Scalar(x);
-        m_storage.data()[1] = Scalar(y);
-      }
-      else
-      {
-        ei_assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
-               && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
-      }
-    }
+      * This is useful for dynamic-size matrices. For fixed-size matrices,
+      * it is redundant to pass these parameters, so one should use the default constructor
+      * Matrix() instead. */
+    Matrix(int rows, int cols);
     /** constructs an initialized 2D vector with given coefficients */
-    EIGEN_STRONG_INLINE Matrix(const float& x, const float& y)
-    {
-      _check_template_params();
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
-      m_storage.data()[0] = x;
-      m_storage.data()[1] = y;
-    }
-    /** constructs an initialized 2D vector with given coefficients */
-    EIGEN_STRONG_INLINE Matrix(const double& x, const double& y)
-    {
-      _check_template_params();
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
-      m_storage.data()[0] = x;
-      m_storage.data()[1] = y;
-    }
+    Matrix(const Scalar& x, const Scalar& y);
+    #endif
+
     /** constructs an initialized 3D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
@@ -539,6 +516,22 @@ class Matrix
                           && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
                           && (_Options & (DontAlign|RowMajor)) == _Options),
           INVALID_MATRIX_TEMPLATE_PARAMETERS)
+    }
+
+
+    template<typename T0, typename T1>
+    EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* dummy = 0)
+    {
+      ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+             && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      m_storage.resize(rows*cols,rows,cols);
+    }
+    template<typename T0, typename T1>
+    EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* dummy = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
+      m_storage.data()[0] = x;
+      m_storage.data()[1] = y;
     }
 };
 
