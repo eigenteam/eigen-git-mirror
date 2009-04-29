@@ -504,8 +504,12 @@ template<typename Derived> class MatrixBase
 
 
     template<typename NewType>
-    const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
-
+    typename ei_cast_return_type<
+        const Derived&,
+        const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
+      >::type
+    cast() const;
+           
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
