@@ -129,4 +129,6 @@ void test_basicstuff()
     CALL_SUBTEST( basicStuff(Matrix<float, 100, 100>()) );
     CALL_SUBTEST( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
   }
+
+  CALL_SUBTEST(casting());
 }
