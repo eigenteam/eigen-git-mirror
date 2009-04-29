@@ -50,6 +50,9 @@ void test_vectorization_logic()
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f().cwise() * Vector4f(),
     InnerVectorization,CompleteUnrolling));
+  VERIFY(test_assign(Vector4f(),Vector4f().cast<float>(),
+    InnerVectorization,CompleteUnrolling));
+
 
   VERIFY(test_assign(Matrix4f(),Matrix4f(),
     InnerVectorization,CompleteUnrolling));

@@ -109,6 +109,15 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   }
 }
 
+void casting()
+{
+  Matrix4f m = Matrix4f::Random(), m2;
+  Matrix4d n = m.cast<double>();
+  VERIFY(m.isApprox(n.cast<float>()));
+  m2 = m.cast<float>(); // check the specialization when NewType == Type
+  VERIFY(m.isApprox(m2));
+}
+
 void test_basicstuff()
 {
   for(int i = 0; i < g_repeat; i++) {
