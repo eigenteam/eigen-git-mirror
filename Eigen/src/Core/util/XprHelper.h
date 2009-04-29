@@ -242,9 +242,13 @@ template<typename ExpressionType> struct HNormalizedReturnType {
               NestByValue<StartMinusOne> > Type;
 };
 
-template<typename CurrentType, typename NewType> struct ei_cast_return_type
+template<typename XprType, typename CastType> struct ei_cast_return_type
 {
-  typedef typename ei_meta_if<ei_is_same_type<CurrentType,NewType>::ret,const CurrentType&,NewType>::ret type;
+  typedef typename XprType::Scalar CurrentScalarType;
+  typedef typename ei_cleantype<CastType>::type _CastType;
+  typedef typename _CastType::Scalar NewScalarType;
+  typedef typename ei_meta_if<ei_is_same_type<CurrentScalarType,NewScalarType>::ret,
+                              const XprType&,CastType>::ret type;
 };
 
 #endif // EIGEN_XPRHELPER_H

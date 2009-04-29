@@ -70,6 +70,22 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
       construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,(OtherDerived::Flags&Diagonal)==Diagonal>
         ::run(derived(),other.derived());
     }
+    
+    template<typename NewType,int dummy=0>
+    struct cast_selector {
+      typedef const DiagonalMatrixWrapper<NestByValue<CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, _CoeffsVectorType> > > return_type;
+      inline static return_type run(const DiagonalMatrixBase& d) {
+        return d.m_coeffs.template cast<NewType>().nestByValue().asDiagonal();
+      }
+    };
+    
+    template<int dummy>
+    struct cast_selector<Scalar,dummy> {
+      typedef const Derived& return_type;
+      inline static return_type run(const DiagonalMatrixBase& d) {
+        return d.derived();
+      }
+    };
 
   public:
 
@@ -80,9 +96,10 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     }
 
     template<typename NewType>
-    inline DiagonalMatrixWrapper<NestByValue<CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, _CoeffsVectorType> > > cast() const
+    inline typename cast_selector<NewType,0>::return_type
+    cast() const
     {
-      return m_coeffs.template cast<NewType>().nestByValue().asDiagonal();
+      return cast_selector<NewType,0>::run(*this);
     }
 
     /** Assignment operator.
