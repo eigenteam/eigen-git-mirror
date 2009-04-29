@@ -505,7 +505,7 @@ template<typename Derived> class MatrixBase
 
     template<typename NewType>
     typename ei_cast_return_type<
-        const Derived&,
+        Derived,
         const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
       >::type
     cast() const;

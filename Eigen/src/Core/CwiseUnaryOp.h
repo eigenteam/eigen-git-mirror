@@ -190,7 +190,7 @@ template<typename Derived>
 template<typename NewType>
 EIGEN_STRONG_INLINE
 typename ei_cast_return_type<
-            const Derived&,
+            Derived,
             const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
           >::type
 MatrixBase<Derived>::cast() const
