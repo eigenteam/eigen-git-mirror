@@ -69,7 +69,7 @@ class SparseVector
 
     CompressedStorage<Scalar> m_data;
     int m_size;
-    
+
     CompressedStorage<Scalar>& _data() { return m_data; }
     CompressedStorage<Scalar>& _data() const { return m_data; }
 
@@ -103,7 +103,7 @@ class SparseVector
     /** \returns a reference to the coefficient value at given index \a i
       * This operation involes a log(rho*size) binary search. If the coefficient does not
       * exist yet, then a sorted insertion into a sequential buffer is performed.
-      * 
+      *
       * This insertion might be very costly if the number of nonzeros above \a i is large.
       */
     inline Scalar& coeffRef(int i)
@@ -123,7 +123,7 @@ class SparseVector
     /**
       */
     inline void reserve(int reserveSize) { m_data.reserve(reserveSize); }
-    
+
     inline void startFill(int reserve)
     {
       setZero();
@@ -137,13 +137,13 @@ class SparseVector
       ei_assert(r==0 || c==0);
       return fill(IsColVector ? r : c);
     }
-    
+
     inline Scalar& fill(int i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
-    
+
     inline Scalar& fillrand(int r, int c)
     {
       ei_assert(r==0 || c==0);
@@ -168,14 +168,14 @@ class SparseVector
       m_data.value(id+1) = 0;
       return m_data.value(id+1);
     }
-    
+
     inline void endFill() {}
-    
+
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       m_data.prune(reference,epsilon);
     }
-    
+
     void resize(int rows, int cols)
     {
       ei_assert(rows==1 || cols==1);
@@ -193,7 +193,7 @@ class SparseVector
     inline SparseVector() : m_size(0) { resize(0); }
 
     inline SparseVector(int size) : m_size(0) { resize(size); }
-    
+
     inline SparseVector(int rows, int cols) : m_size(0) { resize(rows,cols); }
 
     template<typename OtherDerived>
@@ -202,7 +202,7 @@ class SparseVector
     {
       *this = other.derived();
     }
-    
+
     template<typename OtherDerived>
     inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
       : m_size(0)
@@ -239,9 +239,12 @@ class SparseVector
     template<typename OtherDerived>
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      return Base::operator=(other);
+      if (int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
+        return Base::operator=(other.transpose());
+      else
+        return Base::operator=(other);
     }
-    
+
 //       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
 //       if (needToTranspose)
 //       {
@@ -335,7 +338,7 @@ class SparseVector<Scalar,_Flags>::InnerIterator
     {
       ei_assert(outer==0);
     }
-    
+
     InnerIterator(const CompressedStorage<Scalar>& data)
       : m_data(data), m_id(0), m_end(m_data.size())
     {}
