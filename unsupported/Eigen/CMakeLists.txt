@@ -1,4 +1,4 @@
-set(Eigen_HEADERS AdolcForward BVH IterativeSolvers MoreVectorization)
+set(Eigen_HEADERS AdolcForward BVH IterativeSolvers MoreVectorization AutoDiff AlignedVector3)
 
 install(FILES
   ${Eigen_HEADERS}

@@ -17,3 +17,4 @@ endif(ADOLC_FOUND)
 
 ei_add_test(autodiff)
 ei_add_test(BVH)
+ei_add_test(alignedvector3)
