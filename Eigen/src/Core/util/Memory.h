@@ -74,11 +74,11 @@ inline void* ei_aligned_malloc(size_t size)
   #endif
 
   void *result;
-  #if EIGEN_HAS_POSIX_MEMALIGN && EIGEN_ARCH_WANTS_ALIGNMENT && !EIGEN_MALLOC_ALREADY_ALIGNED
+  #if EIGEN_HAS_POSIX_MEMALIGN && EIGEN_ALIGN && !EIGEN_MALLOC_ALREADY_ALIGNED
     if(posix_memalign(&result, 16, size))
       result = 0;
   #else
-    #if !EIGEN_ARCH_WANTS_ALIGNMENT
+    #if !EIGEN_ALIGN
       result = malloc(size);
     #elif EIGEN_MALLOC_ALREADY_ALIGNED
       result = malloc(size);
@@ -138,7 +138,7 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
   */
 inline void ei_aligned_free(void *ptr)
 {
-  #if !EIGEN_ARCH_WANTS_ALIGNMENT
+  #if !EIGEN_ALIGN
     free(ptr);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
     free(ptr);
@@ -232,7 +232,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
 
-#if EIGEN_ARCH_WANTS_ALIGNMENT
+#if EIGEN_ALIGN
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) throw() { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \

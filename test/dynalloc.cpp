@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-#if EIGEN_ARCH_WANTS_ALIGNMENT
+#if EIGEN_ALIGN
 #define ALIGNMENT 16
 #else
 #define ALIGNMENT 1

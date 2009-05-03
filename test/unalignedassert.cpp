@@ -92,7 +92,7 @@ void check_unalignedassert_good()
   delete[] y;
 }
 
-#if EIGEN_ARCH_WANTS_ALIGNMENT
+#if EIGEN_ALIGN
 template<typename T>
 void check_unalignedassert_bad()
 {
@@ -109,7 +109,7 @@ void unalignedassert()
   check_unalignedassert_good<Good1>();
   check_unalignedassert_good<Good2>();
   check_unalignedassert_good<Good3>();
-#if EIGEN_ARCH_WANTS_ALIGNMENT
+#if EIGEN_ALIGN
   VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad4>());
   VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad5>());
   VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad6>());
@@ -120,7 +120,7 @@ void unalignedassert()
   check_unalignedassert_good<Good9>();
   check_unalignedassert_good<Depends<true> >();
 
-#if EIGEN_ARCH_WANTS_ALIGNMENT
+#if EIGEN_ALIGN
   VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Depends<false> >());
 #endif
 }

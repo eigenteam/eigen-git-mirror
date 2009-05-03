@@ -44,15 +44,22 @@
 #if (!defined(__GNUC__)) || defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__)
   #define EIGEN_ARCH_WANTS_ALIGNMENT 1
 #else
+  #define EIGEN_ARCH_WANTS_ALIGNMENT 0
+#endif
+
+// EIGEN_ALIGN is the true test whether we want to align or not. It takes into account both the user choice to explicitly disable
+// alignment (EIGEN_DONT_ALIGN) and the architecture config (EIGEN_ARCH_WANTS_ALIGNMENT). Henceforth, only EIGEN_ALIGN should be used.
+#if EIGEN_ARCH_WANTS_ALIGNMENT && !defined(EIGEN_DONT_ALIGN)
+  #define EIGEN_ALIGN 1
+#else
+  #define EIGEN_ALIGN 0
   #ifdef EIGEN_VECTORIZE
     #error Vectorization enabled, but the architecture is not listed among those for which we require 16 byte alignment. If you added vectorization for another architecture, you also need to edit this list.
   #endif
-  #define EIGEN_ARCH_WANTS_ALIGNMENT 0
   #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
   #endif
 #endif
-
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION RowMajor
@@ -180,7 +187,7 @@ using Eigen::ei_cos;
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if !EIGEN_ARCH_WANTS_ALIGNMENT
+#if !EIGEN_ALIGN
 #define EIGEN_ALIGN_128
 #elif (defined __GNUC__)
 #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
