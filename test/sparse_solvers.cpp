@@ -37,12 +37,12 @@ initSPD(double density,
     initSparse(density,aux,sparseMat,ForceNonZeroDiag);
     refMat += aux * aux.adjoint();
   }
-  sparseMat.startFill();
+  sparseMat.setZero();
   for (int j=0 ; j<sparseMat.cols(); ++j)
     for (int i=j ; i<sparseMat.rows(); ++i)
       if (refMat(i,j)!=Scalar(0))
-        sparseMat.fill(i,j) = refMat(i,j);
-  sparseMat.endFill();
+        sparseMat.insert(i,j) = refMat(i,j);
+  sparseMat.finalize();
 }
 
 template<typename Scalar> void sparse_solvers(int rows, int cols)

@@ -212,7 +212,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
     tempVector.setBounds(0,other.rows());
     
     Rhs res(other.rows(), other.cols());
-    res.startFill(other.nonZeros());
+    res.reserve(other.nonZeros());
     
     for(int col=0 ; col<other.cols() ; ++col)
     {
@@ -269,11 +269,12 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
         ++ count;
 //         std::cerr << "fill " << it.index() << ", " << col << "\n";
 //         std::cout << it.value() << "  ";
-        res.fill(it.index(), col) = it.value();
+        // FIXME use insertBack
+        res.insert(it.index(), col) = it.value();
       }
 //       std::cout << "tempVector.nonZeros() == " << int(count) << " / " << (other.rows()) << "\n";
     }
-    res.endFill();
+    res.finalize();
     other = res.markAsRValue();
   }
 };

@@ -192,7 +192,8 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
   float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
   res.resize(rows, cols);
-  res.startFill(int(ratioRes*rows*cols));
+  res.setZero();
+  res.reserve(int(ratioRes*rows*cols));
   for (int j=0; j<cols; ++j)
   {
     // let's do a more accurate determination of the nnz ratio for the current column j of res
@@ -211,13 +212,11 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
         tempVector.coeffRef(lhsIt.index()) += lhsIt.value() * x;
       }
     }
+    res.startVec(j);
     for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
-      if (ResultType::Flags&RowMajorBit)
-        res.fill(j,it.index()) = it.value();
-      else
-        res.fill(it.index(), j) = it.value();
+      res.insertBack(j,it.index()) = it.value();
   }
-  res.endFill();
+  res.finalize();
 }
 
 template<typename Lhs, typename Rhs, typename ResultType,

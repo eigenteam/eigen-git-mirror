@@ -110,14 +110,14 @@ class DynamicSparseMatrix
 
     class InnerIterator;
 
-    inline void setZero()
+    void setZero()
     {
       for (int j=0; j<outerSize(); ++j)
         m_data[j].clear();
     }
 
     /** \returns the number of non zero coefficients */
-    inline int nonZeros() const
+    int nonZeros() const
     {
       int res = 0;
       for (int j=0; j<outerSize(); ++j)
@@ -125,21 +125,39 @@ class DynamicSparseMatrix
       return res;
     }
 
-    /** Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
-    inline void startFill(int reserveSize = 1000)
+    /** \deprecated
+      * Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
+    EIGEN_DEPRECATED void startFill(int reserveSize = 1000)
+    {
+      setZero();
+      reserve(reserveSize);
+    }
+    
+    void reserve(int reserveSize = 1000)
     {
       if (outerSize()>0)
       {
         int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
         for (int j=0; j<outerSize(); ++j)
         {
-          m_data[j].clear();
           m_data[j].reserve(reserveSizePerVector);
         }
       }
     }
+    
+    inline void startVec(int /*outer*/) {}
+    
+    inline Scalar& insertBack(int outer, int inner)
+    {
+      ei_assert(outer<int(m_data.size()) && inner<m_innerSize && "out of range");
+      ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner)) 
+                && "wrong sorted insertion");
+      m_data[outer].append(0, inner);
+      return m_data[outer].value(m_data[outer].size()-1);
+    }
 
-    /** inserts a nonzero coefficient at given coordinates \a row, \a col and returns its reference assuming that:
+    /** \deprecated use insert()
+      * inserts a nonzero coefficient at given coordinates \a row, \a col and returns its reference assuming that:
       *  1 - the coefficient does not exist yet
       *  2 - this the coefficient with greater inner coordinate for the given outer coordinate.
       * In other words, assuming \c *this is column-major, then there must not exists any nonzero coefficient of coordinates
@@ -147,21 +165,24 @@ class DynamicSparseMatrix
       * 
       * \see fillrand(), coeffRef()
       */
-    inline Scalar& fill(int row, int col)
+    EIGEN_DEPRECATED Scalar& fill(int row, int col)
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
-      ei_assert(outer<int(m_data.size()) && inner<m_innerSize);
-      ei_assert((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner));
-      m_data[outer].append(0, inner);
-      return m_data[outer].value(m_data[outer].size()-1);
+      return insertBack(outer,inner);
     }
 
-    /** Like fill() but with random inner coordinates.
+    /** \deprecated use insert()
+      * Like fill() but with random inner coordinates.
       * Compared to the generic coeffRef(), the unique limitation is that we assume
       * the coefficient does not exist yet.
       */
-    inline Scalar& fillrand(int row, int col)
+    EIGEN_DEPRECATED Scalar& fillrand(int row, int col)
+    {
+      return insert(row,col);
+    }
+    
+    inline Scalar& insert(int row, int col)
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
@@ -181,8 +202,11 @@ class DynamicSparseMatrix
       return m_data[outer].value(id+1);
     }
 
-    /** Does nothing. Provided for compatibility with SparseMatrix. */
-    inline void endFill() {}
+    /** \deprecated use finalize()
+      * Does nothing. Provided for compatibility with SparseMatrix. */
+    EIGEN_DEPRECATED void endFill() {}
+    
+    inline void finalize() {}
     
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {

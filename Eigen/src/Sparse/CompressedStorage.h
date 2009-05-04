@@ -155,7 +155,7 @@ class CompressedStorage
     /** Like at(), but the search is performed in the range [start,end) */
     inline Scalar atInRange(size_t start, size_t end, int key, Scalar defaultValue = Scalar(0)) const
     {
-      if (start==end)
+      if (start>=end)
         return Scalar(0);
       else if (end>start && key==m_indices[end-1])
         return m_values[end-1];

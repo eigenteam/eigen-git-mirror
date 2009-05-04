@@ -224,19 +224,28 @@ class RandomSetter
       KeyType keyBitsMask = (1<<m_keyBitsOffset)-1;
       if (!SwapStorage) // also means the map is sorted
       {
-        mp_target->startFill(nonZeros());
+        mp_target->setZero();
+        mp_target->reserve(nonZeros());
+        int prevOuter = -1;
         for (int k=0; k<m_outerPackets; ++k)
         {
+          mp_target->startVec(k);
           const int outerOffset = (1<<OuterPacketBits) * k;
           typename HashMapType::iterator end = m_hashmaps[k].end();
           for (typename HashMapType::iterator it = m_hashmaps[k].begin(); it!=end; ++it)
           {
             const int outer = (it->first >> m_keyBitsOffset) + outerOffset;
             const int inner = it->first & keyBitsMask;
-            mp_target->fill(TargetRowMajor ? outer : inner, TargetRowMajor ? inner : outer) = it->second.value;
+            if (prevOuter!=outer)
+            {
+              for (int j=prevOuter+1;j<=outer;++j)
+                mp_target->startVec(j);
+              prevOuter = outer;
+            }
+            mp_target->insertBack(outer, inner) = it->second.value;
           }
         }
-        mp_target->endFill();
+        mp_target->finalize();
       }
       else
       {

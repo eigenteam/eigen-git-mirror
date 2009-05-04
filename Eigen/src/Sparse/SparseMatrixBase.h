@@ -156,26 +156,26 @@ template<typename Derived> class SparseMatrixBase
       ei_assert(( ((ei_traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
                   (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
                   "the transpose operation is supposed to be handled in SparseMatrix::operator=");
-
+      
+      enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
+      
       const int outerSize = other.outerSize();
       //typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       // thanks to shallow copies, we always eval to a tempary
       Derived temp(other.rows(), other.cols());
 
-      temp.startFill(std::max(this->rows(),this->cols())*2);
+      temp.reserve(std::max(this->rows(),this->cols())*2);
       for (int j=0; j<outerSize; ++j)
       {
+        temp.startVec(j);
         for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
         {
           Scalar v = it.value();
           if (v!=Scalar(0))
-          {
-            if (OtherDerived::Flags & RowMajorBit) temp.fill(j,it.index()) = v;
-            else temp.fill(it.index(),j) = v;
-          }
+            temp.insertBack(Flip?it.index():j,Flip?j:it.index()) = v;
         }
       }
-      temp.endFill();
+      temp.finalize();
 
       derived() = temp.markAsRValue();
     }
@@ -193,20 +193,19 @@ template<typename Derived> class SparseMatrixBase
       {
         // eval without temporary
         derived().resize(other.rows(), other.cols());
-        derived().startFill(std::max(this->rows(),this->cols())*2);
+        derived().setZero();
+        derived().reserve(std::max(this->rows(),this->cols())*2);
         for (int j=0; j<outerSize; ++j)
         {
+          derived().startVec(j);
           for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
           {
             Scalar v = it.value();
             if (v!=Scalar(0))
-            {
-              if (IsRowMajor) derived().fill(j,it.index()) = v;
-              else derived().fill(it.index(),j) = v;
-            }
+              derived().insertBack(j,it.index()) = v;
           }
         }
-        derived().endFill();
+        derived().finalize();
       }
       else
       {

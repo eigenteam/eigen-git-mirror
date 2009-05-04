@@ -118,33 +118,36 @@ class SparseMatrix
 
     class InnerIterator;
 
+    /** Removes all non zeros */
     inline void setZero()
     {
       m_data.clear();
-      //if (m_outerSize)
       memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(int));
-//       for (int i=0; i<m_outerSize; ++i)
-//         m_outerIndex[i] = 0;
-//       if (m_outerSize)
-//         m_outerIndex[i] = 0;
     }
 
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
 
-    /** Initializes the filling process of \c *this.
+    /** \deprecated use setZero() and reserve()
+      * Initializes the filling process of \c *this.
       * \param reserveSize approximate number of nonzeros
       * Note that the matrix \c *this is zero-ed.
       */
-    inline void startFill(int reserveSize = 1000)
+    EIGEN_DEPRECATED void startFill(int reserveSize = 1000)
     {
       setZero();
       m_data.reserve(reserveSize);
     }
+    
+    /** Preallocates \a reserveSize non zeros */
+    inline void reserve(int reserveSize)
+    {
+      m_data.reserve(reserveSize);
+    }
 
-    /**
+    /** \deprecated use insert()
       */
-    inline Scalar& fill(int row, int col)
+    EIGEN_DEPRECATED Scalar& fill(int row, int col)
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
@@ -172,45 +175,128 @@ class SparseMatrix
       m_data.append(0, inner);
       return m_data.value(id);
     }
+    
+    //--- low level purely coherent filling ---
+    
+    inline Scalar& insertBack(int outer, int inner)
+    {
+      ei_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "wrong sorted insertion");
+      ei_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "wrong sorted insertion");
+      int id = m_outerIndex[outer+1];
+      ++m_outerIndex[outer+1];
+      m_data.append(0, inner);
+      return m_data.value(id);
+    }
+    
+    inline void startVec(int outer)
+    {
+      ei_assert(m_outerIndex[outer]==int(m_data.size()) && "you must call startVec on each inner vec");
+      ei_assert(m_outerIndex[outer+1]==0 && "you must call startVec on each inner vec");
+      m_outerIndex[outer+1] = m_outerIndex[outer];
+    }
+    
+    //---
 
-    /** Like fill() but with random inner coordinates.
+    /** \deprecated use insert()
+      * Like fill() but with random inner coordinates.
       */
-    inline Scalar& fillrand(int row, int col)
+    EIGEN_DEPRECATED Scalar& fillrand(int row, int col)
+    {
+      return insert(row,col);
+    }
+    
+    /** \returns a reference to a novel non zero coefficient with coordinates \a row x \a col.
+      * The non zero coefficient must \b not already exist.
+      * 
+      * \warning This function can be extremely slow if the non zero coefficients
+      * are not inserted in a coherent order.
+      * 
+      * After an insertion session, you should call the finalize() function.
+      */
+    EIGEN_DONT_INLINE Scalar& insert(int row, int col)
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
+      
+      int previousOuter = outer;
       if (m_outerIndex[outer+1]==0)
       {
         // we start a new inner vector
-        // nothing special to do here
-        int i = outer;
-        while (i>=0 && m_outerIndex[i]==0)
+        while (previousOuter>=0 && m_outerIndex[previousOuter]==0)
         {
-          m_outerIndex[i] = m_data.size();
-          --i;
+          m_outerIndex[previousOuter] = m_data.size();
+          --previousOuter;
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
       }
-      assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "invalid outer index");
+      
+      // here we have to handle the tricky case where the outerIndex array 
+      // starts with: [ 0 0 0 0 0 1 ...] and we are inserting in, e.g.,
+      // the 2nd inner vector...
+      bool isLastVec = (!(previousOuter==-1 && m_data.size()!=0))
+                    && (size_t(m_outerIndex[outer+1]) == m_data.size());
+      
       size_t startId = m_outerIndex[outer];
       // FIXME let's make sure sizeof(long int) == sizeof(size_t)
       size_t id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
 
       float reallocRatio = 1;
-      if (m_data.allocatedSize()<id+1)
+      if (m_data.allocatedSize()<=m_data.size())
       {
         // we need to reallocate the data, to reduce multiple reallocations
         // we use a smart resize algorithm based on the current filling ratio
-        // we use float to avoid overflows
-        float nnzEstimate = float(m_outerIndex[outer])*float(m_outerSize)/float(outer);
+        // in addition, we use float to avoid integers overflows
+        float nnzEstimate = float(m_outerIndex[outer])*float(m_outerSize)/float(outer+1);
         reallocRatio = (nnzEstimate-float(m_data.size()))/float(m_data.size());
-        // let's bounds the realloc ratio to
+        // furthermore we bound the realloc ratio to:
         //   1) reduce multiple minor realloc when the matrix is almost filled
         //   2) avoid to allocate too much memory when the matrix is almost empty
         reallocRatio = std::min(std::max(reallocRatio,1.5f),8.f);
       }
-      m_data.resize(id+1,reallocRatio);
+      m_data.resize(m_data.size()+1,reallocRatio);
+      
+      if (!isLastVec)
+      {
+        if (previousOuter==-1)
+        {
+          // oops wrong guess.
+          // let's correct the outer offsets
+          for (int k=0; k<=(outer+1); ++k)
+            m_outerIndex[k] = 0;
+          int k=outer+1;
+          while(m_outerIndex[k]==0)
+            m_outerIndex[k++] = 1;
+          while (k<=m_outerSize && m_outerIndex[k]!=0)
+            m_outerIndex[k++]++;
+          id = 0;
+          --k;
+          k = m_outerIndex[k]-1;
+          while (k>0)
+          {
+            m_data.index(k) = m_data.index(k-1);
+            m_data.value(k) = m_data.value(k-1);
+            k--;
+          }
+        }
+        else
+        {
+          // we are not inserting into the last inner vec
+          // update outer indices:
+          int j = outer+2;
+          while (j<=m_outerSize && m_outerIndex[j]!=0)
+            m_outerIndex[j++]++;
+          --j;
+          // shift data of last vecs:
+          int k = m_outerIndex[j]-1;
+          while (k>=int(id))
+          {
+            m_data.index(k) = m_data.index(k-1);
+            m_data.value(k) = m_data.value(k-1);
+            k--;
+          }
+        }
+      }
 
       while ( (id > startId) && (m_data.index(id-1) > inner) )
       {
@@ -223,7 +309,11 @@ class SparseMatrix
       return (m_data.value(id) = 0);
     }
 
-    inline void endFill()
+    EIGEN_DEPRECATED void endFill() { finalize(); }
+    
+    /** Must be called after inserting a set of non zero entries.
+      */
+    inline void finalize()
     {
       int size = m_data.size();
       int i = m_outerSize;

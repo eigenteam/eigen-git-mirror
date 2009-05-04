@@ -177,22 +177,39 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
     #endif
 
-    // test fillrand
+    // test insert (inner random)
     {
       DenseMatrix m1(rows,cols);
       m1.setZero();
       SparseMatrixType m2(rows,cols);
-      m2.startFill();
+      m2.reserve(10);
       for (int j=0; j<cols; ++j)
       {
         for (int k=0; k<rows/2; ++k)
         {
           int i = ei_random<int>(0,rows-1);
           if (m1.coeff(i,j)==Scalar(0))
-            m2.fillrand(i,j) = m1(i,j) = ei_random<Scalar>();
+            m2.insert(i,j) = m1(i,j) = ei_random<Scalar>();
         }
       }
-      m2.endFill();
+      m2.finalize();
+      VERIFY_IS_APPROX(m2,m1);
+    }
+    
+    // test insert (fully random)
+    {
+      DenseMatrix m1(rows,cols);
+      m1.setZero();
+      SparseMatrixType m2(rows,cols);
+      m2.reserve(10);
+      for (int k=0; k<rows*cols; ++k)
+      {
+        int i = ei_random<int>(0,rows-1);
+        int j = ei_random<int>(0,cols-1);
+        if (m1.coeff(i,j)==Scalar(0))
+          m2.insert(i,j) = m1(i,j) = ei_random<Scalar>();
+      }
+      m2.finalize();
       VERIFY_IS_APPROX(m2,m1);
     }
   
@@ -291,8 +308,9 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refM2.setZero();
     int countFalseNonZero = 0;
     int countTrueNonZero = 0;
-    m2.startFill();
     for (int j=0; j<m2.outerSize(); ++j)
+    {
+      m2.startVec(j);
       for (int i=0; i<m2.innerSize(); ++i)
       {
         float x = ei_random<float>(0,1);
@@ -303,15 +321,16 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         else if (x<0.5)
         {
           countFalseNonZero++;
-          m2.fill(i,j) = Scalar(0);
+          m2.insertBack(j,i) = Scalar(0);
         }
         else
         {
           countTrueNonZero++;
-          m2.fill(i,j) = refM2(i,j) = Scalar(1);
+          m2.insertBack(j,i) = refM2(i,j) = Scalar(1);
         }
       }
-    m2.endFill();
+    }
+    m2.finalize();
     VERIFY(countFalseNonZero+countTrueNonZero == m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);
     m2.prune(1);

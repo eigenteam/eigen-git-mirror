@@ -64,9 +64,11 @@ initSparse(double density,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  sparseMat.startFill(int(refMat.rows()*refMat.cols()*density));
+  sparseMat.setZero();
+  sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   for(int j=0; j<refMat.cols(); j++)
   {
+    sparseMat.startVec(j);
     for(int i=0; i<refMat.rows(); i++)
     {
       Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
@@ -85,7 +87,7 @@ initSparse(double density,
         
       if (v!=Scalar(0))
       {
-        sparseMat.fill(i,j) = v;
+        sparseMat.insertBack(j,i) = v;
         if (nonzeroCoords)
           nonzeroCoords->push_back(Vector2i(i,j));
       }
@@ -96,7 +98,7 @@ initSparse(double density,
       refMat(i,j) = v;
     }
   }
-  sparseMat.endFill();
+  sparseMat.finalize();
 }
 
 template<typename Scalar> void
@@ -107,9 +109,11 @@ initSparse(double density,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  sparseMat.startFill(int(refMat.rows()*refMat.cols()*density));
+  sparseMat.setZero();
+  sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   for(int j=0; j<refMat.cols(); j++)
   {
+    sparseMat.startVec(j); // not needed for DynamicSparseMatrix
     for(int i=0; i<refMat.rows(); i++)
     {
       Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
@@ -128,7 +132,7 @@ initSparse(double density,
         
       if (v!=Scalar(0))
       {
-        sparseMat.fill(i,j) = v;
+        sparseMat.insertBack(j,i) = v;
         if (nonzeroCoords)
           nonzeroCoords->push_back(Vector2i(i,j));
       }
@@ -139,7 +143,7 @@ initSparse(double density,
       refMat(i,j) = v;
     }
   }
-  sparseMat.endFill();
+  sparseMat.finalize();
 }
 
 template<typename Scalar> void
@@ -156,7 +160,7 @@ initSparse(double density,
     Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
     if (v!=Scalar(0))
     {
-      sparseVec.fill(i) = v;
+      sparseVec.insertBack(i) = v;
       if (nonzeroCoords)
         nonzeroCoords->push_back(i);
     }

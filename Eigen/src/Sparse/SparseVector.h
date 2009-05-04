@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009w Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -120,42 +120,32 @@ class SparseVector
     /** \returns the number of non zero coefficients */
     inline int nonZeros() const  { return m_data.size(); }
 
-    /**
-      */
-    inline void reserve(int reserveSize) { m_data.reserve(reserveSize); }
-
-    inline void startFill(int reserve)
+    inline void startVec(int outer)
     {
-      setZero();
-      m_data.reserve(reserve);
+      ei_assert(outer==0);
     }
-
-    /**
-      */
-    inline Scalar& fill(int r, int c)
+    
+    inline Scalar& insertBack(int outer, int inner)
     {
-      ei_assert(r==0 || c==0);
-      return fill(IsColVector ? r : c);
+      ei_assert(outer==0);
+      return insertBack(inner);
     }
-
-    inline Scalar& fill(int i)
+    inline Scalar& insertBack(int i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
 
-    inline Scalar& fillrand(int r, int c)
+    inline Scalar& insert(int outer, int inner)
     {
-      ei_assert(r==0 || c==0);
-      return fillrand(IsColVector ? r : c);
+      ei_assert(outer==0);
+      return insert(inner);
     }
-
-    /** Like fill() but with random coordinates.
-      */
-    inline Scalar& fillrand(int i)
+    Scalar& insert(int i)
     {
       int startId = 0;
       int id = m_data.size() - 1;
+      // TODO smart realloc
       m_data.resize(id+2,1);
 
       while ( (id >= startId) && (m_data.index(id) > i) )
@@ -169,8 +159,48 @@ class SparseVector
       return m_data.value(id+1);
     }
 
-    inline void endFill() {}
+    /**
+      */
+    inline void reserve(int reserveSize) { m_data.reserve(reserveSize); }
 
+    /** \deprecated use setZero() and reserve() */
+    EIGEN_DEPRECATED void startFill(int reserve)
+    {
+      setZero();
+      m_data.reserve(reserve);
+    }
+
+    /** \deprecated use insertBack(int,int) */
+    EIGEN_DEPRECATED Scalar& fill(int r, int c)
+    {
+      ei_assert(r==0 || c==0);
+      return fill(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insertBack(int) */
+    EIGEN_DEPRECATED Scalar& fill(int i)
+    {
+      m_data.append(0, i);
+      return m_data.value(m_data.size()-1);
+    }
+    
+    /** \deprecated use insert(int,int) */
+    EIGEN_DEPRECATED Scalar& fillrand(int r, int c)
+    {
+      ei_assert(r==0 || c==0);
+      return fillrand(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insert(int) */
+    EIGEN_DEPRECATED Scalar& fillrand(int i)
+    {
+      return insert(i);
+    }
+    
+    /** \deprecated use finalize() */
+    EIGEN_DEPRECATED void endFill() {}
+    inline void finalize() {}
+    
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       m_data.prune(reference,epsilon);
