@@ -84,11 +84,6 @@
 #define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
 #endif
 
-// FIXME this should go away quickly
-#ifdef EIGEN_TUNE_FOR_L2_CACHE_SIZE
-#error EIGEN_TUNE_FOR_L2_CACHE_SIZE is now called EIGEN_TUNE_FOR_CPU_CACHE_SIZE.
-#endif
-
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
@@ -173,6 +168,12 @@ using Eigen::ei_cos;
 #define EIGEN_DEPRECATED __declspec(deprecated)
 #else
 #define EIGEN_DEPRECATED
+#endif
+
+#if (defined __GNUC__)
+#define EIGEN_UNUSED __attribute__((unused))
+#else
+#define EIGEN_UNUSED
 #endif
 
 #if (defined __GNUC__)
