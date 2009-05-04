@@ -520,14 +520,14 @@ class Matrix
 
 
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* dummy = 0)
+    EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
       ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows*cols,rows,cols);
     }
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* dummy = 0)
+    EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
       m_storage.data()[0] = x;
