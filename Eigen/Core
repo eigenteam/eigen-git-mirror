@@ -7,11 +7,10 @@
 #ifdef _MSC_VER
   #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
   #if (_MSC_VER >= 1500) // 2008 or later
-    // Remember that usage of defined() in a #define is undefined by the standard
-    #ifdef _M_IX86_FP
-      #if _M_IX86_FP >= 2
-        #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
-      #endif
+    // Remember that usage of defined() in a #define is undefined by the standard.
+    // a user reported that in 64-bit mode, MSVC doesn't care to define _M_IX86_FP.
+    #if (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(_M_X64)
+      #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
     #endif
   #endif
 #endif
