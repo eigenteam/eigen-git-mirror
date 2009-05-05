@@ -62,6 +62,20 @@ void makeNoisyCohyperplanarPoints(int numPoints,
     *(points[i]) += noiseAmplitude * VectorType::Random(size);
 }
 
+template<typename VectorType>
+void check_linearRegression(int numPoints,
+                            VectorType **points,
+                            const VectorType& original,
+                            typename VectorType::Scalar tolerance)
+{
+  int size = points[0]->size();
+  assert(size==2);
+  VectorType result(size);
+  linearRegression(numPoints, points, &result, 1);
+  typename VectorType::Scalar error = (result - original).norm() / original.norm();
+  VERIFY(ei_abs(error) < ei_abs(tolerance));
+}
+
 template<typename VectorType,
          typename HyperplaneType>
 void check_fitHyperplane(int numPoints,
@@ -81,6 +95,20 @@ void test_regression()
 {
   for(int i = 0; i < g_repeat; i++)
   {
+    {
+      Vector2f points2f [1000];
+      Vector2f *points2f_ptrs [1000];
+      for(int i = 0; i < 1000; i++) points2f_ptrs[i] = &(points2f[i]);
+      Vector2f coeffs2f;
+      Hyperplane<float,2> coeffs3f;
+      makeNoisyCohyperplanarPoints(1000, points2f_ptrs, &coeffs3f, 0.01f);
+      coeffs2f[0] = -coeffs3f.coeffs()[0]/coeffs3f.coeffs()[1];
+      coeffs2f[1] = -coeffs3f.coeffs()[2]/coeffs3f.coeffs()[1];
+      CALL_SUBTEST(check_linearRegression(10, points2f_ptrs, coeffs2f, 0.05f));
+      CALL_SUBTEST(check_linearRegression(100, points2f_ptrs, coeffs2f, 0.01f));
+      CALL_SUBTEST(check_linearRegression(1000, points2f_ptrs, coeffs2f, 0.002f));
+    }
+    
     {
       Vector2f points2f [1000];
       Vector2f *points2f_ptrs [1000];

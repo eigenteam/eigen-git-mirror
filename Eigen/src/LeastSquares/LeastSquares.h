@@ -57,7 +57,7 @@
     Vector3d coeffs; // will store the coefficients a, b, c
     linearRegression(
       5,
-      points,
+      &points,
       &coeffs,
       1 // the coord to express as a function of
         // the other ones. 0 means x, 1 means y, 2 means z.
@@ -108,14 +108,14 @@ void linearRegression(int numPoints,
   result->resize(size);
 
   Matrix<Scalar, Dynamic, VectorType::SizeAtCompileTime,
-         Dynamic, VectorType::MaxSizeAtCompileTime, RowMajorBit>
+         RowMajor, Dynamic, VectorType::MaxSizeAtCompileTime>
     m(numPoints, size);
   if(funcOfOthers>0)
     for(int i = 0; i < numPoints; ++i)
       m.row(i).start(funcOfOthers) = points[i]->start(funcOfOthers);
   if(funcOfOthers<size-1)
     for(int i = 0; i < numPoints; ++i)
-      m.row(i).block(funcOfOthers, size-funcOfOthers-1)
+      m.row(i).segment(funcOfOthers, size-funcOfOthers-1)
         = points[i]->end(size-funcOfOthers-1);
   for(int i = 0; i < numPoints; ++i)
     m.row(i).coeffRef(size-1) = Scalar(1);
