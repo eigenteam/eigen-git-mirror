@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -80,11 +80,11 @@
                   This vector must be of the same type and size as the
                   data points. The meaning of its coords is as follows.
                   For brevity, let \f$n=Size\f$,
-                  \f$r_i=retCoefficients[i]\f$,
+                  \f$r_i=result[i]\f$,
                   and \f$f=funcOfOthers\f$. Denote by
                   \f$x_0,\ldots,x_{n-1}\f$
                   the n coordinates in the n-dimensional space.
-                  Then the result equation is:
+                  Then the resulting equation is:
                   \f[ x_f = r_0 x_0 + \cdots + r_{f-1}x_{f-1}
                    + r_{f+1}x_{f+1} + \cdots + r_{n-1}x_{n-1} + r_n. \f]
   * @param funcOfOthers Determines which coord to express as a function of the
@@ -101,31 +101,15 @@ void linearRegression(int numPoints,
                       int funcOfOthers )
 {
   typedef typename VectorType::Scalar Scalar;
-  EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType)
-  ei_assert(numPoints >= 1);
-  int size = points[0]->size();
-  ei_assert(funcOfOthers >= 0 && funcOfOthers < size);
+  typedef Hyperplane<Scalar, VectorType::SizeAtCompileTime> HyperplaneType;
+  const int size = points[0]->size();
   result->resize(size);
-
-  Matrix<Scalar, Dynamic, VectorType::SizeAtCompileTime,
-         RowMajor, Dynamic, VectorType::MaxSizeAtCompileTime>
-    m(numPoints, size);
-  if(funcOfOthers>0)
-    for(int i = 0; i < numPoints; ++i)
-      m.row(i).start(funcOfOthers) = points[i]->start(funcOfOthers);
-  if(funcOfOthers<size-1)
-    for(int i = 0; i < numPoints; ++i)
-      m.row(i).segment(funcOfOthers, size-funcOfOthers-1)
-        = points[i]->end(size-funcOfOthers-1);
-  for(int i = 0; i < numPoints; ++i)
-    m.row(i).coeffRef(size-1) = Scalar(1);
-
-  VectorType v(size);
-  v.setZero();
-  for(int i = 0; i < numPoints; ++i)
-    v += m.row(i).adjoint() * points[i]->coeff(funcOfOthers);
-
-  ei_assert((m.adjoint()*m).lu().solve(v, result));
+  HyperplaneType h(size);
+  fitHyperplane(numPoints, points, &h);
+  for(int i = 0; i < funcOfOthers; i++)
+    result->coeffRef(i) = - h.coeffs()[i] / h.coeffs()[funcOfOthers];
+  for(int i = funcOfOthers; i < size; i++)
+    result->coeffRef(i) = - h.coeffs()[i+1] / h.coeffs()[funcOfOthers];
 }
 
 /** \ingroup LeastSquares_Module

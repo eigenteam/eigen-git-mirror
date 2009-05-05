@@ -5,7 +5,6 @@
 
 #include "src/Core/util/DisableMSVCWarnings.h"
 
-#include "LU"
 #include "QR"
 #include "Geometry"
 
