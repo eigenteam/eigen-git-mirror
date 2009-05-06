@@ -146,6 +146,7 @@ template<typename CustomNullaryOp>
 EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, Derived>
 MatrixBase<Derived>::NullaryExpr(int size, const CustomNullaryOp& func)
 {
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, Derived>(1, size, func);
   else return CwiseNullaryOp<CustomNullaryOp, Derived>(size, 1, func);
@@ -227,6 +228,7 @@ MatrixBase<Derived>::Constant(const Scalar& value)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
+/** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
 template<typename Derived>
 bool MatrixBase<Derived>::isApproxToConstant
 (const Scalar& value, RealScalar prec) const
@@ -236,6 +238,16 @@ bool MatrixBase<Derived>::isApproxToConstant
       if(!ei_isApprox(coeff(i, j), value, prec))
         return false;
   return true;
+}
+
+/** This is just an alias for isApproxToConstant().
+  *
+  * \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
+template<typename Derived>
+bool MatrixBase<Derived>::isConstant
+(const Scalar& value, RealScalar prec) const
+{
+  return isApproxToConstant(value, prec);
 }
 
 /** Alias for setConstant(): sets all coefficients in this expression to \a value.
@@ -250,13 +262,49 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::fill(const Scalar& value)
 
 /** Sets all coefficients in this expression to \a value.
   *
-  * \sa fill(), Constant(), class CwiseNullaryOp, setZero(), setOnes()
+  * \sa fill(), setConstant(int,const Scalar&), setConstant(int,int,const Scalar&), setZero(), setOnes(), Constant(), class CwiseNullaryOp, setZero(), setOnes()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setConstant(const Scalar& value)
 {
   return derived() = Constant(rows(), cols(), value);
 }
+
+/** Resizes to the given \a size, and sets all coefficients in this expression to the given \a value.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include Matrix_set_int.cpp
+  * Output: \verbinclude Matrix_setConstant_int.out
+  *
+  * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setConstant(int size, const Scalar& value)
+{
+  resize(size);
+  return setConstant(value);
+}
+
+/** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
+  *
+  * \param rows the new number of rows
+  * \param cols the new number of columns
+  *
+  * Example: \include Matrix_setConstant_int_int.cpp
+  * Output: \verbinclude Matrix_setConstant_int_int.out
+  *
+  * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setConstant(int rows, int cols, const Scalar& value)
+{
+  resize(rows, cols);
+  return setConstant(value);
+}
+
 
 // zero:
 
@@ -354,6 +402,41 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setZero()
   return setConstant(Scalar(0));
 }
 
+/** Resizes to the given \a size, and sets all coefficients in this expression to zero.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include Matrix_setZero_int.cpp
+  * Output: \verbinclude Matrix_setZero_int.out
+  *
+  * \sa MatrixBase::setZero(), setZero(int,int), class CwiseNullaryOp, MatrixBase::Zero()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setZero(int size)
+{
+  resize(size);
+  return setConstant(Scalar(0));
+}
+
+/** Resizes to the given size, and sets all coefficients in this expression to zero.
+  *
+  * \param rows the new number of rows
+  * \param cols the new number of columns
+  *
+  * Example: \include Matrix_setZero_int_int.cpp
+  * Output: \verbinclude Matrix_setZero_int_int.out
+  *
+  * \sa MatrixBase::setZero(), setZero(int), class CwiseNullaryOp, MatrixBase::Zero()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setZero(int rows, int cols)
+{
+  resize(rows, cols);
+  return setConstant(Scalar(0));
+}
+
 // ones:
 
 /** \returns an expression of a matrix where all coefficients equal one.
@@ -444,6 +527,41 @@ bool MatrixBase<Derived>::isOnes
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setOnes()
 {
+  return setConstant(Scalar(1));
+}
+
+/** Resizes to the given \a size, and sets all coefficients in this expression to one.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include Matrix_setOnes_int.cpp
+  * Output: \verbinclude Matrix_setOnes_int.out
+  *
+  * \sa MatrixBase::setOnes(), setOnes(int,int), class CwiseNullaryOp, MatrixBase::Ones()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setOnes(int size)
+{
+  resize(size);
+  return setConstant(Scalar(1));
+}
+
+/** Resizes to the given size, and sets all coefficients in this expression to one.
+  *
+  * \param rows the new number of rows
+  * \param cols the new number of columns
+  *
+  * Example: \include Matrix_setOnes_int_int.cpp
+  * Output: \verbinclude Matrix_setOnes_int_int.out
+  *
+  * \sa MatrixBase::setOnes(), setOnes(int), class CwiseNullaryOp, MatrixBase::Ones()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setOnes(int rows, int cols)
+{
+  resize(rows, cols);
   return setConstant(Scalar(1));
 }
 
@@ -554,6 +672,24 @@ template<typename Derived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
 {
   return ei_setIdentity_impl<Derived>::run(derived());
+}
+
+/** Resizes to the given size, and writes the identity expression (not necessarily square) into *this.
+  *
+  * \param rows the new number of rows
+  * \param cols the new number of columns
+  *
+  * Example: \include Matrix_setIdentity_int_int.cpp
+  * Output: \verbinclude Matrix_setIdentity_int_int.out
+  *
+  * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Identity()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setIdentity(int rows, int cols)
+{
+  resize(rows, cols);
+  return setIdentity();
 }
 
 /** \returns an expression of the i-th unit (basis) vector.

@@ -446,6 +446,25 @@ class Matrix
     { return AlignedMapType(data, rows, cols); }
     //@}
 
+    using Base::setConstant;
+    Matrix& setConstant(int size, const Scalar& value);
+    Matrix& setConstant(int rows, int cols, const Scalar& value);
+
+    using Base::setZero;
+    Matrix& setZero(int size);
+    Matrix& setZero(int rows, int cols);
+
+    using Base::setOnes;
+    Matrix& setOnes(int size);
+    Matrix& setOnes(int rows, int cols);
+
+    using Base::setRandom;
+    Matrix& setRandom(int size);
+    Matrix& setRandom(int rows, int cols);
+
+    using Base::setIdentity;
+    Matrix& setIdentity(int rows, int cols);
+
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>

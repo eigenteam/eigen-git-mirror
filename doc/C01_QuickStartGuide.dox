@@ -167,7 +167,7 @@ x = VectorXf::Random(size);
 x.setZero(size);
 x.setOnes(size);
 x.setConstant(size, value);
-x.setIdentity(size);
+N/A
 x.setRandom(size);
 \endcode
   </td>

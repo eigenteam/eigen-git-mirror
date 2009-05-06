@@ -54,7 +54,9 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>::Random(rows, rows);
   VectorType v1 = VectorType::Random(rows),
              v2 = VectorType::Random(rows),
-             vzero = VectorType::Zero(rows);
+             vzero = VectorType::Zero(rows),
+             vones = VectorType::Ones(rows),
+             v3(rows);
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
@@ -70,12 +72,22 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
       VERIFY_IS_APPROX(mones(i,j), Scalar(1));
       VERIFY_IS_APPROX(m3(i,j), s1);
     }
+  VERIFY(mzero.isZero());
+  VERIFY(mones.isOnes());
+  VERIFY(m3.isConstant(s1));
+  VERIFY(identity.isIdentity());
   VERIFY_IS_APPROX(m4.setConstant(s1), m3);
+  VERIFY_IS_APPROX(m4.setConstant(rows,cols,s1), m3);
   VERIFY_IS_APPROX(m4.setZero(), mzero);
+  VERIFY_IS_APPROX(m4.setZero(rows,cols), mzero);
   VERIFY_IS_APPROX(m4.setOnes(), mones);
+  VERIFY_IS_APPROX(m4.setOnes(rows,cols), mones);
   m4.fill(s1);
   VERIFY_IS_APPROX(m4, m3);
   
+  VERIFY_IS_APPROX(v3.setConstant(rows, s1), VectorType::Constant(rows,s1));
+  VERIFY_IS_APPROX(v3.setZero(rows), vzero);
+  VERIFY_IS_APPROX(v3.setOnes(rows), vones);
 
   m2 = m2.template binaryExpr<AddIfNull<Scalar> >(mones);
 

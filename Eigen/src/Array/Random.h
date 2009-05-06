@@ -110,12 +110,47 @@ MatrixBase<Derived>::Random()
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
-  * \sa class CwiseNullaryOp, MatrixBase::setRandom(int,int)
+  * \sa class CwiseNullaryOp, setRandom(int), setRandom(int,int)
   */
 template<typename Derived>
 inline Derived& MatrixBase<Derived>::setRandom()
 {
   return *this = Random(rows(), cols());
+}
+
+/** Resizes to the given \a size, and sets all coefficients in this expression to random values.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include Matrix_setRandom_int.cpp
+  * Output: \verbinclude Matrix_setRandom_int.out
+  *
+  * \sa MatrixBase::setRandom(), setRandom(int,int), class CwiseNullaryOp, MatrixBase::Random()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setRandom(int size)
+{
+  resize(size);
+  return setRandom();
+}
+
+/** Resizes to the given size, and sets all coefficients in this expression to random values.
+  *
+  * \param rows the new number of rows
+  * \param cols the new number of columns
+  *
+  * Example: \include Matrix_setRandom_int_int.cpp
+  * Output: \verbinclude Matrix_setRandom_int_int.out
+  *
+  * \sa MatrixBase::setRandom(), setRandom(int), class CwiseNullaryOp, MatrixBase::Random()
+  */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
+Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setRandom(int rows, int cols)
+{
+  resize(rows, cols);
+  return setRandom();
 }
 
 #endif // EIGEN_RANDOM_H
