@@ -61,7 +61,11 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     Flags = (unsigned int)_MatrixTypeNested::Flags & HereditaryBits,
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime
   };
+  #if EIGEN_GNUC_AT_LEAST(3,4)
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
+  #else
+  typedef typename MemberOp::template Cost<InputScalar,TraversalSize> CostOpType;
+  #endif
   enum {
     CoeffReadCost = TraversalSize * ei_traits<_MatrixTypeNested>::CoeffReadCost + int(CostOpType::value)
   };
@@ -104,7 +108,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
     { enum { value = COST }; };                                     \
     template<typename Derived>                                      \
     inline ResultType operator()(const MatrixBase<Derived>& mat) const     \
-    { return mat.MEMBER(); }                                        \
+    { return mat.MEMBER(); } \
   }
 
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
