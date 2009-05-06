@@ -105,6 +105,8 @@ class vector<T,Eigen::aligned_allocator<T> >
   }
   void push_back(const value_type& x)
   { vector_base::push_back(x); }
+  template<class _Iter> void insert(const_iterator position, _Iter first, _Iter last)
+  { return vector_base::insert(position, first, last); }
   iterator insert(iterator position, const value_type& x)
   { return vector_base::insert(position,x); }
   iterator insert(iterator position, size_type new_size, const value_type& x)
