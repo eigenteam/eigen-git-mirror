@@ -26,7 +26,7 @@
 #ifndef EIGEN_PART_H
 #define EIGEN_PART_H
 
-/** \nonstableyet 
+/** \nonstableyet
   * \class Part
   *
   * \brief Expression of a triangular matrix extracted from a given matrix
@@ -117,10 +117,10 @@ template<typename MatrixType, unsigned int Mode> class Part
     const Block<Part, RowsAtCompileTime, 1> col(int i) { return Base::col(i); }
     const Block<Part, RowsAtCompileTime, 1> col(int i) const { return Base::col(i); }
 
-    template<typename OtherDerived/*, int OtherMode*/>
+    template<typename OtherDerived>
     void swap(const MatrixBase<OtherDerived>& other)
     {
-      Part<SwapWrapper<MatrixType>,Mode>(SwapWrapper<MatrixType>(const_cast<MatrixType&>(m_matrix))).lazyAssign(other.derived());
+      Part<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
     }
 
   protected:
@@ -128,7 +128,7 @@ template<typename MatrixType, unsigned int Mode> class Part
     const typename MatrixType::Nested m_matrix;
 };
 
-/** \nonstableyet 
+/** \nonstableyet
   * \returns an expression of a triangular matrix extracted from the current matrix
   *
   * The parameter \a Mode can have the following values: \c UpperTriangular, \c StrictlyUpperTriangular, \c UnitUpperTriangular,
@@ -280,7 +280,7 @@ void Part<MatrixType, Mode>::lazyAssign(const Other& other)
     >::run(m_matrix.const_cast_derived(), other.derived());
 }
 
-/** \nonstableyet 
+/** \nonstableyet
   * \returns a lvalue pseudo-expression allowing to perform special operations on \c *this.
   *
   * The \a Mode parameter can have the following values: \c UpperTriangular, \c StrictlyUpperTriangular, \c LowerTriangular,

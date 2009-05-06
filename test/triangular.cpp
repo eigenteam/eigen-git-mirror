@@ -114,6 +114,14 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
   VERIFY((m1.template part<Eigen::UpperTriangular>() * m2.template part<Eigen::UpperTriangular>()).isUpperTriangular());
 
+  // test swap
+  m1.setOnes();
+  m2.setZero();
+  m2.template part<Eigen::UpperTriangular>().swap(m1);
+  m3.setZero();
+  m3.template part<Eigen::UpperTriangular>().setOnes();
+  VERIFY_IS_APPROX(m2,m3);
+
 }
 
 void test_triangular()

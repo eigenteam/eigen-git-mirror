@@ -221,7 +221,7 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     class InnerIterator;
     typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
-    friend class Block<MatrixType,BlockRows,BlockCols,AsRequested,HasDirectAccess>;
+    friend class Block<MatrixType,BlockRows,BlockCols,PacketAccess==AsRequested?ForceAligned:AsRequested,HasDirectAccess>;
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 

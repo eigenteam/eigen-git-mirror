@@ -41,7 +41,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_plog(Packet4f x)
   /* the smallest non denormalized float number */
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
 
-  /* natural logarithm computed for 4 simultaneous float 
+  /* natural logarithm computed for 4 simultaneous float
     return NaN for x <= 0
   */
   _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524f);
@@ -72,7 +72,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_plog(Packet4f x)
   emm0 = _mm_sub_epi32(emm0, ei_p4i_0x7f);
   Packet4f e = ei_padd(_mm_cvtepi32_ps(emm0), ei_p4f_1);
 
-  /* part2: 
+  /* part2:
      if( x < SQRTHF ) {
        e -= 1;
        x = x + x - 1.0;
@@ -86,7 +86,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_plog(Packet4f x)
 
   Packet4f x2 = ei_pmul(x,x);
   Packet4f x3 = ei_pmul(x2,x);
-  
+
   Packet4f y, y1, y2;
   y  = ei_pmadd(ei_p4f_cephes_log_p0, x, ei_p4f_cephes_log_p1);
   y1 = ei_pmadd(ei_p4f_cephes_log_p3, x, ei_p4f_cephes_log_p4);
@@ -97,7 +97,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_plog(Packet4f x)
   y = ei_pmadd(y, x3, y1);
   y = ei_pmadd(y, x3, y2);
   y = ei_pmul(y, x3);
-  
+
   y1 = ei_pmul(e, ei_p4f_cephes_log_q1);
   tmp = ei_pmul(x2, ei_p4f_half);
   y = ei_padd(y, y1);
@@ -142,7 +142,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pexp(Packet4f x)
   emm0 = _mm_cvttps_epi32(fx);
   tmp  = _mm_cvtepi32_ps(emm0);
   /* if greater, substract 1 */
-  Packet4f mask = _mm_cmpgt_ps(tmp, fx);    
+  Packet4f mask = _mm_cmpgt_ps(tmp, fx);
   mask = _mm_and_ps(mask, ei_p4f_1);
   fx = ei_psub(tmp, mask);
 
@@ -152,7 +152,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pexp(Packet4f x)
   x = ei_psub(x, z);
 
   z = ei_pmul(x,x);
-  
+
   Packet4f y = ei_p4f_cephes_exp_p0;
   y = ei_pmadd(y, x, ei_p4f_cephes_exp_p1);
   y = ei_pmadd(y, x, ei_p4f_cephes_exp_p2);
@@ -210,12 +210,12 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_psin(Packet4f x)
   sign_bit = x;
   /* take the absolute value */
   x = ei_pabs(x);
-  
+
   /* take the modulo */
-  
+
   /* extract the sign bit (upper one) */
   sign_bit = _mm_and_ps(sign_bit, ei_p4f_sign_mask);
-  
+
   /* scale by 4/Pi */
   y = ei_pmul(x, ei_p4f_cephes_FOPI);
 
@@ -228,7 +228,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_psin(Packet4f x)
   /* get the swap sign flag */
   emm0 = _mm_and_si128(emm2, ei_p4i_4);
   emm0 = _mm_slli_epi32(emm0, 29);
-  /* get the polynom selection mask 
+  /* get the polynom selection mask
      there is one polynom for 0 <= x <= Pi/4
      and another one for Pi/4<x<=Pi/2
 
@@ -236,12 +236,12 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_psin(Packet4f x)
   */
   emm2 = _mm_and_si128(emm2, ei_p4i_2);
   emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
-  
+
   Packet4f swap_sign_bit = _mm_castsi128_ps(emm0);
   Packet4f poly_mask = _mm_castsi128_ps(emm2);
   sign_bit = _mm_xor_ps(sign_bit, swap_sign_bit);
 
-  /* The magic pass: "Extended precision modular arithmetic" 
+  /* The magic pass: "Extended precision modular arithmetic"
      x = ((x - y * DP1) - y * DP2) - y * DP3; */
   xmm1 = ei_pmul(y, ei_p4f_minus_cephes_DP1);
   xmm2 = ei_pmul(y, ei_p4f_minus_cephes_DP2);
@@ -261,7 +261,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_psin(Packet4f x)
   Packet4f tmp = ei_pmul(z, ei_p4f_half);
   y = ei_psub(y, tmp);
   y = ei_padd(y, ei_p4f_1);
-  
+
   /* Evaluate the second polynom  (Pi/4 <= x <= 0) */
 
   Packet4f y2 = ei_p4f_sincof_p0;
@@ -271,7 +271,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_psin(Packet4f x)
   y2 = ei_pmul(y2, x);
   y2 = ei_padd(y2, x);
 
-  /* select the correct result from the two polynoms */  
+  /* select the correct result from the two polynoms */
   y2 = _mm_and_ps(poly_mask, y2);
   y = _mm_andnot_ps(poly_mask, y);
   y = _mm_or_ps(y,y2);
@@ -303,12 +303,12 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
 
   Packet4f xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
   Packet4i emm0, emm2;
-  
+
   x = ei_pabs(x);
-  
+
   /* scale by 4/Pi */
   y = ei_pmul(x, ei_p4f_cephes_FOPI);
-  
+
   /* get the integer part of y */
   emm2 = _mm_cvttps_epi32(y);
   /* j=(j+1) & (~1) (see the cephes sources) */
@@ -317,18 +317,18 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
   y = _mm_cvtepi32_ps(emm2);
 
   emm2 = _mm_sub_epi32(emm2, ei_p4i_2);
-  
+
   /* get the swap sign flag */
   emm0 = _mm_andnot_si128(emm2, ei_p4i_4);
   emm0 = _mm_slli_epi32(emm0, 29);
   /* get the polynom selection mask */
   emm2 = _mm_and_si128(emm2, ei_p4i_2);
   emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
-  
+
   Packet4f sign_bit = _mm_castsi128_ps(emm0);
   Packet4f poly_mask = _mm_castsi128_ps(emm2);
 
-  /* The magic pass: "Extended precision modular arithmetic" 
+  /* The magic pass: "Extended precision modular arithmetic"
      x = ((x - y * DP1) - y * DP2) - y * DP3; */
   xmm1 = ei_pmul(y, ei_p4f_minus_cephes_DP1);
   xmm2 = ei_pmul(y, ei_p4f_minus_cephes_DP2);
@@ -348,7 +348,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
   Packet4f tmp = _mm_mul_ps(z, ei_p4f_half);
   y = ei_psub(y, tmp);
   y = ei_padd(y, ei_p4f_1);
-  
+
   /* Evaluate the second polynom  (Pi/4 <= x <= 0) */
   Packet4f y2 = ei_p4f_sincof_p0;
   y2 = ei_pmadd(y2, z, ei_p4f_sincof_p1);
@@ -360,7 +360,7 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
   y2 = _mm_and_ps(poly_mask, y2);
   y  = _mm_andnot_ps(poly_mask, y);
   y  = _mm_or_ps(y,y2);
-  
+
   /* update the sign */
   return _mm_xor_ps(y, sign_bit);
 }
