@@ -463,6 +463,7 @@ template<typename Derived> class MatrixBase
                            RealScalar prec = precision<Scalar>()) const;
 
     bool isApproxToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
+    bool isConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
