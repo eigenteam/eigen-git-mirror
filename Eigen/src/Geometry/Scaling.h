@@ -78,7 +78,7 @@ public:
   /** Concatenates a uniform scaling and a linear transformation matrix */
   // TODO returns an expression
   template<typename Derived>
-  inline typename ei_eval<Derived>::type operator* (const MatrixBase<Derived>& other) const
+  inline typename ei_plain_matrix_type<Derived>::type operator* (const MatrixBase<Derived>& other) const
   { return other * m_factor; }
 
   template<typename Derived,int Dim>
