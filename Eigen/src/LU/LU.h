@@ -96,7 +96,7 @@ template<typename MatrixType> class LU
       *
       * \param matrix the matrix of which to compute the LU decomposition.
       */
-    LU(const MatrixType& matrix, const RealScalar& precision = precision<Scalar>());
+    LU(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -323,16 +323,14 @@ template<typename MatrixType> class LU
     IntRowVectorType m_q;
     int m_det_pq;
     int m_rank;
-    RealScalar m_precision;
 };
 
 template<typename MatrixType>
-LU<MatrixType>::LU(const MatrixType& matrix, const RealScalar& precision)
+LU<MatrixType>::LU(const MatrixType& matrix)
   : m_originalMatrix(matrix),
     m_lu(matrix),
     m_p(matrix.rows()),
-    m_q(matrix.cols()),
-    m_precision(precision)
+    m_q(matrix.cols())
 {
   const int size = matrix.diagonal().size();
   const int rows = matrix.rows();
@@ -357,7 +355,7 @@ LU<MatrixType>::LU(const MatrixType& matrix, const RealScalar& precision)
     if(k==0) biggest = biggest_in_corner;
 
     // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
+    if(ei_isMuchSmallerThan(biggest_in_corner, biggest))
     {
       m_rank = k;
       for(int i = k; i < size; i++)
@@ -508,7 +506,7 @@ bool LU<MatrixType>::solve(
     RealScalar biggest_in_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
     for(int col = 0; col < c.cols(); ++col)
       for(int row = m_rank; row < c.rows(); ++row)
-        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c, m_precision))
+        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c))
           return false;
   }
   m_lu.corner(TopLeft, m_rank, m_rank)

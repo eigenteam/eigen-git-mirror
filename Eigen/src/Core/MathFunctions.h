@@ -103,7 +103,7 @@ inline bool ei_isApproxOrLessThan(int a, int b, int = precision<int>())
 *** float   ***
 **************/
 
-template<> inline float precision<float>() { return 1e-4f; }
+template<> inline float precision<float>() { return 1e-5f; }
 template<> inline float machine_epsilon<float>() { return 1.192e-07f; }
 inline float ei_real(float x)  { return x; }
 inline float ei_imag(float)    { return 0.f; }
@@ -149,7 +149,7 @@ inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float
 *** double  ***
 **************/
 
-template<> inline double precision<double>() { return 1e-13; }
+template<> inline double precision<double>() { return 1e-11; }
 template<> inline double machine_epsilon<double>() { return 2.220e-16; }
 
 inline double ei_real(double x)  { return x; }
