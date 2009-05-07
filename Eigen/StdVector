@@ -95,6 +95,7 @@ namespace std {
     typedef typename vector_base::allocator_type allocator_type; \
     typedef typename vector_base::size_type size_type;  \
     typedef typename vector_base::iterator iterator;  \
+    typedef typename vector_base::const_iterator const_iterator;  \
     explicit vector(const allocator_type& a = allocator_type()) : vector_base(a) {}  \
     template<typename InputIterator> \
     vector(InputIterator first, InputIterator last, const allocator_type& a = allocator_type()) \
@@ -129,13 +130,12 @@ class vector<T,Eigen::aligned_allocator<T> >
       vector_base::erase(vector_base::begin() + new_size, vector_base::end());
   }
   void push_back(const value_type& x)
-  { vector_base::push_back(x); }
-  template<class _Iter> void insert(const_iterator position, _Iter first, _Iter last)
-  { return vector_base::insert(position, first, last); }
-  iterator insert(iterator position, const value_type& x)
+  { vector_base::push_back(x); } 
+  using vector_base::insert;  
+  iterator insert(const_iterator position, const value_type& x)
   { return vector_base::insert(position,x); }
-  iterator insert(iterator position, size_type new_size, const value_type& x)
-  { return vector_base::insert(position, new_size, x); }
+  void insert(const_iterator position, size_type new_size, const value_type& x)
+  { vector_base::insert(position, new_size, x); }
 #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
   // workaround GCC std::vector implementation
   // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
