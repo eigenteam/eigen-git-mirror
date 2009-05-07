@@ -25,6 +25,10 @@
 #ifndef EIGEN_MATRIX_EXPONENTIAL
 #define EIGEN_MATRIX_EXPONENTIAL
 
+#ifdef _MSC_VER
+template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
+#endif
+
 /** Compute the matrix exponential. 
  *
  * \param M      matrix whose exponential is to be computed.
@@ -131,7 +135,7 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     
     squarings = std::max(0, (int)ceil(log2(l1norm / maxnorm)));
     PlainMatrixType A, A2, A4, A6;
-    A = M / pow(2, squarings);
+    A = M / pow(Scalar(2), squarings);
     A2 = (A * A).lazy();
     A4 = (A2 * A2).lazy();
     A6 = (A4 * A2).lazy();
