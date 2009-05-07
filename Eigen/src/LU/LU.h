@@ -323,6 +323,7 @@ template<typename MatrixType> class LU
     IntRowVectorType m_q;
     int m_det_pq;
     int m_rank;
+    RealScalar m_precision;
 };
 
 template<typename MatrixType>
@@ -335,6 +336,10 @@ LU<MatrixType>::LU(const MatrixType& matrix)
   const int size = matrix.diagonal().size();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
+  
+  // this formula comes from experimenting (see "LU precision tuning" thread on the list)
+  // and turns out to be identical to Higham's formula used already in LDLt.
+  m_precision = machine_epsilon<Scalar>() * size;
 
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
@@ -355,7 +360,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     if(k==0) biggest = biggest_in_corner;
 
     // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggest_in_corner, biggest))
+    if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
     {
       m_rank = k;
       for(int i = k; i < size; i++)
@@ -506,7 +511,7 @@ bool LU<MatrixType>::solve(
     RealScalar biggest_in_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
     for(int col = 0; col < c.cols(); ++col)
       for(int row = m_rank; row < c.rows(); ++row)
-        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c))
+        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c, m_precision))
           return false;
   }
   m_lu.corner(TopLeft, m_rank, m_rank)
