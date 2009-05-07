@@ -234,15 +234,28 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 
 #if EIGEN_ALIGN
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
-      void *operator new(size_t size) throw() { \
+      void *operator new(size_t size) { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
       } \
-      void *operator new[](size_t size) throw() { \
+      void *operator new[](size_t size) { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
       } \
-      void operator delete(void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-      void operator delete[](void * ptr) { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-      void *operator new(size_t, void *ptr) throw() { return ptr; } \
+      void operator delete(void * ptr) throw() { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete[](void * ptr) throw() { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+      /* in-place new and delete. since (at least afaik) there is no actual   */ \
+      /* memory allocated we can safely let the default implementation handle */ \
+      /* this particular case. */ \
+      static void *operator new(size_t size, void *ptr) { return ::operator new(size,ptr); } \
+      void operator delete(void * memory, void *ptr) throw() { return ::operator delete(memory,ptr); } \
+      /* nothrow-new (returns zero instead of std::bad_alloc) */ \
+      void* operator new(size_t size, const std::nothrow_t&) throw() { \
+        try { return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); } \
+        catch (...) { return 0; } \
+        return 0; \
+      } \
+      void operator delete(void *ptr, const std::nothrow_t&) throw() { \
+        Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); \
+      } \
       typedef void ei_operator_new_marker_type;
 #else
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
