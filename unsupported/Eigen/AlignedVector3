@@ -41,7 +41,7 @@ namespace Eigen {
 
 /** \class AlignedVector3
   *
-  * \brief A vectorization frinedly 3D vector
+  * \brief A vectorization friendly 3D vector
   *
   * This class represents a 3D vector internally using a 4D vector
   * such that vectorization can be seamlessly enabled. Of course,
@@ -70,13 +70,13 @@ template<typename _Scalar> class AlignedVector3
     inline int rows() const { return 3; }
     inline int cols() const { return 1; }
     
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar& coeff(int row, int col) const
     { return m_coeffs.coeff(row, col); }
     
     inline Scalar& coeffRef(int row, int col)
     { return m_coeffs.coeffRef(row, col); }
     
-    inline const Scalar coeff(int index) const
+    inline const Scalar& coeff(int index) const
     { return m_coeffs.coeff(index); }
 
     inline Scalar& coeffRef(int index)
