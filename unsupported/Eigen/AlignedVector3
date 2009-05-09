@@ -92,7 +92,7 @@ template<typename _Scalar> class AlignedVector3
     {}
     
     template<typename XprType, int Size=XprType::SizeAtCompileTime>
-    struct generic_assign_selector;
+    struct generic_assign_selector {};
     
     template<typename XprType> struct generic_assign_selector<XprType,4>
     {

@@ -30,7 +30,7 @@ EIGEN_DONT_INLINE Scalar foo(const Scalar& x, const Scalar& y)
 {
 //   return x+std::sin(y);
   EIGEN_ASM_COMMENT("mybegin");
-  return x*2 - std::pow(x,2) + 2*std::sqrt(y*y) - 4 * std::sin(x) + 2 * std::cos(y) - std::exp(-0.5*x*x);
+  return static_cast<Scalar>(x*2 - std::pow(x,2) + 2*std::sqrt(y*y) - 4 * std::sin(x) + 2 * std::cos(y) - std::exp(-0.5*x*x));
 //   return y/x;// - y*2;
   EIGEN_ASM_COMMENT("myend");
 }
@@ -136,8 +136,6 @@ template<typename Func> void adolc_forward_jacobian(const Func& f)
 
 void test_autodiff()
 {
-  std::sqrt(3);
-  std::sin(3);
   std::cerr << foo<float>(1,2) << "\n";
   AutoDiffScalar<Vector2f> ax(1,Vector2f::UnitX());
   AutoDiffScalar<Vector2f> ay(2,Vector2f::UnitY());

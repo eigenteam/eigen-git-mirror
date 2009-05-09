@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include <Eigen/StdVector>
 #include "main.h"
+#include <Eigen/StdVector>
 #include <unsupported/Eigen/MatrixFunctions>
 
 double binom(int n, int k) 
