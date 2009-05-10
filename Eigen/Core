@@ -166,7 +166,7 @@ namespace Eigen {
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
-#include "src/Core/DiagonalCoeffs.h"
+#include "src/Core/Diagonal.h"
 #include "src/Core/Redux.h"
 #include "src/Core/Visitor.h"
 #include "src/Core/Fuzzy.h"

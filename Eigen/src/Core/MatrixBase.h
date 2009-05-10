@@ -167,9 +167,12 @@ template<typename Derived> class MatrixBase
     inline int rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
     inline int cols() const { return derived().cols(); }
-    /** \returns the number of coefficients, which is \a rows()*cols().
+    /** \returns the number of coefficients, which is rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int size() const { return rows() * cols(); }
+    /** \returns the size of the main diagonal, which is min(rows(),cols()).
+      * \sa rows(), cols(), SizeAtCompileTime. */
+    inline int diagonalSize() const { return std::min(rows(),cols()); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
     inline int nonZeros() const { return derived().nonZeros(); }
@@ -419,12 +422,15 @@ template<typename Derived> class MatrixBase
     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
 
-    DiagonalCoeffs<Derived> diagonal();
-    const DiagonalCoeffs<Derived> diagonal() const;
+    Diagonal<Derived,0> diagonal();
+    const Diagonal<Derived,0> diagonal() const;
 
-    template<int Id> DiagonalCoeffs<Derived,Id> diagonal();
-    template<int Id> const DiagonalCoeffs<Derived,Id> diagonal() const;
-
+    template<int Index> Diagonal<Derived,Index> diagonal();
+    template<int Index> const Diagonal<Derived,Index> diagonal() const;
+    
+    Diagonal<Derived, Dynamic> diagonal(int index);
+    const Diagonal<Derived, Dynamic> diagonal(int index) const;
+    
     template<unsigned int Mode> Part<Derived, Mode> part();
     template<unsigned int Mode> const Part<Derived, Mode> part() const;
 

@@ -109,7 +109,6 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   VERIFY_IS_APPROX(m1.diagonal(), m1.transpose().diagonal());
   m2.diagonal() = 2 * m1.diagonal();
   m2.diagonal()[0] *= 3;
-  VERIFY_IS_APPROX(m2.diagonal()[0], static_cast<Scalar>(6) * m1.diagonal()[0]);
 
   const int BlockRows = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,2);
   const int BlockCols = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,5);
@@ -152,6 +151,14 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
     m2.template diagonal<N2>() = 2 * m1.template diagonal<N2>();
     m2.template diagonal<N2>()[0] *= 3;
     VERIFY_IS_APPROX(m2.template diagonal<N2>()[0], static_cast<Scalar>(6) * m1.template diagonal<N2>()[0]);
+
+    m2.diagonal(N1) = 2 * m1.diagonal(N1);
+    m2.diagonal(N1)[0] *= 3;
+    VERIFY_IS_APPROX(m2.diagonal(N1)[0], static_cast<Scalar>(6) * m1.diagonal(N1)[0]);
+
+    m2.diagonal(N2) = 2 * m1.diagonal(N2);
+    m2.diagonal(N2)[0] *= 3;
+    VERIFY_IS_APPROX(m2.diagonal(N2)[0], static_cast<Scalar>(6) * m1.diagonal(N2)[0]);
   }
 
   // stress some basic stuffs with block matrices

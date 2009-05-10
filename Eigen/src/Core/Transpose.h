@@ -138,7 +138,7 @@ template<typename MatrixType> class Transpose
   * m = m.transpose().eval();
   * \endcode
   *
-  * \sa transposeInPlace(), adjoint(), class DiagonalCoeffs */
+  * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
 inline Transpose<Derived>
 MatrixBase<Derived>::transpose()

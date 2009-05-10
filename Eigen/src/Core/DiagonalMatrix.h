@@ -67,7 +67,7 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     template<typename OtherDerived>
     inline DiagonalMatrixBase(const MatrixBase<OtherDerived>& other)
     {
-      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,(OtherDerived::Flags&Diagonal)==Diagonal>
+      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,ei_is_diagonal<OtherDerived>::ret>
         ::run(derived(),other.derived());
     }
     
@@ -109,7 +109,7 @@ class DiagonalMatrixBase : ei_no_assignment_operator,
     template<typename OtherDerived>
     inline Derived& operator=(const MatrixBase<OtherDerived>& other)
     {
-      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,(OtherDerived::Flags&Diagonal)==Diagonal>
+      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,ei_is_diagonal<OtherDerived>::ret>
         ::run(derived(),other);
       return derived();
     }
@@ -149,7 +149,7 @@ template<typename _Scalar,int _Size>
 struct ei_traits<DiagonalMatrix<_Scalar,_Size> > : ei_traits<Matrix<_Scalar,_Size,_Size> >
 {
   enum {
-    Flags = (ei_traits<Matrix<_Scalar,_Size,_Size> >::Flags & HereditaryBits) | Diagonal
+    Flags = (ei_traits<Matrix<_Scalar,_Size,_Size> >::Flags & HereditaryBits) | DiagonalBits
   };
 };
 
@@ -209,7 +209,7 @@ class DiagonalMatrix
     template<typename OtherDerived>
     DiagonalMatrix& operator=(const MatrixBase<OtherDerived>& other)
     {
-      EIGEN_STATIC_ASSERT((OtherDerived::Flags&Diagonal)==Diagonal, THIS_METHOD_IS_ONLY_FOR_DIAGONAL_MATRIX);
+      EIGEN_STATIC_ASSERT(ei_is_diagonal<OtherDerived>::ret, THIS_METHOD_IS_ONLY_FOR_DIAGONAL_MATRIX);
       m_coeffs = other.diagonal();
       return *this;
     }
@@ -252,7 +252,7 @@ struct ei_traits<DiagonalMatrixWrapper<CoeffsVectorType> >
     ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
     MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    Flags = (_CoeffsVectorTypeNested::Flags & HereditaryBits) | Diagonal,
+    Flags = (_CoeffsVectorTypeNested::Flags & HereditaryBits) | DiagonalBits,
     CoeffReadCost = _CoeffsVectorTypeNested::CoeffReadCost
   };
 };

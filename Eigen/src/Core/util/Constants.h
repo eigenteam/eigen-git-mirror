@@ -140,7 +140,7 @@ const unsigned int LinearAccessBit = 0x10;
   * First, references to the coefficients must be available through coeffRef(int, int). This rules out read-only
   * expressions whose coefficients are computed on demand by coeff(int, int). Second, the memory layout of the
   * array of coefficients must be exactly the natural one suggested by rows(), cols(), stride(), and the RowMajorBit.
-  * This rules out expressions such as DiagonalCoeffs, whose coefficients, though referencable, do not have
+  * This rules out expressions such as Diagonal, whose coefficients, though referencable, do not have
   * such a regular memory layout.
   */
 const unsigned int DirectAccessBit = 0x20;
@@ -186,17 +186,24 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeAssigningBit
                                   | SparseBit;
 
-// Possible values for the Mode parameter of part() and of extract()
+// diagonal means both upper and lower triangular
+const unsigned DiagonalBits = UpperTriangularBit | LowerTriangularBit;
+    
+// Possible values for the Mode parameter of part()
 const unsigned int UpperTriangular = UpperTriangularBit;
 const unsigned int StrictlyUpperTriangular = UpperTriangularBit | ZeroDiagBit;
 const unsigned int LowerTriangular = LowerTriangularBit;
 const unsigned int StrictlyLowerTriangular = LowerTriangularBit | ZeroDiagBit;
 const unsigned int SelfAdjoint = SelfAdjointBit;
-
-// additional possible values for the Mode parameter of extract()
 const unsigned int UnitUpperTriangular = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLowerTriangular = LowerTriangularBit | UnitDiagBit;
-const unsigned int Diagonal = UpperTriangular | LowerTriangular;
+
+template<typename T> struct ei_is_diagonal
+{
+  enum {
+    ret = ( (unsigned int)(T::Flags) & DiagonalBits ) == DiagonalBits
+  };
+};
 
 enum { Aligned, Unaligned };
 enum { ForceAligned, AsRequested };
@@ -227,10 +234,10 @@ enum {
 enum {
   ColMajor = 0,
   RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
-  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be
-                requested to be aligned) */
   /** \internal Align the matrix itself if it is vectorizable fixed-size */
   AutoAlign = 0,
+  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be
+                requested to be aligned) */
   DontAlign = 0x2
 };
 

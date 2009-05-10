@@ -84,7 +84,7 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
 {
   enum{
 
-    value = ((Rhs::Flags&Diagonal)==Diagonal) || ((Lhs::Flags&Diagonal)==Diagonal)
+    value = ei_is_diagonal<Rhs>::ret || ei_is_diagonal<Lhs>::ret
           ? DiagonalProduct
           : Lhs::MaxColsAtCompileTime == Dynamic
             && ( Lhs::MaxRowsAtCompileTime == Dynamic

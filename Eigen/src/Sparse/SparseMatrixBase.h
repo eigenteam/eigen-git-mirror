@@ -384,8 +384,8 @@ template<typename Derived> class SparseMatrixBase
 //     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
 //     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
 
-//     DiagonalCoeffs<Derived> diagonal();
-//     const DiagonalCoeffs<Derived> diagonal() const;
+//     Diagonal<Derived> diagonal();
+//     const Diagonal<Derived> diagonal() const;
 
 //     template<unsigned int Mode> Part<Derived, Mode> part();
 //     template<unsigned int Mode> const Part<Derived, Mode> part() const;

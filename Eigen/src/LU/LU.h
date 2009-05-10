@@ -333,7 +333,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     m_p(matrix.rows()),
     m_q(matrix.cols())
 {
-  const int size = matrix.diagonal().size();
+  const int size = matrix.diagonalSize();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
   
@@ -402,7 +402,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
-  return Scalar(m_det_pq) * m_lu.diagonal().redux(ei_scalar_product_op<Scalar>());
+  return Scalar(m_det_pq) * m_lu.diagonal().prod();
 }
 
 template<typename MatrixType>

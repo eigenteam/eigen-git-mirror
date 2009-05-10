@@ -48,7 +48,7 @@ template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename CoeffsVectorType, typename Derived> class DiagonalMatrixBase;
 template<typename CoeffsVectorType> class DiagonalMatrixWrapper;
 template<typename _Scalar, int _Size> class DiagonalMatrix;
-template<typename MatrixType, int DiagId=0> class DiagonalCoeffs;
+template<typename MatrixType, int Index> class Diagonal;
 template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename MatrixType, unsigned int Mode> class Part;
 template<typename MatrixType, unsigned int Mode> class Extract;

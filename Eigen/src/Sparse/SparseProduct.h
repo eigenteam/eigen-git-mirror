@@ -29,7 +29,7 @@ template<typename Lhs, typename Rhs> struct ei_sparse_product_mode
 {
   enum {
 
-    value = ((Lhs::Flags&Diagonal)==Diagonal || (Rhs::Flags&Diagonal)==Diagonal)
+    value = ei_is_diagonal<Lhs>::ret || ei_is_diagonal<Rhs>::ret
           ? DiagonalProduct
           :  (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
           ? SparseTimeSparseProduct

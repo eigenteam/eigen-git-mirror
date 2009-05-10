@@ -42,7 +42,7 @@ struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> > : ei_traits<SparseProduct<Lhs
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   enum {
-    SparseFlags = ((int(_Lhs::Flags)&Diagonal)==Diagonal) ? int(_Rhs::Flags) : int(_Lhs::Flags),
+    SparseFlags = ei_is_diagonal<_Lhs>::ret ? int(_Rhs::Flags) : int(_Lhs::Flags),
     Flags = SparseBit | (SparseFlags&RowMajorBit)
   };
 };
@@ -58,9 +58,9 @@ class SparseDiagonalProduct : public SparseMatrixBase<SparseDiagonalProduct<LhsN
     typedef typename ei_traits<SparseDiagonalProduct>::_RhsNested _RhsNested;
     
     enum {
-      LhsMode = (_LhsNested::Flags&Diagonal)==Diagonal ? SDP_IsDiagonal
+      LhsMode = ei_is_diagonal<_LhsNested>::ret ? SDP_IsDiagonal
               : (_LhsNested::Flags&RowMajorBit) ? SDP_IsSparseRowMajor : SDP_IsSparseColMajor,
-      RhsMode = (_RhsNested::Flags&Diagonal)==Diagonal ? SDP_IsDiagonal
+      RhsMode = ei_is_diagonal<_RhsNested>::ret ? SDP_IsDiagonal
               : (_RhsNested::Flags&RowMajorBit) ? SDP_IsSparseRowMajor : SDP_IsSparseColMajor
     };
 

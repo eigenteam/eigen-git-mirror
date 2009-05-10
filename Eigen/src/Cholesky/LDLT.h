@@ -83,7 +83,7 @@ template<typename MatrixType> class LDLT
     }
 
     /** \returns the coefficients of the diagonal matrix D */
-    inline DiagonalCoeffs<MatrixType> vectorD(void) const { return m_matrix.diagonal(); }
+    inline Diagonal<MatrixType,0> vectorD(void) const { return m_matrix.diagonal(); }
 
     /** \returns true if the matrix is positive (semidefinite) */
     inline bool isPositive(void) const { return m_sign == 1; }

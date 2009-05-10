@@ -30,7 +30,7 @@
  *  Unlike ei_nested, if the argument is a DiagonalMatrix and if it must be evaluated,
  *  then it evaluated to a DiagonalMatrix having its own argument evaluated.
  */
-template<typename T, int N, bool IsDiagonal = (T::Flags&Diagonal)==Diagonal> struct ei_nested_diagonal : ei_nested<T,N> {};
+template<typename T, int N, bool IsDiagonal = ei_is_diagonal<T>::ret> struct ei_nested_diagonal : ei_nested<T,N> {};
 template<typename T, int N> struct ei_nested_diagonal<T,N,true>
  : ei_nested<T, N, DiagonalMatrix<typename T::Scalar, EIGEN_ENUM_MIN(T::RowsAtCompileTime,T::ColsAtCompileTime)> >
 {};
@@ -61,8 +61,8 @@ struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
     MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
 
-    LhsIsDiagonal = (_LhsNested::Flags&Diagonal)==Diagonal,
-    RhsIsDiagonal = (_RhsNested::Flags&Diagonal)==Diagonal,
+    LhsIsDiagonal = ei_is_diagonal<_LhsNested>::ret,
+    RhsIsDiagonal = ei_is_diagonal<_RhsNested>::ret,
 
     CanVectorizeRhs =  (!RhsIsDiagonal) && (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit)
                      && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
@@ -86,7 +86,7 @@ template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNes
     typedef typename ei_traits<Product>::_RhsNested _RhsNested;
 
     enum {
-      RhsIsDiagonal = (_RhsNested::Flags&Diagonal)==Diagonal
+      RhsIsDiagonal = ei_is_diagonal<_RhsNested>::ret
     };
 
   public:
