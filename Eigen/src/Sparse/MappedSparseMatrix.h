@@ -77,8 +77,8 @@ class MappedSparseMatrix
 
     inline Scalar coeff(int row, int col) const
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       int start = m_outerIndex[outer];
       int end = m_outerIndex[outer+1];
@@ -96,8 +96,8 @@ class MappedSparseMatrix
 
     inline Scalar& coeffRef(int row, int col)
     {
-      const int outer = RowMajor ? row : col;
-      const int inner = RowMajor ? col : row;
+      const int outer = IsRowMajor ? row : col;
+      const int inner = IsRowMajor ? col : row;
 
       int start = m_outerIndex[outer];
       int end = m_outerIndex[outer+1];
