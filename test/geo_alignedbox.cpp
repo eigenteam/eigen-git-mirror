@@ -63,6 +63,13 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   VERIFY_IS_APPROX(hp1f.template cast<Scalar>(),b0);
   AlignedBox<Scalar,Dim> hp1d = b0.template cast<Scalar>();
   VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),b0);
+
+  // alignment -- make sure there is no memory alignment assertion
+  BoxType *bp0 = new BoxType(dim);
+  BoxType *bp1 = new BoxType(dim);
+  bp0->extend(*bp1);
+  delete bp0;
+  delete bp1;
 }
 
 void test_geo_alignedbox()

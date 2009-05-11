@@ -121,8 +121,8 @@ template<typename Scalar> void lines()
     VERIFY_IS_APPROX(result, center);
 
     // check conversions between two types of lines
-    CoeffsType converted_coeffs(HLine(PLine(line_u)).coeffs());
-    converted_coeffs *= line_u.coeffs()(0)/converted_coeffs(0);
+    CoeffsType converted_coeffs = HLine(PLine(line_u)).coeffs();
+    converted_coeffs *= (line_u.coeffs()[0])/(converted_coeffs[0]);
     VERIFY(line_u.coeffs().isApprox(converted_coeffs));
   }
 }

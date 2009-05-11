@@ -157,16 +157,17 @@ void test_qr()
 //     CALL_SUBTEST( qr(MatrixXf(12,8)) );
 //     CALL_SUBTEST( qr(MatrixXcd(5,5)) );
 //     CALL_SUBTEST( qr(MatrixXcd(7,3)) );
+    CALL_SUBTEST( qr(MatrixXf(47,47)) );
   }
 
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( qr_non_invertible<MatrixXf>() );
-//     CALL_SUBTEST( qr_non_invertible<MatrixXd>() );
+    CALL_SUBTEST( qr_non_invertible<MatrixXd>() );
     // TODO fix issue with complex
 //     CALL_SUBTEST( qr_non_invertible<MatrixXcf>() );
 //     CALL_SUBTEST( qr_non_invertible<MatrixXcd>() );
-//     CALL_SUBTEST( qr_invertible<MatrixXf>() );
-//     CALL_SUBTEST( qr_invertible<MatrixXd>() );
+    CALL_SUBTEST( qr_invertible<MatrixXf>() );
+    CALL_SUBTEST( qr_invertible<MatrixXd>() );
     // TODO fix issue with complex
 //     CALL_SUBTEST( qr_invertible<MatrixXcf>() );
 //     CALL_SUBTEST( qr_invertible<MatrixXcd>() );

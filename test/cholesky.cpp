@@ -139,6 +139,7 @@ void test_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( cholesky(Matrix<double,1,1>()) );
+    CALL_SUBTEST( cholesky(MatrixXd(1,1)) );
     CALL_SUBTEST( cholesky(Matrix2d()) );
     CALL_SUBTEST( cholesky(Matrix3f()) );
     CALL_SUBTEST( cholesky(Matrix4d()) );
