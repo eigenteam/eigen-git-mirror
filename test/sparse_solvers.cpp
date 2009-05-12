@@ -122,20 +122,18 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     SparseLLT<SparseSelfAdjointMatrix,Cholmod>(m2).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
     #endif
-    if (!NumTraits<Scalar>::IsComplex)
-    {
-      #ifdef EIGEN_TAUCS_SUPPORT
-      x = b;
-      SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
-      x = b;
-      SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
-      x = b;
-      SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
-      #endif
-    }
+      
+    #ifdef EIGEN_TAUCS_SUPPORT
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
+    x = b;
+    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
+    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
+    #endif
   }
 
   // test LDLT
