@@ -39,12 +39,12 @@ struct TestFunc1
   typedef Matrix<Scalar,InputsAtCompileTime,1> InputType;
   typedef Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
   typedef Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
-  
+
   int m_inputs, m_values;
-  
+
   TestFunc1() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
   TestFunc1(int inputs, int values) : m_inputs(inputs), m_values(values) {}
-  
+
   int inputs() const { return m_inputs; }
   int values() const { return m_values; }
 
@@ -107,8 +107,8 @@ struct TestFunc1
 template<typename Func> void adolc_forward_jacobian(const Func& f)
 {
     typename Func::InputType x = Func::InputType::Random();
-    typename Func::ValueType y, yref;
-    typename Func::JacobianType j, jref;
+    typename Func::ValueType y(f.values()), yref(f.values());
+    typename Func::JacobianType j(f.values(),f.inputs()), jref(f.values(),f.inputs());
 
     jref.setZero();
     yref.setZero();
