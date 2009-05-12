@@ -52,8 +52,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 
     SelfAdjointEigenSolver()
-        : m_eivec(Size, Size),
-          m_eivalues(Size)
+        : m_eivec(int(Size), int(Size)),
+          m_eivalues(int(Size))
     {
       ei_assert(Size!=Dynamic);
     }

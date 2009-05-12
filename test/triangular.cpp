@@ -81,7 +81,7 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   m1.template part<Eigen::LowerTriangular>() = (m2.transpose() * m2).lazy();
   VERIFY_IS_APPROX(m3.template part<Eigen::LowerTriangular>(), m1);
 
-  VERIFY_IS_APPROX(m3.template part<Diagonal>(), m3.diagonal().asDiagonal());
+  VERIFY_IS_APPROX(m3.template part<DiagonalBits>(), m3.diagonal().asDiagonal());
 
   m1 = MatrixType::Random(rows, cols);
   for (int i=0; i<rows; ++i)
