@@ -19,6 +19,7 @@ namespace Eigen {
   */
 
 #include "src/LU/LU.h"
+#include "src/LU/PartialLU.h"
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
 

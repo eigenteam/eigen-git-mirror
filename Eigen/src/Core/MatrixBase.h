@@ -623,6 +623,7 @@ template<typename Derived> class MatrixBase
 /////////// LU module ///////////
 
     const LU<PlainMatrixType> lu() const;
+    const PartialLU<PlainMatrixType> partialLu() const;    
     const PlainMatrixType inverse() const;
     void computeInverse(PlainMatrixType *result) const;
     Scalar determinant() const;

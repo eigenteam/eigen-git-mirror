@@ -170,8 +170,7 @@ struct ei_compute_inverse
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    LU<MatrixType> lu(matrix);
-    lu.computeInverse(result);
+    matrix.partialLu().computeInverse(result);
   }
 };
 
