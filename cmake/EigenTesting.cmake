@@ -6,13 +6,16 @@ option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
 macro(ei_add_target_property target prop value)
 
   get_target_property(previous ${target} ${prop})
+  # if the property wasn't previously set, ${previous} is now "previous-NOTFOUND" which cmake allows catching with plain if()
+  if(NOT previous)
+    set(previous "")
+  endif(NOT previous)
   set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
-
 endmacro(ei_add_target_property)
 
 macro(ei_add_property prop value)
   get_property(previous GLOBAL PROPERTY ${prop})
-  set_property(GLOBAL PROPERTY ${prop} "${previous}${value}")
+  set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
 endmacro(ei_add_property)
 
 # Macro to add a test
@@ -47,12 +50,12 @@ macro(ei_add_test testname)
 
     option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
     if(EIGEN_DEBUG_ASSERTS)
-      set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_DEBUG_ASSERTS=1")
+      ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
     endif(EIGEN_DEBUG_ASSERTS)
 
   else(NOT EIGEN_NO_ASSERTION_CHECKING)
 
-    set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+    ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
 
   endif(NOT EIGEN_NO_ASSERTION_CHECKING)
 

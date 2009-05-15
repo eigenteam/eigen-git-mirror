@@ -233,6 +233,20 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
 
 
 #if EIGEN_ALIGN
+  #ifdef EIGEN_EXCEPTIONS
+    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
+      void* operator new(size_t size, const std::nothrow_t&) throw() { \
+        try { return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); } \
+        catch (...) { return 0; } \
+        return 0; \
+      }
+  #else
+    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
+      void* operator new(size_t size, const std::nothrow_t&) { \
+        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+      }
+  #endif
+
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
@@ -248,11 +262,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
       static void *operator new(size_t size, void *ptr) { return ::operator new(size,ptr); } \
       void operator delete(void * memory, void *ptr) throw() { return ::operator delete(memory,ptr); } \
       /* nothrow-new (returns zero instead of std::bad_alloc) */ \
-      void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        try { return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); } \
-        catch (...) { return 0; } \
-        return 0; \
-      } \
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void operator delete(void *ptr, const std::nothrow_t&) throw() { \
         Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); \
       } \
