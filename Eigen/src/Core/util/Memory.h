@@ -73,23 +73,21 @@ inline void* ei_aligned_malloc(size_t size)
     ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
-  void *result;
-  #if EIGEN_HAS_POSIX_MEMALIGN && EIGEN_ALIGN && !EIGEN_MALLOC_ALREADY_ALIGNED
-    if(posix_memalign(&result, 16, size))
-      result = 0;
+  void *result;  
+  #if !EIGEN_ALIGN
+    result = malloc(size);
+  #elif EIGEN_MALLOC_ALREADY_ALIGNED
+    result = malloc(size);
+  #elif EIGEN_HAS_POSIX_MEMALIGN
+    if(posix_memalign(&result, 16, size)) result = 0;
+  #elif EIGEN_HAS_MM_MALLOC
+    result = _mm_malloc(size, 16);
+  #elif (defined _MSC_VER)
+    result = _aligned_malloc(size, 16);
   #else
-    #if !EIGEN_ALIGN
-      result = malloc(size);
-    #elif EIGEN_MALLOC_ALREADY_ALIGNED
-      result = malloc(size);
-    #elif EIGEN_HAS_MM_MALLOC
-      result = _mm_malloc(size, 16);
-    #elif (defined _MSC_VER)
-      result = _aligned_malloc(size, 16);
-    #else
-      result = ei_handmade_aligned_malloc(size);
-    #endif
+    result = ei_handmade_aligned_malloc(size);
   #endif
+    
   #ifdef EIGEN_EXCEPTIONS
     if(result == 0)
       throw std::bad_alloc();
