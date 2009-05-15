@@ -242,7 +242,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
       }
   #else
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
-      void* operator new(size_t size, const std::nothrow_t&) { \
+      void* operator new(size_t size, const std::nothrow_t&) throw() { \
         return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
       }
   #endif
