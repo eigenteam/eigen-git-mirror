@@ -55,8 +55,8 @@ struct ei_traits<Diagonal<MatrixType,Index> >
                                         MatrixType::ColsAtCompileTime) - AbsIndex),
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
-                         : (EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime,
-                                          MatrixType::MaxColsAtCompileTime) - AbsIndex),
+                         : Index == Dynamic ? EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
+                         : (EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsIndex),
     MaxColsAtCompileTime = 1,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
