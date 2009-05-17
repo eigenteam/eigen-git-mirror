@@ -55,42 +55,14 @@ template<typename MatrixType> void qr(const MatrixType& m)
   VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
 }
 
-template<typename Derived>
-void doSomeRankPreservingOperations(Eigen::MatrixBase<Derived>& m)
-{
-  typedef typename Derived::RealScalar RealScalar;
-  for(int a = 0; a < 3*(m.rows()+m.cols()); a++)
-  {
-    RealScalar d = Eigen::ei_random<RealScalar>(-1,1);
-    int i = Eigen::ei_random<int>(0,m.rows()-1); // i is a random row number
-    int j;
-    do {
-      j = Eigen::ei_random<int>(0,m.rows()-1);
-    } while (i==j); // j is another one (must be different)
-    m.row(i) += d * m.row(j);
-
-    i = Eigen::ei_random<int>(0,m.cols()-1); // i is a random column number
-    do {
-      j = Eigen::ei_random<int>(0,m.cols()-1);
-    } while (i==j); // j is another one (must be different)
-    m.col(i) += d * m.col(j);
-  }
-}
-
 template<typename MatrixType> void qr_non_invertible()
 {
   /* this test covers the following files: QR.h */
-  // NOTE there seems to be a problem with too small sizes -- could easily lie in the doSomeRankPreservingOperations function
   int rows = ei_random<int>(20,200), cols = ei_random<int>(20,rows), cols2 = ei_random<int>(20,rows);
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
   MatrixType m1(rows, cols), m2(cols, cols2), m3(rows, cols2), k(1,1);
-  m1 = MatrixType::Random(rows,cols);
-  if(rows <= cols)
-    for(int i = rank; i < rows; i++) m1.row(i).setZero();
-  else
-    for(int i = rank; i < cols; i++) m1.col(i).setZero();
-  doSomeRankPreservingOperations(m1);
+  createRandomMatrixOfRank(rank, rows, cols, m1);
 
   QR<MatrixType> lu(m1);
 //   typename LU<MatrixType>::KernelResultType m1kernel = lu.kernel();

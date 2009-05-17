@@ -136,6 +136,7 @@ namespace Eigen
 #define EIGEN_INTERNAL_DEBUGGING
 #define EIGEN_NICE_RANDOM
 #include <Eigen/Array>
+#include <Eigen/QR> // required for createRandomMatrixOfRank
 
 
 #define VERIFY(a) do { if (!(a)) { \
@@ -223,6 +224,26 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
                                    const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
 {
   return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
+}
+
+template<typename Derived>
+void createRandomMatrixOfRank(int desired_rank, int rows, int cols, Eigen::MatrixBase<Derived>& m)
+{
+  typedef Derived MatrixType;
+  typedef MatrixType::Scalar Scalar;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+
+  MatrixType a = MatrixType::Random(rows,rows);
+  MatrixType d = MatrixType::Identity(rows,cols);
+  MatrixType  b = MatrixType::Random(cols,cols);
+
+  // set the diagonal such that only desired_rank non-zero entries reamain
+  const int diag_size = std::min(d.rows(),d.cols());
+  d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
+
+  QR<MatrixType> qra(a);
+  QR<MatrixType> qrb(b);
+  m = (qra.matrixQ() * d * qrb.matrixQ()).lazy();
 }
 
 } // end namespace Eigen
