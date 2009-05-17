@@ -230,7 +230,7 @@ template<typename Derived>
 void createRandomMatrixOfRank(int desired_rank, int rows, int cols, Eigen::MatrixBase<Derived>& m)
 {
   typedef Derived MatrixType;
-  typedef MatrixType::Scalar Scalar;
+  typedef typename ei_traits<MatrixType>::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,rows);
