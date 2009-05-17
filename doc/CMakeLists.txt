@@ -1,6 +1,8 @@
 
 set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
+project(EigenDoc)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
   if(CMAKE_SYSTEM_NAME MATCHES Linux)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g1")
@@ -60,7 +62,7 @@ add_custom_target(
 )
 
 add_dependencies(doc-eigen-prerequisites all_snippets all_examples)
-add_dependencies(doc-unsupported-prerequisites unsupported_snippets unsupported_examples)
+# add_dependencies(doc-unsupported-prerequisites unsupported_snippets unsupported_examples)
 add_custom_target(doc ALL
   COMMAND doxygen Doxyfile-unsupported
   COMMAND doxygen
