@@ -45,7 +45,7 @@ template<typename Scalar> struct StdMapTraits
   *
   * To use it you need to both define EIGEN_UNORDERED_MAP_SUPPORT and include the unordered_map header file
   * yourself making sure that unordered_map is defined in the std namespace.
-  * 
+  *
   * For instance, with current version of gcc you can either enable C++0x standard (-std=c++0x) or do:
   * \code
   * #include <tr1/unordered_map>
@@ -151,7 +151,7 @@ template<typename Scalar> struct GoogleSparseHashMapTraits
   *  - \#include <google/dense_hash_map> yourself \b before Eigen/Sparse header
   *  - define EIGEN_GOOGLEHASH_SUPPORT
   * In the later case the inclusion of <google/dense_hash_map> is made for you.
-  * 
+  *
   * \see http://code.google.com/p/google-sparsehash/
   */
 template<typename SparseMatrixType,
@@ -229,7 +229,6 @@ class RandomSetter
         int prevOuter = -1;
         for (int k=0; k<m_outerPackets; ++k)
         {
-          mp_target->startVec(k);
           const int outerOffset = (1<<OuterPacketBits) * k;
           typename HashMapType::iterator end = m_hashmaps[k].end();
           for (typename HashMapType::iterator it = m_hashmaps[k].begin(); it!=end; ++it)
@@ -314,7 +313,7 @@ class RandomSetter
       return m_hashmaps[outerMajor][key].value;
     }
 
-    /** \returns the number of non zero coefficients 
+    /** \returns the number of non zero coefficients
       *
       * \note According to the underlying map/hash_map implementation,
       * this function might be quite expensive.
