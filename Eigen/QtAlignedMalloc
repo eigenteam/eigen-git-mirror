@@ -6,17 +6,17 @@
 
 #if (!EIGEN_MALLOC_ALREADY_ALIGNED)
 
-inline void *qMalloc(size_t size)
-{
+void *qMalloc(size_t size)
+{std::cerr << "ok\n";
   return Eigen::ei_aligned_malloc(size);
 }
 
-inline void qFree(void *ptr)
+void qFree(void *ptr)
 {
   Eigen::ei_aligned_free(ptr);
 }
 
-inline void *qRealloc(void *ptr, size_t size)
+void *qRealloc(void *ptr, size_t size)
 {
   void* newPtr = Eigen::ei_aligned_malloc(size);
   memcpy(newPtr, ptr, size);
