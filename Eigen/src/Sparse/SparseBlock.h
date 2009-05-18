@@ -150,15 +150,15 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
     {
       return operator=<SparseInnerVectorSet>(other);
     }
-    
+
     int nonZeros() const
-    { 
+    {
       int count = 0;
       for (int j=0; j<m_outerSize; ++j)
         count += m_matrix._data()[m_outerStart+j].size();
       return count;
     }
-    
+
     const Scalar& lastCoeff() const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
@@ -212,7 +212,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
     }
 
     inline SparseInnerVectorSet(const MatrixType& matrix, int outer)
-      : m_matrix(matrix), m_outerStart(outer)
+      : m_matrix(matrix), m_outerStart(outer), m_outerSize(Size)
     {
       ei_assert(Size==1);
       ei_assert( (outer>=0) && (outer<matrix.outerSize()) );
@@ -250,12 +250,12 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
     { return m_matrix._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
     inline const int* _outerIndexPtr() const
     { return m_matrix._outerIndexPtr() + m_outerStart; }
-    
+
     int nonZeros() const
     {
       return  size_t(m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()])
             - size_t(m_matrix._outerIndexPtr()[m_outerStart]); }
-    
+
     const Scalar& lastCoeff() const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
