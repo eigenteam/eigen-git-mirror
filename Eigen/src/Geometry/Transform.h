@@ -184,6 +184,10 @@ public:
   typedef typename ei_meta_if<int(Mode)==int(AffineCompact),
                               MatrixType&,
                               Block<MatrixType,Dim,HDim> >::ret AffinePart;
+  /** type of read/write reference to the affine part of the transformation */
+  typedef typename ei_meta_if<int(Mode)==int(AffineCompact),
+                              MatrixType&,
+                              NestByValue<Block<MatrixType,Dim,HDim> > >::ret AffinePartNested;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */

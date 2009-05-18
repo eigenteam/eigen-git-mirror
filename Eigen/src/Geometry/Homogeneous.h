@@ -102,11 +102,11 @@ template<typename MatrixType,int Direction> class Homogeneous
 
     template<typename Scalar, int Dim, int Mode> friend
     inline const ei_homogeneous_left_product_impl<Homogeneous,
-      typename Transform<Scalar,Dim,Mode>::AffinePart>
+      typename Transform<Scalar,Dim,Mode>::AffinePartNested>
     operator* (const Transform<Scalar,Dim,Mode>& tr, const Homogeneous& rhs)
     {
       ei_assert(Direction==Vertical);
-      return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Mode>::AffinePart>
+      return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Mode>::AffinePartNested >
         (tr.affine(),rhs.m_matrix);
     }
 

@@ -72,12 +72,12 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().solveTriangular(vec2),
                      m2.template triangular<UpperTriangular>().solve(vec3));
-    
+
     // TODO test row major
-    
+
     SparseMatrix<Scalar> matB(rows, rows);
     DenseMatrix refMatB = DenseMatrix::Zero(rows, rows);
-    
+
     // lower - sparse
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular);
     initSparse<Scalar>(density, refMatB, matB);
@@ -91,7 +91,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     refMat2.template marked<UpperTriangular>().solveTriangularInPlace(refMatB);
     m2.template triangular<UpperTriangular>().solveInPlace(matB);
     VERIFY_IS_APPROX(matB, refMatB);
-    
+
     // test deprecated API
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().solveTriangular(vec2),
@@ -122,7 +122,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     SparseLLT<SparseSelfAdjointMatrix,Cholmod>(m2).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
     #endif
-      
+
     #ifdef EIGEN_TAUCS_SUPPORT
     x = b;
     SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
