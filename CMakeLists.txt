@@ -27,6 +27,9 @@ if(NOT WIN32)
   option(EIGEN_BUILD_LIB "Build the binary shared library" OFF)
 endif(NOT WIN32)
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
+if(NOT WIN32)
+  option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
+endif(NOT WIN32)
 
 if(EIGEN_BUILD_LIB)
   option(EIGEN_TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
@@ -97,6 +100,13 @@ set(INCLUDE_INSTALL_DIR
     CACHE PATH
     "The directory where we install the header files"
     FORCE)
+
+if(EIGEN_BUILD_PKGCONFIG)
+    configure_file(eigen2.pc.in eigen2.pc)
+    install(FILES eigen2.pc
+        DESTINATION lib/pkgconfig
+        )
+endif(EIGEN_BUILD_PKGCONFIG)
 
 add_subdirectory(Eigen)
 
