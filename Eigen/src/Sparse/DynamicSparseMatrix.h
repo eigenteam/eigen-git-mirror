@@ -35,7 +35,7 @@
   * random read/write accesses in log(rho*outer_size) where \c rho is the probability that a coefficient is
   * nonzero and outer_size is the number of columns if the matrix is column-major and the number of rows
   * otherwise.
-  * 
+  *
   * Internally, the data are stored as a std::vector of compressed vector. The performances of random writes might
   * decrease as the number of nonzeros per inner-vector increase. In practice, we observed very good performance
   * till about 100 nonzeros/vector, and the performance remains relatively good till 500 nonzeros/vectors.
@@ -67,23 +67,23 @@ class DynamicSparseMatrix
     // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, +=)
     // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, -=)
     typedef MappedSparseMatrix<Scalar,Flags> Map;
+    using Base::IsRowMajor;
 
   protected:
 
-    enum { IsRowMajor = Base::IsRowMajor };
     typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
     int m_innerSize;
     std::vector<CompressedStorage<Scalar> > m_data;
 
   public:
-  
+
     inline int rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_data.size(); }
     inline int innerNonZeros(int j) const { return m_data[j].size(); }
-    
+
     std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
     const std::vector<CompressedStorage<Scalar> >& _data() const { return m_data; }
 
@@ -132,7 +132,7 @@ class DynamicSparseMatrix
       setZero();
       reserve(reserveSize);
     }
-    
+
     void reserve(int reserveSize = 1000)
     {
       if (outerSize()>0)
@@ -144,13 +144,13 @@ class DynamicSparseMatrix
         }
       }
     }
-    
+
     inline void startVec(int /*outer*/) {}
-    
+
     inline Scalar& insertBack(int outer, int inner)
     {
       ei_assert(outer<int(m_data.size()) && inner<m_innerSize && "out of range");
-      ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner)) 
+      ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner))
                 && "wrong sorted insertion");
       m_data[outer].append(0, inner);
       return m_data[outer].value(m_data[outer].size()-1);
@@ -162,7 +162,7 @@ class DynamicSparseMatrix
       *  2 - this the coefficient with greater inner coordinate for the given outer coordinate.
       * In other words, assuming \c *this is column-major, then there must not exists any nonzero coefficient of coordinates
       * \c i \c x \a col such that \c i >= \a row. Otherwise the matrix is invalid.
-      * 
+      *
       * \see fillrand(), coeffRef()
       */
     EIGEN_DEPRECATED Scalar& fill(int row, int col)
@@ -181,12 +181,12 @@ class DynamicSparseMatrix
     {
       return insert(row,col);
     }
-    
+
     inline Scalar& insert(int row, int col)
     {
       const int outer = IsRowMajor ? row : col;
       const int inner = IsRowMajor ? col : row;
-      
+
       int startId = 0;
       int id = m_data[outer].size() - 1;
       m_data[outer].resize(id+2,1);
@@ -205,9 +205,9 @@ class DynamicSparseMatrix
     /** \deprecated use finalize()
       * Does nothing. Provided for compatibility with SparseMatrix. */
     EIGEN_DEPRECATED void endFill() {}
-    
+
     inline void finalize() {}
-    
+
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       for (int j=0; j<outerSize(); ++j)
@@ -226,7 +226,7 @@ class DynamicSparseMatrix
         m_data.resize(outerSize);
       }
     }
-    
+
     void resizeAndKeepData(int rows, int cols)
     {
       const int outerSize = IsRowMajor ? rows : cols;
@@ -309,7 +309,7 @@ class DynamicSparseMatrix<Scalar,_Flags>::InnerIterator : public SparseVector<Sc
     InnerIterator(const DynamicSparseMatrix& mat, int outer)
       : Base(mat.m_data[outer]), m_outer(outer)
     {}
-    
+
     inline int row() const { return IsRowMajor ? m_outer : Base::index(); }
     inline int col() const { return IsRowMajor ? Base::index() : m_outer; }
 

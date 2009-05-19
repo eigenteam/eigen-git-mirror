@@ -72,7 +72,8 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
 
   PlainMatrixType num, den, U, V;
   PlainMatrixType Id = PlainMatrixType::Identity(M.rows(), M.cols());
-  RealScalar l1norm = M.cwise().abs().colwise().sum().maxCoeff();
+  typename ei_eval<Derived>::type Meval = M.eval();
+  RealScalar l1norm = Meval.cwise().abs().colwise().sum().maxCoeff();
   int squarings = 0;
   
   // Choose degree of Pade approximant, depending on norm of M
@@ -81,9 +82,9 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     // Use (3,3)-Pade
     const Scalar b[] = {120., 60., 12., 1.};
     PlainMatrixType M2;
-    M2 = (M * M).lazy();
+    M2 = (Meval * Meval).lazy();
     num = b[3]*M2 + b[1]*Id;
-    U = (M * num).lazy();
+    U = (Meval * num).lazy();
     V = b[2]*M2 + b[0]*Id;
 
   } else if (l1norm < 2.539398330063230e-001) {
@@ -91,10 +92,10 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     // Use (5,5)-Pade
     const Scalar b[] = {30240., 15120., 3360., 420., 30., 1.};
     PlainMatrixType M2, M4;
-    M2 = (M * M).lazy();
+    M2 = (Meval * Meval).lazy();
     M4 = (M2 * M2).lazy();
     num = b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * num).lazy();
+    U = (Meval * num).lazy();
     V = b[4]*M4 + b[2]*M2 + b[0]*Id;
 
   } else if (l1norm < 9.504178996162932e-001) {
@@ -102,11 +103,11 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     // Use (7,7)-Pade
     const Scalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
     PlainMatrixType M2, M4, M6;
-    M2 = (M * M).lazy();
+    M2 = (Meval * Meval).lazy();
     M4 = (M2 * M2).lazy();
     M6 = (M4 * M2).lazy();
     num = b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * num).lazy();
+    U = (Meval * num).lazy();
     V = b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
 
   } else if (l1norm < 2.097847961257068e+000) {
@@ -115,12 +116,12 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     const Scalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
                          2162160., 110880., 3960., 90., 1.};
     PlainMatrixType M2, M4, M6, M8;
-    M2 = (M * M).lazy();
+    M2 = (Meval * Meval).lazy();
     M4 = (M2 * M2).lazy();
     M6 = (M4 * M2).lazy();
     M8 = (M6 * M2).lazy();
     num = b[9]*M8 + b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * num).lazy();
+    U = (Meval * num).lazy();
     V = b[8]*M8 + b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
 
   } else {
@@ -135,7 +136,7 @@ void ei_matrix_exponential(const MatrixBase<Derived> &M, typename ei_plain_matri
     
     squarings = std::max(0, (int)ceil(log2(l1norm / maxnorm)));
     PlainMatrixType A, A2, A4, A6;
-    A = M / pow(Scalar(2), squarings);
+    A = Meval / pow(Scalar(2), squarings);
     A2 = (A * A).lazy();
     A4 = (A2 * A2).lazy();
     A6 = (A4 * A2).lazy();

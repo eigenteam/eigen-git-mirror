@@ -66,20 +66,26 @@ template<typename MatrixType> class SparseTranspose
 
 template<typename MatrixType> class SparseTranspose<MatrixType>::InnerIterator : public MatrixType::InnerIterator
 {
+    typedef typename MatrixType::InnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const SparseTranspose& trans, int outer)
-      : MatrixType::InnerIterator(trans.m_matrix, outer)
+      : Base(trans.m_matrix, outer)
     {}
+    inline int row() const { return Base::col(); }
+    inline int col() const { return Base::row(); }
 };
 
 template<typename MatrixType> class SparseTranspose<MatrixType>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator
 {
+    typedef typename MatrixType::ReverseInnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE ReverseInnerIterator(const SparseTranspose& xpr, int outer)
-      : MatrixType::ReverseInnerIterator(xpr.m_matrix, outer)
+      : Base(xpr.m_matrix, outer)
     {}
+    inline int row() const { return Base::col(); }
+    inline int col() const { return Base::row(); }
 };
 
 #endif // EIGEN_SPARSETRANSPOSE_H

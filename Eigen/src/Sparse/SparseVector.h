@@ -34,26 +34,26 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Flags>
-struct ei_traits<SparseVector<_Scalar, _Flags> >
+template<typename _Scalar, int _Options>
+struct ei_traits<SparseVector<_Scalar, _Options> >
 {
   typedef _Scalar Scalar;
   enum {
-    IsColVector = _Flags & RowMajorBit ? 0 : 1,
+    IsColVector = _Options & RowMajorBit ? 0 : 1,
 
     RowsAtCompileTime = IsColVector ? Dynamic : 1,
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = SparseBit | _Flags,
+    Flags = SparseBit | _Options,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
 
-template<typename _Scalar, int _Flags>
+template<typename _Scalar, int _Options>
 class SparseVector
-  : public SparseMatrixBase<SparseVector<_Scalar, _Flags> >
+  : public SparseMatrixBase<SparseVector<_Scalar, _Options> >
 {
   public:
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
@@ -124,7 +124,7 @@ class SparseVector
     {
       ei_assert(outer==0);
     }
-    
+
     inline Scalar& insertBack(int outer, int inner)
     {
       ei_assert(outer==0);
@@ -183,7 +183,7 @@ class SparseVector
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
-    
+
     /** \deprecated use insert(int,int) */
     EIGEN_DEPRECATED Scalar& fillrand(int r, int c)
     {
@@ -196,11 +196,11 @@ class SparseVector
     {
       return insert(i);
     }
-    
+
     /** \deprecated use finalize() */
     EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
-    
+
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       m_data.prune(reference,epsilon);
@@ -357,10 +357,13 @@ class SparseVector
 
     /** Destructor */
     inline ~SparseVector() {}
+
+    /** Overloaded for performance */
+    Scalar sum() const;
 };
 
-template<typename Scalar, int _Flags>
-class SparseVector<Scalar,_Flags>::InnerIterator
+template<typename Scalar, int _Options>
+class SparseVector<Scalar,_Options>::InnerIterator
 {
   public:
     InnerIterator(const SparseVector& vec, int outer=0)

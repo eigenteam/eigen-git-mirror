@@ -186,8 +186,8 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
     EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
 
     EIGEN_STRONG_INLINE int index() const { return m_id; }
-    EIGEN_STRONG_INLINE int row() const { return m_lhsIter.row(); }
-    EIGEN_STRONG_INLINE int col() const { return m_lhsIter.col(); }
+    EIGEN_STRONG_INLINE int row() const { return Lhs::IsRowMajor ? m_lhsIter.row() : index(); }
+    EIGEN_STRONG_INLINE int col() const { return Lhs::IsRowMajor ? index() : m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_id>=0; }
 
