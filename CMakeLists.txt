@@ -1,19 +1,29 @@
 project(Eigen)
-set(EIGEN_VERSION_NUMBER "2.0.52-unstable")
 
-#if the svnversion program is absent, this will leave the SVN_REVISION string empty,
-#but won't stop CMake.
-execute_process(COMMAND svnversion -n ${CMAKE_SOURCE_DIR}
-                OUTPUT_VARIABLE EIGEN_SVNVERSION_OUTPUT)
+# automatically parse the version number
+file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header LIMIT 5000 OFFSET 1000)
+string(REGEX MATCH "define *EIGEN_WORLD_VERSION ([0-9]*)" _eigen2_world_version_match "${_eigen2_version_header}")
+set(EIGEN2_WORLD_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH "define *EIGEN_MAJOR_VERSION ([0-9]*)" _eigen2_major_version_match "${_eigen2_version_header}")
+set(EIGEN2_MAJOR_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH "define *EIGEN_MINOR_VERSION ([0-9]*)" _eigen2_minor_version_match "${_eigen2_version_header}")
+set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
+# TODO find a way to automatically remove the unstable suffix
+set(EIGEN_VERSION_NUMBER ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION}-unstable)
 
-#we only want EIGEN_SVN_REVISION if it is an actual revision number, not a string like "exported"
-string(REGEX MATCH "^[0-9]+.*" EIGEN_SVN_REVISION "${EIGEN_SVNVERSION_OUTPUT}")
+# if the mercurial program is absent, this will leave the EIGEN_HG_REVISION string empty,
+# but won't stop CMake.
+execute_process(COMMAND hg tip -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_HGTIP_OUTPUT)
 
-if(EIGEN_SVN_REVISION)
-  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (SVN revision ${EIGEN_SVN_REVISION})")
-else(EIGEN_SVN_REVISION)
+# extract the mercurial revision number from the hg tip output
+string(REGEX MATCH "^changeset: *[0-9]*:([0-9;a-f]+).*" EIGEN_HG_REVISION_MATCH "${EIGEN_HGTIP_OUTPUT}")
+set(EIGEN_HG_REVISION "${CMAKE_MATCH_1}")
+
+if(EIGEN_HG_REVISION)
+  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (mercurial revision ${EIGEN_HG_REVISION})")
+else(EIGEN_HG_REVISION)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
-endif(EIGEN_SVN_REVISION)
+endif(EIGEN_HG_REVISION)
 
 cmake_minimum_required(VERSION 2.6.2)
 
