@@ -25,6 +25,17 @@
 #ifndef EIGEN_SPARSEMATRIXBASE_H
 #define EIGEN_SPARSEMATRIXBASE_H
 
+/** \ingroup Sparse_Module
+  *
+  * \class SparseMatrixBase
+  *
+  * \brief Base class of any sparse matrices or sparse expressions
+  *
+  * \param Derived
+  *
+  *
+  *
+  */
 template<typename Derived> class SparseMatrixBase
 {
   public:
@@ -69,7 +80,7 @@ template<typename Derived> class SparseMatrixBase
         /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
           * constructed from this one. See the \ref flags "list of flags".
           */
-      
+
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
@@ -156,9 +167,9 @@ template<typename Derived> class SparseMatrixBase
       ei_assert(( ((ei_traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
                   (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
                   "the transpose operation is supposed to be handled in SparseMatrix::operator=");
-      
+
       enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
-      
+
       const int outerSize = other.outerSize();
       //typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       // thanks to shallow copies, we always eval to a tempary
@@ -293,13 +304,13 @@ template<typename Derived> class SparseMatrixBase
     template<typename OtherDerived>
     const typename SparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
-    
+
     // dense * sparse (return a dense object)
-    template<typename OtherDerived> friend 
+    template<typename OtherDerived> friend
     const typename SparseProductReturnType<OtherDerived,Derived>::Type
     operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
     { return typename SparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
-    
+
     template<typename OtherDerived>
     const typename SparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
@@ -340,7 +351,7 @@ template<typename Derived> class SparseMatrixBase
     const SparseInnerVectorSet<Derived,1> col(int j) const;
     SparseInnerVectorSet<Derived,1> innerVector(int outer);
     const SparseInnerVectorSet<Derived,1> innerVector(int outer) const;
-    
+
     // set of sub-vectors
     SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size);
     const SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size) const;
@@ -432,10 +443,16 @@ template<typename Derived> class SparseMatrixBase
         for (int j=0; j<outerSize(); ++j)
         {
           for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+          {
             if(IsRowMajor)
-              res.coeffRef(j,i.index()) = i.value();
+              std::cerr << i.row() << "," << i.col() << " == " << j << "," << i.index() << "\n";
             else
-              res.coeffRef(i.index(),j) = i.value();
+              std::cerr << i.row() << "," << i.col() << " == " << i.index() << "," << j << "\n";
+//             if(IsRowMajor)
+              res.coeffRef(i.row(),i.col()) = i.value();
+//             else
+//               res.coeffRef(i.index(),j) = i.value();
+          }
         }
         return res;
       }

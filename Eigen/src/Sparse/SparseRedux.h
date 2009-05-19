@@ -37,4 +37,20 @@ SparseMatrixBase<Derived>::sum() const
   return res;
 }
 
+template<typename _Scalar, int _Options>
+typename ei_traits<SparseMatrix<_Scalar,_Options> >::Scalar
+SparseMatrix<_Scalar,_Options>::sum() const
+{
+  ei_assert(rows()>0 && cols()>0 && "you are using a non initialized matrix");
+  return Matrix<Scalar,1,Dynamic>::Map(m_data.value(0), m_data.size()).sum();
+}
+
+template<typename _Scalar, int _Options>
+typename ei_traits<SparseVector<_Scalar,_Options> >::Scalar
+SparseVector<_Scalar,_Options>::sum() const
+{
+  ei_assert(rows()>0 && cols()>0 && "you are using a non initialized matrix");
+  return Matrix<Scalar,1,Dynamic>::Map(m_data.value(0), m_data.size()).sum();
+}
+
 #endif // EIGEN_SPARSEREDUX_H
