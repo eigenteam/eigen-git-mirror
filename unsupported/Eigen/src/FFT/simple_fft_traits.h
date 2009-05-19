@@ -80,13 +80,15 @@ namespace Eigen {
 
     void postprocess(Complex *dst) 
     {
-        if (m_inverse) {
-            Scalar scale = 1./m_nfft;
-            for (int k=0;k<m_nfft;++k)
-                dst[k] *= scale;
-        }
+      if (m_inverse) {
+        Scalar scale = 1./m_nfft;
+        for (int k=0;k<m_nfft;++k)
+          dst[k] *= scale;
+      }
     }
-  private:
+
+    private:
+
     void work( int stage,Complex * Fout, const Complex * f, size_t fstride,size_t in_stride)
     {
       int p = m_stageRadix[stage];
