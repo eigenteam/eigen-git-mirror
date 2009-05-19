@@ -25,18 +25,12 @@
 #include "main.h"
 #include <unsupported/Eigen/FFT.h>
 
-//#include <iostream>
-//#include <cstdlib>
-//#include <typeinfo>
-
 using namespace std;
 
 template <class T>
 void test_fft(int nfft)
 {
     typedef typename Eigen::FFT<T>::Complex Complex;
-
-    //cout << "type:" << typeid(T).name() << " nfft:" << nfft;
 
     FFT<T> fft;
 
