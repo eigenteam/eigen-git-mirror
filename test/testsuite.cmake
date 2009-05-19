@@ -39,7 +39,7 @@
 # VERSION=opensuse-11.1
 # WORK_DIR=/home/gael/Coding/eigen2/cdash
 # # get the last version of the script
-# svn cat svn://anonsvn.kde.org/home/kde/trunk/kdesupport/eigen2/test/testsuite.cmake > $WORK_DIR/testsuite.cmake
+# wget http://bitbucket.org/eigen/eigen2/raw/tip/test/testsuite.cmake -o $WORK_DIR/testsuite.cmake
 # COMMON="ctest -S $WORK_DIR/testsuite.cmake,EIGEN_WORK_DIR=$WORK_DIR,EIGEN_SITE=$SITE,EIGEN_MODE=$1,EIGEN_BUILD_STRING=$OS_VERSION-$ARCH"
 # $COMMON-gcc-3.4.6,EIGEN_CXX=g++-3.4
 # $COMMON-gcc-4.0.1,EIGEN_CXX=g++-4.0.1
@@ -132,8 +132,8 @@ endif(NOT EIGEN_MODE)
 
 ## mandatory variables (the default should be ok in most cases):
 
-SET (CTEST_CVS_COMMAND "svn")
-SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} co svn://anonsvn.kde.org/home/kde/trunk/kdesupport/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
+SET (CTEST_CVS_COMMAND "hg")
+SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
 
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
