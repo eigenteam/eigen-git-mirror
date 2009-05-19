@@ -225,8 +225,8 @@ void PartialLU<MatrixType>::solve(
   /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
    * So we proceed as follows:
    * Step 1: compute c = Pb.
-   * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
-   * Step 3: replace c by the solution x to Ux = c. Check if a solution really exists.
+   * Step 2: replace c by the solution x to Lx = c.
+   * Step 3: replace c by the solution x to Ux = c.
    */
 
   const int size = m_lu.rows();
