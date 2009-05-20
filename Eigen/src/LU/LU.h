@@ -383,9 +383,16 @@ LU<MatrixType>::LU(const MatrixType& matrix)
     }
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
-    if(k<size-1)
+    if(k<size-1) {
+      /* I know it's tempting to replace this for loop by a single matrix product. But actually there's no reason why it
+       * should be faster because it's just an exterior vector product; and in practice this gives much slower code with
+       * GCC 4.2-4.4 (this is weird, would be interesting to investigate). On the other hand, it would be worth having a variant
+       * for row-major matrices, traversing in the other direction for better performance, with a meta selector to compile only
+       * one path
+       */
       for(int col = k + 1; col < cols; ++col)
         m_lu.col(col).end(rows-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.coeff(k,col);
+    }
   }
 
   for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;

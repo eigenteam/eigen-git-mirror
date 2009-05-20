@@ -197,6 +197,12 @@ PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
 
     if(k<size-1) {
       m_lu.col(k).end(size-k-1) /= m_lu.coeff(k,k);
+      /* I know it's tempting to replace this for loop by a single matrix product. But actually there's no reason why it
+       * should be faster because it's just an exterior vector product; and in practice this gives much slower code with
+       * GCC 4.2-4.4 (this is weird, would be interesting to investigate). On the other hand, it would be worth having a variant
+       * for row-major matrices, traversing in the other direction for better performance, with a meta selector to compile only
+       * one path
+       */
       for(int col = k + 1; col < size; ++col)
         m_lu.col(col).end(size-k-1) -= m_lu.col(k).end(size-k-1) * m_lu.coeff(k,col); 
     }
