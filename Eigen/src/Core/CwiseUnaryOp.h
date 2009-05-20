@@ -165,14 +165,14 @@ MatrixBase<Derived>::conjugate() const
   return ConjugateReturnType(derived());
 }
 
-/** \returns an expression of the real part of \c *this.
+/** \returns a read-only expression of the real part of \c *this.
   *
   * \sa imag() */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::RealReturnType
+EIGEN_STRONG_INLINE typename MatrixBase<Derived>::RealReturnType
 MatrixBase<Derived>::real() const { return derived(); }
 
-/** \returns an expression of the imaginary part of \c *this.
+/** \returns an read-only expression of the imaginary part of \c *this.
   *
   * \sa real() */
 template<typename Derived>

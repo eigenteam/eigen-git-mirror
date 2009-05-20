@@ -280,6 +280,7 @@ template<typename Scalar>
 struct ei_scalar_real_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_real(a); }
+  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_real_ref(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_real_op<Scalar> >
@@ -294,6 +295,7 @@ template<typename Scalar>
 struct ei_scalar_imag_op EIGEN_EMPTY_STRUCT {
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_imag(a); }
+  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_imag_ref(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_imag_op<Scalar> >

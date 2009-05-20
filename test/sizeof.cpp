@@ -43,4 +43,7 @@ void test_sizeof()
   CALL_SUBTEST( verifySizeOf(MatrixXi(8, 12)) );
   CALL_SUBTEST( verifySizeOf(MatrixXcd(20, 20)) );
   CALL_SUBTEST( verifySizeOf(Matrix<float, 100, 100>()) );
+  
+  VERIFY(sizeof(std::complex<float>) == 2*sizeof(float));
+  VERIFY(sizeof(std::complex<double>) == 2*sizeof(double));
 }

@@ -107,6 +107,40 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   {
     VERIFY_IS_NOT_APPROX(m3, m1);
   }
+  
+  m3.real() = m1.real();
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(m3).real(), static_cast<const MatrixType&>(m1).real());
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(m3).real(), m1.real());
+}
+
+template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> RealMatrixType;
+
+  int rows = m.rows();
+  int cols = m.cols();
+  
+  Scalar s1 = ei_random<Scalar>(),
+         s2 = ei_random<Scalar>();
+  
+  VERIFY(ei_real(s1)==ei_real_ref(s1));
+  VERIFY(ei_imag(s1)==ei_imag_ref(s1));
+  ei_real_ref(s1) = ei_real(s2);
+  ei_imag_ref(s1) = ei_imag(s2);
+  VERIFY(s1==s2);
+  
+  RealMatrixType rm1 = RealMatrixType::Random(rows,cols),
+                 rm2 = RealMatrixType::Random(rows,cols);
+  MatrixType cm(rows,cols);
+  cm.real() = rm1;
+  cm.imag() = rm2;
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).real(), rm1);
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).imag(), rm2);
+  cm.real().setZero();
+  VERIFY(static_cast<const MatrixType&>(cm).real().isZero());
+  VERIFY(!static_cast<const MatrixType&>(cm).imag().isZero());
 }
 
 void casting()
@@ -128,6 +162,9 @@ void test_basicstuff()
     CALL_SUBTEST( basicStuff(MatrixXcd(20, 20)) );
     CALL_SUBTEST( basicStuff(Matrix<float, 100, 100>()) );
     CALL_SUBTEST( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
+    
+    CALL_SUBTEST( basicStuffComplex(MatrixXcf(21, 17)) );
+    CALL_SUBTEST( basicStuffComplex(MatrixXcd(2, 3)) );
   }
 
   CALL_SUBTEST(casting());

@@ -217,10 +217,20 @@ template<typename Derived> class MatrixBase
                         const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
                         const Derived&
                      >::ret ConjugateReturnType;
+    /** \internal the return type of MatrixBase::real() const */
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        const CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived>,
+                        const Derived&
+                     >::ret RealReturnType;
     /** \internal the return type of MatrixBase::real() */
-    typedef CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
-    /** \internal the return type of MatrixBase::imag() */
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        CwiseUnaryView<ei_scalar_real_op<Scalar>, Derived>,
+                        Derived&
+                     >::ret NonConstRealReturnType;
+    /** \internal the return type of MatrixBase::imag() const */
     typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
+    /** \internal the return type of MatrixBase::imag() */
+    typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef Eigen::Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
             AdjointReturnType;
@@ -543,11 +553,16 @@ template<typename Derived> class MatrixBase
 
 
     ConjugateReturnType conjugate() const;
-    const RealReturnType real() const;
+    RealReturnType real() const;
+    NonConstRealReturnType real();
     const ImagReturnType imag() const;
+    NonConstImagReturnType imag();
 
     template<typename CustomUnaryOp>
     const CwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
+    
+    template<typename CustomViewOp>
+    const CwiseUnaryView<CustomViewOp, Derived> unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const;
 
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
