@@ -65,14 +65,27 @@ template<typename MatrixType> class LLT
 
   public:
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via LLT::compute(const MatrixType&).
+    */
+    LLT() : m_matrix(), m_isInitialized(false) {}
+
     LLT(const MatrixType& matrix)
-      : m_matrix(matrix.rows(), matrix.cols())
+      : m_matrix(matrix.rows(), matrix.cols()),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, LowerTriangular> matrixL(void) const { return m_matrix; }
+    inline Part<MatrixType, LowerTriangular> matrixL(void) const 
+    { 
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      return m_matrix; 
+    }
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -88,6 +101,7 @@ template<typename MatrixType> class LLT
       * The strict upper part is not used and even not initialized.
       */
     MatrixType m_matrix;
+    bool m_isInitialized;
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
@@ -109,7 +123,10 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   x = ei_real(a.coeff(0,0));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
   if(size==1)
+  {
+    m_isInitialized = true;
     return;
+  }
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
@@ -130,6 +147,8 @@ void LLT<MatrixType>::compute(const MatrixType& a)
         - m_matrix.col(j).end(endSize) ) / x;
     }
   }
+
+  m_isInitialized = true;
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -149,6 +168,7 @@ template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
 bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
+  ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
   return solveInPlace((*result) = b);
@@ -169,6 +189,7 @@ template<typename MatrixType>
 template<typename Derived>
 bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
+  ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
   matrixL().solveTriangularInPlace(bAndX);

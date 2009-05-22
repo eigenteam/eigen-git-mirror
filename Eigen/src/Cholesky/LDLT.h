@@ -62,16 +62,29 @@ template<typename MatrixType> class LDLT
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef Matrix<int, 1, MatrixType::RowsAtCompileTime> IntRowVectorType;
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via LDLT::compute(const MatrixType&).
+    */
+    LDLT() : m_matrix(), m_p(), m_transpositions(), m_isInitialized(false) {}
+
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_p(matrix.rows()),
-        m_transpositions(matrix.rows())
+        m_transpositions(matrix.rows()),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const { return m_matrix; }
+    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const 
+    { 
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_matrix; 
+    }
 
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
@@ -79,17 +92,30 @@ template<typename MatrixType> class LDLT
       */
     inline const IntColVectorType& permutationP() const
     {
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
       return m_p;
     }
 
     /** \returns the coefficients of the diagonal matrix D */
-    inline Diagonal<MatrixType,0> vectorD(void) const { return m_matrix.diagonal(); }
+    inline Diagonal<MatrixType,0> vectorD(void) const 
+    { 
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_matrix.diagonal(); 
+    }
 
     /** \returns true if the matrix is positive (semidefinite) */
-    inline bool isPositive(void) const { return m_sign == 1; }
+    inline bool isPositive(void) const 
+    { 
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_sign == 1; 
+    }
 
     /** \returns true if the matrix is negative (semidefinite) */
-    inline bool isNegative(void) const { return m_sign == -1; }
+    inline bool isNegative(void) const 
+    { 
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_sign == -1; 
+    }
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -110,6 +136,7 @@ template<typename MatrixType> class LDLT
     IntColVectorType m_p;
     IntColVectorType m_transpositions;
     int m_sign;
+    bool m_isInitialized;
 };
 
 /** Compute / recompute the LDLT decomposition A = L D L^* = U^* D U of \a matrix
@@ -126,6 +153,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
     m_p.setZero();
     m_transpositions.setZero();
     m_sign = ei_real(a.coeff(0,0))>0 ? 1:-1;
+    m_isInitialized = true;
     return;
   }
 
@@ -205,6 +233,8 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   for(int k = size-1; k >= 0; --k) {
     std::swap(m_p.coeffRef(k), m_p.coeffRef(m_transpositions.coeff(k)));
   }
+
+  m_isInitialized = true;
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -222,6 +252,7 @@ template<typename RhsDerived, typename ResDerived>
 bool LDLT<MatrixType>
 ::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
+  ei_assert(m_isInitialized && "LDLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==b.rows() && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
   *result = b;
@@ -243,6 +274,7 @@ template<typename MatrixType>
 template<typename Derived>
 bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
+  ei_assert(m_isInitialized && "LDLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size == bAndX.rows());
 

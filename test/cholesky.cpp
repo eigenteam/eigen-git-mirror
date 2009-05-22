@@ -112,28 +112,24 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
 }
 
-template<typename Derived>
-void doSomeRankPreservingOperations(Eigen::MatrixBase<Derived>& m)
+template<typename MatrixType> void cholesky_verify_assert()
 {
-  typedef typename Derived::RealScalar RealScalar;
-  for(int a = 0; a < 3*(m.rows()+m.cols()); a++)
-  {
-    RealScalar d = Eigen::ei_random<RealScalar>(-1,1);
-    int i = Eigen::ei_random<int>(0,m.rows()-1); // i is a random row number
-    int j;
-    do {
-      j = Eigen::ei_random<int>(0,m.rows()-1);
-    } while (i==j); // j is another one (must be different)
-    m.row(i) += d * m.row(j);
+  MatrixType tmp;
 
-    i = Eigen::ei_random<int>(0,m.cols()-1); // i is a random column number
-    do {
-      j = Eigen::ei_random<int>(0,m.cols()-1);
-    } while (i==j); // j is another one (must be different)
-    m.col(i) += d * m.col(j);
-  }
+  LLT<MatrixType> llt;
+  VERIFY_RAISES_ASSERT(llt.matrixL())
+  VERIFY_RAISES_ASSERT(llt.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(llt.solveInPlace(&tmp))
+
+  LDLT<MatrixType> ldlt;
+  VERIFY_RAISES_ASSERT(ldlt.matrixL())
+  VERIFY_RAISES_ASSERT(ldlt.permutationP())
+  VERIFY_RAISES_ASSERT(ldlt.vectorD())
+  VERIFY_RAISES_ASSERT(ldlt.isPositive())
+  VERIFY_RAISES_ASSERT(ldlt.isNegative())
+  VERIFY_RAISES_ASSERT(ldlt.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(ldlt.solveInPlace(&tmp))
 }
-
 
 void test_cholesky()
 {
@@ -147,4 +143,9 @@ void test_cholesky()
     CALL_SUBTEST( cholesky(MatrixXd(17,17)) );
     CALL_SUBTEST( cholesky(MatrixXf(200,200)) );
   }
+
+  CALL_SUBTEST( cholesky_verify_assert<Matrix3f>() );
+  CALL_SUBTEST( cholesky_verify_assert<Matrix3d>() );
+  CALL_SUBTEST( cholesky_verify_assert<MatrixXf>() );
+  CALL_SUBTEST( cholesky_verify_assert<MatrixXd>() );
 }
