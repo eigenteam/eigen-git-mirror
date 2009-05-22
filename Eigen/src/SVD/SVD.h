@@ -65,7 +65,7 @@ template<typename MatrixType> class SVD
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via QR::compute(const MatrixType&).
+    * perform decompositions via SVD::compute(const MatrixType&).
     */
     SVD() : m_matU(), m_matV(), m_sigma(), m_isInitialized(false) {}
 
