@@ -27,7 +27,7 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#if defined(__APPLE__) || defined(_WIN64)
+#if defined(__APPLE__) || defined(_WIN64) || defined (__FreeBSD__)
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
