@@ -61,6 +61,17 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 
 }
 
+template<typename MatrixType> void eigensolver_verify_assert()
+{
+  MatrixType tmp;
+
+  EigenSolver<MatrixType> eig;
+  VERIFY_RAISES_ASSERT(eig.eigenvectors())
+  VERIFY_RAISES_ASSERT(eig.pseudoEigenvectors())
+  VERIFY_RAISES_ASSERT(eig.pseudoEigenvalueMatrix())
+  VERIFY_RAISES_ASSERT(eig.eigenvalues())
+}
+
 void test_eigensolver_generic()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -73,5 +84,9 @@ void test_eigensolver_generic()
     CALL_SUBTEST( eigensolver(Matrix<double,1,1>()) );
     CALL_SUBTEST( eigensolver(Matrix<double,2,2>()) );
   }
-}
 
+  CALL_SUBTEST( eigensolver_verify_assert<Matrix3f>() );
+  CALL_SUBTEST( eigensolver_verify_assert<Matrix3d>() );
+  CALL_SUBTEST( eigensolver_verify_assert<MatrixXf>() );
+  CALL_SUBTEST( eigensolver_verify_assert<MatrixXd>() );
+}

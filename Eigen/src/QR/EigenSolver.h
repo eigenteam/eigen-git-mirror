@@ -53,9 +53,18 @@ template<typename _MatrixType> class EigenSolver
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via EigenSolver::compute(const MatrixType&).
+    */
+    EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false) {}
+
     EigenSolver(const MatrixType& matrix)
       : m_eivec(matrix.rows(), matrix.cols()),
-        m_eivalues(matrix.cols())
+        m_eivalues(matrix.cols()),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
@@ -94,12 +103,20 @@ template<typename _MatrixType> class EigenSolver
       *
       * \sa pseudoEigenvalueMatrix()
       */
-    const MatrixType& pseudoEigenvectors() const { return m_eivec; }
+    const MatrixType& pseudoEigenvectors() const 
+    { 
+      ei_assert(m_isInitialized && "EigenSolver is not initialized.");
+      return m_eivec; 
+    }
 
     MatrixType pseudoEigenvalueMatrix() const;
 
     /** \returns the eigenvalues as a column vector */
-    EigenvalueType eigenvalues() const { return m_eivalues; }
+    EigenvalueType eigenvalues() const 
+    { 
+      ei_assert(m_isInitialized && "EigenSolver is not initialized.");
+      return m_eivalues; 
+    }
 
     void compute(const MatrixType& matrix);
 
@@ -111,6 +128,7 @@ template<typename _MatrixType> class EigenSolver
   protected:
     MatrixType m_eivec;
     EigenvalueType m_eivalues;
+    bool m_isInitialized;
 };
 
 /** \returns the real block diagonal matrix D of the eigenvalues.
@@ -120,6 +138,7 @@ template<typename _MatrixType> class EigenSolver
 template<typename MatrixType>
 MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 {
+  ei_assert(m_isInitialized && "EigenSolver is not initialized.");
   int n = m_eivec.cols();
   MatrixType matD = MatrixType::Zero(n,n);
   for (int i=0; i<n; ++i)
@@ -143,6 +162,7 @@ MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 template<typename MatrixType>
 typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors(void) const
 {
+  ei_assert(m_isInitialized && "EigenSolver is not initialized.");
   int n = m_eivec.cols();
   EigenvectorType matV(n,n);
   for (int j=0; j<n; ++j)
@@ -183,6 +203,8 @@ void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
 
   // Reduce Hessenberg to real Schur form.
   hqr2(matH);
+
+  m_isInitialized = true;
 }
 
 // Nonsymmetric reduction to Hessenberg form.
