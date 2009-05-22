@@ -236,4 +236,15 @@ _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 
+// just an empty macro !
+#define EIGEN_EMPTY
+
+// concatenate two tokens
+#define EIGEN_CAT2(a,b) a ## b
+#define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
+
+// convert a token to a string
+#define EIGEN_MAKESTRING2(a) #a
+#define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
+
 #endif // EIGEN_MACROS_H
