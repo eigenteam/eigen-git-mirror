@@ -24,6 +24,7 @@
 
 #include "main.h"
 #include <Eigen/SVD>
+#include <Eigen/LU>
 
 template<typename MatrixType> void svd(const MatrixType& m)
 {
@@ -85,6 +86,22 @@ template<typename MatrixType> void svd(const MatrixType& m)
   }
 }
 
+template<typename MatrixType> void svd_verify_assert()
+{
+  MatrixType tmp;
+
+  SVD<MatrixType> svd;
+  VERIFY_RAISES_ASSERT(svd.solve(tmp, &tmp))
+  VERIFY_RAISES_ASSERT(svd.matrixU())
+  VERIFY_RAISES_ASSERT(svd.singularValues())
+  VERIFY_RAISES_ASSERT(svd.matrixV())
+  VERIFY_RAISES_ASSERT(svd.sort())
+  VERIFY_RAISES_ASSERT(svd.computeUnitaryPositive(&tmp,&tmp))
+  VERIFY_RAISES_ASSERT(svd.computePositiveUnitary(&tmp,&tmp))
+  VERIFY_RAISES_ASSERT(svd.computeRotationScaling(&tmp,&tmp))
+  VERIFY_RAISES_ASSERT(svd.computeScalingRotation(&tmp,&tmp))
+}
+
 void test_svd()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -96,4 +113,9 @@ void test_svd()
 //     CALL_SUBTEST( svd(MatrixXcd(6,6)) );
 //     CALL_SUBTEST( svd(MatrixXcf(3,3)) );
   }
+
+  CALL_SUBTEST( svd_verify_assert<Matrix3f>() );
+  CALL_SUBTEST( svd_verify_assert<Matrix3d>() );
+  CALL_SUBTEST( svd_verify_assert<MatrixXf>() );
+  CALL_SUBTEST( svd_verify_assert<MatrixXd>() );
 }

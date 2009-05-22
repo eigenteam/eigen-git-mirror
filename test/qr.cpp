@@ -121,6 +121,22 @@ template<typename MatrixType> void qr_invertible()
   VERIFY(lu.solve(m3, &m2));
 }
 
+template<typename MatrixType> void qr_verify_assert()
+{
+  MatrixType tmp;
+
+  QR<MatrixType> qr;
+  VERIFY_RAISES_ASSERT(qr.isFullRank())
+  VERIFY_RAISES_ASSERT(qr.rank())
+  VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
+  VERIFY_RAISES_ASSERT(qr.isInjective())
+  VERIFY_RAISES_ASSERT(qr.isSurjective())
+  VERIFY_RAISES_ASSERT(qr.isInvertible())
+  VERIFY_RAISES_ASSERT(qr.matrixR())
+  VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(qr.matrixQ())
+}
+
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
@@ -144,4 +160,11 @@ void test_qr()
 //     CALL_SUBTEST( qr_invertible<MatrixXcf>() );
 //     CALL_SUBTEST( qr_invertible<MatrixXcd>() );
   }
+
+  CALL_SUBTEST(qr_verify_assert<Matrix3f>());
+  CALL_SUBTEST(qr_verify_assert<Matrix3d>());
+  CALL_SUBTEST(qr_verify_assert<MatrixXf>());
+  CALL_SUBTEST(qr_verify_assert<MatrixXd>());
+  CALL_SUBTEST(qr_verify_assert<MatrixXcf>());
+  CALL_SUBTEST(qr_verify_assert<MatrixXcd>());
 }

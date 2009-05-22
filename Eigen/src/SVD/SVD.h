@@ -61,10 +61,19 @@ template<typename MatrixType> class SVD
 
   public:
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via QR::compute(const MatrixType&).
+    */
+    SVD() : m_matU(), m_matV(), m_sigma(), m_isInitialized(false) {}
+
     SVD(const MatrixType& matrix)
       : m_matU(matrix.rows(), std::min(matrix.rows(), matrix.cols())),
         m_matV(matrix.cols(),matrix.cols()),
-        m_sigma(std::min(matrix.rows(),matrix.cols()))
+        m_sigma(std::min(matrix.rows(),matrix.cols())),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
@@ -72,9 +81,23 @@ template<typename MatrixType> class SVD
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived> &b, ResultType* result) const;
 
-    const MatrixUType& matrixU() const { return m_matU; }
-    const SingularValuesType& singularValues() const { return m_sigma; }
-    const MatrixVType& matrixV() const { return m_matV; }
+    const MatrixUType& matrixU() const 
+    { 
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_matU; 
+    }
+
+    const SingularValuesType& singularValues() const 
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_sigma; 
+    }
+
+    const MatrixVType& matrixV() const 
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_matV; 
+    }
 
     void compute(const MatrixType& matrix);
     SVD& sort();
@@ -95,6 +118,7 @@ template<typename MatrixType> class SVD
     MatrixVType m_matV;
     /** \internal */
     SingularValuesType m_sigma;
+    bool m_isInitialized;
 };
 
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
@@ -473,11 +497,15 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       break;
     } // end big switch
   } // end iterations
+
+  m_isInitialized = true;
 }
 
 template<typename MatrixType>
 SVD<MatrixType>& SVD<MatrixType>::sort()
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
+
   int mu = m_matU.rows();
   int mv = m_matV.rows();
   int n  = m_matU.cols();
@@ -521,6 +549,8 @@ template<typename MatrixType>
 template<typename OtherDerived, typename ResultType>
 bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* result) const
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
+
   const int rows = m_matU.rows();
   ei_assert(b.rows() == rows);
 
@@ -556,6 +586,7 @@ template<typename UnitaryType, typename PositiveType>
 void SVD<MatrixType>::computeUnitaryPositive(UnitaryType *unitary,
                                              PositiveType *positive) const
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
   ei_assert(m_matU.cols() == m_matV.cols() && "Polar decomposition is only for square matrices");
   if(unitary) *unitary = m_matU * m_matV.adjoint();
   if(positive) *positive = m_matV * m_sigma.asDiagonal() * m_matV.adjoint();
@@ -574,6 +605,7 @@ template<typename UnitaryType, typename PositiveType>
 void SVD<MatrixType>::computePositiveUnitary(UnitaryType *positive,
                                              PositiveType *unitary) const
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
   ei_assert(m_matU.rows() == m_matV.rows() && "Polar decomposition is only for square matrices");
   if(unitary) *unitary = m_matU * m_matV.adjoint();
   if(positive) *positive = m_matU * m_sigma.asDiagonal() * m_matU.adjoint();
@@ -592,6 +624,7 @@ template<typename MatrixType>
 template<typename RotationType, typename ScalingType>
 void SVD<MatrixType>::computeRotationScaling(RotationType *rotation, ScalingType *scaling) const
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
   ei_assert(m_matU.rows() == m_matV.rows() && "Polar decomposition is only for square matrices");
   Scalar x = (m_matU * m_matV.adjoint()).determinant(); // so x has absolute value 1
   Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> sv(m_sigma);
@@ -618,6 +651,7 @@ template<typename MatrixType>
 template<typename ScalingType, typename RotationType>
 void SVD<MatrixType>::computeScalingRotation(ScalingType *scaling, RotationType *rotation) const
 {
+  ei_assert(m_isInitialized && "SVD is not initialized.");
   ei_assert(m_matU.rows() == m_matV.rows() && "Polar decomposition is only for square matrices");
   Scalar x = (m_matU * m_matV.adjoint()).determinant(); // so x has absolute value 1
   Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> sv(m_sigma);

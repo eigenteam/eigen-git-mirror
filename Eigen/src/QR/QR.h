@@ -49,11 +49,20 @@ template<typename MatrixType> class QR
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via QR::compute(const MatrixType&).
+    */
+    QR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
+
     QR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(matrix.cols())
+        m_hCoeffs(matrix.cols()),
+        m_isInitialized(false)
     {
-      _compute(matrix);
+      compute(matrix);
     }
     
     /** \deprecated use isInjective()
@@ -62,7 +71,11 @@ template<typename MatrixType> class QR
       * \note Since the rank is computed only once, i.e. the first time it is needed, this
       *       method almost does not perform any further computation.
       */
-    EIGEN_DEPRECATED bool isFullRank() const { return rank() == m_qr.cols(); }
+    EIGEN_DEPRECATED bool isFullRank() const 
+    { 
+      ei_assert(m_isInitialized && "QR is not initialized.");
+      return rank() == m_qr.cols(); 
+    }
     
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
@@ -78,6 +91,7 @@ template<typename MatrixType> class QR
       */
     inline int dimensionOfKernel() const
     {
+      ei_assert(m_isInitialized && "QR is not initialized.");
       return m_qr.cols() - rank();
     }
     
@@ -89,6 +103,7 @@ template<typename MatrixType> class QR
       */
     inline bool isInjective() const
     {
+      ei_assert(m_isInitialized && "QR is not initialized.");
       return rank() == m_qr.cols();
     }
     
@@ -100,6 +115,7 @@ template<typename MatrixType> class QR
       */
     inline bool isSurjective() const
     {
+      ei_assert(m_isInitialized && "QR is not initialized.");
       return rank() == m_qr.rows();
     }
 
@@ -110,6 +126,7 @@ template<typename MatrixType> class QR
       */
     inline bool isInvertible() const
     {
+      ei_assert(m_isInitialized && "QR is not initialized.");
       return isInjective() && isSurjective();
     }
     
@@ -117,6 +134,7 @@ template<typename MatrixType> class QR
     const Part<NestByValue<MatrixRBlockType>, UpperTriangular>
     matrixR(void) const
     {
+      ei_assert(m_isInitialized && "QR is not initialized.");
       int cols = m_qr.cols();
       return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template part<UpperTriangular>();
     }
@@ -149,21 +167,21 @@ template<typename MatrixType> class QR
 
     MatrixType matrixQ(void) const;
 
-  private:
-
-    void _compute(const MatrixType& matrix);
+    void compute(const MatrixType& matrix);
 
   protected:
     MatrixType m_qr;
     VectorType m_hCoeffs;
     mutable int m_rank;
     mutable bool m_rankIsUptodate;
+    bool m_isInitialized;
 };
 
 /** \returns the rank of the matrix of which *this is the QR decomposition. */
 template<typename MatrixType>
 int QR<MatrixType>::rank() const
 {
+  ei_assert(m_isInitialized && "QR is not initialized.");
   if (!m_rankIsUptodate)
   {
     RealScalar maxCoeff = m_qr.diagonal().cwise().abs().maxCoeff();
@@ -179,10 +197,12 @@ int QR<MatrixType>::rank() const
 #ifndef EIGEN_HIDE_HEAVY_CODE
 
 template<typename MatrixType>
-void QR<MatrixType>::_compute(const MatrixType& matrix)
-{
+void QR<MatrixType>::compute(const MatrixType& matrix)
+{ 
   m_rankIsUptodate = false;
   m_qr = matrix;
+  m_hCoeffs.resize(matrix.cols());
+
   int rows = matrix.rows();
   int cols = matrix.cols();
   RealScalar eps2 = precision<RealScalar>()*precision<RealScalar>();
@@ -237,6 +257,7 @@ void QR<MatrixType>::_compute(const MatrixType& matrix)
       m_hCoeffs.coeffRef(k) = 0;
     }
   }
+  m_isInitialized = true;
 }
 
 template<typename MatrixType>
@@ -246,6 +267,7 @@ bool QR<MatrixType>::solve(
   ResultType *result
 ) const
 {
+  ei_assert(m_isInitialized && "QR is not initialized.");
   const int rows = m_qr.rows();
   ei_assert(b.rows() == rows);
   result->resize(rows, b.cols());
@@ -274,6 +296,7 @@ bool QR<MatrixType>::solve(
 template<typename MatrixType>
 MatrixType QR<MatrixType>::matrixQ() const
 {
+  ei_assert(m_isInitialized && "QR is not initialized.");
   // compute the product Q_0 Q_1 ... Q_n-1,
   // where Q_k is the k-th Householder transformation I - h_k v_k v_k'
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
