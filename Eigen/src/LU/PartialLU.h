@@ -70,6 +70,14 @@ template<typename MatrixType> class PartialLU
              MatrixType::MaxRowsAtCompileTime)
     };
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via PartialLU::compute(const MatrixType&).
+    */
+    PartialLU();
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -79,6 +87,8 @@ template<typename MatrixType> class PartialLU
       */
     PartialLU(const MatrixType& matrix);
 
+    void compute(const MatrixType& matrix);
+
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
       * case, special care is needed, see the documentation of class LU).
@@ -87,8 +97,9 @@ template<typename MatrixType> class PartialLU
       */
     inline const MatrixType& matrixLU() const
     {
+      ei_assert(m_isInitialized && "PartialLU is not initialized.");
       return m_lu;
-    }
+    }    
 
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
@@ -96,6 +107,7 @@ template<typename MatrixType> class PartialLU
       */
     inline const IntColVectorType& permutationP() const
     {
+      ei_assert(m_isInitialized && "PartialLU is not initialized.");
       return m_p;
     }
 
@@ -164,18 +176,37 @@ template<typename MatrixType> class PartialLU
     }
 
   protected:
-    const MatrixType& m_originalMatrix;
     MatrixType m_lu;
     IntColVectorType m_p;
     int m_det_p;
+    bool m_isInitialized;
 };
 
 template<typename MatrixType>
-PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
-  : m_originalMatrix(matrix),
-    m_lu(matrix),
-    m_p(matrix.rows())
+PartialLU<MatrixType>::PartialLU()
+  : m_lu(),
+    m_p(),
+    m_det_p(0),
+    m_isInitialized(false)
 {
+}
+
+template<typename MatrixType>
+PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
+  : m_lu(),
+    m_p(),
+    m_det_p(0),
+    m_isInitialized(false)
+{
+  compute(matrix);
+}
+
+template<typename MatrixType>
+void PartialLU<MatrixType>::compute(const MatrixType& matrix)
+{
+  m_lu = matrix;
+  m_p.resize(matrix.rows());
+
   ei_assert(matrix.rows() == matrix.cols() && "PartialLU is only for square (and moreover invertible) matrices");
   const int size = matrix.rows();
 
@@ -213,11 +244,14 @@ PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
   m_det_p = (number_of_transpositions%2) ? -1 : 1;
+
+  m_isInitialized = true;
 }
 
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar PartialLU<MatrixType>::determinant() const
 {
+  ei_assert(m_isInitialized && "PartialLU is not initialized.");
   return Scalar(m_det_p) * m_lu.diagonal().prod();
 }
 
@@ -228,6 +262,8 @@ void PartialLU<MatrixType>::solve(
   ResultType *result
 ) const
 {
+  ei_assert(m_isInitialized && "PartialLU is not initialized.");
+
   /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
    * So we proceed as follows:
    * Step 1: compute c = Pb.

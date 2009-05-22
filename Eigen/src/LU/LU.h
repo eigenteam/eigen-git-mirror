@@ -92,11 +92,21 @@ template<typename MatrixType> class LU
                    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
     > ImageResultType;
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via LU::compute(const MatrixType&).
+    */
+    LU();
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
       */
     LU(const MatrixType& matrix);
+
+    void compute(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -106,6 +116,7 @@ template<typename MatrixType> class LU
       */
     inline const MatrixType& matrixLU() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_lu;
     }
 
@@ -117,6 +128,7 @@ template<typename MatrixType> class LU
       */
     inline const IntColVectorType& permutationP() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_p;
     }
 
@@ -128,6 +140,7 @@ template<typename MatrixType> class LU
       */
     inline const IntRowVectorType& permutationQ() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_q;
     }
 
@@ -243,6 +256,7 @@ template<typename MatrixType> class LU
       */
     inline int rank() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_rank;
     }
 
@@ -253,6 +267,7 @@ template<typename MatrixType> class LU
       */
     inline int dimensionOfKernel() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_lu.cols() - m_rank;
     }
 
@@ -264,6 +279,7 @@ template<typename MatrixType> class LU
       */
     inline bool isInjective() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_rank == m_lu.cols();
     }
 
@@ -275,6 +291,7 @@ template<typename MatrixType> class LU
       */
     inline bool isSurjective() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_rank == m_lu.rows();
     }
 
@@ -285,6 +302,7 @@ template<typename MatrixType> class LU
       */
     inline bool isInvertible() const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return isInjective() && isSurjective();
     }
 
@@ -317,7 +335,7 @@ template<typename MatrixType> class LU
     }
 
   protected:
-    const MatrixType& m_originalMatrix;
+    const MatrixType* m_originalMatrix;
     MatrixType m_lu;
     IntColVectorType m_p;
     IntRowVectorType m_q;
@@ -327,12 +345,38 @@ template<typename MatrixType> class LU
 };
 
 template<typename MatrixType>
-LU<MatrixType>::LU(const MatrixType& matrix)
-  : m_originalMatrix(matrix),
-    m_lu(matrix),
-    m_p(matrix.rows()),
-    m_q(matrix.cols())
+LU<MatrixType>::LU()
+  : m_originalMatrix(0),
+    m_lu(),
+    m_p(),
+    m_q(),
+    m_det_pq(0),
+    m_rank(-1),
+    m_precision(precision<RealScalar>())
 {
+}
+
+template<typename MatrixType>
+LU<MatrixType>::LU(const MatrixType& matrix)
+  : m_originalMatrix(0),
+    m_lu(),
+    m_p(),
+    m_q(),
+    m_det_pq(0),
+    m_rank(-1),
+    m_precision(precision<RealScalar>())
+{
+  compute(matrix);
+}
+
+template<typename MatrixType>
+void LU<MatrixType>::compute(const MatrixType& matrix)
+{
+  m_originalMatrix = &matrix;
+  m_lu = matrix;
+  m_p.resize(matrix.rows());
+  m_q.resize(matrix.cols());
+
   const int size = matrix.diagonalSize();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
@@ -409,6 +453,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
   return Scalar(m_det_pq) * m_lu.diagonal().prod();
 }
 
@@ -462,17 +507,20 @@ template<typename MatrixType>
 template<typename ImageMatrixType>
 void LU<MatrixType>::computeImage(ImageMatrixType *result) const
 {
-  ei_assert(m_rank > 0);
-  result->resize(m_originalMatrix.rows(), m_rank);
+  // can be caused by a rank deficient matrix or by calling computeImage on an
+  // unitialized LU object
+  ei_assert(m_rank > 0 && "LU is not initialized or Matrix has rank zero.");
+  result->resize(m_originalMatrix->rows(), m_rank);
   for(int i = 0; i < m_rank; ++i)
-    result->col(i) = m_originalMatrix.col(m_q.coeff(i));
+    result->col(i) = m_originalMatrix->col(m_q.coeff(i));
 }
 
 template<typename MatrixType>
 const typename LU<MatrixType>::ImageResultType
 LU<MatrixType>::image() const
 {
-  ImageResultType result(m_originalMatrix.rows(), m_rank);
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+  ImageResultType result(m_originalMatrix->rows(), m_rank);
   computeImage(&result);
   return result;
 }
@@ -484,6 +532,8 @@ bool LU<MatrixType>::solve(
   ResultType *result
 ) const
 {
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
    * So we proceed as follows:
    * Step 1: compute c = Pb.

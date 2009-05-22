@@ -92,6 +92,37 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.solve(m3, &m2));
 }
 
+template<typename MatrixType> void lu_verify_assert()
+{
+  MatrixType tmp;
+
+  LU<MatrixType> lu;
+  VERIFY_RAISES_ASSERT(lu.matrixLU())
+  VERIFY_RAISES_ASSERT(lu.permutationP())
+  VERIFY_RAISES_ASSERT(lu.permutationQ())
+  VERIFY_RAISES_ASSERT(lu.computeKernel(&tmp))
+  VERIFY_RAISES_ASSERT(lu.computeImage(&tmp))
+  VERIFY_RAISES_ASSERT(lu.kernel())
+  VERIFY_RAISES_ASSERT(lu.image())
+  VERIFY_RAISES_ASSERT(lu.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(lu.determinant())
+  VERIFY_RAISES_ASSERT(lu.rank())
+  VERIFY_RAISES_ASSERT(lu.dimensionOfKernel())
+  VERIFY_RAISES_ASSERT(lu.isInjective())
+  VERIFY_RAISES_ASSERT(lu.isSurjective())
+  VERIFY_RAISES_ASSERT(lu.isInvertible())
+  VERIFY_RAISES_ASSERT(lu.computeInverse(&tmp))
+  VERIFY_RAISES_ASSERT(lu.inverse())
+
+  PartialLU<MatrixType> plu;
+  VERIFY_RAISES_ASSERT(plu.matrixLU())
+  VERIFY_RAISES_ASSERT(plu.permutationP())
+  VERIFY_RAISES_ASSERT(plu.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(plu.determinant())
+  VERIFY_RAISES_ASSERT(plu.computeInverse(&tmp))
+  VERIFY_RAISES_ASSERT(plu.inverse())
+}
+
 void test_lu()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -104,4 +135,11 @@ void test_lu()
     CALL_SUBTEST( lu_invertible<MatrixXcf>() );
     CALL_SUBTEST( lu_invertible<MatrixXcd>() );
   }
+
+  CALL_SUBTEST( lu_verify_assert<Matrix3f>() );
+  CALL_SUBTEST( lu_verify_assert<Matrix3d>() );
+  CALL_SUBTEST( lu_verify_assert<MatrixXf>() );
+  CALL_SUBTEST( lu_verify_assert<MatrixXd>() );
+  CALL_SUBTEST( lu_verify_assert<MatrixXcf>() );
+  CALL_SUBTEST( lu_verify_assert<MatrixXcd>() );
 }
