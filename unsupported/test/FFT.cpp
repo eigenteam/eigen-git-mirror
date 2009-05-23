@@ -41,6 +41,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
     {
         long double totalpower=0;
         long double difpower=0;
+        cerr <<"idx\ttruth\t\tvalue\n";
         for (size_t k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* M_PIl / timebuf.size();
@@ -51,7 +52,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
             complex<long double> x = promote(fftbuf[k0]); 
             complex<long double> dif = acc - x;
             difpower += norm(dif);
-            cerr << k0 << ":" << acc << " " <<  x << endl;
+            cerr << k0 << "\t" << acc << "\t" <<  x << endl;
         }
         cerr << "rmse:" << sqrt(difpower/totalpower) << endl;
         return sqrt(difpower/totalpower);
@@ -108,6 +109,7 @@ void test_complex(int nfft)
 
 void test_FFT()
 {
+#if 0
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
   CALL_SUBTEST( test_complex<float>(1024) ); CALL_SUBTEST( test_complex<double>(1024) ); CALL_SUBTEST( test_complex<long double>(1024) );
   CALL_SUBTEST( test_complex<float>(3*8) ); CALL_SUBTEST( test_complex<double>(3*8) ); CALL_SUBTEST( test_complex<long double>(3*8) );
@@ -115,9 +117,11 @@ void test_FFT()
   CALL_SUBTEST( test_complex<float>(2*3*4) ); CALL_SUBTEST( test_complex<double>(2*3*4) ); CALL_SUBTEST( test_complex<long double>(2*3*4) );
   CALL_SUBTEST( test_complex<float>(2*3*4*5) ); CALL_SUBTEST( test_complex<double>(2*3*4*5) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5) );
   CALL_SUBTEST( test_complex<float>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<double>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5*7) );
-/*
+#endif
+
+#if 1
   CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
   CALL_SUBTEST( test_scalar<float>(1024) ); CALL_SUBTEST( test_scalar<double>(1024) ); CALL_SUBTEST( test_scalar<long double>(1024) );
   CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
-  */
+#endif
 }

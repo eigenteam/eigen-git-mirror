@@ -24,6 +24,7 @@
 
 #include <complex>
 #include <vector>
+#include <iostream>
 
 namespace Eigen {
 
@@ -39,51 +40,54 @@ namespace Eigen {
     {
         prepare(nfft,false);
         work(0, dst, src, 1,1);
-        scale(dst);
     }
 
+    // real-to-complex forward FFT
+    // perform two FFTs of src even and src odd
+    // then twiddle to recombine them into the half-spectrum format
+    // then fill in the conjugate symmetric half
     void fwd( Complex * dst,const Scalar * src,int nfft) 
     {
         if ( nfft&1 ) {
             // use generic mode for odd
             prepare(nfft,false);
             work(0, dst, src, 1,1);
-            scale(dst);
         }else{
             int ncfft = nfft>>1;
             // use optimized mode for even real
-            prepare(nfft,false);
-            work(0,dst, reinterpret_cast<const Complex*> (src),2,1);
+            fwd( dst, reinterpret_cast<const Complex*> (src),ncfft);
+            make_real_twiddles(nfft);
+            std::cerr << "dst[0] = " << dst[0] << "\n";
             Complex dc = dst[0].real() +  dst[0].imag();
             Complex nyquist = dst[0].real() -  dst[0].imag();
-            
             int k;
-            for ( k=1;k <= ncfft/2 ; ++k ) {
-/**
-        fpk    = st->tmpbuf[k];
-        fpnk.r =   st->tmpbuf[ncfft-k].r;
-        fpnk.i = - st->tmpbuf[ncfft-k].i;
-
-        C_ADD( f1k, fpk , fpnk );
-        C_SUB( f2k, fpk , fpnk );
-        C_MUL( tw , f2k , st->super_twiddles[k-1]);
-
-        freqdata[k].r = HALF_OF(f1k.r + tw.r);
-        freqdata[k].i = HALF_OF(f1k.i + tw.i);
-        freqdata[ncfft-k].r = HALF_OF(f1k.r - tw.r);
-        freqdata[ncfft-k].i = HALF_OF(tw.i - f1k.i);
- */
+#if 0
+            using namespace std;
+            cerr << "desired:\n";
+            for ( k=1;k <= (ncfft>>1) ; ++k ) {
+                Complex x = exp( Complex(0,-3.14159265358979323846264338327 * ((double) (k) / ncfft + .5) ) );
+                cerr << k << " " << x << "angle(x):" << arg(x) << "\n";
+            }
+            dc=0;
+            cerr << "twiddles:\n";
+            for (k=0;k<ncfft;++k) {
+                Complex x = m_twiddles[k];
+                cerr << k << " " << x << "angle(-x):" << arg(-x) << "\n";
+            }
+#endif
+            for ( k=1;k <= (ncfft>>1) ; ++k ) {
                 Complex fpk = dst[k];
                 Complex fpnk = conj(dst[ncfft-k]);
-
                 Complex f1k = fpk + fpnk;
-                Complex f2k = fpnk - fpk;
-                //Complex tw = f2k * exp( Complex(0,-3.14159265358979323846264338327 * ((double)k / ncfft + 1) ) ); // TODO repalce this with index into twiddles
-                Complex tw = f2k * m_twiddles[2*k];;
-                
+                Complex f2k = fpk - fpnk;
+                //Complex tw = f2k * exp( Complex(0,-3.14159265358979323846264338327 * ((double) (k) / ncfft + .5) ) );
+                Complex tw= f2k * m_realTwiddles[k-1];
+
                 dst[k] =  (f1k + tw) * Scalar(.5);
                 dst[ncfft-k] =  conj(f1k -tw)*Scalar(.5);
             }
+ 
+
             // place conjugate-symmetric half at the end for completeness
             // TODO: make this configurable ( opt-out )
             for ( k=1;k < ncfft ; ++k )
@@ -98,55 +102,74 @@ namespace Eigen {
     {
         prepare(nfft,true);
         work(0, dst, src, 1,1);
-        scale(dst);
+        scale(dst, Scalar(1)/m_nfft );
     }
 
     void prepare(int nfft,bool inverse)
     {
-      if (m_nfft == nfft) {
-        // reuse the twiddles, conjugate if necessary
-        if (inverse != m_inverse)
-          for (int i=0;i<nfft;++i)
-            m_twiddles[i] = conj( m_twiddles[i] );
-        m_inverse = inverse;
-        return;
-      }
-      m_nfft = nfft;
-      m_inverse = inverse;
-      m_twiddles.resize(nfft);
-      Scalar phinc =  (inverse?2:-2)* acos( (Scalar) -1)  / nfft;
-      for (int i=0;i<nfft;++i)
-        m_twiddles[i] = exp( Complex(0,i*phinc) );
-
-      m_stageRadix.resize(0);
-      m_stageRemainder.resize(0);
-      //factorize
-      //start factoring out 4's, then 2's, then 3,5,7,9,...
-      int n= nfft;
-      int p=4;
-      do {
-        while (n % p) {
-          switch (p) {
-            case 4: p = 2; break;
-            case 2: p = 3; break;
-            default: p += 2; break;
-          }
-          if (p*p>n)
-            p=n;// no more factors
-        }
-        n /= p;
-        m_stageRadix.push_back(p);
-        m_stageRemainder.push_back(n);
-      }while(n>1);
+        make_twiddles(nfft,inverse);
+        factorize(nfft);
     }
 
-    void scale(Complex *dst) 
+    void make_real_twiddles(int nfft)
     {
-      if (m_inverse) {
-        Scalar s = 1./m_nfft;
+        int ncfft2 = nfft>>2;
+        if ( m_realTwiddles.size() != ncfft2) {
+            m_realTwiddles.resize(ncfft2);
+            int ncfft= nfft>>1;
+            for (int k=1;k<=ncfft2;++k) 
+                m_realTwiddles[k-1] = exp( Complex(0,-3.14159265358979323846264338327 * ((double) (k) / ncfft + .5) ) );
+        }
+    }
+
+    void make_twiddles(int nfft,bool inverse)
+    {
+        if ( m_twiddles.size() == nfft) {
+            // reuse the twiddles, conjugate if necessary
+            if (inverse != m_inverse)
+                for (int i=0;i<nfft;++i)
+                    m_twiddles[i] = conj( m_twiddles[i] );
+        }else{
+            m_twiddles.resize(nfft);
+            Scalar phinc =  (inverse?2:-2)* acos( (Scalar) -1)  / nfft;
+            for (int i=0;i<nfft;++i)
+                m_twiddles[i] = exp( Complex(0,i*phinc) );
+        }
+        m_inverse = inverse;
+    }
+
+    void factorize(int nfft)
+    {
+        if (m_stageRadix.size()==0 || m_stageRadix[0] * m_stageRemainder[0] != nfft)
+        {
+            m_stageRadix.resize(0);
+            m_stageRemainder.resize(0);
+            //factorize
+            //start factoring out 4's, then 2's, then 3,5,7,9,...
+            int n= nfft;
+            int p=4;
+            do {
+                while (n % p) {
+                    switch (p) {
+                        case 4: p = 2; break;
+                        case 2: p = 3; break;
+                        default: p += 2; break;
+                    }
+                    if (p*p>n)
+                        p=n;// no more factors
+                }
+                n /= p;
+                m_stageRadix.push_back(p);
+                m_stageRemainder.push_back(n);
+            }while(n>1);
+        }
+        m_nfft = nfft;
+    }
+
+    void scale(Complex *dst,Scalar s) 
+    {
         for (int k=0;k<m_nfft;++k)
-          dst[k] *= s;
-      }
+            dst[k] *= s;
     }
 
     private:
@@ -349,6 +372,7 @@ namespace Eigen {
     int m_nfft;
     bool m_inverse;
     std::vector<Complex> m_twiddles;
+    std::vector<Complex> m_realTwiddles;
     std::vector<int> m_stageRadix;
     std::vector<int> m_stageRemainder;
   };
