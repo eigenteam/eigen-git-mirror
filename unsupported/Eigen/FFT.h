@@ -60,9 +60,7 @@ class FFT
     template <typename _Input>
     void fwd( Complex * dst, const _Input * src, int nfft)
     {
-      m_traits.prepare(nfft,false,dst,src);
-      m_traits.exec(dst,src);
-      m_traits.postprocess(dst);
+        m_traits.fwd(dst,src,nfft);
     }
 
     template <typename _Input>
@@ -75,9 +73,7 @@ class FFT
     template <typename _Output>
     void inv( _Output * dst, const Complex * src, int nfft)
     {
-        m_traits.prepare(nfft,true,dst,src);
-        m_traits.exec(dst,src);
-        m_traits.postprocess(dst);
+        m_traits.inv( dst,src,nfft );
     }
 
     template <typename _Output>

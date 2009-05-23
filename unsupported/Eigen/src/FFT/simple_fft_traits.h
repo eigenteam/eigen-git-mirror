@@ -35,7 +35,73 @@ namespace Eigen {
     simple_fft_traits() : m_nfft(0) {} 
 
     template <typename _Src>
-    void prepare(int nfft,bool inverse,Complex * dst,const _Src *src)
+    void fwd( Complex * dst,const _Src *src,int nfft)
+    {
+        prepare(nfft,false);
+        work(0, dst, src, 1,1);
+        scale(dst);
+    }
+
+    void fwd( Complex * dst,const Scalar * src,int nfft) 
+    {
+        if ( nfft&1 ) {
+            // use generic mode for odd
+            prepare(nfft,false);
+            work(0, dst, src, 1,1);
+            scale(dst);
+        }else{
+            int ncfft = nfft>>1;
+            // use optimized mode for even real
+            prepare(nfft,false);
+            work(0,dst, reinterpret_cast<const Complex*> (src),2,1);
+            Complex dc = dst[0].real() +  dst[0].imag();
+            Complex nyquist = dst[0].real() -  dst[0].imag();
+            
+            int k;
+            for ( k=1;k <= ncfft/2 ; ++k ) {
+/**
+        fpk    = st->tmpbuf[k];
+        fpnk.r =   st->tmpbuf[ncfft-k].r;
+        fpnk.i = - st->tmpbuf[ncfft-k].i;
+
+        C_ADD( f1k, fpk , fpnk );
+        C_SUB( f2k, fpk , fpnk );
+        C_MUL( tw , f2k , st->super_twiddles[k-1]);
+
+        freqdata[k].r = HALF_OF(f1k.r + tw.r);
+        freqdata[k].i = HALF_OF(f1k.i + tw.i);
+        freqdata[ncfft-k].r = HALF_OF(f1k.r - tw.r);
+        freqdata[ncfft-k].i = HALF_OF(tw.i - f1k.i);
+ */
+                Complex fpk = dst[k];
+                Complex fpnk = conj(dst[ncfft-k]);
+
+                Complex f1k = fpk + fpnk;
+                Complex f2k = fpnk - fpk;
+                //Complex tw = f2k * exp( Complex(0,-3.14159265358979323846264338327 * ((double)k / ncfft + 1) ) ); // TODO repalce this with index into twiddles
+                Complex tw = f2k * m_twiddles[2*k];;
+                
+                dst[k] =  (f1k + tw) * Scalar(.5);
+                dst[ncfft-k] =  conj(f1k -tw)*Scalar(.5);
+            }
+            // place conjugate-symmetric half at the end for completeness
+            // TODO: make this configurable ( opt-out )
+            for ( k=1;k < ncfft ; ++k )
+                dst[nfft-k] = conj(dst[k]);
+
+            dst[0] = dc;
+            dst[ncfft] = nyquist;
+        }
+    }
+
+    void inv(Complex * dst,const Complex  *src,int nfft)
+    {
+        prepare(nfft,true);
+        work(0, dst, src, 1,1);
+        scale(dst);
+    }
+
+    void prepare(int nfft,bool inverse)
     {
       if (m_nfft == nfft) {
         // reuse the twiddles, conjugate if necessary
@@ -74,57 +140,49 @@ namespace Eigen {
       }while(n>1);
     }
 
-    template <typename _Src>
-    void exec(Complex * dst, const _Src * src)
-    {
-      work(0, dst, src, 1,1);
-    }
-
-    void postprocess(Complex *dst) 
+    void scale(Complex *dst) 
     {
       if (m_inverse) {
-        Scalar scale = 1./m_nfft;
+        Scalar s = 1./m_nfft;
         for (int k=0;k<m_nfft;++k)
-          dst[k] *= scale;
+          dst[k] *= s;
       }
     }
 
     private:
 
-   
     template <typename _Src>
-    void work( int stage,Complex * Fout, const _Src * f, size_t fstride,size_t in_stride)
+    void work( int stage,Complex * xout, const _Src * xin, size_t fstride,size_t in_stride)
     {
       int p = m_stageRadix[stage];
       int m = m_stageRemainder[stage];
-      Complex * Fout_beg = Fout;
-      Complex * Fout_end = Fout + p*m;
+      Complex * Fout_beg = xout;
+      Complex * Fout_end = xout + p*m;
 
-      if (m==1) {
-        do{
-          *Fout = *f;
-          f += fstride*in_stride;
-        }while(++Fout != Fout_end );
-      }else{
+      if (m>1) {
         do{
           // recursive call:
           // DFT of size m*p performed by doing
           // p instances of smaller DFTs of size m, 
           // each one takes a decimated version of the input
-          work(stage+1, Fout , f, fstride*p,in_stride);
-          f += fstride*in_stride;
-        }while( (Fout += m) != Fout_end );
+          work(stage+1, xout , xin, fstride*p,in_stride);
+          xin += fstride*in_stride;
+        }while( (xout += m) != Fout_end );
+      }else{
+          do{
+              *xout = *xin;
+              xin += fstride*in_stride;
+          }while(++xout != Fout_end );
       }
-
-      Fout=Fout_beg;
+      xout=Fout_beg;
 
       // recombine the p smaller DFTs 
       switch (p) {
-        case 2: bfly2(Fout,fstride,m); break;
-        case 3: bfly3(Fout,fstride,m); break;
-        case 4: bfly4(Fout,fstride,m); break;
-        case 5: bfly5(Fout,fstride,m); break;
-        default: bfly_generic(Fout,fstride,m,p); break;
+        case 2: bfly2(xout,fstride,m); break;
+        case 3: bfly3(xout,fstride,m); break;
+        case 4: bfly4(xout,fstride,m); break;
+        case 5: bfly5(xout,fstride,m); break;
+        default: bfly_generic(xout,fstride,m,p); break;
       }
     }
 
@@ -139,7 +197,7 @@ namespace Eigen {
 
     void bfly4( Complex * Fout, const size_t fstride, const size_t m)
     {
-      Complex scratch[7];
+      Complex scratch[6];
       int negative_if_inverse = m_inverse * -2 +1;
       for (size_t k=0;k<m;++k) {
         scratch[0] = Fout[k+m] * m_twiddles[k*fstride];
@@ -178,15 +236,10 @@ namespace Eigen {
         scratch[0]=scratch[1]-scratch[2];
         tw1 += fstride;
         tw2 += fstride*2;
-
         Fout[m] = Complex( Fout->real() - .5*scratch[3].real() , Fout->imag() - .5*scratch[3].imag() );
-
         scratch[0] *= epi3.imag();
-
         *Fout += scratch[3];
-
         Fout[m2] = Complex(  Fout[m].real() + scratch[0].imag() , Fout[m].imag() - scratch[0].real() );
-
         Fout[m] += Complex( -scratch[0].imag(),scratch[0].real() );
         ++Fout;
       }while(--k);
