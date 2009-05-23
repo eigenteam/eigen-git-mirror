@@ -60,10 +60,17 @@ template<typename _MatrixType> class Tridiagonalization
     typedef Matrix<RealScalar, Size, 1> DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
 
-    typedef typename NestByValue<Diagonal<MatrixType,0> >::RealReturnType DiagonalReturnType;
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+              typename NestByValue<Diagonal<MatrixType,0> >::RealReturnType,
+              Diagonal<MatrixType,0>
+            >::ret DiagonalReturnType;
 
-    typedef typename NestByValue<Diagonal<
-        NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> >,0 > >::RealReturnType SubDiagonalReturnType;
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+              typename NestByValue<Diagonal<
+                NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> >,0 > >::RealReturnType,
+              Diagonal<
+                NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> >,0 >
+            >::ret SubDiagonalReturnType;
 
     /** This constructor initializes a Tridiagonalization object for
       * further use with Tridiagonalization::compute()
@@ -136,7 +143,7 @@ template<typename MatrixType>
 const typename Tridiagonalization<MatrixType>::DiagonalReturnType
 Tridiagonalization<MatrixType>::diagonal(void) const
 {
-  return m_matrix.diagonal().nestByValue().real();
+  return m_matrix.diagonal().nestByValue();
 }
 
 /** \returns an expression of the sub-diagonal vector */
@@ -146,7 +153,7 @@ Tridiagonalization<MatrixType>::subDiagonal(void) const
 {
   int n = m_matrix.rows();
   return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1)
-    .nestByValue().diagonal().nestByValue().real();
+    .nestByValue().diagonal().nestByValue();
 }
 
 /** constructs and returns the tridiagonal matrix T.
