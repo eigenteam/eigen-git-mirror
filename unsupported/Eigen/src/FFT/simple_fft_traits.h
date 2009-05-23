@@ -34,7 +34,8 @@ namespace Eigen {
     typedef std::complex<Scalar> Complex;
     simple_fft_traits() : m_nfft(0) {} 
 
-    void prepare(int nfft,bool inverse,Complex * dst,const Complex *src)
+    template <typename _Src>
+    void prepare(int nfft,bool inverse,Complex * dst,const _Src *src)
     {
       if (m_nfft == nfft) {
         // reuse the twiddles, conjugate if necessary
@@ -73,7 +74,8 @@ namespace Eigen {
       }while(n>1);
     }
 
-    void exec(Complex * dst, const Complex * src)
+    template <typename _Src>
+    void exec(Complex * dst, const _Src * src)
     {
       work(0, dst, src, 1,1);
     }
@@ -89,7 +91,9 @@ namespace Eigen {
 
     private:
 
-    void work( int stage,Complex * Fout, const Complex * f, size_t fstride,size_t in_stride)
+   
+    template <typename _Src>
+    void work( int stage,Complex * Fout, const _Src * f, size_t fstride,size_t in_stride)
     {
       int p = m_stageRadix[stage];
       int m = m_stageRemainder[stage];

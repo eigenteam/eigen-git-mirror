@@ -57,21 +57,36 @@ class FFT
 
     FFT(const traits_type & traits=traits_type() ) :m_traits(traits) { }
 
-    void fwd( Complex * dst, const Complex * src, int nfft)
+    template <typename _Input>
+    void fwd( Complex * dst, const _Input * src, int nfft)
     {
       m_traits.prepare(nfft,false,dst,src);
       m_traits.exec(dst,src);
       m_traits.postprocess(dst);
     }
 
-    void inv( Complex * dst, const Complex * src, int nfft)
+    template <typename _Input>
+    void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
     {
-      m_traits.prepare(nfft,true,dst,src);
-      m_traits.exec(dst,src);
-      m_traits.postprocess(dst);
+        dst.resize( src.size() );
+        fwd( &dst[0],&src[0],src.size() );
     }
 
-    // TODO: fwd,inv for Scalar
+    template <typename _Output>
+    void inv( _Output * dst, const Complex * src, int nfft)
+    {
+        m_traits.prepare(nfft,true,dst,src);
+        m_traits.exec(dst,src);
+        m_traits.postprocess(dst);
+    }
+
+    template <typename _Output>
+    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src) 
+    {
+        dst.resize( src.size() );
+        inv( &dst[0],&src[0],src.size() );
+    }
+
     // TODO: multi-dimensional FFTs
     // TODO: handle Eigen MatrixBase
 
