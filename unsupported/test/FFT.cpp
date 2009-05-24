@@ -28,6 +28,10 @@
 
 using namespace std;
 
+float norm(float x) {return x*x;}
+double norm(double x) {return x*x;}
+long double norm(long double x) {return x*x;}
+
 template < typename T>
 complex<long double>  promote(complex<T> x) { return complex<long double>(x.real(),x.imag()); }
 
@@ -83,7 +87,11 @@ void test_scalar(int nfft)
     for (int k=0;k<nfft;++k)
         inbuf[k]= (T)(rand()/(double)RAND_MAX - .5);
     fft.fwd( outbuf,inbuf);
-    VERIFY( fft_rmse(outbuf,inbuf) < 1e-5 );// gross check
+    VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
+
+    vector<Scalar> buf3;
+    fft.inv( buf3 , outbuf);
+    VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
 template <class T>
@@ -100,18 +108,18 @@ void test_complex(int nfft)
         inbuf[k]= Complex( (T)(rand()/(double)RAND_MAX - .5), (T)(rand()/(double)RAND_MAX - .5) );
     fft.fwd( outbuf , inbuf);
 
-    VERIFY( fft_rmse(outbuf,inbuf) < 1e-5 );// gross check
+    VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     fft.inv( buf3 , outbuf);
 
-    VERIFY( dif_rmse(inbuf,buf3) < 1e-5 );// gross check
+    VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
 void test_FFT()
 {
-#if 0
+#if 1
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
-  CALL_SUBTEST( test_complex<float>(1024) ); CALL_SUBTEST( test_complex<double>(1024) ); CALL_SUBTEST( test_complex<long double>(1024) );
+  CALL_SUBTEST( test_complex<float>(256) ); CALL_SUBTEST( test_complex<double>(256) ); CALL_SUBTEST( test_complex<long double>(256) );
   CALL_SUBTEST( test_complex<float>(3*8) ); CALL_SUBTEST( test_complex<double>(3*8) ); CALL_SUBTEST( test_complex<long double>(3*8) );
   CALL_SUBTEST( test_complex<float>(5*32) ); CALL_SUBTEST( test_complex<double>(5*32) ); CALL_SUBTEST( test_complex<long double>(5*32) );
   CALL_SUBTEST( test_complex<float>(2*3*4) ); CALL_SUBTEST( test_complex<double>(2*3*4) ); CALL_SUBTEST( test_complex<long double>(2*3*4) );
@@ -120,8 +128,9 @@ void test_FFT()
 #endif
 
 #if 1
+  CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
   CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
-  CALL_SUBTEST( test_scalar<float>(1024) ); CALL_SUBTEST( test_scalar<double>(1024) ); CALL_SUBTEST( test_scalar<long double>(1024) );
+  CALL_SUBTEST( test_scalar<float>(256) ); CALL_SUBTEST( test_scalar<double>(256) ); CALL_SUBTEST( test_scalar<long double>(256) );
   CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
 #endif
 }

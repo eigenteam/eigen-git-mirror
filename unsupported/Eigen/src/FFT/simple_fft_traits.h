@@ -54,28 +54,14 @@ namespace Eigen {
             work(0, dst, src, 1,1);
         }else{
             int ncfft = nfft>>1;
+            int ncfft2 = nfft>>2;
             // use optimized mode for even real
             fwd( dst, reinterpret_cast<const Complex*> (src),ncfft);
             make_real_twiddles(nfft);
-            std::cerr << "dst[0] = " << dst[0] << "\n";
             Complex dc = dst[0].real() +  dst[0].imag();
             Complex nyquist = dst[0].real() -  dst[0].imag();
             int k;
-#if 0
-            using namespace std;
-            cerr << "desired:\n";
-            for ( k=1;k <= (ncfft>>1) ; ++k ) {
-                Complex x = exp( Complex(0,-3.14159265358979323846264338327 * ((double) (k) / ncfft + .5) ) );
-                cerr << k << " " << x << "angle(x):" << arg(x) << "\n";
-            }
-            dc=0;
-            cerr << "twiddles:\n";
-            for (k=0;k<ncfft;++k) {
-                Complex x = m_twiddles[k];
-                cerr << k << " " << x << "angle(-x):" << arg(-x) << "\n";
-            }
-#endif
-            for ( k=1;k <= (ncfft>>1) ; ++k ) {
+            for ( k=1;k <= ncfft2 ; ++k ) {
                 Complex fpk = dst[k];
                 Complex fpnk = conj(dst[ncfft-k]);
                 Complex f1k = fpk + fpnk;
@@ -87,7 +73,6 @@ namespace Eigen {
                 dst[ncfft-k] =  conj(f1k -tw)*Scalar(.5);
             }
  
-
             // place conjugate-symmetric half at the end for completeness
             // TODO: make this configurable ( opt-out )
             for ( k=1;k < ncfft ; ++k )
@@ -96,6 +81,16 @@ namespace Eigen {
             dst[0] = dc;
             dst[ncfft] = nyquist;
         }
+    }
+
+    // half-complex to scalar
+    void inv( Scalar * dst,const Complex * src,int nfft) 
+    {
+        // TODO add optimized version for even numbers
+        std::vector<Complex> tmp(nfft);
+        inv(&tmp[0],src,nfft);
+        for (int k=0;k<nfft;++k)
+            dst[k] = tmp[k].real();
     }
 
     void inv(Complex * dst,const Complex  *src,int nfft)
@@ -156,7 +151,7 @@ namespace Eigen {
                         default: p += 2; break;
                     }
                     if (p*p>n)
-                        p=n;// no more factors
+                        p=n;// impossible to have a factor > sqrt(n)
                 }
                 n /= p;
                 m_stageRadix.push_back(p);

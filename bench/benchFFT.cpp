@@ -31,34 +31,67 @@
 using namespace Eigen;
 using namespace std;
 
-#ifndef NFFT
-#define NFFT 1024
-#endif
+
+template <typename T>
+string nameof();
+
+template <> string nameof<float>() {return "float";}
+template <> string nameof<double>() {return "double";}
+template <> string nameof<long double>() {return "long double";}
 
 #ifndef TYPE
 #define TYPE float
 #endif
 
-#ifndef NITS 
-#define NITS (10000000/NFFT)
+#ifndef NFFT
+#define NFFT 1024
+#endif
+#ifndef NDATA
+#define NDATA 1000000
 #endif
 
-int main() 
+using namespace Eigen;
+
+template <typename T>
+void bench(int nfft)
 {
-  vector<complex<TYPE> > inbuf(NFFT);
-  vector<complex<TYPE> > outbuf(NFFT);
-  Eigen::FFT<TYPE> fft;
+    typedef typename NumTraits<T>::Real Scalar;
+    typedef typename std::complex<Scalar> Complex;
+    int nits = NDATA/nfft;
+    vector<T> inbuf(nfft);
+    vector<Complex > outbuf(nfft);
+    FFT< Scalar > fft;
 
-  fft.fwd( outbuf , inbuf);
+    fft.fwd( outbuf , inbuf);
 
-  BenchTimer timer;
-  timer.reset();
-  for (int k=0;k<8;++k) {
-      timer.start();
-      for(int i = 0; i < NITS; i++)
-          fft.fwd( outbuf , inbuf);
-      timer.stop();
-  }
-  double mflops = 5.*NFFT*log2((double)NFFT) / (1e6 * timer.value() / (double)NITS );
-  cout << "NFFT=" << NFFT << "  " << (double(1e-6*NFFT*NITS)/timer.value()) << " MS/s  " << mflops << "MFLOPS\n";
+    BenchTimer timer;
+    timer.reset();
+    for (int k=0;k<8;++k) {
+        timer.start();
+        for(int i = 0; i < nits; i++)
+            fft.fwd( outbuf , inbuf);
+        timer.stop();
+    }
+
+    cout << nameof<Scalar>() << " ";
+    double mflops = 5.*nfft*log2((double)nfft) / (1e6 * timer.value() / (double)nits );
+    if ( NumTraits<T>::IsComplex ) {
+        cout << "complex";
+    }else{
+        cout << "real   ";
+        mflops /= 2;
+    }
+
+    cout << " NFFT=" << nfft << "  " << (double(1e-6*nfft*nits)/timer.value()) << " MS/s  " << mflops << "MFLOPS\n";
+}
+
+int main(int argc,char ** argv)
+{
+    bench<complex<float> >(NFFT);
+    bench<float>(NFFT);
+    bench<complex<double> >(NFFT);
+    bench<double>(NFFT);
+    bench<complex<long double> >(NFFT);
+    bench<long double>(NFFT);
+    return 0;
 }
