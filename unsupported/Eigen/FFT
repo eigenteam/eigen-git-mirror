@@ -25,28 +25,28 @@
 #ifndef EIGEN_FFT_H
 #define EIGEN_FFT_H
 
-// simple_fft_traits:  small, free, reasonably efficient default, derived from kissfft
-#include "src/FFT/simple_fft_traits.h"
-#define DEFAULT_FFT_TRAITS simple_fft_traits
+// ei_kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
+#include "src/FFT/ei_kissfft_impl.h"
+#define DEFAULT_FFT_IMPL ei_kissfft_impl
 
 // FFTW: faster, GPL-not LGPL, bigger code size
 #ifdef FFTW_PATIENT  // definition of FFTW_PATIENT indicates the caller has included fftw3.h, we can use FFTW routines
 // TODO 
-// #include "src/FFT/fftw_traits.h"
-// #define DEFAULT_FFT_TRAITS fftw_traits
+// #include "src/FFT/ei_fftw_impl.h"
+// #define DEFAULT_FFT_IMPL ei_fftw_impl
 #endif
 
 // intel Math Kernel Library: fastest, commerical
 #ifdef _MKL_DFTI_H_ // mkl_dfti.h has been included, we can use MKL FFT routines
 // TODO 
-// #include "src/FFT/imkl_traits.h"
-// #define DEFAULT_FFT_TRAITS imkl_traits
+// #include "src/FFT/ei_imkl_impl.h"
+// #define DEFAULT_FFT_IMPL ei_imkl_impl
 #endif
 
 namespace Eigen {
 
 template <typename _Scalar,
-         typename _Traits=DEFAULT_FFT_TRAITS<_Scalar> 
+         typename _Traits=DEFAULT_FFT_IMPL<_Scalar> 
          >
 class FFT
 {
@@ -90,6 +90,6 @@ class FFT
   private:
     traits_type m_traits;
 };
-#undef DEFAULT_FFT_TRAITS
+#undef DEFAULT_FFT_IMPL
 }
 #endif

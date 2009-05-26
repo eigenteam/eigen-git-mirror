@@ -23,8 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <unsupported/Eigen/FFT.h>
-
+#include <unsupported/Eigen/FFT>
 
 using namespace std;
 

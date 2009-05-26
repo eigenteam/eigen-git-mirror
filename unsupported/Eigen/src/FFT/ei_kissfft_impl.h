@@ -24,16 +24,15 @@
 
 #include <complex>
 #include <vector>
-#include <iostream>
 
 namespace Eigen {
 
   template <typename _Scalar>
-  struct simple_fft_traits
+  struct ei_kissfft_impl
   {
     typedef _Scalar Scalar;
     typedef std::complex<Scalar> Complex;
-    simple_fft_traits() : m_nfft(0) {} 
+    ei_kissfft_impl() : m_nfft(0) {} 
 
     template <typename _Src>
     void fwd( Complex * dst,const _Src *src,int nfft)
@@ -370,5 +369,29 @@ namespace Eigen {
     std::vector<Complex> m_realTwiddles;
     std::vector<int> m_stageRadix;
     std::vector<int> m_stageRemainder;
+/*
+    enum {FORWARD,INVERSE,REAL,COMPLEX};
+
+    struct PlanKey
+    {
+        PlanKey(int nfft,bool isinverse,bool iscomplex)
+        {
+            _key = (nfft<<2) | (isinverse<<1) | iscomplex;
+        }
+
+        bool operator<(const PlanKey & other) const
+        {
+            return this->_key < other._key;
+        }
+        int _key;
+    };
+
+    struct PlanData
+    {
+        std::vector<Complex> m_twiddles;
+    };
+
+    std::map<PlanKey,
+*/
   };
 }

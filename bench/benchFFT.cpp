@@ -26,7 +26,7 @@
 #include <vector>
 #include <Eigen/Core>
 #include <bench/BenchTimer.h>
-#include <unsupported/Eigen/FFT.h>
+#include <unsupported/Eigen/FFT>
 
 using namespace Eigen;
 using namespace std;
