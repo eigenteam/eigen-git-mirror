@@ -44,7 +44,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
     {
         long double totalpower=0;
         long double difpower=0;
-        cerr <<"idx\ttruth\t\tvalue\n";
+        cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
         for (size_t k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* M_PIl / timebuf.size();
@@ -55,7 +55,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
             complex<long double> x = promote(fftbuf[k0]); 
             complex<long double> dif = acc - x;
             difpower += norm(dif);
-            cerr << k0 << "\t" << acc << "\t" <<  x << endl;
+            cerr << k0 << "\t" << acc << "\t" <<  x << "\t" << sqrt(norm(dif)) << endl;
         }
         cerr << "rmse:" << sqrt(difpower/totalpower) << endl;
         return sqrt(difpower/totalpower);
@@ -127,8 +127,9 @@ void test_FFT()
 #endif
 
 #if 1
-  CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
   CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
+  CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
+  CALL_SUBTEST( test_scalar<float>(50) ); CALL_SUBTEST( test_scalar<double>(50) ); CALL_SUBTEST( test_scalar<long double>(50) );
   CALL_SUBTEST( test_scalar<float>(256) ); CALL_SUBTEST( test_scalar<double>(256) ); CALL_SUBTEST( test_scalar<long double>(256) );
   CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
 #endif
