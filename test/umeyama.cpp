@@ -1,0 +1,203 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra. Eigen itself is part of the KDE project.
+//
+// Copyright (C) 2009 Hauke Heibel <hauke.heibel@gmail.com>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or1 FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#include "main.h"
+
+#include <Eigen/Core>
+#include <Eigen/Array>
+#include <Eigen/Geometry>
+
+#include <Eigen/LU> // required for MatrixBase::determinant
+#include <Eigen/SVD> // required for SVD
+
+using namespace Eigen;
+
+#define VAR_CALL_SUBTEST(...) do { \
+  g_test_stack.push_back(EI_PP_MAKE_STRING(__VA_ARGS__)); \
+  __VA_ARGS__; \
+  g_test_stack.pop_back(); \
+} while (0)
+
+//  Constructs a random matrix from the unitary group U(size).
+template <typename T>
+Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
+{
+  typedef typename T Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
+
+  MatrixType Q;
+
+  int max_tries = 40;
+  double is_unitary = false;
+
+  while (!is_unitary && max_tries > 0)
+  {
+	  // initialize random matrix
+    Q = MatrixType::Random(size, size);
+
+	  // orthogonalize columns using the Gram-Schmidt algorithm
+	  for (int col = 0; col < size; ++col)
+	  {
+      MatrixType::ColXpr colVec = Q.col(col);
+		  for (int prevCol = 0; prevCol < col; ++prevCol)
+		  {
+			  MatrixType::ColXpr prevColVec = Q.col(prevCol);
+        colVec -= colVec.dot(prevColVec)*prevColVec;
+		  }
+		  Q.col(col) = colVec.normalized();
+	  }
+
+	  // this additional orthogonalization is not necessary in theory but should enhance 
+    // the numerical orthogonality of the matrix
+	  for (int row = 0; row < size; ++row)
+	  {
+      MatrixType::RowXpr rowVec = Q.row(row);
+		  for (int prevRow = 0; prevRow < row; ++prevRow)
+		  {
+			  MatrixType::RowXpr prevRowVec = Q.row(prevRow);
+			  rowVec -= rowVec.dot(prevRowVec)*prevRowVec;
+		  }
+		  Q.row(row) = rowVec.normalized();
+	  }
+
+	  // final check
+    is_unitary = Q.isUnitary();
+    --max_tries;
+  }
+
+  if (max_tries == 0)
+    throw std::runtime_error("randMatrixUnitary: Could not construct unitary matrix!");
+
+	return Q;
+}
+
+//  Constructs a random matrix from the special unitary group SU(size).
+template <typename T>
+Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int size)
+{
+  typedef typename T Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
+
+	// initialize unitary matrix
+	MatrixType Q = randMatrixUnitary<Scalar>(size);
+
+	// tweak the first column to make the determinant be 1
+  Q.col(0) *= ei_conj(Q.determinant());
+
+  return Q;
+}
+
+template <typename MatrixType>
+void run_test(int dim, int num_elements)
+{
+  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixX;
+  typedef Matrix<Scalar, Eigen::Dynamic, 1> VectorX;
+
+  // MUST be positive because in any other case det(cR_t) may become negative for
+  // odd dimensions!
+  const Scalar c = ei_abs(ei_random<Scalar>());
+
+  MatrixX R = randMatrixSpecialUnitary<Scalar>(dim);
+  VectorX t = Scalar(50)*VectorX::Random(dim,1);
+
+  MatrixX cR_t = MatrixX::Identity(dim+1,dim+1);
+  cR_t.block(0,0,dim,dim) = c*R;
+  cR_t.block(0,dim,dim,1) = t;
+
+  MatrixX src = MatrixX::Random(dim+1, num_elements);
+  src.row(dim) = Matrix<Scalar, 1, Dynamic>::Constant(num_elements, Scalar(1));
+
+  MatrixX dst = (cR_t*src).lazy();
+
+  MatrixX cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
+
+  const Scalar error = ( cR_t_umeyama*src - dst ).cwise().square().sum();
+
+  VERIFY(error < Scalar(10)*std::numeric_limits<Scalar>::epsilon());
+}
+
+template<typename Scalar, int Dimension>
+void run_fixed_size_test(int num_elements)
+{
+  typedef Matrix<Scalar, Dimension+1, Dynamic> MatrixX;
+  typedef Matrix<Scalar, Dimension+1, Dimension+1> HomMatrix;
+  typedef Matrix<Scalar, Dimension, Dimension> FixedMatrix;
+  typedef Matrix<Scalar, Dimension, 1> FixedVector;
+
+  const int dim = Dimension;
+
+  // MUST be positive because in any other case det(cR_t) may become negative for
+  // odd dimensions!
+  const Scalar c = ei_abs(ei_random<Scalar>());
+
+  FixedMatrix R = randMatrixSpecialUnitary<Scalar>(dim);
+  FixedVector t = Scalar(50)*FixedVector::Random(dim,1);
+
+  HomMatrix cR_t = HomMatrix::Identity(dim+1,dim+1);
+  cR_t.block(0,0,dim,dim) = c*R;
+  cR_t.block(0,dim,dim,1) = t;
+
+  MatrixX src = MatrixX::Random(dim+1, num_elements);
+  src.row(dim) = Matrix<Scalar, 1, Dynamic>::Constant(num_elements, Scalar(1));
+
+  MatrixX dst = (cR_t*src).lazy();
+
+  HomMatrix cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
+
+  const Scalar error = ( cR_t_umeyama*src - dst ).cwise().square().sum();
+
+  VERIFY(error < Scalar(10)*std::numeric_limits<Scalar>::epsilon());
+}
+
+void test_umeyama()
+{
+  for (int i=0; i<g_repeat; ++i)
+  {
+    const int num_elements = ei_random<int>(40,500);
+
+    // works also for dimensions bigger than 3...
+    for (int dim=2; dim<8; ++dim)
+    {
+      CALL_SUBTEST(run_test<MatrixXd>(dim, num_elements));
+      CALL_SUBTEST(run_test<MatrixXf>(dim, num_elements));
+    }
+
+    VAR_CALL_SUBTEST(run_fixed_size_test<float, 2>(num_elements));
+    VAR_CALL_SUBTEST(run_fixed_size_test<float, 3>(num_elements));
+    VAR_CALL_SUBTEST(run_fixed_size_test<float, 4>(num_elements));
+
+    VAR_CALL_SUBTEST(run_fixed_size_test<double, 2>(num_elements));
+    VAR_CALL_SUBTEST(run_fixed_size_test<double, 3>(num_elements));
+    VAR_CALL_SUBTEST(run_fixed_size_test<double, 4>(num_elements));
+  }
+
+  // Those two calls don't compile and result in meaningful error messages!
+  // umeyama(MatrixXcf(),MatrixXcf());
+  // umeyama(MatrixXcd(),MatrixXcd());
+}

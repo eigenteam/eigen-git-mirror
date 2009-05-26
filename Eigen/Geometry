@@ -44,6 +44,7 @@ namespace Eigen {
 #include "src/Geometry/Hyperplane.h"
 #include "src/Geometry/ParametrizedLine.h"
 #include "src/Geometry/AlignedBox.h"
+#include "src/Geometry/Umeyama.h"
 
 #if defined EIGEN_VECTORIZE_SSE
   #include "src/Geometry/arch/Geometry_SSE.h"

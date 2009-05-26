@@ -139,6 +139,7 @@ ei_add_test(sparse_vector)
 ei_add_test(sparse_basic)
 ei_add_test(sparse_product)
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
+ei_add_test(umeyama)
 
 
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX:               ${CMAKE_CXX_COMPILER}\n")
