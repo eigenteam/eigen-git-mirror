@@ -53,7 +53,7 @@ template <> string nameof<long double>() {return "long double";}
 using namespace Eigen;
 
 template <typename T>
-void bench(int nfft)
+void bench(int nfft,bool fwd)
 {
     typedef typename NumTraits<T>::Real Scalar;
     typedef typename std::complex<Scalar> Complex;
@@ -69,7 +69,10 @@ void bench(int nfft)
     for (int k=0;k<8;++k) {
         timer.start();
         for(int i = 0; i < nits; i++)
-            fft.fwd( outbuf , inbuf);
+            if (fwd)
+                fft.fwd( outbuf , inbuf);
+            else
+                fft.inv(inbuf,outbuf);
         timer.stop();
     }
 
@@ -82,16 +85,27 @@ void bench(int nfft)
         mflops /= 2;
     }
 
+    if (fwd)
+        cout << " fwd";
+    else
+        cout << " inv";
+
     cout << " NFFT=" << nfft << "  " << (double(1e-6*nfft*nits)/timer.value()) << " MS/s  " << mflops << "MFLOPS\n";
 }
 
 int main(int argc,char ** argv)
 {
-    bench<complex<float> >(NFFT);
-    bench<float>(NFFT);
-    bench<complex<double> >(NFFT);
-    bench<double>(NFFT);
-    bench<complex<long double> >(NFFT);
-    bench<long double>(NFFT);
+    bench<complex<float> >(NFFT,true);
+    bench<complex<float> >(NFFT,false);
+    bench<float>(NFFT,true);
+    bench<float>(NFFT,false);
+    bench<complex<double> >(NFFT,true);
+    bench<complex<double> >(NFFT,false);
+    bench<double>(NFFT,true);
+    bench<double>(NFFT,false);
+    bench<complex<long double> >(NFFT,true);
+    bench<complex<long double> >(NFFT,false);
+    bench<long double>(NFFT,true);
+    bench<long double>(NFFT,false);
     return 0;
 }
