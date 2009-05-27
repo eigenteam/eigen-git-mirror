@@ -153,6 +153,19 @@ template<typename T> struct ei_plain_matrix_type_column_major
           > type;
 };
 
+/* ei_plain_matrix_type_row_major : same as ei_plain_matrix_type but guaranteed to be row-major
+ */
+template<typename T> struct ei_plain_matrix_type_row_major
+{
+  typedef Matrix<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                AutoAlign | RowMajor,
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
+};
+
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 

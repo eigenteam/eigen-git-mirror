@@ -168,7 +168,10 @@ void run_fixed_size_test(int num_elements)
 
   MatrixX dst = (cR_t*src).lazy();
 
-  HomMatrix cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
+  Block<MatrixX, Dimension, Dynamic> src_block(src,0,0,dim,num_elements);
+  Block<MatrixX, Dimension, Dynamic> dst_block(dst,0,0,dim,num_elements);
+
+  HomMatrix cR_t_umeyama = umeyama(src_block, dst_block);
 
   const Scalar error = ( cR_t_umeyama*src - dst ).cwise().square().sum();
 

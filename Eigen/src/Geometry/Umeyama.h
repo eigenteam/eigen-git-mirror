@@ -46,21 +46,18 @@ namespace
   {    
     enum {
       MinRowsAtCompileTime = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime, OtherMatrixType::RowsAtCompileTime),
-      MinMaxRowsAtCompileTime = EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime, OtherMatrixType::MaxRowsAtCompileTime),
 
       // When possible we want to choose some small fixed size value since the result
       // is likely to fit on the stack.
-      HomogeneousDimension = EIGEN_ENUM_MIN(MinRowsAtCompileTime+1, Dynamic),
-      MaxRowsAtCompileTime = EIGEN_ENUM_MIN(MinMaxRowsAtCompileTime+1, Dynamic),
-      MaxColsAtCompileTime = EIGEN_ENUM_MIN(MatrixType::MaxColsAtCompileTime, OtherMatrixType::MaxColsAtCompileTime)
+      HomogeneousDimension = EIGEN_ENUM_MIN(MinRowsAtCompileTime+1, Dynamic)
     };
 
     typedef Matrix<typename ei_traits<MatrixType>::Scalar,
       HomogeneousDimension,
       HomogeneousDimension,
       AutoAlign | (ei_traits<MatrixType>::Flags & RowMajorBit ? RowMajor : ColMajor),
-      MaxRowsAtCompileTime, 
-      MaxColsAtCompileTime
+      HomogeneousDimension, 
+      HomogeneousDimension
     > type;
   };
 }
@@ -87,9 +84,9 @@ namespace
 * of the input point sets \f$ \mathbf{x} \f$ and \f$ \mathbf{y} \f$ where 
 * \f$d\f$ is corresponding to the dimension (which is typically small).
 * The analysis is involving the SVD having a complexity of \f$O(d^3)\f$
-* though the actual bottleneck usually lies in the computation of the covariance
-* matrix which has an asymptotic lower bound of \f$O(dm)\f$ when the input point 
-* sets have dimension \f$d \times m\f$.
+* though the actual computational effort lies in the covariance
+* matrix computation which has an asymptotic lower bound of \f$O(dm)\f$ when 
+* the input point sets have dimension \f$d \times m\f$.
 *
 * Currently the method is working only for floating point matrices.
 *
@@ -120,7 +117,8 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   enum { Dimension = EIGEN_ENUM_MIN(Derived::RowsAtCompileTime, OtherDerived::RowsAtCompileTime) };
 
   typedef Matrix<Scalar, Dimension, 1> VectorType;
-  typedef Matrix<Scalar, Dimension, Dimension> MatrixType;
+  typedef typename ei_plain_matrix_type<Derived>::type MatrixType;
+  typedef typename ei_plain_matrix_type_row_major<Derived>::type RowMajorMatrixType;
 
   const int m = src.rows(); // dimension
   const int n = src.cols(); // number of measurements
@@ -133,8 +131,8 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   const VectorType dst_mean = dst.rowwise().sum() * one_over_n;
 
   // demeaning of src and dst points
-  MatrixType src_demean(m,n);
-  MatrixType dst_demean(m,n);
+  RowMajorMatrixType src_demean(m,n);
+  RowMajorMatrixType dst_demean(m,n);
   for (int i=0; i<n; ++i)
   {
     src_demean.col(i) = src.col(i) - src_mean;
