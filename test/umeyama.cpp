@@ -33,17 +33,11 @@
 
 using namespace Eigen;
 
-#define VAR_CALL_SUBTEST(...) do { \
-  g_test_stack.push_back(EI_PP_MAKE_STRING(__VA_ARGS__)); \
-  __VA_ARGS__; \
-  g_test_stack.pop_back(); \
-} while (0)
-
 //  Constructs a random matrix from the unitary group U(size).
 template <typename T>
 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
 {
-  typedef typename T Scalar;
+  typedef T Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
@@ -55,58 +49,58 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
 
   while (!is_unitary && max_tries > 0)
   {
-	  // initialize random matrix
+    // initialize random matrix
     Q = MatrixType::Random(size, size);
 
-	  // orthogonalize columns using the Gram-Schmidt algorithm
-	  for (int col = 0; col < size; ++col)
-	  {
-      MatrixType::ColXpr colVec = Q.col(col);
-		  for (int prevCol = 0; prevCol < col; ++prevCol)
-		  {
-			  MatrixType::ColXpr prevColVec = Q.col(prevCol);
+    // orthogonalize columns using the Gram-Schmidt algorithm
+    for (int col = 0; col < size; ++col)
+    {
+      typename MatrixType::ColXpr colVec = Q.col(col);
+      for (int prevCol = 0; prevCol < col; ++prevCol)
+      {
+        typename MatrixType::ColXpr prevColVec = Q.col(prevCol);
         colVec -= colVec.dot(prevColVec)*prevColVec;
-		  }
-		  Q.col(col) = colVec.normalized();
-	  }
+      }
+      Q.col(col) = colVec.normalized();
+    }
 
-	  // this additional orthogonalization is not necessary in theory but should enhance 
+    // this additional orthogonalization is not necessary in theory but should enhance 
     // the numerical orthogonality of the matrix
-	  for (int row = 0; row < size; ++row)
-	  {
-      MatrixType::RowXpr rowVec = Q.row(row);
-		  for (int prevRow = 0; prevRow < row; ++prevRow)
-		  {
-			  MatrixType::RowXpr prevRowVec = Q.row(prevRow);
-			  rowVec -= rowVec.dot(prevRowVec)*prevRowVec;
-		  }
-		  Q.row(row) = rowVec.normalized();
-	  }
+    for (int row = 0; row < size; ++row)
+    {
+      typename MatrixType::RowXpr rowVec = Q.row(row);
+      for (int prevRow = 0; prevRow < row; ++prevRow)
+      {
+        typename MatrixType::RowXpr prevRowVec = Q.row(prevRow);
+        rowVec -= rowVec.dot(prevRowVec)*prevRowVec;
+      }
+      Q.row(row) = rowVec.normalized();
+    }
 
-	  // final check
+    // final check
     is_unitary = Q.isUnitary();
     --max_tries;
   }
 
   if (max_tries == 0)
-    throw std::runtime_error("randMatrixUnitary: Could not construct unitary matrix!");
+    ei_assert(false && "randMatrixUnitary: Could not construct unitary matrix!");
 
-	return Q;
+  return Q;
 }
 
 //  Constructs a random matrix from the special unitary group SU(size).
 template <typename T>
 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int size)
 {
-  typedef typename T Scalar;
+  typedef T Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
 
-	// initialize unitary matrix
-	MatrixType Q = randMatrixUnitary<Scalar>(size);
+  // initialize unitary matrix
+  MatrixType Q = randMatrixUnitary<Scalar>(size);
 
-	// tweak the first column to make the determinant be 1
+  // tweak the first column to make the determinant be 1
   Q.col(0) *= ei_conj(Q.determinant());
 
   return Q;
@@ -191,13 +185,13 @@ void test_umeyama()
       CALL_SUBTEST(run_test<MatrixXf>(dim, num_elements));
     }
 
-    VAR_CALL_SUBTEST(run_fixed_size_test<float, 2>(num_elements));
-    VAR_CALL_SUBTEST(run_fixed_size_test<float, 3>(num_elements));
-    VAR_CALL_SUBTEST(run_fixed_size_test<float, 4>(num_elements));
+    CALL_SUBTEST((run_fixed_size_test<float, 2>(num_elements)));
+    CALL_SUBTEST((run_fixed_size_test<float, 3>(num_elements)));
+    CALL_SUBTEST((run_fixed_size_test<float, 4>(num_elements)));
 
-    VAR_CALL_SUBTEST(run_fixed_size_test<double, 2>(num_elements));
-    VAR_CALL_SUBTEST(run_fixed_size_test<double, 3>(num_elements));
-    VAR_CALL_SUBTEST(run_fixed_size_test<double, 4>(num_elements));
+    CALL_SUBTEST((run_fixed_size_test<double, 2>(num_elements)));
+    CALL_SUBTEST((run_fixed_size_test<double, 3>(num_elements)));
+    CALL_SUBTEST((run_fixed_size_test<double, 4>(num_elements)));
   }
 
   // Those two calls don't compile and result in meaningful error messages!

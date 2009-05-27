@@ -110,7 +110,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   typedef typename ei_traits<TransformationMatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
+  EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL)
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename ei_traits<OtherDerived>::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
@@ -141,7 +141,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
 
   // Eq. (36)-(37)
   const Scalar src_var = src_demean.rowwise().squaredNorm().sum() * one_over_n;
-  const Scalar dst_var = dst_demean.rowwise().squaredNorm().sum() * one_over_n;
+  // const Scalar dst_var = dst_demean.rowwise().squaredNorm().sum() * one_over_n;
 
   // Eq. (38)
   const MatrixType sigma = (dst_demean*src_demean.transpose()).lazy() * one_over_n;
@@ -181,23 +181,5 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
 
   return Rt;
 }
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-
-/**
-* This is simply here to prevent the creation of dozens compile time errors for
-* std::complex types...
-*/
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols,
-         typename _OtherScalar, int _OtherRows, int _OtherCols, int _OtherOptions, int _OtherMaxRows, int _OtherMaxCols>
-         typename ei_umeyama_transform_matrix_type<Matrix<std::complex<_Scalar>,_Rows,_Cols,_Options,_MaxRows,_MaxCols>, 
-                                                   Matrix<std::complex<_OtherScalar>,_OtherRows,_OtherCols,_OtherOptions,_OtherMaxRows,_OtherMaxCols> >::type
-umeyama(const MatrixBase<Matrix<std::complex<_Scalar>,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >& src, 
-        const MatrixBase<Matrix<std::complex<_OtherScalar>,_OtherRows,_OtherCols,_OtherOptions,_OtherMaxRows,_OtherMaxCols> >& dst, bool with_scaling = true)
-{
-  EIGEN_STATIC_ASSERT(false, NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
-}
-
-#endif
 
 #endif // EIGEN_UMEYAMA_H
