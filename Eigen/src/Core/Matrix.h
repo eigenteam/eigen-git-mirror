@@ -530,8 +530,14 @@ class Matrix
 
     static EIGEN_STRONG_INLINE void _check_template_params()
     {
-        EIGEN_STATIC_ASSERT(((_MaxRows >= _Rows || _Rows==Dynamic)
-                          && (_MaxCols >= _Cols || _Cols==Dynamic)
+        EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
+                          && (_Cols >= _MaxCols)
+                          && (_MaxRows >= 1)
+                          && (_MaxCols >= 1)
+                          && (_Rows <= Dynamic)
+                          && (_Cols <= Dynamic)
+                          && (_MaxRows == _Rows || _Rows==Dynamic)
+                          && (_MaxCols == _Cols || _Cols==Dynamic)
                           && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
                           && (_Options & (DontAlign|RowMajor)) == _Options),
           INVALID_MATRIX_TEMPLATE_PARAMETERS)
