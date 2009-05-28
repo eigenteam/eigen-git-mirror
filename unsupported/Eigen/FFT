@@ -1,5 +1,5 @@
 // This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// for linear algebra. 
 //
 // Copyright (C) 2009 Mark Borgerding mark a borgerding net
 //
@@ -29,14 +29,14 @@
 #include "src/FFT/ei_kissfft_impl.h"
 #define DEFAULT_FFT_IMPL ei_kissfft_impl
 
-// FFTW: faster, GPL-not LGPL, bigger code size
+// FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
 #ifdef FFTW_PATIENT  // definition of FFTW_PATIENT indicates the caller has included fftw3.h, we can use FFTW routines
 // TODO 
 // #include "src/FFT/ei_fftw_impl.h"
 // #define DEFAULT_FFT_IMPL ei_fftw_impl
 #endif
 
-// intel Math Kernel Library: fastest, commerical
+// intel Math Kernel Library: fastest, commerical -- incompatible with Eigen in GPL form
 #ifdef _MKL_DFTI_H_ // mkl_dfti.h has been included, we can use MKL FFT routines
 // TODO 
 // #include "src/FFT/ei_imkl_impl.h"
