@@ -532,8 +532,8 @@ class Matrix
     {
         EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
                           && (_Cols >= _MaxCols)
-                          && (_MaxRows >= 1)
-                          && (_MaxCols >= 1)
+                          && (_MaxRows >= 0)
+                          && (_MaxCols >= 0)
                           && (_Rows <= Dynamic)
                           && (_Cols <= Dynamic)
                           && (_MaxRows == _Rows || _Rows==Dynamic)
