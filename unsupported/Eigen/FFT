@@ -30,9 +30,8 @@
 #define DEFAULT_FFT_IMPL ei_kissfft_impl
 
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
-#ifdef FFTW_PATIENT  // definition of FFTW_PATIENT indicates the caller has included fftw3.h, we can use FFTW routines
-// TODO 
-// #include "src/FFT/ei_fftw_impl.h"
+#ifdef FFTW_ESTIMATE  // definition of FFTW_ESTIMATE indicates the caller has included fftw3.h, we can use FFTW routines
+#include "src/FFT/ei_fftw_impl.h"
 // #define DEFAULT_FFT_IMPL ei_fftw_impl
 #endif
 

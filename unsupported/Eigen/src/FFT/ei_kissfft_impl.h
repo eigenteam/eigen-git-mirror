@@ -39,6 +39,7 @@ namespace Eigen {
       std::vector<Complex> m_twiddles;
       std::vector<int> m_stageRadix;
       std::vector<int> m_stageRemainder;
+      std::vector<Complex> m_scratchBuf;
       bool m_inverse;
 
       void make_twiddles(int nfft,bool inverse)
@@ -75,6 +76,8 @@ namespace Eigen {
           n /= p;
           m_stageRadix.push_back(p);
           m_stageRemainder.push_back(n);
+          if ( p > 5 )
+              m_scratchBuf.resize(p); // scratchbuf will be needed in bfly_generic
         }while(n>1);
       }
 
@@ -249,7 +252,7 @@ namespace Eigen {
         Complex * twiddles = &m_twiddles[0];
         Complex t;
         int Norig = m_twiddles.size();
-        Complex * scratchbuf = (Complex*)alloca(p*sizeof(Complex) );
+        Complex * scratchbuf = &m_scratchBuf[0];
 
         for ( u=0; u<m; ++u ) {
           k=u;
@@ -341,28 +344,28 @@ namespace Eigen {
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         if (nfft&3) {
-          m_scratchBuf.resize(nfft);
-          inv(&m_scratchBuf[0],src,nfft);
+          m_tmpBuf.resize(nfft);
+          inv(&m_tmpBuf[0],src,nfft);
           for (int k=0;k<nfft;++k)
-            dst[k] = m_scratchBuf[k].real();
+            dst[k] = m_tmpBuf[k].real();
         }else{
           // optimized version for multiple of 4
           int ncfft = nfft>>1;
           int ncfft2 = nfft>>2;
           Complex * rtw = real_twiddles(ncfft2);
-          m_scratchBuf.resize(ncfft);
-          m_scratchBuf[0] = Complex( src[0].real() + src[ncfft].real(), src[0].real() - src[ncfft].real() );
+          m_tmpBuf.resize(ncfft);
+          m_tmpBuf[0] = Complex( src[0].real() + src[ncfft].real(), src[0].real() - src[ncfft].real() );
           for (int k = 1; k <= ncfft / 2; ++k) {
             Complex fk = src[k];
             Complex fnkc = conj(src[ncfft-k]);
             Complex fek = fk + fnkc;
             Complex tmp = fk - fnkc;
             Complex fok = tmp * conj(rtw[k-1]);
-            m_scratchBuf[k] = fek + fok;
-            m_scratchBuf[ncfft-k] = conj(fek - fok);
+            m_tmpBuf[k] = fek + fok;
+            m_tmpBuf[ncfft-k] = conj(fek - fok);
           }
-          scale(&m_scratchBuf[0], ncfft, Scalar(1)/nfft );
-          get_plan(ncfft,true).work(0, reinterpret_cast<Complex*>(dst), &m_scratchBuf[0], 1,1);
+          scale(&m_tmpBuf[0], ncfft, Scalar(1)/nfft );
+          get_plan(ncfft,true).work(0, reinterpret_cast<Complex*>(dst), &m_tmpBuf[0], 1,1);
         }
       }
 
@@ -372,7 +375,7 @@ namespace Eigen {
 
       PlanMap m_plans;
       std::map<int, std::vector<Complex> > m_realTwiddles;
-      std::vector<Complex> m_scratchBuf;
+      std::vector<Complex> m_tmpBuf;
 
       int PlanKey(int nfft,bool isinverse) const { return (nfft<<1) | isinverse; }
 
