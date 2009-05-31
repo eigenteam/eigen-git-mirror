@@ -32,7 +32,8 @@
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
 #ifdef FFTW_ESTIMATE  // definition of FFTW_ESTIMATE indicates the caller has included fftw3.h, we can use FFTW routines
 #include "src/FFT/ei_fftw_impl.h"
-// #define DEFAULT_FFT_IMPL ei_fftw_impl
+#undef DEFAULT_FFT_IMPL
+#define DEFAULT_FFT_IMPL ei_fftw_impl
 #endif
 
 // intel Math Kernel Library: fastest, commerical -- incompatible with Eigen in GPL form

@@ -23,6 +23,11 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+//#define USE_FFTW
+#ifdef USE_FFTW
+#include <fftw3.h>
+#endif
+
 #include <unsupported/Eigen/FFT>
 
 using namespace std;

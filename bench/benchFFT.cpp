@@ -26,6 +26,10 @@
 #include <vector>
 #include <Eigen/Core>
 #include <bench/BenchTimer.h>
+#ifdef USE_FFTW
+#include <fftw3.h>
+#endif
+
 #include <unsupported/Eigen/FFT>
 
 using namespace Eigen;
