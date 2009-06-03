@@ -66,10 +66,10 @@ template <typename T, int Size, int MatrixOptions> struct ei_matrix_array<T,Size
   *
   * \sa Matrix
   */
-template<typename T, int Size, int _Rows, int _Cols, int _Options, bool Align = ((_Options&DontAlign)==0)> class ei_matrix_storage;
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage;
 
 // purely fixed-size matrix
-template<typename T, int Size, int _Rows, int _Cols, int _Options, bool Align> class ei_matrix_storage
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage
 {
     ei_matrix_array<T,Size,_Options> m_data;
   public:
@@ -86,7 +86,7 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options, bool Align> c
 };
 
 // null matrix
-template<typename T, int _Rows, int _Cols, int _Options, bool Align> class ei_matrix_storage<T, 0, _Rows, _Cols, _Options, Align>
+template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage<T, 0, _Rows, _Cols, _Options>
 {
   public:
     inline explicit ei_matrix_storage() {}
@@ -101,7 +101,7 @@ template<typename T, int _Rows, int _Cols, int _Options, bool Align> class ei_ma
 };
 
 // dynamic-size matrix with fixed-size storage
-template<typename T, int Size, int _Options, bool Align> class ei_matrix_storage<T, Size, Dynamic, Dynamic, _Options, Align>
+template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dynamic, Dynamic, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     int m_rows;
@@ -126,7 +126,7 @@ template<typename T, int Size, int _Options, bool Align> class ei_matrix_storage
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
-template<typename T, int Size, int _Cols, int _Options, bool Align> class ei_matrix_storage<T, Size, Dynamic, _Cols, _Options, Align>
+template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<T, Size, Dynamic, _Cols, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     int m_rows;
@@ -148,7 +148,7 @@ template<typename T, int Size, int _Cols, int _Options, bool Align> class ei_mat
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
-template<typename T, int Size, int _Rows, int _Options, bool Align> class ei_matrix_storage<T, Size, _Rows, Dynamic, _Options, Align>
+template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<T, Size, _Rows, Dynamic, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     int m_cols;
@@ -170,7 +170,7 @@ template<typename T, int Size, int _Rows, int _Options, bool Align> class ei_mat
 };
 
 // purely dynamic matrix.
-template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic, _Options, true>
+template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic, _Options>
 {
     T *m_data;
     int m_rows;
@@ -180,8 +180,8 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
        : m_data(0), m_rows(0), m_cols(0) {}
     inline ei_matrix_storage(int size, int rows, int cols)
-      : m_data(ei_aligned_new<T>(size)), m_rows(rows), m_cols(cols) {}
-    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, m_rows*m_cols); }
+      : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols) {}
+    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
     inline void swap(ei_matrix_storage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return m_rows;}
@@ -190,9 +190,9 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     {
       if(size != m_rows*m_cols)
       {
-        ei_aligned_delete(m_data, m_rows*m_cols);
+        ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols);
         if (size)
-          m_data = ei_aligned_new<T>(size);
+          m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
       }
@@ -203,50 +203,16 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     inline T *data() { return m_data; }
 };
 
-// purely dynamic matrix with Align flag being set to false.
-template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic, _Options, false>
-{
-  T *m_data;
-  int m_rows;
-  int m_cols;
-public:
-  inline explicit ei_matrix_storage() : m_data(0), m_rows(0), m_cols(0) {}
-  inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
-    : m_data(0), m_rows(0), m_cols(0) {}
-  inline ei_matrix_storage(int size, int rows, int cols)
-    : m_data(new T[size]), m_rows(rows), m_cols(cols) {}
-  inline ~ei_matrix_storage() { delete [] m_data; }
-  inline void swap(ei_matrix_storage& other)
-  { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
-  inline int rows(void) const {return m_rows;}
-  inline int cols(void) const {return m_cols;}
-  void resize(int size, int rows, int cols)
-  {
-    if(size != m_rows*m_cols)
-    {
-      delete [] m_data;
-      if (size)
-        m_data = new T[size];
-      else
-        m_data = 0;
-    }
-    m_rows = rows;
-    m_cols = cols;
-  }
-  inline const T *data() const { return m_data; }
-  inline T *data() { return m_data; }
-};
-
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
-template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic, _Options, true>
+template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic, _Options>
 {
     T *m_data;
     int m_cols;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_aligned_new<T>(size)), m_cols(cols) {}
-    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Rows*m_cols); }
+    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_cols(cols) {}
+    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static int rows(void) {return _Rows;}
     inline int cols(void) const {return m_cols;}
@@ -254,39 +220,9 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
     {
       if(size != _Rows*m_cols)
       {
-        ei_aligned_delete(m_data, _Rows*m_cols);
+        ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols);
         if (size)
-          m_data = ei_aligned_new<T>(size);
-        else
-          m_data = 0;
-      }
-      m_cols = cols;
-    }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
-};
-
-// matrix with dynamic width and fixed height (so that matrix has dynamic size) 
-// with Align flag being set to false.
-template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic, _Options, false>
-{
-    T *m_data;
-    int m_cols;
-  public:
-    inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(int size, int, int cols) : m_data(new T[size]), m_cols(cols) {}
-    inline ~ei_matrix_storage() { delete [] m_data; }
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
-    inline static int rows(void) {return _Rows;}
-    inline int cols(void) const {return m_cols;}
-    void resize(int size, int, int cols)
-    {
-      if(size != _Rows*m_cols)
-      {
-        delete [] m_data;
-        if (size)
-          m_data = new T[size];
+          m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
       }
@@ -297,15 +233,15 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
-template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols, _Options, true>
+template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols, _Options>
 {
     T *m_data;
     int m_rows;
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
-    inline ~ei_matrix_storage() { ei_aligned_delete(m_data, _Cols*m_rows); }
+    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows) {}
+    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline static int cols(void) {return _Cols;}
@@ -313,39 +249,9 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
     {
       if(size != m_rows*_Cols)
       {
-        ei_aligned_delete(m_data, _Cols*m_rows);
+        ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows);
         if (size)
-          m_data = ei_aligned_new<T>(size);
-        else
-          m_data = 0;
-      }
-      m_rows = rows;
-    }
-    inline const T *data() const { return m_data; }
-    inline T *data() { return m_data; }
-};
-
-// matrix with dynamic height and fixed width (so that matrix has dynamic size)
-// with Align flag being set to false.
-template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols, _Options, false>
-{
-    T *m_data;
-    int m_rows;
-  public:
-    inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(int size, int rows, int) : m_data(new T[size]), m_rows(rows) {}
-    inline ~ei_matrix_storage() { delete [] m_data; }
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
-    inline int rows(void) const {return m_rows;}
-    inline static int cols(void) {return _Cols;}
-    void resize(int size, int rows, int)
-    {
-      if(size != m_rows*_Cols)
-      {
-        delete [] m_data;
-        if (size)
-          m_data = new T[size];
+          m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
       }
