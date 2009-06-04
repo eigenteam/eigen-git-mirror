@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,8 @@
          FLOATTYPE *recip_pivot_growth,                      \
          FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr, \
          SuperLUStat_t *stats, int *info, KEYTYPE) {         \
-    NAMESPACE::mem_usage_t mem_usage;                                    \
+    using namespace NAMESPACE; \
+    mem_usage_t mem_usage;                                    \
     NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
          U, work, lwork, B, X, recip_pivot_growth, rcond,    \
          ferr, berr, &mem_usage, stats, info);               \
@@ -59,13 +60,24 @@ struct SluMatrixMapHelper;
   */
 struct SluMatrix : SuperMatrix
 {
-  SluMatrix() {}
+  SluMatrix()
+  {
+    Store = &storage;
+  }
 
   SluMatrix(const SluMatrix& other)
     : SuperMatrix(other)
   {
     Store = &storage;
     storage = other.storage;
+  }
+  
+  SluMatrix& operator=(const SluMatrix& other)
+  {
+    SuperMatrix::operator=(static_cast<const SuperMatrix&>(other));
+    Store = &storage;
+    storage = other.storage;
+    return *this;
   }
 
   struct
@@ -104,7 +116,7 @@ struct SluMatrix : SuperMatrix
       ei_assert(false && "Scalar type not supported by SuperLU");
     }
   }
-  
+
   template<typename Scalar, int Rows, int Cols, int Options, int MRows, int MCols>
   static SluMatrix Map(Matrix<Scalar,Rows,Cols,Options,MRows,MCols>& mat)
   {
@@ -223,6 +235,7 @@ SluMatrix SparseMatrixBase<Derived>::asSluMatrix()
   return SluMatrix::Map(derived());
 }
 
+/** View a Super LU matrix as an Eigen expression */
 template<typename Scalar, int Flags>
 MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(SluMatrix& sluMat)
 {

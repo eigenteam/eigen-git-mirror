@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -32,9 +32,9 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
   res.n         = cols();
   res.m         = rows();
   res.flags     = 0;
-  res.colptr    = _outerIndexPtr();
-  res.rowind    = _innerIndexPtr();
-  res.values.v  = _valuePtr();
+  res.colptr    = derived()._outerIndexPtr();
+  res.rowind    = derived()._innerIndexPtr();
+  res.values.v  = derived()._valuePtr();
   if (ei_is_same_type<Scalar,int>::ret)
     res.flags |= TAUCS_INT;
   else if (ei_is_same_type<Scalar,float>::ret)
@@ -78,8 +78,8 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
 {
   protected:
     typedef SparseLLT<MatrixType> Base;
-    using Base::Scalar;
-    using Base::RealScalar;
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
@@ -129,7 +129,10 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
   {
     taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, Base::m_precision, 0);
-    m_matrix = Base::CholMatrixType::Map(*taucsRes);
+    // the matrix returned by Taucs is not necessarily sorted,
+    // so let's copy it in two steps
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsRes);
+    m_matrix = tmp;
     free(taucsRes);
     m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
              | IncompleteFactorization
@@ -161,7 +164,11 @@ SparseLLT<MatrixType,Taucs>::matrixL() const
     ei_assert(!(m_status & SupernodalFactorIsDirty));
 
     taucs_ccs_matrix* taucsL = taucs_supernodal_factor_to_ccs(m_taucsSupernodalFactor);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = Base::CholMatrixType::Map(*taucsL);
+
+    // the matrix returned by Taucs is not necessarily sorted,
+    // so let's copy it in two steps
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsL);
+    const_cast<typename Base::CholMatrixType&>(m_matrix) = tmp;
     free(taucsL);
     m_status = (m_status & ~MatrixLIsDirty);
   }
@@ -172,21 +179,31 @@ template<typename MatrixType>
 template<typename Derived>
 void SparseLLT<MatrixType,Taucs>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  if (m_status & MatrixLIsDirty)
+  bool inputIsCompatibleWithTaucs = (Derived::Flags&RowMajorBit)==0;
+
+  if (!inputIsCompatibleWithTaucs)
   {
-    // TODO use taucs's supernodal solver, in particular check types, storage order, etc.
-    // VectorXb x(b.rows());
-    // for (int j=0; j<b.cols(); ++j)
-    // {
-    //   taucs_supernodal_solve_llt(m_taucsSupernodalFactor,x.data(),&b.col(j).coeffRef(0));
-    //   b.col(j) = x;
-    // }
     matrixL();
-  }
-
-
-  {
     Base::solveInPlace(b);
+  }
+  else if (m_flags & IncompleteFactorization)
+  {
+    taucs_ccs_matrix taucsLLT = const_cast<typename Base::CholMatrixType&>(m_matrix).asTaucsMatrix();
+    typename ei_plain_matrix_type<Derived>::type x(b.rows());
+    for (int j=0; j<b.cols(); ++j)
+    {
+      taucs_ccs_solve_llt(&taucsLLT,x.data(),&b.col(j).coeffRef(0));
+      b.col(j) = x;
+    }
+  }
+  else
+  {
+    typename ei_plain_matrix_type<Derived>::type x(b.rows());
+    for (int j=0; j<b.cols(); ++j)
+    {
+      taucs_supernodal_solve_llt(m_taucsSupernodalFactor,x.data(),&b.col(j).coeffRef(0));
+      b.col(j) = x;
+    }
   }
 }
 

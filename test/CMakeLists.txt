@@ -217,6 +217,7 @@ endif(QT4_FOUND)
 ei_add_test(sparse_vector)
 ei_add_test(sparse_basic)
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
+ei_add_test(sparse_product)
 
 # print a summary of the different options
 message("************************************************************")

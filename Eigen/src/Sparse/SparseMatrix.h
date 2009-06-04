@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ class SparseMatrix
     // FIXME: why are these operator already alvailable ???
     // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, *=)
     // EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(SparseMatrix, /=)
-    
+
     typedef MappedSparseMatrix<Scalar,Flags> Map;
 
   protected:
@@ -79,7 +79,7 @@ class SparseMatrix
 
     inline int rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
-    
+
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_outerSize; }
     inline int innerNonZeros(int j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
@@ -138,7 +138,6 @@ class SparseMatrix
       */
     inline void startFill(int reserveSize = 1000)
     {
-//       std::cerr << this << " startFill\n";
       setZero();
       m_data.reserve(reserveSize);
     }
@@ -160,6 +159,10 @@ class SparseMatrix
           --i;
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
+      }
+      else
+      {
+        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
       }
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());
       int id = m_outerIndex[outer+1];
@@ -192,7 +195,7 @@ class SparseMatrix
       // FIXME let's make sure sizeof(long int) == sizeof(size_t)
       size_t id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
-      
+
       float reallocRatio = 1;
       if (m_data.allocatedSize()<id+1)
       {
@@ -214,7 +217,7 @@ class SparseMatrix
         m_data.value(id) = m_data.value(id-1);
         --id;
       }
-      
+
       m_data.index(id) = inner;
       return (m_data.value(id) = 0);
     }
@@ -233,7 +236,7 @@ class SparseMatrix
         ++i;
       }
     }
-    
+
     void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
     {
       int k = 0;
@@ -390,11 +393,11 @@ class SparseMatrix
         s << std::endl;
         s << std::endl;
         s << "Column pointers:\n";
-        for (int i=0; i<m.cols(); ++i)
+        for (int i=0; i<m.outerSize(); ++i)
         {
           s << m.m_outerIndex[i] << " ";
         }
-        s << std::endl;
+        s << " $" << std::endl;
         s << std::endl;
       );
       s << static_cast<const SparseMatrixBase<SparseMatrix>&>(m);

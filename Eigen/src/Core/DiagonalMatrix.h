@@ -62,6 +62,7 @@ class DiagonalMatrix : ei_no_assignment_operator,
   public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
+    typedef CoeffsVectorType _CoeffsVectorType;
 
     // needed to evaluate a DiagonalMatrix<Xpr> to a DiagonalMatrix<NestByValue<Vector> >
     template<typename OtherCoeffsVectorType>

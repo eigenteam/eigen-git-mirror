@@ -65,10 +65,10 @@ class MappedSparseMatrix
 
     //----------------------------------------
     // direct access interface
-    inline const Scalar* _valuePtr() const { return &m_values; }
-    inline Scalar* _valuePtr() { return &m_values; }
+    inline const Scalar* _valuePtr() const { return m_values; }
+    inline Scalar* _valuePtr() { return m_values; }
 
-    inline const int* _innerIndexPtr() const { return &m_innerIndices; }
+    inline const int* _innerIndexPtr() const { return m_innerIndices; }
     inline int* _innerIndexPtr() { return m_innerIndices; }
 
     inline const int* _outerIndexPtr() const { return m_outerIndex; }
@@ -108,7 +108,7 @@ class MappedSparseMatrix
       ei_assert((*r==inner) && (id<end) && "coeffRef cannot be called on a zero coefficient");
       return m_values[id];
     }
-    
+
     class InnerIterator;
 
     /** \returns the number of non zero coefficients */
@@ -140,21 +140,25 @@ class MappedSparseMatrix<Scalar,_Flags>::InnerIterator
 {
   public:
     InnerIterator(const MappedSparseMatrix& mat, int outer)
-      : m_matrix(mat), m_outer(outer), m_id(mat._outerIndexPtr[outer]), m_start(m_id), m_end(mat._outerIndexPtr[outer+1])
+      : m_matrix(mat),
+        m_outer(outer),
+        m_id(mat._outerIndexPtr()[outer]),
+        m_start(m_id),
+        m_end(mat._outerIndexPtr()[outer+1])
     {}
 
     template<unsigned int Added, unsigned int Removed>
     InnerIterator(const Flagged<MappedSparseMatrix,Added,Removed>& mat, int outer)
-      : m_matrix(mat._expression()), m_id(m_matrix._outerIndexPtr[outer]),
-        m_start(m_id), m_end(m_matrix._outerIndexPtr[outer+1])
+      : m_matrix(mat._expression()), m_id(m_matrix._outerIndexPtr()[outer]),
+        m_start(m_id), m_end(m_matrix._outerIndexPtr()[outer+1])
     {}
 
     inline InnerIterator& operator++() { m_id++; return *this; }
 
-    inline Scalar value() const { return m_matrix.m_valuePtr[m_id]; }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix._valuePtr[m_id]); }
+    inline Scalar value() const { return m_matrix._valuePtr()[m_id]; }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix._valuePtr()[m_id]); }
 
-    inline int index() const { return m_matrix._innerIndexPtr(m_id); }
+    inline int index() const { return m_matrix._innerIndexPtr()[m_id]; }
     inline int row() const { return IsRowMajor ? m_outer : index(); }
     inline int col() const { return IsRowMajor ? index() : m_outer; }
 

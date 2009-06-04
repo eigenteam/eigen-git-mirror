@@ -107,12 +107,13 @@ template<typename _Scalar, int _Flags = 0> class SparseVector;
 template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
 template<typename MatrixType>                            class SparseTranspose;
-template<typename MatrixType>                            class SparseInnerVector;
+template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
 template<typename Derived>                               class SparseCwise;
 template<typename UnaryOp,   typename MatrixType>        class SparseCwiseUnaryOp;
 template<typename BinaryOp,  typename Lhs, typename Rhs> class SparseCwiseBinaryOp;
 template<typename ExpressionType,
          unsigned int Added, unsigned int Removed>       class SparseFlagged;
+template<typename Lhs, typename Rhs>                     class SparseDiagonalProduct;
 
 template<typename Lhs, typename Rhs> struct ei_sparse_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_sparse_product_mode<Lhs,Rhs>::value> struct SparseProductReturnType;

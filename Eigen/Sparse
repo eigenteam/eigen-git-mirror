@@ -22,7 +22,6 @@
 #endif
 
 #ifdef EIGEN_TAUCS_SUPPORT
-
   // taucs.h declares a lot of mess
   #define isnan
   #define finite
@@ -40,7 +39,9 @@
   #ifdef max
     #undef max
   #endif
-
+  #ifdef complex
+    #undef complex
+  #endif
 #endif
 
 #ifdef EIGEN_SUPERLU_SUPPORT
@@ -102,6 +103,7 @@ namespace Eigen {
 #include "src/Sparse/SparseFuzzy.h"
 #include "src/Sparse/SparseFlagged.h"
 #include "src/Sparse/SparseProduct.h"
+#include "src/Sparse/SparseDiagonalProduct.h"
 #include "src/Sparse/TriangularSolver.h"
 #include "src/Sparse/SparseLLT.h"
 #include "src/Sparse/SparseLDLT.h"

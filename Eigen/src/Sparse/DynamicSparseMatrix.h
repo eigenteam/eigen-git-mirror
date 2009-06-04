@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -83,6 +83,9 @@ class DynamicSparseMatrix
     inline int innerSize() const { return m_innerSize; }
     inline int outerSize() const { return m_data.size(); }
     inline int innerNonZeros(int j) const { return m_data[j].size(); }
+    
+    std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
+    const std::vector<CompressedStorage<Scalar> >& _data() const { return m_data; }
 
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.
@@ -125,11 +128,14 @@ class DynamicSparseMatrix
     /** Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
     inline void startFill(int reserveSize = 1000)
     {
-      int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
-      for (int j=0; j<outerSize(); ++j)
+      if (outerSize()>0)
       {
-        m_data[j].clear();
-        m_data[j].reserve(reserveSizePerVector);
+        int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
+        for (int j=0; j<outerSize(); ++j)
+        {
+          m_data[j].clear();
+          m_data[j].reserve(reserveSizePerVector);
+        }
       }
     }
 
@@ -215,7 +221,7 @@ class DynamicSparseMatrix
     }
 
     inline DynamicSparseMatrix()
-      : m_innerSize(0)
+      : m_innerSize(0), m_data(0)
     {
       ei_assert(innerSize()==0 && outerSize()==0);
     }
