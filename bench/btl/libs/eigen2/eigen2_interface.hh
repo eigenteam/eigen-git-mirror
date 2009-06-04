@@ -202,7 +202,10 @@ public :
 
   static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
     C = X.lu().matrixLU();
-//     C = X.inverse();
+  }
+
+  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    C = X.partialLu().matrixLU();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){

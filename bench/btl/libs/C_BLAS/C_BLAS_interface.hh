@@ -61,6 +61,7 @@ extern "C"
   void sgehrd_( const int *n, int *ilo, int *ihi, float *a, const int *lda, float *tau, float *work, int *lwork, int *info );
 
   // LU row pivoting
+//   void dgetrf_( int *m, int *n, double *a, int *lda, int *ipiv, int *info );
 //   void sgetrf_(const int* m, const int* n, float *a, const int* ld, int* ipivot, int* info);
   // LU full pivoting
   void sgetc2_(const int* n, float *a, const int *lda, int *ipiv, int *jpiv, int*info );
@@ -160,7 +161,7 @@ public :
     cblas_ssymv(CblasColMajor,CblasLower,N,1.0,A,N,B,1,0.0,X,1);
     #endif
   }
-  
+
   static inline void syr2(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     #ifdef PUREBLAS
     ssyr2_(&lower,&N,&fone,B,&intone,X,&intone,A,&N);
@@ -245,6 +246,15 @@ public :
     int * ipiv = (int*)alloca(sizeof(int)*N);
     int * jpiv = (int*)alloca(sizeof(int)*N);
     sgetc2_(&N, C, &N, ipiv, jpiv, &info);
+  }
+
+  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    int N2 = N*N;
+    scopy_(&N2, X, &intone, C, &intone);
+    char uplo = 'L';
+    int info = 0;
+    int * ipiv = (int*)alloca(sizeof(int)*N);
+    sgetrf_(&N, &N, C, &N, ipiv, &info);
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){

@@ -8,7 +8,8 @@ matrix_vector ; "{/*1.5 matrix vector product}" ; "matrix size" ; 4:2048
 trisolve ; "{/*1.5 triangular solver (X = inv(L) X)}" ; "size" ; 4:2048
 matrix_trisolve ; "{/*1.5 matrix triangular solver (M = inv(L) M)}" ; "size" ; 4:2048
 cholesky ; "{/*1.5 Cholesky decomposition}" ; "matrix size" ; 4:2048
-lu_decomp ; "{/*1.5 LU decomposition}" ; "matrix size" ; 4:2048
+lu_decomp ; "{/*1.5 Complete LU decomposition}" ; "matrix size" ; 4:2048
+partial_lu_decomp ; "{/*1.5 Partial LU decomposition}" ; "matrix size" ; 4:2048
 tridiagonalization ; "{/*1.5 Tridiagonalization}" ; "matrix size" ; 4:2048
 hessenberg ; "{/*1.5 Hessenberg decomposition}" ; "matrix size" ; 4:2048
 symv ; "{/*1.5 symmetric matrix vector product}" ; "matrix size" ; 4:2048

@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 if [ $# < 1 ]; then
   echo "Usage: $0 working_directory [tiny|large [prefix]]"
@@ -42,6 +42,7 @@ source mk_mean_script.sh trisolve $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh matrix_trisolve $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh cholesky $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh lu_decomp $1 11 100 300 1000 $mode $prefix
+source mk_mean_script.sh partial_lu_decomp $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh tridiagonalization $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh hessenberg $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh symv $1 11 50 300 1000 $mode $prefix
