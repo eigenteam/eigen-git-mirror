@@ -116,20 +116,29 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
   return result;
 }
 
+/** \internal in-place allocate the elements of an array.
+  * The \a size parameter tells on how many objects to call the constructor of T.
+  */
+template<typename T> inline T* ei_alloc_elements_of_array(T *ptr, size_t size)
+{
+  for (size_t i=0; i < size; ++i) ::new (ptr + i) T;
+  return ptr;
+}
+
 /** allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
 template<typename T> inline T* ei_aligned_new(size_t size)
 {
-  void *void_result = ei_aligned_malloc(sizeof(T)*size);
-  return ::new(void_result) T[size];
+  T *result = reinterpret_cast<T*>(ei_aligned_malloc(sizeof(T)*size));
+  return ei_alloc_elements_of_array(result, size);
 }
 
 template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t size)
 {
-  void *void_result = ei_conditional_aligned_malloc<Align>(sizeof(T)*size);
-  return ::new(void_result) T[size];
+  T *result = reinterpret_cast<T*>(ei_conditional_aligned_malloc<Align>(sizeof(T)*size));
+  return ei_alloc_elements_of_array(result, size);
 }
 
 /** \internal free memory allocated with ei_aligned_malloc
@@ -225,7 +234,7 @@ inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
   #define ei_aligned_stack_free(PTR,SIZE) ei_aligned_free(PTR)
 #endif
 
-#define ei_aligned_stack_new(TYPE,SIZE) ::new(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)) TYPE[SIZE]
+#define ei_aligned_stack_new(TYPE,SIZE) ei_alloc_elements_of_array(reinterpret_cast<TYPE*>(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)), SIZE)
 #define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_delete_elements_of_array<TYPE>(PTR, SIZE); \
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
