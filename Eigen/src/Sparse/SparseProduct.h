@@ -192,7 +192,6 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
   float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
   res.resize(rows, cols);
-  res.setZero();
   res.reserve(int(ratioRes*rows*cols));
   for (int j=0; j<cols; ++j)
   {

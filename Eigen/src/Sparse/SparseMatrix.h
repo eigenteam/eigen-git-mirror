@@ -363,9 +363,11 @@ class SparseMatrix
       m_data.resize(k,0);
     }
 
+    /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero
+      * \sa resizeNonZeros(int), reserve(), setZero()
+      */
     void resize(int rows, int cols)
     {
-//       std::cerr << this << " resize " << rows << "x" << cols << "\n";
       const int outerSize = IsRowMajor ? rows : cols;
       m_innerSize = IsRowMajor ? cols : rows;
       m_data.clear();
@@ -374,8 +376,8 @@ class SparseMatrix
         delete[] m_outerIndex;
         m_outerIndex = new int [outerSize+1];
         m_outerSize = outerSize;
-        memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(int));
       }
+      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(int));
     }
     void resizeNonZeros(int size)
     {
