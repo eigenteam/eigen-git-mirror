@@ -201,8 +201,13 @@ protected:
 
 public:
 
-  /** Default constructor without initialization of the coefficients. */
-  inline Transform() { }
+  /** Default constructor without initialization of the meaningfull coefficients.
+    * If Mode==Affine, then the last row is set to [0 ... 0 1] */
+  inline Transform()
+  {
+    if (Mode==Affine)
+      makeAffine();
+  }
 
   inline Transform(const Transform& other)
   {
