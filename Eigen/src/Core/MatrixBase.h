@@ -32,7 +32,7 @@
   *
   * This class is the base that is inherited by all matrix, vector, and expression
   * types. Most of the Eigen API is contained in this class. Other important classes for
-  * the Eigen API are Matrix, Cwise, and PartialRedux.
+  * the Eigen API are Matrix, Cwise, and VectorwiseOp.
   *
   * Note that some methods are defined in the \ref Array_Module array module.
   *
@@ -437,10 +437,10 @@ template<typename Derived> class MatrixBase
 
     template<int Index> Diagonal<Derived,Index> diagonal();
     template<int Index> const Diagonal<Derived,Index> diagonal() const;
-    
+
     Diagonal<Derived, Dynamic> diagonal(int index);
     const Diagonal<Derived, Dynamic> diagonal(int index) const;
-    
+
     template<unsigned int Mode> Part<Derived, Mode> part();
     template<unsigned int Mode> const Part<Derived, Mode> part() const;
 
@@ -526,7 +526,7 @@ template<typename Derived> class MatrixBase
         const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
       >::type
     cast() const;
-           
+
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
@@ -560,7 +560,7 @@ template<typename Derived> class MatrixBase
 
     template<typename CustomUnaryOp>
     const CwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
-    
+
     template<typename CustomViewOp>
     const CwiseUnaryView<CustomViewOp, Derived> unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const;
 
@@ -605,8 +605,10 @@ template<typename Derived> class MatrixBase
     bool any(void) const;
     int count() const;
 
-    const PartialRedux<Derived,Horizontal> rowwise() const;
-    const PartialRedux<Derived,Vertical> colwise() const;
+    const VectorwiseOp<Derived,Horizontal> rowwise() const;
+    VectorwiseOp<Derived,Horizontal> rowwise();
+    const VectorwiseOp<Derived,Vertical> colwise() const;
+    VectorwiseOp<Derived,Vertical> colwise();
 
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int size);
@@ -638,7 +640,7 @@ template<typename Derived> class MatrixBase
 /////////// LU module ///////////
 
     const LU<PlainMatrixType> lu() const;
-    const PartialLU<PlainMatrixType> partialLu() const;    
+    const PartialLU<PlainMatrixType> partialLu() const;
     const PlainMatrixType inverse() const;
     void computeInverse(PlainMatrixType *result) const;
     Scalar determinant() const;

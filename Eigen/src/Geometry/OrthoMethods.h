@@ -105,8 +105,8 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
   * \sa MatrixBase::cross() */
 template<typename ExpressionType, int Direction>
 template<typename OtherDerived>
-const typename PartialRedux<ExpressionType,Direction>::CrossReturnType
-PartialRedux<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& other) const
+const typename VectorwiseOp<ExpressionType,Direction>::CrossReturnType
+VectorwiseOp<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),

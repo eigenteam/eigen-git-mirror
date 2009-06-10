@@ -32,7 +32,7 @@ namespace Eigen {
 #include "src/Array/Functors.h"
 #include "src/Array/BooleanRedux.h"
 #include "src/Array/Select.h"
-#include "src/Array/PartialRedux.h"
+#include "src/Array/VectorwiseOp.h"
 #include "src/Array/Random.h"
 #include "src/Array/Norms.h"
 #include "src/Array/Replicate.h"

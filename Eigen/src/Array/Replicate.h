@@ -99,7 +99,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   * Example: \include MatrixBase_replicate.cpp
   * Output: \verbinclude MatrixBase_replicate.out
   *
-  * \sa PartialRedux::replicate(), MatrixBase::replicate(int,int), class Replicate
+  * \sa VectorwiseOp::replicate(), MatrixBase::replicate(int,int), class Replicate
   */
 template<typename Derived>
 template<int RowFactor, int ColFactor>
@@ -115,7 +115,7 @@ MatrixBase<Derived>::replicate() const
   * Example: \include MatrixBase_replicate_int_int.cpp
   * Output: \verbinclude MatrixBase_replicate_int_int.out
   *
-  * \sa PartialRedux::replicate(), MatrixBase::replicate<int,int>(), class Replicate
+  * \sa VectorwiseOp::replicate(), MatrixBase::replicate<int,int>(), class Replicate
   */
 template<typename Derived>
 inline const Replicate<Derived,Dynamic,Dynamic>
@@ -130,11 +130,11 @@ MatrixBase<Derived>::replicate(int rowFactor,int colFactor) const
   * Example: \include DirectionWise_replicate_int.cpp
   * Output: \verbinclude DirectionWise_replicate_int.out
   *
-  * \sa PartialRedux::replicate(), MatrixBase::replicate(), class Replicate
+  * \sa VectorwiseOp::replicate(), MatrixBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
 const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
-PartialRedux<ExpressionType,Direction>::replicate(int factor) const
+VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
 {
   return Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
@@ -146,12 +146,12 @@ PartialRedux<ExpressionType,Direction>::replicate(int factor) const
   * Example: \include DirectionWise_replicate.cpp
   * Output: \verbinclude DirectionWise_replicate.out
   *
-  * \sa PartialRedux::replicate(int), MatrixBase::replicate(), class Replicate
+  * \sa VectorwiseOp::replicate(int), MatrixBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
 template<int Factor>
 const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
-PartialRedux<ExpressionType,Direction>::replicate(int factor) const
+VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
 {
   return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);

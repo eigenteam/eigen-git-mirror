@@ -30,7 +30,7 @@
 /** \internal
   * \brief Template functor to compute the sum of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+, class PartialRedux, MatrixBase::sum()
+  * \sa class CwiseBinaryOp, MatrixBase::operator+, class VectorwiseOp, MatrixBase::sum()
   */
 template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
@@ -52,7 +52,7 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
 /** \internal
   * \brief Template functor to compute the product of two scalars
   *
-  * \sa class CwiseBinaryOp, Cwise::operator*(), class PartialRedux, MatrixBase::redux()
+  * \sa class CwiseBinaryOp, Cwise::operator*(), class VectorwiseOp, MatrixBase::redux()
   */
 template<typename Scalar> struct ei_scalar_product_op EIGEN_EMPTY_STRUCT {
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
@@ -74,7 +74,7 @@ struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
 /** \internal
   * \brief Template functor to compute the min of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class PartialRedux, MatrixBase::minCoeff()
+  * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class VectorwiseOp, MatrixBase::minCoeff()
   */
 template<typename Scalar> struct ei_scalar_min_op EIGEN_EMPTY_STRUCT {
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::min(a, b); }
@@ -96,7 +96,7 @@ struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
 /** \internal
   * \brief Template functor to compute the max of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class PartialRedux, MatrixBase::maxCoeff()
+  * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class VectorwiseOp, MatrixBase::maxCoeff()
   */
 template<typename Scalar> struct ei_scalar_max_op EIGEN_EMPTY_STRUCT {
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return std::max(a, b); }
@@ -382,7 +382,7 @@ struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scala
     : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
 };
 template<typename Scalar>
-struct ei_functor_traits<ei_scalar_quotient1_op<Scalar> > 
+struct ei_functor_traits<ei_scalar_quotient1_op<Scalar> >
 : ei_functor_traits<ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint> >
 {};
 

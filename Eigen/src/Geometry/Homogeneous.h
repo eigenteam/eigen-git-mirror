@@ -147,13 +147,13 @@ MatrixBase<Derived>::homogeneous() const
   * \nonstableyet
   * \returns a matrix expression of homogeneous column (or row) vectors
   *
-  * Example: \include PartialRedux_homogeneous.cpp
-  * Output: \verbinclude PartialRedux_homogeneous.out
+  * Example: \include VectorwiseOp_homogeneous.cpp
+  * Output: \verbinclude VectorwiseOp_homogeneous.out
   *
   * \sa MatrixBase::homogeneous() */
 template<typename ExpressionType, int Direction>
 inline const Homogeneous<ExpressionType,Direction>
-PartialRedux<ExpressionType,Direction>::homogeneous() const
+VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 {
   return _expression();
 }
@@ -165,7 +165,7 @@ PartialRedux<ExpressionType,Direction>::homogeneous() const
   * Example: \include MatrixBase_hnormalized.cpp
   * Output: \verbinclude MatrixBase_hnormalized.out
   *
-  * \sa PartialRedux::hnormalized() */
+  * \sa VectorwiseOp::hnormalized() */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::HNormalizedReturnType
 MatrixBase<Derived>::hnormalized() const
@@ -185,8 +185,8 @@ MatrixBase<Derived>::hnormalized() const
   *
   * \sa MatrixBase::hnormalized() */
 template<typename ExpressionType, int Direction>
-inline const typename PartialRedux<ExpressionType,Direction>::HNormalizedReturnType
-PartialRedux<ExpressionType,Direction>::hnormalized() const
+inline const typename VectorwiseOp<ExpressionType,Direction>::HNormalizedReturnType
+VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 {
   return HNormalized_Block(_expression(),0,0,
       Direction==Vertical   ? _expression().rows()-1 : _expression().rows(),

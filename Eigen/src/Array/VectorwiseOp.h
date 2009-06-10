@@ -37,10 +37,10 @@
   * \param Direction indicates the direction of the redux (Vertical or Horizontal)
   *
   * This class represents an expression of a partial redux operator of a matrix.
-  * It is the return type of PartialRedux functions,
+  * It is the return type of some VectorwiseOp functions,
   * and most of the time this is the only way it is used.
   *
-  * \sa class PartialRedux
+  * \sa class VectorwiseOp
   */
 
 template< typename MatrixType, typename MemberOp, int Direction>
@@ -139,7 +139,7 @@ struct ei_member_redux {
 
 /** \array_module \ingroup Array_Module
   *
-  * \class PartialRedux
+  * \class VectorwiseOp
   *
   * \brief Pseudo expression providing partial reduction operations
   *
@@ -155,7 +155,7 @@ struct ei_member_redux {
   *
   * \sa MatrixBase::colwise(), MatrixBase::rowwise(), class PartialReduxExpr
   */
-template<typename ExpressionType, int Direction> class PartialRedux
+template<typename ExpressionType, int Direction> class VectorwiseOp
 {
   public:
 
@@ -179,7 +179,45 @@ template<typename ExpressionType, int Direction> class PartialRedux
                               > Type;
     };
 
-    inline PartialRedux(const ExpressionType& matrix) : m_matrix(matrix) {}
+  protected:
+
+    /** \internal
+      * \returns the i-th subvector according to the \c Direction */
+    typedef typename ei_meta_if<Direction==Vertical,
+                               typename ExpressionType::ColXpr,
+                               typename ExpressionType::RowXpr>::ret SubVector;
+    SubVector subVector(int i)
+    {
+      return SubVector(m_matrix.derived(),i);
+    }
+
+    /** \internal
+      * \returns the number of subvectors in the direction \c Direction */
+    int subVectors() const
+    { return Direction==Vertical?m_matrix.cols():m_matrix.rows(); }
+
+    template<typename OtherDerived> struct ExtendedType {
+      typedef Replicate<OtherDerived,
+                        Direction==Vertical   ? 1 : ExpressionType::RowsAtCompileTime,
+                        Direction==Horizontal ? 1 : ExpressionType::ColsAtCompileTime> Type;
+    };
+
+    /** \internal
+      * Replicates a vector to match the size of \c *this */
+    template<typename OtherDerived>
+    typename ExtendedType<OtherDerived>::Type
+    extendedTo(const MatrixBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      return typename ExtendedType<OtherDerived>::Type
+                      (other.derived(),
+                       Direction==Vertical   ? 1 : m_matrix.rows(),
+                       Direction==Horizontal ? 1 : m_matrix.cols());
+    }
+
+  public:
+
+    inline VectorwiseOp(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
     inline const ExpressionType& _expression() const { return m_matrix; }
@@ -292,6 +330,48 @@ template<typename ExpressionType, int Direction> class PartialRedux
     const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
     replicate(int factor = Factor) const;
 
+/////////// Artithmetic operators ///////////
+
+    /** Adds the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
+    {
+      for(int j=0; j<subVectors(); ++j)
+        subVector(j) += other;
+      return const_cast<ExpressionType&>(m_matrix);
+    }
+
+    /** Substracts the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
+    {
+      for(int j=0; j<subVectors(); ++j)
+        subVector(j) -= other;
+      return const_cast<ExpressionType&>(m_matrix);
+    }
+
+    /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
+                  ExpressionType,
+                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+    operator+(const MatrixBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      return m_matrix + extendedTo(other).nestByValue();
+    }
+
+    /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
+    template<typename OtherDerived>
+    CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+                  ExpressionType,
+                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+    operator-(const MatrixBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      return m_matrix - extendedTo(other).nestByValue();
+    }
+
 /////////// Geometry module ///////////
 
     const Homogeneous<ExpressionType,Direction> homogeneous() const;
@@ -330,15 +410,15 @@ template<typename ExpressionType, int Direction> class PartialRedux
 
 /** \array_module
   *
-  * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
+  * \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
   *
-  * \sa rowwise(), class PartialRedux
+  * \sa rowwise(), class VectorwiseOp
   */
 template<typename Derived>
-inline const PartialRedux<Derived,Vertical>
+inline const VectorwiseOp<Derived,Vertical>
 MatrixBase<Derived>::colwise() const
 {
   return derived();
@@ -346,16 +426,42 @@ MatrixBase<Derived>::colwise() const
 
 /** \array_module
   *
-  * \returns a PartialRedux wrapper of *this providing additional partial reduction operations
+  * \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
+  *
+  * \sa rowwise(), class VectorwiseOp
+  */
+template<typename Derived>
+inline VectorwiseOp<Derived,Vertical>
+MatrixBase<Derived>::colwise()
+{
+  return derived();
+}
+
+/** \array_module
+  *
+  * \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * Example: \include MatrixBase_rowwise.cpp
   * Output: \verbinclude MatrixBase_rowwise.out
   *
-  * \sa colwise(), class PartialRedux
+  * \sa colwise(), class VectorwiseOp
   */
 template<typename Derived>
-inline const PartialRedux<Derived,Horizontal>
+inline const VectorwiseOp<Derived,Horizontal>
 MatrixBase<Derived>::rowwise() const
+{
+  return derived();
+}
+
+/** \array_module
+  *
+  * \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
+  *
+  * \sa colwise(), class VectorwiseOp
+  */
+template<typename Derived>
+inline VectorwiseOp<Derived,Horizontal>
+MatrixBase<Derived>::rowwise()
 {
   return derived();
 }
@@ -365,12 +471,12 @@ MatrixBase<Derived>::rowwise() const
   * The template parameter \a BinaryOp is the type of the functor
   * of the custom redux operator. Note that func must be an associative operator.
   *
-  * \sa class PartialRedux, MatrixBase::colwise(), MatrixBase::rowwise()
+  * \sa class VectorwiseOp, MatrixBase::colwise(), MatrixBase::rowwise()
   */
 template<typename ExpressionType, int Direction>
 template<typename BinaryOp>
-const typename PartialRedux<ExpressionType,Direction>::template ReduxReturnType<BinaryOp>::Type
-PartialRedux<ExpressionType,Direction>::redux(const BinaryOp& func) const
+const typename VectorwiseOp<ExpressionType,Direction>::template ReduxReturnType<BinaryOp>::Type
+VectorwiseOp<ExpressionType,Direction>::redux(const BinaryOp& func) const
 {
   return typename ReduxReturnType<BinaryOp>::Type(_expression(), func);
 }

@@ -205,7 +205,7 @@ public:
     * If Mode==Affine, then the last row is set to [0 ... 0 1] */
   inline Transform()
   {
-    if (Mode==Affine)
+    if (int(Mode)==Affine)
       makeAffine();
   }
 

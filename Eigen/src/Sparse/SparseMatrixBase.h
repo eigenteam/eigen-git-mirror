@@ -562,8 +562,8 @@ template<typename Derived> class SparseMatrixBase
     bool all(void) const;
     bool any(void) const;
 
-    const PartialRedux<Derived,Horizontal> rowwise() const;
-    const PartialRedux<Derived,Vertical> colwise() const;
+    const VectorwiseOp<Derived,Horizontal> rowwise() const;
+    const VectorwiseOp<Derived,Vertical> colwise() const;
 
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int rows, int cols);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int size);

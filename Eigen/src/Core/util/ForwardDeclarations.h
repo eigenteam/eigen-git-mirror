@@ -105,7 +105,7 @@ void ei_cache_friendly_product(
 // Array module
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> class Select;
 template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
-template<typename ExpressionType, int Direction> class PartialRedux;
+template<typename ExpressionType, int Direction> class VectorwiseOp;
 template<typename MatrixType,int RowFactor,int ColFactor> class Replicate;
 template<typename MatrixType, int Direction = BothDirections> class Reverse;
 
