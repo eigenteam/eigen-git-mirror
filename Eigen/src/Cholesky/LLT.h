@@ -1,5 +1,5 @@
 // This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
@@ -41,10 +41,15 @@
   * and even faster. Nevertheless, this standard Cholesky decomposition remains useful in many other
   * situations like generalised eigen problems with hermitian matrices.
   *
-  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
-  * the strict lower part does not have to store correct values.
+  * Remember that Cholesky decompositions are not rank-revealing. This LLT decomposition is only stable on positive definite matrices,
+  * use LDLT instead for the semidefinite case. Also, do not use a Cholesky decomposition to determine whether a system of equations
+  * has a solution.
   *
   * \sa MatrixBase::llt(), class LDLT
+  */
+ /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
+  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
+  * the strict lower part does not have to store correct values.
   */
 template<typename MatrixType> class LLT
 {
@@ -60,17 +65,30 @@ template<typename MatrixType> class LLT
 
   public:
 
+    /** 
+    * \brief Default Constructor.
+    *
+    * The default constructor is useful in cases in which the user intends to
+    * perform decompositions via LLT::compute(const MatrixType&).
+    */
+    LLT() : m_matrix(), m_isInitialized(false) {}
+
     LLT(const MatrixType& matrix)
-      : m_matrix(matrix.rows(), matrix.cols())
+      : m_matrix(matrix.rows(), matrix.cols()),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, LowerTriangular> matrixL(void) const { return m_matrix; }
-
-    /** \returns true if the matrix is positive definite */
-    inline bool isPositiveDefinite(void) const { return m_isPositiveDefinite; }
+    inline Part<MatrixType, LowerTriangular> matrixL(void) const 
+    { 
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      return m_matrix; 
+    }
+    
+    /** \deprecated */
+    inline bool isPositiveDefinite(void) const { return m_isInitialized && m_isPositiveDefinite; }
 
     template<typename RhsDerived, typename ResDerived>
     bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
@@ -86,6 +104,7 @@ template<typename MatrixType> class LLT
       * The strict upper part is not used and even not initialized.
       */
     MatrixType m_matrix;
+    bool m_isInitialized;
     bool m_isPositiveDefinite;
 };
 
@@ -95,24 +114,34 @@ template<typename MatrixType>
 void LLT<MatrixType>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
+  m_isPositiveDefinite = true;
   const int size = a.rows();
   m_matrix.resize(size, size);
-  const RealScalar eps = ei_sqrt(precision<Scalar>());
-
+  // The biggest overall is the point of reference to which further diagonals
+  // are compared; if any diagonal is negligible compared
+  // to the largest overall, the algorithm bails.  This cutoff is suggested
+  // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
+  // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
+  // Algorithms" page 217, also by Higham.
+  const RealScalar cutoff = machine_epsilon<Scalar>() * size * a.diagonal().cwise().abs().maxCoeff();
   RealScalar x;
   x = ei_real(a.coeff(0,0));
-  m_isPositiveDefinite = x > eps && ei_isMuchSmallerThan(ei_imag(a.coeff(0,0)), RealScalar(1));
   m_matrix.coeffRef(0,0) = ei_sqrt(x);
+  if(size==1)
+  {
+    m_isInitialized = true;
+    return;
+  }
   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
-    Scalar tmp = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
-    x = ei_real(tmp);
-    if (x < eps || (!ei_isMuchSmallerThan(ei_imag(tmp), RealScalar(1))))
+    x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
+    if (x < cutoff)
     {
       m_isPositiveDefinite = false;
-      return;
+      continue;
     }
+
     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
 
     int endSize = size-j-1;
@@ -127,12 +156,14 @@ void LLT<MatrixType>::compute(const MatrixType& a)
         - m_matrix.col(j).end(endSize) ) / x;
     }
   }
+
+  m_isInitialized = true;
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
   * The result is stored in \a result
   *
-  * \returns true in case of success, false otherwise.
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
   *
   * In other words, it computes \f$ b = A^{-1} b \f$ with
   * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
@@ -146,6 +177,7 @@ template<typename MatrixType>
 template<typename RhsDerived, typename ResDerived>
 bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
 {
+  ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
   return solveInPlace((*result) = b);
@@ -154,6 +186,8 @@ bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDeriv
 /** This is the \em in-place version of solve().
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
+  *
+  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
   *
   * This version avoids a copy when the right hand side matrix b is not
   * needed anymore.
@@ -164,10 +198,9 @@ template<typename MatrixType>
 template<typename Derived>
 bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
+  ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
-  if (!m_isPositiveDefinite)
-    return false;
   matrixL().solveTriangularInPlace(bAndX);
   m_matrix.adjoint().template part<UpperTriangular>().solveTriangularInPlace(bAndX);
   return true;
