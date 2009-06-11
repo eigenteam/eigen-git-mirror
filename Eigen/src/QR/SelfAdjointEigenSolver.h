@@ -1,5 +1,5 @@
 // This file is part of Eigen, a lightweight C++ template library
-// for linear algebra. Eigen itself is part of the KDE project.
+// for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
@@ -52,8 +52,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 
     SelfAdjointEigenSolver()
-        : m_eivec(Size, Size),
-          m_eivalues(Size)
+        : m_eivec(int(Size), int(Size)),
+          m_eivalues(int(Size))
     {
       ei_assert(Size!=Dynamic);
     }
@@ -189,6 +189,14 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
+
+  if(n==1)
+  {
+    m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
+    m_eivec.setOnes();
+    return;
+  }
+
   m_eivec = matrix;
 
   // FIXME, should tridiag be a local variable of this function or an attribute of SelfAdjointEigenSolver ?
