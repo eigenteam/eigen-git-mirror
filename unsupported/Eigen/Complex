@@ -1,6 +1,34 @@
 #ifndef EIGEN_COMPLEX_H
 #define EIGEN_COMPLEX_H
 
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2009 Mark Borgerding mark a borgerding net
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+// Eigen::Complex reuses as much as possible from std::complex
+// and allows easy conversion to and from, even at the pointer level.
+
+
 #include <complex>
 
 namespace Eigen {
@@ -21,6 +49,7 @@ struct Complex
     typedef typename std::complex<T> StandardComplex;
     typedef T value_type;
 
+    // constructors
     Complex(const T& re = T(), const T& im = T()) : _re(re),_im(im) { }
     Complex(const Complex&other ): _re(other.real()) ,_im(other.imag()) {}
 
@@ -29,22 +58,31 @@ struct Complex
     template<class X> 
     Complex(const std::complex<X>&other): _re(other.real()) ,_im(other.imag()) {}
 
+
+    // allow binary access to the object as a std::complex
     typedef castable_pointer< Complex<T>*, StandardComplex* > pointer_type;
     typedef castable_pointer< const Complex<T>*, const StandardComplex* > const_pointer_type;
-
     pointer_type operator & () {return pointer_type(this);}
     const_pointer_type operator & () const {return const_pointer_type(this);}
-
-    StandardComplex std_type() const {return StandardComplex(real(),imag());}
-    StandardComplex & std_type() {return *(StandardComplex*)(&(*this));}
 
     operator StandardComplex () const {return std_type();}
     operator StandardComplex & () {return std_type();}
 
-    T & real() {return _re;}
-    T & imag() {return _im;}
+    StandardComplex std_type() const {return StandardComplex(real(),imag());}
+    StandardComplex & std_type() {return *reinterpret_cast<StandardComplex*>(this);}
+
+
+    // every sort of accessor and mutator that has ever been in fashion.
+    // For a brief history, search for "std::complex over-encapsulated"
+    // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#387
     const T & real() const {return _re;}
     const T & imag() const {return _im;}
+    T & real() {return _re;}
+    T & imag() {return _im;}
+    T & real(const T & x) {return _re=x;}
+    T & imag(const T & x) {return _im=x;}
+    void set_real(const T & x) {_re = x;}
+    void set_imag(const T & x) {_im = x;}
 
     // *** complex member functions: ***
     Complex<T>& operator= (const T& val) { _re=val;_im=0;return *this;  }
