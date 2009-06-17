@@ -1,0 +1,142 @@
+#ifndef EIGEN_COMPLEX_H
+#define EIGEN_COMPLEX_H
+
+#include <complex>
+
+namespace Eigen {
+
+template <typename _NativePtr,typename _PunnedPtr>
+struct castable_pointer
+{
+    castable_pointer(_NativePtr ptr) : _ptr(ptr) {}
+    operator _NativePtr ()  {return _ptr;}
+    operator _PunnedPtr ()  {return reinterpret_cast<_PunnedPtr>(_ptr);}
+    private: 
+    _NativePtr _ptr;
+};
+
+template <typename T>
+struct Complex
+{
+    typedef typename std::complex<T> StandardComplex;
+    typedef T value_type;
+
+    Complex(const T& re = T(), const T& im = T()) : _re(re),_im(im) { }
+    Complex(const Complex&other ): _re(other.real()) ,_im(other.imag()) {}
+
+    template<class X> 
+    Complex(const Complex<X>&other): _re(other.real()) ,_im(other.imag()) {}
+    template<class X> 
+    Complex(const std::complex<X>&other): _re(other.real()) ,_im(other.imag()) {}
+
+    typedef castable_pointer< Complex<T>*, StandardComplex* > pointer_type;
+    typedef castable_pointer< const Complex<T>*, const StandardComplex* > const_pointer_type;
+
+    pointer_type operator & () {return pointer_type(this);}
+    const_pointer_type operator & () const {return const_pointer_type(this);}
+
+    StandardComplex std_type() const {return StandardComplex(real(),imag());}
+    StandardComplex & std_type() {return *(StandardComplex*)(&(*this));}
+
+    operator StandardComplex () const {return std_type();}
+    operator StandardComplex & () {return std_type();}
+
+    T & real() {return _re;}
+    T & imag() {return _im;}
+    const T & real() const {return _re;}
+    const T & imag() const {return _im;}
+
+    // *** complex member functions: ***
+    Complex<T>& operator= (const T& val) { _re=val;_im=0;return *this;  }
+    Complex<T>& operator+= (const T& val) {_re+=val;return *this;}
+    Complex<T>& operator-= (const T& val) {_re-=val;return *this;}
+    Complex<T>& operator*= (const T& val) {_re*=val;_im*=val;return *this;  }
+    Complex<T>& operator/= (const T& val) {_re/=val;_im/=val;return *this;  }
+
+    Complex& operator= (const Complex& rhs) {_re=rhs._re;_im=rhs._im;return *this;}
+    Complex& operator= (const StandardComplex& rhs) {_re=rhs.real();_im=rhs.imag();return *this;}
+
+    template<class X> Complex<T>& operator= (const Complex<X>& rhs) { _re=rhs._re;_im=rhs._im;return *this;}
+    template<class X> Complex<T>& operator+= (const Complex<X>& rhs) { _re+=rhs._re;_im+=rhs._im;return *this;}
+    template<class X> Complex<T>& operator-= (const Complex<X>& rhs) { _re-=rhs._re;_im-=rhs._im;return *this;}
+    template<class X> Complex<T>& operator*= (const Complex<X>& rhs) { this->std_type() *= rhs.std_type(); return *this; }
+    template<class X> Complex<T>& operator/= (const Complex<X>& rhs) { this->std_type() /= rhs.std_type(); return *this; }
+
+    private:
+    T _re;
+    T _im;
+};
+
+template <typename T>
+T ei_to_std( const T & x) {return x;}
+
+template <typename T>
+std::complex<T> ei_to_std( const Complex<T> & x) {return x.std_type();}
+
+// 26.2.6 operators
+template<class T> Complex<T> operator+(const Complex<T>& rhs) {return rhs;}
+template<class T> Complex<T> operator-(const Complex<T>& rhs) {return -ei_to_std(rhs);}
+
+template<class T> Complex<T> operator+(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) + ei_to_std(rhs);}
+template<class T> Complex<T> operator-(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) - ei_to_std(rhs);}
+template<class T> Complex<T> operator*(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) * ei_to_std(rhs);}
+template<class T> Complex<T> operator/(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) / ei_to_std(rhs);}
+template<class T> bool operator==(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) == ei_to_std(rhs);}
+template<class T> bool operator!=(const Complex<T>& lhs, const Complex<T>& rhs) { return ei_to_std(lhs) != ei_to_std(rhs);}
+
+template<class T> Complex<T> operator+(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) + ei_to_std(rhs); }
+template<class T> Complex<T> operator-(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) - ei_to_std(rhs); }
+template<class T> Complex<T> operator*(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) * ei_to_std(rhs); }
+template<class T> Complex<T> operator/(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) / ei_to_std(rhs); }
+template<class T> bool operator==(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) == ei_to_std(rhs); }
+template<class T> bool operator!=(const Complex<T>& lhs, const T& rhs) {return ei_to_std(lhs) != ei_to_std(rhs); }
+
+template<class T> Complex<T> operator+(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) + ei_to_std(rhs); }
+template<class T> Complex<T> operator-(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) - ei_to_std(rhs); }
+template<class T> Complex<T> operator*(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) * ei_to_std(rhs); }
+template<class T> Complex<T> operator/(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) / ei_to_std(rhs); }
+template<class T> bool operator==(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) == ei_to_std(rhs); }
+template<class T> bool operator!=(const T& lhs, const Complex<T>& rhs) {return ei_to_std(lhs) != ei_to_std(rhs); }
+
+template<class T, class charT, class traits>
+std::basic_istream<charT,traits>&
+  operator>> (std::basic_istream<charT,traits>& istr, Complex<T>& rhs)
+{
+    return istr >> rhs.std_type();
+}
+
+template<class T, class charT, class traits>
+std::basic_ostream<charT,traits>&
+operator<< (std::basic_ostream<charT,traits>& ostr, const Complex<T>& rhs)
+{
+    return ostr << rhs.std_type();
+}
+
+ // 26.2.7 values:
+ template<class T> T real(const Complex<T>&x) {return real(ei_to_std(x));}
+ template<class T> T abs(const Complex<T>&x) {return abs(ei_to_std(x));}
+ template<class T> T arg(const Complex<T>&x) {return arg(ei_to_std(x));}
+ template<class T> T norm(const Complex<T>&x) {return norm(ei_to_std(x));}
+
+ template<class T> Complex<T> conj(const Complex<T>&x) { return conj(ei_to_std(x));}
+ template<class T> Complex<T> polar(const T& x, const T&y) {return polar(ei_to_std(x),ei_to_std(y));} 
+ // 26.2.8 transcendentals:
+ template<class T> Complex<T> cos (const  Complex<T>&x){return cos(ei_to_std(x));}
+ template<class T> Complex<T> cosh (const  Complex<T>&x){return cosh(ei_to_std(x));}
+ template<class T> Complex<T> exp (const  Complex<T>&x){return exp(ei_to_std(x));}
+ template<class T> Complex<T> log (const  Complex<T>&x){return log(ei_to_std(x));}
+ template<class T> Complex<T> log10 (const  Complex<T>&x){return log10(ei_to_std(x));}
+
+ template<class T> Complex<T> pow(const Complex<T>&x, int p) {return pow(ei_to_std(x),ei_to_std(p));}
+ template<class T> Complex<T> pow(const Complex<T>&x, const T&p) {return pow(ei_to_std(x),ei_to_std(p));}
+ template<class T> Complex<T> pow(const Complex<T>&x, const Complex<T>&p) {return pow(ei_to_std(x),ei_to_std(p));}
+ template<class T> Complex<T> pow(const T&x, const Complex<T>&p) {return pow(ei_to_std(x),ei_to_std(p));}
+
+ template<class T> Complex<T> sin (const  Complex<T>&x){return sin(ei_to_std(x));}
+ template<class T> Complex<T> sinh (const  Complex<T>&x){return sinh(ei_to_std(x));}
+ template<class T> Complex<T> sqrt (const  Complex<T>&x){return sqrt(ei_to_std(x));}
+ template<class T> Complex<T> tan (const  Complex<T>&x){return tan(ei_to_std(x));}
+ template<class T> Complex<T> tanh (const  Complex<T>&x){return tanh(ei_to_std(x));}
+}
+
+#endif
