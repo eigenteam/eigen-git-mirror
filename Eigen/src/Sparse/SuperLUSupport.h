@@ -425,7 +425,7 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b,
       case SvTranspose  :  m_sluOptions.Trans = TRANS;   break;
       case SvAdjoint    :  m_sluOptions.Trans = CONJ;    break;
       default:
-        std::cerr << "Eigen: tranpsiotion  option \"" << transposed << "\" not supported by the SuperLU backend\n";
+        std::cerr << "Eigen: transposition  option \"" << transposed << "\" not supported by the SuperLU backend\n";
         m_sluOptions.Trans = NOTRANS;
   }
 
