@@ -42,7 +42,12 @@ There is no library to link to. For good performance, add the \c -O2 compile-fla
 On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default.
 
 <a name="warningarraymodule"></a>
-\warning \redstar In most cases it is enough to include the \c Eigen/Core header only to get started with Eigen. However, some features presented in this tutorial require the Array module to be included (\c \#include \c <Eigen/Array>). Those features are highlighted with a red star \redstar.
+\warning \redstar In most cases it is enough to include the \c Eigen/Core header only to get started with Eigen. However, some features presented in this tutorial require the Array module to be included (\c \#include \c <Eigen/Array>). Those features are highlighted with a red star \redstar. Notice that if you want to include all dense (i.e. all except sparse) Eigen functionality at once, you can do:
+\code
+#include <Eigen/Dense>
+\endcode
+This slows compilation by roughly 10-20% but at least you don't have to worry anymore about including the correct files!
+
 
 \section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
