@@ -205,6 +205,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     // squared norm of the vector v skipping the first element
     RealScalar v1norm2 = matA.col(i).end(n-(i+2)).squaredNorm();
 
+    // FIXME comparing against 1
     if (ei_isMuchSmallerThan(v1norm2,static_cast<Scalar>(1)))
     {
       hCoeffs.coeffRef(i) = 0.;
@@ -253,10 +254,12 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     int i = n-2;
     Scalar v0 = matA.col(i).coeff(i+1);
     RealScalar beta = ei_abs(v0);
-    if (ei_real(v0)>=0.)
+    if (ei_real(v0)>=RealScalar(0))
       beta = -beta;
     matA.col(i).coeffRef(i+1) = beta;
-    hCoeffs.coeffRef(i) = (beta - v0) / beta;
+    // FIXME comparing against 1
+    if(ei_isMuchSmallerThan(beta, Scalar(1))) hCoeffs.coeffRef(i) = Scalar(0);
+    else hCoeffs.coeffRef(i) = (beta - v0) / beta;
   }
   else
   {
