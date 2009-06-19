@@ -41,13 +41,6 @@ There is no library to link to. For good performance, add the \c -O2 compile-fla
 
 On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default.
 
-<a name="warningarraymodule"></a>
-\warning \redstar In most cases it is enough to include the \c Eigen/Core header only to get started with Eigen. However, some features presented in this tutorial require the Array module to be included (\c \#include \c <Eigen/Array>). Those features are highlighted with a red star \redstar. Notice that if you want to include all dense (i.e. all except sparse) Eigen functionality at once, you can do:
-\code
-#include <Eigen/Dense>
-\endcode
-This slows compilation by roughly 10-20% but at least you don't have to worry anymore about including the correct files!
-
 \section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
 By fixed-size, we mean that the number of rows and columns are fixed at compile-time. In this case, Eigen avoids dynamic memory allocation, and unroll loops when that makes sense. This is useful for very small sizes: typically up to 4x4, sometimes up to 16x16.
@@ -72,9 +65,12 @@ output:
 \include Tutorial_simple_example_dynamic_size.out
 </td></tr></table>
 
-
-
-
+<a name="warningarraymodule"></a>
+\warning \redstar In most cases it is enough to include the \c Eigen/Core header only to get started with Eigen. However, some features presented in this tutorial require the Array module to be included (\c \#include \c <Eigen/Array>). Those features are highlighted with a red star \redstar. Notice that if you want to include all Eigen functionality at once, you can do:
+\code
+#include <Eigen/Eigen>
+\endcode
+This slows compilation down but at least you don't have to worry anymore about including the correct files! There also is the Eigen/Dense header including all dense functionality i.e. leaving out the Sparse module.
 
 
 <a href="#" class="top">top</a>\section TutorialCoreMatrixTypes Matrix and vector types
