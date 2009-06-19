@@ -117,8 +117,8 @@ template<typename MatrixType> class LDLT
       return m_sign == -1; 
     }
 
-    template<typename RhsDerived, typename ResDerived>
-    bool solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const;
+    template<typename RhsDerived, typename ResultType>
+    bool solve(const MatrixBase<RhsDerived> &b, ResultType *result) const;
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
@@ -248,9 +248,9 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   * \sa LDLT::solveInPlace(), MatrixBase::ldlt()
   */
 template<typename MatrixType>
-template<typename RhsDerived, typename ResDerived>
+template<typename RhsDerived, typename ResultType>
 bool LDLT<MatrixType>
-::solve(const MatrixBase<RhsDerived> &b, MatrixBase<ResDerived> *result) const
+::solve(const MatrixBase<RhsDerived> &b, ResultType *result) const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
   const int size = m_matrix.rows();
