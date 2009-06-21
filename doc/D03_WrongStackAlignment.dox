@@ -1,0 +1,43 @@
+namespace Eigen {
+
+/** \page WrongStackAlignment Troubleshooting - Compiler making a wrong assumption on stack alignment
+
+This is an issue that, so far, we met only with GCC on Windows: for instance, MinGW and TDM-GCC.
+
+By default, in a function like this,
+
+\code
+void foo()
+{
+  Eigen::Quaternionf q;
+  //...
+}
+\endcode
+
+GCC assumes that the stack is already 16-byte-aligned so that the object \a q will be created at a 16-byte-aligned location. For this reason, it doesn't take any special care to explicitly align the object \a q, as Eigen requires.
+
+The problem is that this assumption is wrong on Windows, where the stack is not guaranteed to have 16-byte alignment. This results in the object 'q' being created at an unaligned location, making your program crash with the \ref UnalignedArrayAssert "assertion on unaligned arrays".
+
+A local solution is to mark your function with this attribute:
+\code
+__attribute__((force_align_arg_pointer)) void foo()
+{
+  Eigen::Quaternionf q;
+  //...
+}
+\endcode
+Read <a href="http://gcc.gnu.org/onlinedocs/gcc-4.4.0/gcc/Function-Attributes.html#Function-Attributes">this GCC documentation</a> to understand what this does. Of course this should only be done on GCC on Windows, so for portability you'll have to encapsulate this in a macro which you leave empty on other platforms. Also this needs to be done for every such function, which is inconvenient! So you may prefer the following global solution:
+
+A global solution is to edit your project so that when compiling with GCC on Windows, you pass this option to GCC:
+\code
+-mpreferred-stack-boundary=3
+\endcode
+or
+\code
+-mpreferred-stack-boundary=2
+\endcode
+Explanation: this tells GCC that the stack should only be required to be aligned to 2^3=8 byes (in the first version) or to 2^2=4 bytes (in the second version). In both cases, this is smaller than 16 bytes, so GCC now knows that it really must take extra care to honor the 16 byte alignment of \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types". However, you must make sure that you understand fully what this does, before applying this change to your project. Read the GCC manual page. A too low value of \c -mpreferred-stack-boundary can result in poor performance: for example, on various CPUs, double-precision numbers work much faster when aligned to 8 bytes boundary, which is guaranteed by \c -mpreferred-stack-boundary=3 but not by \c -mpreferred-stack-boundary=2, so passing \c -mpreferred-stack-boundary=2 can result in poor performance! On the other hand, notice that the higher the value of \c -mpreferred-stack-boundary, the bigger the code size.
+
+*/
+
+}

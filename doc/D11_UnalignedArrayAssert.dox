@@ -12,12 +12,13 @@ is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html
 **** READ THIS WEB PAGE !!! ****"' failed.
 </pre>
 
-There are 3 known causes for this issue. Please read on to understand them and learn how to fix them.
+There are 4 known causes for this issue. Please read on to understand them and learn how to fix them.
 
 \b Table \b of \b contents
  - \ref c1
  - \ref c2
  - \ref c3
+ - \ref c4
  - \ref explanation
 
 \section c1 Cause 1: Structures having Eigen objects as members
@@ -63,6 +64,22 @@ void func(Eigen::Vector4d v);
 then you need to read this separate page: \ref PassingByValue "Passing Eigen objects by value to functions".
 
 Note that here, Eigen::Vector4d is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
+
+\section c4 Cause 4: Compiler making a wrong assumption on stack alignment (for instance GCC on Windows)
+
+This is a must-read for people using GCC on Windows (like MinGW or TDM-GCC). If you have this assertion failure in an innocent function declaring a local variable like this:
+
+\code
+void foo()
+{
+  Eigen::Quaternionf q;
+  //...
+}
+\endcode
+
+then you need to read this separate page: \ref WrongStackAlignment "Compiler making a wrong assumption on stack alignment".
+
+Note that here, Eigen::Quaternionf is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
 
 \section explanation General explanation of this assertion
 
