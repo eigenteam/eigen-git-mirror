@@ -36,12 +36,22 @@
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
 
-// if the compiler is GNUC, disable 16 byte alignment on exotic archs that probably don't need it, and on which
-// it may be extra trouble to get aligned memory allocation to work (example: on ARM, overloading new[] is a PITA
-// because extra memory must be allocated for bookkeeping).
-// if the compiler is not GNUC, just cross fingers that the architecture isn't too exotic, because we don't want
-// to keep track of all the different preprocessor symbols for all compilers.
-#if (!defined(__GNUC__)) || defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__)
+// 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable 16 byte alignment on all
+// platforms where vectorization might be enabled. In theory we could always enable alignment, but it can be a cause of problems
+// on some platforms, so we just disable it in certain common platform (compiler+architecture combinations) to avoid these problems.
+#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__))
+#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 1
+#else
+#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 0
+#endif
+
+#if defined(__GNUC__) && (__GNUC__ <= 3)
+#define EIGEN_GCC3_OR_OLDER 1
+#else
+#define EIGEN_GCC3_OR_OLDER 0
+#endif
+
+#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER
   #define EIGEN_ARCH_WANTS_ALIGNMENT 1
 #else
   #define EIGEN_ARCH_WANTS_ALIGNMENT 0
@@ -54,7 +64,7 @@
 #else
   #define EIGEN_ALIGN 0
   #ifdef EIGEN_VECTORIZE
-    #error Vectorization enabled, but the architecture is not listed among those for which we require 16 byte alignment. If you added vectorization for another architecture, you also need to edit this list.
+    #error "Vectorization enabled, but our platform checks say that we don't do 16 byte alignment on this platform. If you added vectorization for another architecture, you also need to edit this platform check."
   #endif
   #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
