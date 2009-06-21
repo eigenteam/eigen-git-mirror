@@ -125,7 +125,20 @@ template<typename MatrixType> class Transpose
   * Example: \include MatrixBase_transpose.cpp
   * Output: \verbinclude MatrixBase_transpose.out
   *
-  * \sa adjoint(), class DiagonalCoeffs */
+  * \warning If you want to replace a matrix by its own transpose, do \b NOT do this:
+  * \code
+  * m = m.transpose(); // bug!!! caused by aliasing effect
+  * \endcode
+  * Instead, use the transposeInPlace() method:
+  * \code
+  * m.transposeInPlace();
+  * \endcode
+  * which gives Eigen good opportunities for optimization, or alternatively you can also do:
+  * \code
+  * m = m.transpose().eval();
+  * \endcode
+  *
+  * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
 inline Transpose<Derived>
 MatrixBase<Derived>::transpose()
@@ -133,7 +146,11 @@ MatrixBase<Derived>::transpose()
   return derived();
 }
 
-/** This is the const version of transpose(). \sa adjoint() */
+/** This is the const version of transpose().
+  *
+  * Make sure you read the warning for transpose() !
+  *
+  * \sa transposeInPlace(), adjoint() */
 template<typename Derived>
 inline const Transpose<Derived>
 MatrixBase<Derived>::transpose() const
@@ -145,6 +162,15 @@ MatrixBase<Derived>::transpose() const
   *
   * Example: \include MatrixBase_adjoint.cpp
   * Output: \verbinclude MatrixBase_adjoint.out
+  *
+  * \warning If you want to replace a matrix by its own adjoint, do \b NOT do this:
+  * \code
+  * m = m.adjoint(); // bug!!! caused by aliasing effect
+  * \endcode
+  * Instead, do:
+  * \code
+  * m = m.adjoint().eval();
+  * \endcode
   *
   * \sa transpose(), conjugate(), class Transpose, class ei_scalar_conjugate_op */
 template<typename Derived>
