@@ -163,14 +163,9 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) {
-  Packet4f r;
-  r = _mm_castpd_ps(_mm_load_sd((double*)(from)));
-  r = _mm_loadh_pi(r, (const __m64*)(from+2));
-  return r;
-}
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return _mm_castps_pd(ei_ploadu((const float*)(from))); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return _mm_castpd_si128(ei_ploadu((const double*)(from))); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { _mm_store_pd(to, from); }
