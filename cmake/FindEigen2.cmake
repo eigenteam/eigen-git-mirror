@@ -9,8 +9,6 @@
 # Copyright (c) 2008, 2009 Gael Guennebaud, <g.gael@free.fr>
 # Redistribution and use is allowed according to the terms of the BSD license.
 
-include(MacroEnsureVersion)
-
 if(NOT EIGEN2_MIN_VERSION)
   if(NOT Eigen2_FIND_VERSION_MAJOR)
     set(Eigen2_FIND_VERSION_MAJOR 2)
@@ -36,7 +34,11 @@ macro(_eigen2_check_version)
   set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
 
   set(EIGEN2_VERSION ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION})
-  MACRO_ENSURE_VERSION( ${EIGEN2_MIN_VERSION} ${EIGEN2_VERSION} EIGEN2_VERSION_OK)
+  if(${EIGEN2_VERSION} VERSION_LESS ${EIGEN2_MIN_VERSION})
+    set(EIGEN2_VERSION_OK FALSE)
+  else(${EIGEN2_VERSION} VERSION_LESS ${EIGEN2_MIN_VERSION})
+    set(EIGEN2_VERSION_OK TRUE)
+  endif(${EIGEN2_VERSION} VERSION_LESS ${EIGEN2_MIN_VERSION})
 
   if(NOT EIGEN2_VERSION_OK)
   
