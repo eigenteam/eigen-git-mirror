@@ -274,7 +274,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setConstant(const Scalar& valu
   *
   * \only_for_vectors
   *
-  * Example: \include Matrix_set_int.cpp
+  * Example: \include Matrix_setConstant_int.cpp
   * Output: \verbinclude Matrix_setConstant_int.out
   *
   * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
