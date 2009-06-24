@@ -44,7 +44,7 @@ typedef __m128d Packet2d;
 
 #define ei_vec4i_swizzle2(a,b,p,q,r,s) \
   (_mm_castps_si128( (_mm_shuffle_ps( _mm_castsi128_ps(a), _mm_castsi128_ps(b), ((s)<<6|(r)<<4|(q)<<2|(p))))))
-  
+
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
   const Packet4f ei_p4f_##NAME = ei_pset1<float>(X)
 
@@ -163,9 +163,38 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
+#if (!defined __GNUC__) || (!defined __ICC)
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+#else
+// Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
+// require pointer casting to incompatible pointer types and leads to invalid code
+// because of the strict aliasing rule. The "dummy" stuff are required to enforce
+// a correct instruction dependency.
+// TODO: do the same for MSVC (ICC is compatible)
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
+{
+  __m128 res;
+  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
+  asm("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
+  return res;
+}
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
+{
+  __m128d res;
+  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
+  asm("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
+  return res;
+}
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
+{
+  __m128i res;
+  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
+  asm("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
+  return res;
+}
+#endif
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { _mm_store_pd(to, from); }
