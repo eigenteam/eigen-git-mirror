@@ -241,6 +241,8 @@ enum {
   DontAlign = 0x2
 };
 
+enum NoChange_t { NoChange };
+
 enum {
   IsDense         = 0,
   IsSparse        = SparseBit,

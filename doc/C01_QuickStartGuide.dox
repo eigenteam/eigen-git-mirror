@@ -88,6 +88,17 @@ For example, \c Vector3d is a typedef for \code Matrix<double, 3, 1> \endcode
 
 For dynamic-size, that is in order to left the number of rows or of columns unspecified at compile-time, use the special value Eigen::Dynamic. For example, \c VectorXd is a typedef for \code Matrix<double, Dynamic, 1> \endcode
 
+All combinations are allowed: you can have a matrix with a fixed number of rows and a dynamic number of columns, etc. The following are all valid:
+
+\code
+Matrix<double, 6, Dynamic> // Dynamic number of columns
+Matrix<double, Dynamic, 2> // Dynamic number of rows
+Matrix<double, Dynamic, Dynamic> // Fully dynamic
+Matrix<double, 13, 3> // Fully fixed
+\endcode
+
+Fixed-size and partially-dynamic-size matrices may use all the same API calls as fully dynamic
+matrices, but the fixed dimension(s) must remain constant, or an assertion failure will occur.
 
 <a href="#" class="top">top</a>\section TutorialCoreCoefficients Coefficient access
 
@@ -109,6 +120,48 @@ Notice that these coefficient access methods have assertions checking the ranges
 
 <a href="#" class="top">top</a>\section TutorialCoreMatrixInitialization Matrix and vector creation and initialization
 
+\subsection TutorialCtors Matrix constructors
+
+The default constructor leaves coefficients uninitialized. Any dynamic size is set to 0, in which case the matrix/vector is considered uninitialized (no array is allocated).
+
+\code
+Matrix3f A; // construct 3x3 matrix with uninitialized coefficients
+A(0,0) = 5; // OK
+MatrixXf B; // construct 0x0 matrix without allocating anything
+A(0,0) = 5; // Error, B is uninitialized, doesn't have any coefficients to address
+\endcode
+
+In the above example, B is an uninitialized matrix. What to do with such a matrix? You can call resize() on it, or you can assign another matrix to it. Like this:
+
+\code
+MatrixXf B; // uninitialized matrix
+B.resize(3,5); // OK, now B is a 3x5 matrix with uninitialized coefficients
+B(0,0) = 5; // OK
+MatrixXf C; // uninitialized matrix
+C = B; // OK, C is initialized as a copy of B
+\endcode
+
+There also are constructors taking size parameters, allowing to directly initialize dynamic-size matrices:
+
+\code
+MatrixXf B(3,5); // B is a 3x5 matrix with uninitialized coefficients
+\endcode
+
+Note that even if one of the dimensions is known at compile time, you must specify it. The only exception is vectors (i.e. matrices where one of the dimensions is known at compile time to be 1).
+
+\code
+VectorXf v(10); // OK, v is a vector of size 10 with uninitialized coefficients
+Matrix<float,2,Dynamic> m(10); // Error: m is not a vector, must provide explicitly the 2 sizes
+Matrix<float,2,Dynamic> m(2,10); // OK
+Matrix2f m(2,2); // OK. Of course it's redundant to pass the parameters here, but it's allowed.
+\endcode
+
+For small fixed-size vectors, we also allow constructors passing the coefficients:
+\code
+Vector2f u(1.2f, 3.4f);
+Vector3f v(1.2f, 3.4f, 5.6f);
+Vector4f w(1.2f, 3.4f, 5.6f, 7.8f);
+\endcode
 
 \subsection TutorialPredefMat Predefined Matrices
 Eigen offers several static methods to create special matrix expressions, and non-static methods to assign these expressions to existing matrices:

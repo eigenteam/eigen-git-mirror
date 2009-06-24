@@ -215,14 +215,19 @@ class Matrix
 
     /** Resizes \c *this to a \a rows x \a cols matrix.
       *
-      * Makes sense for dynamic-size matrices only.
+      * This method is intended for dynamic-size matrices, although it is legal to call it on any
+      * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
+      * of rows and/or of columns, you can use resize(NoChange_t, int), resize(int, NoChange_t). 
       *
       * If the current number of coefficients of \c *this exactly matches the
       * product \a rows * \a cols, then no memory allocation is performed and
       * the current values are left unchanged. In all other cases, including
       * shrinking, the data is reallocated and all previous values are lost.
       *
-      * \sa resize(int) for vectors.
+      * Example: \include Matrix_resize_int_int.cpp
+      * Output: \verbinclude Matrix_resize_int_int.out
+      *
+      * \sa resize(int) for vectors, resize(NoChange_t, int), resize(int, NoChange_t)
       */
     inline void resize(int rows, int cols)
     {
@@ -235,15 +240,49 @@ class Matrix
 
     /** Resizes \c *this to a vector of length \a size
       *
-      * \sa resize(int,int) for the details.
+      * \only_for_vectors. This method does not work for
+      * partially dynamic matrices when the static dimension is anything other
+      * than 1. For example it will not work with Matrix<double, 2, Dynamic>.
+      *
+      * Example: \include Matrix_resize_int.cpp
+      * Output: \verbinclude Matrix_resize_int.out
+      *
+      * \sa resize(int,int), resize(NoChange_t, int), resize(int, NoChange_t)
       */
     inline void resize(int size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
+      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
       if(RowsAtCompileTime == 1)
         m_storage.resize(size, 1, size);
       else
         m_storage.resize(size, size, 1);
+    }
+
+    /** Resizes the matrix, changing only the number of columns. For the parameter of type NoChange_t, just pass the special value \c NoChange
+      * as in the example below.
+      *
+      * Example: \include Matrix_resize_NoChange_int.cpp
+      * Output: \verbinclude Matrix_resize_NoChange_int.out
+      *
+      * \sa resize(int,int)
+      */
+    inline void resize(NoChange_t, int cols)
+    {
+      resize(rows(), cols);
+    }
+
+    /** Resizes the matrix, changing only the number of rows. For the parameter of type NoChange_t, just pass the special value \c NoChange
+      * as in the example below.
+      *
+      * Example: \include Matrix_resize_int_NoChange.cpp
+      * Output: \verbinclude Matrix_resize_int_NoChange.out
+      *
+      * \sa resize(int,int)
+      */
+    inline void resize(int rows, NoChange_t)
+    {
+      resize(rows, cols());
     }
 
     /** Resizes *this to have the same dimensions as \a other.
