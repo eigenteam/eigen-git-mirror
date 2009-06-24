@@ -17,7 +17,7 @@
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
   extern "C" {
-    #include "cholmod.h"
+    #include <cholmod.h>
   }
 #endif
 
@@ -27,7 +27,7 @@
   #define finite
   #define isinf
   extern "C" {
-    #include "taucs.h"
+    #include <taucs.h>
   }
   #undef isnan
   #undef finite
@@ -46,27 +46,27 @@
 
 #ifdef EIGEN_SUPERLU_SUPPORT
   typedef int int_t;
-  #include "slu_Cnames.h"
-  #include "supermatrix.h"
-  #include "slu_util.h"
+  #include <slu_Cnames.h>
+  #include <supermatrix.h>
+  #include <slu_util.h>
 
   namespace SuperLU_S {
-  #include "slu_sdefs.h"
+  #include <slu_sdefs.h>
   }
   namespace SuperLU_D {
-  #include "slu_ddefs.h"
+  #include <slu_ddefs.h>
   }
   namespace SuperLU_C {
-  #include "slu_cdefs.h"
+  #include <slu_cdefs.h>
   }
   namespace SuperLU_Z {
-  #include "slu_zdefs.h"
+  #include <slu_zdefs.h>
   }
   namespace Eigen { struct SluMatrix; }
 #endif
 
 #ifdef EIGEN_UMFPACK_SUPPORT
-  #include "umfpack.h"
+  #include <umfpack.h>
 #endif
 
 namespace Eigen {
