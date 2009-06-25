@@ -241,7 +241,16 @@ enum {
   DontAlign = 0x2
 };
 
-enum NoChange_t { NoChange };
+/* the following could as well be written:
+ *   enum NoChange_t { NoChange };
+ * but it feels dangerous to disambiguate overloaded functions on enum/integer types.
+ * If on some platform it is really impossible to get rid of "unused variable" warnings, then
+ * we can always come back to that solution.
+ */
+struct NoChange_t {};
+namespace {
+  EIGEN_UNUSED NoChange_t NoChange;
+}
 
 enum {
   IsDense         = 0,
