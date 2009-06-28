@@ -141,7 +141,7 @@ static inline DiagonalMatrix<Scalar,3> Scaling(Scalar sx, Scalar sy, Scalar sz)
   * This is an alias for coeffs.asDiagonal()
   */
 template<typename Derived>
-static inline const DiagonalMatrixWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
+static inline const DiagonalWrapper<Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
 /** \addtogroup Geometry_Module */

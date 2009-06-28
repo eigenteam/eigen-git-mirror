@@ -57,7 +57,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   EigenSolver<MatrixType> ei1(a);
   VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
-                   ei1.eigenvectors() * ei1.eigenvalues().asDiagonal().eval());
+                   ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
 
 }
 

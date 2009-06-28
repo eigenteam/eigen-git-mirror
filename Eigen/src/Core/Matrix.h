@@ -124,6 +124,7 @@ class Matrix
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
+    
     enum { Options = _Options };
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
@@ -335,11 +336,11 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func)
     { return Base::operator=(func); }
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, +=)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Matrix, -=)
-    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, *=)
-    EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Matrix, /=)
-
+    using Base::operator +=;
+    using Base::operator -=;
+    using Base::operator *=;
+    using Base::operator /=;
+    
     /** Default constructor.
       *
       * For fixed-size matrices, does nothing.
@@ -438,6 +439,22 @@ class Matrix
     { other.evalTo(*this); }
     /** Destructor */
     inline ~Matrix() {}
+    
+
+    template<typename DiagonalDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const DiagonalBase<DiagonalDerived> &other)
+    {
+      resize(other.diagonal().size(), other.diagonal().size());
+      Base::operator=(other);
+      return *this;
+    }
+
+    template<typename DiagonalDerived>
+    EIGEN_STRONG_INLINE Matrix(const DiagonalBase<DiagonalDerived> &other)
+      : m_storage(other.diagonal().size() * other.diagonal().size(), other.diagonal().size(), other.diagonal().size())
+    {
+      *this = other;
+    }
 
     /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
       * data pointers.

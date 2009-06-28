@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -25,6 +25,32 @@
 
 #ifndef EIGEN_MATRIXBASE_H
 #define EIGEN_MATRIXBASE_H
+
+
+/** Common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
+  *
+  * In other words, an AnyMatrixBase object is an object that can be copied into a MatrixBase.
+  *
+  * Besides MatrixBase-derived classes, this also includes special matrix classes such as diagonal matrices, etc.
+  *
+  * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
+  */
+template<typename Derived> struct AnyMatrixBase
+{
+  Derived& derived() { return *static_cast<Derived*>(this); }
+  const Derived& derived() const { return *static_cast<const Derived*>(this); }
+};
+/** Common base class for all classes T such that there are overloaded operator* allowing to
+  * multiply a MatrixBase by a T on both sides.
+  *
+  * In other words, an AnyMatrixBase object is an object that can be multiplied a MatrixBase, the result being again a MatrixBase.
+  *
+  * Besides MatrixBase-derived classes, this also includes certain special matrix classes, such as diagonal matrices.
+  */
+template<typename Derived> struct MultiplierBase : public AnyMatrixBase<Derived>
+{
+  using AnyMatrixBase<Derived>::derived;
+};
 
 /** \class MatrixBase
   *
@@ -50,11 +76,11 @@
       cout << x.row(0) << endl;
     }
   * \endcode
-  *
   */
 template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
+  : public MultiplierBase<Derived>,
+    public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
@@ -256,10 +282,7 @@ template<typename Derived> class MatrixBase
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
-    inline Derived& operator=(const MatrixBase& other)
-    {
-      return this->operator=<Derived>(other);
-    }
+    Derived& operator=(const MatrixBase& other);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
@@ -358,17 +381,30 @@ template<typename Derived> class MatrixBase
     operator*(const Scalar& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
 
-
     template<typename OtherDerived>
     const typename ProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
+    /** replaces \c *this by \c *this * \a other.
+      *
+      * \returns a reference to \c *this
+      */
     template<typename OtherDerived>
-    Derived& operator*=(const MatrixBase<OtherDerived>& other);
+    Derived& operator*=(const MultiplierBase<OtherDerived>& other)
+    {
+      return *this = *this * other.derived();
+    }
+    
+    template<typename DiagonalDerived>
+    const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
+    operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
+
+    template<typename DiagonalDerived>
+    Derived& operator=(const DiagonalBase<DiagonalDerived> &other);
 
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
-		solveTriangular(const MatrixBase<OtherDerived>& other) const;
+    solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
     void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
@@ -477,7 +513,7 @@ template<typename Derived> class MatrixBase
     static const BasisReturnType UnitZ();
     static const BasisReturnType UnitW();
 
-    const DiagonalMatrixWrapper<Derived> asDiagonal() const;
+    const DiagonalWrapper<Derived> asDiagonal() const;
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
@@ -588,8 +624,7 @@ template<typename Derived> class MatrixBase
     void visit(Visitor& func) const;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    inline Derived& derived() { return *static_cast<Derived*>(this); }
+    using MultiplierBase<Derived>::derived;
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
 #endif // not EIGEN_PARSED_BY_DOXYGEN
@@ -685,16 +720,16 @@ template<typename Derived> class MatrixBase
 
 /////////// Sparse module ///////////
 
-    // dense = spasre * dense
+    // dense = sparse * dense
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,SparseTimeDenseProduct>& product);
-    // dense = dense * spasre
+    // dense = dense * sparse
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
 
     template<typename OtherDerived,typename OtherEvalType>
     Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
-
+    
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif

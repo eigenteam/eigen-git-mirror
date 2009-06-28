@@ -226,14 +226,14 @@ public:
 
   /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
-  inline explicit Transform(const MatrixBase<OtherDerived>& other)
+  inline explicit Transform(const AnyMatrixBase<OtherDerived>& other)
   {
     ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
   }
 
   /** Set \c *this from a Dim^2 or (Dim+1)^2 matrix. */
   template<typename OtherDerived>
-  inline Transform& operator=(const MatrixBase<OtherDerived>& other)
+  inline Transform& operator=(const AnyMatrixBase<OtherDerived>& other)
   {
     ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
     return *this;
@@ -310,7 +310,7 @@ public:
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
   inline const typename ei_transform_right_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const MatrixBase<OtherDerived> &other) const
+  operator * (const MultiplierBase<OtherDerived> &other) const
   { return ei_transform_right_product_impl<OtherDerived,Mode,Dim,HDim>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
@@ -322,11 +322,11 @@ public:
     */
   template<typename OtherDerived> friend
   inline const typename ei_transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const MatrixBase<OtherDerived> &a, const Transform &b)
+  operator * (const MultiplierBase<OtherDerived> &a, const Transform &b)
   { return ei_transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
 
   template<typename OtherDerived>
-  inline Transform& operator*=(const MatrixBase<OtherDerived>& other) { return *this = *this * other; }
+  inline Transform& operator*=(const MultiplierBase<OtherDerived>& other) { return *this = *this * other; }
 
   /** Contatenates two transformations */
   inline const Transform operator * (const Transform& other) const
@@ -944,7 +944,7 @@ struct ei_transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
 template<typename Other, int Mode, int Dim, int HDim>
 struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
 {
-  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   {
     transform->linear() = other;
     transform->translation().setZero();
@@ -955,7 +955,7 @@ struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
 template<typename Other, int Mode, int Dim, int HDim>
 struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
 {
-  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   {
     transform->affine() = other;
     transform->makeAffine();
@@ -965,20 +965,32 @@ struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
 template<typename Other, int Mode, int Dim, int HDim>
 struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, HDim,HDim>
 {
-  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,Mode> *transform, const Other& other)
+  static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   { transform->matrix() = other; }
 };
 
 template<typename Other, int Dim, int HDim>
 struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HDim>
 {
-  static inline void run(Transform<typename ei_traits<Other>::Scalar,Dim,AffineCompact> *transform, const Other& other)
+  static inline void run(Transform<typename Other::Scalar,Dim,AffineCompact> *transform, const Other& other)
   { transform->matrix() = other.template block<Dim,HDim>(0,0); }
 };
 
-/*****************************************************
-*** Specializations of operator* with a MatrixBase ***
-*****************************************************/
+/*********************************************************
+*** Specializations of operator* with a MultiplierBase ***
+*********************************************************/
+
+// ei_general_product_return_type is a generalization of ProductReturnType, for all types (including e.g. DiagonalBase...),
+// instead of being restricted to MatrixBase.
+template<typename Lhs, typename Rhs> struct ei_general_product_return_type;
+template<typename D1, typename D2> struct ei_general_product_return_type<MatrixBase<D1>, MatrixBase<D2> >
+ : ProductReturnType<D1,D2> {};
+template<typename Lhs, typename D2> struct ei_general_product_return_type<Lhs, MatrixBase<D2> >
+{ typedef D2 Type; };
+template<typename D1, typename Rhs> struct ei_general_product_return_type<MatrixBase<D1>, Rhs >
+{ typedef D1 Type; };
+ 
+
 
 // Projective * set of homogeneous column vectors
 template<typename Other, int Dim, int HDim>

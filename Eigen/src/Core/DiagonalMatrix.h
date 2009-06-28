@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -26,250 +26,164 @@
 #ifndef EIGEN_DIAGONALMATRIX_H
 #define EIGEN_DIAGONALMATRIX_H
 
-
-template<typename CoeffsVectorType, typename Derived>
-class DiagonalMatrixBase : ei_no_assignment_operator,
-   public MatrixBase<Derived>
+template<typename Derived>
+class DiagonalBase : public MultiplierBase<Derived>
 {
   public:
-    typedef MatrixBase<Derived> Base;
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename Base::PacketScalar PacketScalar;
-    using Base::derived;
-    typedef typename ei_cleantype<CoeffsVectorType>::type _CoeffsVectorType;
-
-  protected:
-
-    // MSVC gets crazy if we define default parameters
-    template<typename OtherDerived, bool IsVector, bool IsDiagonal> struct construct_from_expression;
-
-    // = vector
-    template<typename OtherDerived>
-    struct construct_from_expression<OtherDerived,true,false>
-    {
-      static void run(Derived& dst, const OtherDerived& src)
-      { dst.diagonal() = src; }
-    };
-
-    // = diagonal expression
-    template<typename OtherDerived, bool IsVector>
-    struct construct_from_expression<OtherDerived,IsVector,true>
-    {
-      static void run(Derived& dst, const OtherDerived& src)
-      { dst.diagonal() = src.diagonal(); }
-    };
-
-    /** Default constructor without initialization */
-    inline DiagonalMatrixBase() {}
-    /** Constructs a diagonal matrix with given dimension */
-    inline DiagonalMatrixBase(int dim) : m_coeffs(dim) {}
-    /** Generic constructor from an expression */
-    template<typename OtherDerived>
-    inline DiagonalMatrixBase(const MatrixBase<OtherDerived>& other)
-    {
-      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,ei_is_diagonal<OtherDerived>::ret>
-        ::run(derived(),other.derived());
-    }
+    typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;
+    typedef typename DiagonalVectorType::Scalar Scalar;
     
-    template<typename NewType,int dummy=0>
-    struct cast_selector {
-      typedef const DiagonalMatrixWrapper<NestByValue<CwiseUnaryOp<ei_scalar_cast_op<Scalar, NewType>, _CoeffsVectorType> > > return_type;
-      inline static return_type run(const DiagonalMatrixBase& d) {
-        return d.m_coeffs.template cast<NewType>().nestByValue().asDiagonal();
-      }
+    enum {
+      RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+      ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+      MaxRowsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
+      MaxColsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
+      IsVectorAtCompileTime = 0
     };
     
-    template<int dummy>
-    struct cast_selector<Scalar,dummy> {
-      typedef const Derived& return_type;
-      inline static return_type run(const DiagonalMatrixBase& d) {
-        return d.derived();
-      }
-    };
+    typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
+        
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    inline Derived& derived() { return *static_cast<Derived*>(this); }
+    #endif // not EIGEN_PARSED_BY_DOXYGEN
+    
+    DenseMatrixType toDenseMatrix() const { return derived(); }
 
-  public:
-
-    inline DiagonalMatrixBase(const _CoeffsVectorType& coeffs) : m_coeffs(coeffs)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(_CoeffsVectorType);
-      ei_assert(coeffs.size() > 0);
-    }
-
-    template<typename NewType>
-    inline typename cast_selector<NewType,0>::return_type
-    cast() const
-    {
-      return cast_selector<NewType,0>::run(*this);
-    }
-
-    /** Assignment operator.
-      * The right-hand-side \a other must be either a vector representing the diagonal
-      * coefficients or a diagonal matrix expression.
-      */
-    template<typename OtherDerived>
-    inline Derived& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      construct_from_expression<OtherDerived,OtherDerived::IsVectorAtCompileTime,ei_is_diagonal<OtherDerived>::ret>
-        ::run(derived(),other);
-      return derived();
-    }
-
-    inline int rows() const { return m_coeffs.size(); }
-    inline int cols() const { return m_coeffs.size(); }
-
-    inline const Scalar coeff(int row, int col) const
-    {
-      return row == col ? m_coeffs.coeff(row) : static_cast<Scalar>(0);
-    }
-
-    inline Scalar& coeffRef(int row, int col)
-    {
-      ei_assert(row==col);
-      return m_coeffs.coeffRef(row);
-    }
-
-    inline _CoeffsVectorType& diagonal() { return m_coeffs; }
-    inline const _CoeffsVectorType& diagonal() const { return m_coeffs; }
-
-  protected:
-    CoeffsVectorType m_coeffs;
+    inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
+    inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
+    
+    template<typename MatrixDerived>
+    const DiagonalProduct<MatrixDerived, Derived, DiagonalOnTheLeft>
+    operator*(const MatrixBase<MatrixDerived> &matrix) const;
 };
+
+template<typename Derived>
+template<typename DiagonalDerived>
+Derived& MatrixBase<Derived>::operator=(const DiagonalBase<DiagonalDerived> &other)
+{
+  setZero();
+  diagonal() = other.diagonal();
+  return derived();
+}
 
 /** \class DiagonalMatrix
   * \nonstableyet
   *
-  * \brief Represent a diagonal matrix with its storage
+  * \brief Represents a diagonal matrix with its storage
   *
   * \param _Scalar the type of coefficients
-  * \param _Size the dimension of the matrix
+  * \param _Size the dimension of the matrix, or Dynamic
   *
   * \sa class Matrix
   */
-template<typename _Scalar,int _Size>
-struct ei_traits<DiagonalMatrix<_Scalar,_Size> > : ei_traits<Matrix<_Scalar,_Size,_Size> >
+template<typename _Scalar, int _Size>
+struct ei_traits<DiagonalMatrix<_Scalar,_Size> >
 {
-  enum {
-    Flags = (ei_traits<Matrix<_Scalar,_Size,_Size> >::Flags & HereditaryBits) | DiagonalBits
-  };
+  typedef Matrix<_Scalar,_Size,1> DiagonalVectorType;
 };
 
 template<typename _Scalar, int _Size>
 class DiagonalMatrix
-  : public DiagonalMatrixBase<Matrix<_Scalar,_Size,1>, DiagonalMatrix<_Scalar,_Size> >
+  : public DiagonalBase<DiagonalMatrix<_Scalar,_Size> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrix)
-    typedef DiagonalMatrixBase<Matrix<_Scalar,_Size,1>, DiagonalMatrix<_Scalar,_Size> > DiagonalBase;
-
+    
+    typedef typename ei_traits<DiagonalMatrix>::DiagonalVectorType DiagonalVectorType;
+    typedef const DiagonalMatrix& Nested;
+    typedef _Scalar Scalar;
+  
   protected:
-    typedef Matrix<_Scalar,_Size,1> CoeffVectorType;
-    using DiagonalBase::m_coeffs;
 
+    DiagonalVectorType m_diagonal;
+    
   public:
 
+    inline const DiagonalVectorType& diagonal() const { return m_diagonal; }
+    inline DiagonalVectorType& diagonal() { return m_diagonal; }
+    
     /** Default constructor without initialization */
-    inline DiagonalMatrix() : DiagonalBase()
-    {}
+    inline DiagonalMatrix() {}
 
     /** Constructs a diagonal matrix with given dimension  */
-    inline DiagonalMatrix(int dim) : DiagonalBase(dim)
-    {}
+    inline DiagonalMatrix(int dim) : m_diagonal(dim) {}
 
     /** 2D only */
-    inline DiagonalMatrix(const Scalar& sx, const Scalar& sy)
-    {
-      EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(DiagonalMatrix,2,2);
-      m_coeffs.x() = sx;
-      m_coeffs.y() = sy;
-    }
+    inline DiagonalMatrix(const Scalar& x, const Scalar& y) : m_diagonal(x,y) {}
+
     /** 3D only */
-    inline DiagonalMatrix(const Scalar& sx, const Scalar& sy, const Scalar& sz)
+    inline DiagonalMatrix(const Scalar& x, const Scalar& y, const Scalar& z) : m_diagonal(x,y,z) {}
+
+    template<typename OtherDerived>
+    inline DiagonalMatrix(const DiagonalBase<OtherDerived>& other) : m_diagonal(other.diagonal()) {}
+
+    /** copy constructor. prevent a default copy constructor from hiding the other templated constructor */
+    inline DiagonalMatrix(const DiagonalMatrix& other) : m_diagonal(other.diagonal()) {}
+
+    /** generic constructor from expression of the diagonal coefficients */
+    template<typename OtherDerived>
+    explicit inline DiagonalMatrix(const MatrixBase<OtherDerived>& other) : m_diagonal(other)
+    {}
+
+    template<typename OtherDerived>
+    DiagonalMatrix& operator=(const DiagonalBase<OtherDerived>& other)
     {
-      EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(DiagonalMatrix,3,3);
-      m_coeffs.x() = sx;
-      m_coeffs.y() = sy;
-      m_coeffs.z() = sz;
+      m_diagonal = other.diagonal();
+      return *this;
     }
 
-    /** copy constructor */
-    inline DiagonalMatrix(const DiagonalMatrix& other) : DiagonalBase(other.m_coeffs)
-    {}
-
-    /** generic constructor from expression */
-    template<typename OtherDerived>
-    explicit inline DiagonalMatrix(const MatrixBase<OtherDerived>& other) : DiagonalBase(other)
-    {}
-
+    /** This is a special case of the templated operator=. Its purpose is to
+      * prevent a default operator= from hiding the templated operator=.
+      */
     DiagonalMatrix& operator=(const DiagonalMatrix& other)
     {
-      m_coeffs = other.m_coeffs;
-      return *this;
-    }
-
-    template<typename OtherDerived>
-    DiagonalMatrix& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      EIGEN_STATIC_ASSERT(ei_is_diagonal<OtherDerived>::ret, THIS_METHOD_IS_ONLY_FOR_DIAGONAL_MATRIX);
-      m_coeffs = other.diagonal();
+      m_diagonal = other.m_diagonal();
       return *this;
     }
     
-    inline void resize(int size)
-    {
-      m_coeffs.resize(size);
-    }
-    
-    inline void resize(int rows, int cols)
-    {
-      ei_assert(rows==cols && "a diagonal matrix must be square");
-      m_coeffs.resize(rows);
-    }
-    
-    inline void setZero() { m_coeffs.setZero(); }
+    inline void resize(int size) { m_diagonal.resize(size); }
+    inline void setZero() { m_diagonal.setZero(); }
+    inline void setZero(int size) { m_diagonal.setZero(size); }
+    inline void setIdentity() { m_diagonal.setIdentity(); }
+    inline void setIdentity(int size) { m_diagonal.setIdentity(size); }
 };
 
-/** \class DiagonalMatrixWrapper
+/** \class DiagonalWrapper
   * \nonstableyet
   *
   * \brief Expression of a diagonal matrix
   *
-  * \param CoeffsVectorType the type of the vector of diagonal coefficients
+  * \param _DiagonalVectorType the type of the vector of diagonal coefficients
   *
   * This class is an expression of a diagonal matrix with given vector of diagonal
-  * coefficients. It is the return type of MatrixBase::diagonal(const OtherDerived&)
-  * and most of the time this is the only way it is used.
+  * coefficients. It is the return type of MatrixBase::asDiagonal()
+  * and most of the time this is the only way that it is used.
   *
-  * \sa class DiagonalMatrixBase, class DiagonalMatrix, MatrixBase::asDiagonal()
+  * \sa class DiagonalMatrix, class DiagonalBase, MatrixBase::asDiagonal()
   */
-template<typename CoeffsVectorType>
-struct ei_traits<DiagonalMatrixWrapper<CoeffsVectorType> >
+template<typename _DiagonalVectorType>
+struct ei_traits<DiagonalWrapper<_DiagonalVectorType> >
 {
-  typedef typename CoeffsVectorType::Scalar Scalar;
-  typedef typename ei_nested<CoeffsVectorType>::type CoeffsVectorTypeNested;
-  typedef typename ei_unref<CoeffsVectorTypeNested>::type _CoeffsVectorTypeNested;
-  enum {
-    RowsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
-    ColsAtCompileTime = CoeffsVectorType::SizeAtCompileTime,
-    MaxRowsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    MaxColsAtCompileTime = CoeffsVectorType::MaxSizeAtCompileTime,
-    Flags = (_CoeffsVectorTypeNested::Flags & HereditaryBits) | DiagonalBits,
-    CoeffReadCost = _CoeffsVectorTypeNested::CoeffReadCost
-  };
+  typedef _DiagonalVectorType DiagonalVectorType;
 };
-template<typename CoeffsVectorType>
-class DiagonalMatrixWrapper
-  : public DiagonalMatrixBase<typename CoeffsVectorType::Nested, DiagonalMatrixWrapper<CoeffsVectorType> >
+
+template<typename _DiagonalVectorType>
+class DiagonalWrapper
+  : public DiagonalBase<DiagonalWrapper<_DiagonalVectorType> >, ei_no_assignment_operator
 {
-    typedef typename CoeffsVectorType::Nested CoeffsVectorTypeNested;
-    typedef DiagonalMatrixBase<CoeffsVectorTypeNested, DiagonalMatrixWrapper<CoeffsVectorType> > DiagonalBase;
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalMatrixWrapper)
-    inline DiagonalMatrixWrapper(const CoeffsVectorType& coeffs) : DiagonalBase(coeffs)
-    {}
+    typedef _DiagonalVectorType DiagonalVectorType;
+    typedef DiagonalWrapper Nested;
+    
+    inline DiagonalWrapper(const DiagonalVectorType& diagonal) : m_diagonal(diagonal) {}
+    const DiagonalVectorType& diagonal() const { return m_diagonal; }
+    
+  protected:
+    const typename DiagonalVectorType::Nested m_diagonal;
 };
 
 /** \nonstableyet
-  * \returns an expression of a diagonal matrix with *this as vector of diagonal coefficients
+  * \returns a pseudo-expression of a diagonal matrix with *this as vector of diagonal coefficients
   *
   * \only_for_vectors
   *
@@ -278,10 +192,10 @@ class DiagonalMatrixWrapper
   * Example: \include MatrixBase_asDiagonal.cpp
   * Output: \verbinclude MatrixBase_asDiagonal.out
   *
-  * \sa class DiagonalMatrix, isDiagonal()
+  * \sa class DiagonalWrapper, class DiagonalMatrix, diagonal(), isDiagonal()
   **/
 template<typename Derived>
-inline const DiagonalMatrixWrapper<Derived>
+inline const DiagonalWrapper<Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
   return derived();

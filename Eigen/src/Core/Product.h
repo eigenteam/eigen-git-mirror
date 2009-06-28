@@ -47,10 +47,10 @@ struct ei_product_packet_impl;
   * This class defines the typename Type representing the optimized product expression
   * between two matrix expressions. In practice, using ProductReturnType<Lhs,Rhs>::Type
   * is the recommended way to define the result type of a function returning an expression
-  * which involve a matrix product. The class Product or DiagonalProduct should never be
+  * which involve a matrix product. The class Product should never be
   * used directly.
   *
-  * \sa class Product, class DiagonalProduct, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
+  * \sa class Product, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
   */
 template<typename Lhs, typename Rhs, int ProductMode>
 struct ProductReturnType
@@ -62,7 +62,6 @@ struct ProductReturnType
 };
 
 // cache friendly specialization
-// note that there is a DiagonalProduct specialization in DiagonalProduct.h
 template<typename Lhs, typename Rhs>
 struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 {
@@ -78,15 +77,12 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 /*  Helper class to determine the type of the product, can be either:
  *    - NormalProduct
  *    - CacheFriendlyProduct
- *    - DiagonalProduct
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
   enum{
 
-    value = ei_is_diagonal<Rhs>::ret || ei_is_diagonal<Lhs>::ret
-          ? DiagonalProduct
-          : Lhs::MaxColsAtCompileTime == Dynamic
+    value = Lhs::MaxColsAtCompileTime == Dynamic
             && ( Lhs::MaxRowsAtCompileTime == Dynamic
               || Rhs::MaxColsAtCompileTime == Dynamic )
             && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!(Lhs::Flags&DirectAccessBit))))
@@ -288,18 +284,6 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
     INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
   EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
-}
-
-/** replaces \c *this by \c *this * \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived &
-MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
-{
-  return *this = *this * other;
 }
 
 /***************************************************************************

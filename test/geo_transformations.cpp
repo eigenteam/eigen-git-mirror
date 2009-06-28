@@ -332,12 +332,6 @@ template<typename Scalar, int Mode> void transformations(void)
   Translation<double,3> tr1d = tr1.template cast<double>();
   VERIFY_IS_APPROX(tr1d.template cast<Scalar>(),tr1);
 
-  AlignedScaling3 sc1(v0);
-  DiagonalMatrix<float,3> sc1f; sc1f = sc1.template cast<float>();
-  VERIFY_IS_APPROX(sc1f.template cast<Scalar>(),sc1);
-  DiagonalMatrix<double,3> sc1d; sc1d = (sc1.template cast<double>());
-  VERIFY_IS_APPROX(sc1d.template cast<Scalar>(),sc1);
-
   AngleAxis<float> aa1f = aa1.template cast<float>();
   VERIFY_IS_APPROX(aa1f.template cast<Scalar>(),aa1);
   AngleAxis<double> aa1d = aa1.template cast<double>();

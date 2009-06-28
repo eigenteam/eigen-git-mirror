@@ -233,30 +233,16 @@ using Eigen::ei_cos;
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, AlignCols, " ", "\n", "", "")
 
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename OtherDerived> \
-EIGEN_STRONG_INLINE Derived& operator Op(const Eigen::MatrixBase<OtherDerived>& other) \
-{ \
-  return Base::operator Op(other.derived()); \
-} \
-EIGEN_STRONG_INLINE Derived& operator Op(const Derived& other) \
-{ \
-  return Base::operator Op(other); \
-}
-
-#define EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
-template<typename Other> \
-EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
-{ \
-  return Base::operator Op(scalar); \
-}
-
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EIGEN_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+using Base::operator =; \
+using Base::operator +=; \
+using Base::operator -=; \
+using Base::operator *=; \
+using Base::operator /=; \
+EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
+{ \
+  return Base::operator=(other); \
+}
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \

@@ -91,12 +91,12 @@ class RotationBase
       */
     template<typename OtherDerived>
     inline typename generic_product_selector<OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
-    operator*(const MatrixBase<OtherDerived>& e) const
+    operator*(const MultiplierBase<OtherDerived>& e) const
     { return generic_product_selector<OtherDerived>::run(derived(), e.derived()); }
 
     /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
     template<typename OtherDerived> friend
-    inline RotationMatrixType operator*(const MatrixBase<OtherDerived>& l, const Derived& r)
+    inline RotationMatrixType operator*(const MultiplierBase<OtherDerived>& l, const Derived& r)
     { return l.derived() * r.toRotationMatrix(); }
 
     /** \returns the concatenation of the rotation \c *this with a transformation \a t */

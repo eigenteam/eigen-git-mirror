@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -26,105 +26,66 @@
 #ifndef EIGEN_DIAGONALPRODUCT_H
 #define EIGEN_DIAGONALPRODUCT_H
 
-/** \internal Specialization of ei_nested for DiagonalMatrix.
- *  Unlike ei_nested, if the argument is a DiagonalMatrix and if it must be evaluated,
- *  then it evaluated to a DiagonalMatrix having its own argument evaluated.
- */
-template<typename T, int N, bool IsDiagonal = ei_is_diagonal<T>::ret> struct ei_nested_diagonal : ei_nested<T,N> {};
-template<typename T, int N> struct ei_nested_diagonal<T,N,true>
- : ei_nested<T, N, DiagonalMatrix<typename T::Scalar, EIGEN_ENUM_MIN(T::RowsAtCompileTime,T::ColsAtCompileTime)> >
-{};
-
-// specialization of ProductReturnType
-template<typename Lhs, typename Rhs>
-struct ProductReturnType<Lhs,Rhs,DiagonalProduct>
+template<typename MatrixType, typename DiagonalType, int Order>
+struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, Order> >
 {
-  typedef typename ei_nested_diagonal<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
-  typedef typename ei_nested_diagonal<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
-
-  typedef Product<LhsNested, RhsNested, DiagonalProduct> Type;
-};
-
-template<typename LhsNested, typename RhsNested>
-struct ei_traits<Product<LhsNested, RhsNested, DiagonalProduct> >
-{
-  // clean the nested types:
-  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
-  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
-  typedef typename _LhsNested::Scalar Scalar;
-
+  typedef typename MatrixType::Scalar Scalar;
   enum {
-    LhsFlags = _LhsNested::Flags,
-    RhsFlags = _RhsNested::Flags,
-    RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
-    ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
-    MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
-
-    LhsIsDiagonal = ei_is_diagonal<_LhsNested>::ret,
-    RhsIsDiagonal = ei_is_diagonal<_RhsNested>::ret,
-
-    CanVectorizeRhs =  (!RhsIsDiagonal) && (RhsFlags & RowMajorBit) && (RhsFlags & PacketAccessBit)
-                     && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-
-    CanVectorizeLhs =  (!LhsIsDiagonal) && (!(LhsFlags & RowMajorBit)) && (LhsFlags & PacketAccessBit)
-                     && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
-
-    RemovedBits = ~((RhsFlags & RowMajorBit) && (!CanVectorizeLhs) ? 0 : RowMajorBit),
-
-    Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-          | (((CanVectorizeLhs&&RhsIsDiagonal) || (CanVectorizeRhs&&LhsIsDiagonal)) ? PacketAccessBit : 0),
-
-    CoeffReadCost = NumTraits<Scalar>::MulCost + _LhsNested::CoeffReadCost + _RhsNested::CoeffReadCost
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Flags = (unsigned int)(MatrixType::Flags) & HereditaryBits,
+    CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
   };
 };
 
-template<typename LhsNested, typename RhsNested> class Product<LhsNested, RhsNested, DiagonalProduct> : ei_no_assignment_operator,
-  public MatrixBase<Product<LhsNested, RhsNested, DiagonalProduct> >
+template<typename MatrixType, typename DiagonalType, int Order>
+class DiagonalProduct : ei_no_assignment_operator,
+                        public MatrixBase<DiagonalProduct<MatrixType, DiagonalType, Order> >
 {
-    typedef typename ei_traits<Product>::_LhsNested _LhsNested;
-    typedef typename ei_traits<Product>::_RhsNested _RhsNested;
-
-    enum {
-      RhsIsDiagonal = ei_is_diagonal<_RhsNested>::ret
-    };
-
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalProduct)
 
-    template<typename Lhs, typename Rhs>
-    inline Product(const Lhs& lhs, const Rhs& rhs)
-      : m_lhs(lhs), m_rhs(rhs)
+    inline DiagonalProduct(const MatrixType& matrix, const DiagonalType& diagonal)
+      : m_matrix(matrix), m_diagonal(diagonal)
     {
-      ei_assert(lhs.cols() == rhs.rows());
+      ei_assert(diagonal.diagonal().size() == (Order == DiagonalOnTheLeft ? matrix.rows() : matrix.cols()));
     }
 
-    inline int rows() const { return m_lhs.rows(); }
-    inline int cols() const { return m_rhs.cols(); }
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
 
     const Scalar coeff(int row, int col) const
     {
-      const int unique = RhsIsDiagonal ? col : row;
-      return m_lhs.coeff(row, unique) * m_rhs.coeff(unique, col);
-    }
-
-    template<int LoadMode>
-    const PacketScalar packet(int row, int col) const
-    {
-      if (RhsIsDiagonal)
-      {
-        return ei_pmul(m_lhs.template packet<LoadMode>(row, col), ei_pset1(m_rhs.coeff(col, col)));
-      }
-      else
-      {
-        return ei_pmul(ei_pset1(m_lhs.coeff(row, row)), m_rhs.template packet<LoadMode>(row, col));
-      }
+      return m_diagonal.diagonal().coeff(Order == DiagonalOnTheLeft ? row : col) * m_matrix.coeff(row, col);
     }
 
   protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    const typename MatrixType::Nested m_matrix;
+    const typename DiagonalType::Nested m_diagonal;
 };
+
+/** \returns the diagonal matrix product of \c *this by the diagonal matrix \a diagonal.
+  */
+template<typename Derived>
+template<typename DiagonalDerived>
+inline const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
+MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &diagonal) const
+{
+  return DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>(derived(), diagonal.derived());
+}
+
+/** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
+  */
+template<typename DiagonalDerived>
+template<typename MatrixDerived>
+inline const DiagonalProduct<MatrixDerived, DiagonalDerived, DiagonalOnTheLeft>
+DiagonalBase<DiagonalDerived>::operator*(const MatrixBase<MatrixDerived> &matrix) const
+{
+  return DiagonalProduct<MatrixDerived, DiagonalDerived, DiagonalOnTheLeft>(matrix.derived(), derived());
+}
+
 
 #endif // EIGEN_DIAGONALPRODUCT_H

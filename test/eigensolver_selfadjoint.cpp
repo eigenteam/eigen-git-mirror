@@ -75,7 +75,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     convert(gEvec, _evec);
 
     // test gsl itself !
-    VERIFY((symmA * _evec).isApprox(_evec * _eval.asDiagonal().eval(), largerEps));
+    VERIFY((symmA * _evec).isApprox(_evec * _eval.asDiagonal(), largerEps));
 
     // compare with eigen
     VERIFY_IS_APPROX(_eval, eiSymm.eigenvalues());
@@ -86,7 +86,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     convert(gEval, _eval);
     convert(gEvec, _evec);
     // test GSL itself:
-    VERIFY((symmA * _evec).isApprox(symmB * (_evec * _eval.asDiagonal().eval()), largerEps));
+    VERIFY((symmA * _evec).isApprox(symmB * (_evec * _eval.asDiagonal()), largerEps));
 
     // compare with eigen
 //     std::cerr << _eval.transpose() << "\n" << eiSymmGen.eigenvalues().transpose() << "\n\n";
@@ -102,11 +102,11 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   #endif
 
   VERIFY((symmA * eiSymm.eigenvectors()).isApprox(
-          eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal().eval(), largerEps));
+          eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
 
   // generalized eigen problem Ax = lBx
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
-          symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal().eval()), largerEps));
+          symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
 
   MatrixType sqrtSymmA = eiSymm.operatorSqrt();
   VERIFY_IS_APPROX(symmA, sqrtSymmA*sqrtSymmA);

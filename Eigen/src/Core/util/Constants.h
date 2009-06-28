@@ -205,12 +205,14 @@ template<typename T> struct ei_is_diagonal
   };
 };
 
+enum { DiagonalOnTheLeft, DiagonalOnTheRight };
+
 enum { Aligned, Unaligned };
 enum { ForceAligned, AsRequested };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal, BothDirections };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, DiagonalProduct, SparseTimeSparseProduct, SparseTimeDenseProduct, DenseTimeSparseProduct };
+enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, SparseTimeSparseProduct, SparseTimeDenseProduct, DenseTimeSparseProduct };
 
 enum {
   /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignment

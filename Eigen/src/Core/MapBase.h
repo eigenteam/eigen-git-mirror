@@ -171,11 +171,7 @@ template<typename Derived> class MapBase
       return Base::operator=(other);
     }
 
-    template<typename OtherDerived>
-    Derived& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      return Base::operator=(other);
-    }
+    using Base::operator=;
 
     using Base::operator*=;
 
