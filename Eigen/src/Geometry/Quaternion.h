@@ -303,7 +303,9 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const MatrixBase<Derive
   return *this;
 }
 
-/** Convert the quaternion to a 3x3 rotation matrix */
+/** Convert the quaternion to a 3x3 rotation matrix. The quaternion is required to
+  * be normalized, otherwise the result is undefined.
+  */
 template<typename Scalar>
 inline typename Quaternion<Scalar>::Matrix3
 Quaternion<Scalar>::toRotationMatrix(void) const
