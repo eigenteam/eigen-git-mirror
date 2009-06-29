@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-
+using namespace std;
 template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -34,7 +34,7 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   typedef Matrix<Scalar, Rows, Rows> SquareMatrixType;
   typedef DiagonalMatrix<Scalar, Rows> LeftDiagonalMatrix;
   typedef DiagonalMatrix<Scalar, Cols> RightDiagonalMatrix;
-  
+  typedef Matrix<Scalar, Rows==Dynamic?Dynamic:2*Rows, Cols==Dynamic?Dynamic:2*Cols> BigMatrix;
   int rows = m.rows();
   int cols = m.cols();
 
@@ -46,20 +46,7 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
              rv2 = RowVectorType::Random(cols);
   LeftDiagonalMatrix ldm1(v1), ldm2(v2);
   RightDiagonalMatrix rdm1(rv1), rdm2(rv2);
-  
-  int i = ei_random<int>(0, rows-1);
-  int j = ei_random<int>(0, cols-1);
-  
-  VERIFY_IS_APPROX( ((ldm1 * m1)(i,j))  , ldm1.diagonal()(i) * m1(i,j) );
-  VERIFY_IS_APPROX( ((ldm1 * (m1+m2))(i,j))  , ldm1.diagonal()(i) * (m1+m2)(i,j) );
-  VERIFY_IS_APPROX( ((m1 * rdm1)(i,j))  , rdm1.diagonal()(j) * m1(i,j) );
-  VERIFY_IS_APPROX( ((v1.asDiagonal() * m1)(i,j))  , v1(i) * m1(i,j) );
-  VERIFY_IS_APPROX( ((m1 * rv1.asDiagonal())(i,j))  , rv1(j) * m1(i,j) );
-  VERIFY_IS_APPROX( (((v1+v2).asDiagonal() * m1)(i,j))  , (v1+v2)(i) * m1(i,j) );
-  VERIFY_IS_APPROX( (((v1+v2).asDiagonal() * (m1+m2))(i,j))  , (v1+v2)(i) * (m1+m2)(i,j) );
-  VERIFY_IS_APPROX( ((m1 * (rv1+rv2).asDiagonal())(i,j))  , (rv1+rv2)(j) * m1(i,j) );
-  VERIFY_IS_APPROX( (((m1+m2) * (rv1+rv2).asDiagonal())(i,j))  , (rv1+rv2)(j) * (m1+m2)(i,j) );
-  
+
   SquareMatrixType sq_m1 (v1.asDiagonal());
   VERIFY_IS_APPROX(sq_m1, v1.asDiagonal().toDenseMatrix());
   sq_m1 = v1.asDiagonal();
@@ -77,6 +64,32 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   VERIFY_IS_APPROX(sq_m1, ldm1.toDenseMatrix());
   sq_m1.transpose() = ldm1;
   VERIFY_IS_APPROX(sq_m1, ldm1.toDenseMatrix());
+  
+  int i = ei_random<int>(0, rows-1);
+  int j = ei_random<int>(0, cols-1);
+  
+  VERIFY_IS_APPROX( ((ldm1 * m1)(i,j))  , ldm1.diagonal()(i) * m1(i,j) );
+  VERIFY_IS_APPROX( ((ldm1 * (m1+m2))(i,j))  , ldm1.diagonal()(i) * (m1+m2)(i,j) );
+  VERIFY_IS_APPROX( ((m1 * rdm1)(i,j))  , rdm1.diagonal()(j) * m1(i,j) );
+  VERIFY_IS_APPROX( ((v1.asDiagonal() * m1)(i,j))  , v1(i) * m1(i,j) );
+  VERIFY_IS_APPROX( ((m1 * rv1.asDiagonal())(i,j))  , rv1(j) * m1(i,j) );
+  VERIFY_IS_APPROX( (((v1+v2).asDiagonal() * m1)(i,j))  , (v1+v2)(i) * m1(i,j) );
+  VERIFY_IS_APPROX( (((v1+v2).asDiagonal() * (m1+m2))(i,j))  , (v1+v2)(i) * (m1+m2)(i,j) );
+  VERIFY_IS_APPROX( ((m1 * (rv1+rv2).asDiagonal())(i,j))  , (rv1+rv2)(j) * m1(i,j) );
+  VERIFY_IS_APPROX( (((m1+m2) * (rv1+rv2).asDiagonal())(i,j))  , (rv1+rv2)(j) * (m1+m2)(i,j) );
+
+  BigMatrix big;
+  big.setZero(2*rows, 2*cols);
+  
+  big.block(i,j,rows,cols) = m1;
+  big.block(i,j,rows,cols) = v1.asDiagonal() * big.block(i,j,rows,cols);
+  
+  VERIFY_IS_APPROX((big.block(i,j,rows,cols)) , v1.asDiagonal() * m1 );
+  
+  big.block(i,j,rows,cols) = m1;
+  big.block(i,j,rows,cols) = big.block(i,j,rows,cols) * rv1.asDiagonal();
+  VERIFY_IS_APPROX((big.block(i,j,rows,cols)) , m1 * rv1.asDiagonal() );
+  
 }
 
 void test_diagonalmatrices()

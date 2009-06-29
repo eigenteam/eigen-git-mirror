@@ -53,7 +53,7 @@ template<typename Lhs, typename Rhs, int ProductMode> class Product;
 template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
 template<typename _Scalar, int _Size> class DiagonalMatrix;
-template<typename MatrixType, typename DiagonalType, int Order> class DiagonalProduct;
+template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
 
 template<typename MatrixType, int PacketAccess = AsRequested> class Map;

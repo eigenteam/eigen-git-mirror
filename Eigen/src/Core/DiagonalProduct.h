@@ -26,8 +26,8 @@
 #ifndef EIGEN_DIAGONALPRODUCT_H
 #define EIGEN_DIAGONALPRODUCT_H
 
-template<typename MatrixType, typename DiagonalType, int Order>
-struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, Order> >
+template<typename MatrixType, typename DiagonalType, int ProductOrder>
+struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum {
@@ -35,14 +35,15 @@ struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, Order> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (unsigned int)(MatrixType::Flags) & HereditaryBits,
+    Flags = (HereditaryBits & (unsigned int)(MatrixType::Flags))
+          | (PacketAccessBit & (unsigned int)(MatrixType::Flags) & (unsigned int)(DiagonalType::DiagonalVectorType::Flags)),
     CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
   };
 };
 
-template<typename MatrixType, typename DiagonalType, int Order>
+template<typename MatrixType, typename DiagonalType, int ProductOrder>
 class DiagonalProduct : ei_no_assignment_operator,
-                        public MatrixBase<DiagonalProduct<MatrixType, DiagonalType, Order> >
+                        public MatrixBase<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
 {
   public:
 
@@ -51,7 +52,7 @@ class DiagonalProduct : ei_no_assignment_operator,
     inline DiagonalProduct(const MatrixType& matrix, const DiagonalType& diagonal)
       : m_matrix(matrix), m_diagonal(diagonal)
     {
-      ei_assert(diagonal.diagonal().size() == (Order == DiagonalOnTheLeft ? matrix.rows() : matrix.cols()));
+      ei_assert(diagonal.diagonal().size() == (ProductOrder == DiagonalOnTheLeft ? matrix.rows() : matrix.cols()));
     }
 
     inline int rows() const { return m_matrix.rows(); }
@@ -59,7 +60,30 @@ class DiagonalProduct : ei_no_assignment_operator,
 
     const Scalar coeff(int row, int col) const
     {
-      return m_diagonal.diagonal().coeff(Order == DiagonalOnTheLeft ? row : col) * m_matrix.coeff(row, col);
+      return m_diagonal.diagonal().coeff(ProductOrder == DiagonalOnTheLeft ? row : col) * m_matrix.coeff(row, col);
+    }
+    
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    {
+      enum {
+        StorageOrder = Flags & RowMajorBit ? RowMajor : ColMajor,
+        InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
+        DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
+      };
+      const int indexInDiagonalVector = ProductOrder == DiagonalOnTheLeft ? row : col;
+      
+      if((int(StorageOrder) == RowMajor && int(ProductOrder) == DiagonalOnTheLeft)
+       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == DiagonalOnTheRight))
+      {
+        return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
+                       ei_pset1(m_diagonal.diagonal().coeff(indexInDiagonalVector)));
+      }
+      else
+      {
+        return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
+                       m_diagonal.diagonal().template packet<DiagonalVectorPacketLoadMode>(indexInDiagonalVector));
+      }
     }
 
   protected:
