@@ -57,6 +57,11 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY_IS_APPROX(m3, m1*m2);
   m3 = MatrixType::Random(rows,cols2);
   VERIFY(!lu.solve(m3, &m2));
+  
+  typedef Matrix<typename MatrixType::Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
+  SquareMatrixType m4(rows, rows), m5(rows, rows);
+  createRandomMatrixOfRank(rows/2, rows, rows, m4);
+  VERIFY(!m4.computeInverseWithCheck(&m5));
 }
 
 template<typename MatrixType> void lu_invertible()

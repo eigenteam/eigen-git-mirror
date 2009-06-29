@@ -30,43 +30,43 @@
 ********************************************************************/
 
 template<typename XprType, typename MatrixType>
-inline void ei_compute_inverse_in_size2_aux(
-		const XprType& matrix, const typename MatrixType::Scalar invdet,
-		MatrixType* result)
+inline void ei_compute_inverse_size2_helper(
+    const XprType& matrix, const typename MatrixType::Scalar& invdet,
+    MatrixType* result)
 {
-	result->coeffRef(0,0) = matrix.coeff(1,1) * invdet;
-	result->coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
-	result->coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
-	result->coeffRef(1,1) = matrix.coeff(0,0) * invdet;
+  result->coeffRef(0,0) = matrix.coeff(1,1) * invdet;
+  result->coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
+  result->coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
+  result->coeffRef(1,1) = matrix.coeff(0,0) * invdet;
 }
 
 template<typename MatrixType>
-void ei_compute_inverse_in_size2_case(const MatrixType& matrix, MatrixType* result)
+inline void ei_compute_inverse_size2(const MatrixType& matrix, MatrixType* result)
 {
   typedef typename MatrixType::Scalar Scalar;
   const Scalar invdet = Scalar(1) / matrix.determinant();
-  ei_compute_inverse_in_size2_aux( matrix, invdet, result );
+  ei_compute_inverse_size2_helper( matrix, invdet, result );
 }
 
 template<typename XprType, typename MatrixType>
-bool ei_compute_inverse_in_size2_case_with_check(const XprType& matrix, MatrixType* result)
+bool ei_compute_inverse_size2_with_check(const XprType& matrix, MatrixType* result)
 {
   typedef typename MatrixType::Scalar Scalar;
   const Scalar det = matrix.determinant();
   if(ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff())) return false;
   const Scalar invdet = Scalar(1) / det;
-  ei_compute_inverse_in_size2_aux( matrix, invdet, result );
+  ei_compute_inverse_size2_helper( matrix, invdet, result );
   return true;
 }
 
 template<typename XprType, typename MatrixType>
-inline void ei_compute_inverse_in_size3_aux(
-		const XprType& matrix,
-		const typename MatrixType::Scalar invdet,
-		const typename MatrixType::Scalar det_minor00,
-		const typename MatrixType::Scalar det_minor10,
-		const typename MatrixType::Scalar det_minor20,
-		MatrixType* result)
+void ei_compute_inverse_size3_helper(
+    const XprType& matrix,
+    const typename MatrixType::Scalar& invdet,
+    const typename MatrixType::Scalar& det_minor00,
+    const typename MatrixType::Scalar& det_minor10,
+    const typename MatrixType::Scalar& det_minor20,
+    MatrixType* result)
 {
   result->coeffRef(0, 0) = det_minor00 * invdet;
   result->coeffRef(0, 1) = -det_minor10 * invdet;
@@ -79,38 +79,24 @@ inline void ei_compute_inverse_in_size3_aux(
   result->coeffRef(2, 2) = matrix.minor(2,2).determinant() * invdet;
 }
 
-
-template<typename MatrixType>
-void ei_compute_inverse_in_size3_case(const MatrixType& matrix, MatrixType* result)
-{
-  typedef typename MatrixType::Scalar Scalar;
-  const Scalar det_minor00 = matrix.minor(0,0).determinant();
-  const Scalar det_minor10 = matrix.minor(1,0).determinant();
-  const Scalar det_minor20 = matrix.minor(2,0).determinant();
-  const Scalar invdet = Scalar(1) / ( det_minor00 * matrix.coeff(0,0)
-                                    - det_minor10 * matrix.coeff(1,0)
-                                    + det_minor20 * matrix.coeff(2,0) );
-  ei_compute_inverse_in_size3_aux( matrix, invdet, det_minor00, det_minor10, det_minor20, result );
-}
-
-template<typename XprType, typename MatrixType>
-bool ei_compute_inverse_in_size3_case_with_check(const XprType& matrix, MatrixType* result)
+template<bool Check, typename XprType, typename MatrixType>
+bool ei_compute_inverse_size3(const XprType& matrix, MatrixType* result)
 {
   typedef typename MatrixType::Scalar Scalar;
   const Scalar det_minor00 = matrix.minor(0,0).determinant();
   const Scalar det_minor10 = matrix.minor(1,0).determinant();
   const Scalar det_minor20 = matrix.minor(2,0).determinant();
   const Scalar det = ( det_minor00 * matrix.coeff(0,0)
-		  - det_minor10 * matrix.coeff(1,0)
-		  + det_minor20 * matrix.coeff(2,0) );
-  if(ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff())) return false;
+      - det_minor10 * matrix.coeff(1,0)
+      + det_minor20 * matrix.coeff(2,0) );
+  if(Check) if(ei_isMuchSmallerThan(det, matrix.cwise().abs().maxCoeff())) return false;
   const Scalar invdet = Scalar(1) / det;
-  ei_compute_inverse_in_size3_aux( matrix, invdet, det_minor00, det_minor10, det_minor20, result );
+  ei_compute_inverse_size3_helper( matrix, invdet, det_minor00, det_minor10, det_minor20, result );
   return true;
 }
 
 template<typename MatrixType>
-bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixType* result)
+bool ei_compute_inverse_size4_helper(const MatrixType& matrix, MatrixType* result)
 {
   /* Let's split M into four 2x2 blocks:
     * (P Q)
@@ -128,7 +114,7 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
   typedef Block<MatrixType,2,2> XprBlock22;
   typedef typename MatrixBase<XprBlock22>::PlainMatrixType Block22;
   Block22 P_inverse;
-  if(ei_compute_inverse_in_size2_case_with_check(matrix.template block<2,2>(0,0), &P_inverse))
+  if(ei_compute_inverse_size2_with_check(matrix.template block<2,2>(0,0), &P_inverse))
   {
     const Block22 Q = matrix.template block<2,2>(0,2);
     const Block22 P_inverse_times_Q = P_inverse * Q;
@@ -138,7 +124,7 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
     const XprBlock22 S = matrix.template block<2,2>(2,2);
     const Block22 X = S - R_times_P_inverse_times_Q;
     Block22 Y;
-    ei_compute_inverse_in_size2_case(X, &Y);
+    ei_compute_inverse_size2(X, &Y);
     result->template block<2,2>(2,2) = Y;
     result->template block<2,2>(2,0) = - Y * R_times_P_inverse;
     const Block22 Z = P_inverse_times_Q * Y;
@@ -152,54 +138,10 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
   }
 }
 
-template<typename MatrixType>
-void ei_compute_inverse_in_size4_case(const MatrixType& matrix, MatrixType* result)
-{
-  if(ei_compute_inverse_in_size4_case_helper(matrix, result))
-  {
-    // good ! The topleft 2x2 block was invertible, so the 2x2 blocks approach is successful.
-    return;
-  }
-  else
-  {
-    // rare case: the topleft 2x2 block is not invertible (but the matrix itself is assumed to be).
-    // since this is a rare case, we don't need to optimize it. We just want to handle it with little
-    // additional code.
-    MatrixType m(matrix);
-    m.row(0).swap(m.row(2));
-    m.row(1).swap(m.row(3));
-    if(ei_compute_inverse_in_size4_case_helper(m, result))
-    {
-      // good, the topleft 2x2 block of m is invertible. Since m is different from matrix in that some
-      // rows were permuted, the actual inverse of matrix is derived from the inverse of m by permuting
-      // the corresponding columns.
-      result->col(0).swap(result->col(2));
-      result->col(1).swap(result->col(3));
-    }
-    else
-    {
-      // last possible case. Since matrix is assumed to be invertible, this last case has to work.
-      // first, undo the swaps previously made
-      m.row(0).swap(m.row(2));
-      m.row(1).swap(m.row(3));
-      // swap row 0 with the the row among 0 and 1 that has the biggest 2 first coeffs
-      int swap0with = ei_abs(m.coeff(0,0))+ei_abs(m.coeff(0,1))>ei_abs(m.coeff(1,0))+ei_abs(m.coeff(1,1)) ? 0 : 1;
-      m.row(0).swap(m.row(swap0with));
-      // swap row 1 with the the row among 2 and 3 that has the biggest 2 first coeffs
-      int swap1with = ei_abs(m.coeff(2,0))+ei_abs(m.coeff(2,1))>ei_abs(m.coeff(3,0))+ei_abs(m.coeff(3,1)) ? 2 : 3;
-      m.row(1).swap(m.row(swap1with));
-      ei_compute_inverse_in_size4_case_helper(m, result);
-      result->col(1).swap(result->col(swap1with));
-      result->col(0).swap(result->col(swap0with));
-    }
-  }
-}
-
-
 template<typename XprType, typename MatrixType>
-bool ei_compute_inverse_in_size4_case_with_check(const XprType& matrix, MatrixType* result)
+bool ei_compute_inverse_size4_with_check(const XprType& matrix, MatrixType* result)
 {
-  if(ei_compute_inverse_in_size4_case_helper(matrix, result))
+  if(ei_compute_inverse_size4_helper(matrix, result))
   {
     // good ! The topleft 2x2 block was invertible, so the 2x2 blocks approach is successful.
     return true;
@@ -212,18 +154,17 @@ bool ei_compute_inverse_in_size4_case_with_check(const XprType& matrix, MatrixTy
     MatrixType m(matrix);
     m.row(0).swap(m.row(2));
     m.row(1).swap(m.row(3));
-    if(ei_compute_inverse_in_size4_case_helper(m, result))
+    if(ei_compute_inverse_size4_helper(m, result))
     {
       // good, the topleft 2x2 block of m is invertible. Since m is different from matrix in that some
       // rows were permuted, the actual inverse of matrix is derived from the inverse of m by permuting
       // the corresponding columns.
       result->col(0).swap(result->col(2));
       result->col(1).swap(result->col(3));
-	  return true;
+    return true;
     }
     else
     {
-      // last possible case. Since matrix is assumed to be invertible, this last case has to work.
       // first, undo the swaps previously made
       m.row(0).swap(m.row(2));
       m.row(1).swap(m.row(3));
@@ -233,17 +174,19 @@ bool ei_compute_inverse_in_size4_case_with_check(const XprType& matrix, MatrixTy
       // swap row 1 with the the row among 2 and 3 that has the biggest 2 first coeffs
       int swap1with = ei_abs(m.coeff(2,0))+ei_abs(m.coeff(2,1))>ei_abs(m.coeff(3,0))+ei_abs(m.coeff(3,1)) ? 2 : 3;
       m.row(1).swap(m.row(swap1with));
-	  if( ei_compute_inverse_in_size4_case_helper(m, result) )
-	  {
-		  result->col(1).swap(result->col(swap1with));
-		  result->col(0).swap(result->col(swap0with));
-		  return true;
-	  }
-	  else{
-		  return false; }
+      if( ei_compute_inverse_size4_helper(m, result) )
+      {
+        result->col(1).swap(result->col(swap1with));
+        result->col(0).swap(result->col(swap0with));
+        return true;
+      }
+      else
+      {
+        // non-invertible matrix
+        return false;
+      }
     }
   }
-
 }
 
 
@@ -276,7 +219,7 @@ struct ei_compute_inverse<MatrixType, 2>
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    ei_compute_inverse_in_size2_case(matrix, result);
+    ei_compute_inverse_size2(matrix, result);
   }
 };
 
@@ -285,7 +228,7 @@ struct ei_compute_inverse<MatrixType, 3>
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    ei_compute_inverse_in_size3_case(matrix, result);
+    ei_compute_inverse_size3<false, MatrixType, MatrixType>(matrix, result);
   }
 };
 
@@ -294,7 +237,7 @@ struct ei_compute_inverse<MatrixType, 4>
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    ei_compute_inverse_in_size4_case(matrix, result);
+    ei_compute_inverse_size4_with_check(matrix, result);
   }
 };
 
@@ -302,14 +245,15 @@ struct ei_compute_inverse<MatrixType, 4>
   *
   * Computes the matrix inverse of this matrix.
   *
-  * \note This matrix must be invertible, otherwise the result is undefined.
+  * \note This matrix must be invertible, otherwise the result is undefined. If you need an invertibility check, use
+  * computeInverseWithCheck().
   *
   * \param result Pointer to the matrix in which to store the result.
   *
   * Example: \include MatrixBase_computeInverse.cpp
   * Output: \verbinclude MatrixBase_computeInverse.out
   *
-  * \sa inverse()
+  * \sa inverse(), computeInverseWithCheck()
   */
 template<typename Derived>
 inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
@@ -323,7 +267,8 @@ inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
   *
   * \returns the matrix inverse of this matrix.
   *
-  * \note This matrix must be invertible, otherwise the result is undefined.
+  * \note This matrix must be invertible, otherwise the result is undefined. If you need an invertibility check, use
+  * computeInverseWithCheck().
   *
   * \note This method returns a matrix by value, which can be inefficient. To avoid that overhead,
   * use computeInverse() instead.
@@ -331,7 +276,7 @@ inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
   * Example: \include MatrixBase_inverse.cpp
   * Output: \verbinclude MatrixBase_inverse.out
   *
-  * \sa computeInverse()
+  * \sa computeInverse(), computeInverseWithCheck()
   */
 template<typename Derived>
 inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::inverse() const
@@ -342,20 +287,20 @@ inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::
 }
 
 
-/*****************************************
- * Compute inverse with invertibility check
-*********************************************/
+/********************************************
+ * Compute inverse with invertibility check *
+ *******************************************/
 
 template<typename MatrixType, int Size = MatrixType::RowsAtCompileTime>
 struct ei_compute_inverse_with_check
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-	  typedef typename MatrixType::Scalar Scalar;
-	  LU<MatrixType> lu( matrix );
-	  if( !lu.isInvertible() ) return false;
-	  lu.computeInverse(result);
-	  return true;
+    typedef typename MatrixType::Scalar Scalar;
+    LU<MatrixType> lu( matrix );
+    if( !lu.isInvertible() ) return false;
+    lu.computeInverse(result);
+    return true;
   }
 };
 
@@ -364,11 +309,11 @@ struct ei_compute_inverse_with_check<MatrixType, 1>
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-	  if( 0 == result->coeffRef(0,0) ) return false;
-	
-	  typedef typename MatrixType::Scalar Scalar;
-	  result->coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
-	  return true;
+    if( 0 == result->coeffRef(0,0) ) return false;
+  
+    typedef typename MatrixType::Scalar Scalar;
+    result->coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
+    return true;
   }
 };
 
@@ -377,7 +322,7 @@ struct ei_compute_inverse_with_check<MatrixType, 2>
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-    return ei_compute_inverse_in_size2_case_with_check(matrix, result);
+    return ei_compute_inverse_size2_with_check(matrix, result);
   }
 };
 
@@ -386,7 +331,7 @@ struct ei_compute_inverse_with_check<MatrixType, 3>
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-    return ei_compute_inverse_in_size3_case_with_check(matrix, result);
+    return ei_compute_inverse_size3<true, MatrixType, MatrixType>(matrix, result);
   }
 };
 
@@ -395,22 +340,19 @@ struct ei_compute_inverse_with_check<MatrixType, 4>
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-    return ei_compute_inverse_in_size4_case_with_check(matrix, result);
+    return ei_compute_inverse_size4_with_check(matrix, result);
   }
 };
 
 /** \lu_module
   *
-  * If the matrix is invertible, computes the matrix inverse of this matrix
-  * and returns true otherwise return false.
+  * Computation of matrix inverse, with invertibility check.
   *
-  * \note This matrix must be invertible, otherwise the result is undefined.
+  * \returns true if the matrix is invertible, false otherwise.
   *
-  * \param result Pointer to the matrix in which to store the result. Undefined
-  *  if the matrix is not invertible.
-  * \return true if the matrix is invertible false otherwise.
+  * \param result Pointer to the matrix in which to store the result.
   *
-  * \sa inverse()
+  * \sa inverse(), computeInverse()
   */
 template<typename Derived>
 inline bool MatrixBase<Derived>::computeInverseWithCheck(PlainMatrixType *result) const
