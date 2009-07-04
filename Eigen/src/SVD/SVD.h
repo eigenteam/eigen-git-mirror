@@ -554,6 +554,8 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
   const int rows = m_matU.rows();
   ei_assert(b.rows() == rows);
 
+  result->resize(m_matV.rows(), b.cols());
+
   Scalar maxVal = m_sigma.cwise().abs().maxCoeff();
   for (int j=0; j<b.cols(); ++j)
   {
