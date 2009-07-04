@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,9 +29,7 @@ template<typename Lhs, typename Rhs> struct ei_sparse_product_mode
 {
   enum {
 
-    value = ei_is_diagonal<Lhs>::ret || ei_is_diagonal<Rhs>::ret
-          ? DiagonalProduct
-          :  (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
+    value = (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
           ? SparseTimeSparseProduct
           : (Lhs::Flags&SparseBit)==SparseBit
           ? SparseTimeDenseProduct
@@ -45,15 +43,6 @@ struct SparseProductReturnType
   typedef const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
 
   typedef SparseProduct<LhsNested, RhsNested, ProductMode> Type;
-};
-
-template<typename Lhs, typename Rhs>
-struct SparseProductReturnType<Lhs,Rhs,DiagonalProduct>
-{
-  typedef const typename ei_nested<Lhs,Rhs::RowsAtCompileTime>::type LhsNested;
-  typedef const typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
-
-  typedef SparseDiagonalProduct<LhsNested, RhsNested> Type;
 };
 
 // sparse product return type specialization
@@ -106,7 +95,7 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
 //     RhsIsRowMajor = (RhsFlags & RowMajorBit)==RowMajorBit,
 
     EvalToRowMajor = (RhsFlags & LhsFlags & RowMajorBit),
-    ResultIsSparse = ProductMode==SparseTimeSparseProduct || ProductMode==DiagonalProduct,
+    ResultIsSparse = ProductMode==SparseTimeSparseProduct,
 
     RemovedBits = ~( (EvalToRowMajor ? 0 : RowMajorBit) | (ResultIsSparse ? 0 : SparseBit) ),
 

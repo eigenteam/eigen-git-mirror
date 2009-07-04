@@ -118,7 +118,6 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
     VERIFY_IS_APPROX(x=mLo.template marked<LowerTriangular|SelfAdjoint>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template marked<SelfAdjoint>()*b, refX=refS*b);
   }
-
 }
 
 void test_sparse_product()

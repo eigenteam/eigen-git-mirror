@@ -25,8 +25,9 @@
 #ifndef EIGEN_SPARSE_DIAGONAL_PRODUCT_H
 #define EIGEN_SPARSE_DIAGONAL_PRODUCT_H
 
-// the product a diagonal matrix with a sparse matrix can be easily
-// implemented using expression template. We have two very different cases:
+// The product of a diagonal matrix with a sparse matrix can be easily
+// implemented using expression template.
+// We have two consider very different cases:
 // 1 - diag * row-major sparse
 //     => each inner vector <=> scalar * sparse vector product
 //     => so we can reuse CwiseUnaryOp::InnerIterator
@@ -37,13 +38,21 @@
 // The two other cases are symmetric.
 
 template<typename Lhs, typename Rhs>
-struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> > : ei_traits<SparseProduct<Lhs, Rhs, DiagonalProduct> >
+struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> >
 {
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
+  typedef typename _Lhs::Scalar Scalar;
   enum {
+    RowsAtCompileTime = _Lhs::RowsAtCompileTime,
+    ColsAtCompileTime = _Rhs::ColsAtCompileTime,
+
+    MaxRowsAtCompileTime = _Lhs::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = _Rhs::MaxColsAtCompileTime,
+    
     SparseFlags = ei_is_diagonal<_Lhs>::ret ? int(_Rhs::Flags) : int(_Lhs::Flags),
-    Flags = SparseBit | (SparseFlags&RowMajorBit)
+    Flags = SparseBit | (SparseFlags&RowMajorBit),
+    CoeffReadCost = Dynamic
   };
 };
 
@@ -51,11 +60,16 @@ enum {SDP_IsDiagonal, SDP_IsSparseRowMajor, SDP_IsSparseColMajor};
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType, int RhsMode, int LhsMode> 
 class ei_sparse_diagonal_product_inner_iterator_selector;
 
-template<typename LhsNested, typename RhsNested>
-class SparseDiagonalProduct : public SparseMatrixBase<SparseDiagonalProduct<LhsNested,RhsNested> >, ei_no_assignment_operator
+template<typename Lhs, typename Rhs>
+class SparseDiagonalProduct
+  : public SparseMatrixBase<SparseDiagonalProduct<Lhs,Rhs> >,
+    ei_no_assignment_operator
 {
-    typedef typename ei_traits<SparseDiagonalProduct>::_LhsNested _LhsNested;
-    typedef typename ei_traits<SparseDiagonalProduct>::_RhsNested _RhsNested;
+    typedef typename Lhs::Nested LhsNested;
+    typedef typename Rhs::Nested RhsNested;
+
+    typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+    typedef typename ei_cleantype<RhsNested>::type _RhsNested;
     
     enum {
       LhsMode = ei_is_diagonal<_LhsNested>::ret ? SDP_IsDiagonal
@@ -71,8 +85,8 @@ class SparseDiagonalProduct : public SparseMatrixBase<SparseDiagonalProduct<LhsN
     typedef ei_sparse_diagonal_product_inner_iterator_selector
                 <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
 
-    template<typename Lhs, typename Rhs>
-    EIGEN_STRONG_INLINE SparseDiagonalProduct(const Lhs& lhs, const Rhs& rhs)
+    template<typename _Lhs, typename _Rhs>
+    EIGEN_STRONG_INLINE SparseDiagonalProduct(const _Lhs& lhs, const _Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows() && "invalid sparse matrix * diagonal matrix product");
@@ -109,12 +123,12 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   : public SparseCwiseBinaryOp<
       ei_scalar_product_op<typename Lhs::Scalar>,
       SparseInnerVectorSet<Rhs,1>,
-      typename Lhs::_CoeffsVectorType>::InnerIterator
+      typename Lhs::DiagonalVectorType>::InnerIterator
 {
     typedef typename SparseCwiseBinaryOp<
       ei_scalar_product_op<typename Lhs::Scalar>,
       SparseInnerVectorSet<Rhs,1>,
-      typename Lhs::_CoeffsVectorType>::InnerIterator Base;
+      typename Lhs::DiagonalVectorType>::InnerIterator Base;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
@@ -141,17 +155,27 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   : public SparseCwiseBinaryOp<
       ei_scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
-      NestByValue<Transpose<typename Rhs::_CoeffsVectorType> > >::InnerIterator
+      NestByValue<Transpose<typename Rhs::DiagonalVectorType> > >::InnerIterator
 {
     typedef typename SparseCwiseBinaryOp<
       ei_scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
-      NestByValue<Transpose<typename Rhs::_CoeffsVectorType> > >::InnerIterator Base;
+      NestByValue<Transpose<typename Rhs::DiagonalVectorType> > >::InnerIterator Base;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
       : Base(expr.lhs().innerVector(outer) .cwise()* expr.rhs().diagonal().transpose().nestByValue(), 0)
     {}
 };
+
+// SparseMatrixBase functions
+
+template<typename Derived>
+template<typename OtherDerived>
+const SparseDiagonalProduct<Derived,OtherDerived>
+SparseMatrixBase<Derived>::operator*(const DiagonalBase<OtherDerived> &other) const
+{
+  return SparseDiagonalProduct<Derived,OtherDerived>(this->derived(), other.derived());
+}
 
 #endif // EIGEN_SPARSE_DIAGONAL_PRODUCT_H

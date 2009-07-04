@@ -38,7 +38,8 @@ class DiagonalBase : public MultiplierBase<Derived>
       ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
       MaxRowsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
       MaxColsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
-      IsVectorAtCompileTime = 0
+      IsVectorAtCompileTime = 0,
+      Flags = 0
     };
     
     typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
@@ -52,6 +53,9 @@ class DiagonalBase : public MultiplierBase<Derived>
 
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
     inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
+
+    inline int rows() const { return diagonal().size(); }
+    inline int cols() const { return diagonal().size(); }
     
     template<typename MatrixDerived>
     const DiagonalProduct<MatrixDerived, Derived, DiagonalOnTheLeft>

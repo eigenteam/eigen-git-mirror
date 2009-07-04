@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -186,6 +186,16 @@ struct ei_result_of<ei_scalar_product_op<Scalar>(ArgType0,ArgType1)> {
 typedef typename ei_scalar_product_traits<typename ei_cleantype<ArgType0>::type, typename ei_cleantype<ArgType1>::type>::ReturnType type;
 };
 
+template<typename T> struct ei_is_diagonal
+{ enum { ret = false }; };
 
+template<typename T> struct ei_is_diagonal<DiagonalBase<T> >
+{ enum { ret = true }; };
+
+template<typename T> struct ei_is_diagonal<DiagonalWrapper<T> >
+{ enum { ret = true }; };
+
+template<typename T, int S> struct ei_is_diagonal<DiagonalMatrix<T,S> >
+{ enum { ret = true }; };
 
 #endif // EIGEN_META_H
