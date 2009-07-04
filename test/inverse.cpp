@@ -65,10 +65,21 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 
   // since for the general case we implement separately row-major and col-major, test that
   VERIFY_IS_APPROX(m1.transpose().inverse(), m1.inverse().transpose());
-  
+
+  //computeInverseWithCheck tests
+  //First: an invertible matrix
   bool invertible = m1.computeInverseWithCheck(&m2);
   VERIFY(invertible);
   VERIFY_IS_APPROX(identity, m1*m2);
+
+  //Second: a rank one matrix (not invertible, except for 1x1 matrices)
+  VectorType v3 = VectorType::Random(rows);
+  MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
+  invertible = m3.computeInverseWithCheck( &m4 );
+  if( 1 == rows ){
+      VERIFY( invertible ); }
+  else{
+      VERIFY( !invertible ); }
 }
 
 void test_inverse()
@@ -81,7 +92,7 @@ void test_inverse()
     CALL_SUBTEST( inverse(MatrixXf(8,8)) );
     CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
   }
-  
+
   // test some tricky cases for 4x4 matrices
   VERIFY_IS_APPROX((Matrix4f() << 0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).finished().inverse(),
                    (Matrix4f() << 0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).finished());
