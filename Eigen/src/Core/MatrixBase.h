@@ -401,14 +401,14 @@ template<typename Derived> class MatrixBase
     const typename BlockReturnType<Derived>::Type
     block(int startRow, int startCol, int blockRows, int blockCols) const;
 
-    typename BlockReturnType<Derived>::SubVectorType segment(int start, int size);
-    const typename BlockReturnType<Derived>::SubVectorType segment(int start, int size) const;
+    VectorBlock<Derived> segment(int start, int size);
+    const VectorBlock<Derived> segment(int start, int size) const;
 
-    typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size);
-    const typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size) const;
+    VectorBlock<Derived> start(int size);
+    const VectorBlock<Derived> start(int size) const;
 
-    typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size);
-    const typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size) const;
+    VectorBlock<Derived> end(int size);
+    const VectorBlock<Derived> end(int size) const;
 
     typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
     const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
@@ -423,14 +423,14 @@ template<typename Derived> class MatrixBase
     template<int CRows, int CCols>
     const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType start(void);
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType start() const;
+    template<int Size> VectorBlock<Derived,Size> start(void);
+    template<int Size> const VectorBlock<Derived,Size> start() const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
+    template<int Size> VectorBlock<Derived,Size> end();
+    template<int Size> const VectorBlock<Derived,Size> end() const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
+    template<int Size> VectorBlock<Derived,Size> segment(int start);
+    template<int Size> const VectorBlock<Derived,Size> segment(int start) const;
 
     Diagonal<Derived,0> diagonal();
     const Diagonal<Derived,0> diagonal() const;

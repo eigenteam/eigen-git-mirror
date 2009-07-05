@@ -237,8 +237,6 @@ struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>
   * TODO: could be a good idea to define a big ReturnType struct ??
   */
 template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
-  typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
-                                (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
   typedef Block<ExpressionType, RowsOrSize, Cols> Type;
 };
 

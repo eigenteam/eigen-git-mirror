@@ -164,6 +164,7 @@ namespace Eigen {
 #include "src/Core/MapBase.h"
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
+#include "src/Core/VectorBlock.h"
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
