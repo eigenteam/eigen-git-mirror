@@ -367,12 +367,14 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
   //       x^T v1 = 0
   //    under the constraint:
   //       ||x|| = 1
-  //    which yields an eigenvalue problem (or a SVD)
+  //    which yields a singular value problem
   if (ei_isApprox(c,Scalar(-1)))
   {
     c = std::max<Scalar>(c,-1);
-    SelfAdjointEigenSolver<Matrix<Scalar,3,3> > eig(v0 * v0.transpose() + v1 * v1.transpose());
-    Vector3 axis = eig.eigenvectors().col(0);
+
+    SVD<Matrix<Scalar,3,3> > svd(v0 * v0.transpose() + v1 * v1.transpose());
+    Vector3 axis = svd.matrixV().col(2);
+    
     Scalar w2 = (Scalar(1)+c)*Scalar(0.5);
     this->w() = ei_sqrt(w2);
     this->vec() = axis * ei_sqrt(Scalar(1) - w2);
