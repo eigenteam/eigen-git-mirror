@@ -57,8 +57,9 @@ template<typename MatrixType, typename DiagonalType, int ProductOrder> class Dia
 template<typename MatrixType, int Index> class Diagonal;
 
 template<typename MatrixType, int PacketAccess = AsRequested> class Map;
-template<typename MatrixType, unsigned int Mode> class Part;
-template<typename MatrixType, unsigned int Mode> class Extract;
+template<typename Derived> class TriangularBase;
+template<typename MatrixType, unsigned int Mode> class TriangularView;
+template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
 template<typename ExpressionType> class Cwise;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
@@ -119,7 +120,7 @@ template<typename MatrixType> class LU;
 template<typename MatrixType> class PartialLU;
 template<typename MatrixType> class QR;
 template<typename MatrixType> class SVD;
-template<typename MatrixType> class LLT;
+template<typename MatrixType, int UpLo = LowerTriangular> class LLT;
 template<typename MatrixType> class LDLT;
 
 // Geometry module:

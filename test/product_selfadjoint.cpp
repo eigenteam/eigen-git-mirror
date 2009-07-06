@@ -40,18 +40,20 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   
   m1 = m1.adjoint()*m1;
   
-  // col-lower
+  // lower
   m2.setZero();
   m2.template part<LowerTriangular>() = m1;
   ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangularBit>
     (cols,m2.data(),cols, v1.data(), v2.data());
   VERIFY_IS_APPROX(v2, m1 * v1);
+  VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>() * v1).eval(), m1 * v1);
 
-  // col-upper
+  // upper
   m2.setZero();
   m2.template part<UpperTriangular>() = m1;
   ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,UpperTriangularBit>(cols,m2.data(),cols, v1.data(), v2.data());
   VERIFY_IS_APPROX(v2, m1 * v1);
+  VERIFY_IS_APPROX((m2.template selfadjointView<UpperTriangular>() * v1).eval(), m1 * v1);
 
 }
 

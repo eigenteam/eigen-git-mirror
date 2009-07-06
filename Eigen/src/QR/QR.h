@@ -131,7 +131,7 @@ template<typename MatrixType> class QR
     }
     
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
-    const Part<NestByValue<MatrixRBlockType>, UpperTriangular>
+    const TriangularView<NestByValue<MatrixRBlockType>, UpperTriangular>
     matrixR(void) const
     {
       ei_assert(m_isInitialized && "QR is not initialized.");

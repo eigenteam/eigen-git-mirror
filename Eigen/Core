@@ -159,7 +159,6 @@ namespace Eigen {
 #include "src/Core/CwiseNullaryOp.h"
 #include "src/Core/CwiseUnaryView.h"
 #include "src/Core/Dot.h"
-#include "src/Core/SolveTriangular.h"
 #include "src/Core/MapBase.h"
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
@@ -174,11 +173,13 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/Part.h"
 #include "src/Core/Product.h"
 #include "src/Core/products/GeneralMatrixMatrix.h"
 #include "src/Core/products/GeneralMatrixVector.h"
 #include "src/Core/products/SelfadjointMatrixVector.h"
+#include "src/Core/TriangularMatrix.h"
+#include "src/Core/SelfAdjointView.h"
+#include "src/Core/SolveTriangular.h"
 
 } // namespace Eigen
 

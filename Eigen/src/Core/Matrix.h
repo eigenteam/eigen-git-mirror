@@ -456,6 +456,21 @@ class Matrix
       *this = other;
     }
 
+    template<typename TriangularDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const TriangularBase<TriangularDerived> &other)
+    {
+      resize(other.rows(), other.cols());
+      Base::operator=(other.derived());
+      return *this;
+    }
+
+    template<typename TriangularDerived>
+    EIGEN_STRONG_INLINE Matrix(const TriangularBase<TriangularDerived> &other)
+      : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
+    {
+      *this = other;
+    }
+
     /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
       * data pointers.
       */

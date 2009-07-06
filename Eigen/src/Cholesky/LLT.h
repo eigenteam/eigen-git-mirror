@@ -25,6 +25,8 @@
 #ifndef EIGEN_LLT_H
 #define EIGEN_LLT_H
 
+template<typename MatrixType, int UpLo> struct LLT_Traits;
+    
 /** \ingroup cholesky_Module
   *
   * \class LLT
@@ -51,7 +53,7 @@
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   */
-template<typename MatrixType> class LLT
+template<typename MatrixType, int _UpLo> class LLT
 {
   private:
     typedef typename MatrixType::Scalar Scalar;
@@ -60,8 +62,11 @@ template<typename MatrixType> class LLT
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
-      AlignmentMask = int(PacketSize)-1
+      AlignmentMask = int(PacketSize)-1,
+      UpLo = _UpLo
     };
+
+    typedef LLT_Traits<MatrixType,UpLo> Traits;
 
   public:
 
@@ -80,11 +85,18 @@ template<typename MatrixType> class LLT
       compute(matrix);
     }
 
-    /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, LowerTriangular> matrixL(void) const 
+    /** \returns a view of the upper triangular matrix U */
+    inline typename Traits::MatrixU matrixU() const
+    {
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      return Traits::getU(m_matrix);
+    }
+
+    /** \returns a view of the lower triangular matrix L */
+    inline typename Traits::MatrixL matrixL() const
     { 
       ei_assert(m_isInitialized && "LLT is not initialized.");
-      return m_matrix; 
+      return Traits::getL(m_matrix);
     }
 
     template<typename RhsDerived, typename ResultType>
@@ -104,51 +116,162 @@ template<typename MatrixType> class LLT
     bool m_isInitialized;
 };
 
-/** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
-  */
-template<typename MatrixType>
-void LLT<MatrixType>::compute(const MatrixType& a)
+template<typename MatrixType/*, int UpLo*/>
+bool ei_inplace_llt_lo(MatrixType& mat)
 {
-  assert(a.rows()==a.cols());
-  const int size = a.rows();
-  m_matrix.resize(size, size);
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  assert(mat.rows()==mat.cols());
+  const int size = mat.rows();
+  Matrix<Scalar,Dynamic,1> aux(size);
   // The biggest overall is the point of reference to which further diagonals
   // are compared; if any diagonal is negligible compared
   // to the largest overall, the algorithm bails.  This cutoff is suggested
   // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
   // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
   // Algorithms" page 217, also by Higham.
-  const RealScalar cutoff = machine_epsilon<Scalar>() * size * a.diagonal().cwise().abs().maxCoeff();
+  const RealScalar cutoff = machine_epsilon<Scalar>() * size * mat.diagonal().cwise().abs().maxCoeff();
   RealScalar x;
-  x = ei_real(a.coeff(0,0));
-  m_matrix.coeffRef(0,0) = ei_sqrt(x);
+  x = ei_real(mat.coeff(0,0));
+  mat.coeffRef(0,0) = ei_sqrt(x);
   if(size==1)
   {
-    m_isInitialized = true;
-    return;
+    return true;
   }
-  m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
+  mat.col(0).end(size-1) = mat.col(0).end(size-1) / ei_real(mat.coeff(0,0));
   for (int j = 1; j < size; ++j)
   {
-    x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
+    x = ei_real(mat.coeff(j,j)) - mat.row(j).start(j).squaredNorm();
     if (ei_abs(x) < cutoff) continue;
 
-    m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
+    mat.coeffRef(j,j) = x = ei_sqrt(x);
 
     int endSize = size-j-1;
     if (endSize>0) {
       // Note that when all matrix columns have good alignment, then the following
       // product is guaranteed to be optimal with respect to alignment.
-      m_matrix.col(j).end(endSize) =
-        (m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()).lazy();
+      aux.end(endSize) = 
+        (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint()).lazy();
 
-      // FIXME could use a.col instead of a.row
-      m_matrix.col(j).end(endSize) = (a.row(j).end(endSize).adjoint()
-        - m_matrix.col(j).end(endSize) ) / x;
+      mat.col(j).end(endSize) = (mat.col(j).end(endSize) - aux.end(endSize) ) / x;
+      // TODO improve the products so that the following is efficient:
+//       mat.col(j).end(endSize) -= (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint());
+//       mat.col(j).end(endSize) *= Scalar(1)/x;
     }
   }
 
-  m_isInitialized = true;
+  return true;
+}
+
+template<typename MatrixType/*, int UpLo*/>
+bool ei_inplace_llt_up(MatrixType& mat)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  assert(mat.rows()==mat.cols());
+  const int size = mat.rows();
+  Matrix<Scalar,Dynamic,1> aux(size);
+  
+  const RealScalar cutoff = machine_epsilon<Scalar>() * size * mat.diagonal().cwise().abs().maxCoeff();
+  RealScalar x;
+  x = ei_real(mat.coeff(0,0));
+  mat.coeffRef(0,0) = ei_sqrt(x);
+  if(size==1)
+  {
+    return true;
+  }
+  mat.row(0).end(size-1) = mat.row(0).end(size-1) / ei_real(mat.coeff(0,0));
+  for (int j = 1; j < size; ++j)
+  {
+    x = ei_real(mat.coeff(j,j)) - mat.col(j).start(j).squaredNorm();
+    if (ei_abs(x) < cutoff) continue;
+
+    mat.coeffRef(j,j) = x = ei_sqrt(x);
+
+    int endSize = size-j-1;
+    if (endSize>0) {
+      aux.start(endSize) =
+        (mat.block(0, j+1, j, endSize).adjoint() * mat.col(j).start(j)).lazy();
+
+      mat.row(j).end(endSize) = (mat.row(j).end(endSize) - aux.start(endSize).adjoint() ) / x;
+    }
+  }
+
+  return true;
+}
+
+template<typename MatrixType> struct LLT_Traits<MatrixType,LowerTriangular>
+{
+  typedef TriangularView<MatrixType, LowerTriangular> MatrixL;
+  typedef TriangularView<NestByValue<typename MatrixType::AdjointReturnType>, UpperTriangular> MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m; }
+  inline static MatrixU getU(const MatrixType& m) { return m.adjoint().nestByValue(); }
+  static bool inplace_decomposition(MatrixType& m)
+  { return ei_inplace_llt_lo(m); }
+};
+
+template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
+{
+  typedef TriangularView<NestByValue<typename MatrixType::AdjointReturnType>, LowerTriangular> MatrixL;
+  typedef TriangularView<MatrixType, UpperTriangular> MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m.adjoint().nestByValue(); }
+  inline static MatrixU getU(const MatrixType& m) { return m; }
+  static bool inplace_decomposition(MatrixType& m)
+  { return ei_inplace_llt_up(m); }
+};
+
+/** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
+  */
+template<typename MatrixType, int _UpLo>
+void LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
+{
+//   assert(a.rows()==a.cols());
+//   const int size = a.rows();
+//   m_matrix.resize(size, size);
+//   // The biggest overall is the point of reference to which further diagonals
+//   // are compared; if any diagonal is negligible compared
+//   // to the largest overall, the algorithm bails.  This cutoff is suggested
+//   // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
+//   // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
+//   // Algorithms" page 217, also by Higham.
+//   const RealScalar cutoff = machine_epsilon<Scalar>() * size * a.diagonal().cwise().abs().maxCoeff();
+//   RealScalar x;
+//   x = ei_real(a.coeff(0,0));
+//   m_matrix.coeffRef(0,0) = ei_sqrt(x);
+//   if(size==1)
+//   {
+//     m_isInitialized = true;
+//     return;
+//   }
+//   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
+//   for (int j = 1; j < size; ++j)
+//   {
+//     x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
+//     if (ei_abs(x) < cutoff) continue;
+// 
+//     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
+// 
+//     int endSize = size-j-1;
+//     if (endSize>0) {
+//       // Note that when all matrix columns have good alignment, then the following
+//       // product is guaranteed to be optimal with respect to alignment.
+//       m_matrix.col(j).end(endSize) =
+//         (m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()).lazy();
+// 
+//       // FIXME could use a.col instead of a.row
+//       m_matrix.col(j).end(endSize) = (a.row(j).end(endSize).adjoint()
+//         - m_matrix.col(j).end(endSize) ) / x;
+//     }
+//   }
+// 
+//   m_isInitialized = true;
+
+  assert(a.rows()==a.cols());
+  const int size = a.rows();
+  m_matrix.resize(size, size);
+  m_matrix = a;
+
+  m_isInitialized = Traits::inplace_decomposition(m_matrix);
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -164,9 +287,9 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   *
   * \sa LLT::solveInPlace(), MatrixBase::llt()
   */
-template<typename MatrixType>
+template<typename MatrixType, int _UpLo>
 template<typename RhsDerived, typename ResultType>
-bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, ResultType *result) const
+bool LLT<MatrixType,_UpLo>::solve(const MatrixBase<RhsDerived> &b, ResultType *result) const
 {
   ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
@@ -185,15 +308,15 @@ bool LLT<MatrixType>::solve(const MatrixBase<RhsDerived> &b, ResultType *result)
   *
   * \sa LLT::solve(), MatrixBase::llt()
   */
-template<typename MatrixType>
+template<typename MatrixType, int _UpLo>
 template<typename Derived>
-bool LLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+bool LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   ei_assert(m_isInitialized && "LLT is not initialized.");
   const int size = m_matrix.rows();
   ei_assert(size==bAndX.rows());
-  matrixL().solveTriangularInPlace(bAndX);
-  m_matrix.adjoint().template part<UpperTriangular>().solveTriangularInPlace(bAndX);
+  matrixL().solveInPlace(bAndX);
+  matrixU().solveInPlace(bAndX);
   return true;
 }
 
@@ -205,6 +328,16 @@ inline const LLT<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::llt() const
 {
   return LLT<PlainMatrixType>(derived());
+}
+
+/** \cholesky_module
+  * \returns the LLT decomposition of \c *this
+  */
+template<typename MatrixType, unsigned int UpLo>
+inline const LLT<typename SelfAdjointView<MatrixType, UpLo>::PlainMatrixType, UpLo>
+SelfAdjointView<MatrixType, UpLo>::llt() const
+{
+  return LLT<PlainMatrixType,UpLo>(m_matrix);
 }
 
 #endif // EIGEN_LLT_H

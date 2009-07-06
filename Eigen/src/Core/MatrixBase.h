@@ -297,6 +297,10 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
+
+    /** Overloaded for fast triangular part to dense matrix evaluation */
+    template<typename TriangularDerived>
+    Derived& lazyAssign(const TriangularBase<TriangularDerived> &other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -402,6 +406,9 @@ template<typename Derived> class MatrixBase
     template<typename DiagonalDerived>
     Derived& operator=(const DiagonalBase<DiagonalDerived> &other);
 
+    template<typename TriangularDerived>
+    Derived& operator=(const TriangularBase<TriangularDerived> &other);
+
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
     solveTriangular(const MatrixBase<OtherDerived>& other) const;
@@ -477,9 +484,14 @@ template<typename Derived> class MatrixBase
     Diagonal<Derived, Dynamic> diagonal(int index);
     const Diagonal<Derived, Dynamic> diagonal(int index) const;
 
-    template<unsigned int Mode> Part<Derived, Mode> part();
-    template<unsigned int Mode> const Part<Derived, Mode> part() const;
+    template<unsigned int Mode> TriangularView<Derived, Mode> part();
+    template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
 
+    template<unsigned int Mode> TriangularView<Derived, Mode> triangularView();
+    template<unsigned int Mode> const TriangularView<Derived, Mode> triangularView() const;
+
+    template<unsigned int UpLo> SelfAdjointView<Derived, UpLo> selfadjointView();
+    template<unsigned int UpLo> const SelfAdjointView<Derived, UpLo> selfadjointView() const;
 
     static const ConstantReturnType
     Constant(int rows, int cols, const Scalar& value);

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -25,33 +25,19 @@
 #ifndef EIGEN_SOLVETRIANGULAR_H
 #define EIGEN_SOLVETRIANGULAR_H
 
-template<typename XprType> struct ei_is_part { enum {value=false}; };
-template<typename XprType, unsigned int Mode> struct ei_is_part<Part<XprType,Mode> > { enum {value=true}; };
-
-template<typename Lhs, typename Rhs,
-  int TriangularPart = (int(Lhs::Flags) & LowerTriangularBit)
-                     ? LowerTriangular
-                     : (int(Lhs::Flags) & UpperTriangularBit)
-                     ? UpperTriangular
-                     : 0xffffff,
-  int StorageOrder = ei_is_part<Lhs>::value ? 0xffffff  // this is to solve ambiguous specializations
-                   : int(Lhs::Flags) & (RowMajorBit|SparseBit)
+template<typename Lhs, typename Rhs, int Mode,
+  int UpLo = (Mode & LowerTriangularBit)
+           ? LowerTriangular
+           : (Mode & UpperTriangularBit)
+           ? UpperTriangular
+           : -1,
+  int StorageOrder = int(Lhs::Flags) & RowMajorBit
   >
 struct ei_solve_triangular_selector;
 
-// transform a Part xpr to a Flagged xpr
-template<typename Lhs, unsigned int LhsMode, typename Rhs, int UpLo, int StorageOrder>
-struct ei_solve_triangular_selector<Part<Lhs,LhsMode>,Rhs,UpLo,StorageOrder>
-{
-  static void run(const Part<Lhs,LhsMode>& lhs, Rhs& other)
-  {
-    ei_solve_triangular_selector<Flagged<Lhs,LhsMode,0>,Rhs>::run(lhs._expression(), other);
-  }
-};
-
 // forward substitution, row-major
-template<typename Lhs, typename Rhs, int UpLo>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
+template<typename Lhs, typename Rhs, int Mode, int UpLo>
+struct ei_solve_triangular_selector<Lhs,Rhs,Mode,UpLo,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -70,7 +56,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
     for(int c=0 ; c<other.cols() ; ++c)
     {
       // process first rows using the non block version
-      if(!(Lhs::Flags & UnitDiagBit))
+      if(!(Mode & UnitDiagBit))
       {
         if (IsLowerTriangular)
           other.coeffRef(0,c) = other.coeff(0,c)/lhs.coeff(0, 0);
@@ -82,7 +68,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
         Scalar tmp = other.coeff(i,c)
           - (IsLowerTriangular ? ((lhs.row(i).start(i)) * other.col(c).start(i)).coeff(0,0)
                      : ((lhs.row(i).end(size-i-1)) * other.col(c).end(size-i-1)).coeff(0,0));
-        if (Lhs::Flags & UnitDiagBit)
+        if (Mode & UnitDiagBit)
           other.coeffRef(i,c) = tmp;
         else
           other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
@@ -107,7 +93,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
          */
         {
           Scalar tmp = other.coeff(startBlock,c)-btmp.coeff(IsLowerTriangular?0:3);
-          if (Lhs::Flags & UnitDiagBit)
+          if (Mode & UnitDiagBit)
             other.coeffRef(i,c) = tmp;
           else
             other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
@@ -122,7 +108,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
             - (   lhs.row(i).segment(IsLowerTriangular ? startBlock : i+1, remainingSize)
               * other.col(c).segment(IsLowerTriangular ? startBlock : i+1, remainingSize)).coeff(0,0);
 
-          if (Lhs::Flags & UnitDiagBit)
+          if (Mode & UnitDiagBit)
             other.coeffRef(i,c) = tmp;
           else
             other.coeffRef(i,c) = tmp/lhs.coeff(i,i);
@@ -137,8 +123,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,RowMajor|IsDense>
 //  - inv(LowerTriangular,UnitDiag,ColMajor) * Column vector
 //  - inv(UpperTriangular,         ColMajor) * Column vector
 //  - inv(UpperTriangular,UnitDiag,ColMajor) * Column vector
-template<typename Lhs, typename Rhs, int UpLo>
-struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
+template<typename Lhs, typename Rhs, int Mode, int UpLo>
+struct ei_solve_triangular_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
@@ -168,7 +154,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
         for (;IsLowerTriangular ? i<endBlock : i>endBlock;
              i += IsLowerTriangular ? 1 : -1)
         {
-          if(!(Lhs::Flags & UnitDiagBit))
+          if(!(Mode & UnitDiagBit))
             other.coeffRef(i,c) /= lhs.coeff(i,i);
           int remainingSize = IsLowerTriangular ? endBlock-i-1 : i-endBlock-1;
           if (remainingSize>0)
@@ -203,7 +189,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
       int i;
       for(i=blockyEnd; IsLowerTriangular ? i<size-1 : i>0; i += (IsLowerTriangular ? 1 : -1) )
       {
-        if(!(Lhs::Flags & UnitDiagBit))
+        if(!(Mode & UnitDiagBit))
           other.coeffRef(i,c) /= lhs.coeff(i,i);
 
         /* NOTE we cannot use lhs.col(i).end(size-i-1) because Part::coeffRef gets called by .col() to
@@ -214,7 +200,7 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
         else
           other.col(c).start(i) -= other.coeffRef(i,c) * Block<Lhs,Dynamic,1>(lhs, 0,i, i, 1);
       }
-      if(!(Lhs::Flags & UnitDiagBit))
+      if(!(Mode & UnitDiagBit))
         other.coeffRef(i,c) /= lhs.coeff(i,i);
     }
   }
@@ -224,31 +210,31 @@ struct ei_solve_triangular_selector<Lhs,Rhs,UpLo,ColMajor|IsDense>
   *
   * \nonstableyet
   *
-  * The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
+  * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
   * This function will const_cast it, so constness isn't honored here.
   *
   * See MatrixBase:solveTriangular() for the details.
   */
-template<typename Derived>
-template<typename OtherDerived>
-void MatrixBase<Derived>::solveTriangularInPlace(const MatrixBase<OtherDerived>& _other) const
+template<typename MatrixType, unsigned int Mode>
+template<typename RhsDerived>
+void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>& _rhs) const
 {
-  MatrixBase<OtherDerived>& other = _other.const_cast_derived();
-  ei_assert(derived().cols() == derived().rows());
-  ei_assert(derived().cols() == other.rows());
-  ei_assert(!(Flags & ZeroDiagBit));
-  ei_assert(Flags & (UpperTriangularBit|LowerTriangularBit));
+  RhsDerived& rhs = _rhs.const_cast_derived();
+  ei_assert(cols() == rows());
+  ei_assert(cols() == rhs.rows());
+  ei_assert(!(Mode & ZeroDiagBit));
+  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
 
-  enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
+  enum { copy = ei_traits<RhsDerived>::Flags & RowMajorBit };
 
   typedef typename ei_meta_if<copy,
-    typename ei_plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
-  OtherCopy otherCopy(other.derived());
+    typename ei_plain_matrix_type_column_major<RhsDerived>::type, RhsDerived&>::ret RhsCopy;
+  RhsCopy rhsCopy(rhs);
 
-  ei_solve_triangular_selector<Derived, typename ei_unref<OtherCopy>::type>::run(derived(), otherCopy);
+  ei_solve_triangular_selector<MatrixType, typename ei_unref<RhsCopy>::type, Mode>::run(_expression(), rhsCopy);
 
   if (copy)
-    other = otherCopy;
+    rhs = rhsCopy;
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
@@ -282,15 +268,15 @@ void MatrixBase<Derived>::solveTriangularInPlace(const MatrixBase<OtherDerived>&
   * M * T^1  <=>  T.transpose().solveTriangularInPlace(M.transpose());
   * \endcode
   *
-  * \sa solveTriangularInPlace(), marked(), extract()
+  * \sa solveTriangularInPlace()
   */
-template<typename Derived>
-template<typename OtherDerived>
-typename ei_plain_matrix_type_column_major<OtherDerived>::type
-MatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
+template<typename Derived, unsigned int Mode>
+template<typename RhsDerived>
+typename ei_plain_matrix_type_column_major<RhsDerived>::type
+TriangularView<Derived,Mode>::solve(const MatrixBase<RhsDerived>& rhs) const
 {
-  typename ei_plain_matrix_type_column_major<OtherDerived>::type res(other);
-  solveTriangularInPlace(res);
+  typename ei_plain_matrix_type_column_major<RhsDerived>::type res(rhs);
+  solveInPlace(res);
   return res;
 }
 
