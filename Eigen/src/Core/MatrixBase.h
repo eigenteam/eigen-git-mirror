@@ -653,7 +653,7 @@ template<typename Derived> class MatrixBase
 
 /////////// QR module ///////////
 
-    const QR<PlainMatrixType> qr() const;
+    const HouseholderQR<PlainMatrixType> householderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

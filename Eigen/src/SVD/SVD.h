@@ -145,7 +145,6 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
-  const int nu = std::min(m,n);
 
   m_matU.resize(m, m);
   m_matU.setZero();
