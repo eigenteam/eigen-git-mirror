@@ -22,10 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_HouseholderQR_H
-#define EIGEN_HouseholderQR_H
+#ifndef EIGEN_QR_H
+#define EIGEN_QR_H
 
-/** \ingroup HouseholderQR_Module
+/** \ingroup QR_Module
   * \nonstableyet
   *
   * \class HouseholderQR
@@ -230,4 +230,4 @@ MatrixBase<Derived>::householderQr() const
 }
 
 
-#endif // EIGEN_HouseholderQR_H
+#endif // EIGEN_QR_H
