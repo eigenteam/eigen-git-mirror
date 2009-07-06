@@ -95,6 +95,11 @@ template<typename MatrixType> class HouseholderQR
     void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
     MatrixType matrixQ(void) const;
+    
+    /** \returns a reference to the matrix where the Householder QR decomposition is stored
+      * in a LAPACK-compatible way.
+      */
+    const MatrixType& matrixQR() const { return m_qr; }
 
     void compute(const MatrixType& matrix);
 
