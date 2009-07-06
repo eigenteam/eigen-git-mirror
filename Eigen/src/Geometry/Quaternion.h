@@ -342,11 +342,15 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   return res;
 }
 
-/** Sets *this to be a quaternion representing a rotation sending the vector \a a to the vector \a b.
+/** Sets \c *this to be a quaternion representing a rotation between
+  * the two arbitrary vectors \a a and \a b. In other words, the built
+  * rotation represent a rotation sending the line of direction \a a
+  * to the line of direction \a b, both lines passing through the origin.
   *
-  * \returns a reference to *this.
+  * \returns a reference to \c *this.
   *
-  * Note that the two input vectors do \b not have to be normalized.
+  * Note that the two input vectors do \b not have to be normalized, and
+  * do not need to have the same norm.
   */
 template<typename Scalar>
 template<typename Derived1, typename Derived2>
