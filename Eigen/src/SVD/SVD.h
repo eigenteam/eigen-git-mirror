@@ -111,7 +111,7 @@ template<typename MatrixType> class SVD
 
   protected:
     // Computes (a^2 + b^2)^(1/2) without destructive underflow or overflow.
-    inline static Scalar pythagora(Scalar a, Scalar b)
+    inline static Scalar pythag(Scalar a, Scalar b)
     {
       Scalar abs_a = ei_abs(a);
       Scalar abs_b = ei_abs(b);
@@ -138,14 +138,13 @@ template<typename MatrixType> class SVD
 
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
   *
-  * \note this code has been adapted from Numerical Recipes, second edition.
+  * \note this code has been adapted from Numerical Recipes, third edition.
   */
 template<typename MatrixType>
 void SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
-  const int nu = std::min(m,n);
 
   m_matU.resize(m, m);
   m_matU.setZero();
@@ -158,22 +157,24 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   MatrixType A = matrix;
   SingularValuesType& W = m_sigma;
 
-  int flag,i,its,j,jj,k,l,nm;
+  bool flag;
+  int i,its,j,jj,k,l,nm;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
+  Scalar eps = precision<Scalar>();
 
   Matrix<Scalar,Dynamic,1> rv1(n);
   g = scale = anorm = 0;
   // Householder reduction to bidiagonal form.
   for (i=0; i<n; i++)
   {
-    l = i+1;
+    l = i+2;
     rv1[i] = scale*g;
     g = s = scale = 0.0;
     if (i < m)
     {
       scale = A.col(i).end(m-i).cwise().abs().sum();
-      if (scale)
+      if (scale != Scalar(0))
       {
         for (k=i; k<m; k++)
         {
@@ -184,7 +185,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         g = -sign( ei_sqrt(s), f );
         h = f*g - s;
         A(i, i)=f-g;
-        for (j=l; j<n; j++)
+        for (j=l-1; j<n; j++)
         {
           s = A.col(i).end(m-i).dot(A.col(j).end(m-i));
           f = s/h;
@@ -193,43 +194,42 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         A.col(i).end(m-i) *= scale;
       }
     }
-    W[i] = scale *g;
+    W[i] = scale * g;
     g = s = scale = 0.0;
-    if (i < m && i != (n-1))
+    if (i+1 <= m && i+1 != n)
     {
-      scale = A.row(i).end(n-l).cwise().abs().sum();
-      if (scale)
+      scale = A.row(i).end(n-l+1).cwise().abs().sum();
+      if (scale != Scalar(0))
       {
-        for (k=l; k<n; k++)
+        for (k=l-1; k<n; k++)
         {
           A(i, k) /= scale;
           s += A(i, k)*A(i, k);
         }
-        f = A(i, l);
+        f = A(i,l-1);
         g = -sign(ei_sqrt(s),f);
         h = f*g - s;
-        A(i, l) = f-g;
-        for (k=l; k<n; k++)
-          rv1[k] = A(i, k)/h;
-        for (j=l; j<m; j++)
+        A(i,l-1) = f-g;
+        rv1.end(n-l+1) = A.row(i).end(n-l+1)/h;
+        for (j=l-1; j<m; j++)
         {
-          s = A.row(j).end(n-l).dot(A.row(i).end(n-l));
-          A.row(j).end(n-l) += s*rv1.end(n-l).transpose();
+          s = A.row(j).end(n-l+1).dot(A.row(i).end(n-l+1));
+          A.row(j).end(n-l+1) += s*rv1.end(n-l+1).transpose();
         }
-        A.row(i).end(n-l) *= scale;
+        A.row(i).end(n-l+1) *= scale;
       }
     }
     anorm = std::max( anorm, (ei_abs(W[i])+ei_abs(rv1[i])) );
   }
   // Accumulation of right-hand transformations.
-  for (i=(n-1); i>=0; i--)
+  for (i=n-1; i>=0; i--)
   {
     //Accumulation of right-hand transformations.
-    if (i < (n-1))
+    if (i < n-1)
     {
-      if (g)
+      if (g != Scalar(0.0))
       {
-        for (j=l; j<n;j++) //Double division to avoid possible underflow.
+        for (j=l; j<n; j++) //Double division to avoid possible underflow.
           V(j, i) = (A(i, j)/A(i, l))/g;
         for (j=l; j<n; j++)
         {
@@ -249,65 +249,68 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   {
     l = i+1;
     g = W[i];
-    for (j=l; j<n; j++)
-      A(i, j)=0.0;
-    if (g)
+    if (n-l>0)
+      A.row(i).end(n-l).setZero();
+    if (g != Scalar(0.0))
     {
-      g = (Scalar)1.0/g;
+      g = Scalar(1.0)/g;
       for (j=l; j<n; j++)
       {
-        s = A.col(i).end(m-i).dot(A.col(j).end(m-i));
-        f = (s/A(i, i))*g;
+        s = A.col(i).end(m-l).dot(A.col(j).end(m-l));
+        f = (s/A(i,i))*g;
         A.col(j).end(m-i) += f * A.col(i).end(m-i);
       }
       A.col(i).end(m-i) *= g;
     }
     else
       A.col(i).end(m-i).setZero();
-    ++A(i, i);
+    ++A(i,i);
   }
   // Diagonalization of the bidiagonal form: Loop over
   // singular values, and over allowed iterations.
-  for (k=(n-1); k>=0; k--)
+  for (k=n-1; k>=0; k--)
   {
-    for (its=1; its<=max_iters; its++)
+    for (its=0; its<max_iters; its++)
     {
-      flag=1;
+      flag = true;
       for (l=k; l>=0; l--)
       {
         // Test for splitting.
-        nm=l-1;
+        nm = l-1;
         // Note that rv1[1] is always zero.
-        if ((double)(ei_abs(rv1[l])+anorm) == anorm)
+        //if ((double)(ei_abs(rv1[l])+anorm) == anorm)
+        if (l==0 || ei_abs(rv1[l]) <= eps*anorm)
         {
-          flag=0;
+          flag = false;
           break;
         }
-        if ((double)(ei_abs(W[nm])+anorm) == anorm)
+        //if ((double)(ei_abs(W[nm])+anorm) == anorm)
+        if (ei_abs(W[nm]) <= eps*anorm)
           break;
       }
       if (flag)
       {
-        c=0.0;  //Cancellation of rv1[l], if l > 1.
-        s=1.0;
-        for (i=l ;i<=k; i++)
+        c = 0.0;  //Cancellation of rv1[l], if l > 0.
+        s = 1.0;
+        for (i=l ;i<k+1; i++)
         {
           f = s*rv1[i];
           rv1[i] = c*rv1[i];
-          if ((double)(ei_abs(f)+anorm) == anorm)
+          //if ((double)(ei_abs(f)+anorm) == anorm)
+          if (ei_abs(f) <= eps*anorm)
             break;
           g = W[i];
-          h = pythagora(f,g);
+          h = pythag(f,g);
           W[i] = h;
-          h = (Scalar)1.0/h;
+          h = Scalar(1.0)/h;
           c = g*h;
           s = -f*h;
           for (j=0; j<m; j++)
           {
-            y = A(j, nm);
-            z = A(j, i);
-            A(j, nm)  = y*c + z*s;
-            A(j, i)   = z*c - y*s;
+            y = A(j,nm);
+            z = A(j,i);
+            A(j,nm) = y*c + z*s;
+            A(j,i)  = z*c - y*s;
           }
         }
       }
@@ -320,7 +323,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         }
         break;
       }
-      if (its == max_iters)
+      if (its+1 == max_iters)
       {
         convergence = false;
       }
@@ -329,19 +332,19 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       y = W[nm];
       g = rv1[nm];
       h = rv1[k];
-      f = ((y-z)*(y+z) + (g-h)*(g+h))/((Scalar)2.0*h*y);
-      g = pythagora(f,1.0);
+      f = ((y-z)*(y+z) + (g-h)*(g+h))/(Scalar(2.0)*h*y);
+      g = pythag(f,1.0);
       f = ((x-z)*(x+z) + h*((y/(f+sign(g,f)))-h))/x;
       c = s = 1.0;
       //Next QR transformation:
-      for (j=l; j<= nm;j++)
+      for (j=l; j<=nm; j++)
       {
         i = j+1;
         g = rv1[i];
         y = W[i];
         h = s*g;
         g = c*g;
-        z = pythagora(f,h);
+        z = pythag(f,h);
         rv1[j] = z;
         c = f/z;
         s = h/z;
@@ -351,15 +354,15 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         y *= c;
         for (jj=0; jj<n; jj++)
         {
-          x = V(jj, j);
-          z = V(jj, i);
-          V(jj, j) = x*c + z*s;
-          V(jj, i) = z*c - x*s;
+          x = V(jj,j);
+          z = V(jj,i);
+          V(jj,j) = x*c + z*s;
+          V(jj,i) = z*c - x*s;
         }
-        z = pythagora(f,h);
+        z = pythag(f,h);
         W[j] = z;
         // Rotation can be arbitrary if z = 0.
-        if (z)
+        if (z!=Scalar(0))
         {
           z = Scalar(1.0)/z;
           c = f*z;
@@ -369,10 +372,10 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         x = c*y - s*g;
         for (jj=0; jj<m; jj++)
         {
-          y = A(jj, j);
-          z = A(jj, i);
-          A(jj, j) = y*c + z*s;
-          A(jj, i) = z*c - y*s;
+          y = A(jj,j);
+          z = A(jj,i);
+          A(jj,j) = y*c + z*s;
+          A(jj,i) = z*c - y*s;
         }
       }
       rv1[l] = 0.0;
