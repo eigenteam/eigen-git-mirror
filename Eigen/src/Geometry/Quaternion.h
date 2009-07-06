@@ -360,18 +360,22 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
   Vector3 v1 = b.normalized();
   Scalar c = v0.dot(v1);
 
-  // if dot == 1, vectors are the same
-  if (ei_isApprox(c,Scalar(1)))
-  {
-    // set to identity
-    this->w() = 1; this->vec().setZero();
-    return *this;
-  }
-  // if dot == -1, vectors are opposites
+  // if dot == -1, vectors are nearly opposites
+  // => accuraletly compute the rotation axis by computing the
+  //    intersection of the two planes. This is done by solving:
+  //       x^T v0 = 0
+  //       x^T v1 = 0
+  //    under the constraint:
+  //       ||x|| = 1
+  //    which yields an eigenvalue problem (or a SVD)
   if (ei_isApprox(c,Scalar(-1)))
   {
-    this->vec() = v0.unitOrthogonal();
-    this->w() = 0;
+    c = std::max<Scalar>(c,-1);
+    SelfAdjointEigenSolver<Matrix<Scalar,3,3> > eig(v0 * v0.transpose() + v1 * v1.transpose());
+    Vector3 axis = eig.eigenvectors().col(0);
+    Scalar w2 = (Scalar(1)+c)*Scalar(0.5);
+    this->w() = ei_sqrt(w2);
+    this->vec() = axis * ei_sqrt(Scalar(1) - w2);
     return *this;
   }
 

@@ -6,6 +6,7 @@
 #include "src/Core/util/DisableMSVCWarnings.h"
 
 #include "Array"
+#include "QR"
 #include <limits>
 
 #ifndef M_PI
