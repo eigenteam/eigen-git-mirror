@@ -30,19 +30,49 @@ struct ei_L2_block_traits {
   enum {width = 8 * ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
 };
 
+template<bool ConjLhs, bool ConjRhs> struct ei_conj_pmadd;
+
+template<> struct ei_conj_pmadd<false,false>
+{
+  template<typename T>
+  EIGEN_STRONG_INLINE T operator()(const T& x, const T& y, T& c) const { return  ei_pmadd(x,y,c); }
+};
+
+template<> struct ei_conj_pmadd<false,true>
+{
+  template<typename T> std::complex<T> operator()(const std::complex<T>& x, const std::complex<T>& y, std::complex<T>& c) const
+  { return c + std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
+};
+
+template<> struct ei_conj_pmadd<true,false>
+{
+  template<typename T> std::complex<T> operator()(const std::complex<T>& x, const std::complex<T>& y, std::complex<T>& c) const
+  { return c + std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
+};
+
+template<> struct ei_conj_pmadd<true,true>
+{
+  template<typename T> std::complex<T> operator()(const std::complex<T>& x, const std::complex<T>& y, std::complex<T>& c) const
+  { return c + std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
+};
+
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
 
-template<typename Scalar>
+template<typename Scalar, bool ConjugateLhs, bool ConjugateRhs>
 static void ei_cache_friendly_product(
   int _rows, int _cols, int depth,
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
-  bool resRowMajor, Scalar* res, int resStride)
+  bool resRowMajor, Scalar* res, int resStride,
+  Scalar alpha)
 {
   const Scalar* EIGEN_RESTRICT lhs;
   const Scalar* EIGEN_RESTRICT rhs;
   int lhsStride, rhsStride, rows, cols;
   bool lhsRowMajor;
+
+  ei_conj_pmadd<ConjugateLhs,ConjugateRhs> cj_pmadd;
+  bool hasAlpha = alpha != Scalar(1);
 
   if (resRowMajor)
   {
@@ -119,16 +149,34 @@ static void ei_cache_friendly_product(
         const Scalar* b1 = &rhs[(j2+1)*rhsStride + k2];
         const Scalar* b2 = &rhs[(j2+2)*rhsStride + k2];
         const Scalar* b3 = &rhs[(j2+3)*rhsStride + k2];
-        for(int k=0; k<actual_kc; k++)
+        if (hasAlpha)
         {
-          ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[k]));
-          ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b1[k]));
-          if (nr==4)
+          std::cerr << "* by " << alpha << "\n";
+          for(int k=0; k<actual_kc; k++)
           {
-            ei_pstore(&blockB[count+2*PacketSize], ei_pset1(b2[k]));
-            ei_pstore(&blockB[count+3*PacketSize], ei_pset1(b3[k]));
+            ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[k]));
+            ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b1[k]));
+            if (nr==4)
+            {
+              ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b2[k]));
+              ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b3[k]));
+            }
+            count += nr*PacketSize;
           }
-          count += nr*PacketSize;
+        }
+        else
+        {
+          for(int k=0; k<actual_kc; k++)
+          {
+            ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[k]));
+            ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b1[k]));
+            if (nr==4)
+            {
+              ei_pstore(&blockB[count+2*PacketSize], ei_pset1(b2[k]));
+              ei_pstore(&blockB[count+3*PacketSize], ei_pset1(b3[k]));
+            }
+            count += nr*PacketSize;
+          }
         }
       }
     }
@@ -205,59 +253,59 @@ static void ei_cache_friendly_product(
                       A1 = ei_pload(&blA[1*PacketSize]);
                       B0 = ei_pload(&blB[0*PacketSize]);
                       B1 = ei_pload(&blB[1*PacketSize]);
-                      C0 = ei_pmadd(B0, A0, C0);
+                      C0 = cj_pmadd(B0, A0, C0);
             if(nr==4) B2 = ei_pload(&blB[2*PacketSize]);
-                      C4 = ei_pmadd(B0, A1, C4);
+                      C4 = cj_pmadd(B0, A1, C4);
             if(nr==4) B3 = ei_pload(&blB[3*PacketSize]);
                       B0 = ei_pload(&blB[(nr==4 ? 4 : 2)*PacketSize]);
-                      C1 = ei_pmadd(B1, A0, C1);
-                      C5 = ei_pmadd(B1, A1, C5);
+                      C1 = cj_pmadd(B1, A0, C1);
+                      C5 = cj_pmadd(B1, A1, C5);
                       B1 = ei_pload(&blB[(nr==4 ? 5 : 3)*PacketSize]);
-            if(nr==4) C2 = ei_pmadd(B2, A0, C2);
-            if(nr==4) C6 = ei_pmadd(B2, A1, C6);
+            if(nr==4) C2 = cj_pmadd(B2, A0, C2);
+            if(nr==4) C6 = cj_pmadd(B2, A1, C6);
             if(nr==4) B2 = ei_pload(&blB[6*PacketSize]);
-            if(nr==4) C3 = ei_pmadd(B3, A0, C3);
+            if(nr==4) C3 = cj_pmadd(B3, A0, C3);
                       A0 = ei_pload(&blA[2*PacketSize]);
-            if(nr==4) C7 = ei_pmadd(B3, A1, C7);
+            if(nr==4) C7 = cj_pmadd(B3, A1, C7);
                       A1 = ei_pload(&blA[3*PacketSize]);
             if(nr==4) B3 = ei_pload(&blB[7*PacketSize]);
-                      C0 = ei_pmadd(B0, A0, C0);
-                      C4 = ei_pmadd(B0, A1, C4);
+                      C0 = cj_pmadd(B0, A0, C0);
+                      C4 = cj_pmadd(B0, A1, C4);
                       B0 = ei_pload(&blB[(nr==4 ? 8 : 4)*PacketSize]);
-                      C1 = ei_pmadd(B1, A0, C1);
-                      C5 = ei_pmadd(B1, A1, C5);
+                      C1 = cj_pmadd(B1, A0, C1);
+                      C5 = cj_pmadd(B1, A1, C5);
                       B1 = ei_pload(&blB[(nr==4 ? 9 : 5)*PacketSize]);
-            if(nr==4) C2 = ei_pmadd(B2, A0, C2);
-            if(nr==4) C6 = ei_pmadd(B2, A1, C6);
+            if(nr==4) C2 = cj_pmadd(B2, A0, C2);
+            if(nr==4) C6 = cj_pmadd(B2, A1, C6);
             if(nr==4) B2 = ei_pload(&blB[10*PacketSize]);
-            if(nr==4) C3 = ei_pmadd(B3, A0, C3);
+            if(nr==4) C3 = cj_pmadd(B3, A0, C3);
                       A0 = ei_pload(&blA[4*PacketSize]);
-            if(nr==4) C7 = ei_pmadd(B3, A1, C7);
+            if(nr==4) C7 = cj_pmadd(B3, A1, C7);
                       A1 = ei_pload(&blA[5*PacketSize]);
             if(nr==4) B3 = ei_pload(&blB[11*PacketSize]);
 
-                      C0 = ei_pmadd(B0, A0, C0);
-                      C4 = ei_pmadd(B0, A1, C4);
+                      C0 = cj_pmadd(B0, A0, C0);
+                      C4 = cj_pmadd(B0, A1, C4);
                       B0 = ei_pload(&blB[(nr==4 ? 12 : 6)*PacketSize]);
-                      C1 = ei_pmadd(B1, A0, C1);
-                      C5 = ei_pmadd(B1, A1, C5);
+                      C1 = cj_pmadd(B1, A0, C1);
+                      C5 = cj_pmadd(B1, A1, C5);
                       B1 = ei_pload(&blB[(nr==4 ? 13 : 7)*PacketSize]);
-            if(nr==4) C2 = ei_pmadd(B2, A0, C2);
-            if(nr==4) C6 = ei_pmadd(B2, A1, C6);
+            if(nr==4) C2 = cj_pmadd(B2, A0, C2);
+            if(nr==4) C6 = cj_pmadd(B2, A1, C6);
             if(nr==4) B2 = ei_pload(&blB[14*PacketSize]);
-            if(nr==4) C3 = ei_pmadd(B3, A0, C3);
+            if(nr==4) C3 = cj_pmadd(B3, A0, C3);
                       A0 = ei_pload(&blA[6*PacketSize]);
-            if(nr==4) C7 = ei_pmadd(B3, A1, C7);
+            if(nr==4) C7 = cj_pmadd(B3, A1, C7);
                       A1 = ei_pload(&blA[7*PacketSize]);
             if(nr==4) B3 = ei_pload(&blB[15*PacketSize]);
-                      C0 = ei_pmadd(B0, A0, C0);
-                      C4 = ei_pmadd(B0, A1, C4);
-                      C1 = ei_pmadd(B1, A0, C1);
-                      C5 = ei_pmadd(B1, A1, C5);
-            if(nr==4) C2 = ei_pmadd(B2, A0, C2);
-            if(nr==4) C6 = ei_pmadd(B2, A1, C6);
-            if(nr==4) C3 = ei_pmadd(B3, A0, C3);
-            if(nr==4) C7 = ei_pmadd(B3, A1, C7);
+                      C0 = cj_pmadd(B0, A0, C0);
+                      C4 = cj_pmadd(B0, A1, C4);
+                      C1 = cj_pmadd(B1, A0, C1);
+                      C5 = cj_pmadd(B1, A1, C5);
+            if(nr==4) C2 = cj_pmadd(B2, A0, C2);
+            if(nr==4) C6 = cj_pmadd(B2, A1, C6);
+            if(nr==4) C3 = cj_pmadd(B3, A0, C3);
+            if(nr==4) C7 = cj_pmadd(B3, A1, C7);
 
             blB += 4*nr*PacketSize;
             blA += 4*mr;
@@ -271,16 +319,16 @@ static void ei_cache_friendly_product(
                       A1 = ei_pload(&blA[1*PacketSize]);
                       B0 = ei_pload(&blB[0*PacketSize]);
                       B1 = ei_pload(&blB[1*PacketSize]);
-                      C0 = ei_pmadd(B0, A0, C0);
+                      C0 = cj_pmadd(B0, A0, C0);
             if(nr==4) B2 = ei_pload(&blB[2*PacketSize]);
-                      C4 = ei_pmadd(B0, A1, C4);
+                      C4 = cj_pmadd(B0, A1, C4);
             if(nr==4) B3 = ei_pload(&blB[3*PacketSize]);
-                      C1 = ei_pmadd(B1, A0, C1);
-                      C5 = ei_pmadd(B1, A1, C5);
-            if(nr==4) C2 = ei_pmadd(B2, A0, C2);
-            if(nr==4) C6 = ei_pmadd(B2, A1, C6);
-            if(nr==4) C3 = ei_pmadd(B3, A0, C3);
-            if(nr==4) C7 = ei_pmadd(B3, A1, C7);
+                      C1 = cj_pmadd(B1, A0, C1);
+                      C5 = cj_pmadd(B1, A1, C5);
+            if(nr==4) C2 = cj_pmadd(B2, A0, C2);
+            if(nr==4) C6 = cj_pmadd(B2, A1, C6);
+            if(nr==4) C3 = cj_pmadd(B3, A0, C3);
+            if(nr==4) C7 = cj_pmadd(B3, A1, C7);
 
             blB += nr*PacketSize;
             blA += mr;
@@ -332,14 +380,14 @@ static void ei_cache_friendly_product(
       {
         for(int i=0; i<actual_mc; i++)
         {
-          Scalar c0 = res[(j2)*resStride + i2+i];
+          Scalar c0 = Scalar(0);
           if (lhsRowMajor)
             for(int k=0; k<actual_kc; k++)
               c0 += lhs[(k2+k)+(i2+i)*lhsStride] * rhs[j2*rhsStride + k2 + k];
           else
             for(int k=0; k<actual_kc; k++)
               c0 += lhs[(k2+k)*lhsStride + i2+i] * rhs[j2*rhsStride + k2 + k];
-          res[(j2)*resStride + i2+i] = c0;
+          res[(j2)*resStride + i2+i] += alpha * c0;
         }
       }
     }
@@ -435,39 +483,39 @@ static void ei_cache_friendly_product(
               L0 = ei_pload(&lb[1*PacketSize]);
               R1 = ei_pload(&lb[2*PacketSize]);
               L1 = ei_pload(&lb[3*PacketSize]);
-              T0 = ei_pmadd(R0, A0, T0);
-              T1 = ei_pmadd(L0, A0, T1);
+              T0 = cj_pmadd(R0, A0, T0);
+              T1 = cj_pmadd(L0, A0, T1);
               R0 = ei_pload(&lb[4*PacketSize]);
               L0 = ei_pload(&lb[5*PacketSize]);
-              T0 = ei_pmadd(R1, A1, T0);
-              T1 = ei_pmadd(L1, A1, T1);
+              T0 = cj_pmadd(R1, A1, T0);
+              T1 = cj_pmadd(L1, A1, T1);
               R1 = ei_pload(&lb[6*PacketSize]);
               L1 = ei_pload(&lb[7*PacketSize]);
-              T0 = ei_pmadd(R0, A2, T0);
-              T1 = ei_pmadd(L0, A2, T1);
+              T0 = cj_pmadd(R0, A2, T0);
+              T1 = cj_pmadd(L0, A2, T1);
               if(MaxBlockRows==8)
               {
                 R0 = ei_pload(&lb[8*PacketSize]);
                 L0 = ei_pload(&lb[9*PacketSize]);
               }
-              T0 = ei_pmadd(R1, A3, T0);
-              T1 = ei_pmadd(L1, A3, T1);
+              T0 = cj_pmadd(R1, A3, T0);
+              T1 = cj_pmadd(L1, A3, T1);
               if(MaxBlockRows==8)
               {
                 R1 = ei_pload(&lb[10*PacketSize]);
                 L1 = ei_pload(&lb[11*PacketSize]);
-                T0 = ei_pmadd(R0, A4, T0);
-                T1 = ei_pmadd(L0, A4, T1);
+                T0 = cj_pmadd(R0, A4, T0);
+                T1 = cj_pmadd(L0, A4, T1);
                 R0 = ei_pload(&lb[12*PacketSize]);
                 L0 = ei_pload(&lb[13*PacketSize]);
-                T0 = ei_pmadd(R1, A5, T0);
-                T1 = ei_pmadd(L1, A5, T1);
+                T0 = cj_pmadd(R1, A5, T0);
+                T1 = cj_pmadd(L1, A5, T1);
                 R1 = ei_pload(&lb[14*PacketSize]);
                 L1 = ei_pload(&lb[15*PacketSize]);
-                T0 = ei_pmadd(R0, A6, T0);
-                T1 = ei_pmadd(L0, A6, T1);
-                T0 = ei_pmadd(R1, A7, T0);
-                T1 = ei_pmadd(L1, A7, T1);
+                T0 = cj_pmadd(R0, A6, T0);
+                T1 = cj_pmadd(L0, A6, T1);
+                T0 = cj_pmadd(R1, A7, T0);
+                T1 = cj_pmadd(L1, A7, T1);
               }
               lb += MaxBlockRows*2*PacketSize;
 

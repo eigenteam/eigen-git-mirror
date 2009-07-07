@@ -28,18 +28,19 @@ void test_product_large()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    //CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+//     CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
+//     CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
+//     CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
+//     CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
   }
 
   {
     // test a specific issue in DiagonalProduct
-    int N = 1000000;
-    VectorXf v = VectorXf::Ones(N);
-    MatrixXf m = MatrixXf::Ones(N,3);
-    m = (v+v).asDiagonal() * m;
-    VERIFY_IS_APPROX(m, MatrixXf::Constant(N,3,2));
+//     int N = 1000000;
+//     VectorXf v = VectorXf::Ones(N);
+//     MatrixXf m = MatrixXf::Ones(N,3);
+//     m = (v+v).asDiagonal() * m;
+//     VERIFY_IS_APPROX(m, MatrixXf::Constant(N,3,2));
   }
 }

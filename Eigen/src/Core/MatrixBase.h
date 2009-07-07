@@ -378,6 +378,9 @@ template<typename Derived> class MatrixBase
     template<typename Lhs,typename Rhs>
     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
+    template<typename Lhs,typename Rhs>
+    Derived& operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
@@ -405,7 +408,7 @@ template<typename Derived> class MatrixBase
     {
       return *this = *this * other.derived();
     }
-    
+
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
@@ -739,7 +742,7 @@ template<typename Derived> class MatrixBase
     // dense = dense * sparse
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
-    
+
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif

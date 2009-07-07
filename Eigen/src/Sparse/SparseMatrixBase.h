@@ -315,7 +315,7 @@ template<typename Derived> class SparseMatrixBase
     operator*(const DiagonalBase<OtherDerived> &other) const;
 
     // diagonal * sparse
-    template<typename OtherDerived> friend 
+    template<typename OtherDerived> friend
     const SparseDiagonalProduct<OtherDerived,Derived>
     operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return SparseDiagonalProduct<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
@@ -451,14 +451,14 @@ template<typename Derived> class SparseMatrixBase
 //     Derived& setRandom();
 //     Derived& setIdentity();
 
+      /** \internal use operator= */
       template<typename DenseDerived>
-      void evalToDense(MatrixBase<DenseDerived>& dst)
+      void evalToDense(MatrixBase<DenseDerived>& dst) const
       {
-        dst.resize(rows(),cols());
         dst.setZero();
         for (int j=0; j<outerSize(); ++j)
           for (typename Derived::InnerIterator i(derived(),j); i; ++i)
-            res.coeffRef(i.row(),i.col()) = i.value();
+            dst.coeffRef(i.row(),i.col()) = i.value();
       }
 
       Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const

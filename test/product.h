@@ -121,6 +121,19 @@ template<typename MatrixType> void product(const MatrixType& m)
   vcres = vc2;
   vcres += (m1.transpose() * v1).lazy();
   VERIFY_IS_APPROX(vcres, vc2 + m1.transpose() * v1);
+
+  // test optimized operator-= path
+  res = square;
+  res -= (m1 * m2.transpose()).lazy();
+  VERIFY_IS_APPROX(res, square - (m1 * m2.transpose()));
+  if (NumTraits<Scalar>::HasFloatingPoint && std::min(rows,cols)>1)
+  {
+    VERIFY(areNotApprox(res,square - m2 * m1.transpose()));
+  }
+  vcres = vc2;
+  vcres -= (m1.transpose() * v1).lazy();
+  VERIFY_IS_APPROX(vcres, vc2 - m1.transpose() * v1);
+
   tm1 = m1;
   VERIFY_IS_APPROX(tm1.transpose() * v1, m1.transpose() * v1);
   VERIFY_IS_APPROX(v1.transpose() * tm1, v1.transpose() * m1);
@@ -142,4 +155,3 @@ template<typename MatrixType> void product(const MatrixType& m)
     VERIFY(areNotApprox(res2,square2 + m2.transpose() * m1));
   }
 }
-

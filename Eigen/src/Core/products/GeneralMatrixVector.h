@@ -37,7 +37,8 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   int size,
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
-  Scalar* res)
+  Scalar* res,
+  Scalar alpha)
 {
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
@@ -104,8 +105,8 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
-    Packet ptmp0 = ei_pset1(rhs[i]),   ptmp1 = ei_pset1(rhs[i+offset1]),
-           ptmp2 = ei_pset1(rhs[i+2]), ptmp3 = ei_pset1(rhs[i+offset3]);
+    Packet ptmp0 = ei_pset1(alpha*rhs[i]),   ptmp1 = ei_pset1(alpha*rhs[i+offset1]),
+           ptmp2 = ei_pset1(alpha*rhs[i+2]), ptmp3 = ei_pset1(alpha*rhs[i+offset3]);
 
     // this helps a lot generating better binary code
     const Scalar *lhs0 = lhs + i*lhsStride, *lhs1 = lhs + (i+offset1)*lhsStride,
@@ -186,7 +187,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   {
     for (int i=start; i<end; ++i)
     {
-      Packet ptmp0 = ei_pset1(rhs[i]);
+      Packet ptmp0 = ei_pset1(alpha*rhs[i]);
       const Scalar* lhs0 = lhs + i*lhsStride;
 
       if (PacketSize>1)
@@ -226,7 +227,8 @@ template<typename Scalar, typename ResType>
 static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, int lhsStride,
   const Scalar* rhs, int rhsSize,
-  ResType& res)
+  ResType& res,
+  Scalar alpha)
 {
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
@@ -382,7 +384,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
       Scalar b = rhs[j];
       tmp0 += b*lhs0[j]; tmp1 += b*lhs1[j]; tmp2 += b*lhs2[j]; tmp3 += b*lhs3[j];
     }
-    res[i] += tmp0; res[i+offset1] += tmp1; res[i+2] += tmp2; res[i+offset3] += tmp3;
+    res[i] += alpha*tmp0; res[i+offset1] += alpha*tmp1; res[i+2] += alpha*tmp2; res[i+offset3] += alpha*tmp3;
   }
 
   // process remaining first and last rows (at most columnsAtOnce-1)
@@ -416,7 +418,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
       // FIXME this loop get vectorized by the compiler !
       for (int j=alignedSize; j<size; ++j)
         tmp0 += rhs[j] * lhs0[j];
-      res[i] += tmp0;
+      res[i] += alpha*tmp0;
     }
     if (skipRows)
     {
