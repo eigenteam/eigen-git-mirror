@@ -92,6 +92,50 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
           : NormalProduct };
 };
 
+template<typename XprType> struct ei_product_factor_traits
+{
+  typedef typename ei_traits<XprType>::Scalar Scalar;
+  typedef XprType RealXprType;
+  enum {
+    IsComplex = NumTraits<Scalar>::IsComplex,
+    NeedToConjugate = false,
+    HasScalarMultiple = false,
+    Access = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
+  };
+  static inline const RealXprType& extract(const XprType& x) { return x; }
+  static inline Scalar extractSalarFactor(const XprType&) { return Scalar(1); }
+};
+
+// pop conjugate
+template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
+ : ei_product_factor_traits<NestedXpr>
+{
+  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> XprType;
+  typedef typename Base::RealXprType RealXprType;
+
+  enum {
+    IsComplex = NumTraits<Scalar>::IsComplex,
+    NeedToConjugate = IsComplex
+  };
+  static inline const RealXprType& extract(const XprType& x) { return x._expression(); }
+  static inline Scalar extractSalarFactor(const XprType& x) { return Base::extractSalarFactor(x._expression()); }
+};
+
+// pop scalar multiple
+template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
+ : ei_product_factor_traits<NestedXpr>
+{
+  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
+  typedef typename Base::RealXprType RealXprType;
+  enum {
+    HasScalarMultiple = true
+  };
+  static inline const RealXprType& extract(const XprType& x) { return x._expression(); }
+  static inline Scalar extractSalarFactor(const XprType& x) { return x._functor().value; }
+};
+
 /** \class Product
   *
   * \brief Expression of the product of two matrices
@@ -517,6 +561,15 @@ template<typename Scalar, typename ResType>
 static void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, int lhsStride, const Scalar* rhs, int rhsSize, ResType& res, Scalar alpha);
 
+// This helper class aims to determine which optimized product to call,
+// and how to call it. We have to distinghish three major cases:
+//  1 - matrix-matrix
+//  2 - matrix-vector
+//  3 - vector-matrix
+// The storage order, and direct-access criteria are also important for in last 2 cases.
+// For instance, with a mat-vec product, the matrix coeff are evaluated only once, and
+// therefore it is useless to first evaluated it to next being able to directly access
+// its coefficient.
 template<typename ProductType,
   int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
   int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
