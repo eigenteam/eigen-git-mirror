@@ -172,8 +172,9 @@ template<typename Derived> class MapBase
     }
 
     using Base::operator=;
-
     using Base::operator*=;
+    using Base::operator+=;
+    using Base::operator-=;
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)

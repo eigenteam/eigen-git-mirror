@@ -176,7 +176,8 @@ struct ei_solve_triangular_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
           IsLowerTriangular ? size-endBlock : endBlock+1,
           &(lhs.const_cast_derived().coeffRef(IsLowerTriangular ? endBlock : 0, IsLowerTriangular ? startBlock : endBlock+1)),
           lhs.stride(),
-          btmp, &(other.coeffRef(IsLowerTriangular ? endBlock : 0, c)));
+          btmp, &(other.coeffRef(IsLowerTriangular ? endBlock : 0, c)),
+          Scalar(1));
 // 				if (IsLowerTriangular)
 //           other.col(c).end(size-endBlock) += (lhs.block(endBlock, startBlock, size-endBlock, endBlock-startBlock)
 //                                           * other.col(c).block(startBlock,endBlock-startBlock)).lazy();

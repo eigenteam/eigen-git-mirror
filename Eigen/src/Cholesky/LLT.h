@@ -26,7 +26,7 @@
 #define EIGEN_LLT_H
 
 template<typename MatrixType, int UpLo> struct LLT_Traits;
-    
+
 /** \ingroup cholesky_Module
   *
   * \class LLT
@@ -70,7 +70,7 @@ template<typename MatrixType, int _UpLo> class LLT
 
   public:
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -94,7 +94,7 @@ template<typename MatrixType, int _UpLo> class LLT
 
     /** \returns a view of the lower triangular matrix L */
     inline typename Traits::MatrixL matrixL() const
-    { 
+    {
       ei_assert(m_isInitialized && "LLT is not initialized.");
       return Traits::getL(m_matrix);
     }
@@ -123,7 +123,7 @@ bool ei_inplace_llt_lo(MatrixType& mat)
   typedef typename MatrixType::RealScalar RealScalar;
   assert(mat.rows()==mat.cols());
   const int size = mat.rows();
-  Matrix<Scalar,Dynamic,1> aux(size);
+
   // The biggest overall is the point of reference to which further diagonals
   // are compared; if any diagonal is negligible compared
   // to the largest overall, the algorithm bails.  This cutoff is suggested
@@ -147,16 +147,10 @@ bool ei_inplace_llt_lo(MatrixType& mat)
     mat.coeffRef(j,j) = x = ei_sqrt(x);
 
     int endSize = size-j-1;
-    if (endSize>0) {
-      // Note that when all matrix columns have good alignment, then the following
-      // product is guaranteed to be optimal with respect to alignment.
-      aux.end(endSize) = 
-        (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint()).lazy();
-
-      mat.col(j).end(endSize) = (mat.col(j).end(endSize) - aux.end(endSize) ) / x;
-      // TODO improve the products so that the following is efficient:
-//       mat.col(j).end(endSize) -= (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint());
-//       mat.col(j).end(endSize) *= Scalar(1)/x;
+    if (endSize>0)
+    {
+      mat.col(j).end(endSize) -= (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint()).lazy();
+      mat.col(j).end(endSize) *= RealScalar(1)/x;
     }
   }
 
@@ -170,8 +164,7 @@ bool ei_inplace_llt_up(MatrixType& mat)
   typedef typename MatrixType::RealScalar RealScalar;
   assert(mat.rows()==mat.cols());
   const int size = mat.rows();
-  Matrix<Scalar,Dynamic,1> aux(size);
-  
+
   const RealScalar cutoff = machine_epsilon<Scalar>() * size * mat.diagonal().cwise().abs().maxCoeff();
   RealScalar x;
   x = ei_real(mat.coeff(0,0));
@@ -190,10 +183,8 @@ bool ei_inplace_llt_up(MatrixType& mat)
 
     int endSize = size-j-1;
     if (endSize>0) {
-      aux.start(endSize) =
-        (mat.block(0, j+1, j, endSize).adjoint() * mat.col(j).start(j)).lazy();
-
-      mat.row(j).end(endSize) = (mat.row(j).end(endSize) - aux.start(endSize).adjoint() ) / x;
+      mat.row(j).end(endSize) -= (mat.col(j).start(j).adjoint() * mat.block(0, j+1, j, endSize)).lazy();
+      mat.row(j).end(endSize) *= RealScalar(1)/x;
     }
   }
 

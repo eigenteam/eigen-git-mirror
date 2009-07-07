@@ -151,7 +151,6 @@ static void ei_cache_friendly_product(
         const Scalar* b3 = &rhs[(j2+3)*rhsStride + k2];
         if (hasAlpha)
         {
-          std::cerr << "* by " << alpha << "\n";
           for(int k=0; k<actual_kc; k++)
           {
             ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[k]));
