@@ -225,47 +225,6 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
 template<typename MatrixType, int _UpLo>
 void LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
-//   assert(a.rows()==a.cols());
-//   const int size = a.rows();
-//   m_matrix.resize(size, size);
-//   // The biggest overall is the point of reference to which further diagonals
-//   // are compared; if any diagonal is negligible compared
-//   // to the largest overall, the algorithm bails.  This cutoff is suggested
-//   // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
-//   // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-//   // Algorithms" page 217, also by Higham.
-//   const RealScalar cutoff = machine_epsilon<Scalar>() * size * a.diagonal().cwise().abs().maxCoeff();
-//   RealScalar x;
-//   x = ei_real(a.coeff(0,0));
-//   m_matrix.coeffRef(0,0) = ei_sqrt(x);
-//   if(size==1)
-//   {
-//     m_isInitialized = true;
-//     return;
-//   }
-//   m_matrix.col(0).end(size-1) = a.row(0).end(size-1).adjoint() / ei_real(m_matrix.coeff(0,0));
-//   for (int j = 1; j < size; ++j)
-//   {
-//     x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
-//     if (ei_abs(x) < cutoff) continue;
-// 
-//     m_matrix.coeffRef(j,j) = x = ei_sqrt(x);
-// 
-//     int endSize = size-j-1;
-//     if (endSize>0) {
-//       // Note that when all matrix columns have good alignment, then the following
-//       // product is guaranteed to be optimal with respect to alignment.
-//       m_matrix.col(j).end(endSize) =
-//         (m_matrix.block(j+1, 0, endSize, j) * m_matrix.row(j).start(j).adjoint()).lazy();
-// 
-//       // FIXME could use a.col instead of a.row
-//       m_matrix.col(j).end(endSize) = (a.row(j).end(endSize).adjoint()
-//         - m_matrix.col(j).end(endSize) ) / x;
-//     }
-//   }
-// 
-//   m_isInitialized = true;
-
   assert(a.rows()==a.cols());
   const int size = a.rows();
   m_matrix.resize(size, size);

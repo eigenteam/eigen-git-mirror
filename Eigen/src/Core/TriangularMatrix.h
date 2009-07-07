@@ -90,6 +90,11 @@ template<typename Derived> class TriangularBase : public MultiplierBase<Derived>
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     #endif // not EIGEN_PARSED_BY_DOXYGEN
 
+    template<typename DenseDerived>
+    void evalToDense(MatrixBase<DenseDerived> &other) const;
+    template<typename DenseDerived>
+    void evalToDenseLazy(MatrixBase<DenseDerived> &other) const;
+
   protected:
 
     void check_coordinates(int row, int col)
@@ -516,36 +521,34 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDeri
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
-template<typename TriangularDerived>
-Derived& MatrixBase<Derived>::operator=(const TriangularBase<TriangularDerived> &other)
+template<typename DenseDerived>
+void TriangularBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
 {
-  if(ei_traits<TriangularDerived>::Flags & EvalBeforeAssigningBit)
+  if(ei_traits<Derived>::Flags & EvalBeforeAssigningBit)
   {
-    typename TriangularDerived::PlainMatrixType other_evaluated(other.rows(), other.cols());
-    other_evaluated.lazyAssign(other);
-    this->swap(other_evaluated);
+    typename Derived::PlainMatrixType other_evaluated(rows(), cols());
+    evalToDenseLazy(other_evaluated);
+    other.derived().swap(other_evaluated);
   }
   else
-    lazyAssign(other.derived());
-  return derived();
+    evalToDenseLazy(other.derived());
 }
 
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
-template<typename TriangularDerived>
-Derived& MatrixBase<Derived>::lazyAssign(const TriangularBase<TriangularDerived> &other)
+template<typename DenseDerived>
+void TriangularBase<Derived>::evalToDenseLazy(MatrixBase<DenseDerived> &other) const
 {
-  const bool unroll =   Derived::SizeAtCompileTime * TriangularDerived::CoeffReadCost / 2
+  const bool unroll =   DenseDerived::SizeAtCompileTime * Derived::CoeffReadCost / 2
                      <= EIGEN_UNROLLING_LIMIT;
   ei_assert(this->rows() == other.rows() && this->cols() == other.cols());
 
   ei_part_assignment_impl
-    <Derived, typename ei_traits<TriangularDerived>::ExpressionType, TriangularDerived::Mode,
-    unroll ? int(Derived::SizeAtCompileTime) : Dynamic,
+    <DenseDerived, typename ei_traits<Derived>::ExpressionType, Derived::Mode,
+    unroll ? int(DenseDerived::SizeAtCompileTime) : Dynamic,
     true // clear the opposite triangular part
-    >::run(this->const_cast_derived(), other.derived()._expression());
-  return derived();
+    >::run(other.derived(), derived()._expression());
 }
 
 /** \deprecated use MatrixBase::triangularView() */

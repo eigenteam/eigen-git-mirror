@@ -284,6 +284,17 @@ template<typename Derived> class MatrixBase
       */
     Derived& operator=(const MatrixBase& other);
 
+    /** Copies the generic expression \a other into *this. \returns a reference to *this.
+      * The expression must provide a (templated) evalToDense(Derived& dst) const function
+      * which does the actual job. In practice, this allows any user to write its own
+      * special matrix without having to modify MatrixBase */
+    template<typename OtherDerived>
+    Derived& operator=(const AnyMatrixBase<OtherDerived> &other)
+    { other.derived().evalToDense(derived()); return derived(); }
+
+    template<typename OtherDerived,typename OtherEvalType>
+    Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -297,10 +308,6 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
-
-    /** Overloaded for fast triangular part to dense matrix evaluation */
-    template<typename TriangularDerived>
-    Derived& lazyAssign(const TriangularBase<TriangularDerived> &other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -402,12 +409,6 @@ template<typename Derived> class MatrixBase
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
-
-    template<typename DiagonalDerived>
-    Derived& operator=(const DiagonalBase<DiagonalDerived> &other);
-
-    template<typename TriangularDerived>
-    Derived& operator=(const TriangularBase<TriangularDerived> &other);
 
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
@@ -738,9 +739,6 @@ template<typename Derived> class MatrixBase
     // dense = dense * sparse
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
-
-    template<typename OtherDerived,typename OtherEvalType>
-    Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
     
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

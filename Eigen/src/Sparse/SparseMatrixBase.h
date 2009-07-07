@@ -451,25 +451,19 @@ template<typename Derived> class SparseMatrixBase
 //     Derived& setRandom();
 //     Derived& setIdentity();
 
+      template<typename DenseDerived>
+      void evalToDense(MatrixBase<DenseDerived>& dst)
+      {
+        dst.resize(rows(),cols());
+        dst.setZero();
+        for (int j=0; j<outerSize(); ++j)
+          for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+            res.coeffRef(i.row(),i.col()) = i.value();
+      }
+
       Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
       {
-        Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> res(rows(),cols());
-        res.setZero();
-        for (int j=0; j<outerSize(); ++j)
-        {
-          for (typename Derived::InnerIterator i(derived(),j); i; ++i)
-          {
-            if(IsRowMajor)
-              std::cerr << i.row() << "," << i.col() << " == " << j << "," << i.index() << "\n";
-            else
-              std::cerr << i.row() << "," << i.col() << " == " << i.index() << "," << j << "\n";
-//             if(IsRowMajor)
-              res.coeffRef(i.row(),i.col()) = i.value();
-//             else
-//               res.coeffRef(i.index(),j) = i.value();
-          }
-        }
-        return res;
+        return derived();
       }
 
     template<typename OtherDerived>

@@ -439,34 +439,20 @@ class Matrix
     { other.evalTo(*this); }
     /** Destructor */
     inline ~Matrix() {}
-    
 
-    template<typename DiagonalDerived>
-    EIGEN_STRONG_INLINE Matrix& operator=(const DiagonalBase<DiagonalDerived> &other)
+    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
     {
-      resize(other.diagonal().size(), other.diagonal().size());
-      Base::operator=(other);
-      return *this;
-    }
-
-    template<typename DiagonalDerived>
-    EIGEN_STRONG_INLINE Matrix(const DiagonalBase<DiagonalDerived> &other)
-      : m_storage(other.diagonal().size() * other.diagonal().size(), other.diagonal().size(), other.diagonal().size())
-    {
-      *this = other;
-    }
-
-    template<typename TriangularDerived>
-    EIGEN_STRONG_INLINE Matrix& operator=(const TriangularBase<TriangularDerived> &other)
-    {
-      resize(other.rows(), other.cols());
+      resize(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
       return *this;
     }
 
-    template<typename TriangularDerived>
-    EIGEN_STRONG_INLINE Matrix(const TriangularBase<TriangularDerived> &other)
-      : m_storage(other.rows() * other.cols(), other.rows(), other.cols())
+    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
+      : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       *this = other;
     }

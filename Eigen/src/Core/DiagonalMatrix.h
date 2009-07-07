@@ -50,6 +50,8 @@ class DiagonalBase : public MultiplierBase<Derived>
     #endif // not EIGEN_PARSED_BY_DOXYGEN
     
     DenseMatrixType toDenseMatrix() const { return derived(); }
+    template<typename DenseDerived>
+    void evalToDense(MatrixBase<DenseDerived> &other) const;
 
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
     inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
@@ -63,12 +65,11 @@ class DiagonalBase : public MultiplierBase<Derived>
 };
 
 template<typename Derived>
-template<typename DiagonalDerived>
-Derived& MatrixBase<Derived>::operator=(const DiagonalBase<DiagonalDerived> &other)
+template<typename DenseDerived>
+void DiagonalBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
 {
-  setZero();
-  diagonal() = other.diagonal();
-  return derived();
+  other.setZero();
+  other.diagonal() = diagonal();
 }
 
 /** \class DiagonalMatrix
