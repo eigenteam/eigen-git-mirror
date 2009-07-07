@@ -697,7 +697,8 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
 {};
 
 
-/** \internal */
+/** \internal
+  * Overloaded to perform an efficient C += A*B */
 template<typename Derived>
 template<typename Lhs,typename Rhs>
 inline Derived&
@@ -710,7 +711,8 @@ MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProdu
   return derived();
 }
 
-/** \internal */
+/** \internal
+  * Overloaded to perform an efficient C -= A*B */
 template<typename Derived>
 template<typename Lhs,typename Rhs>
 inline Derived&
@@ -723,6 +725,8 @@ MatrixBase<Derived>::operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProdu
   return derived();
 }
 
+/** \internal
+  * Overloaded to perform an efficient C = A*B */
 template<typename Derived>
 template<typename Lhs, typename Rhs>
 inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)

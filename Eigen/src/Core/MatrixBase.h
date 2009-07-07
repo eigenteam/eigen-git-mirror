@@ -258,8 +258,10 @@ template<typename Derived> class MatrixBase
     /** \internal the return type of MatrixBase::imag() */
     typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef Eigen::Transpose<NestByValue<typename ei_cleantype<ConjugateReturnType>::type> >
-            AdjointReturnType;
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<Derived> > >,
+                        Transpose<Derived>
+                     >::ret AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
     /** \internal expression tyepe of a column */

@@ -116,7 +116,7 @@ template<typename MatrixType, int _UpLo> class LLT
     bool m_isInitialized;
 };
 
-template<typename MatrixType/*, int UpLo*/>
+template<typename MatrixType>
 bool ei_inplace_llt_lo(MatrixType& mat)
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -157,7 +157,7 @@ bool ei_inplace_llt_lo(MatrixType& mat)
   return true;
 }
 
-template<typename MatrixType/*, int UpLo*/>
+template<typename MatrixType>
 bool ei_inplace_llt_up(MatrixType& mat)
 {
   typedef typename MatrixType::Scalar Scalar;

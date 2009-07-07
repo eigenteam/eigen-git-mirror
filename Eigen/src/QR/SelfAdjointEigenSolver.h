@@ -259,11 +259,11 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
 
   // compute C = inv(L) A inv(L')
   MatrixType matC = matA;
-  cholB.matrixL().solveTriangularInPlace(matC);
+  cholB.matrixL().solveInPlace(matC);
   // FIXME since we currently do not support A * inv(L'), let's do (inv(L) A')' :
-  matC = matC.adjoint().eval();
-  cholB.matrixL().template marked<LowerTriangular>().solveTriangularInPlace(matC);
-  matC = matC.adjoint().eval();
+  matC.adjointInPlace();
+  cholB.matrixL().solveInPlace(matC);
+  matC.adjointInPlace();
   // this version works too:
 //   matC = matC.transpose();
 //   cholB.matrixL().conjugate().template marked<LowerTriangular>().solveTriangularInPlace(matC);
@@ -277,7 +277,7 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   if (computeEigenvectors)
   {
     // transform back the eigen vectors: evecs = inv(U) * evecs
-    cholB.matrixL().adjoint().template marked<UpperTriangular>().solveTriangularInPlace(m_eivec);
+    cholB.matrixU().solveInPlace(m_eivec);
     for (int i=0; i<m_eivec.cols(); ++i)
       m_eivec.col(i) = m_eivec.col(i).normalized();
   }

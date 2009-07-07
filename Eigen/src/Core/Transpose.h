@@ -181,7 +181,7 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
-  return conjugate().nestByValue();
+  return transpose().nestByValue();
 }
 
 /***************************************************************************
