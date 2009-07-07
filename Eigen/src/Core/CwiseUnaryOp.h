@@ -96,7 +96,8 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     const UnaryOp& _functor() const { return m_functor; }
 
     /** \internal used for introspection */
-    const typename MatrixType::Nested& _expression() const { return m_matrix; }
+    const typename ei_cleantype<typename MatrixType::Nested>::type&
+    _expression() const { return m_matrix; }
 
   protected:
     const typename MatrixType::Nested m_matrix;
