@@ -57,6 +57,8 @@ void ei_cache_friendly_product_colmajor_times_vector(
   if(ConjugateRhs)
     alpha = ei_conj(alpha);
 
+//   std::cerr << "prod " << size << " " << rhs.size() << "\n";
+
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
@@ -101,7 +103,10 @@ void ei_cache_friendly_product_colmajor_times_vector(
       // note that the skiped columns are processed later.
     }
 
-    ei_internal_assert((alignmentPattern==NoneAligned) || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
+    ei_internal_assert(  (alignmentPattern==NoneAligned)
+                      || (skipColumns + columnsAtOnce >= rhs.size())
+                      || PacketSize > size
+                      || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
   }
 
   int offset1 = (FirstAligned && alignmentStep==1?3:1);
@@ -127,7 +132,6 @@ void ei_cache_friendly_product_colmajor_times_vector(
         res[j] = cj.pmadd(lhs1[j], ei_pfirst(ptmp1), res[j]);
         res[j] = cj.pmadd(lhs2[j], ei_pfirst(ptmp2), res[j]);
         res[j] = cj.pmadd(lhs3[j], ei_pfirst(ptmp3), res[j]);
-//         res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
       }
 
       if (alignedSize>alignedStart)
@@ -193,7 +197,6 @@ void ei_cache_friendly_product_colmajor_times_vector(
       res[j] = cj.pmadd(lhs1[j], ei_pfirst(ptmp1), res[j]);
       res[j] = cj.pmadd(lhs2[j], ei_pfirst(ptmp2), res[j]);
       res[j] = cj.pmadd(lhs3[j], ei_pfirst(ptmp3), res[j]);
-//       res[j] += ei_pfirst(ptmp0)*lhs0[j] + ei_pfirst(ptmp1)*lhs1[j] + ei_pfirst(ptmp2)*lhs2[j] + ei_pfirst(ptmp3)*lhs3[j];
     }
   }
 
@@ -212,7 +215,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
         /* explicit vectorization */
         // process first unaligned result's coeffs
         for (int j=0; j<alignedStart; ++j)
-          res[j] = cj.pmul(lhs0[j], ei_pfirst(ptmp0));
+          res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
 
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)

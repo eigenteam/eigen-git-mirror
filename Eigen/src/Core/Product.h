@@ -69,7 +69,7 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
   typedef typename ei_nested<Rhs,1,
                              typename ei_plain_matrix_type_column_major<Rhs>::type
                    >::type RhsNested;
-  
+
   typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
 };
 
@@ -268,7 +268,9 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       */
     EIGEN_STRONG_INLINE bool _useCacheFriendlyProduct() const
     {
-      return  m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+      #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
+      // TODO do something more accurate here
+      return m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && (  rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
                  || cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD);
     }
@@ -624,7 +626,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
-  
+
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
   {
@@ -633,7 +635,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
 
     Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
                                * RhsProductTraits::extractScalarFactor(product.rhs());
-                             
+
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
                 ||((DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit))) };
@@ -645,7 +647,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
       _res = ei_aligned_stack_new(Scalar,res.size());
       Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
     }
-
+//     std::cerr << "colmajor * vector " << EvalToRes << "\n";
     ei_cache_friendly_product_colmajor_times_vector
       <LhsProductTraits::NeedToConjugate,RhsProductTraits::NeedToConjugate>(
       res.size(),
@@ -706,7 +708,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
       _res = ei_aligned_stack_new(Scalar, res.size());
       Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size()) = res;
     }
-              
+
     ei_cache_friendly_product_colmajor_times_vector
       <RhsProductTraits::NeedToConjugate,LhsProductTraits::NeedToConjugate>(res.size(),
       &actualRhs.const_cast_derived().coeffRef(0,0), actualRhs.stride(),
@@ -725,7 +727,7 @@ template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
 struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
 {
   typedef typename ProductType::Scalar Scalar;
-  
+
   typedef ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
   typedef ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
@@ -753,7 +755,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
       _rhs = ei_aligned_stack_new(Scalar, actualRhs.size());
       Map<Matrix<Scalar,ActualRhsType::SizeAtCompileTime,1> >(_rhs, actualRhs.size()) = actualRhs;
     }
-              
+
     ei_cache_friendly_product_rowmajor_times_vector
       <LhsProductTraits::NeedToConjugate,RhsProductTraits::NeedToConjugate>(
         &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
@@ -774,7 +776,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
-  
+
   enum {
       UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (ActualLhsType::Flags&ActualPacketAccessBit))
                      && (ActualLhsType::Flags & RowMajorBit) };
@@ -796,7 +798,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
       _lhs = ei_aligned_stack_new(Scalar, actualLhs.size());
       Map<Matrix<Scalar,ActualLhsType::SizeAtCompileTime,1> >(_lhs, actualLhs.size()) = actualLhs;
     }
-              
+
     ei_cache_friendly_product_rowmajor_times_vector
       <RhsProductTraits::NeedToConjugate, LhsProductTraits::NeedToConjugate>(
         &actualRhs.const_cast_derived().coeffRef(0,0), actualRhs.stride(),
@@ -825,11 +827,12 @@ template<typename Derived>
 template<typename Lhs,typename Rhs>
 inline Derived&
 MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-{
+{//std::cerr << "operator+=\n";
   if (other._expression()._useCacheFriendlyProduct())
     ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), other._expression(), Scalar(1));
-  else
+  else { //std::cerr << "no cf\n";
     lazyAssign(derived() + other._expression());
+  }
   return derived();
 }
 
@@ -893,7 +896,7 @@ inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& 
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
-  
+
   const ActualLhsType& actualLhs = LhsProductTraits::extract(m_lhs);
   const ActualRhsType& actualRhs = RhsProductTraits::extract(m_rhs);
 
