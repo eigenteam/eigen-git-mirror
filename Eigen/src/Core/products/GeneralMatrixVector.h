@@ -307,8 +307,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
       skipRows = std::min(skipRows,res.size());
       // note that the skiped columns are processed later.
     }
-    ei_internal_assert((alignmentPattern==NoneAligned) || PacketSize==1
-      || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
+    ei_internal_assert(  alignmentPattern==NoneAligned
+                      || PacketSize==1
+                      || (skipRows + rowsAtOnce >= res.size())
+                      || PacketSize > rhsSize
+                      || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
   }
 
   int offset1 = (FirstAligned && alignmentStep==1?3:1);

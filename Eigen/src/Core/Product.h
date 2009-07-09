@@ -129,6 +129,19 @@ template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<Cw
   { return - Base::extractScalarFactor(x._expression()); }
 };
 
+// pop opposite
+template<typename NestedXpr> struct ei_product_factor_traits<NestByValue<NestedXpr> >
+ : ei_product_factor_traits<NestedXpr>
+{
+  typedef typename NestedXpr::Scalar Scalar;
+  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef NestByValue<NestedXpr> XprType;
+  typedef typename Base::ActualXprType ActualXprType;
+  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
+  static inline Scalar extractScalarFactor(const XprType& x)
+  { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
+};
+
 /*  Helper class to determine the type of the product, can be either:
  *    - NormalProduct
  *    - CacheFriendlyProduct
