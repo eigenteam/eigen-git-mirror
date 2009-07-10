@@ -86,7 +86,17 @@ template<typename MatrixType> void triangular(const MatrixType& m)
     while (ei_abs2(m1(i,i))<1e-3) m1(i,i) = ei_random<Scalar>();
 
   Transpose<MatrixType> trm4(m4);
-  // test back and forward subsitution
+  // test back and forward subsitution with a vector as the rhs
+  m3 = m1.template triangularView<Eigen::UpperTriangular>();
+  VERIFY(v2.isApprox(m3.adjoint() * (m1.adjoint().template triangularView<Eigen::LowerTriangular>().solve(v2)), largerEps));
+  m3 = m1.template triangularView<Eigen::LowerTriangular>();
+  VERIFY(v2.isApprox(m3.transpose() * (m1.transpose().template triangularView<Eigen::UpperTriangular>().solve(v2)), largerEps));
+  m3 = m1.template triangularView<Eigen::UpperTriangular>();
+  VERIFY(v2.isApprox(m3 * (m1.template triangularView<Eigen::UpperTriangular>().solve(v2)), largerEps));
+  m3 = m1.template triangularView<Eigen::LowerTriangular>();
+  VERIFY(v2.isApprox(m3.conjugate() * (m1.conjugate().template triangularView<Eigen::LowerTriangular>().solve(v2)), largerEps));
+
+  // test back and forward subsitution with a matrix as the rhs
   m3 = m1.template triangularView<Eigen::UpperTriangular>();
   VERIFY(m2.isApprox(m3.adjoint() * (m1.adjoint().template triangularView<Eigen::LowerTriangular>().solve(m2)), largerEps));
   m3 = m1.template triangularView<Eigen::LowerTriangular>();
