@@ -368,20 +368,18 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
   //    under the constraint:
   //       ||x|| = 1
   //    which yields a singular value problem
-  if (ei_isApprox(c,Scalar(-1)))
+  if (c < Scalar(-1)+precision<Scalar>())
   {
     c = std::max<Scalar>(c,-1);
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
     SVD<Matrix<Scalar,2,3> > svd(m);
     Vector3 axis = svd.matrixV().col(2);
-    
+
     Scalar w2 = (Scalar(1)+c)*Scalar(0.5);
     this->w() = ei_sqrt(w2);
     this->vec() = axis * ei_sqrt(Scalar(1) - w2);
-    
     return *this;
   }
-
   Vector3 axis = v0.cross(v1);
   Scalar s = ei_sqrt((Scalar(1)+c)*Scalar(2));
   Scalar invs = Scalar(1)/s;
