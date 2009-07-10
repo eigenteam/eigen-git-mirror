@@ -88,6 +88,8 @@
 #include <cstring>
 #include <string>
 #include <limits>
+// for min/max:
+#include <algorithm>
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS

@@ -137,10 +137,14 @@ template<typename Derived> class MatrixBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-      CoeffReadCost = ei_traits<Derived>::CoeffReadCost
+      CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
           */
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
+#endif
     };
 
     /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
@@ -204,7 +208,7 @@ template<typename Derived> class MatrixBase
 
     /** \internal the return type of coeff()
       */
-    typedef typename ei_meta_if<bool(int(Flags)&DirectAccessBit), const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;

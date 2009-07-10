@@ -188,7 +188,7 @@ const unsigned int HereditaryBits = RowMajorBit
 
 // diagonal means both upper and lower triangular
 const unsigned DiagonalBits = UpperTriangularBit | LowerTriangularBit;
-    
+
 // Possible values for the Mode parameter of part()
 const unsigned int UpperTriangular = UpperTriangularBit;
 const unsigned int StrictlyUpperTriangular = UpperTriangularBit | ZeroDiagBit;
@@ -201,7 +201,7 @@ const unsigned int UnitLowerTriangular = LowerTriangularBit | UnitDiagBit;
 template<typename T> struct ei_is_diagonal
 {
   enum {
-    ret = ( (unsigned int)(T::Flags) & DiagonalBits ) == DiagonalBits
+    ret = ( int(ei_traits<T>::Flags) & DiagonalBits ) == DiagonalBits
   };
 };
 

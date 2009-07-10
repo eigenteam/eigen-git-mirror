@@ -83,15 +83,14 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
   enum{
-
     value = ei_is_diagonal<Rhs>::ret || ei_is_diagonal<Lhs>::ret
           ? DiagonalProduct
-          : Lhs::MaxColsAtCompileTime == Dynamic
-            && ( Lhs::MaxRowsAtCompileTime == Dynamic
-              || Rhs::MaxColsAtCompileTime == Dynamic )
-            && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!(Lhs::Flags&DirectAccessBit))))
-            && (!(Lhs::IsVectorAtCompileTime && (!(Rhs::Flags&RowMajorBit)) && (!(Rhs::Flags&DirectAccessBit))))
-            && (ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)
+          : ei_traits<Lhs>::MaxColsAtCompileTime == Dynamic
+            && ( ei_traits<Lhs>::MaxRowsAtCompileTime == Dynamic
+              || ei_traits<Rhs>::MaxColsAtCompileTime == Dynamic )
+            && (!(ei_traits<Rhs>::IsVectorAtCompileTime && (ei_traits<Lhs>::Flags&RowMajorBit)  && (!(ei_traits<Lhs>::Flags&DirectAccessBit))))
+            && (!(ei_traits<Lhs>::IsVectorAtCompileTime && (!(ei_traits<Rhs>::Flags&RowMajorBit)) && (!(ei_traits<Rhs>::Flags&DirectAccessBit))))
+            && (ei_is_same_type<typename ei_traits<Lhs>::Scalar, typename ei_traits<Rhs>::Scalar>::ret)
           ? CacheFriendlyProduct
           : NormalProduct };
 };
@@ -215,7 +214,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       */
     EIGEN_STRONG_INLINE bool _useCacheFriendlyProduct() const
     {
-      return  m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
+      return m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && (  rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
                  || cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD);
     }

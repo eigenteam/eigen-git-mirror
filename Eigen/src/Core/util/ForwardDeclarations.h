@@ -97,7 +97,7 @@ template<typename Scalar1,typename Scalar2> struct ei_scalar_multiple2_op;
 struct IOFormat;
 
 template<typename Scalar>
-void ei_cache_friendly_product(
+static void ei_cache_friendly_product(
   int _rows, int _cols, int depth,
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,

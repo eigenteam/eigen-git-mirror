@@ -271,13 +271,19 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     inline int stride(void) const { return m_matrix.stride(); }
 
+  #ifndef __SUNPRO_CC
+  // FIXME sunstudio is not friendly with the above friend...
   protected:
+  #endif
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal used by allowAligned() */
     inline Block(const MatrixType& matrix, const Scalar* data, int blockRows, int blockCols)
       : Base(data, blockRows, blockCols), m_matrix(matrix)
     {}
+    #endif
 
+  protected:
     const typename MatrixType::Nested m_matrix;
 };
 

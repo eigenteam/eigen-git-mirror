@@ -140,21 +140,4 @@ VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
 
-/** \nonstableyet
-  * \return an expression of the replication of each column (or row) of \c *this
-  *
-  * Example: \include DirectionWise_replicate.cpp
-  * Output: \verbinclude DirectionWise_replicate.out
-  *
-  * \sa VectorwiseOp::replicate(int), MatrixBase::replicate(), class Replicate
-  */
-template<typename ExpressionType, int Direction>
-template<int Factor>
-const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
-VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
-{
-  return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
-          (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
-}
-
 #endif // EIGEN_REPLICATE_H

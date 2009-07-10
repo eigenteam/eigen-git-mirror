@@ -42,13 +42,13 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
  : ei_traits<MatrixType>
 {
   typedef typename ei_result_of<
-                     ViewOp(typename MatrixType::Scalar)
+                     ViewOp(typename ei_traits<MatrixType>::Scalar)
                    >::type Scalar;
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | AlignedBit)),
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost + ei_functor_traits<ViewOp>::Cost
+    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | AlignedBit)),
+    CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost
   };
 };
 
@@ -62,7 +62,7 @@ class CwiseUnaryView : ei_no_assignment_operator,
 
     inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}
-    
+
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryView)
 
     EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
@@ -77,7 +77,7 @@ class CwiseUnaryView : ei_no_assignment_operator,
     {
       return m_functor(m_matrix.coeff(index));
     }
-    
+
     EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
     {
       return m_functor(m_matrix.const_cast_derived().coeffRef(row, col));
@@ -89,7 +89,8 @@ class CwiseUnaryView : ei_no_assignment_operator,
     }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
+    const typename ei_nested<MatrixType>::type m_matrix;
     const ViewOp m_functor;
 };
 

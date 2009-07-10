@@ -124,6 +124,7 @@ class Matrix
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
+
     enum { Options = _Options };
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
@@ -217,7 +218,7 @@ class Matrix
       *
       * This method is intended for dynamic-size matrices, although it is legal to call it on any
       * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
-      * of rows and/or of columns, you can use resize(NoChange_t, int), resize(int, NoChange_t). 
+      * of rows and/or of columns, you can use resize(NoChange_t, int), resize(int, NoChange_t).
       *
       * If the current number of coefficients of \c *this exactly matches the
       * product \a rows * \a cols, then no memory allocation is performed and
