@@ -83,13 +83,15 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
   enum{
+    // workaround sun studio:
+    LhsIsVectorAtCompileTime = ei_traits<Lhs>::ColsAtCompileTime==1 || ei_traits<Rhs>::ColsAtCompileTime==1,
     value = ei_is_diagonal<Rhs>::ret || ei_is_diagonal<Lhs>::ret
           ? DiagonalProduct
           : ei_traits<Lhs>::MaxColsAtCompileTime == Dynamic
             && ( ei_traits<Lhs>::MaxRowsAtCompileTime == Dynamic
               || ei_traits<Rhs>::MaxColsAtCompileTime == Dynamic )
-            && (!(ei_traits<Rhs>::IsVectorAtCompileTime && (ei_traits<Lhs>::Flags&RowMajorBit)  && (!(ei_traits<Lhs>::Flags&DirectAccessBit))))
-            && (!(ei_traits<Lhs>::IsVectorAtCompileTime && (!(ei_traits<Rhs>::Flags&RowMajorBit)) && (!(ei_traits<Rhs>::Flags&DirectAccessBit))))
+            && (!(Rhs::IsVectorAtCompileTime && (ei_traits<Lhs>::Flags&RowMajorBit)  && (!(ei_traits<Lhs>::Flags&DirectAccessBit))))
+            && (!(LhsIsVectorAtCompileTime && (!(ei_traits<Rhs>::Flags&RowMajorBit)) && (!(ei_traits<Rhs>::Flags&DirectAccessBit))))
             && (ei_is_same_type<typename ei_traits<Lhs>::Scalar, typename ei_traits<Rhs>::Scalar>::ret)
           ? CacheFriendlyProduct
           : NormalProduct };

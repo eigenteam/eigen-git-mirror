@@ -217,7 +217,7 @@ template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
 struct ei_special_scalar_op_base
 {
-  // dummy operator* so that the 
+  // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
   void operator*() const;
 };
@@ -249,7 +249,7 @@ template<typename ExpressionType> struct HNormalizedReturnType {
   typedef Block<ExpressionType,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
-  typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>, 
+  typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>,
               NestByValue<StartMinusOne> > Type;
 };
 
@@ -260,6 +260,13 @@ template<typename XprType, typename CastType> struct ei_cast_return_type
   typedef typename _CastType::Scalar NewScalarType;
   typedef typename ei_meta_if<ei_is_same_type<CurrentScalarType,NewScalarType>::ret,
                               const XprType&,CastType>::ret type;
+};
+
+template<typename T> struct ei_is_diagonal
+{
+  enum {
+    ret = ( int(ei_traits<T>::Flags) & DiagonalBits ) == DiagonalBits
+  };
 };
 
 #endif // EIGEN_XPRHELPER_H

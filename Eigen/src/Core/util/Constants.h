@@ -198,13 +198,6 @@ const unsigned int SelfAdjoint = SelfAdjointBit;
 const unsigned int UnitUpperTriangular = UpperTriangularBit | UnitDiagBit;
 const unsigned int UnitLowerTriangular = LowerTriangularBit | UnitDiagBit;
 
-template<typename T> struct ei_is_diagonal
-{
-  enum {
-    ret = ( int(ei_traits<T>::Flags) & DiagonalBits ) == DiagonalBits
-  };
-};
-
 enum { Aligned, Unaligned };
 enum { ForceAligned, AsRequested };
 enum { ConditionalJumpCost = 5 };

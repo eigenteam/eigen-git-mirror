@@ -45,7 +45,7 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
                      ViewOp(typename ei_traits<MatrixType>::Scalar)
                    >::type Scalar;
   typedef typename MatrixType::Nested MatrixTypeNested;
-  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | AlignedBit)),
     CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost
