@@ -25,14 +25,6 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 
-template<bool Conjugate> struct ei_conj_if {
-  template<typename Scalar> Scalar operator() (const Scalar& x) const { return ei_conj(x); }
-};
-
-template<> struct ei_conj_if<false> {
-  template<typename Scalar> Scalar& operator() (Scalar& x) const { return x; }
-};
-
 /* Optimized col-major selfadjoint matrix * vector product:
  * This algorithm processes 2 columns at onces that allows to both reduce
  * the number of load/stores of the result by a factor 2 and to reduce

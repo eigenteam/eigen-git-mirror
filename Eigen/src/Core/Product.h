@@ -281,8 +281,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       */
     EIGEN_STRONG_INLINE bool _useCacheFriendlyProduct() const
     {
-      #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
-      // TODO do something more accurate here
+      // TODO do something more accurate here (especially for mat-vec products)
       return m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
               && (  rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
                  || cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD);

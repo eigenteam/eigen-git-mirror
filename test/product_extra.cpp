@@ -47,8 +47,6 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
              square2 = MatrixType::Random(cols, cols),
              res2 = MatrixType::Random(cols, cols);
   RowVectorType v1 = RowVectorType::Random(rows), vrres(rows);
-//              v2 = RowVectorType::Random(rows),
-//              vzero = RowVectorType::Zero(rows);
   ColVectorType vc2 = ColVectorType::Random(cols), vcres(cols);
   OtherMajorMatrixType tm1 = m1;
 
@@ -56,14 +54,14 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
          s2 = ei_random<Scalar>(),
          s3 = ei_random<Scalar>();
 
-  int c0 = ei_random<int>(0,cols/2-1),
-      c1 = ei_random<int>(cols/2,cols),
-      r0 = ei_random<int>(0,rows/2-1),
-      r1 = ei_random<int>(rows/2,rows);
+//   int c0 = ei_random<int>(0,cols/2-1),
+//       c1 = ei_random<int>(cols/2,cols),
+//       r0 = ei_random<int>(0,rows/2-1),
+//       r1 = ei_random<int>(rows/2,rows);
 
   // all the expressions in this test should be compiled as a single matrix product
   // TODO: add internal checks to verify that
-/*
+
   VERIFY_IS_APPROX(m1 * m2.adjoint(),  m1 * m2.adjoint().eval());
   VERIFY_IS_APPROX(m1.adjoint() * square.adjoint(),  m1.adjoint().eval() * square.adjoint().eval());
   VERIFY_IS_APPROX(m1.adjoint() * m2,  m1.adjoint().eval() * m2);
@@ -111,49 +109,14 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 
   VERIFY_IS_APPROX((-m1.adjoint() * s2) * (s1 * v1.adjoint()),
                    (-m1.adjoint()*s2).eval() * (s1 * v1.adjoint()).eval());
-  */
-  // test with sub matrices
-  m2 = m1;
-  m3 = m1;
 
-//   std::cerr << (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).rows() << " " << (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).cols() << " == " << vrres.segment(r0,r1-r0).rows() << " " << vrres.segment(r0,r1-r0).cols() << "\n";
-//   m2.col(c0).segment(0,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).lazy();
-//   m3.col(c0).segment(0,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).eval();
-  Matrix<Scalar,Dynamic,1> a = m2.col(c0), b = a;
-  a.segment(5,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).lazy();
-  b.segment(5,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).eval();
-
-//   m2.col(c0).segment(0,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).lazy();
-//   m3.col(c0).segment(0,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).eval();
-//   if (!m2.isApprox(m3))
-  std::cerr << (a-b).cwise().abs().maxCoeff() << "\n";
-  VERIFY_IS_APPROX(a,b);
-//   VERIFY_IS_APPROX( vrres.segment(0,r1-r0).transpose().eval(),
-//                     v1.segment(0,r1-r0).transpose() + m1.block(r0,c0, r1-r0, c1-c0).eval() * (vc2.segment(c0,c1-c0)).eval());
 }
 
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
-    int rows = ei_random<int>(2,10);
-    int cols = ei_random<int>(2,10);
-    int c0 = ei_random<int>(0,cols/2-1),
-        c1 = ei_random<int>(cols/2,cols),
-        r0 = ei_random<int>(0,rows/2-1),
-        r1 = ei_random<int>(rows/2,rows);
-
-    MatrixXf m1 = MatrixXf::Random(rows,cols), m2 = m1;
-    Matrix<float,Dynamic,1> a = m2.col(c0), b = a;
-    Matrix<float,Dynamic,1> vc2 = Matrix<float,Dynamic,1>::Random(cols);
-    if (1+r1-r0<rows) {
-      a.segment(1,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).lazy();
-      b.segment(1,r1-r0) += (m1.block(r0,c0, r1-r0, c1-c0) * vc2.segment(c0,c1-c0)).eval();
-      VERIFY_IS_APPROX(a,b);
-    }
-//     CALL_SUBTEST( product_extra(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-//     CALL_SUBTEST( product_extra(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-//     CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
-//     CALL_SUBTEST( product_extra(MatrixXcf(ei_random<int>(50,50), ei_random<int>(50,50))) );
-//     CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product_extra(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product_extra(MatrixXcf(ei_random<int>(50,50), ei_random<int>(50,50))) );
+    CALL_SUBTEST( product_extra(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,50), ei_random<int>(1,50))) );
   }
 }

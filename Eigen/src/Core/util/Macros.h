@@ -94,6 +94,13 @@
 #define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
 #endif
 
+/** Defines the maximal width of the blocks used in the triangular solver
+  * for vectors (level 2 blas xTRSV). The default is 8.
+  */
+#ifndef EIGEN_TUNE_TRSV_PANEL_WIDTH
+#define EIGEN_TUNE_TRSV_PANEL_WIDTH 8
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:

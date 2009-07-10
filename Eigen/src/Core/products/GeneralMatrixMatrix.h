@@ -47,8 +47,7 @@ template<> struct ei_conj_helper<false,true>
   { return c + pmul(x,y); }
 
   template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  //{ return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
-  { return x * ei_conj(y); }
+  { return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
 };
 
 template<> struct ei_conj_helper<true,false>
@@ -68,8 +67,7 @@ template<> struct ei_conj_helper<true,true>
   { return c + pmul(x,y); }
 
   template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-//   { return std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
-  { return ei_conj(x) * ei_conj(y); }
+  { return std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
