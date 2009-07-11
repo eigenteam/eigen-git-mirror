@@ -76,7 +76,7 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
 /* Helper class to analyze the factors of a Product expression.
  * In particular it allows to pop out operator-, scalar multiples,
  * and conjugate */
-template<typename XprType> struct ei_product_factor_traits
+template<typename XprType> struct ei_blas_traits
 {
   typedef typename ei_traits<XprType>::Scalar Scalar;
   typedef XprType ActualXprType;
@@ -85,15 +85,19 @@ template<typename XprType> struct ei_product_factor_traits
     NeedToConjugate = false,
     ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
   };
+  typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
+    const ActualXprType&,
+    typename ActualXprType::PlainMatrixType
+    >::ret DirectLinearAccessType;
   static inline const ActualXprType& extract(const XprType& x) { return x; }
   static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
 };
 
 // pop conjugate
-template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
- : ei_product_factor_traits<NestedXpr>
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
 {
-  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ActualXprType ActualXprType;
 
@@ -106,10 +110,10 @@ template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<Cw
 };
 
 // pop scalar multiple
-template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
- : ei_product_factor_traits<NestedXpr>
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
 {
-  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ActualXprType ActualXprType;
   static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
@@ -118,10 +122,10 @@ template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<Cw
 };
 
 // pop opposite
-template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
- : ei_product_factor_traits<NestedXpr>
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
 {
-  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ActualXprType ActualXprType;
   static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
@@ -130,11 +134,11 @@ template<typename Scalar, typename NestedXpr> struct ei_product_factor_traits<Cw
 };
 
 // pop opposite
-template<typename NestedXpr> struct ei_product_factor_traits<NestByValue<NestedXpr> >
- : ei_product_factor_traits<NestedXpr>
+template<typename NestedXpr> struct ei_blas_traits<NestByValue<NestedXpr> >
+ : ei_blas_traits<NestedXpr>
 {
   typedef typename NestedXpr::Scalar Scalar;
-  typedef ei_product_factor_traits<NestedXpr> Base;
+  typedef ei_blas_traits<NestedXpr> Base;
   typedef NestByValue<NestedXpr> XprType;
   typedef typename Base::ActualXprType ActualXprType;
   static inline const ActualXprType& extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
@@ -148,8 +152,8 @@ template<typename NestedXpr> struct ei_product_factor_traits<NestByValue<NestedX
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
-  typedef typename ei_product_factor_traits<Lhs>::ActualXprType ActualLhs;
-  typedef typename ei_product_factor_traits<Rhs>::ActualXprType ActualRhs;
+  typedef typename ei_blas_traits<Lhs>::ActualXprType ActualLhs;
+  typedef typename ei_blas_traits<Rhs>::ActualXprType ActualRhs;
   enum{
 
     value = Lhs::MaxColsAtCompileTime == Dynamic
@@ -600,10 +604,10 @@ static void ei_cache_friendly_product_rowmajor_times_vector(
 template<typename ProductType,
   int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
   int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int LhsHasDirectAccess = ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested>::ActualAccess,
+  int LhsHasDirectAccess = ei_blas_traits<typename ei_traits<ProductType>::_LhsNested>::ActualAccess,
   int RhsCols  = ei_traits<ProductType>::ColsAtCompileTime,
   int RhsOrder = int(ei_traits<ProductType>::RhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int RhsHasDirectAccess = ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested>::ActualAccess>
+  int RhsHasDirectAccess = ei_blas_traits<typename ei_traits<ProductType>::_RhsNested>::ActualAccess>
 struct ei_cache_friendly_product_selector
 {
   template<typename DestDerived>
@@ -633,8 +637,8 @@ template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
 struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
 {
   typedef typename ProductType::Scalar Scalar;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
@@ -694,8 +698,8 @@ template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
 struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,RowMajor,HasDirectAccess>
 {
   typedef typename ProductType::Scalar Scalar;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
@@ -740,8 +744,8 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
 {
   typedef typename ProductType::Scalar Scalar;
 
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
@@ -783,8 +787,8 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
 {
   typedef typename ProductType::Scalar Scalar;
 
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_product_factor_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
+  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;
@@ -903,8 +907,8 @@ template<typename Lhs, typename Rhs, int ProductMode>
 template<typename DestDerived>
 inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& res, Scalar alpha) const
 {
-  typedef ei_product_factor_traits<_LhsNested> LhsProductTraits;
-  typedef ei_product_factor_traits<_RhsNested> RhsProductTraits;
+  typedef ei_blas_traits<_LhsNested> LhsProductTraits;
+  typedef ei_blas_traits<_RhsNested> RhsProductTraits;
 
   typedef typename LhsProductTraits::ActualXprType ActualLhsType;
   typedef typename RhsProductTraits::ActualXprType ActualRhsType;

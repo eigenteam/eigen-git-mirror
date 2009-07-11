@@ -106,6 +106,16 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       return ei_selfadjoint_vector_product_returntype<SelfAdjointView,OtherDerived>(*this, rhs.derived());
     }
 
+    /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
+      * \f$ this = this + \alpha ( u v^* + v u^*) \f$
+      * 
+      * The vectors \a u and \c v \b must be column vectors, however they can be
+      * a adjoint expression without any overhead. Only the meaningful triangular
+      * part of the matrix is updated, the rest is left unchanged.
+      */
+    template<typename DerivedU, typename DerivedV>
+    void rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
+
 /////////// Cholesky module ///////////
 
     const LLT<PlainMatrixType, UpLo> llt() const;

@@ -236,10 +236,8 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
                          + (h*ei_conj(h)*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) *
                            matA.col(i).end(n-i-1);
 
-      // symmetric rank-2 update
-      for (int j1=i+1; j1<n; ++j1)
-        matA.col(j1).end(n-j1) -= matA.col(i).end(n-j1) * ei_conj(hCoeffs.coeff(j1-1))
-                                + hCoeffs.end(n-j1) * ei_conj(matA.coeff(j1,i));
+      matA.corner(BottomRight, n-i-1, n-i-1).template selfadjointView<LowerTriangular>()
+        .rank2update(matA.col(i).end(n-i-1), hCoeffs.end(n-i-1), -1);
 
       // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
       // note: the sequence of the beta values leads to the subdiagonal entries
