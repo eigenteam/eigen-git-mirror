@@ -28,6 +28,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 #ifndef EIGEN_TEST_FUNC
 #error EIGEN_TEST_FUNC must be defined

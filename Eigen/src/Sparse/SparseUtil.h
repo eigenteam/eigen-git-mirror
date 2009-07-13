@@ -106,6 +106,7 @@ template<typename _Scalar, int _Flags = 0> class DynamicSparseMatrix;
 template<typename _Scalar, int _Flags = 0> class SparseVector;
 template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
+template<typename MatrixType>                            class SparseNestByValue;
 template<typename MatrixType>                            class SparseTranspose;
 template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
 template<typename Derived>                               class SparseCwise;
