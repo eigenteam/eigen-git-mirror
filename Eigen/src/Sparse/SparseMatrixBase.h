@@ -446,14 +446,7 @@ template<typename Derived> class SparseMatrixBase
         {
           for (typename Derived::InnerIterator i(derived(),j); i; ++i)
           {
-            if(IsRowMajor)
-              std::cerr << i.row() << "," << i.col() << " == " << j << "," << i.index() << "\n";
-            else
-              std::cerr << i.row() << "," << i.col() << " == " << i.index() << "," << j << "\n";
-//             if(IsRowMajor)
-              res.coeffRef(i.row(),i.col()) = i.value();
-//             else
-//               res.coeffRef(i.index(),j) = i.value();
+            res.coeffRef(i.row(),i.col()) = i.value();
           }
         }
         return res;

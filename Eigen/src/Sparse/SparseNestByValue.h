@@ -42,11 +42,11 @@ struct ei_traits<SparseNestByValue<ExpressionType> > : public ei_traits<Expressi
 {};
 
 template<typename ExpressionType> class SparseNestByValue
-  : public SparseMatrixBase<NestByValue<ExpressionType> >
+  : public SparseMatrixBase<SparseNestByValue<ExpressionType> >
 {
   public:
 
-    class InnerIterator;
+    typedef typename ExpressionType::InnerIterator InnerIterator;
 
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseNestByValue)
 
@@ -70,15 +70,15 @@ SparseMatrixBase<Derived>::nestByValue() const
   return SparseNestByValue<Derived>(derived());
 }
 
-template<typename MatrixType>
-class SparseNestByValue<MatrixType>::InnerIterator : public MatrixType::InnerIterator
-{
-    typedef typename MatrixType::InnerIterator Base;
-  public:
-
-    EIGEN_STRONG_INLINE InnerIterator(const SparseNestByValue& expr, int outer)
-      : Base(expr.m_expression, outer)
-    {}
-};
+// template<typename MatrixType>
+// class SparseNestByValue<MatrixType>::InnerIterator : public MatrixType::InnerIterator
+// {
+//     typedef typename MatrixType::InnerIterator Base;
+//   public:
+// 
+//     EIGEN_STRONG_INLINE InnerIterator(const SparseNestByValue& expr, int outer)
+//       : Base(expr.m_expression, outer)
+//     {}
+// };
 
 #endif // EIGEN_SPARSENESTBYVALUE_H
