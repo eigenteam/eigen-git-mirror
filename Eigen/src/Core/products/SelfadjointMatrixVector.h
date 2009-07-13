@@ -25,7 +25,7 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 
-/* Optimized col-major selfadjoint matrix * vector product:
+/* Optimized selfadjoint matrix * vector product:
  * This algorithm processes 2 columns at onces that allows to both reduce
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
@@ -78,11 +78,11 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     size_t alignedStart = (starti) + ei_alignmentOffset(&res[starti], endi-starti);
     alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
-    res[j]   += t0 * conj0(A0[j]);
+    res[j] += t0 * conj0(A0[j]);
     if(FirstTriangular)
     {
-      res[j+1]   += t1 * conj0(A1[j+1]);
-      res[j] += t1 * conj0(A1[j]);
+      res[j+1] += t1 * conj0(A1[j+1]);
+      res[j]   += t1 * conj0(A1[j]);
       t3 += conj1(A1[j]) * rhs[j];
     }
     else

@@ -45,7 +45,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor>
   };
   static void run(const Lhs& lhs, Rhs& other)
   {
-    static const int PanelWidth = EIGEN_TUNE_TRSV_PANEL_WIDTH;
+    static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
     
     const int size = lhs.cols();
@@ -104,7 +104,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor>
 
   static void run(const Lhs& lhs, Rhs& other)
   {
-    static const int PanelWidth = EIGEN_TUNE_TRSV_PANEL_WIDTH;
+    static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
     
     const int size = lhs.cols();

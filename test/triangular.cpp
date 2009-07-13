@@ -51,6 +51,8 @@ template<typename MatrixType> void triangular(const MatrixType& m)
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
+  Scalar s1 = ei_random<Scalar>();
+
   MatrixType m1up = m1.template triangularView<Eigen::UpperTriangular>();
   MatrixType m2up = m2.template triangularView<Eigen::UpperTriangular>();
 
@@ -142,7 +144,7 @@ void test_triangular()
     CALL_SUBTEST( triangular(Matrix3d()) );
     CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
     CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
-    CALL_SUBTEST( triangular(MatrixXd(17,17)) );
+    CALL_SUBTEST( triangular(MatrixXcd(17,17)) );
     CALL_SUBTEST( triangular(Matrix<float,Dynamic,Dynamic,RowMajor>(5, 5)) );
   }
 }

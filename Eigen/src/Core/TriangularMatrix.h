@@ -142,13 +142,17 @@ struct ei_traits<TriangularView<MatrixType, _Mode> > : ei_traits<MatrixType>
   };
 };
 
-template<typename MatrixType, unsigned int _Mode> class TriangularView
-  : public TriangularBase<TriangularView<MatrixType, _Mode> >
+template<typename Lhs,typename Rhs>
+struct ei_triangular_vector_product_returntype;
+
+template<typename _MatrixType, unsigned int _Mode> class TriangularView
+  : public TriangularBase<TriangularView<_MatrixType, _Mode> >
 {
   public:
 
     typedef TriangularBase<TriangularView> Base;
     typedef typename ei_traits<TriangularView>::Scalar Scalar;
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::PlainMatrixType PlainMatrixType;
     
     enum {
@@ -241,6 +245,13 @@ template<typename MatrixType, unsigned int _Mode> class TriangularView
       PlainMatrixType res(rows(), cols());
       res = *this;
       return res;
+    }
+
+    template<typename OtherDerived>
+    ei_triangular_vector_product_returntype<TriangularView,OtherDerived>
+    operator*(const MatrixBase<OtherDerived>& rhs) const
+    {
+      return ei_triangular_vector_product_returntype<TriangularView,OtherDerived>(*this, rhs.derived(), 1);
     }
 
     template<typename OtherDerived>
