@@ -147,4 +147,6 @@ template<typename T> class ei_eval<T,IsSparse>
     typedef SparseMatrix<_Scalar, _Flags> type;
 };
 
+template<typename T> struct ei_must_nest_by_value<SparseNestByValue<T> > { enum { ret = true }; };
+
 #endif // EIGEN_SPARSEUTIL_H
