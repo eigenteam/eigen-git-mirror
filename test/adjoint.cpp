@@ -76,6 +76,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   {
     VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),         static_cast<RealScalar>(1));
     VERIFY_IS_APPROX(v1.norm(),                       v1.stableNorm());
+    VERIFY_IS_APPROX(v1.blueNorm(),                       v1.stableNorm());
   }
 
   // check compatibility of dot and adjoint
@@ -113,15 +114,29 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 
 void test_adjoint()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( adjoint(Matrix3d()) );
-    CALL_SUBTEST( adjoint(Matrix4f()) );
-    CALL_SUBTEST( adjoint(MatrixXcf(4, 4)) );
-    CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
-    CALL_SUBTEST( adjoint(MatrixXf(21, 21)) );
-  }
+//   for(int i = 0; i < g_repeat; i++) {
+//     CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
+//     CALL_SUBTEST( adjoint(Matrix3d()) );
+//     CALL_SUBTEST( adjoint(Matrix4f()) );
+//     CALL_SUBTEST( adjoint(MatrixXcf(4, 4)) );
+//     CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
+//     CALL_SUBTEST( adjoint(MatrixXf(21, 21)) );
+//   }
   // test a large matrix only once
-  CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
+//   CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
+  for(int i = 0; i < g_repeat; i++)
+  {
+    std::cerr.precision(20);
+    int s = 1000000;
+    double y = 1.131242353467546478463457843445677435233e23 * ei_abs(ei_random<double>());
+    VectorXf v = VectorXf::Ones(s) * y;
+//     Vector4f x(v.segment(0,s/4).blueNorm(), v.segment(s/4+1,s/4).blueNorm(),
+//                v.segment((s/2)+1,s/4).blueNorm(), v.segment(3*s/4+1,s - 3*s/4-1).blueNorm());
+//     std::cerr << v.norm() << " == " << v.stableNorm() << " == " << v.blueNorm() << " == " << x.norm() << "\n";
+    std::cerr << v.norm() << "\n" << v.stableNorm() << "\n" << v.blueNorm() << "\n" << ei_sqrt(double(s)) * y << "\n\n\n";
+    
+//     VectorXd d = VectorXd::Ones(s) * y;//v.cast<double>();
+//     std::cerr << d.norm() << "\n" << d.stableNorm() << "\n" << d.blueNorm() << "\n" << ei_sqrt(double(s)) * y << "\n\n\n";
+  }
 }
 
