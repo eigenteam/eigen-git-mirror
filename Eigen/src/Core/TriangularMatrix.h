@@ -283,7 +283,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 ***************************************************************************/
 
 template<typename Derived1, typename Derived2, unsigned int Mode, int UnrollCount, bool ClearOpposite>
-struct ei_part_assignment_impl
+struct ei_triangular_assignment_selector
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -292,39 +292,29 @@ struct ei_part_assignment_impl
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_part_assignment_impl<Derived1, Derived2, Mode, UnrollCount-1, ClearOpposite>::run(dst, src);
+    ei_triangular_assignment_selector<Derived1, Derived2, Mode, UnrollCount-1, ClearOpposite>::run(dst, src);
 
-    if(Mode == SelfAdjoint)
+    ei_assert( Mode == UpperTriangular || Mode == LowerTriangular
+            || Mode == StrictlyUpperTriangular || Mode == StrictlyLowerTriangular
+            || Mode == UnitUpperTriangular || Mode == UnitLowerTriangular);
+    if((Mode == UpperTriangular && row <= col)
+    || (Mode == LowerTriangular && row >= col)
+    || (Mode == StrictlyUpperTriangular && row < col)
+    || (Mode == StrictlyLowerTriangular && row > col)
+    || (Mode == UnitUpperTriangular && row < col)
+    || (Mode == UnitLowerTriangular && row > col))
+      dst.copyCoeff(row, col, src);
+    else if(ClearOpposite)
     {
-      if(row == col)
-        dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
-      else if(row < col)
-        dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
-    }
-    else
-    {
-      ei_assert( Mode == UpperTriangular || Mode == LowerTriangular
-              || Mode == StrictlyUpperTriangular || Mode == StrictlyLowerTriangular
-              || Mode == UnitUpperTriangular || Mode == UnitLowerTriangular);
-      if((Mode == UpperTriangular && row <= col)
-      || (Mode == LowerTriangular && row >= col)
-      || (Mode == StrictlyUpperTriangular && row < col)
-      || (Mode == StrictlyLowerTriangular && row > col)
-      || (Mode == UnitUpperTriangular && row < col)
-      || (Mode == UnitLowerTriangular && row > col))
-        dst.copyCoeff(row, col, src);
-      else if(ClearOpposite)
-      {
-        if (Mode&UnitDiagBit && row==col)
-          dst.coeffRef(row, col) = 1;
-        else
-          dst.coeffRef(row, col) = 0;
-      }
+      if (Mode&UnitDiagBit && row==col)
+        dst.coeffRef(row, col) = 1;
+      else
+        dst.coeffRef(row, col) = 0;
     }
   }
 };
 template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, Mode, 1, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 1, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -339,13 +329,13 @@ struct ei_part_assignment_impl<Derived1, Derived2, Mode, 1, ClearOpposite>
 };
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, Mode, 0, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOpposite>
 {
   inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, UpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, UpperTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -360,7 +350,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, UpperTriangular, Dynamic, Cle
   }
 };
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, LowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, LowerTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -376,7 +366,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, LowerTriangular, Dynamic, Cle
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, StrictlyUpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpperTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -391,7 +381,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyUpperTriangular, Dyna
   }
 };
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, StrictlyLowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLowerTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -407,7 +397,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, StrictlyLowerTriangular, Dyna
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, UnitUpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpperTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -425,7 +415,7 @@ struct ei_part_assignment_impl<Derived1, Derived2, UnitUpperTriangular, Dynamic,
   }
 };
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, UnitLowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLowerTriangular, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -439,21 +429,6 @@ struct ei_part_assignment_impl<Derived1, Derived2, UnitLowerTriangular, Dynamic,
           dst.coeffRef(i, j) = 0;
         dst.coeffRef(j, j) = 1;
       }
-    }
-  }
-};
-
-// selfadjoint to dense matrix
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_part_assignment_impl<Derived1, Derived2, SelfAdjoint, Dynamic, ClearOpposite>
-{
-  inline static void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(int j = 0; j < dst.cols(); ++j)
-    {
-      for(int i = 0; i < j; ++i)
-        dst.coeffRef(j, i) = ei_conj(dst.coeffRef(i, j) = src.coeff(i, j));
-      dst.coeffRef(j, j) = ei_real(src.coeff(j, j));
     }
   }
 };
@@ -484,7 +459,7 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const MatrixBase<OtherDerived>
                       <= EIGEN_UNROLLING_LIMIT;
   ei_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
 
-  ei_part_assignment_impl
+  ei_triangular_assignment_selector
     <MatrixType, OtherDerived, int(Mode),
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
     false // do not change the opposite triangular part
@@ -518,7 +493,7 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDeri
                       <= EIGEN_UNROLLING_LIMIT;
   ei_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
 
-  ei_part_assignment_impl
+  ei_triangular_assignment_selector
     <MatrixType, OtherDerived, int(Mode),
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
     false // preserve the opposite triangular part
@@ -526,7 +501,7 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDeri
 }
 
 /***************************************************************************
-* Implementation of MatrixBase methods
+* Implementation of TriangularBase methods
 ***************************************************************************/
 
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
@@ -555,12 +530,16 @@ void TriangularBase<Derived>::evalToDenseLazy(MatrixBase<DenseDerived> &other) c
                      <= EIGEN_UNROLLING_LIMIT;
   ei_assert(this->rows() == other.rows() && this->cols() == other.cols());
 
-  ei_part_assignment_impl
+  ei_triangular_assignment_selector
     <DenseDerived, typename ei_traits<Derived>::ExpressionType, Derived::Mode,
     unroll ? int(DenseDerived::SizeAtCompileTime) : Dynamic,
     true // clear the opposite triangular part
     >::run(other.derived(), derived()._expression());
 }
+
+/***************************************************************************
+* Implementation of MatrixBase methods
+***************************************************************************/
 
 /** \deprecated use MatrixBase::triangularView() */
 template<typename Derived>

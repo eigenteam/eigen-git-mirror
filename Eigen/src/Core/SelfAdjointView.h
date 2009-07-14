@@ -126,6 +126,40 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     const typename MatrixType::Nested m_matrix;
 };
 
+template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, UnrollCount, ClearOpposite>
+{
+  enum {
+    col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
+    row = (UnrollCount-1) % Derived1::RowsAtCompileTime
+  };
+
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, UnrollCount-1, ClearOpposite>::run(dst, src);
+
+    if(row == col)
+      dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
+    else if(row < col)
+      dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
+  }
+};
+
+// selfadjoint to dense matrix
+template<typename Derived1, typename Derived2, bool ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, Dynamic, ClearOpposite>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); ++j)
+    {
+      for(int i = 0; i < j; ++i)
+        dst.coeffRef(j, i) = ei_conj(dst.coeffRef(i, j) = src.coeff(i, j));
+      dst.coeffRef(j, j) = ei_real(src.coeff(j, j));
+    }
+  }
+};
+
 /***************************************************************************
 * Wrapper to ei_product_selfadjoint_vector
 ***************************************************************************/
