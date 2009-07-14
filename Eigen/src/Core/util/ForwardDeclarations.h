@@ -66,6 +66,8 @@ template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Functor, typename EvalType> class ReturnByValue;
 
+template<typename _Scalar, int Size=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
+
 
 template<typename Lhs, typename Rhs> struct ei_product_mode;
 template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;

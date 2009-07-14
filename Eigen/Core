@@ -185,6 +185,7 @@ namespace Eigen {
 #include "src/Core/SolveTriangular.h"
 #include "src/Core/products/SelfadjointRank2Update.h"
 #include "src/Core/products/TriangularMatrixVector.h"
+#include "src/Core/BandMatrix.h"
 
 } // namespace Eigen
 
