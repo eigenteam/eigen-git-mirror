@@ -102,8 +102,10 @@ template<typename Derived> class SparseMatrixBase
     /** \internal the return type of MatrixBase::imag() */
     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef SparseTranspose</*NestByValue<*/typename ei_cleantype<ConjugateReturnType>::type> /*>*/
-            AdjointReturnType;
+    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::SparseTranspose<Derived> > >,
+                        SparseTranspose<Derived>
+                     >::ret AdjointReturnType;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -357,7 +359,7 @@ template<typename Derived> class SparseMatrixBase
     SparseTranspose<Derived> transpose() { return derived(); }
     const SparseTranspose<Derived> transpose() const { return derived(); }
     // void transposeInPlace();
-    const AdjointReturnType adjoint() const { return conjugate()/*.nestByValue()*/; }
+    const AdjointReturnType adjoint() const { return transpose().nestByValue(); }
 
     // sub-vector
     SparseInnerVectorSet<Derived,1> row(int i);
@@ -529,7 +531,7 @@ template<typename Derived> class SparseMatrixBase
       */
 //     inline int stride(void) const { return derived().stride(); }
 
-//     inline const NestByValue<Derived> nestByValue() const;
+    inline const SparseNestByValue<Derived> nestByValue() const;
 
 
     ConjugateReturnType conjugate() const;

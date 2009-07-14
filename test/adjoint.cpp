@@ -76,6 +76,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   {
     VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),         static_cast<RealScalar>(1));
     VERIFY_IS_APPROX(v1.norm(),                       v1.stableNorm());
+    VERIFY_IS_APPROX(v1.blueNorm(),                       v1.stableNorm());
   }
 
   // check compatibility of dot and adjoint

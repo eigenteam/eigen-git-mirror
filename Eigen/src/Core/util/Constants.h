@@ -185,7 +185,7 @@ const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit
                                   | SparseBit;
-    
+
 // Possible values for the Mode parameter of part()
 const unsigned int UpperTriangular = UpperTriangularBit;
 const unsigned int StrictlyUpperTriangular = UpperTriangularBit | ZeroDiagBit;

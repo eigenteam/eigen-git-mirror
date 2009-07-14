@@ -303,7 +303,9 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::operator=(const MatrixBase<Derive
   return *this;
 }
 
-/** Convert the quaternion to a 3x3 rotation matrix */
+/** Convert the quaternion to a 3x3 rotation matrix. The quaternion is required to
+  * be normalized, otherwise the result is undefined.
+  */
 template<typename Scalar>
 inline typename Quaternion<Scalar>::Matrix3
 Quaternion<Scalar>::toRotationMatrix(void) const
@@ -340,11 +342,15 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   return res;
 }
 
-/** Sets *this to be a quaternion representing a rotation sending the vector \a a to the vector \a b.
+/** Sets \c *this to be a quaternion representing a rotation between
+  * the two arbitrary vectors \a a and \a b. In other words, the built
+  * rotation represent a rotation sending the line of direction \a a
+  * to the line of direction \a b, both lines passing through the origin.
   *
-  * \returns a reference to *this.
+  * \returns a reference to \c *this.
   *
-  * Note that the two input vectors do \b not have to be normalized.
+  * Note that the two input vectors do \b not have to be normalized, and
+  * do not need to have the same norm.
   */
 template<typename Scalar>
 template<typename Derived1, typename Derived2>
@@ -354,21 +360,26 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
   Vector3 v1 = b.normalized();
   Scalar c = v0.dot(v1);
 
-  // if dot == 1, vectors are the same
-  if (ei_isApprox(c,Scalar(1)))
+  // if dot == -1, vectors are nearly opposites
+  // => accuraletly compute the rotation axis by computing the
+  //    intersection of the two planes. This is done by solving:
+  //       x^T v0 = 0
+  //       x^T v1 = 0
+  //    under the constraint:
+  //       ||x|| = 1
+  //    which yields a singular value problem
+  if (c < Scalar(-1)+precision<Scalar>())
   {
-    // set to identity
-    this->w() = 1; this->vec().setZero();
-    return *this;
-  }
-  // if dot == -1, vectors are opposites
-  if (ei_isApprox(c,Scalar(-1)))
-  {
-    this->vec() = v0.unitOrthogonal();
-    this->w() = 0;
-    return *this;
-  }
+    c = std::max<Scalar>(c,-1);
+    Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
+    SVD<Matrix<Scalar,2,3> > svd(m);
+    Vector3 axis = svd.matrixV().col(2);
 
+    Scalar w2 = (Scalar(1)+c)*Scalar(0.5);
+    this->w() = ei_sqrt(w2);
+    this->vec() = axis * ei_sqrt(Scalar(1) - w2);
+    return *this;
+  }
   Vector3 axis = v0.cross(v1);
   Scalar s = ei_sqrt((Scalar(1)+c)*Scalar(2));
   Scalar invs = Scalar(1)/s;

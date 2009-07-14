@@ -50,7 +50,7 @@ template<typename MatrixType> void svd(const MatrixType& m)
     MatrixType sigma = MatrixType::Zero(rows,cols);
     MatrixType matU  = MatrixType::Zero(rows,rows);
     sigma.block(0,0,cols,cols) = svd.singularValues().asDiagonal();
-    matU.block(0,0,rows,cols) = svd.matrixU();
+    matU = svd.matrixU();
     VERIFY_IS_APPROX(a, matU * sigma * svd.matrixV().transpose());
   }
 

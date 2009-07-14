@@ -163,10 +163,14 @@ template<typename Derived> class MatrixBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-      CoeffReadCost = ei_traits<Derived>::CoeffReadCost
+      CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
           */
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
+#endif
     };
 
     /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
@@ -230,7 +234,7 @@ template<typename Derived> class MatrixBase
 
     /** \internal the return type of coeff()
       */
-    typedef typename ei_meta_if<bool(int(Flags)&DirectAccessBit), const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -426,8 +430,9 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
-    RealScalar norm()  const;
-    RealScalar stableNorm()  const;
+    RealScalar norm() const;
+    RealScalar stableNorm() const;
+    RealScalar blueNorm() const;
     const PlainMatrixType normalized() const;
     void normalize();
 
@@ -450,14 +455,14 @@ template<typename Derived> class MatrixBase
     const typename BlockReturnType<Derived>::Type
     block(int startRow, int startCol, int blockRows, int blockCols) const;
 
-    typename BlockReturnType<Derived>::SubVectorType segment(int start, int size);
-    const typename BlockReturnType<Derived>::SubVectorType segment(int start, int size) const;
+    VectorBlock<Derived> segment(int start, int size);
+    const VectorBlock<Derived> segment(int start, int size) const;
 
-    typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size);
-    const typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size) const;
+    VectorBlock<Derived> start(int size);
+    const VectorBlock<Derived> start(int size) const;
 
-    typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size);
-    const typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size) const;
+    VectorBlock<Derived> end(int size);
+    const VectorBlock<Derived> end(int size) const;
 
     typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
     const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
@@ -472,14 +477,14 @@ template<typename Derived> class MatrixBase
     template<int CRows, int CCols>
     const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType start(void);
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType start() const;
+    template<int Size> VectorBlock<Derived,Size> start(void);
+    template<int Size> const VectorBlock<Derived,Size> start() const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
+    template<int Size> VectorBlock<Derived,Size> end();
+    template<int Size> const VectorBlock<Derived,Size> end() const;
 
-    template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
-    template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
+    template<int Size> VectorBlock<Derived,Size> segment(int start);
+    template<int Size> const VectorBlock<Derived,Size> segment(int start) const;
 
     Diagonal<Derived,0> diagonal();
     const Diagonal<Derived,0> diagonal() const;
@@ -696,6 +701,7 @@ template<typename Derived> class MatrixBase
     const PartialLU<PlainMatrixType> partialLu() const;
     const PlainMatrixType inverse() const;
     void computeInverse(PlainMatrixType *result) const;
+    bool computeInverseWithCheck( PlainMatrixType *result ) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
@@ -705,7 +711,7 @@ template<typename Derived> class MatrixBase
 
 /////////// QR module ///////////
 
-    const QR<PlainMatrixType> qr() const;
+    const HouseholderQR<PlainMatrixType> householderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

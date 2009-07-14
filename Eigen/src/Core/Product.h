@@ -155,13 +155,14 @@ template<typename Lhs, typename Rhs> struct ei_product_mode
   typedef typename ei_blas_traits<Lhs>::ActualXprType ActualLhs;
   typedef typename ei_blas_traits<Rhs>::ActualXprType ActualRhs;
   enum{
-
-    value = Lhs::MaxColsAtCompileTime == Dynamic
-            && ( Lhs::MaxRowsAtCompileTime == Dynamic
-              || Rhs::MaxColsAtCompileTime == Dynamic )
-            && (!(Rhs::IsVectorAtCompileTime && (Lhs::Flags&RowMajorBit)  && (!(ActualLhs::Flags&DirectAccessBit))))
-            && (!(Lhs::IsVectorAtCompileTime && (!(Rhs::Flags&RowMajorBit)) && (!(ActualRhs::Flags&DirectAccessBit))))
-            && (ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)
+    // workaround sun studio:
+    LhsIsVectorAtCompileTime = ei_traits<Lhs>::ColsAtCompileTime==1 || ei_traits<Rhs>::ColsAtCompileTime==1,
+    value = ei_traits<Lhs>::MaxColsAtCompileTime == Dynamic
+            && ( ei_traits<Lhs>::MaxRowsAtCompileTime == Dynamic
+              || ei_traits<Rhs>::MaxColsAtCompileTime == Dynamic )
+            && (!(Rhs::IsVectorAtCompileTime && (ei_traits<Lhs>::Flags&RowMajorBit)  && (!(ei_traits<Lhs>::Flags&DirectAccessBit))))
+            && (!(LhsIsVectorAtCompileTime && (!(ei_traits<Rhs>::Flags&RowMajorBit)) && (!(ei_traits<Rhs>::Flags&DirectAccessBit))))
+            && (ei_is_same_type<typename ei_traits<Lhs>::Scalar, typename ei_traits<Rhs>::Scalar>::ret)
           ? CacheFriendlyProduct
           : NormalProduct };
 };
@@ -577,7 +578,7 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 // Forward declarations
 
 template<typename Scalar, bool ConjugateLhs, bool ConjugateRhs>
-void ei_cache_friendly_product(
+static void ei_cache_friendly_product(
   int _rows, int _cols, int depth,
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,

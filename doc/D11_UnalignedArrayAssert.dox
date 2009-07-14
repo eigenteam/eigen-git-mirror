@@ -15,11 +15,23 @@ is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html
 There are 4 known causes for this issue. Please read on to understand them and learn how to fix them.
 
 \b Table \b of \b contents
+ - \ref where
  - \ref c1
  - \ref c2
  - \ref c3
  - \ref c4
  - \ref explanation
+
+\section where Where in my own code is the cause of the problem?
+
+First of all, you need to find out where in your own code this assertion was triggered from. At first glance, the error message doesn't look helpful, as it refers to a file inside Eigen! However, since your program crashed, if you can reproduce the crash, you can get a backtrace using any debugger. For example, if you're using GCC, you can use the GDB debugger as follows:
+\code
+$ gdb ./my_program          # Start GDB on your program
+> run                       # Start running your program
+...                         # Now reproduce the crash!
+> bt                        # Obtain the backtrace
+\endcode
+Now that you know precisely where in your own code the problem is happening, read on to understand what you need to change.
 
 \section c1 Cause 1: Structures having Eigen objects as members
 

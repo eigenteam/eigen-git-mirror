@@ -42,6 +42,7 @@ template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=AsRequested,
          int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit ? DirectAccessBit
                                  : ei_traits<MatrixType>::Flags&SparseBit> class Block;
+template<typename MatrixType, int Size=Dynamic, int PacketAccess=AsRequested> class VectorBlock;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
@@ -111,7 +112,7 @@ template<typename MatrixType, int Direction = BothDirections> class Reverse;
 
 template<typename MatrixType> class LU;
 template<typename MatrixType> class PartialLU;
-template<typename MatrixType> class QR;
+template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class SVD;
 template<typename MatrixType, int UpLo = LowerTriangular> class LLT;
 template<typename MatrixType> class LDLT;

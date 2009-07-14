@@ -27,7 +27,17 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-#if defined(__APPLE__) || defined(_WIN64) || defined (__FreeBSD__)
+// FreeBSD 6 seems to have 16-byte aligned malloc
+// See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
+// FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
+// See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
+#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__)
+#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
+#else
+#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
+#endif
+
+#if defined(__APPLE__) || defined(_WIN64) || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0

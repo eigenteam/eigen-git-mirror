@@ -242,8 +242,8 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, Eigen::Matri
   const int diag_size = std::min(d.rows(),d.cols());
   d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
 
-  QR<MatrixType> qra(a);
-  QR<MatrixType> qrb(b);
+  HouseholderQR<MatrixType> qra(a);
+  HouseholderQR<MatrixType> qrb(b);
   m = (qra.matrixQ() * d * qrb.matrixQ()).lazy();
 }
 

@@ -51,7 +51,8 @@
 #define EIGEN_GCC3_OR_OLDER 0
 #endif
 
-#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER
+// FIXME vectorization + alignment is completely disabled with sun studio
+#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC)
   #define EIGEN_ARCH_WANTS_ALIGNMENT 1
 #else
   #define EIGEN_ARCH_WANTS_ALIGNMENT 0
@@ -104,7 +105,7 @@
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
-  *   - single precision Cwise::sin() and Cwise::cos() when SSE vectorization is enabled. 
+  *   - single precision Cwise::sin() and Cwise::cos() when SSE vectorization is enabled.
   */
 #ifndef EIGEN_FAST_MATH
 #define EIGEN_FAST_MATH 1
@@ -206,13 +207,16 @@ using Eigen::ei_cos;
  * vectorized and non-vectorized code.
  */
 #if !EIGEN_ALIGN
-#define EIGEN_ALIGN_128
+  #define EIGEN_ALIGN_128
 #elif (defined __GNUC__)
-#define EIGEN_ALIGN_128 __attribute__((aligned(16)))
+  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
 #elif (defined _MSC_VER)
-#define EIGEN_ALIGN_128 __declspec(align(16))
+  #define EIGEN_ALIGN_128 __declspec(align(16))
+#elif (defined __SUNPRO_CC)
+  // FIXME not sure about this one:
+  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
 #else
-#error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
+  #error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
 #endif
 
 #define EIGEN_RESTRICT __restrict

@@ -179,6 +179,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                               > Type;
     };
 
+    enum {
+      IsVertical   = (Direction==Vertical) ? 1 : 0,
+      IsHorizontal = (Direction==Horizontal) ? 1 : 0
+    };
+
   protected:
 
     /** \internal
@@ -222,9 +227,17 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \internal */
     inline const ExpressionType& _expression() const { return m_matrix; }
 
+    /** \returns a row or column vector expression of \c *this reduxed by \a func
+      *
+      * The template parameter \a BinaryOp is the type of the functor
+      * of the custom redux operator. Note that func must be an associative operator.
+      *
+      * \sa class VectorwiseOp, MatrixBase::colwise(), MatrixBase::rowwise()
+      */
     template<typename BinaryOp>
     const typename ReduxReturnType<BinaryOp>::Type
-    redux(const BinaryOp& func = BinaryOp()) const;
+    redux(const BinaryOp& func = BinaryOp()) const
+    { return typename ReduxReturnType<BinaryOp>::Type(_expression(), func); }
 
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
@@ -319,16 +332,26 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \sa MatrixBase::reverse() */
     const Reverse<ExpressionType, Direction> reverse() const
-    {
-      return Reverse<ExpressionType, Direction>( _expression() );
-    }
+    { return Reverse<ExpressionType, Direction>( _expression() ); }
 
     const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
     replicate(int factor) const;
 
-    template<int Factor>
-    const Replicate<ExpressionType,(Direction==Vertical?Factor:1),(Direction==Horizontal?Factor:1)>
-    replicate(int factor = Factor) const;
+    /** \nonstableyet
+      * \return an expression of the replication of each column (or row) of \c *this
+      *
+      * Example: \include DirectionWise_replicate.cpp
+      * Output: \verbinclude DirectionWise_replicate.out
+      *
+      * \sa VectorwiseOp::replicate(int), MatrixBase::replicate(), class Replicate
+      */
+    // NOTE implemented here because of sunstudio's compilation errors
+    template<int Factor> const Replicate<ExpressionType,(IsVertical?Factor:1),(IsHorizontal?Factor:1)>
+    replicate(int factor = Factor) const
+    {
+      return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
+          (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
+    }
 
 /////////// Artithmetic operators ///////////
 
@@ -464,21 +487,6 @@ inline VectorwiseOp<Derived,Horizontal>
 MatrixBase<Derived>::rowwise()
 {
   return derived();
-}
-
-/** \returns a row or column vector expression of \c *this reduxed by \a func
-  *
-  * The template parameter \a BinaryOp is the type of the functor
-  * of the custom redux operator. Note that func must be an associative operator.
-  *
-  * \sa class VectorwiseOp, MatrixBase::colwise(), MatrixBase::rowwise()
-  */
-template<typename ExpressionType, int Direction>
-template<typename BinaryOp>
-const typename VectorwiseOp<ExpressionType,Direction>::template ReduxReturnType<BinaryOp>::Type
-VectorwiseOp<ExpressionType,Direction>::redux(const BinaryOp& func) const
-{
-  return typename ReduxReturnType<BinaryOp>::Type(_expression(), func);
 }
 
 #endif // EIGEN_PARTIAL_REDUX_H

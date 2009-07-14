@@ -180,7 +180,7 @@ struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
 
 template<typename Lhs, typename Rhs, int Mode, int Index, int Size>
 struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,true> {
-  static void run(const Lhs& lhs, Rhs& rhs) {}
+  static void run(const Lhs&, Rhs&) {}
 };
 
 template<typename Lhs, typename Rhs, int Mode, int StorageOrder>

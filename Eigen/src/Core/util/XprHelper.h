@@ -217,7 +217,7 @@ template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
 struct ei_special_scalar_op_base
 {
-  // dummy operator* so that the 
+  // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
   void operator*() const;
 };
@@ -237,8 +237,6 @@ struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>
   * TODO: could be a good idea to define a big ReturnType struct ??
   */
 template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
-  typedef Block<ExpressionType, (ei_traits<ExpressionType>::RowsAtCompileTime == 1 ? 1 : RowsOrSize),
-                                (ei_traits<ExpressionType>::ColsAtCompileTime == 1 ? 1 : RowsOrSize)> SubVectorType;
   typedef Block<ExpressionType, RowsOrSize, Cols> Type;
 };
 
@@ -251,7 +249,7 @@ template<typename ExpressionType> struct HNormalizedReturnType {
   typedef Block<ExpressionType,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
-  typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>, 
+  typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>,
               NestByValue<StartMinusOne> > Type;
 };
 

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -34,9 +34,7 @@
   *
   * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
   *
-  * This class performs a standard SVD decomposition of a real matrix A of size \c M x \c N
-  * with \c M \>= \c N.
-  *
+  * This class performs a standard SVD decomposition of a real matrix A of size \c M x \c N.
   *
   * \sa MatrixBase::SVD()
   */
@@ -55,13 +53,13 @@ template<typename MatrixType> class SVD
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVector;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> RowVector;
 
-    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MinSize> MatrixUType;
+    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixUType;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixVType;
-    typedef Matrix<Scalar, MinSize, 1> SingularValuesType;
+    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> SingularValuesType;
 
   public:
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -70,9 +68,9 @@ template<typename MatrixType> class SVD
     SVD() : m_matU(), m_matV(), m_sigma(), m_isInitialized(false) {}
 
     SVD(const MatrixType& matrix)
-      : m_matU(matrix.rows(), std::min(matrix.rows(), matrix.cols())),
+      : m_matU(matrix.rows(), matrix.rows()),
         m_matV(matrix.cols(),matrix.cols()),
-        m_sigma(std::min(matrix.rows(),matrix.cols())),
+        m_sigma(matrix.cols()),
         m_isInitialized(false)
     {
       compute(matrix);
@@ -81,22 +79,22 @@ template<typename MatrixType> class SVD
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived> &b, ResultType* result) const;
 
-    const MatrixUType& matrixU() const 
-    { 
-      ei_assert(m_isInitialized && "SVD is not initialized.");
-      return m_matU; 
-    }
-
-    const SingularValuesType& singularValues() const 
+    const MatrixUType& matrixU() const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
-      return m_sigma; 
+      return m_matU;
     }
 
-    const MatrixVType& matrixV() const 
+    const SingularValuesType& singularValues() const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
-      return m_matV; 
+      return m_sigma;
+    }
+
+    const MatrixVType& matrixV() const
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_matV;
     }
 
     void compute(const MatrixType& matrix);
@@ -112,6 +110,23 @@ template<typename MatrixType> class SVD
     void computeScalingRotation(ScalingType *positive, RotationType *unitary) const;
 
   protected:
+    // Computes (a^2 + b^2)^(1/2) without destructive underflow or overflow.
+    inline static Scalar pythag(Scalar a, Scalar b)
+    {
+      Scalar abs_a = ei_abs(a);
+      Scalar abs_b = ei_abs(b);
+      if (abs_a > abs_b)
+        return abs_a*ei_sqrt(Scalar(1.0)+ei_abs2(abs_b/abs_a));
+      else
+        return (abs_b == Scalar(0.0) ? Scalar(0.0) : abs_b*ei_sqrt(Scalar(1.0)+ei_abs2(abs_a/abs_b)));
+    }
+
+    inline static Scalar sign(Scalar a, Scalar b)
+    {
+      return (b >= Scalar(0.0) ? ei_abs(a) : -ei_abs(a));
+    }
+    
+  protected:
     /** \internal */
     MatrixUType m_matU;
     /** \internal */
@@ -123,380 +138,271 @@ template<typename MatrixType> class SVD
 
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
   *
-  * \note this code has been adapted from JAMA (public domain)
+  * \note this code has been adapted from Numerical Recipes, third edition.
   */
 template<typename MatrixType>
 void SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
-  const int nu = std::min(m,n);
 
-  m_matU.resize(m, nu);
+  m_matU.resize(m, m);
   m_matU.setZero();
-  m_sigma.resize(std::min(m,n));
+  m_sigma.resize(n);
   m_matV.resize(n,n);
 
-  RowVector e(n);
-  ColVector work(m);
-  MatrixType matA(matrix);
-  const bool wantu = true;
-  const bool wantv = true;
-  int i=0, j=0, k=0;
+  int max_iters = 30;
 
-  // Reduce A to bidiagonal form, storing the diagonal elements
-  // in s and the super-diagonal elements in e.
-  int nct = std::min(m-1,n);
-  int nrt = std::max(0,std::min(n-2,m));
-  for (k = 0; k < std::max(nct,nrt); ++k)
+  MatrixVType& V = m_matV;
+  MatrixType A = matrix;
+  SingularValuesType& W = m_sigma;
+
+  bool flag;
+  int i,its,j,jj,k,l,nm;
+  Scalar anorm, c, f, g, h, s, scale, x, y, z;
+  bool convergence = true;
+  Scalar eps = precision<Scalar>();
+
+  Matrix<Scalar,Dynamic,1> rv1(n);
+  g = scale = anorm = 0;
+  // Householder reduction to bidiagonal form.
+  for (i=0; i<n; i++)
   {
-    if (k < nct)
+    l = i+2;
+    rv1[i] = scale*g;
+    g = s = scale = 0.0;
+    if (i < m)
     {
-      // Compute the transformation for the k-th column and
-      // place the k-th diagonal in m_sigma[k].
-      m_sigma[k] = matA.col(k).end(m-k).norm();
-      if (m_sigma[k] != 0.0) // FIXME
+      scale = A.col(i).end(m-i).cwise().abs().sum();
+      if (scale != Scalar(0))
       {
-        if (matA(k,k) < 0.0)
-          m_sigma[k] = -m_sigma[k];
-        matA.col(k).end(m-k) /= m_sigma[k];
-        matA(k,k) += 1.0;
-      }
-      m_sigma[k] = -m_sigma[k];
-    }
-
-    for (j = k+1; j < n; ++j)
-    {
-      if ((k < nct) && (m_sigma[k] != 0.0))
-      {
-        // Apply the transformation.
-        Scalar t = matA.col(k).end(m-k).dot(matA.col(j).end(m-k)); // FIXME dot product or cwise prod + .sum() ??
-        t = -t/matA(k,k);
-        matA.col(j).end(m-k) += t * matA.col(k).end(m-k);
-      }
-
-      // Place the k-th row of A into e for the
-      // subsequent calculation of the row transformation.
-      e[j] = matA(k,j);
-    }
-
-    // Place the transformation in U for subsequent back multiplication.
-    if (wantu & (k < nct))
-      m_matU.col(k).end(m-k) = matA.col(k).end(m-k);
-
-    if (k < nrt)
-    {
-      // Compute the k-th row transformation and place the
-      // k-th super-diagonal in e[k].
-      e[k] = e.end(n-k-1).norm();
-      if (e[k] != 0.0)
-      {
-          if (e[k+1] < 0.0)
-            e[k] = -e[k];
-          e.end(n-k-1) /= e[k];
-          e[k+1] += 1.0;
-      }
-      e[k] = -e[k];
-      if ((k+1 < m) & (e[k] != 0.0))
-      {
-        // Apply the transformation.
-        work.end(m-k-1) = matA.corner(BottomRight,m-k-1,n-k-1) * e.end(n-k-1);
-        for (j = k+1; j < n; ++j)
-          matA.col(j).end(m-k-1) += (-e[j]/e[k+1]) * work.end(m-k-1);
-      }
-
-      // Place the transformation in V for subsequent back multiplication.
-      if (wantv)
-        m_matV.col(k).end(n-k-1) = e.end(n-k-1);
-    }
-  }
-
-
-  // Set up the final bidiagonal matrix or order p.
-  int p = std::min(n,m+1);
-  if (nct < n)
-    m_sigma[nct] = matA(nct,nct);
-  if (m < p)
-    m_sigma[p-1] = 0.0;
-  if (nrt+1 < p)
-    e[nrt] = matA(nrt,p-1);
-  e[p-1] = 0.0;
-
-  // If required, generate U.
-  if (wantu)
-  {
-    for (j = nct; j < nu; ++j)
-    {
-      m_matU.col(j).setZero();
-      m_matU(j,j) = 1.0;
-    }
-    for (k = nct-1; k >= 0; k--)
-    {
-      if (m_sigma[k] != 0.0)
-      {
-        for (j = k+1; j < nu; ++j)
+        for (k=i; k<m; k++)
         {
-          Scalar t = m_matU.col(k).end(m-k).dot(m_matU.col(j).end(m-k)); // FIXME is it really a dot product we want ?
-          t = -t/m_matU(k,k);
-          m_matU.col(j).end(m-k) += t * m_matU.col(k).end(m-k);
+          A(k, i) /= scale;
+          s += A(k, i)*A(k, i);
         }
-        m_matU.col(k).end(m-k) = - m_matU.col(k).end(m-k);
-        m_matU(k,k) = Scalar(1) + m_matU(k,k);
-        if (k-1>0)
-          m_matU.col(k).start(k-1).setZero();
-      }
-      else
-      {
-        m_matU.col(k).setZero();
-        m_matU(k,k) = 1.0;
+        f = A(i, i);
+        g = -sign( ei_sqrt(s), f );
+        h = f*g - s;
+        A(i, i)=f-g;
+        for (j=l-1; j<n; j++)
+        {
+          s = A.col(i).end(m-i).dot(A.col(j).end(m-i));
+          f = s/h;
+          A.col(j).end(m-i) += f*A.col(i).end(m-i);
+        }
+        A.col(i).end(m-i) *= scale;
       }
     }
-  }
-
-  // If required, generate V.
-  if (wantv)
-  {
-    for (k = n-1; k >= 0; k--)
+    W[i] = scale * g;
+    g = s = scale = 0.0;
+    if (i+1 <= m && i+1 != n)
     {
-      if ((k < nrt) & (e[k] != 0.0))
+      scale = A.row(i).end(n-l+1).cwise().abs().sum();
+      if (scale != Scalar(0))
       {
-        for (j = k+1; j < nu; ++j)
+        for (k=l-1; k<n; k++)
         {
-          Scalar t = m_matV.col(k).end(n-k-1).dot(m_matV.col(j).end(n-k-1)); // FIXME is it really a dot product we want ?
-          t = -t/m_matV(k+1,k);
-          m_matV.col(j).end(n-k-1) += t * m_matV.col(k).end(n-k-1);
+          A(i, k) /= scale;
+          s += A(i, k)*A(i, k);
+        }
+        f = A(i,l-1);
+        g = -sign(ei_sqrt(s),f);
+        h = f*g - s;
+        A(i,l-1) = f-g;
+        rv1.end(n-l+1) = A.row(i).end(n-l+1)/h;
+        for (j=l-1; j<m; j++)
+        {
+          s = A.row(j).end(n-l+1).dot(A.row(i).end(n-l+1));
+          A.row(j).end(n-l+1) += s*rv1.end(n-l+1).transpose();
+        }
+        A.row(i).end(n-l+1) *= scale;
+      }
+    }
+    anorm = std::max( anorm, (ei_abs(W[i])+ei_abs(rv1[i])) );
+  }
+  // Accumulation of right-hand transformations.
+  for (i=n-1; i>=0; i--)
+  {
+    //Accumulation of right-hand transformations.
+    if (i < n-1)
+    {
+      if (g != Scalar(0.0))
+      {
+        for (j=l; j<n; j++) //Double division to avoid possible underflow.
+          V(j, i) = (A(i, j)/A(i, l))/g;
+        for (j=l; j<n; j++)
+        {
+          s = A.row(i).end(n-l).dot(V.col(j).end(n-l));
+          V.col(j).end(n-l) += s * V.col(i).end(n-l);
         }
       }
-      m_matV.col(k).setZero();
-      m_matV(k,k) = 1.0;
+      V.row(i).end(n-l).setZero();
+      V.col(i).end(n-l).setZero();
     }
+    V(i, i) = 1.0;
+    g = rv1[i];
+    l = i;
   }
-
-  // Main iteration loop for the singular values.
-  int pp = p-1;
-  int iter = 0;
-  Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
-  while (p > 0)
+  // Accumulation of left-hand transformations.
+  for (i=std::min(m,n)-1; i>=0; i--)
   {
-    int k=0;
-    int kase=0;
-
-    // Here is where a test for too many iterations would go.
-
-    // This section of the program inspects for
-    // negligible elements in the s and e arrays.  On
-    // completion the variables kase and k are set as follows.
-
-    // kase = 1     if s(p) and e[k-1] are negligible and k<p
-    // kase = 2     if s(k) is negligible and k<p
-    // kase = 3     if e[k-1] is negligible, k<p, and
-    //              s(k), ..., s(p) are not negligible (qr step).
-    // kase = 4     if e(p-1) is negligible (convergence).
-
-    for (k = p-2; k >= -1; --k)
+    l = i+1;
+    g = W[i];
+    if (n-l>0)
+      A.row(i).end(n-l).setZero();
+    if (g != Scalar(0.0))
     {
-      if (k == -1)
-          break;
-      if (ei_abs(e[k]) <= eps*(ei_abs(m_sigma[k]) + ei_abs(m_sigma[k+1])))
+      g = Scalar(1.0)/g;
+      for (j=l; j<n; j++)
       {
-          e[k] = 0.0;
-          break;
+        s = A.col(i).end(m-l).dot(A.col(j).end(m-l));
+        f = (s/A(i,i))*g;
+        A.col(j).end(m-i) += f * A.col(i).end(m-i);
       }
-    }
-    if (k == p-2)
-    {
-      kase = 4;
+      A.col(i).end(m-i) *= g;
     }
     else
+      A.col(i).end(m-i).setZero();
+    ++A(i,i);
+  }
+  // Diagonalization of the bidiagonal form: Loop over
+  // singular values, and over allowed iterations.
+  for (k=n-1; k>=0; k--)
+  {
+    for (its=0; its<max_iters; its++)
     {
-      int ks;
-      for (ks = p-1; ks >= k; --ks)
+      flag = true;
+      for (l=k; l>=0; l--)
       {
-        if (ks == k)
-          break;
-        Scalar t = (ks != p ? ei_abs(e[ks]) : Scalar(0)) + (ks != k+1 ? ei_abs(e[ks-1]) : Scalar(0));
-        if (ei_abs(m_sigma[ks]) <= eps*t)
+        // Test for splitting.
+        nm = l-1;
+        // Note that rv1[1] is always zero.
+        //if ((double)(ei_abs(rv1[l])+anorm) == anorm)
+        if (l==0 || ei_abs(rv1[l]) <= eps*anorm)
         {
-          m_sigma[ks] = 0.0;
+          flag = false;
           break;
         }
+        //if ((double)(ei_abs(W[nm])+anorm) == anorm)
+        if (ei_abs(W[nm]) <= eps*anorm)
+          break;
       }
-      if (ks == k)
+      if (flag)
       {
-        kase = 3;
+        c = 0.0;  //Cancellation of rv1[l], if l > 0.
+        s = 1.0;
+        for (i=l ;i<k+1; i++)
+        {
+          f = s*rv1[i];
+          rv1[i] = c*rv1[i];
+          //if ((double)(ei_abs(f)+anorm) == anorm)
+          if (ei_abs(f) <= eps*anorm)
+            break;
+          g = W[i];
+          h = pythag(f,g);
+          W[i] = h;
+          h = Scalar(1.0)/h;
+          c = g*h;
+          s = -f*h;
+          for (j=0; j<m; j++)
+          {
+            y = A(j,nm);
+            z = A(j,i);
+            A(j,nm) = y*c + z*s;
+            A(j,i)  = z*c - y*s;
+          }
+        }
       }
-      else if (ks == p-1)
+      z = W[k];
+      if (l == k)  //Convergence.
       {
-        kase = 1;
+        if (z < 0.0) { // Singular value is made nonnegative.
+          W[k] = -z;
+          V.col(k) = -V.col(k);
+        }
+        break;
       }
-      else
+      if (its+1 == max_iters)
       {
-        kase = 2;
-        k = ks;
+        convergence = false;
+      }
+      x = W[l]; // Shift from bottom 2-by-2 minor.
+      nm = k-1;
+      y = W[nm];
+      g = rv1[nm];
+      h = rv1[k];
+      f = ((y-z)*(y+z) + (g-h)*(g+h))/(Scalar(2.0)*h*y);
+      g = pythag(f,1.0);
+      f = ((x-z)*(x+z) + h*((y/(f+sign(g,f)))-h))/x;
+      c = s = 1.0;
+      //Next QR transformation:
+      for (j=l; j<=nm; j++)
+      {
+        i = j+1;
+        g = rv1[i];
+        y = W[i];
+        h = s*g;
+        g = c*g;
+        z = pythag(f,h);
+        rv1[j] = z;
+        c = f/z;
+        s = h/z;
+        f = x*c + g*s;
+        g = g*c - x*s;
+        h = y*s;
+        y *= c;
+        for (jj=0; jj<n; jj++)
+        {
+          x = V(jj,j);
+          z = V(jj,i);
+          V(jj,j) = x*c + z*s;
+          V(jj,i) = z*c - x*s;
+        }
+        z = pythag(f,h);
+        W[j] = z;
+        // Rotation can be arbitrary if z = 0.
+        if (z!=Scalar(0))
+        {
+          z = Scalar(1.0)/z;
+          c = f*z;
+          s = h*z;
+        }
+        f = c*g + s*y;
+        x = c*y - s*g;
+        for (jj=0; jj<m; jj++)
+        {
+          y = A(jj,j);
+          z = A(jj,i);
+          A(jj,j) = y*c + z*s;
+          A(jj,i) = z*c - y*s;
+        }
+      }
+      rv1[l] = 0.0;
+      rv1[k] = f;
+      W[k]   = x;
+    }
+  }
+
+  // sort the singular values:
+  {
+    for (int i=0; i<n; i++)
+    {
+      int k;
+      W.end(n-i).minCoeff(&k);
+      if (k != i)
+      {
+        std::swap(W[k],W[i]);
+        A.col(i).swap(A.col(k));
+        V.col(i).swap(V.col(k));
       }
     }
-    ++k;
-
-    // Perform the task indicated by kase.
-    switch (kase)
-    {
-
-      // Deflate negligible s(p).
-      case 1:
-      {
-        Scalar f(e[p-2]);
-        e[p-2] = 0.0;
-        for (j = p-2; j >= k; --j)
-        {
-          Scalar t(ei_hypot(m_sigma[j],f));
-          Scalar cs(m_sigma[j]/t);
-          Scalar sn(f/t);
-          m_sigma[j] = t;
-          if (j != k)
-          {
-            f = -sn*e[j-1];
-            e[j-1] = cs*e[j-1];
-          }
-          if (wantv)
-          {
-            for (i = 0; i < n; ++i)
-            {
-              t = cs*m_matV(i,j) + sn*m_matV(i,p-1);
-              m_matV(i,p-1) = -sn*m_matV(i,j) + cs*m_matV(i,p-1);
-              m_matV(i,j) = t;
-            }
-          }
-        }
-      }
-      break;
-
-      // Split at negligible s(k).
-      case 2:
-      {
-        Scalar f(e[k-1]);
-        e[k-1] = 0.0;
-        for (j = k; j < p; ++j)
-        {
-          Scalar t(ei_hypot(m_sigma[j],f));
-          Scalar cs( m_sigma[j]/t);
-          Scalar sn(f/t);
-          m_sigma[j] = t;
-          f = -sn*e[j];
-          e[j] = cs*e[j];
-          if (wantu)
-          {
-            for (i = 0; i < m; ++i)
-            {
-              t = cs*m_matU(i,j) + sn*m_matU(i,k-1);
-              m_matU(i,k-1) = -sn*m_matU(i,j) + cs*m_matU(i,k-1);
-              m_matU(i,j) = t;
-            }
-          }
-        }
-      }
-      break;
-
-      // Perform one qr step.
-      case 3:
-      {
-        // Calculate the shift.
-        Scalar scale = std::max(std::max(std::max(std::max(
-                        ei_abs(m_sigma[p-1]),ei_abs(m_sigma[p-2])),ei_abs(e[p-2])),
-                        ei_abs(m_sigma[k])),ei_abs(e[k]));
-        Scalar sp = m_sigma[p-1]/scale;
-        Scalar spm1 = m_sigma[p-2]/scale;
-        Scalar epm1 = e[p-2]/scale;
-        Scalar sk = m_sigma[k]/scale;
-        Scalar ek = e[k]/scale;
-        Scalar b = ((spm1 + sp)*(spm1 - sp) + epm1*epm1)/Scalar(2);
-        Scalar c = (sp*epm1)*(sp*epm1);
-        Scalar shift = 0.0;
-        if ((b != 0.0) || (c != 0.0))
-        {
-          shift = ei_sqrt(b*b + c);
-          if (b < 0.0)
-            shift = -shift;
-          shift = c/(b + shift);
-        }
-        Scalar f = (sk + sp)*(sk - sp) + shift;
-        Scalar g = sk*ek;
-
-        // Chase zeros.
-
-        for (j = k; j < p-1; ++j)
-        {
-          Scalar t = ei_hypot(f,g);
-          Scalar cs = f/t;
-          Scalar sn = g/t;
-          if (j != k)
-            e[j-1] = t;
-          f = cs*m_sigma[j] + sn*e[j];
-          e[j] = cs*e[j] - sn*m_sigma[j];
-          g = sn*m_sigma[j+1];
-          m_sigma[j+1] = cs*m_sigma[j+1];
-          if (wantv)
-          {
-            for (i = 0; i < n; ++i)
-            {
-              t = cs*m_matV(i,j) + sn*m_matV(i,j+1);
-              m_matV(i,j+1) = -sn*m_matV(i,j) + cs*m_matV(i,j+1);
-              m_matV(i,j) = t;
-            }
-          }
-          t = ei_hypot(f,g);
-          cs = f/t;
-          sn = g/t;
-          m_sigma[j] = t;
-          f = cs*e[j] + sn*m_sigma[j+1];
-          m_sigma[j+1] = -sn*e[j] + cs*m_sigma[j+1];
-          g = sn*e[j+1];
-          e[j+1] = cs*e[j+1];
-          if (wantu && (j < m-1))
-          {
-            for (i = 0; i < m; ++i)
-            {
-              t = cs*m_matU(i,j) + sn*m_matU(i,j+1);
-              m_matU(i,j+1) = -sn*m_matU(i,j) + cs*m_matU(i,j+1);
-              m_matU(i,j) = t;
-            }
-          }
-        }
-        e[p-2] = f;
-        iter = iter + 1;
-      }
-      break;
-
-      // Convergence.
-      case 4:
-      {
-        // Make the singular values positive.
-        if (m_sigma[k] <= 0.0)
-        {
-          m_sigma[k] = m_sigma[k] < Scalar(0) ? -m_sigma[k] : Scalar(0);
-          if (wantv)
-            m_matV.col(k).start(pp+1) = -m_matV.col(k).start(pp+1);
-        }
-
-        // Order the singular values.
-        while (k < pp)
-        {
-          if (m_sigma[k] >= m_sigma[k+1])
-            break;
-          Scalar t = m_sigma[k];
-          m_sigma[k] = m_sigma[k+1];
-          m_sigma[k+1] = t;
-          if (wantv && (k < n-1))
-            m_matV.col(k).swap(m_matV.col(k+1));
-          if (wantu && (k < m-1))
-            m_matU.col(k).swap(m_matU.col(k+1));
-          ++k;
-        }
-        iter = 0;
-        p--;
-      }
-      break;
-    } // end big switch
-  } // end iterations
+  }
+  m_matU.setZero();
+  if (m>=n)
+    m_matU.block(0,0,m,n) = A;
+  else
+    m_matU = A.block(0,0,m,m);
 
   m_isInitialized = true;
 }
@@ -553,6 +459,8 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
 
   const int rows = m_matU.rows();
   ei_assert(b.rows() == rows);
+
+  result->resize(m_matV.rows(), b.cols());
 
   Scalar maxVal = m_sigma.cwise().abs().maxCoeff();
   for (int j=0; j<b.cols(); ++j)

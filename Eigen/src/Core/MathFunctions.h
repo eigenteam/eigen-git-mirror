@@ -151,7 +151,7 @@ inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float
 *** double  ***
 **************/
 
-template<> inline double precision<double>() { return 1e-11; }
+template<> inline double precision<double>() { return 1e-12; }
 template<> inline double machine_epsilon<double>() { return 2.220e-16; }
 
 inline double ei_real(double x)  { return x; }

@@ -88,6 +88,8 @@
 #include <cstring>
 #include <string>
 #include <limits>
+// for min/max:
+#include <algorithm>
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS
@@ -162,6 +164,7 @@ namespace Eigen {
 #include "src/Core/MapBase.h"
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
+#include "src/Core/VectorBlock.h"
 #include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
@@ -182,7 +185,6 @@ namespace Eigen {
 #include "src/Core/SolveTriangular.h"
 #include "src/Core/products/SelfadjointRank2Update.h"
 #include "src/Core/products/TriangularMatrixVector.h"
-#include "src/Core/BandMatrix.h"
 
 } // namespace Eigen
 

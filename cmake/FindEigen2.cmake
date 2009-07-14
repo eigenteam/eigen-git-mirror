@@ -46,7 +46,7 @@ macro(_eigen2_check_version)
   endif(${EIGEN2_VERSION} VERSION_LESS ${Eigen2_FIND_VERSION})
 
   if(NOT EIGEN2_VERSION_OK)
-  
+
     message(STATUS "Eigen2 version ${EIGEN2_VERSION} found in ${EIGEN2_INCLUDE_DIR}, "
                    "but at least version ${Eigen2_FIND_VERSION} is required")
   endif(NOT EIGEN2_VERSION_OK)

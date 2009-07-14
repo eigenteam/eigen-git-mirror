@@ -299,6 +299,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
     VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
+
+    VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
   }
   
   // test prune

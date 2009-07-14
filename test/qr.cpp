@@ -36,7 +36,7 @@ template<typename MatrixType> void qr(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,cols);
-  QR<MatrixType> qrOfA(a);
+  HouseholderQR<MatrixType> qrOfA(a);
   VERIFY_IS_APPROX(a, qrOfA.matrixQ() * qrOfA.matrixR());
   VERIFY_IS_NOT_APPROX(a+MatrixType::Identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR());
 
@@ -55,40 +55,6 @@ template<typename MatrixType> void qr(const MatrixType& m)
   VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
 }
 
-template<typename MatrixType> void qr_non_invertible()
-{
-  /* this test covers the following files: QR.h */
-  int rows = ei_random<int>(20,200), cols = ei_random<int>(20,rows), cols2 = ei_random<int>(20,rows);
-  int rank = ei_random<int>(1, std::min(rows, cols)-1);
-
-  MatrixType m1(rows, cols), m2(cols, cols2), m3(rows, cols2), k(1,1);
-  createRandomMatrixOfRank(rank, rows, cols, m1);
-
-  QR<MatrixType> lu(m1);
-//   typename LU<MatrixType>::KernelResultType m1kernel = lu.kernel();
-//   typename LU<MatrixType>::ImageResultType m1image = lu.image();
-  std::cerr << rows << "x" << cols << "   " << rank << " " << lu.rank() << "\n";
-  if (rank != lu.rank())
-    std::cerr << lu.matrixR().diagonal().transpose() << "\n";
-  VERIFY(rank == lu.rank());
-  VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
-  VERIFY(!lu.isInjective());
-  VERIFY(!lu.isInvertible());
-  VERIFY(lu.isSurjective() == (lu.rank() == rows));
-//   VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
-//   VERIFY(m1image.lu().rank() == rank);
-//   MatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
-//   sidebyside << m1, m1image;
-//   VERIFY(sidebyside.lu().rank() == rank);
-  m2 = MatrixType::Random(cols,cols2);
-  m3 = m1*m2;
-  m2 = MatrixType::Random(cols,cols2);
-  lu.solve(m3, &m2);
-  VERIFY_IS_APPROX(m3, m1*m2);
-  m3 = MatrixType::Random(rows,cols2);
-  VERIFY(!lu.solve(m3, &m2));
-}
-
 template<typename MatrixType> void qr_invertible()
 {
   /* this test covers the following files: QR.h */
@@ -105,33 +71,18 @@ template<typename MatrixType> void qr_invertible()
     m1 += a * a.adjoint();
   }
 
-  QR<MatrixType> lu(m1);
-  VERIFY(0 == lu.dimensionOfKernel());
-  VERIFY(size == lu.rank());
-  VERIFY(lu.isInjective());
-  VERIFY(lu.isSurjective());
-  VERIFY(lu.isInvertible());
-//   VERIFY(lu.image().lu().isInvertible());
+  HouseholderQR<MatrixType> qr(m1);
   m3 = MatrixType::Random(size,size);
-  lu.solve(m3, &m2);
+  qr.solve(m3, &m2);
   //std::cerr << m3 - m1*m2 << "\n\n";
   VERIFY_IS_APPROX(m3, m1*m2);
-//   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
-  m3 = MatrixType::Random(size,size);
-  VERIFY(lu.solve(m3, &m2));
 }
 
 template<typename MatrixType> void qr_verify_assert()
 {
   MatrixType tmp;
 
-  QR<MatrixType> qr;
-  VERIFY_RAISES_ASSERT(qr.isFullRank())
-  VERIFY_RAISES_ASSERT(qr.rank())
-  VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
-  VERIFY_RAISES_ASSERT(qr.isInjective())
-  VERIFY_RAISES_ASSERT(qr.isSurjective())
-  VERIFY_RAISES_ASSERT(qr.isInvertible())
+  HouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
@@ -149,11 +100,6 @@ void test_qr()
   }
 
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( qr_non_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_non_invertible<MatrixXd>() );
-    // TODO fix issue with complex
-//     CALL_SUBTEST( qr_non_invertible<MatrixXcf>() );
-//     CALL_SUBTEST( qr_non_invertible<MatrixXcd>() );
     CALL_SUBTEST( qr_invertible<MatrixXf>() );
     CALL_SUBTEST( qr_invertible<MatrixXd>() );
     // TODO fix issue with complex

@@ -106,6 +106,7 @@ template<typename _Scalar, int _Flags = 0> class DynamicSparseMatrix;
 template<typename _Scalar, int _Flags = 0> class SparseVector;
 template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
+template<typename MatrixType>                            class SparseNestByValue;
 template<typename MatrixType>                            class SparseTranspose;
 template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
 template<typename Derived>                               class SparseCwise;
@@ -145,5 +146,7 @@ template<typename T> class ei_eval<T,IsSparse>
   public:
     typedef SparseMatrix<_Scalar, _Flags> type;
 };
+
+template<typename T> struct ei_must_nest_by_value<SparseNestByValue<T> > { enum { ret = true }; };
 
 #endif // EIGEN_SPARSEUTIL_H
