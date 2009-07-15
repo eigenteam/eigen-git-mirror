@@ -78,7 +78,9 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     inline BandMatrix(int rows=Rows, int cols=Cols, int supers=Supers, int subs=Subs)
       : m_data(1+supers+subs,cols),
         m_rows(rows), m_supers(supers), m_subs(subs)
-    { }
+    {
+        m_data.setConstant(666);
+    }
 
     /** \returns the number of columns */
     inline int rows() const { return m_rows.value(); }
@@ -91,6 +93,14 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
 
     /** \returns the number of sub diagonals */
     inline int subs() const { return m_subs.value(); }
+
+    /** \returns a vector expression of the \a i -th column */
+    inline Block<DataType,Dynamic,1> col(int i)
+    {
+      int j = i - (cols() - supers() + 1);
+      int start = std::max(0,subs() - i + 1);
+      return Block<DataType,Dynamic,1>(m_data, start, i, m_data.rows() - (j<0 ? start : j), 1);
+    }
 
     /** \returns a vector expression of the main diagonal */
     inline Block<DataType,1,SizeAtCompileTime> diagonal()
@@ -114,31 +124,32 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     /** \returns a vector expression of the \a Index -th sub or super diagonal */
     template<int Index> inline typename DiagonalIntReturnType<Index>::Type diagonal()
     {
-      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, ei_abs(Index), 1, diagonalLength(Index));
+      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
     }
 
     /** \returns a vector expression of the \a Index -th sub or super diagonal */
     template<int Index> inline const typename DiagonalIntReturnType<Index>::Type diagonal() const
     {
-      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, ei_abs(Index), 1, diagonalLength(Index));
+      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
     }
 
     /** \returns a vector expression of the \a i -th sub or super diagonal */
     inline Block<DataType,1,Dynamic> diagonal(int i)
     {
       ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
-      return Block<DataType,1,Dynamic>(m_data, supers()-i, ei_abs(i), 1, diagonalLength(i));
+      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
     }
 
     /** \returns a vector expression of the \a i -th sub or super diagonal */
     inline const Block<DataType,1,Dynamic> diagonal(int i) const
     {
       ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
-      return Block<DataType,1,Dynamic>(m_data, supers()-i, ei_abs(i), 1, diagonalLength(i));
+      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
     }
 
     PlainMatrixType toDense() const
     {
+      std::cerr << m_data << "\n\n";
       PlainMatrixType res(rows(),cols());
       res.setZero();
       res.diagonal() = diagonal();
