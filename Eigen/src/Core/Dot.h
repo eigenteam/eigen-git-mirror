@@ -394,7 +394,7 @@ MatrixBase<Derived>::blueNorm() const
   {
     ax = ei_abs(coeff(j));
     if(ax > b2)      abig += ei_abs2(ax*s2m);
-    else if(ax < b2) asml += ei_abs2(ax*s1m);
+    else if(ax < b1) asml += ei_abs2(ax*s1m);
     else             amed += ei_abs2(ax);
   }
   if(abig > Scalar(0))

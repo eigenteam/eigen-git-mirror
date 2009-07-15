@@ -208,10 +208,10 @@ struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
     RhsRowMajor = RhsFlags & RowMajorBit,
 
     CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+                    && (ColsAtCompileTime == Dynamic || (ColsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime % ei_packet_traits<Scalar>::size == 0),
+                    && (RowsAtCompileTime == Dynamic || (RowsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
     EvalToRowMajor = RhsRowMajor && (ProductMode==(int)CacheFriendlyProduct ? LhsRowMajor : (!CanVectorizeLhs)),
 
