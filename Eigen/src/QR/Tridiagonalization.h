@@ -279,6 +279,7 @@ Tridiagonalization<MatrixType>::matrixQ(void) const
     Scalar tmp = m_matrix.coeff(i+1,i);
     m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
 
+    // TODO this product could be optimized by processing the submatrix per panel of at least 4 columns
     matQ.corner(BottomRight,n-i-1,n-i-1) -=
       ((m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1)) *
       (m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy()).lazy();
