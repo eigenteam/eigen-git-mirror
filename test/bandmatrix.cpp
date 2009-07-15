@@ -55,7 +55,7 @@ template<typename MatrixType> void bandmatrix(MatrixType& m)
 void test_bandmatrix()
 {
   for(int i = 0; i < g_repeat ; i++) {
-    BandMatrix<float,Dynamic,Dynamic,Dynamic> m(6,3,2);
+    BandMatrix<float,Dynamic,Dynamic,Dynamic> m(6,6,3,2);
     CALL_SUBTEST( bandmatrix(m) );
   }
 }
