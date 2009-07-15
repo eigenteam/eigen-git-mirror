@@ -28,11 +28,19 @@
 /** \nonstableyet
   * \class BandMatrix
   *
-  * \brief
+  * \brief Represents a rectangular matrix with a banded storage
   *
-  * \param
+  * \param _Scalar Numeric type, i.e. float, double, int
+  * \param Rows Number of rows, or \b Dynamic
+  * \param Cols Number of columns, or \b Dynamic
+  * \param Supers Number of super diagonal
+  * \param Subs Number of sub diagonal
+  * \param _Options A combination of either \b RowMajor or \b ColMajor, and of \b SelfAdjoint
+  *                 The former controls storage order, and defaults to column-major. The latter controls
+  *                 whether the matrix represent a selfadjoint matrix in which case either Supers of Subs
+  *                 have to be null.
   *
-  * \sa
+  * \sa class TridiagonalMatrix
   */
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
 struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
@@ -94,7 +102,8 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     /** \returns the number of sub diagonals */
     inline int subs() const { return m_subs.value(); }
 
-    /** \returns a vector expression of the \a i -th column */
+    /** \returns a vector expression of the \a i -th column,
+      * only the meaningful part is returned  */
     inline Block<DataType,Dynamic,1> col(int i)
     {
       int j = i - (cols() - supers() + 1);
@@ -112,25 +121,31 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
 
     template<int Index> struct DiagonalIntReturnType {
       enum {
+        ReturnOpposite = (Options&SelfAdjoint) && (Index>0 && Supers==0 || Index<0 && Subs==0),
+        Conjugate = ReturnOpposite && NumTraits<Scalar>::IsComplex,
+        ActualIndex = ReturnOpposite ? -Index : Index,
         DiagonalSize = RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic
                      ? Dynamic
-                     : Index<0
-                     ? EIGEN_ENUM_MIN(ColsAtCompileTime, RowsAtCompileTime + Index)
-                     : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - Index)
+                     : ActualIndex<0
+                     ? EIGEN_ENUM_MIN(ColsAtCompileTime, RowsAtCompileTime + ActualIndex)
+                     : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex)
       };
-      typedef Block<DataType,1, DiagonalSize> Type;
+      typedef Block<DataType,1, DiagonalSize> BuildType;
+      typedef typename ei_meta_if<Conjugate,
+                 CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>,NestByValue<BuildType> >,
+                 BuildType>::ret Type;
     };
 
     /** \returns a vector expression of the \a Index -th sub or super diagonal */
     template<int Index> inline typename DiagonalIntReturnType<Index>::Type diagonal()
     {
-      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
+      return typename DiagonalIntReturnType<Index>::BuildType(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
     }
 
     /** \returns a vector expression of the \a Index -th sub or super diagonal */
     template<int Index> inline const typename DiagonalIntReturnType<Index>::Type diagonal() const
     {
-      return typename DiagonalIntReturnType<Index>::Type(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
+      return typename DiagonalIntReturnType<Index>::BuildType(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
     }
 
     /** \returns a vector expression of the \a i -th sub or super diagonal */
@@ -169,6 +184,35 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     ei_int_if_dynamic<Rows>   m_rows;
     ei_int_if_dynamic<Supers> m_supers;
     ei_int_if_dynamic<Subs>   m_subs;
+};
+
+/** \nonstableyet
+  * \class TridiagonalMatrix
+  *
+  * \brief Represents a tridiagonal matrix
+  *
+  * \param _Scalar Numeric type, i.e. float, double, int
+  * \param Size Number of rows and cols, or \b Dynamic
+  * \param _Options Can be 0 or \b SelfAdjoint
+  *
+  * \sa class BandMatrix
+  */
+template<typename Scalar, int Size, int Options>
+class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor>
+{
+    typedef BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor> Base;
+  public:
+    TridiagonalMatrix(int size = Size) : Base(size,size,1,1) {}
+
+    inline typename Base::template DiagonalIntReturnType<1>::Type super()
+    { return Base::template diagonal<1>(); }
+    inline const typename Base::template DiagonalIntReturnType<1>::Type super() const
+    { return Base::template diagonal<1>(); }
+    inline typename Base::template DiagonalIntReturnType<-1>::Type sub()
+    { return Base::template diagonal<-1>(); }
+    inline const typename Base::template DiagonalIntReturnType<-1>::Type sub() const
+    { return Base::template diagonal<-1>(); }
+  protected:
 };
 
 #endif // EIGEN_BANDMATRIX_H
