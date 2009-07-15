@@ -880,7 +880,7 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   }
   else
   {
-    lazyAssign(static_cast<const MatrixBase<Product<Lhs,Rhs,CacheFriendlyProduct> > &>(product));
+    lazyAssign(Product<Lhs,Rhs,NormalProduct>(product.lhs(),product.rhs()));
   }
   return derived();
 }

@@ -50,6 +50,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
+//     typedef typename TridiagonalizationType::TridiagonalMatrixType TridiagonalMatrixType;
 
     SelfAdjointEigenSolver()
         : m_eivec(int(Size), int(Size)),

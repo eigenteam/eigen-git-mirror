@@ -121,8 +121,9 @@ template<typename _MatrixType> class Tridiagonalization
       */
     inline const MatrixType& packedMatrix(void) const { return m_matrix; }
 
-    MatrixType matrixQ(void) const;
-    MatrixType matrixT(void) const;
+    MatrixType matrixQ() const;
+    template<typename QDerived> void matrixQInPlace(MatrixBase<QDerived>* q) const;
+    MatrixType matrixT() const;
     const DiagonalReturnType diagonal(void) const;
     const SubDiagonalReturnType subDiagonal(void) const;
 
@@ -270,21 +271,32 @@ template<typename MatrixType>
 typename Tridiagonalization<MatrixType>::MatrixType
 Tridiagonalization<MatrixType>::matrixQ(void) const
 {
+  MatrixType matQ;
+  matrixQInPlace(&matQ);
+  return matQ;
+}
+
+template<typename MatrixType>
+template<typename QDerived>
+void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) const
+{
+  QDerived& matQ = q->derived();
   int n = m_matrix.rows();
-  MatrixType matQ = MatrixType::Identity(n,n);
+  matQ = MatrixType::Identity(n,n);
+  Matrix<Scalar,1,Dynamic> aux(n);
   for (int i = n-2; i>=0; i--)
   {
     Scalar tmp = m_matrix.coeff(i+1,i);
     m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
 
-    // TODO this product could be optimized by processing the submatrix per panel of at least 4 columns
-    matQ.corner(BottomRight,n-i-1,n-i-1) -=
-      ((m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1)) *
-      (m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy()).lazy();
+    aux.end(n-i-1) = (m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy();
+    // rank one update, TODO ! make it works efficiently as expected
+    for (int j=i+1;j<n;++j)
+      matQ.col(j).end(n-i-1) -= ( aux.coeff(j)) * m_matrix.col(i).end(n-i-1);
+//     matQ.corner(BottomRight,n-i-1,n-i-1) -= (m_matrix.col(i).end(n-i-1) * aux.end(n-i-1)).lazy();
 
     m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;
   }
-  return matQ;
 }
 
 /** Performs a full decomposition in place */
@@ -303,7 +315,7 @@ void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalT
     diag = tridiag.diagonal();
     subdiag = tridiag.subDiagonal();
     if (extractQ)
-      mat = tridiag.matrixQ();
+      tridiag.matrixQInPlace(&mat);
   }
 }
 

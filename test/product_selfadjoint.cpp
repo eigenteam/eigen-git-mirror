@@ -77,12 +77,14 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   m2.template selfadjointView<UpperTriangular>().rank2update(-r1.adjoint(),r2.adjoint()*s3,s1);
   VERIFY_IS_APPROX(m2, (m1 + (-s3*s1) * (r1.adjoint() * r2 + r2.adjoint() * r1)).template triangularView<UpperTriangular>().toDense());
 
-  m2 = m1.template triangularView<LowerTriangular>();
-  m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rank2update(v1.end(rows-1),v2.start(cols-1));
-  m3 = m1;
-  m3.block(1,1,rows-1,cols-1) += v1.end(rows-1) * v2.start(cols-1).adjoint()+ v2.start(cols-1) * v1.end(rows-1).adjoint();
-  VERIFY_IS_APPROX(m2, m3.template triangularView<LowerTriangular>().toDense());
-
+  if (rows>1)
+  {
+    m2 = m1.template triangularView<LowerTriangular>();
+    m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rank2update(v1.end(rows-1),v2.start(cols-1));
+    m3 = m1;
+    m3.block(1,1,rows-1,cols-1) += v1.end(rows-1) * v2.start(cols-1).adjoint()+ v2.start(cols-1) * v1.end(rows-1).adjoint();
+    VERIFY_IS_APPROX(m2, m3.template triangularView<LowerTriangular>().toDense());
+  }
 }
 
 void test_product_selfadjoint()
@@ -93,7 +95,7 @@ void test_product_selfadjoint()
     CALL_SUBTEST( product_selfadjoint(Matrix3d()) );
     CALL_SUBTEST( product_selfadjoint(MatrixXcf(4, 4)) );
     CALL_SUBTEST( product_selfadjoint(MatrixXcd(21,21)) );
-    CALL_SUBTEST( product_selfadjoint(MatrixXd(4,4)) );
+    CALL_SUBTEST( product_selfadjoint(MatrixXd(14,14)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(17,17)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(19, 19)) );
   }

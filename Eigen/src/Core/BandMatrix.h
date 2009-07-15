@@ -198,7 +198,7 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
   * \sa class BandMatrix
   */
 template<typename Scalar, int Size, int Options>
-class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor>
+class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor>
 {
     typedef BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor> Base;
   public:
