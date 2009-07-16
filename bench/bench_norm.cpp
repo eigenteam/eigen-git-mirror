@@ -1,5 +1,5 @@
 #include <typeinfo>
-#include <Eigen/Core>
+#include <Eigen/Array>
 #include "BenchTimer.h"
 using namespace Eigen;
 using namespace std;
@@ -27,20 +27,52 @@ EIGEN_DONT_INLINE typename T::Scalar lapackNorm(T& v)
 {
   typedef typename T::Scalar Scalar;
   int n = v.size();
-  Scalar scale = 1;
-  Scalar ssq = 0;
+  Scalar scale = 0;
+  Scalar ssq = 1;
   for (int i=0;i<n;++i)
   {
     Scalar ax = ei_abs(v.coeff(i));
-    if (scale < ax)
+    if (scale >= ax)
+    {
+      ssq += ei_abs2(ax/scale);
+    }
+    else
     {
       ssq = Scalar(1) + ssq * ei_abs2(scale/ax);
       scale = ax;
     }
-    else
-      ssq += ei_abs2(ax/scale);
   }
   return scale * ei_sqrt(ssq);
+}
+
+template<typename T>
+EIGEN_DONT_INLINE typename T::Scalar twopassNorm(T& v)
+{
+  typedef typename T::Scalar Scalar;
+  Scalar s = v.cwise().abs().maxCoeff();
+  return s*(v/s).norm();
+}
+
+template<typename T>
+EIGEN_DONT_INLINE typename T::Scalar bl2passNorm(T& v)
+{
+  const int blockSize = 4096;
+  typedef typename T::Scalar Scalar;
+  Scalar s = 0;
+  Scalar ssq = 0;
+  for (int bi=0; bi<v.size(); bi+=blockSize)
+  {
+    int r = std::min(blockSize, v.size() - bi);
+    Eigen::Block<typename ei_cleantype<T>::type,Eigen::Dynamic,1,Eigen::ForceAligned> sv(v,bi,0,r,1);
+    Scalar m = sv.cwise().abs().maxCoeff();
+    if (m>s)
+    {
+      ssq = ssq * ei_abs2(s/m);
+      s = m;
+    }
+    ssq += (sv/s).squaredNorm();
+  }
+  return s*ei_sqrt(ssq);
 }
 
 template<typename T>
@@ -210,6 +242,8 @@ void check_accuracy(double basef, double based, int s)
   std::cout << "blueNorm\t" << blueNorm(vf) << "\t" << blueNorm(vd) << "\n";
   std::cout << "pblueNorm\t" << pblueNorm(vf) << "\t" << pblueNorm(vd) << "\n";
   std::cout << "lapackNorm\t" << lapackNorm(vf) << "\t" << lapackNorm(vd) << "\n";
+  std::cout << "twopassNorm\t" << twopassNorm(vf) << "\t" << twopassNorm(vd) << "\n";
+  std::cout << "bl2passNorm\t" << bl2passNorm(vf) << "\t" << bl2passNorm(vd) << "\n";
 }
 
 void check_accuracy_var(int ef0, int ef1, int ed0, int ed1, int s)
@@ -228,11 +262,13 @@ void check_accuracy_var(int ef0, int ef1, int ed0, int ed1, int s)
   std::cout << "blueNorm\t"   << blueNorm(vf)   << "\t" << blueNorm(vd)   << "\t" << blueNorm(vf.cast<long double>()) << "\t" << blueNorm(vd.cast<long double>()) << "\n";
   std::cout << "pblueNorm\t"  << pblueNorm(vf)  << "\t" << pblueNorm(vd)  << "\t" << blueNorm(vf.cast<long double>()) << "\t" << blueNorm(vd.cast<long double>()) << "\n";
   std::cout << "lapackNorm\t" << lapackNorm(vf) << "\t" << lapackNorm(vd) << "\t" << lapackNorm(vf.cast<long double>()) << "\t" << lapackNorm(vd.cast<long double>()) << "\n";
+  std::cout << "twopassNorm\t" << twopassNorm(vf) << "\t" << twopassNorm(vd) << "\t" << twopassNorm(vf.cast<long double>()) << "\t" << twopassNorm(vd.cast<long double>()) << "\n";
+  std::cout << "bl2passNorm\t" << bl2passNorm(vf) << "\t" << bl2passNorm(vd) << "\t" << bl2passNorm(vf.cast<long double>()) << "\t" << bl2passNorm(vd.cast<long double>()) << "\n";
 }
 
 int main(int argc, char** argv)
 {
-  int tries = 5;
+  int tries = 10;
   int iters = 100000;
   double y = 1.1345743233455785456788e12 * ei_random<double>();
   VectorXf v = VectorXf::Ones(1024) * y;
@@ -240,33 +276,37 @@ int main(int argc, char** argv)
   std::cerr << "Performance (out of cache):\n";
   {
     int iters = 1;
-    VectorXf vf = VectorXf::Ones(1024*1024*32) * y;
-    VectorXd vd = VectorXd::Ones(1024*1024*32) * y;
+    VectorXf vf = VectorXf::Random(1024*1024*32) * y;
+    VectorXd vd = VectorXd::Random(1024*1024*32) * y;
     BENCH_PERF(sqsumNorm);
     BENCH_PERF(blueNorm);
     BENCH_PERF(pblueNorm);
     BENCH_PERF(lapackNorm);
     BENCH_PERF(hypotNorm);
+    BENCH_PERF(twopassNorm);
+    BENCH_PERF(bl2passNorm);
   }
 
   std::cerr << "\nPerformance (in cache):\n";
   {
     int iters = 100000;
-    VectorXf vf = VectorXf::Ones(512) * y;
-    VectorXd vd = VectorXd::Ones(512) * y;
+    VectorXf vf = VectorXf::Random(512) * y;
+    VectorXd vd = VectorXd::Random(512) * y;
     BENCH_PERF(sqsumNorm);
     BENCH_PERF(blueNorm);
     BENCH_PERF(pblueNorm);
     BENCH_PERF(lapackNorm);
     BENCH_PERF(hypotNorm);
+    BENCH_PERF(twopassNorm);
+    BENCH_PERF(bl2passNorm);
   }
-
+return 0;
   int s = 10000;
   double basef_ok = 1.1345743233455785456788e15;
   double based_ok = 1.1345743233455785456788e95;
 
   double basef_under = 1.1345743233455785456788e-27;
-  double based_under = 1.1345743233455785456788e-315;
+  double based_under = 1.1345743233455785456788e-303;
 
   double basef_over = 1.1345743233455785456788e+27;
   double based_over = 1.1345743233455785456788e+302;
@@ -283,9 +323,16 @@ int main(int argc, char** argv)
   check_accuracy(basef_over, based_over, s);
 
   std::cerr << "\nVarying (over):\n";
-  for (int k=0; k<5; ++k)
+  for (int k=0; k<1; ++k)
   {
     check_accuracy_var(20,27,190,302,s);
+    std::cout << "\n";
+  }
+
+  std::cerr << "\nVarying (under):\n";
+  for (int k=0; k<1; ++k)
+  {
+    check_accuracy_var(-27,20,-302,-190,s);
     std::cout << "\n";
   }
 }
