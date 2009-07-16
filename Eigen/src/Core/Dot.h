@@ -304,29 +304,6 @@ MatrixBase<Derived>::stableNorm() const
   return this->cwise().abs().redux(ei_scalar_hypot_op<RealScalar>());
 }
 
-/** \internal Computes ibeta^iexp by binary expansion of iexp,
-  * exact if ibeta is the machine base */
-template<typename T> inline T bexp(int ibeta, int iexp)
-{
-  T tbeta = T(ibeta);
-  T res = 1.0;
-  int n = iexp;
-  if (n<0)
-  {
-    n = - n;
-    tbeta = 1.0/tbeta;
-  }
-  for(;;)
-  {
-    if ((n % 2)==0)
-      res = res * tbeta;
-    n = n/2;
-    if (n==0) return res;
-    tbeta = tbeta*tbeta;
-  }
-  return res;
-}
-
 /** \returns the \em l2 norm of \c *this using the Blue's algorithm.
   * A Portable Fortran Program to Find the Euclidean Norm of a Vector,
   * ACM TOMS, Vol 4, Issue 1, 1978.
@@ -337,7 +314,7 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::blueNorm() const
 {
-  static int nmax;
+  static int nmax = -1;
   static Scalar b1, b2, s1m, s2m, overfl, rbig, relerr;
   int n;
   Scalar ax, abig, amed, asml;
@@ -355,8 +332,8 @@ MatrixBase<Derived>::blueNorm() const
     // are used. For any specific computer, each of the assignment
     // statements can be replaced
     nbig  = std::numeric_limits<int>::max();            // largest integer
-    ibeta = NumTraits<Scalar>::Base;                    // base for floating-point numbers
-    it    = NumTraits<Scalar>::Mantissa;                // number of base-beta digits in mantissa
+    ibeta = std::numeric_limits<Scalar>::radix; //NumTraits<Scalar>::Base;                    // base for floating-point numbers
+    it    = std::numeric_limits<Scalar>::digits; //NumTraits<Scalar>::Mantissa;                // number of base-beta digits in mantissa
     iemin = std::numeric_limits<Scalar>::min_exponent;  // minimum exponent
     iemax = std::numeric_limits<Scalar>::max_exponent;  // maximum exponent
     rbig  = std::numeric_limits<Scalar>::max();         // largest floating-point number
@@ -368,17 +345,17 @@ MatrixBase<Derived>::blueNorm() const
       ei_assert(false && "the algorithm cannot be guaranteed on this computer");
     }
     iexp  = -((1-iemin)/2);
-    b1    = bexp<Scalar>(ibeta, iexp);  // lower boundary of midrange
+    b1    = std::pow(ibeta, iexp);  // lower boundary of midrange
     iexp  = (iemax + 1 - it)/2;
-    b2    = bexp<Scalar>(ibeta,iexp);   // upper boundary of midrange
+    b2    = std::pow(ibeta,iexp);   // upper boundary of midrange
 
     iexp  = (2-iemin)/2;
-    s1m   = bexp<Scalar>(ibeta,iexp);   // scaling factor for lower range
+    s1m   = std::pow(ibeta,iexp);   // scaling factor for lower range
     iexp  = - ((iemax+it)/2);
-    s2m   = bexp<Scalar>(ibeta,iexp);   // scaling factor for upper range
+    s2m   = std::pow(ibeta,iexp);   // scaling factor for upper range
 
     overfl  = rbig*s2m;          // overfow boundary for abig
-    eps     = bexp<Scalar>(ibeta, 1-it);
+    eps     = std::pow(ibeta, 1-it);
     relerr  = ei_sqrt(eps);      // tolerance for neglecting asml
     abig    = 1.0/eps - 1.0;
     if (Scalar(nbig)>abig)  nmax = abig;  // largest safe n
