@@ -124,9 +124,6 @@ template<typename Scalar> struct ei_scalar_hypot_op EIGEN_EMPTY_STRUCT {
 //   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
   {
-//     typedef typename NumTraits<T>::Real RealScalar;
-//     RealScalar _x = ei_abs(x);
-//     RealScalar _y = ei_abs(y);
     Scalar p = std::max(_x, _y);
     Scalar q = std::min(_x, _y);
     Scalar qp = q/p;

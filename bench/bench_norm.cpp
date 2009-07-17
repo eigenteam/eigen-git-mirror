@@ -13,7 +13,7 @@ EIGEN_DONT_INLINE typename T::Scalar sqsumNorm(const T& v)
 template<typename T>
 EIGEN_DONT_INLINE typename T::Scalar hypotNorm(const T& v)
 {
-  return v.stableNorm();
+  return v.hypotNorm();
 }
 
 template<typename T>
@@ -56,23 +56,7 @@ EIGEN_DONT_INLINE typename T::Scalar twopassNorm(T& v)
 template<typename T>
 EIGEN_DONT_INLINE typename T::Scalar bl2passNorm(T& v)
 {
-  const int blockSize = 4096;
-  typedef typename T::Scalar Scalar;
-  Scalar s = 0;
-  Scalar ssq = 0;
-  for (int bi=0; bi<v.size(); bi+=blockSize)
-  {
-    int r = std::min(blockSize, v.size() - bi);
-    Eigen::Block<typename ei_cleantype<T>::type,Eigen::Dynamic,1,Eigen::ForceAligned> sv(v,bi,0,r,1);
-    Scalar m = sv.cwise().abs().maxCoeff();
-    if (m>s)
-    {
-      ssq = ssq * ei_abs2(s/m);
-      s = m;
-    }
-    ssq += (sv/s).squaredNorm();
-  }
-  return s*ei_sqrt(ssq);
+  return v.stableNorm();
 }
 
 template<typename T>
@@ -163,6 +147,19 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
     Packet ax_s1m = ei_pmul(ax,ps1m);
     Packet maskBig = ei_plt(pb2,ax);
     Packet maskSml = ei_plt(ax,pb1);
+
+//     Packet maskMed = ei_pand(maskSml,maskBig);
+//     Packet scale = ei_pset1(Scalar(0));
+//     scale = ei_por(scale, ei_pand(maskBig,ps2m));
+//     scale = ei_por(scale, ei_pand(maskSml,ps1m));
+//     scale = ei_por(scale, ei_pandnot(ei_pset1(Scalar(1)),maskMed));
+//     ax = ei_pmul(ax,scale);
+//     ax = ei_pmul(ax,ax);
+//     pabig = ei_padd(pabig, ei_pand(maskBig, ax));
+//     pasml = ei_padd(pasml, ei_pand(maskSml, ax));
+//     pamed = ei_padd(pamed, ei_pandnot(ax,maskMed));
+
+
     pabig = ei_padd(pabig, ei_pand(maskBig, ei_pmul(ax_s2m,ax_s2m)));
     pasml = ei_padd(pasml, ei_pand(maskSml, ei_pmul(ax_s1m,ax_s1m)));
     pamed = ei_padd(pamed, ei_pandnot(ei_pmul(ax,ax),ei_pand(maskSml,maskBig)));
@@ -215,7 +212,7 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
 }
 
 #define BENCH_PERF(NRM) { \
-  Eigen::BenchTimer tf, td; tf.reset(); td.reset();\
+  Eigen::BenchTimer tf, td, tcf; tf.reset(); td.reset(); tcf.reset();\
   for (int k=0; k<tries; ++k) { \
     tf.start(); \
     for (int i=0; i<iters; ++i) NRM(vf); \
@@ -226,7 +223,12 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
     for (int i=0; i<iters; ++i) NRM(vd); \
     td.stop(); \
   } \
-  std::cout << #NRM << "\t" << tf.value() << "   " << td.value() << "\n"; \
+  for (int k=0; k<std::max(1,tries/3); ++k) { \
+    tcf.start(); \
+    for (int i=0; i<iters; ++i) NRM(vcf); \
+    tcf.stop(); \
+  } \
+  std::cout << #NRM << "\t" << tf.value() << "   " << td.value() <<  "    " << tcf.value() << "\n"; \
 }
 
 void check_accuracy(double basef, double based, int s)
@@ -263,7 +265,7 @@ void check_accuracy_var(int ef0, int ef1, int ed0, int ed1, int s)
   std::cout << "pblueNorm\t"  << pblueNorm(vf)  << "\t" << pblueNorm(vd)  << "\t" << blueNorm(vf.cast<long double>()) << "\t" << blueNorm(vd.cast<long double>()) << "\n";
   std::cout << "lapackNorm\t" << lapackNorm(vf) << "\t" << lapackNorm(vd) << "\t" << lapackNorm(vf.cast<long double>()) << "\t" << lapackNorm(vd.cast<long double>()) << "\n";
   std::cout << "twopassNorm\t" << twopassNorm(vf) << "\t" << twopassNorm(vd) << "\t" << twopassNorm(vf.cast<long double>()) << "\t" << twopassNorm(vd.cast<long double>()) << "\n";
-  std::cout << "bl2passNorm\t" << bl2passNorm(vf) << "\t" << bl2passNorm(vd) << "\t" << bl2passNorm(vf.cast<long double>()) << "\t" << bl2passNorm(vd.cast<long double>()) << "\n";
+//   std::cout << "bl2passNorm\t" << bl2passNorm(vf) << "\t" << bl2passNorm(vd) << "\t" << bl2passNorm(vf.cast<long double>()) << "\t" << bl2passNorm(vd.cast<long double>()) << "\n";
 }
 
 int main(int argc, char** argv)
@@ -273,34 +275,7 @@ int main(int argc, char** argv)
   double y = 1.1345743233455785456788e12 * ei_random<double>();
   VectorXf v = VectorXf::Ones(1024) * y;
 
-  std::cerr << "Performance (out of cache):\n";
-  {
-    int iters = 1;
-    VectorXf vf = VectorXf::Random(1024*1024*32) * y;
-    VectorXd vd = VectorXd::Random(1024*1024*32) * y;
-    BENCH_PERF(sqsumNorm);
-    BENCH_PERF(blueNorm);
-    BENCH_PERF(pblueNorm);
-    BENCH_PERF(lapackNorm);
-    BENCH_PERF(hypotNorm);
-    BENCH_PERF(twopassNorm);
-    BENCH_PERF(bl2passNorm);
-  }
-
-  std::cerr << "\nPerformance (in cache):\n";
-  {
-    int iters = 100000;
-    VectorXf vf = VectorXf::Random(512) * y;
-    VectorXd vd = VectorXd::Random(512) * y;
-    BENCH_PERF(sqsumNorm);
-    BENCH_PERF(blueNorm);
-    BENCH_PERF(pblueNorm);
-    BENCH_PERF(lapackNorm);
-    BENCH_PERF(hypotNorm);
-    BENCH_PERF(twopassNorm);
-    BENCH_PERF(bl2passNorm);
-  }
-return 0;
+// return 0;
   int s = 10000;
   double basef_ok = 1.1345743233455785456788e15;
   double based_ok = 1.1345743233455785456788e95;
@@ -317,7 +292,7 @@ return 0;
   check_accuracy(basef_ok, based_ok, s);
 
   std::cerr << "\nUnderflow:\n";
-  check_accuracy(basef_under, based_under, 1);
+  check_accuracy(basef_under, based_under, s);
 
   std::cerr << "\nOverflow:\n";
   check_accuracy(basef_over, based_over, s);
@@ -334,5 +309,36 @@ return 0;
   {
     check_accuracy_var(-27,20,-302,-190,s);
     std::cout << "\n";
+  }
+
+  std::cout.precision(4);
+  std::cerr << "Performance (out of cache):\n";
+  {
+    int iters = 1;
+    VectorXf vf = VectorXf::Random(1024*1024*32) * y;
+    VectorXd vd = VectorXd::Random(1024*1024*32) * y;
+    VectorXcf vcf = VectorXcf::Random(1024*1024*32) * y;
+    BENCH_PERF(sqsumNorm);
+    BENCH_PERF(blueNorm);
+//     BENCH_PERF(pblueNorm);
+//     BENCH_PERF(lapackNorm);
+//     BENCH_PERF(hypotNorm);
+//     BENCH_PERF(twopassNorm);
+    BENCH_PERF(bl2passNorm);
+  }
+
+  std::cerr << "\nPerformance (in cache):\n";
+  {
+    int iters = 100000;
+    VectorXf vf = VectorXf::Random(512) * y;
+    VectorXd vd = VectorXd::Random(512) * y;
+    VectorXcf vcf = VectorXcf::Random(512) * y;
+    BENCH_PERF(sqsumNorm);
+    BENCH_PERF(blueNorm);
+//     BENCH_PERF(pblueNorm);
+//     BENCH_PERF(lapackNorm);
+//     BENCH_PERF(hypotNorm);
+//     BENCH_PERF(twopassNorm);
+    BENCH_PERF(bl2passNorm);
   }
 }
