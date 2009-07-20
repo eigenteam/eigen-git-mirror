@@ -493,9 +493,6 @@ class Matrix
       else resize(other.rows(), other.cols());
     }
 
-    template<typename MatrixType, typename OtherDerived, bool EvalBeforeAssigning = (int(OtherDerived::Flags) & EvalBeforeAssigningBit) != 0>
-    struct ei_matrix_set_selector;
-
     /** \internal Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
@@ -510,9 +507,15 @@ class Matrix
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix& _set(const MatrixBase<OtherDerived>& other)
     {
-      ei_matrix_set_selector<Matrix,OtherDerived>::run(*this,other.derived());
+      _set_selector(other.derived(), typename ei_meta_if<(int(OtherDerived::Flags) & EvalBeforeAssigningBit), ei_meta_true, ei_meta_false>::ret());
       return *this;
     }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_true&) { _set_noalias(other.eval()); }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_false&) { _set_noalias(other); }
 
     /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
       * is the case when creating a new matrix) so one can enforce lazy evaluation.
@@ -537,20 +540,6 @@ class Matrix
                         && (_Options & (AutoAlign|RowMajor)) == _Options),
           INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-template<typename MatrixType, typename OtherDerived>
-struct Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ei_matrix_set_selector<MatrixType,OtherDerived,true>
-{
-  static void run(MatrixType& dst, const OtherDerived& src) { dst._set_noalias(src.eval()); }
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-template<typename MatrixType, typename OtherDerived>
-struct Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ei_matrix_set_selector<MatrixType,OtherDerived,false>
-{
-  static void run(MatrixType& dst, const OtherDerived& src) { dst._set_noalias(src); }
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
