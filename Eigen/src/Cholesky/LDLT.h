@@ -62,7 +62,7 @@ template<typename MatrixType> class LDLT
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef Matrix<int, 1, MatrixType::RowsAtCompileTime> IntRowVectorType;
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -80,10 +80,10 @@ template<typename MatrixType> class LDLT
     }
 
     /** \returns the lower triangular matrix L */
-    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const 
-    { 
+    inline Part<MatrixType, UnitLowerTriangular> matrixL(void) const
+    {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_matrix; 
+      return m_matrix;
     }
 
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
@@ -97,24 +97,24 @@ template<typename MatrixType> class LDLT
     }
 
     /** \returns the coefficients of the diagonal matrix D */
-    inline Diagonal<MatrixType,0> vectorD(void) const 
-    { 
+    inline Diagonal<MatrixType,0> vectorD(void) const
+    {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_matrix.diagonal(); 
+      return m_matrix.diagonal();
     }
 
     /** \returns true if the matrix is positive (semidefinite) */
-    inline bool isPositive(void) const 
-    { 
+    inline bool isPositive(void) const
+    {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_sign == 1; 
+      return m_sign == 1;
     }
 
     /** \returns true if the matrix is negative (semidefinite) */
-    inline bool isNegative(void) const 
-    { 
+    inline bool isNegative(void) const
+    {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_sign == -1; 
+      return m_sign == -1;
     }
 
     template<typename RhsDerived, typename ResultType>

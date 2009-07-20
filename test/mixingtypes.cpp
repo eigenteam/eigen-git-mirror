@@ -82,7 +82,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 void test_mixingtypes()
 {
   // check that our operator new is indeed called:
-  CALL_SUBTEST(mixingtypes<3>());
-  CALL_SUBTEST(mixingtypes<4>());
+  CALL_SUBTEST(mixingtypes<3>(3));
+  CALL_SUBTEST(mixingtypes<4>(4));
   CALL_SUBTEST(mixingtypes<Dynamic>(20));
 }
