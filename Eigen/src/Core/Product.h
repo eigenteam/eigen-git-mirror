@@ -299,7 +299,7 @@ template<typename OtherDerived>
 inline Derived &
 MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
 {
-  return *this = *this * other;
+  return derived() = derived() * other.derived();
 }
 
 /***************************************************************************
