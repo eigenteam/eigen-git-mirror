@@ -125,7 +125,7 @@ template<typename MatrixType> class SVD
     {
       return (b >= Scalar(0.0) ? ei_abs(a) : -ei_abs(a));
     }
-    
+
   protected:
     /** \internal */
     MatrixUType m_matU;
@@ -254,11 +254,14 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     if (g != Scalar(0.0))
     {
       g = Scalar(1.0)/g;
-      for (j=l; j<n; j++)
+      if (m-l)
       {
-        s = A.col(i).end(m-l).dot(A.col(j).end(m-l));
-        f = (s/A(i,i))*g;
-        A.col(j).end(m-i) += f * A.col(i).end(m-i);
+        for (j=l; j<n; j++)
+        {
+          s = A.col(i).end(m-l).dot(A.col(j).end(m-l));
+          f = (s/A(i,i))*g;
+          A.col(j).end(m-i) += f * A.col(i).end(m-i);
+        }
       }
       A.col(i).end(m-i) *= g;
     }
