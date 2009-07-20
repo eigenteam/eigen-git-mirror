@@ -42,4 +42,10 @@ void test_product_large()
     m = (v+v).asDiagonal() * m;
     VERIFY_IS_APPROX(m, MatrixXf::Constant(N,3,2));
   }
+
+  {
+    // test deferred resizing in Matrix::operator=
+    MatrixXf a = MatrixXf::Random(10,4), b = MatrixXf::Random(4,10), c = a;
+    VERIFY_IS_APPROX((a = a * b), (c * b).eval());
+  }
 }
