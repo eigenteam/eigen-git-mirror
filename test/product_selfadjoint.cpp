@@ -46,9 +46,9 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   Scalar s1 = ei_random<Scalar>(),
          s2 = ei_random<Scalar>(),
          s3 = ei_random<Scalar>();
-  
+
   m1 = m1.adjoint()*m1;
-  
+
   // lower
   m2.setZero();
   m2.template triangularView<LowerTriangular>() = m1;
@@ -68,7 +68,7 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   m2 = m1.template triangularView<LowerTriangular>();
   m2.template selfadjointView<LowerTriangular>().rank2update(v1,v2);
   VERIFY_IS_APPROX(m2, (m1 + v1 * v2.adjoint()+ v2 * v1.adjoint()).template triangularView<LowerTriangular>().toDense());
-  
+
   m2 = m1.template triangularView<UpperTriangular>();
   m2.template selfadjointView<UpperTriangular>().rank2update(-v1,s2*v2,s3);
   VERIFY_IS_APPROX(m2, (m1 + (-s2*s3) * (v1 * v2.adjoint()+ v2 * v1.adjoint())).template triangularView<UpperTriangular>().toDense());
@@ -98,5 +98,25 @@ void test_product_selfadjoint()
     CALL_SUBTEST( product_selfadjoint(MatrixXd(14,14)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(17,17)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(19, 19)) );
+  }
+
+  for(int i = 0; i < g_repeat ; i++)
+  {
+    int size = ei_random<int>(10,1024);
+    int cols = ei_random<int>(10,320);
+    MatrixXf A = MatrixXf::Random(size,size);
+    MatrixXf B = MatrixXf::Random(size,cols);
+    MatrixXf C = MatrixXf::Random(size,cols);
+    MatrixXf R = MatrixXf::Random(size,cols);
+    A = (A+A.transpose()).eval();
+
+    R = C + (A * B).eval();
+
+    A.corner(TopRight,size-1,size-1).triangularView<UpperTriangular>().setZero();
+
+    ei_product_selfadjoint_matrix<float,ColMajor,LowerTriangular,false,false>
+      (size, A.data(), A.stride(), B.data(), B.stride(), false, B.cols(), C.data(), C.stride(), 1);
+//     std::cerr << A << "\n\n" <<  C << "\n\n" <<  R << "\n\n";
+    VERIFY_IS_APPROX(C,R);
   }
 }
