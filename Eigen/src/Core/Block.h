@@ -124,7 +124,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-          && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
     }
 
     /** Dynamic-size constructor
@@ -137,8 +137,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
     {
       ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
-          && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= matrix.rows()
+          && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
@@ -265,8 +265,8 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
     {
       ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
              && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      ei_assert(startRow >= 0 && blockRows >= 1 && startRow + blockRows <= matrix.rows()
-             && startCol >= 0 && blockCols >= 1 && startCol + blockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= matrix.rows()
+             && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
     inline int stride(void) const { return m_matrix.stride(); }

@@ -64,10 +64,10 @@ class CwiseNullaryOp : ei_no_assignment_operator,
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())
       : m_rows(rows), m_cols(cols), m_functor(func)
     {
-      ei_assert(rows > 0
-          && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-          && cols > 0
-          && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      ei_assert(rows >= 0
+            && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+            &&  cols >= 0
+            && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
 
     EIGEN_STRONG_INLINE int rows() const { return m_rows.value(); }

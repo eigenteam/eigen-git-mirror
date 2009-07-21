@@ -103,12 +103,21 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
     inline int subs() const { return m_subs.value(); }
 
     /** \returns a vector expression of the \a i -th column,
-      * only the meaningful part is returned  */
+      * only the meaningful part is returned.
+      * \warning the internal storage must be column major. */
     inline Block<DataType,Dynamic,1> col(int i)
     {
-      int j = i - (cols() - supers() + 1);
-      int start = std::max(0,subs() - i + 1);
-      return Block<DataType,Dynamic,1>(m_data, start, i, m_data.rows() - (j<0 ? start : j), 1);
+      EIGEN_STATIC_ASSERT((Options&RowMajor)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
+      int start = 0;
+      int len = m_data.rows();
+      if (i<=supers())
+      {
+        start = supers()-i;
+        len = std::min(rows(),std::max(0,m_data.rows() - (supers()-i)));
+      }
+      else if (i>=rows()-subs())
+        len = std::max(0,m_data.rows() - (i + 1 - rows() + subs()));
+      return Block<DataType,Dynamic,1>(m_data, start, i, len, 1);
     }
 
     /** \returns a vector expression of the main diagonal */
@@ -164,7 +173,6 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
 
     PlainMatrixType toDense() const
     {
-      std::cerr << m_data << "\n\n";
       PlainMatrixType res(rows(),cols());
       res.setZero();
       res.diagonal() = diagonal();

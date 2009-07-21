@@ -154,16 +154,16 @@ template<typename Derived> class MapBase
               m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-      ei_assert(size > 0 || data == 0);
-      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
+      ei_assert(size >= 0);
+      ei_assert(data == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
     }
 
     inline MapBase(const Scalar* data, int rows, int cols)
             : m_data(data), m_rows(rows), m_cols(cols)
     {
       ei_assert( (data == 0)
-              || (   rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-                  && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
+              || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+                  && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
 
     Derived& operator=(const MapBase& other)
