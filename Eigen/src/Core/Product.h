@@ -577,22 +577,6 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 
 // Forward declarations
 
-template<typename Scalar, bool ConjugateLhs, bool ConjugateRhs>
-static void ei_cache_friendly_product(
-  int _rows, int _cols, int depth,
-  bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
-  bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
-  bool resRowMajor, Scalar* res, int resStride,
-  Scalar alpha);
-
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename RhsType>
-static void ei_cache_friendly_product_colmajor_times_vector(
-  int size, const Scalar* lhs, int lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
-
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename ResType>
-static void ei_cache_friendly_product_rowmajor_times_vector(
-  const Scalar* lhs, int lhsStride, const Scalar* rhs, int rhsSize, ResType& res, Scalar alpha);
-
 // This helper class aims to determine which optimized product to call,
 // and how to call it. We have to distinghish three major cases:
 //  1 - matrix-matrix
@@ -926,16 +910,18 @@ inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& 
   typedef typename ei_unref<RhsCopy>::type _RhsCopy;
   LhsCopy lhs(actualLhs);
   RhsCopy rhs(actualRhs);
-  ei_cache_friendly_product<Scalar,
-    ((int(Flags)&RowMajorBit) ? bool(RhsProductTraits::NeedToConjugate) : bool(LhsProductTraits::NeedToConjugate)),
-    ((int(Flags)&RowMajorBit) ? bool(LhsProductTraits::NeedToConjugate) : bool(RhsProductTraits::NeedToConjugate))>
-  (
-    rows(), cols(), lhs.cols(),
-    _LhsCopy::Flags&RowMajorBit, (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
-    _RhsCopy::Flags&RowMajorBit, (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
-    Flags&RowMajorBit, (Scalar*)&(res.coeffRef(0,0)), res.stride(),
-    actualAlpha
-  );
+
+  ei_general_matrix_matrix_product<
+      Scalar,
+      (_LhsCopy::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsProductTraits::NeedToConjugate),
+      (_RhsCopy::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsProductTraits::NeedToConjugate),
+      (DestDerived::Flags&RowMajorBit)?RowMajor:ColMajor>
+    ::run(
+        rows(), cols(), lhs.cols(),
+        (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
+        (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
+        (Scalar*)&(res.coeffRef(0,0)), res.stride(),
+        actualAlpha);
 }
 
 #endif // EIGEN_PRODUCT_H

@@ -25,145 +25,63 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_H
 
-template<typename Scalar, typename Packet, int PacketSize, int mr, int nr, typename Conj>
-struct ei_gebp_kernel;
-
-template<typename Scalar, int PacketSize, int nr>
-struct ei_gemm_pack_rhs;
-
-template<typename Scalar, int mr>
-struct ei_gemm_pack_lhs;
-
-template <int L2MemorySize,typename Scalar>
-struct ei_L2_block_traits {
-  enum {width = 8 * ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
-};
-
-template<bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
-
-template<> struct ei_conj_helper<false,false>
-{
-  template<typename T>
-  EIGEN_STRONG_INLINE T pmadd(const T& x, const T& y, const T& c) const { return  ei_pmadd(x,y,c); }
-  template<typename T>
-  EIGEN_STRONG_INLINE T pmul(const T& x, const T& y) const { return  ei_pmul(x,y); }
-};
-
-template<> struct ei_conj_helper<false,true>
-{
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
-  { return c + pmul(x,y); }
-
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
-};
-
-template<> struct ei_conj_helper<true,false>
-{
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
-  { return c + pmul(x,y); }
-
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
-};
-
-template<> struct ei_conj_helper<true,true>
-{
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
-  { return c + pmul(x,y); }
-
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
-};
-
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
 
-/** \warning you should never call this function directly,
-  * this is because the ConjugateLhs/ConjugateRhs have to
-  * be flipped is resRowMajor==true */
-template<typename Scalar, bool ConjugateLhs, bool ConjugateRhs>
-static void ei_cache_friendly_product(
-  int _rows, int _cols, int depth,
-  bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
-  bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
-  bool resRowMajor, Scalar* res, int resStride,
+template<
+  typename Scalar,
+  int LhsStorageOrder, bool ConjugateLhs,
+  int RhsStorageOrder, bool ConjugateRhs>
+struct ei_general_matrix_matrix_product<Scalar,LhsStorageOrder,ConjugateLhs,RhsStorageOrder,ConjugateRhs,RowMajor>
+{
+  static EIGEN_STRONG_INLINE void run(
+    int rows, int cols, int depth,
+    const Scalar* lhs, int lhsStride,
+    const Scalar* rhs, int rhsStride,
+    Scalar* res, int resStride,
+    Scalar alpha)
+  {
+    // transpose the product such that the result is column major
+    ei_general_matrix_matrix_product<Scalar,
+      RhsStorageOrder==RowMajor ? ColMajor : RowMajor,
+      ConjugateRhs,
+      LhsStorageOrder==RowMajor ? ColMajor : RowMajor,
+      ConjugateLhs,
+      ColMajor>
+    ::run(cols,rows,depth,rhs,rhsStride,lhs,lhsStride,res,resStride,alpha);
+  }
+};
+
+template<
+  typename Scalar,
+  int LhsStorageOrder, bool ConjugateLhs,
+  int RhsStorageOrder, bool ConjugateRhs>
+struct ei_general_matrix_matrix_product<Scalar,LhsStorageOrder,ConjugateLhs,RhsStorageOrder,ConjugateRhs,ColMajor>
+{
+static void run(int rows, int cols, int depth,
+  const Scalar* _lhs, int lhsStride,
+  const Scalar* _rhs, int rhsStride,
+  Scalar* res, int resStride,
   Scalar alpha)
 {
-  const Scalar* EIGEN_RESTRICT lhs;
-  const Scalar* EIGEN_RESTRICT rhs;
-  int lhsStride, rhsStride, rows, cols;
-  bool lhsRowMajor;
+  ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
+  ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-  ei_conj_helper<ConjugateLhs,ConjugateRhs> cj;
   if (ConjugateRhs)
     alpha = ei_conj(alpha);
-  bool hasAlpha = alpha != Scalar(1);
-
-  if (resRowMajor)
-  {
-//     return ei_cache_friendly_product<Scalar,ConjugateRhs,ConjugateLhs>(_cols,_rows,depth,
-//       !_rhsRowMajor, _rhs, _rhsStride,
-//       !_lhsRowMajor, _lhs, _lhsStride,
-//       false, res, resStride,
-//       alpha);
-
-    lhs = _rhs;
-    rhs = _lhs;
-    lhsStride = _rhsStride;
-    rhsStride = _lhsStride;
-    cols = _rows;
-    rows = _cols;
-    lhsRowMajor = !_rhsRowMajor;
-    ei_assert(_lhsRowMajor);
-  }
-  else
-  {
-    lhs = _lhs;
-    rhs = _rhs;
-    lhsStride = _lhsStride;
-    rhsStride = _rhsStride;
-    rows = _rows;
-    cols = _cols;
-    lhsRowMajor = _lhsRowMajor;
-    ei_assert(!_rhsRowMajor);
-  }
 
   typedef typename ei_packet_traits<Scalar>::type PacketType;
+  typedef ei_product_blocking_traits<Scalar> Blocking;
 
-  enum {
-    PacketSize = sizeof(PacketType)/sizeof(Scalar),
-    #if (defined __i386__)
-    HalfRegisterCount = 4,
-    #else
-    HalfRegisterCount = 8,
-    #endif
-
-    // register block size along the N direction
-    nr = HalfRegisterCount/2,
-
-    // register block size along the M direction
-    mr = 2 * PacketSize,
-
-    // max cache block size along the K direction
-    Max_kc = ei_L2_block_traits<EIGEN_TUNE_FOR_CPU_CACHE_SIZE,Scalar>::width,
-
-    // max cache block size along the M direction
-    Max_mc = 2*Max_kc
-  };
-
-  int kc = std::min<int>(Max_kc,depth);  // cache block size along the K direction
-  int mc = std::min<int>(Max_mc,rows);   // cache block size along the M direction
+  int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
+  int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
   Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-  Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*PacketSize);
+  Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
   // number of columns which can be processed by packet of nr columns
-  int packet_cols = (cols/nr)*nr;
+  int packet_cols = (cols/Blocking::nr) * Blocking::nr;
 
-  // GEMM_VAR1
+  // => GEMM_VAR1
   for(int k2=0; k2<depth; k2+=kc)
   {
     const int actual_kc = std::min(k2+kc,depth)-k2;
@@ -171,23 +89,25 @@ static void ei_cache_friendly_product(
     // we have selected one row panel of rhs and one column panel of lhs
     // pack rhs's panel into a sequential chunk of memory
     // and expand each coeff to a constant packet for further reuse
-    ei_gemm_pack_rhs<Scalar,PacketSize,nr>()(blockB, rhs, rhsStride, hasAlpha, alpha, actual_kc, packet_cols, k2, cols);
+    ei_gemm_pack_rhs<Scalar, Blocking::PacketSize, Blocking::nr>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, packet_cols, cols);
 
     // => GEPP_VAR1
     for(int i2=0; i2<rows; i2+=mc)
     {
       const int actual_mc = std::min(i2+mc,rows)-i2;
+      
+      ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder>()(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
 
-      ei_gemm_pack_lhs<Scalar,mr>()(blockA, lhs, lhsStride, lhsRowMajor, actual_kc, actual_mc, k2, i2);
-
-      ei_gebp_kernel<Scalar, PacketType, PacketSize, mr, nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
+      ei_gebp_kernel<Scalar, PacketType, Blocking::PacketSize, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
         (res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
     }
   }
 
   ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-  ei_aligned_stack_delete(Scalar, blockB, kc*cols*PacketSize);
+  ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
 }
+
+};
 
 // optimized GEneral packed Block * packed Panel product kernel
 template<typename Scalar, typename PacketType, int PacketSize, int mr, int nr, typename Conj>
@@ -356,8 +276,7 @@ struct ei_gebp_kernel
         if(nr==4) res[(j2+3)*resStride + i2 + i] += C3;
       }
     }
-    // remaining rhs/res columns (<nr)
-
+    
     // process remaining rhs/res columns one at a time
     // => do the same but with nr==1
     for(int j2=packet_cols; j2<cols; j2++)
@@ -413,35 +332,22 @@ struct ei_gebp_kernel
 };
 
 // pack a block of the lhs
-template<typename Scalar, int mr>
+template<typename Scalar, int mr, int StorageOrder>
 struct ei_gemm_pack_lhs
 {
-  void operator()(Scalar* blockA, const Scalar* lhs, int lhsStride, bool lhsRowMajor, int actual_kc, int actual_mc, int k2, int i2)
+  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int actual_kc, int actual_mc)
   {
+    ei_const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
     const int peeled_mc = (actual_mc/mr)*mr;
-    if (lhsRowMajor)
+    for(int i=0; i<peeled_mc; i+=mr)
+      for(int k=0; k<actual_kc; k++)
+        for(int w=0; w<mr; w++)
+          blockA[count++] = lhs(i+w, k);
+    for(int i=peeled_mc; i<actual_mc; i++)
     {
-      for(int i=0; i<peeled_mc; i+=mr)
-        for(int k=0; k<actual_kc; k++)
-          for(int w=0; w<mr; w++)
-            blockA[count++] = lhs[(k2+k) + (i2+i+w)*lhsStride];
-      for(int i=peeled_mc; i<actual_mc; i++)
-      {
-        const Scalar* llhs = &lhs[(k2) + (i2+i)*lhsStride];
-        for(int k=0; k<actual_kc; k++)
-          blockA[count++] = llhs[k];
-      }
-    }
-    else
-    {
-      for(int i=0; i<peeled_mc; i+=mr)
-        for(int k=0; k<actual_kc; k++)
-          for(int w=0; w<mr; w++)
-            blockA[count++] = lhs[(k2+k)*lhsStride + i2+i+w];
-      for(int i=peeled_mc; i<actual_mc; i++)
-        for(int k=0; k<actual_kc; k++)
-          blockA[count++] = lhs[(k2+k)*lhsStride + i2+i];
+      for(int k=0; k<actual_kc; k++)
+        blockA[count++] = lhs(i, k);
     }
   }
 };
@@ -450,15 +356,16 @@ struct ei_gemm_pack_lhs
 template<typename Scalar, int PacketSize, int nr>
 struct ei_gemm_pack_rhs
 {
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, bool hasAlpha, Scalar alpha, int actual_kc, int packet_cols, int k2, int cols)
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols)
   {
+    bool hasAlpha = alpha != Scalar(1);
     int count = 0;
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
-      const Scalar* b0 = &rhs[(j2+0)*rhsStride + k2];
-      const Scalar* b1 = &rhs[(j2+1)*rhsStride + k2];
-      const Scalar* b2 = &rhs[(j2+2)*rhsStride + k2];
-      const Scalar* b3 = &rhs[(j2+3)*rhsStride + k2];
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
+      const Scalar* b1 = &rhs[(j2+1)*rhsStride];
+      const Scalar* b2 = &rhs[(j2+2)*rhsStride];
+      const Scalar* b3 = &rhs[(j2+3)*rhsStride];
       if (hasAlpha)
       {
         for(int k=0; k<actual_kc; k++)
@@ -491,7 +398,7 @@ struct ei_gemm_pack_rhs
     // copy the remaining columns one at a time (nr==1)
     for(int j2=packet_cols; j2<cols; ++j2)
     {
-      const Scalar* b0 = &rhs[(j2+0)*rhsStride + k2];
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
       if (hasAlpha)
       {
         for(int k=0; k<actual_kc; k++)
