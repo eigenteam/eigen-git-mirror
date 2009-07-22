@@ -300,6 +300,10 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived,typename OtherEvalType>
     Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
+    template<typename OtherDerived,typename OtherEvalType>
+    Derived& operator+=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
+    template<typename OtherDerived,typename OtherEvalType>
+    Derived& operator-=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Copies \a other into *this without evaluating other. \returns a reference to *this. */

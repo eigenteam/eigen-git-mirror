@@ -53,8 +53,8 @@ struct ei_traits<SelfAdjointView<MatrixType, TriangularPart> > : ei_traits<Matri
   };
 };
 
-template<typename Lhs,typename Rhs>
-struct ei_selfadjoint_vector_product_returntype;
+template<typename Lhs,typename Rhs,bool RhsIsVector=Rhs::IsVectorAtCompileTime>
+struct ei_selfadjoint_matrix_product_returntype;
 
 // FIXME could also be called SelfAdjointWrapper to be consistent with DiagonalWrapper ??
 template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
@@ -97,13 +97,12 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** \internal */
     const MatrixType& _expression() const { return m_matrix; }
 
-    /** Efficient self-adjoint matrix times vector product */
-    // TODO this product is far to be ready
+    /** Efficient self-adjoint matrix times vector/matrix product */
     template<typename OtherDerived>
-    ei_selfadjoint_vector_product_returntype<SelfAdjointView,OtherDerived>
+    ei_selfadjoint_matrix_product_returntype<SelfAdjointView,OtherDerived>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
-      return ei_selfadjoint_vector_product_returntype<SelfAdjointView,OtherDerived>(*this, rhs.derived());
+      return ei_selfadjoint_matrix_product_returntype<SelfAdjointView,OtherDerived>(*this, rhs.derived());
     }
 
     /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
@@ -165,13 +164,13 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, Dynami
 ***************************************************************************/
 
 template<typename Lhs,typename Rhs>
-struct ei_selfadjoint_vector_product_returntype
-  : public ReturnByValue<ei_selfadjoint_vector_product_returntype<Lhs,Rhs>,
+struct ei_selfadjoint_matrix_product_returntype<Lhs,Rhs,true>
+  : public ReturnByValue<ei_selfadjoint_matrix_product_returntype<Lhs,Rhs,true>,
                          Matrix<typename ei_traits<Rhs>::Scalar,
                                 Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  ei_selfadjoint_vector_product_returntype(const Lhs& lhs, const Rhs& rhs)
+  ei_selfadjoint_matrix_product_returntype(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
@@ -192,6 +191,78 @@ struct ei_selfadjoint_vector_product_returntype
 
   const Lhs m_lhs;
   const typename Rhs::Nested m_rhs;
+};
+
+/***************************************************************************
+* Wrapper to ei_product_selfadjoint_matrix
+***************************************************************************/
+
+template<typename Lhs,typename Rhs>
+struct ei_selfadjoint_matrix_product_returntype<Lhs,Rhs,false>
+  : public ReturnByValue<ei_selfadjoint_matrix_product_returntype<Lhs,Rhs,false>,
+                         Matrix<typename ei_traits<Rhs>::Scalar,
+                                Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+{
+  ei_selfadjoint_matrix_product_returntype(const Lhs& lhs, const Rhs& rhs)
+    : m_lhs(lhs), m_rhs(rhs)
+  {}
+
+  typedef typename Lhs::Scalar Scalar;
+  typedef typename Rhs::Nested RhsNested;
+  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
+
+  typedef typename ei_traits<Lhs>::ExpressionType LhsExpr;
+  typedef typename LhsExpr::Nested LhsNested;
+  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+
+  enum { UpLo = ei_traits<Lhs>::Mode&(UpperTriangularBit|LowerTriangularBit) };
+
+  template<typename Dest> inline void _addTo(Dest& dst) const
+  { evalTo(dst,1); }
+  template<typename Dest> inline void _subTo(Dest& dst) const
+  { evalTo(dst,-1); }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dst.resize(m_lhs.rows(), m_rhs.cols());
+    dst.setZero();
+    evalTo(dst,1);
+  }
+
+  template<typename Dest> void evalTo(Dest& dst, Scalar alpha) const
+  {
+    typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
+    typedef ei_blas_traits<_RhsNested> RhsBlasTraits;
+
+    typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+    typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+
+    typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
+    typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
+
+    const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs._expression());
+    const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs._expression())
+                               * RhsBlasTraits::extractScalarFactor(m_rhs);
+
+    ei_product_selfadjoint_matrix<Scalar,
+      EIGEN_LOGICAL_XOR(UpLo==UpperTriangular,
+      ei_traits<Lhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, true,
+      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(UpLo==UpperTriangular,bool(LhsBlasTraits::NeedToConjugate)),
+      ei_traits<Rhs>::Flags &RowMajorBit  ? RowMajor : ColMajor, false, bool(RhsBlasTraits::NeedToConjugate),
+      ei_traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
+      ::run(
+        lhs.rows(), rhs.cols(),   // sizes
+        &lhs.coeff(0,0),    lhs.stride(), // lhs info
+        &rhs.coeff(0,0),    rhs.stride(), // rhs info
+        &dst.coeffRef(0,0), dst.stride(), // result info
+        actualAlpha               // alpha
+      );
+  }
+
+  const Lhs m_lhs;
+  const RhsNested m_rhs;
 };
 
 /***************************************************************************

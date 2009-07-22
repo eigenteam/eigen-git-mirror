@@ -334,22 +334,23 @@ struct ei_gebp_kernel
 };
 
 // pack a block of the lhs
-template<typename Scalar, int mr, int StorageOrder>
+template<typename Scalar, int mr, int StorageOrder, bool Conjugate>
 struct ei_gemm_pack_lhs
 {
   void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int actual_kc, int actual_mc)
   {
+    ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
     const int peeled_mc = (actual_mc/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
       for(int k=0; k<actual_kc; k++)
         for(int w=0; w<mr; w++)
-          blockA[count++] = lhs(i+w, k);
+          blockA[count++] = cj(lhs(i+w, k));
     for(int i=peeled_mc; i<actual_mc; i++)
     {
       for(int k=0; k<actual_kc; k++)
-        blockA[count++] = lhs(i, k);
+        blockA[count++] = cj(lhs(i, k));
     }
   }
 };
