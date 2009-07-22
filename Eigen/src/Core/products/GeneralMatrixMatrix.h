@@ -89,16 +89,16 @@ static void run(int rows, int cols, int depth,
     // we have selected one row panel of rhs and one column panel of lhs
     // pack rhs's panel into a sequential chunk of memory
     // and expand each coeff to a constant packet for further reuse
-    ei_gemm_pack_rhs<Scalar, Blocking::PacketSize, Blocking::nr>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, packet_cols, cols);
+    ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, packet_cols, cols);
 
     // => GEPP_VAR1
     for(int i2=0; i2<rows; i2+=mc)
     {
       const int actual_mc = std::min(i2+mc,rows)-i2;
-      
+
       ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder>()(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
 
-      ei_gebp_kernel<Scalar, PacketType, Blocking::PacketSize, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
+      ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
         (res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
     }
   }
@@ -110,11 +110,13 @@ static void run(int rows, int cols, int depth,
 };
 
 // optimized GEneral packed Block * packed Panel product kernel
-template<typename Scalar, typename PacketType, int PacketSize, int mr, int nr, typename Conj>
+template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel
 {
   void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int actual_mc, int actual_kc, int packet_cols, int i2, int cols)
   {
+    typedef typename ei_packet_traits<Scalar>::type PacketType;
+    enum { PacketSize = ei_packet_traits<Scalar>::size };
     Conj cj;
     const int peeled_mc = (actual_mc/mr)*mr;
     // loops on each cache friendly block of the result/rhs
@@ -276,7 +278,7 @@ struct ei_gebp_kernel
         if(nr==4) res[(j2+3)*resStride + i2 + i] += C3;
       }
     }
-    
+
     // process remaining rhs/res columns one at a time
     // => do the same but with nr==1
     for(int j2=packet_cols; j2<cols; j2++)
@@ -353,9 +355,11 @@ struct ei_gemm_pack_lhs
 };
 
 // copy a complete panel of the rhs while expending each coefficient into a packet form
-template<typename Scalar, int PacketSize, int nr>
-struct ei_gemm_pack_rhs
+// this version is optimized for column major matrices
+template<typename Scalar, int nr>
+struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
 {
+  enum { PacketSize = ei_packet_traits<Scalar>::size };
   void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols)
   {
     bool hasAlpha = alpha != Scalar(1);
@@ -414,6 +418,61 @@ struct ei_gemm_pack_rhs
           ei_pstore(&blockB[count], ei_pset1(b0[k]));
           count += PacketSize;
         }
+      }
+    }
+  }
+};
+
+// this version is optimized for row major matrices
+template<typename Scalar, int nr>
+struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
+{
+  enum { PacketSize = ei_packet_traits<Scalar>::size };
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols)
+  {
+    bool hasAlpha = alpha != Scalar(1);
+    int count = 0;
+    for(int j2=0; j2<packet_cols; j2+=nr)
+    {
+      if (hasAlpha)
+      {
+        for(int k=0; k<actual_kc; k++)
+        {
+          const Scalar* b0 = &rhs[k*rhsStride + j2];
+          ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[0]));
+          ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b0[1]));
+          if (nr==4)
+          {
+            ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b0[2]));
+            ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b0[3]));
+          }
+          count += nr*PacketSize;
+        }
+      }
+      else
+      {
+        for(int k=0; k<actual_kc; k++)
+        {
+          const Scalar* b0 = &rhs[k*rhsStride + j2];
+          ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[0]));
+          ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b0[1]));
+          if (nr==4)
+          {
+            ei_pstore(&blockB[count+2*PacketSize], ei_pset1(b0[2]));
+            ei_pstore(&blockB[count+3*PacketSize], ei_pset1(b0[3]));
+          }
+          count += nr*PacketSize;
+        }
+      }
+    }
+    // copy the remaining columns one at a time (nr==1)
+    for(int j2=packet_cols; j2<cols; ++j2)
+    {
+      const Scalar* b0 = &rhs[j2];
+      for(int k=0; k<actual_kc; k++)
+      {
+        ei_pstore(&blockB[count], ei_pset1(alpha*b0[k*rhsStride]));
+        count += PacketSize;
       }
     }
   }

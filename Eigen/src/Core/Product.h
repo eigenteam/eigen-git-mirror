@@ -73,79 +73,6 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
   typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
 };
 
-/* Helper class to analyze the factors of a Product expression.
- * In particular it allows to pop out operator-, scalar multiples,
- * and conjugate */
-template<typename XprType> struct ei_blas_traits
-{
-  typedef typename ei_traits<XprType>::Scalar Scalar;
-  typedef XprType ActualXprType;
-  enum {
-    IsComplex = NumTraits<Scalar>::IsComplex,
-    NeedToConjugate = false,
-    ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
-  };
-  typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
-    const ActualXprType&,
-    typename ActualXprType::PlainMatrixType
-    >::ret DirectLinearAccessType;
-  static inline const ActualXprType& extract(const XprType& x) { return x; }
-  static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
-};
-
-// pop conjugate
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-
-  enum {
-    IsComplex = NumTraits<Scalar>::IsComplex,
-    NeedToConjugate = IsComplex
-  };
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
-  static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x._expression())); }
-};
-
-// pop scalar multiple
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return x._functor().m_other * Base::extractScalarFactor(x._expression()); }
-};
-
-// pop opposite
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return - Base::extractScalarFactor(x._expression()); }
-};
-
-// pop opposite
-template<typename NestedXpr> struct ei_blas_traits<NestByValue<NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef typename NestedXpr::Scalar Scalar;
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef NestByValue<NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
-};
-
 /*  Helper class to determine the type of the product, can be either:
  *    - NormalProduct
  *    - CacheFriendlyProduct
@@ -869,25 +796,6 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   return derived();
 }
 
-template<typename T> struct ei_product_copy_rhs
-{
-  typedef typename ei_meta_if<
-         (ei_traits<T>::Flags & RowMajorBit)
-      || (!(ei_traits<T>::Flags & DirectAccessBit)),
-      typename ei_plain_matrix_type_column_major<T>::type,
-      const T&
-    >::ret type;
-};
-
-template<typename T> struct ei_product_copy_lhs
-{
-  typedef typename ei_meta_if<
-      (!(int(ei_traits<T>::Flags) & DirectAccessBit)),
-      typename ei_plain_matrix_type<T>::type,
-      const T&
-    >::ret type;
-};
-
 template<typename Lhs, typename Rhs, int ProductMode>
 template<typename DestDerived>
 inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& res, Scalar alpha) const
@@ -895,26 +803,22 @@ inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& 
   typedef ei_blas_traits<_LhsNested> LhsProductTraits;
   typedef ei_blas_traits<_RhsNested> RhsProductTraits;
 
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
-  typedef typename RhsProductTraits::ActualXprType ActualRhsType;
+  typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
+  typedef typename RhsProductTraits::DirectLinearAccessType ActualRhsType;
 
-  const ActualLhsType& actualLhs = LhsProductTraits::extract(m_lhs);
-  const ActualRhsType& actualRhs = RhsProductTraits::extract(m_rhs);
+  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
+  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
+
+  const ActualLhsType lhs = LhsProductTraits::extract(m_lhs);
+  const ActualRhsType rhs = RhsProductTraits::extract(m_rhs);
 
   Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(m_lhs)
                              * RhsProductTraits::extractScalarFactor(m_rhs);
 
-  typedef typename ei_product_copy_lhs<ActualLhsType>::type LhsCopy;
-  typedef typename ei_unref<LhsCopy>::type _LhsCopy;
-  typedef typename ei_product_copy_rhs<ActualRhsType>::type RhsCopy;
-  typedef typename ei_unref<RhsCopy>::type _RhsCopy;
-  LhsCopy lhs(actualLhs);
-  RhsCopy rhs(actualRhs);
-
   ei_general_matrix_matrix_product<
       Scalar,
-      (_LhsCopy::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsProductTraits::NeedToConjugate),
-      (_RhsCopy::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsProductTraits::NeedToConjugate),
+      (_ActualLhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsProductTraits::NeedToConjugate),
+      (_ActualRhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsProductTraits::NeedToConjugate),
       (DestDerived::Flags&RowMajorBit)?RowMajor:ColMajor>
     ::run(
         rows(), cols(), lhs.cols(),

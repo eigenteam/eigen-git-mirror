@@ -29,10 +29,10 @@
 // implement and control fast level 2 and level 3 BLAS-like routines.
 
 // forward declarations
-template<typename Scalar, typename Packet, int PacketSize, int mr, int nr, typename Conj>
+template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel;
 
-template<typename Scalar, int PacketSize, int nr>
+template<typename Scalar, int nr, int StorageOrder>
 struct ei_gemm_pack_rhs;
 
 template<typename Scalar, int mr, int StorageOrder>
@@ -152,6 +152,79 @@ struct ei_product_blocking_traits
     // max cache block size along the M direction
     Max_mc = 2*Max_kc
   };
+};
+
+/* Helper class to analyze the factors of a Product expression.
+ * In particular it allows to pop out operator-, scalar multiples,
+ * and conjugate */
+template<typename XprType> struct ei_blas_traits
+{
+  typedef typename ei_traits<XprType>::Scalar Scalar;
+  typedef XprType ActualXprType;
+  enum {
+    IsComplex = NumTraits<Scalar>::IsComplex,
+    NeedToConjugate = false,
+    ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
+  };
+  typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
+    const ActualXprType&,
+    typename ActualXprType::PlainMatrixType
+    >::ret DirectLinearAccessType;
+  static inline const ActualXprType& extract(const XprType& x) { return x; }
+  static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
+};
+
+// pop conjugate
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef ei_blas_traits<NestedXpr> Base;
+  typedef CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> XprType;
+  typedef typename Base::ActualXprType ActualXprType;
+
+  enum {
+    IsComplex = NumTraits<Scalar>::IsComplex,
+    NeedToConjugate = IsComplex
+  };
+  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x._expression())); }
+};
+
+// pop scalar multiple
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef ei_blas_traits<NestedXpr> Base;
+  typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
+  typedef typename Base::ActualXprType ActualXprType;
+  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline Scalar extractScalarFactor(const XprType& x)
+  { return x._functor().m_other * Base::extractScalarFactor(x._expression()); }
+};
+
+// pop opposite
+template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef ei_blas_traits<NestedXpr> Base;
+  typedef CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> XprType;
+  typedef typename Base::ActualXprType ActualXprType;
+  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline Scalar extractScalarFactor(const XprType& x)
+  { return - Base::extractScalarFactor(x._expression()); }
+};
+
+// pop opposite
+template<typename NestedXpr> struct ei_blas_traits<NestByValue<NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef typename NestedXpr::Scalar Scalar;
+  typedef ei_blas_traits<NestedXpr> Base;
+  typedef NestByValue<NestedXpr> XprType;
+  typedef typename Base::ActualXprType ActualXprType;
+  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
+  static inline Scalar extractScalarFactor(const XprType& x)
+  { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
 };
 
 #endif // EIGEN_BLASUTIL_H
