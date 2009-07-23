@@ -201,12 +201,12 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,true>
     ei_product_selfadjoint_vector<typename Lhs::Scalar,ei_traits<Lhs>::Flags&RowMajorBit,
       LhsMode&(UpperTriangularBit|LowerTriangularBit)>
       (
-        m_lhs.rows(), // size
-        m_lhs.data(), // lhs
+        m_lhs.rows(),   // size
+        m_lhs.data(),   // lhs
         m_lhs.stride(), // lhsStride,
-        m_rhs.data(), // rhs
+        m_rhs.data(),   // rhs
         // int rhsIncr,
-        dst.data() // res
+        dst.data()      // res
       );
   }
 
@@ -278,11 +278,11 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
       NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsUpLo==UpperTriangular,bool(RhsBlasTraits::NeedToConjugate)),
       ei_traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
       ::run(
-        lhs.rows(), rhs.cols(),   // sizes
+        lhs.rows(), rhs.cols(),           // sizes
         &lhs.coeff(0,0),    lhs.stride(), // lhs info
         &rhs.coeff(0,0),    rhs.stride(), // rhs info
         &dst.coeffRef(0,0), dst.stride(), // result info
-        actualAlpha               // alpha
+        actualAlpha                       // alpha
       );
   }
 
