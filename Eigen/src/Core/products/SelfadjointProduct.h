@@ -45,10 +45,10 @@ struct ei_selfadjoint_product;
 template <typename Scalar, int MatStorageOrder, bool AAT, int UpLo>
 struct ei_selfadjoint_product<Scalar,MatStorageOrder, RowMajor, AAT, UpLo>
 {
-  static EIGEN_STRONG_INLINE void run(int size, const Scalar* mat, int matStride, Scalar* res, int resStride, Scalar alpha)
+  static EIGEN_STRONG_INLINE void run(int size, int depth, const Scalar* mat, int matStride, Scalar* res, int resStride, Scalar alpha)
   {
     ei_selfadjoint_product<Scalar, MatStorageOrder, ColMajor, !AAT, UpLo==LowerTriangular?UpperTriangular:LowerTriangular>
-      ::run(size, mat, matStride, res, resStride, alpha);
+      ::run(size, depth, mat, matStride, res, resStride, alpha);
   }
 };
 
@@ -58,7 +58,7 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 {
 
   static EIGEN_DONT_INLINE void run(
-    int size,
+    int size, int depth,
     const Scalar* _mat, int matStride,
     Scalar* res,        int resStride,
     Scalar alpha)
@@ -70,7 +70,7 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
 
-    int kc = std::min<int>(Blocking::Max_kc,size);  // cache block size along the K direction
+    int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
     int mc = std::min<int>(Blocking::Max_mc,size);  // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
@@ -84,9 +84,9 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, Conj> gebp_kernel;
 
-    for(int k2=0; k2<size; k2+=kc)
+    for(int k2=0; k2<depth; k2+=kc)
     {
-      const int actual_kc = std::min(k2+kc,size)-k2;
+      const int actual_kc = std::min(k2+kc,depth)-k2;
 
       // note that the actual rhs is the transpose/adjoint of mat
       ei_gemm_pack_rhs<Scalar,Blocking::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor>()
@@ -141,10 +141,10 @@ void SelfAdjointView<MatrixType,UpLo>
   ei_selfadjoint_product<Scalar,
     _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
     ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor,
-    !UBlasTraits::NeedToConjugate,
-    UpLo>::run(_expression().cols(), &actualU.coeff(0,0), actualU.stride(), const_cast<Scalar*>(_expression().data()), _expression().stride(), actualAlpha);
+    !UBlasTraits::NeedToConjugate, UpLo>
+    ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.stride(),
+          const_cast<Scalar*>(_expression().data()), _expression().stride(), actualAlpha);
 }
-
 
 
 // optimized SYmmetric packed Block * packed Block product kernel
