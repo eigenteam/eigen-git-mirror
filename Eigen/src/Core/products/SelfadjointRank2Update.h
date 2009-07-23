@@ -69,7 +69,7 @@ template<bool Cond, typename T> struct ei_conj_expr_if
 
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU, typename DerivedV>
-void SelfAdjointView<MatrixType,UpLo>
+SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 ::rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha)
 {
   typedef ei_blas_traits<DerivedU> UBlasTraits;
@@ -91,6 +91,8 @@ void SelfAdjointView<MatrixType,UpLo>
     typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret,
     (IsRowMajor ? (UpLo==UpperTriangular ? LowerTriangular : UpperTriangular) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().stride(),actualU,actualV,actualAlpha);
+
+  return *this;
 }
 
 #endif // EIGEN_SELFADJOINTRANK2UPTADE_H

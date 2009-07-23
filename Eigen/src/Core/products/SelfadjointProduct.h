@@ -126,7 +126,7 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
-void SelfAdjointView<MatrixType,UpLo>
+SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 ::rankKupdate(const MatrixBase<DerivedU>& u, Scalar alpha)
 {
   typedef ei_blas_traits<DerivedU> UBlasTraits;
@@ -144,6 +144,8 @@ void SelfAdjointView<MatrixType,UpLo>
     !UBlasTraits::NeedToConjugate, UpLo>
     ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.stride(),
           const_cast<Scalar*>(_expression().data()), _expression().stride(), actualAlpha);
+
+  return *this;
 }
 
 

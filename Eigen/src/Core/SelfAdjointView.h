@@ -120,23 +120,25 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
     /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha ( u v^* + v u^*) \f$
+      * \returns a reference to \c *this
       *
       * The vectors \a u and \c v \b must be column vectors, however they can be
       * a adjoint expression without any overhead. Only the meaningful triangular
       * part of the matrix is updated, the rest is left unchanged.
       */
     template<typename DerivedU, typename DerivedV>
-    void rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
+    SelfAdjointView& rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
-      * \f$ this = this + \alpha ( u u^* ) \f$
-      * where \a u is a vector or matrix.
+      * \f$ this = this + \alpha ( u u^* ) \f$ where \a u is a vector or matrix.
+      * 
+      * \returns a reference to \c *this
       *
       * Note that to perform \f$ this = this + \alpha ( u^* u ) \f$ you can simply
       * call this function with u.adjoint().
       */
     template<typename DerivedU>
-    void rankKupdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SelfAdjointView& rankKupdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
 
 /////////// Cholesky module ///////////
 

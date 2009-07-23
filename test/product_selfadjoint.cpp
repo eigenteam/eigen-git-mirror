@@ -94,65 +94,6 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   }
 }
 
-template<typename MatrixType> void symm(const MatrixType& m)
-{
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic> Rhs1;
-  typedef Matrix<Scalar, Dynamic, MatrixType::RowsAtCompileTime> Rhs2;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic,RowMajor> Rhs3;
-
-  int rows = m.rows();
-  int cols = m.cols();
-
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols);
-
-  m1 = (m1+m1.adjoint()).eval();
-
-  Rhs1 rhs1 = Rhs1::Random(cols, ei_random<int>(1,320)), rhs12, rhs13;
-  Rhs2 rhs2 = Rhs2::Random(ei_random<int>(1,320), rows), rhs22, rhs23;
-  Rhs3 rhs3 = Rhs3::Random(cols, ei_random<int>(1,320)), rhs32, rhs33;
-
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
-
-  m2 = m1.template triangularView<LowerTriangular>();
-  VERIFY_IS_APPROX(rhs12 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*rhs1),
-                   rhs13 = (s1*m1) * (s2*rhs1));
-
-  m2 = m1.template triangularView<UpperTriangular>();
-  VERIFY_IS_APPROX(rhs12 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*rhs1),
-                   rhs13 = (s1*m1) * (s2*rhs1));
-
-  m2 = m1.template triangularView<LowerTriangular>();
-  VERIFY_IS_APPROX(rhs22 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*rhs2.adjoint()),
-                   rhs23 = (s1*m1) * (s2*rhs2.adjoint()));
-
-  m2 = m1.template triangularView<UpperTriangular>();
-  VERIFY_IS_APPROX(rhs22 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*rhs2.adjoint()),
-                   rhs23 = (s1*m1) * (s2*rhs2.adjoint()));
-
-  m2 = m1.template triangularView<UpperTriangular>();
-  VERIFY_IS_APPROX(rhs22 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*rhs2.adjoint()),
-                   rhs23 = (s1*m1.adjoint()) * (s2*rhs2.adjoint()));
-
-  // test row major = <...>
-  m2 = m1.template triangularView<LowerTriangular>();
-  VERIFY_IS_APPROX(rhs32 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*rhs3),
-                   rhs33 = (s1*m1) * (s2 * rhs3));
-
-  m2 = m1.template triangularView<UpperTriangular>();
-  VERIFY_IS_APPROX(rhs32 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*rhs3).conjugate(),
-                   rhs33 = (s1*m1.adjoint()) * (s2*rhs3).conjugate());
-
-  // test matrix * selfadjoint
-  m2 = m1.template triangularView<LowerTriangular>();
-  VERIFY_IS_APPROX(rhs22 = (rhs2) * (m2).template selfadjointView<LowerTriangular>(),
-                   rhs23 = (rhs2) * (m1));
-  VERIFY_IS_APPROX(rhs22 = (s2*rhs2) * (s1*m2).template selfadjointView<LowerTriangular>(),
-                   rhs23 = (s2*rhs2) * (s1*m1));
-}
 void test_product_selfadjoint()
 {
   for(int i = 0; i < g_repeat ; i++) {
@@ -164,14 +105,5 @@ void test_product_selfadjoint()
     CALL_SUBTEST( product_selfadjoint(MatrixXd(14,14)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(17,17)) );
     CALL_SUBTEST( product_selfadjoint(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(19, 19)) );
-  }
-
-  for(int i = 0; i < g_repeat ; i++)
-  {
-    int s;
-    s = ei_random<int>(10,320);
-    CALL_SUBTEST( symm(MatrixXf(s, s)) );
-    s = ei_random<int>(10,320);
-    CALL_SUBTEST( symm(MatrixXcd(s, s)) );
   }
 }
