@@ -128,6 +128,16 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     template<typename DerivedU, typename DerivedV>
     void rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
 
+    /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
+      * \f$ this = this + \alpha ( u u^* ) \f$
+      * where \a u is a vector or matrix.
+      *
+      * Note that to perform \f$ this = this + \alpha ( u^* u ) \f$ you can simply
+      * call this function with u.adjoint().
+      */
+    template<typename DerivedU>
+    void rankKupdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+
 /////////// Cholesky module ///////////
 
     const LLT<PlainMatrixType, UpLo> llt() const;

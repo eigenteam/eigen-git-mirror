@@ -140,10 +140,10 @@ struct ei_product_blocking_traits
     HalfRegisterCount = 8,
     #endif
 
-    // register block size along the N direction
+    // register block size along the N direction (must be either 2 or 4)
     nr = HalfRegisterCount/2,
 
-    // register block size along the M direction
+    // register block size along the M direction (this cannot be modified)
     mr = 2 * PacketSize,
 
     // max cache block size along the K direction
