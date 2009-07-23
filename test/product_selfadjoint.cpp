@@ -31,6 +31,8 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::RowsAtCompileTime> RowVectorType;
 
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, Dynamic, RowMajor> RhsMatrixType;
+
   int rows = m.rows();
   int cols = m.cols();
 
@@ -38,31 +40,36 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
              m2 = MatrixType::Random(rows, cols),
              m3;
   VectorType v1 = VectorType::Random(rows),
-             v2 = VectorType::Random(rows);
-
+             v2 = VectorType::Random(rows),
+             v3(rows);
   RowVectorType r1 = RowVectorType::Random(rows),
                 r2 = RowVectorType::Random(rows);
+  RhsMatrixType m4 = RhsMatrixType::Random(rows,10);
 
   Scalar s1 = ei_random<Scalar>(),
          s2 = ei_random<Scalar>(),
          s3 = ei_random<Scalar>();
 
-  m1 = m1.adjoint()*m1;
+  m1 = (m1.adjoint() + m1).eval();
 
   // lower
-  m2.setZero();
-  m2.template triangularView<LowerTriangular>() = m1;
-  ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangularBit>
-    (cols,m2.data(),cols, v1.data(), v2.data());
-  VERIFY_IS_APPROX(v2, m1 * v1);
-  VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>() * v1).eval(), m1 * v1);
+  m2 = m1.template triangularView<LowerTriangular>();
+  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1) * (s2*v1));
+  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.conjugate()) * (s2*v1));
+  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*m4.col(1)), (s1*m1) * (s2*m4.col(1)));
+
+  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*v1.conjugate()), (s1*m1) * (s2*v1.conjugate()));
+  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<LowerTriangular>() * (s2*v1.conjugate()), (s1*m1.conjugate()) * (s2*v1.conjugate()));
 
   // upper
-  m2.setZero();
-  m2.template triangularView<UpperTriangular>() = m1;
-  ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,UpperTriangularBit>(cols,m2.data(),cols, v1.data(), v2.data());
-  VERIFY_IS_APPROX(v2, m1 * v1);
-  VERIFY_IS_APPROX((m2.template selfadjointView<UpperTriangular>() * v1).eval(), m1 * v1);
+  m2 = m1.template triangularView<UpperTriangular>();
+  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*v1), (s1*m1) * (s2*v1));
+  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<UpperTriangular>() * (s2*v1), (s1*m1.conjugate()) * (s2*v1));
+  VERIFY_IS_APPROX(v3 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.adjoint()) * (s2*v1));
+  VERIFY_IS_APPROX(v3 = (s1*m2.transpose()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.transpose()) * (s2*v1));
+
+  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*v1.conjugate()), (s1*m1) * (s2*v1.conjugate()));
+  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<UpperTriangular>() * (s2*v1.conjugate()), (s1*m1.conjugate()) * (s2*v1.conjugate()));
 
   // rank2 update
   m2 = m1.template triangularView<LowerTriangular>();
