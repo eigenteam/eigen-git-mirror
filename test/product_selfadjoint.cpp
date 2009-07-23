@@ -138,6 +138,13 @@ template<typename MatrixType> void symm(const MatrixType& m)
   m2 = m1.template triangularView<UpperTriangular>();
   VERIFY_IS_APPROX(rhs32 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*rhs3).conjugate(),
                    rhs33 = (s1*m1.adjoint()) * (s2*rhs3).conjugate());
+
+  // test matrix * selfadjoint
+  m2 = m1.template triangularView<LowerTriangular>();
+  VERIFY_IS_APPROX(rhs22 = (rhs2) * (m2).template selfadjointView<LowerTriangular>(),
+                   rhs23 = (rhs2) * (m1));
+  VERIFY_IS_APPROX(rhs22 = (s2*rhs2) * (s1*m2).template selfadjointView<LowerTriangular>(),
+                   rhs23 = (s2*rhs2) * (s1*m1));
 }
 void test_product_selfadjoint()
 {
