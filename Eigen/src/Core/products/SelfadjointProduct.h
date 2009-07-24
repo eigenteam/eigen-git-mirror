@@ -150,11 +150,64 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
 
 // optimized SYmmetric packed Block * packed Block product kernel
+template<typename Scalar, int mr, int nr, typename Conj, int UpLo>
+struct ei_sybb_kernel
+{
+  enum {
+    PacketSize = ei_packet_traits<Scalar>::size,
+    BlockSize = EIGEN_ENUM_MAX(mr,nr)
+  };
+  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int actual_mc, int actual_kc, int packet_cols)
+  {
+    ei_gebp_kernel<Scalar, mr, nr, Conj> gebp_kernel;
+    Matrix<Scalar,BlockSize,BlockSize,ColMajor> buffer;
+    
+    // let's process the block per panel of actual_mc x BlockSize,
+    // again, each is split into three parts, etc.
+    for (int j=0; j<actual_mc; j+=BlockSize)
+    {
+      int actualBlockSize = std::min(BlockSize,actual_mc - j);
+      int actualPacketCols = std::min(actualBlockSize,std::max(packet_cols-j,0));
+      const Scalar* actual_b = blockB+j*actual_kc*PacketSize;
+      
+      if(UpLo==UpperTriangular)
+        gebp_kernel(res+j*resStride, resStride, blockA, actual_b,
+                    j, actual_kc, actualPacketCols, 0, actualBlockSize);
+
+      // selfadjoint micro block
+      // => use the gebp kernel on a temporary buffer,
+      //    and then perform a triangular copy
+      {
+        int i = j;
+        buffer.setZero();
+        gebp_kernel(buffer.data(), BlockSize, blockA+actual_kc*i, actual_b,
+                    actualBlockSize, actual_kc, actualPacketCols, 0, actualBlockSize);
+        for(int j1=0; j1<actualBlockSize; ++j1)
+        {
+          Scalar* r = res + (j+j1)*resStride;
+          for(int i1=UpLo==LowerTriangular ? j1 : 0;
+              UpLo==LowerTriangular ? i1<actualBlockSize : i1<=j1; ++j1)
+            r[i1+j1*resStride] = buffer(i1,j1);
+        }
+      }
+      
+      if(UpLo==LowerTriangular)
+      {
+        int i = j+actualBlockSize;
+        if(i<actual_mc)
+          gebp_kernel(res+j*resStride+i, resStride, blockA+actual_kc*i, actual_b,
+                      actual_mc-i, actual_kc, actualPacketCols, 0, actualBlockSize);
+      }
+    }
+  }
+};
+
+// optimized SYmmetric packed Block * packed Block product kernel
 // this kernel is very similar to the gebp kernel: the only differences are
 // the piece of code to avoid the writes off the diagonal
 //  => TODO find a way to factorize the two kernels in a single one
 template<typename Scalar, int mr, int nr, typename Conj, int UpLo>
-struct ei_sybb_kernel
+struct ei_sybb_kernel_
 {
   void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int actual_mc, int actual_kc, int packet_cols)
   {
