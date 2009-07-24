@@ -29,11 +29,11 @@
 template<typename Scalar, int mr, int StorageOrder>
 struct ei_symm_pack_lhs
 {
-  void operator()(Scalar* blockA, const Scalar* _lhs, int lhsStride, int actual_kc, int actual_mc)
+  void operator()(Scalar* blockA, const Scalar* _lhs, int lhsStride, int cols, int rows)
   {
     ei_const_blas_data_mapper<Scalar,StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
-    const int peeled_mc = (actual_mc/mr)*mr;
+    const int peeled_mc = (rows/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
     {
       // normal copy
@@ -51,17 +51,17 @@ struct ei_symm_pack_lhs
         ++h;
       }
       // transposed copy
-      for(int k=i+mr; k<actual_kc; k++)
+      for(int k=i+mr; k<cols; k++)
         for(int w=0; w<mr; w++)
           blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
     }
 
     // do the same with mr==1
-    for(int i=peeled_mc; i<actual_mc; i++)
+    for(int i=peeled_mc; i<rows; i++)
     {
       for(int k=0; k<=i; k++)
         blockA[count++] = lhs(i, k);              // normal
-      for(int k=i+1; k<actual_kc; k++)
+      for(int k=i+1; k<cols; k++)
         blockA[count++] = ei_conj(lhs(k, i));     // transposed
     }
   }
@@ -71,11 +71,12 @@ template<typename Scalar, int nr, int StorageOrder>
 struct ei_symm_pack_rhs
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* _rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols, int k2)
+  void operator()(Scalar* blockB, const Scalar* _rhs, int rhsStride, Scalar alpha, int rows, int cols, int k2)
   {
-    int end_k = k2 + actual_kc;
+    int end_k = k2 + rows;
     int count = 0;
     ei_const_blas_data_mapper<Scalar,StorageOrder> rhs(_rhs,rhsStride);
+    int packet_cols = (cols/nr)*nr;
 
     // first part: normal case
     for(int j2=0; j2<k2; j2+=nr)
@@ -94,7 +95,7 @@ struct ei_symm_pack_rhs
     }
 
     // second part: diagonal block
-    for(int j2=k2; j2<std::min(k2+actual_kc,packet_cols); j2+=nr)
+    for(int j2=k2; j2<std::min(k2+rows,packet_cols); j2+=nr)
     {
       // again we can split vertically in three different parts (transpose, symmetric, normal)
       // transpose
@@ -137,7 +138,7 @@ struct ei_symm_pack_rhs
     }
 
     // third part: transposed
-    for(int j2=k2+actual_kc; j2<packet_cols; j2+=nr)
+    for(int j2=k2+rows; j2<packet_cols; j2+=nr)
     {
       for(int k=k2; k<end_k; k++)
       {
@@ -163,7 +164,7 @@ struct ei_symm_pack_rhs
         count += PacketSize;
       }
       // normal
-      for(int k=half; k<k2+actual_kc; k++)
+      for(int k=half; k<k2+rows; k++)
       {
         ei_pstore(&blockB[count], ei_pset1(alpha*rhs(k,j2)));
         count += PacketSize;
@@ -233,9 +234,6 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
-    // number of columns which can be processed by packet of nr columns
-    int packet_cols = (cols/Blocking::nr)*Blocking::nr;
-
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
 
     for(int k2=0; k2<size; k2+=kc)
@@ -246,7 +244,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
       // pack rhs's panel into a sequential chunk of memory
       // and expand each coeff to a constant packet for further reuse
       ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder>()
-        (blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, packet_cols, cols);
+        (blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
 
       // the select lhs's panel has to be split in three different parts:
       //  1 - the transposed panel above the diagonal block => transposed packed copy
@@ -259,7 +257,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
         ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true>()
           (blockA, &lhs(k2, i2), lhsStride, actual_kc, actual_mc);
 
-        gebp_kernel(res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
+        gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
       // the block diagonal
       {
@@ -268,7 +266,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
         ei_symm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
           (blockA, &lhs(k2,k2), lhsStride, actual_kc, actual_mc);
 
-        gebp_kernel(res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, k2, cols);
+        gebp_kernel(res+k2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
 
       for(int i2=k2+kc; i2<size; i2+=mc)
@@ -277,7 +275,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
         ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder,false>()
           (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
-        gebp_kernel(res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
+        gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
     }
 
@@ -316,9 +314,6 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
-    // number of columns which can be processed by packet of nr columns
-    int packet_cols = (cols/Blocking::nr)*Blocking::nr;
-
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
 
     for(int k2=0; k2<size; k2+=kc)
@@ -326,7 +321,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
       const int actual_kc = std::min(k2+kc,size)-k2;
 
       ei_symm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder>()
-        (blockB, _rhs, rhsStride, alpha, actual_kc, packet_cols, cols, k2);
+        (blockB, _rhs, rhsStride, alpha, actual_kc, cols, k2);
 
       // => GEPP
       for(int i2=0; i2<rows; i2+=mc)
@@ -335,7 +330,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
         ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
           (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
-        gebp_kernel(res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
+        gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
     }
 

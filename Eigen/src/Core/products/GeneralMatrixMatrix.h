@@ -78,9 +78,6 @@ static void run(int rows, int cols, int depth,
   Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
   Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
-  // number of columns which can be processed by packet of nr columns
-  int packet_cols = (cols/Blocking::nr) * Blocking::nr;
-
   // => GEMM_VAR1
   for(int k2=0; k2<depth; k2+=kc)
   {
@@ -89,7 +86,7 @@ static void run(int rows, int cols, int depth,
     // we have selected one row panel of rhs and one column panel of lhs
     // pack rhs's panel into a sequential chunk of memory
     // and expand each coeff to a constant packet for further reuse
-    ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, packet_cols, cols);
+    ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
 
     // => GEPP_VAR1
     for(int i2=0; i2<rows; i2+=mc)
@@ -99,7 +96,7 @@ static void run(int rows, int cols, int depth,
       ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder>()(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
 
       ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
-        (res, resStride, blockA, blockB, actual_mc, actual_kc, packet_cols, i2, cols);
+        (res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
     }
   }
 
@@ -113,19 +110,20 @@ static void run(int rows, int cols, int depth,
 template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel
 {
-  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int actual_mc, int actual_kc, int packet_cols, int i2, int cols)
+  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int rows, int depth, int cols)
   {
     typedef typename ei_packet_traits<Scalar>::type PacketType;
     enum { PacketSize = ei_packet_traits<Scalar>::size };
     Conj cj;
-    const int peeled_mc = (actual_mc/mr)*mr;
+    int packet_cols = (cols/nr) * nr;
+    const int peeled_mc = (rows/mr)*mr;
     // loops on each cache friendly block of the result/rhs
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
       // loops on each register blocking of lhs/res
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*actual_kc];
+        const Scalar* blA = &blockA[i*depth];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -134,20 +132,20 @@ struct ei_gebp_kernel
 
         // gets res block as register
         PacketType C0, C1, C2, C3, C4, C5, C6, C7;
-                  C0 = ei_ploadu(&res[(j2+0)*resStride + i2 + i]);
-                  C1 = ei_ploadu(&res[(j2+1)*resStride + i2 + i]);
-        if(nr==4) C2 = ei_ploadu(&res[(j2+2)*resStride + i2 + i]);
-        if(nr==4) C3 = ei_ploadu(&res[(j2+3)*resStride + i2 + i]);
-                  C4 = ei_ploadu(&res[(j2+0)*resStride + i2 + i + PacketSize]);
-                  C5 = ei_ploadu(&res[(j2+1)*resStride + i2 + i + PacketSize]);
-        if(nr==4) C6 = ei_ploadu(&res[(j2+2)*resStride + i2 + i + PacketSize]);
-        if(nr==4) C7 = ei_ploadu(&res[(j2+3)*resStride + i2 + i + PacketSize]);
+                  C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
+                  C1 = ei_ploadu(&res[(j2+1)*resStride + i]);
+        if(nr==4) C2 = ei_ploadu(&res[(j2+2)*resStride + i]);
+        if(nr==4) C3 = ei_ploadu(&res[(j2+3)*resStride + i]);
+                  C4 = ei_ploadu(&res[(j2+0)*resStride + i + PacketSize]);
+                  C5 = ei_ploadu(&res[(j2+1)*resStride + i + PacketSize]);
+        if(nr==4) C6 = ei_ploadu(&res[(j2+2)*resStride + i + PacketSize]);
+        if(nr==4) C7 = ei_ploadu(&res[(j2+3)*resStride + i + PacketSize]);
 
         // performs "inner" product
         // TODO let's check wether the flowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
-        const Scalar* blB = &blockB[j2*actual_kc*PacketSize];
-        const int peeled_kc = (actual_kc/4)*4;
+        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        const int peeled_kc = (depth/4)*4;
         for(int k=0; k<peeled_kc; k+=4)
         {
           PacketType B0, B1, B2, B3, A0, A1;
@@ -214,7 +212,7 @@ struct ei_gebp_kernel
           blA += 4*mr;
         }
         // process remaining peeled loop
-        for(int k=peeled_kc; k<actual_kc; k++)
+        for(int k=peeled_kc; k<depth; k++)
         {
           PacketType B0, B1, B2, B3, A0, A1;
 
@@ -237,26 +235,26 @@ struct ei_gebp_kernel
           blA += mr;
         }
 
-                  ei_pstoreu(&res[(j2+0)*resStride + i2 + i], C0);
-                  ei_pstoreu(&res[(j2+1)*resStride + i2 + i], C1);
-        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i2 + i], C2);
-        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i2 + i], C3);
-                  ei_pstoreu(&res[(j2+0)*resStride + i2 + i + PacketSize], C4);
-                  ei_pstoreu(&res[(j2+1)*resStride + i2 + i + PacketSize], C5);
-        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i2 + i + PacketSize], C6);
-        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i2 + i + PacketSize], C7);
+                  ei_pstoreu(&res[(j2+0)*resStride + i], C0);
+                  ei_pstoreu(&res[(j2+1)*resStride + i], C1);
+        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i], C2);
+        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i], C3);
+                  ei_pstoreu(&res[(j2+0)*resStride + i + PacketSize], C4);
+                  ei_pstoreu(&res[(j2+1)*resStride + i + PacketSize], C5);
+        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i + PacketSize], C6);
+        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i + PacketSize], C7);
       }
-      for(int i=peeled_mc; i<actual_mc; i++)
+      for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*actual_kc];
+        const Scalar* blA = &blockA[i*depth];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
 
         // gets a 1 x nr res block as registers
         Scalar C0(0), C1(0), C2(0), C3(0);
-        const Scalar* blB = &blockB[j2*actual_kc*PacketSize];
-        for(int k=0; k<actual_kc; k++)
+        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        for(int k=0; k<depth; k++)
         {
           Scalar B0, B1, B2, B3, A0;
 
@@ -272,10 +270,10 @@ struct ei_gebp_kernel
 
           blB += nr*PacketSize;
         }
-        res[(j2+0)*resStride + i2 + i] += C0;
-        res[(j2+1)*resStride + i2 + i] += C1;
-        if(nr==4) res[(j2+2)*resStride + i2 + i] += C2;
-        if(nr==4) res[(j2+3)*resStride + i2 + i] += C3;
+        res[(j2+0)*resStride + i] += C0;
+        res[(j2+1)*resStride + i] += C1;
+        if(nr==4) res[(j2+2)*resStride + i] += C2;
+        if(nr==4) res[(j2+3)*resStride + i] += C3;
       }
     }
 
@@ -285,7 +283,7 @@ struct ei_gebp_kernel
     {
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*actual_kc];
+        const Scalar* blA = &blockA[i*depth];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -294,11 +292,11 @@ struct ei_gebp_kernel
 
         // gets res block as register
         PacketType C0, C4;
-        C0 = ei_ploadu(&res[(j2+0)*resStride + i2 + i]);
-        C4 = ei_ploadu(&res[(j2+0)*resStride + i2 + i + PacketSize]);
+        C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
+        C4 = ei_ploadu(&res[(j2+0)*resStride + i + PacketSize]);
 
-        const Scalar* blB = &blockB[j2*actual_kc*PacketSize];
-        for(int k=0; k<actual_kc; k++)
+        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        for(int k=0; k<depth; k++)
         {
           PacketType B0, A0, A1;
 
@@ -312,22 +310,22 @@ struct ei_gebp_kernel
           blA += mr;
         }
 
-        ei_pstoreu(&res[(j2+0)*resStride + i2 + i], C0);
-        ei_pstoreu(&res[(j2+0)*resStride + i2 + i + PacketSize], C4);
+        ei_pstoreu(&res[(j2+0)*resStride + i], C0);
+        ei_pstoreu(&res[(j2+0)*resStride + i + PacketSize], C4);
       }
-      for(int i=peeled_mc; i<actual_mc; i++)
+      for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*actual_kc];
+        const Scalar* blA = &blockA[i*depth];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
 
         // gets a 1 x 1 res block as registers
         Scalar C0(0);
-        const Scalar* blB = &blockB[j2*actual_kc*PacketSize];
-        for(int k=0; k<actual_kc; k++)
+        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        for(int k=0; k<depth; k++)
           C0 = cj.pmadd(blA[k], blB[k*PacketSize], C0);
-        res[(j2+0)*resStride + i2 + i] += C0;
+        res[(j2+0)*resStride + i] += C0;
       }
     }
   }
@@ -350,19 +348,19 @@ struct ei_gebp_kernel
 template<typename Scalar, int mr, int StorageOrder, bool Conjugate>
 struct ei_gemm_pack_lhs
 {
-  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int actual_kc, int actual_mc)
+  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int depth, int rows)
   {
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
-    const int peeled_mc = (actual_mc/mr)*mr;
+    const int peeled_mc = (rows/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
-      for(int k=0; k<actual_kc; k++)
+      for(int k=0; k<depth; k++)
         for(int w=0; w<mr; w++)
           blockA[count++] = cj(lhs(i+w, k));
-    for(int i=peeled_mc; i<actual_mc; i++)
+    for(int i=peeled_mc; i<rows; i++)
     {
-      for(int k=0; k<actual_kc; k++)
+      for(int k=0; k<depth; k++)
         blockA[count++] = cj(lhs(i, k));
     }
   }
@@ -379,9 +377,10 @@ template<typename Scalar, int nr>
 struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols)
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols)
   {
     bool hasAlpha = alpha != Scalar(1);
+    int packet_cols = (cols/nr) * nr;
     int count = 0;
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
@@ -391,7 +390,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
       const Scalar* b3 = &rhs[(j2+3)*rhsStride];
       if (hasAlpha)
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[k]));
           ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b1[k]));
@@ -405,7 +404,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
       }
       else
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[k]));
           ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b1[k]));
@@ -424,7 +423,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
       const Scalar* b0 = &rhs[(j2+0)*rhsStride];
       if (hasAlpha)
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           ei_pstore(&blockB[count], ei_pset1(alpha*b0[k]));
           count += PacketSize;
@@ -432,7 +431,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
       }
       else
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           ei_pstore(&blockB[count], ei_pset1(b0[k]));
           count += PacketSize;
@@ -447,15 +446,16 @@ template<typename Scalar, int nr>
 struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int actual_kc, int packet_cols, int cols)
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols)
   {
     bool hasAlpha = alpha != Scalar(1);
+    int packet_cols = (cols/nr) * nr;
     int count = 0;
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
       if (hasAlpha)
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
           ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[0]));
@@ -470,7 +470,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
       }
       else
       {
-        for(int k=0; k<actual_kc; k++)
+        for(int k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
           ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[0]));
@@ -488,7 +488,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
     for(int j2=packet_cols; j2<cols; ++j2)
     {
       const Scalar* b0 = &rhs[j2];
-      for(int k=0; k<actual_kc; k++)
+      for(int k=0; k<depth; k++)
       {
         ei_pstore(&blockB[count], ei_pset1(alpha*b0[k*rhsStride]));
         count += PacketSize;
