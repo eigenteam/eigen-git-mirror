@@ -110,10 +110,12 @@ static void run(int rows, int cols, int depth,
 template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel
 {
-  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int rows, int depth, int cols)
+  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int rows, int depth, int cols, int strideA=-1, int strideB=-1, int offsetA=0, int offsetB=0)
   {
     typedef typename ei_packet_traits<Scalar>::type PacketType;
     enum { PacketSize = ei_packet_traits<Scalar>::size };
+    if(strideA==-1) strideA = depth;
+    if(strideB==-1) strideB = depth;
     Conj cj;
     int packet_cols = (cols/nr) * nr;
     const int peeled_mc = (rows/mr)*mr;
@@ -123,7 +125,7 @@ struct ei_gebp_kernel
       // loops on each register blocking of lhs/res
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*depth];
+        const Scalar* blA = &blockA[i*strideA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -144,7 +146,7 @@ struct ei_gebp_kernel
         // performs "inner" product
         // TODO let's check wether the flowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
-        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB*nr];
         const int peeled_kc = (depth/4)*4;
         for(int k=0; k<peeled_kc; k+=4)
         {
@@ -246,14 +248,14 @@ struct ei_gebp_kernel
       }
       for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*depth];
+        const Scalar* blA = &blockA[i*strideA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
 
         // gets a 1 x nr res block as registers
         Scalar C0(0), C1(0), C2(0), C3(0);
-        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB*nr];
         for(int k=0; k<depth; k++)
         {
           Scalar B0, B1, B2, B3, A0;
@@ -283,7 +285,7 @@ struct ei_gebp_kernel
     {
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*depth];
+        const Scalar* blA = &blockA[i*strideA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -295,7 +297,7 @@ struct ei_gebp_kernel
         C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
         C4 = ei_ploadu(&res[(j2+0)*resStride + i + PacketSize]);
 
-        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB];
         for(int k=0; k<depth; k++)
         {
           PacketType B0, A0, A1;
@@ -315,14 +317,14 @@ struct ei_gebp_kernel
       }
       for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*depth];
+        const Scalar* blA = &blockA[i*strideA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
 
         // gets a 1 x 1 res block as registers
         Scalar C0(0);
-        const Scalar* blB = &blockB[j2*depth*PacketSize];
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB];
         for(int k=0; k<depth; k++)
           C0 = cj.pmadd(blA[k], blB[k*PacketSize], C0);
         res[(j2+0)*resStride + i] += C0;
