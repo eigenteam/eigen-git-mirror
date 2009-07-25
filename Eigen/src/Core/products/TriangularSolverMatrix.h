@@ -81,10 +81,8 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
     const Scalar* _lhs, int lhsStride,
           Scalar* _rhs, int rhsStride)
   {
-    Map<Matrix<Scalar,Dynamic,Dynamic,LhsStorageOrder> > lhs(_lhs, size, size);
-    Map<Matrix<Scalar,Dynamic,Dynamic,RhsStorageOrder> > rhs(_rhs, size, cols);
-    //ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
-    //ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
+    ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
+    ei_blas_data_mapper      <Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
@@ -93,17 +91,19 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
     };
 
     int kc = std::min<int>(Blocking::Max_kc/4,size); // cache block size along the K direction
-    int mc = std::min<int>(Blocking::Max_mc,size);  // cache block size along the M direction
+    int mc = std::min<int>(Blocking::Max_mc,size);   // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-//     Scalar* blockB = new Scalar[10*kc*cols*Blocking::PacketSize];
     Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<false,false> > gebp_kernel;
+    ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder> pack_lhs;
 
-    for(int k2=0; k2<size; k2+=kc)
+    for(int k2=IsLowerTriangular ? 0 : size;
+        IsLowerTriangular ? k2<size : k2>0;
+        IsLowerTriangular ? k2+=kc : k2-=kc)
     {
-      const int actual_kc = std::min(k2+kc,size)-k2;
+      const int actual_kc = std::min(IsLowerTriangular ? size-k2 : k2, kc);
 
       // We have selected and packed a big horizontal panel R1 of rhs. Let B be the packed copy of this panel,
       // and R2 the remaining part of rhs. The corresponding vertical panel of lhs is split into
@@ -114,7 +114,7 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
       //  - update B from the new R1  => actually this has to be performed continuously during the above step
       //  - R2 = L2 * B               => GEPP
 
-      // The tricky part: R1 = L1^-1 B while updating B from R1
+      // The tricky part: compute R1 = L1^-1 B while updating B from R1
       // The idea is to split L1 into multiple small vertical panels.
       // Each panel can be split into a small triangular part A1 which is processed without optimization,
       // and the remaining small part A2 which is processed using gebp with appropriate block strides
@@ -122,76 +122,80 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
         // for each small vertical panels of lhs
         for (int k1=0; k1<actual_kc; k1+=SmallPanelWidth)
         {
-          int actualPanelWidth = std::min<int>(SmallPanelWidth,actual_kc-k1);
+          int actualPanelWidth = std::min<int>(actual_kc-k1, SmallPanelWidth);
           // tr solve
           for (int k=0; k<actualPanelWidth; ++k)
           {
-            int i = k2+k1+k;
+            // TODO write a small kernel handling this (can be shared with trsv)
+            int i  = IsLowerTriangular ? k2+k1+k : k2-k1-k-1;
+            int s  = IsLowerTriangular ? k2+k1 : i+1;
             int rs = actualPanelWidth - k - 1; // remaining size
 
             Scalar a = (Mode & UnitDiagBit) ? Scalar(1) : Scalar(1)/lhs(i,i);
             for (int j=0; j<cols; ++j)
             {
-              
               if (LhsStorageOrder==RowMajor)
               {
                 Scalar b = 0;
-                      Scalar* r = &rhs.coeffRef(k2+k1,j);
-                const Scalar* l = &lhs.coeff(i,k2+k1);
+                const Scalar* l = &lhs(i,s);
+                Scalar* r = &rhs(s,j);
                 for (int i3=0; i3<k; ++i3)
                   b += l[i3] * r[i3];
 
-                rhs.coeffRef(i,j) = (rhs.coeffRef(i,j) - b)*a;
+                rhs(i,j) = (rhs(i,j) - b)*a;
               }
               else
               {
-                Scalar b = (rhs.coeffRef(i,j) *= a);
-                      Scalar* r = &rhs.coeffRef(i+1,j);
-                const Scalar* l = &lhs.coeff(i+1,i);
+                int s = IsLowerTriangular ? i+1 : i-rs;
+                Scalar b = (rhs(i,j) *= a);
+                Scalar* r = &rhs(s,j);
+                const Scalar* l = &lhs(s,i);
                 for (int i3=0;i3<rs;++i3)
                   r[i3] -= b * l[i3];
               }
             }
           }
-//             for (int j=0; j<cols; ++j)
-//               lhs.block(k2+k1,k2+k1,actualPanelWidth,actualPanelWidth).template triangularView<LowerTriangular>()
-//                 .solveInPlace(rhs.col(j).segment(k2+k1,actualPanelWidth));
-//           lhs.block(k2+k1,k2+k1,actualPanelWidth,actualPanelWidth).template triangularView<LowerTriangular>()
-//             .solveInPlace(rhs.block(k2+k1,0,actualPanelWidth,cols));
+
+          int lengthTarget = actual_kc-k1-actualPanelWidth;
+          int startBlock   = IsLowerTriangular ? k2+k1 : k2-k1-actualPanelWidth;
+          int blockBOffset = IsLowerTriangular ? k1 : lengthTarget;
 
           // update the respective rows of B from rhs
           ei_gemm_pack_rhs_panel<Scalar, Blocking::nr>()
-            (blockB, _rhs+k2+k1, rhsStride, -1, actualPanelWidth, cols, actual_kc, k1);
+            (blockB, _rhs+startBlock, rhsStride, -1, actualPanelWidth, cols, actual_kc, blockBOffset);
 
           // GEBP
-          int i = k1+actualPanelWidth;
-          int rs = actual_kc-i;
-
-          if (rs>0)
+          if (lengthTarget>0)
           {
-            ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
-                          (blockA, &lhs(k2+i, k2+k1), lhsStride, actualPanelWidth, rs);
+            int startTarget  = IsLowerTriangular ? k2+k1+actualPanelWidth : k2-actual_kc;
 
-            gebp_kernel(_rhs+i+k2, rhsStride,
-                      blockA, blockB, rs, actualPanelWidth, cols, actualPanelWidth, actual_kc, 0, k1*Blocking::PacketSize);
+            pack_lhs(blockA, &lhs(startTarget,startBlock), lhsStride, actualPanelWidth, lengthTarget);
+
+            gebp_kernel(_rhs+startTarget, rhsStride, blockA, blockB, lengthTarget, actualPanelWidth, cols,
+                        actualPanelWidth, actual_kc, 0, blockBOffset*Blocking::PacketSize);
           }
         }
       }
 
-      //  - R2 = A2 * B => GEPP
-      for(int i2=k2+kc; i2<size; i2+=mc)
+      // R2 = A2 * B => GEPP
       {
-        const int actual_mc = std::min(i2+mc,size)-i2;
-        ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
-          (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
-        
-        gebp_kernel(_rhs+i2, rhsStride, blockA, blockB, actual_mc, actual_kc, cols);
+        int start = IsLowerTriangular ? k2+kc : 0;
+        int end   = IsLowerTriangular ? size : k2-kc;
+        for(int i2=start; i2<end; i2+=mc)
+        {
+          const int actual_mc = std::min(mc,end-i2);
+          if (actual_mc>0)
+          {
+            pack_lhs(blockA, &lhs(i2, IsLowerTriangular ? k2 : k2-kc), lhsStride, actual_kc, actual_mc);
+
+            gebp_kernel(_rhs+i2, rhsStride, blockA, blockB, actual_mc, actual_kc, cols);
+          }
+        }
       }
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
     ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
-//     delete[] blockB;
   }
 };
 
