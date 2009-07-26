@@ -50,41 +50,38 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor,1>
     const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
     
     const int size = lhs.cols();
-    for(int c=0 ; c<other.cols() ; ++c)
+    for(int pi=IsLowerTriangular ? 0 : size;
+        IsLowerTriangular ? pi<size : pi>0;
+        IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      for(int pi=IsLowerTriangular ? 0 : size;
-          IsLowerTriangular ? pi<size : pi>0;
-          IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
+      int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
+
+      int r = IsLowerTriangular ? pi : size - pi; // remaining size
+      if (r > 0)
       {
-        int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
+        // let's directly call the low level product function because:
+        // 1 - it is faster to compile
+        // 2 - it is slighlty faster at runtime
+        int startRow = IsLowerTriangular ? pi : pi-actualPanelWidth;
+        int startCol = IsLowerTriangular ? 0 : pi;
+        VectorBlock<Rhs,Dynamic> target(other,startRow,actualPanelWidth);
 
-        int r = IsLowerTriangular ? pi : size - pi; // remaining size
-        if (r > 0)
-        {
-          // let's directly call the low level product function because:
-          // 1 - it is faster to compile
-          // 2 - it is slighlty faster at runtime
-          int startRow = IsLowerTriangular ? pi : pi-actualPanelWidth;
-          int startCol = IsLowerTriangular ? 0 : pi;
-          Block<Rhs,Dynamic,1> target(other,startRow,c,actualPanelWidth,1);
+        ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
+          &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.stride(),
+          &(other.coeffRef(startCol)), r,
+          target, Scalar(-1));
+      }
 
-          ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
-            &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.stride(),
-            &(other.coeffRef(startCol, c)), r,
-            target, Scalar(-1));
-        }
+      for(int k=0; k<actualPanelWidth; ++k)
+      {
+        int i = IsLowerTriangular ? pi+k : pi-k-1;
+        int s = IsLowerTriangular ? pi : i+1;
+        if (k>0)
+          other.coeffRef(i) -= ((lhs.row(i).segment(s,k).transpose())
+                              .cwise()*(other.segment(s,k))).sum();
 
-        for(int k=0; k<actualPanelWidth; ++k)
-        {
-          int i = IsLowerTriangular ? pi+k : pi-k-1;
-          int s = IsLowerTriangular ? pi : i+1;
-          if (k>0)
-            other.coeffRef(i,c) -=        ((lhs.row(i).segment(s,k).transpose())
-                                  .cwise()*(other.col(c).segment(s,k))).sum();
-            
-          if(!(Mode & UnitDiagBit))
-            other.coeffRef(i,c) /= lhs.coeff(i,i);
-        }
+        if(!(Mode & UnitDiagBit))
+          other.coeffRef(i) /= lhs.coeff(i,i);
       }
     }
   }
@@ -107,45 +104,39 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
   {
     static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
-    
+
     const int size = lhs.cols();
-    for(int c=0 ; c<other.cols() ; ++c)
+    for(int pi=IsLowerTriangular ? 0 : size;
+        IsLowerTriangular ? pi<size : pi>0;
+        IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      for(int pi=IsLowerTriangular ? 0 : size;
-          IsLowerTriangular ? pi<size : pi>0;
-          IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
+      int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
+      int startBlock = IsLowerTriangular ? pi : pi-actualPanelWidth;
+      int endBlock = IsLowerTriangular ? pi + actualPanelWidth : 0;
+
+      for(int k=0; k<actualPanelWidth; ++k)
       {
-        int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
-        int startBlock = IsLowerTriangular ? pi : pi-actualPanelWidth;
-        int endBlock = IsLowerTriangular ? pi + actualPanelWidth : 0;
+        int i = IsLowerTriangular ? pi+k : pi-k-1;
+        if(!(Mode & UnitDiagBit))
+          other.coeffRef(i) /= lhs.coeff(i,i);
 
-        for(int k=0; k<actualPanelWidth; ++k)
-        {
-          int i = IsLowerTriangular ? pi+k : pi-k-1;
-          if(!(Mode & UnitDiagBit))
-            other.coeffRef(i,c) /= lhs.coeff(i,i);
-
-          int r = actualPanelWidth - k - 1; // remaining size
-          if (r>0)
-          {
-            other.col(c).segment((IsLowerTriangular ? i+1 : i-r), r) -=
-                  other.coeffRef(i,c)
-                * Block<Lhs,Dynamic,1>(lhs, (IsLowerTriangular ? i+1 : i-r), i, r, 1);
-          }
-        }
-        int r = IsLowerTriangular ? size - endBlock : startBlock; // remaining size
-        if (r > 0)
-        {
-          // let's directly call the low level product function because:
-          // 1 - it is faster to compile
-          // 2 - it is slighlty faster at runtime
-          ei_cache_friendly_product_colmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
-            r,
-            &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.stride(),
-            other.col(c).segment(startBlock, actualPanelWidth),
-            &(other.coeffRef(endBlock, c)),
-            Scalar(-1));
-        }
+        int r = actualPanelWidth - k - 1; // remaining size
+        int s = IsLowerTriangular ? i+1 : i-r;
+        if (r>0)
+          other.segment(s,r) -= other.coeffRef(i) * Block<Lhs,Dynamic,1>(lhs, s, i, r, 1);
+      }
+      int r = IsLowerTriangular ? size - endBlock : startBlock; // remaining size
+      if (r > 0)
+      {
+        // let's directly call the low level product function because:
+        // 1 - it is faster to compile
+        // 2 - it is slighlty faster at runtime
+        ei_cache_friendly_product_colmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
+          r,
+          &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.stride(),
+          other.segment(startBlock, actualPanelWidth),
+          &(other.coeffRef(endBlock, 0)),
+          Scalar(-1));
       }
     }
   }
