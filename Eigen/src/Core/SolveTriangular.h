@@ -29,13 +29,14 @@ template<typename Lhs, typename Rhs,
   int Mode, // can be Upper/Lower | UnitDiag
   int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
                 ? CompleteUnrolling : NoUnrolling,
-  int StorageOrder = int(Lhs::Flags) & RowMajorBit
+  int StorageOrder = int(Lhs::Flags) & RowMajorBit,
+  int RhsCols = Rhs::ColsAtCompileTime
   >
 struct ei_triangular_solver_selector;
 
-// forward and backward substitution, row-major
+// forward and backward substitution, row-major, rhs is a vector
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor>
+struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor,1>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
@@ -89,9 +90,9 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor>
   }
 };
 
-// forward and backward substitution, column-major
+// forward and backward substitution, column-major, rhs is a vector
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor>
+struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
@@ -150,6 +151,24 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor>
   }
 };
 
+template <typename Scalar, int LhsStorageOrder, bool ConjugateLhs, int RhsStorageOrder, int Mode>
+struct ei_triangular_solve_matrix;
+
+// the rhs is a matrix
+template<typename Lhs, typename Rhs, int Mode, int StorageOrder, int RhsCols>
+struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,StorageOrder,RhsCols>
+{
+  typedef typename Rhs::Scalar Scalar;
+  typedef ei_blas_traits<Lhs> LhsProductTraits;
+  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
+  static void run(const Lhs& lhs, Rhs& rhs)
+  {
+    const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
+    ei_triangular_solve_matrix<Scalar,StorageOrder,LhsProductTraits::NeedToConjugate,Rhs::Flags&RowMajorBit,Mode>
+      ::run(lhs.rows(), rhs.cols(), &actualLhs.coeff(0,0), actualLhs.stride(), &rhs.coeffRef(0,0), rhs.stride());
+  }
+};
+
 /***************************************************************************
 * meta-unrolling implementation
 ***************************************************************************/
@@ -184,7 +203,7 @@ struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,true> {
 };
 
 template<typename Lhs, typename Rhs, int Mode, int StorageOrder>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,CompleteUnrolling,StorageOrder> { 
+struct ei_triangular_solver_selector<Lhs,Rhs,Mode,CompleteUnrolling,StorageOrder,1> { 
   static void run(const Lhs& lhs, Rhs& rhs)
   { ei_triangular_solver_unroller<Lhs,Rhs,Mode,0,Rhs::SizeAtCompileTime>::run(lhs,rhs); }
 };

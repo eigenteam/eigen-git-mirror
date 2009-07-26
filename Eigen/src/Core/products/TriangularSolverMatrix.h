@@ -26,63 +26,37 @@
 #define EIGEN_TRIANGULAR_SOLVER_MATRIX_H
 
 template<typename Scalar, int nr>
-struct ei_gemm_pack_rhs_panel
+struct ei_gemm_pack_rhs_panel;
+
+// if the rhs is row major, we have to evaluate it in a temporary colmajor matrix
+template <typename Scalar, int LhsStorageOrder, bool ConjugateLhs, int Mode>
+struct ei_triangular_solve_matrix<Scalar,LhsStorageOrder,ConjugateLhs,RowMajor,Mode>
 {
-  enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols, int stride, int offset)
+  static EIGEN_DONT_INLINE void run(
+    int size, int cols,
+    const Scalar*  lhs, int lhsStride,
+          Scalar* _rhs, int rhsStride)
   {
-    int packet_cols = (cols/nr) * nr;
-    int count = 0;
-    for(int j2=0; j2<packet_cols; j2+=nr)
-    {
-      // skip what we have before
-      count += PacketSize * nr * offset;
-      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
-      const Scalar* b1 = &rhs[(j2+1)*rhsStride];
-      const Scalar* b2 = &rhs[(j2+2)*rhsStride];
-      const Scalar* b3 = &rhs[(j2+3)*rhsStride];
-      for(int k=0; k<depth; k++)
-      {
-                  ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[k]));
-                  ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b1[k]));
-        if(nr==4) ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b2[k]));
-        if(nr==4) ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b3[k]));
-        count += nr*PacketSize;
-      }
-      // skip what we have after
-      count += PacketSize * nr * (stride-offset-depth);
-    }
-    // copy the remaining columns one at a time (nr==1)
-    for(int j2=packet_cols; j2<cols; ++j2)
-    {
-      count += PacketSize * offset;
-      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
-      for(int k=0; k<depth; k++)
-      {
-        ei_pstore(&blockB[count], ei_pset1(alpha*b0[k]));
-        count += PacketSize;
-      }
-      count += PacketSize * (stride-offset-depth);
-    }
+    Map<Matrix<Scalar,Dynamic,Dynamic> > rhs(_rhs, rhsStride, cols);
+    Matrix<Scalar,Dynamic,Dynamic> aux = rhs.block(0,0,size,cols);
+    ei_triangular_solve_matrix<Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,Mode>
+      ::run(size, cols, lhs, lhsStride, aux.data(), aux.stride());
+    rhs.block(0,0,size,cols) = aux;
   }
 };
 
 /* Optimized triangular solver with multiple right hand side (_TRSM)
  */
-template <typename Scalar,
-          int LhsStorageOrder,
-          int RhsStorageOrder,
-          int Mode>
-struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
+template <typename Scalar, int LhsStorageOrder, bool ConjugateLhs, int Mode>
+struct ei_triangular_solve_matrix<Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,Mode>
 {
-
   static EIGEN_DONT_INLINE void run(
     int size, int cols,
     const Scalar* _lhs, int lhsStride,
           Scalar* _rhs, int rhsStride)
   {
     ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
-    ei_blas_data_mapper      <Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
+    ei_blas_data_mapper      <Scalar, ColMajor> rhs(_rhs,rhsStride);
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
@@ -96,7 +70,8 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
 
-    ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<false,false> > gebp_kernel;
+    ei_conj_if<ConjugateLhs> conj;
+    ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,false> > gebp_kernel;
     ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder> pack_lhs;
 
     for(int k2=IsLowerTriangular ? 0 : size;
@@ -131,7 +106,7 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
             int s  = IsLowerTriangular ? k2+k1 : i+1;
             int rs = actualPanelWidth - k - 1; // remaining size
 
-            Scalar a = (Mode & UnitDiagBit) ? Scalar(1) : Scalar(1)/lhs(i,i);
+            Scalar a = (Mode & UnitDiagBit) ? Scalar(1) : Scalar(1)/conj(lhs(i,i));
             for (int j=0; j<cols; ++j)
             {
               if (LhsStorageOrder==RowMajor)
@@ -140,7 +115,7 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
                 const Scalar* l = &lhs(i,s);
                 Scalar* r = &rhs(s,j);
                 for (int i3=0; i3<k; ++i3)
-                  b += l[i3] * r[i3];
+                  b += conj(l[i3]) * r[i3];
 
                 rhs(i,j) = (rhs(i,j) - b)*a;
               }
@@ -151,7 +126,7 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
                 Scalar* r = &rhs(s,j);
                 const Scalar* l = &lhs(s,i);
                 for (int i3=0;i3<rs;++i3)
-                  r[i3] -= b * l[i3];
+                  r[i3] -= b * conj(l[i3]);
               }
             }
           }
@@ -196,6 +171,48 @@ struct ei_triangular_solve_matrix//<Scalar,LhsStorageOrder,RhsStorageOrder>
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
     ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+  }
+};
+
+template<typename Scalar, int nr>
+struct ei_gemm_pack_rhs_panel
+{
+  enum { PacketSize = ei_packet_traits<Scalar>::size };
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols, int stride, int offset)
+  {
+    int packet_cols = (cols/nr) * nr;
+    int count = 0;
+    for(int j2=0; j2<packet_cols; j2+=nr)
+    {
+      // skip what we have before
+      count += PacketSize * nr * offset;
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
+      const Scalar* b1 = &rhs[(j2+1)*rhsStride];
+      const Scalar* b2 = &rhs[(j2+2)*rhsStride];
+      const Scalar* b3 = &rhs[(j2+3)*rhsStride];
+      for(int k=0; k<depth; k++)
+      {
+                  ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[k]));
+                  ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b1[k]));
+        if(nr==4) ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b2[k]));
+        if(nr==4) ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b3[k]));
+        count += nr*PacketSize;
+      }
+      // skip what we have after
+      count += PacketSize * nr * (stride-offset-depth);
+    }
+    // copy the remaining columns one at a time (nr==1)
+    for(int j2=packet_cols; j2<cols; ++j2)
+    {
+      count += PacketSize * offset;
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
+      for(int k=0; k<depth; k++)
+      {
+        ei_pstore(&blockB[count], ei_pset1(alpha*b0[k]));
+        count += PacketSize;
+      }
+      count += PacketSize * (stride-offset-depth);
+    }
   }
 };
 
