@@ -32,7 +32,7 @@
 template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel;
 
-template<typename Scalar, int nr, int StorageOrder>
+template<typename Scalar, int nr, int StorageOrder, bool PanelMode=false>
 struct ei_gemm_pack_rhs;
 
 template<typename Scalar, int mr, int StorageOrder, bool Conjugate = false>

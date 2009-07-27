@@ -125,7 +125,7 @@ struct ei_gebp_kernel
       // loops on each register blocking of lhs/res
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*strideA];
+        const Scalar* blA = &blockA[i*strideA+offsetA*mr];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -248,7 +248,7 @@ struct ei_gebp_kernel
       }
       for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*strideA];
+        const Scalar* blA = &blockA[i*strideA+offsetA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -285,7 +285,7 @@ struct ei_gebp_kernel
     {
       for(int i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*strideA];
+        const Scalar* blA = &blockA[i*strideA+offsetA*mr];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -317,7 +317,7 @@ struct ei_gebp_kernel
       }
       for(int i=peeled_mc; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*strideA];
+        const Scalar* blA = &blockA[i*strideA+offsetA];
         #ifdef EIGEN_VECTORIZE_SSE
         _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
         #endif
@@ -375,17 +375,21 @@ struct ei_gemm_pack_lhs
 //  4  5  6  7   16 17 18 19   25 28
 //  8  9 10 11   20 21 22 23   26 29
 //  .  .  .  .    .  .  .  .    .  .
-template<typename Scalar, int nr>
-struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
+template<typename Scalar, int nr, bool PanelMode>
+struct ei_gemm_pack_rhs<Scalar, nr, ColMajor, PanelMode>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols)
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols,
+                  int stride=0, int offset=0)
   {
+    ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     bool hasAlpha = alpha != Scalar(1);
     int packet_cols = (cols/nr) * nr;
     int count = 0;
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
+      // skip what we have before
+      if(PanelMode) count += PacketSize * nr * offset;
       const Scalar* b0 = &rhs[(j2+0)*rhsStride];
       const Scalar* b1 = &rhs[(j2+1)*rhsStride];
       const Scalar* b2 = &rhs[(j2+2)*rhsStride];
@@ -418,10 +422,13 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
           count += nr*PacketSize;
         }
       }
+      // skip what we have after
+      if(PanelMode) count += PacketSize * nr * (stride-offset-depth);
     }
     // copy the remaining columns one at a time (nr==1)
     for(int j2=packet_cols; j2<cols; ++j2)
     {
+      if(PanelMode) count += PacketSize * offset;
       const Scalar* b0 = &rhs[(j2+0)*rhsStride];
       if (hasAlpha)
       {
@@ -439,34 +446,36 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor>
           count += PacketSize;
         }
       }
+      if(PanelMode) count += PacketSize * (stride-offset-depth);
     }
   }
 };
 
 // this version is optimized for row major matrices
-template<typename Scalar, int nr>
-struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
+template<typename Scalar, int nr, bool PanelMode>
+struct ei_gemm_pack_rhs<Scalar, nr, RowMajor, PanelMode>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols)
+  void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols,
+                  int stride=0, int offset=0)
   {
+    ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     bool hasAlpha = alpha != Scalar(1);
     int packet_cols = (cols/nr) * nr;
     int count = 0;
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
+      // skip what we have before
+      if(PanelMode) count += PacketSize * nr * offset;
       if (hasAlpha)
       {
         for(int k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
-          ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[0]));
-          ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b0[1]));
-          if (nr==4)
-          {
-            ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b0[2]));
-            ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b0[3]));
-          }
+                    ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*b0[0]));
+                    ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*b0[1]));
+          if(nr==4) ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*b0[2]));
+          if(nr==4) ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*b0[3]));
           count += nr*PacketSize;
         }
       }
@@ -475,26 +484,27 @@ struct ei_gemm_pack_rhs<Scalar, nr, RowMajor>
         for(int k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
-          ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[0]));
-          ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b0[1]));
-          if (nr==4)
-          {
-            ei_pstore(&blockB[count+2*PacketSize], ei_pset1(b0[2]));
-            ei_pstore(&blockB[count+3*PacketSize], ei_pset1(b0[3]));
-          }
+                    ei_pstore(&blockB[count+0*PacketSize], ei_pset1(b0[0]));
+                    ei_pstore(&blockB[count+1*PacketSize], ei_pset1(b0[1]));
+          if(nr==4) ei_pstore(&blockB[count+2*PacketSize], ei_pset1(b0[2]));
+          if(nr==4) ei_pstore(&blockB[count+3*PacketSize], ei_pset1(b0[3]));
           count += nr*PacketSize;
         }
       }
+      // skip what we have after
+      if(PanelMode) count += PacketSize * nr * (stride-offset-depth);
     }
     // copy the remaining columns one at a time (nr==1)
     for(int j2=packet_cols; j2<cols; ++j2)
     {
+      if(PanelMode) count += PacketSize * offset;
       const Scalar* b0 = &rhs[j2];
       for(int k=0; k<depth; k++)
       {
         ei_pstore(&blockB[count], ei_pset1(alpha*b0[k*rhsStride]));
         count += PacketSize;
       }
+      if(PanelMode) count += PacketSize * (stride-offset-depth);
     }
   }
 };
