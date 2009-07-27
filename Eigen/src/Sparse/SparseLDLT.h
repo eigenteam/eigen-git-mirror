@@ -333,12 +333,12 @@ bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
     return false;
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.template triangular<LowerTriangular|UnitDiagBit>().solveInPlace(b);
+    m_matrix.template triangular<UnitLowerTriangular>().solveInPlace(b);
   b = b.cwise() / m_diag;
   // FIXME should be .adjoint() but it fails to compile...
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.transpose().template triangular<UpperTriangular|UnitDiagBit>().solveInPlace(b);
+    m_matrix.transpose().template triangular<UnitUpperTriangular>().solveInPlace(b);
 
   return true;
 }

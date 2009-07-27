@@ -309,9 +309,8 @@ struct ei_compute_inverse_with_check<MatrixType, 1>
 {
   static inline bool run(const MatrixType& matrix, MatrixType* result)
   {
-    if( 0 == result->coeffRef(0,0) ) return false;
-  
     typedef typename MatrixType::Scalar Scalar;
+    if( matrix.coeff(0,0) == Scalar(0) ) return false;
     result->coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
     return true;
   }

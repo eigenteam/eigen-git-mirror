@@ -76,10 +76,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   VectorType v3 = VectorType::Random(rows);
   MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
   invertible = m3.computeInverseWithCheck( &m4 );
-  if( 1 == rows ){
-      VERIFY( invertible ); }
-  else{
-      VERIFY( !invertible ); }
+  VERIFY( rows==1 ? invertible : !invertible );
 }
 
 void test_inverse()
