@@ -1,3 +1,5 @@
+#warning deprecated
+/*
 Matrix3d m = Matrix3d::Zero();
 m.part<Eigen::UpperTriangular>().setOnes();
 cout << "Here is the matrix m:" << endl << m << endl;
@@ -7,3 +9,4 @@ cout << "Here is the matrix n:" << endl << n << endl;
 cout << "And now here is m.inverse()*n, taking advantage of the fact that"
         " m is upper-triangular:" << endl
      << m.marked<Eigen::UpperTriangular>().solveTriangular(n);
+*/

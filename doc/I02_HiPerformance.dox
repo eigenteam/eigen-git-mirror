@@ -1,0 +1,101 @@
+
+namespace Eigen {
+
+/** \page HiPerformance Advanced - Using Eigen with high performance
+
+<table class="tutorial_code">
+<tr>
+<td>BLAS equivalent routine</td>
+<td>Efficient version <br> (compile to a single optimized evaluation)</td>
+<td>Less efficient equivalent version <br> (requires multiple evaluations)</td>
+<td>comments</td>
+</tr>
+<tr>
+<td>GEMM</td>
+<td>m1 = s1 * m2 * m3</td>
+<td>m1 = s1 * (m2 * m3)</td>
+<td>This is because m2 * m3 is evaluated by the scalar product.</td>
+</tr>
+<tr>
+<td>GEMM</td>
+<td>m1 += s1 * m2.adjoint() * m3</td>
+<td>m1 += (s1 * m2).adjoint() * m3</td>
+<td>This is because our expression analyser stops at the first transpose expression and cannot extract the nested scalar multiple.</td>
+</tr>
+<tr>
+<td>GEMM</td>
+<td>m1 += m2.adjoint() * m3</td>
+<td>m1 += m2.conjugate().transpose() * m3</td>
+<td>For the same reason. Use .adjoint() or .transpose().conjugate()</td>
+</tr>
+<tr>
+<td>GEMM</td>
+<td>m1 -= (-(s0*m2).conjugate()*s1) * (s2 * m3.adjoint() * s3)</td>
+<td></td>
+<td>Note that s0 is automatically conjugated during the simplification of the expression.</td>
+</tr>
+<tr>
+<td>SYR</td>
+<td>m.sefadjointView<LowerTriangular>().rankUpdate(v,s)</td>
+<td></td>
+<td>Computes m += s * v * v.adjoint()</td>
+</tr>
+<tr>
+<td>SYR2</td>
+<td>m.sefadjointView<LowerTriangular>().rankUpdate(u,v,s)</td>
+<td></td>
+<td>Computes m += s * u * v.adjoint() + s * v * u.adjoint()</td>
+</tr>
+<tr>
+<td>SYRK</td>
+<td>m1.sefadjointView<UpperTriangular>().rankUpdate(m2.adjoint(),s)</td>
+<td></td>
+<td>Computes m1 += s * m2.adjoint() * m2</td>
+</tr>
+<tr>
+<td>SYMM/HEMM</td>
+<td>m3 -= s1 * m1.sefadjointView<UpperTriangular>() * m2.adjoint()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>SYMM/HEMM</td>
+<td>m3 += s1 * m2.transpose() * m1.conjugate().sefadjointView<UpperTriangular>()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>TRMM</td>
+<td>m3 -= s1 * m1.triangularView<UnitUpperTriangular>() * m2.adjoint()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>TRSV / TRSM</td>
+<td>m1.adjoint().triangularView<UnitLowerTriangular>().solveInPlace(m2)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+
+*/
+
+}
