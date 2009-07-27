@@ -63,7 +63,7 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,UpperTriangular>
 };
 
 template<bool Cond, typename T> struct ei_conj_expr_if
-  : ei_meta_if<!Cond, T,
+  : ei_meta_if<!Cond, const T&,
       CwiseUnaryOp<ei_scalar_conjugate_op<typename ei_traits<T>::Scalar>,T> > {};
 
 
