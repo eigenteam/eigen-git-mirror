@@ -46,27 +46,27 @@ template<typename MatrixType> void syrk(const MatrixType& m)
          s2 = ei_random<Scalar>();
 
   m2.setZero();
-  VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>().rankKupdate(rhs2,s1)._expression()),
+  VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs2,s1)._expression()),
                    ((s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<LowerTriangular>().toDense()));
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankKupdate(rhs2,s1)._expression(),
+  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs2,s1)._expression(),
                    (s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<UpperTriangular>().toDense());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankKupdate(rhs1.adjoint(),s1)._expression(),
+  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs1.adjoint(),s1)._expression(),
                    (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<LowerTriangular>().toDense());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankKupdate(rhs1.adjoint(),s1)._expression(),
+  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs1.adjoint(),s1)._expression(),
                    (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<UpperTriangular>().toDense());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankKupdate(rhs3.adjoint(),s1)._expression(),
+  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs3.adjoint(),s1)._expression(),
                    (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<LowerTriangular>().toDense());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankKupdate(rhs3.adjoint(),s1)._expression(),
+  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs3.adjoint(),s1)._expression(),
                    (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<UpperTriangular>().toDense());
 }
 

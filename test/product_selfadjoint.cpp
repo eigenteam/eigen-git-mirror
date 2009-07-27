@@ -52,42 +52,23 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
 
   m1 = (m1.adjoint() + m1).eval();
 
-  // lower
-  m2 = m1.template triangularView<LowerTriangular>();
-  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1) * (s2*v1));
-  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.conjugate()) * (s2*v1));
-  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*m4.col(1)), (s1*m1) * (s2*m4.col(1)));
-
-  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<LowerTriangular>() * (s2*v1.conjugate()), (s1*m1) * (s2*v1.conjugate()));
-  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<LowerTriangular>() * (s2*v1.conjugate()), (s1*m1.conjugate()) * (s2*v1.conjugate()));
-
-  // upper
-  m2 = m1.template triangularView<UpperTriangular>();
-  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*v1), (s1*m1) * (s2*v1));
-  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<UpperTriangular>() * (s2*v1), (s1*m1.conjugate()) * (s2*v1));
-  VERIFY_IS_APPROX(v3 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.adjoint()) * (s2*v1));
-  VERIFY_IS_APPROX(v3 = (s1*m2.transpose()).template selfadjointView<LowerTriangular>() * (s2*v1), (s1*m1.transpose()) * (s2*v1));
-
-  VERIFY_IS_APPROX(v3 = (s1*m2).template selfadjointView<UpperTriangular>() * (s2*v1.conjugate()), (s1*m1) * (s2*v1.conjugate()));
-  VERIFY_IS_APPROX(v3 = (s1*m2.conjugate()).template selfadjointView<UpperTriangular>() * (s2*v1.conjugate()), (s1*m1.conjugate()) * (s2*v1.conjugate()));
-
   // rank2 update
   m2 = m1.template triangularView<LowerTriangular>();
-  m2.template selfadjointView<LowerTriangular>().rank2update(v1,v2);
+  m2.template selfadjointView<LowerTriangular>().rankUpdate(v1,v2);
   VERIFY_IS_APPROX(m2, (m1 + v1 * v2.adjoint()+ v2 * v1.adjoint()).template triangularView<LowerTriangular>().toDense());
 
   m2 = m1.template triangularView<UpperTriangular>();
-  m2.template selfadjointView<UpperTriangular>().rank2update(-v1,s2*v2,s3);
+  m2.template selfadjointView<UpperTriangular>().rankUpdate(-v1,s2*v2,s3);
   VERIFY_IS_APPROX(m2, (m1 + (-s2*s3) * (v1 * v2.adjoint()+ v2 * v1.adjoint())).template triangularView<UpperTriangular>().toDense());
 
   m2 = m1.template triangularView<UpperTriangular>();
-  m2.template selfadjointView<UpperTriangular>().rank2update(-r1.adjoint(),r2.adjoint()*s3,s1);
+  m2.template selfadjointView<UpperTriangular>().rankUpdate(-r1.adjoint(),r2.adjoint()*s3,s1);
   VERIFY_IS_APPROX(m2, (m1 + (-s3*s1) * (r1.adjoint() * r2 + r2.adjoint() * r1)).template triangularView<UpperTriangular>().toDense());
 
   if (rows>1)
   {
     m2 = m1.template triangularView<LowerTriangular>();
-    m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rank2update(v1.end(rows-1),v2.start(cols-1));
+    m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rankUpdate(v1.end(rows-1),v2.start(cols-1));
     m3 = m1;
     m3.block(1,1,rows-1,cols-1) += v1.end(rows-1) * v2.start(cols-1).adjoint()+ v2.start(cols-1) * v1.end(rows-1).adjoint();
     VERIFY_IS_APPROX(m2, m3.template triangularView<LowerTriangular>().toDense());

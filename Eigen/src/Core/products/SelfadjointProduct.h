@@ -126,7 +126,7 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
 SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
-::rankKupdate(const MatrixBase<DerivedU>& u, Scalar alpha)
+::rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha)
 {
   typedef ei_blas_traits<DerivedU> UBlasTraits;
   typedef typename UBlasTraits::DirectLinearAccessType ActualUType;

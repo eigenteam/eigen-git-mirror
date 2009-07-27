@@ -62,13 +62,14 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   // all the expressions in this test should be compiled as a single matrix product
   // TODO: add internal checks to verify that
 
-  VERIFY_IS_APPROX(m1 * m2.adjoint(),  m1 * m2.adjoint().eval());
-  VERIFY_IS_APPROX(m1.adjoint() * square.adjoint(),  m1.adjoint().eval() * square.adjoint().eval());
-  VERIFY_IS_APPROX(m1.adjoint() * m2,  m1.adjoint().eval() * m2);
-  VERIFY_IS_APPROX( (s1 * m1.adjoint()) * m2,  (s1 * m1.adjoint()).eval() * m2);
-  VERIFY_IS_APPROX( (- m1.adjoint() * s1) * (s3 * m2),  (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
-  VERIFY_IS_APPROX( (s2 * m1.adjoint() * s1) * m2,  (s2 * m1.adjoint()  * s1).eval() * m2);
-  VERIFY_IS_APPROX( (-m1*s2) * s1*m2.adjoint(), (-m1*s2).eval() * (s1*m2.adjoint()).eval());
+  VERIFY_IS_APPROX(m3 = (m1 * m2.adjoint()).lazy(),                 m1 * m2.adjoint().eval());
+  VERIFY_IS_APPROX(m3 = (m1.adjoint() * square.adjoint()).lazy(),   m1.adjoint().eval() * square.adjoint().eval());
+  VERIFY_IS_APPROX(m3 = (m1.adjoint() * m2).lazy(),                 m1.adjoint().eval() * m2);
+  VERIFY_IS_APPROX(m3 = ((s1 * m1.adjoint()) * m2).lazy(),          (s1 * m1.adjoint()).eval() * m2);
+  VERIFY_IS_APPROX(m3 = ((- m1.adjoint() * s1) * (s3 * m2)).lazy(), (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
+  VERIFY_IS_APPROX(m3 = ((s2 * m1.adjoint() * s1) * m2).lazy(),     (s2 * m1.adjoint()  * s1).eval() * m2);
+  VERIFY_IS_APPROX(m3 = ((-m1*s2) * s1*m2.adjoint()).lazy(),        (-m1*s2).eval() * (s1*m2.adjoint()).eval());
+
   // a very tricky case where a scale factor has to be automatically conjugated:
   VERIFY_IS_APPROX( m1.adjoint() * (s1*m2).conjugate(), (m1.adjoint()).eval() * ((s1*m2).conjugate()).eval());
 

@@ -41,7 +41,7 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,LowerTriangular>
 //     std::cerr << "lower \n" << u.transpose() << "\n" << v.transpose() << "\n\n";
     for (int i=0; i<size; ++i)
     {
-//       std::cerr << 
+//       std::cerr <<
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
                         (alpha * ei_conj(u.coeff(i))) * v.end(size-i)
                       + (alpha * ei_conj(v.coeff(i))) * u.end(size-i);
@@ -70,13 +70,13 @@ template<bool Cond, typename T> struct ei_conj_expr_if
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU, typename DerivedV>
 SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
-::rank2update(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha)
+::rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha)
 {
   typedef ei_blas_traits<DerivedU> UBlasTraits;
   typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
   typedef typename ei_cleantype<ActualUType>::type _ActualUType;
   const ActualUType actualU = UBlasTraits::extract(u.derived());
-  
+
   typedef ei_blas_traits<DerivedV> VBlasTraits;
   typedef typename VBlasTraits::DirectLinearAccessType ActualVType;
   typedef typename ei_cleantype<ActualVType>::type _ActualVType;
@@ -87,8 +87,8 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit)?1:0 };
   ei_selfadjoint_rank2_update_selector<Scalar,
-    typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret,
-    typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret,
+    typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
+    typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,
     (IsRowMajor ? (UpLo==UpperTriangular ? LowerTriangular : UpperTriangular) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().stride(),actualU,actualV,actualAlpha);
 

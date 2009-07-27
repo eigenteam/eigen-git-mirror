@@ -119,8 +119,8 @@ void test_eigensolver_selfadjoint()
     // very important to test a 3x3 matrix since we provide a special path for it
     CALL_SUBTEST( selfadjointeigensolver(Matrix3f()) );
     CALL_SUBTEST( selfadjointeigensolver(Matrix4d()) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXf(4,4)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(7,7)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXf(10,10)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(17,17)) );
     CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
 
     // some trivial but implementation-wise tricky cases

@@ -63,9 +63,6 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     rhs = r;
   }
 
-  for (int i=0;i<size;i++)
-    res[i] = 0;
-
   int bound = std::max(0,size-8) & 0xfffffffE;
   if (FirstTriangular)
     bound = size - bound;

@@ -224,21 +224,19 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 
       // Apply similarity transformation to remaining columns,
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
-
       matA.col(i).coeffRef(i+1) = 1;
 
-      // hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template part<LowerTriangular|SelfAdjoint>()
-      //                    *  matA.col(i).end(n-i-1)).lazy();
-      // TODO map the above code to the function call below:
-      ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangularBit>
-        (n-i-1,matA.corner(BottomRight,n-i-1,n-i-1).data(), matA.stride(), matA.col(i).end(n-i-1).data(), const_cast<Scalar*>(hCoeffs.end(n-i-1).data()));
+//       hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template selfadjointView<LowerTriangular>()
+//                          * (h * matA.col(i).end(n-i-1)));
 
-      hCoeffs.end(n-i-1) = hCoeffs.end(n-i-1)*h
-                         + (h*ei_conj(h)*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) *
-                           matA.col(i).end(n-i-1);
+      hCoeffs.end(n-i-1).setZero();
+      ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangular,false,false>
+        (n-i-1,matA.corner(BottomRight,n-i-1,n-i-1).data(), matA.stride(), matA.col(i).end(n-i-1).data(), 1, const_cast<Scalar*>(hCoeffs.end(n-i-1).data()), h);
+
+      hCoeffs.end(n-i-1) += (h*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) * matA.col(i).end(n-i-1);
 
       matA.corner(BottomRight, n-i-1, n-i-1).template selfadjointView<LowerTriangular>()
-        .rank2update(matA.col(i).end(n-i-1), hCoeffs.end(n-i-1), -1);
+        .rankUpdate(matA.col(i).end(n-i-1), hCoeffs.end(n-i-1), -1);
 
       // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
       // note: the sequence of the beta values leads to the subdiagonal entries
