@@ -51,7 +51,7 @@ template<typename MatrixType> class HouseholderQR
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -66,14 +66,14 @@ template<typename MatrixType> class HouseholderQR
     {
       compute(matrix);
     }
-        
+
     /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
     const TriangularView<NestByValue<MatrixRBlockType>, UpperTriangular>
     matrixR(void) const
     {
       ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
       int cols = m_qr.cols();
-      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template part<UpperTriangular>();
+      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template triangularView<UpperTriangular>();
     }
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
@@ -95,7 +95,7 @@ template<typename MatrixType> class HouseholderQR
     void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
     MatrixType matrixQ(void) const;
-    
+
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       * in a LAPACK-compatible way.
       */
@@ -113,7 +113,7 @@ template<typename MatrixType> class HouseholderQR
 
 template<typename MatrixType>
 void HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
-{ 
+{
   m_qr = matrix;
   m_hCoeffs.resize(matrix.cols());
 
@@ -185,15 +185,15 @@ void HouseholderQR<MatrixType>::solve(
   const int rows = m_qr.rows();
   ei_assert(b.rows() == rows);
   result->resize(rows, b.cols());
-  
+
   // TODO(keir): There is almost certainly a faster way to multiply by
   // Q^T without explicitly forming matrixQ(). Investigate.
   *result = matrixQ().transpose()*b;
-  
+
   const int rank = std::min(result->rows(), result->cols());
   m_qr.corner(TopLeft, rank, rank)
-      .template marked<UpperTriangular>()
-      .solveTriangularInPlace(result->corner(TopLeft, rank, result->cols()));
+      .template triangularView<UpperTriangular>()
+      .solveInPlace(result->corner(TopLeft, rank, result->cols()));
 }
 
 /** \returns the matrix Q */

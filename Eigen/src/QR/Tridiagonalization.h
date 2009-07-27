@@ -173,8 +173,8 @@ Tridiagonalization<MatrixType>::matrixT(void) const
   matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().template cast<Scalar>().conjugate();
   if (n>2)
   {
-    matT.corner(TopRight,n-2, n-2).template part<UpperTriangular>().setZero();
-    matT.corner(BottomLeft,n-2, n-2).template part<LowerTriangular>().setZero();
+    matT.corner(TopRight,n-2, n-2).template triangularView<UpperTriangular>().setZero();
+    matT.corner(BottomLeft,n-2, n-2).template triangularView<LowerTriangular>().setZero();
   }
   return matT;
 }

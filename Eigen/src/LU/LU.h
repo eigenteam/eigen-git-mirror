@@ -92,7 +92,7 @@ template<typename MatrixType> class LU
                    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
     > ImageResultType;
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -227,7 +227,7 @@ template<typename MatrixType> class LU
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out
       *
-      * \sa MatrixBase::solveTriangular(), kernel(), computeKernel(), inverse(), computeInverse()
+      * \sa TriangularView::solve(), kernel(), computeKernel(), inverse(), computeInverse()
       */
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
@@ -380,7 +380,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
   const int size = matrix.diagonalSize();
   const int rows = matrix.rows();
   const int cols = matrix.cols();
-  
+
   // this formula comes from experimenting (see "LU precision tuning" thread on the list)
   // and turns out to be identical to Higham's formula used already in LDLt.
   m_precision = machine_epsilon<Scalar>() * size;
@@ -486,8 +486,7 @@ void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
     y(-m_lu.corner(TopRight, m_rank, dimker));
 
   m_lu.corner(TopLeft, m_rank, m_rank)
-      .template marked<UpperTriangular>()
-      .solveTriangularInPlace(y);
+      .template triangularView<UpperTriangular>().solveInPlace(y);
 
   for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = y.row(i);
   for(int i = m_rank; i < cols; ++i) result->row(m_q.coeff(i)).setZero();
@@ -552,9 +551,8 @@ bool LU<MatrixType>::solve(
   for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
-  m_lu.corner(Eigen::TopLeft,smalldim,smalldim).template marked<UnitLowerTriangular>()
-    .solveTriangularInPlace(
-      c.corner(Eigen::TopLeft, smalldim, c.cols()));
+  m_lu.corner(Eigen::TopLeft,smalldim,smalldim).template triangularView<UnitLowerTriangular>()
+      .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
   if(rows>cols)
   {
     c.corner(Eigen::BottomLeft, rows-cols, c.cols())
@@ -572,8 +570,8 @@ bool LU<MatrixType>::solve(
           return false;
   }
   m_lu.corner(TopLeft, m_rank, m_rank)
-      .template marked<UpperTriangular>()
-      .solveTriangularInPlace(c.corner(TopLeft, m_rank, c.cols()));
+      .template triangularView<UpperTriangular>()
+      .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
   // Step 4
   result->resize(m_lu.cols(), b.cols());

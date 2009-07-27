@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<typename MatrixType> void product_triangular(const MatrixType& m)
+template<typename MatrixType> void trmv(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -79,14 +79,14 @@ template<typename MatrixType> void product_triangular(const MatrixType& m)
   // TODO check with sub-matrices
 }
 
-void test_product_triangular()
+void test_product_trmv()
 {
   for(int i = 0; i < g_repeat ; i++) {
-    CALL_SUBTEST( product_triangular(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( product_triangular(Matrix<float, 2, 2>()) );
-    CALL_SUBTEST( product_triangular(Matrix3d()) );
-    CALL_SUBTEST( product_triangular(Matrix<std::complex<float>,23, 23>()) );
-    CALL_SUBTEST( product_triangular(MatrixXcd(17,17)) );
-    CALL_SUBTEST( product_triangular(Matrix<float,Dynamic,Dynamic,RowMajor>(19, 19)) );
+    CALL_SUBTEST( trmv(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST( trmv(Matrix<float, 2, 2>()) );
+    CALL_SUBTEST( trmv(Matrix3d()) );
+    CALL_SUBTEST( trmv(Matrix<std::complex<float>,23, 23>()) );
+    CALL_SUBTEST( trmv(MatrixXcd(17,17)) );
+    CALL_SUBTEST( trmv(Matrix<float,Dynamic,Dynamic,RowMajor>(19, 19)) );
   }
 }

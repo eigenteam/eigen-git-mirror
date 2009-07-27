@@ -42,8 +42,7 @@ template<typename MatrixType> void syrk(const MatrixType& m)
   Rhs2 rhs2 = Rhs2::Random(rows, ei_random<int>(1,320));
   Rhs3 rhs3 = Rhs3::Random(ei_random<int>(1,320), rows);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
+  Scalar s1 = ei_random<Scalar>();
 
   m2.setZero();
   VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs2,s1)._expression()),

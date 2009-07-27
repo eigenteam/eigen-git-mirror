@@ -70,7 +70,7 @@ template<typename MatrixType> class PartialLU
              MatrixType::MaxRowsAtCompileTime)
     };
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -99,7 +99,7 @@ template<typename MatrixType> class PartialLU
     {
       ei_assert(m_isInitialized && "PartialLU is not initialized.");
       return m_lu;
-    }    
+    }
 
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
@@ -127,7 +127,7 @@ template<typename MatrixType> class PartialLU
       * Example: \include PartialLU_solve.cpp
       * Output: \verbinclude PartialLU_solve.out
       *
-      * \sa MatrixBase::solveTriangular(), inverse(), computeInverse()
+      * \sa TriangularView::solve(), inverse(), computeInverse()
       */
     template<typename OtherDerived, typename ResultType>
     void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
@@ -235,7 +235,7 @@ void PartialLU<MatrixType>::compute(const MatrixType& matrix)
        * one path
        */
       for(int col = k + 1; col < size; ++col)
-        m_lu.col(col).end(size-k-1) -= m_lu.col(k).end(size-k-1) * m_lu.coeff(k,col); 
+        m_lu.col(col).end(size-k-1) -= m_lu.col(k).end(size-k-1) * m_lu.coeff(k,col);
     }
   }
 
@@ -280,12 +280,10 @@ void PartialLU<MatrixType>::solve(
   for(int i = 0; i < size; ++i) result->row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
-  m_lu.template marked<UnitLowerTriangular>()
-      .solveTriangularInPlace(*result);
+  m_lu.template triangularView<UnitLowerTriangular>().solveInPlace(*result);
 
   // Step 3
-  m_lu.template marked<UpperTriangular>()
-      .solveTriangularInPlace(*result);
+  m_lu.template triangularView<UpperTriangular>().solveInPlace(*result);
 }
 
 /** \lu_module

@@ -76,9 +76,6 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     Scalar* blockB = ei_aligned_stack_new(Scalar, kc*size*Blocking::PacketSize);
 
-    // number of columns which can be processed by packet of nr columns
-    int packet_cols = (size/Blocking::nr)*Blocking::nr;
-
     // note that the actual rhs is the transpose/adjoint of mat
     typedef ei_conj_helper<NumTraits<Scalar>::IsComplex && !AAT, NumTraits<Scalar>::IsComplex && AAT> Conj;
 
