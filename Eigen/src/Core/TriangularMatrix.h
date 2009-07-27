@@ -142,8 +142,10 @@ struct ei_traits<TriangularView<MatrixType, _Mode> > : ei_traits<MatrixType>
   };
 };
 
-template<typename Lhs,typename Rhs>
-struct ei_triangular_vector_product_returntype;
+template<int Mode, bool LhsIsTriangular,
+         typename Lhs, bool LhsIsVector,
+         typename Rhs, bool RhsIsVector>
+struct ei_triangular_product_returntype;
 
 template<typename _MatrixType, unsigned int _Mode> class TriangularView
   : public TriangularBase<TriangularView<_MatrixType, _Mode> >
@@ -247,11 +249,24 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       return res;
     }
 
+    /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
-    ei_triangular_vector_product_returntype<TriangularView,OtherDerived>
+    ei_triangular_product_returntype<Mode,true,MatrixType,false,OtherDerived,OtherDerived::IsVectorAtCompileTime>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
-      return ei_triangular_vector_product_returntype<TriangularView,OtherDerived>(*this, rhs.derived(), 1);
+      return ei_triangular_product_returntype
+              <Mode,true,MatrixType,false,OtherDerived,OtherDerived::IsVectorAtCompileTime>
+              (m_matrix, rhs.derived());
+    }
+
+    /** Efficient vector/matrix times triangular matrix product */
+    template<typename OtherDerived> friend
+    ei_triangular_product_returntype<Mode,false,OtherDerived,OtherDerived::IsVectorAtCompileTime,MatrixType,false>
+    operator*(const MatrixBase<OtherDerived>& lhs, const TriangularView& rhs)
+    {
+      return ei_triangular_product_returntype
+              <Mode,false,OtherDerived,OtherDerived::IsVectorAtCompileTime,MatrixType,false>
+              (lhs.derived(),rhs.m_matrix);
     }
 
     template<typename OtherDerived>

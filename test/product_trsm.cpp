@@ -85,6 +85,7 @@ template<typename Scalar> void trsm(int size,int cols)
   solve_ref(rmLhs.template triangularView<UpperTriangular>(),rmRef);
   VERIFY_IS_APPROX(rmRhs, rmRef);
 }
+
 void test_product_trsm()
 {
   for(int i = 0; i < g_repeat ; i++)

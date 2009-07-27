@@ -113,49 +113,113 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
   }
 };
 
-template<typename Lhs,typename Rhs>
-struct ei_triangular_vector_product_returntype
-  : public ReturnByValue<ei_triangular_vector_product_returntype<Lhs,Rhs>,
+// template<typename Lhs,typename Rhs>
+// struct ei_triangular_vector_product_returntype
+//   : public ReturnByValue<ei_triangular_vector_product_returntype<Lhs,Rhs>,
+//                          Matrix<typename ei_traits<Rhs>::Scalar,
+//                                 Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+// {
+//   typedef typename Lhs::Scalar Scalar;
+//   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+//   ei_triangular_vector_product_returntype(const Lhs& lhs, const Rhs& rhs, Scalar alpha)
+//     : m_lhs(lhs), m_rhs(rhs), m_alpha(alpha)
+//   {}
+// 
+//   template<typename Dest> void evalTo(Dest& dst) const
+//   {
+//     typedef typename Lhs::MatrixType MatrixType;
+//     
+//     typedef ei_blas_traits<MatrixType> LhsBlasTraits;
+//     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+//     typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
+//     const ActualLhsType actualLhs = LhsBlasTraits::extract(m_lhs._expression());
+// 
+//     typedef ei_blas_traits<Rhs> RhsBlasTraits;
+//     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+//     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
+//     const ActualRhsType actualRhs = RhsBlasTraits::extract(m_rhs);
+// 
+//     Scalar actualAlpha = m_alpha * LhsBlasTraits::extractScalarFactor(m_lhs._expression())
+//                                  * RhsBlasTraits::extractScalarFactor(m_rhs);
+//                              
+//     dst.resize(m_rhs.rows(), m_rhs.cols());
+//     dst.setZero();
+//     ei_product_triangular_vector_selector
+//       <_ActualLhsType,_ActualRhsType,Dest,
+//        ei_traits<Lhs>::Mode,
+//        LhsBlasTraits::NeedToConjugate,
+//        RhsBlasTraits::NeedToConjugate,
+//        ei_traits<Lhs>::Flags&RowMajorBit>
+//       ::run(actualLhs,actualRhs,dst,actualAlpha);
+//   }
+// 
+//   const Lhs m_lhs;
+//   const typename Rhs::Nested m_rhs;
+//   const Scalar m_alpha;
+// };
+
+
+/***************************************************************************
+* Wrapper to ei_product_triangular_vector
+***************************************************************************/
+
+template<int Mode, /*bool LhsIsTriangular, */typename Lhs, typename Rhs>
+struct ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>
+  : public ReturnByValue<ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>,
                          Matrix<typename ei_traits<Rhs>::Scalar,
                                 Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
 {
   typedef typename Lhs::Scalar Scalar;
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  ei_triangular_vector_product_returntype(const Lhs& lhs, const Rhs& rhs, Scalar alpha)
-    : m_lhs(lhs), m_rhs(rhs), m_alpha(alpha)
+
+  typedef typename Lhs::Nested LhsNested;
+  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+  typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
+  typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
+
+  typedef typename Rhs::Nested RhsNested;
+  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
+  typedef ei_blas_traits<_RhsNested> RhsBlasTraits;
+  typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
+
+  ei_triangular_product_returntype(const Lhs& lhs, const Rhs& rhs)
+    : m_lhs(lhs), m_rhs(rhs)
   {}
+
+  template<typename Dest> inline void _addTo(Dest& dst) const
+  { evalTo(dst,1); }
+  template<typename Dest> inline void _subTo(Dest& dst) const
+  { evalTo(dst,-1); }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    typedef typename Lhs::MatrixType MatrixType;
-    
-    typedef ei_blas_traits<MatrixType> LhsBlasTraits;
-    typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-    typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
-    const ActualLhsType actualLhs = LhsBlasTraits::extract(m_lhs._expression());
+    dst.resize(m_lhs.rows(), m_rhs.cols());
+    dst.setZero();
+    evalTo(dst,1);
+  }
 
-    typedef ei_blas_traits<Rhs> RhsBlasTraits;
-    typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
-    const ActualRhsType actualRhs = RhsBlasTraits::extract(m_rhs);
+  template<typename Dest> void evalTo(Dest& dst, Scalar alpha) const
+  {
+    const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
+    const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
 
-    Scalar actualAlpha = m_alpha * LhsBlasTraits::extractScalarFactor(m_lhs._expression())
-                                 * RhsBlasTraits::extractScalarFactor(m_rhs);
-                             
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
+                               * RhsBlasTraits::extractScalarFactor(m_rhs);
+
     dst.resize(m_rhs.rows(), m_rhs.cols());
     dst.setZero();
     ei_product_triangular_vector_selector
       <_ActualLhsType,_ActualRhsType,Dest,
-       ei_traits<Lhs>::Mode,
+       Mode,
        LhsBlasTraits::NeedToConjugate,
        RhsBlasTraits::NeedToConjugate,
        ei_traits<Lhs>::Flags&RowMajorBit>
-      ::run(actualLhs,actualRhs,dst,actualAlpha);
+      ::run(lhs,rhs,dst,actualAlpha);
   }
 
-  const Lhs m_lhs;
-  const typename Rhs::Nested m_rhs;
-  const Scalar m_alpha;
+  const LhsNested m_lhs;
+  const RhsNested m_rhs;
 };
 
 #endif // EIGEN_TRIANGULARMATRIXVECTOR_H
