@@ -109,7 +109,7 @@ public :
 
   static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
     //X = (A.template marked<SelfAdjoint|LowerTriangular>() * B)/*.lazy()*/;
-    ei_product_selfadjoint_vector<real,0,LowerTriangularBit>(N,A.data(),N, B.data(), X.data());
+    ei_product_selfadjoint_vector<real,0,LowerTriangularBit,false,false>(N,A.data(),N, B.data(), 1, X.data(), 1);
   }
 
   template<typename Dest, typename Src> static void triassign(Dest& dst, const Src& src)
@@ -186,11 +186,14 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
-    X = L.template marked<LowerTriangular>().solveTriangular(B);
+    X = L.template triangularView<LowerTriangular>().solve(B);
   }
 
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
-    X = L.template marked<LowerTriangular>().solveTriangular(B);
+//     X = L.template triangularView<LowerTriangular>().solve(B);
+    X = B;
+    ei_triangular_solve_matrix<real,ColMajor,ColMajor,LowerTriangular>
+      ::run(L.cols(), X.cols(), L.data(), L.stride(), X.data(), X.stride());
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){

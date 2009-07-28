@@ -133,6 +133,7 @@ static char notrans = 'N';
 static char trans = 'T';
 static char nonunit = 'N';
 static char lower = 'L';
+static char right = 'R';
 static int intone = 1;
 
 template<>
@@ -312,7 +313,7 @@ public :
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix & X, int N){
     #ifdef PUREBLAS
     scopy_(&N, B, &intone, X, &intone);
-    strsv_(&lower, &notrans, &nonunit, &N, L, &N, X, &intone);
+    strsm_(&right, &lower, &notrans, &nonunit, &N, &N, &fone, L, &N, X, &N);
     #else
     cblas_scopy(N, B, 1, X, 1);
     cblas_strsm(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasNonUnit, N, N, 1, L, N, X, N);
