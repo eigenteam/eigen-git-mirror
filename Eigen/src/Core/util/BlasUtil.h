@@ -95,7 +95,9 @@ template<> struct ei_conj_helper<true,true>
   { return std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
-// lightweight helper class to access matrix coefficients
+// Lightweight helper class to access matrix coefficients.
+// Yes, this is somehow redundant with Map<>, but this version is much much lighter,
+// and so I hope better compilation performance (time and code quality).
 template<typename Scalar, int StorageOrder>
 class ei_blas_data_mapper
 {
@@ -120,12 +122,6 @@ class ei_const_blas_data_mapper
     const Scalar* EIGEN_RESTRICT m_data;
     int m_stride;
 };
-
-//
-// template <int L2MemorySize,typename Scalar>
-// struct ei_L2_block_traits {
-//   enum {width = 8 * ei_meta_sqrt<L2MemorySize/(64*sizeof(Scalar))>::ret };
-// };
 
 // Defines various constant controlling level 3 blocking
 template<typename Scalar>
@@ -160,71 +156,93 @@ struct ei_product_blocking_traits
 template<typename XprType> struct ei_blas_traits
 {
   typedef typename ei_traits<XprType>::Scalar Scalar;
-  typedef XprType ActualXprType;
+  typedef const XprType& ExtractType;
+  typedef XprType _ExtractType;
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
     NeedToConjugate = false,
     ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
   };
   typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
-    const ActualXprType&,
-    typename ActualXprType::PlainMatrixType
+    ExtractType,
+    typename _ExtractType::PlainMatrixType
     >::ret DirectLinearAccessType;
-  static inline const ActualXprType& extract(const XprType& x) { return x; }
+  static inline ExtractType extract(const XprType& x) { return x; }
   static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
 };
 
 // pop conjugate
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
+template<typename Scalar, typename NestedXpr>
+struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
  : ei_blas_traits<NestedXpr>
 {
   typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
+  typedef typename Base::ExtractType ExtractType;
 
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
     NeedToConjugate = IsComplex
   };
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x._expression())); }
 };
 
 // pop scalar multiple
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
+template<typename Scalar, typename NestedXpr>
+struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
  : ei_blas_traits<NestedXpr>
 {
   typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  typedef typename Base::ExtractType ExtractType;
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x)
   { return x._functor().m_other * Base::extractScalarFactor(x._expression()); }
 };
 
 // pop opposite
-template<typename Scalar, typename NestedXpr> struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
+template<typename Scalar, typename NestedXpr>
+struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
  : ei_blas_traits<NestedXpr>
 {
   typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(x._expression()); }
+  typedef typename Base::ExtractType ExtractType;
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x)
   { return - Base::extractScalarFactor(x._expression()); }
 };
 
-// pop opposite
-template<typename NestedXpr> struct ei_blas_traits<NestByValue<NestedXpr> >
+// pop NestByValue
+template<typename NestedXpr>
+struct ei_blas_traits<NestByValue<NestedXpr> >
  : ei_blas_traits<NestedXpr>
 {
   typedef typename NestedXpr::Scalar Scalar;
   typedef ei_blas_traits<NestedXpr> Base;
   typedef NestByValue<NestedXpr> XprType;
-  typedef typename Base::ActualXprType ActualXprType;
-  static inline const ActualXprType& extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
+  typedef typename Base::ExtractType ExtractType;
+  static inline ExtractType extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
   static inline Scalar extractScalarFactor(const XprType& x)
   { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
+};
+
+// pop/push transpose
+template<typename NestedXpr>
+struct ei_blas_traits<Transpose<NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef typename NestedXpr::Scalar Scalar;
+  typedef ei_blas_traits<NestedXpr> Base;
+  typedef Transpose<NestedXpr> XprType;
+  typedef Transpose<typename Base::_ExtractType> ExtractType;
+  typedef typename ei_meta_if<int(Base::ActualAccess)==HasDirectAccess,
+    ExtractType,
+    typename ExtractType::PlainMatrixType
+    >::ret DirectLinearAccessType;
+  static inline const ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x._expression()); }
 };
 
 #endif // EIGEN_BLASUTIL_H

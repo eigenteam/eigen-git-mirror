@@ -79,8 +79,6 @@ struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
  */
 template<typename Lhs, typename Rhs> struct ei_product_mode
 {
-  typedef typename ei_blas_traits<Lhs>::ActualXprType ActualLhs;
-  typedef typename ei_blas_traits<Rhs>::ActualXprType ActualRhs;
   enum{
     // workaround sun studio:
     LhsIsVectorAtCompileTime = ei_traits<Lhs>::ColsAtCompileTime==1 || ei_traits<Rhs>::ColsAtCompileTime==1,
@@ -552,14 +550,14 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
   typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
   typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
-  typedef typename RhsProductTraits::ActualXprType ActualRhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
+  typedef typename RhsProductTraits::ExtractType ActualRhsType;
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
   {
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(product.lhs());
-    const ActualRhsType& actualRhs = RhsProductTraits::extract(product.rhs());
+    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
+    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
 
     Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
                                * RhsProductTraits::extractScalarFactor(product.rhs());
@@ -613,14 +611,14 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
   typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
-  typedef typename RhsProductTraits::ActualXprType ActualRhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
+  typedef typename RhsProductTraits::ExtractType ActualRhsType;
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
   {
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(product.lhs());
-    const ActualRhsType& actualRhs = RhsProductTraits::extract(product.rhs());
+    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
+    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
 
     Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
                                * RhsProductTraits::extractScalarFactor(product.rhs());
@@ -659,18 +657,19 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
   typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
   typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
-  typedef typename RhsProductTraits::ActualXprType ActualRhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
+  typedef typename RhsProductTraits::ExtractType ActualRhsType;
+  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
   enum {
-      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (ActualRhsType::Flags&ActualPacketAccessBit))
-                     && (!(ActualRhsType::Flags & RowMajorBit)) };
+      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
+                     && (!(_ActualRhsType::Flags & RowMajorBit)) };
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
   {
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(product.lhs());
-    const ActualRhsType& actualRhs = RhsProductTraits::extract(product.rhs());
+    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
+    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
 
     Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
                                * RhsProductTraits::extractScalarFactor(product.rhs());
@@ -681,7 +680,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
     else
     {
       _rhs = ei_aligned_stack_new(Scalar, actualRhs.size());
-      Map<Matrix<Scalar,ActualRhsType::SizeAtCompileTime,1> >(_rhs, actualRhs.size()) = actualRhs;
+      Map<Matrix<Scalar,_ActualRhsType::SizeAtCompileTime,1> >(_rhs, actualRhs.size()) = actualRhs;
     }
 
     ei_cache_friendly_product_rowmajor_times_vector
@@ -702,18 +701,19 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
   typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
 
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
-  typedef typename RhsProductTraits::ActualXprType ActualRhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
+  typedef typename RhsProductTraits::ExtractType ActualRhsType;
+  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
 
   enum {
-      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (ActualLhsType::Flags&ActualPacketAccessBit))
-                     && (ActualLhsType::Flags & RowMajorBit) };
+      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (_ActualLhsType::Flags&ActualPacketAccessBit))
+                     && (_ActualLhsType::Flags & RowMajorBit) };
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
   {
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(product.lhs());
-    const ActualRhsType& actualRhs = RhsProductTraits::extract(product.rhs());
+    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
+    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
 
     Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
                                * RhsProductTraits::extractScalarFactor(product.rhs());
@@ -724,7 +724,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     else
     {
       _lhs = ei_aligned_stack_new(Scalar, actualLhs.size());
-      Map<Matrix<Scalar,ActualLhsType::SizeAtCompileTime,1> >(_lhs, actualLhs.size()) = actualLhs;
+      Map<Matrix<Scalar,_ActualLhsType::SizeAtCompileTime,1> >(_lhs, actualLhs.size()) = actualLhs;
     }
 
     ei_cache_friendly_product_rowmajor_times_vector

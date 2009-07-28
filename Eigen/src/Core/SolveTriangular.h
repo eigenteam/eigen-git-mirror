@@ -40,14 +40,14 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor,1>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
   enum {
     IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit)
   };
   static void run(const Lhs& lhs, Rhs& other)
   {
     static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
+    ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     
     const int size = lhs.cols();
     for(int pi=IsLowerTriangular ? 0 : size;
@@ -94,7 +94,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
+  typedef typename LhsProductTraits::ExtractType ActualLhsType;
   enum {
     PacketSize =  ei_packet_traits<Scalar>::size,
     IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit)
@@ -103,7 +103,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
   static void run(const Lhs& lhs, Rhs& other)
   {
     static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
+    ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
 
     const int size = lhs.cols();
     for(int pi=IsLowerTriangular ? 0 : size;
@@ -151,10 +151,10 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,StorageOrder,RhsCo
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
-  typedef typename LhsProductTraits::ActualXprType ActualLhsType;
+  typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
   static void run(const Lhs& lhs, Rhs& rhs)
   {
-    const ActualLhsType& actualLhs = LhsProductTraits::extract(lhs);
+    const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     ei_triangular_solve_matrix<Scalar,StorageOrder,LhsProductTraits::NeedToConjugate,Rhs::Flags&RowMajorBit,Mode>
       ::run(lhs.rows(), rhs.cols(), &actualLhs.coeff(0,0), actualLhs.stride(), &rhs.coeffRef(0,0), rhs.stride());
   }

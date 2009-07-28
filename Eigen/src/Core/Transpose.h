@@ -116,6 +116,10 @@ template<typename MatrixType> class Transpose
       m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 
+    /** \internal used for introspection */
+    const typename ei_cleantype<typename MatrixType::Nested>::type&
+    _expression() const { return m_matrix; }
+
   protected:
     const typename MatrixType::Nested m_matrix;
 };

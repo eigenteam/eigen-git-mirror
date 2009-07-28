@@ -344,13 +344,6 @@ struct ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
   typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-//   enum {
-//     LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit),
-//     LhsIsTriangular = (LhsMode&SelfAdjointBit)==SelfAdjointBit,
-//     RhsUpLo = RhsMode&(UpperTriangularBit|LowerTriangularBit),
-//     RhsIsSelfAdjoint = (RhsMode&SelfAdjointBit)==SelfAdjointBit
-//   };
-
   template<typename Dest> inline void _addTo(Dest& dst) const
   { evalTo(dst,1); }
   template<typename Dest> inline void _subTo(Dest& dst) const
