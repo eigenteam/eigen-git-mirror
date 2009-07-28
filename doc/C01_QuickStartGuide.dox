@@ -24,6 +24,7 @@ namespace Eigen {
   - \ref TutorialCoreTransposeAdjoint
   - \ref TutorialCoreDotNorm
   - \ref TutorialCoreTriangularMatrix
+  - \ref TutorialCoreSelfadjointMatrix
   - \ref TutorialCoreSpecialTopics
 \n
 
@@ -577,35 +578,88 @@ vec1.normalize();\endcode
 
 <a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
 
-Read/write access to special parts of a matrix can be achieved. See \link MatrixBase::part() const this \endlink for read access and \link MatrixBase::part() this \endlink for write access..
+Currently, Eigen does not provide any explcit triangular matrix, with storage class. Instead, we
+can reference a triangular part of a square matrix or expression to perform special treatment on it.
+This is achieved by the class TriangularView and the MatrixBase::triangularView template function.
+Note that the opposite triangular part of  the matrix is never referenced, and so it can, e.g., store
+a second triangular matrix.
 
 <table class="tutorial_code">
 <tr><td>
-Extract triangular matrices \n from a given matrix m:
+Reference a read/write triangular part of a given \n
+matrix (or expression) m with optional unit diagonal:
 </td><td>\code
-m.part<Eigen::UpperTriangular>()
-m.part<Eigen::StrictlyUpperTriangular>()
-m.part<Eigen::UnitUpperTriangular>()
-m.part<Eigen::LowerTriangular>()
-m.part<Eigen::StrictlyLowerTriangular>()
-m.part<Eigen::UnitLowerTriangular>()\endcode
+m.triangularView<Eigen::UpperTriangular>()
+m.triangularView<Eigen::UnitUpperTriangular>()
+m.triangularView<Eigen::LowerTriangular>()
+m.triangularView<Eigen::UnitLowerTriangular>()\endcode
 </td></tr>
 <tr><td>
-Write to triangular parts \n of a matrix m:
+Writting to a specific triangular part:\n (only the referenced triangular part is evaluated)
 </td><td>\code
-m1.part<Eigen::UpperTriangular>() = m2;
-m1.part<Eigen::StrictlyUpperTriangular>() = m2;
-m1.part<Eigen::LowerTriangular>() = m2;
-m1.part<Eigen::StrictlyLowerTriangular>() = m2;\endcode
+m1.triangularView<Eigen::LowerTriangular>() = m2 + m3 \endcode
 </td></tr>
 <tr><td>
-Special: take advantage of symmetry \n (selfadjointness) when copying \n an expression into a matrix
+Convertion to a dense matrix setting the opposite triangular part to zero:
 </td><td>\code
-m.part<Eigen::SelfAdjoint>() = someSelfadjointMatrix;
-m1.part<Eigen::SelfAdjoint>() = m2 + m2.adjoint(); // m2 + m2.adjoint() is selfadjoint \endcode
+m2 = m1.triangularView<Eigen::UnitUpperTriangular>()\endcode
 </td></tr>
+<tr><td>
+Products:
+</td><td>\code
+m3 += s1 * m1.adjoint().triangularView<Eigen::UnitUpperTriangular>() * m2
+m3 -= s1 * m2.conjugate() * m1.adjoint().triangularView<Eigen::LowerTriangular>() \endcode
+</td></tr>
+<tr><td>
+Solving linear equations:\n(\f$ m_2 := m_1^{-1} m_2 \f$)
+</td><td>\code
+m1.triangularView<Eigen::UnitLowerTriangular>().solveInPlace(m2)
+m1.adjoint().triangularView<Eigen::UpperTriangular>().solveInPlace(m2)\endcode
+</td></tr>
+</table>
 
 
+<a href="#" class="top">top</a>\section TutorialCoreSelfadjointMatrix Dealing with symmetric/selfadjoint matrices
+
+Just as for triangular matrix, you can reference any triangular part of a square matrix to see it a selfadjoint
+matrix to perform special and optimized operations. Again the opposite triangular is never referenced and can be
+used to store other information.
+
+<table class="tutorial_code">
+<tr><td>
+Conversion to a dense matrix:
+</td><td>\code
+m2 = m.selfadjointView<Eigen::LowerTriangular>();\endcode
+</td></tr>
+<tr><td>
+Product with another general matrix or vector:
+</td><td>\code
+m3  = s1 * m1.conjugate().selfadjointView<Eigen::UpperTriangular>() * m3;
+m3 -= s1 * m3.adjoint() * m1.selfadjointView<Eigen::UpperTriangular>();\endcode
+</td></tr>
+<tr><td>
+Rank 1 and rank K update:
+</td><td>\code
+// fast version of m1 += s1 * m2 * m2.adjoint():
+m1.selfadjointView<Eigen::UpperTriangular>().rankUpdate(m2,s1);
+// fast version of m1 -= m2.adjoint() * m2:
+m1.selfadjointView<Eigen::LowerTriangular>().rankUpdate(m2.adjoint(),-1); \endcode
+</td></tr>
+<tr><td>
+Rank 2 update: (\f$ m += s u v^* + s v u^* \f$)
+</td><td>\code
+m.selfadjointView<Eigen::UpperTriangular>().rankUpdate(u,v,s);
+\endcode
+</td></tr>
+<tr><td>
+Solving linear equations:\n(\f$ m_2 := m_1^{-1} m_2 \f$)
+</td><td>\code
+// via a standard Cholesky factorization
+m1.selfadjointView<Eigen::UpperTriangular>().llt().solveInPlace(m2);
+// via a Cholesky factorization with pivoting
+m1.selfadjointView<Eigen::UpperTriangular>().ldlt().solveInPlace(m2);
+\endcode
+</td></tr>
 </table>
 
 
