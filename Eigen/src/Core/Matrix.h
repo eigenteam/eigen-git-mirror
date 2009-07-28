@@ -334,7 +334,10 @@ class Matrix
 
     template<typename OtherDerived,typename OtherEvalType>
     EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func)
-    { return Base::operator=(func); }
+    {
+      resize(func.rows(), func.cols());
+      return Base::operator=(func);
+    }
 
     using Base::operator +=;
     using Base::operator -=;
@@ -438,6 +441,7 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
     {
       _check_template_params();
+      resize(other.rows(), other.cols());
       other.evalTo(*this);
     }
     /** Destructor */

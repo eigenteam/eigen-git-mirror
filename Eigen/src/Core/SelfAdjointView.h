@@ -228,6 +228,9 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
+  inline int rows() const { return m_lhs.rows(); }
+  inline int cols() const { return m_lhs.cols(); }
+
   template<typename Dest> inline void _addTo(Dest& dst) const
   { evalTo(dst,1); }
   template<typename Dest> inline void _subTo(Dest& dst) const
@@ -277,6 +280,9 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
   ei_selfadjoint_product_returntype(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
+
+  inline int rows() const { return m_lhs.rows(); }
+  inline int cols() const { return m_lhs.cols(); }
 
   typedef typename Lhs::Scalar Scalar;
 

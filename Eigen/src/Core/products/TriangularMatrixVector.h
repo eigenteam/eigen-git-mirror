@@ -141,6 +141,9 @@ struct ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
+  inline int rows() const { return m_lhs.rows(); }
+  inline int cols() const { return m_lhs.cols(); }
+
   template<typename Dest> inline void _addTo(Dest& dst) const
   { evalTo(dst,1); }
   template<typename Dest> inline void _subTo(Dest& dst) const

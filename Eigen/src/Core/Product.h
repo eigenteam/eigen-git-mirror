@@ -294,7 +294,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 template<typename Derived>
 template<typename OtherDerived>
 inline Derived &
-MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
+MatrixBase<Derived>::operator*=(const MultiplierBase<OtherDerived> &other)
 {
   return derived() = derived() * other.derived();
 }

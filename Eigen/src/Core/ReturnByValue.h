@@ -76,6 +76,8 @@ template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int
     { EvalType res; evalTo(res); dst += res; }
     template<typename Dest> inline void _subTo(Dest& dst) const
     { EvalType res; evalTo(res); dst -= res; }
+    inline int rows() const { return static_cast<const Functor* const>(this)->rows(); }
+    inline int cols() const { return static_cast<const Functor* const>(this)->cols(); }
 };
 
 template<typename Derived>

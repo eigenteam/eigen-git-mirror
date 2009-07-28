@@ -330,6 +330,9 @@ struct ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
+  inline int rows() const { return m_lhs.rows(); }
+  inline int cols() const { return m_lhs.cols(); }
+
   typedef typename Lhs::Scalar Scalar;
 
   typedef typename Lhs::Nested LhsNested;

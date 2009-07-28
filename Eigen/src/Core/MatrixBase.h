@@ -409,15 +409,8 @@ template<typename Derived> class MatrixBase
     const typename ProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
-    /** replaces \c *this by \c *this * \a other.
-      *
-      * \returns a reference to \c *this
-      */
     template<typename OtherDerived>
-    Derived& operator*=(const MultiplierBase<OtherDerived>& other)
-    {
-      return *this = *this * other.derived();
-    }
+    Derived& operator*=(const MultiplierBase<OtherDerived>& other);
 
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>

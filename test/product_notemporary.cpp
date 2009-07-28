@@ -102,9 +102,13 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
 
   VERIFY_EVALUATION_COUNT(( m3.block(r0,r0,r1,r1) += m1.block(r0,r0,r1,r1).template selfadjointView<UpperTriangular>() * (s1*m2.block(c0,r0,c1,r1)) ), 0);
   VERIFY_EVALUATION_COUNT(( m3.block(r0,r0,r1,r1) = m1.block(r0,r0,r1,r1).template selfadjointView<UpperTriangular>() * m2.block(c0,r0,c1,r1) ), 0);
-  VERIFY_EVALUATION_COUNT(( m3 = m1.block(r0,r0,r1,r1).template selfadjointView<LowerTriangular>() * m2.block(c0,r0,c1,r1) ), 0);
 
   VERIFY_EVALUATION_COUNT( m3.template selfadjointView<LowerTriangular>().rankUpdate(m2.adjoint()), 0);
+
+  m3.resize(1,1);
+  VERIFY_EVALUATION_COUNT(( m3 = m1.block(r0,r0,r1,r1).template selfadjointView<LowerTriangular>() * m2.block(c0,r0,c1,r1) ), 0);
+  m3.resize(1,1);
+  VERIFY_EVALUATION_COUNT(( m3 = m1.block(r0,r0,r1,r1).template triangularView<UnitUpperTriangular>()  * m2.block(c0,r0,c1,r1) ), 0);
 }
 
 void test_product_notemporary()

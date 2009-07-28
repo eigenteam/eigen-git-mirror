@@ -173,14 +173,16 @@ template<typename Derived> class MapBase
 
     using Base::operator=;
     using Base::operator*=;
+    using Base::operator+=;
+    using Base::operator-=;
 
-    template<typename Lhs,typename Rhs>
-    Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-    { return Base::operator+=(other); }
-
-    template<typename Lhs,typename Rhs>
-    Derived& operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-    { return Base::operator-=(other); }
+//     template<typename Lhs,typename Rhs>
+//     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+//     { return Base::operator+=(other); }
+// 
+//     template<typename Lhs,typename Rhs>
+//     Derived& operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+//     { return Base::operator-=(other); }
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
