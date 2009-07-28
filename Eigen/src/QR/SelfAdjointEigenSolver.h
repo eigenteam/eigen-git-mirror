@@ -383,18 +383,24 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
       int kn1 = (k+1)*n;
       #endif
       // let's do the product manually to avoid the need of temporaries...
-      for (int i=0; i<n; ++i)
-      {
-        #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-        Scalar matrixQ_i_k = matrixQ[i*n+k];
-        matrixQ[i*n+k]   = c * matrixQ_i_k - s * matrixQ[i*n+k+1];
-        matrixQ[i*n+k+1] = s * matrixQ_i_k + c * matrixQ[i*n+k+1];
-        #else
-        Scalar matrixQ_i_k = matrixQ[i+kn];
-        matrixQ[i+kn]  = c * matrixQ_i_k - s * matrixQ[i+kn1];
-        matrixQ[i+kn1] = s * matrixQ_i_k + c * matrixQ[i+kn1];
-        #endif
-      }
+      Matrix<Scalar,Dynamic,1> aux = Map<Matrix<Scalar,Dynamic,1>, ForceAligned >(matrixQ+kn,n);
+      Map<Matrix<Scalar,Dynamic,1>, ForceAligned >(matrixQ+kn,n)
+        = Map<Matrix<Scalar,Dynamic,1>, ForceAligned >(matrixQ+kn,n) * c - s * Map<Matrix<Scalar,Dynamic,1> >(matrixQ+kn1,n);
+
+      Map<Matrix<Scalar,Dynamic,1>, ForceAligned >(matrixQ+kn1,n)
+        = Map<Matrix<Scalar,Dynamic,1>, ForceAligned >(matrixQ+kn1,n) * c - s * aux;//Map<Matrix<Scalar,Dynamic,1> >(matrixQ+kn,n);
+//       for (int i=0; i<n; ++i)
+//       {
+//         #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+//         Scalar matrixQ_i_k = matrixQ[i*n+k];
+//         matrixQ[i*n+k]   = c * matrixQ_i_k - s * matrixQ[i*n+k+1];
+//         matrixQ[i*n+k+1] = s * matrixQ_i_k + c * matrixQ[i*n+k+1];
+//         #else
+//         Scalar matrixQ_i_k = matrixQ[i+kn];
+//         matrixQ[i+kn]  = c * matrixQ_i_k - s * matrixQ[i+kn1];
+//         matrixQ[i+kn1] = s * matrixQ_i_k + c * matrixQ[i+kn1];
+//         #endif
+//       }
     }
   }
 }

@@ -571,9 +571,15 @@ class Matrix
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix& _set(const MatrixBase<OtherDerived>& other)
     {
-      _resize_to_match(other);
-      return Base::operator=(other);
+      _set_selector(other.derived(), typename ei_meta_if<(int(OtherDerived::Flags) & EvalBeforeAssigningBit), ei_meta_true, ei_meta_false>::ret());
+      return *this;
     }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_true&) { _set_noalias(other.eval()); }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_false&) { _set_noalias(other); }
 
     /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
       * is the case when creating a new matrix) so one can enforce lazy evaluation.

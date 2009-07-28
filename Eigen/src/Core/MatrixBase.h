@@ -437,6 +437,7 @@ template<typename Derived> class MatrixBase
     RealScalar norm() const;
     RealScalar stableNorm() const;
     RealScalar blueNorm() const;
+    RealScalar hypotNorm() const;
     const PlainMatrixType normalized() const;
     void normalize();
 

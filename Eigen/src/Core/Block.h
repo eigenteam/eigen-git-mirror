@@ -33,8 +33,8 @@
   * \param MatrixType the type of the object in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param _PacketAccess allows to enforce aligned loads and stores if set to ForceAligned.
-  *                      The default is AsRequested. This parameter is internaly used by Eigen
+  * \param _PacketAccess allows to enforce aligned loads and stores if set to \b ForceAligned.
+  *                      The default is \b AsRequested. This parameter is internaly used by Eigen
   *                      in expressions such as \code mat.block() += other; \endcode and most of
   *                      the time this is the only way it is used.
   * \param _DirectAccessStatus \internal used for partial specialization

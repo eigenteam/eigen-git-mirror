@@ -70,9 +70,7 @@ template<> struct NumTraits<float>
     HasFloatingPoint = 1,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
-    Base = 2,
-    Mantissa = 23
+    MulCost = 1
   };
 };
 
@@ -85,9 +83,7 @@ template<> struct NumTraits<double>
     HasFloatingPoint = 1,
     ReadCost = 1,
     AddCost = 1,
-    MulCost = 1,
-    Base = 2,
-    Mantissa = 52
+    MulCost = 1
   };
 };
 

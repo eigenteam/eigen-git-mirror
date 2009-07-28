@@ -161,6 +161,7 @@ namespace Eigen {
 #include "src/Core/CwiseNullaryOp.h"
 #include "src/Core/CwiseUnaryView.h"
 #include "src/Core/Dot.h"
+#include "src/Core/StableNorm.h"
 #include "src/Core/MapBase.h"
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"

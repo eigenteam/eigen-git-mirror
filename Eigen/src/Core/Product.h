@@ -287,6 +287,18 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
+/** replaces \c *this by \c *this * \a other.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline Derived &
+MatrixBase<Derived>::operator*=(const MatrixBase<OtherDerived> &other)
+{
+  return derived() = derived() * other.derived();
+}
+
 /***************************************************************************
 * Normal product .coeff() implementation (with meta-unrolling)
 ***************************************************************************/
