@@ -63,6 +63,14 @@ handled by a single GEMM-like call are correctly detected.
     Make sure the matrix product is the top most expression.</td>
 </tr>
 <tr>
+<td>\code m1 += s1 * (m2 * m3).lazy(); \endcode</td>
+<td>\code m1 += s1 * m2 * m3; // using a naive product \endcode</td>
+<td>\code m1 += (s1 * m2 * m3).lazy(); \endcode</td>
+<td>Even though this expression is evaluated without temporary, it is actually even
+    worse than the previous case because here the .lazy() enforces Eigen to use a
+    naive (and slow) evaluation of the product.</td>
+</tr>
+<tr>
 <td>\code m1 = m1 + m2 * m3; \endcode</td>
 <td>\code temp = (m2 * m3).lazy(); m1 = m1 + temp; \endcode</td>
 <td>\code m1 += (m2 * m3).lazy(); \endcode</td>
@@ -70,24 +78,12 @@ handled by a single GEMM-like call are correctly detected.
     and so the matrix product will be immediately evaluated.</td>
 </tr>
 <tr>
-<td>\code m1 += ((s1 * m2).transpose() * m3).lazy(); \endcode</td>
-<td>\code temp = (s1*m2).transpose(); m1 = (temp * m3).lazy(); \endcode</td>
-<td>\code m1 += (s1 * m2.transpose() * m3).lazy(); \endcode</td>
-<td>This is because our expression analyzer stops at the first expression which cannot
-    be converted to a scalar multiple of a conjugate and therefore the nested scalar
-    multiple cannot be properly extracted.</td>
-</tr>
-<tr>
-<td>\code m1 += (m2.conjugate().transpose() * m3).lazy(); \endcode</td>
-<td>\code temp = m2.conjugate().transpose(); m1 += (temp * m3).lazy(); \endcode</td>
-<td>\code m1 += (m2.adjoint() * m3).lazy(); \endcode</td>
-<td>Same reason. Use .adjoint() or .transpose().conjugate()</td>
-</tr>
-<tr>
 <td>\code m1 += ((s1*m2).block(....) * m3).lazy(); \endcode</td>
 <td>\code temp = (s1*m2).block(....); m1 += (temp * m3).lazy(); \endcode</td>
 <td>\code m1 += (s1 * m2.block(....) * m3).lazy(); \endcode</td>
-<td>Same reason.</td>
+<td>This is because our expression analyzer is currently not able to extract trivial
+    expressions nested in a Block expression. Therefore the nested scalar
+    multiple cannot be properly extracted.</td>
 </tr>
 </table>
 
@@ -129,7 +125,7 @@ Of course all these remarks hold for all other kind of products that we will des
 </tr>
 <tr>
 <td>SYR</td>
-<td>m.seductive<LowerTriangular>().rankUpdate(v,s)</td>
+<td>m.sefadjointView<LowerTriangular>().rankUpdate(v,s)</td>
 <td></td>
 <td>Computes m += s * v * v.adjoint()</td>
 </tr>
