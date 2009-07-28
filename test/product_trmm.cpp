@@ -53,7 +53,7 @@ template<typename Scalar> void trmm(int size,int othersize)
   VERIFY_IS_APPROX(rge3 = tri.template triangularView<LowerTriangular>() * ge2.adjoint(), loTri * ge2.adjoint());
   VERIFY_IS_APPROX( ge3 = tri.template triangularView<UpperTriangular>() * ge2.adjoint(), upTri * ge2.adjoint());
   VERIFY_IS_APPROX(rge3 = tri.template triangularView<UpperTriangular>() * ge2.adjoint(), upTri * ge2.adjoint());
-  VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<UpperTriangular>() * ge2.adjoint(), loTri.adjoint() * ge2.adjoint());
+  VERIFY_IS_APPROX( ge3 = (s1*tri).adjoint().template triangularView<UpperTriangular>() * ge2.adjoint(), ei_conj(s1) * loTri.adjoint() * ge2.adjoint());
   VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<UpperTriangular>() * ge2.adjoint(), loTri.adjoint() * ge2.adjoint());
   VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
   VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());

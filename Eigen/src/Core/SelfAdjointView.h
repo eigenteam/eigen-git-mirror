@@ -306,13 +306,14 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst.resize(m_lhs.rows(), m_rhs.cols());
     dst.setZero();
     evalTo(dst,1);
   }
 
   template<typename Dest> void evalTo(Dest& dst, Scalar alpha) const
   {
+    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+    
     const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
     const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
 

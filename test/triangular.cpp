@@ -51,8 +51,6 @@ template<typename MatrixType> void triangular(const MatrixType& m)
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
-  Scalar s1 = ei_random<Scalar>();
-
   MatrixType m1up = m1.template triangularView<Eigen::UpperTriangular>();
   MatrixType m2up = m2.template triangularView<Eigen::UpperTriangular>();
 

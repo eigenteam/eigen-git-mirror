@@ -360,7 +360,7 @@ class Matrix
     /** \internal */
     Matrix(ei_constructor_without_unaligned_array_assert)
       : m_storage(ei_constructor_without_unaligned_array_assert())
-    {}
+    { _check_template_params(); }
 #endif
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -436,7 +436,10 @@ class Matrix
     /** Copy constructor with in-place evaluation */
     template<typename OtherDerived,typename OtherEvalType>
     EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
-    { other.evalTo(*this); }
+    {
+      _check_template_params();
+      other.evalTo(*this);
+    }
     /** Destructor */
     inline ~Matrix() {}
 
@@ -454,6 +457,7 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
+      _check_template_params();
       *this = other;
     }
 
@@ -587,17 +591,21 @@ class Matrix
 
     static EIGEN_STRONG_INLINE void _check_template_params()
     {
-        EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
-                          && (_Cols >= _MaxCols)
-                          && (_MaxRows >= 0)
-                          && (_MaxCols >= 0)
-                          && (_Rows <= Dynamic)
-                          && (_Cols <= Dynamic)
-                          && (_MaxRows == _Rows || _Rows==Dynamic)
-                          && (_MaxCols == _Cols || _Cols==Dynamic)
-                          && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
-                          && (_Options & (DontAlign|RowMajor)) == _Options),
-          INVALID_MATRIX_TEMPLATE_PARAMETERS)
+      #ifdef EIGEN_DEBUG_MATRIX_CTOR
+        EIGEN_DEBUG_MATRIX_CTOR(Matrix);
+      #endif
+      
+      EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
+                        && (_Cols >= _MaxCols)
+                        && (_MaxRows >= 0)
+                        && (_MaxCols >= 0)
+                        && (_Rows <= Dynamic)
+                        && (_Cols <= Dynamic)
+                        && (_MaxRows == _Rows || _Rows==Dynamic)
+                        && (_MaxCols == _Cols || _Cols==Dynamic)
+                        && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
+                        && (_Options & (DontAlign|RowMajor)) == _Options),
+        INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
 
 
