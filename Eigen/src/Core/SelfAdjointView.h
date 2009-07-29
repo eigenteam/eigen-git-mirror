@@ -229,7 +229,7 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>
   {}
 
   inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_lhs.cols(); }
+  inline int cols() const { return m_rhs.cols(); }
 
   template<typename Dest> inline void _addTo(Dest& dst) const
   { evalTo(dst,1); }
@@ -282,7 +282,7 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
   {}
 
   inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_lhs.cols(); }
+  inline int cols() const { return m_rhs.cols(); }
 
   typedef typename Lhs::Scalar Scalar;
 

@@ -331,7 +331,7 @@ struct ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false
   {}
 
   inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_lhs.cols(); }
+  inline int cols() const { return m_rhs.cols(); }
 
   typedef typename Lhs::Scalar Scalar;
 
