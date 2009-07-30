@@ -335,9 +335,9 @@ template<typename Scalar, int Dim>
 QMatrix Transform<Scalar,Dim>::toQMatrix(void) const
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  return QMatrix(other.coeffRef(0,0), other.coeffRef(1,0),
-                 other.coeffRef(0,1), other.coeffRef(1,1),
-                 other.coeffRef(0,2), other.coeffRef(1,2));
+  return QMatrix(m_matrix.coeff(0,0), m_matrix.coeff(1,0),
+                 m_matrix.coeff(0,1), m_matrix.coeff(1,1),
+                 m_matrix.coeff(0,2), m_matrix.coeff(1,2));
 }
 
 /** Initialises \c *this from a QTransform assuming the dimension is 2.
@@ -369,12 +369,12 @@ Transform<Scalar,Dim>& Transform<Scalar,Dim>::operator=(const QTransform& other)
   * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
 template<typename Scalar, int Dim>
-QMatrix Transform<Scalar,Dim>::toQTransform(void) const
+QTransform Transform<Scalar,Dim>::toQTransform(void) const
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  return QTransform(other.coeffRef(0,0), other.coeffRef(1,0), other.coeffRef(2,0)
-                    other.coeffRef(0,1), other.coeffRef(1,1), other.coeffRef(2,1)
-                    other.coeffRef(0,2), other.coeffRef(1,2), other.coeffRef(2,2);
+  return QTransform(m_matrix.coeff(0,0), m_matrix.coeff(1,0), m_matrix.coeff(2,0),
+                    m_matrix.coeff(0,1), m_matrix.coeff(1,1), m_matrix.coeff(2,1),
+                    m_matrix.coeff(0,2), m_matrix.coeff(1,2), m_matrix.coeff(2,2));
 }
 #endif
 
