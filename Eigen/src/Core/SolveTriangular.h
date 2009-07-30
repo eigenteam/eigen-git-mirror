@@ -27,6 +27,7 @@
 
 template<typename Lhs, typename Rhs,
   int Mode, // can be Upper/Lower | UnitDiag
+  int Side, // can be OnTheLeft/OnTheRight
   int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
                 ? CompleteUnrolling : NoUnrolling,
   int StorageOrder = int(Lhs::Flags) & RowMajorBit,
@@ -36,7 +37,7 @@ struct ei_triangular_solver_selector;
 
 // forward and backward substitution, row-major, rhs is a vector
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor,1>
+struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor,1>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
@@ -89,7 +90,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,RowMajor,1>
 
 // forward and backward substitution, column-major, rhs is a vector
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
+struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor,1>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
@@ -142,12 +143,12 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,ColMajor,1>
   }
 };
 
-template <typename Scalar, int LhsStorageOrder, bool ConjugateLhs, int RhsStorageOrder, int Mode>
+template <typename Scalar, int Side, int Mode, bool Conjugate, int TriStorageOrder, int OtherStorageOrder>
 struct ei_triangular_solve_matrix;
 
 // the rhs is a matrix
-template<typename Lhs, typename Rhs, int Mode, int StorageOrder, int RhsCols>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,StorageOrder,RhsCols>
+template<typename Lhs, typename Rhs, int Side, int Mode, int StorageOrder, int RhsCols>
+struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,RhsCols>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
@@ -155,7 +156,8 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,NoUnrolling,StorageOrder,RhsCo
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
-    ei_triangular_solve_matrix<Scalar,StorageOrder,LhsProductTraits::NeedToConjugate,Rhs::Flags&RowMajorBit,Mode>
+    ei_triangular_solve_matrix<Scalar,Side,Mode,LhsProductTraits::NeedToConjugate,StorageOrder,
+                               Rhs::Flags&RowMajorBit>
       ::run(lhs.rows(), rhs.cols(), &actualLhs.coeff(0,0), actualLhs.stride(), &rhs.coeffRef(0,0), rhs.stride());
   }
 };
@@ -194,7 +196,7 @@ struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,true> {
 };
 
 template<typename Lhs, typename Rhs, int Mode, int StorageOrder>
-struct ei_triangular_solver_selector<Lhs,Rhs,Mode,CompleteUnrolling,StorageOrder,1> { 
+struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,StorageOrder,1> {
   static void run(const Lhs& lhs, Rhs& rhs)
   { ei_triangular_solver_unroller<Lhs,Rhs,Mode,0,Rhs::SizeAtCompileTime>::run(lhs,rhs); }
 };
@@ -213,7 +215,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Mode,CompleteUnrolling,StorageOrder
   * See TriangularView:solve() for the details.
   */
 template<typename MatrixType, unsigned int Mode>
-template<typename RhsDerived>
+template<int Side, typename RhsDerived>
 void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>& _rhs) const
 {
   RhsDerived& rhs = _rhs.const_cast_derived();
@@ -228,7 +230,7 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>&
   RhsCopy rhsCopy(rhs);
 
   ei_triangular_solver_selector<MatrixType, typename ei_unref<RhsCopy>::type,
-    Mode>::run(_expression(), rhsCopy);
+    Side, Mode>::run(_expression(), rhsCopy);
 
   if (copy)
     rhs = rhsCopy;
@@ -266,12 +268,12 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>&
   * \sa TriangularView::solveInPlace()
   */
 template<typename Derived, unsigned int Mode>
-template<typename RhsDerived>
+template<int Side, typename RhsDerived>
 typename ei_plain_matrix_type_column_major<RhsDerived>::type
 TriangularView<Derived,Mode>::solve(const MatrixBase<RhsDerived>& rhs) const
 {
   typename ei_plain_matrix_type_column_major<RhsDerived>::type res(rhs);
-  solveInPlace(res);
+  solveInPlace<Side>(res);
   return res;
 }
 

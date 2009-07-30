@@ -35,7 +35,7 @@ struct ei_gebp_kernel;
 template<typename Scalar, int nr, int StorageOrder, bool PanelMode=false>
 struct ei_gemm_pack_rhs;
 
-template<typename Scalar, int mr, int StorageOrder, bool Conjugate = false>
+template<typename Scalar, int mr, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
 struct ei_gemm_pack_lhs;
 
 template<

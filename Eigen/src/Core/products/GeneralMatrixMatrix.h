@@ -347,23 +347,31 @@ struct ei_gebp_kernel
 //
 //  32 33 34 35 ...
 //  36 36 38 39 ...
-template<typename Scalar, int mr, int StorageOrder, bool Conjugate>
+template<typename Scalar, int mr, int StorageOrder, bool Conjugate, bool PanelMode>
 struct ei_gemm_pack_lhs
 {
-  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int depth, int rows)
+  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int depth, int rows,
+                  int stride=0, int offset=0)
   {
+    ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
     const int peeled_mc = (rows/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
+    {
+      if(PanelMode) count += mr * offset;
       for(int k=0; k<depth; k++)
         for(int w=0; w<mr; w++)
           blockA[count++] = cj(lhs(i+w, k));
+      if(PanelMode) count += mr * (stride-offset-depth);
+    }
     for(int i=peeled_mc; i<rows; i++)
     {
+      if(PanelMode) count += offset;
       for(int k=0; k<depth; k++)
         blockA[count++] = cj(lhs(i, k));
+      if(PanelMode) count += (stride-offset-depth);
     }
   }
 };

@@ -233,6 +233,12 @@ enum {
   DontAlign = 0x2
 };
 
+// used for the solvers
+enum {
+  OnTheLeft = 1,
+  OnTheRight = 2
+};
+
 /* the following could as well be written:
  *   enum NoChange_t { NoChange };
  * but it feels dangerous to disambiguate overloaded functions on enum/integer types.

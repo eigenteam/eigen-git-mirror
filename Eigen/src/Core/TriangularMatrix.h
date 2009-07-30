@@ -269,12 +269,22 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               (lhs.derived(),rhs.m_matrix);
     }
 
-    template<typename OtherDerived>
+
+    template<int Side, typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
     solve(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived>
+    template<int Side, typename OtherDerived>
     void solveInPlace(const MatrixBase<OtherDerived>& other) const;
+
+    template<typename OtherDerived>
+    typename ei_plain_matrix_type_column_major<OtherDerived>::type
+    solve(const MatrixBase<OtherDerived>& other) const
+    { return solve<OnTheLeft>(other); }
+
+    template<typename OtherDerived>
+    void solveInPlace(const MatrixBase<OtherDerived>& other) const
+    { return solveInPlace<OnTheLeft>(other); }
 
     template<typename OtherDerived>
     void swap(const TriangularBase<OtherDerived>& other)
