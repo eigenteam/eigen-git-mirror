@@ -133,10 +133,16 @@ endif(NOT EIGEN_MODE)
 ## mandatory variables (the default should be ok in most cases):
 
 SET (CTEST_CVS_COMMAND "hg")
-SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY} && hg up 2.0\"")
+SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
 
 # which ctest command to use for running the dashboard
-SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
+if(WIN32 AND NOT UNIX)
+  # TODO find a portable way to update to the 2.0 branch
+  SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
+else(WIN32 AND NOT UNIX)
+  SET (CTEST_COMMAND "sh -c \" hg up -R ../src 2.0 && ${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}\"")
+endif(WIN32 AND NOT UNIX)
+
 # what cmake command to use for configuring this dashboard
 SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_BUILD_TESTS=on ")
 
