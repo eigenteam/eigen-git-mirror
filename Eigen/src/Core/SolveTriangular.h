@@ -49,7 +49,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
   {
     static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
-    
+
     const int size = lhs.cols();
     for(int pi=IsLowerTriangular ? 0 : size;
         IsLowerTriangular ? pi<size : pi>0;
@@ -224,7 +224,7 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>&
   ei_assert(!(Mode & ZeroDiagBit));
   ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
 
-  enum { copy = ei_traits<RhsDerived>::Flags & RowMajorBit };
+  enum { copy = ei_traits<RhsDerived>::Flags & RowMajorBit  && RhsDerived::IsVectorAtCompileTime };
   typedef typename ei_meta_if<copy,
     typename ei_plain_matrix_type_column_major<RhsDerived>::type, RhsDerived&>::ret RhsCopy;
   RhsCopy rhsCopy(rhs);
