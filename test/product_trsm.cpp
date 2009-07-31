@@ -24,12 +24,11 @@
 
 #include "main.h"
 
-template<typename Lhs, typename Rhs>
-void solve_ref(const Lhs& lhs, Rhs& rhs)
-{
-  for (int j=0; j<rhs.cols(); ++j)
-    lhs.solveInPlace(rhs.col(j));
-}
+#define VERIFY_TRSM(TRI,XB) { \
+    XB.setRandom(); ref = XB; \
+    TRI.template solveInPlace(XB); \
+    VERIFY_IS_APPROX(TRI.toDense() * XB, ref); \
+  }
 
 template<typename Scalar> void trsm(int size,int cols)
 {
@@ -37,53 +36,23 @@ template<typename Scalar> void trsm(int size,int cols)
 
   Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmLhs(size,size);
   Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmLhs(size,size);
-  
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmRef(size,cols), cmRhs(size,cols);
-  Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmRef(size,cols), rmRhs(size,cols);
 
-  cmLhs.setRandom(); cmLhs.diagonal().cwise() += 10;
-  rmLhs.setRandom(); rmLhs.diagonal().cwise() += 10;
+  Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmRhs(size,cols), ref(size,cols);
+  Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmRhs(size,cols);
 
-  cmRhs.setRandom(); cmRef = cmRhs;
-  cmLhs.conjugate().template triangularView<LowerTriangular>().solveInPlace(cmRhs);
-  solve_ref(cmLhs.conjugate().template triangularView<LowerTriangular>(),cmRef);
-  VERIFY_IS_APPROX(cmRhs, cmRef);
+  cmLhs.setRandom(); cmLhs *= 0.1; cmLhs.diagonal().cwise() += 1;
+  rmLhs.setRandom(); rmLhs *= 0.1; rmLhs.diagonal().cwise() += 1;
 
-  cmRhs.setRandom(); cmRef = cmRhs;
-  cmLhs.conjugate().template triangularView<UpperTriangular>().solveInPlace(cmRhs);
-  solve_ref(cmLhs.conjugate().template triangularView<UpperTriangular>(),cmRef);
-  VERIFY_IS_APPROX(cmRhs, cmRef);
-  
-  rmRhs.setRandom(); rmRef = rmRhs;
-  cmLhs.template triangularView<LowerTriangular>().solveInPlace(rmRhs);
-  solve_ref(cmLhs.template triangularView<LowerTriangular>(),rmRef);
-  VERIFY_IS_APPROX(rmRhs, rmRef);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<LowerTriangular>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UpperTriangular>(), rmRhs);
 
-  rmRhs.setRandom(); rmRef = rmRhs;
-  cmLhs.template triangularView<UpperTriangular>().solveInPlace(rmRhs);
-  solve_ref(cmLhs.template triangularView<UpperTriangular>(),rmRef);
-  VERIFY_IS_APPROX(rmRhs, rmRef);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UnitLowerTriangular>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<UnitUpperTriangular>(), rmRhs);
 
-
-  cmRhs.setRandom(); cmRef = cmRhs;
-  rmLhs.template triangularView<UnitLowerTriangular>().solveInPlace(cmRhs);
-  solve_ref(rmLhs.template triangularView<UnitLowerTriangular>(),cmRef);
-  VERIFY_IS_APPROX(cmRhs, cmRef);
-
-  cmRhs.setRandom(); cmRef = cmRhs;
-  rmLhs.template triangularView<UnitUpperTriangular>().solveInPlace(cmRhs);
-  solve_ref(rmLhs.template triangularView<UnitUpperTriangular>(),cmRef);
-  VERIFY_IS_APPROX(cmRhs, cmRef);
-
-  rmRhs.setRandom(); rmRef = rmRhs;
-  rmLhs.template triangularView<LowerTriangular>().solveInPlace(rmRhs);
-  solve_ref(rmLhs.template triangularView<LowerTriangular>(),rmRef);
-  VERIFY_IS_APPROX(rmRhs, rmRef);
-
-  rmRhs.setRandom(); rmRef = rmRhs;
-  rmLhs.template triangularView<UpperTriangular>().solveInPlace(rmRhs);
-  solve_ref(rmLhs.template triangularView<UpperTriangular>(),rmRef);
-  VERIFY_IS_APPROX(rmRhs, rmRef);
+  VERIFY_TRSM(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
 }
 
 void test_product_trsm()

@@ -156,7 +156,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef typename ei_traits<TriangularView>::Scalar Scalar;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::PlainMatrixType PlainMatrixType;
-    
+    typedef typename MatrixType::Nested MatrixTypeNested;
+    typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+
     enum {
       Mode = _Mode,
       TransposeMode = (Mode & UpperTriangularBit ? LowerTriangularBit : 0)
@@ -286,6 +288,17 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     void solveInPlace(const MatrixBase<OtherDerived>& other) const
     { return solveInPlace<OnTheLeft>(other); }
 
+    const SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView() const
+    {
+      EIGEN_STATIC_ASSERT((Mode&UnitDiagBit)==0,PROGRAMMING_ERROR);
+      return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
+    }
+    SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView()
+    {
+      EIGEN_STATIC_ASSERT((Mode&UnitDiagBit)==0,PROGRAMMING_ERROR);
+      return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
+    }
+
     template<typename OtherDerived>
     void swap(const TriangularBase<OtherDerived>& other)
     {
@@ -300,7 +313,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
   protected:
 
-    const typename MatrixType::Nested m_matrix;
+    const MatrixTypeNested m_matrix;
 };
 
 /***************************************************************************
@@ -561,6 +574,10 @@ void TriangularBase<Derived>::evalToDenseLazy(MatrixBase<DenseDerived> &other) c
     true // clear the opposite triangular part
     >::run(other.derived(), derived()._expression());
 }
+
+/***************************************************************************
+* Implementation of TriangularView methods
+***************************************************************************/
 
 /***************************************************************************
 * Implementation of MatrixBase methods
