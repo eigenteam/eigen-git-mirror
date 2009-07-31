@@ -226,12 +226,8 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
       matA.col(i).coeffRef(i+1) = 1;
 
-//       hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template selfadjointView<LowerTriangular>()
-//                          * (h * matA.col(i).end(n-i-1)));
-
-      hCoeffs.end(n-i-1).setZero();
-      ei_product_selfadjoint_vector<Scalar,MatrixType::Flags&RowMajorBit,LowerTriangular,false,false>
-        (n-i-1,matA.corner(BottomRight,n-i-1,n-i-1).data(), matA.stride(), matA.col(i).end(n-i-1).data(), 1, const_cast<Scalar*>(hCoeffs.end(n-i-1).data()), h);
+      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template selfadjointView<LowerTriangular>()
+                         * (h * matA.col(i).end(n-i-1)));
 
       hCoeffs.end(n-i-1) += (h*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) * matA.col(i).end(n-i-1);
 
@@ -290,7 +286,7 @@ void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) con
     aux.end(n-i-1) = (m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy();
     // rank one update, TODO ! make it works efficiently as expected
     for (int j=i+1;j<n;++j)
-      matQ.col(j).end(n-i-1) -= ( aux.coeff(j)) * m_matrix.col(i).end(n-i-1);
+      matQ.col(j).end(n-i-1) -= aux.coeff(j) * m_matrix.col(i).end(n-i-1);
 //     matQ.corner(BottomRight,n-i-1,n-i-1) -= (m_matrix.col(i).end(n-i-1) * aux.end(n-i-1)).lazy();
 
     m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;
