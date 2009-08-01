@@ -116,80 +116,81 @@ template<typename MatrixType, int _UpLo> class LLT
     bool m_isInitialized;
 };
 
-template<typename MatrixType>
-bool ei_inplace_llt_lo(MatrixType& mat)
+// forward declaration (defined at the end of this file)
+template<int UpLo> struct ei_llt_inplace;
+
+template<> struct ei_llt_inplace<LowerTriangular>
 {
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  assert(mat.rows()==mat.cols());
-  const int size = mat.rows();
-
-  // The biggest overall is the point of reference to which further diagonals
-  // are compared; if any diagonal is negligible compared
-  // to the largest overall, the algorithm bails.  This cutoff is suggested
-  // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
-  // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-  // Algorithms" page 217, also by Higham.
-  const RealScalar cutoff = machine_epsilon<Scalar>() * size * mat.diagonal().cwise().abs().maxCoeff();
-  RealScalar x;
-  x = ei_real(mat.coeff(0,0));
-  mat.coeffRef(0,0) = ei_sqrt(x);
-  if(size==1)
+  template<typename MatrixType>
+  static bool unblocked(MatrixType& mat)
   {
-    return true;
-  }
-  mat.col(0).end(size-1) = mat.col(0).end(size-1) / ei_real(mat.coeff(0,0));
-  for (int j = 1; j < size; ++j)
-  {
-    x = ei_real(mat.coeff(j,j)) - mat.row(j).start(j).squaredNorm();
-    if (ei_abs(x) < cutoff) continue;
-
-    mat.coeffRef(j,j) = x = ei_sqrt(x);
-
-    int endSize = size-j-1;
-    if (endSize>0)
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    ei_assert(mat.rows()==mat.cols());
+    const int size = mat.rows();
+    for(int k = 0; k < size; ++k)
     {
-      mat.col(j).end(endSize) -= (mat.block(j+1, 0, endSize, j) * mat.row(j).start(j).adjoint()).lazy();
-      mat.col(j).end(endSize) *= RealScalar(1)/x;
+      int rs = size-k-1; // remaining size
+
+      Block<MatrixType,Dynamic,1> A21(mat,k+1,k,rs,1);
+      Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);
+      Block<MatrixType,Dynamic,Dynamic> A20(mat,k+1,0,rs,k);
+
+      RealScalar x = ei_real(mat.coeff(k,k));
+      if (k>0) x -= mat.row(k).start(k).squaredNorm();
+      if (x<=RealScalar(0))
+        return false;
+      mat.coeffRef(k,k) = x = ei_sqrt(x);
+      if (k>0 && rs>0) A21 -= (A20 * A10.adjoint()).lazy();
+      if (rs>0) A21 *= RealScalar(1)/x;
     }
-  }
-
-  return true;
-}
-
-template<typename MatrixType>
-bool ei_inplace_llt_up(MatrixType& mat)
-{
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  assert(mat.rows()==mat.cols());
-  const int size = mat.rows();
-
-  const RealScalar cutoff = machine_epsilon<Scalar>() * size * mat.diagonal().cwise().abs().maxCoeff();
-  RealScalar x;
-  x = ei_real(mat.coeff(0,0));
-  mat.coeffRef(0,0) = ei_sqrt(x);
-  if(size==1)
-  {
     return true;
   }
-  mat.row(0).end(size-1) = mat.row(0).end(size-1) / ei_real(mat.coeff(0,0));
-  for (int j = 1; j < size; ++j)
+
+  template<typename MatrixType>
+  static bool blocked(MatrixType& m)
   {
-    x = ei_real(mat.coeff(j,j)) - mat.col(j).start(j).squaredNorm();
-    if (ei_abs(x) < cutoff) continue;
+    ei_assert(m.rows()==m.cols());
+    int size = m.rows();
+    if(size<32)
+      return unblocked(m);
 
-    mat.coeffRef(j,j) = x = ei_sqrt(x);
+    int blockSize = size/8;
+    blockSize = (blockSize/16)*16;
+    blockSize = std::min(std::max(blockSize,8), 128);
 
-    int endSize = size-j-1;
-    if (endSize>0) {
-      mat.row(j).end(endSize) -= (mat.col(j).start(j).adjoint() * mat.block(0, j+1, j, endSize)).lazy();
-      mat.row(j).end(endSize) *= RealScalar(1)/x;
+    for (int k=0; k<size; k+=blockSize)
+    {
+      int bs = std::min(blockSize, size-k);
+      int rs = size - k - bs;
+
+      Block<MatrixType,Dynamic,Dynamic> A11(m,k,   k,   bs,bs);
+      Block<MatrixType,Dynamic,Dynamic> A21(m,k+bs,k,   rs,bs);
+      Block<MatrixType,Dynamic,Dynamic> A22(m,k+bs,k+bs,rs,rs);
+
+      if(!unblocked(A11)) return false;
+      if(rs>0) A11.conjugate().template triangularView<LowerTriangular>().solveInPlace(A21.transpose());
+      if(rs>0) A22.template selfadjointView<LowerTriangular>().rankUpdate(A21,-1); // bottleneck
     }
+    return true;
   }
+};
 
-  return true;
-}
+template<> struct ei_llt_inplace<UpperTriangular>
+{
+  template<typename MatrixType>
+  static EIGEN_STRONG_INLINE bool unblocked(MatrixType& mat)
+  {
+    Transpose<MatrixType> matt(mat);
+    return ei_llt_inplace<LowerTriangular>::unblocked(matt);
+  }
+  template<typename MatrixType>
+  static EIGEN_STRONG_INLINE bool blocked(MatrixType& mat)
+  {
+    Transpose<MatrixType> matt(mat);
+    return ei_llt_inplace<LowerTriangular>::blocked(matt);
+  }
+};
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,LowerTriangular>
 {
@@ -198,7 +199,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,LowerTriangular>
   inline static MatrixL getL(const MatrixType& m) { return m; }
   inline static MatrixU getU(const MatrixType& m) { return m.adjoint().nestByValue(); }
   static bool inplace_decomposition(MatrixType& m)
-  { return ei_inplace_llt_lo(m); }
+  { return ei_llt_inplace<LowerTriangular>::blocked(m); }
 };
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
@@ -208,7 +209,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
   inline static MatrixL getL(const MatrixType& m) { return m.adjoint().nestByValue(); }
   inline static MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)
-  { return ei_inplace_llt_up(m); }
+  { return ei_llt_inplace<UpperTriangular>::blocked(m); }
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix

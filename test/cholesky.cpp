@@ -49,52 +49,58 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   MatrixType matB = MatrixType::Random(rows,cols), matX(rows,cols);
   SquareMatrixType symm =  a0 * a0.adjoint();
   // let's make sure the matrix is not singular or near singular
-  MatrixType a1 = MatrixType::Random(rows,cols);
-  symm += a1 * a1.adjoint();
+  for (int k=0; k<3; ++k)
+  {
+    MatrixType a1 = MatrixType::Random(rows,cols);
+    symm += a1 * a1.adjoint();
+  }
+
+  SquareMatrixType symmUp = symm.template triangularView<UpperTriangular>();
+  SquareMatrixType symmLo = symm.template triangularView<LowerTriangular>();
 
   // to test if really Cholesky only uses the upper triangular part, uncomment the following
   // FIXME: currently that fails !!
   //symm.template part<StrictlyLowerTriangular>().setZero();
 
   #ifdef HAS_GSL
-  if (ei_is_same_type<RealScalar,double>::ret)
-  {
-    typedef GslTraits<Scalar> Gsl;
-    typename Gsl::Matrix gMatA=0, gSymm=0;
-    typename Gsl::Vector gVecB=0, gVecX=0;
-    convert<MatrixType>(symm, gSymm);
-    convert<MatrixType>(symm, gMatA);
-    convert<VectorType>(vecB, gVecB);
-    convert<VectorType>(vecB, gVecX);
-    Gsl::cholesky(gMatA);
-    Gsl::cholesky_solve(gMatA, gVecB, gVecX);
-    VectorType vecX(rows), _vecX, _vecB;
-    convert(gVecX, _vecX);
-    symm.llt().solve(vecB, &vecX);
-    Gsl::prod(gSymm, gVecX, gVecB);
-    convert(gVecB, _vecB);
-    // test gsl itself !
-    VERIFY_IS_APPROX(vecB, _vecB);
-    VERIFY_IS_APPROX(vecX, _vecX);
-
-    Gsl::free(gMatA);
-    Gsl::free(gSymm);
-    Gsl::free(gVecB);
-    Gsl::free(gVecX);
-  }
+//   if (ei_is_same_type<RealScalar,double>::ret)
+//   {
+//     typedef GslTraits<Scalar> Gsl;
+//     typename Gsl::Matrix gMatA=0, gSymm=0;
+//     typename Gsl::Vector gVecB=0, gVecX=0;
+//     convert<MatrixType>(symm, gSymm);
+//     convert<MatrixType>(symm, gMatA);
+//     convert<VectorType>(vecB, gVecB);
+//     convert<VectorType>(vecB, gVecX);
+//     Gsl::cholesky(gMatA);
+//     Gsl::cholesky_solve(gMatA, gVecB, gVecX);
+//     VectorType vecX(rows), _vecX, _vecB;
+//     convert(gVecX, _vecX);
+//     symm.llt().solve(vecB, &vecX);
+//     Gsl::prod(gSymm, gVecX, gVecB);
+//     convert(gVecB, _vecB);
+//     // test gsl itself !
+//     VERIFY_IS_APPROX(vecB, _vecB);
+//     VERIFY_IS_APPROX(vecX, _vecX);
+// 
+//     Gsl::free(gMatA);
+//     Gsl::free(gSymm);
+//     Gsl::free(gVecB);
+//     Gsl::free(gVecX);
+//   }
   #endif
 
   {
-    LLT<SquareMatrixType> chol(symm);
-    VERIFY_IS_APPROX(symm, chol.matrixL().toDense() * chol.matrixL().adjoint().toDense());
-    chol.solve(vecB, &vecX);
+    LLT<SquareMatrixType,LowerTriangular> chollo(symmLo);
+    VERIFY_IS_APPROX(symm, chollo.matrixL().toDense() * chollo.matrixL().adjoint().toDense());
+    chollo.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    chol.solve(matB, &matX);
+    chollo.solve(matB, &matX);
     VERIFY_IS_APPROX(symm * matX, matB);
 
     // test the upper mode
-    LLT<SquareMatrixType,UpperTriangular> cholup(symm);
-    VERIFY_IS_APPROX(symm, cholup.matrixL().toDense() * chol.matrixL().adjoint().toDense());
+    LLT<SquareMatrixType,UpperTriangular> cholup(symmUp);
+    VERIFY_IS_APPROX(symm, cholup.matrixL().toDense() * cholup.matrixL().adjoint().toDense());
     cholup.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     cholup.solve(matB, &matX);
@@ -147,9 +153,8 @@ void test_cholesky()
     CALL_SUBTEST( cholesky(Matrix2d()) );
     CALL_SUBTEST( cholesky(Matrix3f()) );
     CALL_SUBTEST( cholesky(Matrix4d()) );
-    CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
-    CALL_SUBTEST( cholesky(MatrixXd(17,17)) );
-    CALL_SUBTEST( cholesky(MatrixXf(200,200)) );
+    CALL_SUBTEST( cholesky(MatrixXcd(100,100)) );
+    CALL_SUBTEST( cholesky(MatrixXd(200,200)) );
   }
 
   CALL_SUBTEST( cholesky_verify_assert<Matrix3f>() );

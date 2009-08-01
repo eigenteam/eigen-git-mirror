@@ -215,25 +215,25 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,St
   * See TriangularView:solve() for the details.
   */
 template<typename MatrixType, unsigned int Mode>
-template<int Side, typename RhsDerived>
-void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<RhsDerived>& _rhs) const
+template<int Side, typename OtherDerived>
+void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived>& _other) const
 {
-  RhsDerived& rhs = _rhs.const_cast_derived();
+  OtherDerived& other = _other.const_cast_derived();
   ei_assert(cols() == rows());
-  ei_assert(cols() == rhs.rows());
+  ei_assert( (Side==OnTheLeft && cols() == other.rows()) || (Side==OnTheRight && cols() == other.cols()) );
   ei_assert(!(Mode & ZeroDiagBit));
   ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
 
-  enum { copy = ei_traits<RhsDerived>::Flags & RowMajorBit  && RhsDerived::IsVectorAtCompileTime };
+  enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit  && OtherDerived::IsVectorAtCompileTime };
   typedef typename ei_meta_if<copy,
-    typename ei_plain_matrix_type_column_major<RhsDerived>::type, RhsDerived&>::ret RhsCopy;
-  RhsCopy rhsCopy(rhs);
+    typename ei_plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+  OtherCopy otherCopy(other);
 
-  ei_triangular_solver_selector<MatrixType, typename ei_unref<RhsCopy>::type,
-    Side, Mode>::run(_expression(), rhsCopy);
+  ei_triangular_solver_selector<MatrixType, typename ei_unref<OtherCopy>::type,
+    Side, Mode>::run(_expression(), otherCopy);
 
   if (copy)
-    rhs = rhsCopy;
+    other = otherCopy;
 }
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
