@@ -169,7 +169,7 @@ template<> struct ei_llt_inplace<LowerTriangular>
       Block<MatrixType,Dynamic,Dynamic> A22(m,k+bs,k+bs,rs,rs);
 
       if(!unblocked(A11)) return false;
-      if(rs>0) A11.conjugate().template triangularView<LowerTriangular>().solveInPlace(A21.transpose());
+      if(rs>0) A11.adjoint().template triangularView<UpperTriangular>().template solveInPlace<OnTheRight>(A21);
       if(rs>0) A22.template selfadjointView<LowerTriangular>().rankUpdate(A21,-1); // bottleneck
     }
     return true;

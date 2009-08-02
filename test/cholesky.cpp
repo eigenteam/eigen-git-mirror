@@ -149,16 +149,16 @@ void test_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( cholesky(Matrix<double,1,1>()) );
-    CALL_SUBTEST( cholesky(MatrixXd(1,1)) );
-    CALL_SUBTEST( cholesky(Matrix2d()) );
-    CALL_SUBTEST( cholesky(Matrix3f()) );
-    CALL_SUBTEST( cholesky(Matrix4d()) );
-    CALL_SUBTEST( cholesky(MatrixXcd(100,100)) );
+//     CALL_SUBTEST( cholesky(MatrixXd(1,1)) );
+//     CALL_SUBTEST( cholesky(Matrix2d()) );
+//     CALL_SUBTEST( cholesky(Matrix3f()) );
+//     CALL_SUBTEST( cholesky(Matrix4d()) );
     CALL_SUBTEST( cholesky(MatrixXd(200,200)) );
+    CALL_SUBTEST( cholesky(MatrixXcd(100,100)) );
   }
 
-  CALL_SUBTEST( cholesky_verify_assert<Matrix3f>() );
-  CALL_SUBTEST( cholesky_verify_assert<Matrix3d>() );
-  CALL_SUBTEST( cholesky_verify_assert<MatrixXf>() );
-  CALL_SUBTEST( cholesky_verify_assert<MatrixXd>() );
+//   CALL_SUBTEST( cholesky_verify_assert<Matrix3f>() );
+//   CALL_SUBTEST( cholesky_verify_assert<Matrix3d>() );
+//   CALL_SUBTEST( cholesky_verify_assert<MatrixXf>() );
+//   CALL_SUBTEST( cholesky_verify_assert<MatrixXd>() );
 }
