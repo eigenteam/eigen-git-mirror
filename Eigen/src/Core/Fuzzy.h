@@ -49,7 +49,7 @@ template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isApprox(
   const MatrixBase<OtherDerived>& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   const typename ei_nested<Derived,2>::type nested(derived());
@@ -73,7 +73,7 @@ bool MatrixBase<Derived>::isApprox(
 template<typename Derived>
 bool MatrixBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   return cwise().abs2().sum() <= prec * prec * other * other;
@@ -93,7 +93,7 @@ template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isMuchSmallerThan(
   const MatrixBase<OtherDerived>& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   return this->cwise().abs2().sum() <= prec * prec * other.cwise().abs2().sum();
@@ -124,7 +124,7 @@ template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isApprox(
   const MatrixBase<OtherDerived>& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   return ei_fuzzy_selector<Derived,OtherDerived>::isApprox(derived(), other.derived(), prec);
@@ -143,7 +143,7 @@ bool MatrixBase<Derived>::isApprox(
 template<typename Derived>
 bool MatrixBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   return ei_fuzzy_selector<Derived>::isMuchSmallerThan(derived(), other, prec);
@@ -163,7 +163,7 @@ template<typename Derived>
 template<typename OtherDerived>
 bool MatrixBase<Derived>::isMuchSmallerThan(
   const MatrixBase<OtherDerived>& other,
-  typename NumTraits<Scalar>::Real prec
+  RealScalar prec
 ) const
 {
   return ei_fuzzy_selector<Derived,OtherDerived>::isMuchSmallerThan(derived(), other.derived(), prec);
