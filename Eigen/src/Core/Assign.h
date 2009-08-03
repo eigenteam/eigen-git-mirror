@@ -412,8 +412,10 @@ template<typename Derived, typename OtherDerived,
          bool EvalBeforeAssigning = (int(OtherDerived::Flags) & EvalBeforeAssigningBit) != 0,
          bool NeedToTranspose = Derived::IsVectorAtCompileTime
                 && OtherDerived::IsVectorAtCompileTime
-                && int(Derived::RowsAtCompileTime) == int(OtherDerived::ColsAtCompileTime)
-                && int(Derived::ColsAtCompileTime) == int(OtherDerived::RowsAtCompileTime)
+                && ((int(Derived::RowsAtCompileTime) == 1 && int(OtherDerived::ColsAtCompileTime) == 1)
+                      |  // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                         // revert to || as soon as not needed anymore.
+                    (int(Derived::ColsAtCompileTime) == 1 && int(OtherDerived::RowsAtCompileTime) == 1))
                 && int(Derived::SizeAtCompileTime) != 1>
 struct ei_assign_selector;
 
