@@ -43,7 +43,7 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   Scalar res = 0;
   while (i)
   {
-    res += i.value() * ei_conj(other.coeff(i.index()));
+    res += ei_conj(i.value()) * other.coeff(i.index());
     ++i;
   }
   return res;
@@ -69,7 +69,7 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   {
     if (i.index()==j.index())
     {
-      res += i.value() * ei_conj(j.value());
+      res += ei_conj(i.value()) * j.value();
       ++i; ++j;
     }
     else if (i.index()<j.index())

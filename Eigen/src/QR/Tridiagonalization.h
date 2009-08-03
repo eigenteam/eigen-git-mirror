@@ -229,7 +229,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template selfadjointView<LowerTriangular>()
                          * (h * matA.col(i).end(n-i-1)));
 
-      hCoeffs.end(n-i-1) += (h*Scalar(-0.5)*(matA.col(i).end(n-i-1).dot(hCoeffs.end(n-i-1)))) * matA.col(i).end(n-i-1);
+      hCoeffs.end(n-i-1) += (h*Scalar(-0.5)*(hCoeffs.end(n-i-1).dot(matA.col(i).end(n-i-1)))) * matA.col(i).end(n-i-1);
 
       matA.corner(BottomRight, n-i-1, n-i-1).template selfadjointView<LowerTriangular>()
         .rankUpdate(matA.col(i).end(n-i-1), hCoeffs.end(n-i-1), -1);

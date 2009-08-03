@@ -84,8 +84,8 @@ public:
     */
   RealScalar squaredDistance(const VectorType& p) const
   {
-    VectorType diff = p-origin();
-    return (diff - diff.dot(direction())* direction()).squaredNorm();
+    VectorType diff = p - origin();
+    return (diff - direction().dot(diff) * direction()).squaredNorm();
   }
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
@@ -94,7 +94,7 @@ public:
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   VectorType projection(const VectorType& p) const
-  { return origin() + (p-origin()).dot(direction()) * direction(); }
+  { return origin() + direction().dot(p-origin()) * direction(); }
 
   Scalar intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
 
@@ -148,8 +148,8 @@ inline ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane
 template <typename _Scalar, int _AmbientDim>
 inline _Scalar ParametrizedLine<_Scalar, _AmbientDim>::intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
 {
-  return -(hyperplane.offset()+origin().dot(hyperplane.normal()))
-          /(direction().dot(hyperplane.normal()));
+  return -(hyperplane.offset()+hyperplane.normal().dot(origin()))
+          / hyperplane.normal().dot(direction());
 }
 
 #endif // EIGEN_PARAMETRIZEDLINE_H
