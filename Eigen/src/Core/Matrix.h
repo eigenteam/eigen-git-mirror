@@ -462,6 +462,7 @@ class Matrix
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
+      resize(other.rows(), other.cols());
       *this = other;
     }
 

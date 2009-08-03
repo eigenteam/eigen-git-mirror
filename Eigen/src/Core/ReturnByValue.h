@@ -48,14 +48,6 @@ template<typename Functor, typename EvalType> class ReturnByValue
   public:
     template<typename Dest> inline void evalTo(Dest& dst) const
     { static_cast<const Functor*>(this)->evalTo(dst); }
-    template<typename Dest> inline void addTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->_addTo(dst); }
-    template<typename Dest> inline void subTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->_subTo(dst); }
-    template<typename Dest> inline void _addTo(Dest& dst) const
-    { EvalType res; evalTo(res); dst += res; }
-    template<typename Dest> inline void _subTo(Dest& dst) const
-    { EvalType res; evalTo(res); dst -= res; }
 };
 
 template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int _MaxRows,int _MaxCols>
@@ -68,14 +60,6 @@ template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     { static_cast<const Functor* const>(this)->evalTo(dst); }
-    template<typename Dest> inline void addTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->_addTo(dst); }
-    template<typename Dest> inline void subTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->_subTo(dst); }
-    template<typename Dest> inline void _addTo(Dest& dst) const
-    { EvalType res; evalTo(res); dst += res; }
-    template<typename Dest> inline void _subTo(Dest& dst) const
-    { EvalType res; evalTo(res); dst -= res; }
     inline int rows() const { return static_cast<const Functor* const>(this)->rows(); }
     inline int cols() const { return static_cast<const Functor* const>(this)->cols(); }
 };
@@ -85,22 +69,6 @@ template<typename OtherDerived,typename OtherEvalType>
 Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
 {
   other.evalTo(derived());
-  return derived();
-}
-
-template<typename Derived>
-template<typename OtherDerived,typename OtherEvalType>
-Derived& MatrixBase<Derived>::operator+=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
-{
-  other.addTo(derived());
-  return derived();
-}
-
-template<typename Derived>
-template<typename OtherDerived,typename OtherEvalType>
-Derived& MatrixBase<Derived>::operator-=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
-{
-  other.subTo(derived());
   return derived();
 }
 

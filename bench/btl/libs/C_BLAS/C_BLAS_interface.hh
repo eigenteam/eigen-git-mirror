@@ -237,6 +237,15 @@ public :
     spotrf_(&uplo, &N, C, &N, &info);
   }
 
+  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    int N2 = N*N;
+    scopy_(&N2, X, &intone, C, &intone);
+    char uplo = 'L';
+    int info = 0;
+    int * ipiv = (int*)alloca(sizeof(int)*N);
+    sgetrf_(&N, &N, C, &N, ipiv, &info);
+  }
+
   #ifdef HAS_LAPACK
 
   static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
@@ -249,14 +258,7 @@ public :
     sgetc2_(&N, C, &N, ipiv, jpiv, &info);
   }
 
-  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
-    int N2 = N*N;
-    scopy_(&N2, X, &intone, C, &intone);
-    char uplo = 'L';
-    int info = 0;
-    int * ipiv = (int*)alloca(sizeof(int)*N);
-    sgetrf_(&N, &N, C, &N, ipiv, &info);
-  }
+  
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
 #ifdef PUREBLAS

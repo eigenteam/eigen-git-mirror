@@ -190,10 +190,10 @@ public :
   }
 
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
-//     X = L.template triangularView<LowerTriangular>().solve(B);
-    X = B;
-    ei_triangular_solve_matrix<real,ColMajor,ColMajor,LowerTriangular>
-      ::run(L.cols(), X.cols(), L.data(), L.stride(), X.data(), X.stride());
+    X = L.template triangularView<LowerTriangular>().solve(B);
+//     
+//     ei_triangular_solve_matrix<real,ColMajor,ColMajor,LowerTriangular>
+//       ::run(L.cols(), X.cols(), L.data(), L.stride(), X.data(), X.stride());
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){

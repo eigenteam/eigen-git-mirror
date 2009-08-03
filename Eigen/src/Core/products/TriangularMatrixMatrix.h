@@ -321,12 +321,15 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
 ***************************************************************************/
 
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
-struct ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
-  : public ReturnByValue<ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false>,
-                         Matrix<typename ei_traits<Rhs>::Scalar,
-                                Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+struct ei_traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
+ : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+{};
+
+template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
+struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
+  : public AnyMatrixBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
 {
-  ei_triangular_product_returntype(const Lhs& lhs, const Rhs& rhs)
+  TriangularProduct(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
@@ -347,12 +350,12 @@ struct ei_triangular_product_returntype<Mode,LhsIsTriangular,Lhs,false,Rhs,false
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
   typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-  template<typename Dest> inline void _addTo(Dest& dst) const
+  template<typename Dest> inline void addToDense(Dest& dst) const
   { evalTo(dst,1); }
-  template<typename Dest> inline void _subTo(Dest& dst) const
+  template<typename Dest> inline void subToDense(Dest& dst) const
   { evalTo(dst,-1); }
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  template<typename Dest> void evalToDense(Dest& dst) const
   {
     dst.resize(m_lhs.rows(), m_rhs.cols());
     dst.setZero();

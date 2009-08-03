@@ -27,7 +27,7 @@
 #define EIGEN_DIAGONALMATRIX_H
 
 template<typename Derived>
-class DiagonalBase : public MultiplierBase<Derived>
+class DiagonalBase : public AnyMatrixBase<Derived>
 {
   public:
     typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;
@@ -52,6 +52,12 @@ class DiagonalBase : public MultiplierBase<Derived>
     DenseMatrixType toDenseMatrix() const { return derived(); }
     template<typename DenseDerived>
     void evalToDense(MatrixBase<DenseDerived> &other) const;
+    template<typename DenseDerived>
+    void addToDense(MatrixBase<DenseDerived> &other) const
+    { other.diagonal() += diagonal(); }
+    template<typename DenseDerived>
+    void subToDense(MatrixBase<DenseDerived> &other) const
+    { other.diagonal() -= diagonal(); }
 
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
     inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
@@ -84,6 +90,7 @@ void DiagonalBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
   */
 template<typename _Scalar, int _Size>
 struct ei_traits<DiagonalMatrix<_Scalar,_Size> >
+ : ei_traits<Matrix<_Scalar,_Size,_Size> >
 {
   typedef Matrix<_Scalar,_Size,1> DiagonalVectorType;
 };
@@ -170,6 +177,14 @@ template<typename _DiagonalVectorType>
 struct ei_traits<DiagonalWrapper<_DiagonalVectorType> >
 {
   typedef _DiagonalVectorType DiagonalVectorType;
+  typedef typename DiagonalVectorType::Scalar Scalar;
+  enum {
+    RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+    ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+    MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+    MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+    Flags = 0
+  };
 };
 
 template<typename _DiagonalVectorType>

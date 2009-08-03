@@ -118,10 +118,13 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
 ***************************************************************************/
 
 template<int Mode, /*bool LhsIsTriangular, */typename Lhs, typename Rhs>
-struct ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>
-  : public ReturnByValue<ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>,
-                         Matrix<typename ei_traits<Rhs>::Scalar,
-                                Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+struct ei_traits<TriangularProduct<Mode,true,Lhs,false,Rhs,true> >
+ : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+{};
+
+template<int Mode, /*bool LhsIsTriangular, */typename Lhs, typename Rhs>
+struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
+  : public AnyMatrixBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true> >
 {
   typedef typename Lhs::Scalar Scalar;
 
@@ -137,19 +140,19 @@ struct ei_triangular_product_returntype<Mode,true,Lhs,false,Rhs,true>
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
   typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-  ei_triangular_product_returntype(const Lhs& lhs, const Rhs& rhs)
+  TriangularProduct(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
   inline int rows() const { return m_lhs.rows(); }
   inline int cols() const { return m_rhs.cols(); }
 
-  template<typename Dest> inline void _addTo(Dest& dst) const
+  template<typename Dest> inline void addToDense(Dest& dst) const
   { evalTo(dst,1); }
-  template<typename Dest> inline void _subTo(Dest& dst) const
+  template<typename Dest> inline void subToDense(Dest& dst) const
   { evalTo(dst,-1); }
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  template<typename Dest> void evalToDense(Dest& dst) const
   {
     dst.setZero();
     evalTo(dst,1);

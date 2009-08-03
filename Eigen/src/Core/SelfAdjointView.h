@@ -55,7 +55,7 @@ struct ei_traits<SelfAdjointView<MatrixType, TriangularPart> > : ei_traits<Matri
 
 template <typename Lhs, int LhsMode, bool LhsIsVector,
           typename Rhs, int RhsMode, bool RhsIsVector>
-struct ei_selfadjoint_product_returntype;
+struct SelfadjointProductMatrix;
 
 // FIXME could also be called SelfAdjointWrapper to be consistent with DiagonalWrapper ??
 template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
@@ -100,20 +100,20 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
     /** Efficient self-adjoint matrix times vector/matrix product */
     template<typename OtherDerived>
-    ei_selfadjoint_product_returntype<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
+    SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
-      return ei_selfadjoint_product_returntype
+      return SelfadjointProductMatrix
               <MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
               (m_matrix, rhs.derived());
     }
 
     /** Efficient vector/matrix times self-adjoint matrix product */
     template<typename OtherDerived> friend
-    ei_selfadjoint_product_returntype<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
+    SelfadjointProductMatrix<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
     operator*(const MatrixBase<OtherDerived>& lhs, const SelfAdjointView& rhs)
     {
-      return ei_selfadjoint_product_returntype
+      return SelfadjointProductMatrix
               <OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
               (lhs.derived(),rhs.m_matrix);
     }
@@ -201,10 +201,13 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, Dynami
 ***************************************************************************/
 
 template<typename Lhs, int LhsMode, typename Rhs>
-struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>
-  : public ReturnByValue<ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>,
-                         Matrix<typename ei_traits<Rhs>::Scalar,
-                                Rhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+struct ei_traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
+ : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+{};
+
+template<typename Lhs, int LhsMode, typename Rhs>
+struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
+  : public AnyMatrixBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
 {
   typedef typename Lhs::Scalar Scalar;
 
@@ -224,19 +227,19 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>
     LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit)
   };
 
-  ei_selfadjoint_product_returntype(const Lhs& lhs, const Rhs& rhs)
+  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
   inline int rows() const { return m_lhs.rows(); }
   inline int cols() const { return m_rhs.cols(); }
 
-  template<typename Dest> inline void _addTo(Dest& dst) const
+  template<typename Dest> inline void addToDense(Dest& dst) const
   { evalTo(dst,1); }
-  template<typename Dest> inline void _subTo(Dest& dst) const
+  template<typename Dest> inline void subToDense(Dest& dst) const
   { evalTo(dst,-1); }
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  template<typename Dest> void evalToDense(Dest& dst) const
   {
     dst.setZero();
     evalTo(dst,1);
@@ -272,12 +275,15 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,0,true>
 ***************************************************************************/
 
 template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
-struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
-  : public ReturnByValue<ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>,
-                         Matrix<typename ei_traits<Rhs>::Scalar,
-                                Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+struct ei_traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false> >
+ : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+{};
+
+template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
+struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
+  : public AnyMatrixBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false> >
 {
-  ei_selfadjoint_product_returntype(const Lhs& lhs, const Rhs& rhs)
+  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
@@ -305,12 +311,12 @@ struct ei_selfadjoint_product_returntype<Lhs,LhsMode,false,Rhs,RhsMode,false>
     RhsIsSelfAdjoint = (RhsMode&SelfAdjointBit)==SelfAdjointBit
   };
 
-  template<typename Dest> inline void _addTo(Dest& dst) const
+  template<typename Dest> inline void addToDense(Dest& dst) const
   { evalTo(dst,1); }
-  template<typename Dest> inline void _subTo(Dest& dst) const
+  template<typename Dest> inline void subToDense(Dest& dst) const
   { evalTo(dst,-1); }
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  template<typename Dest> void evalToDense(Dest& dst) const
   {
     dst.setZero();
     evalTo(dst,1);
