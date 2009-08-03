@@ -86,8 +86,8 @@ void test_inverse()
     CALL_SUBTEST( inverse(Matrix2d()) );
     CALL_SUBTEST( inverse(Matrix3f()) );
     CALL_SUBTEST( inverse(Matrix4f()) );
-    CALL_SUBTEST( inverse(MatrixXf(8,8)) );
-    CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
+    CALL_SUBTEST( inverse(MatrixXf(72,72)) );
+    CALL_SUBTEST( inverse(MatrixXcd(56,56)) );
   }
 
   // test some tricky cases for 4x4 matrices

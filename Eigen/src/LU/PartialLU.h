@@ -201,6 +201,100 @@ PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
   compute(matrix);
 }
 
+/** \internal performs the LU decomposition in place of the matrix \a lu.
+  * In addition, this function returns the row transpositions in the
+  * vector \a row_transpositions which must have a size equal to the number
+  * of columns of the matrix \a lu, and an integer \a nb_transpositions
+  * which returns the actual number of transpositions.
+  */
+template<typename MatrixType, typename IntVector>
+void ei_lu_unblocked(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
+{
+  const int rows = lu.rows();
+  const int size = std::min(lu.rows(),lu.cols());
+  nb_transpositions = 0;
+  for(int k = 0; k < size; ++k)
+  {
+    int row_of_biggest_in_col;
+    lu.block(k,k,rows-k,1).cwise().abs().maxCoeff(&row_of_biggest_in_col);
+    row_of_biggest_in_col += k;
+
+    row_transpositions.coeffRef(k) = row_of_biggest_in_col;
+
+    if(k != row_of_biggest_in_col)
+    {
+      lu.row(k).swap(lu.row(row_of_biggest_in_col));
+      ++nb_transpositions;
+    }
+
+    if(k<rows-1)
+    {
+      lu.col(k).end(rows-k-1) /= lu.coeff(k,k);
+      for(int col = k + 1; col < size; ++col)
+        lu.col(col).end(rows-k-1) -= lu.col(k).end(rows-k-1) * lu.coeff(k,col);
+    }
+  }
+}
+
+/** This is the blocked version of ei_lu_unblocked() */
+template<typename MatrixType, typename IntVector>
+void ei_lu_blocked(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
+{
+  const int size = lu.rows();
+
+  // automatically adjust the number of subdivisions to the size
+  // of the matrix so that there is enough sub blocks:
+  int blockSize = size/8;
+  blockSize = (blockSize/16)*16;
+  blockSize = std::min(std::max(blockSize,8), 256);
+  // if the matrix is too small, no blocking:
+  if(size<32)
+    blockSize = size;
+
+  nb_transpositions = 0;
+  for(int k = 0; k < size; k+=blockSize)
+  {
+    int bs = std::min(size-k,blockSize);
+    int ps = size - k;
+    int rs = size - k - bs;
+    // partition the matrix:
+    //        A00 | A01 | A02
+    // lu  =  A10 | A11 | A12
+    //        A20 | A21 | A22
+    Block<MatrixType,Dynamic,Dynamic> A_0(lu,0,0,size,k);
+    Block<MatrixType,Dynamic,Dynamic> A11_21(lu,k,k,ps,bs);
+    Block<MatrixType,Dynamic,Dynamic> A_2(lu,0,k+bs,size,rs);
+    Block<MatrixType,Dynamic,Dynamic> A11(lu,k,k,bs,bs);
+    Block<MatrixType,Dynamic,Dynamic> A12(lu,k,k+bs,bs,rs);
+    Block<MatrixType,Dynamic,Dynamic> A21(lu,k+bs,k,rs,bs);
+    Block<MatrixType,Dynamic,Dynamic> A22(lu,k+bs,k+bs,rs,rs);
+    
+    VectorBlock<IntVector,Dynamic> row_transpositions_in_panel(row_transpositions,k,bs);
+    int nb_transpositions_in_panel;
+    ei_lu_unblocked(A11_21, row_transpositions_in_panel, nb_transpositions_in_panel);
+    nb_transpositions_in_panel += nb_transpositions_in_panel;
+
+    // update permutations and apply them to A10
+    for(int i=k;i<k+bs; ++i)
+    {
+      int piv = (row_transpositions.coeffRef(i) += k);
+      A_0.row(i).swap(A_0.row(piv));
+    }
+
+    if(rs)
+    {
+      // apply permutations to A_2
+      for(int i=k;i<k+bs; ++i)
+        A_2.row(i).swap(A_2.row(row_transpositions.coeff(i)));
+
+      // A12 = A11^-1 A12
+      A11.template triangularView<UnitLowerTriangular>().solveInPlace(A12);
+
+      A22 -= A21 * A12;
+    }
+  }
+}
+
 template<typename MatrixType>
 void PartialLU<MatrixType>::compute(const MatrixType& matrix)
 {
@@ -211,39 +305,14 @@ void PartialLU<MatrixType>::compute(const MatrixType& matrix)
   const int size = matrix.rows();
 
   IntColVectorType rows_transpositions(size);
-  int number_of_transpositions = 0;
 
-  for(int k = 0; k < size; ++k)
-  {
-    int row_of_biggest_in_col;
-    m_lu.block(k,k,size-k,1).cwise().abs().maxCoeff(&row_of_biggest_in_col);
-    row_of_biggest_in_col += k;
-
-    rows_transpositions.coeffRef(k) = row_of_biggest_in_col;
-
-    if(k != row_of_biggest_in_col) {
-      m_lu.row(k).swap(m_lu.row(row_of_biggest_in_col));
-      ++number_of_transpositions;
-    }
-
-    if(k<size-1) {
-      m_lu.col(k).end(size-k-1) /= m_lu.coeff(k,k);
-      /* I know it's tempting to replace this for loop by a single matrix product. But actually there's no reason why it
-       * should be faster because it's just an exterior vector product; and in practice this gives much slower code with
-       * GCC 4.2-4.4 (this is weird, would be interesting to investigate). On the other hand, it would be worth having a variant
-       * for row-major matrices, traversing in the other direction for better performance, with a meta selector to compile only
-       * one path
-       */
-      for(int col = k + 1; col < size; ++col)
-        m_lu.col(col).end(size-k-1) -= m_lu.col(k).end(size-k-1) * m_lu.coeff(k,col);
-    }
-  }
+  int nb_transpositions;
+  ei_lu_blocked(m_lu, rows_transpositions, nb_transpositions);
+  m_det_p = (nb_transpositions%2) ? -1 : 1;
 
   for(int k = 0; k < size; ++k) m_p.coeffRef(k) = k;
   for(int k = size-1; k >= 0; --k)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
-
-  m_det_p = (number_of_transpositions%2) ? -1 : 1;
 
   m_isInitialized = true;
 }
