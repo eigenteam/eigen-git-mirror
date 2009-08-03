@@ -50,7 +50,8 @@ void MatrixBase<Derived>::makeHouseholder(
     Scalar sign = coeff(0) / ei_abs(coeff(0));
     c0 = coeff(0) + sign * ei_sqrt(_squaredNorm);
   }
-  *essential = end(size()-1) / c0; // FIXME take advantage of fixed size
+  VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
+  *essential = tail / c0;
   const RealScalar c0abs2 = ei_abs2(c0);
   *beta = RealScalar(2) * c0abs2 / (c0abs2 + _squaredNorm - ei_abs2(coeff(0)));
 }
@@ -62,12 +63,10 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const RealScalar& beta)
 {
   Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> tmp(cols());
-  tmp = row(0) + essential.adjoint() * block(1,0,rows()-1,cols());
-  // FIXME take advantage of fixed size
-  // FIXME play with lazy()
-  // FIXME maybe not a good idea to use matrix product
+  Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
+  tmp = row(0) + essential.adjoint() * bottom;
   row(0) -= beta * tmp;
-  block(1,0,rows()-1,cols()) -= beta * essential * tmp;
+  bottom -= beta * essential * tmp;
 }
 
 template<typename Derived>
@@ -77,12 +76,10 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const RealScalar& beta)
 {
   Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> tmp(rows());
-  tmp = col(0) + block(0,1,rows(),cols()-1) * essential.conjugate();
-  // FIXME take advantage of fixed size
-  // FIXME play with lazy()
-  // FIXME maybe not a good idea to use matrix product
+  Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
+  tmp = col(0) + right * essential.conjugate();
   col(0) -= beta * tmp;
-  block(0,1,rows(),cols()-1) -= beta * tmp * essential.transpose();
+  right -= beta * tmp * essential.transpose();
 }
 
 #endif // EIGEN_HOUSEHOLDER_H
