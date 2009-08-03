@@ -40,6 +40,7 @@ template<typename Derived> struct AnyMatrixBase
   Derived& derived() { return *static_cast<Derived*>(this); }
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
 };
+
 /** Common base class for all classes T such that there are overloaded operator* allowing to
   * multiply a MatrixBase by a T on both sides.
   *
@@ -748,6 +749,19 @@ template<typename Derived> class MatrixBase
     // dense = dense * sparse
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
+
+////////// Householder module ///////////
+
+    template<typename EssentialPart>
+    void makeHouseholder(EssentialPart *essential,
+                         RealScalar *beta) const;
+    template<typename EssentialPart>
+    void applyHouseholderOnTheLeft(const EssentialPart& essential,
+                                   const RealScalar& beta);
+    template<typename EssentialPart>
+    void applyHouseholderOnTheRight(const EssentialPart& essential,
+                                    const RealScalar& beta);
+    
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

@@ -8,8 +8,7 @@ string(REGEX MATCH "define *EIGEN_MAJOR_VERSION ([0-9]*)" _eigen2_major_version_
 set(EIGEN2_MAJOR_VERSION "${CMAKE_MATCH_1}")
 string(REGEX MATCH "define *EIGEN_MINOR_VERSION ([0-9]*)" _eigen2_minor_version_match "${_eigen2_version_header}")
 set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
-# TODO find a way to automatically remove the unstable suffix
-set(EIGEN_VERSION_NUMBER ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION}-unstable)
+set(EIGEN_VERSION_NUMBER ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION})
 
 # if the mercurial program is absent, this will leave the EIGEN_HG_REVISION string empty,
 # but won't stop CMake.

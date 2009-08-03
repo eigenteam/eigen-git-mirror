@@ -1,0 +1,24 @@
+#ifndef EIGEN_HOUSEHOLDER_MODULE_H
+#define EIGEN_HOUSEHOLDER_MODULE_H
+
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+namespace Eigen {
+
+/** \defgroup Householder_Module Householder module
+  * This module provides householder transformations.
+  *
+  * \code
+  * #include <Eigen/Householder>
+  * \endcode
+  */
+
+#include "src/Householder/Householder.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_HOUSEHOLDER_MODULE_H
