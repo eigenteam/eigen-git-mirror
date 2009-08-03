@@ -25,8 +25,9 @@
 #ifndef EIGEN_ROTATIONBASE_H
 #define EIGEN_ROTATIONBASE_H
 
-// this file aims to contains the various representations of rotation/orientation
-// in 2D and 3D space excepted Matrix and Quaternion.
+// forward declaration
+template<typename RotationDerived, typename MatrixType, bool IsVector=MatrixType::IsVectorAtCompileTime>
+struct ei_rotation_base_generic_product_selector;
 
 /** \class RotationBase
   *
@@ -46,25 +47,6 @@ class RotationBase
     /** corresponding linear transformation matrix type */
     typedef Matrix<Scalar,Dim,Dim> RotationMatrixType;
     typedef Matrix<Scalar,Dim,1> VectorType;
-
-  protected:
-    template<typename MatrixType, bool IsVector=MatrixType::IsVectorAtCompileTime>
-    struct generic_product_selector
-    {
-      typedef RotationMatrixType ReturnType;
-      inline static RotationMatrixType run(const Derived& r, const MatrixType& m)
-      { return r.toRotationMatrix() * m; }
-    };
-
-    template<typename OtherVectorType>
-    struct generic_product_selector<OtherVectorType,true>
-    {
-      typedef VectorType ReturnType;
-      inline static VectorType run(const Derived& r, const OtherVectorType& v)
-      {
-        return r._transformVector(v);
-      }
-    };
 
   public:
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
@@ -90,9 +72,9 @@ class RotationBase
       *  - a vector of size Dim
       */
     template<typename OtherDerived>
-    inline typename generic_product_selector<OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
-    operator*(const MultiplierBase<OtherDerived>& e) const
-    { return generic_product_selector<OtherDerived>::run(derived(), e.derived()); }
+    inline typename ei_rotation_base_generic_product_selector<Derived,OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
+    operator*(const MatrixBase<OtherDerived>& e) const
+    { return ei_rotation_base_generic_product_selector<Derived,OtherDerived>::run(derived(), e.derived()); }
 
     /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
     template<typename OtherDerived> friend
@@ -107,6 +89,27 @@ class RotationBase
     template<typename OtherVectorType>
     inline VectorType _transformVector(const OtherVectorType& v) const
     { return toRotationMatrix() * v; }
+};
+
+// implementation of the generic product rotation * matrix
+template<typename RotationDerived, typename MatrixType>
+struct ei_rotation_base_generic_product_selector<RotationDerived,MatrixType,false>
+{
+  enum { Dim = RotationDerived::Dim };
+  typedef Matrix<typename RotationDerived::Scalar,Dim,Dim> ReturnType;
+  inline static ReturnType run(const RotationDerived& r, const MatrixType& m)
+  { return r.toRotationMatrix() * m; }
+};
+
+template<typename RotationDerived,typename OtherVectorType>
+struct ei_rotation_base_generic_product_selector<RotationDerived,OtherVectorType,true>
+{
+  enum { Dim = RotationDerived::Dim };
+  typedef Matrix<typename RotationDerived::Scalar,Dim,1> ReturnType;
+  inline static ReturnType run(const RotationDerived& r, const OtherVectorType& v)
+  {
+    return r._transformVector(v);
+  }
 };
 
 /** \geometry_module

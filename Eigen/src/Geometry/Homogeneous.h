@@ -62,10 +62,12 @@ struct ei_traits<Homogeneous<MatrixType,Direction> >
 template<typename MatrixType,typename Lhs> struct ei_homogeneous_left_product_impl;
 template<typename MatrixType,typename Rhs> struct ei_homogeneous_right_product_impl;
 
-template<typename MatrixType,int Direction> class Homogeneous
-  : public MatrixBase<Homogeneous<MatrixType,Direction> >
+template<typename MatrixType,int _Direction> class Homogeneous
+  : public MatrixBase<Homogeneous<MatrixType,_Direction> >
 {
   public:
+
+    enum { Direction = _Direction };
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Homogeneous)
 
