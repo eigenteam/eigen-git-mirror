@@ -355,10 +355,22 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
 /////////// Artithmetic operators ///////////
 
+    /** Copies the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      //ei_assert((m_matrix.isNull()) == (other.isNull())); FIXME
+      for(int j=0; j<subVectors(); ++j)
+        subVector(j) = other;
+      return const_cast<ExpressionType&>(m_matrix);
+    }
+
     /** Adds the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
     ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
     {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       for(int j=0; j<subVectors(); ++j)
         subVector(j) += other;
       return const_cast<ExpressionType&>(m_matrix);
@@ -368,6 +380,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename OtherDerived>
     ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
     {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       for(int j=0; j<subVectors(); ++j)
         subVector(j) -= other;
       return const_cast<ExpressionType&>(m_matrix);

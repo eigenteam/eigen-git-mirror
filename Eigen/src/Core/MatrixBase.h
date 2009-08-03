@@ -45,7 +45,7 @@ template<typename Derived> struct AnyMatrixBase
   inline int rows() const { return derived().rows(); }
   /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
   inline int cols() const { return derived().cols(); }
-
+  
   template<typename Dest> inline void evalTo(Dest& dst) const
   { derived().evalTo(dst); }
 
@@ -764,6 +764,19 @@ template<typename Derived> class MatrixBase
     // dense = dense * sparse
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
+
+////////// Householder module ///////////
+
+    template<typename EssentialPart>
+    void makeHouseholder(EssentialPart *essential,
+                         RealScalar *beta) const;
+    template<typename EssentialPart>
+    void applyHouseholderOnTheLeft(const EssentialPart& essential,
+                                   const RealScalar& beta);
+    template<typename EssentialPart>
+    void applyHouseholderOnTheRight(const EssentialPart& essential,
+                                    const RealScalar& beta);
+    
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
