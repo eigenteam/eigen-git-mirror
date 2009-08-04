@@ -119,49 +119,21 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
 
 template<int Mode, /*bool LhsIsTriangular, */typename Lhs, typename Rhs>
 struct ei_traits<TriangularProduct<Mode,true,Lhs,false,Rhs,true> >
- : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+ : ei_traits<ProductBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true>, Lhs, Rhs> >
 {};
 
 template<int Mode, /*bool LhsIsTriangular, */typename Lhs, typename Rhs>
 struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
-  : public AnyMatrixBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true> >
+  : public ProductBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true>, Lhs, Rhs >
 {
-  typedef typename Lhs::Scalar Scalar;
+  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
 
-  typedef typename Lhs::Nested LhsNested;
-  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
-  typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
-  typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
+  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  typedef typename Rhs::Nested RhsNested;
-  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
-  typedef ei_blas_traits<_RhsNested> RhsBlasTraits;
-  typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
-
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs)
-    : m_lhs(lhs), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> inline void addToDense(Dest& dst) const
-  { evalTo(dst,1); }
-  template<typename Dest> inline void subToDense(Dest& dst) const
-  { evalTo(dst,-1); }
-
-  template<typename Dest> void evalToDense(Dest& dst) const
-  {
-    dst.setZero();
-    evalTo(dst,1);
-  }
-
-  template<typename Dest> void evalTo(Dest& dst, Scalar alpha) const
+  template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
   {
     ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-    
+
     const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
     const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
 
@@ -176,9 +148,6 @@ struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
        ei_traits<Lhs>::Flags&RowMajorBit>
       ::run(lhs,rhs,dst,actualAlpha);
   }
-
-  const LhsNested m_lhs;
-  const RhsNested m_rhs;
 };
 
 #endif // EIGEN_TRIANGULARMATRIXVECTOR_H

@@ -339,11 +339,18 @@ class Matrix
       return Base::operator=(func);
     }
 
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE Matrix& operator=(const ProductBase<ProductDerived,Lhs,Rhs>& other)
+    {
+      resize(other.rows(), other.cols());
+      return Base::operator=(other);
+    }
+
     using Base::operator +=;
     using Base::operator -=;
     using Base::operator *=;
     using Base::operator /=;
-    
+
     /** Default constructor.
       *
       * For fixed-size matrices, does nothing.
@@ -444,6 +451,15 @@ class Matrix
       resize(other.rows(), other.cols());
       other.evalTo(*this);
     }
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE Matrix(const ProductBase<ProductDerived,Lhs,Rhs>& other)
+    {
+      _check_template_params();
+      resize(other.rows(), other.cols());
+      other.evalTo(*this);
+    }
+
     /** Destructor */
     inline ~Matrix() {}
 
@@ -605,7 +621,7 @@ class Matrix
       #ifdef EIGEN_DEBUG_MATRIX_CTOR
         EIGEN_DEBUG_MATRIX_CTOR(Matrix);
       #endif
-      
+
       EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
                         && (_Cols >= _MaxCols)
                         && (_MaxRows >= 0)

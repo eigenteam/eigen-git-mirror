@@ -38,14 +38,14 @@
 template<typename Derived> struct AnyMatrixBase
 {
   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
-  
+
   Derived& derived() { return *static_cast<Derived*>(this); }
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
   /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
   inline int rows() const { return derived().rows(); }
   /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
   inline int cols() const { return derived().cols(); }
-  
+
   template<typename Dest> inline void evalTo(Dest& dst) const
   { derived().evalTo(dst); }
 
@@ -55,7 +55,7 @@ template<typename Derived> struct AnyMatrixBase
     evalToDense(res);
     dst += res;
   }
-  
+
   template<typename Dest> inline void subToDense(Dest& dst) const
   {
     typename Dest::PlainMatrixType res(rows(),cols());
@@ -317,6 +317,17 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& operator-=(const AnyMatrixBase<OtherDerived> &other)
     { other.derived().subToDense(derived()); return derived(); }
+
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator+=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator-=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
+
 
     template<typename OtherDerived,typename OtherEvalType>
     Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
@@ -776,7 +787,7 @@ template<typename Derived> class MatrixBase
     template<typename EssentialPart>
     void applyHouseholderOnTheRight(const EssentialPart& essential,
                                     const RealScalar& beta);
-    
+
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
