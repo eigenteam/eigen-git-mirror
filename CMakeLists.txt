@@ -108,7 +108,7 @@ set(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/eigen2"
     CACHE PATH
     "The directory where we install the header files"
-    FORCE)
+)
 
 if(EIGEN_BUILD_PKGCONFIG)
     configure_file(eigen2.pc.in eigen2.pc)
