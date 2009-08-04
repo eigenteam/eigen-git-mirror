@@ -201,98 +201,153 @@ PartialLU<MatrixType>::PartialLU(const MatrixType& matrix)
   compute(matrix);
 }
 
-/** \internal performs the LU decomposition in place of the matrix \a lu.
-  * In addition, this function returns the row transpositions in the
-  * vector \a row_transpositions which must have a size equal to the number
-  * of columns of the matrix \a lu, and an integer \a nb_transpositions
-  * which returns the actual number of transpositions.
-  */
-template<typename MatrixType, typename IntVector>
-void ei_lu_unblocked(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
-{
-  const int rows = lu.rows();
-  const int size = std::min(lu.rows(),lu.cols());
-  nb_transpositions = 0;
-  for(int k = 0; k < size; ++k)
-  {
-    int row_of_biggest_in_col;
-    lu.block(k,k,rows-k,1).cwise().abs().maxCoeff(&row_of_biggest_in_col);
-    row_of_biggest_in_col += k;
 
-    row_transpositions.coeffRef(k) = row_of_biggest_in_col;
-
-    if(k != row_of_biggest_in_col)
-    {
-      lu.row(k).swap(lu.row(row_of_biggest_in_col));
-      ++nb_transpositions;
-    }
-
-    if(k<rows-1)
-    {
-      lu.col(k).end(rows-k-1) /= lu.coeff(k,k);
-      for(int col = k + 1; col < size; ++col)
-        lu.col(col).end(rows-k-1) -= lu.col(k).end(rows-k-1) * lu.coeff(k,col);
-    }
-  }
-}
 
 /** This is the blocked version of ei_lu_unblocked() */
-template<typename MatrixType, typename IntVector>
-void ei_lu_blocked(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
+template<typename Scalar, int StorageOrder>
+struct ei_partial_lu_impl
 {
-  const int size = lu.rows();
-
-  // automatically adjust the number of subdivisions to the size
-  // of the matrix so that there is enough sub blocks:
-  int blockSize = size/8;
-  blockSize = (blockSize/16)*16;
-  blockSize = std::min(std::max(blockSize,8), 256);
-  // if the matrix is too small, no blocking:
-  if(size<32)
-    blockSize = size;
-
-  nb_transpositions = 0;
-  for(int k = 0; k < size; k+=blockSize)
-  {
-    int bs = std::min(size-k,blockSize);
-    int ps = size - k;
-    int rs = size - k - bs;
-    // partition the matrix:
-    //        A00 | A01 | A02
-    // lu  =  A10 | A11 | A12
-    //        A20 | A21 | A22
-    Block<MatrixType,Dynamic,Dynamic> A_0(lu,0,0,size,k);
-    Block<MatrixType,Dynamic,Dynamic> A11_21(lu,k,k,ps,bs);
-    Block<MatrixType,Dynamic,Dynamic> A_2(lu,0,k+bs,size,rs);
-    Block<MatrixType,Dynamic,Dynamic> A11(lu,k,k,bs,bs);
-    Block<MatrixType,Dynamic,Dynamic> A12(lu,k,k+bs,bs,rs);
-    Block<MatrixType,Dynamic,Dynamic> A21(lu,k+bs,k,rs,bs);
-    Block<MatrixType,Dynamic,Dynamic> A22(lu,k+bs,k+bs,rs,rs);
+  // FIXME add a stride to Map, so that the following mapping becomes easier,
+  // another option would be to create an expression being able to automatically
+  // warp any Map, Matrix, and Block expressions as a unique type, but since that's exactly
+  // a Map + stride, why not adding a stride to Map, and convenient ctors from a Matrix,
+  // and Block.
+  typedef Map<Matrix<Scalar, Dynamic, Dynamic, StorageOrder> > MapLU;
+  typedef Block<MapLU, Dynamic, Dynamic> MatrixType;
+  typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
     
-    VectorBlock<IntVector,Dynamic> row_transpositions_in_panel(row_transpositions,k,bs);
-    int nb_transpositions_in_panel;
-    ei_lu_unblocked(A11_21, row_transpositions_in_panel, nb_transpositions_in_panel);
-    nb_transpositions_in_panel += nb_transpositions_in_panel;
-
-    // update permutations and apply them to A10
-    for(int i=k;i<k+bs; ++i)
+  /** \internal performs the LU decomposition in-place of the matrix \a lu
+    * using an unblocked algorithm.
+    * 
+    * In addition, this function returns the row transpositions in the
+    * vector \a row_transpositions which must have a size equal to the number
+    * of columns of the matrix \a lu, and an integer \a nb_transpositions
+    * which returns the actual number of transpositions.
+    */
+  static void unblocked_lu(MatrixType& lu, int* row_transpositions, int& nb_transpositions)
+  {
+    const int rows = lu.rows();
+    const int size = std::min(lu.rows(),lu.cols());
+    nb_transpositions = 0;
+    for(int k = 0; k < size; ++k)
     {
-      int piv = (row_transpositions.coeffRef(i) += k);
-      A_0.row(i).swap(A_0.row(piv));
-    }
+      int row_of_biggest_in_col;
+      lu.block(k,k,rows-k,1).cwise().abs().maxCoeff(&row_of_biggest_in_col);
+      row_of_biggest_in_col += k;
 
-    if(rs)
-    {
-      // apply permutations to A_2
-      for(int i=k;i<k+bs; ++i)
-        A_2.row(i).swap(A_2.row(row_transpositions.coeff(i)));
+      row_transpositions[k] = row_of_biggest_in_col;
 
-      // A12 = A11^-1 A12
-      A11.template triangularView<UnitLowerTriangular>().solveInPlace(A12);
+      if(k != row_of_biggest_in_col)
+      {
+        lu.row(k).swap(lu.row(row_of_biggest_in_col));
+        ++nb_transpositions;
+      }
 
-      A22 -= A21 * A12;
+      if(k<rows-1)
+      {
+        lu.col(k).end(rows-k-1) /= lu.coeff(k,k);
+
+        // TODO implement a fast rank one update routine
+        for(int col = k + 1; col < size; ++col)
+          lu.col(col).end(rows-k-1) -= lu.col(k).end(rows-k-1) * lu.coeff(k,col);
+      }
     }
   }
+
+  /** \internal performs the LU decomposition in-place of the matrix represented
+    * by the variables \a rows, \a cols, \a lu_data, and \a lu_stride using a
+    * recursive, blocked algorithm.
+    *
+    * In addition, this function returns the row transpositions in the
+    * vector \a row_transpositions which must have a size equal to the number
+    * of columns of the matrix \a lu, and an integer \a nb_transpositions
+    * which returns the actual number of transpositions.
+    *
+    * \note This very low level interface using pointers, etc. is to:
+    *   1 - reduce the number of instanciations to the strict minimum
+    *   2 - avoid infinite recursion of the instanciations with Block<Block<Block<...> > >
+    */
+  static void blocked_lu(int rows, int cols, Scalar* lu_data, int luStride, int* row_transpositions, int& nb_transpositions, int maxBlockSize=256)
+  {
+    MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
+    MatrixType lu(lu1,0,0,rows,cols);
+    
+
+    const int size = std::min(rows,cols);
+
+    // if the matrix is too small, no blocking:
+    if(size<=16)
+    {
+      unblocked_lu(lu, row_transpositions, nb_transpositions);
+      return;
+    }
+
+    // automatically adjust the number of subdivisions to the size
+    // of the matrix so that there is enough sub blocks:
+    int blockSize;
+    {
+      blockSize = size/8;
+      blockSize = (blockSize/16)*16;
+      blockSize = std::min(std::max(blockSize,8), maxBlockSize);
+    }
+
+    nb_transpositions = 0;
+    for(int k = 0; k < size; k+=blockSize)
+    {
+      int bs = std::min(size-k,blockSize);
+      int ps = size - k;
+      int rs = size - k - bs;
+      // partition the matrix:
+      //        A00 | A01 | A02
+      // lu  =  A10 | A11 | A12
+      //        A20 | A21 | A22
+      BlockType A_0(lu,0,0,size,k);
+      BlockType A_2(lu,0,k+bs,size,rs);
+      BlockType A11(lu,k,k,bs,bs);
+      BlockType A12(lu,k,k+bs,bs,rs);
+      BlockType A21(lu,k+bs,k,rs,bs);
+      BlockType A22(lu,k+bs,k+bs,rs,rs);
+
+      int nb_transpositions_in_panel;
+      // recursively calls the blocked LU algorithm with a very small
+      // blocking size:
+      blocked_lu(ps, bs, &lu.coeffRef(k,k), luStride,
+                 row_transpositions+k, nb_transpositions_in_panel, 16);
+      nb_transpositions_in_panel += nb_transpositions_in_panel;
+
+      // update permutations and apply them to A10
+      for(int i=k;i<k+bs; ++i)
+      {
+        int piv = (row_transpositions[i] += k);
+        A_0.row(i).swap(A_0.row(piv));
+      }
+
+      if(rs)
+      {
+        // apply permutations to A_2
+        for(int i=k;i<k+bs; ++i)
+          A_2.row(i).swap(A_2.row(row_transpositions[i]));
+
+        // A12 = A11^-1 A12
+        A11.template triangularView<UnitLowerTriangular>().solveInPlace(A12);
+
+        A22 -= A21 * A12;
+      }
+    }
+  }
+};
+
+/** \internal performs the LU decomposition with partial pivoting in-place.
+  */
+template<typename MatrixType, typename IntVector>
+void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
+{
+  ei_assert(lu.cols() == row_transpositions.size());
+  ei_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
+  
+  ei_partial_lu_impl
+    <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor>
+    ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.stride(), &row_transpositions.coeffRef(0), nb_transpositions);
 }
 
 template<typename MatrixType>
@@ -307,7 +362,7 @@ void PartialLU<MatrixType>::compute(const MatrixType& matrix)
   IntColVectorType rows_transpositions(size);
 
   int nb_transpositions;
-  ei_lu_blocked(m_lu, rows_transpositions, nb_transpositions);
+  ei_partial_lu_inplace(m_lu, rows_transpositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
   for(int k = 0; k < size; ++k) m_p.coeffRef(k) = k;

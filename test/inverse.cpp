@@ -81,13 +81,16 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 
 void test_inverse()
 {
+  int s;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( inverse(Matrix<double,1,1>()) );
     CALL_SUBTEST( inverse(Matrix2d()) );
     CALL_SUBTEST( inverse(Matrix3f()) );
     CALL_SUBTEST( inverse(Matrix4f()) );
-    CALL_SUBTEST( inverse(MatrixXf(72,72)) );
-    CALL_SUBTEST( inverse(MatrixXcd(56,56)) );
+    s = ei_random<int>(50,320);
+    CALL_SUBTEST( inverse(MatrixXf(s,s)) );
+    s = ei_random<int>(25,100);
+    CALL_SUBTEST( inverse(MatrixXcd(s,s)) );
   }
 
   // test some tricky cases for 4x4 matrices
