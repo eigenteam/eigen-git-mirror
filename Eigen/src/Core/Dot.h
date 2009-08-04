@@ -86,7 +86,7 @@ struct ei_dot_novec_unroller<Derived1, Derived2, Start, 1>
 
   inline static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    return v1.coeff(Start) * ei_conj(v2.coeff(Start));
+    return ei_conj(v1.coeff(Start)) * v2.coeff(Start);
   }
 };
 
@@ -155,9 +155,9 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
   {
     ei_assert(v1.size()>0 && "you are using a non initialized vector");
     Scalar res;
-    res = v1.coeff(0) * ei_conj(v2.coeff(0));
+    res = ei_conj(v1.coeff(0)) * v2.coeff(0);
     for(int i = 1; i < v1.size(); ++i)
-      res += v1.coeff(i) * ei_conj(v2.coeff(i));
+      res += ei_conj(v1.coeff(i)) * v2.coeff(i);
     return res;
   }
 };
@@ -248,7 +248,7 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
   * \only_for_vectors
   *
   * \note If the scalar type is complex numbers, then this function returns the hermitian
-  * (sesquilinear) dot product, linear in the first variable and conjugate-linear in the
+  * (sesquilinear) dot product, conjugate-linear in the first variable and linear in the
   * second variable.
   *
   * \sa squaredNorm(), norm()

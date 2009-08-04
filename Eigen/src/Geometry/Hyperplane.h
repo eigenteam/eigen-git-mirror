@@ -71,7 +71,7 @@ public:
     : m_coeffs(n.size()+1)
   {
     normal() = n;
-    offset() = -e.dot(n);
+    offset() = -n.dot(e);
   }
 
   /** Constructs a plane from its normal \a n and distance to the origin \a d
@@ -92,7 +92,7 @@ public:
   {
     Hyperplane result(p0.size());
     result.normal() = (p1 - p0).unitOrthogonal();
-    result.offset() = -result.normal().dot(p0);
+    result.offset() = -p0.dot(result.normal());
     return result;
   }
 
@@ -104,7 +104,7 @@ public:
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 3)
     Hyperplane result(p0.size());
     result.normal() = (p2 - p0).cross(p1 - p0).normalized();
-    result.offset() = -result.normal().dot(p0);
+    result.offset() = -p0.dot(result.normal());
     return result;
   }
 
@@ -116,7 +116,7 @@ public:
   explicit Hyperplane(const ParametrizedLine<Scalar, AmbientDimAtCompileTime>& parametrized)
   {
     normal() = parametrized.direction().unitOrthogonal();
-    offset() = -normal().dot(parametrized.origin());
+    offset() = -parametrized.origin().dot(normal());
   }
 
   ~Hyperplane() {}
@@ -133,7 +133,7 @@ public:
   /** \returns the signed distance between the plane \c *this and a point \a p.
     * \sa absDistance()
     */
-  inline Scalar signedDistance(const VectorType& p) const { return p.dot(normal()) + offset(); }
+  inline Scalar signedDistance(const VectorType& p) const { return normal().dot(p) + offset(); }
 
   /** \returns the absolute distance between the plane \c *this and a point \a p.
     * \sa signedDistance()
@@ -231,7 +231,7 @@ public:
                                 TransformTraits traits = Affine)
   {
     transform(t.linear(), traits);
-    offset() -= t.translation().dot(normal());
+    offset() -= normal().dot(t.translation());
     return *this;
   }
 

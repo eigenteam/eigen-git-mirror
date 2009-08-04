@@ -358,7 +358,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
 {
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();
-  Scalar c = v0.dot(v1);
+  Scalar c = v1.dot(v0);
 
   // if dot == -1, vectors are nearly opposites
   // => accuraletly compute the rotation axis by computing the

@@ -187,7 +187,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         A(i, i)=f-g;
         for (j=l-1; j<n; j++)
         {
-          s = A.col(i).end(m-i).dot(A.col(j).end(m-i));
+          s = A.col(j).end(m-i).dot(A.col(i).end(m-i));
           f = s/h;
           A.col(j).end(m-i) += f*A.col(i).end(m-i);
         }
@@ -213,7 +213,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         rv1.end(n-l+1) = A.row(i).end(n-l+1)/h;
         for (j=l-1; j<m; j++)
         {
-          s = A.row(j).end(n-l+1).dot(A.row(i).end(n-l+1));
+          s = A.row(i).end(n-l+1).dot(A.row(j).end(n-l+1));
           A.row(j).end(n-l+1) += s*rv1.end(n-l+1).transpose();
         }
         A.row(i).end(n-l+1) *= scale;
@@ -233,7 +233,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           V(j, i) = (A(i, j)/A(i, l))/g;
         for (j=l; j<n; j++)
         {
-          s = A.row(i).end(n-l).dot(V.col(j).end(n-l));
+          s = V.col(j).end(n-l).dot(A.row(i).end(n-l));
           V.col(j).end(n-l) += s * V.col(i).end(n-l);
         }
       }
@@ -258,7 +258,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         for (j=l; j<n; j++)
         {
-          s = A.col(i).end(m-l).dot(A.col(j).end(m-l));
+          s = A.col(j).end(m-l).dot(A.col(i).end(m-l));
           f = (s/A(i,i))*g;
           A.col(j).end(m-i) += f * A.col(i).end(m-i);
         }
