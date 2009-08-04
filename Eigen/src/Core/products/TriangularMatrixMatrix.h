@@ -103,7 +103,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
     Scalar alpha)
   {
     int rows = size;
-    
+
     ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
     ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
 
@@ -152,7 +152,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
           int lengthTarget = IsLowerTriangular ? actual_kc-k1-actualPanelWidth : k1;
           int startBlock   = actual_k2+k1;
           int blockBOffset = k1;
-          
+
           // => GEBP with the micro triangular block
           // The trick is to pack this micro block while filling the opposite triangular part with zeros.
           // To this end we do an extra triangular copy to small temporary buffer
@@ -269,7 +269,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
                          &rhs(actual_k2+panelOffset, actual_j2), rhsStride, alpha,
                          panelLength, actualPanelWidth,
                          actual_kc, panelOffset);
-          
+
           // append the triangular part via a temporary buffer
           for (int j=0;j<actualPanelWidth;++j)
           {
@@ -322,47 +322,18 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
 
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct ei_traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
- : ei_traits<Matrix<typename ei_traits<Rhs>::Scalar,Lhs::RowsAtCompileTime,Rhs::ColsAtCompileTime> >
+  : ei_traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>, Lhs, Rhs> >
 {};
 
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
-  : public AnyMatrixBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
+  : public ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>, Lhs, Rhs >
 {
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs)
-    : m_lhs(lhs), m_rhs(rhs)
-  {}
+  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
 
-  inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_rhs.cols(); }
+  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  typedef typename Lhs::Scalar Scalar;
-
-  typedef typename Lhs::Nested LhsNested;
-  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
-  typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
-  typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
-
-  typedef typename Rhs::Nested RhsNested;
-  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
-  typedef ei_blas_traits<_RhsNested> RhsBlasTraits;
-  typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
-
-  template<typename Dest> inline void addToDense(Dest& dst) const
-  { evalTo(dst,1); }
-  template<typename Dest> inline void subToDense(Dest& dst) const
-  { evalTo(dst,-1); }
-
-  template<typename Dest> void evalToDense(Dest& dst) const
-  {
-    dst.resize(m_lhs.rows(), m_rhs.cols());
-    dst.setZero();
-    evalTo(dst,1);
-  }
-
-  template<typename Dest> void evalTo(Dest& dst, Scalar alpha) const
+  template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
   {
     const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
     const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
@@ -383,9 +354,6 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
         actualAlpha                       // alpha
       );
   }
-
-  const LhsNested m_lhs;
-  const RhsNested m_rhs;
 };
 
 #endif // EIGEN_TRIANGULAR_MATRIX_MATRIX_H
