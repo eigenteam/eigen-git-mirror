@@ -93,6 +93,7 @@ public :
 
   void check_result( void )
   {
+    if (_size>128) return;
     Interface::vector_to_stl(X,resu_stl);
 
     STL_interface<typename Interface::real_type>::atv_product(A_stl,B_stl,X_stl,_size);

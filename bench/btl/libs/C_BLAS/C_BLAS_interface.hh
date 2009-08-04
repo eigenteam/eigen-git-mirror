@@ -171,6 +171,14 @@ public :
     #endif
   }
 
+  static inline void ger(gene_matrix & A, gene_vector & X, gene_vector & Y, int N){
+    #ifdef PUREBLAS
+    sger_(&N,&N,&fone,X,&intone,Y,&intone,A,&N);
+    #else
+    cblas_sger(CblasColMajor,N,N,1.0,X,1,Y,1,A,N);
+    #endif
+  }
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     #ifdef PUREBLAS
     sgemv_(&trans,&N,&N,&fone,A,&N,B,&intone,&fzero,X,&intone);

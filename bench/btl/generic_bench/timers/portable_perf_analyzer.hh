@@ -47,7 +47,6 @@ public:
     time_action = time_calculate(action);
     while (time_action < MIN_TIME)
     {
-      //Action action(size);
       _nb_calc *= 2;
       action.initialize();
       time_action = time_calculate(action);
@@ -65,7 +64,7 @@ public:
     time_action = time_action / (double(_nb_calc));
 
     // check
-    if (BtlConfig::Instance.checkResults)
+    if (BtlConfig::Instance.checkResults && size<128)
     {
       action.initialize();
       action.calculate();

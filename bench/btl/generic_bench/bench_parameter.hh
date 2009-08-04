@@ -23,7 +23,7 @@
 // minimal time for each measurement
 #define REAL_TYPE float
 // minimal time for each measurement
-#define MIN_TIME 1.0
+#define MIN_TIME 0.5
 // nb of point on bench curves
 #define NB_POINT 100
 // min vector size for axpy bench
@@ -33,7 +33,7 @@
 // min matrix size for matrix vector product bench
 #define MIN_MV 5
 // max matrix size for matrix vector product bench
-#define MAX_MV 2048
+#define MAX_MV 3000
 // min matrix size for matrix matrix product bench
 #define MIN_MM 5
 // max matrix size for matrix matrix product bench
@@ -41,13 +41,13 @@
 // min matrix size for LU bench
 #define MIN_LU 5
 // max matrix size for LU bench
-#define MAX_LU 2048
+#define MAX_LU 3000
 // max size for tiny vector and matrix
 #define TINY_MV_MAX_SIZE 16
 // default nb_sample for x86 timer
 #define DEFAULT_NB_SAMPLE 1000
 
 // how many times we run a single bench (keep the best perf)
-#define NB_TRIES 3
+#define NB_TRIES 5
 
 #endif

@@ -1,7 +1,6 @@
 //=====================================================
-// File   :  action_ata_product.hh
-// Author :  L. Plagne <laurent.plagne@edf.fr)>
-// Copyright (C) EDF R&D,  lun sep 30 14:23:19 CEST 2002
+// File   :  action_lu_decomp.hh
+// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //=====================================================
 //
 // This program is free software; you can redistribute it and/or
@@ -17,8 +16,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
-#ifndef ACTION_ATA_PRODUCT
-#define ACTION_ATA_PRODUCT
+#ifndef ACTION_PARTIAL_LU
+#define ACTION_PARTIAL_LU
 #include "utilities.h"
 #include "STL_interface.hh"
 #include <string>
@@ -29,117 +28,98 @@
 using namespace std;
 
 template<class Interface>
-class Action_ata_product {
+class Action_partial_lu {
 
 public :
 
   // Ctor
 
-  Action_ata_product( int size ):_size(size)
+  Action_partial_lu( int size ):_size(size)
   {
-    MESSAGE("Action_ata_product Ctor");
+    MESSAGE("Action_partial_lu Ctor");
 
-    // STL matrix and vector initialization
+    // STL vector initialization
+    init_matrix<pseudo_random>(X_stl,_size);
+    init_matrix<null_function>(C_stl,_size);
 
-    init_matrix<pseudo_random>(A_stl,_size);
-    init_matrix<null_function>(X_stl,_size);
-    init_matrix<null_function>(resu_stl,_size);
+    // make sure X is invertible
+    for (int i=0; i<_size; ++i)
+      X_stl[i][i] = X_stl[i][i] * 1e2 + 1;
 
     // generic matrix and vector initialization
-
-    Interface::matrix_from_stl(A_ref,A_stl);
     Interface::matrix_from_stl(X_ref,X_stl);
-
-    Interface::matrix_from_stl(A,A_stl);
     Interface::matrix_from_stl(X,X_stl);
+    Interface::matrix_from_stl(C,C_stl);
 
+    _cost = 2.0*size*size*size/3.0 + size*size;
   }
 
   // invalidate copy ctor
 
-  Action_ata_product( const  Action_ata_product & )
+  Action_partial_lu( const  Action_partial_lu & )
   {
-    INFOS("illegal call to Action_ata_product Copy Ctor");
-    exit(0);
+    INFOS("illegal call to Action_partial_lu Copy Ctor");
+    exit(1);
   }
 
   // Dtor
 
-  ~Action_ata_product( void ){
+  ~Action_partial_lu( void ){
 
-    MESSAGE("Action_ata_product Dtor");
+    MESSAGE("Action_partial_lu Dtor");
 
     // deallocation
-
-    Interface::free_matrix(A,_size);
-    Interface::free_matrix(X,_size);
-
-    Interface::free_matrix(A_ref,_size);
     Interface::free_matrix(X_ref,_size);
-
+    Interface::free_matrix(X,_size);
+    Interface::free_matrix(C,_size);
   }
 
   // action name
 
   static inline std::string name( void )
   {
-    return "ata_"+Interface::name();
+    return "partial_lu_decomp_"+Interface::name();
   }
 
   double nb_op_base( void ){
-    return 2.0*_size*_size*_size;
+    return _cost;
   }
 
   inline void initialize( void ){
-
-    Interface::copy_matrix(A_ref,A,_size);
     Interface::copy_matrix(X_ref,X,_size);
-
   }
 
   inline void calculate( void ) {
-
-      Interface::ata_product(A,X,_size);
-
+      Interface::partial_lu_decomp(X,C,_size);
   }
 
   void check_result( void ){
-    if (_size>128) return;
     // calculation check
+//     Interface::matrix_to_stl(C,resu_stl);
 
-    Interface::matrix_to_stl(X,resu_stl);
-
-    STL_interface<typename Interface::real_type>::ata_product(A_stl,X_stl,_size);
-
-    typename Interface::real_type error=
-      STL_interface<typename Interface::real_type>::norm_diff(X_stl,resu_stl);
-
-    if (error>1.e-6){
-      INFOS("WRONG CALCULATION...residual=" << error);
-      exit(1);
-    }
+//     STL_interface<typename Interface::real_type>::lu_decomp(X_stl,C_stl,_size);
+//
+//     typename Interface::real_type error=
+//       STL_interface<typename Interface::real_type>::norm_diff(C_stl,resu_stl);
+//
+//     if (error>1.e-6){
+//       INFOS("WRONG CALCULATION...residual=" << error);
+//       exit(0);
+//     }
 
   }
 
 private :
 
-  typename Interface::stl_matrix A_stl;
   typename Interface::stl_matrix X_stl;
-  typename Interface::stl_matrix resu_stl;
+  typename Interface::stl_matrix C_stl;
 
-  typename Interface::gene_matrix A_ref;
   typename Interface::gene_matrix X_ref;
-
-  typename Interface::gene_matrix A;
   typename Interface::gene_matrix X;
-
+  typename Interface::gene_matrix C;
 
   int _size;
-
+  double _cost;
 };
 
-
 #endif
-
-
-

@@ -38,14 +38,13 @@ public :
   {
     MESSAGE("Action_cholesky Ctor");
 
-    // STL vector initialization
-    typename Interface::stl_matrix tmp;
-    init_matrix<pseudo_random>(tmp,_size);
-    init_matrix<null_function>(X_stl,_size);
-    STL_interface<typename Interface::real_type>::ata_product(tmp,X_stl,_size);
-
+    // STL mat/vec initialization
+    init_matrix_symm<pseudo_random>(X_stl,_size);
     init_matrix<null_function>(C_stl,_size);
-    init_matrix<null_function>(resu_stl,_size);
+
+    // make sure X is invertible
+    for (int i=0; i<_size; ++i)
+      X_stl[i][i] = X_stl[i][i] * 1e2 + 1;
 
     // generic matrix and vector initialization
     Interface::matrix_from_stl(X_ref,X_stl);
@@ -101,8 +100,6 @@ public :
 
   void check_result( void ){
     // calculation check
-    Interface::matrix_to_stl(C,resu_stl);
-
 //     STL_interface<typename Interface::real_type>::cholesky(X_stl,C_stl,_size);
 //
 //     typename Interface::real_type error=
@@ -119,7 +116,6 @@ private :
 
   typename Interface::stl_matrix X_stl;
   typename Interface::stl_matrix C_stl;
-  typename Interface::stl_matrix resu_stl;
 
   typename Interface::gene_matrix X_ref;
   typename Interface::gene_matrix X;

@@ -102,7 +102,8 @@ public :
       Interface::trisolve_lower(L,B,X,_size);
   }
 
-  void check_result( void ){
+  void check_result(){
+    if (_size>128) return;
     // calculation check
     Interface::vector_to_stl(X,resu_stl);
 

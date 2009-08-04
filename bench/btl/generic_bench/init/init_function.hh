@@ -32,7 +32,6 @@ double simple_function(int index_i, int index_j)
 
 double pseudo_random(int index)
 {
-  //  INFOS("random="<<(std::rand()/double(RAND_MAX)));
   return std::rand()/double(RAND_MAX);
 }
 

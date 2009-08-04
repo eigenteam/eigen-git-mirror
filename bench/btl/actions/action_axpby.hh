@@ -91,6 +91,7 @@ public :
   }
 
   void check_result( void ){
+    if (_size>128) return;
     // calculation check
     Interface::vector_to_stl(Y,resu_stl);
 

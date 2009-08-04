@@ -156,6 +156,15 @@ public :
     }
   }
 
+  static inline void ger(gene_matrix & A, gene_vector & X, gene_vector & Y, int N)
+  {
+    for (int j=0; j<N; ++j)
+    {
+      for (int i=j; i<N; ++i)
+        A[j][i] += X[i]*Y[j];
+    }
+  }
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N)
   {
     real somme;

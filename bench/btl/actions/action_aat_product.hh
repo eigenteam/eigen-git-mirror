@@ -104,7 +104,7 @@ public :
   }
 
   void check_result( void ){
-
+    if (_size>128) return;
     // calculation check
 
     Interface::matrix_to_stl(X,resu_stl);
