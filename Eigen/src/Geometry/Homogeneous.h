@@ -75,13 +75,13 @@ template<typename MatrixType,int _Direction> class Homogeneous
       : m_matrix(matrix)
     {}
 
-    inline int rows() const { return m_matrix.rows() + (Direction==Vertical   ? 1 : 0); }
-    inline int cols() const { return m_matrix.cols() + (Direction==Horizontal ? 1 : 0); }
+    inline int rows() const { return m_matrix.rows() + (int(Direction)==Vertical   ? 1 : 0); }
+    inline int cols() const { return m_matrix.cols() + (int(Direction)==Horizontal ? 1 : 0); }
 
     inline Scalar coeff(int row, int col) const
     {
-      if(  (Direction==Vertical   && row==m_matrix.rows())
-        || (Direction==Horizontal && col==m_matrix.cols()))
+      if(  (int(Direction)==Vertical   && row==m_matrix.rows())
+        || (int(Direction)==Horizontal && col==m_matrix.cols()))
         return 1;
       return m_matrix.coeff(row, col);
     }
@@ -90,7 +90,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     inline const ei_homogeneous_right_product_impl<Homogeneous,Rhs>
     operator* (const MatrixBase<Rhs>& rhs) const
     {
-      ei_assert(Direction==Horizontal);
+      ei_assert(int(Direction)==Horizontal);
       return ei_homogeneous_right_product_impl<Homogeneous,Rhs>(m_matrix,rhs.derived());
     }
 
@@ -98,7 +98,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     inline const ei_homogeneous_left_product_impl<Homogeneous,Lhs>
     operator* (const MatrixBase<Lhs>& lhs, const Homogeneous& rhs)
     {
-      ei_assert(Direction==Vertical);
+      ei_assert(int(Direction)==Vertical);
       return ei_homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
     }
 
@@ -107,7 +107,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
       typename Transform<Scalar,Dim,Mode>::AffinePartNested>
     operator* (const Transform<Scalar,Dim,Mode>& tr, const Homogeneous& rhs)
     {
-      ei_assert(Direction==Vertical);
+      ei_assert(int(Direction)==Vertical);
       return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Mode>::AffinePartNested >
         (tr.affine(),rhs.m_matrix);
     }
@@ -117,7 +117,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
       typename Transform<Scalar,Dim,Projective>::MatrixType>
     operator* (const Transform<Scalar,Dim,Projective>& tr, const Homogeneous& rhs)
     {
-      ei_assert(Direction==Vertical);
+      ei_assert(int(Direction)==Vertical);
       return ei_homogeneous_left_product_impl<Homogeneous,typename Transform<Scalar,Dim,Projective>::MatrixType>
         (tr.matrix(),rhs.m_matrix);
     }

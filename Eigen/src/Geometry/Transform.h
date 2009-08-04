@@ -310,7 +310,7 @@ public:
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
   inline const typename ei_transform_right_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const MultiplierBase<OtherDerived> &other) const
+  operator * (const AnyMatrixBase<OtherDerived> &other) const
   { return ei_transform_right_product_impl<OtherDerived,Mode,Dim,HDim>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
@@ -322,11 +322,11 @@ public:
     */
   template<typename OtherDerived> friend
   inline const typename ei_transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const MultiplierBase<OtherDerived> &a, const Transform &b)
+  operator * (const AnyMatrixBase<OtherDerived> &a, const Transform &b)
   { return ei_transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
 
   template<typename OtherDerived>
-  inline Transform& operator*=(const MultiplierBase<OtherDerived>& other) { return *this = *this * other; }
+  inline Transform& operator*=(const AnyMatrixBase<OtherDerived>& other) { return *this = *this * other; }
 
   /** Contatenates two transformations */
   inline const Transform operator * (const Transform& other) const
@@ -977,7 +977,7 @@ struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HD
 };
 
 /*********************************************************
-*** Specializations of operator* with a MultiplierBase ***
+*** Specializations of operator* with a AnyMatrixBase ***
 *********************************************************/
 
 // ei_general_product_return_type is a generalization of ProductReturnType, for all types (including e.g. DiagonalBase...),
@@ -989,7 +989,7 @@ template<typename Lhs, typename D2> struct ei_general_product_return_type<Lhs, M
 { typedef D2 Type; };
 template<typename D1, typename Rhs> struct ei_general_product_return_type<MatrixBase<D1>, Rhs >
 { typedef D1 Type; };
- 
+
 
 
 // Projective * set of homogeneous column vectors

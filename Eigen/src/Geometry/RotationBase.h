@@ -68,17 +68,18 @@ class RotationBase
 
     /** \returns the concatenation of the rotation \c *this with a generic expression \a e
       * \a e can be:
-      *  - a DimxDim linear transformation matrix (including an axis aligned scaling)
+      *  - a DimxDim linear transformation matrix
+      *  - a DimxDim diagonal matrix (axis aligned scaling)
       *  - a vector of size Dim
       */
     template<typename OtherDerived>
     inline typename ei_rotation_base_generic_product_selector<Derived,OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
-    operator*(const MatrixBase<OtherDerived>& e) const
+    operator*(const AnyMatrixBase<OtherDerived>& e) const
     { return ei_rotation_base_generic_product_selector<Derived,OtherDerived>::run(derived(), e.derived()); }
 
     /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
     template<typename OtherDerived> friend
-    inline RotationMatrixType operator*(const MultiplierBase<OtherDerived>& l, const Derived& r)
+    inline RotationMatrixType operator*(const AnyMatrixBase<OtherDerived>& l, const Derived& r)
     { return l.derived() * r.toRotationMatrix(); }
 
     /** \returns the concatenation of the rotation \c *this with a transformation \a t */
