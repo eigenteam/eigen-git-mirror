@@ -48,8 +48,7 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
-template<typename Derived, typename Lhs, typename Rhs> class ProductBase;
-template<typename Lhs, typename Rhs, int ProductMode> class Product;
+template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;
 
 template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
@@ -69,8 +68,10 @@ template<typename Functor, typename EvalType> class ReturnByValue;
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
 
 
-template<typename Lhs, typename Rhs> struct ei_product_mode;
-template<typename Lhs, typename Rhs, int ProductMode = ei_product_mode<Lhs,Rhs>::value> struct ProductReturnType;
+template<typename Lhs, typename Rhs> struct ei_product_type;
+template<typename Lhs, typename Rhs,
+         int ProductType = ei_product_type<Lhs,Rhs>::value>
+struct ProductReturnType;
 
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;

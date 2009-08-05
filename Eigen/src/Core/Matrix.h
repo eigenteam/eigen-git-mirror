@@ -339,13 +339,6 @@ class Matrix
       return Base::operator=(func);
     }
 
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_STRONG_INLINE Matrix& operator=(const ProductBase<ProductDerived,Lhs,Rhs>& other)
-    {
-      resize(other.rows(), other.cols());
-      return Base::operator=(other);
-    }
-
     using Base::operator +=;
     using Base::operator -=;
     using Base::operator *=;
@@ -446,14 +439,6 @@ class Matrix
     /** Copy constructor with in-place evaluation */
     template<typename OtherDerived,typename OtherEvalType>
     EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
-    {
-      _check_template_params();
-      resize(other.rows(), other.cols());
-      other.evalTo(*this);
-    }
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_STRONG_INLINE Matrix(const ProductBase<ProductDerived,Lhs,Rhs>& other)
     {
       _check_template_params();
       resize(other.rows(), other.cols());

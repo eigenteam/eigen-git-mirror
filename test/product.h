@@ -91,9 +91,6 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(s1*(square*m1),          (s1*square)*m1);
   VERIFY_IS_APPROX(s1*(square*m1),          square*(m1*s1));
 
-  // again, test operator() to check const-qualification
-  s1 += (square.lazy() * m1)(r,c);
-
   // test Product.h together with Identity.h
   VERIFY_IS_APPROX(v1,                      identity*v1);
   VERIFY_IS_APPROX(v1.transpose(),          v1.transpose() * identity);

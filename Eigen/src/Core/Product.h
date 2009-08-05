@@ -26,15 +26,73 @@
 #ifndef EIGEN_PRODUCT_H
 #define EIGEN_PRODUCT_H
 
-/***************************
-*** Forward declarations ***
-***************************/
+/** \class GeneralProduct
+  *
+  * \brief Expression of the product of two general matrices or vectors
+  *
+  * \param LhsNested the type used to store the left-hand side
+  * \param RhsNested the type used to store the right-hand side
+  * \param ProductMode the type of the product
+  *
+  * This class represents an expression of the product of two general matrices.
+  * We call a general matrix, a dense matrix with full storage. For instance,
+  * This excludes triangular, selfadjoint, and sparse matrices.
+  * It is the return type of the operator* between general matrices. Its template
+  * arguments are determined automatically by ProductReturnType. Therefore,
+  * GeneralProduct should never be used direclty. To determine the result type of a
+  * function which involves a matrix product, use ProductReturnType::Type.
+  *
+  * \sa ProductReturnType, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
+  */
+template<typename Lhs, typename Rhs, int ProductType = ei_product_type<Lhs,Rhs>::value>
+class GeneralProduct;
 
-template<int VectorizationMode, int Index, typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl;
+template<int Rows, int Cols, int Depth> struct ei_product_type_selector;
 
-template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl;
+enum {
+  Large =  Dynamic,
+  Small = -Dynamic
+};
+
+enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
+
+template<typename Lhs, typename Rhs> struct ei_product_type
+{
+  enum {
+    Rows  = Lhs::RowsAtCompileTime,
+    Cols  = Rhs::ColsAtCompileTime,
+    Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime),
+
+    value = ei_product_type_selector<(Rows>8  ? Large : Rows==1   ? 1 : Small),
+                                     (Cols>8  ? Large : Cols==1   ? 1 : Small),
+                                     (Depth>8 ? Large : Depth==1  ? 1 : Small)>::ret
+  };
+};
+
+template<int Rows, int Cols>  struct ei_product_type_selector<Rows,Cols,1>        { enum { ret = OuterProduct }; };
+template<int Depth>           struct ei_product_type_selector<1,1,Depth>          { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<1,1,1>              { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,Small>      { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<1,Small,Small>      { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = UnrolledProduct }; };
+
+// template<>                    struct ei_product_type_selector<Small,1,Small>      { enum { ret = GemvProduct }; };
+// template<>                    struct ei_product_type_selector<1,Small,Small>      { enum { ret = GemvProduct }; };
+// template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = GemmProduct }; };
+
+template<>                    struct ei_product_type_selector<1,Large,Small>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,Large,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,Small,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,Small>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
+template<>                    struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 /** \class ProductReturnType
   *
@@ -52,133 +110,365 @@ struct ei_product_packet_impl;
   *
   * \sa class Product, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
   */
-template<typename Lhs, typename Rhs, int ProductMode>
+template<typename Lhs, typename Rhs, int ProductType>
 struct ProductReturnType
+{
+  // TODO use the nested type to reduce instanciations ????
+//   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
+//   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
+
+  typedef GeneralProduct<Lhs/*Nested*/, Rhs/*Nested*/, ProductType> Type;
+};
+
+template<typename Lhs, typename Rhs>
+struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 {
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
-
-  typedef Product<LhsNested, RhsNested, ProductMode> Type;
+  typedef GeneralProduct<Lhs, Rhs, UnrolledProduct> Type;
 };
 
-// cache friendly specialization
+
+/***********************************************************************
+*  Implementation of General Matrix Matrix Product
+***********************************************************************/
+
 template<typename Lhs, typename Rhs>
-struct ProductReturnType<Lhs,Rhs,CacheFriendlyProduct>
-{
-  typedef typename ei_nested<Lhs,1>::type LhsNested;
-  typedef typename ei_nested<Rhs,1,
-                             typename ei_plain_matrix_type_column_major<Rhs>::type
-                   >::type RhsNested;
+struct ei_traits<GeneralProduct<Lhs,Rhs,GemmProduct> >
+ : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,GemmProduct>, Lhs, Rhs> >
+{};
 
-  typedef Product<LhsNested, RhsNested, CacheFriendlyProduct> Type;
+template<typename Lhs, typename Rhs>
+class GeneralProduct<Lhs, Rhs, GemmProduct>
+  : public ProductBase<GeneralProduct<Lhs,Rhs,GemmProduct>, Lhs, Rhs>
+{
+  public:
+    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
+
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    {
+      ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+
+      const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
+      const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
+
+      Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
+                                 * RhsBlasTraits::extractScalarFactor(m_rhs);
+
+      ei_general_matrix_matrix_product<
+        Scalar,
+        (_ActualLhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsBlasTraits::NeedToConjugate),
+        (_ActualRhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsBlasTraits::NeedToConjugate),
+        (Dest::Flags&RowMajorBit)?RowMajor:ColMajor>
+      ::run(
+          this->rows(), this->cols(), lhs.cols(),
+          (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
+          (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
+          (Scalar*)&(dst.coeffRef(0,0)), dst.stride(),
+          actualAlpha);
+    }
 };
 
-/*  Helper class to determine the type of the product, can be either:
- *    - NormalProduct
- *    - CacheFriendlyProduct
+/***********************************************************************
+*  Implementation of Inner Vector Vector Product
+***********************************************************************/
+
+template<typename Lhs, typename Rhs>
+struct ei_traits<GeneralProduct<Lhs,Rhs,InnerProduct> >
+ : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,InnerProduct>, Lhs, Rhs> >
+{};
+
+template<typename Lhs, typename Rhs>
+class GeneralProduct<Lhs, Rhs, InnerProduct>
+  : public ProductBase<GeneralProduct<Lhs,Rhs,InnerProduct>, Lhs, Rhs>
+{
+  public:
+    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
+
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    {
+      ei_assert(dst.rows()==1 && dst.cols()==1);
+      dst.coeffRef(0,0) += (m_lhs.cwise()*m_rhs).sum();
+    }
+};
+
+/***********************************************************************
+*  Implementation of Outer Vector Vector Product
+***********************************************************************/
+
+template<typename Lhs, typename Rhs>
+struct ei_traits<GeneralProduct<Lhs,Rhs,OuterProduct> >
+ : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,OuterProduct>, Lhs, Rhs> >
+{};
+
+template<typename Lhs, typename Rhs>
+class GeneralProduct<Lhs, Rhs, OuterProduct>
+  : public ProductBase<GeneralProduct<Lhs,Rhs,OuterProduct>, Lhs, Rhs>
+{
+  public:
+    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
+
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    {
+      // TODO
+    }
+};
+
+/***********************************************************************
+*  Implementation of General Matrix Vector Product
+***********************************************************************/
+
+/*  According to the shape/flags of the matrix we have to distinghish 3 different cases:
+ *   1 - the matrix is col-major, BLAS compatible and M is large => call fast BLAS-like colmajor routine
+ *   2 - the matrix is row-major, BLAS compatible and N is large => call fast BLAS-like rowmajor routine
+ *   3 - all other cases are handled using a simple loop along the outer-storage direction.
+ *  Therefore we need a lower level meta selector.
+ *  Furthermore, if the matrix is the rhs, then the product has to be transposed.
  */
-template<typename Lhs, typename Rhs> struct ei_product_mode
+template<typename Lhs, typename Rhs>
+struct ei_traits<GeneralProduct<Lhs,Rhs,GemvProduct> >
+ : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,GemvProduct>, Lhs, Rhs> >
+{};
+
+template<int Side, int StorageOrder, bool BlasCompatible>
+struct ei_gemv_selector;
+
+template<typename Lhs, typename Rhs>
+class GeneralProduct<Lhs, Rhs, GemvProduct>
+  : public ProductBase<GeneralProduct<Lhs,Rhs,GemvProduct>, Lhs, Rhs>
 {
-  enum{
-    // workaround sun studio:
-    LhsIsVectorAtCompileTime = ei_traits<Lhs>::ColsAtCompileTime==1 || ei_traits<Rhs>::ColsAtCompileTime==1,
-    value = ei_traits<Lhs>::MaxColsAtCompileTime == Dynamic
-            && ( ei_traits<Lhs>::MaxRowsAtCompileTime == Dynamic
-              || ei_traits<Rhs>::MaxColsAtCompileTime == Dynamic )
-            && (!(Rhs::IsVectorAtCompileTime && (ei_traits<Lhs>::Flags&RowMajorBit)  && (!(ei_traits<Lhs>::Flags&DirectAccessBit))))
-            && (!(LhsIsVectorAtCompileTime && (!(ei_traits<Rhs>::Flags&RowMajorBit)) && (!(ei_traits<Rhs>::Flags&DirectAccessBit))))
-            && (ei_is_same_type<typename ei_traits<Lhs>::Scalar, typename ei_traits<Rhs>::Scalar>::ret)
-          ? CacheFriendlyProduct
-          : NormalProduct };
+  public:
+    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
+
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+    enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
+    typedef typename ei_meta_if<int(Side)==OnTheRight,_LhsNested,_RhsNested>::ret MatrixType;
+
+    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    {
+      ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
+      ei_gemv_selector<Side,int(MatrixType::Flags)&RowMajorBit,
+                       ei_blas_traits<MatrixType>::ActualAccess>::run(*this, dst, alpha);
+    }
 };
 
-/** \class Product
-  *
-  * \brief Expression of the product of two matrices
-  *
-  * \param LhsNested the type used to store the left-hand side
-  * \param RhsNested the type used to store the right-hand side
-  * \param ProductMode the type of the product
-  *
-  * This class represents an expression of the product of two matrices.
-  * It is the return type of the operator* between matrices. Its template
-  * arguments are determined automatically by ProductReturnType. Therefore,
-  * Product should never be used direclty. To determine the result type of a
-  * function which involves a matrix product, use ProductReturnType::Type.
-  *
-  * \sa ProductReturnType, MatrixBase::operator*(const MatrixBase<OtherDerived>&)
-  */
-template<typename LhsNested, typename RhsNested, int ProductMode>
-struct ei_traits<Product<LhsNested, RhsNested, ProductMode> >
+// The vector is on the left => transposition
+template<int StorageOrder, bool BlasCompatible>
+struct ei_gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
 {
-  // clean the nested types:
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  {
+    Transpose<Dest> destT(dest);
+    ei_gemv_selector<OnTheRight,!StorageOrder,BlasCompatible>
+      ::run(GeneralProduct<Transpose<typename ProductType::_RhsNested>,Transpose<typename ProductType::_LhsNested> >
+        (prod.rhs().transpose(), prod.lhs().transpose()), destT, alpha);
+  }
+};
+
+template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
+{
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  {
+    typedef typename ProductType::Scalar Scalar;
+    typedef typename ProductType::ActualLhsType ActualLhsType;
+    typedef typename ProductType::ActualRhsType ActualRhsType;
+    typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
+    typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
+
+    ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
+    ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
+                               * RhsBlasTraits::extractScalarFactor(prod.rhs());
+
+    enum {
+      EvalToDest = (ei_packet_traits<Scalar>::size==1)
+                 ||((Dest::Flags&ActualPacketAccessBit) && (!(Dest::Flags & RowMajorBit)))
+    };
+    Scalar* EIGEN_RESTRICT actualDest;
+    if (EvalToDest)
+      actualDest = &dest.coeffRef(0);
+    else
+    {
+      actualDest = ei_aligned_stack_new(Scalar,dest.size());
+      Map<Matrix<Scalar,Dest::RowsAtCompileTime,1> >(actualDest, dest.size()) = dest;
+    }
+
+    ei_cache_friendly_product_colmajor_times_vector
+      <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
+      dest.size(),
+      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+      actualRhs, actualDest, actualAlpha);
+
+    if (!EvalToDest)
+    {
+      dest = Map<Matrix<Scalar,Dest::SizeAtCompileTime,1> >(actualDest, dest.size());
+      ei_aligned_stack_delete(Scalar, actualDest, dest.size());
+    }
+  }
+};
+
+template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
+{
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  {
+    typedef typename ProductType::Scalar Scalar;
+    typedef typename ProductType::ActualLhsType ActualLhsType;
+    typedef typename ProductType::ActualRhsType ActualRhsType;
+    typedef typename ProductType::_ActualRhsType _ActualRhsType;
+    typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
+    typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
+
+    ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
+    ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
+                               * RhsBlasTraits::extractScalarFactor(prod.rhs());
+                               
+    enum {
+      DirectlyUseRhs = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
+                     && (!(_ActualRhsType::Flags & RowMajorBit))
+    };
+
+    Scalar* EIGEN_RESTRICT rhs_data;
+    if (DirectlyUseRhs)
+       rhs_data = &actualRhs.const_cast_derived().coeffRef(0);
+    else
+    {
+      rhs_data = ei_aligned_stack_new(Scalar, actualRhs.size());
+      Map<Matrix<Scalar,_ActualRhsType::SizeAtCompileTime,1> >(rhs_data, actualRhs.size()) = actualRhs;
+    }
+
+    ei_cache_friendly_product_rowmajor_times_vector
+      <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
+        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+        rhs_data, prod.rhs().size(), dest, actualAlpha);
+
+    if (!DirectlyUseRhs) ei_aligned_stack_delete(Scalar, rhs_data, prod.rhs().size());
+  }
+};
+
+template<> struct ei_gemv_selector<OnTheRight,ColMajor,false>
+{
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  {
+    // TODO makes sure dest is sequentially stored in memory, otherwise use a temp
+    const int size = prod.rhs().rows();
+    for(int k=0; k<size; ++k)
+      dest += (alpha*prod.rhs().coeff(k)) * prod.lhs().col(k);
+  }
+};
+
+template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
+{
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  {
+    // TODO makes sure rhs is sequentially stored in memory, otherwise use a temp
+    const int rows = prod.rows();
+    for(int i=0; i<rows; ++i)
+      dest.coeffRef(i) += alpha * (prod.lhs().row(i).cwise() * prod.rhs().transpose()).sum();
+  }
+};
+
+/***********************************************************************
+*  Implementation of products with small fixed sizes
+***********************************************************************/
+
+/* Since the all the dimensions of the product are small, here we can rely
+ * on the generic Assign mechanism to evaluate the product per coeff (or packet).
+ * 
+ * Note that the here inner-loops should always be unrolled.
+ */
+
+template<int VectorizationMode, int Index, typename Lhs, typename Rhs, typename RetScalar>
+struct ei_product_coeff_impl;
+
+template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+struct ei_product_packet_impl;
+
+template<typename LhsNested, typename RhsNested>
+struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
+{
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename ei_scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
-
+  
   enum {
-    LhsCoeffReadCost = _LhsNested::CoeffReadCost,
-    RhsCoeffReadCost = _RhsNested::CoeffReadCost,
-    LhsFlags = _LhsNested::Flags,
-    RhsFlags = _RhsNested::Flags,
+      LhsCoeffReadCost = _LhsNested::CoeffReadCost,
+      RhsCoeffReadCost = _RhsNested::CoeffReadCost,
+      LhsFlags = _LhsNested::Flags,
+      RhsFlags = _RhsNested::Flags,
 
-    RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
-    ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
-    InnerSize = EIGEN_ENUM_MIN(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
+      RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
+      ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
+      InnerSize = EIGEN_ENUM_MIN(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
 
-    MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
+      MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
 
-    LhsRowMajor = LhsFlags & RowMajorBit,
-    RhsRowMajor = RhsFlags & RowMajorBit,
+      LhsRowMajor = LhsFlags & RowMajorBit,
+      RhsRowMajor = RhsFlags & RowMajorBit,
 
-    CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic || (ColsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
+      CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
+                      && (ColsAtCompileTime == Dynamic || (ColsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
-    CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic || (RowsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
+      CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
+                      && (RowsAtCompileTime == Dynamic || (RowsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
-    EvalToRowMajor = RhsRowMajor && (ProductMode==(int)CacheFriendlyProduct ? LhsRowMajor : (!CanVectorizeLhs)),
+      EvalToRowMajor = RhsRowMajor && (!CanVectorizeLhs),
 
-    RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
+      RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
-    Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-          | EvalBeforeAssigningBit
-          | EvalBeforeNestingBit
-          | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
-          | (LhsFlags & RhsFlags & AlignedBit),
+      Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
+            | EvalBeforeAssigningBit
+            | EvalBeforeNestingBit
+            | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
+            | (LhsFlags & RhsFlags & AlignedBit),
 
-    CoeffReadCost = InnerSize == Dynamic ? Dynamic
-                  : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
-                    + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
+      CoeffReadCost = InnerSize == Dynamic ? Dynamic
+                    : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
+                      + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
 
-    /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
-     * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
-     * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
-     * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
-     */
-    CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & RhsFlags & ActualPacketAccessBit)
-                      && (InnerSize % ei_packet_traits<Scalar>::size == 0)
-  };
+      /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
+      * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
+      * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
+      * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
+      */
+      CanVectorizeInner = LhsRowMajor && (!RhsRowMajor) && (LhsFlags & RhsFlags & ActualPacketAccessBit)
+                        && (InnerSize % ei_packet_traits<Scalar>::size == 0)
+    };
 };
 
-template<typename LhsNested, typename RhsNested, int ProductMode> class Product : ei_no_assignment_operator,
-  public MatrixBase<Product<LhsNested, RhsNested, ProductMode> >
+template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,RhsNested,UnrolledProduct>
+  : ei_no_assignment_operator,
+    public MatrixBase<GeneralProduct<LhsNested, RhsNested, UnrolledProduct> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(GeneralProduct)
 
   private:
 
-    typedef typename ei_traits<Product>::_LhsNested _LhsNested;
-    typedef typename ei_traits<Product>::_RhsNested _RhsNested;
+    typedef typename ei_traits<GeneralProduct>::_LhsNested _LhsNested;
+    typedef typename ei_traits<GeneralProduct>::_RhsNested _RhsNested;
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
-      InnerSize  = ei_traits<Product>::InnerSize,
+      InnerSize  = ei_traits<GeneralProduct>::InnerSize,
       Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
-      CanVectorizeInner = ei_traits<Product>::CanVectorizeInner
+      CanVectorizeInner = ei_traits<GeneralProduct>::CanVectorizeInner
     };
 
     typedef ei_product_coeff_impl<CanVectorizeInner ? InnerVectorization : NoVectorization,
@@ -188,7 +478,7 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
   public:
 
     template<typename Lhs, typename Rhs>
-    inline Product(const Lhs& lhs, const Rhs& rhs)
+    inline GeneralProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
@@ -198,23 +488,6 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       ei_assert(lhs.cols() == rhs.rows()
         && "invalid matrix product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
-    }
-
-    /** \internal
-      * compute \a res += \c *this using the cache friendly product.
-      */
-    template<typename DestDerived>
-    void _cacheFriendlyEvalAndAdd(DestDerived& res, Scalar alpha) const;
-
-    /** \internal
-      * \returns whether it is worth it to use the cache friendly product.
-      */
-    EIGEN_STRONG_INLINE bool _useCacheFriendlyProduct() const
-    {
-      // TODO do something more accurate here (especially for mat-vec products)
-      return m_lhs.cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-              && (  rows()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-                 || cols()>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD);
     }
 
     EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
@@ -250,54 +523,11 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
       return res;
     }
 
-    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
-    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
-
   protected:
     const LhsNested m_lhs;
     const RhsNested m_rhs;
 };
 
-/** \returns the matrix product of \c *this and \a other.
-  *
-  * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
-  *
-  * \sa lazy(), operator*=(const MatrixBase&), Cwise::operator*()
-  */
-template<typename Derived>
-template<typename OtherDerived>
-inline const typename ProductReturnType<Derived,OtherDerived>::Type
-MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
-{
-  enum {
-    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
-                   || OtherDerived::RowsAtCompileTime==Dynamic
-                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
-    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
-    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
-  };
-  // note to the lost user:
-  //    * for a dot product use: v1.dot(v2)
-  //    * for a coeff-wise product use: v1.cwise()*v2
-  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
-    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
-  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
-    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
-  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
-  return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
-}
-
-/** replaces \c *this by \c *this * \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived &
-MatrixBase<Derived>::operator*=(const AnyMatrixBase<OtherDerived> &other)
-{
-  return derived() = derived() * other.derived();
-}
 
 /***************************************************************************
 * Normal product .coeff() implementation (with meta-unrolling)
@@ -509,335 +739,50 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
 };
 
 /***************************************************************************
-* Cache friendly product callers and specific nested evaluation strategies
+* Implementation of matrix base methods
 ***************************************************************************/
 
-// Forward declarations
-
-// This helper class aims to determine which optimized product to call,
-// and how to call it. We have to distinghish three major cases:
-//  1 - matrix-matrix
-//  2 - matrix-vector
-//  3 - vector-matrix
-// The storage order, and direct-access criteria are also important for in last 2 cases.
-// For instance, with a mat-vec product, the matrix coeff are evaluated only once, and
-// therefore it is useless to first evaluated it to next being able to directly access
-// its coefficient.
-template<typename ProductType,
-  int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
-  int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int LhsHasDirectAccess = ei_blas_traits<typename ei_traits<ProductType>::_LhsNested>::ActualAccess,
-  int RhsCols  = ei_traits<ProductType>::ColsAtCompileTime,
-  int RhsOrder = int(ei_traits<ProductType>::RhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int RhsHasDirectAccess = ei_blas_traits<typename ei_traits<ProductType>::_RhsNested>::ActualAccess>
-struct ei_cache_friendly_product_selector
+/** \returns the matrix product of \c *this and \a other.
+  *
+  * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
+  *
+  * \sa lazy(), operator*=(const MatrixBase&), Cwise::operator*()
+  */
+template<typename Derived>
+template<typename OtherDerived>
+inline const typename ProductReturnType<Derived,OtherDerived>::Type
+MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    product._cacheFriendlyEvalAndAdd(res, alpha);
-  }
-};
-
-// optimized colmajor * vector path
-template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,NoDirectAccess,1,RhsOrder,RhsAccess>
-{
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ei_assert(alpha==typename ProductType::Scalar(1));
-    const int size = product.rhs().rows();
-    for (int k=0; k<size; ++k)
-      res += product.rhs().coeff(k) * product.lhs().col(k);
-  }
-};
-
-// optimized cache friendly colmajor * vector path for matrix with direct access flag
-// NOTE this path could also be enabled for expressions if we add runtime align queries
-template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
-{
-  typedef typename ProductType::Scalar Scalar;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
-
-  typedef typename LhsProductTraits::ExtractType ActualLhsType;
-  typedef typename RhsProductTraits::ExtractType ActualRhsType;
-
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
-    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
-
-    Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
-                               * RhsProductTraits::extractScalarFactor(product.rhs());
-
-    enum {
-      EvalToRes = (ei_packet_traits<Scalar>::size==1)
-                ||((DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit))) };
-    Scalar* EIGEN_RESTRICT _res;
-    if (EvalToRes)
-       _res = &res.coeffRef(0);
-    else
-    {
-      _res = ei_aligned_stack_new(Scalar,res.size());
-      Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1> >(_res, res.size()) = res;
-    }
-//     std::cerr << "colmajor * vector " << EvalToRes << "\n";
-    ei_cache_friendly_product_colmajor_times_vector
-      <LhsProductTraits::NeedToConjugate,RhsProductTraits::NeedToConjugate>(
-      res.size(),
-      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
-      actualRhs, _res, actualAlpha);
-
-    if (!EvalToRes)
-    {
-      res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
-      ei_aligned_stack_delete(Scalar, _res, res.size());
-    }
-  }
-};
-
-// optimized vector * rowmajor path
-template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
-struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,RowMajor,NoDirectAccess>
-{
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ei_assert(alpha==typename ProductType::Scalar(1));
-    const int cols = product.lhs().cols();
-    for (int j=0; j<cols; ++j)
-      res += product.lhs().coeff(j) * product.rhs().row(j);
-  }
-};
-
-// optimized cache friendly vector * rowmajor path for matrix with direct access flag
-// NOTE this path coul also be enabled for expressions if we add runtime align queries
-template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
-struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,RowMajor,HasDirectAccess>
-{
-  typedef typename ProductType::Scalar Scalar;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
-
-  typedef typename LhsProductTraits::ExtractType ActualLhsType;
-  typedef typename RhsProductTraits::ExtractType ActualRhsType;
-
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
-    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
-
-    Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
-                               * RhsProductTraits::extractScalarFactor(product.rhs());
-
-    enum {
-      EvalToRes = (ei_packet_traits<Scalar>::size==1)
-                ||((DestDerived::Flags & ActualPacketAccessBit) && (DestDerived::Flags & RowMajorBit)) };
-    Scalar* EIGEN_RESTRICT _res;
-    if (EvalToRes)
-       _res = &res.coeffRef(0);
-    else
-    {
-      _res = ei_aligned_stack_new(Scalar, res.size());
-      Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size()) = res;
-    }
-
-    ei_cache_friendly_product_colmajor_times_vector
-      <RhsProductTraits::NeedToConjugate,LhsProductTraits::NeedToConjugate>(res.size(),
-      &actualRhs.const_cast_derived().coeffRef(0,0), actualRhs.stride(),
-      actualLhs.transpose(), _res, actualAlpha);
-
-    if (!EvalToRes)
-    {
-      res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1> >(_res, res.size());
-      ei_aligned_stack_delete(Scalar, _res, res.size());
-    }
-  }
-};
-
-// optimized rowmajor - vector product
-template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirectAccess,1,RhsOrder,RhsAccess>
-{
-  typedef typename ProductType::Scalar Scalar;
-
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
-
-  typedef typename LhsProductTraits::ExtractType ActualLhsType;
-  typedef typename RhsProductTraits::ExtractType ActualRhsType;
-  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
-
   enum {
-      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
-                     && (!(_ActualRhsType::Flags & RowMajorBit)) };
-
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
-    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
-
-    Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
-                               * RhsProductTraits::extractScalarFactor(product.rhs());
-
-    Scalar* EIGEN_RESTRICT _rhs;
-    if (UseRhsDirectly)
-       _rhs = &actualRhs.const_cast_derived().coeffRef(0);
-    else
-    {
-      _rhs = ei_aligned_stack_new(Scalar, actualRhs.size());
-      Map<Matrix<Scalar,_ActualRhsType::SizeAtCompileTime,1> >(_rhs, actualRhs.size()) = actualRhs;
-    }
-
-    ei_cache_friendly_product_rowmajor_times_vector
-      <LhsProductTraits::NeedToConjugate,RhsProductTraits::NeedToConjugate>(
-        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
-        _rhs, product.rhs().size(), res, actualAlpha);
-
-    if (!UseRhsDirectly) ei_aligned_stack_delete(Scalar, _rhs, product.rhs().size());
-  }
-};
-
-// optimized vector - colmajor product
-template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
-struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,ColMajor,HasDirectAccess>
-{
-  typedef typename ProductType::Scalar Scalar;
-
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_LhsNested> LhsProductTraits;
-  typedef ei_blas_traits<typename ei_traits<ProductType>::_RhsNested> RhsProductTraits;
-
-  typedef typename LhsProductTraits::ExtractType ActualLhsType;
-  typedef typename RhsProductTraits::ExtractType ActualRhsType;
-  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
-
-  enum {
-      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (_ActualLhsType::Flags&ActualPacketAccessBit))
-                     && (_ActualLhsType::Flags & RowMajorBit) };
-
-  template<typename DestDerived>
-  inline static void run(DestDerived& res, const ProductType& product, typename ProductType::Scalar alpha)
-  {
-    ActualLhsType actualLhs = LhsProductTraits::extract(product.lhs());
-    ActualRhsType actualRhs = RhsProductTraits::extract(product.rhs());
-
-    Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(product.lhs())
-                               * RhsProductTraits::extractScalarFactor(product.rhs());
-
-    Scalar* EIGEN_RESTRICT _lhs;
-    if (UseLhsDirectly)
-       _lhs = &actualLhs.const_cast_derived().coeffRef(0);
-    else
-    {
-      _lhs = ei_aligned_stack_new(Scalar, actualLhs.size());
-      Map<Matrix<Scalar,_ActualLhsType::SizeAtCompileTime,1> >(_lhs, actualLhs.size()) = actualLhs;
-    }
-
-    ei_cache_friendly_product_rowmajor_times_vector
-      <RhsProductTraits::NeedToConjugate, LhsProductTraits::NeedToConjugate>(
-        &actualRhs.const_cast_derived().coeffRef(0,0), actualRhs.stride(),
-        _lhs, product.lhs().size(), res, actualAlpha);
-
-    if(!UseLhsDirectly) ei_aligned_stack_delete(Scalar, _lhs, product.lhs().size());
-  }
-};
-
-// discard this case which has to be handled by the default path
-// (we keep it to be sure to hit a compilation error if this is not the case)
-template<typename ProductType, int LhsRows, int RhsOrder, int RhsAccess>
-struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,NoDirectAccess,1,RhsOrder,RhsAccess>
-{};
-
-// discard this case which has to be handled by the default path
-// (we keep it to be sure to hit a compilation error if this is not the case)
-template<typename ProductType, int LhsOrder, int LhsAccess, int RhsCols>
-struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCols,ColMajor,NoDirectAccess>
-{};
-
-
-/** \internal
-  * Overloaded to perform an efficient C += A*B */
-template<typename Derived>
-template<typename Lhs,typename Rhs>
-inline Derived&
-MatrixBase<Derived>::operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-{//std::cerr << "operator+=\n";
-  if (other._expression()._useCacheFriendlyProduct())
-    ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), other._expression(), Scalar(1));
-  else { //std::cerr << "no cf\n";
-    lazyAssign(derived() + other._expression());
-  }
-  return derived();
+    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
+                   || OtherDerived::RowsAtCompileTime==Dynamic
+                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
+    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
+    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
+  };
+  // note to the lost user:
+  //    * for a dot product use: v1.dot(v2)
+  //    * for a coeff-wise product use: v1.cwise()*v2
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+  return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
-/** \internal
-  * Overloaded to perform an efficient C -= A*B */
+
+
+/** replaces \c *this by \c *this * \a other.
+  *
+  * \returns a reference to \c *this
+  */
 template<typename Derived>
-template<typename Lhs,typename Rhs>
-inline Derived&
-MatrixBase<Derived>::operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+template<typename OtherDerived>
+inline Derived &
+MatrixBase<Derived>::operator*=(const AnyMatrixBase<OtherDerived> &other)
 {
-  if (other._expression()._useCacheFriendlyProduct())
-    ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), other._expression(), Scalar(-1));
-  else
-    lazyAssign(derived() - other._expression());
-  return derived();
-}
-
-/** \internal
-  * Overloaded to perform an efficient C = A*B */
-template<typename Derived>
-template<typename Lhs, typename Rhs>
-inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product)
-{
-  if (product._useCacheFriendlyProduct())
-  {
-    setZero();
-    ei_cache_friendly_product_selector<Product<Lhs,Rhs,CacheFriendlyProduct> >::run(const_cast_derived(), product, Scalar(1));
-  }
-  else
-  {
-    lazyAssign(Product<Lhs,Rhs,NormalProduct>(product.lhs(),product.rhs()));
-  }
-  return derived();
-}
-
-template<typename Lhs, typename Rhs, int ProductMode>
-template<typename DestDerived>
-inline void Product<Lhs,Rhs,ProductMode>::_cacheFriendlyEvalAndAdd(DestDerived& res, Scalar alpha) const
-{
-  typedef ei_blas_traits<_LhsNested> LhsProductTraits;
-  typedef ei_blas_traits<_RhsNested> RhsProductTraits;
-
-  typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
-  typedef typename RhsProductTraits::DirectLinearAccessType ActualRhsType;
-
-  typedef typename ei_cleantype<ActualLhsType>::type _ActualLhsType;
-  typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
-
-  const ActualLhsType lhs = LhsProductTraits::extract(m_lhs);
-  const ActualRhsType rhs = RhsProductTraits::extract(m_rhs);
-
-  Scalar actualAlpha = alpha * LhsProductTraits::extractScalarFactor(m_lhs)
-                             * RhsProductTraits::extractScalarFactor(m_rhs);
-
-  ei_general_matrix_matrix_product<
-      Scalar,
-      (_ActualLhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsProductTraits::NeedToConjugate),
-      (_ActualRhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsProductTraits::NeedToConjugate),
-      (DestDerived::Flags&RowMajorBit)?RowMajor:ColMajor>
-    ::run(
-        rows(), cols(), lhs.cols(),
-        (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
-        (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
-        (Scalar*)&(res.coeffRef(0,0)), res.stride(),
-        actualAlpha);
+  return derived() = derived() * other.derived();
 }
 
 #endif // EIGEN_PRODUCT_H

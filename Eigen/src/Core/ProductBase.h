@@ -39,11 +39,11 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> >
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<Lhs>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<Rhs>::MaxColsAtCompileTime,
-    Flags = EvalBeforeNestingBit,
+    Flags = EvalBeforeNestingBit | EvalBeforeAssigningBit,
     CoeffReadCost = 0 // FIXME why is it needed ?
   };
 };
-*
+
 // enforce evaluation before nesting
 template<typename Derived, typename Lhs, typename Rhs,int N,typename EvalType>
 struct ei_nested<ProductBase<Derived,Lhs,Rhs>, N, EvalType>
@@ -90,7 +90,11 @@ class ProductBase : public MatrixBase<Derived>
 
     ProductBase(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
-    {}
+    {
+      ei_assert(lhs.cols() == rhs.rows()
+        && "invalid matrix product"
+        && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
+    }
 
     inline int rows() const { return m_lhs.rows(); }
     inline int cols() const { return m_rhs.cols(); }
@@ -115,6 +119,14 @@ class ProductBase : public MatrixBase<Derived>
       return res;
     }
 
+    const Flagged<ProductBase, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const
+    {
+      return *this;
+    }
+
+    const _LhsNested& lhs() const { return m_lhs; }
+    const _RhsNested& rhs() const { return m_rhs; }
+
   protected:
 
     const LhsNested m_lhs;
@@ -129,25 +141,33 @@ class ProductBase : public MatrixBase<Derived>
     void coeffRef(int);
 };
 
+/** \internal
+  * Overloaded to perform an efficient C = (A*B).lazy() */
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator=(const ProductBase<ProductDerived,Lhs,Rhs>& other)
+Derived& MatrixBase<Derived>::lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other)
 {
   other.evalTo(derived()); return derived();
 }
 
+/** \internal
+  * Overloaded to perform an efficient C += (A*B).lazy() */
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator+=(const ProductBase<ProductDerived,Lhs,Rhs>& other)
+Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                                       EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
-  other.addTo(derived()); return derived();
+  other._expression().addTo(derived()); return derived();
 }
 
+/** \internal
+  * Overloaded to perform an efficient C -= (A*B).lazy() */
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator-=(const ProductBase<ProductDerived,Lhs,Rhs>& other)
+Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                                       EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
-  other.subTo(derived()); return derived();
+  other._expression().subTo(derived()); return derived();
 }
 
 #endif // EIGEN_PRODUCTBASE_H

@@ -318,17 +318,6 @@ template<typename Derived> class MatrixBase
     Derived& operator-=(const AnyMatrixBase<OtherDerived> &other)
     { other.derived().subToDense(derived()); return derived(); }
 
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    Derived& operator=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    Derived& operator+=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    Derived& operator-=(const ProductBase<ProductDerived, Lhs, Rhs> &other);
-
-
     template<typename OtherDerived,typename OtherEvalType>
     Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
 
@@ -338,13 +327,20 @@ template<typename Derived> class MatrixBase
     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
 
     /** Overloaded for cache friendly product evaluation */
-    template<typename Lhs, typename Rhs>
-    Derived& lazyAssign(const Product<Lhs,Rhs,CacheFriendlyProduct>& product);
-
-    /** Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
     Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -411,12 +407,6 @@ template<typename Derived> class MatrixBase
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const MatrixBase<OtherDerived>& other);
-
-    template<typename Lhs,typename Rhs>
-    Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
-
-    template<typename Lhs,typename Rhs>
-    Derived& operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
