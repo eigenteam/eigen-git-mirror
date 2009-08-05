@@ -50,8 +50,8 @@ class GeneralProduct;
 template<int Rows, int Cols, int Depth> struct ei_product_type_selector;
 
 enum {
-  Large =  Dynamic,
-  Small = -Dynamic
+  Large = Dynamic,
+  Small = Dynamic/2
 };
 
 enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
@@ -63,9 +63,9 @@ template<typename Lhs, typename Rhs> struct ei_product_type
     Cols  = Rhs::ColsAtCompileTime,
     Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime),
 
-    value = ei_product_type_selector<(Rows>8  ? Large : Rows==1   ? 1 : Small),
-                                     (Cols>8  ? Large : Cols==1   ? 1 : Small),
-                                     (Depth>8 ? Large : Depth==1  ? 1 : Small)>::ret
+    value = ei_product_type_selector<(Rows>8  ? Large : (Rows==1   ? 1 : Small)),
+                                     (Cols>8  ? Large : (Cols==1   ? 1 : Small)),
+                                     (Depth>8 ? Large : (Depth==1  ? 1 : Small))>::ret
   };
 };
 
@@ -199,6 +199,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 /***********************************************************************
 *  Implementation of Outer Vector Vector Product
 ***********************************************************************/
+template<int StorageOrder> struct ei_outer_product_selector;
 
 template<typename Lhs, typename Rhs>
 struct ei_traits<GeneralProduct<Lhs,Rhs,OuterProduct> >
@@ -214,10 +215,30 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    template<typename Dest> void addTo(Dest& dest, Scalar alpha) const
     {
-      // TODO
+      ei_outer_product_selector<Dest::Flags&RowMajorBit>::run(*this, dest, alpha);
     }
+};
+
+template<> struct ei_outer_product_selector<ColMajor> {
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+    // FIXME make sure lhs is sequentially stored
+    const int cols = dest.cols();
+    for (int j=0; j<cols; ++j)
+      dest.col(j) += (alpha * prod.rhs().coeff(j)) * prod.lhs();
+  }
+};
+
+template<> struct ei_outer_product_selector<RowMajor> {
+  template<typename ProductType, typename Dest>
+  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+    // FIXME make sure rhs is sequentially stored
+    const int rows = dest.rows();
+    for (int i=0; i<rows; ++i)
+      dest.row(i) += (alpha * prod.lhs().coeff(i)) * prod.rhs();
+  }
 };
 
 /***********************************************************************
