@@ -103,9 +103,15 @@ template<typename MatrixType> class LU
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
+      *               It is required to be nonzero.
       */
     LU(const MatrixType& matrix);
 
+    /** Computes the LU decomposition of the given matrix.
+      *
+      * \param matrix the matrix of which to compute the LU decomposition.
+      *               It is required to be nonzero.
+      */
     void compute(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
@@ -317,6 +323,7 @@ template<typename MatrixType> class LU
       */
     inline void computeInverse(MatrixType *result) const
     {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
     }
 
@@ -461,7 +468,7 @@ template<typename MatrixType>
 template<typename KernelMatrixType>
 void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
 {
-  ei_assert(!isInvertible());
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
   const int dimker = dimensionOfKernel(), cols = m_lu.cols();
   result->resize(cols, dimker);
 
@@ -497,6 +504,7 @@ template<typename MatrixType>
 const typename LU<MatrixType>::KernelResultType
 LU<MatrixType>::kernel() const
 {
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
   KernelResultType result(m_lu.cols(), dimensionOfKernel());
   computeKernel(&result);
   return result;
@@ -506,9 +514,7 @@ template<typename MatrixType>
 template<typename ImageMatrixType>
 void LU<MatrixType>::computeImage(ImageMatrixType *result) const
 {
-  // can be caused by a rank deficient matrix or by calling computeImage on an
-  // unitialized LU object
-  ei_assert(m_rank > 0 && "LU is not initialized or Matrix has rank zero.");
+  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
   result->resize(m_originalMatrix->rows(), m_rank);
   for(int i = 0; i < m_rank; ++i)
     result->col(i) = m_originalMatrix->col(m_q.coeff(i));
