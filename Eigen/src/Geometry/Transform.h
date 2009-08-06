@@ -911,7 +911,11 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
     }
     // translation and remaining parts
     res.template corner<Dim,1>(TopRight) = - res.template corner<Dim,Dim>(TopLeft) * translation();
-    res.makeAffine();
+    if(int(Mode)!=int(AffineCompact))
+    {
+      res.template block<1,Dim>(Dim,0).setZero();
+      res.coeffRef(Dim,Dim) = 1;
+    }
     return res;
   }
 }
