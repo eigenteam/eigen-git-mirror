@@ -41,6 +41,8 @@ const typename Derived::Scalar ei_bruteforce_det4_helper
        * (matrix.coeff(m,2) * matrix.coeff(n,3) - matrix.coeff(n,2) * matrix.coeff(m,3));
 }
 
+// FIXME update computation of triangular det
+
 const int TriangularDeterminant = 0;
 
 template<typename Derived,

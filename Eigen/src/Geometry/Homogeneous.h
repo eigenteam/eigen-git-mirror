@@ -217,8 +217,8 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
-  inline int rows() const { m_lhs.rows(); }
-  inline int cols() const { m_rhs.cols(); }
+  inline int rows() const { return m_lhs.rows(); }
+  inline int cols() const { return m_rhs.cols(); }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
