@@ -1034,6 +1034,17 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,1>
   { return tr.linear() * other + tr.translation(); }
 };
 
+// Affine *  set of column vectors
+// FIXME use a ReturnByValue to remove the temporary
+template<typename Other, int Mode, int Dim, int HDim>
+struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,Dynamic>
+{
+  typedef Transform<typename Other::Scalar,Dim,Mode> TransformType;
+  typedef Matrix<typename Other::Scalar,Dim,Dynamic> ResultType;
+  static ResultType run(const TransformType& tr, const Other& other)
+  { return (tr.linear() * other).colwise() + tr.translation(); }
+};
+
 // Affine *  homogeneous column vector
 // FIXME added for backward compatibility, but I'm not sure we should keep it
 template<typename Other, int Mode, int Dim, int HDim>
