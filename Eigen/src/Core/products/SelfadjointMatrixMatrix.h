@@ -339,4 +339,56 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
   }
 };
 
+/***************************************************************************
+* Wrapper to ei_product_selfadjoint_matrix
+***************************************************************************/
+
+template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
+struct ei_traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false> >
+  : ei_traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>, Lhs, Rhs> >
+{};
+
+template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
+struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
+  : public ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>, Lhs, Rhs >
+{
+  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
+
+  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+  enum {
+    LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit),
+    LhsIsSelfAdjoint = (LhsMode&SelfAdjointBit)==SelfAdjointBit,
+    RhsUpLo = RhsMode&(UpperTriangularBit|LowerTriangularBit),
+    RhsIsSelfAdjoint = (RhsMode&SelfAdjointBit)==SelfAdjointBit
+  };
+
+  template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+  {
+    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+
+    const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
+    const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
+                               * RhsBlasTraits::extractScalarFactor(m_rhs);
+
+    ei_product_selfadjoint_matrix<Scalar,
+      EIGEN_LOGICAL_XOR(LhsUpLo==UpperTriangular,
+                        ei_traits<Lhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, LhsIsSelfAdjoint,
+      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(LhsUpLo==UpperTriangular,bool(LhsBlasTraits::NeedToConjugate)),
+      EIGEN_LOGICAL_XOR(RhsUpLo==UpperTriangular,
+                        ei_traits<Rhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, RhsIsSelfAdjoint,
+      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsUpLo==UpperTriangular,bool(RhsBlasTraits::NeedToConjugate)),
+      ei_traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
+      ::run(
+        lhs.rows(), rhs.cols(),           // sizes
+        &lhs.coeff(0,0),    lhs.stride(), // lhs info
+        &rhs.coeff(0,0),    rhs.stride(), // rhs info
+        &dst.coeffRef(0,0), dst.stride(), // result info
+        actualAlpha                       // alpha
+      );
+  }
+};
+
 #endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_H

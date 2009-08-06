@@ -144,7 +144,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // const Scalar dst_var = dst_demean.rowwise().squaredNorm().sum() * one_over_n;
 
   // Eq. (38)
-  const MatrixType sigma = (dst_demean * src_demean.transpose() * one_over_n).lazy();
+  const MatrixType sigma = (one_over_n * dst_demean * src_demean.transpose()).lazy();
 
   SVD<MatrixType> svd(sigma);
 

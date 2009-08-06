@@ -138,7 +138,7 @@ namespace Eigen {
 #endif
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 16
+#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
 #include "src/Core/Functors.h"
@@ -180,18 +180,20 @@ namespace Eigen {
 #include "src/Core/util/BlasUtil.h"
 #include "src/Core/ProductBase.h"
 #include "src/Core/Product.h"
-#include "src/Core/products/GeneralMatrixMatrix.h"
-#include "src/Core/products/GeneralMatrixVector.h"
-#include "src/Core/products/SelfadjointMatrixVector.h"
-#include "src/Core/products/SelfadjointMatrixMatrix.h"
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/SolveTriangular.h"
+#include "src/Core/products/GeneralUnrolled.h"
+#include "src/Core/products/GeneralBlockPanelKernel.h"
+#include "src/Core/products/GeneralMatrixVector.h"
+#include "src/Core/products/GeneralMatrixMatrix.h"
+#include "src/Core/products/SelfadjointMatrixVector.h"
+#include "src/Core/products/SelfadjointMatrixMatrix.h"
 #include "src/Core/products/SelfadjointProduct.h"
 #include "src/Core/products/SelfadjointRank2Update.h"
 #include "src/Core/products/TriangularMatrixVector.h"
-#include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/products/TriangularMatrixMatrix.h"
+#include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
 
 } // namespace Eigen

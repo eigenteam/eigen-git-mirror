@@ -148,7 +148,6 @@ template<typename Scalar, int Mode> void transformations(void)
   Transform3 tmat3(mat3), tmat4(mat4);
   if(Mode!=int(AffineCompact))
     tmat4.matrix()(3,3) = Scalar(1);
-  std::cerr << tmat3.matrix() << "\n\n" << tmat4.matrix() << "\n\n";
   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
 
   Scalar a3 = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));

@@ -154,5 +154,48 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     ei_aligned_stack_delete(Scalar, const_cast<Scalar*>(rhs), size);
 }
 
+/***************************************************************************
+* Wrapper to ei_product_selfadjoint_vector
+***************************************************************************/
+
+template<typename Lhs, int LhsMode, typename Rhs>
+struct ei_traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
+  : ei_traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs> >
+{};
+
+template<typename Lhs, int LhsMode, typename Rhs>
+struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
+  : public ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs >
+{
+  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
+
+  enum {
+    LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit)
+  };
+
+  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+  template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+  {
+    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+
+    const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
+    const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
+                               * RhsBlasTraits::extractScalarFactor(m_rhs);
+
+    ei_assert((&dst.coeff(1))-(&dst.coeff(0))==1 && "not implemented yet");
+    ei_product_selfadjoint_vector<Scalar, ei_traits<_ActualLhsType>::Flags&RowMajorBit, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
+      (
+        lhs.rows(),                                     // size
+        &lhs.coeff(0,0), lhs.stride(),                  // lhs info
+        &rhs.coeff(0), (&rhs.coeff(1))-(&rhs.coeff(0)), // rhs info
+        &dst.coeffRef(0),                               // result info
+        actualAlpha                                     // scale factor
+      );
+  }
+};
+
 
 #endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_H
