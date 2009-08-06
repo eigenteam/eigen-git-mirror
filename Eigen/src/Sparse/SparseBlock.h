@@ -35,6 +35,8 @@ struct ei_traits<SparseInnerVectorSet<MatrixType, Size> >
     Flags = MatrixType::Flags,
     RowsAtCompileTime = IsRowMajor ? Size : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = IsRowMajor ? MatrixType::ColsAtCompileTime : Size,
+    MaxRowsAtCompileTime = RowsAtCompileTime,
+    MaxColsAtCompileTime = ColsAtCompileTime,
     CoeffReadCost = MatrixType::CoeffReadCost
   };
 };
