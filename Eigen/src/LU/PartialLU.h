@@ -312,7 +312,7 @@ struct ei_partial_lu_impl
       // blocking size:
       blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
                  row_transpositions+k, nb_transpositions_in_panel, 16);
-      nb_transpositions_in_panel += nb_transpositions_in_panel;
+      nb_transpositions += nb_transpositions_in_panel;
 
       // update permutations and apply them to A10
       for(int i=k;i<k+bs; ++i)
