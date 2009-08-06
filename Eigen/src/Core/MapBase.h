@@ -173,16 +173,18 @@ template<typename Derived> class MapBase
 
     using Base::operator=;
     using Base::operator*=;
-    using Base::operator+=;
-    using Base::operator-=;
 
-//     template<typename Lhs,typename Rhs>
-//     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-//     { return Base::operator+=(other); }
-// 
-//     template<typename Lhs,typename Rhs>
-//     Derived& operator-=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
-//     { return Base::operator-=(other); }
+    // FIXME it seems VS does not allow to do "using Base::operator+="
+    // and to overload operator+= at the same time, therefore we have to
+    // explicitly add these two overloads.
+    // Maye their exists a better solution though.
+    template<typename ProductDerived, typename Lhs,typename Rhs>
+    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    { return Base::operator+=(other); }
+
+    template<typename ProductDerived, typename Lhs,typename Rhs>
+    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    { return Base::operator-=(other); }
 
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other)
