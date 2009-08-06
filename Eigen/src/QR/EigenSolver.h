@@ -244,9 +244,9 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
       // H = (I-u*u'/h)*H*(I-u*u')/h)
       int bSize = high-m+1;
       matH.block(m, m, bSize, n-m) -= ((ort.segment(m, bSize)/h)
-        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)).lazy()).lazy();
+        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m))).lazy();
 
-      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize)).lazy()
+      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize))
         * (ort.segment(m, bSize)/h).transpose()).lazy();
 
       ort.coeffRef(m) = scale*ort.coeff(m);
@@ -264,8 +264,8 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
       ort.segment(m+1, high-m) = matH.col(m-1).segment(m+1, high-m);
 
       int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize) += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m) ) )
-        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)).lazy());
+      m_eivec.block(m, m, bSize, bSize) += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m))) 
+        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)) ).lazy();
     }
   }
 }
@@ -585,7 +585,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       for (int i = n-1; i >= 0; i--)
       {
         w = matH.coeff(i,i) - p;
-        r = (matH.row(i).segment(l,n-l+1) * matH.col(n).segment(l, n-l+1))(0,0);
+        r = matH.row(i).segment(l,n-l+1).dot(matH.col(n).segment(l, n-l+1));
 
         if (m_eivalues.coeff(i).imag() < 0.0)
         {
@@ -644,8 +644,8 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
       for (int i = n-2; i >= 0; i--)
       {
         Scalar ra,sa,vr,vi;
-        ra = (matH.block(i,l, 1, n-l+1) * matH.block(l,n-1, n-l+1, 1)).lazy()(0,0);
-        sa = (matH.block(i,l, 1, n-l+1) * matH.block(l,n, n-l+1, 1)).lazy()(0,0);
+        ra = matH.row(i).segment(l, n-l+1).dot(matH.col(n-1).segment(l, n-l+1));
+        sa = matH.row(i).segment(l, n-l+1).dot(matH.col(n).segment(l, n-l+1));
         w = matH.coeff(i,i) - p;
 
         if (m_eivalues.coeff(i).imag() < 0.0)

@@ -132,6 +132,13 @@ struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 *  Implementation of Inner Vector Vector Product
 ***********************************************************************/
 
+// FIXME : maybe the "inner product" could return a Scalar
+// instead of a 1x1 matrix ?? 
+// Pro: more natural for the user
+// Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
+// product ends up to a row-vector times col-vector product... To tackle this use
+// case, we could have a specialization for Block<MatrixType,1,1> with: operator=(Scalar x);
+
 template<typename Lhs, typename Rhs>
 struct ei_traits<GeneralProduct<Lhs,Rhs,InnerProduct> >
  : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,InnerProduct>, Lhs, Rhs> >

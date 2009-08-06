@@ -245,11 +245,10 @@ struct ei_partial_lu_impl
 
       if(k<rows-1)
       {
-        lu.col(k).end(rows-k-1) /= lu.coeff(k,k);
-
-        // TODO implement a fast rank one update routine
-        for(int col = k + 1; col < size; ++col)
-          lu.col(col).end(rows-k-1) -= lu.col(k).end(rows-k-1) * lu.coeff(k,col);
+        int rrows = rows-k-1;
+        int rsize = size-k-1;
+        lu.col(k).end(rrows) /= lu.coeff(k,k);
+        lu.corner(BottomRight,rrows,rsize) -= (lu.col(k).end(rrows) * lu.row(k).end(rsize)).lazy();
       }
     }
   }
@@ -271,7 +270,6 @@ struct ei_partial_lu_impl
   {
     MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
     MatrixType lu(lu1,0,0,rows,cols);
-    
 
     const int size = std::min(rows,cols);
 
@@ -294,24 +292,25 @@ struct ei_partial_lu_impl
     nb_transpositions = 0;
     for(int k = 0; k < size; k+=blockSize)
     {
-      int bs = std::min(size-k,blockSize);
-      int ps = size - k;
-      int rs = size - k - bs;
+      int bs = std::min(size-k,blockSize); // actual size of the block
+      int trows = rows - k - bs; // trailing rows
+      int tsize = size - k - bs; // trailing size
+      
       // partition the matrix:
       //        A00 | A01 | A02
       // lu  =  A10 | A11 | A12
       //        A20 | A21 | A22
-      BlockType A_0(lu,0,0,size,k);
-      BlockType A_2(lu,0,k+bs,size,rs);
+      BlockType A_0(lu,0,0,rows,k);
+      BlockType A_2(lu,0,k+bs,rows,tsize);
       BlockType A11(lu,k,k,bs,bs);
-      BlockType A12(lu,k,k+bs,bs,rs);
-      BlockType A21(lu,k+bs,k,rs,bs);
-      BlockType A22(lu,k+bs,k+bs,rs,rs);
+      BlockType A12(lu,k,k+bs,bs,tsize);
+      BlockType A21(lu,k+bs,k,trows,bs);
+      BlockType A22(lu,k+bs,k+bs,trows,tsize);
 
       int nb_transpositions_in_panel;
       // recursively calls the blocked LU algorithm with a very small
       // blocking size:
-      blocked_lu(ps, bs, &lu.coeffRef(k,k), luStride,
+      blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
                  row_transpositions+k, nb_transpositions_in_panel, 16);
       nb_transpositions_in_panel += nb_transpositions_in_panel;
 
@@ -322,7 +321,7 @@ struct ei_partial_lu_impl
         A_0.row(i).swap(A_0.row(piv));
       }
 
-      if(rs)
+      if(trows)
       {
         // apply permutations to A_2
         for(int i=k;i<k+bs; ++i)
