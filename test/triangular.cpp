@@ -72,13 +72,13 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
   // test overloaded operator=
   m1.setZero();
-  m1.template triangularView<Eigen::UpperTriangular>() = (m2.transpose() * m2).lazy();
-  m3 = m2.transpose() * m2;
+  m1.template triangularView<Eigen::UpperTriangular>() = m2.transpose() + m2;
+  m3 = m2.transpose() + m2;
   VERIFY_IS_APPROX(m3.template triangularView<Eigen::LowerTriangular>().transpose().toDense(), m1);
 
   // test overloaded operator=
   m1.setZero();
-  m1.template triangularView<Eigen::LowerTriangular>() = (m2.transpose() * m2).lazy();
+  m1.template triangularView<Eigen::LowerTriangular>() = m2.transpose() + m2;
   VERIFY_IS_APPROX(m3.template triangularView<Eigen::LowerTriangular>().toDense(), m1);
 
   m1 = MatrixType::Random(rows, cols);

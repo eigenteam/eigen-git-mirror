@@ -149,7 +149,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
     template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(dst.rows()==1 && dst.cols()==1);
-      dst.coeffRef(0,0) += (m_lhs.cwise()*m_rhs).sum();
+      dst.coeffRef(0,0) += alpha * (m_lhs.cwise()*m_rhs).sum();
     }
 };
 

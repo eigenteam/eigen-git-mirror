@@ -86,7 +86,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
 
   //check row() and col()
   VERIFY_IS_APPROX(m1.col(c1).transpose(), m1.transpose().row(c1));
-  VERIFY_IS_APPROX(m1.col(c1).dot(square.row(r1)), (square.lazy() * m1.conjugate())(r1,c1));
+  VERIFY_IS_APPROX(m1.col(c1).dot(square.row(r1)), (square.lazy() * m1.conjugate()).eval()(r1,c1));
   //check operator(), both constant and non-constant, on row() and col()
   m1.row(r1) += s1 * m1.row(r2);
   m1.col(c1) += s1 * m1.col(c2);

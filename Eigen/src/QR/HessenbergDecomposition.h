@@ -170,7 +170,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
       // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
       matA.col(i).coeffRef(i+1) = 1;
 
-      // first let's do A = H A
+      // first let's do A = H' A
       matA.corner(BottomRight,n-i-1,n-i-1) -= ((ei_conj(h) * matA.col(i).end(n-i-1)) *
         (matA.col(i).end(n-i-1).adjoint() * matA.corner(BottomRight,n-i-1,n-i-1))).lazy();
 
@@ -213,14 +213,15 @@ HessenbergDecomposition<MatrixType>::matrixQ(void) const
 {
   int n = m_matrix.rows();
   MatrixType matQ = MatrixType::Identity(n,n);
+  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(n);
   for (int i = n-2; i>=0; i--)
   {
     Scalar tmp = m_matrix.coeff(i+1,i);
     m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
 
-    matQ.corner(BottomRight,n-i-1,n-i-1) -=
-      ((m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1)) *
-      (m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy()).lazy();
+    int rs = n-i-1;
+    temp.end(rs) = (m_matrix.col(i).end(rs).adjoint() * matQ.corner(BottomRight,rs,rs)).lazy();
+    matQ.corner(BottomRight,rs,rs) -= (m_hCoeffs.coeff(i) * m_matrix.col(i).end(rs) * temp.end(rs)).lazy();
 
     m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;
   }

@@ -205,8 +205,8 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
       continue;
     }
 
-    RealScalar Djj = ei_real(m_matrix.coeff(j,j) - (m_matrix.row(j).start(j)
-                                                  * m_matrix.col(j).start(j).conjugate()).coeff(0,0));
+    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).start(j)
+                                               .dot(m_matrix.col(j).start(j)));
     m_matrix.coeffRef(j,j) = Djj;
 
     // Finish early if the matrix is not full rank.
