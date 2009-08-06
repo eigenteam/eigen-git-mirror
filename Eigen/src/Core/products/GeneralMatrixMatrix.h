@@ -350,7 +350,7 @@ struct ei_gebp_kernel
 template<typename Scalar, int mr, int StorageOrder, bool Conjugate, bool PanelMode>
 struct ei_gemm_pack_lhs
 {
-  void operator()(Scalar* blockA, const EIGEN_RESTRICT Scalar* _lhs, int lhsStride, int depth, int rows,
+  void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, int lhsStride, int depth, int rows,
                   int stride=0, int offset=0)
   {
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
