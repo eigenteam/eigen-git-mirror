@@ -120,6 +120,7 @@ void HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
   int rows = matrix.rows();
   int cols = matrix.cols();
   RealScalar eps2 = precision<RealScalar>()*precision<RealScalar>();
+  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
 
   for (int k = 0; k < cols; ++k)
   {
@@ -161,8 +162,10 @@ void HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
       if (remainingCols>0)
       {
         m_qr.coeffRef(k,k) = Scalar(1);
-        m_qr.corner(BottomRight, remainingSize, remainingCols) -= ei_conj(h) * m_qr.col(k).end(remainingSize)
-            * (m_qr.col(k).end(remainingSize).adjoint() * m_qr.corner(BottomRight, remainingSize, remainingCols));
+        temp.end(remainingCols) = (m_qr.col(k).end(remainingSize).adjoint()
+                                * m_qr.corner(BottomRight, remainingSize, remainingCols)).lazy();
+        m_qr.corner(BottomRight, remainingSize, remainingCols) -= (ei_conj(h) * m_qr.col(k).end(remainingSize)
+                                                                              * temp.end(remainingCols)).lazy();
         m_qr.coeffRef(k,k) = beta;
       }
     }
@@ -207,6 +210,7 @@ MatrixType HouseholderQR<MatrixType>::matrixQ() const
   int rows = m_qr.rows();
   int cols = m_qr.cols();
   MatrixType res = MatrixType::Identity(rows, cols);
+  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
   for (int k = cols-1; k >= 0; k--)
   {
     // to make easier the computation of the transformation, let's temporarily
@@ -214,8 +218,9 @@ MatrixType HouseholderQR<MatrixType>::matrixQ() const
     Scalar beta = m_qr.coeff(k,k);
     m_qr.const_cast_derived().coeffRef(k,k) = 1;
     int endLength = rows-k;
-    res.corner(BottomRight,endLength, cols-k) -= ((m_hCoeffs.coeff(k) * m_qr.col(k).end(endLength))
-      * (m_qr.col(k).end(endLength).adjoint() * res.corner(BottomRight,endLength, cols-k)).lazy()).lazy();
+
+    temp.end(cols-k) = (m_qr.col(k).end(endLength).adjoint() * res.corner(BottomRight,endLength, cols-k)).lazy();
+    res.corner(BottomRight,endLength, cols-k) -= ((m_hCoeffs.coeff(k) * m_qr.col(k).end(endLength)) * temp.end(cols-k)).lazy();
     m_qr.const_cast_derived().coeffRef(k,k) = beta;
   }
   return res;

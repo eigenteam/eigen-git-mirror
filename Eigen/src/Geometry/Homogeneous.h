@@ -217,6 +217,9 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
+  inline int rows() const { m_lhs.rows(); }
+  inline int cols() const { m_rhs.cols(); }
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     // FIXME investigate how to allow lazy evaluation of this product when possible
@@ -242,6 +245,9 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   ei_homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
+
+  inline int rows() const { m_lhs.rows(); }
+  inline int cols() const { m_rhs.cols(); }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
