@@ -37,9 +37,6 @@
   *
   */
 template<typename Derived> class SparseMatrixBase
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public MultiplierBase<Derived>
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
 
