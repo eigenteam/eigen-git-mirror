@@ -39,11 +39,15 @@ struct ei_gebp_kernel
     if(strideB==-1) strideB = depth;
     Conj cj;
     int packet_cols = (cols/nr) * nr;
-    const int peeled_mc = (rows/mr)*mr;
-    // loops on each cache friendly block of the result/rhs
+    const int peeled_mc  = (rows/mr)*mr;
+    const int peeled_mc2  = peeled_mc + (rows-peeled_mc >= PacketSize ? PacketSize : 0);
+    const int peeled_kc = (depth/4)*4;
+    // loops on each micro vertical panel of rhs (depth x nr)
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
-      // loops on each register blocking of lhs/res
+      // loops on each micro horizontal panel of lhs (mr x depth)
+      // => we select a mr x nr micro block of res which is entirely
+      //    stored into mr/packet_size x nr registers.
       for(int i=0; i<peeled_mc; i+=mr)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA*mr];
@@ -68,7 +72,6 @@ struct ei_gebp_kernel
         // TODO let's check wether the flowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
         const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB*nr];
-        const int peeled_kc = (depth/4)*4;
         for(int k=0; k<peeled_kc; k+=4)
         {
           PacketType B0, B1, B2, B3, A0, A1;
@@ -167,7 +170,93 @@ struct ei_gebp_kernel
         if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i + PacketSize], C6);
         if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i + PacketSize], C7);
       }
-      for(int i=peeled_mc; i<rows; i++)
+      if(rows-peeled_mc>=PacketSize)
+      {
+        int i = peeled_mc;
+        const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
+        #ifdef EIGEN_VECTORIZE_SSE
+        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
+        #endif
+
+        // gets res block as register
+        PacketType C0, C1, C2, C3;
+                  C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
+                  C1 = ei_ploadu(&res[(j2+1)*resStride + i]);
+        if(nr==4) C2 = ei_ploadu(&res[(j2+2)*resStride + i]);
+        if(nr==4) C3 = ei_ploadu(&res[(j2+3)*resStride + i]);
+
+        // performs "inner" product
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB*nr];
+        for(int k=0; k<peeled_kc; k+=4)
+        {
+          PacketType B0, B1, B2, B3, A0;
+
+                    A0 = ei_pload(&blA[0*PacketSize]);
+                    B0 = ei_pload(&blB[0*PacketSize]);
+                    B1 = ei_pload(&blB[1*PacketSize]);
+                    C0 = cj.pmadd(A0, B0, C0);
+          if(nr==4) B2 = ei_pload(&blB[2*PacketSize]);
+          if(nr==4) B3 = ei_pload(&blB[3*PacketSize]);
+                    B0 = ei_pload(&blB[(nr==4 ? 4 : 2)*PacketSize]);
+                    C1 = cj.pmadd(A0, B1, C1);
+                    B1 = ei_pload(&blB[(nr==4 ? 5 : 3)*PacketSize]);
+          if(nr==4) C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) B2 = ei_pload(&blB[6*PacketSize]);
+          if(nr==4) C3 = cj.pmadd(A0, B3, C3);
+                    A0 = ei_pload(&blA[1*PacketSize]);
+          if(nr==4) B3 = ei_pload(&blB[7*PacketSize]);
+                    C0 = cj.pmadd(A0, B0, C0);
+                    B0 = ei_pload(&blB[(nr==4 ? 8 : 4)*PacketSize]);
+                    C1 = cj.pmadd(A0, B1, C1);
+                    B1 = ei_pload(&blB[(nr==4 ? 9 : 5)*PacketSize]);
+          if(nr==4) C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) B2 = ei_pload(&blB[10*PacketSize]);
+          if(nr==4) C3 = cj.pmadd(A0, B3, C3);
+                    A0 = ei_pload(&blA[2*PacketSize]);
+          if(nr==4) B3 = ei_pload(&blB[11*PacketSize]);
+
+                    C0 = cj.pmadd(A0, B0, C0);
+                    B0 = ei_pload(&blB[(nr==4 ? 12 : 6)*PacketSize]);
+                    C1 = cj.pmadd(A0, B1, C1);
+                    B1 = ei_pload(&blB[(nr==4 ? 13 : 7)*PacketSize]);
+          if(nr==4) C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) B2 = ei_pload(&blB[14*PacketSize]);
+          if(nr==4) C3 = cj.pmadd(A0, B3, C3);
+                    A0 = ei_pload(&blA[3*PacketSize]);
+          if(nr==4) B3 = ei_pload(&blB[15*PacketSize]);
+                    C0 = cj.pmadd(A0, B0, C0);
+                    C1 = cj.pmadd(A0, B1, C1);
+          if(nr==4) C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) C3 = cj.pmadd(A0, B3, C3);
+
+          blB += 4*nr*PacketSize;
+          blA += 4*PacketSize;
+        }
+        // process remaining peeled loop
+        for(int k=peeled_kc; k<depth; k++)
+        {
+          PacketType B0, B1, B2, B3, A0;
+
+                    A0 = ei_pload(&blA[0*PacketSize]);
+                    B0 = ei_pload(&blB[0*PacketSize]);
+                    B1 = ei_pload(&blB[1*PacketSize]);
+                    C0 = cj.pmadd(A0, B0, C0);
+          if(nr==4) B2 = ei_pload(&blB[2*PacketSize]);
+          if(nr==4) B3 = ei_pload(&blB[3*PacketSize]);
+                    C1 = cj.pmadd(A0, B1, C1);
+          if(nr==4) C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) C3 = cj.pmadd(A0, B3, C3);
+
+          blB += nr*PacketSize;
+          blA += PacketSize;
+        }
+
+                  ei_pstoreu(&res[(j2+0)*resStride + i], C0);
+                  ei_pstoreu(&res[(j2+1)*resStride + i], C1);
+        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i], C2);
+        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i], C3);
+      }
+      for(int i=peeled_mc2; i<rows; i++)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA];
         #ifdef EIGEN_VECTORIZE_SSE
@@ -236,7 +325,27 @@ struct ei_gebp_kernel
         ei_pstoreu(&res[(j2+0)*resStride + i], C0);
         ei_pstoreu(&res[(j2+0)*resStride + i + PacketSize], C4);
       }
-      for(int i=peeled_mc; i<rows; i++)
+      if(rows-peeled_mc>=PacketSize)
+      {
+        int i = peeled_mc;
+        const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
+        #ifdef EIGEN_VECTORIZE_SSE
+        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
+        #endif
+
+        PacketType C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
+        
+        const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB];
+        for(int k=0; k<depth; k++)
+        {
+          C0 = cj.pmadd(ei_pload(blA), ei_pload(blB), C0);
+          blB += PacketSize;
+          blA += PacketSize;
+        }
+
+        ei_pstoreu(&res[(j2+0)*resStride + i], C0);
+      }
+      for(int i=peeled_mc2; i<rows; i++)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA];
         #ifdef EIGEN_VECTORIZE_SSE
@@ -274,11 +383,12 @@ struct ei_gemm_pack_lhs
   void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, int lhsStride, int depth, int rows,
                   int stride=0, int offset=0)
   {
+    enum { PacketSize = ei_packet_traits<Scalar>::size };
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
-    const int peeled_mc = (rows/mr)*mr;
+    int peeled_mc = (rows/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
     {
       if(PanelMode) count += mr * offset;
@@ -286,6 +396,15 @@ struct ei_gemm_pack_lhs
         for(int w=0; w<mr; w++)
           blockA[count++] = cj(lhs(i+w, k));
       if(PanelMode) count += mr * (stride-offset-depth);
+    }
+    if(rows-peeled_mc>=PacketSize)
+    {
+      if(PanelMode) count += PacketSize*offset;
+      for(int k=0; k<depth; k++)
+        for(int w=0; w<PacketSize; w++)
+          blockA[count++] = cj(lhs(peeled_mc+w, k));
+      if(PanelMode) count += PacketSize * (stride-offset-depth);
+      peeled_mc += PacketSize;
     }
     for(int i=peeled_mc; i<rows; i++)
     {
@@ -307,6 +426,7 @@ struct ei_gemm_pack_lhs
 template<typename Scalar, int nr, bool PanelMode>
 struct ei_gemm_pack_rhs<Scalar, nr, ColMajor, PanelMode>
 {
+  typedef typename ei_packet_traits<Scalar>::type Packet;
   enum { PacketSize = ei_packet_traits<Scalar>::size };
   void operator()(Scalar* blockB, const Scalar* rhs, int rhsStride, Scalar alpha, int depth, int cols,
                   int stride=0, int offset=0)
@@ -354,6 +474,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor, PanelMode>
       // skip what we have after
       if(PanelMode) count += PacketSize * nr * (stride-offset-depth);
     }
+    
     // copy the remaining columns one at a time (nr==1)
     for(int j2=packet_cols; j2<cols; ++j2)
     {

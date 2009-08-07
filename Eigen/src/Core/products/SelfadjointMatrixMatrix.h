@@ -29,31 +29,43 @@
 template<typename Scalar, int mr, int StorageOrder>
 struct ei_symm_pack_lhs
 {
+  enum { PacketSize = ei_packet_traits<Scalar>::size };
+  template<int BlockRows> inline
+  void pack(Scalar* blockA, const ei_const_blas_data_mapper<Scalar,StorageOrder>& lhs, int cols, int i, int& count)
+  {
+    // normal copy
+    for(int k=0; k<i; k++)
+      for(int w=0; w<BlockRows; w++)
+        blockA[count++] = lhs(i+w,k);           // normal
+    // symmetric copy
+    int h = 0;
+    for(int k=i; k<i+BlockRows; k++)
+    {
+      for(int w=0; w<h; w++)
+        blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
+      for(int w=h; w<BlockRows; w++)
+        blockA[count++] = lhs(i+w, k);          // normal
+      ++h;
+    }
+    // transposed copy
+    for(int k=i+BlockRows; k<cols; k++)
+      for(int w=0; w<BlockRows; w++)
+        blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
+  }
   void operator()(Scalar* blockA, const Scalar* _lhs, int lhsStride, int cols, int rows)
   {
     ei_const_blas_data_mapper<Scalar,StorageOrder> lhs(_lhs,lhsStride);
     int count = 0;
-    const int peeled_mc = (rows/mr)*mr;
+    int peeled_mc = (rows/mr)*mr;
     for(int i=0; i<peeled_mc; i+=mr)
     {
-      // normal copy
-      for(int k=0; k<i; k++)
-        for(int w=0; w<mr; w++)
-          blockA[count++] = lhs(i+w,k);           // normal
-      // symmetric copy
-      int h = 0;
-      for(int k=i; k<i+mr; k++)
-      {
-        for(int w=0; w<h; w++)
-          blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
-        for(int w=h; w<mr; w++)
-          blockA[count++] = lhs(i+w, k);          // normal
-        ++h;
-      }
-      // transposed copy
-      for(int k=i+mr; k<cols; k++)
-        for(int w=0; w<mr; w++)
-          blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
+      pack<mr>(blockA, lhs, cols, i, count);
+    }
+
+    if(rows-peeled_mc>=PacketSize)
+    {
+      pack<PacketSize>(blockA, lhs, cols, peeled_mc, count);
+      peeled_mc += PacketSize;
     }
 
     // do the same with mr==1
