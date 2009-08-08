@@ -393,8 +393,9 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     {
       int k;
       W.end(n-i).minCoeff(&k);
-      if (k != i)
+      if (k != 0)
       {
+        k += i;
         std::swap(W[k],W[i]);
         A.col(i).swap(A.col(k));
         V.col(i).swap(V.col(k));
