@@ -5,10 +5,7 @@
 
 
 #include "main.h"
-
-#include <stdio.h>
-#include <cminpack.h>
-
+#include <unsupported/Eigen/NonLinear>
 
 int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
 {
@@ -465,7 +462,6 @@ void testHybrj()
      -0.665792,    -0.5960342,    -0.4164121
  };
  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
- printf("\n");
 }
 
 int fcn_hybrd1(void * /*p*/, int n, const double *x, double *fvec, int /*iflag*/)
