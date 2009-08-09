@@ -778,6 +778,12 @@ template<typename Derived> class MatrixBase
     void applyHouseholderOnTheRight(const EssentialPart& essential,
                                     const RealScalar& beta);
 
+///////// Jacobi module /////////
+
+    void applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s);
+    void applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s);
+    bool makeJacobi(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s);
+    bool makeJacobiForAtA(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s);
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
