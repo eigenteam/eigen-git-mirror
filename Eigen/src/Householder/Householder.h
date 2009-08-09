@@ -32,6 +32,15 @@ template<int n> struct ei_decrement_size
   };
 };
 
+template<typename EssentialPart>
+void makeTrivialHouseholder(
+  EssentialPart *essential,
+  typename EssentialPart::RealScalar *beta)
+{
+  *beta = typename EssentialPart::RealScalar(0);
+  essential->setZero();
+}
+
 template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::makeHouseholder(

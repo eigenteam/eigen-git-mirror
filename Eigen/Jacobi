@@ -1,0 +1,24 @@
+#ifndef EIGEN_JACOBI_MODULE_H
+#define EIGEN_JACOBI_MODULE_H
+
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+namespace Eigen {
+
+/** \defgroup Jacobi_Module Jacobi module
+  * This module provides Jacobi rotations.
+  *
+  * \code
+  * #include <Eigen/Jacobi>
+  * \endcode
+  */
+
+#include "src/Jacobi/Jacobi.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_JACOBI_MODULE_H
