@@ -178,7 +178,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
-#if (!defined __GNUC__) && (!defined __ICC)
+#if 1 // (!defined __GNUC__) && (!defined __ICC)
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
