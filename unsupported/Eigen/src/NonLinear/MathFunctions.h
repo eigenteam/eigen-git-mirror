@@ -34,7 +34,7 @@ int ei_hybrd1(
         VectorType &fvec,
 //        ei_traits<VectorType>::Scalar tol
         double  tol
-//        = ei::sqrt(machine_epsilon<VectorType::Scalar>())
+//        = ei_sqrt(machine_epsilon<VectorType::Scalar>())
         )
 {
     typedef typename VectorType::Scalar Scalar;

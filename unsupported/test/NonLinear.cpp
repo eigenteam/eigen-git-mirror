@@ -491,36 +491,28 @@ struct myfunctor {
 
 void testHybrd1()
 {
-  int j, n=9, info;
-  double fnorm;
-  Eigen::VectorXd x(9), fvec(9);
+  int n=9, info;
+  Eigen::VectorXd x(n), fvec(n);
 
-
-/*      the following starting values provide a rough solution. */
-
-  for (j=1; j<=n; j++)
-    {
-      x[j-1] = -1.;
-    }
+  /* the following starting values provide a rough solution. */
+  x.setConstant(n, -1.);
 
 /*      set tol to the square root of the machine precision. */
 /*      unless high solutions are required, */
 /*      this is the recommended setting. */
 
-  info = ei_hybrd1<myfunctor,VectorXd>(x, fvec, sqrt(dpmpar(1)));
+  info = ei_hybrd1<myfunctor,VectorXd>(x, fvec, ei_sqrt(machine_epsilon<double>()));
 
-  fnorm = enorm(fvec.size(), fvec.data());
+  // check return value
+  VERIFY( 1 == info);
 
+  // check norm
   VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
 
-  VERIFY(info==1);
-
-  double x_ref[] = { 
-      -0.5706545,    -0.6816283,    -0.7017325,
-      -0.7042129,     -0.701369,    -0.6918656,
-      -0.665792,    -0.5960342,    -0.4164121
-  };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+  // check x
+  VectorXd x_ref;
+  x_ref << -0.5706545, -0.6816283, -0.7017325, -0.7042129, -0.701369, -0.6918656, -0.665792, -0.5960342, -0.4164121;
+  VERIFY_IS_APPROX(x, x_ref);
 }
 
 int fcn_hybrd(void * /*p*/, int n, const double *x, double *fvec, int iflag)
