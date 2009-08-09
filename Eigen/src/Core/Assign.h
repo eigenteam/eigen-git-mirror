@@ -57,7 +57,10 @@ private:
                   && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
-    MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
+    MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit)
+                                        && (DstIsAligned || InnerMaxSize == Dynamic),/* If the destination isn't aligned,
+      we have to do runtime checks and we don't unroll, so it's only good for large enough sizes. See remark below
+      about InnerMaxSize. */
     MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize /* slice vectorization can be slow, so we only
       want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
       of a dynamic block in a fixed-size matrix */
