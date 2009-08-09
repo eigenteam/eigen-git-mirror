@@ -9,9 +9,14 @@ namespace Eigen {
   * \defgroup Support for non linear optimization and non linear least
   * square using minpack routines.
   */
+//@{
 
 #include "src/NonLinear/MathFunctions.h"
 
+//@}
+
 }
+
+
 
 #endif // EIGEN_NONLINEAR_MODULE_H
