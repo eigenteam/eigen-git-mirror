@@ -191,22 +191,22 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
   __m128 res;
-  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
+  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
+  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
   return res;
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
 {
   __m128d res;
-  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
-  asm("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
+  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
+  asm volatile ("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
   return res;
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 {
   __m128i res;
-  asm("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
+  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
+  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
   return res;
 }
 #endif
