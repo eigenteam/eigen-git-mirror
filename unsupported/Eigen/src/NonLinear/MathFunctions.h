@@ -27,4 +27,22 @@
 
 #include <cminpack.h>
 
+template<typename Functor, typename VectorType>
+// TODO : fixe Scalar here
+int ei_hybrd1(
+        VectorType &x,
+        VectorType &fvec,
+//        ei_traits<VectorType>::Scalar tol
+        double  tol
+//        = ei::sqrt(machine_epsilon<VectorType::Scalar>())
+        )
+{
+    typedef typename VectorType::Scalar Scalar;
+    int lwa = (x.size()*(3*x.size()+13))/2;
+    VectorType wa(lwa);
+    fvec.resize(x.size());
+    return hybrd1(Functor::f, 0, x.size(), x.data(), fvec.data(), tol, wa.data(), lwa);
+}
+
+
 #endif // EIGEN_NONLINEAR_MATHFUNCTIONS_H
