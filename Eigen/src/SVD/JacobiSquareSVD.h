@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,7 @@ template<typename MatrixType, bool ComputeU, bool ComputeV> class JacobiSquareSV
 
     JacobiSquareSVD() : m_isInitialized(false) {}
 
-    JacobiSquareSVD(const MatrixType& matrix)
+    JacobiSquareSVD(const MatrixType& matrix) : m_isInitialized(false) 
     {
       compute(matrix);
     }
@@ -165,5 +165,6 @@ void JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& 
       }
     }     
   }
+  m_isInitialized = true;
 }
 #endif // EIGEN_JACOBISQUARESVD_H
