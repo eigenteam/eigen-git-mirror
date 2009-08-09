@@ -112,80 +112,71 @@ void testChkder()
 }
 
 
-int fcn_lmder1(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, 
-	 int ldfjac, int iflag)
-{
-
-/*      subroutine fcn for lmder1 example. */
-
-  int i;
-  double tmp1, tmp2, tmp3, tmp4;
-  double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-		  3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-  if (iflag != 2)
+struct lmder1_functor {
+    static int f(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
     {
-      for (i = 1; i <= 15; i++)
-	{
-	  tmp1 = i;
-	  tmp2 = 16 - i;
-	  tmp3 = tmp1;
-	  if (i > 8) tmp3 = tmp2;
-	  fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-	}
+
+        /*      subroutine fcn for lmder1 example. */
+
+        int i;
+        double tmp1, tmp2, tmp3, tmp4;
+        double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+
+        if (iflag != 2)
+        {
+            for (i = 1; i <= 15; i++)
+            {
+                tmp1 = i;
+                tmp2 = 16 - i;
+                tmp3 = tmp1;
+                if (i > 8) tmp3 = tmp2;
+                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+            }
+        }
+        else
+        {
+            for ( i = 1; i <= 15; i++)
+            {
+                tmp1 = i;
+                tmp2 = 16 - i;
+                tmp3 = tmp1;
+                if (i > 8) tmp3 = tmp2;
+                tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
+                fjac[i-1 + ldfjac*(1-1)] = -1.;
+                fjac[i-1 + ldfjac*(2-1)] = tmp1*tmp2/tmp4;
+                fjac[i-1 + ldfjac*(3-1)] = tmp1*tmp3/tmp4;
+            }
+        }
+        return 0;
     }
-  else
-    {
-      for ( i = 1; i <= 15; i++)
-	{
-	  tmp1 = i;
-	  tmp2 = 16 - i;
-	  tmp3 = tmp1;
-	  if (i > 8) tmp3 = tmp2;
-	  tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
-	  fjac[i-1 + ldfjac*(1-1)] = -1.;
-	  fjac[i-1 + ldfjac*(2-1)] = tmp1*tmp2/tmp4;
-	  fjac[i-1 + ldfjac*(3-1)] = tmp1*tmp3/tmp4;
-	}
-    }
-  return 0;
-}
+};
+
 
 void testLmder1()
 {
-  int j, m, n, ldfjac, info, lwa;
-  int ipvt[3];
-  double tol, fnorm;
-  double x[3], fvec[15], fjac[15*3], wa[30];
+  int m=15, n=3, info;
 
-  m = 15;
-  n = 3;
+  Eigen::VectorXd x(n), fvec(m);
+  Eigen::MatrixXd fjac(m, n);
 
-/*      the following starting values provide a rough fit. */
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, 1.);
 
-  x[1-1] = 1.;
-  x[2-1] = 1.;
-  x[3-1] = 1.;
+  // do the computation
+  info = ei_lmder1<lmder1_functor,double>(x, fvec);
 
-  ldfjac = 15;
-  lwa = 30;
+  // check return value
+  VERIFY( 1 == info);
 
-/*      set tol to the square root of the machine precision. */
-/*      unless high solutions are required, */
-/*      this is the recommended setting. */
+  // check norm
+  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
 
-  tol = sqrt(dpmpar(1));
-
-  info = lmder1(fcn_lmder1, 0, m, n, x, fvec, fjac, ldfjac, tol, 
-	  ipvt, wa, lwa);
-  fnorm = enorm(m, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 0.09063596);
-  VERIFY(info ==  1);
-  double x_ref[] = {0.08241058, 1.133037, 2.343695 };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 0.08241058, 1.133037, 2.343695;
+  VERIFY_IS_APPROX(x, x_ref);
 }
-
 
 int fcn_lmder(void * /*p*/, int /*m*/, int  /*n*/, const double *x, double *fvec, double *fjac, 
 	 int ldfjac, int iflag)
@@ -464,29 +455,25 @@ void testHybrj()
  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
 }
 
-int fcn_hybrd1(void * /*p*/, int n, const double *x, double *fvec, int /*iflag*/)
-{
-/*      subroutine fcn for hybrd1 example. */
-
-  int k;
-  double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
-
-  for (k=1; k <= n; k++)
+struct hybrd1_functor {
+    static int f(void * /*p*/, int n, const double *x, double *fvec, int /*iflag*/)
     {
-      temp = (three - two*x[k-1])*x[k-1];
-      temp1 = zero;
-      if (k != 1) temp1 = x[k-1-1];
-      temp2 = zero;
-      if (k != n) temp2 = x[k+1-1];
-      fvec[k-1] = temp - temp1 - two*temp2 + one;
+        /*      subroutine fcn for hybrd1 example. */
+
+        int k;
+        double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
+
+        for (k=1; k <= n; k++)
+        {
+            temp = (three - two*x[k-1])*x[k-1];
+            temp1 = zero;
+            if (k != 1) temp1 = x[k-1-1];
+            temp2 = zero;
+            if (k != n) temp2 = x[k+1-1];
+            fvec[k-1] = temp - temp1 - two*temp2 + one;
+        }
+        return 0;
     }
-  return 0;
-}
-
-
-struct myfunctor {
-    static int f(void *p, int n, const double *x, double *fvec, int iflag )
-    { return fcn_hybrd1(p,n,x,fvec,iflag) ; }
 };
 
 void testHybrd1()
@@ -497,11 +484,8 @@ void testHybrd1()
   /* the following starting values provide a rough solution. */
   x.setConstant(n, -1.);
 
-/*      set tol to the square root of the machine precision. */
-/*      unless high solutions are required, */
-/*      this is the recommended setting. */
-
-  info = ei_hybrd1<myfunctor,double>(x, fvec);
+  // do the computation
+  info = ei_hybrd1<hybrd1_functor,double>(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
