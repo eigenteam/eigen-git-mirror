@@ -501,7 +501,7 @@ void testHybrd1()
 /*      unless high solutions are required, */
 /*      this is the recommended setting. */
 
-  info = ei_hybrd1<myfunctor,VectorXd>(x, fvec, ei_sqrt(machine_epsilon<double>()));
+  info = ei_hybrd1<myfunctor,double>(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -510,7 +510,7 @@ void testHybrd1()
   VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
 
   // check x
-  VectorXd x_ref;
+  VectorXd x_ref(n);
   x_ref << -0.5706545, -0.6816283, -0.7017325, -0.7042129, -0.701369, -0.6918656, -0.665792, -0.5960342, -0.4164121;
   VERIFY_IS_APPROX(x, x_ref);
 }
