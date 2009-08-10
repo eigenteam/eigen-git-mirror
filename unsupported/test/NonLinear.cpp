@@ -274,81 +274,73 @@ void testLmder()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
-int fcn_hybrj1(void * /*p*/, int n, const double *x, double *fvec, double *fjac, int ldfjac, 
-	 int iflag)
-{
-  /*      subroutine fcn for hybrj1 example. */
-
-  int j, k;
-  double one=1, temp, temp1, temp2, three=3, two=2, zero=0, four=4;
-
-  if (iflag != 2)
+struct hybrj1_functor {
+    static int f(void * /*p*/, int n, const double *x, double *fvec, double *fjac, int ldfjac, 
+            int iflag)
     {
-      for (k = 1; k <= n; k++)
-	{
-	  temp = (three - two*x[k-1])*x[k-1];
-	  temp1 = zero;
-	  if (k != 1) temp1 = x[k-1-1];
-	  temp2 = zero;
-	  if (k != n) temp2 = x[k+1-1];
-	  fvec[k-1] = temp - temp1 - two*temp2 + one;
-	}
+        /*      subroutine fcn for hybrj1 example. */
+
+        int j, k;
+        double one=1, temp, temp1, temp2, three=3, two=2, zero=0, four=4;
+
+        if (iflag != 2)
+        {
+            for (k = 1; k <= n; k++)
+            {
+                temp = (three - two*x[k-1])*x[k-1];
+                temp1 = zero;
+                if (k != 1) temp1 = x[k-1-1];
+                temp2 = zero;
+                if (k != n) temp2 = x[k+1-1];
+                fvec[k-1] = temp - temp1 - two*temp2 + one;
+            }
+        }
+        else
+        {
+            for (k = 1; k <= n; k++)
+            {
+                for (j = 1; j <= n; j++)
+                {
+                    fjac[k-1 + ldfjac*(j-1)] = zero;
+                }
+                fjac[k-1 + ldfjac*(k-1)] = three - four*x[k-1];
+                if (k != 1) fjac[k-1 + ldfjac*(k-1-1)] = -one;
+                if (k != n) fjac[k-1 + ldfjac*(k+1-1)] = -two;
+            }
+        }
+        return 0;
     }
-  else
-    {
-     for (k = 1; k <= n; k++)
-       {
-	 for (j = 1; j <= n; j++)
-	   {
-	     fjac[k-1 + ldfjac*(j-1)] = zero;
-	   }
-         fjac[k-1 + ldfjac*(k-1)] = three - four*x[k-1];
-         if (k != 1) fjac[k-1 + ldfjac*(k-1-1)] = -one;
-         if (k != n) fjac[k-1 + ldfjac*(k+1-1)] = -two;
-       }
-    }
-  return 0;
-}
+};
 
 
 void testHybrj1()
 {
-  int j, n, ldfjac, info, lwa;
-  double tol, fnorm;
-  double x[9], fvec[9], fjac[9*9], wa[99];
+  const int n=9;
+  int info;
+  Eigen::VectorXd x(n), fvec, diag(n);
+  Eigen::MatrixXd fjac;
 
-  n = 9;
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, -1.);
 
-/*      the following starting values provide a rough solution. */
+  // do the computation
+  info = ei_hybrj1<hybrj1_functor, double>(x,fvec, fjac);
 
-  for (j=1; j<=9; j++)
-    {
-      x[j-1] = -1.;
-    }
+  // check return value
+  VERIFY( 1 == info);
 
-  ldfjac = 9;
-  lwa = 99;
+  // check norm
+  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
 
-/*      set tol to the square root of the machine precision. */
-/*      unless high solutions are required, */
-/*      this is the recommended setting. */
 
-  tol = sqrt(dpmpar(1));
-
-  info = hybrj1(fcn_hybrj1, 0, n, x, fvec, fjac, ldfjac, tol, wa, lwa);
-
-  fnorm = enorm(n, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 1.192636e-08);
-  VERIFY(info==1);
-  double x_ref[] = { 
-      -0.5706545,    -0.6816283,    -0.7017325,
-      -0.7042129,     -0.701369,    -0.6918656,
-      -0.665792,    -0.5960342,    -0.4164121
-  };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+// check x
+  VectorXd x_ref(n);
+  x_ref << 
+     -0.5706545,    -0.6816283,    -0.7017325,
+     -0.7042129,     -0.701369,    -0.6918656,
+     -0.665792,    -0.5960342,    -0.4164121;
+  VERIFY_IS_APPROX(x, x_ref);
 }
-
 
 struct hybrj_functor {
     static int f(void * /*p*/, int n, const double *x, double *fvec, double *fjac, int ldfjac, 
@@ -401,7 +393,6 @@ void testHybrj()
   int info, nfev, njev, mode;
   Eigen::VectorXd x(n), fvec, diag(n), R, qtf;
   Eigen::MatrixXd fjac;
-  VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);
@@ -508,7 +499,6 @@ void testHybrd()
   int info, nfev, ml, mu, mode;
   Eigen::VectorXd x(n), fvec, diag(n), R, qtf;
   Eigen::MatrixXd fjac;
-  VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);

@@ -89,6 +89,26 @@ int ei_hybrd(
     );
 }
 
+
+template<typename Functor, typename Scalar>
+int ei_hybrj1(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        )
+{
+    int n = x.size();
+    int lwa = (n*(3*n+13))/2;
+    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
+    int ldfjac = n;
+
+    fvec.resize(n);
+    fjac.resize(ldfjac, n);
+    return hybrj1(Functor::f, 0, n, x.data(), fvec.data(), fjac.data(), ldfjac, tol, wa.data(), lwa);
+}
+
+
 template<typename Functor, typename Scalar>
 int ei_hybrj(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
