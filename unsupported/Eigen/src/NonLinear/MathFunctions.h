@@ -89,6 +89,47 @@ int ei_hybrd(
     );
 }
 
+template<typename Functor, typename Scalar>
+int ei_hybrj(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        int &nfev,
+        int &njev,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &R,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &qtf,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        int mode=1,
+        int maxfev = 1000,
+        Scalar factor = Scalar(100.),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        int nprint=0
+        )
+{
+    int n = x.size();
+    int lr = (n*(n+1))/2;
+    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
+
+    fvec.resize(n);
+    qtf.resize(n);
+    R.resize(lr);
+    int ldfjac = n;
+    fjac.resize(ldfjac, n);
+    return hybrj (
+            Functor::f, 0,
+            n, x.data(), fvec.data(),
+            fjac.data(), ldfjac,
+            xtol, maxfev,
+            diag.data(), mode, 
+            factor,
+            nprint, 
+            &nfev,
+            &njev,
+            R.data(), lr,
+            qtf.data(),
+            wa1.data(), wa2.data(), wa3.data(), wa4.data()
+    );
+}
 
 template<typename Functor, typename Scalar>
 int ei_lmder1(
