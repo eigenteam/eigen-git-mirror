@@ -1317,6 +1317,82 @@ void testNistMGH10(void)
 }
 
 
+struct BoxBOD_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[6] = { 1, 2, 3, 5, 7, 10 };
+        static const double y[6] = { 109, 149, 149, 191, 213, 224 };
+        int i;
+
+        assert(m==6);
+        assert(n==2);
+        assert(ldfjac==6);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<6; i++) {
+                fvec[i] =  b[0]*(1.-exp(-b[1]*x[i])) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<6; i++) {
+                fjac[i+ldfjac*0] = 1.-exp(-b[1]*x[i]);
+                fjac[i+ldfjac*1] = x[i]*exp(-b[1]*x[i]);
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/boxbod.shtml
+void testNistBoxBOD(void)
+{
+  const int m=6, n=2;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+#if 0
+  /*
+   * First try
+   */
+  x<< 1., 1.;
+  // do the computation
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  printf("info=%d, f,j: %d, %d\n", info, nfev, njev);
+  printf("norm2 =  %.50g\n", fvec.squaredNorm());
+  std::cout << x << std::endl;
+  VERIFY( 1 == info); 
+  VERIFY( 10 == nfev); 
+  VERIFY( 6 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
+  // check x
+  VERIFY_IS_APPROX(x[0], 2.1380940889E+02);
+  VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
+#endif
+
+  /*
+   * Second try
+   */
+  x<< 100., 0.75;
+  // do the computation
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag, 1, 100., 10000);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 1859 == nfev); 
+  VERIFY( 1416 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1168.012); // should be : 1.1680088766E+03
+  // check x
+  VERIFY_IS_APPROX(x[0], 213.7613); // should be : 2.1380940889E+02
+  VERIFY_IS_APPROX(x[1], 0.5475659); // should be : 5.4723748542E-01
+}
+
+
 void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
@@ -1330,6 +1406,7 @@ void test_NonLinear()
     // NIST tests, level of difficulty = "Higher"
     CALL_SUBTEST(testNistRat42());
     CALL_SUBTEST(testNistMGH10());
+    CALL_SUBTEST(testNistBoxBOD());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
