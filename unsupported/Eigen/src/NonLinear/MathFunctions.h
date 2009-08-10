@@ -42,6 +42,55 @@ int ei_hybrd1(
 }
 
 template<typename Functor, typename Scalar>
+int ei_hybrd(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        int &nfev,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &R,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &qtf,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        int mode=1,
+        int nb_of_subdiagonals = -1,
+        int nb_of_superdiagonals = -1,
+        int maxfev = 2000,
+        Scalar factor = Scalar(100.),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar epsfcn = Scalar(0.),
+        int nprint=0
+        )
+{
+    int n = x.size();
+    int lr = (n*(n+1))/2;
+    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
+
+
+    if (nb_of_subdiagonals<0) nb_of_subdiagonals = n-1;
+    if (nb_of_superdiagonals<0) nb_of_superdiagonals = n-1;
+    fvec.resize(n);
+    qtf.resize(n);
+    R.resize(lr);
+    int ldfjac = n;
+    fjac.resize(ldfjac, n);
+    return hybrd(
+            Functor::f, 0,
+            n, x.data(), fvec.data(),
+            xtol, maxfev,
+            nb_of_subdiagonals, nb_of_superdiagonals,
+            epsfcn, 
+            diag.data(), mode, 
+            factor,
+            nprint, 
+            &nfev,
+            fjac.data(), ldfjac,
+            R.data(), lr,
+            qtf.data(),
+            wa1.data(), wa2.data(), wa3.data(), wa4.data()
+    );
+}
+
+
+template<typename Functor, typename Scalar>
 int ei_lmder1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,

@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2009 Thomas Capricelli <orzel@freehackers.org>
 
+//#include <stdio.h>
 
 #include "main.h"
 #include <unsupported/Eigen/NonLinear>
@@ -489,83 +490,66 @@ void testHybrd1()
   VERIFY_IS_APPROX(x, x_ref);
 }
 
-int fcn_hybrd(void * /*p*/, int n, const double *x, double *fvec, int iflag)
-{
-  /*      subroutine fcn for hybrd example. */
-
-  int k;
-  double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
-
-  if (iflag == 0)
+struct hybrd_functor {
+    static int f(void * /*p*/, int n, const double *x, double *fvec, int iflag)
     {
-      /*      insert print statements here when nprint is positive. */
-      return 0;
+        /*      subroutine fcn for hybrd example. */
+
+        int k;
+        double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
+
+        if (iflag == 0)
+        {
+            /*      insert print statements here when nprint is positive. */
+            return 0;
+        }
+        for (k=1; k<=n; k++)
+        {
+
+            temp = (three - two*x[k-1])*x[k-1];
+            temp1 = zero;
+            if (k != 1) temp1 = x[k-1-1];
+            temp2 = zero;
+            if (k != n) temp2 = x[k+1-1];
+            fvec[k-1] = temp - temp1 - two*temp2 + one;
+        }
+        return 0;
     }
-  for (k=1; k<=n; k++)
-    {
-      
-      temp = (three - two*x[k-1])*x[k-1];
-      temp1 = zero;
-      if (k != 1) temp1 = x[k-1-1];
-      temp2 = zero;
-      if (k != n) temp2 = x[k+1-1];
-      fvec[k-1] = temp - temp1 - two*temp2 + one;
-    }
-  return 0;
-}
+};
 
 void testHybrd()
 {
-  int j, n, maxfev, ml, mu, mode, nprint, info, nfev, ldfjac, lr;
-  double xtol, epsfcn, factor, fnorm;
-  double x[9], fvec[9], diag[9], fjac[9*9], r[45], qtf[9],
-    wa1[9], wa2[9], wa3[9], wa4[9];
+  const int n=9;
+  int info, nfev, ml, mu, mode;
+  Eigen::VectorXd x(n), fvec, diag(n), R, qtf;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
 
-  n = 9;
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, -1.);
 
-/*      the following starting values provide a rough solution. */
-
-  for (j=1; j<=9; j++)
-    {
-      x[j-1] = -1.;
-    }
-
-  ldfjac = 9;
-  lr = 45;
-
-/*      set xtol to the square root of the machine precision. */
-/*      unless high solutions are required, */
-/*      this is the recommended setting. */
-
-  xtol = sqrt(dpmpar(1));
-
-  maxfev = 2000;
   ml = 1;
   mu = 1;
-  epsfcn = 0.;
   mode = 2;
-  for (j=1; j<=9; j++)
-    {
-      diag[j-1] = 1.;
-    }
+  diag.setConstant(n, 1.);
 
-  factor = 1.e2;
-  nprint = 0;
+  // do the computation
+  info = ei_hybrd<hybrd_functor, double>(x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
 
-  info = hybrd(fcn_hybrd, 0, n, x, fvec, xtol, maxfev, ml, mu, epsfcn,
-	 diag, mode, factor, nprint, &nfev,
-	 fjac, ldfjac, r, lr, qtf, wa1, wa2, wa3, wa4);
-  fnorm = enorm(n, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 1.192636e-08);
+  // check return value
+  VERIFY( 1 == info);
   VERIFY(nfev==14);
-  VERIFY(info==1);
-  double x_ref[] = { 
+
+  // check norm
+  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
+
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 
       -0.5706545,    -0.6816283,    -0.7017325,
       -0.7042129,     -0.701369,    -0.6918656,
-      -0.665792,    -0.5960342,    -0.4164121
-  };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+      -0.665792,    -0.5960342,    -0.4164121;
+  VERIFY_IS_APPROX(x, x_ref);
 }
 
 int  fcn_lmstr1(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
