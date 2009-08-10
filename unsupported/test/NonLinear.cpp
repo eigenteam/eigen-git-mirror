@@ -739,92 +739,80 @@ void testLmdif1()
 
 }
 
-int fcn_lmdif(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, int iflag)
-{
-
-/*      subroutine fcn for lmdif example. */
-
-  int i;
-  double tmp1, tmp2, tmp3;
-  double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-		3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-  if (iflag == 0)
+struct lmdif_functor {
+    static int f(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, int iflag)
     {
-      /*      insert print statements here when nprint is positive. */
-      return 0;
+
+        /*      subroutine fcn for lmdif example. */
+
+        int i;
+        double tmp1, tmp2, tmp3;
+        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+
+        if (iflag == 0)
+        {
+            /*      insert print statements here when nprint is positive. */
+            return 0;
+        }
+        for (i = 1; i <= 15; i++)
+        {
+            tmp1 = i;
+            tmp2 = 16 - i;
+            tmp3 = tmp1;
+            if (i > 8) tmp3 = tmp2;
+            fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+        }
+        return 0;
     }
-  for (i = 1; i <= 15; i++)
-    {
-      tmp1 = i;
-      tmp2 = 16 - i;
-      tmp3 = tmp1;
-      if (i > 8) tmp3 = tmp2;
-      fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-    }
-  return 0;
-}
+};
 
 void testLmdif()
 {
-  int i, j, m, n, maxfev, mode, nprint, info, nfev, ldfjac;
-  int ipvt[3];
-  double ftol, xtol, gtol, epsfcn, factor, fnorm;
-  double x[3], fvec[15], diag[3], fjac[15*3], qtf[3], 
-    wa1[3], wa2[3], wa3[3], wa4[15];
-  double covfac;
+  const int m=15, n=3;
+  int info, nfev;
+  double fnorm, covfac, covar_ftol;
+  Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
 
-  m = 15;
-  n = 3;
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, 1.);
 
-/*      the following starting values provide a rough fit. */
+  // do the computation
+  info = ei_lmdif<lmdif_functor, double>(x, fvec, nfev, fjac, ipvt, wa1, diag);
 
-  x[1-1] = 1.;
-  x[2-1] = 1.;
-  x[3-1] = 1.;
-
-  ldfjac = 15;
-
-  /*      set ftol and xtol to the square root of the machine */
-  /*      and gtol to zero. unless high solutions are */
-  /*      required, these are the recommended settings. */
-
-  ftol = sqrt(dpmpar(1));
-  xtol = sqrt(dpmpar(1));
-  gtol = 0.;
-
-  maxfev = 800;
-  epsfcn = 0.;
-  mode = 1;
-  factor = 1.e2;
-  nprint = 0;
-
-  info = lmdif(fcn_lmdif, 0, m, n, x, fvec, ftol, xtol, gtol, maxfev, epsfcn, 
-	 diag, mode, factor, nprint, &nfev, fjac, ldfjac, 
-	 ipvt, qtf, wa1, wa2, wa3, wa4);
-
-  fnorm = enorm(m, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 0.09063596);
+  // check return values
+  VERIFY( 1 == info);
   VERIFY(nfev==21);
-  VERIFY(info==1);
 
-  double x_ref[] = {0.08241058, 1.133037, 2.343695 };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+  // check norm
+  fnorm = fvec.norm();
+  VERIFY_IS_APPROX(fnorm, 0.09063596);
 
-  ftol = dpmpar(1);
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 0.08241058, 1.133037, 2.343695;
+  VERIFY_IS_APPROX(x, x_ref);
+
+  // check covariance
+  covar_ftol = dpmpar(1);
   covfac = fnorm*fnorm/(m-n);
-  covar(n, fjac, ldfjac, ipvt, ftol, wa1);
+  covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa1.data());
 
-  double cov_ref[] = { 
+  Eigen::MatrixXd cov_ref(n,n);
+  cov_ref << 
       0.0001531202,   0.002869942,  -0.002656662,
       0.002869942,    0.09480937,   -0.09098997,
-      -0.002656662,   -0.09098997,    0.08778729
-  };
+      -0.002656662,   -0.09098997,    0.08778729;
 
-  for (i=1; i<=n; i++)
-    for (j=1; j<=n; j++)
-        VERIFY_IS_APPROX(fjac[(i-1)*ldfjac+j-1]*covfac, cov_ref[(i-1)*3+(j-1)]);
+//  std::cout << fjac*covfac << std::endl;
+
+  Eigen::MatrixXd cov;
+  cov =  covfac*fjac.corner<n,n>(TopLeft);
+  VERIFY_IS_APPROX( cov, cov_ref);
+  // TODO: why isn't this allowed ? : 
+  // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
 struct misra1a_functor {

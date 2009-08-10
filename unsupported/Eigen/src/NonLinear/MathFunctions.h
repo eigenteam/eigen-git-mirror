@@ -220,5 +220,51 @@ int ei_lmder(
     );
 }
 
+template<typename Functor, typename Scalar>
+int ei_lmdif(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        int &nfev,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        VectorXi &ipvt,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &wa1,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        int mode=1,
+        double factor = 100.,
+        int maxfev = 400,
+        Scalar ftol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar gtol = Scalar(0.),
+        Scalar epsfcn = Scalar(0.),
+        int nprint=0
+        )
+{
+    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
+        qtf(x.size()),
+        wa2(x.size()), wa3(x.size()),
+        wa4(fvec.size());
+    int ldfjac = fvec.size();
+
+    ipvt.resize(x.size());
+    wa1.resize(x.size());
+    fjac.resize(ldfjac, x.size());
+    diag.resize(x.size());
+    return lmdif (
+            Functor::f, 0,
+            fvec.size(), x.size(), x.data(), fvec.data(),
+            ftol, xtol, gtol, 
+            maxfev,
+            epsfcn,
+            diag.data(), mode,
+            factor,
+            nprint,
+            &nfev,
+            fjac.data() , ldfjac,
+            ipvt.data(),
+            qtf.data(),
+            wa1.data(), wa2.data(), wa3.data(), wa4.data()
+    );
+}
+
 #endif // EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
