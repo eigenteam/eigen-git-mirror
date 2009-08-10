@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2009 Thomas Capricelli <orzel@freehackers.org>
 
-//#include <stdio.h>
+#include <stdio.h>
 
 #include "main.h"
 #include <unsupported/Eigen/NonLinear>
@@ -159,7 +159,6 @@ void testLmder1()
   int m=15, n=3, info;
 
   Eigen::VectorXd x(n), fvec(m);
-  Eigen::MatrixXd fjac(m, n);
   VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
@@ -232,7 +231,7 @@ void testLmder()
   int info, nfev, njev;
   double fnorm, covfac, covar_ftol;
   Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
-  Eigen::MatrixXd fjac(m, n);
+  Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
@@ -852,8 +851,82 @@ void testLmdif()
         VERIFY_IS_APPROX(fjac[(i-1)*ldfjac+j-1]*covfac, cov_ref[(i-1)*3+(j-1)]);
 }
 
+
+struct misra1a_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[14] = { 77.6E0, 114.9E0, 141.1E0, 190.8E0, 239.9E0, 289.0E0, 332.8E0, 378.4E0, 434.8E0, 477.3E0, 536.8E0, 593.1E0, 689.1E0, 760.0E0};
+        static const double y[14] = { 10.07E0, 14.73E0, 17.94E0, 23.93E0, 29.61E0, 35.18E0, 40.02E0, 44.82E0, 50.76E0, 55.05E0, 61.01E0, 66.40E0, 75.47E0, 81.78E0};
+        int i;
+
+        assert(m==14);
+        assert(n==2);
+        assert(ldfjac==14);
+        if (iflag != 2) {// compute fvec at x
+            for(i=0; i<14; i++) {
+                fvec[i] = b[0]*(1.-exp(-b[1]*x[i])) - y[i] ;
+            }
+        }
+        else { // compute fjac at x
+            for(i=0; i<14; i++) {
+                fjac[i+ldfjac*0] = (1.-exp(-b[1]*x[i]));
+                fjac[i+ldfjac*1] = (b[0]*x[i]*exp(-b[1]*x[i]));
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml
+void testNistMisra1a(void)
+{
+  const int m=14, n=2;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 500., 0.0001;
+  // do the computation
+  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 19 == nfev); 
+  VERIFY( 15 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.2455138894E-01); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
+  VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
+
+  /*
+   * Second try
+   */
+  x<< 250., 0.0005;
+  // do the computation
+  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 5 == nfev); 
+  VERIFY( 4 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.2455138894E-01); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
+  VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
+
+}
+
 void test_NonLinear()
 {
+  CALL_SUBTEST(testNistMisra1a());
+
   CALL_SUBTEST(testChkder());
   CALL_SUBTEST(testLmder1());
   CALL_SUBTEST(testLmder());
