@@ -684,58 +684,52 @@ void testLmstr()
   for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
 }
 
-int fcn_lmdif1(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, int /*iflag*/)
-{
-  /* function fcn for lmdif1 example */
-
-  int i;
-  double tmp1,tmp2,tmp3;
-  double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
-		3.7e-1,5.8e-1,7.3e-1,9.6e-1,1.34e0,2.1e0,4.39e0};
-
-  for (i=0; i<15; i++)
+struct lmdif1_functor {
+    static int f(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, int /*iflag*/)
     {
-      tmp1 = i+1;
-      tmp2 = 15 - i;
-      tmp3 = tmp1;
-      
-      if (i >= 8) tmp3 = tmp2;
-      fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
+        /* function fcn for lmdif1 example */
+
+        int i;
+        double tmp1,tmp2,tmp3;
+        double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
+            3.7e-1,5.8e-1,7.3e-1,9.6e-1,1.34e0,2.1e0,4.39e0};
+
+        for (i=0; i<15; i++)
+        {
+            tmp1 = i+1;
+            tmp2 = 15 - i;
+            tmp3 = tmp1;
+
+            if (i >= 8) tmp3 = tmp2;
+            fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
+        }
+        return 0;
     }
-  return 0;
-}
+};
 
 void testLmdif1()
 {
-  int m, n, info, lwa, iwa[3];
-  double tol, fnorm, x[3], fvec[15], wa[75];
+  int m=15, n=3, info;
 
-  m = 15;
-  n = 3;
+  Eigen::VectorXd x(n), fvec(m);
+  VectorXi iwa;
 
   /* the following starting values provide a rough fit. */
+  x.setConstant(n, 1.);
 
-  x[0] = 1.e0;
-  x[1] = 1.e0;
-  x[2] = 1.e0;
+  // do the computation
+  info = ei_lmdif1<lmdif1_functor,double>(x, fvec, iwa);
 
-  lwa = 75;
+  // check return value
+  VERIFY( 1 == info);
 
-  /* set tol to the square root of the machine precision.  unless high
-     precision solutions are required, this is the recommended
-     setting. */
+  // check norm
+  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
 
-  tol = sqrt(dpmpar(1));
-
-  info = lmdif1(fcn_lmdif1, 0, m, n, x, fvec, tol, iwa, wa, lwa);
-
-  fnorm = enorm(m, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 0.09063596);
-  VERIFY(info==1);
-  double x_ref[] = {0.0824106, 1.1330366, 2.3436947 };
-  int j;
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 0.0824106, 1.1330366, 2.3436947;
+  VERIFY_IS_APPROX(x, x_ref);
 
 }
 

@@ -266,5 +266,30 @@ int ei_lmdif(
     );
 }
 
+template<typename Functor, typename Scalar>
+int ei_lmdif1(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        VectorXi &iwa,
+        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        )
+{
+    int n = x.size();
+    int ldfjac = fvec.size();
+    int lwa = ldfjac*n+5*n+ldfjac;
+    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
+    Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, n);
+
+    iwa.resize(n);
+    wa.resize(lwa);
+    return lmdif1 (
+            Functor::f, 0,
+            fvec.size(), n, x.data(), fvec.data(),
+            tol,
+            iwa.data(),
+            wa.data(), lwa
+    );
+}
+
 #endif // EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
