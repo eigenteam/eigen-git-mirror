@@ -1241,6 +1241,82 @@ void testNistRat42(void)
   VERIFY_IS_APPROX(x[2], 6.7359200066E-02);
 }
 
+struct MGH10_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[16] = { 5.000000E+01, 5.500000E+01, 6.000000E+01, 6.500000E+01, 7.000000E+01, 7.500000E+01, 8.000000E+01, 8.500000E+01, 9.000000E+01, 9.500000E+01, 1.000000E+02, 1.050000E+02, 1.100000E+02, 1.150000E+02, 1.200000E+02, 1.250000E+02 };
+        static const double y[16] = { 3.478000E+04, 2.861000E+04, 2.365000E+04, 1.963000E+04, 1.637000E+04, 1.372000E+04, 1.154000E+04, 9.744000E+03, 8.261000E+03, 7.030000E+03, 6.005000E+03, 5.147000E+03, 4.427000E+03, 3.820000E+03, 3.307000E+03, 2.872000E+03 };
+        int i;
+
+        assert(m==16);
+        assert(n==3);
+        assert(ldfjac==16);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<16; i++) {
+                fvec[i] =  b[0] * exp(b[1]/(x[i]+b[2])) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<16; i++) {
+                double factor = 1./(x[i]+b[2]);
+                double e = exp(b[1]*factor);
+                fjac[i+ldfjac*0] = e;
+                fjac[i+ldfjac*1] = b[0]*factor*e;
+                fjac[i+ldfjac*2] = -b[1]*b[0]*factor*factor*e;
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/mgh10.shtml
+void testNistMGH10(void)
+{
+  const int m=16, n=3;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 2., 400000., 25000.;
+  // do the computation
+  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 3 == info); 
+  VERIFY( 285 == nfev); 
+  VERIFY( 250 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7945855171E+01);
+  // check x
+  VERIFY_IS_APPROX(x[0], 5.6096364710E-03);
+  VERIFY_IS_APPROX(x[1], 6.1813463463E+03);
+  VERIFY_IS_APPROX(x[2], 3.4522363462E+02);
+
+  /*
+   * Second try
+   */
+  x<< 0.02, 4000., 250.;
+  // do the computation
+  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 3 == info); 
+  VERIFY( 126 == nfev); 
+  VERIFY( 116 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7945855171E+01);
+  // check x
+  VERIFY_IS_APPROX(x[0], 5.6096364710E-03);
+  VERIFY_IS_APPROX(x[1], 6.1813463463E+03);
+  VERIFY_IS_APPROX(x[2], 3.4522363462E+02);
+}
+
+
 void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
@@ -1253,6 +1329,7 @@ void test_NonLinear()
 
     // NIST tests, level of difficulty = "Higher"
     CALL_SUBTEST(testNistRat42());
+    CALL_SUBTEST(testNistMGH10());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
