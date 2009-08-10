@@ -527,161 +527,140 @@ void testHybrd()
   VERIFY_IS_APPROX(x, x_ref);
 }
 
-int  fcn_lmstr1(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
-{
-  /*  subroutine fcn for lmstr1 example. */
-  int i;
-  double tmp1, tmp2, tmp3, tmp4;
-  double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-		3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+struct lmstr1_functor {
+    static int  f(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
+    {
+        /*  subroutine fcn for lmstr1 example. */
+        int i;
+        double tmp1, tmp2, tmp3, tmp4;
+        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
-  if (iflag < 2)
-    {
-      for (i=1; i<=15; i++)
-	{
-	  tmp1=i;
-	  tmp2 = 16-i;
-	  tmp3 = tmp1;
-	  if (i > 8) tmp3 = tmp2;
-	  fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-	}
+        if (iflag < 2)
+        {
+            for (i=1; i<=15; i++)
+            {
+                tmp1=i;
+                tmp2 = 16-i;
+                tmp3 = tmp1;
+                if (i > 8) tmp3 = tmp2;
+                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+            }
+        }
+        else
+        {
+            i = iflag - 1;
+            tmp1 = i;
+            tmp2 = 16 - i;
+            tmp3 = tmp1;
+            if (i > 8) tmp3 = tmp2;
+            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
+            fjrow[1-1] = -1;
+            fjrow[2-1] = tmp1*tmp2/tmp4;
+            fjrow[3-1] = tmp1*tmp3/tmp4;
+        }
+        return 0;
     }
-  else
-    {
-      i = iflag - 1;
-      tmp1 = i;
-      tmp2 = 16 - i;
-      tmp3 = tmp1;
-      if (i > 8) tmp3 = tmp2;
-      tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
-      fjrow[1-1] = -1;
-      fjrow[2-1] = tmp1*tmp2/tmp4;
-      fjrow[3-1] = tmp1*tmp3/tmp4;
-    }
-  return 0;
-}
+};
 
 void testLmstr1()
 {
-  int m, n, ldfjac, info, lwa, ipvt[3];
-  double tol, fnorm;
-  double x[30], fvec[15], fjac[9], wa[30];
+  int m=15, n=3, info;
 
-  m = 15;
-  n = 3;
+  Eigen::VectorXd x(n), fvec(m);
+  VectorXi ipvt;
 
-  /*     the following starting values provide a rough fit. */
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, 1.);
 
-  x[0] = 1.;
-  x[1] = 1.;
-  x[2] = 1.;
+  // do the computation
+  info = ei_lmstr1<lmstr1_functor,double>(x, fvec, ipvt);
 
-  ldfjac = 3;
-  lwa = 30;
+  // check return value
+  VERIFY( 1 == info);
 
-  /*     set tol to the square root of the machine precision.
-     unless high precision solutions are required,
-     this is the recommended setting. */
+  // check norm
+  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
 
-  tol = sqrt(dpmpar(1));
-
-  info = lmstr1(fcn_lmstr1, 0, m, n, 
-	  x, fvec, fjac, ldfjac, 
-	  tol, ipvt, wa, lwa);
-
-  fnorm = enorm(m, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 0.09063596);
-  VERIFY(info==1);
-  double x_ref[] = {0.08241058, 1.133037, 2.343695 };
-  for (m=1; m<=3; m++) VERIFY_IS_APPROX(x[m-1], x_ref[m-1]);
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 0.08241058, 1.133037, 2.343695 ;
+  VERIFY_IS_APPROX(x, x_ref);
 }
 
-int fcn_lmstr(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
-{
 
-  /*      subroutine fcn for lmstr example. */
-
-  int i;
-  double tmp1, tmp2, tmp3, tmp4;
-  double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-		3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-  if (iflag == 0)
+struct lmstr_functor {
+    static int f(void * /*p*/, int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
     {
-      /*      insert print statements here when nprint is positive. */
-      return 0;
+
+        /*      subroutine fcn for lmstr example. */
+
+        int i;
+        double tmp1, tmp2, tmp3, tmp4;
+        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+
+        if (iflag == 0)
+        {
+            /*      insert print statements here when nprint is positive. */
+            return 0;
+        }
+        if (iflag < 2)
+        {
+            for (i = 1; i <= 15; i++)
+            {
+                tmp1 = i;
+                tmp2 = 16 - i;
+                tmp3 = tmp1;
+                if (i > 8) tmp3 = tmp2;
+                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+            }
+        }
+        else
+        {
+            i = iflag - 1;
+            tmp1 = i;
+            tmp2 = 16 - i;
+            tmp3 = tmp1;
+            if (i > 8) tmp3 = tmp2;
+            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
+            fjrow[1-1] = -1.;
+            fjrow[2-1] = tmp1*tmp2/tmp4;
+            fjrow[3-1] = tmp1*tmp3/tmp4;
+        }
+        return 0;
     }
-  if (iflag < 2)
-    {
-      for (i = 1; i <= 15; i++)
-	{
-	  tmp1 = i;
-	  tmp2 = 16 - i;
-	  tmp3 = tmp1;
-	  if (i > 8) tmp3 = tmp2;
-	  fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-}
-			 }
-else
-  {
-    i = iflag - 1;
-    tmp1 = i;
-    tmp2 = 16 - i;
-    tmp3 = tmp1;
-    if (i > 8) tmp3 = tmp2;
-    tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
-    fjrow[1-1] = -1.;
-    fjrow[2-1] = tmp1*tmp2/tmp4;
-    fjrow[3-1] = tmp1*tmp3/tmp4;
-  }
-  return 0;
-}
+};
 
 void testLmstr()
 {
-  int j, m, n, ldfjac, maxfev, mode, nprint, info, nfev, njev;
-  int ipvt[3];
-  double ftol, xtol, gtol, factor, fnorm;
-  double x[3], fvec[15], fjac[3*3], diag[3], qtf[3], 
-    wa1[3], wa2[3], wa3[3], wa4[15];
+  const int m=15, n=3;
+  int info, nfev, njev;
+  double fnorm;
+  Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
 
-  m = 15;
-  n = 3;
+  /* the following starting values provide a rough fit. */
+  x.setConstant(n, 1.);
 
-  /*      the following starting values provide a rough fit. */
+  // do the computation
+  info = ei_lmstr<lmstr_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
 
-  x[1-1] = 1.;
-  x[2-1] = 1.;
-  x[3-1] = 1.;
-
-  ldfjac = 3;
-
-  /*      set ftol and xtol to the square root of the machine */
-  /*      and gtol to zero. unless high solutions are */
-  /*      required, these are the recommended settings. */
-
-  ftol = sqrt(dpmpar(1));
-  xtol = sqrt(dpmpar(1));
-  gtol = 0.;
-
-  maxfev = 400;
-  mode = 1;
-  factor = 1.e2;
-  nprint = 0;
-
-  info = lmstr(fcn_lmstr, 0, m, n, x, fvec, fjac, ldfjac, ftol, xtol, gtol, 
-	maxfev, diag, mode, factor, nprint, &nfev, &njev, 
-	ipvt, qtf, wa1, wa2, wa3, wa4);
-  fnorm = enorm(m, fvec);
-
-  VERIFY_IS_APPROX(fnorm, 0.09063596);
+  // check return values
+  VERIFY( 1 == info);
   VERIFY(nfev==6);
   VERIFY(njev==5);
-  VERIFY(info==1);
 
-  double x_ref[] = {0.08241058, 1.133037, 2.343695 };
-  for (j=1; j<=n; j++) VERIFY_IS_APPROX(x[j-1], x_ref[j-1]);
+  // check norm
+  fnorm = fvec.norm();
+  VERIFY_IS_APPROX(fnorm, 0.09063596);
+
+  // check x
+  VectorXd x_ref(n);
+  x_ref << 0.08241058, 1.133037, 2.343695;
+  VERIFY_IS_APPROX(x, x_ref);
+
 }
 
 struct lmdif1_functor {
