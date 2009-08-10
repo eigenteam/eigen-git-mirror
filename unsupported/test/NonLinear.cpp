@@ -1173,6 +1173,82 @@ void testNistLanczos1(void)
 }
 
 
+
+struct rat42_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[9] = { 9.000E0, 14.000E0, 21.000E0, 28.000E0, 42.000E0, 57.000E0, 63.000E0, 70.000E0, 79.000E0 };
+        static const double y[9] = { 8.930E0 ,10.800E0 ,18.590E0 ,22.330E0 ,39.350E0 ,56.110E0 ,61.730E0 ,64.620E0 ,67.080E0 };
+        int i;
+
+        assert(m==9);
+        assert(n==3);
+        assert(ldfjac==9);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<9; i++) {
+                fvec[i] = b[0] / (1.+exp(b[1]-b[2]*x[i])) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<9; i++) {
+                double e = exp(b[1]-b[2]*x[i]);
+                fjac[i+ldfjac*0] = 1./(1.+e);
+                fjac[i+ldfjac*1] = -b[0]*e/(1.+e)/(1.+e);
+                fjac[i+ldfjac*2] = +b[0]*e*x[i]/(1.+e)/(1.+e);
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/ratkowsky2.shtml
+void testNistRat42(void)
+{
+  const int m=9, n=3;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 100., 1., 0.1;
+  // do the computation
+  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 10 == nfev); 
+  VERIFY( 8 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.0565229338E+00);
+  // check x
+  VERIFY_IS_APPROX(x[0], 7.2462237576E+01);
+  VERIFY_IS_APPROX(x[1], 2.6180768402E+00);
+  VERIFY_IS_APPROX(x[2], 6.7359200066E-02);
+
+  /*
+   * Second try
+   */
+  x<< 75., 2.5, 0.07;
+  // do the computation
+  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 6 == nfev); 
+  VERIFY( 5 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.0565229338E+00);
+  // check x
+  VERIFY_IS_APPROX(x[0], 7.2462237576E+01);
+  VERIFY_IS_APPROX(x[1], 2.6180768402E+00);
+  VERIFY_IS_APPROX(x[2], 6.7359200066E-02);
+}
+
+
 void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
@@ -1184,6 +1260,7 @@ void test_NonLinear()
     CALL_SUBTEST(testNistLanczos1());
 
     // NIST tests, level of difficulty = "Higher"
+    CALL_SUBTEST(testNistRat42());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
