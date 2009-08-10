@@ -1089,22 +1089,112 @@ void testNistMisra1d(void)
 }
 
 
+struct lanczos1_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[24] = { 0.000000000000E+00, 5.000000000000E-02, 1.000000000000E-01, 1.500000000000E-01, 2.000000000000E-01, 2.500000000000E-01, 3.000000000000E-01, 3.500000000000E-01, 4.000000000000E-01, 4.500000000000E-01, 5.000000000000E-01, 5.500000000000E-01, 6.000000000000E-01, 6.500000000000E-01, 7.000000000000E-01, 7.500000000000E-01, 8.000000000000E-01, 8.500000000000E-01, 9.000000000000E-01, 9.500000000000E-01, 1.000000000000E+00, 1.050000000000E+00, 1.100000000000E+00, 1.150000000000E+00 };
+        static const double y[24] = { 2.513400000000E+00 ,2.044333373291E+00 ,1.668404436564E+00 ,1.366418021208E+00 ,1.123232487372E+00 ,9.268897180037E-01 ,7.679338563728E-01 ,6.388775523106E-01 ,5.337835317402E-01 ,4.479363617347E-01 ,3.775847884350E-01 ,3.197393199326E-01 ,2.720130773746E-01 ,2.324965529032E-01 ,1.996589546065E-01 ,1.722704126914E-01 ,1.493405660168E-01 ,1.300700206922E-01 ,1.138119324644E-01 ,1.000415587559E-01 ,8.833209084540E-02 ,7.833544019350E-02 ,6.976693743449E-02 ,6.239312536719E-02 };
+        int i;
+
+        assert(m==24);
+        assert(n==6);
+        assert(ldfjac==24);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<24; i++) {
+                fvec[i] = b[0]*exp(-b[1]*x[i]) + b[2]*exp(-b[3]*x[i]) + b[4]*exp(-b[5]*x[i])  - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<24; i++) {
+                fjac[i+ldfjac*0] = exp(-b[1]*x[i]);
+                fjac[i+ldfjac*1] = -b[0]*x[i]*exp(-b[1]*x[i]);
+                fjac[i+ldfjac*2] = exp(-b[3]*x[i]);
+                fjac[i+ldfjac*3] = -b[2]*x[i]*exp(-b[3]*x[i]);
+                fjac[i+ldfjac*4] = exp(-b[5]*x[i]);
+                fjac[i+ldfjac*5] = -b[4]*x[i]*exp(-b[5]*x[i]);
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/lanczos1.shtml
+void testNistLanczos1(void)
+{
+  const int m=24, n=6;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 1.2, 0.3, 5.6, 5.5, 6.5, 7.6;
+  // do the computation
+  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 2 == info); 
+  VERIFY( 79 == nfev); 
+  VERIFY( 72 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4292388868910E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  // check x
+  VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
+  VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
+  VERIFY_IS_APPROX(x[2], 8.6070000013E-01 );
+  VERIFY_IS_APPROX(x[3], 3.0000000002E+00 );
+  VERIFY_IS_APPROX(x[4], 1.5575999998E+00 );
+  VERIFY_IS_APPROX(x[5], 5.0000000001E+00 );
+
+  /*
+   * Second try
+   */
+  x<< 0.5, 0.7, 3.6, 4.2, 4., 6.3;
+  // do the computation
+  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 2 == info); 
+  VERIFY( 9 == nfev); 
+  VERIFY( 8 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  // check x
+  VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
+  VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
+  VERIFY_IS_APPROX(x[2], 8.6070000013E-01 );
+  VERIFY_IS_APPROX(x[3], 3.0000000002E+00 );
+  VERIFY_IS_APPROX(x[4], 1.5575999998E+00 );
+  VERIFY_IS_APPROX(x[5], 5.0000000001E+00 );
+
+}
+
+
 void test_NonLinear()
 {
-  CALL_SUBTEST(testNistMisra1a());
-//  CALL_SUBTEST(testNistHahn1());
-  CALL_SUBTEST(testNistMisra1d());
+    // NIST tests, level of difficulty = "Lower"
+    CALL_SUBTEST(testNistMisra1a());
 
-  CALL_SUBTEST(testChkder());
-  CALL_SUBTEST(testLmder1());
-  CALL_SUBTEST(testLmder());
-  CALL_SUBTEST(testHybrj1());
-  CALL_SUBTEST(testHybrj());
-  CALL_SUBTEST(testHybrd1());
-  CALL_SUBTEST(testHybrd());
-  CALL_SUBTEST(testLmstr1());
-  CALL_SUBTEST(testLmstr());
-  CALL_SUBTEST(testLmdif1());
-  CALL_SUBTEST(testLmdif());
+    // NIST tests, level of difficulty = "Average"
+    //  CALL_SUBTEST(testNistHahn1());
+    CALL_SUBTEST(testNistMisra1d());
+    CALL_SUBTEST(testNistLanczos1());
+
+    // NIST tests, level of difficulty = "Higher"
+
+    CALL_SUBTEST(testChkder());
+    CALL_SUBTEST(testLmder1());
+    CALL_SUBTEST(testLmder());
+    CALL_SUBTEST(testHybrj1());
+    CALL_SUBTEST(testHybrj());
+    CALL_SUBTEST(testHybrd1());
+    CALL_SUBTEST(testHybrd());
+    CALL_SUBTEST(testLmstr1());
+    CALL_SUBTEST(testLmstr());
+    CALL_SUBTEST(testLmdif1());
+    CALL_SUBTEST(testLmdif());
 }
 
