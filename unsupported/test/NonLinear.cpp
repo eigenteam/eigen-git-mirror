@@ -1329,6 +1329,89 @@ void testNistBoxBOD(void)
   VERIFY_IS_APPROX(x[1], 0.5475659); // should be : 5.4723748542E-01
 }
 
+struct MGH17_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[33] = { 0.000000E+00, 1.000000E+01, 2.000000E+01, 3.000000E+01, 4.000000E+01, 5.000000E+01, 6.000000E+01, 7.000000E+01, 8.000000E+01, 9.000000E+01, 1.000000E+02, 1.100000E+02, 1.200000E+02, 1.300000E+02, 1.400000E+02, 1.500000E+02, 1.600000E+02, 1.700000E+02, 1.800000E+02, 1.900000E+02, 2.000000E+02, 2.100000E+02, 2.200000E+02, 2.300000E+02, 2.400000E+02, 2.500000E+02, 2.600000E+02, 2.700000E+02, 2.800000E+02, 2.900000E+02, 3.000000E+02, 3.100000E+02, 3.200000E+02 };
+        static const double y[33] = { 8.440000E-01, 9.080000E-01, 9.320000E-01, 9.360000E-01, 9.250000E-01, 9.080000E-01, 8.810000E-01, 8.500000E-01, 8.180000E-01, 7.840000E-01, 7.510000E-01, 7.180000E-01, 6.850000E-01, 6.580000E-01, 6.280000E-01, 6.030000E-01, 5.800000E-01, 5.580000E-01, 5.380000E-01, 5.220000E-01, 5.060000E-01, 4.900000E-01, 4.780000E-01, 4.670000E-01, 4.570000E-01, 4.480000E-01, 4.380000E-01, 4.310000E-01, 4.240000E-01, 4.200000E-01, 4.140000E-01, 4.110000E-01, 4.060000E-01 };
+        int i;
+
+        assert(m==33);
+        assert(n==5);
+        assert(ldfjac==33);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<33; i++) {
+                fvec[i] =  b[0] + b[1]*exp(-b[3]*x[i]) +  b[2]*exp(-b[4]*x[i]) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<33; i++) {
+                fjac[i+ldfjac*0] = 1.;
+                fjac[i+ldfjac*1] = exp(-b[3]*x[i]);
+                fjac[i+ldfjac*2] = exp(-b[4]*x[i]);
+                fjac[i+ldfjac*3] = -x[i]*b[1]*exp(-b[3]*x[i]);
+                fjac[i+ldfjac*4] = -x[i]*b[2]*exp(-b[4]*x[i]);
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/mgh17.shtml
+void testNistMGH17(void)
+{
+  const int m=33, n=5;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+#if 1
+  /*
+   * First try
+   */
+  x<< 50., 150., -100., 1., 2.;
+  // do the computation
+  info = ei_lmder<MGH17_functor, double>(
+          x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+          1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 2 == info); 
+  VERIFY( 604 == nfev); 
+  VERIFY( 545 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.4648946975E-05);
+  // check x
+  VERIFY_IS_APPROX(x[0], 3.7541005211E-01);
+  VERIFY_IS_APPROX(x[1], 1.9358469127E+00);
+  VERIFY_IS_APPROX(x[2], -1.4646871366E+00);
+  VERIFY_IS_APPROX(x[3], 1.2867534640E-02);
+  VERIFY_IS_APPROX(x[4], 2.2122699662E-02);
+#endif
+
+  /*
+   * Second try
+   */
+  x<< 0.5  ,1.5  ,-1   ,0.01 ,0.02;
+  // do the computation
+  info = ei_lmder<MGH17_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 18 == nfev); 
+  VERIFY( 15 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.4648946975E-05);
+  // check x
+  VERIFY_IS_APPROX(x[0], 3.7541005211E-01);
+  VERIFY_IS_APPROX(x[1], 1.9358469127E+00);
+  VERIFY_IS_APPROX(x[2], -1.4646871366E+00);
+  VERIFY_IS_APPROX(x[3], 1.2867534640E-02);
+  VERIFY_IS_APPROX(x[4], 2.2122699662E-02);
+}
+
 
 void test_NonLinear()
 {
@@ -1338,6 +1421,7 @@ void test_NonLinear()
     // NIST tests, level of difficulty = "Average"
     CALL_SUBTEST(testNistHahn1());
     CALL_SUBTEST(testNistMisra1d());
+    CALL_SUBTEST(testNistMGH17());
     CALL_SUBTEST(testNistLanczos1());
 
     // NIST tests, level of difficulty = "Higher"
