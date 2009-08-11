@@ -1413,6 +1413,87 @@ void testNistMGH17(void)
 }
 
 
+struct MGH09_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double _x[16] = { 4., 2., 1., 5.E-1 , 2.5E-01, 1.670000E-01, 1.250000E-01,  1.E-01, 8.330000E-02, 7.140000E-02, 6.250000E-02 };
+        static const double y[16] = { 1.957000E-01, 1.947000E-01, 1.735000E-01, 1.600000E-01, 8.440000E-02, 6.270000E-02, 4.560000E-02, 3.420000E-02, 3.230000E-02, 2.350000E-02, 2.460000E-02 };
+        int i;
+
+        assert(m==11);
+        assert(n==4);
+        assert(ldfjac==11);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<11; i++) {
+                double x = _x[i], xx=x*x;
+                fvec[i] = b[0]*(xx+x*b[1])/(xx+x*b[2]+b[3]) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<11; i++) {
+                double x = _x[i], xx=x*x;
+                double factor = 1./(xx+x*b[2]+b[3]);
+                fjac[i+ldfjac*0] = (xx+x*b[1]) * factor;
+                fjac[i+ldfjac*1] = b[0]*x* factor;
+                fjac[i+ldfjac*2] = - b[0]*(xx+x*b[1]) * x * factor * factor;
+                fjac[i+ldfjac*3] = - b[0]*(xx+x*b[1]) * factor * factor;
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/mgh09.shtml
+void testNistMGH09(void)
+{
+  const int m=11, n=4;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 25., 39, 41.5, 39.;
+  // do the computation
+  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+          1, 100., 5000);
+//          1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 487== nfev); 
+  VERIFY( 378 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 3.0750560385E-04);
+  // check x
+  VERIFY_IS_APPROX(x[0], 0.19280590); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.19130543); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.12306085); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.13607303); // should be 1.3606233068E-01
+
+  /*
+   * Second try
+   */
+  x<< 0.25, 0.39, 0.415, 0.39;
+  // do the computation
+  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 18 == nfev); 
+  VERIFY( 16 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 3.0750560385E-04);
+  // check x
+  VERIFY_IS_APPROX(x[0], 0.19280781); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.19126265); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.12305280); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.13605322); // should be 1.3606233068E-01
+}
+
 void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
@@ -1428,6 +1509,7 @@ void test_NonLinear()
     CALL_SUBTEST(testNistRat42());
     CALL_SUBTEST(testNistMGH10());
     CALL_SUBTEST(testNistBoxBOD());
+    CALL_SUBTEST(testNistMGH09());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
