@@ -22,7 +22,6 @@ namespace Eigen {
   * \endcode
   */
 
-#include "src/SVD/Bidiagonalization.h"
 #include "src/SVD/SVD.h"
 #include "src/SVD/JacobiSquareSVD.h"
 
