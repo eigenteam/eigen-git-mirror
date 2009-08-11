@@ -96,21 +96,21 @@ public:
   
   static void debug()
   {
-    EIGEN_DEBUG_VAR(DstIsAligned);
-    EIGEN_DEBUG_VAR(SrcIsAligned);
-    EIGEN_DEBUG_VAR(SrcAlignment);
-    EIGEN_DEBUG_VAR(InnerSize);
-    EIGEN_DEBUG_VAR(InnerMaxSize);
-    EIGEN_DEBUG_VAR(PacketSize);
-    EIGEN_DEBUG_VAR(MightVectorize);
-    EIGEN_DEBUG_VAR(MayInnerVectorize);
-    EIGEN_DEBUG_VAR(MayLinearVectorize);
-    EIGEN_DEBUG_VAR(MaySliceVectorize);
-    EIGEN_DEBUG_VAR(Vectorization);
-    EIGEN_DEBUG_VAR(UnrollingLimit);
-    EIGEN_DEBUG_VAR(MayUnrollCompletely);
-    EIGEN_DEBUG_VAR(MayUnrollInner);
-    EIGEN_DEBUG_VAR(Unrolling);
+    EIGEN_DEBUG_VAR(DstIsAligned)
+    EIGEN_DEBUG_VAR(SrcIsAligned)
+    EIGEN_DEBUG_VAR(SrcAlignment)
+    EIGEN_DEBUG_VAR(InnerSize)
+    EIGEN_DEBUG_VAR(InnerMaxSize)
+    EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(MightVectorize)
+    EIGEN_DEBUG_VAR(MayInnerVectorize)
+    EIGEN_DEBUG_VAR(MayLinearVectorize)
+    EIGEN_DEBUG_VAR(MaySliceVectorize)
+    EIGEN_DEBUG_VAR(Vectorization)
+    EIGEN_DEBUG_VAR(UnrollingLimit)
+    EIGEN_DEBUG_VAR(MayUnrollCompletely)
+    EIGEN_DEBUG_VAR(MayUnrollInner)
+    EIGEN_DEBUG_VAR(Unrolling)
   }
 };
 

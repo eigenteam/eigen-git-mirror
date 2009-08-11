@@ -111,6 +111,8 @@
 #define EIGEN_FAST_MATH 1
 #endif
 
+#define EIGEN_DEBUG_VAR(x) std::cerr << #x << " = " << x << std::endl;
+
 #define USING_PART_OF_NAMESPACE_EIGEN \
 EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix; \
