@@ -94,6 +94,11 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   VERIFY_IS_APPROX(rhs12 = (s1*m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*rhs3).conjugate(),
                    rhs13 = (s1*m1.adjoint()) * (s2*rhs3).conjugate());
 
+
+  m2 = m1.template triangularView<UpperTriangular>(); rhs13 = rhs12;
+  VERIFY_IS_APPROX(rhs12 += (s1 * ((m2.adjoint()).template selfadjointView<LowerTriangular>() * (s2*rhs3).conjugate())).lazy(),
+                   rhs13 += (s1*m1.adjoint()) * (s2*rhs3).conjugate());
+
   // test matrix * selfadjoint
   symm_extra<OtherSize>::run(m1,m2,rhs2,rhs22,rhs23,s1,s2);
 

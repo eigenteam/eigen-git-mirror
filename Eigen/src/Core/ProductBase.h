@@ -100,16 +100,16 @@ class ProductBase : public MatrixBase<Derived>
     inline int cols() const { return m_rhs.cols(); }
 
     template<typename Dest>
-    inline void evalTo(Dest& dst) const { dst.setZero(); addTo(dst,1); }
+    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,1); }
 
     template<typename Dest>
-    inline void addTo(Dest& dst) const { addTo(dst,1); }
+    inline void addTo(Dest& dst) const { scaleAndAddTo(dst,1); }
 
     template<typename Dest>
-    inline void subTo(Dest& dst) const { addTo(dst,-1); }
+    inline void subTo(Dest& dst) const { scaleAndAddTo(dst,-1); }
 
     template<typename Dest>
-    inline void addTo(Dest& dst,Scalar alpha) const { derived().addTo(dst,alpha); }
+    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
 
     PlainMatrixType eval() const
     {
@@ -141,13 +141,68 @@ class ProductBase : public MatrixBase<Derived>
     void coeffRef(int);
 };
 
+template<typename NestedProduct>
+class ScaledProduct;
+
+// Note that these two operator* functions are not defined as member
+// functions of ProductBase, because, otherwise we would have to
+// define all overloads defined in MatrixBase. Furthermore, Using
+// "using Base::operator*" would not work with MSVC.
+template<typename Derived,typename Lhs,typename Rhs>
+const ScaledProduct<Derived> operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
+{ return ScaledProduct<Derived>(prod.derived(), x); }
+
+template<typename Derived,typename Lhs,typename Rhs>
+const ScaledProduct<Derived> operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+{ return ScaledProduct<Derived>(prod.derived(), x); }
+
+template<typename NestedProduct>
+struct ei_traits<ScaledProduct<NestedProduct> >
+ : ei_traits<ProductBase<ScaledProduct<NestedProduct>,
+                         typename NestedProduct::_LhsNested,
+                         typename NestedProduct::_RhsNested> >
+{};
+
+template<typename NestedProduct>
+class ScaledProduct
+  : public ProductBase<ScaledProduct<NestedProduct>,
+                       typename NestedProduct::_LhsNested,
+                       typename NestedProduct::_RhsNested>
+{
+  public:
+    typedef ProductBase<ScaledProduct<NestedProduct>,
+                       typename NestedProduct::_LhsNested,
+                       typename NestedProduct::_RhsNested> Base;
+    typedef typename Base::Scalar Scalar;
+//     EIGEN_PRODUCT_PUBLIC_INTERFACE(ScaledProduct)
+
+    ScaledProduct(const NestedProduct& prod, Scalar& x)
+    : Base(prod.lhs(),prod.rhs()), m_prod(prod), m_alpha(x) {}
+
+    template<typename Dest>
+    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,m_alpha); }
+
+    template<typename Dest>
+    inline void addTo(Dest& dst) const { scaleAndAddTo(dst,m_alpha); }
+
+    template<typename Dest>
+    inline void subTo(Dest& dst) const { scaleAndAddTo(dst,-m_alpha); }
+
+    template<typename Dest>
+    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha); }
+
+  protected:
+    const NestedProduct& m_prod;
+    Scalar m_alpha;
+};
+
 /** \internal
   * Overloaded to perform an efficient C = (A*B).lazy() */
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other)
 {
-  other.evalTo(derived()); return derived();
+  other.derived().evalTo(derived()); return derived();
 }
 
 /** \internal
@@ -157,7 +212,7 @@ template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
                                                        EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
-  other._expression().addTo(derived()); return derived();
+  other._expression().derived().addTo(derived()); return derived();
 }
 
 /** \internal
@@ -167,7 +222,7 @@ template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
                                                        EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
 {
-  other._expression().subTo(derived()); return derived();
+  other._expression().derived().subTo(derived()); return derived();
 }
 
 #endif // EIGEN_PRODUCTBASE_H

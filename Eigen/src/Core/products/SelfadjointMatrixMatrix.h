@@ -375,7 +375,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
     RhsIsSelfAdjoint = (RhsMode&SelfAdjointBit)==SelfAdjointBit
   };
 
-  template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+  template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
   {
     ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
 
