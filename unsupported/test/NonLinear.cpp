@@ -1257,8 +1257,8 @@ void testNistMGH10(void)
 struct BoxBOD_functor {
     static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
     {
-        static const double x[6] = { 1, 2, 3, 5, 7, 10 };
-        static const double y[6] = { 109, 149, 149, 191, 213, 224 };
+        static const double x[6] = { 1., 2., 3., 5., 7., 10. };
+        static const double y[6] = { 109., 149., 149., 191., 213., 224. };
         int i;
 
         assert(m==6);
@@ -1271,8 +1271,9 @@ struct BoxBOD_functor {
         }
         else { // compute fjac at b
             for(i=0; i<6; i++) {
-                fjac[i+ldfjac*0] = 1.-exp(-b[1]*x[i]);
-                fjac[i+ldfjac*1] = x[i]*exp(-b[1]*x[i]);
+                double e = exp(-b[1]*x[i]);
+                fjac[i+ldfjac*0] = 1.-e;
+                fjac[i+ldfjac*1] = b[1]*x[i]*e;
             }
         }
         return 0;
@@ -1295,15 +1296,16 @@ void testNistBoxBOD(void)
    */
   x<< 1., 1.;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+          1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
   printf("info=%d, f,j: %d, %d\n", info, nfev, njev);
   printf("norm2 =  %.50g\n", fvec.squaredNorm());
   std::cout << x << std::endl;
   VERIFY( 1 == info); 
-  VERIFY( 10 == nfev); 
-  VERIFY( 6 == njev); 
+  VERIFY( 55 == nfev); 
+  VERIFY( 11 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1316,17 +1318,18 @@ void testNistBoxBOD(void)
    */
   x<< 100., 0.75;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag, 1, 100., 10000);
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+          1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 1859 == nfev); 
-  VERIFY( 1416 == njev); 
+  VERIFY( 2 == info); 
+  VERIFY( 7693 == nfev); 
+  VERIFY( 5871 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1168.012); // should be : 1.1680088766E+03
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
-  VERIFY_IS_APPROX(x[0], 213.7613); // should be : 2.1380940889E+02
-  VERIFY_IS_APPROX(x[1], 0.5475659); // should be : 5.4723748542E-01
+  VERIFY_IS_APPROX(x[0], 2.1380940889E+02);
+  VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
 }
 
 struct MGH17_functor {
