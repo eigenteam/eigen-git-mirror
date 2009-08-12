@@ -50,7 +50,7 @@ void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s
 template<typename Scalar>
 bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
 {
-  if(ei_abs(y) <= ei_abs(z-x) * 0.5 * machine_epsilon<Scalar>())
+  if(y == 0)
   {
     *c = Scalar(1);
     *s = Scalar(0);
