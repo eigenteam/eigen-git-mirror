@@ -782,8 +782,9 @@ template<typename Derived> class MatrixBase
 
     void applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s);
     void applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s);
-    bool makeJacobi(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s);
-    bool makeJacobiForAtA(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s);
+    bool makeJacobi(int p, int q, Scalar *c, Scalar *s) const;
+    bool makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const;
+    bool makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const;
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

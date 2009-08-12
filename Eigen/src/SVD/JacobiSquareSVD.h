@@ -102,69 +102,65 @@ void JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& 
   if(ComputeU) m_matrixU = MatrixUType::Identity(size,size);
   if(ComputeV) m_matrixV = MatrixUType::Identity(size,size);
   m_singularValues.resize(size);
-  RealScalar max_coeff = work_matrix.cwise().abs().maxCoeff();
-  for(int k = 1; k < 40; ++k) {
+  while(true)
+  {
     bool finished = true;
     for(int p = 1; p < size; ++p)
     {
       for(int q = 0; q < p; ++q)
       {
         Scalar c, s;
-        finished &= work_matrix.makeJacobiForAtA(p,q,max_coeff,&c,&s);
-        work_matrix.applyJacobiOnTheRight(p,q,c,s);
-        if(ComputeV) m_matrixV.applyJacobiOnTheRight(p,q,c,s);
+        if(work_matrix.makeJacobiForAtA(p,q,&c,&s))
+        {
+          work_matrix.applyJacobiOnTheRight(p,q,c,s);
+          if(ComputeV) m_matrixV.applyJacobiOnTheRight(p,q,c,s);
+        }
+        if(work_matrix.makeJacobiForAAt(p,q,&c,&s))
+        {
+          work_matrix.applyJacobiOnTheLeft(p,q,c,s);
+          if(ComputeU) m_matrixU.applyJacobiOnTheRight(p,q,c,s);
+          if(std::max(ei_abs(work_matrix.coeff(p,q)), ei_abs(work_matrix.coeff(q,p))) > std::max(ei_abs(work_matrix.coeff(q,q)), ei_abs(work_matrix.coeff(p,p)) ))
+          {
+            work_matrix.row(p).swap(work_matrix.row(q));
+            if(ComputeU) m_matrixU.col(p).swap(m_matrixU.col(q));
+          }
+        }
+      }
+    }
+    RealScalar biggest = work_matrix.diagonal().cwise().abs().maxCoeff();
+    for(int p = 0; p < size; ++p)
+    {
+      for(int q = 0; q < size; ++q)
+      {
+        if(p!=q && ei_abs(work_matrix.coeff(p,q)) > biggest * machine_epsilon<Scalar>()) finished = false;
       }
     }
     if(finished) break;
   }
-  
+
+  m_singularValues = work_matrix.diagonal().cwise().abs();
+  RealScalar biggestSingularValue = m_singularValues.maxCoeff();
+
   for(int i = 0; i < size; ++i)
   {
-    m_singularValues.coeffRef(i) = work_matrix.col(i).norm();
+    RealScalar a = ei_abs(work_matrix.coeff(i,i));
+    m_singularValues.coeffRef(i) = a;
+    if(ComputeU && !ei_isMuchSmallerThan(a, biggestSingularValue)) m_matrixU.col(i) *= work_matrix.coeff(i,i)/a;
   }
 
-  int first_zero = size;
-  RealScalar biggest = m_singularValues.maxCoeff();
   for(int i = 0; i < size; i++)
   {
     int pos;
-    RealScalar biggest_remaining = m_singularValues.end(size-i).maxCoeff(&pos);
-    if(first_zero == size && ei_isMuchSmallerThan(biggest_remaining, biggest)) first_zero = pos + i;
+    m_singularValues.end(size-i).maxCoeff(&pos);
     if(pos)
     {
       pos += i;
       std::swap(m_singularValues.coeffRef(i), m_singularValues.coeffRef(pos));
-      if(ComputeU) work_matrix.col(pos).swap(work_matrix.col(i));
+      if(ComputeU) m_matrixU.col(pos).swap(m_matrixU.col(i));
       if(ComputeV) m_matrixV.col(pos).swap(m_matrixV.col(i));
     }
   }
-  
-  if(ComputeU)
-  {
-    for(int i = 0; i < first_zero; ++i)
-    {
-      m_matrixU.col(i) = work_matrix.col(i) / m_singularValues.coeff(i);
-    }
-    if(first_zero < size)
-    {
-      for(int i = first_zero; i < size; ++i)
-      {
-        for(int j = 0; j < size; ++j)
-        {
-          m_matrixU.col(i).setZero();
-          m_matrixU.coeffRef(j,i) = Scalar(1);
-          for(int k = 0; k < first_zero; ++k)
-            m_matrixU.col(i) -= m_matrixU.col(i).dot(m_matrixU.col(k)) * m_matrixU.col(k);
-          RealScalar n = m_matrixU.col(i).norm();
-          if(!ei_isMuchSmallerThan(n, biggest))
-          {
-            m_matrixU.col(i) /= n;
-            break;
-          }
-        }
-      }
-    }     
-  }
+
   m_isInitialized = true;
 }
 #endif // EIGEN_JACOBISQUARESVD_H

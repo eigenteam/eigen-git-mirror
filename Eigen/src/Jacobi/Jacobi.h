@@ -48,13 +48,13 @@ void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s
 }
 
 template<typename Scalar>
-bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar max_coeff, Scalar *c, Scalar *s)
+bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
 {
-  if(ei_abs(y) < max_coeff * 0.5 * machine_epsilon<Scalar>())
+  if(ei_abs(y) < ei_abs(z-x) * 0.5 * machine_epsilon<Scalar>())
   {
     *c = Scalar(1);
     *s = Scalar(0);
-    return true;
+    return false;
   }
   else
   {
@@ -67,23 +67,31 @@ bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar max_coeff, Scalar *c, Sc
       t = Scalar(1) / (tau - w);
     *c = Scalar(1) / ei_sqrt(1 + ei_abs2(t));
     *s = *c * t;
-    return false;
+    return true;
   }
 }
 
 template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobi(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s)
+inline bool MatrixBase<Derived>::makeJacobi(int p, int q, Scalar *c, Scalar *s) const
 {
-  return ei_makeJacobi(coeff(p,p), coeff(p,q), coeff(q,q), max_coeff, c, s);
+  return ei_makeJacobi(coeff(p,p), coeff(p,q), coeff(q,q), c, s);
 }
 
 template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobiForAtA(int p, int q, Scalar max_coeff, Scalar *c, Scalar *s)
+inline bool MatrixBase<Derived>::makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const
 {
-  return ei_makeJacobi(col(p).squaredNorm(),
-                       col(p).dot(col(q)),
-                       col(q).squaredNorm(),
-                       max_coeff,
+  return ei_makeJacobi(ei_abs2(coeff(p,p)) + ei_abs2(coeff(q,p)),
+                       ei_conj(coeff(p,p))*coeff(p,q) + ei_conj(coeff(q,p))*coeff(q,q),
+                       ei_abs2(coeff(p,q)) + ei_abs2(coeff(q,q)),
+                       c,s);
+}
+
+template<typename Derived>
+inline bool MatrixBase<Derived>::makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const
+{
+  return ei_makeJacobi(ei_abs2(coeff(p,p)) + ei_abs2(coeff(p,q)),
+                       ei_conj(coeff(q,p))*coeff(p,p) + ei_conj(coeff(q,q))*coeff(p,q),
+                       ei_abs2(coeff(q,p)) + ei_abs2(coeff(q,q)),
                        c,s);
 }
 
