@@ -1273,7 +1273,7 @@ struct BoxBOD_functor {
             for(i=0; i<6; i++) {
                 double e = exp(-b[1]*x[i]);
                 fjac[i+ldfjac*0] = 1.-e;
-                fjac[i+ldfjac*1] = b[1]*x[i]*e;
+                fjac[i+ldfjac*1] = b[0]*x[i]*e;
             }
         }
         return 0;
@@ -1296,7 +1296,7 @@ void testNistBoxBOD(void)
    */
   x<< 1., 1.;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
           1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
@@ -1304,8 +1304,8 @@ void testNistBoxBOD(void)
   printf("norm2 =  %.50g\n", fvec.squaredNorm());
   std::cout << x << std::endl;
   VERIFY( 1 == info); 
-  VERIFY( 55 == nfev); 
-  VERIFY( 11 == njev); 
+  VERIFY( 10 == nfev); 
+  VERIFY( 6 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1322,9 +1322,9 @@ void testNistBoxBOD(void)
           1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 7693 == nfev); 
-  VERIFY( 5871 == njev); 
+  VERIFY( 1 == info); 
+  VERIFY( 16 == nfev); 
+  VERIFY( 15 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
