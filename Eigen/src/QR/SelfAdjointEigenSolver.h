@@ -378,23 +378,10 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
     if (matrixQ)
     {
       #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+      ei_apply_rotation_in_the_plane_selector<Scalar,Dynamic>::run(matrixQ+k, matrixQ+k+1, n, c, s, n, n);
       #else
-      int kn = k*n;
-      int kn1 = (k+1)*n;
+      ei_apply_rotation_in_the_plane_selector<Scalar,1>::run(matrixQ+k*n, matrixQ+k*n+n, n, c, s, 1, 1);
       #endif
-      // let's do the product manually to avoid the need of temporaries...
-      for (int i=0; i<n; ++i)
-      {
-        #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-        Scalar matrixQ_i_k = matrixQ[i*n+k];
-        matrixQ[i*n+k]   = c * matrixQ_i_k - s * matrixQ[i*n+k+1];
-        matrixQ[i*n+k+1] = s * matrixQ_i_k + c * matrixQ[i*n+k+1];
-        #else
-        Scalar matrixQ_i_k = matrixQ[i+kn];
-        matrixQ[i+kn]  = c * matrixQ_i_k - s * matrixQ[i+kn1];
-        matrixQ[i+kn1] = s * matrixQ_i_k + c * matrixQ[i+kn1];
-        #endif
-      }
     }
   }
 }

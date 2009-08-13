@@ -28,23 +28,17 @@
 template<typename Derived>
 void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
 {
-  for(int i = 0; i < cols(); ++i)
-  {
-    Scalar tmp = coeff(p,i);
-    coeffRef(p,i) = c * tmp - s * coeff(q,i);
-    coeffRef(q,i) = s * tmp + c * coeff(q,i);
-  }
+  RowXpr x(row(p));
+  RowXpr y(row(q));
+  ei_apply_rotation_in_the_plane(x, y, c, s);
 }
 
 template<typename Derived>
 void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s)
 {
-  for(int i = 0; i < rows(); ++i)
-  {
-    Scalar tmp = coeff(i,p);
-    coeffRef(i,p) = c * tmp - s * coeff(i,q);
-    coeffRef(i,q) = s * tmp + c * coeff(i,q);
-  }
+  ColXpr x(col(p));
+  ColXpr y(col(q));
+  ei_apply_rotation_in_the_plane(x, y, c, s);
 }
 
 template<typename Scalar>
