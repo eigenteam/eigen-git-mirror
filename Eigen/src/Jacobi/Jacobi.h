@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -24,6 +25,9 @@
 
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
+
+template<typename VectorX, typename VectorY>
+void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, typename VectorX::Scalar c, typename VectorY::Scalar s);
 
 template<typename Derived>
 inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
@@ -101,5 +105,98 @@ inline void ei_normalizeJacobi(Scalar *c, Scalar *s, const Scalar& x, const Scal
   }
 }
 
+template<typename VectorX, typename VectorY>
+void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, typename VectorX::Scalar c, typename VectorY::Scalar s)
+{
+  typedef typename VectorX::Scalar Scalar;
+  ei_assert(_x.size() == _y.size());
+  int size = _x.size();
+  int incrx = size ==1 ? 1 : &_x.coeffRef(1) - &_x.coeffRef(0);
+  int incry = size ==1 ? 1 : &_y.coeffRef(1) - &_y.coeffRef(0);
+
+  Scalar* EIGEN_RESTRICT x = &_x.coeffRef(0);
+  Scalar* EIGEN_RESTRICT y = &_y.coeffRef(0);
+
+  if (incrx==1 && incry==1)
+  {
+    // both vectors are sequentially stored in memory => vectorization
+    typedef typename ei_packet_traits<Scalar>::type Packet;
+    enum { PacketSize = ei_packet_traits<Scalar>::size, Peeling = 2 };
+
+    int alignedStart = ei_alignmentOffset(y, size);
+    int alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
+
+    const Packet pc = ei_pset1(c);
+    const Packet ps = ei_pset1(s);
+
+    for(int i=0; i<alignedStart; ++i)
+    {
+      Scalar xi = x[i];
+      Scalar yi = y[i];
+      x[i] = c * xi - s * yi;
+      y[i] = s * xi + c * yi;
+    }
+
+    Scalar* px = x + alignedStart;
+    Scalar* py = y + alignedStart;
+
+    if(ei_alignmentOffset(x, size)==alignedStart)
+    {
+      for(int i=alignedStart; i<alignedEnd; i+=PacketSize)
+      {
+        Packet xi = ei_pload(px);
+        Packet yi = ei_pload(py);
+        ei_pstore(px, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
+        ei_pstore(py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
+        px += PacketSize;
+        py += PacketSize;
+      }
+    }
+    else
+    {
+      int peelingEnd = alignedStart + ((size-alignedStart)/(Peeling*PacketSize))*(Peeling*PacketSize);
+      for(int i=alignedStart; i<peelingEnd; i+=Peeling*PacketSize)
+      {
+        Packet xi   = ei_ploadu(px);
+        Packet xi1  = ei_ploadu(px+PacketSize);
+        Packet yi   = ei_pload (py);
+        Packet yi1  = ei_pload (py+PacketSize);
+        ei_pstoreu(px, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
+        ei_pstoreu(px+PacketSize, ei_psub(ei_pmul(pc,xi1),ei_pmul(ps,yi1)));
+        ei_pstore (py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
+        ei_pstore (py+PacketSize, ei_padd(ei_pmul(ps,xi1),ei_pmul(pc,yi1)));
+        px += Peeling*PacketSize;
+        py += Peeling*PacketSize;
+      }
+      if(alignedEnd!=peelingEnd)
+      {
+        Packet xi = ei_ploadu(x+peelingEnd);
+        Packet yi = ei_pload (y+peelingEnd);
+        ei_pstoreu(x+peelingEnd, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
+        ei_pstore (y+peelingEnd, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
+      }
+    }
+
+    for(int i=alignedEnd; i<size; ++i)
+    {
+      Scalar xi = x[i];
+      Scalar yi = y[i];
+      x[i] = c * xi - s * yi;
+      y[i] = s * xi + c * yi;
+    }
+  }
+  else
+  {
+    for(int i=0; i<size; ++i)
+    {
+      Scalar xi = *x;
+      Scalar yi = *y;
+      *x = c * xi - s * yi;
+      *y = s * xi + c * yi;
+      x += incrx;
+      y += incry;
+    }
+  }
+}
 
 #endif // EIGEN_JACOBI_H
