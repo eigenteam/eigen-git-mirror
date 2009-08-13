@@ -183,7 +183,6 @@ int ei_lmstr(
         int &njev,
         Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &wa1,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
@@ -196,12 +195,11 @@ int ei_lmstr(
 {
     Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
         qtf(x.size()),
-        wa2(x.size()), wa3(x.size()),
+        wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
     int ldfjac = fvec.size();
 
     ipvt.resize(x.size());
-    wa1.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
     return lmstr (
@@ -254,7 +252,6 @@ int ei_lmder(
         int &njev,
         Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &wa1,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
@@ -267,12 +264,11 @@ int ei_lmder(
 {
     Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
         qtf(x.size()),
-        wa2(x.size()), wa3(x.size()),
+        wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
     int ldfjac = fvec.size();
 
     ipvt.resize(x.size());
-    wa1.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
     return lmder (
@@ -298,7 +294,6 @@ int ei_lmdif(
         int &nfev,
         Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &wa1,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
@@ -312,12 +307,11 @@ int ei_lmdif(
 {
     Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
         qtf(x.size()),
-        wa2(x.size()), wa3(x.size()),
+        wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
     int ldfjac = fvec.size();
 
     ipvt.resize(x.size());
-    wa1.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
     return lmdif (

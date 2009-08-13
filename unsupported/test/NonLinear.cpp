@@ -230,7 +230,7 @@ void testLmder()
   const int m=15, n=3;
   int info, nfev, njev;
   double fnorm, covfac, covar_ftol;
-  Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
+  Eigen::VectorXd x(n), fvec(m), diag(n);
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -238,7 +238,7 @@ void testLmder()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmder<lmder_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<lmder_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -257,7 +257,8 @@ void testLmder()
   // check covariance
   covar_ftol = dpmpar(1);
   covfac = fnorm*fnorm/(m-n);
-  covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa1.data());
+  Eigen::VectorXd wa(n);
+  covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
 
   Eigen::MatrixXd cov_ref(n,n);
   cov_ref << 
@@ -637,7 +638,7 @@ void testLmstr()
   const int m=15, n=3;
   int info, nfev, njev;
   double fnorm;
-  Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
+  Eigen::VectorXd x(n), fvec(m), diag(n);
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -645,7 +646,8 @@ void testLmstr()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr<lmstr_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmstr<lmstr_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
+  Eigen::VectorXd wa(n);
 
   // check return values
   VERIFY( 1 == info);
@@ -745,7 +747,7 @@ void testLmdif()
   const int m=15, n=3;
   int info, nfev;
   double fnorm, covfac, covar_ftol;
-  Eigen::VectorXd x(n), fvec(m), diag(n), wa1;
+  Eigen::VectorXd x(n), fvec(m), diag(n);
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -753,7 +755,7 @@ void testLmdif()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif<lmdif_functor, double>(x, fvec, nfev, fjac, ipvt, wa1, diag);
+  info = ei_lmdif<lmdif_functor, double>(x, fvec, nfev, fjac, ipvt, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -771,7 +773,8 @@ void testLmdif()
   // check covariance
   covar_ftol = dpmpar(1);
   covfac = fnorm*fnorm/(m-n);
-  covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa1.data());
+  Eigen::VectorXd wa(n);
+  covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
 
   Eigen::MatrixXd cov_ref(n,n);
   cov_ref << 
@@ -819,7 +822,7 @@ void testNistMisra1a(void)
   const int m=14, n=2;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -828,7 +831,7 @@ void testNistMisra1a(void)
    */
   x<< 500., 0.0001;
   // do the computation
-  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -845,7 +848,7 @@ void testNistMisra1a(void)
    */
   x<< 250., 0.0005;
   // do the computation
-  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<misra1a_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -899,7 +902,7 @@ void testNistHahn1(void)
   const int m=236, n=7;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -908,7 +911,7 @@ void testNistHahn1(void)
    */
   x<< 10., -1., .05, -.00001, -.05, .001, -.000001;
   // do the computation
-  info = ei_lmder<hahn1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<hahn1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -930,7 +933,7 @@ void testNistHahn1(void)
    */
   x<< .1, -.1, .005, -.000001, -.005, .0001, -.0000001;
   // do the computation
-  info = ei_lmder<hahn1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<hahn1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -981,7 +984,7 @@ void testNistMisra1d(void)
   const int m=14, n=2;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -990,7 +993,7 @@ void testNistMisra1d(void)
    */
   x<< 500., 0.0001;
   // do the computation
-  info = ei_lmder<misra1d_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<misra1d_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 3 == info); 
@@ -1007,7 +1010,7 @@ void testNistMisra1d(void)
    */
   x<< 450., 0.0003;
   // do the computation
-  info = ei_lmder<misra1d_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<misra1d_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1056,7 +1059,7 @@ void testNistLanczos1(void)
   const int m=24, n=6;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1065,7 +1068,7 @@ void testNistLanczos1(void)
    */
   x<< 1.2, 0.3, 5.6, 5.5, 6.5, 7.6;
   // do the computation
-  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1086,7 +1089,7 @@ void testNistLanczos1(void)
    */
   x<< 0.5, 0.7, 3.6, 4.2, 4., 6.3;
   // do the computation
-  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<lanczos1_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1137,7 +1140,7 @@ void testNistRat42(void)
   const int m=9, n=3;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1146,7 +1149,7 @@ void testNistRat42(void)
    */
   x<< 100., 1., 0.1;
   // do the computation
-  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1164,7 +1167,7 @@ void testNistRat42(void)
    */
   x<< 75., 2.5, 0.07;
   // do the computation
-  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<rat42_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1212,7 +1215,7 @@ void testNistMGH10(void)
   const int m=16, n=3;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1221,7 +1224,7 @@ void testNistMGH10(void)
    */
   x<< 2., 400000., 25000.;
   // do the computation
-  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 3 == info); 
@@ -1239,7 +1242,7 @@ void testNistMGH10(void)
    */
   x<< 0.02, 4000., 250.;
   // do the computation
-  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 3 == info); 
@@ -1286,7 +1289,7 @@ void testNistBoxBOD(void)
   const int m=6, n=2;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1296,7 +1299,7 @@ void testNistBoxBOD(void)
    */
   x<< 1., 1.;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
           1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
@@ -1318,7 +1321,7 @@ void testNistBoxBOD(void)
    */
   x<< 100., 0.75;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
           1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
@@ -1366,7 +1369,7 @@ void testNistMGH17(void)
   const int m=33, n=5;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1377,7 +1380,7 @@ void testNistMGH17(void)
   x<< 50., 150., -100., 1., 2.;
   // do the computation
   info = ei_lmder<MGH17_functor, double>(
-          x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+          x, fvec, nfev, njev, fjac, ipvt, diag,
           1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
   // check return value
@@ -1399,7 +1402,7 @@ void testNistMGH17(void)
    */
   x<< 0.5  ,1.5  ,-1   ,0.01 ,0.02;
   // do the computation
-  info = ei_lmder<MGH17_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<MGH17_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1451,7 +1454,7 @@ void testNistMGH09(void)
   const int m=11, n=4;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1460,7 +1463,7 @@ void testNistMGH09(void)
    */
   x<< 25., 39, 41.5, 39.;
   // do the computation
-  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
           1, 100., 5000);
 //          1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
 
@@ -1481,7 +1484,7 @@ void testNistMGH09(void)
    */
   x<< 0.25, 0.39, 0.415, 0.39;
   // do the computation
-  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1532,7 +1535,7 @@ void testNistBennett5(void)
   const int m=154, n=3;
   int info, nfev, njev;
 
-  Eigen::VectorXd x(n), fvec(m), wa1, diag;
+  Eigen::VectorXd x(n), fvec(m), diag;
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
@@ -1541,7 +1544,7 @@ void testNistBennett5(void)
    */
   x<< -2000., 50., 0.8;
   // do the computation
-  info = ei_lmder<Bennett5_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag,
+  info = ei_lmder<Bennett5_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
           1, 100., 5000);
 
   // check return value
@@ -1559,7 +1562,7 @@ void testNistBennett5(void)
    */
   x<< -1500., 45., 0.85;
   // do the computation
-  info = ei_lmder<Bennett5_functor, double>(x, fvec, nfev, njev, fjac, ipvt, wa1, diag);
+  info = ei_lmder<Bennett5_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
   VERIFY( 1 == info); 
