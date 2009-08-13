@@ -139,7 +139,8 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
         width = std::max<int>(width, int(sstr.str().length()));
       }
   }
-  std::streamsize old_precision = s.precision(fmt.precision);
+  std::streamsize old_precision;
+  if(fmt.precision != -1) old_precision = s.precision(fmt.precision);
   s << fmt.matPrefix;
   for(int i = 0; i < m.rows(); ++i)
   {
@@ -159,7 +160,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
       s << fmt.rowSeparator;
   }
   s << fmt.matSuffix;
-  s.precision(old_precision);
+  if(fmt.precision != -1) s.precision(old_precision);
   return s;
 }
 
