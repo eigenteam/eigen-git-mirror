@@ -130,7 +130,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
 
     template<int Index> struct DiagonalIntReturnType {
       enum {
-        ReturnOpposite = (Options&SelfAdjoint) && ((Index>0 && Supers==0) || (Index<0 && Subs==0)),
+        ReturnOpposite = (Options&SelfAdjoint) && (((Index)>0 && Supers==0) || ((Index)<0 && Subs==0)),
         Conjugate = ReturnOpposite && NumTraits<Scalar>::IsComplex,
         ActualIndex = ReturnOpposite ? -Index : Index,
         DiagonalSize = (RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic)
