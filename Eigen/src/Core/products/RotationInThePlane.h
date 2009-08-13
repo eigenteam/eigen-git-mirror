@@ -50,7 +50,7 @@ void ei_apply_rotation_in_the_plane(VectorX& x, VectorY& y, typename VectorX::Sc
 template<typename Scalar>
 struct ei_apply_rotation_in_the_plane_selector<Scalar,Dynamic>
 {
-  static EIGEN_DONT_INLINE void run(Scalar* x, Scalar* y, int size, Scalar c, Scalar s, int incrx, int incry)
+  static void run(Scalar* x, Scalar* y, int size, Scalar c, Scalar s, int incrx, int incry)
   {
     for(int i=0; i<size; ++i)
     {
@@ -68,7 +68,7 @@ struct ei_apply_rotation_in_the_plane_selector<Scalar,Dynamic>
 template<typename Scalar>
 struct ei_apply_rotation_in_the_plane_selector<Scalar,1>
 {
-  static EIGEN_DONT_INLINE void run(Scalar* x, Scalar* y, int size, Scalar c, Scalar s, int, int)
+  static void run(Scalar* x, Scalar* y, int size, Scalar c, Scalar s, int, int)
   {
     typedef typename ei_packet_traits<Scalar>::type Packet;
     enum { PacketSize = ei_packet_traits<Scalar>::size, Peeling = 2 };

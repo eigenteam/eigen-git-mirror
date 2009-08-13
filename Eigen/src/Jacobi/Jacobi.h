@@ -26,7 +26,7 @@
 #define EIGEN_JACOBI_H
 
 template<typename Derived>
-void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
+inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
 {
   RowXpr x(row(p));
   RowXpr y(row(q));
@@ -34,7 +34,7 @@ void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
 }
 
 template<typename Derived>
-void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s)
+inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s)
 {
   ColXpr x(col(p));
   ColXpr y(col(q));
@@ -87,6 +87,18 @@ inline bool MatrixBase<Derived>::makeJacobiForAAt(int p, int q, Scalar *c, Scala
                        ei_conj(coeff(q,p))*coeff(p,p) + ei_conj(coeff(q,q))*coeff(p,q),
                        ei_abs2(coeff(q,p)) + ei_abs2(coeff(q,q)),
                        c,s);
+}
+
+template<typename Scalar>
+inline void ei_normalizeJacobi(Scalar *c, Scalar *s, const Scalar& x, const Scalar& y)
+{
+  Scalar a = x * *c - y * *s;
+  Scalar b = x * *s + y * *c;
+  if(ei_abs(b)>ei_abs(a)) {
+    Scalar x = *c;
+    *c = -*s;
+    *s = x;
+  }
 }
 
 

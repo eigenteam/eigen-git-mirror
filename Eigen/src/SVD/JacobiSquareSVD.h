@@ -102,6 +102,7 @@ void JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& 
   if(ComputeU) m_matrixU = MatrixUType::Identity(size,size);
   if(ComputeV) m_matrixV = MatrixUType::Identity(size,size);
   m_singularValues.resize(size);
+  const RealScalar precision = 2 * machine_epsilon<Scalar>();
 
 sweep_again:
   for(int p = 1; p < size; ++p)
@@ -110,7 +111,7 @@ sweep_again:
     {
       Scalar c, s;
       while(std::max(ei_abs(work_matrix.coeff(p,q)),ei_abs(work_matrix.coeff(q,p)))
-          > std::max(ei_abs(work_matrix.coeff(p,p)),ei_abs(work_matrix.coeff(q,q)))*machine_epsilon<Scalar>())
+          > std::max(ei_abs(work_matrix.coeff(p,p)),ei_abs(work_matrix.coeff(q,q)))*precision)
       {  
         if(work_matrix.makeJacobiForAtA(p,q,&c,&s))
         {
@@ -119,24 +120,16 @@ sweep_again:
         }
         if(work_matrix.makeJacobiForAAt(p,q,&c,&s))
         {
-          Scalar x = ei_abs2(work_matrix.coeff(p,p)) + ei_abs2(work_matrix.coeff(p,q));
-          Scalar y = ei_conj(work_matrix.coeff(q,p))*work_matrix.coeff(p,p) + ei_conj(work_matrix.coeff(q,q))*work_matrix.coeff(p,q);
-          Scalar z = ei_abs2(work_matrix.coeff(q,p)) + ei_abs2(work_matrix.coeff(q,q));
+          ei_normalizeJacobi(&c, &s, work_matrix.coeff(p,p), work_matrix.coeff(q,p)),
           work_matrix.applyJacobiOnTheLeft(p,q,c,s);
           if(ComputeU) m_matrixU.applyJacobiOnTheRight(p,q,c,s);
-          if(std::max(ei_abs(work_matrix.coeff(p,q)),ei_abs(work_matrix.coeff(q,p)))
-           > std::max(ei_abs(work_matrix.coeff(p,p)),ei_abs(work_matrix.coeff(q,q))) )
-          {
-            work_matrix.row(p).swap(work_matrix.row(q));
-            if(ComputeU) m_matrixU.col(p).swap(m_matrixU.col(q));
-          }
         }
       }
     }
   }
   
   RealScalar biggestOnDiag = work_matrix.diagonal().cwise().abs().maxCoeff();
-  RealScalar maxAllowedOffDiag = biggestOnDiag * machine_epsilon<Scalar>();
+  RealScalar maxAllowedOffDiag = biggestOnDiag * precision;
   for(int p = 0; p < size; ++p)
   {
     for(int q = 0; q < p; ++q)
