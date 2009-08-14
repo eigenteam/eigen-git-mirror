@@ -1829,9 +1829,97 @@ void testNistRat43(void)
 
 
 
+struct eckerle4_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[35] = { 400.0, 405.0, 410.0, 415.0, 420.0, 425.0, 430.0, 435.0, 436.5, 438.0, 439.5, 441.0, 442.5, 444.0, 445.5, 447.0, 448.5, 450.0, 451.5, 453.0, 454.5, 456.0, 457.5, 459.0, 460.5, 462.0, 463.5, 465.0, 470.0, 475.0, 480.0, 485.0, 490.0, 495.0, 500.0};
+        static const double y[35] = { 0.0001575, 0.0001699, 0.0002350, 0.0003102, 0.0004917, 0.0008710, 0.0017418, 0.0046400, 0.0065895, 0.0097302, 0.0149002, 0.0237310, 0.0401683, 0.0712559, 0.1264458, 0.2073413, 0.2902366, 0.3445623, 0.3698049, 0.3668534, 0.3106727, 0.2078154, 0.1164354, 0.0616764, 0.0337200, 0.0194023, 0.0117831, 0.0074357, 0.0022732, 0.0008800, 0.0004579, 0.0002345, 0.0001586, 0.0001143, 0.0000710 };
+
+        int i;
+
+        assert(m==35);
+        assert(n==3);
+        assert(ldfjac==35);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<35; i++) {
+                fvec[i] = b[0]/b[1] * exp(-0.5*(x[i]-b[2])*(x[i]-b[2])/(b[1]*b[1])) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<35; i++) {
+                double b12 = b[1]*b[1];
+                double e = exp(-0.5*(x[i]-b[2])*(x[i]-b[2])/b12);
+                fjac[i+ldfjac*0] = e / b[1];
+                fjac[i+ldfjac*1] = ((x[i]-b[2])*(x[i]-b[2])/b12-1.) * b[0]*e/b12;
+                fjac[i+ldfjac*2] = (x[i]-b[2])*e*b[0]/b[1]/b12;
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/eckerle4.shtml
+void testNistEckerle4(void)
+{
+  const int m=35, n=3;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 1., 10., 500.;
+  // do the computation
+  info = ei_lmder<eckerle4_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 18 == nfev); 
+  VERIFY( 15 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4635887487E-03);
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.5543827178);
+  VERIFY_IS_APPROX(x[1], 4.0888321754);
+  VERIFY_IS_APPROX(x[2], 4.5154121844E+02);
+
+  /*
+   * Second try
+   */
+  x<< 1.5, 5., 450.;
+  // do the computation
+  info = ei_lmder<eckerle4_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 7 == nfev); 
+  VERIFY( 6 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4635887487E-03);
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.5543827178);
+  VERIFY_IS_APPROX(x[1], 4.0888321754);
+  VERIFY_IS_APPROX(x[2], 4.5154121844E+02);
+}
 
 void test_NonLinear()
 {
+    // Tests using the examples provided by (c)minpack
+    CALL_SUBTEST(testChkder());
+    CALL_SUBTEST(testLmder1());
+    CALL_SUBTEST(testLmder());
+    CALL_SUBTEST(testHybrj1());
+    CALL_SUBTEST(testHybrj());
+    CALL_SUBTEST(testHybrd1());
+    CALL_SUBTEST(testHybrd());
+    CALL_SUBTEST(testLmstr1());
+    CALL_SUBTEST(testLmstr());
+    CALL_SUBTEST(testLmdif1());
+    CALL_SUBTEST(testLmdif());
+
     // NIST tests, level of difficulty = "Lower"
     CALL_SUBTEST(testNistMisra1a());
     CALL_SUBTEST(testNistChwirut2());
@@ -1850,17 +1938,6 @@ void test_NonLinear()
     CALL_SUBTEST(testNistBennett5());
     CALL_SUBTEST(testNistThurber());
     CALL_SUBTEST(testNistRat43());
-
-    CALL_SUBTEST(testChkder());
-    CALL_SUBTEST(testLmder1());
-    CALL_SUBTEST(testLmder());
-    CALL_SUBTEST(testHybrj1());
-    CALL_SUBTEST(testHybrj());
-    CALL_SUBTEST(testHybrd1());
-    CALL_SUBTEST(testHybrd());
-    CALL_SUBTEST(testLmstr1());
-    CALL_SUBTEST(testLmstr());
-    CALL_SUBTEST(testLmdif1());
-    CALL_SUBTEST(testLmdif());
+    CALL_SUBTEST(testNistEckerle4());
 }
 
