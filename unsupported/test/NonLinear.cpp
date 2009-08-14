@@ -1655,6 +1655,100 @@ void testNistBennett5(void)
   VERIFY_IS_APPROX(x[2], 0.93219881891); // should be 9.3218483193E-01);
 }
 
+struct thurber_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double _x[37] = { -3.067E0, -2.981E0, -2.921E0, -2.912E0, -2.840E0, -2.797E0, -2.702E0, -2.699E0, -2.633E0, -2.481E0, -2.363E0, -2.322E0, -1.501E0, -1.460E0, -1.274E0, -1.212E0, -1.100E0, -1.046E0, -0.915E0, -0.714E0, -0.566E0, -0.545E0, -0.400E0, -0.309E0, -0.109E0, -0.103E0, 0.010E0, 0.119E0, 0.377E0, 0.790E0, 0.963E0, 1.006E0, 1.115E0, 1.572E0, 1.841E0, 2.047E0, 2.200E0 };
+        static const double _y[37] = { 80.574E0, 84.248E0, 87.264E0, 87.195E0, 89.076E0, 89.608E0, 89.868E0, 90.101E0, 92.405E0, 95.854E0, 100.696E0, 101.060E0, 401.672E0, 390.724E0, 567.534E0, 635.316E0, 733.054E0, 759.087E0, 894.206E0, 990.785E0, 1090.109E0, 1080.914E0, 1122.643E0, 1178.351E0, 1260.531E0, 1273.514E0, 1288.339E0, 1327.543E0, 1353.863E0, 1414.509E0, 1425.208E0, 1421.384E0, 1442.962E0, 1464.350E0, 1468.705E0, 1447.894E0, 1457.628E0};
+        int i;
+
+//        static int called=0; printf("call hahn1_functor with  iflag=%d, called=%d\n", iflag, called); if (iflag==1) called++;
+        assert(m==37);
+        assert(n==7);
+        assert(ldfjac==37);
+        if (iflag != 2) {// compute fvec at x
+            for(i=0; i<37; i++) {
+                double x=_x[i], xx=x*x, xxx=xx*x;
+                fvec[i] = (b[0]+b[1]*x+b[2]*xx+b[3]*xxx) / (1.+b[4]*x+b[5]*xx+b[6]*xxx) - _y[i];
+            }
+        }
+        else { // compute fjac at x
+            for(i=0; i<37; i++) {
+                double x=_x[i], xx=x*x, xxx=xx*x;
+                double fact = 1./(1.+b[4]*x+b[5]*xx+b[6]*xxx);
+                fjac[i+ldfjac*0] = 1.*fact;
+                fjac[i+ldfjac*1] = x*fact;
+                fjac[i+ldfjac*2] = xx*fact;
+                fjac[i+ldfjac*3] = xxx*fact;
+                fact = - (b[0]+b[1]*x+b[2]*xx+b[3]*xxx) * fact * fact;
+                fjac[i+ldfjac*4] = x*fact;
+                fjac[i+ldfjac*5] = xx*fact;
+                fjac[i+ldfjac*6] = xxx*fact;
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/thurber.shtml
+void testNistThurber(void)
+{
+  const int m=37, n=7;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 1000 ,1000 ,400 ,40 ,0.7,0.3,0.0 ;
+  // do the computation
+  info = ei_lmder<thurber_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 100., 400, 1.E4*Eigen::machine_epsilon<double>(), 1.E4*Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 39 == nfev); 
+  VERIFY( 36== njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6427082397E+03); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
+  VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
+  VERIFY_IS_APPROX(x[2], 5.8323836877E+02);
+  VERIFY_IS_APPROX(x[3], 7.5416644291E+01);
+  VERIFY_IS_APPROX(x[4], 9.6629502864E-01);
+  VERIFY_IS_APPROX(x[5], 3.9797285797E-01);
+  VERIFY_IS_APPROX(x[6], 4.9727297349E-02);
+
+  /*
+   * Second try
+   */
+  x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
+  // do the computation
+  info = ei_lmder<thurber_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 100., 400, 1.E4*Eigen::machine_epsilon<double>(), 1.E4*Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 29 == nfev); 
+  VERIFY( 28 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6427082397E+03); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
+  VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
+  VERIFY_IS_APPROX(x[2], 5.8323836877E+02);
+  VERIFY_IS_APPROX(x[3], 7.5416644291E+01);
+  VERIFY_IS_APPROX(x[4], 9.6629502864E-01);
+  VERIFY_IS_APPROX(x[5], 3.9797285797E-01);
+  VERIFY_IS_APPROX(x[6], 4.9727297349E-02);
+}
+
+
+
 void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
@@ -1673,6 +1767,7 @@ void test_NonLinear()
     CALL_SUBTEST(testNistBoxBOD());
     CALL_SUBTEST(testNistMGH09());
     CALL_SUBTEST(testNistBennett5());
+    CALL_SUBTEST(testNistThurber());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
