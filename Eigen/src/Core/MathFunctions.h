@@ -25,7 +25,7 @@
 #ifndef EIGEN_MATHFUNCTIONS_H
 #define EIGEN_MATHFUNCTIONS_H
 
-template<typename T> typename NumTraits<T>::Real epsilon()
+template<typename T> inline typename NumTraits<T>::Real epsilon()
 {
  return std::numeric_limits<typename NumTraits<T>::Real>::epsilon();
 }
