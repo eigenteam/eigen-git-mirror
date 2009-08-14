@@ -390,7 +390,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
 
   // this formula comes from experimenting (see "LU precision tuning" thread on the list)
   // and turns out to be identical to Higham's formula used already in LDLt.
-  m_precision = machine_epsilon<Scalar>() * size;
+  m_precision = epsilon<Scalar>() * size;
 
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());

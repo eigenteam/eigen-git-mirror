@@ -102,7 +102,7 @@ void JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& 
   if(ComputeU) m_matrixU = MatrixUType::Identity(size,size);
   if(ComputeV) m_matrixV = MatrixUType::Identity(size,size);
   m_singularValues.resize(size);
-  const RealScalar precision = 2 * machine_epsilon<Scalar>();
+  const RealScalar precision = 2 * epsilon<Scalar>();
 
 sweep_again:
   for(int p = 1; p < size; ++p)
