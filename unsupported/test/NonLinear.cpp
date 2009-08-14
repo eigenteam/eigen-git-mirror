@@ -821,7 +821,7 @@ struct chwirut2_functor {
     }
 };
 
-// http://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml
+// http://www.itl.nist.gov/div898/strd/nls/data/chwirut2.shtml
 void testNistChwirut2(void)
 {
   const int m=54, n=3;
@@ -1608,7 +1608,7 @@ struct Bennett5_functor {
     }
 };
 
-// http://www.itl.nist.gov/div898/strd/nls/data/mgh09.shtml
+// http://www.itl.nist.gov/div898/strd/nls/data/bennett5.shtml
 void testNistBennett5(void)
 {
   const int m=154, n=3;
