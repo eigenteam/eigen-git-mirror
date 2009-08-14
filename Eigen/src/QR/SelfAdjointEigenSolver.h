@@ -377,11 +377,8 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
     // G only modifies the two columns k and k+1
     if (matrixQ)
     {
-      #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
-      ei_apply_rotation_in_the_plane_selector<Scalar,Dynamic>::run(matrixQ+k, matrixQ+k+1, n, c, s, n, n);
-      #else
-      ei_apply_rotation_in_the_plane_selector<Scalar,1>::run(matrixQ+k*n, matrixQ+k*n+n, n, c, s, 1, 1);
-      #endif
+      Map<Matrix<Scalar,Dynamic,Dynamic> > q(matrixQ,n,n);
+      q.applyJacobiOnTheRight(k,k+1,c,s);
     }
   }
 }
