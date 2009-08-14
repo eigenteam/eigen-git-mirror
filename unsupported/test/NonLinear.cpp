@@ -1747,6 +1747,87 @@ void testNistThurber(void)
   VERIFY_IS_APPROX(x[6], 4.9727297349E-02);
 }
 
+struct rat43_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double x[15] = { 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15. };
+        static const double y[15] = { 16.08, 33.83, 65.80, 97.20, 191.55, 326.20, 386.87, 520.53, 590.03, 651.92, 724.93, 699.56, 689.96, 637.56, 717.41 };
+        int i;
+
+        assert(m==15);
+        assert(n==4);
+        assert(ldfjac==15);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<15; i++) {
+                fvec[i] = b[0] * pow(1.+exp(b[1]-b[2]*x[i]),-1./b[3]) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<15; i++) {
+                double e = exp(b[1]-b[2]*x[i]);
+                double power = -1./b[3];
+                fjac[i+ldfjac*0] = pow(1.+e, power);
+                fjac[i+ldfjac*1] = power*b[0]*e*pow(1.+e, power-1.);
+                fjac[i+ldfjac*2] = -power*b[0]*e*x[i]*pow(1.+e, power-1.);
+                fjac[i+ldfjac*3] = b[0]*power*power*log(1.+e)*pow(1.+e, power);
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/ratkowsky3.shtml
+void testNistRat43(void)
+{
+  const int m=15, n=4;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 100., 10., 1., 1.;
+  // do the computation
+  info = ei_lmder<rat43_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 100., 400, 1.E6*Eigen::machine_epsilon<double>(), 1.E6*Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 27 == nfev); 
+  VERIFY( 20 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7864049080E+03);
+  // check x
+  VERIFY_IS_APPROX(x[0], 6.9964151270E+02);
+  VERIFY_IS_APPROX(x[1], 5.2771253025E+00);
+  VERIFY_IS_APPROX(x[2], 7.5962938329E-01);
+  VERIFY_IS_APPROX(x[3], 1.2792483859E+00);
+
+  /*
+   * Second try
+   */
+  x<< 700., 5., 0.75, 1.3;
+  // do the computation
+  info = ei_lmder<rat43_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 100., 400, 1.E5*Eigen::machine_epsilon<double>(), 1.E5*Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 9 == nfev); 
+  VERIFY( 8 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7864049080E+03);
+  // check x
+  VERIFY_IS_APPROX(x[0], 6.9964151270E+02);
+  VERIFY_IS_APPROX(x[1], 5.2771253025E+00);
+  VERIFY_IS_APPROX(x[2], 7.5962938329E-01);
+  VERIFY_IS_APPROX(x[3], 1.2792483859E+00);
+}
+
+
 
 
 void test_NonLinear()
@@ -1768,6 +1849,7 @@ void test_NonLinear()
     CALL_SUBTEST(testNistMGH09());
     CALL_SUBTEST(testNistBennett5());
     CALL_SUBTEST(testNistThurber());
+    CALL_SUBTEST(testNistRat43());
 
     CALL_SUBTEST(testChkder());
     CALL_SUBTEST(testLmder1());
