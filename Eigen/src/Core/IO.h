@@ -33,7 +33,7 @@ enum { Raw, AlignCols };
   * \brief Stores a set of parameters controlling the way matrices are printed
   *
   * List of available parameters:
-  *  - \b precision number of digits for floating point values
+  *  - \b precision number of digits for floating point values. The default value -1 means that the current stream precision is used.
   *  - \b flags can be either Raw (default) or AlignCols which aligns all the columns
   *  - \b coeffSeparator string printed between two coefficients of the same row
   *  - \b rowSeparator string printed between two rows
@@ -50,7 +50,7 @@ enum { Raw, AlignCols };
 struct IOFormat
 {
   /** Default contructor, see class IOFormat for the meaning of the parameters */
-  IOFormat(int _precision=4, int _flags=Raw,
+  IOFormat(int _precision=-1, int _flags=Raw,
     const std::string& _coeffSeparator = " ",
     const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
     const std::string& _matPrefix="", const std::string& _matSuffix="")
@@ -134,12 +134,12 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
       for(int i = 0; i < m.rows(); ++i)
       {
         std::stringstream sstr;
-        sstr.precision(fmt.precision);
+        if(fmt.precision != -1) sstr.precision(fmt.precision);
         sstr << m.coeff(i,j);
         width = std::max<int>(width, int(sstr.str().length()));
       }
   }
-  s.precision(fmt.precision);
+  std::streamsize old_precision = s.precision(fmt.precision);
   s << fmt.matPrefix;
   for(int i = 0; i < m.rows(); ++i)
   {
@@ -159,6 +159,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
       s << fmt.rowSeparator;
   }
   s << fmt.matSuffix;
+  s.precision(old_precision);
   return s;
 }
 
