@@ -855,12 +855,12 @@ void testNistChwirut2(void)
   x<< 0.15, 0.008, 0.010;
   // do the computation
   info = ei_lmder<chwirut2_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E6*Eigen::machine_epsilon<double>(), 1.E6*Eigen::machine_epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 11 == nfev); 
-  VERIFY( 8 == njev); 
+  VERIFY( 7 == nfev); 
+  VERIFY( 6 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 5.1304802941E+02); 
   // check x
