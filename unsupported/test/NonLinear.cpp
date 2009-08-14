@@ -791,6 +791,85 @@ void testLmdif()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
+struct chwirut2_functor {
+    static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
+    {
+        static const double _x[54] = { 0.500E0, 1.000E0, 1.750E0, 3.750E0, 5.750E0, 0.875E0, 2.250E0, 3.250E0, 5.250E0, 0.750E0, 1.750E0, 2.750E0, 4.750E0, 0.625E0, 1.250E0, 2.250E0, 4.250E0, .500E0, 3.000E0, .750E0, 3.000E0, 1.500E0, 6.000E0, 3.000E0, 6.000E0, 1.500E0, 3.000E0, .500E0, 2.000E0, 4.000E0, .750E0, 2.000E0, 5.000E0, .750E0, 2.250E0, 3.750E0, 5.750E0, 3.000E0, .750E0, 2.500E0, 4.000E0, .750E0, 2.500E0, 4.000E0, .750E0, 2.500E0, 4.000E0, .500E0, 6.000E0, 3.000E0, .500E0, 2.750E0, .500E0, 1.750E0};
+        static const double y[54] = { 92.9000E0 ,57.1000E0 ,31.0500E0 ,11.5875E0 ,8.0250E0 ,63.6000E0 ,21.4000E0 ,14.2500E0 ,8.4750E0 ,63.8000E0 ,26.8000E0 ,16.4625E0 ,7.1250E0 ,67.3000E0 ,41.0000E0 ,21.1500E0 ,8.1750E0 ,81.5000E0 ,13.1200E0 ,59.9000E0 ,14.6200E0 ,32.9000E0 ,5.4400E0 ,12.5600E0 ,5.4400E0 ,32.0000E0 ,13.9500E0 ,75.8000E0 ,20.0000E0 ,10.4200E0 ,59.5000E0 ,21.6700E0 ,8.5500E0 ,62.0000E0 ,20.2000E0 ,7.7600E0 ,3.7500E0 ,11.8100E0 ,54.7000E0 ,23.7000E0 ,11.5500E0 ,61.3000E0 ,17.7000E0 ,8.7400E0 ,59.2000E0 ,16.3000E0 ,8.6200E0 ,81.0000E0 ,4.8700E0 ,14.6200E0 ,81.7000E0 ,17.1700E0 ,81.3000E0 ,28.9000E0  };
+        int i;
+
+        assert(m==54);
+        assert(n==3);
+        assert(ldfjac==54);
+        if (iflag != 2) {// compute fvec at b
+            for(i=0; i<54; i++) {
+                double x = _x[i];
+                fvec[i] = exp(-b[0]*x)/(b[1]+b[2]*x) - y[i];
+            }
+        }
+        else { // compute fjac at b
+            for(i=0; i<54; i++) {
+                double x = _x[i];
+                double factor = 1./(b[1]+b[2]*x);
+                double e = exp(-b[0]*x);
+                fjac[i+ldfjac*0] = -x*e*factor;
+                fjac[i+ldfjac*1] = -e*factor*factor;
+                fjac[i+ldfjac*2] = -x*e*factor*factor;
+            }
+        }
+        return 0;
+    }
+};
+
+// http://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml
+void testNistChwirut2(void)
+{
+  const int m=54, n=3;
+  int info, nfev, njev;
+
+  Eigen::VectorXd x(n), fvec(m), diag;
+  Eigen::MatrixXd fjac;
+  VectorXi ipvt;
+
+  /*
+   * First try
+   */
+  x<< 0.1, 0.01, 0.02;
+  // do the computation
+  info = ei_lmder<chwirut2_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 10 == nfev); 
+  VERIFY( 8 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.1304802941E+02); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
+  VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
+  VERIFY_IS_APPROX(x[2], 1.2150007096E-02);
+
+  /*
+   * Second try
+   */
+  x<< 0.15, 0.008, 0.010;
+  // do the computation
+  info = ei_lmder<chwirut2_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 100., 400, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+
+  // check return value
+  VERIFY( 1 == info); 
+  VERIFY( 11 == nfev); 
+  VERIFY( 8 == njev); 
+  // check norm^2
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.1304802941E+02); 
+  // check x
+  VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
+  VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
+  VERIFY_IS_APPROX(x[2], 1.2150007096E-02);
+}
+
+
 struct misra1a_functor {
     static int f(void * /*p*/, int m, int n, const double *b, double *fvec, double *fjac, int ldfjac, int iflag)
     {
@@ -1580,6 +1659,7 @@ void test_NonLinear()
 {
     // NIST tests, level of difficulty = "Lower"
     CALL_SUBTEST(testNistMisra1a());
+    CALL_SUBTEST(testNistChwirut2());
 
     // NIST tests, level of difficulty = "Average"
     CALL_SUBTEST(testNistHahn1());
