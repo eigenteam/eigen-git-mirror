@@ -1372,28 +1372,23 @@ void testNistBoxBOD(void)
   Eigen::MatrixXd fjac;
   VectorXi ipvt;
 
-#if 0
   /*
    * First try
    */
   x<< 1., 1.;
   // do the computation
-  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
-          1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+  info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
+          1, 10., 400, 1E6*Eigen::machine_epsilon<double>(), 1E6*Eigen::machine_epsilon<double>());
 
   // check return value
-  printf("info=%d, f,j: %d, %d\n", info, nfev, njev);
-  printf("norm2 =  %.50g\n", fvec.squaredNorm());
-  std::cout << x << std::endl;
   VERIFY( 1 == info); 
-  VERIFY( 10 == nfev); 
-  VERIFY( 6 == njev); 
+  VERIFY( 31 == nfev); 
+  VERIFY( 25  == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 2.1380940889E+02);
   VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
-#endif
 
   /*
    * Second try
