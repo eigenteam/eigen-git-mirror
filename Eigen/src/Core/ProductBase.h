@@ -149,14 +149,30 @@ class ScaledProduct;
 // define all overloads defined in MatrixBase. Furthermore, Using
 // "using Base::operator*" would not work with MSVC.
 // 
-// Also note that here we accept any type which can be converted to Derived::Scalar.
-template<typename Derived,typename Lhs,typename Rhs,typename Scalar>
-const ScaledProduct<Derived> operator*(const ProductBase<Derived,Lhs,Rhs>& prod, Scalar x)
+// Also note that here we accept any compatible scalar types
+template<typename Derived,typename Lhs,typename Rhs>
+const ScaledProduct<Derived>
+operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
-template<typename Derived,typename Lhs,typename Rhs,typename Scalar>
-const ScaledProduct<Derived> operator*(Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+template<typename Derived,typename Lhs,typename Rhs>
+typename ei_enable_if<!ei_is_same_type<typename Derived::Scalar,typename Derived::RealScalar>::ret,
+                      const ScaledProduct<Derived> >::type
+operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::RealScalar x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
+
+
+template<typename Derived,typename Lhs,typename Rhs>
+const ScaledProduct<Derived>
+operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+{ return ScaledProduct<Derived>(prod.derived(), x); }
+
+template<typename Derived,typename Lhs,typename Rhs>
+typename ei_enable_if<!ei_is_same_type<typename Derived::Scalar,typename Derived::RealScalar>::ret,
+                      const ScaledProduct<Derived> >::type
+operator*(typename Derived::RealScalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+{ return ScaledProduct<Derived>(prod.derived(), x); }
+
 
 template<typename NestedProduct>
 struct ei_traits<ScaledProduct<NestedProduct> >
