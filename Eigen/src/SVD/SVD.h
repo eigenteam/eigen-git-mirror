@@ -307,13 +307,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           h = Scalar(1.0)/h;
           c = g*h;
           s = -f*h;
-          for (j=0; j<m; j++)
-          {
-            y = A(j,nm);
-            z = A(j,i);
-            A(j,nm) = y*c + z*s;
-            A(j,i)  = z*c - y*s;
-          }
+          V.applyJacobiOnTheRight(i,nm,c,s);
         }
       }
       z = W[k];
@@ -346,6 +340,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         y = W[i];
         h = s*g;
         g = c*g;
+        
         z = pythag(f,h);
         rv1[j] = z;
         c = f/z;
@@ -354,13 +349,8 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         g = g*c - x*s;
         h = y*s;
         y *= c;
-        for (jj=0; jj<n; jj++)
-        {
-          x = V(jj,j);
-          z = V(jj,i);
-          V(jj,j) = x*c + z*s;
-          V(jj,i) = z*c - x*s;
-        }
+        V.applyJacobiOnTheRight(i,j,c,s);
+        
         z = pythag(f,h);
         W[j] = z;
         // Rotation can be arbitrary if z = 0.
@@ -372,13 +362,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         }
         f = c*g + s*y;
         x = c*y - s*g;
-        for (jj=0; jj<m; jj++)
-        {
-          y = A(jj,j);
-          z = A(jj,i);
-          A(jj,j) = y*c + z*s;
-          A(jj,i) = z*c - y*s;
-        }
+        A.applyJacobiOnTheRight(i,j,c,s);
       }
       rv1[l] = 0.0;
       rv1[k] = f;
