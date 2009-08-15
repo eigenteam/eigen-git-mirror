@@ -244,7 +244,7 @@ using Eigen::ei_cos;
 
 // format used in Eigen's documentation
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
-#define EIGEN_DOCS_IO_FORMAT IOFormat(3, AlignCols, " ", "\n", "", "")
+#define EIGEN_DOCS_IO_FORMAT IOFormat(3, 0, " ", "\n", "", "")
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 using Base::operator =; \
