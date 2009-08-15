@@ -326,9 +326,10 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
 
-    /** Overloaded for cache friendly product evaluation */
+    /** \deprecated because .lazy() is deprecated
+      * Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
-    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    Derived& lazyAssign(const Flagged<OtherDerived, 0, MayAliasBit>& other)
     { return lazyAssign(other._expression()); }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
@@ -336,11 +337,11 @@ template<typename Derived> class MatrixBase
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+                                      MayAliasBit>& other);
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+                                      MayAliasBit>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -614,7 +615,9 @@ template<typename Derived> class MatrixBase
 
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
-    const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
+    const Flagged<Derived, 0, MayAliasBit> lazy() const;
+
+    NoAlias<Derived> noalias();
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.

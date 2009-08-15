@@ -39,7 +39,7 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> >
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<Lhs>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<Rhs>::MaxColsAtCompileTime,
-    Flags = EvalBeforeNestingBit | EvalBeforeAssigningBit,
+    Flags = EvalBeforeNestingBit | MayAliasBit,
     CoeffReadCost = 0 // FIXME why is it needed ?
   };
 };
@@ -119,7 +119,7 @@ class ProductBase : public MatrixBase<Derived>
       return res;
     }
 
-    const Flagged<ProductBase, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const
+    const Flagged<ProductBase, 0, MayAliasBit> lazy() const
     {
       return *this;
     }
@@ -228,7 +228,7 @@ Derived& MatrixBase<Derived>::lazyAssign(const ProductBase<ProductDerived, Lhs,R
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+                                                       MayAliasBit>& other)
 {
   other._expression().derived().addTo(derived()); return derived();
 }
@@ -238,7 +238,7 @@ Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerive
 template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+                                                       MayAliasBit>& other)
 {
   other._expression().derived().subTo(derived()); return derived();
 }

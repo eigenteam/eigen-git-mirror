@@ -76,7 +76,7 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
       RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-            | EvalBeforeAssigningBit
+            | MayAliasBit
             | EvalBeforeNestingBit
             | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
             | (LhsFlags & RhsFlags & AlignedBit),

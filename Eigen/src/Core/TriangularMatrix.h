@@ -477,7 +477,7 @@ template<typename OtherDerived>
 inline TriangularView<MatrixType, Mode>&
 TriangularView<MatrixType, Mode>::operator=(const MatrixBase<OtherDerived>& other)
 {
-  if(OtherDerived::Flags & EvalBeforeAssigningBit)
+  if(OtherDerived::Flags & MayAliasBit)
   {
     typename OtherDerived::PlainMatrixType other_evaluated(other.rows(), other.cols());
     other_evaluated.template triangularView<Mode>().lazyAssign(other.derived());
@@ -512,7 +512,7 @@ inline TriangularView<MatrixType, Mode>&
 TriangularView<MatrixType, Mode>::operator=(const TriangularBase<OtherDerived>& other)
 {
   ei_assert(Mode == OtherDerived::Mode);
-  if(ei_traits<OtherDerived>::Flags & EvalBeforeAssigningBit)
+  if(ei_traits<OtherDerived>::Flags & MayAliasBit)
   {
     typename OtherDerived::PlainMatrixType other_evaluated(other.rows(), other.cols());
     other_evaluated.template triangularView<Mode>().lazyAssign(other.derived());
@@ -548,7 +548,7 @@ template<typename Derived>
 template<typename DenseDerived>
 void TriangularBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
 {
-  if(ei_traits<Derived>::Flags & EvalBeforeAssigningBit)
+  if(ei_traits<Derived>::Flags & MayAliasBit)
   {
     typename Derived::PlainMatrixType other_evaluated(rows(), cols());
     evalToDenseLazy(other_evaluated);

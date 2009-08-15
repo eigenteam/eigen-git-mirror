@@ -154,6 +154,7 @@ namespace Eigen {
 #include "src/Core/NestByValue.h"
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/Flagged.h"
+#include "src/Core/NoAlias.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Cwise.h"
 #include "src/Core/CwiseBinaryOp.h"

@@ -71,15 +71,19 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m3 = (m1 * m2.adjoint()), 1);
   VERIFY_EVALUATION_COUNT( m3 = (m1 * m2.adjoint()).lazy(), 0);
 
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1 * m2.adjoint(), 0);
+
   // NOTE in this case the slow product is used:
   // FIXME:
-//   VERIFY_EVALUATION_COUNT( m3 = s1 * (m1 * m2.transpose()).lazy(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = s1 * (m1 * m2.transpose()), 0);
 
   VERIFY_EVALUATION_COUNT( m3 = (s1 * m1 * s2 * m2.adjoint()).lazy(), 0);
   VERIFY_EVALUATION_COUNT( m3 = (s1 * m1 * s2 * (m1*s3+m2*s2).adjoint()).lazy(), 1);
   VERIFY_EVALUATION_COUNT( m3 = ((s1 * m1).adjoint() * s2 * m2).lazy(), 0);
-  VERIFY_EVALUATION_COUNT( m3 -= (s1 * (-m1*s3).adjoint() * (s2 * m2 * s3)).lazy(), 0);
+  VERIFY_EVALUATION_COUNT( m3 += (s1 * (-m1*s3).adjoint() * (s2 * m2 * s3)).lazy(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() += s1 * (-m1*s3).adjoint() * (s2 * m2 * s3), 0);
   VERIFY_EVALUATION_COUNT( m3 -= (s1 * (m1.transpose() * m2)).lazy(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() -= s1 * (m1.transpose() * m2), 0);
 
   VERIFY_EVALUATION_COUNT(( m3.block(r0,r0,r1,r1) += (-m1.block(r0,c0,r1,c1) * (s2*m2.block(r0,c0,r1,c1)).adjoint()).lazy() ), 0);
   VERIFY_EVALUATION_COUNT(( m3.block(r0,r0,r1,r1) -= (s1 * m1.block(r0,c0,r1,c1) * m2.block(c0,r0,c1,r1)).lazy() ), 0);
