@@ -48,6 +48,7 @@ source mk_mean_script.sh hessenberg $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh symv $1 11 50 300 1000 $mode $prefix
 source mk_mean_script.sh syr2 $1 11 50 300 1000 $mode $prefix
 source mk_mean_script.sh ger $1 11 50 300 1000 $mode $prefix
+source mk_mean_script.sh rot $1 11 2500 100000 250000 $mode $prefix
 
 fi
 

@@ -168,6 +168,10 @@ public :
       A.col(j) += X * Y[j];
   }
 
+  static EIGEN_DONT_INLINE void rot(gene_vector & A,  gene_vector & B, real c, real s, int N){
+    ei_apply_rotation_in_the_plane(A, B, c, s);
+  }
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     X = (A.transpose()*B).lazy();
   }

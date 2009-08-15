@@ -15,3 +15,4 @@ hessenberg ; "{/*1.5 Hessenberg decomposition}" ; "matrix size" ; 4:3000
 symv ; "{/*1.5 symmetric matrix vector product}" ; "matrix size" ; 4:3000
 syr2 ; "{/*1.5 symmretric rank-2 update (A += u^T v + u v^T)}" ; "matrix size" ; 4:3000
 ger ; "{/*1.5 general rank-1 update (A += u v^T)}" ; "matrix size" ; 4:3000
+rot ; "{/*1.5 apply rotation in the plane}" ; "vector size" ; 4:1000000
