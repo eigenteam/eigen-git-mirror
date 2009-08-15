@@ -1,21 +1,8 @@
 project(Eigen)
-set(EIGEN_VERSION_NUMBER "2.0.4")
-
-#if the svnversion program is absent, this will leave the SVN_REVISION string empty,
-#but won't stop CMake.
-execute_process(COMMAND svnversion -n ${CMAKE_SOURCE_DIR}
-                OUTPUT_VARIABLE EIGEN_SVNVERSION_OUTPUT)
-
-#we only want EIGEN_SVN_REVISION if it is an actual revision number, not a string like "exported"
-string(REGEX MATCH "^[0-9]+.*" EIGEN_SVN_REVISION "${EIGEN_SVNVERSION_OUTPUT}")
-
-if(EIGEN_SVN_REVISION)
-  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (SVN revision ${EIGEN_SVN_REVISION})")
-else(EIGEN_SVN_REVISION)
-  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
-endif(EIGEN_SVN_REVISION)
-
 cmake_minimum_required(VERSION 2.6.2)
+
+set(EIGEN_VERSION_NUMBER "2.0.4")
+set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
