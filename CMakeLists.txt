@@ -1,5 +1,7 @@
 project(Eigen)
 
+cmake_minimum_required(VERSION 2.6.2)
+
 # automatically parse the version number
 file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header LIMIT 5000 OFFSET 1000)
 string(REGEX MATCH "define *EIGEN_WORLD_VERSION ([0-9]*)" _eigen2_world_version_match "${_eigen2_version_header}")
@@ -10,21 +12,22 @@ string(REGEX MATCH "define *EIGEN_MINOR_VERSION ([0-9]*)" _eigen2_minor_version_
 set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
 set(EIGEN_VERSION_NUMBER ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION})
 
-# if the mercurial program is absent, this will leave the EIGEN_HG_REVISION string empty,
+# if the mercurial program is absent, this will leave the EIGEN_HG_CHANGESET string empty,
 # but won't stop CMake.
 execute_process(COMMAND hg tip -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_HGTIP_OUTPUT)
+execute_process(COMMAND hg branch -R ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE EIGEN_BRANCH_OUTPUT)
 
-# extract the mercurial revision number from the hg tip output
-string(REGEX MATCH "^changeset: *[0-9]*:([0-9;a-f]+).*" EIGEN_HG_REVISION_MATCH "${EIGEN_HGTIP_OUTPUT}")
-set(EIGEN_HG_REVISION "${CMAKE_MATCH_1}")
-
-if(EIGEN_HG_REVISION)
-  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (mercurial revision ${EIGEN_HG_REVISION})")
-else(EIGEN_HG_REVISION)
+# if this is the default (aka development) branch, extract the mercurial changeset number from the hg tip output...
+if(EIGEN_BRANCH_OUTPUT MATCHES "default")
+string(REGEX MATCH "^changeset: *[0-9]*:([0-9;a-f]+).*" EIGEN_HG_CHANGESET_MATCH "${EIGEN_HGTIP_OUTPUT}")
+set(EIGEN_HG_CHANGESET "${CMAKE_MATCH_1}")
+endif(EIGEN_BRANCH_OUTPUT MATCHES "default")
+#...and show it next to the version number
+if(EIGEN_HG_CHANGESET)
+  set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER} (mercurial changeset ${EIGEN_HG_CHANGESET})")
+else(EIGEN_HG_CHANGESET)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
-endif(EIGEN_HG_REVISION)
-
-cmake_minimum_required(VERSION 2.6.2)
+endif(EIGEN_HG_CHANGESET)
 
 include(CheckCXXCompilerFlag)
 
