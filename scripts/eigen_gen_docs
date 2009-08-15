@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# TODO : actually exit on exit, currently it only exit from the ()
+# TODO : display error msg on stderr instead of stdout
+
 # configuration
 USER='orzel'
 
