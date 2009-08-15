@@ -45,7 +45,7 @@ namespace Eigen
 #define EI_PP_MAKE_STRING2(S) #S
 #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
 
-#define EIGEN_DEFAULT_IO_FORMAT IOFormat(4, AlignCols, "  ", "\n", "", "", "", "")
+#define EIGEN_DEFAULT_IO_FORMAT IOFormat(4, 0, "  ", "\n", "", "", "", "")
 
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
