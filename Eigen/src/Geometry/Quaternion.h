@@ -373,7 +373,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
     c = std::max<Scalar>(c,-1);
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
     SVD<Matrix<Scalar,2,3> > svd(m);
-    Vector3 axis = svd.matrixV().col(0);
+    Vector3 axis = svd.matrixV().col(2);
 
     Scalar w2 = (Scalar(1)+c)*Scalar(0.5);
     this->w() = ei_sqrt(w2);

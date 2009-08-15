@@ -7,6 +7,7 @@
 
 #include "Array"
 #include "SVD"
+#include "LU"
 #include <limits>
 
 #ifndef M_PI
