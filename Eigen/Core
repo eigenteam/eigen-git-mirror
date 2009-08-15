@@ -150,6 +150,7 @@ namespace Eigen {
   #include "src/Core/Assign.h"
 #endif
 
+#include "src/Core/util/BlasUtil.h"
 #include "src/Core/MatrixStorage.h"
 #include "src/Core/NestByValue.h"
 #include "src/Core/ReturnByValue.h"
@@ -178,7 +179,6 @@ namespace Eigen {
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/util/BlasUtil.h"
 #include "src/Core/ProductBase.h"
 #include "src/Core/Product.h"
 #include "src/Core/TriangularMatrix.h"

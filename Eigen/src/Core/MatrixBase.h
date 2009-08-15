@@ -457,6 +457,21 @@ template<typename Derived> class MatrixBase
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
     void adjointInPlace();
+    #ifndef EIGEN_NO_DEBUG
+    template<typename OtherDerived>
+    Derived& lazyAssign(const Transpose<OtherDerived>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other);
+
+    template<typename OtherDerived>
+    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other);
+    #endif
 
     RowXpr row(int i);
     const RowXpr row(int i) const;

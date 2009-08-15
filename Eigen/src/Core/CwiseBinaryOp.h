@@ -85,6 +85,8 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
     typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
+    typedef typename ei_traits<CwiseBinaryOp>::_LhsNested _LhsNested;
+    typedef typename ei_traits<CwiseBinaryOp>::_RhsNested _RhsNested;
 
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
@@ -129,6 +131,10 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     {
       return m_functor.packetOp(m_lhs.template packet<LoadMode>(index), m_rhs.template packet<LoadMode>(index));
     }
+
+    const _LhsNested& lhs() const { return m_lhs; }
+    const _RhsNested& rhs() const { return m_rhs; }
+    const BinaryOp& functor() const { return m_functor; }
 
   protected:
     const LhsNested m_lhs;
