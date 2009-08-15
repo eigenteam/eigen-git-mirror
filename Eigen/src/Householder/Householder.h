@@ -73,7 +73,8 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
 {
   Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> tmp(cols());
   Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
-  tmp = row(0) + essential.adjoint() * bottom;
+  tmp = (essential.adjoint() * bottom).lazy();
+  tmp += row(0);
   row(0) -= beta * tmp;
   bottom -= beta * essential * tmp;
 }
@@ -86,7 +87,8 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
 {
   Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> tmp(rows());
   Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
-  tmp = col(0) + right * essential.conjugate();
+  tmp = (right * essential.conjugate()).lazy();
+  tmp += col(0);
   col(0) -= beta * tmp;
   right -= beta * tmp * essential.transpose();
 }
