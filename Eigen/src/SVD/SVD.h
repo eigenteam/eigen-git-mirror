@@ -98,7 +98,6 @@ template<typename MatrixType> class SVD
     }
 
     void compute(const MatrixType& matrix);
-    SVD& sort();
 
     template<typename UnitaryType, typename PositiveType>
     void computeUnitaryPositive(UnitaryType *unitary, PositiveType *positive) const;
@@ -392,7 +391,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     for (int i=0; i<n; i++)
     {
       int k;
-      W.end(n-i).minCoeff(&k);
+      W.end(n-i).maxCoeff(&k);
       if (k != 0)
       {
         k += i;
@@ -409,45 +408,6 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     m_matU = A.block(0,0,m,m);
 
   m_isInitialized = true;
-}
-
-template<typename MatrixType>
-SVD<MatrixType>& SVD<MatrixType>::sort()
-{
-  ei_assert(m_isInitialized && "SVD is not initialized.");
-
-  int mu = m_matU.rows();
-  int mv = m_matV.rows();
-  int n  = m_matU.cols();
-
-  for (int i=0; i<n; ++i)
-  {
-    int  k = i;
-    Scalar p = m_sigma.coeff(i);
-
-    for (int j=i+1; j<n; ++j)
-    {
-      if (m_sigma.coeff(j) > p)
-      {
-        k = j;
-        p = m_sigma.coeff(j);
-      }
-    }
-    if (k != i)
-    {
-      m_sigma.coeffRef(k) = m_sigma.coeff(i);  // i.e.
-      m_sigma.coeffRef(i) = p;                 // swaps the i-th and the k-th elements
-
-      int j = mu;
-      for(int s=0; j!=0; ++s, --j)
-        std::swap(m_matU.coeffRef(s,i), m_matU.coeffRef(s,k));
-
-      j = mv;
-      for (int s=0; j!=0; ++s, --j)
-        std::swap(m_matV.coeffRef(s,i), m_matV.coeffRef(s,k));
-    }
-  }
-  return *this;
 }
 
 /** \returns the solution of \f$ A x = b \f$ using the current SVD decomposition of A.
