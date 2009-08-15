@@ -132,7 +132,7 @@ MatrixBase<Derived>::marked() const
 
 /** \deprecated use MatrixBase::noalias()
   * 
-  * \returns an expression of *this with the MayAliasBit flag removed.
+  * \returns an expression of *this with the EvalBeforeAssigningBit flag removed.
   *
   * Example: \include MatrixBase_lazy.cpp
   * Output: \verbinclude MatrixBase_lazy.out
@@ -140,7 +140,7 @@ MatrixBase<Derived>::marked() const
   * \sa class Flagged, marked()
   */
 template<typename Derived>
-inline const Flagged<Derived, 0, MayAliasBit>
+inline const Flagged<Derived, 0, EvalBeforeAssigningBit>
 MatrixBase<Derived>::lazy() const
 {
   return derived();

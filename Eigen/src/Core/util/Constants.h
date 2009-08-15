@@ -76,10 +76,8 @@ const unsigned int EvalBeforeNestingBit = 0x2;
 
 /** \ingroup flags
   *
-  * Means the expression cannot be evaluated safely if the result alias one
-  * of the operands of the expression. Therefore it should be evaluated
-  * before any assignement. */
-const unsigned int MayAliasBit = 0x4;
+  * means the expression should be evaluated before any assignement */
+const unsigned int EvalBeforeAssigningBit = 0x4;
 
 /** \ingroup flags
   *
@@ -184,7 +182,7 @@ const unsigned int SparseBit = 0x1000;
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
-                                  | MayAliasBit
+                                  | EvalBeforeAssigningBit
                                   | SparseBit;
 
 // Possible values for the Mode parameter of part()

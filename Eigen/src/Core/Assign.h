@@ -434,7 +434,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
 }
 
 template<typename Derived, typename OtherDerived,
-         bool EvalBeforeAssigning = (int(OtherDerived::Flags) & MayAliasBit) != 0,
+         bool EvalBeforeAssigning = (int(OtherDerived::Flags) & EvalBeforeAssigningBit) != 0,
          bool NeedToTranspose = Derived::IsVectorAtCompileTime
                 && OtherDerived::IsVectorAtCompileTime
                 && ((int(Derived::RowsAtCompileTime) == 1 && int(OtherDerived::ColsAtCompileTime) == 1)

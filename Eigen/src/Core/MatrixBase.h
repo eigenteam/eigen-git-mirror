@@ -329,7 +329,7 @@ template<typename Derived> class MatrixBase
     /** \deprecated because .lazy() is deprecated
       * Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
-    Derived& lazyAssign(const Flagged<OtherDerived, 0, MayAliasBit>& other)
+    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
@@ -337,11 +337,11 @@ template<typename Derived> class MatrixBase
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      MayAliasBit>& other);
+                                      EvalBeforeAssigningBit>& other);
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      MayAliasBit>& other);
+                                      EvalBeforeAssigningBit>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -630,7 +630,7 @@ template<typename Derived> class MatrixBase
 
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
-    const Flagged<Derived, 0, MayAliasBit> lazy() const;
+    const Flagged<Derived, 0, EvalBeforeAssigningBit> lazy() const;
 
     NoAlias<Derived> noalias();
 

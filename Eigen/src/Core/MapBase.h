@@ -179,11 +179,11 @@ template<typename Derived> class MapBase
     // explicitly add these two overloads.
     // Maybe there exists a better solution though.
     template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, MayAliasBit>& other)
+    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
     { return Base::operator+=(other); }
 
     template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, MayAliasBit>& other)
+    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
     { return Base::operator-=(other); }
 
     template<typename OtherDerived>
