@@ -115,7 +115,7 @@ class ProductBase : public MatrixBase<Derived>
     {
       PlainMatrixType res(rows(), cols());
       res.setZero();
-      evalTo(res);
+      derived().evalTo(res);
       return res;
     }
 
@@ -148,12 +148,14 @@ class ScaledProduct;
 // functions of ProductBase, because, otherwise we would have to
 // define all overloads defined in MatrixBase. Furthermore, Using
 // "using Base::operator*" would not work with MSVC.
-template<typename Derived,typename Lhs,typename Rhs>
-const ScaledProduct<Derived> operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
+// 
+// Also note that here we accept any type which can be converted to Derived::Scalar.
+template<typename Derived,typename Lhs,typename Rhs,typename Scalar>
+const ScaledProduct<Derived> operator*(const ProductBase<Derived,Lhs,Rhs>& prod, Scalar x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
-template<typename Derived,typename Lhs,typename Rhs>
-const ScaledProduct<Derived> operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+template<typename Derived,typename Lhs,typename Rhs,typename Scalar>
+const ScaledProduct<Derived> operator*(Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename NestedProduct>
@@ -176,7 +178,7 @@ class ScaledProduct
     typedef typename Base::Scalar Scalar;
 //     EIGEN_PRODUCT_PUBLIC_INTERFACE(ScaledProduct)
 
-    ScaledProduct(const NestedProduct& prod, Scalar& x)
+    ScaledProduct(const NestedProduct& prod, Scalar x)
     : Base(prod.lhs(),prod.rhs()), m_prod(prod), m_alpha(x) {}
 
     template<typename Dest>
