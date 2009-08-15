@@ -25,9 +25,9 @@
 #include "main.h"
 
 #define VERIFY_TRSM(TRI,XB) { \
-    XB.setRandom(); ref = XB; \
-    TRI.template solveInPlace(XB); \
-    VERIFY_IS_APPROX(TRI.toDense() * XB, ref); \
+    (XB).setRandom(); ref = (XB); \
+    (TRI).solveInPlace(XB); \
+    VERIFY_IS_APPROX((TRI).toDense() * (XB), ref); \
   }
 
 template<typename Scalar> void trsm(int size,int cols)
