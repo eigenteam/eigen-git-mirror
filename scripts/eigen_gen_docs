@@ -1,63 +1,24 @@
 #!/bin/sh
 
-# todo: check that at most one argument was passed.
+# configuration
+USER='orzel'
 
-if [ $# -eq 1 ]
+# step 1 : update
+hg pull -u || (echo "update failed"; exit 1)
+
+# step 2 : build
+# todo if 'build is not there, create one:
+#mkdir build
+(cd build && cmake .. && make -j3 doc) || (echo "make failed"; exit 1)
+#todo: n+1 where n = number of cpus
+
+#step 3 : upload
+BRANCH=`hg branch`
+if [ $BRANCH == "default" ]
 then
-  branch=$1
-  destination=dox-$1
-elif [ $# -eq 0 ]
-then
-  branch=default
-  destination=dox-devel
+    BRANCH='devel'
 fi
+# (the '/' at the end of path are very important, see rsync documentation)
+rsync -az build/doc/html/ $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/dox-$BRANCH/ ||  (echo "upload failed"; exit 1)
 
 
-echo branch: $branch
-echo destination: $destination
-
-# todo: push the `pwd` to restore it at the end
-
-rm -rf eigen_gen_docs_work_directory
-mkdir eigen_gen_docs_work_directory
-
-# todo: is it really good practice to cd all the time?
-
-hg archive -r $branch eigen_gen_docs_work_directory/eigen2
-
-cd eigen_gen_docs_work_directory
-
-#todo: check that the work directory was successfully created (exit if already existing) and entered
-
-mkdir build
-cd build
-cmake ../eigen2
-make -j3 doc #todo: n+1 where n = number of cpus
-
-#todo: check that make succeeded, is there a return code or something to check?
-
-#todo: check that there exists a doc subdir
-cd doc
-
-#todo: check that there exists a html subdir
-tar cfjv html.tar.bz2 html/
-
-echo "put html.tar.bz2" > sftp_batchfile
-
-echo "uploading the dox archive"
-
-sftp ssh.tuxfamily.org < sftp_batchfile
-
-echo "cd eigen/eigen.tuxfamily.org-web/htdocs
-pwd
-mv ../../../html.tar.bz2 .
-echo uncompressing the dox archive
-tar xfjv html.tar.bz2
-echo removing old dox
-rm -rf $destination
-mv html $destination
-echo giving write permissions to the group
-chmod -R g+w $destination
-" > ssh_batchfile
-
-ssh ssh.tuxfamily.org < ssh_batchfile
