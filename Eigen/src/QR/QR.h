@@ -45,11 +45,15 @@ template<typename MatrixType> class HouseholderQR
 {
   public:
 
+    enum {
+      MinSizeAtCompileTime = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,MatrixType::RowsAtCompileTime)
+    };
+    
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Block<MatrixType, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixRBlockType;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+    typedef Matrix<RealScalar, MinSizeAtCompileTime, 1> HCoeffsType;
 
     /**
     * \brief Default Constructor.
@@ -61,7 +65,7 @@ template<typename MatrixType> class HouseholderQR
 
     HouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(matrix.cols()),
+        m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
         m_isInitialized(false)
     {
       compute(matrix);
@@ -105,7 +109,7 @@ template<typename MatrixType> class HouseholderQR
 
   protected:
     MatrixType m_qr;
-    VectorType m_hCoeffs;
+    HCoeffsType m_hCoeffs;
     bool m_isInitialized;
 };
 
@@ -114,65 +118,25 @@ template<typename MatrixType> class HouseholderQR
 template<typename MatrixType>
 HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
-  m_qr = matrix;
-  m_hCoeffs.resize(matrix.cols());
-
   int rows = matrix.rows();
   int cols = matrix.cols();
-  RealScalar eps2 = precision<RealScalar>()*precision<RealScalar>();
+  int size = std::min(rows,cols);
+  
+  m_qr = matrix;
+  m_hCoeffs.resize(size);
+
   Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
 
-  for (int k = 0; k < cols; ++k)
+  for (int k = 0; k < size; ++k)
   {
-    int remainingSize = rows-k;
+    int remainingRows = rows - k;
+    int remainingCols = cols - k -1;
 
-    RealScalar beta;
-    Scalar v0 = m_qr.col(k).coeff(k);
-
-    if (remainingSize==1)
-    {
-      if (NumTraits<Scalar>::IsComplex)
-      {
-        // Householder transformation on the remaining single scalar
-        beta = ei_abs(v0);
-        if (ei_real(v0)>0)
-          beta = -beta;
-        m_qr.coeffRef(k,k) = beta;
-        m_hCoeffs.coeffRef(k) = (beta - v0) / beta;
-      }
-      else
-      {
-        m_hCoeffs.coeffRef(k) = 0;
-      }
-    }
-    else if ((beta=m_qr.col(k).end(remainingSize-1).squaredNorm())>eps2)
-    // FIXME what about ei_imag(v0) ??
-    {
-      // form k-th Householder vector
-      beta = ei_sqrt(ei_abs2(v0)+beta);
-      if (ei_real(v0)>=0.)
-        beta = -beta;
-      m_qr.col(k).end(remainingSize-1) /= v0-beta;
-      m_qr.coeffRef(k,k) = beta;
-      Scalar h = m_hCoeffs.coeffRef(k) = (beta - v0) / beta;
-
-      // apply the Householder transformation (I - h v v') to remaining columns, i.e.,
-      // R <- (I - h v v') * R   where v = [1,m_qr(k+1,k), m_qr(k+2,k), ...]
-      int remainingCols = cols - k -1;
-      if (remainingCols>0)
-      {
-        m_qr.coeffRef(k,k) = Scalar(1);
-        temp.end(remainingCols) = (m_qr.col(k).end(remainingSize).adjoint()
-                                * m_qr.corner(BottomRight, remainingSize, remainingCols)).lazy();
-        m_qr.corner(BottomRight, remainingSize, remainingCols) -= (ei_conj(h) * m_qr.col(k).end(remainingSize)
-                                                                              * temp.end(remainingCols)).lazy();
-        m_qr.coeffRef(k,k) = beta;
-      }
-    }
-    else
-    {
-      m_hCoeffs.coeffRef(k) = 0;
-    }
+    m_qr.col(k).end(remainingRows).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &m_qr.coeffRef(k,k));
+    
+    if (remainingRows>1 && remainingCols>0)
+      m_qr.corner(BottomRight, remainingRows, remainingCols)
+          .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
   }
   m_isInitialized = true;
   return *this;
@@ -187,12 +151,20 @@ void HouseholderQR<MatrixType>::solve(
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
   const int rows = m_qr.rows();
+  const int cols = b.cols();
   ei_assert(b.rows() == rows);
-  result->resize(rows, b.cols());
+  result->resize(rows, cols);
 
-  // TODO(keir): There is almost certainly a faster way to multiply by
-  // Q^T without explicitly forming matrixQ(). Investigate.
-  *result = matrixQ().transpose()*b;
+  *result = b;
+  
+  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
+  for (int k = 0; k < cols; ++k)
+  {
+    int remainingSize = rows-k;
+
+    result->corner(BottomRight, remainingSize, cols)
+           .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_real(m_hCoeffs.coeff(k)), &temp.coeffRef(0));
+  }
 
   const int rank = std::min(result->rows(), result->cols());
   m_qr.corner(TopLeft, rank, rank)
@@ -214,15 +186,10 @@ MatrixType HouseholderQR<MatrixType>::matrixQ() const
   Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
   for (int k = cols-1; k >= 0; k--)
   {
-    // to make easier the computation of the transformation, let's temporarily
-    // overwrite m_qr(k,k) such that the end of m_qr.col(k) is exactly our Householder vector.
-    Scalar beta = m_qr.coeff(k,k);
-    m_qr.const_cast_derived().coeffRef(k,k) = 1;
-    int endLength = rows-k;
+    int remainingSize = rows-k;
 
-    temp.end(cols-k) = (m_qr.col(k).end(endLength).adjoint() * res.corner(BottomRight,endLength, cols-k)).lazy();
-    res.corner(BottomRight,endLength, cols-k) -= ((m_hCoeffs.coeff(k) * m_qr.col(k).end(endLength)) * temp.end(cols-k)).lazy();
-    m_qr.const_cast_derived().coeffRef(k,k) = beta;
+    res.corner(BottomRight, remainingSize, cols-k)
+       .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_real(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
   }
   return res;
 }

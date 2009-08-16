@@ -786,15 +786,18 @@ template<typename Derived> class MatrixBase
 
 ////////// Householder module ///////////
 
+    void makeHouseholderInPlace(RealScalar *tau, Scalar *beta);
     template<typename EssentialPart>
     void makeHouseholder(EssentialPart *essential,
-                         RealScalar *beta) const;
+                         RealScalar *tau, Scalar *beta) const;
     template<typename EssentialPart>
     void applyHouseholderOnTheLeft(const EssentialPart& essential,
-                                   const RealScalar& beta);
+                                   const RealScalar& tau,
+                                   Scalar* workspace);
     template<typename EssentialPart>
     void applyHouseholderOnTheRight(const EssentialPart& essential,
-                                    const RealScalar& beta);
+                                    const RealScalar& tau,
+                                    Scalar* workspace);
 
 ///////// Jacobi module /////////
 

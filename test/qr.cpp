@@ -37,8 +37,8 @@ template<typename MatrixType> void qr(const MatrixType& m)
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);
-  VERIFY_IS_APPROX(a, qrOfA.matrixQ() * qrOfA.matrixR());
-  VERIFY_IS_NOT_APPROX(a+MatrixType::Identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR());
+  VERIFY_IS_APPROX(a, qrOfA.matrixQ() * qrOfA.matrixR().toDense());
+  VERIFY_IS_NOT_APPROX(a+MatrixType::Identity(rows, cols), qrOfA.matrixQ() * qrOfA.matrixR().toDense());
 
   SquareMatrixType b = a.adjoint() * a;
 
@@ -59,7 +59,7 @@ template<typename MatrixType> void qr_invertible()
 {
   /* this test covers the following files: QR.h */
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  int size = ei_random<int>(10,200);
+  int size = ei_random<int>(10,50);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1 = MatrixType::Random(size,size);
@@ -74,7 +74,6 @@ template<typename MatrixType> void qr_invertible()
   HouseholderQR<MatrixType> qr(m1);
   m3 = MatrixType::Random(size,size);
   qr.solve(m3, &m2);
-  //std::cerr << m3 - m1*m2 << "\n\n";
   VERIFY_IS_APPROX(m3, m1*m2);
 }
 
@@ -91,20 +90,18 @@ template<typename MatrixType> void qr_verify_assert()
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
+    // FIXME : very weird bug here
 //     CALL_SUBTEST( qr(Matrix2f()) );
-//     CALL_SUBTEST( qr(Matrix4d()) );
-//     CALL_SUBTEST( qr(MatrixXf(12,8)) );
-//     CALL_SUBTEST( qr(MatrixXcd(5,5)) );
-//     CALL_SUBTEST( qr(MatrixXcd(7,3)) );
-    CALL_SUBTEST( qr(MatrixXf(47,47)) );
+    CALL_SUBTEST( qr(Matrix4d()) );
+    CALL_SUBTEST( qr(MatrixXcd(17,7)) );
+    CALL_SUBTEST( qr(MatrixXf(47,40)) );
   }
 
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( qr_invertible<MatrixXf>() );
     CALL_SUBTEST( qr_invertible<MatrixXd>() );
-    // TODO fix issue with complex
-//     CALL_SUBTEST( qr_invertible<MatrixXcf>() );
-//     CALL_SUBTEST( qr_invertible<MatrixXcd>() );
+    CALL_SUBTEST( qr_invertible<MatrixXcf>() );
+    CALL_SUBTEST( qr_invertible<MatrixXcd>() );
   }
 
   CALL_SUBTEST(qr_verify_assert<Matrix3f>());

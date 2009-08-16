@@ -48,26 +48,26 @@ class NoAlias
     /** Behaves like MatrixBase::lazyAssign(other)
       * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
-    ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
     { return m_expression.lazyAssign(other.derived()); }
 
     /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>
-    ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
     { return m_expression.lazyAssign(m_expression + other.derived()); }
 
     /** \sa MatrixBase::operator-= */
     template<typename OtherDerived>
-    ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
     { return m_expression.lazyAssign(m_expression - other.derived()); }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
-    ExpressionType& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().addTo(m_expression); return m_expression; }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
-    ExpressionType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().subTo(m_expression); return m_expression; }
 #endif
 

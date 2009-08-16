@@ -187,7 +187,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
 template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure lhs is sequentially stored
     const int cols = dest.cols();
     for (int j=0; j<cols; ++j)
@@ -197,7 +197,7 @@ template<> struct ei_outer_product_selector<ColMajor> {
 
 template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure rhs is sequentially stored
     const int rows = dest.rows();
     for (int i=0; i<rows; ++i)
