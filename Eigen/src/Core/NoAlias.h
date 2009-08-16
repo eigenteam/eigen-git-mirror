@@ -31,8 +31,9 @@
   *
   * \param ExpressionType the type of the object on which to do the lazy assignment
   *
-  * This class represents an expression with a special assignment operator (operator=)
+  * This class represents an expression with special assignment operators
   * assuming no aliasing between the target expression and the source expression.
+  * More precisely it alloas to bypass the EvalBeforeAssignBit flag of the source expression.
   * It is the return type of MatrixBase::noalias()
   * and most of the time this is the only way it is used.
   *
@@ -44,44 +45,61 @@ class NoAlias
   public:
     NoAlias(ExpressionType& expression) : m_expression(expression) {}
 
-    /** Behaves like MatrixBase::lazyAssign() */
+    /** Behaves like MatrixBase::lazyAssign(other)
+      * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
     ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
-    {
-      return m_expression.lazyAssign(other.derived());
-    }
+    { return m_expression.lazyAssign(other.derived()); }
 
-    // TODO could be removed if we decide that += is noalias by default
+    /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>
     ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
-    {
-      return m_expression.lazyAssign(m_expression + other.derived());
-    }
+    { return m_expression.lazyAssign(m_expression + other.derived()); }
 
-    // TODO could be removed if we decide that += is noalias by default
+    /** \sa MatrixBase::operator-= */
     template<typename OtherDerived>
     ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
-    {
-      return m_expression.lazyAssign(m_expression - other.derived());
-    }
+    { return m_expression.lazyAssign(m_expression - other.derived()); }
 
-    // TODO could be removed if we decide that += is noalias by default
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
     ExpressionType& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().addTo(m_expression); return m_expression; }
 
-    // TODO could be removed if we decide that += is noalias by default
     template<typename ProductDerived, typename Lhs, typename Rhs>
     ExpressionType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().subTo(m_expression); return m_expression; }
+#endif
 
   protected:
     ExpressionType& m_expression;
 };
 
-
 /** \returns a pseudo expression of \c *this with an operator= assuming
-  * no aliasing between \c *this and the source expression
+  * no aliasing between \c *this and the source expression.
+  * 
+  * More precisely, noalias() allows to bypass the EvalBeforeAssignBit flag.
+  * Currently, even though several expressions may alias, only product
+  * expressions have this flag. Therefore, noalias() is only usefull when
+  * the source expression contains a matrix product.
+  * 
+  * Here are some examples where noalias is usefull:
+  * \code
+  * D.noalias()  = A * B;
+  * D.noalias() += A.transpose() * B;
+  * D.noalias() -= 2 * A * B.adjoint();
+  * \endcode
+  *
+  * On the other hand the following example will lead to a \b wrong result:
+  * \code
+  * A.noalias() = A * B;
+  * \endcode
+  * because the result matrix A is also an operand of the matrix product. Therefore,
+  * there is no alternative than evaluating A * B in a temporary, that is the default
+  * behavior when you write:
+  * \code
+  * A = A * B;
+  * \endcode
   *
   * \sa class NoAlias
   */

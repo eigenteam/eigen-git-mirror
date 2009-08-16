@@ -437,7 +437,7 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
-      m_lu.block(k+1,k+1,rows-k-1,cols-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
+      m_lu.block(k+1,k+1,rows-k-1,cols-k-1).noalias() -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
   }
 
   for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;

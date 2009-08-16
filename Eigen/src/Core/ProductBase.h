@@ -119,10 +119,8 @@ class ProductBase : public MatrixBase<Derived>
       return res;
     }
 
-    const Flagged<ProductBase, 0, EvalBeforeAssigningBit> lazy() const
-    {
-      return *this;
-    }
+    EIGEN_DEPRECATED const Flagged<ProductBase, 0, EvalBeforeAssigningBit> lazy() const
+    { return *this; }
 
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }

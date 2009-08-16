@@ -4,7 +4,7 @@ namespace Eigen {
 
 Executive summary: Eigen has intelligent compile-time mechanisms to enable lazy evaluation and removing temporaries where appropriate.
 It will handle aliasing automatically in most cases, for example with matrix products. The automatic behavior can be overridden
-manually by using the MatrixBase::eval() and MatrixBase::lazy() methods.
+manually by using the MatrixBase::eval() and MatrixBase::noalias() methods.
 
 When you write a line of code involving a complex expression such as
 

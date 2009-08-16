@@ -9,13 +9,13 @@ for small fixed size matrices. For large matrices, however, it might useful to
 take some care when writing your expressions in order to minimize useless evaluations
 and optimize the performance.
 In this page we will give a brief overview of the Eigen's internal mechanism to simplify
-and evaluate complex expressions, and discuss the current limitations.
+and evaluate complex product expressions, and discuss the current limitations.
 In particular we will focus on expressions matching level 2 and 3 BLAS routines, i.e,
 all kind of matrix products and triangular solvers.
 
 Indeed, in Eigen we have implemented a set of highly optimized routines which are very similar
 to BLAS's ones. Unlike BLAS, those routines are made available to user via a high level and
-natural API. Each of these routines can perform in a single evaluation a wide variety of expressions.
+natural API. Each of these routines can compute in a single evaluation a wide variety of expressions.
 Given an expression, the challenge is then to map it to a minimal set of primitives.
 As explained latter, this mechanism has some limitations, and knowing them will allow
 you to write faster code by making your expressions more Eigen friendly.
@@ -25,18 +25,18 @@ you to write faster code by making your expressions more Eigen friendly.
 Let's start with the most common primitive: the matrix product of general dense matrices.
 In the BLAS world this corresponds to the GEMM routine. Our equivalent primitive can
 perform the following operation:
-\f$ C += \alpha op1(A) * op2(B) \f$
+\f$ C.noalias() += \alpha op1(A) op2(B) \f$
 where A, B, and C are column and/or row major matrices (or sub-matrices),
 alpha is a scalar value, and op1, op2 can be transpose, adjoint, conjugate, or the identity.
 When Eigen detects a matrix product, it analyzes both sides of the product to extract a
 unique scalar factor alpha, and for each side its effective storage (order and shape) and conjugate state.
 More precisely each side is simplified by iteratively removing trivial expressions such as scalar multiple,
-negate and conjugate. Transpose and Block expressions are not evaluated and only modify the storage order
+negate and conjugate. Transpose and Block expressions are not evaluated and they only modify the storage order
 and shape. All other expressions are immediately evaluated.
 For instance, the following expression:
-\code m1 -= (s1 * m2.adjoint() * (-(s3*m3).conjugate()*s2)).lazy()  \endcode
+\code m1.noalias() -= s1 * m2.adjoint() * (-(s3*m3).conjugate()*s2)  \endcode
 is automatically simplified to:
-\code m1 += (s1*s2*conj(s3)) * m2.adjoint() * m3.conjugate() \endcode
+\code m1.noalias() += (s1*s2*conj(s3)) * m2.adjoint() * m3.conjugate() \endcode
 which exactly matches our GEMM routine.
 
 \subsection GEMM_Limitations Limitations
@@ -52,23 +52,26 @@ handled by a single GEMM-like call are correctly detected.
 <tr>
 <td>\code m1 += m2 * m3; \endcode</td>
 <td>\code temp = m2 * m3; m1 += temp; \endcode</td>
-<td>\code m1 += (m2 * m3).lazy(); \endcode</td>
-<td>Use .lazy() to tell Eigen the result and right-hand-sides do not alias.</td>
+<td>\code m1.noalias() += m2 * m3; \endcode</td>
+<td>Use .noalias() to tell Eigen the result and right-hand-sides do not alias. 
+    Otherwise the product m2 * m3 is evaluated into a temporary.</td>
 </tr>
 <tr>
-<td>\code m1 += (s1 * (m2 * m3)).lazy(); \endcode</td>
-<td>\code temp = (m2 * m3).lazy(); m1 += s1 * temp; \endcode</td>
-<td>\code m1 += (s1 * m2 * m3).lazy(); \endcode</td>
-<td>This is because m2 * m3 is immediately evaluated by the scalar product. <br>
-    Make sure the matrix product is the top most expression.</td>
+<td></td>
+<td></td>
+<td>\code m1.noalias() += s1 * (m2 * m3); \endcode</td>
+<td>This is a special feature of Eigen. Here the product between a scalar
+    and a matrix product does not evaluate the matrix product but instead it
+    returns a matrix product expression tracking the scalar scaling factor. <br>
+    Without this optimization, the matrix product would be evaluated into a
+    temporary as in the next example.</td>
 </tr>
 <tr>
-<td>\code m1 += s1 * (m2 * m3).lazy(); \endcode</td>
-<td>\code m1 += s1 * m2 * m3; // using a naive product \endcode</td>
-<td>\code m1 += (s1 * m2 * m3).lazy(); \endcode</td>
-<td>Even though this expression is evaluated without temporary, it is actually even
-    worse than the previous case because here the .lazy() enforces Eigen to use a
-    naive (and slow) evaluation of the product.</td>
+<td>\code m1.noalias() += (m2 * m3).transpose(); \endcode</td>
+<td>\code temp = m2 * m3; m1 += temp.transpose(); \endcode</td>
+<td>\code m1.noalias() += m3.adjoint() * m3.adjoint(); \endcode</td>
+<td>This is because the product expression has the EvalBeforeNesting bit which
+    enforces the evaluation of the product by the Tranpose expression.</td>
 </tr>
 <tr>
 <td>\code m1 = m1 + m2 * m3; \endcode</td>
@@ -78,112 +81,25 @@ handled by a single GEMM-like call are correctly detected.
     and so the matrix product will be immediately evaluated.</td>
 </tr>
 <tr>
-<td>\code m1 += ((s1*m2).block(....) * m3).lazy(); \endcode</td>
-<td>\code temp = (s1*m2).block(....); m1 += (temp * m3).lazy(); \endcode</td>
-<td>\code m1 += (s1 * m2.block(....) * m3).lazy(); \endcode</td>
+<td>\code m1.noalias() = m4 + m2 * m3; \endcode</td>
+<td>\code temp = m2 * m3; m1 = m4 + temp; \endcode</td>
+<td>\code m1 = m4; m1.noalias() += m2 * m3; \endcode</td>
+<td>First of all, here the .noalias() in the first expression is useless because
+    m2*m3 will be evaluated anyway. However, note how this expression can be rewritten
+    so that no temporary is evaluated. (tip: for very small fixed size matrix
+    it is slighlty better to rewrite it like this: m1.noalias() = m2 * m3; m1 += m4;</td>
+</tr>
+<tr>
+<td>\code m1.noalias() += ((s1*m2).block(....) * m3); \endcode</td>
+<td>\code temp = (s1*m2).block(....); m1 += temp * m3; \endcode</td>
+<td>\code m1.noalias() += s1 * m2.block(....) * m3; \endcode</td>
 <td>This is because our expression analyzer is currently not able to extract trivial
     expressions nested in a Block expression. Therefore the nested scalar
     multiple cannot be properly extracted.</td>
 </tr>
 </table>
 
-Of course all these remarks hold for all other kind of products that we will describe in the following paragraphs.
-
-
-
-
-<table class="tutorial_code">
-<tr>
-<td>BLAS equivalent routine</td>
-<td>Efficient version <br> (compile to a single optimized evaluation)</td>
-<td>Less efficient equivalent version <br> (requires multiple evaluations)</td>
-<td>comments</td>
-</tr>
-<tr>
-<td>GEMM</td>
-<td>m1 = s1 * m2 * m3</td>
-<td>m1 = s1 * (m2 * m3)</td>
-<td>This is because m2 * m3 is evaluated by the scalar product.</td>
-</tr>
-<tr>
-<td>GEMM</td>
-<td>m1 += s1 * m2.adjoint() * m3</td>
-<td>m1 += (s1 * m2).adjoint() * m3</td>
-<td>This is because our expression analyzer stops at the first transpose expression and cannot extract the nested scalar multiple.</td>
-</tr>
-<tr>
-<td>GEMM</td>
-<td>m1 += m2.adjoint() * m3</td>
-<td>m1 += m2.conjugate().transpose() * m3</td>
-<td>For the same reason. Use .adjoint() or .transpose().conjugate()</td>
-</tr>
-<tr>
-<td>GEMM</td>
-<td>m1 -= (-(s0*m2).conjugate()*s1) * (s2 * m3.adjoint() * s3)</td>
-<td></td>
-<td>Note that s0 is automatically conjugated during the simplification of the expression.</td>
-</tr>
-<tr>
-<td>SYR</td>
-<td>m.sefadjointView<LowerTriangular>().rankUpdate(v,s)</td>
-<td></td>
-<td>Computes m += s * v * v.adjoint()</td>
-</tr>
-<tr>
-<td>SYR2</td>
-<td>m.sefadjointView<LowerTriangular>().rankUpdate(u,v,s)</td>
-<td></td>
-<td>Computes m += s * u * v.adjoint() + s * v * u.adjoint()</td>
-</tr>
-<tr>
-<td>SYRK</td>
-<td>m1.sefadjointView<UpperTriangular>().rankUpdate(m2.adjoint(),s)</td>
-<td></td>
-<td>Computes m1 += s * m2.adjoint() * m2</td>
-</tr>
-<tr>
-<td>SYMM/HEMM</td>
-<td>m3 -= s1 * m1.sefadjointView<UpperTriangular>() * m2.adjoint()</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>SYMM/HEMM</td>
-<td>m3 += s1 * m2.transpose() * m1.conjugate().sefadjointView<UpperTriangular>()</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>TRMM</td>
-<td>m3 -= s1 * m1.triangularView<UnitUpperTriangular>() * m2.adjoint()</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>TRSV / TRSM</td>
-<td>m1.adjoint().triangularView<UnitLowerTriangular>().solveInPlace(m2)</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</table>
+Of course all these remarks hold for all other kind of products involving triangular or selfadjoint matrices.
 
 */
 

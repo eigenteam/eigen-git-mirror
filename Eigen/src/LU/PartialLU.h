@@ -248,7 +248,7 @@ struct ei_partial_lu_impl
         int rrows = rows-k-1;
         int rsize = size-k-1;
         lu.col(k).end(rrows) /= lu.coeff(k,k);
-        lu.corner(BottomRight,rrows,rsize) -= (lu.col(k).end(rrows) * lu.row(k).end(rsize)).lazy();
+        lu.corner(BottomRight,rrows,rsize).noalias() -= lu.col(k).end(rrows) * lu.row(k).end(rsize);
       }
     }
   }
