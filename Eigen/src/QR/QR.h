@@ -101,7 +101,7 @@ template<typename MatrixType> class HouseholderQR
       */
     const MatrixType& matrixQR() const { return m_qr; }
 
-    void compute(const MatrixType& matrix);
+    HouseholderQR& compute(const MatrixType& matrix);
 
   protected:
     MatrixType m_qr;
@@ -112,7 +112,7 @@ template<typename MatrixType> class HouseholderQR
 #ifndef EIGEN_HIDE_HEAVY_CODE
 
 template<typename MatrixType>
-void HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
+HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
   m_qr = matrix;
   m_hCoeffs.resize(matrix.cols());
@@ -175,6 +175,7 @@ void HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
     }
   }
   m_isInitialized = true;
+  return *this;
 }
 
 template<typename MatrixType>

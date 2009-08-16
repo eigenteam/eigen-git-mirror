@@ -105,7 +105,7 @@ template<typename MatrixType, int _UpLo> class LLT
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
-    void compute(const MatrixType& matrix);
+    LLT& compute(const MatrixType& matrix);
 
   protected:
     /** \internal
@@ -213,9 +213,12 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
+  *
+  *
+  * \returns a reference to *this
   */
 template<typename MatrixType, int _UpLo>
-void LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
+LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const int size = a.rows();
@@ -223,6 +226,7 @@ void LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   m_matrix = a;
 
   m_isInitialized = Traits::inplace_decomposition(m_matrix);
+  return *this;
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.

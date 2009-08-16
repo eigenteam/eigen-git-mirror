@@ -90,9 +90,9 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       compute(matA, matB, computeEigenvectors);
     }
 
-    void compute(const MatrixType& matrix, bool computeEigenvectors = true);
+    SelfAdjointEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
-    void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true);
+    SelfAdjointEigenSolver& compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true);
 
     /** \returns the computed eigen vectors as a matrix of column vectors */
     MatrixType eigenvectors(void) const
@@ -182,7 +182,7 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
   * \sa SelfAdjointEigenSolver(MatrixType,bool), compute(MatrixType,MatrixType,bool)
   */
 template<typename MatrixType>
-void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
+SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
   #ifndef NDEBUG
   m_eigenvectorsOk = computeEigenvectors;
@@ -195,7 +195,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   {
     m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
     m_eivec.setOnes();
-    return;
+    return *this;
   }
 
   m_eivec = matrix;
@@ -240,6 +240,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
       m_eivec.col(i).swap(m_eivec.col(k+i));
     }
   }
+  return *this;
 }
 
 /** Computes the eigenvalues of the generalized eigen problem
@@ -250,7 +251,7 @@ void SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool 
   * \sa SelfAdjointEigenSolver(MatrixType,MatrixType,bool), compute(MatrixType,bool)
   */
 template<typename MatrixType>
-void SelfAdjointEigenSolver<MatrixType>::
+SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::
 compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors)
 {
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
@@ -282,6 +283,7 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
     for (int i=0; i<m_eivec.cols(); ++i)
       m_eivec.col(i) = m_eivec.col(i).normalized();
   }
+  return *this;
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

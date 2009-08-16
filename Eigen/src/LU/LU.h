@@ -111,8 +111,10 @@ template<typename MatrixType> class LU
       *
       * \param matrix the matrix of which to compute the LU decomposition.
       *               It is required to be nonzero.
+      *
+      * \returns a reference to *this
       */
-    void compute(const MatrixType& matrix);
+    LU& compute(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -377,7 +379,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 }
 
 template<typename MatrixType>
-void LU<MatrixType>::compute(const MatrixType& matrix)
+LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_originalMatrix = &matrix;
   m_lu = matrix;
@@ -447,6 +449,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
     std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
+  return *this;
 }
 
 template<typename MatrixType>

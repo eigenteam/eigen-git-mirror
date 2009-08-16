@@ -67,7 +67,7 @@ template<typename MatrixType, bool ComputeU, bool ComputeV> class JacobiSquareSV
       compute(matrix);
     }
     
-    void compute(const MatrixType& matrix);
+    JacobiSquareSVD& compute(const MatrixType& matrix);
     
     const MatrixUType& matrixU() const
     {
@@ -95,7 +95,7 @@ template<typename MatrixType, bool ComputeU, bool ComputeV> class JacobiSquareSV
 };
 
 template<typename MatrixType, bool ComputeU, bool ComputeV>
-void JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& matrix)
+JacobiSquareSVD<MatrixType, ComputeU, ComputeV>& JacobiSquareSVD<MatrixType, ComputeU, ComputeV>::compute(const MatrixType& matrix)
 {
   MatrixType work_matrix(matrix);
   int size = matrix.rows();
@@ -164,5 +164,6 @@ sweep_again:
   }
 
   m_isInitialized = true;
+  return *this;
 }
 #endif // EIGEN_JACOBISQUARESVD_H

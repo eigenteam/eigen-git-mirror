@@ -97,7 +97,7 @@ template<typename MatrixType> class SVD
       return m_matV;
     }
 
-    void compute(const MatrixType& matrix);
+    SVD& compute(const MatrixType& matrix);
 
     template<typename UnitaryType, typename PositiveType>
     void computeUnitaryPositive(UnitaryType *unitary, PositiveType *positive) const;
@@ -138,9 +138,11 @@ template<typename MatrixType> class SVD
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
   *
   * \note this code has been adapted from Numerical Recipes, third edition.
+  *
+  * \returns a reference to *this
   */
 template<typename MatrixType>
-void SVD<MatrixType>::compute(const MatrixType& matrix)
+SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
@@ -157,7 +159,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   SingularValuesType& W = m_sigma;
 
   bool flag;
-  int i,its,j,jj,k,l,nm;
+  int i,its,j,k,l,nm;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
   Scalar eps = precision<Scalar>();
@@ -392,6 +394,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     m_matU = A.block(0,0,m,m);
 
   m_isInitialized = true;
+  return *this;
 }
 
 /** \returns the solution of \f$ A x = b \f$ using the current SVD decomposition of A.

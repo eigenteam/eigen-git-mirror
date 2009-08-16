@@ -87,7 +87,7 @@ template<typename MatrixType> class PartialLU
       */
     PartialLU(const MatrixType& matrix);
 
-    void compute(const MatrixType& matrix);
+    PartialLU& compute(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -350,7 +350,7 @@ void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& n
 }
 
 template<typename MatrixType>
-void PartialLU<MatrixType>::compute(const MatrixType& matrix)
+PartialLU<MatrixType>& PartialLU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_lu = matrix;
   m_p.resize(matrix.rows());
@@ -369,6 +369,7 @@ void PartialLU<MatrixType>::compute(const MatrixType& matrix)
     std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
 
   m_isInitialized = true;
+  return *this;
 }
 
 template<typename MatrixType>
