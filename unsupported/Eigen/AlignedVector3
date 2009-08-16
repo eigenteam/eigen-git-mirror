@@ -152,7 +152,18 @@ template<typename _Scalar> class AlignedVector3
     {
       ei_assert(m_coeffs.w()==Scalar(0));
       ei_assert(other.m_coeffs.w()==Scalar(0));
+      Scalar r = m_coeffs.dot(other.m_coeffs);
       return m_coeffs.dot(other.m_coeffs);
+    }
+
+    inline void normalize()
+    {
+      m_coeffs /= norm();
+    }
+
+    inline AlignedVector3 normalized()
+    {
+      return AlignedVector3(m_coeffs / norm());
     }
     
     inline Scalar sum() const
