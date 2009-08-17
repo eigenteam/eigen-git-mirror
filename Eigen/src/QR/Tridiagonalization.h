@@ -198,65 +198,29 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-  for (int i = 0; i<n-2; ++i)
+  Matrix<Scalar,1,Dynamic> aux(n);
+  for (int i = 0; i<n-1; ++i)
   {
-    // let's consider the vector v = i-th column starting at position i+1
+    
+    int remainingSize = n-i-1;
+    RealScalar beta;
+    Scalar h;
+    matA.col(i).end(remainingSize).makeHouseholderInPlace(&h, &beta);
 
-    // start of the householder transformation
-    // squared norm of the vector v skipping the first element
-    RealScalar v1norm2 = matA.col(i).end(n-(i+2)).squaredNorm();
+    // Apply similarity transformation to remaining columns,
+    // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).end(n-i-1)
+    matA.col(i).coeffRef(i+1) = 1;
 
-    // FIXME comparing against 1
-    if (ei_isMuchSmallerThan(v1norm2,static_cast<Scalar>(1)))
-    {
-      hCoeffs.coeffRef(i) = 0.;
-    }
-    else
-    {
-      Scalar v0 = matA.col(i).coeff(i+1);
-      RealScalar beta = ei_sqrt(ei_abs2(v0)+v1norm2);
-      if (ei_real(v0)>=0.)
-        beta = -beta;
-      matA.col(i).end(n-(i+2)) *= (Scalar(1)/(v0-beta));
-      matA.col(i).coeffRef(i+1) = beta;
-      Scalar h = (beta - v0) / beta;
-      // end of the householder transformation
+    hCoeffs.end(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<LowerTriangular>()
+                        * (ei_conj(h) * matA.col(i).end(remainingSize)));
 
-      // Apply similarity transformation to remaining columns,
-      // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
-      matA.col(i).coeffRef(i+1) = 1;
+    hCoeffs.end(n-i-1) += (ei_conj(h)*Scalar(-0.5)*(hCoeffs.end(remainingSize).dot(matA.col(i).end(remainingSize)))) * matA.col(i).end(n-i-1);
 
-      hCoeffs.end(n-i-1) = (matA.corner(BottomRight,n-i-1,n-i-1).template selfadjointView<LowerTriangular>()
-                         * (h * matA.col(i).end(n-i-1)));
+    matA.corner(BottomRight, remainingSize, remainingSize).template selfadjointView<LowerTriangular>()
+      .rankUpdate(matA.col(i).end(remainingSize), hCoeffs.end(remainingSize), -1);
 
-      hCoeffs.end(n-i-1) += (h*Scalar(-0.5)*(hCoeffs.end(n-i-1).dot(matA.col(i).end(n-i-1)))) * matA.col(i).end(n-i-1);
-
-      matA.corner(BottomRight, n-i-1, n-i-1).template selfadjointView<LowerTriangular>()
-        .rankUpdate(matA.col(i).end(n-i-1), hCoeffs.end(n-i-1), -1);
-
-      // note: at that point matA(i+1,i+1) is the (i+1)-th element of the final diagonal
-      // note: the sequence of the beta values leads to the subdiagonal entries
-      matA.col(i).coeffRef(i+1) = beta;
-
-      hCoeffs.coeffRef(i) = h;
-    }
-  }
-  if (NumTraits<Scalar>::IsComplex)
-  {
-    // Householder transformation on the remaining single scalar
-    int i = n-2;
-    Scalar v0 = matA.col(i).coeff(i+1);
-    RealScalar beta = ei_abs(v0);
-    if (ei_real(v0)>=RealScalar(0))
-      beta = -beta;
     matA.col(i).coeffRef(i+1) = beta;
-    // FIXME comparing against 1
-    if(ei_isMuchSmallerThan(beta, Scalar(1))) hCoeffs.coeffRef(i) = Scalar(0);
-    else hCoeffs.coeffRef(i) = (beta - v0) / beta;
-  }
-  else
-  {
-    hCoeffs.coeffRef(n-2) = 0;
+    hCoeffs.coeffRef(i) = h;
   }
 }
 
@@ -280,16 +244,8 @@ void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) con
   Matrix<Scalar,1,Dynamic> aux(n);
   for (int i = n-2; i>=0; i--)
   {
-    Scalar tmp = m_matrix.coeff(i+1,i);
-    m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
-
-    aux.end(n-i-1) = (m_hCoeffs.coeff(i) * m_matrix.col(i).end(n-i-1).adjoint() * matQ.corner(BottomRight,n-i-1,n-i-1)).lazy();
-    // rank one update, TODO ! make it works efficiently as expected
-    for (int j=i+1;j<n;++j)
-      matQ.col(j).end(n-i-1) -= aux.coeff(j) * m_matrix.col(i).end(n-i-1);
-//     matQ.corner(BottomRight,n-i-1,n-i-1) -= (m_matrix.col(i).end(n-i-1) * aux.end(n-i-1)).lazy();
-
-    m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;
+    matQ.corner(BottomRight,n-i-1,n-i-1)
+        .applyHouseholderOnTheLeft(m_matrix.col(i).end(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &aux.coeffRef(0,0));
   }
 }
 

@@ -53,7 +53,7 @@ template<typename MatrixType> class HouseholderQR
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Block<MatrixType, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixRBlockType;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
-    typedef Matrix<RealScalar, MinSizeAtCompileTime, 1> HCoeffsType;
+    typedef Matrix<Scalar, MinSizeAtCompileTime, 1> HCoeffsType;
 
     /**
     * \brief Default Constructor.
@@ -132,11 +132,13 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
     int remainingRows = rows - k;
     int remainingCols = cols - k -1;
 
-    m_qr.col(k).end(remainingRows).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &m_qr.coeffRef(k,k));
-    
-    if (remainingRows>1 && remainingCols>0)
-      m_qr.corner(BottomRight, remainingRows, remainingCols)
-          .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+    RealScalar beta;
+    m_qr.col(k).end(remainingRows).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &beta);
+    m_qr.coeffRef(k,k) = beta;
+
+    // apply H to remaining part of m_qr from the left
+    m_qr.corner(BottomRight, remainingRows, remainingCols)
+        .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
   }
   m_isInitialized = true;
   return *this;
@@ -163,7 +165,7 @@ void HouseholderQR<MatrixType>::solve(
     int remainingSize = rows-k;
 
     result->corner(BottomRight, remainingSize, cols)
-           .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_real(m_hCoeffs.coeff(k)), &temp.coeffRef(0));
+           .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
   }
 
   const int rank = std::min(result->rows(), result->cols());
@@ -177,8 +179,8 @@ template<typename MatrixType>
 MatrixType HouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  // compute the product Q_0 Q_1 ... Q_n-1,
-  // where Q_k is the k-th Householder transformation I - h_k v_k v_k'
+  // compute the product H'_0 H'_1 ... H'_n-1,
+  // where H_k is the k-th Householder transformation I - h_k v_k v_k'
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
   int rows = m_qr.rows();
   int cols = m_qr.cols();
@@ -187,9 +189,8 @@ MatrixType HouseholderQR<MatrixType>::matrixQ() const
   for (int k = cols-1; k >= 0; k--)
   {
     int remainingSize = rows-k;
-
     res.corner(BottomRight, remainingSize, cols-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_real(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
+       .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
   }
   return res;
 }

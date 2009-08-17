@@ -42,7 +42,7 @@ void makeTrivialHouseholder(
 }
 
 template<typename Derived>
-void MatrixBase<Derived>::makeHouseholderInPlace(RealScalar *tau, Scalar *beta)
+void MatrixBase<Derived>::makeHouseholderInPlace(Scalar *tau, RealScalar *beta)
 {
   VectorBlock<Derived, ei_decrement_size<SizeAtCompileTime>::ret> essentialPart(derived(), 1, size()-1);
   makeHouseholder(&essentialPart, tau, beta);
@@ -67,33 +67,35 @@ template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::makeHouseholder(
   EssentialPart *essential,
-  RealScalar *tau,
-  Scalar *beta) const
+  Scalar *tau,
+  RealScalar *beta) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
-  RealScalar _squaredNorm = squaredNorm();
-  Scalar c0;
-  if(ei_abs2(coeff(0)) <= ei_abs2(precision<Scalar>()) * _squaredNorm)
+  VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
+  
+  RealScalar tailSqNorm;
+  Scalar c0 = coeff(0);
+  
+  if( (size()==1 || (tailSqNorm=tail.squaredNorm()) == RealScalar(0)) && ei_imag(c0)==RealScalar(0))
   {
-    c0 = ei_sqrt(_squaredNorm);
+    *tau = 0;
+    *beta = ei_real(c0);
   }
   else
   {
-    Scalar sign = coeff(0) / ei_abs(coeff(0));
-    c0 = coeff(0) + sign * ei_sqrt(_squaredNorm);
+    *beta = ei_sqrt(ei_abs2(c0) + tailSqNorm);
+    if (ei_real(c0)>=0.)
+      *beta = -*beta;
+    *essential = tail / (c0 - *beta);
+    *tau = ei_conj((*beta - c0) / *beta);
   }
-  VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
-  *essential = tail / c0;
-  const RealScalar c0abs2 = ei_abs2(c0);
-  *tau = RealScalar(2) * c0abs2 / (c0abs2 + _squaredNorm - ei_abs2(coeff(0)));
-  *beta = coeff(0) - c0;
 }
 
 template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const EssentialPart& essential,
-  const RealScalar& tau,
+  const Scalar& tau,
   Scalar* workspace)
 {
   Map<Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> > tmp(workspace,cols());
@@ -108,7 +110,7 @@ template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const EssentialPart& essential,
-  const RealScalar& tau,
+  const Scalar& tau,
   Scalar* workspace)
 {
   Map<Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> > tmp(workspace,rows());

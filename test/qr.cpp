@@ -93,8 +93,8 @@ void test_qr()
     // FIXME : very weird bug here
 //     CALL_SUBTEST( qr(Matrix2f()) );
     CALL_SUBTEST( qr(Matrix4d()) );
-    CALL_SUBTEST( qr(MatrixXcd(17,7)) );
     CALL_SUBTEST( qr(MatrixXf(47,40)) );
+    CALL_SUBTEST( qr(MatrixXcd(17,7)) );
   }
 
   for(int i = 0; i < g_repeat; i++) {
