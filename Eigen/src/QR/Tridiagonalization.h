@@ -201,7 +201,6 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
   Matrix<Scalar,1,Dynamic> aux(n);
   for (int i = 0; i<n-1; ++i)
   {
-    
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
