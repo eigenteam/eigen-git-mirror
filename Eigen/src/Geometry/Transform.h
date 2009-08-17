@@ -283,6 +283,10 @@ public:
   bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
   { return m_matrix.isApprox(other.m_matrix, prec); }
 
+  #ifdef EIGEN_TRANSFORM_PLUGIN
+  #include EIGEN_TRANSFORM_PLUGIN
+  #endif
+
 protected:
 
 };
