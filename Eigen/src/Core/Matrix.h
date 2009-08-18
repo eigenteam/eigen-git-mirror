@@ -507,7 +507,7 @@ class Matrix
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix& _set(const MatrixBase<OtherDerived>& other)
     {
-      _set_selector(other.derived(), typename ei_meta_if<(int(OtherDerived::Flags) & EvalBeforeAssigningBit), ei_meta_true, ei_meta_false>::ret());
+      _set_selector(other.derived(), typename ei_meta_if<bool(int(OtherDerived::Flags) & EvalBeforeAssigningBit), ei_meta_true, ei_meta_false>::ret());
       return *this;
     }
 
