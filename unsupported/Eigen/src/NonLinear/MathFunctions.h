@@ -356,5 +356,31 @@ int ei_lmdif1(
     );
 }
 
+template<typename Scalar>
+void ei_chkder(
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &xp,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvecp,
+        int mode,
+        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &err
+        )
+{
+    int ldfjac = fvec.size();
+    if (mode==1)
+        xp.resize(ldfjac);
+    else
+        err.resize(ldfjac);
+    chkder(
+            fvec.size(), x.size(), x.data(), fvec.data(),
+            fjac.data(), ldfjac,
+            xp.data(),
+            fvecp.data(),
+            mode,
+            err.data()
+    );
+}
+
 #endif // EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
