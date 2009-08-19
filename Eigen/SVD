@@ -2,6 +2,8 @@
 #define EIGEN_SVD_MODULE_H
 
 #include "Core"
+#include "Householder"
+#include "Jacobi"
 
 #include "src/Core/util/DisableMSVCWarnings.h"
 
@@ -21,6 +23,7 @@ namespace Eigen {
   */
 
 #include "src/SVD/SVD.h"
+#include "src/SVD/JacobiSquareSVD.h"
 
 } // namespace Eigen
 

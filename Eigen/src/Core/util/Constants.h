@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -39,10 +39,9 @@
   *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
   * - It should be a prime number, because for example the old value 10000 led to bugs with 100x100 matrices.
   *
-  * If you wish to port Eigen to a platform where sizeof(int)==2, it is perfectly possible to set Dynamic to, say, 97.
-  * However, changing the value of Dynamic breaks the ABI, as Dynamic is often used as a template parameter for Matrix.
+  * Changing the value of Dynamic breaks the ABI, as Dynamic is often used as a template parameter for Matrix.
   */
-const int Dynamic = 33331;
+const int Dynamic = sizeof(int) >= 4 ? 33331 : 101;
 
 /** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
   * The value Infinity there means the L-infinity norm.

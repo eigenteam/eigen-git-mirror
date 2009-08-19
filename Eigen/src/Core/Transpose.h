@@ -267,4 +267,92 @@ inline void MatrixBase<Derived>::adjointInPlace()
   derived() = adjoint().eval();
 }
 
+#ifndef EIGEN_NO_DEBUG
+
+// The following is to detect aliasing problems in the following common cases:
+// a = a.transpose()
+// a = a.transpose() + X
+// a = X + a.transpose()
+// a = a.adjoint()
+// a = a.adjoint() + X
+// a = X + a.adjoint()
+
+template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
+struct ei_extract_data_selector {
+  static typename T::Scalar* run(const T& m)
+  {
+    return &ei_blas_traits<T>::extract(m).const_cast_derived().coeffRef(0,0);
+  }
+};
+
+template<typename T>
+struct ei_extract_data_selector<T,NoDirectAccess> {
+  static typename T::Scalar* run(const T&) { return 0; }
+};
+
+template<typename T> typename T::Scalar* ei_extract_data(const T& m)
+{
+  return ei_extract_data_selector<T>::run(m);
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+Derived& MatrixBase<Derived>::lazyAssign(const Transpose<OtherDerived>& other)
+{
+  ei_assert(ei_extract_data(other) != ei_extract_data(derived())
+            && "aliasing detected during tranposition, please use transposeInPlace()");
+  return lazyAssign(static_cast<const MatrixBase<Transpose<OtherDerived> >& >(other));
+}
+
+template<typename Derived>
+template<typename DerivedA, typename DerivedB>
+Derived& MatrixBase<Derived>::
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other)
+{
+  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.lhs())
+            && "aliasing detected during tranposition, please evaluate your expression");
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB> >& >(other));
+}
+
+template<typename Derived>
+template<typename DerivedA, typename DerivedB>
+Derived& MatrixBase<Derived>::
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other)
+{
+  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.rhs())
+            && "aliasing detected during tranposition, please evaluate your expression");
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> > >& >(other));
+}
+
+template<typename Derived>
+template<typename OtherDerived> Derived&
+MatrixBase<Derived>::
+lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other)
+{
+  ei_assert(ei_extract_data(other) != ei_extract_data(derived())
+            && "aliasing detected during tranposition, please use adjointInPlace()");
+  return lazyAssign(static_cast<const MatrixBase<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > > >& >(other));
+}
+
+template<typename Derived>
+template<typename DerivedA, typename DerivedB>
+Derived& MatrixBase<Derived>::
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other)
+{
+  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.lhs())
+            && "aliasing detected during tranposition, please evaluate your expression");
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB> >& >(other));
+}
+
+template<typename Derived>
+template<typename DerivedA, typename DerivedB>
+Derived& MatrixBase<Derived>::
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other)
+{
+  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.rhs())
+            && "aliasing detected during tranposition, please evaluate your expression");
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > > >& >(other));
+}
+#endif
+    
 #endif // EIGEN_TRANSPOSE_H

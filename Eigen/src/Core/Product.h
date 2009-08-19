@@ -153,10 +153,10 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(dst.rows()==1 && dst.cols()==1);
-      dst.coeffRef(0,0) += alpha * (m_lhs.cwise()*m_rhs).sum();
+      dst.coeffRef(0,0) += alpha * (m_lhs.transpose().cwise()*m_rhs).sum();
     }
 };
 
@@ -179,7 +179,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-    template<typename Dest> void addTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
       ei_outer_product_selector<Dest::Flags&RowMajorBit>::run(*this, dest, alpha);
     }
@@ -187,7 +187,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
 template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure lhs is sequentially stored
     const int cols = dest.cols();
     for (int j=0; j<cols; ++j)
@@ -197,7 +197,7 @@ template<> struct ei_outer_product_selector<ColMajor> {
 
 template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure rhs is sequentially stored
     const int rows = dest.rows();
     for (int i=0; i<rows; ++i)
@@ -236,7 +236,7 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
     typedef typename ei_meta_if<int(Side)==OnTheRight,_LhsNested,_RhsNested>::ret MatrixType;
 
-    template<typename Dest> void addTo(Dest& dst, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
       ei_gemv_selector<Side,int(MatrixType::Flags)&RowMajorBit,

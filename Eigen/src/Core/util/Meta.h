@@ -155,12 +155,7 @@ template<int Y, int InfX, int SupX>
 class ei_meta_sqrt<Y, InfX, SupX, true> { public:  enum { ret = (SupX*SupX <= Y) ? SupX : InfX }; };
 
 /** \internal determines whether the product of two numeric types is allowed and what the return type is */
-template<typename T, typename U> struct ei_scalar_product_traits
-{
-  // dummy general case where T and U aren't compatible -- not allowed anyway but we catch it elsewhere
-  //enum { Cost = NumTraits<T>::MulCost };
-  typedef T ReturnType;
-};
+template<typename T, typename U> struct ei_scalar_product_traits;
 
 template<typename T> struct ei_scalar_product_traits<T,T>
 {

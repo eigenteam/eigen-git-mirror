@@ -179,6 +179,14 @@ public :
     #endif
   }
 
+  static inline void rot(gene_vector & A,  gene_vector & B, float c, float s, int N){
+    #ifdef PUREBLAS
+    srot_(&N,A,&intone,B,&intone,&c,&s);
+    #else
+    cblas_srot(N,A,1,B,1,c,s);
+    #endif
+  }
+  
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     #ifdef PUREBLAS
     sgemv_(&trans,&N,&N,&fone,A,&N,B,&intone,&fzero,X,&intone);

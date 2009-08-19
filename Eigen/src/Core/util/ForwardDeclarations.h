@@ -35,6 +35,7 @@ template<typename _Scalar, int _Rows, int _Cols,
          int _MaxRows = _Rows, int _MaxCols = _Cols> class Matrix;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
+template<typename ExpressionType> class NoAlias;
 template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;

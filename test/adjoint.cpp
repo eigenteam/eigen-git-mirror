@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
-#define EIGEN_NO_ASSERTION_CHECKING
+
 #include "main.h"
 
 template<typename MatrixType> void adjoint(const MatrixType& m)
@@ -110,7 +110,6 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   m3.transposeInPlace();
   VERIFY_IS_APPROX(m3,m1.conjugate());
 
-
 }
 
 void test_adjoint()
@@ -125,5 +124,16 @@ void test_adjoint()
   }
   // test a large matrix only once
   CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
+  
+  {
+    MatrixXcf a(10,10), b(10,10);
+    VERIFY_RAISES_ASSERT(a = a.transpose());
+    VERIFY_RAISES_ASSERT(a = a.transpose() + b);
+    VERIFY_RAISES_ASSERT(a = b + a.transpose());
+    VERIFY_RAISES_ASSERT(a = a.conjugate().transpose());
+    VERIFY_RAISES_ASSERT(a = a.adjoint());
+    VERIFY_RAISES_ASSERT(a = a.adjoint() + b);
+    VERIFY_RAISES_ASSERT(a = b + a.adjoint());
+  }
 }
 

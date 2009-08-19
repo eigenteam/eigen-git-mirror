@@ -25,7 +25,9 @@
 #ifndef EIGEN_FLAGGED_H
 #define EIGEN_FLAGGED_H
 
-/** \class Flagged
+/** \deprecated it is only used by lazy() which is deprecated
+  *
+  * \class Flagged
   *
   * \brief Expression with modified flags
   *
@@ -111,9 +113,9 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     ExpressionTypeNested m_matrix;
 };
 
-/** \returns an expression of *this with added flags
+/** \deprecated it is only used by lazy() which is deprecated
   *
-  * \addexample MarkExample \label How to mark a triangular matrix as triangular
+  * \returns an expression of *this with added flags
   *
   * Example: \include MatrixBase_marked.cpp
   * Output: \verbinclude MatrixBase_marked.out
@@ -128,8 +130,9 @@ MatrixBase<Derived>::marked() const
   return derived();
 }
 
-/** \returns an expression of *this with the following flags removed:
-  * EvalBeforeNestingBit and EvalBeforeAssigningBit.
+/** \deprecated use MatrixBase::noalias()
+  * 
+  * \returns an expression of *this with the EvalBeforeAssigningBit flag removed.
   *
   * Example: \include MatrixBase_lazy.cpp
   * Output: \verbinclude MatrixBase_lazy.out
@@ -137,7 +140,7 @@ MatrixBase<Derived>::marked() const
   * \sa class Flagged, marked()
   */
 template<typename Derived>
-inline const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>
+inline const Flagged<Derived, 0, EvalBeforeAssigningBit>
 MatrixBase<Derived>::lazy() const
 {
   return derived();

@@ -97,8 +97,7 @@ template<typename MatrixType> class SVD
       return m_matV;
     }
 
-    void compute(const MatrixType& matrix);
-    SVD& sort();
+    SVD& compute(const MatrixType& matrix);
 
     template<typename UnitaryType, typename PositiveType>
     void computeUnitaryPositive(UnitaryType *unitary, PositiveType *positive) const;
@@ -139,9 +138,11 @@ template<typename MatrixType> class SVD
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
   *
   * \note this code has been adapted from Numerical Recipes, third edition.
+  *
+  * \returns a reference to *this
   */
 template<typename MatrixType>
-void SVD<MatrixType>::compute(const MatrixType& matrix)
+SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
@@ -158,7 +159,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
   SingularValuesType& W = m_sigma;
 
   bool flag;
-  int i,its,j,jj,k,l,nm;
+  int i,its,j,k,l,nm;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
   Scalar eps = precision<Scalar>();
@@ -308,13 +309,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
           h = Scalar(1.0)/h;
           c = g*h;
           s = -f*h;
-          for (j=0; j<m; j++)
-          {
-            y = A(j,nm);
-            z = A(j,i);
-            A(j,nm) = y*c + z*s;
-            A(j,i)  = z*c - y*s;
-          }
+          V.applyJacobiOnTheRight(i,nm,c,s);
         }
       }
       z = W[k];
@@ -347,6 +342,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         y = W[i];
         h = s*g;
         g = c*g;
+        
         z = pythag(f,h);
         rv1[j] = z;
         c = f/z;
@@ -355,13 +351,8 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         g = g*c - x*s;
         h = y*s;
         y *= c;
-        for (jj=0; jj<n; jj++)
-        {
-          x = V(jj,j);
-          z = V(jj,i);
-          V(jj,j) = x*c + z*s;
-          V(jj,i) = z*c - x*s;
-        }
+        V.applyJacobiOnTheRight(i,j,c,s);
+        
         z = pythag(f,h);
         W[j] = z;
         // Rotation can be arbitrary if z = 0.
@@ -373,13 +364,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
         }
         f = c*g + s*y;
         x = c*y - s*g;
-        for (jj=0; jj<m; jj++)
-        {
-          y = A(jj,j);
-          z = A(jj,i);
-          A(jj,j) = y*c + z*s;
-          A(jj,i) = z*c - y*s;
-        }
+        A.applyJacobiOnTheRight(i,j,c,s);
       }
       rv1[l] = 0.0;
       rv1[k] = f;
@@ -392,9 +377,10 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     for (int i=0; i<n; i++)
     {
       int k;
-      W.end(n-i).minCoeff(&k);
-      if (k != i)
+      W.end(n-i).maxCoeff(&k);
+      if (k != 0)
       {
+        k += i;
         std::swap(W[k],W[i]);
         A.col(i).swap(A.col(k));
         V.col(i).swap(V.col(k));
@@ -408,44 +394,6 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
     m_matU = A.block(0,0,m,m);
 
   m_isInitialized = true;
-}
-
-template<typename MatrixType>
-SVD<MatrixType>& SVD<MatrixType>::sort()
-{
-  ei_assert(m_isInitialized && "SVD is not initialized.");
-
-  int mu = m_matU.rows();
-  int mv = m_matV.rows();
-  int n  = m_matU.cols();
-
-  for (int i=0; i<n; ++i)
-  {
-    int  k = i;
-    Scalar p = m_sigma.coeff(i);
-
-    for (int j=i+1; j<n; ++j)
-    {
-      if (m_sigma.coeff(j) > p)
-      {
-        k = j;
-        p = m_sigma.coeff(j);
-      }
-    }
-    if (k != i)
-    {
-      m_sigma.coeffRef(k) = m_sigma.coeff(i);  // i.e.
-      m_sigma.coeffRef(i) = p;                 // swaps the i-th and the k-th elements
-
-      int j = mu;
-      for(int s=0; j!=0; ++s, --j)
-        std::swap(m_matU.coeffRef(s,i), m_matU.coeffRef(s,k));
-
-      j = mv;
-      for (int s=0; j!=0; ++s, --j)
-        std::swap(m_matV.coeffRef(s,i), m_matV.coeffRef(s,k));
-    }
-  }
   return *this;
 }
 

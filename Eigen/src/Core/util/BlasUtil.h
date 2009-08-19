@@ -182,7 +182,7 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
 
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
-    NeedToConjugate = IsComplex
+    NeedToConjugate = Base::NeedToConjugate ? 0 : IsComplex
   };
   static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x._expression())); }

@@ -57,7 +57,10 @@ private:
                   && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
-    MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
+    MayLinearVectorize = MightVectorize && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit)
+                                        && (DstIsAligned || InnerMaxSize == Dynamic),/* If the destination isn't aligned,
+      we have to do runtime checks and we don't unroll, so it's only good for large enough sizes. See remark below
+      about InnerMaxSize. */
     MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize /* slice vectorization can be slow, so we only
       want it if the slices are big, which is indicated by InnerMaxSize rather than InnerSize, think of the case
       of a dynamic block in a fixed-size matrix */
@@ -90,6 +93,25 @@ public:
               ? ( int(MayUnrollCompletely) && int(DstIsAligned) ? int(CompleteUnrolling) : int(NoUnrolling) )
               : int(NoUnrolling)
   };
+  
+  static void debug()
+  {
+    EIGEN_DEBUG_VAR(DstIsAligned)
+    EIGEN_DEBUG_VAR(SrcIsAligned)
+    EIGEN_DEBUG_VAR(SrcAlignment)
+    EIGEN_DEBUG_VAR(InnerSize)
+    EIGEN_DEBUG_VAR(InnerMaxSize)
+    EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(MightVectorize)
+    EIGEN_DEBUG_VAR(MayInnerVectorize)
+    EIGEN_DEBUG_VAR(MayLinearVectorize)
+    EIGEN_DEBUG_VAR(MaySliceVectorize)
+    EIGEN_DEBUG_VAR(Vectorization)
+    EIGEN_DEBUG_VAR(UnrollingLimit)
+    EIGEN_DEBUG_VAR(MayUnrollCompletely)
+    EIGEN_DEBUG_VAR(MayUnrollInner)
+    EIGEN_DEBUG_VAR(Unrolling)
+  }
 };
 
 /***************************************************************************
@@ -405,6 +427,9 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   ei_assert(rows() == other.rows() && cols() == other.cols());
   ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
+#ifdef EIGEN_DEBUG_ASSIGN
+  ei_assign_traits<Derived, OtherDerived>::debug();
+#endif
   return derived();
 }
 

@@ -326,9 +326,10 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
 
-    /** Overloaded for cache friendly product evaluation */
+    /** \deprecated because .lazy() is deprecated
+      * Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
-    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeAssigningBit>& other)
     { return lazyAssign(other._expression()); }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
@@ -336,11 +337,11 @@ template<typename Derived> class MatrixBase
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+                                      EvalBeforeAssigningBit>& other);
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
+                                      EvalBeforeAssigningBit>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
@@ -456,6 +457,21 @@ template<typename Derived> class MatrixBase
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
     void adjointInPlace();
+    #ifndef EIGEN_NO_DEBUG
+    template<typename OtherDerived>
+    Derived& lazyAssign(const Transpose<OtherDerived>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other);
+
+    template<typename OtherDerived>
+    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other);
+    template<typename DerivedA, typename DerivedB>
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other);
+    #endif
 
     RowXpr row(int i);
     const RowXpr row(int i) const;
@@ -614,7 +630,9 @@ template<typename Derived> class MatrixBase
 
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
-    const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
+    const Flagged<Derived, 0, EvalBeforeAssigningBit> lazy() const;
+
+    NoAlias<Derived> noalias();
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.
@@ -768,16 +786,26 @@ template<typename Derived> class MatrixBase
 
 ////////// Householder module ///////////
 
+    void makeHouseholderInPlace(Scalar *tau, RealScalar *beta);
     template<typename EssentialPart>
     void makeHouseholder(EssentialPart *essential,
-                         RealScalar *beta) const;
+                         Scalar *tau, RealScalar *beta) const;
     template<typename EssentialPart>
     void applyHouseholderOnTheLeft(const EssentialPart& essential,
-                                   const RealScalar& beta);
+                                   const Scalar& tau,
+                                   Scalar* workspace);
     template<typename EssentialPart>
     void applyHouseholderOnTheRight(const EssentialPart& essential,
-                                    const RealScalar& beta);
+                                    const Scalar& tau,
+                                    Scalar* workspace);
 
+///////// Jacobi module /////////
+
+    void applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s);
+    void applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s);
+    bool makeJacobi(int p, int q, Scalar *c, Scalar *s) const;
+    bool makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const;
+    bool makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const;
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

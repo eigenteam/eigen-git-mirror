@@ -32,54 +32,93 @@ template<int n> struct ei_decrement_size
   };
 };
 
+template<typename EssentialPart>
+void makeTrivialHouseholder(
+  EssentialPart *essential,
+  typename EssentialPart::RealScalar *beta)
+{
+  *beta = typename EssentialPart::RealScalar(0);
+  essential->setZero();
+}
+
+template<typename Derived>
+void MatrixBase<Derived>::makeHouseholderInPlace(Scalar *tau, RealScalar *beta)
+{
+  VectorBlock<Derived, ei_decrement_size<SizeAtCompileTime>::ret> essentialPart(derived(), 1, size()-1);
+  makeHouseholder(&essentialPart, tau, beta);
+}
+
+/** Computes the elementary reflector H such that:
+  * \f$ H *this = [ beta 0 ... 0]^T \f$
+  * where the transformation H is:
+  * \f$ H = I - tau v v^*\f$
+  * and the vector v is:
+  * \f$ v^T = [1 essential^T] \f$
+  * 
+  * On output:
+  * \param essential the essential part of the vector \c v
+  * \param tau the scaling factor of the householder transformation
+  * \param beta the result of H * \c *this
+  * 
+  * \sa MatrixBase::makeHouseholderInPlace(), MatrixBase::applyHouseholderOnTheLeft(),
+  *     MatrixBase::applyHouseholderOnTheRight()
+  */
 template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::makeHouseholder(
   EssentialPart *essential,
+  Scalar *tau,
   RealScalar *beta) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
-  RealScalar _squaredNorm = squaredNorm();
-  Scalar c0;
-  if(ei_abs2(coeff(0)) <= ei_abs2(precision<Scalar>()) * _squaredNorm)
+  VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
+  
+  RealScalar tailSqNorm;
+  Scalar c0 = coeff(0);
+  
+  if( (size()==1 || (tailSqNorm=tail.squaredNorm()) == RealScalar(0)) && ei_imag(c0)==RealScalar(0))
   {
-    c0 = ei_sqrt(_squaredNorm);
+    *tau = 0;
+    *beta = ei_real(c0);
   }
   else
   {
-    Scalar sign = coeff(0) / ei_abs(coeff(0));
-    c0 = coeff(0) + sign * ei_sqrt(_squaredNorm);
+    *beta = ei_sqrt(ei_abs2(c0) + tailSqNorm);
+    if (ei_real(c0)>=0.)
+      *beta = -*beta;
+    *essential = tail / (c0 - *beta);
+    *tau = ei_conj((*beta - c0) / *beta);
   }
-  VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
-  *essential = tail / c0;
-  const RealScalar c0abs2 = ei_abs2(c0);
-  *beta = RealScalar(2) * c0abs2 / (c0abs2 + _squaredNorm - ei_abs2(coeff(0)));
 }
 
 template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const EssentialPart& essential,
-  const RealScalar& beta)
+  const Scalar& tau,
+  Scalar* workspace)
 {
-  Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> tmp(cols());
+  Map<Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> > tmp(workspace,cols());
   Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
-  tmp = row(0) + essential.adjoint() * bottom;
-  row(0) -= beta * tmp;
-  bottom -= beta * essential * tmp;
+  tmp.noalias() = essential.adjoint() * bottom;
+  tmp += row(0);
+  row(0) -= tau * tmp;
+  bottom.noalias() -= tau * essential * tmp;
 }
 
 template<typename Derived>
 template<typename EssentialPart>
 void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const EssentialPart& essential,
-  const RealScalar& beta)
+  const Scalar& tau,
+  Scalar* workspace)
 {
-  Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> tmp(rows());
+  Map<Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
   Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
-  tmp = col(0) + right * essential.conjugate();
-  col(0) -= beta * tmp;
-  right -= beta * tmp * essential.transpose();
+  tmp.noalias() = right * essential.conjugate();
+  tmp += col(0);
+  col(0) -= tau * tmp;
+  right.noalias() -= tau * tmp * essential.transpose();
 }
 
 #endif // EIGEN_HOUSEHOLDER_H

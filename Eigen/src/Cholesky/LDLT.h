@@ -123,7 +123,7 @@ template<typename MatrixType> class LDLT
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
-    void compute(const MatrixType& matrix);
+    LDLT& compute(const MatrixType& matrix);
 
   protected:
     /** \internal
@@ -142,7 +142,7 @@ template<typename MatrixType> class LDLT
 /** Compute / recompute the LDLT decomposition A = L D L^* = U^* D U of \a matrix
   */
 template<typename MatrixType>
-void LDLT<MatrixType>::compute(const MatrixType& a)
+LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 {
   ei_assert(a.rows()==a.cols());
   const int size = a.rows();
@@ -154,7 +154,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
     m_transpositions.setZero();
     m_sign = ei_real(a.coeff(0,0))>0 ? 1:-1;
     m_isInitialized = true;
-    return;
+    return *this;
   }
 
   RealScalar cutoff = 0, biggest_in_corner;
@@ -180,7 +180,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
       // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
       // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
       // Algorithms" page 217, also by Higham.
-      cutoff = ei_abs(machine_epsilon<Scalar>() * size * biggest_in_corner);
+      cutoff = ei_abs(epsilon<Scalar>() * size * biggest_in_corner);
 
       m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
     }
@@ -235,6 +235,7 @@ void LDLT<MatrixType>::compute(const MatrixType& a)
   }
 
   m_isInitialized = true;
+  return *this;
 }
 
 /** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.

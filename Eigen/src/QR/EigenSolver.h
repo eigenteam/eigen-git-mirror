@@ -118,7 +118,7 @@ template<typename _MatrixType> class EigenSolver
       return m_eivalues; 
     }
 
-    void compute(const MatrixType& matrix);
+    EigenSolver& compute(const MatrixType& matrix);
 
   private:
 
@@ -189,7 +189,7 @@ typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigen
 }
 
 template<typename MatrixType>
-void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
+EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
@@ -205,6 +205,7 @@ void EigenSolver<MatrixType>::compute(const MatrixType& matrix)
   hqr2(matH);
 
   m_isInitialized = true;
+  return *this;
 }
 
 // Nonsymmetric reduction to Hessenberg form.

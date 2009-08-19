@@ -26,15 +26,22 @@
 #ifndef EIGEN_IO_H
 #define EIGEN_IO_H
 
-enum { Raw, AlignCols };
+enum { DontAlignCols = 1 };
+enum { StreamPrecision = -1,
+       FullPrecision = -2 };
 
 /** \class IOFormat
   *
   * \brief Stores a set of parameters controlling the way matrices are printed
   *
   * List of available parameters:
-  *  - \b precision number of digits for floating point values
-  *  - \b flags can be either Raw (default) or AlignCols which aligns all the columns
+  *  - \b precision number of digits for floating point values, or one of the special constants \c StreamPrecision and \c FullPrecision.
+  *                 The default is the special value \c StreamPrecision which means to use the
+  *                 stream's own precision setting, as set for instance using \c cout.precision(3). The other special value
+  *                 \c FullPrecision means that the number of digits will be computed to match the full precision of each floating-point
+  *                 type.
+  *  - \b flags an OR-ed combination of flags, the default value is 0, the only currently available flag is \c DontAlignCols which
+  *             allows to disable the alignment of columns, resulting in faster code.
   *  - \b coeffSeparator string printed between two coefficients of the same row
   *  - \b rowSeparator string printed between two rows
   *  - \b rowPrefix string printed at the beginning of each row
@@ -50,7 +57,7 @@ enum { Raw, AlignCols };
 struct IOFormat
 {
   /** Default contructor, see class IOFormat for the meaning of the parameters */
-  IOFormat(int _precision=4, int _flags=Raw,
+  IOFormat(int _precision = StreamPrecision, int _flags = 0,
     const std::string& _coeffSeparator = " ",
     const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
     const std::string& _matPrefix="", const std::string& _matSuffix="")
@@ -125,21 +132,41 @@ template<typename Derived>
 std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
   const typename Derived::Nested m = _m;
-
+  typedef typename Derived::Scalar Scalar;
+  
   int width = 0;
-  if (fmt.flags & AlignCols)
+  
+  std::streamsize explicit_precision;
+  if(fmt.precision == StreamPrecision)
+  {
+    explicit_precision = 0;
+  }
+  else if(fmt.precision == FullPrecision)
+  {
+    explicit_precision = NumTraits<Scalar>::HasFloatingPoint
+                       ? std::ceil(-ei_log(epsilon<Scalar>())/ei_log(10.0))
+                       : 0;
+  }
+  else
+  {
+    explicit_precision = fmt.precision;
+  }
+  
+  bool align_cols = !(fmt.flags & DontAlignCols);
+  if(align_cols)
   {
     // compute the largest width
     for(int j = 1; j < m.cols(); ++j)
       for(int i = 0; i < m.rows(); ++i)
       {
         std::stringstream sstr;
-        sstr.precision(fmt.precision);
+        if(explicit_precision) sstr.precision(explicit_precision);
         sstr << m.coeff(i,j);
         width = std::max<int>(width, int(sstr.str().length()));
       }
   }
-  s.precision(fmt.precision);
+  std::streamsize old_precision = 0;
+  if(explicit_precision) old_precision = s.precision(explicit_precision);
   s << fmt.matPrefix;
   for(int i = 0; i < m.rows(); ++i)
   {
@@ -159,6 +186,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
       s << fmt.rowSeparator;
   }
   s << fmt.matSuffix;
+  if(explicit_precision) s.precision(old_precision);
   return s;
 }
 

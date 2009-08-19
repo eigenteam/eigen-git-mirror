@@ -4,7 +4,7 @@ m = M;
 cout << "Here is the matrix m:" << endl << m << endl;
 cout << "Now we want to replace m by its own transpose." << endl;
 cout << "If we do m = m.transpose(), then m becomes:" << endl;
-m = m.transpose();
+m = m.transpose() * 1;
 cout << m << endl << "which is wrong!" << endl;
 cout << "Now let us instead do m = m.transpose().eval(). Then m becomes" << endl;
 m = M;

@@ -66,11 +66,11 @@ template<typename Derived> class MapBase
     inline const Scalar* data() const { return m_data; }
 
     template<bool IsForceAligned,typename Dummy> struct force_aligned_impl {
-      AlignedDerivedType static run(MapBase& a) { return a.derived(); }
+      static AlignedDerivedType run(MapBase& a) { return a.derived(); }
     };
 
     template<typename Dummy> struct force_aligned_impl<false,Dummy> {
-      AlignedDerivedType static run(MapBase& a) { return a.derived()._convertToForceAligned(); }
+      static AlignedDerivedType run(MapBase& a) { return a.derived()._convertToForceAligned(); }
     };
 
     /** \returns an expression equivalent to \c *this but having the \c PacketAccess constant
@@ -179,11 +179,11 @@ template<typename Derived> class MapBase
     // explicitly add these two overloads.
     // Maybe there exists a better solution though.
     template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
     { return Base::operator+=(other); }
 
     template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other)
+    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
     { return Base::operator-=(other); }
 
     template<typename OtherDerived>

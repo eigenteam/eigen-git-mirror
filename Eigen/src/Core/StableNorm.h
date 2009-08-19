@@ -115,20 +115,20 @@ MatrixBase<Derived>::blueNorm() const
       ei_assert(false && "the algorithm cannot be guaranteed on this computer");
     }
     iexp  = -((1-iemin)/2);
-    b1    = std::pow(double(ibeta),iexp);  // lower boundary of midrange
+    b1    = RealScalar(std::pow(double(ibeta),iexp));  // lower boundary of midrange
     iexp  = (iemax + 1 - it)/2;
-    b2    = std::pow(double(ibeta),iexp);   // upper boundary of midrange
+    b2    = RealScalar(std::pow(double(ibeta),iexp));   // upper boundary of midrange
 
     iexp  = (2-iemin)/2;
-    s1m   = std::pow(double(ibeta),iexp);   // scaling factor for lower range
+    s1m   = RealScalar(std::pow(double(ibeta),iexp));   // scaling factor for lower range
     iexp  = - ((iemax+it)/2);
-    s2m   = std::pow(double(ibeta),iexp);   // scaling factor for upper range
+    s2m   = RealScalar(std::pow(double(ibeta),iexp));   // scaling factor for upper range
 
     overfl  = rbig*s2m;             // overfow boundary for abig
-    eps     = std::pow(double(ibeta), 1-it);
+    eps     = RealScalar(std::pow(double(ibeta), 1-it));
     relerr  = ei_sqrt(eps);         // tolerance for neglecting asml
     abig    = 1.0/eps - 1.0;
-    if (RealScalar(nbig)>abig)  nmax = abig;  // largest safe n
+    if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
     else                        nmax = nbig;
   }
   int n = size();

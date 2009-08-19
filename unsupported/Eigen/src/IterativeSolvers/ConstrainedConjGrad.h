@@ -108,7 +108,7 @@ void ei_pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
 /** \ingroup IterativeSolvers_Module
   * Constrained conjugate gradient
   *
-  * Computes the minimum of \f$ 1/2((Ax).x) - bx \f$ under the contraint \f$ Cx <= f @\$
+  * Computes the minimum of \f$ 1/2((Ax).x) - bx \f$ under the contraint \f$ Cx \le f \f$
   */
 template<typename TMatrix, typename CMatrix,
          typename VectorX, typename VectorB, typename VectorF>

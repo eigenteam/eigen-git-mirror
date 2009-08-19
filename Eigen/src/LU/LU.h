@@ -111,8 +111,10 @@ template<typename MatrixType> class LU
       *
       * \param matrix the matrix of which to compute the LU decomposition.
       *               It is required to be nonzero.
+      *
+      * \returns a reference to *this
       */
-    void compute(const MatrixType& matrix);
+    LU& compute(const MatrixType& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -377,7 +379,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 }
 
 template<typename MatrixType>
-void LU<MatrixType>::compute(const MatrixType& matrix)
+LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_originalMatrix = &matrix;
   m_lu = matrix;
@@ -390,7 +392,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
 
   // this formula comes from experimenting (see "LU precision tuning" thread on the list)
   // and turns out to be identical to Higham's formula used already in LDLt.
-  m_precision = machine_epsilon<Scalar>() * size;
+  m_precision = epsilon<Scalar>() * size;
 
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
@@ -435,7 +437,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
-      m_lu.block(k+1,k+1,rows-k-1,cols-k-1) -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
+      m_lu.block(k+1,k+1,rows-k-1,cols-k-1).noalias() -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
   }
 
   for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;
@@ -447,6 +449,7 @@ void LU<MatrixType>::compute(const MatrixType& matrix)
     std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
+  return *this;
 }
 
 template<typename MatrixType>
@@ -561,7 +564,7 @@ bool LU<MatrixType>::solve(
   if(!isSurjective())
   {
     // is c is in the image of U ?
-    RealScalar biggest_in_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
+    RealScalar biggest_in_c = m_rank>0 ? c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff() : 0;
     for(int col = 0; col < c.cols(); ++col)
       for(int row = m_rank; row < c.rows(); ++row)
         if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c, m_precision))

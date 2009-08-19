@@ -130,14 +130,14 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
 
     template<int Index> struct DiagonalIntReturnType {
       enum {
-        ReturnOpposite = (Options&SelfAdjoint) && (Index>0 && Supers==0 || Index<0 && Subs==0),
+        ReturnOpposite = (Options&SelfAdjoint) && (((Index)>0 && Supers==0) || ((Index)<0 && Subs==0)),
         Conjugate = ReturnOpposite && NumTraits<Scalar>::IsComplex,
         ActualIndex = ReturnOpposite ? -Index : Index,
-        DiagonalSize = RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic
+        DiagonalSize = (RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic)
                      ? Dynamic
-                     : ActualIndex<0
+                     : (ActualIndex<0
                      ? EIGEN_ENUM_MIN(ColsAtCompileTime, RowsAtCompileTime + ActualIndex)
-                     : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex)
+                     : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };
       typedef Block<DataType,1, DiagonalSize> BuildType;
       typedef typename ei_meta_if<Conjugate,

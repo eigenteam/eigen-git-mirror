@@ -93,7 +93,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa packedMatrix()
       */
-    CoeffVectorType householderCoefficients(void) const { return m_hCoeffs; }
+    CoeffVectorType householderCoefficients() const { return m_hCoeffs; }
 
     /** \returns the internal result of the decomposition.
       *
@@ -112,8 +112,8 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     const MatrixType& packedMatrix(void) const { return m_matrix; }
 
-    MatrixType matrixQ(void) const;
-    MatrixType matrixH(void) const;
+    MatrixType matrixQ() const;
+    MatrixType matrixH() const;
 
   private:
 
@@ -143,87 +143,42 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-  for (int i = 0; i<n-2; ++i)
+  Matrix<Scalar,1,Dynamic> temp(n);
+  for (int i = 0; i<n-1; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1
-
-    // start of the householder transformation
-    // squared norm of the vector v skipping the first element
-    RealScalar v1norm2 = matA.col(i).end(n-(i+2)).squaredNorm();
-
-    if (ei_isMuchSmallerThan(v1norm2,static_cast<Scalar>(1)))
-    {
-      hCoeffs.coeffRef(i) = 0.;
-    }
-    else
-    {
-      Scalar v0 = matA.col(i).coeff(i+1);
-      RealScalar beta = ei_sqrt(ei_abs2(v0)+v1norm2);
-      if (ei_real(v0)>=0.)
-        beta = -beta;
-      matA.col(i).end(n-(i+2)) *= (Scalar(1)/(v0-beta));
-      matA.col(i).coeffRef(i+1) = beta;
-      Scalar h = (beta - v0) / beta;
-      // end of the householder transformation
-
-      // Apply similarity transformation to remaining columns,
-      // i.e., A = H' A H where H = I - h v v' and v = matA.col(i).end(n-i-1)
-      matA.col(i).coeffRef(i+1) = 1;
-
-      // first let's do A = H' A
-      matA.corner(BottomRight,n-i-1,n-i-1) -= ((ei_conj(h) * matA.col(i).end(n-i-1)) *
-        (matA.col(i).end(n-i-1).adjoint() * matA.corner(BottomRight,n-i-1,n-i-1))).lazy();
-
-      // now let's do A = A H
-      matA.corner(BottomRight,n,n-i-1) -= ((matA.corner(BottomRight,n,n-i-1) * matA.col(i).end(n-i-1))
-                                        * (h * matA.col(i).end(n-i-1).adjoint())).lazy();
-
-      matA.col(i).coeffRef(i+1) = beta;
-      hCoeffs.coeffRef(i) = h;
-    }
-  }
-  if (NumTraits<Scalar>::IsComplex)
-  {
-    // Householder transformation on the remaining single scalar
-    int i = n-2;
-    Scalar v0 = matA.coeff(i+1,i);
-
-    RealScalar beta = ei_sqrt(ei_abs2(v0));
-    if (ei_real(v0)>=0.)
-      beta = -beta;
-    Scalar h = (beta - v0) / beta;
+    int remainingSize = n-i-1;
+    RealScalar beta;
+    Scalar h;
+    matA.col(i).end(remainingSize).makeHouseholderInPlace(&h, &beta);
+    matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = h;
 
-    // A = H* A
-    matA.corner(BottomRight,n-i-1,n-i) -= ei_conj(h) * matA.corner(BottomRight,n-i-1,n-i);
+    // Apply similarity transformation to remaining columns,
+    // i.e., compute A = H A H'
+    
+    // A = H A
+    matA.corner(BottomRight, remainingSize, remainingSize)
+        .applyHouseholderOnTheLeft(matA.col(i).end(remainingSize-1), h, &temp.coeffRef(0));
 
-    // A = A H
-    matA.col(n-1) -= h * matA.col(n-1);
-  }
-  else
-  {
-    hCoeffs.coeffRef(n-2) = 0;
+    // A = A H'
+    matA.corner(BottomRight, n, remainingSize)
+        .applyHouseholderOnTheRight(matA.col(i).end(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
 }
 
 /** reconstructs and returns the matrix Q */
 template<typename MatrixType>
 typename HessenbergDecomposition<MatrixType>::MatrixType
-HessenbergDecomposition<MatrixType>::matrixQ(void) const
+HessenbergDecomposition<MatrixType>::matrixQ() const
 {
   int n = m_matrix.rows();
   MatrixType matQ = MatrixType::Identity(n,n);
   Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(n);
   for (int i = n-2; i>=0; i--)
   {
-    Scalar tmp = m_matrix.coeff(i+1,i);
-    m_matrix.const_cast_derived().coeffRef(i+1,i) = 1;
-
-    int rs = n-i-1;
-    temp.end(rs) = (m_matrix.col(i).end(rs).adjoint() * matQ.corner(BottomRight,rs,rs)).lazy();
-    matQ.corner(BottomRight,rs,rs) -= (m_hCoeffs.coeff(i) * m_matrix.col(i).end(rs) * temp.end(rs)).lazy();
-
-    m_matrix.const_cast_derived().coeffRef(i+1,i) = tmp;
+    matQ.corner(BottomRight,n-i-1,n-i-1)
+        .applyHouseholderOnTheLeft(m_matrix.col(i).end(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
   }
   return matQ;
 }
@@ -237,7 +192,7 @@ HessenbergDecomposition<MatrixType>::matrixQ(void) const
   */
 template<typename MatrixType>
 typename HessenbergDecomposition<MatrixType>::MatrixType
-HessenbergDecomposition<MatrixType>::matrixH(void) const
+HessenbergDecomposition<MatrixType>::matrixH() const
 {
   // FIXME should this function (and other similar) rather take a matrix as argument
   // and fill it (to avoid temporaries)

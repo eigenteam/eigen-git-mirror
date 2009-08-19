@@ -120,8 +120,8 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST( selfadjointeigensolver(Matrix3f()) );
     CALL_SUBTEST( selfadjointeigensolver(Matrix4d()) );
     CALL_SUBTEST( selfadjointeigensolver(MatrixXf(10,10)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(17,17)) );
     CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
+    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(17,17)) );
 
     // some trivial but implementation-wise tricky cases
     CALL_SUBTEST( selfadjointeigensolver(MatrixXd(1,1)) );

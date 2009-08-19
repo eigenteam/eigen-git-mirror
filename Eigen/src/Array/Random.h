@@ -35,19 +35,23 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
 
 /** \array_module
   * 
-  * \returns a random matrix (not an expression, the matrix is immediately evaluated).
+  * \returns a random matrix expression
   *
   * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so ei_random() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Random() should be used
   * instead.
   *
   * \addexample RandomExample \label How to create a matrix with random coefficients
   *
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
+  *
+  * This expression has the "evaluate before nesting" flag so that it will be evaluated into
+  * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
+  * behavior with expressions involving random matrices.
   *
   * \sa MatrixBase::setRandom(), MatrixBase::Random(int), MatrixBase::Random()
   */
@@ -60,7 +64,7 @@ MatrixBase<Derived>::Random(int rows, int cols)
 
 /** \array_module
   * 
-  * \returns a random vector (not an expression, the vector is immediately evaluated).
+  * \returns a random vector expression
   *
   * The parameter \a size is the size of the returned vector.
   * Must be compatible with this MatrixBase type.
@@ -68,11 +72,15 @@ MatrixBase<Derived>::Random(int rows, int cols)
   * \only_for_vectors
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
-  * it is redundant to pass \a size as argument, so ei_random() should be used
+  * it is redundant to pass \a size as argument, so Random() should be used
   * instead.
   *
   * Example: \include MatrixBase_random_int.cpp
   * Output: \verbinclude MatrixBase_random_int.out
+  *
+  * This expression has the "evaluate before nesting" flag so that it will be evaluated into
+  * a temporary vector whenever it is nested in a larger expression. This prevents unexpected
+  * behavior with expressions involving random matrices.
   *
   * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random()
   */
@@ -85,14 +93,17 @@ MatrixBase<Derived>::Random(int size)
 
 /** \array_module
   * 
-  * \returns a fixed-size random matrix or vector
-  * (not an expression, the matrix is immediately evaluated).
+  * \returns a fixed-size random matrix or vector expression
   *
   * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
   * need to use the variants taking size arguments.
   *
   * Example: \include MatrixBase_random.cpp
   * Output: \verbinclude MatrixBase_random.out
+  *
+  * This expression has the "evaluate before nesting" flag so that it will be evaluated into
+  * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
+  * behavior with expressions involving random matrices.
   *
   * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random(int)
   */

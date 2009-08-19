@@ -234,14 +234,14 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline TriangularView<NestByValue<typename MatrixType::AdjointReturnType>,TransposeMode> adjoint()
     { return m_matrix.adjoint().nestByValue(); }
     /** \sa MatrixBase::adjoint() const */
-    const inline TriangularView<NestByValue<typename MatrixType::AdjointReturnType>,TransposeMode> adjoint() const
+    inline const TriangularView<NestByValue<typename MatrixType::AdjointReturnType>,TransposeMode> adjoint() const
     { return m_matrix.adjoint().nestByValue(); }
 
     /** \sa MatrixBase::transpose() */
     inline TriangularView<NestByValue<Transpose<MatrixType> >,TransposeMode> transpose()
     { return m_matrix.transpose().nestByValue(); }
     /** \sa MatrixBase::transpose() const */
-    const inline TriangularView<NestByValue<Transpose<MatrixType> >,TransposeMode> transpose() const
+    inline const TriangularView<NestByValue<Transpose<MatrixType> >,TransposeMode> transpose() const
     { return m_matrix.transpose().nestByValue(); }
 
     PlainMatrixType toDense() const

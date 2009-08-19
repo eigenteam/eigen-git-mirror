@@ -460,6 +460,11 @@ public:
   inline const Block<MatrixType,int(Mode)==int(Projective)?HDim:Dim,1> translationExt() const
   { return m_matrix.template block<int(Mode)==int(Projective)?HDim:Dim,1>(0,Dim); }
 
+
+  #ifdef EIGEN_TRANSFORM_PLUGIN
+  #include EIGEN_TRANSFORM_PLUGIN
+  #endif
+
 };
 
 /** \ingroup Geometry_Module */

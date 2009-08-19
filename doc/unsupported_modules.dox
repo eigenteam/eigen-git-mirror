@@ -14,9 +14,21 @@ namespace Eigen {
   * \defgroup AdolcForward_Module Adolc forward module */
 
 /** \ingroup Unsupported_modules
-  * \defgroup IterativeSolvers_Module Iterative solvers module */
+  * \defgroup AlignedVector3_Module Aligned vector3 module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup AutoDiff_Module Auto Diff module */
 
 /** \ingroup Unsupported_modules
   * \defgroup BVH_Module BVH module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup IterativeSolvers_Module Iterative solvers module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup MatrixFunctions_Module Matrix functions module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup MoreVectorization More vectorization module */
 
 } // namespace Eigen

@@ -15,6 +15,7 @@
 // #include "action_symm.hh"
 #include "action_syr2.hh"
 #include "action_ger.hh"
+#include "action_rot.hh"
 
 // #include "action_lu_solve.hh"
 
