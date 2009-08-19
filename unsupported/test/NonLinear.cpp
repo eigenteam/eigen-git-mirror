@@ -243,7 +243,7 @@ void testLmder()
   VERIFY_IS_APPROX(x, x_ref);
 
   // check covariance
-  covar_ftol = dpmpar(1);
+  covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
   Eigen::VectorXd wa(n);
   covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
@@ -759,7 +759,7 @@ void testLmdif()
   VERIFY_IS_APPROX(x, x_ref);
 
   // check covariance
-  covar_ftol = dpmpar(1);
+  covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
   Eigen::VectorXd wa(n);
   covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
