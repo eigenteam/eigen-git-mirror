@@ -843,7 +843,7 @@ void testNistChwirut2(void)
   x<< 0.15, 0.008, 0.010;
   // do the computation
   info = ei_lmder<chwirut2_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, 1.E6*Eigen::machine_epsilon<double>(), 1.E6*Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E6*Eigen::epsilon<double>(), 1.E6*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1366,7 +1366,7 @@ void testNistBoxBOD(void)
   x<< 1., 1.;
   // do the computation
   info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 10., 400, 1E6*Eigen::machine_epsilon<double>(), 1E6*Eigen::machine_epsilon<double>());
+          1, 10., 400, 1E6*Eigen::epsilon<double>(), 1E6*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1384,7 +1384,7 @@ void testNistBoxBOD(void)
   x<< 100., 0.75;
   // do the computation
   info = ei_lmder<BoxBOD_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 14000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+          1, 100., 14000, Eigen::epsilon<double>(), Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1443,7 +1443,7 @@ void testNistMGH17(void)
   // do the computation
   info = ei_lmder<MGH17_functor, double>(
           x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+          1, 100., 5000, Eigen::epsilon<double>(), Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 2 == info); 
@@ -1527,7 +1527,7 @@ void testNistMGH09(void)
   // do the computation
   info = ei_lmder<MGH09_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
           1, 100., 5000);
-//          1, 100., 5000, Eigen::machine_epsilon<double>(), Eigen::machine_epsilon<double>());
+//          1, 100., 5000, Eigen::epsilon<double>(), Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1689,7 +1689,7 @@ void testNistThurber(void)
   x<< 1000 ,1000 ,400 ,40 ,0.7,0.3,0.0 ;
   // do the computation
   info = ei_lmder<thurber_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, 1.E4*Eigen::machine_epsilon<double>(), 1.E4*Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E4*Eigen::epsilon<double>(), 1.E4*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1712,7 +1712,7 @@ void testNistThurber(void)
   x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
   // do the computation
   info = ei_lmder<thurber_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, 1.E4*Eigen::machine_epsilon<double>(), 1.E4*Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E4*Eigen::epsilon<double>(), 1.E4*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1775,7 +1775,7 @@ void testNistRat43(void)
   x<< 100., 10., 1., 1.;
   // do the computation
   info = ei_lmder<rat43_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, 1.E6*Eigen::machine_epsilon<double>(), 1.E6*Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E6*Eigen::epsilon<double>(), 1.E6*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 
@@ -1795,7 +1795,7 @@ void testNistRat43(void)
   x<< 700., 5., 0.75, 1.3;
   // do the computation
   info = ei_lmder<rat43_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag,
-          1, 100., 400, 1.E5*Eigen::machine_epsilon<double>(), 1.E5*Eigen::machine_epsilon<double>());
+          1, 100., 400, 1.E5*Eigen::epsilon<double>(), 1.E5*Eigen::epsilon<double>());
 
   // check return value
   VERIFY( 1 == info); 

@@ -29,7 +29,7 @@ template<typename Functor, typename Scalar>
 int ei_hybrd1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
-        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
         )
 {
     int lwa = (x.size()*(3*x.size()+13))/2;
@@ -53,7 +53,7 @@ int ei_hybrd(
         int nb_of_superdiagonals = -1,
         int maxfev = 2000,
         Scalar factor = Scalar(100.),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
         Scalar epsfcn = Scalar(0.),
         int nprint=0
         )
@@ -93,7 +93,7 @@ int ei_hybrj1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
         Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
-        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
         )
 {
     int n = x.size();
@@ -120,7 +120,7 @@ int ei_hybrj(
         int mode=1,
         int maxfev = 1000,
         Scalar factor = Scalar(100.),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
         int nprint=0
         )
 {
@@ -154,7 +154,7 @@ int ei_lmstr1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
-        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
         )
 {
     int lwa = 5*x.size()+fvec.size();
@@ -185,8 +185,8 @@ int ei_lmstr(
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         int nprint=0
         )
@@ -223,7 +223,7 @@ int ei_lmder1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
-        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
         )
 {
     int lwa = 5*x.size()+fvec.size();
@@ -254,8 +254,8 @@ int ei_lmder(
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         int nprint=0
         )
@@ -296,8 +296,8 @@ int ei_lmdif(
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>()),
+        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         Scalar epsfcn = Scalar(0.),
         int nprint=0
@@ -334,7 +334,7 @@ int ei_lmdif1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
         VectorXi &iwa,
-        Scalar tol = Eigen::ei_sqrt(Eigen::machine_epsilon<Scalar>())
+        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
         )
 {
     int n = x.size();
