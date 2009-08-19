@@ -25,8 +25,6 @@
 #ifndef EIGEN_NONLINEAR_MATHFUNCTIONS_H
 #define EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
-#include <cminpack.h>
-
 template<typename Functor, typename Scalar>
 int ei_hybrd1(
         Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
@@ -38,7 +36,7 @@ int ei_hybrd1(
     Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
 
     fvec.resize(x.size());
-    return hybrd1(Functor::f, 0, x.size(), x.data(), fvec.data(), tol, wa.data(), lwa);
+    return hybrd1_template<double>(Functor::f, 0, x.size(), x.data(), fvec.data(), tol, wa.data(), lwa);
 }
 
 template<typename Functor, typename Scalar>
@@ -72,7 +70,7 @@ int ei_hybrd(
     R.resize(lr);
     int ldfjac = n;
     fjac.resize(ldfjac, n);
-    return hybrd(
+    return hybrd_template<double>(
             Functor::f, 0,
             n, x.data(), fvec.data(),
             xtol, maxfev,
@@ -105,7 +103,7 @@ int ei_hybrj1(
 
     fvec.resize(n);
     fjac.resize(ldfjac, n);
-    return hybrj1(Functor::f, 0, n, x.data(), fvec.data(), fjac.data(), ldfjac, tol, wa.data(), lwa);
+    return hybrj1_template<double>(Functor::f, 0, n, x.data(), fvec.data(), fjac.data(), ldfjac, tol, wa.data(), lwa);
 }
 
 
@@ -135,7 +133,7 @@ int ei_hybrj(
     R.resize(lr);
     int ldfjac = n;
     fjac.resize(ldfjac, n);
-    return hybrj (
+    return hybrj_template<double> (
             Functor::f, 0,
             n, x.data(), fvec.data(),
             fjac.data(), ldfjac,
@@ -165,7 +163,7 @@ int ei_lmstr1(
     Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, x.size());
 
     ipvt.resize(x.size());
-    return lmstr1 (
+    return lmstr1_template<double>(
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
             fjac.data() , ldfjac,
@@ -202,7 +200,7 @@ int ei_lmstr(
     ipvt.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
-    return lmstr (
+    return lmstr_template<double> (
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
             fjac.data() , ldfjac,
@@ -234,7 +232,7 @@ int ei_lmder1(
     Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, x.size());
 
     ipvt.resize(x.size());
-    return lmder1 (
+    return lmder1_template <double> (
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
             fjac.data() , ldfjac,
@@ -271,7 +269,7 @@ int ei_lmder(
     ipvt.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
-    return lmder (
+    return lmder_template<double>(
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
             fjac.data() , ldfjac,
@@ -314,7 +312,7 @@ int ei_lmdif(
     ipvt.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
-    return lmdif (
+    return lmdif_template<double> (
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
             ftol, xtol, gtol, 
@@ -347,7 +345,7 @@ int ei_lmdif1(
 
     iwa.resize(n);
     wa.resize(lwa);
-    return lmdif1 (
+    return lmdif1_template<double> (
             Functor::f, 0,
             fvec.size(), n, x.data(), fvec.data(),
             tol,
@@ -372,7 +370,7 @@ void ei_chkder(
         xp.resize(ldfjac);
     else
         err.resize(ldfjac);
-    chkder(
+    chkder_template<double>(
             fvec.size(), x.size(), x.data(), fvec.data(),
             fjac.data(), ldfjac,
             xp.data(),

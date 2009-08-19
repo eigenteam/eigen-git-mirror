@@ -1,3 +1,28 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2009 Thomas Capricelli <orzel@freehackers.org>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+
 #ifndef EIGEN_NONLINEAR_MODULE_H
 #define EIGEN_NONLINEAR_MODULE_H
 
@@ -11,6 +36,30 @@ namespace Eigen {
   */
 //@{
 
+#define min(a,b) ((a) <= (b) ? (a) : (b))
+#define max(a,b) ((a) >= (b) ? (a) : (b))
+#define abs(x) ((x) >= 0 ? (x) : -(x))
+#define TRUE_ (1)
+#define FALSE_ (0)
+#define p1 .1
+#define p5 .5
+#define p25 .25
+#define p75 .75
+#define p001 .001
+#define p0001 1e-4
+
+#include <cminpack.h>
+#include "src/NonLinear/lmder1.h"
+#include "src/NonLinear/lmder.h"
+#include "src/NonLinear/hybrd1.h"
+#include "src/NonLinear/hybrd.h"
+#include "src/NonLinear/lmstr1.h"
+#include "src/NonLinear/lmstr.h"
+#include "src/NonLinear/lmdif1.h"
+#include "src/NonLinear/lmdif.h"
+#include "src/NonLinear/hybrj1.h"
+#include "src/NonLinear/hybrj.h"
+#include "src/NonLinear/chkder.h"
 #include "src/NonLinear/MathFunctions.h"
 
 //@}
