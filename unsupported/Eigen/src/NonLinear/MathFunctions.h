@@ -27,13 +27,13 @@
 
 template<typename Functor, typename Scalar>
 int ei_hybrd1(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
-        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     int lwa = (x.size()*(3*x.size()+13))/2;
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
+    Matrix< Scalar, Dynamic, 1 > wa(lwa);
 
     fvec.resize(x.size());
     return hybrd1_template<double>(Functor::f, 0, x.size(), x.data(), fvec.data(), tol, wa.data(), lwa);
@@ -41,26 +41,26 @@ int ei_hybrd1(
 
 template<typename Functor, typename Scalar>
 int ei_hybrd(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &R,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &qtf,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, 1 >  &R,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         int nb_of_subdiagonals = -1,
         int nb_of_superdiagonals = -1,
         int maxfev = 2000,
         Scalar factor = Scalar(100.),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
         Scalar epsfcn = Scalar(0.),
         int nprint=0
         )
 {
     int n = x.size();
     int lr = (n*(n+1))/2;
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
 
 
     if (nb_of_subdiagonals<0) nb_of_subdiagonals = n-1;
@@ -90,15 +90,15 @@ int ei_hybrd(
 
 template<typename Functor, typename Scalar>
 int ei_hybrj1(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
-        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     int n = x.size();
     int lwa = (n*(3*n+13))/2;
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
+    Matrix< Scalar, Dynamic, 1 > wa(lwa);
     int ldfjac = n;
 
     fvec.resize(n);
@@ -109,24 +109,24 @@ int ei_hybrj1(
 
 template<typename Functor, typename Scalar>
 int ei_hybrj(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
         int &njev,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &R,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &qtf,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, 1 >  &R,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         int maxfev = 1000,
         Scalar factor = Scalar(100.),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
         int nprint=0
         )
 {
     int n = x.size();
     int lr = (n*(n+1))/2;
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
 
     fvec.resize(n);
     qtf.resize(n);
@@ -151,16 +151,16 @@ int ei_hybrj(
 
 template<typename Functor, typename Scalar>
 int ei_lmstr1(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
-        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     int lwa = 5*x.size()+fvec.size();
     int ldfjac = fvec.size();
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
-    Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, x.size());
+    Matrix< Scalar, Dynamic, 1 > wa(lwa);
+    Matrix< Scalar, Dynamic, Dynamic > fjac(ldfjac, x.size());
 
     ipvt.resize(x.size());
     return lmstr1_template<double>(
@@ -175,23 +175,23 @@ int ei_lmstr1(
 
 template<typename Functor, typename Scalar>
 int ei_lmstr(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
         int &njev,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         int nprint=0
         )
 {
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
+    Matrix< Scalar, Dynamic, 1 >
         qtf(x.size()),
         wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
@@ -220,16 +220,16 @@ int ei_lmstr(
 
 template<typename Functor, typename Scalar>
 int ei_lmder1(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
-        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     int lwa = 5*x.size()+fvec.size();
     int ldfjac = fvec.size();
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
-    Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, x.size());
+    Matrix< Scalar, Dynamic, 1 > wa(lwa);
+    Matrix< Scalar, Dynamic, Dynamic > fjac(ldfjac, x.size());
 
     ipvt.resize(x.size());
     return lmder1_template <double> (
@@ -244,23 +244,23 @@ int ei_lmder1(
 
 template<typename Functor, typename Scalar>
 int ei_lmder(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
         int &njev,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         int nprint=0
         )
 {
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
+    Matrix< Scalar, Dynamic, 1 >
         qtf(x.size()),
         wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
@@ -287,23 +287,23 @@ int ei_lmder(
 
 template<typename Functor, typename Scalar>
 int ei_lmdif(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &diag,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         double factor = 100.,
         int maxfev = 400,
-        Scalar ftol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
-        Scalar xtol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>()),
+        Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
         Scalar gtol = Scalar(0.),
         Scalar epsfcn = Scalar(0.),
         int nprint=0
         )
 {
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >
+    Matrix< Scalar, Dynamic, 1 >
         qtf(x.size()),
         wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
@@ -331,17 +331,17 @@ int ei_lmdif(
 
 template<typename Functor, typename Scalar>
 int ei_lmdif1(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
         VectorXi &iwa,
-        Scalar tol = Eigen::ei_sqrt(Eigen::epsilon<Scalar>())
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     int n = x.size();
     int ldfjac = fvec.size();
     int lwa = ldfjac*n+5*n+ldfjac;
-    Eigen::Matrix< Scalar, Eigen::Dynamic, 1 > wa(lwa);
-    Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > fjac(ldfjac, n);
+    Matrix< Scalar, Dynamic, 1 > wa(lwa);
+    Matrix< Scalar, Dynamic, Dynamic > fjac(ldfjac, n);
 
     iwa.resize(n);
     wa.resize(lwa);
@@ -356,13 +356,13 @@ int ei_lmdif1(
 
 template<typename Scalar>
 void ei_chkder(
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &x,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvec,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, Eigen::Dynamic > &fjac,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &xp,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &fvecp,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, 1 >  &xp,
+        Matrix< Scalar, Dynamic, 1 >  &fvecp,
         int mode,
-        Eigen::Matrix< Scalar, Eigen::Dynamic, 1 >  &err
+        Matrix< Scalar, Dynamic, 1 >  &err
         )
 {
     int ldfjac = fvec.size();
