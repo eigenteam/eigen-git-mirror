@@ -24,7 +24,7 @@ int lmdif_template(minpack_func_mn fcn, void *p, int m, int n, T *x,
     T delta;
     T ratio;
     T fnorm, gnorm;
-    T pnorm, xnorm, fnorm1, actred, dirder, epsmch, prered;
+    T pnorm, xnorm, fnorm1, actred, dirder, prered;
     int info;
 
     /* Parameter adjustments */
@@ -42,10 +42,6 @@ int lmdif_template(minpack_func_mn fcn, void *p, int m, int n, T *x,
     fjac -= fjac_offset;
 
     /* Function Body */
-
-/*     epsmch is the machine precision. */
-
-    epsmch = dpmpar(1);
 
     info = 0;
     iflag = 0;
@@ -384,13 +380,13 @@ L290:
     if (*nfev >= maxfev) {
 	info = 5;
     }
-    if (fabs(actred) <= epsmch && prered <= epsmch && p5 * ratio <= 1.) {
+    if (fabs(actred) <= epsilon<T>() && prered <= epsilon<T>() && p5 * ratio <= 1.) {
 	info = 6;
     }
-    if (delta <= epsmch * xnorm) {
+    if (delta <= epsilon<T>() * xnorm) {
 	info = 7;
     }
-    if (gnorm <= epsmch) {
+    if (gnorm <= epsilon<T>()) {
 	info = 8;
     }
     if (info != 0) {

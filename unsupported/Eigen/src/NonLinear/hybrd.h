@@ -28,7 +28,7 @@ int hybrd_template(minpack_func_nn fcn, void *p, int n, T *x, T *
     T pnorm, xnorm, fnorm1;
     int nslow1, nslow2;
     int ncfail;
-    T actred, epsmch, prered;
+    T actred, prered;
     int info;
 
     /* Parameter adjustments */
@@ -46,10 +46,6 @@ int hybrd_template(minpack_func_nn fcn, void *p, int n, T *x, T *
     --r__;
 
     /* Function Body */
-
-/*     epsmch is the machine precision. */
-
-    epsmch = dpmpar(1);
 
     info = 0;
     iflag = 0;
@@ -382,7 +378,7 @@ L260:
     }
 /* Computing MAX */
     d__1 = p1 * delta;
-    if (p1 * max(d__1,pnorm) <= epsmch * xnorm) {
+    if (p1 * max(d__1,pnorm) <= epsilon<T>() * xnorm) {
 	info = 3;
     }
     if (nslow2 == 5) {

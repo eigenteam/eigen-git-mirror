@@ -14,7 +14,7 @@ void chkder_template(int m, int n, const T *x,
 
     /* Local variables */
     int i__, j;
-    T eps, epsf, temp, epsmch;
+    T eps, epsf, temp;
     T epslog;
 
     /* Parameter adjustments */
@@ -29,11 +29,7 @@ void chkder_template(int m, int n, const T *x,
 
     /* Function Body */
 
-/*     epsmch is the machine precision. */
-
-    epsmch = dpmpar(1);
-
-    eps = sqrt(epsmch);
+    eps = ei_sqrt(epsilon<T>());
 
     if (mode == 2) {
 	goto L20;
@@ -56,7 +52,7 @@ L20:
 
 /*        mode = 2. */
 
-    epsf = chkder_factor * epsmch;
+    epsf = chkder_factor * epsilon<T>();
     epslog = chkder_log10e * log(eps);
     i__1 = m;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -87,7 +83,7 @@ L20:
                        fabs(fvecp[i__]));
 	}
 	err[i__] = 1.;
-	if (temp > epsmch && temp < eps) {
+	if (temp > epsilon<T>() && temp < eps) {
 	    err[i__] = (chkder_log10e * log(temp) - epslog) / epslog;
 	}
 	if (temp >= eps) {
