@@ -734,7 +734,7 @@ void testLmdif()
   const int m=15, n=3;
   int info, nfev;
   double fnorm, covfac, covar_ftol;
-  VectorXd x(n), fvec(m), diag(n);
+  VectorXd x(n), fvec(m), diag(n), qtf;
   MatrixXd fjac;
   VectorXi ipvt;
 
@@ -742,7 +742,7 @@ void testLmdif()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif<lmdif_functor, double>(x, fvec, nfev, fjac, ipvt, diag);
+  info = ei_lmdif<lmdif_functor, double>(x, fvec, nfev, fjac, ipvt, qtf, diag);
 
   // check return values
   VERIFY( 1 == info);

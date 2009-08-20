@@ -1,56 +1,32 @@
 
-template<typename Scalar>
-int lmdif1_template(minpack_func_mn fcn, void *p, int m, int n, Scalar *x, 
-	Scalar *fvec, Scalar tol, int *iwa, 
-	Scalar *wa, int lwa)
+template<typename Functor, typename Scalar>
+int ei_lmdif1(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
+        )
 {
-    /* Initialized data */
+    const int n = x.size(), m=fvec.size();
+    int info, nfev;
+    Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
+    Matrix< Scalar, Dynamic, 1> diag, qtf;
+    VectorXi ipvt;
 
-    const Scalar factor = 100.;
-
-    int mp5n, mode, nfev;
-    Scalar ftol, gtol, xtol;
-    Scalar epsfcn;
-    int maxfev, nprint;
-    int info;
-
-    /* Parameter adjustments */
-    --fvec;
-    --iwa;
-    --x;
-    --wa;
-
-    /* Function Body */
-    info = 0;
-
-/*     check the input parameters for errors. */
-
-    if (n <= 0 || m < n || tol < 0. || lwa < m * n + n * 5 + m) {
-	/* goto L10; */
-        return info;
+    /* check the input parameters for errors. */
+    if (n <= 0 || m < n || tol < 0.) {
+        printf("ei_lmder1 bad args : m,n,tol,...");
+        return 0;
     }
 
-/*     call lmdif. */
-
-    maxfev = (n + 1) * 200;
-    ftol = tol;
-    xtol = tol;
-    gtol = 0.;
-    epsfcn = 0.;
-    mode = 1;
-    nprint = 0;
-    mp5n = m + n * 5;
-    info = lmdif(fcn, p, m, n, &x[1], &fvec[1], ftol, xtol, gtol, maxfev,
-	    epsfcn, &wa[1], mode, factor, nprint, &nfev, &wa[mp5n + 
-	    1], m, &iwa[1], &wa[n + 1], &wa[(n << 1) + 1], &wa[n * 3 + 1], 
-	    &wa[(n << 2) + 1], &wa[n * 5 + 1]);
-    if (info == 8) {
-	info = 4;
-    }
-/* L10: */
-    return info;
-
-/*     last card of subroutine lmdif1. */
-
-} /* lmdif1_ */
+    info = ei_lmdif<Functor,Scalar>(
+        x, fvec,
+        nfev,
+        fjac, ipvt, qtf, diag,
+        1,
+        100.,
+        (n+1)*200,
+        tol, tol, Scalar(0.), Scalar(0.)
+    );
+    return (info==8)?4:info;
+}
 

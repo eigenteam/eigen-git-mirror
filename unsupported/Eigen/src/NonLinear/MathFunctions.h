@@ -209,6 +209,7 @@ int ei_lmdif(
         int &nfev,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         Scalar factor = 100.,
@@ -221,7 +222,6 @@ int ei_lmdif(
         )
 {
     Matrix< Scalar, Dynamic, 1 >
-        qtf(x.size()),
         wa1(x.size()), wa2(x.size()), wa3(x.size()),
         wa4(fvec.size());
     int ldfjac = fvec.size();
@@ -229,6 +229,7 @@ int ei_lmdif(
     ipvt.resize(x.size());
     fjac.resize(ldfjac, x.size());
     diag.resize(x.size());
+    qtf.resize(x.size());
     return lmdif_template<Scalar> (
             Functor::f, 0,
             fvec.size(), x.size(), x.data(), fvec.data(),
@@ -243,30 +244,6 @@ int ei_lmdif(
             ipvt.data(),
             qtf.data(),
             wa1.data(), wa2.data(), wa3.data(), wa4.data()
-    );
-}
-
-template<typename Functor, typename Scalar>
-int ei_lmdif1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Scalar tol = ei_sqrt(epsilon<Scalar>())
-        )
-{
-    int n = x.size();
-    int ldfjac = fvec.size();
-    int lwa = ldfjac*n+5*n+ldfjac;
-    VectorXi iwa(n);
-    Matrix< Scalar, Dynamic, 1 > wa(lwa);
-    Matrix< Scalar, Dynamic, Dynamic > fjac(ldfjac, n);
-
-    wa.resize(lwa);
-    return lmdif1_template<Scalar> (
-            Functor::f, 0,
-            fvec.size(), n, x.data(), fvec.data(),
-            tol,
-            iwa.data(),
-            wa.data(), lwa
     );
 }
 
