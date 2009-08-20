@@ -11,15 +11,14 @@ int ei_lmder1(
     int info, nfev, njev;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag;
-    ipvt.resize(n);
 
-
-/*     check the input parameters for errors. */
+    /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
         printf("ei_lmder1 bad args : m,n,tol,...");
         return 0;
     }
 
+    ipvt.resize(n);
     info = ei_lmder<Functor,Scalar>(
         x, fvec,
         nfev, njev,

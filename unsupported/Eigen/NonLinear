@@ -130,7 +130,6 @@ Scalar ei_enorm ( int n, const Scalar *x ){
 #include "src/NonLinear/lmder.h"
 #include "src/NonLinear/hybrd1.h"
 #include "src/NonLinear/hybrd.h"
-#include "src/NonLinear/lmstr1.h"
 #include "src/NonLinear/lmstr.h"
 #include "src/NonLinear/lmdif1.h"
 #include "src/NonLinear/lmdif.h"
@@ -139,6 +138,7 @@ Scalar ei_enorm ( int n, const Scalar *x ){
 #include "src/NonLinear/chkder.h"
 #include "src/NonLinear/MathFunctions.h"
 #include "src/NonLinear/lmder1.h"
+#include "src/NonLinear/lmstr1.h"
 
 //@}
 
