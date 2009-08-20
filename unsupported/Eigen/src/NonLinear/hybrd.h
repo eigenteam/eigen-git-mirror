@@ -295,7 +295,7 @@ L230:
     ++ncsuc;
     if (ratio >= p5 || ncsuc > 1) /* Computing MAX */
         delta = max(delta, pnorm / p5);
-    if (fabs(ratio - 1.) <= p1) {
+    if (ei_abs(ratio - 1.) <= p1) {
         delta = pnorm / p5;
     }
 L240:

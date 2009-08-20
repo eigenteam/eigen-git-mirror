@@ -184,7 +184,7 @@ L120:
             /* L140: */
         }
         /* Computing MAX */
-        gnorm = max(gnorm, fabs(sum / wa2[l]));
+        gnorm = max(gnorm, ei_abs(sum / wa2[l]));
 L150:
         /* L160: */
         ;
@@ -327,13 +327,13 @@ L290:
 
     /*           tests for convergence. */
 
-    if (fabs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1.) {
+    if (ei_abs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1.) {
         info = 1;
     }
     if (delta <= xtol * xnorm) {
         info = 2;
     }
-    if (fabs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1. && info 
+    if (ei_abs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1. && info 
             == 2) {
         info = 3;
     }
@@ -346,7 +346,7 @@ L290:
     if (*nfev >= maxfev) {
         info = 5;
     }
-    if (fabs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && p5 * ratio <= 1.) {
+    if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && p5 * ratio <= 1.) {
         info = 6;
     }
     if (delta <= epsilon<Scalar>() * xnorm) {

@@ -15,7 +15,7 @@ void ei_chkder(
 {
     const Scalar eps = ei_sqrt(epsilon<Scalar>());
     const Scalar epsf = chkder_factor * epsilon<Scalar>();
-    const Scalar epslog = chkder_log10e * log(eps);
+    const Scalar epslog = chkder_log10e * ei_log(eps);
     Scalar temp;
     int i,j;
 
@@ -52,7 +52,7 @@ void ei_chkder(
             }
             err[i] = 1.;
             if (temp > epsilon<Scalar>() && temp < eps) {
-                err[i] = (chkder_log10e * log(temp) - epslog) / epslog;
+                err[i] = (chkder_log10e * ei_log(temp) - epslog) / epslog;
             }
             if (temp >= eps) {
                 err[i] = 0.;
