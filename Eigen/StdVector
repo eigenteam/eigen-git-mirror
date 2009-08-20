@@ -2,7 +2,7 @@
 #define EIGEN_STDVECTOR_MODULE_H
 
 #if defined(_GLIBCXX_VECTOR) || defined(_VECTOR_)
-#error you must include Eigen/StdVector before std::vector
+#error you must include <Eigen/StdVector> before <vector>. Also note that <Eigen/Sparse> includes <vector>, so it must be included after <Eigen/StdVector> too.
 #endif                                                    
 
 #ifndef EIGEN_GNUC_AT_LEAST
