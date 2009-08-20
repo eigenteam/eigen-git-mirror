@@ -681,13 +681,12 @@ void testLmdif1()
   int m=15, n=3, info;
 
   VectorXd x(n), fvec(m);
-  VectorXi iwa;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif1<lmdif1_functor,double>(x, fvec, iwa);
+  info = ei_lmdif1<lmdif1_functor,double>(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
