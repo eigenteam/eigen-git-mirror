@@ -116,9 +116,16 @@ int lmstr (  minpack_funcderstr_mn fcn, void *p, int m,
 void chkder ( int m, int n, const double *x, double *fvec, double *fjac,
 	       int ldfjac, double *xp, double *fvecp, int mode,
 	       double *err  );
+
+void covar(int n, double *r__, int ldr, const int *ipvt, double tol, double *wa);
 #endif
 
 
+template<typename Scalar>
+Scalar ei_enorm ( int n, const Scalar *x ){
+    return Map< Matrix< Scalar, Dynamic, 1 > >(x,n).stableNorm();
+//    return Map< Matrix< Scalar, Dynamic, 1 > >(x,n).blueNorm();
+}
 
 #include "src/NonLinear/lmder1.h"
 #include "src/NonLinear/lmder.h"

@@ -1142,7 +1142,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == nfev); 
   VERIFY( 72 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4292388868910E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1294,7 +1294,7 @@ void testNistMGH10(void)
   info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
-  VERIFY( 3 == info); 
+  VERIFY( 2 == info); 
   VERIFY( 285 == nfev); 
   VERIFY( 250 == njev); 
   // check norm^2
@@ -1312,7 +1312,7 @@ void testNistMGH10(void)
   info = ei_lmder<MGH10_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
 
   // check return value
-  VERIFY( 3 == info); 
+  VERIFY( 2 == info); 
   VERIFY( 126 == nfev); 
   VERIFY( 116 == njev); 
   // check norm^2
@@ -1388,8 +1388,8 @@ void testNistBoxBOD(void)
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 16 == nfev); 
-  VERIFY( 15 == njev); 
+  VERIFY( 15 == nfev); 
+  VERIFY( 14 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1531,15 +1531,15 @@ void testNistMGH09(void)
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 487== nfev); 
-  VERIFY( 378 == njev); 
+  VERIFY( 503== nfev); 
+  VERIFY( 385 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 3.0750560385E-04);
   // check x
-  VERIFY_IS_APPROX(x[0], 0.19280590); // should be 1.9280693458E-01
-  VERIFY_IS_APPROX(x[1], 0.19130543); // should be 1.9128232873E-01
-  VERIFY_IS_APPROX(x[2], 0.12306085); // should be 1.2305650693E-01
-  VERIFY_IS_APPROX(x[3], 0.13607303); // should be 1.3606233068E-01
+  VERIFY_IS_APPROX(x[0], 0.19280624); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.19129774); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.12305940); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.13606946); // should be 1.3606233068E-01
 
   /*
    * Second try
@@ -1923,4 +1923,14 @@ void test_NonLinear()
     CALL_SUBTEST(testNistRat43());
     CALL_SUBTEST(testNistEckerle4());
 }
+
+/*
+ * Can be useful for debugging...
+  printf("info, nfev, jev : %d, %d, %d\n", info, nfev, njev);
+  printf("x[0] : %.32g\n", x[0]);
+  printf("x[1] : %.32g\n", x[1]);
+  printf("x[2] : %.32g\n", x[2]);
+  printf("x[3] : %.32g\n", x[3]);
+  printf("fvec.squaredNorm() : %.32g\n", fvec.squaredNorm());
+*/
 

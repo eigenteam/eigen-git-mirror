@@ -72,7 +72,7 @@ L20:
     if (iflag < 0) {
 	goto L340;
     }
-    fnorm = enorm(m, &fvec[1]);
+    fnorm = ei_enorm<T>(m, &fvec[1]);
 
 /*     initialize levenberg-marquardt parameter and iteration counter. */
 
@@ -136,7 +136,7 @@ L40:
 	    sing = TRUE_;
 	}
 	ipvt[j] = j;
-	wa2[j] = enorm(j, &fjac[j * fjac_dim1 + 1]);
+	wa2[j] = ei_enorm<T>(j, &fjac[j * fjac_dim1 + 1]);
 /* L80: */
     }
     if (! sing) {
@@ -194,7 +194,7 @@ L150:
 	wa3[j] = diag[j] * x[j];
 /* L160: */
     }
-    xnorm = enorm(n, &wa3[1]);
+    xnorm = ei_enorm<T>(n, &wa3[1]);
     delta = factor * xnorm;
     if (delta == 0.) {
 	delta = factor;
@@ -269,7 +269,7 @@ L240:
 	wa3[j] = diag[j] * wa1[j];
 /* L250: */
     }
-    pnorm = enorm(n, &wa3[1]);
+    pnorm = ei_enorm<T>(n, &wa3[1]);
 
 /*           on the first iteration, adjust the initial step bound. */
 
@@ -284,7 +284,7 @@ L240:
     if (iflag < 0) {
 	goto L340;
     }
-    fnorm1 = enorm(m, &wa4[1]);
+    fnorm1 = ei_enorm<T>(m, &wa4[1]);
 
 /*           compute the scaled actual reduction. */
 
@@ -310,7 +310,7 @@ L240:
 	}
 /* L270: */
     }
-    temp1 = enorm(n, &wa3[1]) / fnorm;
+    temp1 = ei_enorm<T>(n, &wa3[1]) / fnorm;
     temp2 = sqrt(par) * pnorm / fnorm;
 /* Computing 2nd power */
     d__1 = temp1;
@@ -378,7 +378,7 @@ L300:
 	fvec[i__] = wa4[i__];
 /* L320: */
     }
-    xnorm = enorm(n, &wa2[1]);
+    xnorm = ei_enorm<T>(n, &wa2[1]);
     fnorm = fnorm1;
     ++iter;
 L330:

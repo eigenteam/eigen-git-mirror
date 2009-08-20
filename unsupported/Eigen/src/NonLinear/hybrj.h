@@ -78,7 +78,7 @@ L20:
     if (iflag < 0) {
 	goto L300;
     }
-    fnorm = enorm(n, &fvec[1]);
+    fnorm = ei_enorm<T>(n, &fvec[1]);
 
 /*     initialize iteration counter and monitors. */
 
@@ -133,7 +133,7 @@ L50:
 	wa3[j] = diag[j] * x[j];
 /* L60: */
     }
-    xnorm = enorm(n, &wa3[1]);
+    xnorm = ei_enorm<T>(n, &wa3[1]);
     delta = factor * xnorm;
     if (delta == 0.) {
 	delta = factor;
@@ -243,7 +243,7 @@ L190:
 	wa3[j] = diag[j] * wa1[j];
 /* L200: */
     }
-    pnorm = enorm(n, &wa3[1]);
+    pnorm = ei_enorm<T>(n, &wa3[1]);
 
 /*           on the first iteration, adjust the initial step bound. */
 
@@ -258,7 +258,7 @@ L190:
     if (iflag < 0) {
 	goto L300;
     }
-    fnorm1 = enorm(n, &wa4[1]);
+    fnorm1 = ei_enorm<T>(n, &wa4[1]);
 
 /*           compute the scaled actual reduction. */
 
@@ -284,7 +284,7 @@ L190:
 	wa3[i__] = qtf[i__] + sum;
 /* L220: */
     }
-    temp = enorm(n, &wa3[1]);
+    temp = ei_enorm<T>(n, &wa3[1]);
     prered = 0.;
     if (temp < fnorm) {
 /* Computing 2nd power */
@@ -337,7 +337,7 @@ L240:
 	fvec[j] = wa4[j];
 /* L250: */
     }
-    xnorm = enorm(n, &wa2[1]);
+    xnorm = ei_enorm<T>(n, &wa2[1]);
     fnorm = fnorm1;
     ++iter;
 L260:
