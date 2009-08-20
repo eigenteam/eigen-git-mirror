@@ -247,31 +247,5 @@ int ei_lmdif(
     );
 }
 
-template<typename Scalar>
-void ei_chkder(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Matrix< Scalar, Dynamic, 1 >  &xp,
-        Matrix< Scalar, Dynamic, 1 >  &fvecp,
-        int mode,
-        Matrix< Scalar, Dynamic, 1 >  &err
-        )
-{
-    int ldfjac = fvec.size();
-    if (mode==1)
-        xp.resize(ldfjac);
-    else
-        err.resize(ldfjac);
-    chkder_template<Scalar>(
-            fvec.size(), x.size(), x.data(), fvec.data(),
-            fjac.data(), ldfjac,
-            xp.data(),
-            fvecp.data(),
-            mode,
-            err.data()
-    );
-}
-
 #endif // EIGEN_NONLINEAR_MATHFUNCTIONS_H
 

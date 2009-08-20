@@ -2,75 +2,61 @@
 #define chkder_log10e 0.43429448190325182765
 #define chkder_factor 100.
 
-/* Table of constant values */
-
-    template<typename Scalar>
-void chkder_template(int m, int n, const Scalar *x, 
-        Scalar *fvec, Scalar *fjac, int ldfjac, Scalar *xp, 
-        Scalar *fvecp, int mode, Scalar *err)
+template<typename Scalar>
+void ei_chkder(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, 1 >  &xp,
+        Matrix< Scalar, Dynamic, 1 >  &fvecp,
+        int mode,
+        Matrix< Scalar, Dynamic, 1 >  &err
+        )
 {
-    /* System generated locals */
-    int fjac_offset;
-
-    /* Local variables */
-    int i__, j;
-    Scalar temp;
-
-    /* Parameter adjustments */
-    --err;
-    --fvecp;
-    --fvec;
-    --xp;
-    --x;
-    fjac_offset = 1 + ldfjac;
-    fjac -= fjac_offset;
-
-    /* Function Body */
-
     const Scalar eps = ei_sqrt(epsilon<Scalar>());
-
-    if (mode != 2) {
-        /*        mode = 1. */
-        for (j = 1; j <= n; ++j) {
-            temp = eps * fabs(x[j]);
-            if (temp == 0.) {
-                temp = eps;
-            }
-            xp[j] = x[j] + temp;
-        }
-        return;
-    }
-
-    /*        mode = 2. */
     const Scalar epsf = chkder_factor * epsilon<Scalar>();
     const Scalar epslog = chkder_log10e * log(eps);
-    for (i__ = 1; i__ <= m; ++i__) {
-        err[i__] = 0.;
+    Scalar temp;
+    int i,j;
+
+    const int m = fvec.size(), n = x.size();
+    int ldfjac = m;
+
+    if (mode != 2) {
+        xp.resize(ldfjac);
+        /*        mode = 1. */
+        for (j = 0; j < n; ++j) {
+            temp = eps * ei_abs(x[j]);
+            if (temp == 0.)
+                temp = eps;
+            xp[j] = x[j] + temp;
+        }
     }
-    for (j = 1; j <= n; ++j) {
-        temp = fabs(x[j]);
-        if (temp == 0.) {
+    else {
+        /*        mode = 2. */
+        err.setZero(ldfjac); 
+        for (j = 0; j < n; ++j) {
+            temp = ei_abs(x[j]);
+            if (temp == 0.)
+                temp = 1.;
+            err += temp * fjac.col(j);
+        }
+        for (i = 0; i < m; ++i) {
             temp = 1.;
-        }
-        for (i__ = 1; i__ <= m; ++i__) {
-            err[i__] += temp * fjac[i__ + j * ldfjac];
-        }
-    }
-    for (i__ = 1; i__ <= m; ++i__) {
-        temp = 1.;
-        if (fvec[i__] != 0. && fvecp[i__] != 0. && fabs(fvecp[i__] - 
-                    fvec[i__]) >= epsf * fabs(fvec[i__]))
-        {
-            temp = eps * fabs((fvecp[i__] - fvec[i__]) / eps - err[i__]) 
-                / (fabs(fvec[i__]) +
-                        fabs(fvecp[i__]));
-        }
-        err[i__] = 1.;
-        if (temp > epsilon<Scalar>() && temp < eps) {
-            err[i__] = (chkder_log10e * log(temp) - epslog) / epslog;
-        }
-        if (temp >= eps) {
-            err[i__] = 0.;
+            if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - 
+                        fvec[i]) >= epsf * ei_abs(fvec[i]))
+            {
+                temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) 
+                    / (ei_abs(fvec[i]) +
+                            ei_abs(fvecp[i]));
+            }
+            err[i] = 1.;
+            if (temp > epsilon<Scalar>() && temp < eps) {
+                err[i] = (chkder_log10e * log(temp) - epslog) / epslog;
+            }
+            if (temp >= eps) {
+                err[i] = 0.;
+            }
         }
     }
 } /* chkder_ */
