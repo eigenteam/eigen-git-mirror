@@ -216,32 +216,6 @@ int ei_lmstr(
     );
 }
 
-
-
-template<typename Functor, typename Scalar>
-int ei_lmder1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        VectorXi &ipvt,
-        Scalar tol = ei_sqrt(epsilon<Scalar>())
-        )
-{
-    int lwa = 5*x.size()+fvec.size();
-    int ldfjac = fvec.size();
-    Matrix< Scalar, Dynamic, 1 > wa(lwa);
-    Matrix< Scalar, Dynamic, Dynamic > fjac(ldfjac, x.size());
-
-    ipvt.resize(x.size());
-    return lmder1_template<Scalar> (
-            Functor::f, 0,
-            fvec.size(), x.size(), x.data(), fvec.data(),
-            fjac.data() , ldfjac,
-            tol,
-            ipvt.data(),
-            wa.data(), lwa
-    );
-}
-
 template<typename Functor, typename Scalar>
 int ei_lmder(
         Matrix< Scalar, Dynamic, 1 >  &x,
