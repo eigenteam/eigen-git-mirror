@@ -75,25 +75,6 @@ int ei_hybrd(
 
 
 template<typename Functor, typename Scalar>
-int ei_hybrj1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Scalar tol = ei_sqrt(epsilon<Scalar>())
-        )
-{
-    int n = x.size();
-    int lwa = (n*(3*n+13))/2;
-    Matrix< Scalar, Dynamic, 1 > wa(lwa);
-    int ldfjac = n;
-
-    fvec.resize(n);
-    fjac.resize(ldfjac, n);
-    return hybrj1_template<Scalar>(Functor::f, 0, n, x.data(), fvec.data(), fjac.data(), ldfjac, tol, wa.data(), lwa);
-}
-
-
-template<typename Functor, typename Scalar>
 int ei_hybrj(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,

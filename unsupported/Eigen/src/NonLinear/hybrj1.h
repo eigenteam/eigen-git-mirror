@@ -1,63 +1,33 @@
 
-template<typename Scalar>
-int hybrj1_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
-	fvec, Scalar *fjac, int ldfjac, Scalar tol,
-	Scalar *wa, int lwa)
+template<typename Functor, typename Scalar>
+int ei_hybrj1(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
+        )
 {
-    /* Initialized data */
+    const int n = x.size();
+    int info, nfev, njev;
+    Matrix< Scalar, Dynamic, 1> R, qtf, diag;
 
-    const Scalar factor = 100.;
-
-    /* System generated locals */
-    int fjac_dim1, fjac_offset, i__1;
-
-    /* Local variables */
-    int j, lr, mode, nfev, njev;
-    Scalar xtol;
-    int maxfev, nprint;
-    int info;
-
-    /* Parameter adjustments */
-    --fvec;
-    --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
-    fjac -= fjac_offset;
-    --wa;
-
-    /* Function Body */
-    info = 0;
-
-/*     check the input parameters for errors. */
-
-    if (n <= 0 || ldfjac < n || tol < 0. || lwa < n * (n + 13) / 2) {
-	/* goto L20; */
-        return info;
+    /* check the input parameters for errors. */
+    if (n <= 0 || tol < 0.) {
+        printf("ei_hybrd1 bad args : n,tol,...");
+        return 0;
     }
 
-/*     call hybrj. */
-
-    maxfev = (n + 1) * 100;
-    xtol = tol;
-    mode = 2;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
-	wa[j] = 1.;
-/* L10: */
-    }
-    nprint = 0;
-    lr = n * (n + 1) / 2;
-    info = hybrj(fcn, p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, xtol,
-	    maxfev, &wa[1], mode, factor, nprint, &nfev, &njev, &wa[
-	    n * 6 + 1], lr, &wa[n + 1], &wa[(n << 1) + 1], &wa[n * 3 + 1],
-	     &wa[(n << 2) + 1], &wa[n * 5 + 1]);
-    if (info == 5) {
-	info = 4;
-    }
-/* L20: */
-    return info;
-
-/*     last card of subroutine hybrj1. */
-
-} /* hybrj1_ */
+    diag.setConstant(n, 1.);
+    info = ei_hybrj<Functor,Scalar>(
+        x, fvec,
+        nfev, njev,
+        fjac,
+        R, qtf, diag,
+        2,
+        (n+1)*100,
+        100.,
+        tol
+    );
+    return (info==5)?4:info;
+}
 
