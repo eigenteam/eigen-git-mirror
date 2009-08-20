@@ -7,7 +7,7 @@ int ei_hybrd1(
         )
 {
     const int n = x.size();
-    int info, nfev;
+    int info, nfev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac;
     Matrix< Scalar, Dynamic, 1> R, qtf, diag;
 

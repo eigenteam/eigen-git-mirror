@@ -4,7 +4,7 @@ int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x,
         Scalar *fvec, Scalar *fjac, int ldfjac, Scalar ftol,
         Scalar xtol, Scalar gtol, int maxfev, Scalar *
         diag, int mode, Scalar factor, int nprint,
-        int *nfev, int *njev, int *ipvt, Scalar *qtf, 
+        int &nfev, int &njev, int *ipvt, Scalar *qtf, 
         Scalar *wa1, Scalar *wa2, Scalar *wa3, Scalar *wa4)
 {
     /* Initialized data */
@@ -41,8 +41,8 @@ int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x,
 
     info = 0;
     iflag = 0;
-    *nfev = 0;
-    *njev = 0;
+    nfev = 0;
+    njev = 0;
 
     /*     check the input parameters for errors. */
 
@@ -65,7 +65,7 @@ L20:
     /*     and calculate its norm. */
 
     iflag = (*fcn)(p, m, n, &x[1], &fvec[1], &wa3[1], 1);
-    *nfev = 1;
+    nfev = 1;
     if (iflag < 0) {
         goto L340;
     }
@@ -118,7 +118,7 @@ L40:
         ++iflag;
         /* L70: */
     }
-    ++(*njev);
+    ++njev;
 
     /*        if the jacobian is rank deficient, call qrfac to */
     /*        reorder its columns and update the components of qtf. */
@@ -259,7 +259,7 @@ L240:
     /*           evaluate the function at x + p and calculate its norm. */
 
     iflag = (*fcn)(p, m, n, &wa2[1], &wa4[1], &wa3[1], 1);
-    ++(*nfev);
+    ++nfev;
     if (iflag < 0) {
         goto L340;
     }
@@ -366,7 +366,7 @@ L330:
 
     /*           tests for termination and stringent tolerances. */
 
-    if (*nfev >= maxfev) {
+    if (nfev >= maxfev) {
         info = 5;
     }
     if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && p5 * ratio <= 1.) {

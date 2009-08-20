@@ -8,7 +8,7 @@ int ei_hybrj1(
         )
 {
     const int n = x.size();
-    int info, nfev, njev;
+    int info, nfev=0, njev=0;
     Matrix< Scalar, Dynamic, 1> R, qtf, diag;
 
     /* check the input parameters for errors. */

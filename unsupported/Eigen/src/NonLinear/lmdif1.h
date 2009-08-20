@@ -7,7 +7,7 @@ int ei_lmdif1(
         )
 {
     const int n = x.size(), m=fvec.size();
-    int info, nfev;
+    int info, nfev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
     VectorXi ipvt;

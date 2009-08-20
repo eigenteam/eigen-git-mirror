@@ -3,7 +3,7 @@ template<typename Scalar>
 int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
         fvec, Scalar *fjac, int ldfjac, Scalar xtol, int
         maxfev, Scalar *diag, int mode, Scalar factor, int
-        nprint, int *nfev, int *njev, Scalar *r__, 
+        nprint, int &nfev, int &njev, Scalar *r__, 
         int lr, Scalar *qtf, Scalar *wa1, Scalar *wa2, 
         Scalar *wa3, Scalar *wa4)
 {
@@ -47,8 +47,8 @@ int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
 
     info = 0;
     iflag = 0;
-    *nfev = 0;
-    *njev = 0;
+    nfev = 0;
+    njev = 0;
 
     /*     check the input parameters for errors. */
 
@@ -71,7 +71,7 @@ L20:
     /*     and calculate its norm. */
 
     iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 1);
-    *nfev = 1;
+    nfev = 1;
     if (iflag < 0) {
         goto L300;
     }
@@ -93,7 +93,7 @@ L30:
     /*        calculate the jacobian matrix. */
 
     iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 2);
-    ++(*njev);
+    ++njev;
     if (iflag < 0) {
         goto L300;
     }
@@ -237,7 +237,7 @@ L190:
     /*           evaluate the function at x + p and calculate its norm. */
 
     iflag = (*fcn)(p, n, &wa2[1], &wa4[1], &fjac[fjac_offset], ldfjac, 1);
-    ++(*nfev);
+    ++nfev;
     if (iflag < 0) {
         goto L300;
     }
@@ -337,7 +337,7 @@ L260:
 
     /*           tests for termination and stringent tolerances. */
 
-    if (*nfev >= maxfev) {
+    if (nfev >= maxfev) {
         info = 2;
     }
     /* Computing MAX */

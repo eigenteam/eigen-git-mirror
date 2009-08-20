@@ -216,7 +216,7 @@ struct lmder_functor {
 void testLmder()
 {
   const int m=15, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
   double fnorm, covfac, covar_ftol;
   VectorXd x(n), fvec(m), diag(n);
   MatrixXd fjac;
@@ -379,7 +379,7 @@ struct hybrj_functor {
 void testHybrj()
 {
   const int n=9;
-  int info, nfev, njev, mode;
+  int info, nfev=0, njev=0, mode;
   VectorXd x(n), fvec, diag(n), R, qtf;
   MatrixXd fjac;
 
@@ -485,7 +485,7 @@ struct hybrd_functor {
 void testHybrd()
 {
   const int n=9;
-  int info, nfev, ml, mu, mode;
+  int info, nfev=0, ml, mu, mode;
   VectorXd x(n), fvec, diag(n), R, qtf;
   MatrixXd fjac;
 
@@ -624,7 +624,7 @@ struct lmstr_functor {
 void testLmstr()
 {
   const int m=15, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
   double fnorm;
   VectorXd x(n), fvec(m), diag(n);
   MatrixXd fjac;
@@ -732,7 +732,7 @@ struct lmdif_functor {
 void testLmdif()
 {
   const int m=15, n=3;
-  int info, nfev;
+  int info, nfev=0;
   double fnorm, covfac, covar_ftol;
   VectorXd x(n), fvec(m), diag(n), qtf;
   MatrixXd fjac;
@@ -812,7 +812,7 @@ struct chwirut2_functor {
 void testNistChwirut2(void)
 {
   const int m=54, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -886,7 +886,7 @@ struct misra1a_functor {
 void testNistMisra1a(void)
 {
   const int m=14, n=2;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -966,7 +966,7 @@ struct hahn1_functor {
 void testNistHahn1(void)
 {
   const int m=236, n=7;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1048,7 +1048,7 @@ struct misra1d_functor {
 void testNistMisra1d(void)
 {
   const int m=14, n=2;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1123,7 +1123,7 @@ struct lanczos1_functor {
 void testNistLanczos1(void)
 {
   const int m=24, n=6;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1204,7 +1204,7 @@ struct rat42_functor {
 void testNistRat42(void)
 {
   const int m=9, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1279,7 +1279,7 @@ struct MGH10_functor {
 void testNistMGH10(void)
 {
   const int m=16, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1353,7 +1353,7 @@ struct BoxBOD_functor {
 void testNistBoxBOD(void)
 {
   const int m=6, n=2;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1428,7 +1428,7 @@ struct MGH17_functor {
 void testNistMGH17(void)
 {
   const int m=33, n=5;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1513,7 +1513,7 @@ struct MGH09_functor {
 void testNistMGH09(void)
 {
   const int m=11, n=4;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1594,7 +1594,7 @@ struct Bennett5_functor {
 void testNistBennett5(void)
 {
   const int m=154, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1676,7 +1676,7 @@ struct thurber_functor {
 void testNistThurber(void)
 {
   const int m=37, n=7;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1762,7 +1762,7 @@ struct rat43_functor {
 void testNistRat43(void)
 {
   const int m=15, n=4;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;
@@ -1844,7 +1844,7 @@ struct eckerle4_functor {
 void testNistEckerle4(void)
 {
   const int m=35, n=3;
-  int info, nfev, njev;
+  int info, nfev=0, njev=0;
 
   VectorXd x(n), fvec(m), diag;
   MatrixXd fjac;

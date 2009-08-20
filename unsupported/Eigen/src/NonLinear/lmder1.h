@@ -8,7 +8,7 @@ int ei_lmder1(
         )
 {
     const int n = x.size(), m=fvec.size();
-    int info, nfev, njev;
+    int info, nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag;
 
