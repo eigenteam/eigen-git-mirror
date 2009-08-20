@@ -10,7 +10,7 @@ int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
     /* Initialized data */
 
     /* System generated locals */
-    int fjac_dim1, fjac_offset, i__1, i__2;
+    int fjac_dim1, fjac_offset;
     Scalar d__1, d__2;
 
     /* Local variables */
@@ -61,8 +61,7 @@ int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
     if (mode != 2) {
 	goto L20;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	if (diag[j] <= 0.) {
 	    goto L300;
 	}
@@ -115,8 +114,7 @@ L30:
     if (mode == 2) {
 	goto L50;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	diag[j] = wa2[j];
 	if (wa2[j] == 0.) {
 	    diag[j] = 1.;
@@ -128,8 +126,7 @@ L50:
 /*        on the first iteration, calculate the norm of the scaled x */
 /*        and initialize the step bound delta. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa3[j] = diag[j] * x[j];
 /* L60: */
     }
@@ -142,25 +139,21 @@ L70:
 
 /*        form (q transpose)*fvec and store in qtf. */
 
-    i__1 = n;
-    for (i__ = 1; i__ <= i__1; ++i__) {
+    for (i__ = 1; i__ <= n; ++i__) {
 	qtf[i__] = fvec[i__];
 /* L80: */
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	if (fjac[j + j * fjac_dim1] == 0.) {
 	    goto L110;
 	}
 	sum = 0.;
-	i__2 = n;
-	for (i__ = j; i__ <= i__2; ++i__) {
+	for (i__ = j; i__ <= n; ++i__) {
 	    sum += fjac[i__ + j * fjac_dim1] * qtf[i__];
 /* L90: */
 	}
 	temp = -sum / fjac[j + j * fjac_dim1];
-	i__2 = n;
-	for (i__ = j; i__ <= i__2; ++i__) {
+	for (i__ = j; i__ <= n; ++i__) {
 	    qtf[i__] += fjac[i__ + j * fjac_dim1] * temp;
 /* L100: */
 	}
@@ -172,15 +165,13 @@ L110:
 /*        copy the triangular factor of the qr factorization into r. */
 
     sing = FALSE_;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = j;
 	jm1 = j - 1;
 	if (jm1 < 1) {
 	    goto L140;
 	}
-	i__2 = jm1;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i__ = 1; i__ <= jm1; ++i__) {
 	    r__[l] = fjac[i__ + j * fjac_dim1];
 	    l = l + n - i__;
 /* L130: */
@@ -202,8 +193,7 @@ L140:
     if (mode == 2) {
 	goto L170;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 /* Computing MAX */
 	d__1 = diag[j], d__2 = wa2[j];
 	diag[j] = max(d__1,d__2);
@@ -236,8 +226,7 @@ L190:
 
 /*           store the direction p and x + p. calculate the norm of p. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = -wa1[j];
 	wa2[j] = x[j] + wa1[j];
 	wa3[j] = diag[j] * wa1[j];
@@ -272,11 +261,9 @@ L190:
 /*           compute the scaled predicted reduction. */
 
     l = 1;
-    i__1 = n;
-    for (i__ = 1; i__ <= i__1; ++i__) {
+    for (i__ = 1; i__ <= n; ++i__) {
 	sum = 0.;
-	i__2 = n;
-	for (j = i__; j <= i__2; ++j) {
+	for (j = i__; j <= n; ++j) {
 	    sum += r__[l] * wa1[j];
 	    ++l;
 /* L210: */
@@ -330,8 +317,7 @@ L240:
 
 /*           successful iteration. update x, fvec, and their norms. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	x[j] = wa2[j];
 	wa2[j] = diag[j] * x[j];
 	fvec[j] = wa4[j];
@@ -393,11 +379,9 @@ L260:
 /*           calculate the rank one modification to the jacobian */
 /*           and update qtf if necessary. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	sum = 0.;
-	i__2 = n;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i__ = 1; i__ <= n; ++i__) {
 	    sum += fjac[i__ + j * fjac_dim1] * wa4[i__];
 /* L270: */
 	}

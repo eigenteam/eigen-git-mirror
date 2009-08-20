@@ -10,7 +10,7 @@ int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x,
     /* Initialized data */
 
     /* System generated locals */
-    int fjac_dim1, fjac_offset, i__1, i__2;
+    int fjac_dim1, fjac_offset;
     Scalar d__1, d__2, d__3;
 
     /* Local variables */
@@ -54,8 +54,7 @@ int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x,
     if (mode != 2) {
 	goto L20;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	if (diag[j] <= 0.) {
 	    goto L300;
 	}
@@ -118,8 +117,7 @@ L40:
     if (mode == 2) {
 	goto L60;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	diag[j] = wa2[j];
 	if (wa2[j] == 0.) {
 	    diag[j] = 1.;
@@ -131,8 +129,7 @@ L60:
 /*        on the first iteration, calculate the norm of the scaled x */
 /*        and initialize the step bound delta. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa3[j] = diag[j] * x[j];
 /* L70: */
     }
@@ -146,25 +143,21 @@ L80:
 /*        form (q transpose)*fvec and store the first n components in */
 /*        qtf. */
 
-    i__1 = m;
-    for (i__ = 1; i__ <= i__1; ++i__) {
+    for (i__ = 1; i__ <= m; ++i__) {
 	wa4[i__] = fvec[i__];
 /* L90: */
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	if (fjac[j + j * fjac_dim1] == 0.) {
 	    goto L120;
 	}
 	sum = 0.;
-	i__2 = m;
-	for (i__ = j; i__ <= i__2; ++i__) {
+	for (i__ = j; i__ <= m; ++i__) {
 	    sum += fjac[i__ + j * fjac_dim1] * wa4[i__];
 /* L100: */
 	}
 	temp = -sum / fjac[j + j * fjac_dim1];
-	i__2 = m;
-	for (i__ = j; i__ <= i__2; ++i__) {
+	for (i__ = j; i__ <= m; ++i__) {
 	    wa4[i__] += fjac[i__ + j * fjac_dim1] * temp;
 /* L110: */
 	}
@@ -180,15 +173,13 @@ L120:
     if (fnorm == 0.) {
 	goto L170;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = ipvt[j];
 	if (wa2[l] == 0.) {
 	    goto L150;
 	}
 	sum = 0.;
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i__ = 1; i__ <= j; ++i__) {
 	    sum += fjac[i__ + j * fjac_dim1] * (qtf[i__] / fnorm);
 /* L140: */
 	}
@@ -215,8 +206,7 @@ L170:
     if (mode == 2) {
 	goto L190;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 /* Computing MAX */
 	d__1 = diag[j], d__2 = wa2[j];
 	diag[j] = max(d__1,d__2);
@@ -235,8 +225,7 @@ L200:
 
 /*           store the direction p and x + p. calculate the norm of p. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = -wa1[j];
 	wa2[j] = x[j] + wa1[j];
 	wa3[j] = diag[j] * wa1[j];
@@ -271,13 +260,11 @@ L200:
 /*           compute the scaled predicted reduction and */
 /*           the scaled directional derivative. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa3[j] = 0.;
 	l = ipvt[j];
 	temp = wa1[l];
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i__ = 1; i__ <= j; ++i__) {
 	    wa3[i__] += fjac[i__ + j * fjac_dim1] * temp;
 /* L220: */
 	}
@@ -340,14 +327,12 @@ L260:
 
 /*           successful iteration. update x, fvec, and their norms. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	x[j] = wa2[j];
 	wa2[j] = diag[j] * x[j];
 /* L270: */
     }
-    i__1 = m;
-    for (i__ = 1; i__ <= i__1; ++i__) {
+    for (i__ = 1; i__ <= m; ++i__) {
 	fvec[i__] = wa4[i__];
 /* L280: */
     }
