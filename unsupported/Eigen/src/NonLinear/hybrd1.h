@@ -1,63 +1,34 @@
 
-template<typename Scalar>
-int hybrd1_template(minpack_func_nn fcn, void *p, int n, Scalar *x, Scalar *
-	fvec, Scalar tol, Scalar *wa, int lwa)
+template<typename Functor, typename Scalar>
+int ei_hybrd1(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Scalar tol = ei_sqrt(epsilon<Scalar>())
+        )
 {
-    /* Initialized data */
+    const int n = x.size();
+    int info, nfev;
+    Matrix< Scalar, Dynamic, Dynamic > fjac;
+    Matrix< Scalar, Dynamic, 1> R, qtf, diag;
 
-    const Scalar factor = 100.;
-
-    /* System generated locals */
-    int i__1;
-
-    /* Local variables */
-    int j, ml, lr, mu, mode, nfev;
-    Scalar xtol;
-    int index;
-    Scalar epsfcn;
-    int maxfev, nprint;
-    int info;
-
-    /* Parameter adjustments */
-    --fvec;
-    --x;
-    --wa;
-
-    /* Function Body */
-    info = 0;
-
-/*     check the input parameters for errors. */
-
-    if (n <= 0 || tol < 0. || lwa < n * (n * 3 + 13) / 2) {
-	/* goto L20; */
-        return info;
+    /* check the input parameters for errors. */
+    if (n <= 0 || tol < 0.) {
+        printf("ei_hybrd1 bad args : n,tol,...");
+        return 0;
     }
 
-/*     call hybrd. */
-
-    maxfev = (n + 1) * 200;
-    xtol = tol;
-    ml = n - 1;
-    mu = n - 1;
-    epsfcn = 0.;
-    mode = 2;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
-	wa[j] = 1.;
-/* L10: */
-    }
-    nprint = 0;
-    lr = n * (n + 1) / 2;
-    index = n * 6 + lr;
-    info = hybrd(fcn, p, n, &x[1], &fvec[1], xtol, maxfev, ml, mu, epsfcn, &
-	    wa[1], mode, factor, nprint, &nfev, &wa[index + 1], n, &
-	    wa[n * 6 + 1], lr, &wa[n + 1], &wa[(n << 1) + 1], &wa[n * 3 
-	    + 1], &wa[(n << 2) + 1], &wa[n * 5 + 1]);
-    if (info == 5) {
-	info = 4;
-    }
-/* L20: */
-    return info;
-
+    diag.setConstant(n, 1.);
+    info = ei_hybrd<Functor,Scalar>(
+        x, fvec,
+        nfev,
+        fjac,
+        R, qtf, diag,
+        2,
+        -1, -1,
+        (n+1)*200,
+        100.,
+        tol, Scalar(0.)
+    );
+    return (info==5)?4:info;
 }
 

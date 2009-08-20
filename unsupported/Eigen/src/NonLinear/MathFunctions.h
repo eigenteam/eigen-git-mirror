@@ -26,20 +26,6 @@
 #define EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
 template<typename Functor, typename Scalar>
-int ei_hybrd1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Scalar tol = ei_sqrt(epsilon<Scalar>())
-        )
-{
-    int lwa = (x.size()*(3*x.size()+13))/2;
-    Matrix< Scalar, Dynamic, 1 > wa(lwa);
-
-    fvec.resize(x.size());
-    return hybrd1_template<Scalar>(Functor::f, 0, x.size(), x.data(), fvec.data(), tol, wa.data(), lwa);
-}
-
-template<typename Functor, typename Scalar>
 int ei_hybrd(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
