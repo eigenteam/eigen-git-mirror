@@ -285,7 +285,7 @@ L240:
         /* L270: */
     }
     temp1 = ei_enorm<Scalar>(n, &wa3[1]) / fnorm;
-    temp2 = sqrt(par) * pnorm / fnorm;
+    temp2 = ei_sqrt(par) * pnorm / fnorm;
     /* Computing 2nd power */
     prered = temp1 * temp1 + temp2 * temp2 / p5;
     dirder = -(temp1 * temp1 + temp2 * temp2);
