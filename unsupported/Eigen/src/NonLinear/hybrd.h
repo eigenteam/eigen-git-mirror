@@ -9,8 +9,7 @@ int hybrd_template(minpack_func_nn fcn, void *p, int n, Scalar *x, Scalar *
     /* Initialized data */
 
     /* System generated locals */
-    int fjac_dim1, fjac_offset;
-    Scalar d__1, d__2;
+    int fjac_offset;
 
     /* Local variables */
     int i__, j, l, jm1, iwa[1];
@@ -39,8 +38,7 @@ int hybrd_template(minpack_func_nn fcn, void *p, int n, Scalar *x, Scalar *
     --diag;
     --fvec;
     --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
+    fjac_offset = 1 + ldfjac;
     fjac -= fjac_offset;
     --r__;
 
@@ -149,17 +147,17 @@ L70:
         /* L80: */
     }
     for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * fjac_dim1] == 0.) {
+        if (fjac[j + j * ldfjac] == 0.) {
             goto L110;
         }
         sum = 0.;
         for (i__ = j; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * qtf[i__];
+            sum += fjac[i__ + j * ldfjac] * qtf[i__];
             /* L90: */
         }
-        temp = -sum / fjac[j + j * fjac_dim1];
+        temp = -sum / fjac[j + j * ldfjac];
         for (i__ = j; i__ <= n; ++i__) {
-            qtf[i__] += fjac[i__ + j * fjac_dim1] * temp;
+            qtf[i__] += fjac[i__ + j * ldfjac] * temp;
             /* L100: */
         }
 L110:
@@ -177,7 +175,7 @@ L110:
             goto L140;
         }
         for (i__ = 1; i__ <= jm1; ++i__) {
-            r__[l] = fjac[i__ + j * fjac_dim1];
+            r__[l] = fjac[i__ + j * ldfjac];
             l = l + n - i__;
             /* L130: */
         }
@@ -198,12 +196,9 @@ L140:
     if (mode == 2) {
         goto L170;
     }
-    for (j = 1; j <= n; ++j) {
-        /* Computing MAX */
-        d__1 = diag[j], d__2 = wa2[j];
-        diag[j] = max(d__1,d__2);
-        /* L160: */
-    }
+    /* Computing MAX */
+    for (j = 1; j <= n; ++j)
+        diag[j] = max(diag[j], wa2[j]);
 L170:
 
     /*        beginning of the inner loop. */
@@ -257,11 +252,8 @@ L190:
     /*           compute the scaled actual reduction. */
 
     actred = -1.;
-    if (fnorm1 < fnorm) {
-        /* Computing 2nd power */
-        d__1 = fnorm1 / fnorm;
-        actred = 1. - d__1 * d__1;
-    }
+    if (fnorm1 < fnorm) /* Computing 2nd power */
+        actred = 1. - ei_abs2(fnorm1 / fnorm);
 
     /*           compute the scaled predicted reduction. */
 
@@ -278,11 +270,8 @@ L190:
     }
     temp = ei_enorm<Scalar>(n, &wa3[1]);
     prered = 0.;
-    if (temp < fnorm) {
-        /* Computing 2nd power */
-        d__1 = temp / fnorm;
-        prered = 1. - d__1 * d__1;
-    }
+    if (temp < fnorm) /* Computing 2nd power */
+        prered = 1. - ei_abs2(temp / fnorm);
 
     /*           compute the ratio of the actual to the predicted */
     /*           reduction. */
@@ -304,11 +293,8 @@ L190:
 L230:
     ncfail = 0;
     ++ncsuc;
-    if (ratio >= p5 || ncsuc > 1) {
-        /* Computing MAX */
-        d__1 = delta, d__2 = pnorm / p5;
-        delta = max(d__1,d__2);
-    }
+    if (ratio >= p5 || ncsuc > 1) /* Computing MAX */
+        delta = max(delta, pnorm / p5);
     if (fabs(ratio - 1.) <= p1) {
         delta = pnorm / p5;
     }
@@ -361,26 +347,20 @@ L260:
         info = 2;
     }
     /* Computing MAX */
-    d__1 = p1 * delta;
-    if (p1 * max(d__1,pnorm) <= epsilon<Scalar>() * xnorm) {
+    if (p1 * max(p1 * delta, pnorm) <= epsilon<Scalar>() * xnorm)
         info = 3;
-    }
-    if (nslow2 == 5) {
+    if (nslow2 == 5)
         info = 4;
-    }
-    if (nslow1 == 10) {
+    if (nslow1 == 10)
         info = 5;
-    }
-    if (info != 0) {
+    if (info != 0)
         goto L300;
-    }
 
     /*           criterion for recalculating jacobian approximation */
     /*           by forward differences. */
 
-    if (ncfail == 2) {
+    if (ncfail == 2)
         goto L290;
-    }
 
     /*           calculate the rank one modification to the jacobian */
     /*           and update qtf if necessary. */
@@ -388,7 +368,7 @@ L260:
     for (j = 1; j <= n; ++j) {
         sum = 0.;
         for (i__ = 1; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * wa4[i__];
+            sum += fjac[i__ + j * ldfjac] * wa4[i__];
             /* L270: */
         }
         wa2[j] = (sum - wa3[j]) / pnorm;

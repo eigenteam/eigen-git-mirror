@@ -10,8 +10,7 @@ int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x,
     /* Initialized data */
 
     /* System generated locals */
-    int fjac_dim1, fjac_offset;
-    Scalar d__1, d__2, d__3;
+    int fjac_offset;
 
     /* Local variables */
     int i__, j, l;
@@ -35,8 +34,7 @@ int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x,
     --ipvt;
     --diag;
     --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
+    fjac_offset = 1 + ldfjac;
     fjac -= fjac_offset;
 
     /* Function Body */
@@ -104,7 +102,7 @@ L40:
     for (j = 1; j <= n; ++j) {
         qtf[j] = 0.;
         for (i__ = 1; i__ <= n; ++i__) {
-            fjac[i__ + j * fjac_dim1] = 0.;
+            fjac[i__ + j * ldfjac] = 0.;
             /* L50: */
         }
         /* L60: */
@@ -127,11 +125,11 @@ L40:
 
     sing = FALSE_;
     for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * fjac_dim1] == 0.) {
+        if (fjac[j + j * ldfjac] == 0.) {
             sing = TRUE_;
         }
         ipvt[j] = j;
-        wa2[j] = ei_enorm<Scalar>(j, &fjac[j * fjac_dim1 + 1]);
+        wa2[j] = ei_enorm<Scalar>(j, &fjac[j * ldfjac + 1]);
         /* L80: */
     }
     if (! sing) {
@@ -140,21 +138,21 @@ L40:
     qrfac(n, n, &fjac[fjac_offset], ldfjac, TRUE_, &ipvt[1], n, &wa1[1], &
             wa2[1], &wa3[1]);
     for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * fjac_dim1] == 0.) {
+        if (fjac[j + j * ldfjac] == 0.) {
             goto L110;
         }
         sum = 0.;
         for (i__ = j; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * qtf[i__];
+            sum += fjac[i__ + j * ldfjac] * qtf[i__];
             /* L90: */
         }
-        temp = -sum / fjac[j + j * fjac_dim1];
+        temp = -sum / fjac[j + j * ldfjac];
         for (i__ = j; i__ <= n; ++i__) {
-            qtf[i__] += fjac[i__ + j * fjac_dim1] * temp;
+            qtf[i__] += fjac[i__ + j * ldfjac] * temp;
             /* L100: */
         }
 L110:
-        fjac[j + j * fjac_dim1] = wa1[j];
+        fjac[j + j * ldfjac] = wa1[j];
         /* L120: */
     }
 L130:
@@ -204,12 +202,11 @@ L170:
         }
         sum = 0.;
         for (i__ = 1; i__ <= j; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * (qtf[i__] / fnorm);
+            sum += fjac[i__ + j * ldfjac] * (qtf[i__] / fnorm);
             /* L180: */
         }
         /* Computing MAX */
-        d__2 = gnorm, d__3 = (d__1 = sum / wa2[l], abs(d__1));
-        gnorm = max(d__2,d__3);
+        gnorm = max(gnorm, abs(sum/wa2[l]));
 L190:
         /* L200: */
         ;
@@ -230,12 +227,8 @@ L210:
     if (mode == 2) {
         goto L230;
     }
-    for (j = 1; j <= n; ++j) {
-        /* Computing MAX */
-        d__1 = diag[j], d__2 = wa2[j];
-        diag[j] = max(d__1,d__2);
-        /* L220: */
-    }
+    for (j = 1; j <= n; ++j) /* Computing MAX */
+        diag[j] = max(diag[j], wa2[j]);
 L230:
 
     /*        beginning of the inner loop. */
@@ -275,11 +268,8 @@ L240:
     /*           compute the scaled actual reduction. */
 
     actred = -1.;
-    if (p1 * fnorm1 < fnorm) {
-        /* Computing 2nd power */
-        d__1 = fnorm1 / fnorm;
-        actred = 1. - d__1 * d__1;
-    }
+    if (p1 * fnorm1 < fnorm) /* Computing 2nd power */
+        actred = 1. - ei_abs2(fnorm1 / fnorm);
 
     /*           compute the scaled predicted reduction and */
     /*           the scaled directional derivative. */
@@ -289,7 +279,7 @@ L240:
         l = ipvt[j];
         temp = wa1[l];
         for (i__ = 1; i__ <= j; ++i__) {
-            wa3[i__] += fjac[i__ + j * fjac_dim1] * temp;
+            wa3[i__] += fjac[i__ + j * ldfjac] * temp;
             /* L260: */
         }
         /* L270: */
@@ -297,15 +287,8 @@ L240:
     temp1 = ei_enorm<Scalar>(n, &wa3[1]) / fnorm;
     temp2 = sqrt(par) * pnorm / fnorm;
     /* Computing 2nd power */
-    d__1 = temp1;
-    /* Computing 2nd power */
-    d__2 = temp2;
-    prered = d__1 * d__1 + d__2 * d__2 / p5;
-    /* Computing 2nd power */
-    d__1 = temp1;
-    /* Computing 2nd power */
-    d__2 = temp2;
-    dirder = -(d__1 * d__1 + d__2 * d__2);
+    prered = temp1 * temp1 + temp2 * temp2 / p5;
+    dirder = -(temp1 * temp1 + temp2 * temp2);
 
     /*           compute the ratio of the actual to the predicted */
     /*           reduction. */
@@ -330,8 +313,8 @@ L240:
         temp = p1;
     }
     /* Computing MIN */
-    d__1 = delta, d__2 = pnorm / p1;
-    delta = temp * min(d__1,d__2);
+    delta = temp * min(delta, pnorm / p1);
+
     par /= temp;
     goto L300;
 L280:

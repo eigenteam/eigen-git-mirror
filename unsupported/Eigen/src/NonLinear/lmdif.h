@@ -11,8 +11,7 @@ int lmdif_template(minpack_func_mn fcn, void *p, int m, int n, Scalar *x,
     /* Initialized data */
 
     /* System generated locals */
-    int fjac_dim1, fjac_offset;
-    Scalar d__1, d__2, d__3;
+    int fjac_offset;
 
     /* Local variables */
     int i__, j, l;
@@ -36,8 +35,7 @@ int lmdif_template(minpack_func_mn fcn, void *p, int m, int n, Scalar *x,
     --ipvt;
     --diag;
     --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
+    fjac_offset = 1 + ldfjac;
     fjac -= fjac_offset;
 
     /* Function Body */
@@ -150,21 +148,21 @@ L80:
         /* L90: */
     }
     for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * fjac_dim1] == 0.) {
+        if (fjac[j + j * ldfjac] == 0.) {
             goto L120;
         }
         sum = 0.;
         for (i__ = j; i__ <= m; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * wa4[i__];
+            sum += fjac[i__ + j * ldfjac] * wa4[i__];
             /* L100: */
         }
-        temp = -sum / fjac[j + j * fjac_dim1];
+        temp = -sum / fjac[j + j * ldfjac];
         for (i__ = j; i__ <= m; ++i__) {
-            wa4[i__] += fjac[i__ + j * fjac_dim1] * temp;
+            wa4[i__] += fjac[i__ + j * ldfjac] * temp;
             /* L110: */
         }
 L120:
-        fjac[j + j * fjac_dim1] = wa1[j];
+        fjac[j + j * ldfjac] = wa1[j];
         qtf[j] = wa4[j];
         /* L130: */
     }
@@ -182,12 +180,11 @@ L120:
         }
         sum = 0.;
         for (i__ = 1; i__ <= j; ++i__) {
-            sum += fjac[i__ + j * fjac_dim1] * (qtf[i__] / fnorm);
+            sum += fjac[i__ + j * ldfjac] * (qtf[i__] / fnorm);
             /* L140: */
         }
         /* Computing MAX */
-        d__2 = gnorm, d__3 = fabs(sum / wa2[l]);
-        gnorm = max(d__2,d__3);
+        gnorm = max(gnorm, fabs(sum / wa2[l]));
 L150:
         /* L160: */
         ;
@@ -208,12 +205,8 @@ L170:
     if (mode == 2) {
         goto L190;
     }
-    for (j = 1; j <= n; ++j) {
-        /* Computing MAX */
-        d__1 = diag[j], d__2 = wa2[j];
-        diag[j] = max(d__1,d__2);
-        /* L180: */
-    }
+    for (j = 1; j <= n; ++j) /* Computing MAX */
+        diag[j] = max(diag[j], wa2[j]);
 L190:
 
     /*        beginning of the inner loop. */
@@ -253,11 +246,8 @@ L200:
     /*           compute the scaled actual reduction. */
 
     actred = -1.;
-    if (p1 * fnorm1 < fnorm) {
-        /* Computing 2nd power */
-        d__1 = fnorm1 / fnorm;
-        actred = 1. - d__1 * d__1;
-    }
+    if (p1 * fnorm1 < fnorm) /* Computing 2nd power */
+        actred = 1. - ei_abs2(fnorm1 / fnorm);
 
     /*           compute the scaled predicted reduction and */
     /*           the scaled directional derivative. */
@@ -267,7 +257,7 @@ L200:
         l = ipvt[j];
         temp = wa1[l];
         for (i__ = 1; i__ <= j; ++i__) {
-            wa3[i__] += fjac[i__ + j * fjac_dim1] * temp;
+            wa3[i__] += fjac[i__ + j * ldfjac] * temp;
             /* L220: */
         }
         /* L230: */
@@ -275,15 +265,8 @@ L200:
     temp1 = ei_enorm<Scalar>(n, &wa3[1]) / fnorm;
     temp2 = sqrt(par) * pnorm / fnorm;
     /* Computing 2nd power */
-    d__1 = temp1;
-    /* Computing 2nd power */
-    d__2 = temp2;
-    prered = d__1 * d__1 + d__2 * d__2 / p5;
-    /* Computing 2nd power */
-    d__1 = temp1;
-    /* Computing 2nd power */
-    d__2 = temp2;
-    dirder = -(d__1 * d__1 + d__2 * d__2);
+    prered = temp1 * temp1 + temp2 * temp2 / p5;
+    dirder = -(temp1 * temp1 + temp2 * temp2);
 
     /*           compute the ratio of the actual to the predicted */
     /*           reduction. */
@@ -308,8 +291,7 @@ L200:
         temp = p1;
     }
     /* Computing MIN */
-    d__1 = delta, d__2 = pnorm / p1;
-    delta = temp * min(d__1,d__2);
+    delta = temp * min(delta, pnorm / p1);
     par /= temp;
     goto L260;
 L240:
