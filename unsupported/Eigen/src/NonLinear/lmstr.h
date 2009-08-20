@@ -13,7 +13,7 @@ int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x,
     int fjac_offset;
 
     /* Local variables */
-    int i__, j, l;
+    int i, j, l;
     Scalar par, sum;
     int sing;
     int iter;
@@ -101,18 +101,18 @@ L40:
 
     for (j = 1; j <= n; ++j) {
         qtf[j] = 0.;
-        for (i__ = 1; i__ <= n; ++i__) {
-            fjac[i__ + j * ldfjac] = 0.;
+        for (i = 1; i <= n; ++i) {
+            fjac[i + j * ldfjac] = 0.;
             /* L50: */
         }
         /* L60: */
     }
     iflag = 2;
-    for (i__ = 1; i__ <= m; ++i__) {
+    for (i = 1; i <= m; ++i) {
         if ((*fcn)(p, m, n, &x[1], &fvec[1], &wa3[1], iflag) < 0) {
             goto L340;
         }
-        temp = fvec[i__];
+        temp = fvec[i];
         rwupdt(n, &fjac[fjac_offset], ldfjac, &wa3[1], &qtf[1], &temp, &wa1[
                 1], &wa2[1]);
         ++iflag;
@@ -142,13 +142,13 @@ L40:
             goto L110;
         }
         sum = 0.;
-        for (i__ = j; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * qtf[i__];
+        for (i = j; i <= n; ++i) {
+            sum += fjac[i + j * ldfjac] * qtf[i];
             /* L90: */
         }
         temp = -sum / fjac[j + j * ldfjac];
-        for (i__ = j; i__ <= n; ++i__) {
-            qtf[i__] += fjac[i__ + j * ldfjac] * temp;
+        for (i = j; i <= n; ++i) {
+            qtf[i] += fjac[i + j * ldfjac] * temp;
             /* L100: */
         }
 L110:
@@ -201,8 +201,8 @@ L170:
             goto L190;
         }
         sum = 0.;
-        for (i__ = 1; i__ <= j; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * (qtf[i__] / fnorm);
+        for (i = 1; i <= j; ++i) {
+            sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
             /* L180: */
         }
         /* Computing MAX */
@@ -278,8 +278,8 @@ L240:
         wa3[j] = 0.;
         l = ipvt[j];
         temp = wa1[l];
-        for (i__ = 1; i__ <= j; ++i__) {
-            wa3[i__] += fjac[i__ + j * ldfjac] * temp;
+        for (i = 1; i <= j; ++i) {
+            wa3[i] += fjac[i + j * ldfjac] * temp;
             /* L260: */
         }
         /* L270: */
@@ -339,8 +339,8 @@ L300:
         wa2[j] = diag[j] * x[j];
         /* L310: */
     }
-    for (i__ = 1; i__ <= m; ++i__) {
-        fvec[i__] = wa4[i__];
+    for (i = 1; i <= m; ++i) {
+        fvec[i] = wa4[i];
         /* L320: */
     }
     xnorm = ei_enorm<Scalar>(n, &wa2[1]);

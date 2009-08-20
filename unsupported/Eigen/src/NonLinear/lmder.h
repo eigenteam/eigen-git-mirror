@@ -13,7 +13,7 @@ int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x,
     int fjac_offset;
 
     /* Local variables */
-    int i__, j, l;
+    int i, j, l;
     Scalar par, sum;
     int iter;
     Scalar temp, temp1, temp2;
@@ -141,8 +141,8 @@ L80:
     /*        form (q transpose)*fvec and store the first n components in */
     /*        qtf. */
 
-    for (i__ = 1; i__ <= m; ++i__) {
-        wa4[i__] = fvec[i__];
+    for (i = 1; i <= m; ++i) {
+        wa4[i] = fvec[i];
         /* L90: */
     }
     for (j = 1; j <= n; ++j) {
@@ -150,13 +150,13 @@ L80:
             goto L120;
         }
         sum = 0.;
-        for (i__ = j; i__ <= m; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * wa4[i__];
+        for (i = j; i <= m; ++i) {
+            sum += fjac[i + j * ldfjac] * wa4[i];
             /* L100: */
         }
         temp = -sum / fjac[j + j * ldfjac];
-        for (i__ = j; i__ <= m; ++i__) {
-            wa4[i__] += fjac[i__ + j * ldfjac] * temp;
+        for (i = j; i <= m; ++i) {
+            wa4[i] += fjac[i + j * ldfjac] * temp;
             /* L110: */
         }
 L120:
@@ -177,8 +177,8 @@ L120:
             goto L150;
         }
         sum = 0.;
-        for (i__ = 1; i__ <= j; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * (qtf[i__] / fnorm);
+        for (i = 1; i <= j; ++i) {
+            sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
             /* L140: */
         }
         /* Computing MAX */
@@ -254,8 +254,8 @@ L200:
         wa3[j] = 0.;
         l = ipvt[j];
         temp = wa1[l];
-        for (i__ = 1; i__ <= j; ++i__) {
-            wa3[i__] += fjac[i__ + j * ldfjac] * temp;
+        for (i = 1; i <= j; ++i) {
+            wa3[i] += fjac[i + j * ldfjac] * temp;
             /* L220: */
         }
         /* L230: */
@@ -314,8 +314,8 @@ L260:
         wa2[j] = diag[j] * x[j];
         /* L270: */
     }
-    for (i__ = 1; i__ <= m; ++i__) {
-        fvec[i__] = wa4[i__];
+    for (i = 1; i <= m; ++i) {
+        fvec[i] = wa4[i];
         /* L280: */
     }
     xnorm = ei_enorm<Scalar>(n, &wa2[1]);

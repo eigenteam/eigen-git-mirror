@@ -12,7 +12,7 @@ int hybrd_template(minpack_func_nn fcn, void *p, int n, Scalar *x, Scalar *
     int fjac_offset;
 
     /* Local variables */
-    int i__, j, l, jm1, iwa[1];
+    int i, j, l, jm1, iwa[1];
     Scalar sum;
     int sing;
     int iter;
@@ -142,8 +142,8 @@ L70:
 
     /*        form (q transpose)*fvec and store in qtf. */
 
-    for (i__ = 1; i__ <= n; ++i__) {
-        qtf[i__] = fvec[i__];
+    for (i = 1; i <= n; ++i) {
+        qtf[i] = fvec[i];
         /* L80: */
     }
     for (j = 1; j <= n; ++j) {
@@ -151,13 +151,13 @@ L70:
             goto L110;
         }
         sum = 0.;
-        for (i__ = j; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * qtf[i__];
+        for (i = j; i <= n; ++i) {
+            sum += fjac[i + j * ldfjac] * qtf[i];
             /* L90: */
         }
         temp = -sum / fjac[j + j * ldfjac];
-        for (i__ = j; i__ <= n; ++i__) {
-            qtf[i__] += fjac[i__ + j * ldfjac] * temp;
+        for (i = j; i <= n; ++i) {
+            qtf[i] += fjac[i + j * ldfjac] * temp;
             /* L100: */
         }
 L110:
@@ -174,9 +174,9 @@ L110:
         if (jm1 < 1) {
             goto L140;
         }
-        for (i__ = 1; i__ <= jm1; ++i__) {
-            r__[l] = fjac[i__ + j * ldfjac];
-            l = l + n - i__;
+        for (i = 1; i <= jm1; ++i) {
+            r__[l] = fjac[i + j * ldfjac];
+            l = l + n - i;
             /* L130: */
         }
 L140:
@@ -258,14 +258,14 @@ L190:
     /*           compute the scaled predicted reduction. */
 
     l = 1;
-    for (i__ = 1; i__ <= n; ++i__) {
+    for (i = 1; i <= n; ++i) {
         sum = 0.;
-        for (j = i__; j <= n; ++j) {
+        for (j = i; j <= n; ++j) {
             sum += r__[l] * wa1[j];
             ++l;
             /* L210: */
         }
-        wa3[i__] = qtf[i__] + sum;
+        wa3[i] = qtf[i] + sum;
         /* L220: */
     }
     temp = ei_enorm<Scalar>(n, &wa3[1]);
@@ -367,8 +367,8 @@ L260:
 
     for (j = 1; j <= n; ++j) {
         sum = 0.;
-        for (i__ = 1; i__ <= n; ++i__) {
-            sum += fjac[i__ + j * ldfjac] * wa4[i__];
+        for (i = 1; i <= n; ++i) {
+            sum += fjac[i + j * ldfjac] * wa4[i];
             /* L270: */
         }
         wa2[j] = (sum - wa3[j]) / pnorm;
