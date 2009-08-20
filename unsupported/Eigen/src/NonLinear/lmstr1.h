@@ -1,19 +1,19 @@
 
-template<typename T>
-int lmstr1_template(minpack_funcderstr_mn fcn, void *p, int m, int n, T *x, 
-	T *fvec, T *fjac, int ldfjac, T tol, 
-	int *ipvt, T *wa, int lwa)
+template<typename Scalar>
+int lmstr1_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x, 
+	Scalar *fvec, Scalar *fjac, int ldfjac, Scalar tol, 
+	int *ipvt, Scalar *wa, int lwa)
 {
     /* Initialized data */
 
-    const T factor = 100.;
+    const Scalar factor = 100.;
 
     /* System generated locals */
     int fjac_dim1, fjac_offset;
 
     /* Local variables */
     int mode, nfev, njev;
-    T ftol, gtol, xtol;
+    Scalar ftol, gtol, xtol;
     int maxfev, nprint;
     int info;
 

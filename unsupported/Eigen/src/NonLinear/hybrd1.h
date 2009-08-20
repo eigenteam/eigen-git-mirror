@@ -1,20 +1,20 @@
 
-template<typename T>
-int hybrd1_template(minpack_func_nn fcn, void *p, int n, T *x, T *
-	fvec, T tol, T *wa, int lwa)
+template<typename Scalar>
+int hybrd1_template(minpack_func_nn fcn, void *p, int n, Scalar *x, Scalar *
+	fvec, Scalar tol, Scalar *wa, int lwa)
 {
     /* Initialized data */
 
-    const T factor = 100.;
+    const Scalar factor = 100.;
 
     /* System generated locals */
     int i__1;
 
     /* Local variables */
     int j, ml, lr, mu, mode, nfev;
-    T xtol;
+    Scalar xtol;
     int index;
-    T epsfcn;
+    Scalar epsfcn;
     int maxfev, nprint;
     int info;
 

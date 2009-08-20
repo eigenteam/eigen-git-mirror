@@ -4,18 +4,18 @@
 
 /* Table of constant values */
 
-template<typename T>
-void chkder_template(int m, int n, const T *x, 
-	T *fvec, T *fjac, int ldfjac, T *xp, 
-	T *fvecp, int mode, T *err)
+template<typename Scalar>
+void chkder_template(int m, int n, const Scalar *x, 
+	Scalar *fvec, Scalar *fjac, int ldfjac, Scalar *xp, 
+	Scalar *fvecp, int mode, Scalar *err)
 {
     /* System generated locals */
     int fjac_dim1, fjac_offset, i__1, i__2;
 
     /* Local variables */
     int i__, j;
-    T eps, epsf, temp;
-    T epslog;
+    Scalar eps, epsf, temp;
+    Scalar epslog;
 
     /* Parameter adjustments */
     --err;
@@ -29,7 +29,7 @@ void chkder_template(int m, int n, const T *x,
 
     /* Function Body */
 
-    eps = ei_sqrt(epsilon<T>());
+    eps = ei_sqrt(epsilon<Scalar>());
 
     if (mode == 2) {
 	goto L20;
@@ -52,7 +52,7 @@ L20:
 
 /*        mode = 2. */
 
-    epsf = chkder_factor * epsilon<T>();
+    epsf = chkder_factor * epsilon<Scalar>();
     epslog = chkder_log10e * log(eps);
     i__1 = m;
     for (i__ = 1; i__ <= i__1; ++i__) {
@@ -83,7 +83,7 @@ L20:
                        fabs(fvecp[i__]));
 	}
 	err[i__] = 1.;
-	if (temp > epsilon<T>() && temp < eps) {
+	if (temp > epsilon<Scalar>() && temp < eps) {
 	    err[i__] = (chkder_log10e * log(temp) - epslog) / epslog;
 	}
 	if (temp >= eps) {

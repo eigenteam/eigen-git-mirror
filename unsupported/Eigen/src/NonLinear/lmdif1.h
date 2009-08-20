@@ -1,16 +1,16 @@
 
-template<typename T>
-int lmdif1_template(minpack_func_mn fcn, void *p, int m, int n, T *x, 
-	T *fvec, T tol, int *iwa, 
-	T *wa, int lwa)
+template<typename Scalar>
+int lmdif1_template(minpack_func_mn fcn, void *p, int m, int n, Scalar *x, 
+	Scalar *fvec, Scalar tol, int *iwa, 
+	Scalar *wa, int lwa)
 {
     /* Initialized data */
 
-    const T factor = 100.;
+    const Scalar factor = 100.;
 
     int mp5n, mode, nfev;
-    T ftol, gtol, xtol;
-    T epsfcn;
+    Scalar ftol, gtol, xtol;
+    Scalar epsfcn;
     int maxfev, nprint;
     int info;
 

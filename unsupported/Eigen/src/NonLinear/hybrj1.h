@@ -1,19 +1,19 @@
 
-template<typename T>
-int hybrj1_template(minpack_funcder_nn fcn, void *p, int n, T *x, T *
-	fvec, T *fjac, int ldfjac, T tol,
-	T *wa, int lwa)
+template<typename Scalar>
+int hybrj1_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
+	fvec, Scalar *fjac, int ldfjac, Scalar tol,
+	Scalar *wa, int lwa)
 {
     /* Initialized data */
 
-    const T factor = 100.;
+    const Scalar factor = 100.;
 
     /* System generated locals */
     int fjac_dim1, fjac_offset, i__1;
 
     /* Local variables */
     int j, lr, mode, nfev, njev;
-    T xtol;
+    Scalar xtol;
     int maxfev, nprint;
     int info;
 

@@ -1,28 +1,28 @@
 
-template<typename T>
-int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, T *x, 
-	T *fvec, T *fjac, int ldfjac, T ftol,
-	T xtol, T gtol, int maxfev, T *
-	diag, int mode, T factor, int nprint,
-	int *nfev, int *njev, int *ipvt, T *qtf, 
-	T *wa1, T *wa2, T *wa3, T *wa4)
+template<typename Scalar>
+int lmstr_template(minpack_funcderstr_mn fcn, void *p, int m, int n, Scalar *x, 
+	Scalar *fvec, Scalar *fjac, int ldfjac, Scalar ftol,
+	Scalar xtol, Scalar gtol, int maxfev, Scalar *
+	diag, int mode, Scalar factor, int nprint,
+	int *nfev, int *njev, int *ipvt, Scalar *qtf, 
+	Scalar *wa1, Scalar *wa2, Scalar *wa3, Scalar *wa4)
 {
     /* Initialized data */
 
     /* System generated locals */
     int fjac_dim1, fjac_offset, i__1, i__2;
-    T d__1, d__2, d__3;
+    Scalar d__1, d__2, d__3;
 
     /* Local variables */
     int i__, j, l;
-    T par, sum;
+    Scalar par, sum;
     int sing;
     int iter;
-    T temp, temp1, temp2;
+    Scalar temp, temp1, temp2;
     int iflag;
-    T delta;
-    T ratio;
-    T fnorm, gnorm, pnorm, xnorm, fnorm1, actred, dirder, prered;
+    Scalar delta;
+    Scalar ratio;
+    Scalar fnorm, gnorm, pnorm, xnorm, fnorm1, actred, dirder, prered;
     int info;
 
     /* Parameter adjustments */
@@ -72,7 +72,7 @@ L20:
     if (iflag < 0) {
 	goto L340;
     }
-    fnorm = ei_enorm<T>(m, &fvec[1]);
+    fnorm = ei_enorm<Scalar>(m, &fvec[1]);
 
 /*     initialize levenberg-marquardt parameter and iteration counter. */
 
@@ -136,7 +136,7 @@ L40:
 	    sing = TRUE_;
 	}
 	ipvt[j] = j;
-	wa2[j] = ei_enorm<T>(j, &fjac[j * fjac_dim1 + 1]);
+	wa2[j] = ei_enorm<Scalar>(j, &fjac[j * fjac_dim1 + 1]);
 /* L80: */
     }
     if (! sing) {
@@ -194,7 +194,7 @@ L150:
 	wa3[j] = diag[j] * x[j];
 /* L160: */
     }
-    xnorm = ei_enorm<T>(n, &wa3[1]);
+    xnorm = ei_enorm<Scalar>(n, &wa3[1]);
     delta = factor * xnorm;
     if (delta == 0.) {
 	delta = factor;
@@ -269,7 +269,7 @@ L240:
 	wa3[j] = diag[j] * wa1[j];
 /* L250: */
     }
-    pnorm = ei_enorm<T>(n, &wa3[1]);
+    pnorm = ei_enorm<Scalar>(n, &wa3[1]);
 
 /*           on the first iteration, adjust the initial step bound. */
 
@@ -284,7 +284,7 @@ L240:
     if (iflag < 0) {
 	goto L340;
     }
-    fnorm1 = ei_enorm<T>(m, &wa4[1]);
+    fnorm1 = ei_enorm<Scalar>(m, &wa4[1]);
 
 /*           compute the scaled actual reduction. */
 
@@ -310,7 +310,7 @@ L240:
 	}
 /* L270: */
     }
-    temp1 = ei_enorm<T>(n, &wa3[1]) / fnorm;
+    temp1 = ei_enorm<Scalar>(n, &wa3[1]) / fnorm;
     temp2 = sqrt(par) * pnorm / fnorm;
 /* Computing 2nd power */
     d__1 = temp1;
@@ -378,7 +378,7 @@ L300:
 	fvec[i__] = wa4[i__];
 /* L320: */
     }
-    xnorm = ei_enorm<T>(n, &wa2[1]);
+    xnorm = ei_enorm<Scalar>(n, &wa2[1]);
     fnorm = fnorm1;
     ++iter;
 L330:
@@ -404,13 +404,13 @@ L330:
     if (*nfev >= maxfev) {
 	info = 5;
     }
-    if (abs(actred) <= epsilon<T>() && prered <= epsilon<T>() && p5 * ratio <= 1.) {
+    if (abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && p5 * ratio <= 1.) {
 	info = 6;
     }
-    if (delta <= epsilon<T>() * xnorm) {
+    if (delta <= epsilon<Scalar>() * xnorm) {
 	info = 7;
     }
-    if (gnorm <= epsilon<T>()) {
+    if (gnorm <= epsilon<Scalar>()) {
 	info = 8;
     }
     if (info != 0) {
