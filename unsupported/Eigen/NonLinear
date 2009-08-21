@@ -59,80 +59,15 @@ typedef int (*minpack_func_mn)(void *p, int m, int n, const double *x, double *f
 typedef int (*minpack_funcder_mn)(void *p, int m, int n, const double *x, double *fvec, double *fjac, int ldfjac, int iflag );
 typedef int (*minpack_funcderstr_mn)(void *p, int m, int n, const double *x, double *fvec, double *fjrow, int iflag );
 
-/* MINPACK functions: */
-int hybrd1 ( minpack_func_nn fcn, void *p, int n, double *x, double *fvec, double tol,
-	       double *wa, int lwa );
-int hybrd ( minpack_func_nn fcn,
-	      void *p, int n, double *x, double *fvec, double xtol, int maxfev,
-	      int ml, int mu, double epsfcn, double *diag, int mode,
-	      double factor, int nprint, int *nfev,
-	      double *fjac, int ldfjac, double *r, int lr, double *qtf,
-	      double *wa1, double *wa2, double *wa3, double *wa4);
-  
-int hybrj1 ( minpack_funcder_nn fcn, void *p, int n, double *x,
-	       double *fvec, double *fjac, int ldfjac, double tol,
-	       double *wa, int lwa );
-int hybrj ( minpack_funcder_nn fcn, void *p, int n, double *x,
-	      double *fvec, double *fjac, int ldfjac, double xtol,
-	      int maxfev, double *diag, int mode, double factor,
-	      int nprint, int *nfev, int *njev, double *r,
-	      int lr, double *qtf, double *wa1, double *wa2,
-	      double *wa3, double *wa4 );
-
-int lmdif1 ( minpack_func_mn fcn,
-	       void *p, int m, int n, double *x, double *fvec, double tol,
-	       int *iwa, double *wa, int lwa );
-int lmdif ( minpack_func_mn fcn,
-	      void *p, int m, int n, double *x, double *fvec, double ftol,
-	      double xtol, double gtol, int maxfev, double epsfcn,
-	      double *diag, int mode, double factor, int nprint,
-	      int *nfev, double *fjac, int ldfjac, int *ipvt,
-	      double *qtf, double *wa1, double *wa2, double *wa3,
-	      double *wa4 );
-
-int lmder1 ( minpack_funcder_mn fcn,
-	       void *p, int m, int n, double *x, double *fvec, double *fjac,
-	       int ldfjac, double tol, int *ipvt,
-	       double *wa, int lwa );
-int lmder ( minpack_funcder_mn fcn,
-	      void *p, int m, int n, double *x, double *fvec, double *fjac,
-	      int ldfjac, double ftol, double xtol, double gtol,
-	      int maxfev, double *diag, int mode, double factor,
-	      int nprint, int *nfev, int *njev, int *ipvt,
-	      double *qtf, double *wa1, double *wa2, double *wa3,
-	      double *wa4 );
-
-int lmstr1 ( minpack_funcderstr_mn fcn, void *p, int m, int n,
-	       double *x, double *fvec, double *fjac, int ldfjac,
-	       double tol, int *ipvt, double *wa, int lwa );
-int lmstr (  minpack_funcderstr_mn fcn, void *p, int m,
-	      int n, double *x, double *fvec, double *fjac,
-	      int ldfjac, double ftol, double xtol, double gtol,
-	      int maxfev, double *diag, int mode, double factor,
-	      int nprint, int *nfev, int *njev, int *ipvt,
-	      double *qtf, double *wa1, double *wa2, double *wa3,
-	      double *wa4 );
- 
-void chkder ( int m, int n, const double *x, double *fvec, double *fjac,
-	       int ldfjac, double *xp, double *fvecp, int mode,
-	       double *err  );
-
 void covar(int n, double *r__, int ldr, const int *ipvt, double tol, double *wa);
 #endif
 
-
-template<typename Scalar>
-Scalar ei_enorm ( int n, const Scalar *x ){
-    return Map< Matrix< Scalar, Dynamic, 1 > >(x,n).stableNorm();
-//    return Map< Matrix< Scalar, Dynamic, 1 > >(x,n).blueNorm();
-}
 
 #include "src/NonLinear/lmder.h"
 #include "src/NonLinear/hybrd.h"
 #include "src/NonLinear/lmstr.h"
 #include "src/NonLinear/lmdif.h"
 #include "src/NonLinear/hybrj.h"
-#include "src/NonLinear/MathFunctions.h"
 #include "src/NonLinear/lmder1.h"
 #include "src/NonLinear/lmstr1.h"
 #include "src/NonLinear/hybrd1.h"
