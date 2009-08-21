@@ -136,10 +136,8 @@ class vector<T,Eigen::aligned_allocator<T> >
   { return vector_base::insert(position,x); }
   void insert(const_iterator position, size_type new_size, const value_type& x)
   { vector_base::insert(position, new_size, x); }
-#elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,1)
+#elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,2)
   // workaround GCC std::vector implementation
-  // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
-  // no no need to workaround !
   void resize(size_type new_size, const value_type& x)
   {
     if (new_size < vector_base::size())
@@ -147,9 +145,12 @@ class vector<T,Eigen::aligned_allocator<T> >
     else
       vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
   }
-#elif defined(_GLIBCXX_VECTOR)
+#elif defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))
+  // Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
+  // no no need to workaround !
   using vector_base::resize;
 #else
+  // either GCC 4.1 or non-GCC
   // default implementation which should always work.
   void resize(size_type new_size, const value_type& x)
   {
