@@ -1,16 +1,29 @@
 
-template<typename Scalar>
-int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x, 
-        Scalar *fvec, Scalar *fjac, int ldfjac, Scalar ftol,
-        Scalar xtol, Scalar gtol, int maxfev, Scalar *
-        diag, int mode, Scalar factor, int nprint,
-        int &nfev, int &njev, int *ipvt, Scalar *qtf, 
-        Scalar *wa1, Scalar *wa2, Scalar *wa3, Scalar *wa4)
+template<typename Functor, typename Scalar>
+int ei_lmder(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        int &nfev,
+        int &njev,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        VectorXi &ipvt,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
+        int mode=1,
+        Scalar factor = 100.,
+        int maxfev = 400,
+        Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+        Scalar gtol = Scalar(0.),
+        int nprint=0
+        )
 {
-    /* Initialized data */
+    const int m = fvec.size(), n = x.size();
+    Matrix< Scalar, Dynamic, 1 > qtf(n), wa1(n), wa2(n), wa3(n), wa4(m);
+    int ldfjac = m;
 
-    /* System generated locals */
-    int fjac_offset;
+    ipvt.resize(n);
+    fjac.resize(ldfjac, n);
+    diag.resize(n);
 
     /* Local variables */
     int i, j, l;
@@ -23,18 +36,6 @@ int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x,
     Scalar fnorm, gnorm, pnorm, xnorm, fnorm1, actred, dirder, prered;
     int info;
 
-    /* Parameter adjustments */
-    --wa4;
-    --fvec;
-    --wa3;
-    --wa2;
-    --wa1;
-    --qtf;
-    --ipvt;
-    --diag;
-    --x;
-    fjac_offset = 1 + ldfjac;
-    fjac -= fjac_offset;
 
     /* Function Body */
 
@@ -52,7 +53,7 @@ int lmder_template(minpack_funcder_mn fcn, void *p, int m, int n, Scalar *x,
     if (mode != 2) {
         goto L20;
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         if (diag[j] <= 0.) {
             goto L300;
         }
@@ -63,12 +64,12 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = (*fcn)(p, m, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 1);
+    iflag = Functor::f(0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac, 1);
     nfev = 1;
     if (iflag < 0) {
         goto L300;
     }
-    fnorm = ei_enorm<Scalar>(m, &fvec[1]);
+    fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
 
@@ -81,20 +82,20 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = (*fcn)(p, m, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 2);
+    iflag = Functor::f(0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac, 2);
     ++njev;
     if (iflag < 0) {
         goto L300;
     }
 
-    /*        if requested, call fcn to enable printing of iterates. */
+    /*        if requested, call Functor::f to enable printing of iterates. */
 
     if (nprint <= 0) {
         goto L40;
     }
     iflag = 0;
     if ((iter - 1) % nprint == 0) {
-        iflag = (*fcn)(p, m, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 0);
+        iflag = Functor::f(0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
     }
     if (iflag < 0) {
         goto L300;
@@ -103,8 +104,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(m, n, &fjac[fjac_offset], ldfjac, TRUE_, &ipvt[1], n, &wa1[1], &
-            wa2[1], &wa3[1]);
+    qrfac(m, n, fjac.data(), ldfjac, TRUE_, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -115,7 +115,7 @@ L40:
     if (mode == 2) {
         goto L60;
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         diag[j] = wa2[j];
         if (wa2[j] == 0.) {
             diag[j] = 1.;
@@ -127,11 +127,11 @@ L60:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         wa3[j] = diag[j] * x[j];
         /* L70: */
     }
-    xnorm = ei_enorm<Scalar>(n, &wa3[1]);
+    xnorm = wa3.stableNorm();
     delta = factor * xnorm;
     if (delta == 0.) {
         delta = factor;
@@ -141,26 +141,26 @@ L80:
     /*        form (q transpose)*fvec and store the first n components in */
     /*        qtf. */
 
-    for (i = 1; i <= m; ++i) {
+    for (i = 0; i < m; ++i) {
         wa4[i] = fvec[i];
         /* L90: */
     }
-    for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * ldfjac] == 0.) {
+    for (j = 0; j < n; ++j) {
+        if (fjac(j,j) == 0.) {
             goto L120;
         }
         sum = 0.;
-        for (i = j; i <= m; ++i) {
-            sum += fjac[i + j * ldfjac] * wa4[i];
+        for (i = j; i < m; ++i) {
+            sum += fjac(i,j) * wa4[i];
             /* L100: */
         }
-        temp = -sum / fjac[j + j * ldfjac];
-        for (i = j; i <= m; ++i) {
-            wa4[i] += fjac[i + j * ldfjac] * temp;
+        temp = -sum / fjac(j,j);
+        for (i = j; i < m; ++i) {
+            wa4[i] += fjac(i,j) * temp;
             /* L110: */
         }
 L120:
-        fjac[j + j * ldfjac] = wa1[j];
+        fjac(j,j) = wa1[j];
         qtf[j] = wa4[j];
         /* L130: */
     }
@@ -171,14 +171,14 @@ L120:
     if (fnorm == 0.) {
         goto L170;
     }
-    for (j = 1; j <= n; ++j) {
-        l = ipvt[j];
+    for (j = 0; j < n; ++j) {
+        l = ipvt[j]-1;
         if (wa2[l] == 0.) {
             goto L150;
         }
         sum = 0.;
-        for (i = 1; i <= j; ++i) {
-            sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
+        for (i = 0; i <= j; ++i) {
+            sum += fjac(i,j) * (qtf[i] / fnorm);
             /* L140: */
         }
         /* Computing MAX */
@@ -203,7 +203,7 @@ L170:
     if (mode == 2) {
         goto L190;
     }
-    for (j = 1; j <= n; ++j)
+    for (j = 0; j < n; ++j)
         diag[j] = max( diag[j], wa2[j]);
 L190:
 
@@ -213,18 +213,18 @@ L200:
 
     /*           determine the levenberg-marquardt parameter. */
 
-    lmpar(n, &fjac[fjac_offset], ldfjac, &ipvt[1], &diag[1], &qtf[1], delta,
-            &par, &wa1[1], &wa2[1], &wa3[1], &wa4[1]);
+    lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
+            &par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         wa1[j] = -wa1[j];
         wa2[j] = x[j] + wa1[j];
         wa3[j] = diag[j] * wa1[j];
         /* L210: */
     }
-    pnorm = ei_enorm<Scalar>(n, &wa3[1]);
+    pnorm = wa3.stableNorm();
 
     /*           on the first iteration, adjust the initial step bound. */
 
@@ -234,12 +234,12 @@ L200:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = (*fcn)(p, m, n, &wa2[1], &wa4[1], &fjac[fjac_offset], ldfjac, 1);
+    iflag = Functor::f(0, m, n, wa2.data(), wa4.data(), fjac.data(), ldfjac, 1);
     ++nfev;
     if (iflag < 0) {
         goto L300;
     }
-    fnorm1 = ei_enorm<Scalar>(m, &wa4[1]);
+    fnorm1 = wa4.stableNorm();
 
     /*           compute the scaled actual reduction. */
 
@@ -250,17 +250,17 @@ L200:
     /*           compute the scaled predicted reduction and */
     /*           the scaled directional derivative. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         wa3[j] = 0.;
-        l = ipvt[j];
+        l = ipvt[j]-1;
         temp = wa1[l];
-        for (i = 1; i <= j; ++i) {
-            wa3[i] += fjac[i + j * ldfjac] * temp;
+        for (i = 0; i <= j; ++i) {
+            wa3[i] += fjac(i,j) * temp;
             /* L220: */
         }
         /* L230: */
     }
-    temp1 = ei_abs2(ei_enorm<Scalar>(n, &wa3[1]) / fnorm);
+    temp1 = ei_abs2(wa3.stableNorm() / fnorm);
     temp2 = ei_abs2( ei_sqrt(par) * pnorm / fnorm);
     /* Computing 2nd power */
     prered = temp1 + temp2 / p5;
@@ -309,16 +309,16 @@ L260:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         x[j] = wa2[j];
         wa2[j] = diag[j] * x[j];
         /* L270: */
     }
-    for (i = 1; i <= m; ++i) {
+    for (i = 0; i < m; ++i) {
         fvec[i] = wa4[i];
         /* L280: */
     }
-    xnorm = ei_enorm<Scalar>(n, &wa2[1]);
+    xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;
 L290:
@@ -375,7 +375,7 @@ L300:
     }
     iflag = 0;
     if (nprint > 0) {
-        iflag = (*fcn)(p, m, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 0);
+        iflag = Functor::f(0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
     }
     return info;
 

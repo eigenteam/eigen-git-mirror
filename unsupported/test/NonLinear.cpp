@@ -1925,7 +1925,7 @@ void test_NonLinear()
 
 /*
  * Can be useful for debugging...
-  printf("info, nfev, jev : %d, %d, %d\n", info, nfev, njev);
+  printf("info, nfev, njev : %d, %d, %d\n", info, nfev, njev);
   printf("x[0] : %.32g\n", x[0]);
   printf("x[1] : %.32g\n", x[1]);
   printf("x[2] : %.32g\n", x[2]);
