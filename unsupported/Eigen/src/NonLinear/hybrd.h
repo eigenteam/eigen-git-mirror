@@ -245,7 +245,7 @@ L190:
     /*           evaluate the function at x + p and calculate its norm. */
 
     iflag = Functor::f(0, n, wa2.data(), wa4.data(), 1);
-    ++(nfev);
+    ++nfev;
     if (iflag < 0) {
         goto L300;
     }

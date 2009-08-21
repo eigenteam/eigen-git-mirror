@@ -25,49 +25,6 @@
 #ifndef EIGEN_NONLINEAR_MATHFUNCTIONS_H
 #define EIGEN_NONLINEAR_MATHFUNCTIONS_H
 
-
-template<typename Functor, typename Scalar>
-int ei_hybrj(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        int &nfev,
-        int &njev,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Matrix< Scalar, Dynamic, 1 >  &R,
-        Matrix< Scalar, Dynamic, 1 >  &qtf,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode=1,
-        int maxfev = 1000,
-        Scalar factor = Scalar(100.),
-        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-        int nprint=0
-        )
-{
-    int n = x.size();
-    int lr = (n*(n+1))/2;
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
-
-    fvec.resize(n);
-    qtf.resize(n);
-    R.resize(lr);
-    int ldfjac = n;
-    fjac.resize(ldfjac, n);
-    return hybrj_template<Scalar> (
-            Functor::f, 0,
-            n, x.data(), fvec.data(),
-            fjac.data(), ldfjac,
-            xtol, maxfev,
-            diag.data(), mode, 
-            factor,
-            nprint, 
-            nfev,
-            njev,
-            R.data(), lr,
-            qtf.data(),
-            wa1.data(), wa2.data(), wa3.data(), wa4.data()
-    );
-}
-
 template<typename Functor, typename Scalar>
 int ei_lmstr(
         Matrix< Scalar, Dynamic, 1 >  &x,

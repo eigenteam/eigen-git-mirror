@@ -1,19 +1,33 @@
 
-template<typename Scalar>
-int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
-        fvec, Scalar *fjac, int ldfjac, Scalar xtol, int
-        maxfev, Scalar *diag, int mode, Scalar factor, int
-        nprint, int &nfev, int &njev, Scalar *r__, 
-        int lr, Scalar *qtf, Scalar *wa1, Scalar *wa2, 
-        Scalar *wa3, Scalar *wa4)
+template<typename Functor, typename Scalar>
+int ei_hybrj(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        int &nfev,
+        int &njev,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        Matrix< Scalar, Dynamic, 1 >  &R,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
+        Matrix< Scalar, Dynamic, 1 >  &diag,
+        int mode=1,
+        int maxfev = 1000,
+        Scalar factor = Scalar(100.),
+        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+        int nprint=0
+        )
 {
-    /* Initialized data */
+    const int n = x.size();
+    const int lr = (n*(n+1))/2;
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
 
-    /* System generated locals */
-    int fjac_offset;
+    fvec.resize(n);
+    qtf.resize(n);
+    R.resize(lr);
+    int ldfjac = n;
+    fjac.resize(ldfjac, n);
 
     /* Local variables */
-    int i, j, l, jm1, iwa[1];
+    int i, j, l, iwa[1];
     Scalar sum;
     int sing;
     int iter;
@@ -30,21 +44,7 @@ int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
     Scalar actred, prered;
     int info;
 
-    /* Parameter adjustments */
-    --wa4;
-    --wa3;
-    --wa2;
-    --wa1;
-    --qtf;
-    --diag;
-    --fvec;
-    --x;
-    fjac_offset = 1 + ldfjac;
-    fjac -= fjac_offset;
-    --r__;
-
     /* Function Body */
-
     info = 0;
     iflag = 0;
     nfev = 0;
@@ -59,7 +59,7 @@ int hybrj_template(minpack_funcder_nn fcn, void *p, int n, Scalar *x, Scalar *
     if (mode != 2) {
         goto L20;
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         if (diag[j] <= 0.) {
             goto L300;
         }
@@ -70,12 +70,12 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 1);
+    iflag = Functor::f(0, n, x.data(), fvec.data(), fjac.data(), ldfjac, 1);
     nfev = 1;
     if (iflag < 0) {
         goto L300;
     }
-    fnorm = ei_enorm<Scalar>(n, &fvec[1]);
+    fnorm = fvec.stableNorm();;
 
     /*     initialize iteration counter and monitors. */
 
@@ -92,7 +92,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 2);
+    iflag = Functor::f(0, n, x.data(), fvec.data(), fjac.data(), ldfjac, 2);
     ++njev;
     if (iflag < 0) {
         goto L300;
@@ -100,8 +100,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(n, n, &fjac[fjac_offset], ldfjac, FALSE_, iwa, 1, &wa1[1], &
-            wa2[1], &wa3[1]);
+    qrfac(n, n,fjac.data(), ldfjac, FALSE_, iwa, 1, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -112,7 +111,7 @@ L30:
     if (mode == 2) {
         goto L50;
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         diag[j] = wa2[j];
         if (wa2[j] == 0.) {
             diag[j] = 1.;
@@ -124,11 +123,11 @@ L50:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         wa3[j] = diag[j] * x[j];
         /* L60: */
     }
-    xnorm = ei_enorm<Scalar>(n, &wa3[1]);
+    xnorm = wa3.stableNorm();;
     delta = factor * xnorm;
     if (delta == 0.) {
         delta = factor;
@@ -137,22 +136,22 @@ L70:
 
     /*        form (q transpose)*fvec and store in qtf. */
 
-    for (i = 1; i <= n; ++i) {
+    for (i = 0; i < n; ++i) {
         qtf[i] = fvec[i];
         /* L80: */
     }
-    for (j = 1; j <= n; ++j) {
-        if (fjac[j + j * ldfjac] == 0.) {
+    for (j = 0; j < n; ++j) {
+        if (fjac(j,j) == 0.) {
             goto L110;
         }
         sum = 0.;
-        for (i = j; i <= n; ++i) {
-            sum += fjac[i + j * ldfjac] * qtf[i];
+        for (i = j; i < n; ++i) {
+            sum += fjac(i,j) * qtf[i];
             /* L90: */
         }
-        temp = -sum / fjac[j + j * ldfjac];
-        for (i = j; i <= n; ++i) {
-            qtf[i] += fjac[i + j * ldfjac] * temp;
+        temp = -sum / fjac(j,j);
+        for (i = j; i < n; ++i) {
+            qtf[i] += fjac(i,j) * temp;
             /* L100: */
         }
 L110:
@@ -163,19 +162,16 @@ L110:
     /*        copy the triangular factor of the qr factorization into r. */
 
     sing = FALSE_;
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         l = j;
-        jm1 = j - 1;
-        if (jm1 < 1) {
-            goto L140;
+        if (j) {
+            for (i = 0; i < j; ++i) {
+                R[l] = fjac(i,j);
+                l = l + n - i -1;
+                /* L130: */
+            }
         }
-        for (i = 1; i <= jm1; ++i) {
-            r__[l] = fjac[i + j * ldfjac];
-            l = l + n - i;
-            /* L130: */
-        }
-L140:
-        r__[l] = wa1[j];
+        R[l] = wa1[j];
         if (wa1[j] == 0.) {
             sing = TRUE_;
         }
@@ -184,14 +180,15 @@ L140:
 
     /*        accumulate the orthogonal factor in fjac. */
 
-    qform(n, n, &fjac[fjac_offset], ldfjac, &wa1[1]);
+    qform(n, n, fjac.data(), ldfjac, wa1.data());
 
     /*        rescale if necessary. */
 
     if (mode == 2) {
         goto L170;
     }
-    for (j = 1; j <= n; ++j) /* Computing MAX */
+    /* Computing MAX */
+    for (j = 0; j < n; ++j)
         diag[j] = max(diag[j], wa2[j]);
 L170:
 
@@ -199,14 +196,14 @@ L170:
 
 L180:
 
-    /*           if requested, call fcn to enable printing of iterates. */
+    /*           if requested, call Functor::f to enable printing of iterates. */
 
     if (nprint <= 0) {
         goto L190;
     }
     iflag = 0;
     if ((iter - 1) % nprint == 0) {
-        iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 0);
+        iflag = Functor::f(0, n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
     }
     if (iflag < 0) {
         goto L300;
@@ -215,18 +212,17 @@ L190:
 
     /*           determine the direction p. */
 
-    dogleg(n, &r__[1], lr, &diag[1], &qtf[1], delta, &wa1[1], &wa2[1], &wa3[
-            1]);
+    dogleg(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         wa1[j] = -wa1[j];
         wa2[j] = x[j] + wa1[j];
         wa3[j] = diag[j] * wa1[j];
         /* L200: */
     }
-    pnorm = ei_enorm<Scalar>(n, &wa3[1]);
+    pnorm = wa3.stableNorm();
 
     /*           on the first iteration, adjust the initial step bound. */
 
@@ -236,12 +232,12 @@ L190:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = (*fcn)(p, n, &wa2[1], &wa4[1], &fjac[fjac_offset], ldfjac, 1);
+    iflag = Functor::f(0, n, wa2.data(), wa4.data(), fjac.data(), ldfjac, 1);
     ++nfev;
     if (iflag < 0) {
         goto L300;
     }
-    fnorm1 = ei_enorm<Scalar>(n, &wa4[1]);
+    fnorm1 = wa4.stableNorm();
 
     /*           compute the scaled actual reduction. */
 
@@ -251,18 +247,18 @@ L190:
 
     /*           compute the scaled predicted reduction. */
 
-    l = 1;
-    for (i = 1; i <= n; ++i) {
+    l = 0;
+    for (i = 0; i < n; ++i) {
         sum = 0.;
-        for (j = i; j <= n; ++j) {
-            sum += r__[l] * wa1[j];
+        for (j = i; j < n; ++j) {
+            sum += R[l] * wa1[j];
             ++l;
             /* L210: */
         }
         wa3[i] = qtf[i] + sum;
         /* L220: */
     }
-    temp = ei_enorm<Scalar>(n, &wa3[1]);
+    temp = wa3.stableNorm();
     prered = 0.;
     if (temp < fnorm) /* Computing 2nd power */
         prered = 1. - ei_abs2(temp / fnorm);
@@ -302,13 +298,13 @@ L240:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         x[j] = wa2[j];
         wa2[j] = diag[j] * x[j];
         fvec[j] = wa4[j];
         /* L250: */
     }
-    xnorm = ei_enorm<Scalar>(n, &wa2[1]);
+    xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;
 L260:
@@ -363,10 +359,10 @@ L260:
     /*           calculate the rank one modification to the jacobian */
     /*           and update qtf if necessary. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
         sum = 0.;
-        for (i = 1; i <= n; ++i) {
-            sum += fjac[i + j * ldfjac] * wa4[i];
+        for (i = 0; i < n; ++i) {
+            sum += fjac(i,j) * wa4[i];
             /* L270: */
         }
         wa2[j] = (sum - wa3[j]) / pnorm;
@@ -379,9 +375,9 @@ L260:
 
     /*           compute the qr factorization of the updated jacobian. */
 
-    r1updt(n, n, &r__[1], lr, &wa1[1], &wa2[1], &wa3[1], &sing);
-    r1mpyq(n, n, &fjac[fjac_offset], ldfjac, &wa2[1], &wa3[1]);
-    r1mpyq(1, n, &qtf[1], 1, &wa2[1], &wa3[1]);
+    r1updt(n, n, R.data(), lr, wa1.data(), wa2.data(), wa3.data(), &sing);
+    r1mpyq(n, n, fjac.data(), ldfjac, wa2.data(), wa3.data());
+    r1mpyq(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 
     /*           end of the inner loop. */
 
@@ -400,7 +396,7 @@ L300:
         info = iflag;
     }
     if (nprint > 0) {
-        iflag = (*fcn)(p, n, &x[1], &fvec[1], &fjac[fjac_offset], ldfjac, 0);
+        iflag = Functor::f(0, n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
     }
     return info;
 
