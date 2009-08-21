@@ -129,7 +129,7 @@ L40:
         if (fjac(j,j) == 0.) {
             sing = TRUE_;
         }
-        ipvt[j] = j+1;
+        ipvt[j] = j;
         wa2[j] = fjac.col(j).start(j).stableNorm();
 //        wa2[j] = ei_enorm<Scalar>(j, &fjac[j * ldfjac + 1]);
 //            sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
@@ -138,7 +138,9 @@ L40:
     if (! sing) {
         goto L130;
     }
+    ipvt.cwise()+=1;
     qrfac(n, n, fjac.data(), ldfjac, TRUE_, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
     for (j = 0; j < n; ++j) {
         if (fjac(j,j) == 0.) {
             goto L110;
@@ -198,7 +200,7 @@ L170:
         goto L210;
     }
     for (j = 0; j < n; ++j) {
-        l = ipvt[j]-1;
+        l = ipvt[j];
         if (wa2[l] == 0.) {
             goto L190;
         }
@@ -239,8 +241,10 @@ L240:
 
     /*           determine the levenberg-marquardt parameter. */
 
+    ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
     lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta, &par,
             wa1.data(), wa2.data(), wa3.data(), wa4.data());
+    ipvt.cwise()-=1;
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
@@ -278,7 +282,7 @@ L240:
 
     for (j = 0; j < n; ++j) {
         wa3[j] = 0.;
-        l = ipvt[j]-1;
+        l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
             wa3[i] += fjac(i,j) * temp;

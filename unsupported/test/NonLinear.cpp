@@ -246,6 +246,7 @@ void testLmder()
   covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
   VectorXd wa(n);
+  ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
   covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
 
   MatrixXd cov_ref(n,n);
@@ -761,6 +762,7 @@ void testLmdif()
   covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
   VectorXd wa(n);
+//  ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
   covar(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
 
   MatrixXd cov_ref(n,n);

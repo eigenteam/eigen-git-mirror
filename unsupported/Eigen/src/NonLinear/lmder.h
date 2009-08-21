@@ -105,6 +105,7 @@ L40:
     /*        compute the qr factorization of the jacobian. */
 
     qrfac(m, n, fjac.data(), ldfjac, TRUE_, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -172,7 +173,7 @@ L120:
         goto L170;
     }
     for (j = 0; j < n; ++j) {
-        l = ipvt[j]-1;
+        l = ipvt[j];
         if (wa2[l] == 0.) {
             goto L150;
         }
@@ -213,8 +214,10 @@ L200:
 
     /*           determine the levenberg-marquardt parameter. */
 
+    ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
     lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
             &par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
+    ipvt.cwise()-=1;
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
@@ -252,7 +255,7 @@ L200:
 
     for (j = 0; j < n; ++j) {
         wa3[j] = 0.;
-        l = ipvt[j]-1;
+        l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
             wa3[i] += fjac(i,j) * temp;
