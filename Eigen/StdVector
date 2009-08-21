@@ -125,9 +125,9 @@ class vector<T,DummyAlloc,true>
   void resize(size_type __new_size, const value_type& __x)
   {
     if (__new_size < vector_base::size())
-      erase(vector_base::begin() + __new_size, vector_base::end());
+      vector_base::erase(vector_base::begin() + __new_size, vector_base::end());
     else
-      insert(vector_base::end(), __new_size - vector_base::size(), __x);
+      vector_base::insert(vector_base::end(), __new_size - vector_base::size(), __x);
   }
   #else
   // Before gcc-4.1 we already have: std::vector::resize(size_type,const T&),
