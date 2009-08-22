@@ -159,7 +159,7 @@ void testLmder1()
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -234,7 +234,7 @@ void testLmder()
   VERIFY(njev==5);
 
   // check norm
-  fnorm = fvec.norm();
+  fnorm = fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
@@ -320,7 +320,7 @@ void testHybrj1()
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
 
 
 // check x
@@ -399,7 +399,7 @@ void testHybrj()
   VERIFY(njev==1);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
 
 
 // check x
@@ -448,7 +448,7 @@ void testHybrd1()
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
 
   // check x
   VectorXd x_ref(n);
@@ -506,7 +506,7 @@ void testHybrd()
   VERIFY(nfev==14);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 1.192636e-08);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
 
   // check x
   VectorXd x_ref(n);
@@ -570,7 +570,7 @@ void testLmstr1()
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -644,7 +644,7 @@ void testLmstr()
   VERIFY(njev==5);
 
   // check norm
-  fnorm = fvec.norm();
+  fnorm = fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
@@ -693,7 +693,7 @@ void testLmdif1()
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.norm(), 0.09063596);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -750,7 +750,7 @@ void testLmdif()
   VERIFY(nfev==21);
 
   // check norm
-  fnorm = fvec.norm();
+  fnorm = fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
