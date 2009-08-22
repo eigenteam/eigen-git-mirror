@@ -5,11 +5,11 @@ int ei_fdjac2(minpack_func_mn fcn, void *p, int m, int n, Scalar *x,
 	Scalar epsfcn, Scalar *wa)
 {
     /* System generated locals */
-    int fjac_dim1, fjac_offset, i__1, i__2;
+    int fjac_dim1, fjac_offset;
 
     /* Local variables */
     Scalar h__;
-    int i__, j;
+    int i, j;
     Scalar eps, temp, epsmch;
     int iflag;
 
@@ -28,8 +28,7 @@ int ei_fdjac2(minpack_func_mn fcn, void *p, int m, int n, Scalar *x,
     epsmch = epsilon<Scalar>();
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	temp = x[j];
 	h__ = eps * ei_abs(temp);
 	if (h__ == 0.) {
@@ -42,9 +41,8 @@ int ei_fdjac2(minpack_func_mn fcn, void *p, int m, int n, Scalar *x,
             return iflag;
 	}
 	x[j] = temp;
-	i__2 = m;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    fjac[i__ + j * fjac_dim1] = (wa[i__] - fvec[i__]) / h__;
+	for (i = 1; i <= m; ++i) {
+	    fjac[i + j * fjac_dim1] = (wa[i] - fvec[i]) / h__;
 /* L10: */
 	}
 /* L20: */

@@ -4,10 +4,10 @@ void ei_covar(int n, Scalar *r__, int ldr,
 	const int *ipvt, Scalar tol, Scalar *wa)
 {
     /* System generated locals */
-    int r_dim1, r_offset, i__1, i__2, i__3;
+    int r_dim1, r_offset;
 
     /* Local variables */
-    int i__, j, k, l, ii, jj, km1;
+    int i, j, k, l, ii, jj, km1;
     int sing;
     Scalar temp, tolr;
 
@@ -24,8 +24,7 @@ void ei_covar(int n, Scalar *r__, int ldr,
 /*     form the inverse of r in the full upper triangle of r. */
 
     l = 0;
-    i__1 = n;
-    for (k = 1; k <= i__1; ++k) {
+    for (k = 1; k <= n; ++k) {
 	if (ei_abs(r__[k + k * r_dim1]) <= tolr) {
 	    goto L50;
 	}
@@ -34,13 +33,11 @@ void ei_covar(int n, Scalar *r__, int ldr,
 	if (km1 < 1) {
 	    goto L30;
 	}
-	i__2 = km1;
-	for (j = 1; j <= i__2; ++j) {
+	for (j = 1; j <= km1; ++j) {
 	    temp = r__[k + k * r_dim1] * r__[j + k * r_dim1];
 	    r__[j + k * r_dim1] = 0.;
-	    i__3 = j;
-	    for (i__ = 1; i__ <= i__3; ++i__) {
-		r__[i__ + k * r_dim1] -= temp * r__[i__ + j * r_dim1];
+	    for (i = 1; i <= j; ++i) {
+		r__[i + k * r_dim1] -= temp * r__[i + j * r_dim1];
 /* L10: */
 	    }
 /* L20: */
@@ -57,27 +54,23 @@ L50:
     if (l < 1) {
 	goto L110;
     }
-    i__1 = l;
-    for (k = 1; k <= i__1; ++k) {
+    for (k = 1; k <= l; ++k) {
 	km1 = k - 1;
 	if (km1 < 1) {
 	    goto L80;
 	}
-	i__2 = km1;
-	for (j = 1; j <= i__2; ++j) {
+	for (j = 1; j <= km1; ++j) {
 	    temp = r__[j + k * r_dim1];
-	    i__3 = j;
-	    for (i__ = 1; i__ <= i__3; ++i__) {
-		r__[i__ + j * r_dim1] += temp * r__[i__ + k * r_dim1];
+	    for (i = 1; i <= j; ++i) {
+		r__[i + j * r_dim1] += temp * r__[i + k * r_dim1];
 /* L60: */
 	    }
 /* L70: */
 	}
 L80:
 	temp = r__[k + k * r_dim1];
-	i__2 = k;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    r__[i__ + k * r_dim1] = temp * r__[i__ + k * r_dim1];
+	for (i = 1; i <= k; ++i) {
+	    r__[i + k * r_dim1] = temp * r__[i + k * r_dim1];
 /* L90: */
 	}
 /* L100: */
@@ -87,21 +80,19 @@ L110:
 /*     form the full lower triangle of the covariance matrix */
 /*     in the strict lower triangle of r and in wa. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	jj = ipvt[j];
 	sing = j > l;
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i = 1; i <= j; ++i) {
 	    if (sing) {
-		r__[i__ + j * r_dim1] = 0.;
+		r__[i + j * r_dim1] = 0.;
 	    }
-	    ii = ipvt[i__];
+	    ii = ipvt[i];
 	    if (ii > jj) {
-		r__[ii + jj * r_dim1] = r__[i__ + j * r_dim1];
+		r__[ii + jj * r_dim1] = r__[i + j * r_dim1];
 	    }
 	    if (ii < jj) {
-		r__[jj + ii * r_dim1] = r__[i__ + j * r_dim1];
+		r__[jj + ii * r_dim1] = r__[i + j * r_dim1];
 	    }
 /* L120: */
 	}
@@ -111,11 +102,9 @@ L110:
 
 /*     symmetrize the covariance matrix in r. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    r__[i__ + j * r_dim1] = r__[j + i__ * r_dim1];
+    for (j = 1; j <= n; ++j) {
+	for (i = 1; i <= j; ++i) {
+	    r__[i + j * r_dim1] = r__[j + i * r_dim1];
 /* L140: */
 	}
 	r__[j + j * r_dim1] = wa[j];

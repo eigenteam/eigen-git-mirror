@@ -4,17 +4,11 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
 	const int *ipvt, const Scalar *diag, const Scalar *qtb, Scalar *x, 
 	Scalar *sdiag, Scalar *wa)
 {
-    /* Initialized data */
-
-#define p5 .5
-#define p25 .25
-
     /* System generated locals */
-    int r_dim1, r_offset, i__1, i__2, i__3;
-    Scalar d__1, d__2;
+    int r_dim1, r_offset;
 
     /* Local variables */
-    int i__, j, k, l, jp1, kp1;
+    int i, j, k, l, jp1, kp1;
     Scalar tan__, cos__, sin__, sum, temp, cotan;
     int nsing;
     Scalar qtbpj;
@@ -35,11 +29,9 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
 /*     copy r and (q transpose)*b to preserve input and initialize s. */
 /*     in particular, save the diagonal elements of r in x. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
-	i__2 = n;
-	for (i__ = j; i__ <= i__2; ++i__) {
-	    r__[i__ + j * r_dim1] = r__[j + i__ * r_dim1];
+    for (j = 1; j <= n; ++j) {
+	for (i = j; i <= n; ++i) {
+	    r__[i + j * r_dim1] = r__[j + i * r_dim1];
 /* L10: */
 	}
 	x[j] = r__[j + j * r_dim1];
@@ -49,8 +41,7 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
 
 /*     eliminate the diagonal matrix d using a givens rotation. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 
 /*        prepare the row of d to be eliminated, locating the */
 /*        diagonal element using p from the qr factorization. */
@@ -59,8 +50,7 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
 	if (diag[l] == 0.) {
 	    goto L90;
 	}
-	i__2 = n;
-	for (k = j; k <= i__2; ++k) {
+	for (k = j; k <= n; ++k) {
 	    sdiag[k] = 0.;
 /* L30: */
 	}
@@ -71,30 +61,24 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
 /*        beyond the first n, which is initially zero. */
 
 	qtbpj = 0.;
-	i__2 = n;
-	for (k = j; k <= i__2; ++k) {
+	for (k = j; k <= n; ++k) {
 
 /*           determine a givens rotation which eliminates the */
 /*           appropriate element in the current row of d. */
 
-	    if (sdiag[k] == 0.) {
-		goto L70;
-	    }
-	    if ((d__1 = r__[k + k * r_dim1], ei_abs(d__1)) >= (d__2 = sdiag[k], 
-		    ei_abs(d__2))) {
-		goto L40;
-	    }
+	    if (sdiag[k] == 0.)
+            goto L70;
+	    if ( ei_abs(r__[k + k * r_dim1]) >= ei_abs(sdiag[k]))
+            goto L40;
 	    cotan = r__[k + k * r_dim1] / sdiag[k];
 /* Computing 2nd power */
-	    d__1 = cotan;
-	    sin__ = p5 / ei_sqrt(p25 + p25 * (d__1 * d__1));
+	    sin__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(cotan));
 	    cos__ = sin__ * cotan;
 	    goto L50;
 L40:
 	    tan__ = sdiag[k] / r__[k + k * r_dim1];
 /* Computing 2nd power */
-	    d__1 = tan__;
-	    cos__ = p5 / ei_sqrt(p25 + p25 * (d__1 * d__1));
+	    cos__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(tan__));
 	    sin__ = cos__ * tan__;
 L50:
 
@@ -113,12 +97,11 @@ L50:
 	    if (n < kp1) {
 		goto L70;
 	    }
-	    i__3 = n;
-	    for (i__ = kp1; i__ <= i__3; ++i__) {
-		temp = cos__ * r__[i__ + k * r_dim1] + sin__ * sdiag[i__];
-		sdiag[i__] = -sin__ * r__[i__ + k * r_dim1] + cos__ * sdiag[
-			i__];
-		r__[i__ + k * r_dim1] = temp;
+	    for (i = kp1; i <= n; ++i) {
+		temp = cos__ * r__[i + k * r_dim1] + sin__ * sdiag[i];
+		sdiag[i] = -sin__ * r__[i + k * r_dim1] + cos__ * sdiag[
+			i];
+		r__[i + k * r_dim1] = temp;
 /* L60: */
 	    }
 L70:
@@ -139,8 +122,7 @@ L90:
 /*     singular, then obtain a least squares solution. */
 
     nsing = n;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	if (sdiag[j] == 0. && nsing == n) {
 	    nsing = j - 1;
 	}
@@ -152,17 +134,15 @@ L90:
     if (nsing < 1) {
 	goto L150;
     }
-    i__1 = nsing;
-    for (k = 1; k <= i__1; ++k) {
+    for (k = 1; k <= nsing; ++k) {
 	j = nsing - k + 1;
 	sum = 0.;
 	jp1 = j + 1;
 	if (nsing < jp1) {
 	    goto L130;
 	}
-	i__2 = nsing;
-	for (i__ = jp1; i__ <= i__2; ++i__) {
-	    sum += r__[i__ + j * r_dim1] * wa[i__];
+	for (i = jp1; i <= nsing; ++i) {
+	    sum += r__[i + j * r_dim1] * wa[i];
 /* L120: */
 	}
 L130:
@@ -173,8 +153,7 @@ L150:
 
 /*     permute the components of z back to components of x. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = ipvt[j];
 	x[l] = wa[j];
 /* L160: */

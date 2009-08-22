@@ -4,16 +4,11 @@ void ei_qrfac(int m, int n, Scalar *a, int
 	lda, int pivot, int *ipvt, int /* lipvt */, Scalar *rdiag,
 	 Scalar *acnorm, Scalar *wa)
 {
-    /* Initialized data */
-
-#define p05 .05
-
     /* System generated locals */
-    int a_dim1, a_offset, i__1, i__2, i__3;
-    Scalar d__1, d__2, d__3;
+    int a_dim1, a_offset;
 
     /* Local variables */
-    int i__, j, k, jp1;
+    int i, j, k, jp1;
     Scalar sum;
     int kmax;
     Scalar temp;
@@ -38,8 +33,7 @@ void ei_qrfac(int m, int n, Scalar *a, int
 
 /*     compute the initial column norms and initialize several arrays. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	acnorm[j] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j * a_dim1 + 1],m).blueNorm();
 	rdiag[j] = acnorm[j];
 	wa[j] = rdiag[j];
@@ -52,8 +46,7 @@ void ei_qrfac(int m, int n, Scalar *a, int
 /*     reduce a to r with householder transformations. */
 
     minmn = std::min(m,n);
-    i__1 = minmn;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= minmn; ++j) {
 	if (! (pivot)) {
 	    goto L40;
 	}
@@ -61,8 +54,7 @@ void ei_qrfac(int m, int n, Scalar *a, int
 /*        bring the column of largest norm into the pivot position. */
 
 	kmax = j;
-	i__2 = n;
-	for (k = j; k <= i__2; ++k) {
+	for (k = j; k <= n; ++k) {
 	    if (rdiag[k] > rdiag[kmax]) {
 		kmax = k;
 	    }
@@ -71,11 +63,10 @@ void ei_qrfac(int m, int n, Scalar *a, int
 	if (kmax == j) {
 	    goto L40;
 	}
-	i__2 = m;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    temp = a[i__ + j * a_dim1];
-	    a[i__ + j * a_dim1] = a[i__ + kmax * a_dim1];
-	    a[i__ + kmax * a_dim1] = temp;
+	for (i = 1; i <= m; ++i) {
+	    temp = a[i + j * a_dim1];
+	    a[i + j * a_dim1] = a[i + kmax * a_dim1];
+	    a[i + kmax * a_dim1] = temp;
 /* L30: */
 	}
 	rdiag[kmax] = rdiag[j];
@@ -88,17 +79,15 @@ L40:
 /*        compute the householder transformation to reduce the */
 /*        j-th column of a to a multiple of the j-th unit vector. */
 
-	i__2 = m - j + 1;
-	ajnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j + j * a_dim1],i__2).blueNorm();
+	ajnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j + j * a_dim1],m-j+1).blueNorm();
 	if (ajnorm == 0.) {
 	    goto L100;
 	}
 	if (a[j + j * a_dim1] < 0.) {
 	    ajnorm = -ajnorm;
 	}
-	i__2 = m;
-	for (i__ = j; i__ <= i__2; ++i__) {
-	    a[i__ + j * a_dim1] /= ajnorm;
+	for (i = j; i <= m; ++i) {
+	    a[i + j * a_dim1] /= ajnorm;
 /* L50: */
 	}
 	a[j + j * a_dim1] += 1.;
@@ -110,18 +99,15 @@ L40:
 	if (n < jp1) {
 	    goto L100;
 	}
-	i__2 = n;
-	for (k = jp1; k <= i__2; ++k) {
+	for (k = jp1; k <= n; ++k) {
 	    sum = 0.;
-	    i__3 = m;
-	    for (i__ = j; i__ <= i__3; ++i__) {
-		sum += a[i__ + j * a_dim1] * a[i__ + k * a_dim1];
+	    for (i = j; i <= m; ++i) {
+		sum += a[i + j * a_dim1] * a[i + k * a_dim1];
 /* L60: */
 	    }
 	    temp = sum / a[j + j * a_dim1];
-	    i__3 = m;
-	    for (i__ = j; i__ <= i__3; ++i__) {
-		a[i__ + k * a_dim1] -= temp * a[i__ + j * a_dim1];
+	    for (i = j; i <= m; ++i) {
+		a[i + k * a_dim1] -= temp * a[i + j * a_dim1];
 /* L70: */
 	    }
 	    if (! (pivot) || rdiag[k] == 0.) {
@@ -130,16 +116,12 @@ L40:
 	    temp = a[j + k * a_dim1] / rdiag[k];
 /* Computing MAX */
 /* Computing 2nd power */
-	    d__3 = temp;
-	    d__1 = 0., d__2 = 1. - d__3 * d__3;
-	    rdiag[k] *= ei_sqrt((std::max(d__1,d__2)));
+	    rdiag[k] *= ei_sqrt((std::max(Scalar(0.), Scalar(1.)-ei_abs2(temp))));
 /* Computing 2nd power */
-	    d__1 = rdiag[k] / wa[k];
-	    if (p05 * (d__1 * d__1) > epsmch) {
+	    if (Scalar(.05) * ei_abs2(rdiag[k] / wa[k]) > epsmch) {
 		goto L80;
 	    }
-	    i__3 = m - j;
-	    rdiag[k] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[jp1 + k * a_dim1],i__3).blueNorm();
+	    rdiag[k] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[jp1 + k * a_dim1],m-j).blueNorm();
 	    wa[k] = rdiag[k];
 L80:
 /* L90: */

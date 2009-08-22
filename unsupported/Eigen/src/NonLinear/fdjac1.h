@@ -5,11 +5,11 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
 	int mu, Scalar epsfcn, Scalar *wa1, Scalar *wa2)
 {
     /* System generated locals */
-    int fjac_dim1, fjac_offset, i__1, i__2, i__3, i__4;
+    int fjac_dim1, fjac_offset;
 
     /* Local variables */
     Scalar h__;
-    int i__, j, k;
+    int i, j, k;
     Scalar eps, temp;
     int msum;
     Scalar epsmch;
@@ -38,8 +38,7 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
 
 /*        computation of dense approximate jacobian. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	temp = x[j];
 	h__ = eps * ei_abs(temp);
 	if (h__ == 0.) {
@@ -51,9 +50,8 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
 	    goto L30;
 	}
 	x[j] = temp;
-	i__2 = n;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    fjac[i__ + j * fjac_dim1] = (wa1[i__] - fvec[i__]) / h__;
+	for (i = 1; i <= n; ++i) {
+	    fjac[i + j * fjac_dim1] = (wa1[i] - fvec[i]) / h__;
 /* L10: */
 	}
 /* L20: */
@@ -65,11 +63,8 @@ L40:
 
 /*        computation of banded approximate jacobian. */
 
-    i__1 = msum;
-    for (k = 1; k <= i__1; ++k) {
-	i__2 = n;
-	i__3 = msum;
-	for (j = k; i__3 < 0 ? j >= i__2 : j <= i__2; j += i__3) {
+    for (k = 1; k <= msum; ++k) {
+	for (j = k; msum< 0 ? j >= n: j <= n; j += msum) {
 	    wa2[j] = x[j];
 	    h__ = eps * ei_abs(wa2[j]);
 	    if (h__ == 0.) {
@@ -83,19 +78,16 @@ L40:
 	    /* goto L100; */
             return iflag;
 	}
-	i__3 = n;
-	i__2 = msum;
-	for (j = k; i__2 < 0 ? j >= i__3 : j <= i__3; j += i__2) {
+	for (j = k; msum< 0 ? j >= n: j <= n; j += msum) {
 	    x[j] = wa2[j];
 	    h__ = eps * ei_abs(wa2[j]);
 	    if (h__ == 0.) {
 		h__ = eps;
 	    }
-	    i__4 = n;
-	    for (i__ = 1; i__ <= i__4; ++i__) {
-		fjac[i__ + j * fjac_dim1] = 0.;
-		if (i__ >= j - mu && i__ <= j + ml) {
-		    fjac[i__ + j * fjac_dim1] = (wa1[i__] - fvec[i__]) / h__;
+	    for (i = 1; i <= n; ++i) {
+		fjac[i + j * fjac_dim1] = 0.;
+		if (i >= j - mu && i <= j + ml) {
+		    fjac[i + j * fjac_dim1] = (wa1[i] - fvec[i]) / h__;
 		}
 /* L70: */
 	    }
