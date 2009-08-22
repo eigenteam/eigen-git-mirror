@@ -107,7 +107,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(m, n, fjac.data(), ldfjac, TRUE_, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    qrfac(m, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
@@ -186,7 +186,7 @@ L120:
             /* L140: */
         }
         /* Computing MAX */
-        gnorm = max(gnorm, ei_abs(sum / wa2[l]));
+        gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
 L150:
         /* L160: */
         ;
@@ -208,7 +208,7 @@ L170:
         goto L190;
     }
     for (j = 0; j < n; ++j) /* Computing MAX */
-        diag[j] = max(diag[j], wa2[j]);
+        diag[j] = std::max(diag[j], wa2[j]);
 L190:
 
     /*        beginning of the inner loop. */
@@ -218,7 +218,7 @@ L200:
     /*           determine the levenberg-marquardt parameter. */
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
-    lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
+    ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
             &par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 
@@ -235,7 +235,7 @@ L200:
     /*           on the first iteration, adjust the initial step bound. */
 
     if (iter == 1) {
-        delta = min(delta,pnorm);
+        delta = std::min(delta,pnorm);
     }
 
     /*           evaluate the function at x + p and calculate its norm. */
@@ -250,7 +250,7 @@ L200:
     /*           compute the scaled actual reduction. */
 
     actred = -1.;
-    if (p1 * fnorm1 < fnorm) /* Computing 2nd power */
+    if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
         actred = 1. - ei_abs2(fnorm1 / fnorm);
 
     /*           compute the scaled predicted reduction and */
@@ -269,7 +269,7 @@ L200:
     temp1 = ei_abs2(wa3.stableNorm() / fnorm);
     temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
     /* Computing 2nd power */
-    prered = temp1 + temp2 / p5;
+    prered = temp1 + temp2 / Scalar(.5);
     dirder = -(temp1 + temp2);
 
     /*           compute the ratio of the actual to the predicted */
@@ -282,34 +282,34 @@ L200:
 
     /*           update the step bound. */
 
-    if (ratio > p25) {
+    if (ratio > Scalar(.25)) {
         goto L240;
     }
     if (actred >= 0.) {
-        temp = p5;
+        temp = Scalar(.5);
     }
     if (actred < 0.) {
-        temp = p5 * dirder / (dirder + p5 * actred);
+        temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
     }
-    if (p1 * fnorm1 >= fnorm || temp < p1) {
-        temp = p1;
+    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1)) {
+        temp = Scalar(.1);
     }
     /* Computing MIN */
-    delta = temp * min(delta, pnorm / p1);
+    delta = temp * std::min(delta, pnorm / Scalar(.1));
     par /= temp;
     goto L260;
 L240:
-    if (par != 0. && ratio < p75) {
+    if (par != 0. && ratio < Scalar(.75)) {
         goto L250;
     }
-    delta = pnorm / p5;
-    par = p5 * par;
+    delta = pnorm / Scalar(.5);
+    par = Scalar(.5) * par;
 L250:
 L260:
 
     /*           test for successful iteration. */
 
-    if (ratio < p0001) {
+    if (ratio < Scalar(1e-4)) {
         goto L290;
     }
 
@@ -331,13 +331,13 @@ L290:
 
     /*           tests for convergence. */
 
-    if (ei_abs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1.) {
+    if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1.) {
         info = 1;
     }
     if (delta <= xtol * xnorm) {
         info = 2;
     }
-    if (ei_abs(actred) <= ftol && prered <= ftol && p5 * ratio <= 1. && info 
+    if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1. && info 
             == 2) {
         info = 3;
     }
@@ -350,7 +350,7 @@ L290:
     if (nfev >= maxfev) {
         info = 5;
     }
-    if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && p5 * ratio <= 1.) {
+    if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.) {
         info = 6;
     }
     if (delta <= epsilon<Scalar>() * xnorm) {
@@ -365,7 +365,7 @@ L290:
 
     /*           end of the inner loop. repeat if iteration unsuccessful. */
 
-    if (ratio < p0001) {
+    if (ratio < Scalar(1e-4)) {
         goto L200;
     }
 

@@ -86,7 +86,7 @@ L20:
     /*     the jacobian matrix. */
 
     /* Computing MIN */
-    msum = min(nb_of_subdiagonals + nb_of_superdiagonals + 1, n);
+    msum = std::min(nb_of_subdiagonals + nb_of_superdiagonals + 1, n);
 
     /*     initialize iteration counter and monitors. */
 
@@ -99,7 +99,7 @@ L20:
     /*     beginning of the outer loop. */
 
 L30:
-    jeval = TRUE_;
+    jeval = true;
 
     /*        calculate the jacobian matrix. */
 
@@ -112,7 +112,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(n, n, fjac.data(), ldfjac, FALSE_, iwa, 1, wa1.data(), wa2.data(), wa3.data());
+    qrfac(n, n, fjac.data(), ldfjac, false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -173,7 +173,7 @@ L110:
 
     /*        copy the triangular factor of the qr factorization into r. */
 
-    sing = FALSE_;
+    sing = false;
     for (j = 0; j < n; ++j) {
         l = j;
         if (j) {
@@ -185,7 +185,7 @@ L110:
         }
         R[l] = wa1[j];
         if (wa1[j] == 0.) {
-            sing = TRUE_;
+            sing = true;
         }
         /* L150: */
     }
@@ -201,7 +201,7 @@ L110:
     }
     /* Computing MAX */
     for (j = 0; j < n; ++j)
-        diag[j] = max(diag[j], wa2[j]);
+        diag[j] = std::max(diag[j], wa2[j]);
 L170:
 
     /*        beginning of the inner loop. */
@@ -224,7 +224,7 @@ L190:
 
     /*           determine the direction p. */
 
-    dogleg(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
+    ei_dogleg<Scalar>(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
@@ -239,7 +239,7 @@ L190:
     /*           on the first iteration, adjust the initial step bound. */
 
     if (iter == 1) {
-        delta = min(delta,pnorm);
+        delta = std::min(delta,pnorm);
     }
 
     /*           evaluate the function at x + p and calculate its norm. */
@@ -285,26 +285,26 @@ L190:
 
     /*           update the step bound. */
 
-    if (ratio >= p1) {
+    if (ratio >= Scalar(.1)) {
         goto L230;
     }
     ncsuc = 0;
     ++ncfail;
-    delta = p5 * delta;
+    delta = Scalar(.5) * delta;
     goto L240;
 L230:
     ncfail = 0;
     ++ncsuc;
-    if (ratio >= p5 || ncsuc > 1) /* Computing MAX */
-        delta = max(delta, pnorm / p5);
-    if (ei_abs(ratio - 1.) <= p1) {
-        delta = pnorm / p5;
+    if (ratio >= Scalar(.5) || ncsuc > 1) /* Computing MAX */
+        delta = std::max(delta, pnorm / Scalar(.5));
+    if (ei_abs(ratio - 1.) <= Scalar(.1)) {
+        delta = pnorm / Scalar(.5);
     }
 L240:
 
     /*           test for successful iteration. */
 
-    if (ratio < p0001) {
+    if (ratio < Scalar(1e-4)) {
         goto L260;
     }
 
@@ -324,13 +324,13 @@ L260:
     /*           determine the progress of the iteration. */
 
     ++nslow1;
-    if (actred >= p001) {
+    if (actred >= Scalar(.001)) {
         nslow1 = 0;
     }
     if (jeval) {
         ++nslow2;
     }
-    if (actred >= p1) {
+    if (actred >= Scalar(.1)) {
         nslow2 = 0;
     }
 
@@ -349,7 +349,7 @@ L260:
         info = 2;
     }
     /* Computing MAX */
-    if (p1 * max(p1 * delta, pnorm) <= epsilon<Scalar>() * xnorm)
+    if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
         info = 3;
     if (nslow2 == 5)
         info = 4;
@@ -375,7 +375,7 @@ L260:
         }
         wa2[j] = (sum - wa3[j]) / pnorm;
         wa1[j] = diag[j] * (diag[j] * wa1[j] / pnorm);
-        if (ratio >= p0001) {
+        if (ratio >= Scalar(1e-4)) {
             qtf[j] = sum;
         }
         /* L280: */
@@ -389,7 +389,7 @@ L260:
 
     /*           end of the inner loop. */
 
-    jeval = FALSE_;
+    jeval = false;
     goto L180;
 L290:
 

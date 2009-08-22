@@ -36,18 +36,6 @@ namespace Eigen {
   */
 //@{
 
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
-#define abs(x) ((x) >= 0 ? (x) : -(x))
-#define TRUE_ (1)
-#define FALSE_ (0)
-#define p1 .1
-#define p5 .5
-#define p25 .25
-#define p75 .75
-#define p001 .001
-#define p0001 1e-4
-
 #if 1
 #include <cminpack.h>
 #else
