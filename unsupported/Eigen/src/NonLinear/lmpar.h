@@ -5,17 +5,12 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
 	Scalar *par, Scalar *x, Scalar *sdiag, Scalar *wa1, 
 	Scalar *wa2)
 {
-    /* Initialized data */
-
-#define p1 .1
-#define p001 .001
-
     /* System generated locals */
-    int r_dim1, r_offset, i__1, i__2;
+    int r_dim1, r_offset;
     Scalar d__1, d__2;
 
     /* Local variables */
-    int i__, j, k, l;
+    int i, j, k, l;
     Scalar fp;
     int jm1, jp1;
     Scalar sum, parc, parl;
@@ -47,8 +42,7 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
 /*     jacobian is rank-deficient, obtain a least squares solution. */
 
     nsing = n;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = qtb[j];
 	if (r__[j + j * r_dim1] == 0. && nsing == n) {
 	    nsing = j - 1;
@@ -61,8 +55,7 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
     if (nsing < 1) {
 	goto L50;
     }
-    i__1 = nsing;
-    for (k = 1; k <= i__1; ++k) {
+    for (k = 1; k <= nsing; ++k) {
 	j = nsing - k + 1;
 	wa1[j] /= r__[j + j * r_dim1];
 	temp = wa1[j];
@@ -70,9 +63,8 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
 	if (jm1 < 1) {
 	    goto L30;
 	}
-	i__2 = jm1;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    wa1[i__] -= r__[i__ + j * r_dim1] * temp;
+	for (i = 1; i <= jm1; ++i) {
+	    wa1[i] -= r__[i + j * r_dim1] * temp;
 /* L20: */
 	}
 L30:
@@ -80,8 +72,7 @@ L30:
 	;
     }
 L50:
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = ipvt[j];
 	x[l] = wa1[j];
 /* L60: */
@@ -92,14 +83,13 @@ L50:
 /*     for acceptance of the gauss-newton direction. */
 
     iter = 0;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa2[j] = diag[j] * x[j];
 /* L70: */
     }
     dxnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&wa2[1],n).blueNorm();
     fp = dxnorm - delta;
-    if (fp <= p1 * delta) {
+    if (fp <= Scalar(0.1) * delta) {
 	goto L220;
     }
 
@@ -111,22 +101,19 @@ L50:
     if (nsing < n) {
 	goto L120;
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = ipvt[j];
 	wa1[j] = diag[l] * (wa2[l] / dxnorm);
 /* L80: */
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	sum = 0.;
 	jm1 = j - 1;
 	if (jm1 < 1) {
 	    goto L100;
 	}
-	i__2 = jm1;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    sum += r__[i__ + j * r_dim1] * wa1[i__];
+	for (i = 1; i <= jm1; ++i) {
+	    sum += r__[i + j * r_dim1] * wa1[i];
 /* L90: */
 	}
 L100:
@@ -139,12 +126,10 @@ L120:
 
 /*     calculate an upper bound, paru, for the zero of the function. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	sum = 0.;
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    sum += r__[i__ + j * r_dim1] * qtb[i__];
+	for (i = 1; i <= j; ++i) {
+	    sum += r__[i + j * r_dim1] * qtb[i];
 /* L130: */
 	}
 	l = ipvt[j];
@@ -154,7 +139,7 @@ L120:
     gnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&wa1[1],n).stableNorm();
     paru = gnorm / delta;
     if (paru == 0.) {
-	paru = dwarf / std::min(delta,p1);
+	paru = dwarf / std::min(delta,Scalar(0.1));
     }
 
 /*     if the input par lies outside of the interval (parl,paru), */
@@ -175,18 +160,16 @@ L150:
 
     if (*par == 0.) {
 /* Computing MAX */
-	d__1 = dwarf, d__2 = p001 * paru;
+	d__1 = dwarf, d__2 = Scalar(.001) * paru;
 	*par = std::max(d__1,d__2);
     }
     temp = ei_sqrt(*par);
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = temp * diag[j];
 /* L160: */
     }
     ei_qrsolv<Scalar>(n, &r__[r_offset], ldr, &ipvt[1], &wa1[1], &qtb[1], &x[1], &sdiag[1], &wa2[1]);
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa2[j] = diag[j] * x[j];
 /* L170: */
     }
@@ -198,30 +181,27 @@ L150:
 /*        of par. also test for the exceptional cases where parl */
 /*        is zero or the number of iterations has reached 10. */
 
-    if (ei_abs(fp) <= p1 * delta || (parl == 0. && fp <= temp && temp < 0.) ||
+    if (ei_abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) ||
 	     iter == 10) {
 	goto L220;
     }
 
 /*        compute the newton correction. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	l = ipvt[j];
 	wa1[j] = diag[l] * (wa2[l] / dxnorm);
 /* L180: */
     }
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] /= sdiag[j];
 	temp = wa1[j];
 	jp1 = j + 1;
 	if (n < jp1) {
 	    goto L200;
 	}
-	i__2 = n;
-	for (i__ = jp1; i__ <= i__2; ++i__) {
-	    wa1[i__] -= r__[i__ + j * r_dim1] * temp;
+	for (i = jp1; i <= n; ++i) {
+	    wa1[i] -= r__[i + j * r_dim1] * temp;
 /* L190: */
 	}
 L200:

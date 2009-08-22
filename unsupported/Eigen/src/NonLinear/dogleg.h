@@ -4,12 +4,8 @@ void ei_dogleg(int n, const Scalar *r__, int /* lr*/ ,
 	const Scalar *diag, const Scalar *qtb, Scalar delta, Scalar *x, 
 	Scalar *wa1, Scalar *wa2)
 {
-    /* System generated locals */
-    int i__1, i__2;
-    Scalar d__1, d__2, d__3, d__4;
-
     /* Local variables */
-    int i__, j, k, l, jj, jp1;
+    int i, j, k, l, jj, jp1;
     Scalar sum, temp, alpha, bnorm;
     Scalar gnorm, qnorm, epsmch;
     Scalar sgnorm;
@@ -31,8 +27,7 @@ void ei_dogleg(int n, const Scalar *r__, int /* lr*/ ,
 /*     first, calculate the gauss-newton direction. */
 
     jj = n * (n + 1) / 2 + 1;
-    i__1 = n;
-    for (k = 1; k <= i__1; ++k) {
+    for (k = 1; k <= n; ++k) {
 	j = n - k + 1;
 	jp1 = j + 1;
 	jj -= k;
@@ -41,9 +36,8 @@ void ei_dogleg(int n, const Scalar *r__, int /* lr*/ ,
 	if (n < jp1) {
 	    goto L20;
 	}
-	i__2 = n;
-	for (i__ = jp1; i__ <= i__2; ++i__) {
-	    sum += r__[l] * x[i__];
+	for (i = jp1; i <= n; ++i) {
+	    sum += r__[l] * x[i];
 	    ++l;
 /* L10: */
 	}
@@ -53,12 +47,10 @@ L20:
 	    goto L40;
 	}
 	l = j;
-	i__2 = j;
-	for (i__ = 1; i__ <= i__2; ++i__) {
+	for (i = 1; i <= j; ++i) {
 /* Computing MAX */
-	    d__2 = temp, d__3 = fabs(r__[l]);
-	    temp = std::max(d__2,d__3);
-	    l = l + n - i__;
+	    temp = std::max(temp,ei_abs(r__[l]));
+	    l = l + n - i;
 /* L30: */
 	}
 	temp = epsmch * temp;
@@ -72,8 +64,7 @@ L40:
 
 /*     test whether the gauss-newton direction is acceptable. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = 0.;
 	wa2[j] = diag[j] * x[j];
 /* L60: */
@@ -88,12 +79,10 @@ L40:
 /*     next, calculate the scaled gradient direction. */
 
     l = 1;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	temp = qtb[j];
-	i__2 = n;
-	for (i__ = j; i__ <= i__2; ++i__) {
-	    wa1[i__] += r__[l] * temp;
+	for (i = j; i <= n; ++i) {
+	    wa1[i] += r__[l] * temp;
 	    ++l;
 /* L70: */
 	}
@@ -114,18 +103,15 @@ L40:
 /*     calculate the point along the scaled gradient */
 /*     at which the quadratic is minimized. */
 
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	wa1[j] = wa1[j] / gnorm / diag[j];
 /* L90: */
     }
     l = 1;
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	sum = 0.;
-	i__2 = n;
-	for (i__ = j; i__ <= i__2; ++i__) {
-	    sum += r__[l] * wa1[i__];
+	for (i = j; i <= n; ++i) {
+	    sum += r__[l] * wa1[i];
 	    ++l;
 /* L100: */
 	}
@@ -149,26 +135,16 @@ L40:
     bnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&qtb[1],n).stableNorm();
     temp = bnorm / gnorm * (bnorm / qnorm) * (sgnorm / delta);
 /* Computing 2nd power */
-    d__1 = sgnorm / delta;
+    temp = temp - delta / qnorm * ei_abs2(sgnorm / delta) + ei_sqrt(ei_abs2(temp - delta / qnorm) + (1.-ei_abs2(delta / qnorm)) * (1.-ei_abs2(sgnorm / delta)));
 /* Computing 2nd power */
-    d__2 = temp - delta / qnorm;
-/* Computing 2nd power */
-    d__3 = delta / qnorm;
-/* Computing 2nd power */
-    d__4 = sgnorm / delta;
-    temp = temp - delta / qnorm * (d__1 * d__1) + sqrt(d__2 * d__2 + (1. - 
-	    d__3 * d__3) * (1. - d__4 * d__4));
-/* Computing 2nd power */
-    d__1 = sgnorm / delta;
-    alpha = delta / qnorm * (1. - d__1 * d__1) / temp;
+    alpha = delta / qnorm * (1. - ei_abs2(sgnorm / delta)) / temp;
 L120:
 
 /*     form appropriate convex combination of the gauss-newton */
 /*     direction and the scaled gradient direction. */
 
     temp = (1. - alpha) * std::min(sgnorm,delta);
-    i__1 = n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= n; ++j) {
 	x[j] = temp * wa1[j] + alpha * x[j];
 /* L130: */
     }
