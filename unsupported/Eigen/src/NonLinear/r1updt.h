@@ -6,7 +6,7 @@ void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v
     int i, j, l, jj, nm1;
     Scalar tan__;
     int nmj;
-    Scalar cos__, sin__, tau, temp, giant, cotan;
+    Scalar cos__, sin__, tau, temp, cotan;
 
     /* Parameter adjustments */
     --w;
@@ -15,10 +15,7 @@ void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v
     --s;
 
     /* Function Body */
-
-/*     giant is the largest magnitude. */
-
-    giant = std::numeric_limits<Scalar>::max();
+    const Scalar giant = std::numeric_limits<Scalar>::max();
 
 /*     initialize the diagonal element pointer. */
 

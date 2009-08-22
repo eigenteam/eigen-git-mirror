@@ -15,7 +15,7 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
     int jm1, jp1;
     Scalar sum, parc, parl;
     int iter;
-    Scalar temp, paru, dwarf;
+    Scalar temp, paru;
     int nsing;
     Scalar gnorm;
     Scalar dxnorm;
@@ -33,10 +33,7 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
     r__ -= r_offset;
 
     /* Function Body */
-
-/*     dwarf is the smallest positive magnitude. */
-
-    dwarf = std::numeric_limits<Scalar>::min();
+    const Scalar dwarf = std::numeric_limits<Scalar>::min();
 
 /*     compute and store in x the gauss-newton direction. if the */
 /*     jacobian is rank-deficient, obtain a least squares solution. */

@@ -13,7 +13,6 @@ void ei_qrfac(int m, int n, Scalar *a, int
     int kmax;
     Scalar temp;
     int minmn;
-    Scalar epsmch;
     Scalar ajnorm;
 
     /* Parameter adjustments */
@@ -26,10 +25,7 @@ void ei_qrfac(int m, int n, Scalar *a, int
     --ipvt;
 
     /* Function Body */
-
-/*     epsmch is the machine precision. */
-
-    epsmch = epsilon<Scalar>();
+    const Scalar epsmch = epsilon<Scalar>();
 
 /*     compute the initial column norms and initialize several arrays. */
 

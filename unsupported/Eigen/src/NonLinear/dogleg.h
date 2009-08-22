@@ -7,7 +7,7 @@ void ei_dogleg(int n, const Scalar *r__, int /* lr*/ ,
     /* Local variables */
     int i, j, k, l, jj, jp1;
     Scalar sum, temp, alpha, bnorm;
-    Scalar gnorm, qnorm, epsmch;
+    Scalar gnorm, qnorm;
     Scalar sgnorm;
 
     /* Parameter adjustments */
@@ -19,10 +19,7 @@ void ei_dogleg(int n, const Scalar *r__, int /* lr*/ ,
     --r__;
 
     /* Function Body */
-
-/*     epsmch is the machine precision. */
-
-    epsmch = epsilon<Scalar>();
+    const Scalar epsmch = epsilon<Scalar>();
 
 /*     first, calculate the gauss-newton direction. */
 

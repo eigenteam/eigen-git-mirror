@@ -12,7 +12,6 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
     int i, j, k;
     Scalar eps, temp;
     int msum;
-    Scalar epsmch;
     int iflag = 0;
 
     /* Parameter adjustments */
@@ -25,10 +24,7 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
     fjac -= fjac_offset;
 
     /* Function Body */
-
-/*     epsmch is the machine precision. */
-
-    epsmch = epsilon<Scalar>();
+    const Scalar epsmch = epsilon<Scalar>();
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
     msum = ml + mu + 1;
