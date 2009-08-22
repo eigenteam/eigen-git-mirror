@@ -1,7 +1,7 @@
 project(Eigen)
 cmake_minimum_required(VERSION 2.6.2)
 
-set(EIGEN_VERSION_NUMBER "2.0.4")
+set(EIGEN_VERSION_NUMBER "2.0.5")
 set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
