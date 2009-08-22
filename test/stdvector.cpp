@@ -159,5 +159,5 @@ void test_stdvector()
 
   // some Quaternion
   CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
-  CALL_SUBTEST(check_stdvector_quaternion(Quaternionf()));
+  CALL_SUBTEST(check_stdvector_quaternion(Quaterniond()));
 }
