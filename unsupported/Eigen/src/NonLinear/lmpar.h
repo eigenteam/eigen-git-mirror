@@ -2,7 +2,7 @@
 template <typename Scalar>
 void ei_lmpar(int n, Scalar *r__, int ldr, 
 	const int *ipvt, const Scalar *diag, const Scalar *qtb, Scalar delta, 
-	Scalar *par, Scalar *x, Scalar *sdiag, Scalar *wa1, 
+	Scalar &par, Scalar *x, Scalar *sdiag, Scalar *wa1, 
 	Scalar *wa2)
 {
     /* System generated locals */
@@ -142,10 +142,10 @@ L120:
 /*     if the input par lies outside of the interval (parl,paru), */
 /*     set par to the closer endpoint. */
 
-    *par = std::max(*par,parl);
-    *par = std::min(*par,paru);
-    if (*par == 0.) {
-	*par = gnorm / dxnorm;
+    par = std::max(par,parl);
+    par = std::min(par,paru);
+    if (par == 0.) {
+	par = gnorm / dxnorm;
     }
 
 /*     beginning of an iteration. */
@@ -155,12 +155,12 @@ L150:
 
 /*        evaluate the function at the current value of par. */
 
-    if (*par == 0.) {
+    if (par == 0.) {
 /* Computing MAX */
 	d__1 = dwarf, d__2 = Scalar(.001) * paru;
-	*par = std::max(d__1,d__2);
+	par = std::max(d__1,d__2);
     }
-    temp = ei_sqrt(*par);
+    temp = ei_sqrt(par);
     for (j = 1; j <= n; ++j) {
 	wa1[j] = temp * diag[j];
 /* L160: */
@@ -211,17 +211,17 @@ L200:
 /*        depending on the sign of the function, update parl or paru. */
 
     if (fp > 0.) {
-	parl = std::max(parl,*par);
+	parl = std::max(parl,par);
     }
     if (fp < 0.) {
-	paru = std::min(paru,*par);
+	paru = std::min(paru,par);
     }
 
 /*        compute an improved estimate for par. */
 
 /* Computing MAX */
-    d__1 = parl, d__2 = *par + parc;
-    *par = std::max(d__1,d__2);
+    d__1 = parl, d__2 = par + parc;
+    par = std::max(d__1,d__2);
 
 /*        end of an iteration. */
 
@@ -231,7 +231,7 @@ L220:
 /*     termination. */
 
     if (iter == 0) {
-	*par = 0.;
+	par = 0.;
     }
     return;
 

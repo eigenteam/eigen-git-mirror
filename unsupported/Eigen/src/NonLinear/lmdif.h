@@ -219,7 +219,7 @@ L200:
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
     ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
-            &par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
+            par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 
     /*           store the direction p and x + p. calculate the norm of p. */
