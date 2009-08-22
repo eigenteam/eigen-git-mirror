@@ -7,7 +7,6 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
 {
     /* System generated locals */
     int r_dim1, r_offset;
-    Scalar d__1, d__2;
 
     /* Local variables */
     int i, j, k, l;
@@ -157,8 +156,7 @@ L150:
 
     if (par == 0.) {
 /* Computing MAX */
-	d__1 = dwarf, d__2 = Scalar(.001) * paru;
-	par = std::max(d__1,d__2);
+	par = std::max(dwarf,Scalar(.001) * paru);
     }
     temp = ei_sqrt(par);
     for (j = 1; j <= n; ++j) {
@@ -220,8 +218,7 @@ L200:
 /*        compute an improved estimate for par. */
 
 /* Computing MAX */
-    d__1 = parl, d__2 = par + parc;
-    par = std::max(d__1,d__2);
+    par = std::max(parl,par+parc);
 
 /*        end of an iteration. */
 
