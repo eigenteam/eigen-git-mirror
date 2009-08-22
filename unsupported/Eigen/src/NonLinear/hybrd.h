@@ -75,7 +75,7 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(0, n, x.data(), fvec.data(), 1);
+    iflag = Functor::f(n, x.data(), fvec.data(), 1);
     nfev = 1;
     if (iflag < 0) {
         goto L300;
@@ -103,7 +103,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = ei_fdjac1<Scalar>(Functor::f, 0, n, x.data(), fvec.data(), fjac.data(), ldfjac,
+    iflag = ei_fdjac1<Scalar>(Functor::f, n, x.data(), fvec.data(), fjac.data(), ldfjac,
             nb_of_subdiagonals, nb_of_superdiagonals, epsfcn, wa1.data(), wa2.data());
     nfev += msum;
     if (iflag < 0) {
@@ -215,7 +215,7 @@ L180:
     }
     iflag = 0;
     if ((iter - 1) % nprint == 0) {
-        iflag = Functor::f(0, n, x.data(), fvec.data(), 0);
+        iflag = Functor::f(n, x.data(), fvec.data(), 0);
     }
     if (iflag < 0) {
         goto L300;
@@ -244,7 +244,7 @@ L190:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = Functor::f(0, n, wa2.data(), wa4.data(), 1);
+    iflag = Functor::f(n, wa2.data(), wa4.data(), 1);
     ++nfev;
     if (iflag < 0) {
         goto L300;
@@ -404,7 +404,7 @@ L300:
         info = iflag;
     }
     if (nprint > 0) {
-        Functor::f(0, n, x.data(), fvec.data(), 0);
+        Functor::f(n, x.data(), fvec.data(), 0);
     }
     return info;
 

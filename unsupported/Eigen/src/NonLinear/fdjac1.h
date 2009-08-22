@@ -1,6 +1,6 @@
 
 template <typename Scalar>
-int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
+int ei_fdjac1(minpack_func_nn fcn, int n, Scalar *x, const Scalar *
 	fvec, Scalar *fjac, int ldfjac, int ml, 
 	int mu, Scalar epsfcn, Scalar *wa1, Scalar *wa2)
 {
@@ -41,7 +41,7 @@ int ei_fdjac1(minpack_func_nn fcn, void *p, int n, Scalar *x, const Scalar *
 	    h__ = eps;
 	}
 	x[j] = temp + h__;
-	iflag = (*fcn)(p, n, &x[1], &wa1[1], 1);
+	iflag = (*fcn)(n, &x[1], &wa1[1], 1);
 	if (iflag < 0) {
 	    goto L30;
 	}
@@ -69,7 +69,7 @@ L40:
 	    x[j] = wa2[j] + h__;
 /* L60: */
 	}
-	iflag = (*fcn)(p, n, &x[1], &wa1[1], 1);
+	iflag = (*fcn)(n, &x[1], &wa1[1], 1);
 	if (iflag < 0) {
 	    /* goto L100; */
             return iflag;
