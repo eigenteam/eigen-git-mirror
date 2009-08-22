@@ -100,7 +100,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(n, n,fjac.data(), ldfjac, false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(n, n,fjac.data(), ldfjac, false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -180,7 +180,7 @@ L110:
 
     /*        accumulate the orthogonal factor in fjac. */
 
-    qform(n, n, fjac.data(), ldfjac, wa1.data());
+    ei_qform<Scalar>(n, n, fjac.data(), ldfjac, wa1.data());
 
     /*        rescale if necessary. */
 
@@ -212,7 +212,7 @@ L190:
 
     /*           determine the direction p. */
 
-    dogleg(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
+    ei_dogleg<Scalar>(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
@@ -375,9 +375,9 @@ L260:
 
     /*           compute the qr factorization of the updated jacobian. */
 
-    r1updt(n, n, R.data(), lr, wa1.data(), wa2.data(), wa3.data(), &sing);
-    r1mpyq(n, n, fjac.data(), ldfjac, wa2.data(), wa3.data());
-    r1mpyq(1, n, qtf.data(), 1, wa2.data(), wa3.data());
+    ei_r1updt<Scalar>(n, n, R.data(), lr, wa1.data(), wa2.data(), wa3.data(), &sing);
+    ei_r1mpyq<Scalar>(n, n, fjac.data(), ldfjac, wa2.data(), wa3.data());
+    ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 
     /*           end of the inner loop. */
 

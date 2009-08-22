@@ -115,7 +115,7 @@ L40:
             goto L340;
         }
         temp = fvec[i];
-        rwupdt(n, fjac.data(), ldfjac, wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
+        ei_rwupdt<Scalar>(n, fjac.data(), ldfjac, wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
         ++iflag;
         /* L70: */
     }
@@ -139,7 +139,7 @@ L40:
         goto L130;
     }
     ipvt.cwise()+=1;
-    qrfac(n, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(n, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
     for (j = 0; j < n; ++j) {
         if (fjac(j,j) == 0.) {
@@ -242,7 +242,7 @@ L240:
     /*           determine the levenberg-marquardt parameter. */
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
-    lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta, &par,
+    ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta, &par,
             wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 

@@ -84,7 +84,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = fdjac2(Functor::f, 0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac,
+    iflag = ei_fdjac2<Scalar>(Functor::f, 0, m, n, x.data(), fvec.data(), fjac.data(), ldfjac,
             epsfcn, wa4.data());
     nfev += n;
     if (iflag < 0) {
@@ -107,7 +107,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    qrfac(m, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
@@ -218,7 +218,7 @@ L200:
     /*           determine the levenberg-marquardt parameter. */
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
-    lmpar(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
+    ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
             &par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 

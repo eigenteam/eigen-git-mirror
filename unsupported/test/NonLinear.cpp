@@ -1447,9 +1447,9 @@ void testNistMGH17(void)
           1, 100., 5000, epsilon<double>(), epsilon<double>());
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 604 == nfev); 
-  VERIFY( 545 == njev); 
+  VERIFY( 1 == info); 
+  VERIFY( 599 == nfev); 
+  VERIFY( 544 == njev); 
   // check norm^2
   VERIFY_IS_APPROX(fvec.squaredNorm(), 5.4648946975E-05);
   // check x
