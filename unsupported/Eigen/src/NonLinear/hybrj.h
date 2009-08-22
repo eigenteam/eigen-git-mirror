@@ -212,7 +212,7 @@ L190:
 
     /*           determine the direction p. */
 
-    ei_dogleg<Scalar>(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
+    dogleg(n, R.data(), lr, diag.data(), qtf.data(), delta, wa1.data(), wa2.data(), wa3.data());
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
