@@ -15,10 +15,6 @@ else(ADOLC_FOUND)
   ei_add_property(EIGEN_MISSING_BACKENDS "Adolc")
 endif(ADOLC_FOUND)
 
-# temporary : 
-include_directories(/home/orzel/tmp/cminpack-1.0.2/)
-LINK_LIBRARIES(/home/orzel/tmp/cminpack-1.0.2/libminpack.a)
-
 ei_add_test(NonLinear)
 ei_add_test(autodiff)
 ei_add_test(BVH)
