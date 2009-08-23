@@ -1,13 +1,15 @@
 
 template <typename Scalar>
-void ei_lmpar(int n, Scalar *r__, int ldr, 
-	const int *ipvt, const Scalar *diag, const Scalar *qtb, Scalar delta, 
-	Scalar &par, Scalar *x, Scalar *sdiag, Scalar *wa1, 
-	Scalar *wa2)
+void ei_lmpar(
+        Matrix< Scalar, Dynamic, Dynamic > &r__,
+        const VectorXi &ipvt,
+        const Matrix< Scalar, Dynamic, 1 >  &diag,
+        const Matrix< Scalar, Dynamic, 1 >  &qtb,
+        Scalar delta,
+        Scalar &par,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &sdiag)
 {
-    /* System generated locals */
-    int r_dim1, r_offset;
-
     /* Local variables */
     int i, j, k, l;
     Scalar fp;
@@ -19,59 +21,39 @@ void ei_lmpar(int n, Scalar *r__, int ldr,
     Scalar gnorm;
     Scalar dxnorm;
 
-    /* Parameter adjustments */
-    --wa2;
-    --wa1;
-    --sdiag;
-    --x;
-    --qtb;
-    --diag;
-    --ipvt;
-    r_dim1 = ldr;
-    r_offset = 1 + r_dim1 * 1;
-    r__ -= r_offset;
 
     /* Function Body */
     const Scalar dwarf = std::numeric_limits<Scalar>::min();
+    const int n = r__.cols();
+    assert(n==diag.size());
+    assert(n==qtb.size());
+    assert(n==x.size());
+
+    Matrix< Scalar, Dynamic, 1 >  wa1(n), wa2(n);
 
 /*     compute and store in x the gauss-newton direction. if the */
 /*     jacobian is rank-deficient, obtain a least squares solution. */
 
-    nsing = n;
-    for (j = 1; j <= n; ++j) {
+    nsing = n-1;
+    for (j = 0; j < n; ++j) {
 	wa1[j] = qtb[j];
-	if (r__[j + j * r_dim1] == 0. && nsing == n) {
+	if (r__(j,j) == 0. && nsing == n-1)
 	    nsing = j - 1;
-	}
-	if (nsing < n) {
+	if (nsing < n-1) 
 	    wa1[j] = 0.;
-	}
-/* L10: */
     }
-    if (nsing < 1) {
-	goto L50;
-    }
-    for (k = 1; k <= nsing; ++k) {
-	j = nsing - k + 1;
-	wa1[j] /= r__[j + j * r_dim1];
+    for (k = 0; k <= nsing; ++k) {
+	j = nsing - k;
+	wa1[j] /= r__(j,j);
 	temp = wa1[j];
 	jm1 = j - 1;
-	if (jm1 < 1) {
-	    goto L30;
-	}
-	for (i = 1; i <= jm1; ++i) {
-	    wa1[i] -= r__[i + j * r_dim1] * temp;
-/* L20: */
-	}
-L30:
-/* L40: */
-	;
+	for (i = 0; i <= jm1; ++i)
+	    wa1[i] -= r__(i,j) * temp;
     }
-L50:
-    for (j = 1; j <= n; ++j) {
-	l = ipvt[j];
+
+    for (j = 0; j < n; ++j) {
+	l = ipvt[j]-1;
 	x[l] = wa1[j];
-/* L60: */
     }
 
 /*     initialize the iteration counter. */
@@ -79,11 +61,11 @@ L50:
 /*     for acceptance of the gauss-newton direction. */
 
     iter = 0;
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	wa2[j] = diag[j] * x[j];
 /* L70: */
     }
-    dxnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&wa2[1],n).blueNorm();
+    dxnorm = wa2.blueNorm();
     fp = dxnorm - delta;
     if (fp <= Scalar(0.1) * delta) {
 	goto L220;
@@ -94,45 +76,37 @@ L50:
 /*     the function. otherwise set this bound to zero. */
 
     parl = 0.;
-    if (nsing < n) {
+    if (nsing < n-1) {
 	goto L120;
     }
-    for (j = 1; j <= n; ++j) {
-	l = ipvt[j];
+    for (j = 0; j < n; ++j) {
+	l = ipvt[j]-1;
 	wa1[j] = diag[l] * (wa2[l] / dxnorm);
-/* L80: */
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	sum = 0.;
 	jm1 = j - 1;
-	if (jm1 < 1) {
-	    goto L100;
-	}
-	for (i = 1; i <= jm1; ++i) {
-	    sum += r__[i + j * r_dim1] * wa1[i];
-/* L90: */
-	}
-L100:
-	wa1[j] = (wa1[j] - sum) / r__[j + j * r_dim1];
-/* L110: */
+	for (i = 0; i <= jm1; ++i) 
+	    sum += r__(i,j) * wa1[i];
+	wa1[j] = (wa1[j] - sum) / r__(j,j);
     }
-    temp = Map< Matrix< Scalar, Dynamic, 1 > >(&wa1[1],n).blueNorm();
+    temp = wa1.blueNorm();
     parl = fp / delta / temp / temp;
 L120:
 
 /*     calculate an upper bound, paru, for the zero of the function. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	sum = 0.;
-	for (i = 1; i <= j; ++i) {
-	    sum += r__[i + j * r_dim1] * qtb[i];
+	for (i = 0; i <= j; ++i) {
+	    sum += r__(i,j) * qtb[i];
 /* L130: */
 	}
-	l = ipvt[j];
+	l = ipvt[j]-1;
 	wa1[j] = sum / diag[l];
 /* L140: */
     }
-    gnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&wa1[1],n).stableNorm();
+    gnorm = wa1.stableNorm();
     paru = gnorm / delta;
     if (paru == 0.) {
 	paru = dwarf / std::min(delta,Scalar(0.1));
@@ -159,16 +133,16 @@ L150:
 	par = std::max(dwarf,Scalar(.001) * paru);
     }
     temp = ei_sqrt(par);
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	wa1[j] = temp * diag[j];
 /* L160: */
     }
-    ei_qrsolv<Scalar>(n, &r__[r_offset], ldr, &ipvt[1], &wa1[1], &qtb[1], &x[1], &sdiag[1], &wa2[1]);
-    for (j = 1; j <= n; ++j) {
+    ei_qrsolv<Scalar>(n, r__.data(), r__.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
+    for (j = 0; j < n; ++j) {
 	wa2[j] = diag[j] * x[j];
 /* L170: */
     }
-    dxnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&wa2[1],n).blueNorm();
+    dxnorm = wa2.blueNorm();
     temp = fp;
     fp = dxnorm - delta;
 
@@ -183,27 +157,19 @@ L150:
 
 /*        compute the newton correction. */
 
-    for (j = 1; j <= n; ++j) {
-	l = ipvt[j];
+    for (j = 0; j < n; ++j) {
+	l = ipvt[j]-1;
 	wa1[j] = diag[l] * (wa2[l] / dxnorm);
 /* L180: */
     }
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	wa1[j] /= sdiag[j];
 	temp = wa1[j];
 	jp1 = j + 1;
-	if (n < jp1) {
-	    goto L200;
-	}
-	for (i = jp1; i <= n; ++i) {
-	    wa1[i] -= r__[i + j * r_dim1] * temp;
-/* L190: */
-	}
-L200:
-/* L210: */
-	;
+	for (i = jp1; i < n; ++i)
+	    wa1[i] -= r__(i,j) * temp;
     }
-    temp = Map< Matrix< Scalar, Dynamic, 1 > >(&wa1[1],n).blueNorm();
+    temp = wa1.blueNorm();
     parc = fp / delta / temp / temp;
 
 /*        depending on the sign of the function, update parl or paru. */
