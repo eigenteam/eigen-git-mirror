@@ -23,8 +23,7 @@ int ei_hybrj(
     fvec.resize(n);
     qtf.resize(n);
     R.resize(lr);
-    int ldfjac = n;
-    fjac.resize(ldfjac, n);
+    fjac.resize(n, n);
 
     /* Local variables */
     int i, j, l, iwa[1];
@@ -52,7 +51,7 @@ int ei_hybrj(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || ldfjac < n || xtol < 0. || maxfev <= 0 || factor <= 
+    if (n <= 0 || xtol < 0. || maxfev <= 0 || factor <= 
             0. || lr < n * (n + 1) / 2) {
         goto L300;
     }
@@ -94,7 +93,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(n, n,fjac.data(), ldfjac, false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(n, n,fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -168,7 +167,7 @@ L110:
 
     /*        accumulate the orthogonal factor in fjac. */
 
-    ei_qform<Scalar>(n, n, fjac.data(), ldfjac, wa1.data());
+    ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
 
     /*        rescale if necessary. */
 
@@ -355,7 +354,7 @@ L260:
     /*           compute the qr factorization of the updated jacobian. */
 
     ei_r1updt<Scalar>(n, n, R.data(), lr, wa1.data(), wa2.data(), wa3.data(), &sing);
-    ei_r1mpyq<Scalar>(n, n, fjac.data(), ldfjac, wa2.data(), wa3.data());
+    ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
     ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 
     /*           end of the inner loop. */

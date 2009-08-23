@@ -20,10 +20,9 @@ void ei_chkder(
     int i,j;
 
     const int m = fvec.size(), n = x.size();
-    int ldfjac = m;
 
     if (mode != 2) {
-        xp.resize(ldfjac);
+        xp.resize(m);
         /*        mode = 1. */
         for (j = 0; j < n; ++j) {
             temp = eps * ei_abs(x[j]);
@@ -34,7 +33,7 @@ void ei_chkder(
     }
     else {
         /*        mode = 2. */
-        err.setZero(ldfjac); 
+        err.setZero(m); 
         for (j = 0; j < n; ++j) {
             temp = ei_abs(x[j]);
             if (temp == 0.)
@@ -43,20 +42,13 @@ void ei_chkder(
         }
         for (i = 0; i < m; ++i) {
             temp = 1.;
-            if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - 
-                        fvec[i]) >= epsf * ei_abs(fvec[i]))
-            {
-                temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) 
-                    / (ei_abs(fvec[i]) +
-                            ei_abs(fvecp[i]));
-            }
+            if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - fvec[i]) >= epsf * ei_abs(fvec[i]))
+                temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) / (ei_abs(fvec[i]) + ei_abs(fvecp[i]));
             err[i] = 1.;
-            if (temp > epsilon<Scalar>() && temp < eps) {
+            if (temp > epsilon<Scalar>() && temp < eps)
                 err[i] = (chkder_log10e * ei_log(temp) - epslog) / epslog;
-            }
-            if (temp >= eps) {
+            if (temp >= eps)
                 err[i] = 0.;
-            }
         }
     }
 } /* chkder_ */

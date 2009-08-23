@@ -22,10 +22,9 @@ int ei_lmdif(
     Matrix< Scalar, Dynamic, 1 >
         wa1(n), wa2(n), wa3(n),
         wa4(m);
-    int ldfjac = m;
 
     ipvt.resize(n);
-    fjac.resize(ldfjac, n);
+    fjac.resize(m, n);
     diag.resize(n);
     qtf.resize(n);
 
@@ -48,7 +47,7 @@ int ei_lmdif(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ldfjac < m || ftol < 0. || xtol < 0. || 
+    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || 
             gtol < 0. || maxfev <= 0 || factor <= 0.) {
         goto L300;
     }
@@ -100,7 +99,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
@@ -137,21 +136,21 @@ L80:
 
     wa4 = fvec;
     for (j = 0; j < n; ++j) {
-        if (fjac[j + j * ldfjac] == 0.) {
+        if (fjac(j,j) == 0.) {
             goto L120;
         }
         sum = 0.;
         for (i = j; i < m; ++i) {
-            sum += fjac[i + j * ldfjac] * wa4[i];
+            sum += fjac(i,j) * wa4[i];
             /* L100: */
         }
-        temp = -sum / fjac[j + j * ldfjac];
+        temp = -sum / fjac(j,j);
         for (i = j; i < m; ++i) {
-            wa4[i] += fjac[i + j * ldfjac] * temp;
+            wa4[i] += fjac(i,j) * temp;
             /* L110: */
         }
 L120:
-        fjac[j + j * ldfjac] = wa1[j];
+        fjac(j,j) = wa1[j];
         qtf[j] = wa4[j];
         /* L130: */
     }
@@ -164,19 +163,13 @@ L120:
     }
     for (j = 0; j < n; ++j) {
         l = ipvt[j];
-        if (wa2[l] == 0.) {
-            goto L150;
+        if (wa2[l] != 0.) {
+            sum = 0.;
+            for (i = 0; i <= j; ++i)
+                sum += fjac(i,j) * (qtf[i] / fnorm);
+            /* Computing MAX */
+            gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
         }
-        sum = 0.;
-        for (i = 0; i <= j; ++i) {
-            sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
-            /* L140: */
-        }
-        /* Computing MAX */
-        gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-L150:
-        /* L160: */
-        ;
     }
 L170:
 
@@ -205,7 +198,7 @@ L200:
     /*           determine the levenberg-marquardt parameter. */
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
-    ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
+    ei_lmpar<Scalar>(n, fjac.data(), fjac.rows(), ipvt.data(), diag.data(), qtf.data(), delta,
             par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 
@@ -245,7 +238,7 @@ L200:
         l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
-            wa3[i] += fjac[i + j * ldfjac] * temp;
+            wa3[i] += fjac(i,j) * temp;
             /* L220: */
         }
         /* L230: */

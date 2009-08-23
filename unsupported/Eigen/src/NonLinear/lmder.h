@@ -19,10 +19,9 @@ int ei_lmder(
 {
     const int m = fvec.size(), n = x.size();
     Matrix< Scalar, Dynamic, 1 > qtf(n), wa1(n), wa2(n), wa3(n), wa4(m);
-    int ldfjac = m;
 
     ipvt.resize(n);
-    fjac.resize(ldfjac, n);
+    fjac.resize(m, n);
     diag.resize(n);
 
     /* Local variables */
@@ -46,7 +45,7 @@ int ei_lmder(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ldfjac < m || ftol < 0. || xtol < 0. || 
+    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || 
             gtol < 0. || maxfev <= 0 || factor <= 0.) {
         goto L300;
     }
@@ -98,7 +97,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), ldfjac, true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
@@ -200,7 +199,7 @@ L200:
     /*           determine the levenberg-marquardt parameter. */
 
     ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
-    ei_lmpar<Scalar>(n, fjac.data(), ldfjac, ipvt.data(), diag.data(), qtf.data(), delta,
+    ei_lmpar<Scalar>(n, fjac.data(), fjac.rows(), ipvt.data(), diag.data(), qtf.data(), delta,
             par, wa1.data(), wa2.data(), wa3.data(), wa4.data());
     ipvt.cwise()-=1;
 
