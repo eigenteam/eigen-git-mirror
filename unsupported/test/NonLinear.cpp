@@ -214,40 +214,36 @@ void testLmder()
 }
 
 struct hybrj_functor {
-    static int f(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
+
+    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
+    static int f(const VectorXd &x, VectorXd &fvec)
     {
-        /*      subroutine fcn for hybrj1 example. */
-
-        int j, k;
-        double one=1, temp, temp1, temp2, three=3, two=2, zero=0, four=4;
+        double temp, temp1, temp2;
         const int n = x.size();
-
         assert(fvec.size()==n);
+        for (int k = 0; k < n; k++)
+        {
+            temp = (3. - 2.*x[k])*x[k];
+            temp1 = 0.;
+            if (k) temp1 = x[k-1];
+            temp2 = 0.;
+            if (k != n-1) temp2 = x[k+1];
+            fvec[k] = temp - temp1 - 2.*temp2 + 1.;
+        }
+        return 0;
+    }
+    static int df(const VectorXd &x, MatrixXd &fjac)
+    {
+        const int n = x.size();
         assert(fjac.rows()==n);
         assert(fjac.cols()==n);
-
-        if (iflag != 2)
+        for (int k = 0; k < n; k++)
         {
-            for (k = 0; k < n; k++)
-            {
-                temp = (three - two*x[k])*x[k];
-                temp1 = zero;
-                if (k) temp1 = x[k-1];
-                temp2 = zero;
-                if (k != n-1) temp2 = x[k+1];
-                fvec[k] = temp - temp1 - two*temp2 + one;
-            }
-        }
-        else
-        {
-            for (k = 0; k < n; k++)
-            {
-                for (j = 0; j < n; j++)
-                    fjac(k,j) = zero;
-                fjac(k,k) = three - four*x[k];
-                if (k) fjac(k,k-1) = -one;
-                if (k != n-1) fjac(k,k+1) = -two;
-            }
+            for (int j = 0; j < n; j++)
+                fjac(k,j) = 0.;
+            fjac(k,k) = 3.- 4.*x[k];
+            if (k) fjac(k,k-1) = -1.;
+            if (k != n-1) fjac(k,k+1) = -2.;
         }
         return 0;
     }
@@ -319,24 +315,21 @@ void testHybrj()
 }
 
 struct hybrd_functor {
-    static int f(const VectorXd &x, VectorXd &fvec, int /*iflag*/)
+    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */) { return 0;}
+    static int f(const VectorXd &x, VectorXd &fvec)
     {
-        /*      subroutine fcn for hybrd1 example. */
-
-        int k;
-        double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
+        double temp, temp1, temp2;
         const int n = x.size();
 
         assert(fvec.size()==n);
-
-        for (k=0; k < n; k++)
+        for (int k=0; k < n; k++)
         {
-            temp = (three - two*x[k])*x[k];
-            temp1 = zero;
+            temp = (3. - 2.*x[k])*x[k];
+            temp1 = 0.;
             if (k) temp1 = x[k-1];
-            temp2 = zero;
+            temp2 = 0.;
             if (k != n-1) temp2 = x[k+1];
-            fvec[k] = temp - temp1 - two*temp2 + one;
+            fvec[k] = temp - temp1 - 2.*temp2 + 1.;
         }
         return 0;
     }
@@ -400,39 +393,40 @@ void testHybrd()
 }
 
 struct lmstr_functor {
-    static int f(const VectorXd &x, VectorXd &fvec, VectorXd &fjrow, int iflag)
+    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const VectorXd & /* fjac */) { return 0;}
+    static int f(const VectorXd &x, VectorXd &fvec)
     {
         /*  subroutine fcn for lmstr1 example. */
-        int i;
-        double tmp1, tmp2, tmp3, tmp4;
+        double tmp1, tmp2, tmp3;
         double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
         assert(15==fvec.size());
         assert(3==x.size());
-        assert(fjrow.size()==x.size());
 
-        if (iflag < 2)
+        for (int i=0; i<15; i++)
         {
-            for (i=0; i<15; i++)
-            {
-                tmp1 = i+1;
-                tmp2 = 16 - i - 1;
-                tmp3 = (i>=8)? tmp2 : tmp1;
-                fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
-            }
-        }
-        else
-        {
-            i = iflag-2;
             tmp1 = i+1;
             tmp2 = 16 - i - 1;
             tmp3 = (i>=8)? tmp2 : tmp1;
-            tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4 = tmp4*tmp4;
-            fjrow[0] = -1;
-            fjrow[1] = tmp1*tmp2/tmp4;
-            fjrow[2] = tmp1*tmp3/tmp4;
+            fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
         }
+        return 0;
+    }
+    static int df(const VectorXd &x, VectorXd &jac_row, int rownb)
+    {
+        assert(x.size()==3);
+        assert(jac_row.size()==x.size());
+        double tmp1, tmp2, tmp3, tmp4;
+
+        int i = rownb-2;
+        tmp1 = i+1;
+        tmp2 = 16 - i - 1;
+        tmp3 = (i>=8)? tmp2 : tmp1;
+        tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4 = tmp4*tmp4;
+        jac_row[0] = -1;
+        jac_row[1] = tmp1*tmp2/tmp4;
+        jac_row[2] = tmp1*tmp3/tmp4;
         return 0;
     }
 };
@@ -495,7 +489,8 @@ void testLmstr()
 }
 
 struct lmdif_functor {
-    static int f(const VectorXd &x, VectorXd &fvec, int /*iflag*/)
+    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */) { return 0;}
+    static int f(const VectorXd &x, VectorXd &fvec)
     {
         /* function fcn for lmdif1 example */
 

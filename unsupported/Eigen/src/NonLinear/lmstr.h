@@ -66,7 +66,7 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(x, fvec, wa3, 1);
+    iflag = Functor::f(x, fvec);
     nfev = 1;
     if (iflag < 0) {
         goto L340;
@@ -89,7 +89,7 @@ L30:
     }
     iflag = 0;
     if ((iter - 1) % nprint == 0) {
-        iflag = Functor::f(x, fvec, wa3, 0);
+        iflag = Functor::debug(x, fvec, wa3);
     }
     if (iflag < 0) {
         goto L340;
@@ -111,7 +111,7 @@ L40:
     }
     iflag = 2;
     for (i = 0; i < m; ++i) {
-        if (Functor::f(x, fvec, wa3, iflag) < 0) {
+        if (Functor::df(x, wa3, iflag) < 0) {
             goto L340;
         }
         temp = fvec[i];
@@ -264,7 +264,7 @@ L240:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = Functor::f(wa2, wa4, wa3, 1);
+    iflag = Functor::f(wa2, wa4);
     ++nfev;
     if (iflag < 0) {
         goto L340;
@@ -406,7 +406,7 @@ L340:
     }
     iflag = 0;
     if (nprint > 0) {
-        iflag = Functor::f(x, fvec, wa3, 0);
+        iflag = Functor::debug(x, fvec, wa3);
     }
     return info;
 

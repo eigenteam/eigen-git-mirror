@@ -26,7 +26,7 @@ int ei_fdjac2(
 	    h = eps;
 	}
 	x[j] = temp + h;
-	iflag = Functor::f(x, wa, 1);
+	iflag = Functor::f(x, wa);
 	if (iflag < 0) {
 	    /* goto L30; */
             return iflag;
