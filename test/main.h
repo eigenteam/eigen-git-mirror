@@ -231,7 +231,7 @@ template<typename MatrixType>
 void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, Dynamic, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,rows);
   MatrixType d = MatrixType::Identity(rows,cols);
