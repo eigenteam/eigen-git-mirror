@@ -36,7 +36,8 @@ namespace Eigen {
   */
 
 #include "src/QR/QR.h"
-#include "src/QR/RRQR.h"
+#include "src/QR/FullPivotingHouseholderQR.h"
+#include "src/QR/ColPivotingHouseholderQR.h"
 #include "src/QR/Tridiagonalization.h"
 #include "src/QR/EigenSolver.h"
 #include "src/QR/SelfAdjointEigenSolver.h"

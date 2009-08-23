@@ -37,7 +37,7 @@ template<typename MatrixType> void qr()
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
   createRandomMatrixOfRank(rank,rows,cols,m1);
-  HouseholderRRQR<MatrixType> qr(m1);
+  ColPivotingHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   
   MatrixType r = qr.matrixQR();
@@ -74,7 +74,7 @@ template<typename MatrixType> void qr_invertible()
     m1 += a * a.adjoint();
   }
 
-  HouseholderRRQR<MatrixType> qr(m1);
+  ColPivotingHouseholderQR<MatrixType> qr(m1);
   m3 = MatrixType::Random(size,size);
   qr.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
@@ -84,13 +84,13 @@ template<typename MatrixType> void qr_verify_assert()
 {
   MatrixType tmp;
 
-  HouseholderRRQR<MatrixType> qr;
+  ColPivotingHouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
 }
 
-void test_rrqr()
+void test_qr_colpivoting()
 {
  for(int i = 0; i < 1; i++) {
     // FIXME : very weird bug here
