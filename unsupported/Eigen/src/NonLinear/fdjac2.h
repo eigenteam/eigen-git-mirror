@@ -8,18 +8,15 @@ int ei_fdjac2(
         Matrix< Scalar, Dynamic, 1 >  &wa)
 {
     /* Local variables */
-    Scalar h;
-    int i, j;
-    Scalar eps, temp;
+    Scalar h, temp;
     int iflag;
 
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
     const int n = x.size();
-    const int m = fvec.size();
+    const Scalar eps = ei_sqrt((std::max(epsfcn,epsmch)));
 
-    eps = ei_sqrt((std::max(epsfcn,epsmch)));
-    for (j = 0; j < n; ++j) {
+    for (int j = 0; j < n; ++j) {
         temp = x[j];
         h = eps * ei_abs(temp);
         if (h == 0.) {
@@ -27,21 +24,11 @@ int ei_fdjac2(
         }
         x[j] = temp + h;
         iflag = Functor::f(x, wa);
-        if (iflag < 0) {
-            /* goto L30; */
+        if (iflag < 0)
             return iflag;
-        }
         x[j] = temp;
-        for (i = 0; i < m; ++i) {
-            fjac(i,j) = (wa[i] - fvec[i]) / h;
-            /* L10: */
-        }
-        /* L20: */
+        fjac.col(j) = (wa-fvec)/h;
     }
-    /* L30: */
     return iflag;
-
-    /*     last card of subroutine fdjac2. */
-
-} /* fdjac2_ */
+}
 

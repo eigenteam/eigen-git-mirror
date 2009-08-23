@@ -22,68 +22,47 @@ int ei_fdjac1(
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
     msum = ml + mu + 1;
-    if (msum < n) {
-        goto L40;
-    }
-
-    /*        computation of dense approximate jacobian. */
-
-    for (j = 0; j < n; ++j) {
-        temp = x[j];
-        h = eps * ei_abs(temp);
-        if (h == 0.)
-            h = eps;
-        x[j] = temp + h;
-        iflag = Functor::f(x, wa1);
-        if (iflag < 0)
-            goto L30;
-        x[j] = temp;
-        for (i = 0; i < n; ++i) {
-            fjac(i,j) = (wa1[i] - fvec[i]) / h;
-            /* L10: */
+    if (msum >= n) {
+        /* computation of dense approximate jacobian. */
+        for (j = 0; j < n; ++j) {
+            temp = x[j];
+            h = eps * ei_abs(temp);
+            if (h == 0.)
+                h = eps;
+            x[j] = temp + h;
+            iflag = Functor::f(x, wa1);
+            if (iflag < 0)
+                return iflag;
+            x[j] = temp;
+            fjac.col(j) = (wa1-fvec)/h;
         }
-        /* L20: */
-    }
-L30:
-    /* goto L110; */
-    return iflag;
-L40:
 
-    /*        computation of banded approximate jacobian. */
-
-    for (k = 0; k < msum; ++k) {
-        for (j = k; msum< 0 ? j > n: j < n; j += msum) {
-            wa2[j] = x[j];
-            h = eps * ei_abs(wa2[j]);
-            if (h == 0.) h = eps;
-            x[j] = wa2[j] + h;
-            /* L60: */
-        }
-        iflag = Functor::f(x, wa1);
-        if (iflag < 0) {
-            /* goto L100; */
-            return iflag;
-        }
-        for (j = k; msum< 0 ? j > n: j < n; j += msum) {
-            x[j] = wa2[j];
-            h = eps * ei_abs(wa2[j]);
-            if (h == 0.) h = eps;
-            for (i = 0; i < n; ++i) {
-                fjac(i,j) = 0.;
-                if (i >= j - mu && i <= j + ml) {
-                    fjac(i,j) = (wa1[i] - fvec[i]) / h;
-                }
-                /* L70: */
+    }else {
+        /* computation of banded approximate jacobian. */
+        for (k = 0; k < msum; ++k) {
+            for (j = k; msum< 0 ? j > n: j < n; j += msum) {
+                wa2[j] = x[j];
+                h = eps * ei_abs(wa2[j]);
+                if (h == 0.) h = eps;
+                x[j] = wa2[j] + h;
             }
-            /* L80: */
+            iflag = Functor::f(x, wa1);
+            if (iflag < 0) {
+                return iflag;
+            }
+            for (j = k; msum< 0 ? j > n: j < n; j += msum) {
+                x[j] = wa2[j];
+                h = eps * ei_abs(wa2[j]);
+                if (h == 0.) h = eps;
+                for (i = 0; i < n; ++i) {
+                    fjac(i,j) = 0.;
+                    if (i >= j - mu && i <= j + ml) {
+                        fjac(i,j) = (wa1[i] - fvec[i]) / h;
+                    }
+                }
+            }
         }
-        /* L90: */
     }
-    /* L100: */
-    /* L110: */
     return iflag;
-
-    /*     last card of subroutine fdjac1. */
-
 } /* fdjac1_ */
 
