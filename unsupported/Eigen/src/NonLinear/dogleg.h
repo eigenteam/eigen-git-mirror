@@ -1,14 +1,14 @@
 
 template <typename Scalar>
 void ei_dogleg(
-        Matrix< Scalar, Dynamic, 1 >  &r__,
+        Matrix< Scalar, Dynamic, 1 >  &r,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
     /* Local variables */
-    int i, j, k, l, jj, jp1;
+    int i, j, k, l, jj;
     Scalar sum, temp, alpha, bnorm;
     Scalar gnorm, qnorm;
     Scalar sgnorm;
@@ -25,35 +25,27 @@ void ei_dogleg(
     jj = n * (n + 1) / 2;
     for (k = 0; k < n; ++k) {
         j = n - k - 1;
-        jp1 = j + 1;
         jj -= k+1;
         l = jj + 1;
         sum = 0.;
-        if (n < jp1) {
-            goto L20;
-        }
-        for (i = jp1; i < n; ++i) {
-            sum += r__[l] * x[i];
+        for (i = j+1; i < n; ++i) {
+            sum += r[l] * x[i];
             ++l;
-            /* L10: */
         }
-L20:
-        temp = r__[jj];
-        if (temp != 0.) {
-            goto L40;
-        }
-        l = j;
-        for (i = 0; i <= j; ++i) {
-            /* Computing MAX */
-            temp = std::max(temp,ei_abs(r__[l]));
-            l = l + n - i;
-            /* L30: */
-        }
-        temp = epsmch * temp;
+        temp = r[jj];
         if (temp == 0.) {
-            temp = epsmch;
+            l = j;
+            for (i = 0; i <= j; ++i) {
+                /* Computing MAX */
+                temp = std::max(temp,ei_abs(r[l]));
+                l = l + n - i;
+                /* L30: */
+            }
+            temp = epsmch * temp;
+            if (temp == 0.) {
+                temp = epsmch;
+            }
         }
-L40:
         x[j] = (qtb[j] - sum) / temp;
         /* L50: */
     }
@@ -66,10 +58,8 @@ L40:
         /* L60: */
     }
     qnorm = wa2.stableNorm();
-    if (qnorm <= delta) {
-        /* goto L140; */
+    if (qnorm <= delta)
         return;
-    }
 
     /*     the gauss-newton direction is not acceptable. */
     /*     next, calculate the scaled gradient direction. */
@@ -78,7 +68,7 @@ L40:
     for (j = 0; j < n; ++j) {
         temp = qtb[j];
         for (i = j; i < n; ++i) {
-            wa1[i] += r__[l] * temp;
+            wa1[i] += r[l] * temp;
             ++l;
             /* L70: */
         }
@@ -107,7 +97,7 @@ L40:
     for (j = 0; j < n; ++j) {
         sum = 0.;
         for (i = j; i < n; ++i) {
-            sum += r__[l] * wa1[i];
+            sum += r[l] * wa1[i];
             ++l;
             /* L100: */
         }

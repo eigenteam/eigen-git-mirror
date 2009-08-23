@@ -1,7 +1,7 @@
 
 template <typename Scalar>
 void ei_lmpar(
-        Matrix< Scalar, Dynamic, Dynamic > &r__,
+        Matrix< Scalar, Dynamic, Dynamic > &r,
         const VectorXi &ipvt,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
@@ -13,7 +13,6 @@ void ei_lmpar(
     /* Local variables */
     int i, j, k, l;
     Scalar fp;
-    int jm1, jp1;
     Scalar sum, parc, parl;
     int iter;
     Scalar temp, paru;
@@ -24,7 +23,7 @@ void ei_lmpar(
 
     /* Function Body */
     const Scalar dwarf = std::numeric_limits<Scalar>::min();
-    const int n = r__.cols();
+    const int n = r.cols();
     assert(n==diag.size());
     assert(n==qtb.size());
     assert(n==x.size());
@@ -37,18 +36,17 @@ void ei_lmpar(
     nsing = n-1;
     for (j = 0; j < n; ++j) {
         wa1[j] = qtb[j];
-        if (r__(j,j) == 0. && nsing == n-1)
+        if (r(j,j) == 0. && nsing == n-1)
             nsing = j - 1;
         if (nsing < n-1) 
             wa1[j] = 0.;
     }
     for (k = 0; k <= nsing; ++k) {
         j = nsing - k;
-        wa1[j] /= r__(j,j);
+        wa1[j] /= r(j,j);
         temp = wa1[j];
-        jm1 = j - 1;
-        for (i = 0; i <= jm1; ++i)
-            wa1[i] -= r__(i,j) * temp;
+        for (i = 0; i < j ; ++i)
+            wa1[i] -= r(i,j) * temp;
     }
 
     for (j = 0; j < n; ++j) {
@@ -63,7 +61,6 @@ void ei_lmpar(
     iter = 0;
     for (j = 0; j < n; ++j) {
         wa2[j] = diag[j] * x[j];
-        /* L70: */
     }
     dxnorm = wa2.blueNorm();
     fp = dxnorm - delta;
@@ -85,10 +82,9 @@ void ei_lmpar(
     }
     for (j = 0; j < n; ++j) {
         sum = 0.;
-        jm1 = j - 1;
-        for (i = 0; i <= jm1; ++i) 
-            sum += r__(i,j) * wa1[i];
-        wa1[j] = (wa1[j] - sum) / r__(j,j);
+        for (i = 0; i < j; ++i) 
+            sum += r(i,j) * wa1[i];
+        wa1[j] = (wa1[j] - sum) / r(j,j);
     }
     temp = wa1.blueNorm();
     parl = fp / delta / temp / temp;
@@ -99,7 +95,7 @@ L120:
     for (j = 0; j < n; ++j) {
         sum = 0.;
         for (i = 0; i <= j; ++i) {
-            sum += r__(i,j) * qtb[i];
+            sum += r(i,j) * qtb[i];
             /* L130: */
         }
         l = ipvt[j]-1;
@@ -137,7 +133,7 @@ L150:
         wa1[j] = temp * diag[j];
         /* L160: */
     }
-    ei_qrsolv<Scalar>(n, r__.data(), r__.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
+    ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
     for (j = 0; j < n; ++j) {
         wa2[j] = diag[j] * x[j];
         /* L170: */
@@ -165,9 +161,8 @@ L150:
     for (j = 0; j < n; ++j) {
         wa1[j] /= sdiag[j];
         temp = wa1[j];
-        jp1 = j + 1;
-        for (i = jp1; i < n; ++i)
-            wa1[i] -= r__(i,j) * temp;
+        for (i = j+1; i < n; ++i)
+            wa1[i] -= r(i,j) * temp;
     }
     temp = wa1.blueNorm();
     parc = fp / delta / temp / temp;
@@ -197,8 +192,5 @@ L220:
         par = 0.;
     }
     return;
-
-    /*     last card of subroutine lmpar. */
-
-} /* lmpar_ */
+}
 
