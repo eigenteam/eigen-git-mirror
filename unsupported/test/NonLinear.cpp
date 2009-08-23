@@ -101,7 +101,7 @@ void testChkder()
 }
 
 
-struct lmder1_functor {
+struct lmder_functor {
     static int f(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
     {
 
@@ -114,27 +114,25 @@ struct lmder1_functor {
 
         if (iflag != 2)
         {
-            for (i = 1; i <= 15; i++)
+            for (i = 0; i < 15; i++)
             {
-                tmp1 = i;
-                tmp2 = 16 - i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+                tmp1 = i+1;
+                tmp2 = 16 - i - 1;
+                tmp3 = (i>=8)? tmp2 : tmp1;
+                fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
             }
         }
         else
         {
-            for ( i = 1; i <= 15; i++)
+            for ( i = 0; i < 15; i++)
             {
-                tmp1 = i;
-                tmp2 = 16 - i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
-                fjac[i-1 + ldfjac*(1-1)] = -1.;
-                fjac[i-1 + ldfjac*(2-1)] = tmp1*tmp2/tmp4;
-                fjac[i-1 + ldfjac*(3-1)] = tmp1*tmp3/tmp4;
+                tmp1 = i+1;
+                tmp2 = 16 - i - 1;
+                tmp3 = (i>=8)? tmp2 : tmp1;
+                tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4 = tmp4*tmp4;
+                fjac[i + ldfjac*(0)] = -1.;
+                fjac[i + ldfjac*(1)] = tmp1*tmp2/tmp4;
+                fjac[i + ldfjac*(2)] = tmp1*tmp3/tmp4;
             }
         }
         return 0;
@@ -153,7 +151,7 @@ void testLmder1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmder1<lmder1_functor,double>(x, fvec, ipvt);
+  info = ei_lmder1<lmder_functor,double>(x, fvec, ipvt);
 
   // check return value
   VERIFY( 1 == info);
@@ -166,52 +164,6 @@ void testLmder1()
   x_ref << 0.08241058, 1.133037, 2.343695;
   VERIFY_IS_APPROX(x, x_ref);
 }
-
-struct lmder_functor {
-    static int f(int /*m*/, int  /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
-    {      
-
-        /*      subroutine fcn for lmder example. */
-
-        int i;
-        double tmp1, tmp2, tmp3, tmp4;
-        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-        if (iflag == 0) 
-        {
-            /*      insert print statements here when nprint is positive. */
-            return 0;
-        }
-
-        if (iflag != 2) 
-        {
-            for (i=1; i <= 15; i++)
-            {
-                tmp1 = i;
-                tmp2 = 16 - i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-            }
-        }
-        else
-        {
-            for (i=1; i<=15; i++)
-            {
-                tmp1 = i;
-                tmp2 = 16 - i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
-                fjac[i-1 + ldfjac*(1-1)] = -1.;
-                fjac[i-1 + ldfjac*(2-1)] = tmp1*tmp2/tmp4;
-                fjac[i-1 + ldfjac*(3-1)] = tmp1*tmp3/tmp4;
-            };
-        }
-        return 0;
-    }
-};
 
 void testLmder()
 {
@@ -264,7 +216,7 @@ void testLmder()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
-struct hybrj1_functor {
+struct hybrj_functor {
     static int f(int n, const double *x, double *fvec, double *fjac, int ldfjac, 
             int iflag)
     {
@@ -275,27 +227,27 @@ struct hybrj1_functor {
 
         if (iflag != 2)
         {
-            for (k = 1; k <= n; k++)
+            for (k = 0; k < n; k++)
             {
-                temp = (three - two*x[k-1])*x[k-1];
+                temp = (three - two*x[k])*x[k];
                 temp1 = zero;
-                if (k != 1) temp1 = x[k-1-1];
+                if (k) temp1 = x[k-1];
                 temp2 = zero;
-                if (k != n) temp2 = x[k+1-1];
-                fvec[k-1] = temp - temp1 - two*temp2 + one;
+                if (k != n-1) temp2 = x[k+1];
+                fvec[k] = temp - temp1 - two*temp2 + one;
             }
         }
         else
         {
-            for (k = 1; k <= n; k++)
+            for (k = 0; k < n; k++)
             {
-                for (j = 1; j <= n; j++)
+                for (j = 0; j < n; j++)
                 {
-                    fjac[k-1 + ldfjac*(j-1)] = zero;
+                    fjac[k + ldfjac*(j)] = zero;
                 }
-                fjac[k-1 + ldfjac*(k-1)] = three - four*x[k-1];
-                if (k != 1) fjac[k-1 + ldfjac*(k-1-1)] = -one;
-                if (k != n) fjac[k-1 + ldfjac*(k+1-1)] = -two;
+                fjac[k + ldfjac*(k)] = three - four*x[k];
+                if (k) fjac[k + ldfjac*(k-1)] = -one;
+                if (k != n-1) fjac[k + ldfjac*(k+1)] = -two;
             }
         }
         return 0;
@@ -314,7 +266,7 @@ void testHybrj1()
   x.setConstant(n, -1.);
 
   // do the computation
-  info = ei_hybrj1<hybrj1_functor, double>(x,fvec, fjac);
+  info = ei_hybrj1<hybrj_functor, double>(x,fvec, fjac);
 
   // check return value
   VERIFY( 1 == info);
@@ -331,51 +283,6 @@ void testHybrj1()
      -0.665792,    -0.5960342,    -0.4164121;
   VERIFY_IS_APPROX(x, x_ref);
 }
-
-struct hybrj_functor {
-    static int f(int n, const double *x, double *fvec, double *fjac, int ldfjac, 
-            int iflag)
-    {
-
-        /*      subroutine fcn for hybrj example. */
-
-        int j, k;
-        double one=1, temp, temp1, temp2, three=3, two=2, zero=0, four=4;
-
-        if (iflag == 0)
-        {
-            /*      insert print statements here when nprint is positive. */
-            return 0;
-        }
-
-        if (iflag != 2) 
-        {
-            for (k=1; k <= n; k++)
-            {
-                temp = (three - two*x[k-1])*x[k-1];
-                temp1 = zero;
-                if (k != 1) temp1 = x[k-1-1];
-                temp2 = zero;
-                if (k != n) temp2 = x[k+1-1];
-                fvec[k-1] = temp - temp1 - two*temp2 + one;
-            }
-        }
-        else
-        {
-            for (k = 1; k <= n; k++)
-            {
-                for (j=1; j <= n; j++)
-                {
-                    fjac[k-1 + ldfjac*(j-1)] = zero;
-                }
-                fjac[k-1 + ldfjac*(k-1)] = three - four*x[k-1];
-                if (k != 1) fjac[k-1 + ldfjac*(k-1-1)] = -one;
-                if (k != n) fjac[k-1 + ldfjac*(k+1-1)] = -two;
-            }      
-        }
-        return 0;
-    }
-};
 
 void testHybrj()
 {
@@ -412,7 +319,7 @@ void testHybrj()
 
 }
 
-struct hybrd1_functor {
+struct hybrd_functor {
     static int f(int n, const double *x, double *fvec, int /*iflag*/)
     {
         /*      subroutine fcn for hybrd1 example. */
@@ -420,14 +327,14 @@ struct hybrd1_functor {
         int k;
         double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
 
-        for (k=1; k <= n; k++)
+        for (k=0; k < n; k++)
         {
-            temp = (three - two*x[k-1])*x[k-1];
+            temp = (three - two*x[k])*x[k];
             temp1 = zero;
-            if (k != 1) temp1 = x[k-1-1];
+            if (k) temp1 = x[k-1];
             temp2 = zero;
-            if (k != n) temp2 = x[k+1-1];
-            fvec[k-1] = temp - temp1 - two*temp2 + one;
+            if (k != n-1) temp2 = x[k+1];
+            fvec[k] = temp - temp1 - two*temp2 + one;
         }
         return 0;
     }
@@ -442,7 +349,7 @@ void testHybrd1()
   x.setConstant(n, -1.);
 
   // do the computation
-  info = ei_hybrd1<hybrd1_functor,double>(x, fvec);
+  info = ei_hybrd1<hybrd_functor,double>(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -455,33 +362,6 @@ void testHybrd1()
   x_ref << -0.5706545, -0.6816283, -0.7017325, -0.7042129, -0.701369, -0.6918656, -0.665792, -0.5960342, -0.4164121;
   VERIFY_IS_APPROX(x, x_ref);
 }
-
-struct hybrd_functor {
-    static int f(int n, const double *x, double *fvec, int iflag)
-    {
-        /*      subroutine fcn for hybrd example. */
-
-        int k;
-        double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
-
-        if (iflag == 0)
-        {
-            /*      insert print statements here when nprint is positive. */
-            return 0;
-        }
-        for (k=1; k<=n; k++)
-        {
-
-            temp = (three - two*x[k-1])*x[k-1];
-            temp1 = zero;
-            if (k != 1) temp1 = x[k-1-1];
-            temp2 = zero;
-            if (k != n) temp2 = x[k+1-1];
-            fvec[k-1] = temp - temp1 - two*temp2 + one;
-        }
-        return 0;
-    }
-};
 
 void testHybrd()
 {
@@ -517,8 +397,8 @@ void testHybrd()
   VERIFY_IS_APPROX(x, x_ref);
 }
 
-struct lmstr1_functor {
-    static int  f(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
+struct lmstr_functor {
+    static int f(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
     {
         /*  subroutine fcn for lmstr1 example. */
         int i;
@@ -528,26 +408,24 @@ struct lmstr1_functor {
 
         if (iflag < 2)
         {
-            for (i=1; i<=15; i++)
+            for (i=0; i<15; i++)
             {
-                tmp1=i;
-                tmp2 = 16-i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+                tmp1 = i+1;
+                tmp2 = 16 - i - 1;
+                tmp3 = (i>=8)? tmp2 : tmp1;
+                fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
             }
         }
         else
         {
-            i = iflag - 1;
-            tmp1 = i;
-            tmp2 = 16 - i;
-            tmp3 = tmp1;
-            if (i > 8) tmp3 = tmp2;
-            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
-            fjrow[1-1] = -1;
-            fjrow[2-1] = tmp1*tmp2/tmp4;
-            fjrow[3-1] = tmp1*tmp3/tmp4;
+            i = iflag-2;
+            tmp1 = i+1;
+            tmp2 = 16 - i - 1;
+            tmp3 = (i>=8)? tmp2 : tmp1;
+            tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4 = tmp4*tmp4;
+            fjrow[0] = -1;
+            fjrow[1] = tmp1*tmp2/tmp4;
+            fjrow[2] = tmp1*tmp3/tmp4;
         }
         return 0;
     }
@@ -564,7 +442,7 @@ void testLmstr1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr1<lmstr1_functor,double>(x, fvec, ipvt);
+  info = ei_lmstr1<lmstr_functor,double>(x, fvec, ipvt);
 
   // check return value
   VERIFY( 1 == info);
@@ -577,50 +455,6 @@ void testLmstr1()
   x_ref << 0.08241058, 1.133037, 2.343695 ;
   VERIFY_IS_APPROX(x, x_ref);
 }
-
-
-struct lmstr_functor {
-    static int f(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
-    {
-
-        /*      subroutine fcn for lmstr example. */
-
-        int i;
-        double tmp1, tmp2, tmp3, tmp4;
-        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-        if (iflag == 0)
-        {
-            /*      insert print statements here when nprint is positive. */
-            return 0;
-        }
-        if (iflag < 2)
-        {
-            for (i = 1; i <= 15; i++)
-            {
-                tmp1 = i;
-                tmp2 = 16 - i;
-                tmp3 = tmp1;
-                if (i > 8) tmp3 = tmp2;
-                fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-            }
-        }
-        else
-        {
-            i = iflag - 1;
-            tmp1 = i;
-            tmp2 = 16 - i;
-            tmp3 = tmp1;
-            if (i > 8) tmp3 = tmp2;
-            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4 = tmp4*tmp4;
-            fjrow[1-1] = -1.;
-            fjrow[2-1] = tmp1*tmp2/tmp4;
-            fjrow[3-1] = tmp1*tmp3/tmp4;
-        }
-        return 0;
-    }
-};
 
 void testLmstr()
 {
@@ -654,7 +488,7 @@ void testLmstr()
 
 }
 
-struct lmdif1_functor {
+struct lmdif_functor {
     static int f(int /*m*/, int /*n*/, const double *x, double *fvec, int /*iflag*/)
     {
         /* function fcn for lmdif1 example */
@@ -687,7 +521,7 @@ void testLmdif1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif1<lmdif1_functor,double>(x, fvec);
+  info = ei_lmdif1<lmdif_functor,double>(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -701,34 +535,6 @@ void testLmdif1()
   VERIFY_IS_APPROX(x, x_ref);
 
 }
-
-struct lmdif_functor {
-    static int f(int /*m*/, int /*n*/, const double *x, double *fvec, int iflag)
-    {
-
-        /*      subroutine fcn for lmdif example. */
-
-        int i;
-        double tmp1, tmp2, tmp3;
-        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-            3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
-
-        if (iflag == 0)
-        {
-            /*      insert print statements here when nprint is positive. */
-            return 0;
-        }
-        for (i = 1; i <= 15; i++)
-        {
-            tmp1 = i;
-            tmp2 = 16 - i;
-            tmp3 = tmp1;
-            if (i > 8) tmp3 = tmp2;
-            fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-        }
-        return 0;
-    }
-};
 
 void testLmdif()
 {
