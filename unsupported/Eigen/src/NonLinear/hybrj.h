@@ -70,7 +70,7 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(n, x.data(), fvec.data(), fjac.data(), ldfjac, 1);
+    iflag = Functor::f(x, fvec, fjac, 1);
     nfev = 1;
     if (iflag < 0) {
         goto L300;
@@ -92,7 +92,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = Functor::f(n, x.data(), fvec.data(), fjac.data(), ldfjac, 2);
+    iflag = Functor::f(x, fvec, fjac, 2);
     ++njev;
     if (iflag < 0) {
         goto L300;
@@ -202,9 +202,8 @@ L180:
         goto L190;
     }
     iflag = 0;
-    if ((iter - 1) % nprint == 0) {
-        iflag = Functor::f(n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
-    }
+    if ((iter - 1) % nprint == 0)
+        iflag = Functor::f(x, fvec, fjac, 0);
     if (iflag < 0) {
         goto L300;
     }
@@ -232,7 +231,7 @@ L190:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = Functor::f(n, wa2.data(), wa4.data(), fjac.data(), ldfjac, 1);
+    iflag = Functor::f(wa2, wa4, fjac, 1);
     ++nfev;
     if (iflag < 0) {
         goto L300;
@@ -395,9 +394,8 @@ L300:
     if (iflag < 0) {
         info = iflag;
     }
-    if (nprint > 0) {
-        iflag = Functor::f(n, x.data(), fvec.data(), fjac.data(), ldfjac, 0);
-    }
+    if (nprint > 0)
+        iflag = Functor::f(x, fvec, fjac, 0);
     return info;
 
     /*     last card of subroutine hybrj. */

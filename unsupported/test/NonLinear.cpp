@@ -217,13 +217,17 @@ void testLmder()
 }
 
 struct hybrj_functor {
-    static int f(int n, const double *x, double *fvec, double *fjac, int ldfjac, 
-            int iflag)
+    static int f(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
     {
         /*      subroutine fcn for hybrj1 example. */
 
         int j, k;
         double one=1, temp, temp1, temp2, three=3, two=2, zero=0, four=4;
+        const int n = x.size();
+
+        assert(fvec.size()==n);
+        assert(fjac.rows()==n);
+        assert(fjac.cols()==n);
 
         if (iflag != 2)
         {
@@ -242,12 +246,10 @@ struct hybrj_functor {
             for (k = 0; k < n; k++)
             {
                 for (j = 0; j < n; j++)
-                {
-                    fjac[k + ldfjac*(j)] = zero;
-                }
-                fjac[k + ldfjac*(k)] = three - four*x[k];
-                if (k) fjac[k + ldfjac*(k-1)] = -one;
-                if (k != n-1) fjac[k + ldfjac*(k+1)] = -two;
+                    fjac(k,j) = zero;
+                fjac(k,k) = three - four*x[k];
+                if (k) fjac(k,k-1) = -one;
+                if (k != n-1) fjac(k,k+1) = -two;
             }
         }
         return 0;
@@ -398,13 +400,17 @@ void testHybrd()
 }
 
 struct lmstr_functor {
-    static int f(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjrow, int iflag)
+    static int f(const VectorXd &x, VectorXd &fvec, VectorXd &fjrow, int iflag)
     {
         /*  subroutine fcn for lmstr1 example. */
         int i;
         double tmp1, tmp2, tmp3, tmp4;
         double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+
+        assert(15==fvec.size());
+        assert(3==x.size());
+        assert(fjrow.size()==x.size());
 
         if (iflag < 2)
         {
