@@ -45,7 +45,7 @@ inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Sc
 {
   RowXpr x(row(p));
   RowXpr y(row(q));
-  ei_apply_rotation_in_the_plane(x, y, c, s);
+  ei_apply_rotation_in_the_plane(x, y, ei_conj(c), ei_conj(s));
 }
 
 /** Applies a rotation in the plane defined by \a c, \a s to the columns \a p and \a q of \c *this.
