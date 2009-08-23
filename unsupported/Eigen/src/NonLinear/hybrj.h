@@ -56,16 +56,10 @@ int ei_hybrj(
             0. || lr < n * (n + 1) / 2) {
         goto L300;
     }
-    if (mode != 2) {
-        goto L20;
-    }
-    for (j = 0; j < n; ++j) {
-        if (diag[j] <= 0.) {
-            goto L300;
-        }
-        /* L10: */
-    }
-L20:
+    if (mode == 2)
+        for (j = 0; j < n; ++j)
+            if (diag[j] <= 0.)
+                goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -123,10 +117,7 @@ L50:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    for (j = 0; j < n; ++j) {
-        wa3[j] = diag[j] * x[j];
-        /* L60: */
-    }
+    wa3 = diag.cwise() * x;
     xnorm = wa3.stableNorm();;
     delta = factor * xnorm;
     if (delta == 0.) {
@@ -136,10 +127,7 @@ L70:
 
     /*        form (q transpose)*fvec and store in qtf. */
 
-    for (i = 0; i < n; ++i) {
-        qtf[i] = fvec[i];
-        /* L80: */
-    }
+    qtf = fvec;
     for (j = 0; j < n; ++j) {
         if (fjac(j,j) == 0.) {
             goto L110;
@@ -219,7 +207,6 @@ L190:
         wa1[j] = -wa1[j];
         wa2[j] = x[j] + wa1[j];
         wa3[j] = diag[j] * wa1[j];
-        /* L200: */
     }
     pnorm = wa3.stableNorm();
 
@@ -297,12 +284,9 @@ L240:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    for (j = 0; j < n; ++j) {
-        x[j] = wa2[j];
-        wa2[j] = diag[j] * x[j];
-        fvec[j] = wa4[j];
-        /* L250: */
-    }
+    x =wa2;
+    wa2 = diag.cwise() * x;
+    fvec = wa4;
     xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;
@@ -359,11 +343,7 @@ L260:
     /*           and update qtf if necessary. */
 
     for (j = 0; j < n; ++j) {
-        sum = 0.;
-        for (i = 0; i < n; ++i) {
-            sum += fjac(i,j) * wa4[i];
-            /* L270: */
-        }
+        sum = wa4.dot(fjac.col(j));
         wa2[j] = (sum - wa3[j]) / pnorm;
         wa1[j] = diag[j] * (diag[j] * wa1[j] / pnorm);
         if (ratio >= Scalar(1e-4)) {

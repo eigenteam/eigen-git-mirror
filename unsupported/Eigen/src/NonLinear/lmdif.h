@@ -52,16 +52,10 @@ int ei_lmdif(
             gtol < 0. || maxfev <= 0 || factor <= 0.) {
         goto L300;
     }
-    if (mode != 2) {
-        goto L20;
-    }
-    for (j = 0; j < n; ++j) {
-        if (diag[j] <= 0.) {
-            goto L300;
-        }
-        /* L10: */
-    }
-L20:
+    if (mode == 2)
+        for (j = 0; j < n; ++j)
+            if (diag[j] <= 0.)
+                goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -130,10 +124,7 @@ L60:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    for (j = 0; j < n; ++j) {
-        wa3[j] = diag[j] * x[j];
-        /* L70: */
-    }
+    wa3 = diag.cwise() * x;
     xnorm = wa3.stableNorm();;
     delta = factor * xnorm;
     if (delta == 0.) {
@@ -144,10 +135,7 @@ L80:
     /*        form (q transpose)*fvec and store the first n components in */
     /*        qtf. */
 
-    for (i = 0; i < m; ++i) {
-        wa4[i] = fvec[i];
-        /* L90: */
-    }
+    wa4 = fvec;
     for (j = 0; j < n; ++j) {
         if (fjac[j + j * ldfjac] == 0.) {
             goto L120;
@@ -223,12 +211,9 @@ L200:
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
-    for (j = 0; j < n; ++j) {
-        wa1[j] = -wa1[j];
-        wa2[j] = x[j] + wa1[j];
-        wa3[j] = diag[j] * wa1[j];
-        /* L210: */
-    }
+    wa1 = -wa1;
+    wa2 = x + wa1;
+    wa3 = diag.cwise() * wa1;
     pnorm = wa3.stableNorm();
 
     /*           on the first iteration, adjust the initial step bound. */
@@ -314,15 +299,9 @@ L260:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    for (j = 0; j < n; ++j) {
-        x[j] = wa2[j];
-        wa2[j] = diag[j] * x[j];
-        /* L270: */
-    }
-    for (i = 0; i < m; ++i) {
-        fvec[i] = wa4[i];
-        /* L280: */
-    }
+    x = wa2;
+    wa2 = diag.cwise() * x;
+    fvec = wa4;
     xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;

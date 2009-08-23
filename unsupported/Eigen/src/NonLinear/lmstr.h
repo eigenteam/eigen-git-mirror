@@ -52,16 +52,11 @@ int ei_lmstr(
             gtol < 0. || maxfev <= 0 || factor <= 0.) {
         goto L340;
     }
-    if (mode != 2) {
-        goto L20;
-    }
-    for (j = 0; j < n; ++j) {
-        if (diag[j] <= 0.) {
-            goto L340;
-        }
-        /* L10: */
-    }
-L20:
+
+    if (mode == 2)
+        for (j = 0; j < n; ++j)
+            if (diag[j] <= 0.)
+                goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -248,12 +243,9 @@ L240:
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
-    for (j = 0; j < n; ++j) {
-        wa1[j] = -wa1[j];
-        wa2[j] = x[j] + wa1[j];
-        wa3[j] = diag[j] * wa1[j];
-        /* L250: */
-    }
+    wa1 = -wa1;
+    wa2 = x + wa1;
+    wa3 = diag.cwise() * wa1;
     pnorm = wa3.stableNorm();
 
     /*           on the first iteration, adjust the initial step bound. */
@@ -340,15 +332,9 @@ L300:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    for (j = 0; j < n; ++j) {
-        x[j] = wa2[j];
-        wa2[j] = diag[j] * x[j];
-        /* L310: */
-    }
-    for (i = 0; i < m; ++i) {
-        fvec[i] = wa4[i];
-        /* L320: */
-    }
+    x = wa2;
+    wa2 = diag.cwise() * x;
+    fvec = wa4;
     xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;
