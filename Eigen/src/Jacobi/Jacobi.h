@@ -26,9 +26,20 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
+/** Applies the counter clock wise 2D rotation of angle \c theta given by its
+  * cosine \a c and sine \a s to the set of 2D vectors of cordinates \a x and \a y:
+  * \f$ x = c x - s' y \f$
+  * \f$ y = s x + c y \f$
+  *
+  * \sa MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  */
 template<typename VectorX, typename VectorY>
 void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, typename VectorX::Scalar c, typename VectorY::Scalar s);
 
+/** Applies a rotation in the plane defined by \a c, \a s to the rows \a p and \a q of \c *this.
+  * More precisely, it computes B = J' * B, with J = [c s ; -s' c] and B = [ *this.row(p) ; *this.row(q) ]
+  * \sa MatrixBase::applyJacobiOnTheRight(), ei_apply_rotation_in_the_plane()
+  */
 template<typename Derived>
 inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
 {
@@ -37,6 +48,10 @@ inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Sc
   ei_apply_rotation_in_the_plane(x, y, c, s);
 }
 
+/** Applies a rotation in the plane defined by \a c, \a s to the columns \a p and \a q of \c *this.
+  * More precisely, it computes B = B * J, with J = [c s ; -s' c] and B = [ *this.col(p) ; *this.col(q) ]
+  * \sa MatrixBase::applyJacobiOnTheLeft(), ei_apply_rotation_in_the_plane()
+  */
 template<typename Derived>
 inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s)
 {
@@ -45,6 +60,12 @@ inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, S
   ei_apply_rotation_in_the_plane(x, y, c, s);
 }
 
+/** Computes the cosine-sine pair (\a c, \a s) such that its associated
+  * rotation \f$ J = ( \begin{array}{cc} c & s \\ -s' c \end{array} )\f$
+  * applied to both the right and left of the 2x2 matrix
+  * \f$ B = ( \begin{array}{cc} x & y \\ _ & z \end{array} )\f$ yields
+  * a diagonal matrix A: \f$ A = J' B J \f$
+  */
 template<typename Scalar>
 bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
 {
@@ -128,12 +149,13 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
 
     const Packet pc = ei_pset1(c);
     const Packet ps = ei_pset1(s);
+    ei_conj_helper<true,false> cj;
 
     for(int i=0; i<alignedStart; ++i)
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi - s * yi;
+      x[i] = c * xi - ei_conj(s) * yi;
       y[i] = s * xi + c * yi;
     }
 
@@ -146,7 +168,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       {
         Packet xi = ei_pload(px);
         Packet yi = ei_pload(py);
-        ei_pstore(px, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
+        ei_pstore(px, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
         ei_pstore(py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
         px += PacketSize;
         py += PacketSize;
@@ -161,8 +183,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
         Packet xi1  = ei_ploadu(px+PacketSize);
         Packet yi   = ei_pload (py);
         Packet yi1  = ei_pload (py+PacketSize);
-        ei_pstoreu(px, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
-        ei_pstoreu(px+PacketSize, ei_psub(ei_pmul(pc,xi1),ei_pmul(ps,yi1)));
+        ei_pstoreu(px, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
+        ei_pstoreu(px+PacketSize, ei_psub(ei_pmul(pc,xi1),cj.pmul(ps,yi1)));
         ei_pstore (py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
         ei_pstore (py+PacketSize, ei_padd(ei_pmul(ps,xi1),ei_pmul(pc,yi1)));
         px += Peeling*PacketSize;
@@ -172,7 +194,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       {
         Packet xi = ei_ploadu(x+peelingEnd);
         Packet yi = ei_pload (y+peelingEnd);
-        ei_pstoreu(x+peelingEnd, ei_psub(ei_pmul(pc,xi),ei_pmul(ps,yi)));
+        ei_pstoreu(x+peelingEnd, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
         ei_pstore (y+peelingEnd, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
       }
     }
@@ -181,7 +203,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi - s * yi;
+      x[i] = c * xi - ei_conj(s) * yi;
       y[i] = s * xi + c * yi;
     }
   }
@@ -191,7 +213,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = *x;
       Scalar yi = *y;
-      *x = c * xi - s * yi;
+      *x = c * xi - ei_conj(s) * yi;
       *y = s * xi + c * yi;
       x += incrx;
       y += incry;
