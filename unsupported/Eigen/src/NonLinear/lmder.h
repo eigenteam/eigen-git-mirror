@@ -64,7 +64,7 @@ L20:
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(x, fvec, fjac, 1);
+    iflag = Functor::f(x, fvec);
     nfev = 1;
     if (iflag < 0) {
         goto L300;
@@ -82,7 +82,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = Functor::f(x, fvec, fjac, 2);
+    iflag = Functor::df(x, fjac);
     ++njev;
     if (iflag < 0) {
         goto L300;
@@ -95,7 +95,7 @@ L30:
     }
     iflag = 0;
     if ((iter - 1) % nprint == 0) {
-        iflag = Functor::f(x, fvec, fjac, 0);
+        iflag = Functor::debug(x, fvec, fjac);
     }
     if (iflag < 0) {
         goto L300;
@@ -237,7 +237,7 @@ L200:
 
     /*           evaluate the function at x + p and calculate its norm. */
 
-    iflag = Functor::f(wa2, wa4, fjac, 1);
+    iflag = Functor::f(wa2, wa4);
     ++nfev;
     if (iflag < 0) {
         goto L300;
@@ -378,7 +378,7 @@ L300:
     }
     iflag = 0;
     if (nprint > 0) {
-        iflag = Functor::f(x, fvec, fjac, 0);
+        iflag = Functor::debug(x, fvec, fjac);
     }
     return info;
 
