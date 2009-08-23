@@ -36,10 +36,6 @@ namespace Eigen {
   */
 //@{
 
-/* Declarations for minpack */
-typedef int (*minpack_func_nn)(int n, const double *x, double *fvec, int iflag );
-typedef int (*minpack_func_mn)(int m, int n, const double *x, double *fvec, int iflag );
-
 #include "src/NonLinear/qrsolv.h"
 #include "src/NonLinear/r1updt.h"
 #include "src/NonLinear/r1mpyq.h"

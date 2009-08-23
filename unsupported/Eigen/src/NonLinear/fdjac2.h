@@ -1,6 +1,6 @@
 
-template <typename Scalar>
-int ei_fdjac2(minpack_func_mn fcn,
+template<typename Functor, typename Scalar>
+int ei_fdjac2(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
@@ -26,7 +26,7 @@ int ei_fdjac2(minpack_func_mn fcn,
 	    h = eps;
 	}
 	x[j] = temp + h;
-	iflag = (*fcn)(m, n, x.data(), wa.data(), 1);
+	iflag = Functor::f(x, wa, 1);
 	if (iflag < 0) {
 	    /* goto L30; */
             return iflag;

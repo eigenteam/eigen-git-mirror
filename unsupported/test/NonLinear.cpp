@@ -322,12 +322,15 @@ void testHybrj()
 }
 
 struct hybrd_functor {
-    static int f(int n, const double *x, double *fvec, int /*iflag*/)
+    static int f(const VectorXd &x, VectorXd &fvec, int /*iflag*/)
     {
         /*      subroutine fcn for hybrd1 example. */
 
         int k;
         double one=1, temp, temp1, temp2, three=3, two=2, zero=0;
+        const int n = x.size();
+
+        assert(fvec.size()==n);
 
         for (k=0; k < n; k++)
         {
@@ -495,7 +498,7 @@ void testLmstr()
 }
 
 struct lmdif_functor {
-    static int f(int /*m*/, int /*n*/, const double *x, double *fvec, int /*iflag*/)
+    static int f(const VectorXd &x, VectorXd &fvec, int /*iflag*/)
     {
         /* function fcn for lmdif1 example */
 
@@ -504,6 +507,8 @@ struct lmdif_functor {
         double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
             3.7e-1,5.8e-1,7.3e-1,9.6e-1,1.34e0,2.1e0,4.39e0};
 
+        assert(x.size()==3);
+        assert(fvec.size()==15);
         for (i=0; i<15; i++)
         {
             tmp1 = i+1;
