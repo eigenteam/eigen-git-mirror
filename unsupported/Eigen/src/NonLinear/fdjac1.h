@@ -1,30 +1,24 @@
 
 template <typename Scalar>
-int ei_fdjac1(minpack_func_nn fcn, int n, Scalar *x, const Scalar *
-	fvec, Scalar *fjac, int ldfjac, int ml, 
-	int mu, Scalar epsfcn, Scalar *wa1, Scalar *wa2)
+int ei_fdjac1(minpack_func_nn fcn,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        int ml, int mu,
+        Scalar epsfcn,
+        Matrix< Scalar, Dynamic, 1 >  &wa1,
+        Matrix< Scalar, Dynamic, 1 >  &wa2)
 {
-    /* System generated locals */
-    int fjac_dim1, fjac_offset;
-
     /* Local variables */
-    Scalar h__;
+    Scalar h;
     int i, j, k;
     Scalar eps, temp;
     int msum;
     int iflag = 0;
 
-    /* Parameter adjustments */
-    --wa2;
-    --wa1;
-    --fvec;
-    --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
-    fjac -= fjac_offset;
-
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
+    const int n = x.size();
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
     msum = ml + mu + 1;
@@ -34,20 +28,18 @@ int ei_fdjac1(minpack_func_nn fcn, int n, Scalar *x, const Scalar *
 
 /*        computation of dense approximate jacobian. */
 
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	temp = x[j];
-	h__ = eps * ei_abs(temp);
-	if (h__ == 0.) {
-	    h__ = eps;
-	}
-	x[j] = temp + h__;
-	iflag = (*fcn)(n, &x[1], &wa1[1], 1);
-	if (iflag < 0) {
+	h = eps * ei_abs(temp);
+	if (h == 0.)
+	    h = eps;
+	x[j] = temp + h;
+	iflag = (*fcn)(n, x.data(), wa1.data(), 1);
+	if (iflag < 0)
 	    goto L30;
-	}
 	x[j] = temp;
-	for (i = 1; i <= n; ++i) {
-	    fjac[i + j * fjac_dim1] = (wa1[i] - fvec[i]) / h__;
+	for (i = 0; i < n; ++i) {
+	    fjac(i,j) = (wa1[i] - fvec[i]) / h;
 /* L10: */
 	}
 /* L20: */
@@ -59,31 +51,27 @@ L40:
 
 /*        computation of banded approximate jacobian. */
 
-    for (k = 1; k <= msum; ++k) {
-	for (j = k; msum< 0 ? j >= n: j <= n; j += msum) {
+    for (k = 0; k < msum; ++k) {
+	for (j = k; msum< 0 ? j > n: j < n; j += msum) {
 	    wa2[j] = x[j];
-	    h__ = eps * ei_abs(wa2[j]);
-	    if (h__ == 0.) {
-		h__ = eps;
-	    }
-	    x[j] = wa2[j] + h__;
+	    h = eps * ei_abs(wa2[j]);
+	    if (h == 0.) h = eps;
+	    x[j] = wa2[j] + h;
 /* L60: */
 	}
-	iflag = (*fcn)(n, &x[1], &wa1[1], 1);
+	iflag = (*fcn)(n, x.data(), wa1.data(), 1);
 	if (iflag < 0) {
 	    /* goto L100; */
             return iflag;
 	}
-	for (j = k; msum< 0 ? j >= n: j <= n; j += msum) {
+	for (j = k; msum< 0 ? j > n: j < n; j += msum) {
 	    x[j] = wa2[j];
-	    h__ = eps * ei_abs(wa2[j]);
-	    if (h__ == 0.) {
-		h__ = eps;
-	    }
-	    for (i = 1; i <= n; ++i) {
-		fjac[i + j * fjac_dim1] = 0.;
+	    h = eps * ei_abs(wa2[j]);
+	    if (h == 0.) h = eps;
+	    for (i = 0; i < n; ++i) {
+		fjac(i,j) = 0.;
 		if (i >= j - mu && i <= j + ml) {
-		    fjac[i + j * fjac_dim1] = (wa1[i] - fvec[i]) / h__;
+		    fjac(i,j) = (wa1[i] - fvec[i]) / h;
 		}
 /* L70: */
 	    }

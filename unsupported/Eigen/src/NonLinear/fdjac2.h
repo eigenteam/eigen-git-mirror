@@ -1,45 +1,39 @@
 
 template <typename Scalar>
-int ei_fdjac2(minpack_func_mn fcn, int m, int n, Scalar *x, 
-	const Scalar *fvec, Scalar *fjac, int ldfjac,
-	Scalar epsfcn, Scalar *wa)
+int ei_fdjac2(minpack_func_mn fcn,
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+	    Scalar epsfcn,
+        Matrix< Scalar, Dynamic, 1 >  &wa)
 {
-    /* System generated locals */
-    int fjac_dim1, fjac_offset;
-
     /* Local variables */
-    Scalar h__;
+    Scalar h;
     int i, j;
     Scalar eps, temp;
     int iflag;
 
-    /* Parameter adjustments */
-    --wa;
-    --fvec;
-    --x;
-    fjac_dim1 = ldfjac;
-    fjac_offset = 1 + fjac_dim1 * 1;
-    fjac -= fjac_offset;
-
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
+    const int n = x.size();
+    const int m = fvec.size();
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
-    for (j = 1; j <= n; ++j) {
+    for (j = 0; j < n; ++j) {
 	temp = x[j];
-	h__ = eps * ei_abs(temp);
-	if (h__ == 0.) {
-	    h__ = eps;
+	h = eps * ei_abs(temp);
+	if (h == 0.) {
+	    h = eps;
 	}
-	x[j] = temp + h__;
-	iflag = (*fcn)(m, n, &x[1], &wa[1], 1);
+	x[j] = temp + h;
+	iflag = (*fcn)(m, n, x.data(), wa.data(), 1);
 	if (iflag < 0) {
 	    /* goto L30; */
             return iflag;
 	}
 	x[j] = temp;
-	for (i = 1; i <= m; ++i) {
-	    fjac[i + j * fjac_dim1] = (wa[i] - fvec[i]) / h__;
+	for (i = 0; i < m; ++i) {
+	    fjac(i,j) = (wa[i] - fvec[i]) / h;
 /* L10: */
 	}
 /* L20: */

@@ -103,8 +103,8 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = ei_fdjac1<Scalar>(Functor::f, n, x.data(), fvec.data(), fjac.data(), ldfjac,
-            nb_of_subdiagonals, nb_of_superdiagonals, epsfcn, wa1.data(), wa2.data());
+    iflag = ei_fdjac1<Scalar>(Functor::f, x, fvec, fjac,
+            nb_of_subdiagonals, nb_of_superdiagonals, epsfcn, wa1, wa2);
     nfev += msum;
     if (iflag < 0) {
         goto L300;

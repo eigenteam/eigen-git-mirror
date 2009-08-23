@@ -84,8 +84,7 @@ L30:
 
     /*        calculate the jacobian matrix. */
 
-    iflag = ei_fdjac2<Scalar>(Functor::f, m, n, x.data(), fvec.data(), fjac.data(), ldfjac,
-            epsfcn, wa4.data());
+    iflag = ei_fdjac2<Scalar>(Functor::f, x, fvec, fjac, epsfcn, wa4);
     nfev += n;
     if (iflag < 0) {
         goto L300;
