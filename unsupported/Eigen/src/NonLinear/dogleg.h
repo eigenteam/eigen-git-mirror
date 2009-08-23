@@ -47,16 +47,12 @@ void ei_dogleg(
             }
         }
         x[j] = (qtb[j] - sum) / temp;
-        /* L50: */
     }
 
     /*     test whether the gauss-newton direction is acceptable. */
 
-    for (j = 0; j < n; ++j) {
-        wa1[j] = 0.;
-        wa2[j] = diag[j] * x[j];
-        /* L60: */
-    }
+    wa1.fill(0.);
+    wa2 = diag.cwise() * x;
     qnorm = wa2.stableNorm();
     if (qnorm <= delta)
         return;
@@ -70,10 +66,8 @@ void ei_dogleg(
         for (i = j; i < n; ++i) {
             wa1[i] += r[l] * temp;
             ++l;
-            /* L70: */
         }
         wa1[j] /= diag[j];
-        /* L80: */
     }
 
     /*     calculate the norm of the scaled gradient and test for */
@@ -82,17 +76,13 @@ void ei_dogleg(
     gnorm = wa1.stableNorm();
     sgnorm = 0.;
     alpha = delta / qnorm;
-    if (gnorm == 0.) {
+    if (gnorm == 0.)
         goto L120;
-    }
 
     /*     calculate the point along the scaled gradient */
     /*     at which the quadratic is minimized. */
 
-    for (j = 0; j < n; ++j) {
-        wa1[j] = wa1[j] / gnorm / diag[j];
-        /* L90: */
-    }
+    wa1.cwise() /= diag*gnorm;
     l = 0;
     for (j = 0; j < n; ++j) {
         sum = 0.;
@@ -129,10 +119,8 @@ L120:
     /*     form appropriate convex combination of the gauss-newton */
     /*     direction and the scaled gradient direction. */
 
-    temp = (1. - alpha) * std::min(sgnorm,delta);
-    for (j = 0; j < n; ++j) {
-        x[j] = temp * wa1[j] + alpha * x[j];
-    }
+    temp = (1.-alpha) * std::min(sgnorm,delta);
+    x = temp * wa1 + alpha * x;
     return;
 
 }

@@ -59,23 +59,19 @@ void ei_lmpar(
     /*     for acceptance of the gauss-newton direction. */
 
     iter = 0;
-    for (j = 0; j < n; ++j) {
-        wa2[j] = diag[j] * x[j];
-    }
+    wa2 = diag.cwise() * x;
     dxnorm = wa2.blueNorm();
     fp = dxnorm - delta;
-    if (fp <= Scalar(0.1) * delta) {
+    if (fp <= Scalar(0.1) * delta)
         goto L220;
-    }
 
     /*     if the jacobian is not rank deficient, the newton */
     /*     step provides a lower bound, parl, for the zero of */
     /*     the function. otherwise set this bound to zero. */
 
     parl = 0.;
-    if (nsing < n-1) {
+    if (nsing < n-1)
         goto L120;
-    }
     for (j = 0; j < n; ++j) {
         l = ipvt[j]-1;
         wa1[j] = diag[l] * (wa2[l] / dxnorm);
@@ -94,13 +90,10 @@ L120:
 
     for (j = 0; j < n; ++j) {
         sum = 0.;
-        for (i = 0; i <= j; ++i) {
+        for (i = 0; i <= j; ++i)
             sum += r(i,j) * qtb[i];
-            /* L130: */
-        }
         l = ipvt[j]-1;
         wa1[j] = sum / diag[l];
-        /* L140: */
     }
     gnorm = wa1.stableNorm();
     paru = gnorm / delta;
@@ -113,9 +106,8 @@ L120:
 
     par = std::max(par,parl);
     par = std::min(par,paru);
-    if (par == 0.) {
+    if (par == 0.)
         par = gnorm / dxnorm;
-    }
 
     /*     beginning of an iteration. */
 
@@ -124,20 +116,15 @@ L150:
 
     /*        evaluate the function at the current value of par. */
 
-    if (par == 0.) {
-        /* Computing MAX */
-        par = std::max(dwarf,Scalar(.001) * paru);
-    }
+    if (par == 0.)
+        par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
+
     temp = ei_sqrt(par);
-    for (j = 0; j < n; ++j) {
-        wa1[j] = temp * diag[j];
-        /* L160: */
-    }
+    wa1 = temp * diag;
+
     ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
-    for (j = 0; j < n; ++j) {
-        wa2[j] = diag[j] * x[j];
-        /* L170: */
-    }
+
+    wa2 = diag.cwise() * x;
     dxnorm = wa2.blueNorm();
     temp = fp;
     fp = dxnorm - delta;
