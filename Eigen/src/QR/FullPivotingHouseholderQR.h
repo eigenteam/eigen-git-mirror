@@ -37,10 +37,10 @@
   *
   * This class performs a rank-revealing QR decomposition using Householder transformations.
   *
-  * This decomposition performs full-pivoting in order to be rank-revealing and achieve optimal
-  * numerical stability.
+  * This decomposition performs a very prudent full pivoting in order to be rank-revealing and achieve optimal
+  * numerical stability. The trade-off is that it is slower than HouseholderQR and ColPivotingHouseholderQR.
   *
-  * \sa MatrixBase::householderRrqr()
+  * \sa MatrixBase::fullPivotingHouseholderQr()
   */
 template<typename MatrixType> class FullPivotingHouseholderQR
 {
@@ -125,11 +125,26 @@ template<typename MatrixType> class FullPivotingHouseholderQR
       *
       * \warning a determinant can be very big or small, so for matrices
       * of large enough dimension, there is a risk of overflow/underflow.
+      * One way to work around that is to use logAbsDeterminant() instead.
       *
-      * \sa MatrixBase::determinant()
+      * \sa logAbsDeterminant(), MatrixBase::determinant()
       */
     typename MatrixType::RealScalar absDeterminant() const;
 
+    /** \returns the natural log of the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \note This method is useful to work around the risk of overflow/underflow that's inherent
+      * to determinant computation.
+      *
+      * \sa absDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar logAbsDeterminant() const;
+    
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
       * \note This is computed at the time of the construction of the QR decomposition. This
@@ -236,6 +251,14 @@ typename MatrixType::RealScalar FullPivotingHouseholderQR<MatrixType>::absDeterm
   ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
   ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
   return ei_abs(m_qr.diagonal().prod());
+}
+
+template<typename MatrixType>
+typename MatrixType::RealScalar FullPivotingHouseholderQR<MatrixType>::logAbsDeterminant() const
+{
+  ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return m_qr.diagonal().cwise().abs().cwise().log().sum();
 }
 
 template<typename MatrixType>

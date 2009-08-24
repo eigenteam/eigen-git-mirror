@@ -45,38 +45,6 @@ Cwise<ExpressionType>::sqrt() const
 
 /** \array_module
   * 
-  * \returns an expression of the coefficient-wise exponential of *this.
-  *
-  * Example: \include Cwise_exp.cpp
-  * Output: \verbinclude Cwise_exp.out
-  *
-  * \sa pow(), log(), sin(), cos()
-  */
-template<typename ExpressionType>
-inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)
-Cwise<ExpressionType>::exp() const
-{
-  return _expression();
-}
-
-/** \array_module
-  * 
-  * \returns an expression of the coefficient-wise logarithm of *this.
-  *
-  * Example: \include Cwise_log.cpp
-  * Output: \verbinclude Cwise_log.out
-  *
-  * \sa exp()
-  */
-template<typename ExpressionType>
-inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
-Cwise<ExpressionType>::log() const
-{
-  return _expression();
-}
-
-/** \array_module
-  * 
   * \returns an expression of the coefficient-wise cosine of *this.
   *
   * Example: \include Cwise_cos.cpp

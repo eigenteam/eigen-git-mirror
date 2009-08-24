@@ -99,6 +99,7 @@ template<typename MatrixType> void qr_invertible()
   m1 = m3 * m1 * m3;
   qr.compute(m1);
   VERIFY_IS_APPROX(absdet, qr.absDeterminant());
+  VERIFY_IS_APPROX(ei_log(absdet), qr.logAbsDeterminant());
 }
 
 template<typename MatrixType> void qr_verify_assert()
