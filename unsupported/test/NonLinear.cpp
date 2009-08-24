@@ -166,7 +166,7 @@ void testLmder()
 {
   const int m=15, n=3;
   int info, nfev=0, njev=0;
-  double fnorm, covfac, covar_ftol;
+  double fnorm, covfac;
   VectorXd x(n), fvec(m), diag(n), qtf;
   MatrixXd fjac;
   VectorXi ipvt;
@@ -192,11 +192,9 @@ void testLmder()
   VERIFY_IS_APPROX(x, x_ref);
 
   // check covariance
-  covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
-  VectorXd wa(n);
   ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
-  ei_covar<double>(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
+  ei_covar<double>(fjac, ipvt);
 
   MatrixXd cov_ref(n,n);
   cov_ref << 
@@ -543,7 +541,7 @@ void testLmdif()
 {
   const int m=15, n=3;
   int info, nfev=0;
-  double fnorm, covfac, covar_ftol;
+  double fnorm, covfac;
   VectorXd x(n), fvec(m), diag(n), qtf;
   MatrixXd fjac;
   VectorXi ipvt;
@@ -568,11 +566,9 @@ void testLmdif()
   VERIFY_IS_APPROX(x, x_ref);
 
   // check covariance
-  covar_ftol = epsilon<double>();
   covfac = fnorm*fnorm/(m-n);
-  VectorXd wa(n);
   ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
-  ei_covar<double>(n, fjac.data(), m, ipvt.data(), covar_ftol, wa.data());
+  ei_covar<double>(fjac, ipvt);
 
   MatrixXd cov_ref(n,n);
   cov_ref << 

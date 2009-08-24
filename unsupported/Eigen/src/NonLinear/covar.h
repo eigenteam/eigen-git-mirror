@@ -1,86 +1,75 @@
 
     template <typename Scalar>
-void ei_covar(int n, Scalar *r__, int ldr, 
-        const int *ipvt, Scalar tol, Scalar *wa)
+void ei_covar(
+        Matrix< Scalar, Dynamic, Dynamic > &r,
+        const VectorXi &ipvt,
+        Scalar tol = ei_sqrt(epsilon<Scalar>()) )
 {
-    /* System generated locals */
-    int r_dim1, r_offset;
-
     /* Local variables */
-    int i, j, k, l, ii, jj, km1;
+    int i, j, k, l, ii, jj;
     int sing;
-    Scalar temp, tolr;
-
-    /* Parameter adjustments */
-    --wa;
-    --ipvt;
-    tolr = tol * ei_abs(r__[0]);
-    r_dim1 = ldr;
-    r_offset = 1 + r_dim1;
-    r__ -= r_offset;
+    Scalar temp;
 
     /* Function Body */
+    const int n = r.cols();
+    const Scalar tolr = tol * ei_abs(r[0]);
+    Matrix< Scalar, Dynamic, 1 > wa(n);
+    assert(ipvt.size()==n);
 
     /*     form the inverse of r in the full upper triangle of r. */
 
-    l = 0;
-    for (k = 1; k <= n; ++k) {
-        if (ei_abs(r__[k + k * r_dim1]) > tolr) {
-            r__[k + k * r_dim1] = 1. / r__[k + k * r_dim1];
-            km1 = k - 1;
-            if (km1 >= 1)
-                for (j = 1; j <= km1; ++j) {
-                    temp = r__[k + k * r_dim1] * r__[j + k * r_dim1];
-                    r__[j + k * r_dim1] = 0.;
-                    for (i = 1; i <= j; ++i) {
-                        r__[i + k * r_dim1] -= temp * r__[i + j * r_dim1];
-                    }
+    l = -1;
+    for (k = 0; k < n; ++k)
+        if (ei_abs(r(k,k)) > tolr) {
+            r(k,k) = 1. / r(k,k);
+            for (j = 0; j <= k-1; ++j) {
+                temp = r(k,k) * r(j,k);
+                r(j,k) = 0.;
+                for (i = 0; i <= j; ++i) {
+                    r(i,k) -= temp * r(i,j);
                 }
+            }
             l = k;
         }
-    }
 
     /*     form the full upper triangle of the inverse of (r transpose)*r */
     /*     in the full upper triangle of r. */
 
-    if (l >= 1)
-        for (k = 1; k <= l; ++k) {
-            km1 = k - 1;
-            if (km1 >= 1)
-                for (j = 1; j <= km1; ++j) {
-                    temp = r__[j + k * r_dim1];
-                    for (i = 1; i <= j; ++i)
-                        r__[i + j * r_dim1] += temp * r__[i + k * r_dim1];
-                }
-            temp = r__[k + k * r_dim1];
-            for (i = 1; i <= k; ++i)
-                r__[i + k * r_dim1] = temp * r__[i + k * r_dim1];
+    for (k = 0; k <= l; ++k) {
+        for (j = 0; j <= k-1; ++j) {
+            temp = r(j,k);
+            for (i = 0; i <= j; ++i)
+                r(i,j) += temp * r(i,k);
         }
+        temp = r(k,k);
+        for (i = 0; i <= k; ++i)
+            r(i,k) = temp * r(i,k);
+    }
 
     /*     form the full lower triangle of the covariance matrix */
     /*     in the strict lower triangle of r and in wa. */
 
-    for (j = 1; j <= n; ++j) {
-        jj = ipvt[j];
+    for (j = 0; j < n; ++j) {
+        jj = ipvt[j]-1;
         sing = j > l;
-        for (i = 1; i <= j; ++i) {
+        for (i = 0; i <= j; ++i) {
             if (sing)
-                r__[i + j * r_dim1] = 0.;
-            ii = ipvt[i];
+                r(i,j) = 0.;
+            ii = ipvt[i]-1;
             if (ii > jj)
-                r__[ii + jj * r_dim1] = r__[i + j * r_dim1];
+                r(ii,jj) = r(i,j);
             if (ii < jj)
-                r__[jj + ii * r_dim1] = r__[i + j * r_dim1];
+                r(jj,ii) = r(i,j);
         }
-        wa[jj] = r__[j + j * r_dim1];
+        wa[jj] = r(j,j);
     }
 
     /*     symmetrize the covariance matrix in r. */
 
-    for (j = 1; j <= n; ++j) {
-        for (i = 1; i <= j; ++i)
-            r__[i + j * r_dim1] = r__[j + i * r_dim1];
-        r__[j + j * r_dim1] = wa[j];
+    for (j = 0; j < n; ++j) {
+        for (i = 0; i <= j; ++i)
+            r(i,j) = r(j,i);
+        r(j,j) = wa[j];
     }
 }
 
