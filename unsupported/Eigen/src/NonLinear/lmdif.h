@@ -46,10 +46,10 @@ int ei_lmdif(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
-        goto L300;
+        goto algo_end;
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.) goto L300;
+            if (diag[j] <= 0.) goto algo_end;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -57,7 +57,7 @@ int ei_lmdif(
     iflag = Functor::f(x, fvec);
     nfev = 1;
     if (iflag < 0)
-        goto L300;
+        goto algo_end;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
@@ -180,7 +180,7 @@ int ei_lmdif(
             iflag = Functor::f(wa2, wa4);
             ++nfev;
             if (iflag < 0)
-                goto L300;
+                goto algo_end;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -250,7 +250,7 @@ int ei_lmdif(
             if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1. && info == 2)
                 info = 3;
             if (info != 0)
-                goto L300;
+                goto algo_end;
 
             /* tests for termination and stringent tolerances. */
 
@@ -263,12 +263,12 @@ int ei_lmdif(
             if (gnorm <= epsilon<Scalar>())
                 info = 8;
             if (info != 0)
-                goto L300;
+                goto algo_end;
             /* end of the inner loop. repeat if iteration unsuccessful. */
         } while (ratio < Scalar(1e-4));
         /* end of the outer loop. */
     }
-L300:
+algo_end:
 
     /*     termination, either normal or user imposed. */
     if (iflag < 0)
