@@ -266,7 +266,7 @@ void testHybrj1()
   x.setConstant(n, -1.);
 
   // do the computation
-  info = ei_hybrj1<hybrj_functor>(x,fvec, fjac);
+  info = ei_hybrj1(hybrj_functor(), x,fvec, fjac);
 
   // check return value
   VERIFY( 1 == info);
@@ -298,7 +298,7 @@ void testHybrj()
   diag.setConstant(n, 1.);
 
   // do the computation
-  info = ei_hybrj<hybrj_functor>(x,fvec, nfev, njev, fjac, R, qtf, diag, mode);
+  info = ei_hybrj(hybrj_functor(), x,fvec, nfev, njev, fjac, R, qtf, diag, mode);
 
   // check return value
   VERIFY( 1 == info);
@@ -349,7 +349,7 @@ void testHybrd1()
   x.setConstant(n, -1.);
 
   // do the computation
-  info = ei_hybrd1<hybrd_functor>(x, fvec);
+  info = ei_hybrd1(hybrd_functor(), x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -379,7 +379,7 @@ void testHybrd()
   diag.setConstant(n, 1.);
 
   // do the computation
-  info = ei_hybrd<hybrd_functor>(x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
+  info = ei_hybrd(hybrd_functor(), x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
 
   // check return value
   VERIFY( 1 == info);
@@ -447,7 +447,7 @@ void testLmstr1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr1<lmstr_functor>(x, fvec, ipvt);
+  info = ei_lmstr1(lmstr_functor(), x, fvec, ipvt);
 
   // check return value
   VERIFY( 1 == info);
@@ -474,7 +474,7 @@ void testLmstr()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr<lmstr_functor>(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = ei_lmstr(lmstr_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
   VectorXd wa(n);
 
   // check return values
@@ -529,7 +529,7 @@ void testLmdif1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif1<lmdif_functor>(x, fvec);
+  info = ei_lmdif1(lmdif_functor(), x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -557,7 +557,7 @@ void testLmdif()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif<lmdif_functor>(x, fvec, nfev, fjac, ipvt, qtf, diag);
+  info = ei_lmdif(lmdif_functor(), x, fvec, nfev, fjac, ipvt, qtf, diag);
 
   // check return values
   VERIFY( 1 == info);

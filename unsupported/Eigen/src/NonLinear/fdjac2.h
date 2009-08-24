@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_fdjac2(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
@@ -23,7 +24,7 @@ int ei_fdjac2(
             h = eps;
         }
         x[j] = temp + h;
-        iflag = Functor::f(x, wa);
+        iflag = Functor.f(x, wa);
         if (iflag < 0)
             return iflag;
         x[j] = temp;

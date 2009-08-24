@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_lmdif1(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Scalar tol = ei_sqrt(epsilon<Scalar>())
@@ -18,7 +19,8 @@ int ei_lmdif1(
         return 0;
     }
 
-    info = ei_lmdif<Functor,Scalar>(
+    info = ei_lmdif(
+        Functor,
         x, fvec,
         nfev,
         fjac, ipvt, qtf, diag,

@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_hybrj1(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
@@ -18,7 +19,8 @@ int ei_hybrj1(
     }
 
     diag.setConstant(n, 1.);
-    info = ei_hybrj<Functor,Scalar>(
+    info = ei_hybrj(
+        Functor,
         x, fvec,
         nfev, njev,
         fjac,

@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_hybrd1(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Scalar tol = ei_sqrt(epsilon<Scalar>())
@@ -18,7 +19,8 @@ int ei_hybrd1(
     }
 
     diag.setConstant(n, 1.);
-    info = ei_hybrd<Functor,Scalar>(
+    info = ei_hybrd(
+        Functor,
         x, fvec,
         nfev,
         fjac,

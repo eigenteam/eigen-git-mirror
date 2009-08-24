@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_lmstr(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
@@ -55,7 +56,7 @@ int ei_lmstr(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(x, fvec);
+    iflag = Functor.f(x, fvec);
     nfev = 1;
     if (iflag < 0)
         goto algo_end;
@@ -70,12 +71,12 @@ int ei_lmstr(
 
     while (true) {
 
-        /* if requested, call Functor::f to enable printing of iterates. */
+        /* if requested, call Functor.f to enable printing of iterates. */
 
         if (nprint > 0) {
             iflag = 0;
             if ((iter - 1) % nprint == 0)
-                iflag = Functor::debug(x, fvec, wa3);
+                iflag = Functor.debug(x, fvec, wa3);
             if (iflag < 0)
                 break;
         }
@@ -89,7 +90,7 @@ int ei_lmstr(
         fjac.fill(0.);
         iflag = 2;
         for (i = 0; i < m; ++i) {
-            if (Functor::df(x, wa3, iflag) < 0)
+            if (Functor.df(x, wa3, iflag) < 0)
                 break;
             temp = fvec[i];
             ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
@@ -194,7 +195,7 @@ int ei_lmstr(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = Functor::f(wa2, wa4);
+            iflag = Functor.f(wa2, wa4);
             ++nfev;
             if (iflag < 0)
                 goto algo_end;
@@ -291,7 +292,7 @@ algo_end:
     if (iflag < 0)
         info = iflag;
     if (nprint > 0)
-        iflag = Functor::debug(x, fvec, wa3);
+        iflag = Functor.debug(x, fvec, wa3);
     return info;
 }
 

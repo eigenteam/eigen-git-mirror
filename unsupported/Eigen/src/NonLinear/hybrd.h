@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_hybrd(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
@@ -64,7 +65,7 @@ int ei_hybrd(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor::f(x, fvec);
+    iflag = Functor.f(x, fvec);
     nfev = 1;
     if (iflag < 0)
         goto algo_end;
@@ -91,7 +92,7 @@ int ei_hybrd(
 
         /* calculate the jacobian matrix. */
 
-        iflag = ei_fdjac1<Functor,Scalar>(x, fvec, fjac,
+        iflag = ei_fdjac1(Functor, x, fvec, fjac,
                 nb_of_subdiagonals, nb_of_superdiagonals, epsfcn, wa1, wa2);
         nfev += msum;
         if (iflag < 0)
@@ -163,12 +164,12 @@ int ei_hybrd(
         /* beginning of the inner loop. */
 
         while (true) {
-            /* if requested, call Functor::f to enable printing of iterates. */
+            /* if requested, call Functor.f to enable printing of iterates. */
 
             if (nprint > 0) {
                 iflag = 0;
                 if ((iter - 1) % nprint == 0)
-                    iflag = Functor::debug(x, fvec);
+                    iflag = Functor.debug(x, fvec);
                 if (iflag < 0)
                     goto algo_end;
             }
@@ -191,7 +192,7 @@ int ei_hybrd(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = Functor::f(wa2, wa4);
+            iflag = Functor.f(wa2, wa4);
             ++nfev;
             if (iflag < 0)
                 goto algo_end;
@@ -319,7 +320,7 @@ algo_end:
     if (iflag < 0)
         info = iflag;
     if (nprint > 0)
-        iflag = Functor::debug(x, fvec);
+        iflag = Functor.debug(x, fvec);
     return info;
 }
 

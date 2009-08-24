@@ -1,6 +1,7 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_lmstr1(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
@@ -19,7 +20,8 @@ int ei_lmstr1(
     }
 
     ipvt.resize(n);
-    info = ei_lmstr<Functor,Scalar>(
+    info = ei_lmstr(
+        Functor,
         x, fvec,
         nfev, njev,
         fjac, ipvt, qtf, diag,
