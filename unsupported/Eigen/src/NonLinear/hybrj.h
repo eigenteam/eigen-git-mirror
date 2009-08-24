@@ -78,19 +78,19 @@ int ei_hybrj(
     while (true) {
         jeval = true;
 
-        /*        calculate the jacobian matrix. */
+        /* calculate the jacobian matrix. */
 
         iflag = Functor::df(x, fjac);
         ++njev;
         if (iflag < 0)
             break;
 
-        /*        compute the qr factorization of the jacobian. */
+        /* compute the qr factorization of the jacobian. */
 
         ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data());
 
-        /*        on the first iteration and if mode is 1, scale according */
-        /*        to the norms of the columns of the initial jacobian. */
+        /* on the first iteration and if mode is 1, scale according */
+        /* to the norms of the columns of the initial jacobian. */
 
         if (iter == 1) {
             if (mode != 2)
@@ -100,8 +100,8 @@ int ei_hybrj(
                         diag[j] = 1.;
                 }
 
-            /*        on the first iteration, calculate the norm of the scaled x */
-            /*        and initialize the step bound delta. */
+            /* on the first iteration, calculate the norm of the scaled x */
+            /* and initialize the step bound delta. */
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
@@ -110,7 +110,7 @@ int ei_hybrj(
                 delta = factor;
         }
 
-        /*        form (q transpose)*fvec and store in qtf. */
+        /* form (q transpose)*fvec and store in qtf. */
 
         qtf = fvec;
         for (j = 0; j < n; ++j)
@@ -123,7 +123,7 @@ int ei_hybrj(
                     qtf[i] += fjac(i,j) * temp;
             }
 
-        /*        copy the triangular factor of the qr factorization into r. */
+        /* copy the triangular factor of the qr factorization into r. */
 
         sing = false;
         for (j = 0; j < n; ++j) {
@@ -138,20 +138,20 @@ int ei_hybrj(
                 sing = true;
         }
 
-        /*        accumulate the orthogonal factor in fjac. */
+        /* accumulate the orthogonal factor in fjac. */
 
         ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
 
-        /*        rescale if necessary. */
+        /* rescale if necessary. */
 
         /* Computing MAX */
         if (mode != 2)
             diag = diag.cwise().max(wa2);
 
-        /*        beginning of the inner loop. */
+        /* beginning of the inner loop. */
 
         while (true) {
-            /*           if requested, call Functor::f to enable printing of iterates. */
+            /* if requested, call Functor::f to enable printing of iterates. */
 
             if (nprint > 0) {
                 iflag = 0;
@@ -161,23 +161,23 @@ int ei_hybrj(
                     goto L300;
             }
 
-            /*           determine the direction p. */
+            /* determine the direction p. */
 
             ei_dogleg<Scalar>(R, diag, qtf, delta, wa1);
 
-            /*           store the direction p and x + p. calculate the norm of p. */
+            /* store the direction p and x + p. calculate the norm of p. */
 
             wa1 = -wa1;
             wa2 = x + wa1;
             wa3 = diag.cwise() * wa1;
             pnorm = wa3.stableNorm();
 
-            /*           on the first iteration, adjust the initial step bound. */
+            /* on the first iteration, adjust the initial step bound. */
 
             if (iter == 1)
                 delta = std::min(delta,pnorm);
 
-            /*           evaluate the function at x + p and calculate its norm. */
+            /* evaluate the function at x + p and calculate its norm. */
 
             iflag = Functor::f(wa2, wa4);
             ++nfev;
@@ -185,13 +185,13 @@ int ei_hybrj(
                 goto L300;
             fnorm1 = wa4.stableNorm();
 
-            /*           compute the scaled actual reduction. */
+            /* compute the scaled actual reduction. */
 
             actred = -1.;
             if (fnorm1 < fnorm) /* Computing 2nd power */
                 actred = 1. - ei_abs2(fnorm1 / fnorm);
 
-            /*           compute the scaled predicted reduction. */
+            /* compute the scaled predicted reduction. */
 
             l = 0;
             for (i = 0; i < n; ++i) {
@@ -207,14 +207,14 @@ int ei_hybrj(
             if (temp < fnorm) /* Computing 2nd power */
                 prered = 1. - ei_abs2(temp / fnorm);
 
-            /*           compute the ratio of the actual to the predicted */
-            /*           reduction. */
+            /* compute the ratio of the actual to the predicted */
+            /* reduction. */
 
             ratio = 0.;
             if (prered > 0.)
                 ratio = actred / prered;
 
-            /*           update the step bound. */
+            /* update the step bound. */
 
             if (ratio < Scalar(.1)) {
                 ncsuc = 0;
@@ -230,10 +230,10 @@ int ei_hybrj(
                 }
             }
 
-            /*           test for successful iteration. */
+            /* test for successful iteration. */
 
             if (ratio >= Scalar(1e-4)) {
-                /*           successful iteration. update x, fvec, and their norms. */
+                /* successful iteration. update x, fvec, and their norms. */
                 x = wa2;
                 wa2 = diag.cwise() * x;
                 fvec = wa4;
@@ -242,7 +242,7 @@ int ei_hybrj(
                 ++iter;
             }
 
-            /*           determine the progress of the iteration. */
+            /* determine the progress of the iteration. */
 
             ++nslow1;
             if (actred >= Scalar(.001))
@@ -252,14 +252,14 @@ int ei_hybrj(
             if (actred >= Scalar(.1))
                 nslow2 = 0;
 
-            /*           test for convergence. */
+            /* test for convergence. */
 
             if (delta <= xtol * xnorm || fnorm == 0.)
                 info = 1;
             if (info != 0)
                 goto L300;
 
-            /*           tests for termination and stringent tolerances. */
+            /* tests for termination and stringent tolerances. */
 
             if (nfev >= maxfev)
                 info = 2;
@@ -273,13 +273,13 @@ int ei_hybrj(
             if (info != 0)
                 goto L300;
 
-            /*           criterion for recalculating jacobian. */
+            /* criterion for recalculating jacobian. */
 
             if (ncfail == 2)
                 break;
 
-            /*           calculate the rank one modification to the jacobian */
-            /*           and update qtf if necessary. */
+            /* calculate the rank one modification to the jacobian */
+            /* and update qtf if necessary. */
 
             for (j = 0; j < n; ++j) {
                 sum = wa4.dot(fjac.col(j));
@@ -289,17 +289,17 @@ int ei_hybrj(
                     qtf[j] = sum;
             }
 
-            /*           compute the qr factorization of the updated jacobian. */
+            /* compute the qr factorization of the updated jacobian. */
 
             ei_r1updt<Scalar>(n, n, R.data(), R.size(), wa1.data(), wa2.data(), wa3.data(), &sing);
             ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
             ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 
-            /*           end of the inner loop. */
+            /* end of the inner loop. */
 
             jeval = false;
         }
-        /*        end of the outer loop. */
+        /* end of the outer loop. */
     }
 L300:
     /*     termination, either normal or user imposed. */

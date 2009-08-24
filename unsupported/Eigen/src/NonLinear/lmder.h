@@ -46,8 +46,7 @@ int ei_lmder(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || 
-            gtol < 0. || maxfev <= 0 || factor <= 0.)
+    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
         goto L300;
 
     if (mode == 2)
@@ -70,16 +69,16 @@ int ei_lmder(
 
     /*     beginning of the outer loop. */
 
-    while(true) {
+    while (true) {
 
-        /*        calculate the jacobian matrix. */
+        /* calculate the jacobian matrix. */
 
         iflag = Functor::df(x, fjac);
         ++njev;
         if (iflag < 0)
             break;
 
-        /*        if requested, call Functor::f to enable printing of iterates. */
+        /* if requested, call Functor::f to enable printing of iterates. */
 
         if (nprint > 0) {
             iflag = 0;
@@ -89,13 +88,13 @@ int ei_lmder(
                 break;
         }
 
-        /*        compute the qr factorization of the jacobian. */
+        /* compute the qr factorization of the jacobian. */
 
         ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
         ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
-        /*        on the first iteration and if mode is 1, scale according */
-        /*        to the norms of the columns of the initial jacobian. */
+        /* on the first iteration and if mode is 1, scale according */
+        /* to the norms of the columns of the initial jacobian. */
 
         if (iter == 1) {
             if (mode != 2)
@@ -104,8 +103,10 @@ int ei_lmder(
                     if (wa2[j] == 0.)
                         diag[j] = 1.;
                 }
-            /*        on the first iteration, calculate the norm of the scaled x */
-            /*        and initialize the step bound delta. */
+
+            /* on the first iteration, calculate the norm of the scaled x */
+            /* and initialize the step bound delta. */
+
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
             delta = factor * xnorm;
@@ -113,8 +114,8 @@ int ei_lmder(
                 delta = factor;
         }
 
-        /*        form (q transpose)*fvec and store the first n components in */
-        /*        qtf. */
+        /* form (q transpose)*fvec and store the first n components in */
+        /* qtf. */
 
         wa4 = fvec;
         for (j = 0; j < n; ++j) {
@@ -130,7 +131,7 @@ int ei_lmder(
             qtf[j] = wa4[j];
         }
 
-        /*        compute the norm of the scaled gradient. */
+        /* compute the norm of the scaled gradient. */
 
         gnorm = 0.;
         if (fnorm != 0.)
@@ -145,21 +146,21 @@ int ei_lmder(
                 }
             }
 
-        /*        test for convergence of the gradient norm. */
+        /* test for convergence of the gradient norm. */
 
-        if (gnorm <= gtol) {
+        if (gnorm <= gtol)
             info = 4;
-        }
         if (info != 0)
             break;
 
-        /*        rescale if necessary. */
+        /* rescale if necessary. */
 
         if (mode != 2) /* Computing MAX */
             diag = diag.cwise().max(wa2);
 
-        /*        beginning of the inner loop. */
+        /* beginning of the inner loop. */
         do {
+
             /* determine the levenberg-marquardt parameter. */
 
             ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
@@ -173,9 +174,8 @@ int ei_lmder(
 
             /* on the first iteration, adjust the initial step bound. */
 
-            if (iter == 1) {
+            if (iter == 1)
                 delta = std::min(delta,pnorm);
-            }
 
             /* evaluate the function at x + p and calculate its norm. */
 
@@ -198,9 +198,8 @@ int ei_lmder(
             for (j = 0; j < n; ++j) {
                 l = ipvt[j];
                 temp = wa1[l];
-                for (i = 0; i <= j; ++i) {
+                for (i = 0; i <= j; ++i)
                     wa3[i] += fjac(i,j) * temp;
-                }
             }
             temp1 = ei_abs2(wa3.stableNorm() / fnorm);
             temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
@@ -227,12 +226,9 @@ int ei_lmder(
                 /* Computing MIN */
                 delta = temp * std::min(delta, pnorm / Scalar(.1));
                 par /= temp;
-            }
-            else {
-                if (!(par != 0. && ratio < Scalar(.75))) {
-                    delta = pnorm / Scalar(.5);
-                    par = Scalar(.5) * par;
-                }
+            } else if (!(par != 0. && ratio < Scalar(.75))) {
+                delta = pnorm / Scalar(.5);
+                par = Scalar(.5) * par;
             }
 
             /* test for successful iteration. */
@@ -272,12 +268,11 @@ int ei_lmder(
                 goto L300;
             /* end of the inner loop. repeat if iteration unsuccessful. */
         } while (ratio < Scalar(1e-4));
-        /*        end of the outer loop. */
+        /* end of the outer loop. */
     }
 L300:
 
     /*     termination, either normal or user imposed. */
-
     if (iflag < 0)
         info = iflag;
     if (nprint > 0)
