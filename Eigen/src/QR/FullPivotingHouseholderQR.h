@@ -97,11 +97,15 @@ template<typename MatrixType> class FullPivotingHouseholderQR
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixType matrixQ(void) const;
+    MatrixQType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
-    const MatrixType& matrixQR() const { return m_qr; }
+    const MatrixType& matrixQR() const
+    {
+      ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
+      return m_qr;
+    }
 
     FullPivotingHouseholderQR& compute(const MatrixType& matrix);
     
@@ -391,7 +395,7 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
 
 /** \returns the matrix Q */
 template<typename MatrixType>
-MatrixType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
+typename FullPivotingHouseholderQR<MatrixType>::MatrixQType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
   // compute the product H'_0 H'_1 ... H'_n-1,
@@ -400,7 +404,7 @@ MatrixType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
   int rows = m_qr.rows();
   int cols = m_qr.cols();
   int size = std::min(rows,cols);
-  MatrixType res = MatrixType::Identity(rows, rows);
+  MatrixQType res = MatrixQType::Identity(rows, rows);
   Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
   for (int k = size-1; k >= 0; k--)
   {

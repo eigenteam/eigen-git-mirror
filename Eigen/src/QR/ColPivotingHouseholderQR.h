@@ -99,11 +99,15 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixType matrixQ(void) const;
+    MatrixQType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
-    const MatrixType& matrixQR() const { return m_qr; }
+    const MatrixType& matrixQR() const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      return m_qr;
+    }
 
     ColPivotingHouseholderQR& compute(const MatrixType& matrix);
     
@@ -363,9 +367,10 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
     // is c is in the image of R ?
     RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
     RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
-    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
+    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision*4))
       return false;
   }
+
   m_qr.corner(TopLeft, m_rank, m_rank)
       .template triangularView<UpperTriangular>()
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
@@ -377,7 +382,7 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
 
 /** \returns the matrix Q */
 template<typename MatrixType>
-MatrixType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
+typename ColPivotingHouseholderQR<MatrixType>::MatrixQType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
   // compute the product H'_0 H'_1 ... H'_n-1,
@@ -386,7 +391,7 @@ MatrixType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
   int rows = m_qr.rows();
   int cols = m_qr.cols();
   int size = std::min(rows,cols);
-  MatrixType res = MatrixType::Identity(rows, rows);
+  MatrixQType res = MatrixQType::Identity(rows, rows);
   Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
   for (int k = size-1; k >= 0; k--)
   {

@@ -105,7 +105,7 @@ template<typename MatrixType> void qr_verify_assert()
   MatrixType tmp;
 
   FullPivotingHouseholderQR<MatrixType> qr;
-  VERIFY_RAISES_ASSERT(qr.matrixR())
+  VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
   VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
@@ -114,6 +114,8 @@ template<typename MatrixType> void qr_verify_assert()
   VERIFY_RAISES_ASSERT(qr.isInvertible())
   VERIFY_RAISES_ASSERT(qr.computeInverse(&tmp))
   VERIFY_RAISES_ASSERT(qr.inverse())
+  VERIFY_RAISES_ASSERT(qr.absDeterminant())
+  VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
 void test_qr_fullpivoting()

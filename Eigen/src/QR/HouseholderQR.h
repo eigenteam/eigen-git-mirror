@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -38,6 +39,10 @@
   * stored in a compact way compatible with LAPACK.
   *
   * Note that no pivoting is performed. This is \b not a rank-revealing decomposition.
+  * If you want that feature, use FullPivotingHouseholderQR or ColPivotingHouseholderQR instead.
+  *
+  * This Householder QR decomposition is faster, but less numerically stable and less feature-full than
+  * FullPivotingHouseholderQR or ColPivotingHouseholderQR.
   *
   * \sa MatrixBase::householderQr()
   */
@@ -46,15 +51,17 @@ template<typename MatrixType> class HouseholderQR
   public:
 
     enum {
-      MinSizeAtCompileTime = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,MatrixType::RowsAtCompileTime)
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
     
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Block<MatrixType, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixRBlockType;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
-    typedef Matrix<Scalar, MinSizeAtCompileTime, 1> HCoeffsType;
-    typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
+    typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
 
     /**
     * \brief Default Constructor.
@@ -70,15 +77,6 @@ template<typename MatrixType> class HouseholderQR
         m_isInitialized(false)
     {
       compute(matrix);
-    }
-
-    /** \returns a read-only expression of the matrix R of the actual the QR decomposition */
-    const TriangularView<NestByValue<MatrixRBlockType>, UpperTriangular>
-    matrixR(void) const
-    {
-      ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-      int cols = m_qr.cols();
-      return MatrixRBlockType(m_qr, 0, 0, cols, cols).nestByValue().template triangularView<UpperTriangular>();
     }
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
@@ -99,14 +97,47 @@ template<typename MatrixType> class HouseholderQR
     template<typename OtherDerived, typename ResultType>
     void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixType matrixQ(void) const;
+    MatrixQType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       * in a LAPACK-compatible way.
       */
-    const MatrixType& matrixQR() const { return m_qr; }
+    const MatrixType& matrixQR() const
+    {
+        ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+        return m_qr;
+    }
 
     HouseholderQR& compute(const MatrixType& matrix);
+
+    /** \returns the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \warning a determinant can be very big or small, so for matrices
+      * of large enough dimension, there is a risk of overflow/underflow.
+      * One way to work around that is to use logAbsDeterminant() instead.
+      *
+      * \sa logAbsDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar absDeterminant() const;
+
+    /** \returns the natural log of the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \note This method is useful to work around the risk of overflow/underflow that's inherent
+      * to determinant computation.
+      *
+      * \sa absDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar logAbsDeterminant() const;
 
   protected:
     MatrixType m_qr;
@@ -115,6 +146,22 @@ template<typename MatrixType> class HouseholderQR
 };
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
+
+template<typename MatrixType>
+typename MatrixType::RealScalar HouseholderQR<MatrixType>::absDeterminant() const
+{
+  ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return ei_abs(m_qr.diagonal().prod());
+}
+
+template<typename MatrixType>
+typename MatrixType::RealScalar HouseholderQR<MatrixType>::logAbsDeterminant() const
+{
+  ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return m_qr.diagonal().cwise().abs().cwise().log().sum();
+}
 
 template<typename MatrixType>
 HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
@@ -177,7 +224,7 @@ void HouseholderQR<MatrixType>::solve(
 
 /** \returns the matrix Q */
 template<typename MatrixType>
-MatrixType HouseholderQR<MatrixType>::matrixQ() const
+typename HouseholderQR<MatrixType>::MatrixQType HouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
   // compute the product H'_0 H'_1 ... H'_n-1,
@@ -185,13 +232,13 @@ MatrixType HouseholderQR<MatrixType>::matrixQ() const
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
   int rows = m_qr.rows();
   int cols = m_qr.cols();
-  MatrixType res = MatrixType::Identity(rows, cols);
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
-  for (int k = cols-1; k >= 0; k--)
+  int size = std::min(rows,cols);
+  MatrixQType res = MatrixQType::Identity(rows, rows);
+  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
+  for (int k = size-1; k >= 0; k--)
   {
-    int remainingSize = rows-k;
-    res.corner(BottomRight, remainingSize, cols-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
+    res.block(k, k, rows-k, rows-k)
+       .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
   }
   return res;
 }

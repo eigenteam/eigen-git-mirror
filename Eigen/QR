@@ -35,7 +35,7 @@ namespace Eigen {
   * \endcode
   */
 
-#include "src/QR/QR.h"
+#include "src/QR/HouseholderQR.h"
 #include "src/QR/FullPivotingHouseholderQR.h"
 #include "src/QR/ColPivotingHouseholderQR.h"
 #include "src/QR/Tridiagonalization.h"
