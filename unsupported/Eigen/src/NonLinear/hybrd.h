@@ -104,7 +104,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */

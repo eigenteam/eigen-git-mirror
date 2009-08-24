@@ -2,7 +2,7 @@
 template <typename Scalar>
 void ei_qrfac(int m, int n, Scalar *a, int
 	lda, int pivot, int *ipvt, int /* lipvt */, Scalar *rdiag,
-	 Scalar *acnorm, Scalar *wa)
+	 Scalar *acnorm)
 {
     /* System generated locals */
     int a_dim1, a_offset;
@@ -15,8 +15,9 @@ void ei_qrfac(int m, int n, Scalar *a, int
     int minmn;
     Scalar ajnorm;
 
+    Matrix< Scalar, Dynamic, 1 > wa(n+1);
+
     /* Parameter adjustments */
-    --wa;
     --acnorm;
     --rdiag;
     a_dim1 = lda;

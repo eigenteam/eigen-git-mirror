@@ -96,7 +96,7 @@ L40:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /*        on the first iteration and if mode is 1, scale according */
