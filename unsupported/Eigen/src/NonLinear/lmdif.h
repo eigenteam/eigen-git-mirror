@@ -121,7 +121,7 @@ L60:
     /*        and initialize the step bound delta. */
 
     wa3 = diag.cwise() * x;
-    xnorm = wa3.stableNorm();;
+    xnorm = wa3.stableNorm();
     delta = factor * xnorm;
     if (delta == 0.) {
         delta = factor;

@@ -10,7 +10,7 @@ int ei_lmstr1(
     const int n = x.size(), m=fvec.size();
     int info, nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
-    Matrix< Scalar, Dynamic, 1> diag;
+    Matrix< Scalar, Dynamic, 1> diag, qtf;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -22,7 +22,7 @@ int ei_lmstr1(
     info = ei_lmstr<Functor,Scalar>(
         x, fvec,
         nfev, njev,
-        fjac, ipvt, diag,
+        fjac, ipvt, qtf, diag,
         1,
         100.,
         (n+1)*100,

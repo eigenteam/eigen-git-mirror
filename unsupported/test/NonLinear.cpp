@@ -461,7 +461,7 @@ void testLmstr()
   const int m=15, n=3;
   int info, nfev=0, njev=0;
   double fnorm;
-  VectorXd x(n), fvec(m), diag(n);
+  VectorXd x(n), fvec(m), diag(n), qtf;
   MatrixXd fjac;
   VectorXi ipvt;
 
@@ -469,7 +469,7 @@ void testLmstr()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr<lmstr_functor, double>(x, fvec, nfev, njev, fjac, ipvt, diag);
+  info = ei_lmstr<lmstr_functor, double>(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
   VectorXd wa(n);
 
   // check return values

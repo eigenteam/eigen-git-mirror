@@ -121,7 +121,7 @@ L60:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    wa3 = diag.cwise() * x ;
+    wa3 = diag.cwise() * x;
     xnorm = wa3.stableNorm();
     delta = factor * xnorm;
     if (delta == 0.) {
@@ -161,16 +161,13 @@ L120:
     }
     for (j = 0; j < n; ++j) {
         l = ipvt[j];
-        if (wa2[l] == 0.) {
-            goto L150;
+        if (wa2[l] != 0.) {
+            sum = 0.;
+            for (i = 0; i <= j; ++i)
+                sum += fjac(i,j) * (qtf[i] / fnorm);
+            /* Computing MAX */
+            gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
         }
-        sum = 0.;
-        for (i = 0; i <= j; ++i)
-            sum += fjac(i,j) * (qtf[i] / fnorm);
-        /* Computing MAX */
-        gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-L150:
-        ;
     }
 L170:
 

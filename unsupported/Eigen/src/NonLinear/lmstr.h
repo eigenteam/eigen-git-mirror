@@ -7,6 +7,7 @@ int ei_lmstr(
         int &njev,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         Scalar factor = 100.,
@@ -18,25 +19,23 @@ int ei_lmstr(
         )
 {
     const int m = fvec.size(), n = x.size();
-    Matrix< Scalar, Dynamic, 1 >
-        qtf(n),
-        wa1(n), wa2(n), wa3(n),
-        wa4(m);
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
 
     ipvt.resize(n);
     fjac.resize(m, n);
     diag.resize(n);
+    qtf.resize(n);
 
     /* Local variables */
     int i, j, l;
     Scalar par, sum;
-    int sing;
-    int iter;
+    int sing, iter;
     Scalar temp, temp1, temp2;
     int iflag;
     Scalar delta;
     Scalar ratio;
-    Scalar fnorm, gnorm, pnorm, xnorm, fnorm1, actred, dirder, prered;
+    Scalar fnorm, gnorm;
+    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
     int info;
 
     /* Function Body */
@@ -51,7 +50,6 @@ int ei_lmstr(
             gtol < 0. || maxfev <= 0 || factor <= 0.) {
         goto L340;
     }
-
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.) goto L300;
@@ -64,7 +62,7 @@ int ei_lmstr(
     if (iflag < 0) {
         goto L340;
     }
-    fnorm = fvec.stableNorm();;
+    fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
 
@@ -176,19 +174,13 @@ L170:
     }
     for (j = 0; j < n; ++j) {
         l = ipvt[j];
-        if (wa2[l] == 0.) {
-            goto L190;
+        if (wa2[l] != 0.) {
+            sum = 0.;
+            for (i = 0; i <= j; ++i)
+                sum += fjac(i,j) * (qtf[i] / fnorm);
+            /* Computing MAX */
+            gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
         }
-        sum = 0.;
-        for (i = 0; i < j; ++i) {
-            sum += fjac(i,j) * (qtf[i] / fnorm);
-            /* L180: */
-        }
-        /* Computing MAX */
-        gnorm = std::max(gnorm, ei_abs(sum/wa2[l]));
-L190:
-        /* L200: */
-        ;
     }
 L210:
 
@@ -249,8 +241,8 @@ L240:
     /*           compute the scaled predicted reduction and */
     /*           the scaled directional derivative. */
 
+    wa3.fill(0.);
     for (j = 0; j < n; ++j) {
-        wa3[j] = 0.;
         l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
@@ -260,7 +252,7 @@ L240:
         /* L270: */
     }
     temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-    temp2 = ei_abs2( ei_sqrt(par) * pnorm / fnorm);
+    temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
     /* Computing 2nd power */
     prered = temp1 + temp2 / Scalar(.5);
     dirder = -(temp1 + temp2);
@@ -284,9 +276,8 @@ L240:
     if (actred < 0.) {
         temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
     }
-    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1)) {
+    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
         temp = Scalar(.1);
-    }
     /* Computing MIN */
     delta = temp * std::min(delta, pnorm / Scalar(.1));
 
