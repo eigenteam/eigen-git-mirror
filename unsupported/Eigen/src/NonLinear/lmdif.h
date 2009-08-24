@@ -19,9 +19,7 @@ int ei_lmdif(
         )
 {
     const int m = fvec.size(), n = x.size();
-    Matrix< Scalar, Dynamic, 1 >
-        wa1(n), wa2(n), wa3(n),
-        wa4(m);
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
 
     ipvt.resize(n);
     fjac.resize(m, n);
@@ -53,8 +51,7 @@ int ei_lmdif(
     }
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.)
-                goto L300;
+            if (diag[j] <= 0.) goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -187,8 +184,8 @@ L170:
     if (mode == 2) {
         goto L190;
     }
-    for (j = 0; j < n; ++j) /* Computing MAX */
-        diag[j] = std::max(diag[j], wa2[j]);
+    /* Computing MAX */
+    diag = diag.cwise().max(wa2);
 L190:
 
     /*        beginning of the inner loop. */
@@ -232,8 +229,8 @@ L200:
     /*           compute the scaled predicted reduction and */
     /*           the scaled directional derivative. */
 
+    wa3.fill(0.);
     for (j = 0; j < n; ++j) {
-        wa3[j] = 0.;
         l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
@@ -267,9 +264,8 @@ L200:
     if (actred < 0.) {
         temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
     }
-    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1)) {
+    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
         temp = Scalar(.1);
-    }
     /* Computing MIN */
     delta = temp * std::min(delta, pnorm / Scalar(.1));
     par /= temp;
@@ -354,8 +350,5 @@ L300:
         iflag = Functor::debug(x, fvec);
     }
     return info;
-
-    /*     last card of subroutine lmdif. */
-
-} /* lmdif_ */
+}
 

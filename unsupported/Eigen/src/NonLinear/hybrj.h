@@ -57,8 +57,7 @@ int ei_hybrj(
     }
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.)
-                goto L300;
+            if (diag[j] <= 0.) goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -68,7 +67,7 @@ int ei_hybrj(
     if (iflag < 0) {
         goto L300;
     }
-    fnorm = fvec.stableNorm();;
+    fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
 
@@ -93,7 +92,7 @@ L30:
 
     /*        compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(n, n,fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data(), wa3.data());
 
     /*        on the first iteration and if mode is 1, scale according */
     /*        to the norms of the columns of the initial jacobian. */
@@ -117,7 +116,7 @@ L50:
     /*        and initialize the step bound delta. */
 
     wa3 = diag.cwise() * x;
-    xnorm = wa3.stableNorm();;
+    xnorm = wa3.stableNorm();
     delta = factor * xnorm;
     if (delta == 0.) {
         delta = factor;
@@ -175,14 +174,12 @@ L110:
         goto L170;
     }
     /* Computing MAX */
-    for (j = 0; j < n; ++j)
-        diag[j] = std::max(diag[j], wa2[j]);
+    diag = diag.cwise().max(wa2);
 L170:
 
     /*        beginning of the inner loop. */
 
 L180:
-
     /*           if requested, call Functor::f to enable printing of iterates. */
 
     if (nprint <= 0) {
@@ -191,9 +188,8 @@ L180:
     iflag = 0;
     if ((iter - 1) % nprint == 0)
         iflag = Functor::debug(x, fvec, fjac);
-    if (iflag < 0) {
+    if (iflag < 0)
         goto L300;
-    }
 L190:
 
     /*           determine the direction p. */
@@ -202,26 +198,22 @@ L190:
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
-    for (j = 0; j < n; ++j) {
-        wa1[j] = -wa1[j];
-        wa2[j] = x[j] + wa1[j];
-        wa3[j] = diag[j] * wa1[j];
-    }
+    wa1 = -wa1;
+    wa2 = x + wa1;
+    wa3 = diag.cwise() * wa1;
     pnorm = wa3.stableNorm();
 
     /*           on the first iteration, adjust the initial step bound. */
 
-    if (iter == 1) {
+    if (iter == 1)
         delta = std::min(delta,pnorm);
-    }
 
     /*           evaluate the function at x + p and calculate its norm. */
 
     iflag = Functor::f(wa2, wa4);
     ++nfev;
-    if (iflag < 0) {
+    if (iflag < 0)
         goto L300;
-    }
     fnorm1 = wa4.stableNorm();
 
     /*           compute the scaled actual reduction. */
@@ -283,7 +275,7 @@ L240:
 
     /*           successful iteration. update x, fvec, and their norms. */
 
-    x =wa2;
+    x = wa2;
     wa2 = diag.cwise() * x;
     fvec = wa4;
     xnorm = wa2.stableNorm();
@@ -319,24 +311,19 @@ L260:
         info = 2;
     }
     /* Computing MAX */
-    if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm) {
+    if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
         info = 3;
-    }
-    if (nslow2 == 5) {
+    if (nslow2 == 5)
         info = 4;
-    }
-    if (nslow1 == 10) {
+    if (nslow1 == 10)
         info = 5;
-    }
-    if (info != 0) {
+    if (info != 0)
         goto L300;
-    }
 
     /*           criterion for recalculating jacobian. */
 
-    if (ncfail == 2) {
+    if (ncfail == 2)
         goto L290;
-    }
 
     /*           calculate the rank one modification to the jacobian */
     /*           and update qtf if necessary. */
@@ -345,10 +332,8 @@ L260:
         sum = wa4.dot(fjac.col(j));
         wa2[j] = (sum - wa3[j]) / pnorm;
         wa1[j] = diag[j] * (diag[j] * wa1[j] / pnorm);
-        if (ratio >= Scalar(1e-4)) {
+        if (ratio >= Scalar(1e-4))
             qtf[j] = sum;
-        }
-        /* L280: */
     }
 
     /*           compute the qr factorization of the updated jacobian. */
@@ -376,8 +361,5 @@ L300:
     if (nprint > 0)
         iflag = Functor::debug(x, fvec, fjac);
     return info;
-
-    /*     last card of subroutine hybrj. */
-
-} /* hybrj_ */
+}
 

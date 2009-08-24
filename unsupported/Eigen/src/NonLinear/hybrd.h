@@ -192,19 +192,16 @@ L170:
     /*        beginning of the inner loop. */
 
 L180:
-
-    /*           if requested, call fcn to enable printing of iterates. */
+    /*           if requested, call Functor::f to enable printing of iterates. */
 
     if (nprint <= 0) {
         goto L190;
     }
     iflag = 0;
-    if ((iter - 1) % nprint == 0) {
+    if ((iter - 1) % nprint == 0)
         iflag = Functor::debug(x, fvec);
-    }
-    if (iflag < 0) {
+    if (iflag < 0)
         goto L300;
-    }
 L190:
 
     /*           determine the direction p. */
@@ -220,17 +217,15 @@ L190:
 
     /*           on the first iteration, adjust the initial step bound. */
 
-    if (iter == 1) {
+    if (iter == 1)
         delta = std::min(delta,pnorm);
-    }
 
     /*           evaluate the function at x + p and calculate its norm. */
 
     iflag = Functor::f(wa2, wa4);
     ++nfev;
-    if (iflag < 0) {
+    if (iflag < 0)
         goto L300;
-    }
     fnorm1 = wa4.stableNorm();
 
     /*           compute the scaled actual reduction. */
@@ -295,7 +290,7 @@ L240:
     x = wa2;
     wa2 = diag.cwise() * x;
     fvec = wa4;
-    temp = wa2.stableNorm();
+    xnorm = wa2.stableNorm();
     fnorm = fnorm1;
     ++iter;
 L260:
@@ -376,12 +371,8 @@ L300:
     if (iflag < 0) {
         info = iflag;
     }
-    if (nprint > 0) {
+    if (nprint > 0)
         iflag = Functor::debug(x, fvec);
-    }
     return info;
-
-    /*     last card of subroutine hybrd. */
-
-} /* hybrd_ */
+}
 

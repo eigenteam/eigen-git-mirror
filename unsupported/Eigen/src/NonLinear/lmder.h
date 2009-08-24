@@ -7,6 +7,7 @@ int ei_lmder(
         int &njev,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
         VectorXi &ipvt,
+        Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
         int mode=1,
         Scalar factor = 100.,
@@ -18,11 +19,12 @@ int ei_lmder(
         )
 {
     const int m = fvec.size(), n = x.size();
-    Matrix< Scalar, Dynamic, 1 > qtf(n), wa1(n), wa2(n), wa3(n), wa4(m);
+    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
 
     ipvt.resize(n);
     fjac.resize(m, n);
     diag.resize(n);
+    qtf.resize(n);
 
     /* Local variables */
     int i, j, l;
@@ -32,12 +34,11 @@ int ei_lmder(
     int iflag;
     Scalar delta;
     Scalar ratio;
-    Scalar fnorm, gnorm, pnorm, xnorm, fnorm1, actred, dirder, prered;
+    Scalar fnorm, gnorm;
+    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
     int info;
 
-
     /* Function Body */
-
     info = 0;
     iflag = 0;
     nfev = 0;
@@ -51,8 +52,7 @@ int ei_lmder(
     }
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.)
-                goto L300;
+            if (diag[j] <= 0.) goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -188,8 +188,8 @@ L170:
     if (mode == 2) {
         goto L190;
     }
-    for (j = 0; j < n; ++j)
-        diag[j] = std::max( diag[j], wa2[j]);
+    /* Computing MAX */
+    diag = diag.cwise().max(wa2);
 L190:
 
     /*        beginning of the inner loop. */
@@ -235,7 +235,6 @@ L200:
 
     wa3.fill(0.);
     for (j = 0; j < n; ++j) {
-        wa3[j] = 0.;
         l = ipvt[j];
         temp = wa1[l];
         for (i = 0; i <= j; ++i) {
@@ -245,7 +244,7 @@ L200:
         /* L230: */
     }
     temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-    temp2 = ei_abs2( ei_sqrt(par) * pnorm / fnorm);
+    temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
     /* Computing 2nd power */
     prered = temp1 + temp2 / Scalar(.5);
     dirder = -(temp1 + temp2);
@@ -269,11 +268,10 @@ L200:
     if (actred < 0.) {
         temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
     }
-    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1)) {
+    if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
         temp = Scalar(.1);
-    }
     /* Computing MIN */
-    delta = temp * std::min(delta, pnorm/Scalar(.1));
+    delta = temp * std::min(delta, pnorm / Scalar(.1));
     par /= temp;
     goto L260;
 L240:
@@ -356,8 +354,5 @@ L300:
         iflag = Functor::debug(x, fvec, fjac);
     }
     return info;
-
-    /*     last card of subroutine lmder. */
-
-} /* lmder_ */
+}
 

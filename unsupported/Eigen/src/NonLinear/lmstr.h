@@ -54,8 +54,7 @@ int ei_lmstr(
 
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.)
-                goto L300;
+            if (diag[j] <= 0.) goto L300;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -95,23 +94,15 @@ L40:
     /*        forming (q transpose)*fvec and storing the first */
     /*        n components in qtf. */
 
-    for (j = 0; j < n; ++j) {
-        qtf[j] = 0.;
-        for (i = 0; i < n; ++i) {
-            fjac(i,j) = 0.;
-            /* L50: */
-        }
-        /* L60: */
-    }
+    qtf.fill(0.);
+    fjac.fill(0.);
     iflag = 2;
     for (i = 0; i < m; ++i) {
-        if (Functor::df(x, wa3, iflag) < 0) {
+        if (Functor::df(x, wa3, iflag) < 0)
             goto L340;
-        }
         temp = fvec[i];
         ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
         ++iflag;
-        /* L70: */
     }
     ++njev;
 
@@ -126,25 +117,21 @@ L40:
         ipvt[j] = j;
         wa2[j] = fjac.col(j).start(j).stableNorm();
     }
-    if (! sing) {
+    if (! sing)
         goto L130;
-    }
     ipvt.cwise()+=1;
     ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data(), wa3.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
     for (j = 0; j < n; ++j) {
-        if (fjac(j,j) == 0.) {
+        if (fjac(j,j) == 0.)
             goto L110;
-        }
         sum = 0.;
         for (i = j; i < n; ++i) {
             sum += fjac(i,j) * qtf[i];
-            /* L90: */
         }
         temp = -sum / fjac(j,j);
         for (i = j; i < n; ++i) {
             qtf[i] += fjac(i,j) * temp;
-            /* L100: */
         }
 L110:
         fjac(j,j) = wa1[j];
@@ -173,10 +160,7 @@ L150:
     /*        on the first iteration, calculate the norm of the scaled x */
     /*        and initialize the step bound delta. */
 
-    for (j = 0; j < n; ++j) {
-        wa3[j] = diag[j] * x[j];
-        /* L160: */
-    }
+    wa3 = diag.cwise() * x;
     xnorm = wa3.stableNorm();
     delta = factor * xnorm;
     if (delta == 0.) {
@@ -222,8 +206,8 @@ L210:
     if (mode == 2) {
         goto L230;
     }
-    for (j = 0; j < n; ++j) /* Computing MAX */
-        diag[j] = std::max(diag[j], wa2[j]);
+    /* Computing MAX */
+    diag = diag.cwise().max(wa2);
 L230:
 
     /*        beginning of the inner loop. */
@@ -390,8 +374,5 @@ L340:
         iflag = Functor::debug(x, fvec, wa3);
     }
     return info;
-
-    /*     last card of subroutine lmstr. */
-
-} /* lmstr_ */
+}
 
