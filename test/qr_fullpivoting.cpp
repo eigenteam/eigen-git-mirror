@@ -39,6 +39,11 @@ template<typename MatrixType> void qr()
   createRandomMatrixOfRank(rank,rows,cols,m1);
   FullPivotingHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
+  VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
+  VERIFY(!qr.isInjective());
+  VERIFY(!qr.isInvertible());
+  VERIFY(!qr.isSurjective());
+
   
   MatrixType r = qr.matrixQR();
   // FIXME need better way to construct trapezoid
@@ -54,8 +59,10 @@ template<typename MatrixType> void qr()
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  qr.solve(m3, &m2);
+  VERIFY(qr.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
+  m3 = MatrixType::Random(rows,cols2);
+  VERIFY(!qr.solve(m3, &m2));
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -74,8 +81,12 @@ template<typename MatrixType> void qr_invertible()
   }
 
   FullPivotingHouseholderQR<MatrixType> qr(m1);
+  VERIFY(qr.isInjective());
+  VERIFY(qr.isInvertible());
+  VERIFY(qr.isSurjective());
+
   m3 = MatrixType::Random(size,size);
-  qr.solve(m3, &m2);
+  VERIFY(qr.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
 }
 

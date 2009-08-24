@@ -77,7 +77,7 @@ void MatrixBase<Derived>::makeHouseholder(
   RealScalar tailSqNorm = size()==1 ? 0 : tail.squaredNorm();
   Scalar c0 = coeff(0);
   
-  if( tailSqNorm == RealScalar(0) && ei_imag(c0)==RealScalar(0))
+  if(tailSqNorm == RealScalar(0) && ei_imag(c0)==RealScalar(0))
   {
     *tau = 0;
     *beta = ei_real(c0);
