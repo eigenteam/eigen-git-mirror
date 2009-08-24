@@ -2,7 +2,7 @@
 template <typename Scalar>
 void ei_lmpar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
-        const VectorXi &ipvt,
+        VectorXi &ipvt, // TODO : const once ipvt mess fixed
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
@@ -50,7 +50,7 @@ void ei_lmpar(
     }
 
     for (j = 0; j < n; ++j) {
-        l = ipvt[j]-1;
+        l = ipvt[j];
         x[l] = wa1[j];
     }
 
@@ -73,7 +73,7 @@ void ei_lmpar(
     if (nsing < n-1)
         goto L120;
     for (j = 0; j < n; ++j) {
-        l = ipvt[j]-1;
+        l = ipvt[j];
         wa1[j] = diag[l] * (wa2[l] / dxnorm);
     }
     for (j = 0; j < n; ++j) {
@@ -92,7 +92,7 @@ L120:
         sum = 0.;
         for (i = 0; i <= j; ++i)
             sum += r(i,j) * qtb[i];
-        l = ipvt[j]-1;
+        l = ipvt[j];
         wa1[j] = sum / diag[l];
     }
     gnorm = wa1.stableNorm();
@@ -122,7 +122,9 @@ L150:
     temp = ei_sqrt(par);
     wa1 = temp * diag;
 
+    ipvt.cwise()+=1; // qrsolv() expects the fortran convention (as qrfac provides)
     ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
+    ipvt.cwise()-=1;
 
     wa2 = diag.cwise() * x;
     dxnorm = wa2.blueNorm();
@@ -141,7 +143,7 @@ L150:
     /*        compute the newton correction. */
 
     for (j = 0; j < n; ++j) {
-        l = ipvt[j]-1;
+        l = ipvt[j];
         wa1[j] = diag[l] * (wa2[l] / dxnorm);
         /* L180: */
     }

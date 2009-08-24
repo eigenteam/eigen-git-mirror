@@ -216,9 +216,7 @@ L240:
 
     /*           determine the levenberg-marquardt parameter. */
 
-    ipvt.cwise()+=1; // lmpar() expects the fortran convention (as qrfac provides)
     ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
-    ipvt.cwise()-=1;
 
     /*           store the direction p and x + p. calculate the norm of p. */
 
