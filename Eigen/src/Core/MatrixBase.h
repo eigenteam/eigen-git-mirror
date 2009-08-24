@@ -745,6 +745,8 @@ template<typename Derived> class MatrixBase
 /////////// QR module ///////////
 
     const HouseholderQR<PlainMatrixType> householderQr() const;
+    const ColPivotingHouseholderQR<PlainMatrixType> colPivotingHouseholderQr() const;
+    const FullPivotingHouseholderQR<PlainMatrixType> fullPivotingHouseholderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

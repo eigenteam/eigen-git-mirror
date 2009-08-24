@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -73,10 +74,10 @@ void MatrixBase<Derived>::makeHouseholder(
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
   VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
   
-  RealScalar tailSqNorm;
+  RealScalar tailSqNorm = size()==1 ? 0 : tail.squaredNorm();
   Scalar c0 = coeff(0);
   
-  if( (size()==1 || (tailSqNorm=tail.squaredNorm()) == RealScalar(0)) && ei_imag(c0)==RealScalar(0))
+  if(tailSqNorm == RealScalar(0) && ei_imag(c0)==RealScalar(0))
   {
     *tau = 0;
     *beta = ei_real(c0);

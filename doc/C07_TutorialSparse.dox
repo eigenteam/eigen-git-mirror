@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialSparse Tutorial - Getting started with the sparse module
+/** \page TutorialSparse Tutorial 4/4 - Getting started with the sparse module
     \ingroup Tutorial
 
 <div class="eimainmenu">\ref index "Overview"

@@ -61,11 +61,22 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   enum {
     Rows  = Lhs::RowsAtCompileTime,
     Cols  = Rhs::ColsAtCompileTime,
-    Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime),
-
-    value = ei_product_type_selector<(Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small)),
-                                     (Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small)),
-                                     (Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small))>::ret
+    Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime)
+  };
+  
+  // the splitting into different lines of code here, introducing the _select enums and the typedef below,
+  // is to work around an internal compiler error with gcc 4.1 and 4.2.
+private:
+  enum {
+    rows_select = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
+    cols_select = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
+    depth_select = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
+  };
+  typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
+  
+public:
+  enum {
+    value = product_type_selector::ret
   };
 };
 

@@ -42,11 +42,10 @@
   * This decomposition provides the generic approach to solving systems of linear equations, computing
   * the rank, invertibility, inverse, kernel, and determinant.
   *
-  * This LU decomposition is very stable and well tested with large matrices. Even exact rank computation
-  * works at sizes larger than 1000x1000. However there are use cases where the SVD decomposition is inherently
-  * more stable when dealing with numerically damaged input. For example, computing the kernel is more stable with
-  * SVD because the SVD can determine which singular values are negligible while LU has to work at the level of matrix
-  * coefficients that are less meaningful in this respect.
+  * This LU decomposition is very stable and well tested with large matrices. However there are use cases where the SVD
+  * decomposition is inherently more stable and/or flexible. For example, when computing the kernel of a matrix,
+  * working with the SVD allows to select the smallest singular values of the matrix, something that
+  * the LU decomposition doesn't see.
   *
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(),
   * permutationP(), permutationQ().
@@ -326,6 +325,7 @@ template<typename MatrixType> class LU
     inline void computeInverse(MatrixType *result) const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
       solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
     }
 
@@ -456,6 +456,7 @@ template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
   ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+  ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
   return Scalar(m_det_pq) * m_lu.diagonal().prod();
 }
 
@@ -533,7 +534,8 @@ bool LU<MatrixType>::solve(
 ) const
 {
   ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-
+  if(m_rank==0) return false;
+  
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
    * So we proceed as follows:
    * Step 1: compute c = Pb.
@@ -552,7 +554,8 @@ bool LU<MatrixType>::solve(
   for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
 
   // Step 2
-  m_lu.corner(Eigen::TopLeft,smalldim,smalldim).template triangularView<UnitLowerTriangular>()
+  m_lu.corner(Eigen::TopLeft,smalldim,smalldim)
+      .template triangularView<UnitLowerTriangular>()
       .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
   if(rows>cols)
   {
@@ -564,11 +567,10 @@ bool LU<MatrixType>::solve(
   if(!isSurjective())
   {
     // is c is in the image of U ?
-    RealScalar biggest_in_c = m_rank>0 ? c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff() : 0;
-    for(int col = 0; col < c.cols(); ++col)
-      for(int row = m_rank; row < c.rows(); ++row)
-        if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c, m_precision))
-          return false;
+    RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
+    RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
+    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
+      return false;
   }
   m_lu.corner(TopLeft, m_rank, m_rank)
       .template triangularView<UpperTriangular>()

@@ -227,12 +227,11 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
   return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
-template<typename Derived>
-void createRandomMatrixOfRank(int desired_rank, int rows, int cols, Eigen::MatrixBase<Derived>& m)
+template<typename MatrixType>
+void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
-  typedef Derived MatrixType;
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, Dynamic, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,rows);
   MatrixType d = MatrixType::Identity(rows,cols);
@@ -244,7 +243,7 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, Eigen::Matri
 
   HouseholderQR<MatrixType> qra(a);
   HouseholderQR<MatrixType> qrb(b);
-  m = (qra.matrixQ() * d * qrb.matrixQ()).lazy();
+  m = qra.matrixQ() * d * qrb.matrixQ();
 }
 
 } // end namespace Eigen

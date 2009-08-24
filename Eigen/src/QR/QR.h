@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@
   *
   * Note that no pivoting is performed. This is \b not a rank-revealing decomposition.
   *
-  * \sa MatrixBase::qr()
+  * \sa MatrixBase::householderQr()
   */
 template<typename MatrixType> class HouseholderQR
 {
@@ -54,6 +54,7 @@ template<typename MatrixType> class HouseholderQR
     typedef Block<MatrixType, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixRBlockType;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixTypeR;
     typedef Matrix<Scalar, MinSizeAtCompileTime, 1> HCoeffsType;
+    typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
 
     /**
     * \brief Default Constructor.
@@ -125,12 +126,12 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
+  RowVectorType temp(cols);
 
   for (int k = 0; k < size; ++k)
   {
     int remainingRows = rows - k;
-    int remainingCols = cols - k -1;
+    int remainingCols = cols - k - 1;
 
     RealScalar beta;
     m_qr.col(k).end(remainingRows).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &beta);

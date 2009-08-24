@@ -1,7 +1,6 @@
-
 namespace Eigen {
 
-/** \page TutorialAdvancedLinearAlgebra Tutorial 3/3 - Advanced linear algebra
+/** \page TutorialAdvancedLinearAlgebra Tutorial 3/4 - Advanced linear algebra
     \ingroup Tutorial
 
 <div class="eimainmenu">\ref index "Overview"
@@ -11,6 +10,9 @@ namespace Eigen {
   | \ref TutorialSparse "Sparse matrix"
 </div>
 
+This tutorial chapter explains how you can use Eigen to tackle various problems involving matrices:
+solving systems of linear equations, finding eigenvalues and eigenvectors, and so on.
+
 \b Table \b of \b contents
   - \ref TutorialAdvSolvers
   - \ref TutorialAdvLU
@@ -18,53 +20,129 @@ namespace Eigen {
   - \ref TutorialAdvQR
   - \ref TutorialAdvEigenProblems
 
+
 \section TutorialAdvSolvers Solving linear problems
 
-This part of the tutorial focuses on solving linear problem of the form \f$ A \mathbf{x} = b \f$,
-where both \f$ A \f$ and \f$ b \f$ are known, and \f$ x \f$ is the unknown. Moreover, \f$ A \f$
-assumed to be a squared matrix. Of course, the methods described here can be used whenever an expression
-involve the product of an inverse matrix with a vector or another matrix: \f$ A^{-1} B \f$.
-Eigen offers various algorithms to this problem, and its choice mainly depends on the nature of
-the matrix \f$ A \f$, such as its shape, size and numerical properties.
+This part of the tutorial focuses on solving systems of linear equations. Such statems can be
+written in the form \f$ A \mathbf{x} = \mathbf{b} \f$, where both \f$ A \f$ and \f$ \mathbf{b} \f$
+are known, and \f$ \mathbf{x} \f$ is the unknown. Moreover, \f$ A \f$ is assumed to be a square
+matrix. 
 
-\subsection TutorialAdvSolvers_Triangular Triangular solver
-If the matrix \f$ A \f$ is triangular (upper or lower) and invertible (the coefficients of the diagonal
-are all not zero), then the problem can be solved directly using MatrixBase::solveTriangular(), or better,
-MatrixBase::solveTriangularInPlace(). Here is an example:
+The equation \f$ A \mathbf{x} = \mathbf{b} \f$ has a unique solution if \f$ A \f$ is invertible. If
+the matrix is not invertible, then the equation may have no or infinitely many solutions. All
+solvers assume that \f$ A \f$ is invertible, unless noted otherwise.
+
+Eigen offers various algorithms to this problem. The choice of algorithm mainly depends on the
+nature of the matrix \f$ A \f$, such as its shape, size and numerical properties.
+  - The \ref TutorialAdvSolvers_LU "LU decomposition" (with partial pivoting) is a general-purpose
+    algorithm which works for most problems. 
+  - Use the \ref TutorialAdvSolvers_Cholesky "Cholesky decomposition" if the matrix \f$ A \f$ is
+    positive definite. 
+  - Use a special \ref TutorialAdvSolvers_Triangular "triangular solver" if the matrix \f$ A \f$ is
+    upper or lower triangular. 
+  - Use of the \ref TutorialAdvSolvers_Inverse "matrix inverse" is not recommended in general, but
+    may be appropriate in special cases, for instance if you want to solve several systems with the
+    same matrix \f$ A \f$ and that matrix is small.
+  - \ref TutorialAdvSolvers_Misc "Other solvers" (%LU decomposition with full pivoting, the singular
+    value decomposition) are provided for special cases, such as when \f$ A \f$ is not invertible.
+
+The methods described here can be used whenever an expression involve the product of an inverse
+matrix with a vector or another matrix: \f$ A^{-1} \mathbf{v} \f$ or \f$ A^{-1} B \f$.
+
+
+\subsection TutorialAdvSolvers_LU LU decomposition (with partial pivoting)
+
+This is a general-purpose algorithm which performs well in most cases (provided the matrix \f$ A \f$
+is invertible), so if you are unsure about which algorithm to pick, choose this. The method proceeds
+in two steps. First, the %LU decomposition with partial pivoting is computed using the
+MatrixBase::partialLu() function. This yields an object of the class PartialLU. Then, the
+PartialLU::solve() method is called to compute a solution.
+
+As an example, suppose we want to solve the following system of linear equations:
+
+\f[ \begin{aligned}
+   x + 2y + 3z &= 3 \\
+  4x + 5y + 6z &= 3 \\
+  7x + 8y + 10z &= 4.
+\end{aligned} \f] 
+
+The following program solves this system:
+
 <table class="tutorial_code"><tr><td>
-\include MatrixBase_marked.cpp
-</td>
-<td>
-output:
-\include MatrixBase_marked.out
+\include Tutorial_PartialLU_solve.cpp
+</td><td>
+output: \include Tutorial_PartialLU_solve.out
 </td></tr></table>
 
-See MatrixBase::solveTriangular() for more details.
+There are many situations in which we want to solve the same system of equations with different
+right-hand sides. One possibility is to put the right-hand sides as columns in a matrix \f$ B \f$
+and then solve the equation \f$ A X = B \f$. For instance, suppose that we want to solve the same
+system as before, but now we also need the solution of the same equations with 1 on the right-hand
+side. The following code computes the required solutions:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_multiple_rhs.cpp
+</td><td>
+output: \include Tutorial_solve_multiple_rhs.out
+</td></tr></table>
+
+However, this is not always possible. Often, you only know the right-hand side of the second
+problem, and whether you want to solve it at all, after you solved the first problem. In such a
+case, it's best to save the %LU decomposition and reuse it to solve the second problem. This is
+worth the effort because computing the %LU decomposition is much more expensive than using it to
+solve the equation. Here is some code to illustrate the procedure. It uses the constructor
+PartialLU::PartialLU(const MatrixType&) to compute the %LU decomposition.
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_reuse_decomposition.cpp
+</td><td>
+output: \include Tutorial_solve_reuse_decomposition.out
+</td></tr></table>
+
+\b Warning: All this code presumes that the matrix \f$ A \f$ is invertible, so that the system 
+\f$ A \mathbf{x} = \mathbf{b} \f$ has a unique solution. If the matrix \f$ A \f$ is not invertible,
+then the system \f$ A \mathbf{x} = \mathbf{b} \f$ has either zero or infinitely many solutions. In
+both cases, PartialLU::solve() will give nonsense results. For example, suppose that we want to
+solve the same system as above, but with the 10 in the last equation replaced by 9. Then the system
+of equations is inconsistent: adding the first and the third equation gives \f$ 8x + 10y + 12z = 7 \f$,
+which implies \f$ 4x + 5y + 6z = 3\frac12 \f$, in contradiction with the seocond equation. If we try
+to solve this inconsistent system with Eigen, we find:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_singular.cpp
+</td><td>
+output: \include Tutorial_solve_singular.out
+</td></tr></table>
+
+The %LU decomposition with \b full pivoting (class LU) and the singular value decomposition (class
+SVD) may be helpful in this case, as explained in the section \ref TutorialAdvSolvers_Misc below.
+
+\sa LU_Module, MatrixBase::partialLu(), PartialLU::solve(), class PartialLU.
 
 
-\subsection TutorialAdvSolvers_Inverse Direct inversion (for small matrices)
-If the matrix \f$ A \f$ is small (\f$ \leq 4 \f$) and invertible, then a good approach is to directly compute
-the inverse of the matrix \f$ A \f$, and then obtain the solution \f$ x \f$ by \f$ \mathbf{x} = A^{-1} b \f$. With Eigen,
-this can be implemented like this:
+\subsection TutorialAdvSolvers_Cholesky Cholesky decomposition
 
-\code
-#include <Eigen/LU>
-Matrix4f A = Matrix4f::Random();
-Vector4f b = Vector4f::Random();
-Vector4f x = A.inverse() * b;
-\endcode
+If the matrix \f$ A \f$ is \b symmetric \b positive \b definite, then the best method is to use a
+Cholesky decomposition: it is both faster and more accurate than the %LU decomposition. Such
+positive definite matrices often arise when solving overdetermined problems. These are linear
+systems \f$ A \mathbf{x} = \mathbf{b} \f$ in which the matrix \f$ A \f$ has more rows than columns,
+so that there are more equations than unknowns. Typically, there is no vector \f$ \mathbf{x} \f$
+which satisfies all the equation. Instead, we look for the least-square solution, that is, the
+vector \f$ \mathbf{x} \f$ for which \f$ \| A \mathbf{x} - \mathbf{b} \|_2 \f$ is minimal. You can
+find this vector by solving the equation \f$ A^T \! A \mathbf{x} = A^T \mathbf{b} \f$. If the matrix
+\f$ A \f$ has full rank, then \f$ A^T \! A \f$ is positive definite and thus you can use the
+Cholesky decomposition to solve this system and find the least-square solution to the original
+system \f$ A \mathbf{x} = \mathbf{b} \f$.
 
-Note that the function inverse() is defined in the LU module.
-See MatrixBase::inverse() for more details.
+Eigen offers two different Cholesky decompositions: the LLT class provides a \f$ LL^T \f$
+decomposition where L is a lower triangular matrix, and the LDLT class provides a \f$ LDL^T \f$
+decomposition where L is lower triangular with unit diagonal and D is a diagonal matrix.  The latter
+includes pivoting and avoids square roots; this makes the %LDLT decomposition slightly more stable
+than the %LLT decomposition. The LDLT class is able to handle both positive- and negative-definite
+matrices, but not indefinite matrices.
 
+The API is the same as when using the %LU decomposition.
 
-\subsection TutorialAdvSolvers_Symmetric Cholesky (for positive definite matrices)
-If the matrix \f$ A \f$ is \b positive \b definite, then
-the best method is to use a Cholesky decomposition.
-Such positive definite matrices often arise when solving overdetermined problems in a least square sense (see below).
-Eigen offers two different Cholesky decompositions: a \f$ LL^T \f$ decomposition where L is a lower triangular matrix,
-and a \f$ LDL^T \f$ decomposition where L is lower triangular with unit diagonal and D is a diagonal matrix.
-The latter avoids square roots and is therefore slightly more stable than the former one.
 \code
 #include <Eigen/Cholesky>
 MatrixXf D = MatrixXf::Random(8,4);
@@ -74,15 +152,19 @@ VectorXf x;
 A.llt().solve(b,&x);   // using a LLT factorization
 A.ldlt().solve(b,&x);  // using a LDLT factorization
 \endcode
-when the value of the right hand side \f$ b \f$ is not needed anymore, then it is faster to use
-the \em in \em place API, e.g.:
+
+The LLT and LDLT classes also provide an \em in \em place API for the case where the value of the
+right hand-side \f$ b \f$ is not needed anymore.
+
 \code
 A.llt().solveInPlace(b);
 \endcode
-In that case the value of \f$ b \f$ is replaced by the result \f$ x \f$.
 
-If the linear problem has to solved for various right hand side \f$ b_i \f$, but same matrix \f$ A \f$,
-then it is highly recommended to perform the decomposition of \$ A \$ only once, e.g.:
+This code replaces the vector \f$ b \f$ by the result \f$ x \f$.
+
+As before, you can reuse the factorization if you have to solve the same linear problem with
+different right-hand sides, e.g.:
+
 \code
 // ...
 LLT<MatrixXf> lltOfA(A);
@@ -91,40 +173,69 @@ lltOfA.solveInPlace(b1);
 // ...
 \endcode
 
-\sa Cholesky_Module, LLT::solve(), LLT::solveInPlace(), LDLT::solve(), LDLT::solveInPlace(), class LLT, class LDLT.
+\sa Cholesky_Module, MatrixBase::llt(), MatrixBase::ldlt(), LLT::solve(), LLT::solveInPlace(),
+LDLT::solve(), LDLT::solveInPlace(), class LLT, class LDLT.
 
 
-\subsection TutorialAdvSolvers_LU LU decomposition (for most cases)
-If the matrix \f$ A \f$ does not fit in any of the previous categories, or if you are unsure about the numerical
-stability of your problem, then you can use the LU solver based on a decomposition of the same name : see the section \ref TutorialAdvLU below. Actually, Eigen's LU module does not implement a standard LU decomposition, but rather a so-called LU decomposition
-with full pivoting and rank update which has much better numerical stability.
-The API of the LU solver is the same than the Cholesky one, except that there is no \em in \em place variant:
-\code
-#include <Eigen/LU>
-MatrixXf A = MatrixXf::Random(20,20);
-VectorXf b = VectorXf::Random(20);
-VectorXf x;
-A.lu().solve(b, &x);
-\endcode
+\subsection TutorialAdvSolvers_Triangular Triangular solver
 
-Again, the LU decomposition can be stored to be reused or to perform other kernel operations:
-\code
-// ...
-LU<MatrixXf> luOfA(A);
-luOfA.solve(b, &x);
-// ...
-\endcode
+If the matrix \f$ A \f$ is triangular (upper or lower) and invertible (the coefficients of the
+diagonal are all not zero), then the problem can be solved directly using the TriangularView
+class. This is much faster than using an %LU or Cholesky decomposition (in fact, the triangular
+solver is used when you solve a system using the %LU or Cholesky decomposition). Here is an example:
 
-See the section \ref TutorialAdvLU below.
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_triangular.cpp
+</td><td>
+output: \include Tutorial_solve_triangular.out
+</td></tr></table>
 
-\sa class LU, LU::solve(), LU_Module
+The MatrixBase::triangularView() function constructs an object of the class TriangularView, and
+TriangularView::solve() then solves the system. There is also an \e in \e place variant:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_triangular_inplace.cpp
+</td><td>
+output: \include Tutorial_solve_triangular_inplace.out
+</td></tr></table>
+
+\sa MatrixBase::triangularView(), TriangularView::solve(), TriangularView::solveInPlace(),
+TriangularView class.
 
 
-\subsection TutorialAdvSolvers_SVD SVD solver (for singular matrices and special cases)
-Finally, Eigen also offer a solver based on a singular value decomposition (SVD). Again, the API is the
-same than with Cholesky or LU:
+\subsection TutorialAdvSolvers_Inverse Direct inversion (for small matrices)
+
+The solution of the system \f$ A \mathbf{x} = \mathbf{b} \f$ is given by \f$ \mathbf{x} = A^{-1}
+\mathbf{b} \f$. This suggests the following approach for solving the system: compute the matrix
+inverse and multiply that with the right-hand side. This is often not a good approach: using the %LU
+decomposition with partial pivoting yields a more accurate algorithm that is usually just as fast or
+even faster. However, using the matrix inverse can be faster if the matrix \f$ A \f$ is small
+(&le;4) and fixed size, though numerical stability problems may still remain. Here is an example of
+how you would write this in Eigen:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_solve_matrix_inverse.cpp
+</td><td>
+output: \include Tutorial_solve_matrix_inverse.out
+</td></tr></table>
+
+Note that the function inverse() is defined in the \ref LU_Module.
+
+\sa MatrixBase::inverse().
+
+
+\subsection TutorialAdvSolvers_Misc Other solvers (for singular matrices and special cases)
+
+Finally, Eigen also offer solvers based on a singular value decomposition (%SVD) or the %LU
+decomposition with full pivoting. These have the same API as the solvers based on the %LU
+decomposition with partial pivoting (PartialLU). 
+
+The solver based on the %SVD uses the class SVD. It can handle singular matrices. Here is an example
+of its use:
+
 \code
 #include <Eigen/SVD>
+// ...
 MatrixXf A = MatrixXf::Random(20,20);
 VectorXf b = VectorXf::Random(20);
 VectorXf x;
@@ -133,8 +244,23 @@ SVD<MatrixXf> svdOfA(A);
 svdOfA.solve(b, &x);
 \endcode
 
-\sa class SVD, SVD::solve(), SVD_Module
+%LU decomposition with full pivoting has better numerical stability than %LU decomposition with
+partial pivoting. It is defined in the class LU. The solver can also handle singular matrices.
 
+\code
+#include <Eigen/LU>
+// ...
+MatrixXf A = MatrixXf::Random(20,20);
+VectorXf b = VectorXf::Random(20);
+VectorXf x;
+A.lu().solve(b, &x);
+LU<MatrixXf> luOfA(A);
+luOfA.solve(b, &x);
+\endcode
+
+See the section \ref TutorialAdvLU below.
+
+\sa class SVD, SVD::solve(), SVD_Module, class LU, LU::solve(), LU_Module.
 
 
 
