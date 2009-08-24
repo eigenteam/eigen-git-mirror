@@ -149,7 +149,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
 
     const Packet pc = ei_pset1(c);
     const Packet ps = ei_pset1(s);
-    ei_conj_helper<true,false> cj;
+    ei_conj_helper<NumTraits<Scalar>::IsComplex,false> cj;
 
     for(int i=0; i<alignedStart; ++i)
     {
