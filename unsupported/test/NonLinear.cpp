@@ -193,7 +193,6 @@ void testLmder()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
   ei_covar<double>(fjac, ipvt);
 
   MatrixXd cov_ref(n,n);
@@ -567,7 +566,6 @@ void testLmdif()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ipvt.cwise()+=1; // covar() expects the fortran convention (as qrfac provides)
   ei_covar<double>(fjac, ipvt);
 
   MatrixXd cov_ref(n,n);

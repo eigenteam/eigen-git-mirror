@@ -25,9 +25,8 @@ void ei_covar(
             for (j = 0; j <= k-1; ++j) {
                 temp = r(k,k) * r(j,k);
                 r(j,k) = 0.;
-                for (i = 0; i <= j; ++i) {
+                for (i = 0; i <= j; ++i)
                     r(i,k) -= temp * r(i,j);
-                }
             }
             l = k;
         }
@@ -50,12 +49,12 @@ void ei_covar(
     /*     in the strict lower triangle of r and in wa. */
 
     for (j = 0; j < n; ++j) {
-        jj = ipvt[j]-1;
+        jj = ipvt[j];
         sing = j > l;
         for (i = 0; i <= j; ++i) {
             if (sing)
                 r(i,j) = 0.;
-            ii = ipvt[i]-1;
+            ii = ipvt[i];
             if (ii > jj)
                 r(ii,jj) = r(i,j);
             if (ii < jj)
