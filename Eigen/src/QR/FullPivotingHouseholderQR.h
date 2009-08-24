@@ -31,7 +31,7 @@
   *
   * \class FullPivotingHouseholderQR
   *
-  * \brief Householder rank-revealing QR decomposition of a matrix
+  * \brief Householder rank-revealing QR decomposition of a matrix with full pivoting
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
@@ -62,12 +62,11 @@ template<typename MatrixType> class FullPivotingHouseholderQR
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via FullPivotingHouseholderQR::compute(const MatrixType&).
-    */
+    /** \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via FullPivotingHouseholderQR::compute(const MatrixType&).
+      */
     FullPivotingHouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
 
     FullPivotingHouseholderQR(const MatrixType& matrix)
@@ -80,6 +79,8 @@ template<typename MatrixType> class FullPivotingHouseholderQR
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the QR decomposition, if any exists.
+      *
+      * \returns \c true if a solution exists, \c false if no solution exists.
       *
       * \param b the right-hand-side of the equation to solve.
       *
@@ -345,7 +346,16 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
 ) const
 {
   ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
-  if(m_rank==0) return false;
+  result->resize(m_qr.cols(), b.cols());
+  if(m_rank==0)
+  {
+    if(b.squaredNorm() == RealScalar(0))
+    {
+      result->setZero();
+      return true;
+    }
+    else return false;
+  }
   
   const int rows = m_qr.rows();
   const int cols = b.cols();
@@ -374,7 +384,6 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
       .template triangularView<UpperTriangular>()
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
-  result->resize(m_qr.cols(), b.cols());
   for(int i = 0; i < m_rank; ++i) result->row(m_cols_permutation.coeff(i)) = c.row(i);
   for(int i = m_rank; i < m_qr.cols(); ++i) result->row(m_cols_permutation.coeff(i)).setZero();
   return true;

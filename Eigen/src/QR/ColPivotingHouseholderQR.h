@@ -31,14 +31,14 @@
   *
   * \class ColPivotingHouseholderQR
   *
-  * \brief Householder rank-revealing QR decomposition of a matrix
+  * \brief Householder rank-revealing QR decomposition of a matrix with column-pivoting
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
   * This class performs a rank-revealing QR decomposition using Householder transformations.
   *
-  * This decomposition performs full-pivoting in order to be rank-revealing and achieve optimal
-  * numerical stability.
+  * This decomposition performs column pivoting in order to be rank-revealing and improve
+  * numerical stability. It is slower than HouseholderQR, and faster than FullPivotingHouseholderQR.
   *
   * \sa MatrixBase::colPivotingHouseholderQr()
   */
@@ -82,6 +82,8 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the QR decomposition, if any exists.
       *
+      * \returns \c true if a solution exists, \c false if no solution exists.
+      *
       * \param b the right-hand-side of the equation to solve.
       *
       * \param result a pointer to the vector/matrix in which to store the solution, if any exists.
@@ -95,7 +97,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       * Output: \verbinclude ColPivotingHouseholderQR_solve.out
       */
     template<typename OtherDerived, typename ResultType>
-    void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
+    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
     MatrixType matrixQ(void) const;
 
@@ -111,10 +113,120 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       return m_cols_permutation;
     }
     
+    /** \returns the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \warning a determinant can be very big or small, so for matrices
+      * of large enough dimension, there is a risk of overflow/underflow.
+      * One way to work around that is to use logAbsDeterminant() instead.
+      *
+      * \sa logAbsDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar absDeterminant() const;
+
+    /** \returns the natural log of the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \note This method is useful to work around the risk of overflow/underflow that's inherent
+      * to determinant computation.
+      *
+      * \sa absDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar logAbsDeterminant() const;
+    
+    /** \returns the rank of the matrix of which *this is the QR decomposition.
+      *
+      * \note This is computed at the time of the construction of the QR decomposition. This
+      *       method does not perform any further computation.
+      */
     inline int rank() const
     {
       ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
       return m_rank;
+    }
+
+    /** \returns the dimension of the kernel of the matrix of which *this is the QR decomposition.
+      *
+      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
+      *       method almost does not perform any further computation.
+      */
+    inline int dimensionOfKernel() const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      return m_qr.cols() - m_rank;
+    }
+
+    /** \returns true if the matrix of which *this is the QR decomposition represents an injective
+      *          linear map, i.e. has trivial kernel; false otherwise.
+      *
+      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
+      *       method almost does not perform any further computation.
+      */
+    inline bool isInjective() const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      return m_rank == m_qr.cols();
+    }
+
+    /** \returns true if the matrix of which *this is the QR decomposition represents a surjective
+      *          linear map; false otherwise.
+      *
+      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
+      *       method almost does not perform any further computation.
+      */
+    inline bool isSurjective() const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      return m_rank == m_qr.rows();
+    }
+
+    /** \returns true if the matrix of which *this is the QR decomposition is invertible.
+      *
+      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
+      *       method almost does not perform any further computation.
+      */
+    inline bool isInvertible() const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      return isInjective() && isSurjective();
+    }
+
+    /** Computes the inverse of the matrix of which *this is the QR decomposition.
+      *
+      * \param result a pointer to the matrix into which to store the inverse. Resized if needed.
+      *
+      * \note If this matrix is not invertible, *result is left with undefined coefficients.
+      *       Use isInvertible() to first determine whether this matrix is invertible.
+      *
+      * \sa inverse()
+      */
+    inline void computeInverse(MatrixType *result) const
+    {
+      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the inverse of a non-square matrix!");
+      solve(MatrixType::Identity(m_qr.rows(), m_qr.cols()), result);
+    }
+
+    /** \returns the inverse of the matrix of which *this is the QR decomposition.
+      *
+      * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
+      *       Use isInvertible() to first determine whether this matrix is invertible.
+      *
+      * \sa computeInverse()
+      */
+    inline MatrixType inverse() const
+    {
+      MatrixType result;
+      computeInverse(&result);
+      return result;
     }
 
   protected:
@@ -128,6 +240,22 @@ template<typename MatrixType> class ColPivotingHouseholderQR
 };
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
+
+template<typename MatrixType>
+typename MatrixType::RealScalar ColPivotingHouseholderQR<MatrixType>::absDeterminant() const
+{
+  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return ei_abs(m_qr.diagonal().prod());
+}
+
+template<typename MatrixType>
+typename MatrixType::RealScalar ColPivotingHouseholderQR<MatrixType>::logAbsDeterminant() const
+{
+  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return m_qr.diagonal().cwise().abs().cwise().log().sum();
+}
 
 template<typename MatrixType>
 ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
@@ -199,12 +327,23 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
 template<typename MatrixType>
 template<typename OtherDerived, typename ResultType>
-void ColPivotingHouseholderQR<MatrixType>::solve(
+bool ColPivotingHouseholderQR<MatrixType>::solve(
   const MatrixBase<OtherDerived>& b,
   ResultType *result
 ) const
 {
   ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  result->resize(m_qr.cols(), b.cols());
+  if(m_rank==0)
+  {
+    if(b.squaredNorm() == RealScalar(0))
+    {
+      result->setZero();
+      return true;
+    }
+    else return false;
+  }
+
   const int rows = m_qr.rows();
   const int cols = b.cols();
   ei_assert(b.rows() == rows);
@@ -219,13 +358,21 @@ void ColPivotingHouseholderQR<MatrixType>::solve(
      .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
   }
 
+  if(!isSurjective())
+  {
+    // is c is in the image of R ?
+    RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
+    RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
+    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
+      return false;
+  }
   m_qr.corner(TopLeft, m_rank, m_rank)
       .template triangularView<UpperTriangular>()
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
-  result->resize(m_qr.cols(), b.cols());
   for(int i = 0; i < m_rank; ++i) result->row(m_cols_permutation.coeff(i)) = c.row(i);
   for(int i = m_rank; i < m_qr.cols(); ++i) result->row(m_cols_permutation.coeff(i)).setZero();
+  return true;
 }
 
 /** \returns the matrix Q */
