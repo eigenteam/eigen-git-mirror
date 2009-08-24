@@ -63,7 +63,7 @@ inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, S
 /** Computes the cosine-sine pair (\a c, \a s) such that its associated
   * rotation \f$ J = ( \begin{array}{cc} c & s \\ -s' c \end{array} )\f$
   * applied to both the right and left of the 2x2 matrix
-  * \f$ B = ( \begin{array}{cc} x & y \\ _ & z \end{array} )\f$ yields
+  * \f$ B = ( \begin{array}{cc} x & y \\ * & z \end{array} )\f$ yields
   * a diagonal matrix A: \f$ A = J' B J \f$
   */
 template<typename Scalar>
