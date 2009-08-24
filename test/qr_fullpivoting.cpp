@@ -68,6 +68,8 @@ template<typename MatrixType> void qr()
 template<typename MatrixType> void qr_invertible()
 {
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+  typedef typename MatrixType::Scalar Scalar;
+
   int size = ei_random<int>(10,50);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
@@ -88,6 +90,15 @@ template<typename MatrixType> void qr_invertible()
   m3 = MatrixType::Random(size,size);
   VERIFY(qr.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
+  
+  // now construct a matrix with prescribed determinant
+  m1.setZero();
+  for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();
+  RealScalar absdet = ei_abs(m1.diagonal().prod());
+  m3 = qr.matrixQ(); // get a unitary
+  m1 = m3 * m1 * m3;
+  qr.compute(m1);
+  VERIFY_IS_APPROX(absdet, qr.absDeterminant());
 }
 
 template<typename MatrixType> void qr_verify_assert()
