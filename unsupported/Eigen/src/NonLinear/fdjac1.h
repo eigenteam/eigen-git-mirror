@@ -6,9 +6,7 @@ int ei_fdjac1(
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
         int ml, int mu,
-        Scalar epsfcn,
-        Matrix< Scalar, Dynamic, 1 >  &wa1,
-        Matrix< Scalar, Dynamic, 1 >  &wa2)
+        Scalar epsfcn)
 {
     /* Local variables */
     Scalar h;
@@ -20,6 +18,9 @@ int ei_fdjac1(
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
     const int n = x.size();
+    assert(fvec.size()==n);
+    Matrix< Scalar, Dynamic, 1 >  wa1(n);
+    Matrix< Scalar, Dynamic, 1 >  wa2(n);
 
     eps = ei_sqrt((std::max(epsfcn,epsmch)));
     msum = ml + mu + 1;

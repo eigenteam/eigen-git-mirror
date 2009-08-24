@@ -5,8 +5,7 @@ int ei_fdjac2(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Scalar epsfcn,
-        Matrix< Scalar, Dynamic, 1 >  &wa)
+        Scalar epsfcn)
 {
     /* Local variables */
     Scalar h, temp;
@@ -16,6 +15,7 @@ int ei_fdjac2(
     const Scalar epsmch = epsilon<Scalar>();
     const int n = x.size();
     const Scalar eps = ei_sqrt((std::max(epsfcn,epsmch)));
+    Matrix< Scalar, Dynamic, 1 >  wa(fvec.size());
 
     for (int j = 0; j < n; ++j) {
         temp = x[j];

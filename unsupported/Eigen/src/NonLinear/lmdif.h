@@ -72,7 +72,7 @@ int ei_lmdif(
 
         /* calculate the jacobian matrix. */
 
-        iflag = ei_fdjac2(Functor, x, fvec, fjac, epsfcn, wa4);
+        iflag = ei_fdjac2(Functor, x, fvec, fjac, epsfcn);
         nfev += n;
         if (iflag < 0)
             break;
