@@ -1272,7 +1272,6 @@ void testNistMGH17(void)
   MatrixXd fjac;
   VectorXi ipvt;
 
-#if 1
   /*
    * First try
    */
@@ -1294,7 +1293,6 @@ void testNistMGH17(void)
   VERIFY_IS_APPROX(x[2], -1.4646871366E+00);
   VERIFY_IS_APPROX(x[3], 1.2867534640E-02);
   VERIFY_IS_APPROX(x[4], 2.2122699662E-02);
-#endif
 
   /*
    * Second try
