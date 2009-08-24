@@ -44,7 +44,7 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
   VERIFY(!lu.isInvertible());
-  VERIFY(lu.isSurjective() == (lu.rank() == rows));
+  VERIFY(!lu.isSurjective());
   VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
   VERIFY(m1image.lu().rank() == rank);
   MatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
@@ -53,7 +53,7 @@ template<typename MatrixType> void lu_non_invertible()
   m2 = MatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  lu.solve(m3, &m2);
+  VERIFY(lu.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
   m3 = MatrixType::Random(rows,cols2);
   VERIFY(!lu.solve(m3, &m2));
