@@ -1,10 +1,11 @@
 
-template<typename Functor, typename Scalar>
+template<typename FunctorType, typename Scalar>
 int ei_lmder1(
+        const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         VectorXi &ipvt,
-        Scalar tol = ei_sqrt(epsilon<Scalar>())
+        const Scalar tol = ei_sqrt(epsilon<Scalar>())
         )
 {
     const int n = x.size(), m=fvec.size();
@@ -19,7 +20,8 @@ int ei_lmder1(
     }
 
     ipvt.resize(n);
-    info = ei_lmder<Functor,Scalar>(
+    info = ei_lmder(
+        Functor,
         x, fvec,
         nfev, njev,
         fjac, ipvt, qtf, diag,
