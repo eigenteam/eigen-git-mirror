@@ -117,7 +117,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     int sing;
     int iter;
     Scalar temp;
-    int iflag;
     Scalar delta;
     int jeval;
     int ncsuc;
@@ -129,7 +128,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     Scalar actred, prered;
 
     /* Function Body */
-    iflag = 0;
     nfev = 0;
     njev = 0;
 
@@ -145,9 +143,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0) return UserAksed;
+    if ( functor.f(x, fvec) < 0)
+        return UserAksed;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -165,10 +163,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
         /* calculate the jacobian matrix. */
 
-        iflag = functor.df(x, fjac);
-        ++njev;
-        if (iflag < 0)
+        if ( functor.df(x, fjac) < 0)
             return UserAksed;
+        ++njev;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -255,9 +252,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = functor.f(wa2, wa4);
+            if ( functor.f(wa2, wa4) < 0)
+                return UserAksed;
             ++nfev;
-            if (iflag < 0) return UserAksed;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -440,7 +437,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     int sing;
     int iter;
     Scalar temp;
-    int msum, iflag;
+    int msum;
     Scalar delta;
     int jeval;
     int ncsuc;
@@ -453,7 +450,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
     /* Function Body */
 
-    iflag = 0;
     nfev = 0;
 
     /*     check the input parameters for errors. */
@@ -468,9 +464,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0)
+    if ( functor.f(x, fvec) < 0)
         return UserAksed;
     fnorm = fvec.stableNorm();
 
@@ -495,11 +490,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
         /* calculate the jacobian matrix. */
 
-        iflag = ei_fdjac1(functor, x, fvec, fjac,
-                nb_of_subdiagonals, nb_of_superdiagonals, epsfcn);
-        nfev += msum;
-        if (iflag < 0)
+        if (ei_fdjac1(functor, x, fvec, fjac, nb_of_subdiagonals, nb_of_superdiagonals, epsfcn) <0)
             return UserAksed;
+        nfev += msum;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -586,9 +579,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = functor.f(wa2, wa4);
+            if ( functor.f(wa2, wa4) < 0)
+                return UserAksed;
             ++nfev;
-            if (iflag < 0) return UserAksed;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */

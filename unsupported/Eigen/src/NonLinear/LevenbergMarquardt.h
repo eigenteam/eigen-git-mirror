@@ -145,14 +145,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     Scalar par, sum;
     int iter;
     Scalar temp, temp1, temp2;
-    int iflag;
     Scalar delta;
     Scalar ratio;
     Scalar fnorm, gnorm;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
-    iflag = 0;
     nfev = 0;
     njev = 0;
 
@@ -169,9 +167,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0) return UserAsked;
+    if ( functor.f(x, fvec) < 0)
+        return UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
@@ -185,9 +183,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
         /* calculate the jacobian matrix. */
 
-        iflag = functor.df(x, fjac);
+        if (functor.df(x, fjac) < 0)
+            return UserAsked;
         ++njev;
-        if (iflag < 0) return UserAsked;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -278,9 +276,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = functor.f(wa2, wa4);
+            if ( functor.f(wa2, wa4) < 0)
+                return UserAsked;
             ++nfev;
-            if (iflag < 0) return UserAsked;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -429,14 +427,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     Scalar par, sum;
     int iter;
     Scalar temp, temp1, temp2;
-    int iflag;
     Scalar delta;
     Scalar ratio;
     Scalar fnorm, gnorm;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
-    iflag = 0;
     nfev = 0;
 
     /*     check the input parameters for errors. */
@@ -451,9 +447,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0) return UserAsked;
+    if ( functor.f(x, fvec) < 0)
+        return UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
@@ -467,9 +463,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
         /* calculate the jacobian matrix. */
 
-        iflag = ei_fdjac2(functor, x, fvec, fjac, epsfcn);
+        if ( ei_fdjac2(functor, x, fvec, fjac, epsfcn) < 0)
+            return UserAsked;
         nfev += n;
-        if (iflag < 0) return UserAsked;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -560,9 +556,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = functor.f(wa2, wa4);
+            if ( functor.f(wa2, wa4) < 0)
+                return UserAsked;
             ++nfev;
-            if (iflag < 0) return UserAsked;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -712,14 +708,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     Scalar par, sum;
     int sing, iter;
     Scalar temp, temp1, temp2;
-    int iflag;
     Scalar delta;
     Scalar ratio;
     Scalar fnorm, gnorm;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
-    iflag = 0;
     nfev = 0;
     njev = 0;
 
@@ -736,9 +730,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0) return UserAsked;
+    if ( functor.f(x, fvec) < 0)
+        return UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
@@ -757,12 +751,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
         qtf.fill(0.);
         fjac.fill(0.);
-        iflag = 2;
+        int rownb = 2;
         for (i = 0; i < m; ++i) {
-            if (functor.df(x, wa3, iflag) < 0) return UserAsked;
+            if (functor.df(x, wa3, rownb) < 0) return UserAsked;
             temp = fvec[i];
             ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
-            ++iflag;
+            ++rownb;
         }
         ++njev;
 
@@ -861,9 +855,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = functor.f(wa2, wa4);
+            if ( functor.f(wa2, wa4) < 0)
+                return UserAsked;
             ++nfev;
-            if (iflag < 0) return UserAsked;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
