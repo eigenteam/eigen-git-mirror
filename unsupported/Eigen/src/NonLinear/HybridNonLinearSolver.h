@@ -426,8 +426,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
 
-    int msum;
-
     /* Function Body */
 
     nfev = 0;
@@ -449,12 +447,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         return UserAksed;
     fnorm = fvec.stableNorm();
 
-    /*     determine the number of calls to fcn needed to compute */
-    /*     the jacobian matrix. */
-
-    /* Computing MIN */
-    msum = std::min(nb_of_subdiagonals + nb_of_superdiagonals + 1, n);
-
     /*     initialize iteration counter and monitors. */
 
     iter = 1;
@@ -473,7 +465,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
         if (ei_fdjac1(functor, x, fvec, fjac, nb_of_subdiagonals, nb_of_superdiagonals, epsfcn) <0)
             return UserAksed;
-        nfev += msum;
+        nfev += std::min(nb_of_subdiagonals + nb_of_superdiagonals + 1, n);
 
         /* compute the qr factorization of the jacobian. */
 
