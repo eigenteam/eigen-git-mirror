@@ -1,4 +1,4 @@
-set(Eigen_HEADERS Core LU Cholesky QR Geometry Sparse Array SVD LeastSquares QtAlignedMalloc StdVector)
+set(Eigen_HEADERS Core LU Cholesky QR Geometry Sparse Array SVD LeastSquares QtAlignedMalloc StdVector Householder Jacobi)
 
 if(EIGEN_BUILD_LIB)
     set(Eigen_SRCS

@@ -28,7 +28,6 @@
 
 template<typename MatrixType> void qr()
 {
-  /* this test covers the following files: QR.h */
   int rows = ei_random<int>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
@@ -44,7 +43,6 @@ template<typename MatrixType> void qr()
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());
 
-  
   MatrixType r = qr.matrixQR();
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
@@ -99,6 +97,7 @@ template<typename MatrixType> void qr_invertible()
   m1 = m3 * m1 * m3;
   qr.compute(m1);
   VERIFY_IS_APPROX(absdet, qr.absDeterminant());
+  VERIFY_IS_APPROX(ei_log(absdet), qr.logAbsDeterminant());
 }
 
 template<typename MatrixType> void qr_verify_assert()
@@ -106,9 +105,17 @@ template<typename MatrixType> void qr_verify_assert()
   MatrixType tmp;
 
   FullPivotingHouseholderQR<MatrixType> qr;
-  VERIFY_RAISES_ASSERT(qr.matrixR())
+  VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
+  VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
+  VERIFY_RAISES_ASSERT(qr.isInjective())
+  VERIFY_RAISES_ASSERT(qr.isSurjective())
+  VERIFY_RAISES_ASSERT(qr.isInvertible())
+  VERIFY_RAISES_ASSERT(qr.computeInverse(&tmp))
+  VERIFY_RAISES_ASSERT(qr.inverse())
+  VERIFY_RAISES_ASSERT(qr.absDeterminant())
+  VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
 void test_qr_fullpivoting()

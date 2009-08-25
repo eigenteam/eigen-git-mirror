@@ -534,7 +534,16 @@ bool LU<MatrixType>::solve(
 ) const
 {
   ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  if(m_rank==0) return false;
+  result->resize(m_lu.cols(), b.cols());
+  if(m_rank==0)
+  {
+    if(b.squaredNorm() == RealScalar(0))
+    {
+      result->setZero();
+      return true;
+    }
+    else return false;
+  }
   
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
    * So we proceed as follows:
@@ -577,7 +586,6 @@ bool LU<MatrixType>::solve(
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
   // Step 4
-  result->resize(m_lu.cols(), b.cols());
   for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = c.row(i);
   for(int i = m_rank; i < m_lu.cols(); ++i) result->row(m_q.coeff(i)).setZero();
   return true;

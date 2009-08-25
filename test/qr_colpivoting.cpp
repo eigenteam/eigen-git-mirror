@@ -28,7 +28,6 @@
 
 template<typename MatrixType> void qr()
 {
-  /* this test covers the following files: QR.h */
   int rows = ei_random<int>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
@@ -39,6 +38,10 @@ template<typename MatrixType> void qr()
   createRandomMatrixOfRank(rank,rows,cols,m1);
   ColPivotingHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
+  VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
+  VERIFY(!qr.isInjective());
+  VERIFY(!qr.isInvertible());
+  VERIFY(!qr.isSurjective());
   
   MatrixType r = qr.matrixQR();
   // FIXME need better way to construct trapezoid
@@ -54,14 +57,17 @@ template<typename MatrixType> void qr()
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  qr.solve(m3, &m2);
+  VERIFY(qr.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
+  m3 = MatrixType::Random(rows,cols2);
+  VERIFY(!qr.solve(m3, &m2));
 }
 
 template<typename MatrixType> void qr_invertible()
 {
-  /* this test covers the following files: RRQR.h */
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+  typedef typename MatrixType::Scalar Scalar;
+
   int size = ei_random<int>(10,50);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
@@ -78,6 +84,16 @@ template<typename MatrixType> void qr_invertible()
   m3 = MatrixType::Random(size,size);
   qr.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
+
+  // now construct a matrix with prescribed determinant
+  m1.setZero();
+  for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();
+  RealScalar absdet = ei_abs(m1.diagonal().prod());
+  m3 = qr.matrixQ(); // get a unitary
+  m1 = m3 * m1 * m3;
+  qr.compute(m1);
+  VERIFY_IS_APPROX(absdet, qr.absDeterminant());
+  VERIFY_IS_APPROX(ei_log(absdet), qr.logAbsDeterminant());
 }
 
 template<typename MatrixType> void qr_verify_assert()
@@ -85,9 +101,17 @@ template<typename MatrixType> void qr_verify_assert()
   MatrixType tmp;
 
   ColPivotingHouseholderQR<MatrixType> qr;
-  VERIFY_RAISES_ASSERT(qr.matrixR())
+  VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
+  VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
+  VERIFY_RAISES_ASSERT(qr.isInjective())
+  VERIFY_RAISES_ASSERT(qr.isSurjective())
+  VERIFY_RAISES_ASSERT(qr.isInvertible())
+  VERIFY_RAISES_ASSERT(qr.computeInverse(&tmp))
+  VERIFY_RAISES_ASSERT(qr.inverse())
+  VERIFY_RAISES_ASSERT(qr.absDeterminant())
+  VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }
 
 void test_qr_colpivoting()

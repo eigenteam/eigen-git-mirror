@@ -73,40 +73,6 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
   *
   * \array_module
   *
-  * \brief Template functor to compute the exponential of a scalar
-  *
-  * \sa class CwiseUnaryOp, Cwise::exp()
-  */
-template<typename Scalar> struct ei_scalar_exp_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a) const { return ei_exp(a); }
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return ei_pexp(a); }
-};
-template<typename Scalar>
-struct ei_functor_traits<ei_scalar_exp_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasExp }; };
-
-/** \internal
-  *
-  * \array_module
-  *
-  * \brief Template functor to compute the logarithm of a scalar
-  *
-  * \sa class CwiseUnaryOp, Cwise::log()
-  */
-template<typename Scalar> struct ei_scalar_log_op EIGEN_EMPTY_STRUCT {
-  inline const Scalar operator() (const Scalar& a) const { return ei_log(a); }
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return ei_plog(a); }
-};
-template<typename Scalar>
-struct ei_functor_traits<ei_scalar_log_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasLog }; };
-
-/** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the cosine of a scalar
   *
   * \sa class CwiseUnaryOp, Cwise::cos()

@@ -31,16 +31,16 @@
   *
   * \class FullPivotingHouseholderQR
   *
-  * \brief Householder rank-revealing QR decomposition of a matrix
+  * \brief Householder rank-revealing QR decomposition of a matrix with full pivoting
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
   * This class performs a rank-revealing QR decomposition using Householder transformations.
   *
-  * This decomposition performs full-pivoting in order to be rank-revealing and achieve optimal
-  * numerical stability.
+  * This decomposition performs a very prudent full pivoting in order to be rank-revealing and achieve optimal
+  * numerical stability. The trade-off is that it is slower than HouseholderQR and ColPivotingHouseholderQR.
   *
-  * \sa MatrixBase::householderRrqr()
+  * \sa MatrixBase::fullPivotingHouseholderQr()
   */
 template<typename MatrixType> class FullPivotingHouseholderQR
 {
@@ -62,12 +62,11 @@ template<typename MatrixType> class FullPivotingHouseholderQR
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via FullPivotingHouseholderQR::compute(const MatrixType&).
-    */
+    /** \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via FullPivotingHouseholderQR::compute(const MatrixType&).
+      */
     FullPivotingHouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
 
     FullPivotingHouseholderQR(const MatrixType& matrix)
@@ -80,6 +79,8 @@ template<typename MatrixType> class FullPivotingHouseholderQR
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the QR decomposition, if any exists.
+      *
+      * \returns \c true if a solution exists, \c false if no solution exists.
       *
       * \param b the right-hand-side of the equation to solve.
       *
@@ -96,11 +97,15 @@ template<typename MatrixType> class FullPivotingHouseholderQR
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixType matrixQ(void) const;
+    MatrixQType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
-    const MatrixType& matrixQR() const { return m_qr; }
+    const MatrixType& matrixQR() const
+    {
+      ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
+      return m_qr;
+    }
 
     FullPivotingHouseholderQR& compute(const MatrixType& matrix);
     
@@ -125,11 +130,26 @@ template<typename MatrixType> class FullPivotingHouseholderQR
       *
       * \warning a determinant can be very big or small, so for matrices
       * of large enough dimension, there is a risk of overflow/underflow.
+      * One way to work around that is to use logAbsDeterminant() instead.
       *
-      * \sa MatrixBase::determinant()
+      * \sa logAbsDeterminant(), MatrixBase::determinant()
       */
     typename MatrixType::RealScalar absDeterminant() const;
 
+    /** \returns the natural log of the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition. It has only linear complexity
+      * (that is, O(n) where n is the dimension of the square matrix)
+      * as the QR decomposition has already been computed.
+      *
+      * \note This is only for square matrices.
+      *
+      * \note This method is useful to work around the risk of overflow/underflow that's inherent
+      * to determinant computation.
+      *
+      * \sa absDeterminant(), MatrixBase::determinant()
+      */
+    typename MatrixType::RealScalar logAbsDeterminant() const;
+    
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
       * \note This is computed at the time of the construction of the QR decomposition. This
@@ -239,6 +259,14 @@ typename MatrixType::RealScalar FullPivotingHouseholderQR<MatrixType>::absDeterm
 }
 
 template<typename MatrixType>
+typename MatrixType::RealScalar FullPivotingHouseholderQR<MatrixType>::logAbsDeterminant() const
+{
+  ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
+  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return m_qr.diagonal().cwise().abs().cwise().log().sum();
+}
+
+template<typename MatrixType>
 FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
   int rows = matrix.rows();
@@ -322,7 +350,16 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
 ) const
 {
   ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
-  if(m_rank==0) return false;
+  result->resize(m_qr.cols(), b.cols());
+  if(m_rank==0)
+  {
+    if(b.squaredNorm() == RealScalar(0))
+    {
+      result->setZero();
+      return true;
+    }
+    else return false;
+  }
   
   const int rows = m_qr.rows();
   const int cols = b.cols();
@@ -351,7 +388,6 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
       .template triangularView<UpperTriangular>()
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
-  result->resize(m_qr.cols(), b.cols());
   for(int i = 0; i < m_rank; ++i) result->row(m_cols_permutation.coeff(i)) = c.row(i);
   for(int i = m_rank; i < m_qr.cols(); ++i) result->row(m_cols_permutation.coeff(i)).setZero();
   return true;
@@ -359,7 +395,7 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
 
 /** \returns the matrix Q */
 template<typename MatrixType>
-MatrixType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
+typename FullPivotingHouseholderQR<MatrixType>::MatrixQType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
   // compute the product H'_0 H'_1 ... H'_n-1,
@@ -368,7 +404,7 @@ MatrixType FullPivotingHouseholderQR<MatrixType>::matrixQ() const
   int rows = m_qr.rows();
   int cols = m_qr.cols();
   int size = std::min(rows,cols);
-  MatrixType res = MatrixType::Identity(rows, rows);
+  MatrixQType res = MatrixQType::Identity(rows, rows);
   Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
   for (int k = size-1; k >= 0; k--)
   {
