@@ -59,6 +59,21 @@ public:
     int njev;
 private:
     const FunctorType &functor;
+    int n;
+    Scalar sum;
+    bool sing;
+    int iter;
+    Scalar temp;
+    Scalar delta;
+    bool jeval;
+    int ncsuc;
+    Scalar ratio;
+    Scalar fnorm;
+    Scalar pnorm, xnorm, fnorm1;
+    int nslow1, nslow2;
+    int ncfail;
+    Scalar actred, prered;
+    Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
 };
 
 
@@ -70,7 +85,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         const Scalar tol
         )
 {
-    const int n = x.size();
+    n = x.size();
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -99,9 +114,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         const int mode
         )
 {
-    const int n = x.size();
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
+    n = x.size();
 
+    wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     fvec.resize(n);
     qtf.resize(n);
     R.resize( (n*(n+1))/2);
@@ -110,22 +125,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     if (mode != 2)
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
-
-    /* Local variables */
-    int i, j, l, iwa[1];
-    Scalar sum;
-    bool sing;
-    int iter;
-    Scalar temp;
-    Scalar delta;
-    bool jeval;
-    int ncsuc;
-    Scalar ratio;
-    Scalar fnorm;
-    Scalar pnorm, xnorm, fnorm1;
-    int nslow1, nslow2;
-    int ncfail;
-    Scalar actred, prered;
 
     /* Function Body */
     nfev = 0;
@@ -136,7 +135,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
         return ImproperInputParameters;
     if (mode == 2)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return ImproperInputParameters;
 
@@ -159,6 +158,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     /*     beginning of the outer loop. */
 
     while (true) {
+        int i, j, l, iwa[1];
         jeval = true;
 
         /* calculate the jacobian matrix. */
@@ -380,7 +380,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         const Scalar tol
         )
 {
-    const int n = x.size();
+    n = x.size();
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -412,12 +412,12 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         const Scalar epsfcn
         )
 {
-    const int n = x.size();
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(n);
-
+    n = x.size();
 
     if (nb_of_subdiagonals<0) nb_of_subdiagonals = n-1;
     if (nb_of_superdiagonals<0) nb_of_superdiagonals = n-1;
+
+    wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     qtf.resize(n);
     R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
@@ -426,22 +426,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
 
-    /* Local variables */
-    int i, j, l, iwa[1];
-    Scalar sum;
-    bool sing;
-    int iter;
-    Scalar temp;
     int msum;
-    Scalar delta;
-    bool jeval;
-    int ncsuc;
-    Scalar ratio;
-    Scalar fnorm;
-    Scalar pnorm, xnorm, fnorm1;
-    int nslow1, nslow2;
-    int ncfail;
-    Scalar actred, prered;
 
     /* Function Body */
 
@@ -452,7 +437,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || parameters.factor <= 0. )
         return ImproperInputParameters;
     if (mode == 2)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return ImproperInputParameters;
 
@@ -481,6 +466,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     /*     beginning of the outer loop. */
 
     while (true) {
+        int i, j, l, iwa[1];
         jeval = true;
 
         /* calculate the jacobian matrix. */

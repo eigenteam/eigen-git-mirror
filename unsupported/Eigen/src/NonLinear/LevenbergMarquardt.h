@@ -77,6 +77,17 @@ public:
     int njev;
 private:
     const FunctorType &functor;
+    int n;
+    int m;
+    Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
+
+    Scalar par, sum;
+    int iter;
+    Scalar temp, temp1, temp2;
+    Scalar delta;
+    Scalar ratio;
+    Scalar fnorm, gnorm;
+    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 };
 
 template<typename FunctorType, typename Scalar>
@@ -86,8 +97,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         const Scalar tol
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
+    n = x.size();
+    m = functor.nbOfFunctions();
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -115,10 +126,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         const int mode
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4;
+    n = x.size();
+    m = functor.nbOfFunctions();
 
+    wa1.resize(n); wa2.resize(n); wa3.resize(n);
+    wa4.resize(m);
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
@@ -126,16 +138,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
-
-    /* Local variables */
-    int i, j, l;
-    Scalar par, sum;
-    int iter;
-    Scalar temp, temp1, temp2;
-    Scalar delta;
-    Scalar ratio;
-    Scalar fnorm, gnorm;
-    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
     nfev = 0;
@@ -147,7 +149,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         return ImproperInputParameters;
 
     if (mode == 2)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return ImproperInputParameters;
 
@@ -167,6 +169,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     /*     beginning of the outer loop. */
 
     while (true) {
+        int i, j, l;
 
         /* calculate the jacobian matrix. */
 
@@ -349,7 +352,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         } while (ratio < Scalar(1e-4));
         /* end of the outer loop. */
     }
-    assert(false); // should never be reached
 }
 
 
@@ -360,8 +362,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         const Scalar tol
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
+    n = x.size();
+    m = functor.nbOfFunctions();
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -389,10 +391,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         const Scalar epsfcn
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
+    n = x.size();
+    m = functor.nbOfFunctions();
 
+    wa1.resize(n); wa2.resize(n); wa3.resize(n);
+    wa4.resize(m);
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
@@ -400,16 +403,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
-
-    /* Local variables */
-    int i, j, l;
-    Scalar par, sum;
-    int iter;
-    Scalar temp, temp1, temp2;
-    Scalar delta;
-    Scalar ratio;
-    Scalar fnorm, gnorm;
-    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
     nfev = 0;
@@ -419,7 +412,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return ImproperInputParameters;
     if (mode == 2)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return ImproperInputParameters;
 
@@ -439,6 +432,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     /*     beginning of the outer loop. */
 
     while (true) {
+        int i, j, l;
 
         /* calculate the jacobian matrix. */
 
@@ -633,8 +627,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         const Scalar tol
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
+    n = x.size();
+    m = functor.nbOfFunctions();
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     VectorXi ipvt;
     Parameters parameters;
@@ -663,10 +657,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         const int mode
         )
 {
-    const int n = x.size();
-    const int m = functor.nbOfFunctions();
-    Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
+    n = x.size();
+    m = functor.nbOfFunctions();
 
+    wa1.resize(n); wa2.resize(n); wa3.resize(n);
+    wa4.resize(m);
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
@@ -676,15 +671,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     qtf.resize(n);
 
     /* Local variables */
-    int i, j, l;
-    Scalar par, sum;
-    int iter;
     bool sing;
-    Scalar temp, temp1, temp2;
-    Scalar delta;
-    Scalar ratio;
-    Scalar fnorm, gnorm;
-    Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
     /* Function Body */
     nfev = 0;
@@ -696,7 +683,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         return ImproperInputParameters;
 
     if (mode == 2)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return ImproperInputParameters;
 
@@ -716,6 +703,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     /*     beginning of the outer loop. */
 
     while (true) {
+        int i, j, l;
 
         /* compute the qr factorization of the jacobian matrix */
         /* calculated one row at a time, while simultaneously */
