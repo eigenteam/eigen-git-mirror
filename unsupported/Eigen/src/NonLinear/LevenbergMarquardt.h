@@ -1,5 +1,4 @@
 
-
 template<typename FunctorType, typename Scalar=double>
 class LevenbergMarquardt 
 {
@@ -21,6 +20,20 @@ public:
         UserAsked = 9
     };
 
+    struct Parameters {
+        Parameters()
+            : factor(Scalar(100.))
+            , maxfev(400)
+            , ftol(ei_sqrt(epsilon<Scalar>()))
+            , xtol(ei_sqrt(epsilon<Scalar>()))
+            , gtol(Scalar(0.)) { }
+        Scalar factor;
+        int maxfev;   // maximum number of function evaluation
+        Scalar ftol;
+        Scalar xtol;
+        Scalar gtol;
+    };
+
     Status minimize(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
@@ -31,12 +44,8 @@ public:
             int &nfev,
             int &njev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            const int mode=1,
-            const Scalar factor = Scalar(100.),
-            const int maxfev = 400,
-            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar gtol = Scalar(0.)
+            const Parameters &parameters,
+            const int mode=1
             );
 
     Status minimizeNumericalDiff(
@@ -48,12 +57,8 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
+            const Parameters &parameters,
             const int mode=1,
-            const Scalar factor = Scalar(100.),
-            const int maxfev = 400,
-            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar gtol = Scalar(0.),
             const Scalar epsfcn = Scalar(0.)
             );
 
@@ -67,12 +72,8 @@ public:
             int &nfev,
             int &njev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            const int mode=1,
-            const Scalar factor = Scalar(100.),
-            const int maxfev = 400,
-            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar gtol = Scalar(0.)
+            const Parameters &parameters,
+            const int mode=1
             );
 
     Matrix< Scalar, Dynamic, 1 >  fvec;
@@ -96,6 +97,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
     VectorXi ipvt;
+    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -103,14 +105,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         return ImproperInputParameters;
     }
 
+    parameters.ftol = tol;
+    parameters.xtol = tol;
+    parameters.maxfev = 100*(n+1);
+
     return minimize(
         x,
         nfev, njev,
         diag,
-        1,
-        100.,
-        (n+1)*100,
-        tol, tol, Scalar(0.)
+        parameters,
+        1
     );
 }
 
@@ -122,12 +126,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         int &nfev,
         int &njev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        const int mode,
-        const Scalar factor,
-        const int maxfev,
-        const Scalar ftol,
-        const Scalar xtol,
-        const Scalar gtol
+        const Parameters &parameters,
+        const int mode
         )
 {
     const int n = x.size();
@@ -156,7 +156,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
+    if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return RelativeErrorTooSmall;
 
     if (mode == 2)
@@ -208,9 +208,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
-            delta = factor * xnorm;
+            delta = parameters.factor * xnorm;
             if (delta == 0.)
-                delta = factor;
+                delta = parameters.factor;
         }
 
         /* form (q transpose)*fvec and store the first n components in */
@@ -247,7 +247,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
         /* test for convergence of the gradient norm. */
 
-        if (gnorm <= gtol)
+        if (gnorm <= parameters.gtol)
             return CosinusTooSmall;
 
         /* rescale if necessary. */
@@ -341,16 +341,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
             /* tests for convergence. */
 
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1. && delta <= xtol * xnorm)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
                 return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1.)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
                 return RelativeReductionTooSmall;
-            if (delta <= xtol * xnorm)
+            if (delta <= parameters.xtol * xnorm)
                 return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
-            if (nfev >= maxfev)
+            if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
             if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
                 return FtolTooSmall;
@@ -379,6 +379,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
     VectorXi ipvt;
+    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -386,14 +387,17 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         return ImproperInputParameters;
     }
 
+    parameters.ftol = tol;
+    parameters.xtol = tol;
+    parameters.maxfev = 200*(n+1);
+
     return minimizeNumericalDiff(
         x,
         nfev,
         diag,
+        parameters,
         1,
-        100.,
-        (n+1)*200,
-        tol, tol, Scalar(0.), Scalar(0.)
+        Scalar(0.)
     );
 }
 
@@ -403,12 +407,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
+        const Parameters &parameters,
         const int mode,
-        const Scalar factor,
-        const int maxfev,
-        const Scalar ftol,
-        const Scalar xtol,
-        const Scalar gtol,
         const Scalar epsfcn
         )
 {
@@ -437,7 +437,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
+    if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return RelativeErrorTooSmall;
     if (mode == 2)
         for (j = 0; j < n; ++j)
@@ -488,9 +488,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
-            delta = factor * xnorm;
+            delta = parameters.factor * xnorm;
             if (delta == 0.)
-                delta = factor;
+                delta = parameters.factor;
         }
 
         /* form (q transpose)*fvec and store the first n components in */
@@ -527,7 +527,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
         /* test for convergence of the gradient norm. */
 
-        if (gnorm <= gtol)
+        if (gnorm <= parameters.gtol)
             return CosinusTooSmall;
 
         /* rescale if necessary. */
@@ -621,16 +621,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
             /* tests for convergence. */
 
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1. && delta <= xtol * xnorm)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
                 return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1.)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
                 return RelativeReductionTooSmall;
-            if (delta <= xtol * xnorm)
+            if (delta <= parameters.xtol * xnorm)
                 return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
-            if (nfev >= maxfev)
+            if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
             if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
                 return FtolTooSmall;
@@ -660,6 +660,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
     VectorXi ipvt;
+    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -667,14 +668,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         return ImproperInputParameters;
     }
 
+    parameters.ftol = tol;
+    parameters.xtol = tol;
+    parameters.maxfev = 100*(n+1);
+
     return minimizeOptimumStorage(
         x,
         nfev, njev,
         diag,
-        1,
-        100.,
-        (n+1)*100,
-        tol, tol, Scalar(0.)
+        parameters,
+        1
     );
 }
 
@@ -685,12 +688,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         int &nfev,
         int &njev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        const int mode,
-        const Scalar factor,
-        const int maxfev,
-        const Scalar ftol,
-        const Scalar xtol,
-        const Scalar gtol
+        const Parameters &parameters,
+        const int mode
         )
 {
     const int n = x.size();
@@ -720,7 +719,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
+    if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return RelativeErrorTooSmall;
 
     if (mode == 2)
@@ -805,9 +804,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
-            delta = factor * xnorm;
+            delta = parameters.factor * xnorm;
             if (delta == 0.)
-                delta = factor;
+                delta = parameters.factor;
         }
 
         /* compute the norm of the scaled gradient. */
@@ -827,7 +826,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
         /* test for convergence of the gradient norm. */
 
-        if (gnorm <= gtol)
+        if (gnorm <= parameters.gtol)
             return CosinusTooSmall;
 
         /* rescale if necessary. */
@@ -921,16 +920,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
             /* tests for convergence. */
 
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1. && delta <= xtol * xnorm)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
                 return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= ftol && prered <= ftol && Scalar(.5) * ratio <= 1.)
+            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
                 return RelativeReductionTooSmall;
-            if (delta <= xtol * xnorm)
+            if (delta <= parameters.xtol * xnorm)
                 return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
-            if (nfev >= maxfev)
+            if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
             if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
                 return FtolTooSmall;

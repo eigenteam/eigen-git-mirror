@@ -17,6 +17,16 @@ public:
         UserAksed = 6
     };
 
+    struct Parameters {
+        Parameters()
+            : factor(Scalar(100.))
+            , maxfev(1000)
+            , xtol(ei_sqrt(epsilon<Scalar>())) {}
+        Scalar factor;
+        int maxfev;   // maximum number of function evaluation
+        Scalar xtol;
+    };
+
     Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
@@ -25,10 +35,8 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev, int &njev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            const int mode=1,
-            const int maxfev = 1000,
-            const Scalar factor = Scalar(100.),
-            const Scalar xtol = ei_sqrt(epsilon<Scalar>())
+            const Parameters &parameters,
+            const int mode=1
             );
 
     Status solveNumericalDiff(
@@ -39,12 +47,10 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
+            const Parameters &parameters,
             const int mode=1,
             int nb_of_subdiagonals = -1,
             int nb_of_superdiagonals = -1,
-            const int maxfev = 2000,
-            const Scalar factor = Scalar(100.),
-            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
             const Scalar epsfcn = Scalar(0.)
             );
 
@@ -68,6 +74,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     const int n = x.size();
     int nfev=0, njev=0;
     Matrix< Scalar, Dynamic, 1> diag;
+    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
@@ -75,15 +82,15 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         return ImproperInputParameters;
     }
 
+    parameters.maxfev = 100*(n+1);
+    parameters.xtol = tol;
     diag.setConstant(n, 1.);
     return solve(
         x, 
         nfev, njev,
         diag,
-        2,
-        (n+1)*100,
-        100.,
-        tol
+        parameters,
+        2
     );
 }
 
@@ -96,10 +103,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         int &nfev,
         int &njev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        const int mode,
-        const int maxfev,
-        const Scalar factor,
-        const Scalar xtol
+        const Parameters &parameters,
+        const int mode
         )
 {
     const int n = x.size();
@@ -133,7 +138,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || xtol < 0. || maxfev <= 0 || factor <= 0. )
+    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
         return RelativeErrorTooSmall;
     if (mode == 2)
         for (j = 0; j < n; ++j)
@@ -187,9 +192,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
-            delta = factor * xnorm;
+            delta = parameters.factor * xnorm;
             if (delta == 0.)
-                delta = factor;
+                delta = parameters.factor;
         }
 
         /* form (q transpose)*fvec and store in qtf. */
@@ -326,12 +331,12 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
             /* test for convergence. */
 
-            if (delta <= xtol * xnorm || fnorm == 0.)
+            if (delta <= parameters.xtol * xnorm || fnorm == 0.)
                 return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
-            if (nfev >= maxfev)
+            if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
             /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
@@ -384,6 +389,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     const int n = x.size();
     int nfev=0;
     Matrix< Scalar, Dynamic, 1> diag;
+    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
@@ -391,16 +397,18 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         return ImproperInputParameters;
     }
 
+    parameters.maxfev = 200*(n+1);
+    parameters.xtol = tol;
+
     diag.setConstant(n, 1.);
     return solveNumericalDiff(
         x,
         nfev,
         diag,
+        parameters,
         2,
         -1, -1,
-        (n+1)*200,
-        100.,
-        tol, Scalar(0.)
+        Scalar(0.)
     );
 }
 
@@ -411,12 +419,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
+        const Parameters &parameters,
         const int mode,
         int nb_of_subdiagonals,
         int nb_of_superdiagonals,
-        const int maxfev,
-        const Scalar factor,
-        const Scalar xtol,
         const Scalar epsfcn
         )
 {
@@ -454,7 +460,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || xtol < 0. || maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || factor <= 0. )
+    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || parameters.factor <= 0. )
         return RelativeErrorTooSmall;
     if (mode == 2)
         for (j = 0; j < n; ++j)
@@ -514,9 +520,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
             wa3 = diag.cwise() * x;
             xnorm = wa3.stableNorm();
-            delta = factor * xnorm;
+            delta = parameters.factor * xnorm;
             if (delta == 0.)
-                delta = factor;
+                delta = parameters.factor;
         }
 
         /* form (q transpose)*fvec and store in qtf. */
@@ -653,12 +659,12 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
             /* test for convergence. */
 
-            if (delta <= xtol * xnorm || fnorm == 0.)
+            if (delta <= parameters.xtol * xnorm || fnorm == 0.)
                 return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
-            if (nfev >= maxfev)
+            if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
             /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
