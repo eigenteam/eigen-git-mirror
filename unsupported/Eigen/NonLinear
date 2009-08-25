@@ -53,7 +53,6 @@ namespace Eigen {
 #include "src/NonLinear/lmstr.h"
 #include "src/NonLinear/lmdif.h"
 #include "src/NonLinear/hybrj.h"
-#include "src/NonLinear/lmder1.h"
 #include "src/NonLinear/lmstr1.h"
 #include "src/NonLinear/hybrd1.h"
 #include "src/NonLinear/hybrj1.h"

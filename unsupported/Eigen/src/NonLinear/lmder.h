@@ -1,7 +1,74 @@
 
 template<typename FunctorType, typename Scalar>
-int ei_lmder(
-        const FunctorType &Functor,
+class LevenbergMarquardt 
+{
+public:
+    LevenbergMarquardt(const FunctorType &_functor)
+        : functor(_functor) {}
+
+    int minimize(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            Matrix< Scalar, Dynamic, 1 >  &fvec,
+            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            );
+
+    int minimize(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            Matrix< Scalar, Dynamic, 1 >  &fvec,
+            int &nfev,
+            int &njev,
+            Matrix< Scalar, Dynamic, Dynamic > &fjac,
+            VectorXi &ipvt,
+            Matrix< Scalar, Dynamic, 1 >  &qtf,
+            Matrix< Scalar, Dynamic, 1 >  &diag,
+            int mode=1,
+            Scalar factor = 100.,
+            int maxfev = 400,
+            Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            Scalar gtol = Scalar(0.),
+            int nprint=0
+            );
+
+private:
+    const FunctorType &functor;
+};
+
+
+template<typename FunctorType, typename Scalar>
+int LevenbergMarquardt<FunctorType,Scalar>::minimize(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        const Scalar tol
+        )
+{
+    const int n = x.size(), m=fvec.size();
+    int info, nfev=0, njev=0;
+    Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
+    Matrix< Scalar, Dynamic, 1> diag, qtf;
+    VectorXi ipvt(n);
+
+    /* check the input parameters for errors. */
+    if (n <= 0 || m < n || tol < 0.) {
+        printf("ei_lmder1 bad args : m,n,tol,...");
+        return 0;
+    }
+
+    info = minimize(
+            x, fvec,
+            nfev, njev,
+            fjac, ipvt, qtf, diag,
+            1,
+            100.,
+            (n+1)*100,
+            tol, tol, Scalar(0.)
+            );
+    return (info==8)?4:info;
+}
+
+
+template<typename FunctorType, typename Scalar>
+int LevenbergMarquardt<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
@@ -10,13 +77,13 @@ int ei_lmder(
         VectorXi &ipvt,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode=1,
-        Scalar factor = 100.,
-        int maxfev = 400,
-        Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-        Scalar gtol = Scalar(0.),
-        int nprint=0
+        int mode,
+        Scalar factor,
+        int maxfev,
+        Scalar ftol,
+        Scalar xtol,
+        Scalar gtol,
+        int nprint
         )
 {
     const int m = fvec.size(), n = x.size();
@@ -57,7 +124,7 @@ int ei_lmder(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor.f(x, fvec);
+    iflag = functor.f(x, fvec);
     nfev = 1;
     if (iflag < 0)
         goto algo_end;
@@ -74,17 +141,17 @@ int ei_lmder(
 
         /* calculate the jacobian matrix. */
 
-        iflag = Functor.df(x, fjac);
+        iflag = functor.df(x, fjac);
         ++njev;
         if (iflag < 0)
             break;
 
-        /* if requested, call Functor.f to enable printing of iterates. */
+        /* if requested, call functor.f to enable printing of iterates. */
 
         if (nprint > 0) {
             iflag = 0;
             if ((iter - 1) % nprint == 0)
-                iflag = Functor.debug(x, fvec, fjac);
+                iflag = functor.debug(x, fvec, fjac);
             if (iflag < 0)
                 break;
         }
@@ -180,7 +247,7 @@ int ei_lmder(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = Functor.f(wa2, wa4);
+            iflag = functor.f(wa2, wa4);
             ++nfev;
             if (iflag < 0)
                 goto algo_end;
@@ -277,7 +344,6 @@ algo_end:
     if (iflag < 0)
         info = iflag;
     if (nprint > 0)
-        iflag = Functor.debug(x, fvec, fjac);
+        iflag = functor.debug(x, fvec, fjac);
     return info;
 }
-

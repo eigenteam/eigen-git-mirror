@@ -146,13 +146,14 @@ void testLmder1()
   int m=15, n=3, info;
 
   VectorXd x(n), fvec(m);
-  VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmder1(lmder_functor(), x, fvec, ipvt);
+  lmder_functor functor;
+  LevenbergMarquardt<lmder_functor,double> lm(functor);
+  info = lm.minimize(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -179,7 +180,9 @@ void testLmder()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmder(lmder_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  lmder_functor functor;
+  LevenbergMarquardt<lmder_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -641,7 +644,9 @@ void testNistChwirut2(void)
    */
   x<< 0.1, 0.01, 0.02;
   // do the computation
-  info = ei_lmder(chwirut2_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  chwirut2_functor functor;
+  LevenbergMarquardt<chwirut2_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -659,7 +664,7 @@ void testNistChwirut2(void)
    */
   x<< 0.15, 0.008, 0.010;
   // do the computation
-  info = ei_lmder(chwirut2_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 400, 1.E6*epsilon<double>(), 1.E6*epsilon<double>());
 
   // check return value
@@ -718,7 +723,9 @@ void testNistMisra1a(void)
    */
   x<< 500., 0.0001;
   // do the computation
-  info = ei_lmder(misra1a_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  misra1a_functor functor;
+  LevenbergMarquardt<misra1a_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -735,7 +742,7 @@ void testNistMisra1a(void)
    */
   x<< 250., 0.0005;
   // do the computation
-  info = ei_lmder(misra1a_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -803,7 +810,9 @@ void testNistHahn1(void)
    */
   x<< 10., -1., .05, -.00001, -.05, .001, -.000001;
   // do the computation
-  info = ei_lmder(hahn1_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  hahn1_functor functor;
+  LevenbergMarquardt<hahn1_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -825,7 +834,7 @@ void testNistHahn1(void)
    */
   x<< .1, -.1, .005, -.000001, -.005, .0001, -.0000001;
   // do the computation
-  info = ei_lmder(hahn1_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -888,7 +897,9 @@ void testNistMisra1d(void)
    */
   x<< 500., 0.0001;
   // do the computation
-  info = ei_lmder(misra1d_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  misra1d_functor functor;
+  LevenbergMarquardt<misra1d_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 3 == info); 
@@ -905,7 +916,7 @@ void testNistMisra1d(void)
    */
   x<< 450., 0.0003;
   // do the computation
-  info = ei_lmder(misra1d_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -965,7 +976,9 @@ void testNistLanczos1(void)
    */
   x<< 1.2, 0.3, 5.6, 5.5, 6.5, 7.6;
   // do the computation
-  info = ei_lmder(lanczos1_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  lanczos1_functor functor;
+  LevenbergMarquardt<lanczos1_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -986,7 +999,7 @@ void testNistLanczos1(void)
    */
   x<< 0.5, 0.7, 3.6, 4.2, 4., 6.3;
   // do the computation
-  info = ei_lmder(lanczos1_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1050,7 +1063,9 @@ void testNistRat42(void)
    */
   x<< 100., 1., 0.1;
   // do the computation
-  info = ei_lmder(rat42_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  rat42_functor functor;
+  LevenbergMarquardt<rat42_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1068,7 +1083,7 @@ void testNistRat42(void)
    */
   x<< 75., 2.5, 0.07;
   // do the computation
-  info = ei_lmder(rat42_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1127,7 +1142,9 @@ void testNistMGH10(void)
    */
   x<< 2., 400000., 25000.;
   // do the computation
-  info = ei_lmder(MGH10_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  MGH10_functor functor;
+  LevenbergMarquardt<MGH10_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1145,7 +1162,7 @@ void testNistMGH10(void)
    */
   x<< 0.02, 4000., 250.;
   // do the computation
-  info = ei_lmder(MGH10_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1202,7 +1219,9 @@ void testNistBoxBOD(void)
    */
   x<< 1., 1.;
   // do the computation
-  info = ei_lmder(BoxBOD_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  BoxBOD_functor functor;
+  LevenbergMarquardt<BoxBOD_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 10., 400, 1E6*epsilon<double>(), 1E6*epsilon<double>());
 
   // check return value
@@ -1220,7 +1239,7 @@ void testNistBoxBOD(void)
    */
   x<< 100., 0.75;
   // do the computation
-  info = ei_lmder(BoxBOD_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 14000, epsilon<double>(), epsilon<double>());
 
   // check return value
@@ -1279,8 +1298,9 @@ void testNistMGH17(void)
    */
   x<< 50., 150., -100., 1., 2.;
   // do the computation
-  info = ei_lmder(MGH17_functor(), 
-          x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  MGH17_functor functor;
+  LevenbergMarquardt<MGH17_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 5000, epsilon<double>(), epsilon<double>());
 
   // check return value
@@ -1301,7 +1321,7 @@ void testNistMGH17(void)
    */
   x<< 0.5  ,1.5  ,-1   ,0.01 ,0.02;
   // do the computation
-  info = ei_lmder(MGH17_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1365,7 +1385,9 @@ void testNistMGH09(void)
    */
   x<< 25., 39, 41.5, 39.;
   // do the computation
-  info = ei_lmder(MGH09_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  MGH09_functor functor;
+  LevenbergMarquardt<MGH09_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 5000);
 
   // check return value
@@ -1385,7 +1407,7 @@ void testNistMGH09(void)
    */
   x<< 0.25, 0.39, 0.415, 0.39;
   // do the computation
-  info = ei_lmder(MGH09_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1446,8 +1468,9 @@ void testNistBennett5(void)
    */
   x<< -2000., 50., 0.8;
   // do the computation
-  info = ei_lmder(Bennett5_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
-          1, 100., 5000);
+  Bennett5_functor functor;
+  LevenbergMarquardt<Bennett5_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag, 1, 100., 5000);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1464,7 +1487,7 @@ void testNistBennett5(void)
    */
   x<< -1500., 45., 0.85;
   // do the computation
-  info = ei_lmder(Bennett5_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1531,7 +1554,9 @@ void testNistThurber(void)
    */
   x<< 1000 ,1000 ,400 ,40 ,0.7,0.3,0.0 ;
   // do the computation
-  info = ei_lmder(thurber_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  thurber_functor functor;
+  LevenbergMarquardt<thurber_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 400, 1.E4*epsilon<double>(), 1.E4*epsilon<double>());
 
   // check return value
@@ -1554,7 +1579,7 @@ void testNistThurber(void)
    */
   x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
   // do the computation
-  info = ei_lmder(thurber_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 400, 1.E4*epsilon<double>(), 1.E4*epsilon<double>());
 
   // check return value
@@ -1619,7 +1644,9 @@ void testNistRat43(void)
    */
   x<< 100., 10., 1., 1.;
   // do the computation
-  info = ei_lmder(rat43_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  rat43_functor functor;
+  LevenbergMarquardt<rat43_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 400, 1.E6*epsilon<double>(), 1.E6*epsilon<double>());
 
   // check return value
@@ -1639,7 +1666,7 @@ void testNistRat43(void)
    */
   x<< 700., 5., 0.75, 1.3;
   // do the computation
-  info = ei_lmder(rat43_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
           1, 100., 400, 1.E5*epsilon<double>(), 1.E5*epsilon<double>());
 
   // check return value
@@ -1702,7 +1729,9 @@ void testNistEckerle4(void)
    */
   x<< 1., 10., 500.;
   // do the computation
-  info = ei_lmder(eckerle4_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  eckerle4_functor functor;
+  LevenbergMarquardt<eckerle4_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1720,7 +1749,7 @@ void testNistEckerle4(void)
    */
   x<< 1.5, 5., 450.;
   // do the computation
-  info = ei_lmder(eckerle4_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return value
   VERIFY( 1 == info); 
