@@ -541,7 +541,9 @@ void testLmdif1()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif1(lmdif_functor(), x, fvec);
+  lmdif_functor functor;
+  LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
+  info = lm.minimize(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -569,7 +571,9 @@ void testLmdif()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmdif(lmdif_functor(), x, fvec, nfev, fjac, ipvt, qtf, diag);
+  lmdif_functor functor;
+  LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, fjac, ipvt, qtf, diag);
 
   // check return values
   VERIFY( 1 == info);
