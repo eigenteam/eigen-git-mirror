@@ -5,12 +5,13 @@ class HybridNonLinearSolverNumericalDiff
 public:
     HybridNonLinearSolverNumericalDiff(const FunctorType &_functor)
         : functor(_functor) {}
+
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             Matrix< Scalar, Dynamic, 1 >  &fvec,
+            Matrix< Scalar, Dynamic, Dynamic > &fjac,
             Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
-
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             Matrix< Scalar, Dynamic, 1 >  &fvec,
@@ -39,17 +40,17 @@ template<typename FunctorType, typename Scalar>
 int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Matrix< Scalar, Dynamic, Dynamic > &fjac,
         Scalar tol
         )
 {
     const int n = x.size();
     int info, nfev=0;
-    Matrix< Scalar, Dynamic, Dynamic > fjac;
     Matrix< Scalar, Dynamic, 1> R, qtf, diag;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
-        printf("solve bad args : n,tol,...");
+        printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
         return 0;
     }
 

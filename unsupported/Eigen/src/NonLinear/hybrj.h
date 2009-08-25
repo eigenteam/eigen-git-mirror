@@ -1,5 +1,4 @@
 
-
 template<typename FunctorType, typename Scalar>
 class HybridNonLinearSolver
 {
@@ -7,19 +6,16 @@ public:
     HybridNonLinearSolver(const FunctorType &_functor)
         : functor(_functor) {}
 
-
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             Matrix< Scalar, Dynamic, 1 >  &fvec,
             Matrix< Scalar, Dynamic, Dynamic > &fjac,
             Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
-
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             Matrix< Scalar, Dynamic, 1 >  &fvec,
-            int &nfev,
-            int &njev,
+            int &nfev, int &njev,
             Matrix< Scalar, Dynamic, Dynamic > &fjac,
             Matrix< Scalar, Dynamic, 1 >  &R,
             Matrix< Scalar, Dynamic, 1 >  &qtf,
@@ -51,7 +47,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
-        printf("ei_hybrd1 bad args : n,tol,...");
+        printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
         return 0;
     }
 

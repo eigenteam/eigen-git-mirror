@@ -351,6 +351,7 @@ void testHybrd1()
 {
   int n=9, info;
   VectorXd x(n), fvec(n);
+  MatrixXd fjac;
 
   /* the following starting values provide a rough solution. */
   x.setConstant(n, -1.);
@@ -358,7 +359,7 @@ void testHybrd1()
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolverNumericalDiff <hybrd_functor,double> solver(functor);
-  info = solver.solve(x, fvec);
+  info = solver.solve(x, fvec, fjac);
 
   // check return value
   VERIFY( 1 == info);
