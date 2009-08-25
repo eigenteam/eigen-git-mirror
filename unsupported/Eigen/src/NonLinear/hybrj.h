@@ -1,5 +1,5 @@
 
-template<typename FunctorType, typename Scalar>
+template<typename FunctorType, typename Scalar=double>
 class HybridNonLinearSolver
 {
 public:

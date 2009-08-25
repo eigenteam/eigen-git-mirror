@@ -153,7 +153,7 @@ void testLmder1()
 
   // do the computation
   lmder_functor functor;
-  LevenbergMarquardt<lmder_functor,double> lm(functor);
+  LevenbergMarquardt<lmder_functor> lm(functor);
   info = lm.minimize(x);
 
   // check return value
@@ -180,7 +180,7 @@ void testLmder()
 
   // do the computation
   lmder_functor functor;
-  LevenbergMarquardt<lmder_functor,double> lm(functor);
+  LevenbergMarquardt<lmder_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return values
@@ -268,7 +268,7 @@ void testHybrj1()
 
   // do the computation
   hybrj_functor functor;
-  HybridNonLinearSolver<hybrj_functor,double> solver(functor);
+  HybridNonLinearSolver<hybrj_functor> solver(functor);
   info = solver.solve(x);
 
   // check return value
@@ -301,7 +301,7 @@ void testHybrj()
 
   // do the computation
   hybrj_functor functor;
-  HybridNonLinearSolver<hybrj_functor,double> solver(functor);
+  HybridNonLinearSolver<hybrj_functor> solver(functor);
   info = solver.solve(x, nfev, njev, diag, mode);
 
   // check return value
@@ -354,7 +354,7 @@ void testHybrd1()
 
   // do the computation
   hybrd_functor functor;
-  HybridNonLinearSolverNumericalDiff <hybrd_functor,double> solver(functor);
+  HybridNonLinearSolverNumericalDiff<hybrd_functor> solver(functor);
   info = solver.solve(x);
 
   // check return value
@@ -385,7 +385,7 @@ void testHybrd()
 
   // do the computation
   hybrd_functor functor;
-  HybridNonLinearSolverNumericalDiff <hybrd_functor,double> solver(functor);
+  HybridNonLinearSolverNumericalDiff<hybrd_functor> solver(functor);
   info = solver.solve(x, nfev, diag, mode, ml, mu);
 
   // check return value
@@ -456,7 +456,7 @@ void testLmstr1()
 
   // do the computation
   lmstr_functor functor;
-  LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
+  LevenbergMarquardtOptimumStorage<lmstr_functor> lm(functor);
   info = lm.minimize(x);
 
   // check return value
@@ -483,7 +483,7 @@ void testLmstr()
 
   // do the computation
   lmstr_functor functor;
-  LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
+  LevenbergMarquardtOptimumStorage<lmstr_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return values
@@ -541,7 +541,7 @@ void testLmdif1()
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
+  LevenbergMarquardtNumericalDiff<lmdif_functor> lm(functor);
   info = lm.minimize(x);
 
   // check return value
@@ -569,7 +569,7 @@ void testLmdif()
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
+  LevenbergMarquardtNumericalDiff<lmdif_functor> lm(functor);
   info = lm.minimize(x, nfev, diag);
 
   // check return values
@@ -654,7 +654,7 @@ void testNistChwirut2(void)
   x<< 0.1, 0.01, 0.02;
   // do the computation
   chwirut2_functor functor;
-  LevenbergMarquardt<chwirut2_functor,double> lm(functor);
+  LevenbergMarquardt<chwirut2_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -732,7 +732,7 @@ void testNistMisra1a(void)
   x<< 500., 0.0001;
   // do the computation
   misra1a_functor functor;
-  LevenbergMarquardt<misra1a_functor,double> lm(functor);
+  LevenbergMarquardt<misra1a_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -818,7 +818,7 @@ void testNistHahn1(void)
   x<< 10., -1., .05, -.00001, -.05, .001, -.000001;
   // do the computation
   hahn1_functor functor;
-  LevenbergMarquardt<hahn1_functor,double> lm(functor);
+  LevenbergMarquardt<hahn1_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -904,7 +904,7 @@ void testNistMisra1d(void)
   x<< 500., 0.0001;
   // do the computation
   misra1d_functor functor;
-  LevenbergMarquardt<misra1d_functor,double> lm(functor);
+  LevenbergMarquardt<misra1d_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -982,7 +982,7 @@ void testNistLanczos1(void)
   x<< 1.2, 0.3, 5.6, 5.5, 6.5, 7.6;
   // do the computation
   lanczos1_functor functor;
-  LevenbergMarquardt<lanczos1_functor,double> lm(functor);
+  LevenbergMarquardt<lanczos1_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -1068,7 +1068,7 @@ void testNistRat42(void)
   x<< 100., 1., 0.1;
   // do the computation
   rat42_functor functor;
-  LevenbergMarquardt<rat42_functor,double> lm(functor);
+  LevenbergMarquardt<rat42_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -1146,7 +1146,7 @@ void testNistMGH10(void)
   x<< 2., 400000., 25000.;
   // do the computation
   MGH10_functor functor;
-  LevenbergMarquardt<MGH10_functor,double> lm(functor);
+  LevenbergMarquardt<MGH10_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
@@ -1222,7 +1222,7 @@ void testNistBoxBOD(void)
   x<< 1., 1.;
   // do the computation
   BoxBOD_functor functor;
-  LevenbergMarquardt<BoxBOD_functor,double> lm(functor);
+  LevenbergMarquardt<BoxBOD_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag,
           1, 10., 400, 1E6*epsilon<double>(), 1E6*epsilon<double>());
 
@@ -1300,7 +1300,7 @@ void testNistMGH17(void)
   x<< 50., 150., -100., 1., 2.;
   // do the computation
   MGH17_functor functor;
-  LevenbergMarquardt<MGH17_functor,double> lm(functor);
+  LevenbergMarquardt<MGH17_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag,
           1, 100., 5000, epsilon<double>(), epsilon<double>());
 
@@ -1386,7 +1386,7 @@ void testNistMGH09(void)
   x<< 25., 39, 41.5, 39.;
   // do the computation
   MGH09_functor functor;
-  LevenbergMarquardt<MGH09_functor,double> lm(functor);
+  LevenbergMarquardt<MGH09_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag,
           1, 100., 5000);
 
@@ -1468,7 +1468,7 @@ void testNistBennett5(void)
   x<< -2000., 50., 0.8;
   // do the computation
   Bennett5_functor functor;
-  LevenbergMarquardt<Bennett5_functor,double> lm(functor);
+  LevenbergMarquardt<Bennett5_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag, 1, 100., 5000);
 
   // check return value
@@ -1553,7 +1553,7 @@ void testNistThurber(void)
   x<< 1000 ,1000 ,400 ,40 ,0.7,0.3,0.0 ;
   // do the computation
   thurber_functor functor;
-  LevenbergMarquardt<thurber_functor,double> lm(functor);
+  LevenbergMarquardt<thurber_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E4*epsilon<double>(), 1.E4*epsilon<double>());
 
@@ -1642,7 +1642,7 @@ void testNistRat43(void)
   x<< 100., 10., 1., 1.;
   // do the computation
   rat43_functor functor;
-  LevenbergMarquardt<rat43_functor,double> lm(functor);
+  LevenbergMarquardt<rat43_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E6*epsilon<double>(), 1.E6*epsilon<double>());
 
@@ -1726,7 +1726,7 @@ void testNistEckerle4(void)
   x<< 1., 10., 500.;
   // do the computation
   eckerle4_functor functor;
-  LevenbergMarquardt<eckerle4_functor,double> lm(functor);
+  LevenbergMarquardt<eckerle4_functor> lm(functor);
   info = lm.minimize(x, nfev, njev, diag);
 
   // check return value

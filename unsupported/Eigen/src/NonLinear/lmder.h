@@ -1,5 +1,5 @@
 
-template<typename FunctorType, typename Scalar>
+template<typename FunctorType, typename Scalar=double>
 class LevenbergMarquardt 
 {
 public:
@@ -17,7 +17,7 @@ public:
             int &njev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
             const int mode=1,
-            const Scalar factor = 100.,
+            const Scalar factor = Scalar(100.),
             const int maxfev = 400,
             const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
             const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
