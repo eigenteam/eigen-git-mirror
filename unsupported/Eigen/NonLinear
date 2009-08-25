@@ -48,13 +48,13 @@ namespace Eigen {
 #include "src/NonLinear/dogleg.h"
 #include "src/NonLinear/covar.h"
 
+#include "src/NonLinear/chkder.h"
+
 #include "src/NonLinear/lmder.h"
 #include "src/NonLinear/hybrd.h"
 #include "src/NonLinear/lmstr.h"
 #include "src/NonLinear/lmdif.h"
 #include "src/NonLinear/hybrj.h"
-#include "src/NonLinear/lmstr1.h"
-#include "src/NonLinear/chkder.h"
 
 //@}
 

@@ -453,13 +453,14 @@ void testLmstr1()
   int m=15, n=3, info;
 
   VectorXd x(n), fvec(m);
-  VectorXi ipvt;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr1(lmstr_functor(), x, fvec, ipvt);
+  lmstr_functor functor;
+  LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
+  info = lm.minimize(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -486,8 +487,9 @@ void testLmstr()
   x.setConstant(n, 1.);
 
   // do the computation
-  info = ei_lmstr(lmstr_functor(), x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
-  VectorXd wa(n);
+  lmstr_functor functor;
+  LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
+  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
 
   // check return values
   VERIFY( 1 == info);

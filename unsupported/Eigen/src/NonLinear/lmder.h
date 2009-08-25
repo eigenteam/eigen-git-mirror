@@ -50,7 +50,7 @@ int LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
-        printf("ei_lmder1 bad args : m,n,tol,...");
+        printf("LevenbergMarquardt::minimize() bad args : m,n,tol,...");
         return 0;
     }
 
