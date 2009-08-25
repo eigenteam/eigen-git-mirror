@@ -396,9 +396,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     return solveNumericalDiff(
         x,
         parameters,
-        2,
-        -1, -1,
-        Scalar(0.)
+        2
     );
 }
 

@@ -102,8 +102,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
     return minimize(
         x,
-        parameters,
-        1
+        parameters
     );
 }
 
@@ -377,9 +376,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
     return minimizeNumericalDiff(
         x,
-        parameters,
-        1,
-        Scalar(0.)
+        parameters
     );
 }
 
@@ -654,8 +651,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
     return minimizeOptimumStorage(
         x,
-        parameters,
-        1
+        parameters
     );
 }
 
