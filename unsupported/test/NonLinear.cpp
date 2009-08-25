@@ -354,8 +354,8 @@ void testHybrd1()
 
   // do the computation
   hybrd_functor functor;
-  HybridNonLinearSolverNumericalDiff<hybrd_functor> solver(functor);
-  info = solver.solve(x);
+  HybridNonLinearSolver<hybrd_functor> solver(functor);
+  info = solver.solveNumericalDiff(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -385,8 +385,8 @@ void testHybrd()
 
   // do the computation
   hybrd_functor functor;
-  HybridNonLinearSolverNumericalDiff<hybrd_functor> solver(functor);
-  info = solver.solve(x, nfev, diag, mode, ml, mu);
+  HybridNonLinearSolver<hybrd_functor> solver(functor);
+  info = solver.solveNumericalDiff(x, nfev, diag, mode, ml, mu);
 
   // check return value
   VERIFY( 1 == info);
@@ -456,8 +456,8 @@ void testLmstr1()
 
   // do the computation
   lmstr_functor functor;
-  LevenbergMarquardtOptimumStorage<lmstr_functor> lm(functor);
-  info = lm.minimize(x);
+  LevenbergMarquardt<lmstr_functor> lm(functor);
+  info = lm.minimizeOptimumStorage(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -483,8 +483,8 @@ void testLmstr()
 
   // do the computation
   lmstr_functor functor;
-  LevenbergMarquardtOptimumStorage<lmstr_functor> lm(functor);
-  info = lm.minimize(x, nfev, njev, diag);
+  LevenbergMarquardt<lmstr_functor> lm(functor);
+  info = lm.minimizeOptimumStorage(x, nfev, njev, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -541,8 +541,8 @@ void testLmdif1()
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardtNumericalDiff<lmdif_functor> lm(functor);
-  info = lm.minimize(x);
+  LevenbergMarquardt<lmdif_functor> lm(functor);
+  info = lm.minimizeNumericalDiff(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -569,8 +569,8 @@ void testLmdif()
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardtNumericalDiff<lmdif_functor> lm(functor);
-  info = lm.minimize(x, nfev, diag);
+  LevenbergMarquardt<lmdif_functor> lm(functor);
+  info = lm.minimizeNumericalDiff(x, nfev, diag);
 
   // check return values
   VERIFY( 1 == info);

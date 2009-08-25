@@ -50,10 +50,6 @@ namespace Eigen {
 
 #include "src/NonLinear/chkder.h"
 
-#include "src/NonLinear/hybrd.h"
-#include "src/NonLinear/lmstr.h"
-#include "src/NonLinear/lmdif.h"
-
 #include "src/NonLinear/HybridNonLinearSolver.h"
 #include "src/NonLinear/LevenbergMarquardt.h"
 
