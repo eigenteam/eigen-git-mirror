@@ -21,8 +21,7 @@ public:
             const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
             const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
             const Scalar gtol = Scalar(0.),
-            const Scalar epsfcn = Scalar(0.),
-            const int nprint=0
+            const Scalar epsfcn = Scalar(0.)
             );
 
     Matrix< Scalar, Dynamic, 1 >  fvec;
@@ -76,8 +75,7 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         const Scalar ftol,
         const Scalar xtol,
         const Scalar gtol,
-        const Scalar epsfcn,
-        const int nprint
+        const Scalar epsfcn
         )
 {
     const int n = x.size();
@@ -139,16 +137,6 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         nfev += n;
         if (iflag < 0)
             break;
-
-        /* if requested, call functor.f to enable printing of iterates. */
-
-        if (nprint > 0) {
-            iflag = 0;
-            if ((iter - 1) % nprint == 0)
-                iflag = functor.debug(x, fvec);
-            if (iflag < 0)
-                break;
-        }
 
         /* compute the qr factorization of the jacobian. */
 
@@ -337,8 +325,6 @@ algo_end:
     /*     termination, either normal or user imposed. */
     if (iflag < 0)
         info = iflag;
-    if (nprint > 0)
-        iflag = functor.debug(x, fvec);
     return info;
 }
 

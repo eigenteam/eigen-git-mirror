@@ -21,8 +21,7 @@ public:
             const int maxfev = 400,
             const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
             const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar gtol = Scalar(0.),
-            const int nprint=0
+            const Scalar gtol = Scalar(0.)
             );
 
     Matrix< Scalar, Dynamic, 1 >  fvec;
@@ -76,8 +75,7 @@ int LevenbergMarquardtOptimumStorage<FunctorType,Scalar>::minimize(
         const int maxfev,
         const Scalar ftol,
         const Scalar xtol,
-        const Scalar gtol,
-        const int nprint
+        const Scalar gtol
         )
 {
     const int n = x.size();
@@ -134,16 +132,6 @@ int LevenbergMarquardtOptimumStorage<FunctorType,Scalar>::minimize(
     /*     beginning of the outer loop. */
 
     while (true) {
-
-        /* if requested, call functor.f to enable printing of iterates. */
-
-        if (nprint > 0) {
-            iflag = 0;
-            if ((iter - 1) % nprint == 0)
-                iflag = functor.debug(x, fvec, wa3);
-            if (iflag < 0)
-                break;
-        }
 
         /* compute the qr factorization of the jacobian matrix */
         /* calculated one row at a time, while simultaneously */
@@ -355,8 +343,6 @@ algo_end:
     /*     termination, either normal or user imposed. */
     if (iflag < 0)
         info = iflag;
-    if (nprint > 0)
-        iflag = functor.debug(x, fvec, wa3);
     return info;
 }
 

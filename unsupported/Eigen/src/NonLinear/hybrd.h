@@ -20,8 +20,7 @@ public:
             const int maxfev = 2000,
             const Scalar factor = Scalar(100.),
             const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            const Scalar epsfcn = Scalar(0.),
-            const int nprint=0
+            const Scalar epsfcn = Scalar(0.)
             );
 
     Matrix< Scalar, Dynamic, 1 >  fvec;
@@ -76,8 +75,7 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         const int maxfev,
         const Scalar factor,
         const Scalar xtol,
-        const Scalar epsfcn,
-        const int nprint
+        const Scalar epsfcn
         )
 {
     const int n = x.size();
@@ -225,15 +223,6 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         /* beginning of the inner loop. */
 
         while (true) {
-            /* if requested, call functor.f to enable printing of iterates. */
-
-            if (nprint > 0) {
-                iflag = 0;
-                if ((iter - 1) % nprint == 0)
-                    iflag = functor.debug(x, fvec);
-                if (iflag < 0)
-                    goto algo_end;
-            }
 
             /* determine the direction p. */
 
@@ -380,8 +369,6 @@ algo_end:
     /*     termination, either normal or user imposed. */
     if (iflag < 0)
         info = iflag;
-    if (nprint > 0)
-        iflag = functor.debug(x, fvec);
     return info;
 }
 
