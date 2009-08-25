@@ -114,10 +114,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     Parameters parameters;
 
     /* check the input parameters for errors. */
-    if (n <= 0 || tol < 0.) {
-        printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
+    if (n <= 0 || tol < 0.)
         return ImproperInputParameters;
-    }
 
     parameters.maxfev = 100*(n+1);
     parameters.xtol = tol;
@@ -429,10 +427,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     Parameters parameters;
 
     /* check the input parameters for errors. */
-    if (n <= 0 || tol < 0.) {
-        printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
+    if (n <= 0 || tol < 0.)
         return ImproperInputParameters;
-    }
 
     parameters.maxfev = 200*(n+1);
     parameters.xtol = tol;

@@ -133,10 +133,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     Parameters parameters;
 
     /* check the input parameters for errors. */
-    if (n <= 0 || m < n || tol < 0.) {
-        printf("LevenbergMarquardt::minimize() bad args : m,n,tol,...");
+    if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
-    }
 
     parameters.ftol = tol;
     parameters.xtol = tol;
@@ -420,10 +418,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     Parameters parameters;
 
     /* check the input parameters for errors. */
-    if (n <= 0 || m < n || tol < 0.) {
-        printf("ei_lmder1 bad args : m,n,tol,...");
+    if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
-    }
 
     parameters.ftol = tol;
     parameters.xtol = tol;
@@ -708,10 +704,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     Parameters parameters;
 
     /* check the input parameters for errors. */
-    if (n <= 0 || m < n || tol < 0.) {
-        printf("LevenbergMarquardtOptimumStorage::minimize() bad args : m,n,tol,...");
+    if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
-    }
 
     parameters.ftol = tol;
     parameters.xtol = tol;
