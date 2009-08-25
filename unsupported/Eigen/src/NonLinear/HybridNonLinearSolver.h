@@ -34,7 +34,6 @@ public:
     Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev, int &njev,
-            Matrix< Scalar, Dynamic, 1 >  &diag,
             const Parameters &parameters,
             const int mode=1
             );
@@ -46,7 +45,6 @@ public:
     Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
-            Matrix< Scalar, Dynamic, 1 >  &diag,
             const Parameters &parameters,
             const int mode=1,
             int nb_of_subdiagonals = -1,
@@ -58,6 +56,7 @@ public:
     Matrix< Scalar, Dynamic, Dynamic > fjac;
     Matrix< Scalar, Dynamic, 1 >  R;
     Matrix< Scalar, Dynamic, 1 >  qtf;
+    Matrix< Scalar, Dynamic, 1 >  diag;
 private:
     const FunctorType &functor;
 };
@@ -73,7 +72,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 {
     const int n = x.size();
     int nfev=0, njev=0;
-    Matrix< Scalar, Dynamic, 1> diag;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -88,7 +86,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     return solve(
         x, 
         nfev, njev,
-        diag,
         parameters,
         2
     );
@@ -102,7 +99,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         int &njev,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
         const Parameters &parameters,
         const int mode
         )
@@ -115,6 +111,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
     fvec.resize(n);
+    if (mode != 2)
+        diag.resize(n);
 
     /* Local variables */
     int i, j, l, iwa[1];
@@ -388,7 +386,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 {
     const int n = x.size();
     int nfev=0;
-    Matrix< Scalar, Dynamic, 1> diag;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -404,7 +401,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     return solveNumericalDiff(
         x,
         nfev,
-        diag,
         parameters,
         2,
         -1, -1,
@@ -418,7 +414,6 @@ typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
         const Parameters &parameters,
         const int mode,
         int nb_of_subdiagonals,
@@ -436,6 +431,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
     fvec.resize(n);
+    if (mode != 2)
+        diag.resize(n);
 
     /* Local variables */
     int i, j, l, iwa[1];

@@ -43,7 +43,6 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
             int &njev,
-            Matrix< Scalar, Dynamic, 1 >  &diag,
             const Parameters &parameters,
             const int mode=1
             );
@@ -56,7 +55,6 @@ public:
     Status minimizeNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
-            Matrix< Scalar, Dynamic, 1 >  &diag,
             const Parameters &parameters,
             const int mode=1,
             const Scalar epsfcn = Scalar(0.)
@@ -71,7 +69,6 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
             int &njev,
-            Matrix< Scalar, Dynamic, 1 >  &diag,
             const Parameters &parameters,
             const int mode=1
             );
@@ -80,6 +77,7 @@ public:
     Matrix< Scalar, Dynamic, Dynamic > fjac;
     VectorXi ipvt;
     Matrix< Scalar, Dynamic, 1 >  qtf;
+    Matrix< Scalar, Dynamic, 1 >  diag;
 private:
     const FunctorType &functor;
 };
@@ -94,9 +92,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     const int n = x.size();
     const int m = functor.nbOfFunctions();
     int nfev=0, njev=0;
-    Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
-    Matrix< Scalar, Dynamic, 1> diag, qtf;
-    VectorXi ipvt;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -112,7 +107,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     return minimize(
         x,
         nfev, njev,
-        diag,
         parameters,
         1
     );
@@ -125,7 +119,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         int &njev,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
         const Parameters &parameters,
         const int mode
         )
@@ -137,7 +130,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
-    diag.resize(n);
+    if (mode != 2)
+        diag.resize(n);
     qtf.resize(n);
 
     /* Local variables */
@@ -376,9 +370,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     const int n = x.size();
     const int m = functor.nbOfFunctions();
     int nfev=0;
-    Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
-    Matrix< Scalar, Dynamic, 1> diag, qtf;
-    VectorXi ipvt;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -394,7 +385,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     return minimizeNumericalDiff(
         x,
         nfev,
-        diag,
         parameters,
         1,
         Scalar(0.)
@@ -406,7 +396,6 @@ typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
         const Parameters &parameters,
         const int mode,
         const Scalar epsfcn
@@ -419,7 +408,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
-    diag.resize(n);
+    if (mode != 2 )
+        diag.resize(n);
     qtf.resize(n);
 
     /* Local variables */
@@ -658,7 +648,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     const int m = functor.nbOfFunctions();
     int nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
-    Matrix< Scalar, Dynamic, 1> diag, qtf;
     VectorXi ipvt;
     Parameters parameters;
 
@@ -675,7 +664,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     return minimizeOptimumStorage(
         x,
         nfev, njev,
-        diag,
         parameters,
         1
     );
@@ -687,7 +675,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         int &njev,
-        Matrix< Scalar, Dynamic, 1 >  &diag,
         const Parameters &parameters,
         const int mode
         )
@@ -699,7 +686,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
-    diag.resize(n);
+    if (mode != 2)
+        diag.resize(n);
     qtf.resize(n);
 
     /* Local variables */
