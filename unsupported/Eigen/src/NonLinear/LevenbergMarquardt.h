@@ -132,6 +132,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     fjac.resize(m, n);
     if (mode != 2)
         diag.resize(n);
+    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Local variables */
@@ -410,6 +411,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     fjac.resize(m, n);
     if (mode != 2 )
         diag.resize(n);
+    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Local variables */
@@ -688,6 +690,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     fjac.resize(m, n);
     if (mode != 2)
         diag.resize(n);
+    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Local variables */

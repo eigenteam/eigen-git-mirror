@@ -113,6 +113,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     fvec.resize(n);
     if (mode != 2)
         diag.resize(n);
+    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
 
     /* Local variables */
     int i, j, l, iwa[1];
@@ -433,6 +434,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     fvec.resize(n);
     if (mode != 2)
         diag.resize(n);
+    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
 
     /* Local variables */
     int i, j, l, iwa[1];
