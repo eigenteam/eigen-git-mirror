@@ -27,7 +27,7 @@ public:
             , ftol(ei_sqrt(epsilon<Scalar>()))
             , xtol(ei_sqrt(epsilon<Scalar>()))
             , gtol(Scalar(0.))
-            , epsfcn (Scalar(0.)) {}
+            , epsfcn(Scalar(0.)) {}
         Scalar factor;
         int maxfev;   // maximum number of function evaluation
         Scalar ftol;
@@ -106,6 +106,7 @@ public:
     Matrix< Scalar, Dynamic, 1 >  diag;
     int nfev;
     int njev;
+    int iter;
 private:
     const FunctorType &functor;
     int n;
@@ -113,7 +114,6 @@ private:
     Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
 
     Scalar par, sum;
-    int iter;
     Scalar temp, temp1, temp2;
     Scalar delta;
     Scalar ratio;
