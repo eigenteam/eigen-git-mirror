@@ -21,10 +21,16 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(1000)
-            , xtol(ei_sqrt(epsilon<Scalar>())) {}
+            , xtol(ei_sqrt(epsilon<Scalar>()))
+            , nb_of_subdiagonals(-1)
+            , nb_of_superdiagonals(-1)
+            , epsfcn (Scalar(0.)) {}
         Scalar factor;
         int maxfev;   // maximum number of function evaluation
         Scalar xtol;
+        int nb_of_subdiagonals;
+        int nb_of_superdiagonals;
+        Scalar epsfcn;
     };
 
     Status solve(
@@ -44,10 +50,7 @@ public:
     Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Parameters &parameters,
-            const int mode=1,
-            int nb_of_subdiagonals = -1,
-            int nb_of_superdiagonals = -1,
-            const Scalar epsfcn = Scalar(0.)
+            const int mode=1
             );
 
     Matrix< Scalar, Dynamic, 1 >  fvec;
@@ -406,16 +409,15 @@ typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Parameters &parameters,
-        const int mode,
-        int nb_of_subdiagonals,
-        int nb_of_superdiagonals,
-        const Scalar epsfcn
+        const int mode
         )
 {
     n = x.size();
 
-    if (nb_of_subdiagonals<0) nb_of_subdiagonals = n-1;
-    if (nb_of_superdiagonals<0) nb_of_superdiagonals = n-1;
+    int nsub = parameters.nb_of_subdiagonals;
+    int nsup = parameters.nb_of_superdiagonals;
+    if (nsub<0) nsub= n-1;
+    if (nsup<0) nsup= n-1;
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     qtf.resize(n);
@@ -432,7 +434,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || parameters.factor <= 0. )
+    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nsub< 0 || nsup< 0 || parameters.factor <= 0. )
         return ImproperInputParameters;
     if (mode == 2)
         for (int j = 0; j < n; ++j)
@@ -463,9 +465,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
         /* calculate the jacobian matrix. */
 
-        if (ei_fdjac1(functor, x, fvec, fjac, nb_of_subdiagonals, nb_of_superdiagonals, epsfcn) <0)
+        if (ei_fdjac1(functor, x, fvec, fjac, nsub, nsup, parameters.epsfcn) <0)
             return UserAksed;
-        nfev += std::min(nb_of_subdiagonals + nb_of_superdiagonals + 1, n);
+        nfev += std::min(nsub+ nsup+ 1, n);
 
         /* compute the qr factorization of the jacobian. */
 

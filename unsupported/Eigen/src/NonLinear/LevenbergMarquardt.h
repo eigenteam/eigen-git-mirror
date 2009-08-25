@@ -26,12 +26,14 @@ public:
             , maxfev(400)
             , ftol(ei_sqrt(epsilon<Scalar>()))
             , xtol(ei_sqrt(epsilon<Scalar>()))
-            , gtol(Scalar(0.)) { }
+            , gtol(Scalar(0.))
+            , epsfcn (Scalar(0.)) {}
         Scalar factor;
         int maxfev;   // maximum number of function evaluation
         Scalar ftol;
         Scalar xtol;
         Scalar gtol;
+        Scalar epsfcn;
     };
 
     Status minimize(
@@ -53,8 +55,7 @@ public:
     Status minimizeNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Parameters &parameters,
-            const int mode=1,
-            const Scalar epsfcn = Scalar(0.)
+            const int mode=1
             );
 
     Status minimizeOptimumStorage(
@@ -387,8 +388,7 @@ typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Parameters &parameters,
-        const int mode,
-        const Scalar epsfcn
+        const int mode
         )
 {
     n = x.size();
@@ -436,7 +436,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
         /* calculate the jacobian matrix. */
 
-        if ( ei_fdjac2(functor, x, fvec, fjac, epsfcn) < 0)
+        if ( ei_fdjac2(functor, x, fvec, fjac, parameters.epsfcn) < 0)
             return UserAsked;
         nfev += n;
 

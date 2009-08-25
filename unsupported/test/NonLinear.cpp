@@ -373,21 +373,20 @@ void testHybrd1()
 void testHybrd()
 {
   const int n=9;
-  int info, ml, mu;
+  int info;
   VectorXd x;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);
 
-  ml = 1;
-  mu = 1;
-
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolver<hybrd_functor> solver(functor);
   HybridNonLinearSolver<hybrd_functor>::Parameters parameters;
+  parameters.nb_of_subdiagonals = 1;
+  parameters.nb_of_superdiagonals = 1;
   solver.diag.setConstant(n, 1.);
-  info = solver.solveNumericalDiff(x, parameters, 2, ml, mu);
+  info = solver.solveNumericalDiff(x, parameters, 2);
 
   // check return value
   VERIFY( 1 == info);
