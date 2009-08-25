@@ -114,11 +114,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     /* Local variables */
     int i, j, l, iwa[1];
     Scalar sum;
-    int sing;
+    bool sing;
     int iter;
     Scalar temp;
     Scalar delta;
-    int jeval;
+    bool jeval;
     int ncsuc;
     Scalar ratio;
     Scalar fnorm;
@@ -434,12 +434,12 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     /* Local variables */
     int i, j, l, iwa[1];
     Scalar sum;
-    int sing;
+    bool sing;
     int iter;
     Scalar temp;
     int msum;
     Scalar delta;
-    int jeval;
+    bool jeval;
     int ncsuc;
     Scalar ratio;
     Scalar fnorm;

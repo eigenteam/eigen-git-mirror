@@ -706,7 +706,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     /* Local variables */
     int i, j, l;
     Scalar par, sum;
-    int sing, iter;
+    int iter;
+    bool sing;
     Scalar temp, temp1, temp2;
     Scalar delta;
     Scalar ratio;

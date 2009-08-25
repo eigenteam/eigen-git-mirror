@@ -1,6 +1,6 @@
 
 template <typename Scalar>
-void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v, Scalar *w, int *sing)
+void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v, Scalar *w, bool *sing)
 {
     /* Local variables */
     int i, j, l, jj, nm1;
