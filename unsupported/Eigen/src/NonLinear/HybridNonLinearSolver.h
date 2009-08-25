@@ -6,11 +6,22 @@ public:
     HybridNonLinearSolver(const FunctorType &_functor)
         : functor(_functor) {}
 
-    int solve(
+    enum Status {
+        Running = -1,
+        ImproperInputParameters = 0,
+        RelativeErrorTooSmall = 1,
+        TooManyFunctionEvaluation = 2, 
+        TolTooSmall = 3,
+        NotMakingProgressJacobian = 4,
+        NotMakingProgressIterations = 5,
+        UserAksed = 6
+    };
+
+    Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
-    int solve(
+    Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev, int &njev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
@@ -20,11 +31,11 @@ public:
             const Scalar xtol = ei_sqrt(epsilon<Scalar>())
             );
 
-    int solveNumericalDiff(
+    Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
-    int solveNumericalDiff(
+    Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
             int &nfev,
             Matrix< Scalar, Dynamic, 1 >  &diag,
@@ -48,23 +59,24 @@ private:
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solve(
+typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     const int n = x.size();
-    int info, nfev=0, njev=0;
+    int nfev=0, njev=0;
     Matrix< Scalar, Dynamic, 1> diag;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
         printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
-        return 0;
+        return ImproperInputParameters;
     }
 
     diag.setConstant(n, 1.);
-    info = solve(
+    return solve(
         x, 
         nfev, njev,
         diag,
@@ -73,13 +85,13 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
         100.,
         tol
     );
-    return (info==5)?4:info;
 }
 
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solve(
+typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         int &njev,
@@ -115,10 +127,8 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
     int nslow1, nslow2;
     int ncfail;
     Scalar actred, prered;
-    int info;
 
     /* Function Body */
-    info = 0;
     iflag = 0;
     nfev = 0;
     njev = 0;
@@ -126,18 +136,18 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || xtol < 0. || maxfev <= 0 || factor <= 0. )
-        goto algo_end;
+        return RelativeErrorTooSmall;
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.) goto algo_end;
+            if (diag[j] <= 0.)
+                return RelativeErrorTooSmall;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
     iflag = functor.f(x, fvec);
     nfev = 1;
-    if (iflag < 0)
-        goto algo_end;
+    if (iflag < 0) return UserAksed;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -158,7 +168,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
         iflag = functor.df(x, fjac);
         ++njev;
         if (iflag < 0)
-            break;
+            return UserAksed;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -247,8 +257,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
             iflag = functor.f(wa2, wa4);
             ++nfev;
-            if (iflag < 0)
-                goto algo_end;
+            if (iflag < 0) return UserAksed;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -321,28 +330,24 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
             /* test for convergence. */
 
             if (delta <= xtol * xnorm || fnorm == 0.)
-                info = 1;
-            if (info != 0)
-                goto algo_end;
+                return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
             if (nfev >= maxfev)
-                info = 2;
+                return TooManyFunctionEvaluation;
             /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
-                info = 3;
+                return TolTooSmall;
             if (nslow2 == 5)
-                info = 4;
+                return NotMakingProgressJacobian;
             if (nslow1 == 10)
-                info = 5;
-            if (info != 0)
-                goto algo_end;
+                return NotMakingProgressIterations;
 
             /* criterion for recalculating jacobian. */
 
             if (ncfail == 2)
-                break;
+                break; // leave inner loop and go for the next outer loop iteration
 
             /* calculate the rank one modification to the jacobian */
             /* and update qtf if necessary. */
@@ -367,33 +372,30 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
         }
         /* end of the outer loop. */
     }
-algo_end:
-    /*     termination, either normal or user imposed. */
-    if (iflag < 0)
-        info = iflag;
-    return info;
+    assert(false); // should never be reached
 }
 
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
+typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     const int n = x.size();
-    int info, nfev=0;
+    int nfev=0;
     Matrix< Scalar, Dynamic, 1> diag;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
         printf("HybridNonLinearSolver::solve() bad args : n,tol,...");
-        return 0;
+        return ImproperInputParameters;
     }
 
     diag.setConstant(n, 1.);
-    info = solveNumericalDiff(
+    return solveNumericalDiff(
         x,
         nfev,
         diag,
@@ -403,12 +405,12 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         100.,
         tol, Scalar(0.)
     );
-    return (info==5)?4:info;
 }
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
+typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
         int &nfev,
         Matrix< Scalar, Dynamic, 1 >  &diag,
@@ -448,21 +450,20 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     int nslow1, nslow2;
     int ncfail;
     Scalar actred, prered;
-    int info;
 
     /* Function Body */
 
-    info = 0;
     iflag = 0;
     nfev = 0;
 
     /*     check the input parameters for errors. */
 
     if (n <= 0 || xtol < 0. || maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || factor <= 0. )
-        goto algo_end;
+        return RelativeErrorTooSmall;
     if (mode == 2)
         for (j = 0; j < n; ++j)
-            if (diag[j] <= 0.) goto algo_end;
+            if (diag[j] <= 0.)
+                return RelativeErrorTooSmall;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -470,7 +471,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     iflag = functor.f(x, fvec);
     nfev = 1;
     if (iflag < 0)
-        goto algo_end;
+        return UserAksed;
     fnorm = fvec.stableNorm();
 
     /*     determine the number of calls to fcn needed to compute */
@@ -498,7 +499,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
                 nb_of_subdiagonals, nb_of_superdiagonals, epsfcn);
         nfev += msum;
         if (iflag < 0)
-            break;
+            return UserAksed;
 
         /* compute the qr factorization of the jacobian. */
 
@@ -587,8 +588,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
             iflag = functor.f(wa2, wa4);
             ++nfev;
-            if (iflag < 0)
-                goto algo_end;
+            if (iflag < 0) return UserAksed;
             fnorm1 = wa4.stableNorm();
 
             /* compute the scaled actual reduction. */
@@ -661,29 +661,25 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
             /* test for convergence. */
 
             if (delta <= xtol * xnorm || fnorm == 0.)
-                info = 1;
-            if (info != 0)
-                goto algo_end;
+                return RelativeErrorTooSmall;
 
             /* tests for termination and stringent tolerances. */
 
             if (nfev >= maxfev)
-                info = 2;
+                return TooManyFunctionEvaluation;
             /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
-                info = 3;
+                return TolTooSmall;
             if (nslow2 == 5)
-                info = 4;
+                return NotMakingProgressJacobian;
             if (nslow1 == 10)
-                info = 5;
-            if (info != 0)
-                goto algo_end;
+                return NotMakingProgressIterations;
 
             /* criterion for recalculating jacobian approximation */
             /* by forward differences. */
 
             if (ncfail == 2)
-                break;
+                break; // leave inner loop and go for the next outer loop iteration
 
             /* calculate the rank one modification to the jacobian */
             /* and update qtf if necessary. */
@@ -708,10 +704,6 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         }
         /* end of the outer loop. */
     }
-algo_end:
-    /*     termination, either normal or user imposed. */
-    if (iflag < 0)
-        info = iflag;
-    return info;
+    assert(false); // should never be reached
 }
 
