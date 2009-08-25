@@ -1,7 +1,76 @@
 
 template<typename FunctorType, typename Scalar>
-int ei_hybrd(
-        const FunctorType &Functor,
+class HybridNonLinearSolver
+{
+public:
+    HybridNonLinearSolver(const FunctorType &_functor)
+        : functor(_functor) {}
+    int solve(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            Matrix< Scalar, Dynamic, 1 >  &fvec,
+            Scalar tol = ei_sqrt(epsilon<Scalar>())
+            );
+
+    int solve(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            Matrix< Scalar, Dynamic, 1 >  &fvec,
+            int &nfev,
+            Matrix< Scalar, Dynamic, Dynamic > &fjac,
+            Matrix< Scalar, Dynamic, 1 >  &R,
+            Matrix< Scalar, Dynamic, 1 >  &qtf,
+            Matrix< Scalar, Dynamic, 1 >  &diag,
+            int mode=1,
+            int nb_of_subdiagonals = -1,
+            int nb_of_superdiagonals = -1,
+            int maxfev = 2000,
+            Scalar factor = Scalar(100.),
+            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            Scalar epsfcn = Scalar(0.),
+            int nprint=0
+            );
+
+private:
+    const FunctorType &functor;
+};
+
+
+
+template<typename FunctorType, typename Scalar>
+int HybridNonLinearSolver<FunctorType,Scalar>::solve(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        Matrix< Scalar, Dynamic, 1 >  &fvec,
+        Scalar tol
+        )
+{
+    const int n = x.size();
+    int info, nfev=0;
+    Matrix< Scalar, Dynamic, Dynamic > fjac;
+    Matrix< Scalar, Dynamic, 1> R, qtf, diag;
+
+    /* check the input parameters for errors. */
+    if (n <= 0 || tol < 0.) {
+        printf("solve bad args : n,tol,...");
+        return 0;
+    }
+
+    diag.setConstant(n, 1.);
+    info = solve(
+        x, fvec,
+        nfev,
+        fjac,
+        R, qtf, diag,
+        2,
+        -1, -1,
+        (n+1)*200,
+        100.,
+        tol, Scalar(0.)
+    );
+    return (info==5)?4:info;
+}
+
+
+template<typename FunctorType, typename Scalar>
+int HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
@@ -9,14 +78,14 @@ int ei_hybrd(
         Matrix< Scalar, Dynamic, 1 >  &R,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode=1,
-        int nb_of_subdiagonals = -1,
-        int nb_of_superdiagonals = -1,
-        int maxfev = 2000,
-        Scalar factor = Scalar(100.),
-        Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-        Scalar epsfcn = Scalar(0.),
-        int nprint=0
+        int mode,
+        int nb_of_subdiagonals,
+        int nb_of_superdiagonals,
+        int maxfev,
+        Scalar factor,
+        Scalar xtol,
+        Scalar epsfcn,
+        int nprint
         )
 {
     const int n = x.size();
@@ -65,7 +134,7 @@ int ei_hybrd(
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
 
-    iflag = Functor.f(x, fvec);
+    iflag = functor.f(x, fvec);
     nfev = 1;
     if (iflag < 0)
         goto algo_end;
@@ -92,7 +161,7 @@ int ei_hybrd(
 
         /* calculate the jacobian matrix. */
 
-        iflag = ei_fdjac1(Functor, x, fvec, fjac,
+        iflag = ei_fdjac1(functor, x, fvec, fjac,
                 nb_of_subdiagonals, nb_of_superdiagonals, epsfcn);
         nfev += msum;
         if (iflag < 0)
@@ -164,12 +233,12 @@ int ei_hybrd(
         /* beginning of the inner loop. */
 
         while (true) {
-            /* if requested, call Functor.f to enable printing of iterates. */
+            /* if requested, call functor.f to enable printing of iterates. */
 
             if (nprint > 0) {
                 iflag = 0;
                 if ((iter - 1) % nprint == 0)
-                    iflag = Functor.debug(x, fvec);
+                    iflag = functor.debug(x, fvec);
                 if (iflag < 0)
                     goto algo_end;
             }
@@ -192,7 +261,7 @@ int ei_hybrd(
 
             /* evaluate the function at x + p and calculate its norm. */
 
-            iflag = Functor.f(wa2, wa4);
+            iflag = functor.f(wa2, wa4);
             ++nfev;
             if (iflag < 0)
                 goto algo_end;
@@ -320,7 +389,7 @@ algo_end:
     if (iflag < 0)
         info = iflag;
     if (nprint > 0)
-        iflag = Functor.debug(x, fvec);
+        iflag = functor.debug(x, fvec);
     return info;
 }
 

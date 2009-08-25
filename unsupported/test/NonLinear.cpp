@@ -352,7 +352,9 @@ void testHybrd1()
   x.setConstant(n, -1.);
 
   // do the computation
-  info = ei_hybrd1(hybrd_functor(), x, fvec);
+  hybrd_functor functor;
+  HybridNonLinearSolver <hybrd_functor,double> solver(functor);
+  info = solver.solve(x, fvec);
 
   // check return value
   VERIFY( 1 == info);
@@ -382,7 +384,9 @@ void testHybrd()
   diag.setConstant(n, 1.);
 
   // do the computation
-  info = ei_hybrd(hybrd_functor(), x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
+  hybrd_functor functor;
+  HybridNonLinearSolver <hybrd_functor,double> solver(functor);
+  info = solver.solve(x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
 
   // check return value
   VERIFY( 1 == info);
