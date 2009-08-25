@@ -33,7 +33,6 @@ public:
             );
     Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            int &nfev, int &njev,
             const Parameters &parameters,
             const int mode=1
             );
@@ -44,7 +43,6 @@ public:
             );
     Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            int &nfev,
             const Parameters &parameters,
             const int mode=1,
             int nb_of_subdiagonals = -1,
@@ -57,6 +55,8 @@ public:
     Matrix< Scalar, Dynamic, 1 >  R;
     Matrix< Scalar, Dynamic, 1 >  qtf;
     Matrix< Scalar, Dynamic, 1 >  diag;
+    int nfev;
+    int njev;
 private:
     const FunctorType &functor;
 };
@@ -71,7 +71,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
         )
 {
     const int n = x.size();
-    int nfev=0, njev=0;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -85,7 +84,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     diag.setConstant(n, 1.);
     return solve(
         x, 
-        nfev, njev,
         parameters,
         2
     );
@@ -97,8 +95,6 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        int &nfev,
-        int &njev,
         const Parameters &parameters,
         const int mode
         )
@@ -385,7 +381,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         )
 {
     const int n = x.size();
-    int nfev=0;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -400,7 +395,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     diag.setConstant(n, 1.);
     return solveNumericalDiff(
         x,
-        nfev,
         parameters,
         2,
         -1, -1,
@@ -413,7 +407,6 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        int &nfev,
         const Parameters &parameters,
         const int mode,
         int nb_of_subdiagonals,

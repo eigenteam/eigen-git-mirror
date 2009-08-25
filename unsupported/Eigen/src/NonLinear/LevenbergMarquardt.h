@@ -41,8 +41,6 @@ public:
 
     Status minimize(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            int &nfev,
-            int &njev,
             const Parameters &parameters,
             const int mode=1
             );
@@ -54,7 +52,6 @@ public:
 
     Status minimizeNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            int &nfev,
             const Parameters &parameters,
             const int mode=1,
             const Scalar epsfcn = Scalar(0.)
@@ -67,8 +64,6 @@ public:
 
     Status minimizeOptimumStorage(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            int &nfev,
-            int &njev,
             const Parameters &parameters,
             const int mode=1
             );
@@ -78,6 +73,8 @@ public:
     VectorXi ipvt;
     Matrix< Scalar, Dynamic, 1 >  qtf;
     Matrix< Scalar, Dynamic, 1 >  diag;
+    int nfev;
+    int njev;
 private:
     const FunctorType &functor;
 };
@@ -91,7 +88,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 {
     const int n = x.size();
     const int m = functor.nbOfFunctions();
-    int nfev=0, njev=0;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -106,7 +102,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 
     return minimize(
         x,
-        nfev, njev,
         parameters,
         1
     );
@@ -117,8 +112,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        int &nfev,
-        int &njev,
         const Parameters &parameters,
         const int mode
         )
@@ -370,7 +363,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 {
     const int n = x.size();
     const int m = functor.nbOfFunctions();
-    int nfev=0;
     Parameters parameters;
 
     /* check the input parameters for errors. */
@@ -385,7 +377,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
     return minimizeNumericalDiff(
         x,
-        nfev,
         parameters,
         1,
         Scalar(0.)
@@ -396,7 +387,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        int &nfev,
         const Parameters &parameters,
         const int mode,
         const Scalar epsfcn
@@ -648,7 +638,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 {
     const int n = x.size();
     const int m = functor.nbOfFunctions();
-    int nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     VectorXi ipvt;
     Parameters parameters;
@@ -665,7 +654,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
     return minimizeOptimumStorage(
         x,
-        nfev, njev,
         parameters,
         1
     );
@@ -675,8 +663,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        int &nfev,
-        int &njev,
         const Parameters &parameters,
         const int mode
         )
