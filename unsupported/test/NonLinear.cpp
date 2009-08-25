@@ -1836,6 +1836,7 @@ void test_NonLinear()
   printf("x[1] : %.32g\n", x[1]);
   printf("x[2] : %.32g\n", x[2]);
   printf("x[3] : %.32g\n", x[3]);
-  printf("fvec.squaredNorm() : %.32g\n", fvec.squaredNorm());
+  printf("fvec.blueNorm() : %.32g\n", solver.fvec.blueNorm());
+  printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
 */
 

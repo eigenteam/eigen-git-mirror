@@ -46,6 +46,16 @@ public:
             const Parameters &parameters,
             const int mode=1
             );
+    Status minimizeInit(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
+    Status minimizeOneStep(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
 
     Status minimizeNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
@@ -57,6 +67,16 @@ public:
             const Parameters &parameters,
             const int mode=1
             );
+    Status minimizeNumericalDiffInit(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
+    Status minimizeNumericalDiffOneStep(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
 
     Status minimizeOptimumStorage(
             Matrix< Scalar, Dynamic, 1 >  &x,
@@ -64,6 +84,16 @@ public:
             );
 
     Status minimizeOptimumStorage(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
+    Status minimizeOptimumStorageInit(
+            Matrix< Scalar, Dynamic, 1 >  &x,
+            const Parameters &parameters,
+            const int mode=1
+            );
+    Status minimizeOptimumStorageOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Parameters &parameters,
             const int mode=1
@@ -127,6 +157,20 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         const int mode
         )
 {
+    Status status = minimizeInit(x, parameters, mode);
+    while (status==Running)
+        status = minimizeOneStep(x, parameters, mode);
+    return status;
+}
+
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
     n = x.size();
     m = functor.nbOfFunctions();
 
@@ -167,194 +211,202 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     par = 0.;
     iter = 1;
 
-    /*     beginning of the outer loop. */
-
-    while (true) {
-        int i, j, l;
-
-        /* calculate the jacobian matrix. */
-
-        if (functor.df(x, fjac) < 0)
-            return UserAsked;
-        ++njev;
-
-        /* compute the qr factorization of the jacobian. */
-
-        ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
-        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
-
-        /* on the first iteration and if mode is 1, scale according */
-        /* to the norms of the columns of the initial jacobian. */
-
-        if (iter == 1) {
-            if (mode != 2)
-                for (j = 0; j < n; ++j) {
-                    diag[j] = wa2[j];
-                    if (wa2[j] == 0.)
-                        diag[j] = 1.;
-                }
-
-            /* on the first iteration, calculate the norm of the scaled x */
-            /* and initialize the step bound delta. */
-
-            wa3 = diag.cwise() * x;
-            xnorm = wa3.stableNorm();
-            delta = parameters.factor * xnorm;
-            if (delta == 0.)
-                delta = parameters.factor;
-        }
-
-        /* form (q transpose)*fvec and store the first n components in */
-        /* qtf. */
-
-        wa4 = fvec;
-        for (j = 0; j < n; ++j) {
-            if (fjac(j,j) != 0.) {
-                sum = 0.;
-                for (i = j; i < m; ++i)
-                    sum += fjac(i,j) * wa4[i];
-                temp = -sum / fjac(j,j);
-                for (i = j; i < m; ++i)
-                    wa4[i] += fjac(i,j) * temp;
-            }
-            fjac(j,j) = wa1[j];
-            qtf[j] = wa4[j];
-        }
-
-        /* compute the norm of the scaled gradient. */
-
-        gnorm = 0.;
-        if (fnorm != 0.)
-            for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                if (wa2[l] != 0.) {
-                    sum = 0.;
-                    for (i = 0; i <= j; ++i)
-                        sum += fjac(i,j) * (qtf[i] / fnorm);
-                    /* Computing MAX */
-                    gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-                }
-            }
-
-        /* test for convergence of the gradient norm. */
-
-        if (gnorm <= parameters.gtol)
-            return CosinusTooSmall;
-
-        /* rescale if necessary. */
-
-        if (mode != 2) /* Computing MAX */
-            diag = diag.cwise().max(wa2);
-
-        /* beginning of the inner loop. */
-        do {
-
-            /* determine the levenberg-marquardt parameter. */
-
-            ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
-
-            /* store the direction p and x + p. calculate the norm of p. */
-
-            wa1 = -wa1;
-            wa2 = x + wa1;
-            wa3 = diag.cwise() * wa1;
-            pnorm = wa3.stableNorm();
-
-            /* on the first iteration, adjust the initial step bound. */
-
-            if (iter == 1)
-                delta = std::min(delta,pnorm);
-
-            /* evaluate the function at x + p and calculate its norm. */
-
-            if ( functor.f(wa2, wa4) < 0)
-                return UserAsked;
-            ++nfev;
-            fnorm1 = wa4.stableNorm();
-
-            /* compute the scaled actual reduction. */
-
-            actred = -1.;
-            if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
-                actred = 1. - ei_abs2(fnorm1 / fnorm);
-
-            /* compute the scaled predicted reduction and */
-            /* the scaled directional derivative. */
-
-            wa3.fill(0.);
-            for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                temp = wa1[l];
-                for (i = 0; i <= j; ++i)
-                    wa3[i] += fjac(i,j) * temp;
-            }
-            temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-            temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
-            /* Computing 2nd power */
-            prered = temp1 + temp2 / Scalar(.5);
-            dirder = -(temp1 + temp2);
-
-            /* compute the ratio of the actual to the predicted */
-            /* reduction. */
-
-            ratio = 0.;
-            if (prered != 0.)
-                ratio = actred / prered;
-
-            /* update the step bound. */
-
-            if (ratio <= Scalar(.25)) {
-                if (actred >= 0.)
-                    temp = Scalar(.5);
-                if (actred < 0.)
-                    temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
-                if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
-                    temp = Scalar(.1);
-                /* Computing MIN */
-                delta = temp * std::min(delta, pnorm / Scalar(.1));
-                par /= temp;
-            } else if (!(par != 0. && ratio < Scalar(.75))) {
-                delta = pnorm / Scalar(.5);
-                par = Scalar(.5) * par;
-            }
-
-            /* test for successful iteration. */
-
-            if (ratio >= Scalar(1e-4)) {
-                /* successful iteration. update x, fvec, and their norms. */
-                x = wa2;
-                wa2 = diag.cwise() * x;
-                fvec = wa4;
-                xnorm = wa2.stableNorm();
-                fnorm = fnorm1;
-                ++iter;
-            }
-
-            /* tests for convergence. */
-
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
-                return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
-                return RelativeReductionTooSmall;
-            if (delta <= parameters.xtol * xnorm)
-                return RelativeErrorTooSmall;
-
-            /* tests for termination and stringent tolerances. */
-
-            if (nfev >= parameters.maxfev)
-                return TooManyFunctionEvaluation;
-            if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
-                return FtolTooSmall;
-            if (delta <= epsilon<Scalar>() * xnorm)
-                return XtolTooSmall;
-            if (gnorm <= epsilon<Scalar>())
-                return GtolTooSmall;
-            /* end of the inner loop. repeat if iteration unsuccessful. */
-        } while (ratio < Scalar(1e-4));
-        /* end of the outer loop. */
-    }
+    return Running;
 }
 
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
+    int i, j, l;
+
+    /* calculate the jacobian matrix. */
+
+    if (functor.df(x, fjac) < 0)
+        return UserAsked;
+    ++njev;
+
+    /* compute the qr factorization of the jacobian. */
+
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
+
+    /* on the first iteration and if mode is 1, scale according */
+    /* to the norms of the columns of the initial jacobian. */
+
+    if (iter == 1) {
+        if (mode != 2)
+            for (j = 0; j < n; ++j) {
+                diag[j] = wa2[j];
+                if (wa2[j] == 0.)
+                    diag[j] = 1.;
+            }
+
+        /* on the first iteration, calculate the norm of the scaled x */
+        /* and initialize the step bound delta. */
+
+        wa3 = diag.cwise() * x;
+        xnorm = wa3.stableNorm();
+        delta = parameters.factor * xnorm;
+        if (delta == 0.)
+            delta = parameters.factor;
+    }
+
+    /* form (q transpose)*fvec and store the first n components in */
+    /* qtf. */
+
+    wa4 = fvec;
+    for (j = 0; j < n; ++j) {
+        if (fjac(j,j) != 0.) {
+            sum = 0.;
+            for (i = j; i < m; ++i)
+                sum += fjac(i,j) * wa4[i];
+            temp = -sum / fjac(j,j);
+            for (i = j; i < m; ++i)
+                wa4[i] += fjac(i,j) * temp;
+        }
+        fjac(j,j) = wa1[j];
+        qtf[j] = wa4[j];
+    }
+
+    /* compute the norm of the scaled gradient. */
+
+    gnorm = 0.;
+    if (fnorm != 0.)
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            if (wa2[l] != 0.) {
+                sum = 0.;
+                for (i = 0; i <= j; ++i)
+                    sum += fjac(i,j) * (qtf[i] / fnorm);
+                /* Computing MAX */
+                gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
+            }
+        }
+
+    /* test for convergence of the gradient norm. */
+
+    if (gnorm <= parameters.gtol)
+        return CosinusTooSmall;
+
+    /* rescale if necessary. */
+
+    if (mode != 2) /* Computing MAX */
+        diag = diag.cwise().max(wa2);
+
+    /* beginning of the inner loop. */
+    do {
+
+        /* determine the levenberg-marquardt parameter. */
+
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+
+        /* store the direction p and x + p. calculate the norm of p. */
+
+        wa1 = -wa1;
+        wa2 = x + wa1;
+        wa3 = diag.cwise() * wa1;
+        pnorm = wa3.stableNorm();
+
+        /* on the first iteration, adjust the initial step bound. */
+
+        if (iter == 1)
+            delta = std::min(delta,pnorm);
+
+        /* evaluate the function at x + p and calculate its norm. */
+
+        if ( functor.f(wa2, wa4) < 0)
+            return UserAsked;
+        ++nfev;
+        fnorm1 = wa4.stableNorm();
+
+        /* compute the scaled actual reduction. */
+
+        actred = -1.;
+        if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
+            actred = 1. - ei_abs2(fnorm1 / fnorm);
+
+        /* compute the scaled predicted reduction and */
+        /* the scaled directional derivative. */
+
+        wa3.fill(0.);
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            temp = wa1[l];
+            for (i = 0; i <= j; ++i)
+                wa3[i] += fjac(i,j) * temp;
+        }
+        temp1 = ei_abs2(wa3.stableNorm() / fnorm);
+        temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
+        /* Computing 2nd power */
+        prered = temp1 + temp2 / Scalar(.5);
+        dirder = -(temp1 + temp2);
+
+        /* compute the ratio of the actual to the predicted */
+        /* reduction. */
+
+        ratio = 0.;
+        if (prered != 0.)
+            ratio = actred / prered;
+
+        /* update the step bound. */
+
+        if (ratio <= Scalar(.25)) {
+            if (actred >= 0.)
+                temp = Scalar(.5);
+            if (actred < 0.)
+                temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
+            if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
+                temp = Scalar(.1);
+            /* Computing MIN */
+            delta = temp * std::min(delta, pnorm / Scalar(.1));
+            par /= temp;
+        } else if (!(par != 0. && ratio < Scalar(.75))) {
+            delta = pnorm / Scalar(.5);
+            par = Scalar(.5) * par;
+        }
+
+        /* test for successful iteration. */
+
+        if (ratio >= Scalar(1e-4)) {
+            /* successful iteration. update x, fvec, and their norms. */
+            x = wa2;
+            wa2 = diag.cwise() * x;
+            fvec = wa4;
+            xnorm = wa2.stableNorm();
+            fnorm = fnorm1;
+            ++iter;
+        }
+
+        /* tests for convergence. */
+
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+            return RelativeErrorAndReductionTooSmall;
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+            return RelativeReductionTooSmall;
+        if (delta <= parameters.xtol * xnorm)
+            return RelativeErrorTooSmall;
+
+        /* tests for termination and stringent tolerances. */
+
+        if (nfev >= parameters.maxfev)
+            return TooManyFunctionEvaluation;
+        if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
+            return FtolTooSmall;
+        if (delta <= epsilon<Scalar>() * xnorm)
+            return XtolTooSmall;
+        if (gnorm <= epsilon<Scalar>())
+            return GtolTooSmall;
+        /* end of the inner loop. repeat if iteration unsuccessful. */
+    } while (ratio < Scalar(1e-4));
+    /* end of the outer loop. */
+
+    return Running;
+}
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
@@ -385,7 +437,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
+LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Parameters &parameters,
         const int mode
@@ -429,194 +481,216 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     par = 0.;
     iter = 1;
 
-    /*     beginning of the outer loop. */
+    return Running;
+}
 
-    while (true) {
-        int i, j, l;
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffOneStep(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
+    int i, j, l;
 
-        /* calculate the jacobian matrix. */
+    /* calculate the jacobian matrix. */
 
-        if ( ei_fdjac2(functor, x, fvec, fjac, parameters.epsfcn) < 0)
-            return UserAsked;
-        nfev += n;
+    if ( ei_fdjac2(functor, x, fvec, fjac, parameters.epsfcn) < 0)
+        return UserAsked;
+    nfev += n;
 
-        /* compute the qr factorization of the jacobian. */
+    /* compute the qr factorization of the jacobian. */
 
-        ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
-        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
-        /* on the first iteration and if mode is 1, scale according */
-        /* to the norms of the columns of the initial jacobian. */
+    /* on the first iteration and if mode is 1, scale according */
+    /* to the norms of the columns of the initial jacobian. */
 
-        if (iter == 1) {
-            if (mode != 2)
-                for (j = 0; j < n; ++j) {
-                    diag[j] = wa2[j];
-                    if (wa2[j] == 0.)
-                        diag[j] = 1.;
-                }
-
-            /* on the first iteration, calculate the norm of the scaled x */
-            /* and initialize the step bound delta. */
-
-            wa3 = diag.cwise() * x;
-            xnorm = wa3.stableNorm();
-            delta = parameters.factor * xnorm;
-            if (delta == 0.)
-                delta = parameters.factor;
-        }
-
-        /* form (q transpose)*fvec and store the first n components in */
-        /* qtf. */
-
-        wa4 = fvec;
-        for (j = 0; j < n; ++j) {
-            if (fjac(j,j) != 0.) {
-                sum = 0.;
-                for (i = j; i < m; ++i)
-                    sum += fjac(i,j) * wa4[i];
-                temp = -sum / fjac(j,j);
-                for (i = j; i < m; ++i)
-                    wa4[i] += fjac(i,j) * temp;
-            }
-            fjac(j,j) = wa1[j];
-            qtf[j] = wa4[j];
-        }
-
-        /* compute the norm of the scaled gradient. */
-
-        gnorm = 0.;
-        if (fnorm != 0.)
+    if (iter == 1) {
+        if (mode != 2)
             for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                if (wa2[l] != 0.) {
-                    sum = 0.;
-                    for (i = 0; i <= j; ++i)
-                        sum += fjac(i,j) * (qtf[i] / fnorm);
-                    /* Computing MAX */
-                    gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-                }
+                diag[j] = wa2[j];
+                if (wa2[j] == 0.)
+                    diag[j] = 1.;
             }
 
-        /* test for convergence of the gradient norm. */
+        /* on the first iteration, calculate the norm of the scaled x */
+        /* and initialize the step bound delta. */
 
-        if (gnorm <= parameters.gtol)
-            return CosinusTooSmall;
-
-        /* rescale if necessary. */
-
-        if (mode != 2) /* Computing MAX */
-            diag = diag.cwise().max(wa2);
-
-        /* beginning of the inner loop. */
-        do {
-
-            /* determine the levenberg-marquardt parameter. */
-
-            ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
-
-            /* store the direction p and x + p. calculate the norm of p. */
-
-            wa1 = -wa1;
-            wa2 = x + wa1;
-            wa3 = diag.cwise() * wa1;
-            pnorm = wa3.stableNorm();
-
-            /* on the first iteration, adjust the initial step bound. */
-
-            if (iter == 1)
-                delta = std::min(delta,pnorm);
-
-            /* evaluate the function at x + p and calculate its norm. */
-
-            if ( functor.f(wa2, wa4) < 0)
-                return UserAsked;
-            ++nfev;
-            fnorm1 = wa4.stableNorm();
-
-            /* compute the scaled actual reduction. */
-
-            actred = -1.;
-            if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
-                actred = 1. - ei_abs2(fnorm1 / fnorm);
-
-            /* compute the scaled predicted reduction and */
-            /* the scaled directional derivative. */
-
-            wa3.fill(0.);
-            for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                temp = wa1[l];
-                for (i = 0; i <= j; ++i)
-                    wa3[i] += fjac(i,j) * temp;
-            }
-            temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-            temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
-            /* Computing 2nd power */
-            prered = temp1 + temp2 / Scalar(.5);
-            dirder = -(temp1 + temp2);
-
-            /* compute the ratio of the actual to the predicted */
-            /* reduction. */
-
-            ratio = 0.;
-            if (prered != 0.)
-                ratio = actred / prered;
-
-            /* update the step bound. */
-
-            if (ratio <= Scalar(.25)) {
-                if (actred >= 0.)
-                    temp = Scalar(.5);
-                if (actred < 0.)
-                    temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
-                if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
-                    temp = Scalar(.1);
-                /* Computing MIN */
-                delta = temp * std::min(delta, pnorm / Scalar(.1));
-                par /= temp;
-            } else if (!(par != 0. && ratio < Scalar(.75))) {
-                delta = pnorm / Scalar(.5);
-                par = Scalar(.5) * par;
-            }
-
-            /* test for successful iteration. */
-
-            if (ratio >= Scalar(1e-4)) {
-                /* successful iteration. update x, fvec, and their norms. */
-                x = wa2;
-                wa2 = diag.cwise() * x;
-                fvec = wa4;
-                xnorm = wa2.stableNorm();
-                fnorm = fnorm1;
-                ++iter;
-            }
-
-            /* tests for convergence. */
-
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
-                return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
-                return RelativeReductionTooSmall;
-            if (delta <= parameters.xtol * xnorm)
-                return RelativeErrorTooSmall;
-
-            /* tests for termination and stringent tolerances. */
-
-            if (nfev >= parameters.maxfev)
-                return TooManyFunctionEvaluation;
-            if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
-                return FtolTooSmall;
-            if (delta <= epsilon<Scalar>() * xnorm)
-                return XtolTooSmall;
-            if (gnorm <= epsilon<Scalar>())
-                return GtolTooSmall;
-
-            /* end of the inner loop. repeat if iteration unsuccessful. */
-        } while (ratio < Scalar(1e-4));
-        /* end of the outer loop. */
+        wa3 = diag.cwise() * x;
+        xnorm = wa3.stableNorm();
+        delta = parameters.factor * xnorm;
+        if (delta == 0.)
+            delta = parameters.factor;
     }
-    assert(false); // should never be reached
+
+    /* form (q transpose)*fvec and store the first n components in */
+    /* qtf. */
+
+    wa4 = fvec;
+    for (j = 0; j < n; ++j) {
+        if (fjac(j,j) != 0.) {
+            sum = 0.;
+            for (i = j; i < m; ++i)
+                sum += fjac(i,j) * wa4[i];
+            temp = -sum / fjac(j,j);
+            for (i = j; i < m; ++i)
+                wa4[i] += fjac(i,j) * temp;
+        }
+        fjac(j,j) = wa1[j];
+        qtf[j] = wa4[j];
+    }
+
+    /* compute the norm of the scaled gradient. */
+
+    gnorm = 0.;
+    if (fnorm != 0.)
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            if (wa2[l] != 0.) {
+                sum = 0.;
+                for (i = 0; i <= j; ++i)
+                    sum += fjac(i,j) * (qtf[i] / fnorm);
+                /* Computing MAX */
+                gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
+            }
+        }
+
+    /* test for convergence of the gradient norm. */
+
+    if (gnorm <= parameters.gtol)
+        return CosinusTooSmall;
+
+    /* rescale if necessary. */
+
+    if (mode != 2) /* Computing MAX */
+        diag = diag.cwise().max(wa2);
+
+    /* beginning of the inner loop. */
+    do {
+
+        /* determine the levenberg-marquardt parameter. */
+
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+
+        /* store the direction p and x + p. calculate the norm of p. */
+
+        wa1 = -wa1;
+        wa2 = x + wa1;
+        wa3 = diag.cwise() * wa1;
+        pnorm = wa3.stableNorm();
+
+        /* on the first iteration, adjust the initial step bound. */
+
+        if (iter == 1)
+            delta = std::min(delta,pnorm);
+
+        /* evaluate the function at x + p and calculate its norm. */
+
+        if ( functor.f(wa2, wa4) < 0)
+            return UserAsked;
+        ++nfev;
+        fnorm1 = wa4.stableNorm();
+
+        /* compute the scaled actual reduction. */
+
+        actred = -1.;
+        if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
+            actred = 1. - ei_abs2(fnorm1 / fnorm);
+
+        /* compute the scaled predicted reduction and */
+        /* the scaled directional derivative. */
+
+        wa3.fill(0.);
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            temp = wa1[l];
+            for (i = 0; i <= j; ++i)
+                wa3[i] += fjac(i,j) * temp;
+        }
+        temp1 = ei_abs2(wa3.stableNorm() / fnorm);
+        temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
+        /* Computing 2nd power */
+        prered = temp1 + temp2 / Scalar(.5);
+        dirder = -(temp1 + temp2);
+
+        /* compute the ratio of the actual to the predicted */
+        /* reduction. */
+
+        ratio = 0.;
+        if (prered != 0.)
+            ratio = actred / prered;
+
+        /* update the step bound. */
+
+        if (ratio <= Scalar(.25)) {
+            if (actred >= 0.)
+                temp = Scalar(.5);
+            if (actred < 0.)
+                temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
+            if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
+                temp = Scalar(.1);
+            /* Computing MIN */
+            delta = temp * std::min(delta, pnorm / Scalar(.1));
+            par /= temp;
+        } else if (!(par != 0. && ratio < Scalar(.75))) {
+            delta = pnorm / Scalar(.5);
+            par = Scalar(.5) * par;
+        }
+
+        /* test for successful iteration. */
+
+        if (ratio >= Scalar(1e-4)) {
+            /* successful iteration. update x, fvec, and their norms. */
+            x = wa2;
+            wa2 = diag.cwise() * x;
+            fvec = wa4;
+            xnorm = wa2.stableNorm();
+            fnorm = fnorm1;
+            ++iter;
+        }
+
+        /* tests for convergence. */
+
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+            return RelativeErrorAndReductionTooSmall;
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+            return RelativeReductionTooSmall;
+        if (delta <= parameters.xtol * xnorm)
+            return RelativeErrorTooSmall;
+
+        /* tests for termination and stringent tolerances. */
+
+        if (nfev >= parameters.maxfev)
+            return TooManyFunctionEvaluation;
+        if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
+            return FtolTooSmall;
+        if (delta <= epsilon<Scalar>() * xnorm)
+            return XtolTooSmall;
+        if (gnorm <= epsilon<Scalar>())
+            return GtolTooSmall;
+
+        /* end of the inner loop. repeat if iteration unsuccessful. */
+    } while (ratio < Scalar(1e-4));
+    /* end of the outer loop. */
+    return Running;
+}
+
+
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
+    Status status = minimizeNumericalDiffInit(x, parameters, mode);
+    while (status==Running)
+        status = minimizeNumericalDiffOneStep(x, parameters, mode);
+    return status;
 }
 
 
@@ -651,7 +725,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Parameters &parameters,
         const int mode
@@ -669,9 +743,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
     qtf.resize(n);
-
-    /* Local variables */
-    bool sing;
 
     /* Function Body */
     nfev = 0;
@@ -700,210 +771,235 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     par = 0.;
     iter = 1;
 
-    /*     beginning of the outer loop. */
+    return Running;
+}
 
-    while (true) {
-        int i, j, l;
 
-        /* compute the qr factorization of the jacobian matrix */
-        /* calculated one row at a time, while simultaneously */
-        /* forming (q transpose)*fvec and storing the first */
-        /* n components in qtf. */
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
+    int i, j, l;
+    bool sing;
 
-        qtf.fill(0.);
-        fjac.fill(0.);
-        int rownb = 2;
-        for (i = 0; i < m; ++i) {
-            if (functor.df(x, wa3, rownb) < 0) return UserAsked;
-            temp = fvec[i];
-            ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
-            ++rownb;
-        }
-        ++njev;
+    /* compute the qr factorization of the jacobian matrix */
+    /* calculated one row at a time, while simultaneously */
+    /* forming (q transpose)*fvec and storing the first */
+    /* n components in qtf. */
 
-        /* if the jacobian is rank deficient, call qrfac to */
-        /* reorder its columns and update the components of qtf. */
-
-        sing = false;
-        for (j = 0; j < n; ++j) {
-            if (fjac(j,j) == 0.) {
-                sing = true;
-            }
-            ipvt[j] = j;
-            wa2[j] = fjac.col(j).start(j).stableNorm();
-        }
-        if (sing) {
-            ipvt.cwise()+=1;
-            ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
-            ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
-            for (j = 0; j < n; ++j) {
-                if (fjac(j,j) != 0.) {
-                    sum = 0.;
-                    for (i = j; i < n; ++i)
-                        sum += fjac(i,j) * qtf[i];
-                    temp = -sum / fjac(j,j);
-                    for (i = j; i < n; ++i)
-                        qtf[i] += fjac(i,j) * temp;
-                }
-                fjac(j,j) = wa1[j];
-            }
-        }
-
-        /* on the first iteration and if mode is 1, scale according */
-        /* to the norms of the columns of the initial jacobian. */
-
-        if (iter == 1) {
-            if (mode != 2)
-                for (j = 0; j < n; ++j) {
-                    diag[j] = wa2[j];
-                    if (wa2[j] == 0.)
-                        diag[j] = 1.;
-                }
-
-            /* on the first iteration, calculate the norm of the scaled x */
-            /* and initialize the step bound delta. */
-
-            wa3 = diag.cwise() * x;
-            xnorm = wa3.stableNorm();
-            delta = parameters.factor * xnorm;
-            if (delta == 0.)
-                delta = parameters.factor;
-        }
-
-        /* compute the norm of the scaled gradient. */
-
-        gnorm = 0.;
-        if (fnorm != 0.)
-            for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                if (wa2[l] != 0.) {
-                    sum = 0.;
-                    for (i = 0; i <= j; ++i)
-                        sum += fjac(i,j) * (qtf[i] / fnorm);
-                    /* Computing MAX */
-                    gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-                }
-            }
-
-        /* test for convergence of the gradient norm. */
-
-        if (gnorm <= parameters.gtol)
-            return CosinusTooSmall;
-
-        /* rescale if necessary. */
-
-        if (mode != 2) /* Computing MAX */
-            diag = diag.cwise().max(wa2);
-
-        /* beginning of the inner loop. */
-        do {
-
-            /* determine the levenberg-marquardt parameter. */
-
-            ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
-
-            /* store the direction p and x + p. calculate the norm of p. */
-
-            wa1 = -wa1;
-            wa2 = x + wa1;
-            wa3 = diag.cwise() * wa1;
-            pnorm = wa3.stableNorm();
-
-            /* on the first iteration, adjust the initial step bound. */
-
-            if (iter == 1)
-                delta = std::min(delta,pnorm);
-
-            /* evaluate the function at x + p and calculate its norm. */
-
-            if ( functor.f(wa2, wa4) < 0)
-                return UserAsked;
-            ++nfev;
-            fnorm1 = wa4.stableNorm();
-
-            /* compute the scaled actual reduction. */
-
-            actred = -1.;
-            if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
-                actred = 1. - ei_abs2(fnorm1 / fnorm);
-
-            /* compute the scaled predicted reduction and */
-            /* the scaled directional derivative. */
-
-            wa3.fill(0.);
-            for (j = 0; j < n; ++j) {
-                l = ipvt[j];
-                temp = wa1[l];
-                for (i = 0; i <= j; ++i)
-                    wa3[i] += fjac(i,j) * temp;
-            }
-            temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-            temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
-            /* Computing 2nd power */
-            prered = temp1 + temp2 / Scalar(.5);
-            dirder = -(temp1 + temp2);
-
-            /* compute the ratio of the actual to the predicted */
-            /* reduction. */
-
-            ratio = 0.;
-            if (prered != 0.)
-                ratio = actred / prered;
-
-            /* update the step bound. */
-
-            if (ratio <= Scalar(.25)) {
-                if (actred >= 0.)
-                    temp = Scalar(.5);
-                if (actred < 0.)
-                    temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
-                if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
-                    temp = Scalar(.1);
-                /* Computing MIN */
-                delta = temp * std::min(delta, pnorm / Scalar(.1));
-                par /= temp;
-            } else if (!(par != 0. && ratio < Scalar(.75))) {
-                delta = pnorm / Scalar(.5);
-                par = Scalar(.5) * par;
-            }
-
-            /* test for successful iteration. */
-
-            if (ratio >= Scalar(1e-4)) {
-                /* successful iteration. update x, fvec, and their norms. */
-                x = wa2;
-                wa2 = diag.cwise() * x;
-                fvec = wa4;
-                xnorm = wa2.stableNorm();
-                fnorm = fnorm1;
-                ++iter;
-            }
-
-            /* tests for convergence. */
-
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
-                return RelativeErrorAndReductionTooSmall;
-            if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
-                return RelativeReductionTooSmall;
-            if (delta <= parameters.xtol * xnorm)
-                return RelativeErrorTooSmall;
-
-            /* tests for termination and stringent tolerances. */
-
-            if (nfev >= parameters.maxfev)
-                return TooManyFunctionEvaluation;
-            if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
-                return FtolTooSmall;
-            if (delta <= epsilon<Scalar>() * xnorm)
-                return XtolTooSmall;
-            if (gnorm <= epsilon<Scalar>())
-                return GtolTooSmall;
-
-            /* end of the inner loop. repeat if iteration unsuccessful. */
-        } while (ratio < Scalar(1e-4));
-        /* end of the outer loop. */
+    qtf.fill(0.);
+    fjac.fill(0.);
+    int rownb = 2;
+    for (i = 0; i < m; ++i) {
+        if (functor.df(x, wa3, rownb) < 0) return UserAsked;
+        temp = fvec[i];
+        ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
+        ++rownb;
     }
-    assert(false); // should never be reached
+    ++njev;
+
+    /* if the jacobian is rank deficient, call qrfac to */
+    /* reorder its columns and update the components of qtf. */
+
+    sing = false;
+    for (j = 0; j < n; ++j) {
+        if (fjac(j,j) == 0.) {
+            sing = true;
+        }
+        ipvt[j] = j;
+        wa2[j] = fjac.col(j).start(j).stableNorm();
+    }
+    if (sing) {
+        ipvt.cwise()+=1;
+        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
+        for (j = 0; j < n; ++j) {
+            if (fjac(j,j) != 0.) {
+                sum = 0.;
+                for (i = j; i < n; ++i)
+                    sum += fjac(i,j) * qtf[i];
+                temp = -sum / fjac(j,j);
+                for (i = j; i < n; ++i)
+                    qtf[i] += fjac(i,j) * temp;
+            }
+            fjac(j,j) = wa1[j];
+        }
+    }
+
+    /* on the first iteration and if mode is 1, scale according */
+    /* to the norms of the columns of the initial jacobian. */
+
+    if (iter == 1) {
+        if (mode != 2)
+            for (j = 0; j < n; ++j) {
+                diag[j] = wa2[j];
+                if (wa2[j] == 0.)
+                    diag[j] = 1.;
+            }
+
+        /* on the first iteration, calculate the norm of the scaled x */
+        /* and initialize the step bound delta. */
+
+        wa3 = diag.cwise() * x;
+        xnorm = wa3.stableNorm();
+        delta = parameters.factor * xnorm;
+        if (delta == 0.)
+            delta = parameters.factor;
+    }
+
+    /* compute the norm of the scaled gradient. */
+
+    gnorm = 0.;
+    if (fnorm != 0.)
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            if (wa2[l] != 0.) {
+                sum = 0.;
+                for (i = 0; i <= j; ++i)
+                    sum += fjac(i,j) * (qtf[i] / fnorm);
+                /* Computing MAX */
+                gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
+            }
+        }
+
+    /* test for convergence of the gradient norm. */
+
+    if (gnorm <= parameters.gtol)
+        return CosinusTooSmall;
+
+    /* rescale if necessary. */
+
+    if (mode != 2) /* Computing MAX */
+        diag = diag.cwise().max(wa2);
+
+    /* beginning of the inner loop. */
+    do {
+
+        /* determine the levenberg-marquardt parameter. */
+
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+
+        /* store the direction p and x + p. calculate the norm of p. */
+
+        wa1 = -wa1;
+        wa2 = x + wa1;
+        wa3 = diag.cwise() * wa1;
+        pnorm = wa3.stableNorm();
+
+        /* on the first iteration, adjust the initial step bound. */
+
+        if (iter == 1)
+            delta = std::min(delta,pnorm);
+
+        /* evaluate the function at x + p and calculate its norm. */
+
+        if ( functor.f(wa2, wa4) < 0)
+            return UserAsked;
+        ++nfev;
+        fnorm1 = wa4.stableNorm();
+
+        /* compute the scaled actual reduction. */
+
+        actred = -1.;
+        if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
+            actred = 1. - ei_abs2(fnorm1 / fnorm);
+
+        /* compute the scaled predicted reduction and */
+        /* the scaled directional derivative. */
+
+        wa3.fill(0.);
+        for (j = 0; j < n; ++j) {
+            l = ipvt[j];
+            temp = wa1[l];
+            for (i = 0; i <= j; ++i)
+                wa3[i] += fjac(i,j) * temp;
+        }
+        temp1 = ei_abs2(wa3.stableNorm() / fnorm);
+        temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
+        /* Computing 2nd power */
+        prered = temp1 + temp2 / Scalar(.5);
+        dirder = -(temp1 + temp2);
+
+        /* compute the ratio of the actual to the predicted */
+        /* reduction. */
+
+        ratio = 0.;
+        if (prered != 0.)
+            ratio = actred / prered;
+
+        /* update the step bound. */
+
+        if (ratio <= Scalar(.25)) {
+            if (actred >= 0.)
+                temp = Scalar(.5);
+            if (actred < 0.)
+                temp = Scalar(.5) * dirder / (dirder + Scalar(.5) * actred);
+            if (Scalar(.1) * fnorm1 >= fnorm || temp < Scalar(.1))
+                temp = Scalar(.1);
+            /* Computing MIN */
+            delta = temp * std::min(delta, pnorm / Scalar(.1));
+            par /= temp;
+        } else if (!(par != 0. && ratio < Scalar(.75))) {
+            delta = pnorm / Scalar(.5);
+            par = Scalar(.5) * par;
+        }
+
+        /* test for successful iteration. */
+
+        if (ratio >= Scalar(1e-4)) {
+            /* successful iteration. update x, fvec, and their norms. */
+            x = wa2;
+            wa2 = diag.cwise() * x;
+            fvec = wa4;
+            xnorm = wa2.stableNorm();
+            fnorm = fnorm1;
+            ++iter;
+        }
+
+        /* tests for convergence. */
+
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+            return RelativeErrorAndReductionTooSmall;
+        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+            return RelativeReductionTooSmall;
+        if (delta <= parameters.xtol * xnorm)
+            return RelativeErrorTooSmall;
+
+        /* tests for termination and stringent tolerances. */
+
+        if (nfev >= parameters.maxfev)
+            return TooManyFunctionEvaluation;
+        if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
+            return FtolTooSmall;
+        if (delta <= epsilon<Scalar>() * xnorm)
+            return XtolTooSmall;
+        if (gnorm <= epsilon<Scalar>())
+            return GtolTooSmall;
+
+        /* end of the inner loop. repeat if iteration unsuccessful. */
+    } while (ratio < Scalar(1e-4));
+    /* end of the outer loop. */
+
+    return Running;
+}
+
+
+template<typename FunctorType, typename Scalar>
+typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
+        Matrix< Scalar, Dynamic, 1 >  &x,
+        const Parameters &parameters,
+        const int mode
+        )
+{
+    Status status = minimizeOptimumStorageInit(x, parameters, mode);
+    while (status==Running)
+        status = minimizeOptimumStorageOneStep(x, parameters, mode);
+    return status;
 }
 
 
