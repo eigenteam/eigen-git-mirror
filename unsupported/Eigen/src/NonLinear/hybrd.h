@@ -10,7 +10,7 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &x,
             Matrix< Scalar, Dynamic, 1 >  &fvec,
             Matrix< Scalar, Dynamic, Dynamic > &fjac,
-            Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
@@ -20,14 +20,14 @@ public:
             Matrix< Scalar, Dynamic, 1 >  &R,
             Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            int mode=1,
+            const int mode=1,
             int nb_of_subdiagonals = -1,
             int nb_of_superdiagonals = -1,
-            int maxfev = 2000,
-            Scalar factor = Scalar(100.),
-            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            Scalar epsfcn = Scalar(0.),
-            int nprint=0
+            const int maxfev = 2000,
+            const Scalar factor = Scalar(100.),
+            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar epsfcn = Scalar(0.),
+            const int nprint=0
             );
 
 private:
@@ -41,7 +41,7 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Scalar tol
+        const Scalar tol
         )
 {
     const int n = x.size();
@@ -79,14 +79,14 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &R,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode,
+        const int mode,
         int nb_of_subdiagonals,
         int nb_of_superdiagonals,
-        int maxfev,
-        Scalar factor,
-        Scalar xtol,
-        Scalar epsfcn,
-        int nprint
+        const int maxfev,
+        const Scalar factor,
+        const Scalar xtol,
+        const Scalar epsfcn,
+        const int nprint
         )
 {
     const int n = x.size();

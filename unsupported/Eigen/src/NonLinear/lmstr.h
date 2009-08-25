@@ -21,13 +21,13 @@ public:
             VectorXi &ipvt,
             Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            int mode=1,
-            Scalar factor = 100.,
-            int maxfev = 400,
-            Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            Scalar gtol = Scalar(0.),
-            int nprint=0
+            const int mode=1,
+            const Scalar factor = 100.,
+            const int maxfev = 400,
+            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar gtol = Scalar(0.),
+            const int nprint=0
             );
 
 private:
@@ -39,14 +39,14 @@ template<typename FunctorType, typename Scalar>
 int LevenbergMarquardtOptimumStorage<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Scalar tol
+        const Scalar tol
         )
 {
     const int n = x.size(), m=fvec.size();
     int info, nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
-    VectorXi ipvt(n);
+    VectorXi ipvt;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -76,13 +76,13 @@ int LevenbergMarquardtOptimumStorage<FunctorType,Scalar>::minimize(
         VectorXi &ipvt,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode,
-        Scalar factor,
-        int maxfev,
-        Scalar ftol,
-        Scalar xtol,
-        Scalar gtol,
-        int nprint
+        const int mode,
+        const Scalar factor,
+        const int maxfev,
+        const Scalar ftol,
+        const Scalar xtol,
+        const Scalar gtol,
+        const int nprint
         )
 {
     const int m = fvec.size(), n = x.size();
@@ -115,6 +115,7 @@ int LevenbergMarquardtOptimumStorage<FunctorType,Scalar>::minimize(
 
     if (n <= 0 || m < n || ftol < 0. || xtol < 0. || gtol < 0. || maxfev <= 0 || factor <= 0.)
         goto algo_end;
+
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.) goto algo_end;

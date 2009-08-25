@@ -1,5 +1,4 @@
 
-
 template<typename FunctorType, typename Scalar>
 class LevenbergMarquardtNumericalDiff 
 {
@@ -21,14 +20,14 @@ public:
             VectorXi &ipvt,
             Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            int mode=1,
-            Scalar factor = 100.,
-            int maxfev = 400,
-            Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            Scalar gtol = Scalar(0.),
-            Scalar epsfcn = Scalar(0.),
-            int nprint=0
+            const int mode=1,
+            const Scalar factor = 100.,
+            const int maxfev = 400,
+            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar gtol = Scalar(0.),
+            const Scalar epsfcn = Scalar(0.),
+            const int nprint=0
             );
 
 private:
@@ -40,7 +39,7 @@ template<typename FunctorType, typename Scalar>
 int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Scalar tol
+        const Scalar tol
         )
 {
     const int n = x.size(), m=fvec.size();
@@ -76,14 +75,14 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         VectorXi &ipvt,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode,
-        Scalar factor,
-        int maxfev,
-        Scalar ftol,
-        Scalar xtol,
-        Scalar gtol,
-        Scalar epsfcn,
-        int nprint
+        const int mode,
+        const Scalar factor,
+        const int maxfev,
+        const Scalar ftol,
+        const Scalar xtol,
+        const Scalar gtol,
+        const Scalar epsfcn,
+        const int nprint
         )
 {
     const int m = fvec.size(), n = x.size();

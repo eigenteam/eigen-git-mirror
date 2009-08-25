@@ -21,13 +21,13 @@ public:
             VectorXi &ipvt,
             Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
-            int mode=1,
-            Scalar factor = 100.,
-            int maxfev = 400,
-            Scalar ftol = ei_sqrt(epsilon<Scalar>()),
-            Scalar xtol = ei_sqrt(epsilon<Scalar>()),
-            Scalar gtol = Scalar(0.),
-            int nprint=0
+            const int mode=1,
+            const Scalar factor = 100.,
+            const int maxfev = 400,
+            const Scalar ftol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar xtol = ei_sqrt(epsilon<Scalar>()),
+            const Scalar gtol = Scalar(0.),
+            const int nprint=0
             );
 
 private:
@@ -46,7 +46,7 @@ int LevenbergMarquardt<FunctorType,Scalar>::minimize(
     int info, nfev=0, njev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
-    VectorXi ipvt(n);
+    VectorXi ipvt;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.) {
@@ -55,14 +55,14 @@ int LevenbergMarquardt<FunctorType,Scalar>::minimize(
     }
 
     info = minimize(
-            x, fvec,
-            nfev, njev,
-            fjac, ipvt, qtf, diag,
-            1,
-            100.,
-            (n+1)*100,
-            tol, tol, Scalar(0.)
-            );
+        x, fvec,
+        nfev, njev,
+        fjac, ipvt, qtf, diag,
+        1,
+        100.,
+        (n+1)*100,
+        tol, tol, Scalar(0.)
+    );
     return (info==8)?4:info;
 }
 
@@ -77,13 +77,13 @@ int LevenbergMarquardt<FunctorType,Scalar>::minimize(
         VectorXi &ipvt,
         Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
-        int mode,
-        Scalar factor,
-        int maxfev,
-        Scalar ftol,
-        Scalar xtol,
-        Scalar gtol,
-        int nprint
+        const int mode,
+        const Scalar factor,
+        const int maxfev,
+        const Scalar ftol,
+        const Scalar xtol,
+        const Scalar gtol,
+        const int nprint
         )
 {
     const int m = fvec.size(), n = x.size();
