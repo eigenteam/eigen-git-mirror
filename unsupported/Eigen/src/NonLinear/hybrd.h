@@ -8,17 +8,11 @@ public:
 
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            Matrix< Scalar, Dynamic, 1 >  &fvec,
-            Matrix< Scalar, Dynamic, Dynamic > &fjac,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            Matrix< Scalar, Dynamic, 1 >  &fvec,
             int &nfev,
-            Matrix< Scalar, Dynamic, Dynamic > &fjac,
-            Matrix< Scalar, Dynamic, 1 >  &R,
-            Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
             const int mode=1,
             int nb_of_subdiagonals = -1,
@@ -30,6 +24,10 @@ public:
             const int nprint=0
             );
 
+    Matrix< Scalar, Dynamic, 1 >  fvec;
+    Matrix< Scalar, Dynamic, Dynamic > fjac;
+    Matrix< Scalar, Dynamic, 1 >  R;
+    Matrix< Scalar, Dynamic, 1 >  qtf;
 private:
     const FunctorType &functor;
 };
@@ -39,14 +37,12 @@ private:
 template<typename FunctorType, typename Scalar>
 int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
         const Scalar tol
         )
 {
     const int n = x.size();
     int info, nfev=0;
-    Matrix< Scalar, Dynamic, 1> R, qtf, diag;
+    Matrix< Scalar, Dynamic, 1> diag;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.) {
@@ -56,10 +52,9 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
 
     diag.setConstant(n, 1.);
     info = solve(
-        x, fvec,
+        x,
         nfev,
-        fjac,
-        R, qtf, diag,
+        diag,
         2,
         -1, -1,
         (n+1)*200,
@@ -73,11 +68,7 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
 template<typename FunctorType, typename Scalar>
 int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        Matrix< Scalar, Dynamic, 1 >  &R,
-        Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
         const int mode,
         int nb_of_subdiagonals,
@@ -95,10 +86,10 @@ int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
 
     if (nb_of_subdiagonals<0) nb_of_subdiagonals = n-1;
     if (nb_of_superdiagonals<0) nb_of_superdiagonals = n-1;
-    fvec.resize(n);
     qtf.resize(n);
     R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
+    fvec.resize(n);
 
     /* Local variables */
     int i, j, l, iwa[1];

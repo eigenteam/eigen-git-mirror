@@ -8,17 +8,12 @@ public:
 
     int minimize(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            Matrix< Scalar, Dynamic, 1 >  &fvec,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     int minimize(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            Matrix< Scalar, Dynamic, 1 >  &fvec,
             int &nfev,
-            Matrix< Scalar, Dynamic, Dynamic > &fjac,
-            VectorXi &ipvt,
-            Matrix< Scalar, Dynamic, 1 >  &qtf,
             Matrix< Scalar, Dynamic, 1 >  &diag,
             const int mode=1,
             const Scalar factor = 100.,
@@ -30,6 +25,10 @@ public:
             const int nprint=0
             );
 
+    Matrix< Scalar, Dynamic, 1 >  fvec;
+    Matrix< Scalar, Dynamic, Dynamic > fjac;
+    VectorXi ipvt;
+    Matrix< Scalar, Dynamic, 1 >  qtf;
 private:
     const FunctorType &functor;
 };
@@ -38,11 +37,11 @@ private:
 template<typename FunctorType, typename Scalar>
 int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
         const Scalar tol
         )
 {
-    const int n = x.size(), m=fvec.size();
+    const int n = x.size();
+    const int m = functor.nbOfFunctions();
     int info, nfev=0;
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     Matrix< Scalar, Dynamic, 1> diag, qtf;
@@ -55,9 +54,9 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
     }
 
     info = minimize(
-        x, fvec,
+        x,
         nfev,
-        fjac, ipvt, qtf, diag,
+        diag,
         1,
         100.,
         (n+1)*200,
@@ -69,11 +68,7 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
 template<typename FunctorType, typename Scalar>
 int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        VectorXi &ipvt,
-        Matrix< Scalar, Dynamic, 1 >  &qtf,
         Matrix< Scalar, Dynamic, 1 >  &diag,
         const int mode,
         const Scalar factor,
@@ -85,9 +80,11 @@ int LevenbergMarquardtNumericalDiff<FunctorType,Scalar>::minimize(
         const int nprint
         )
 {
-    const int m = fvec.size(), n = x.size();
+    const int n = x.size();
+    const int m = functor.nbOfFunctions();
     Matrix< Scalar, Dynamic, 1 > wa1(n), wa2(n), wa3(n), wa4(m);
 
+    fvec.resize(m);
     ipvt.resize(n);
     fjac.resize(m, n);
     diag.resize(n);

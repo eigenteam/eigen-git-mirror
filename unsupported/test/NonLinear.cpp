@@ -57,7 +57,7 @@ int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac
 
 void testChkder()
 {
-  int m=15, n=3;
+  const int m=15, n=3;
   VectorXd x(n), fvec(m), xp, fvecp(m), err;
   MatrixXd fjac(m,n);
   VectorXi ipvt;
@@ -106,6 +106,7 @@ void testChkder()
   * methods
   */
 struct lmder_functor {
+    int nbOfFunctions() const { return 15; }
     int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) const { return 0;}
     int f(const VectorXd &x, VectorXd &fvec) const
     {
@@ -143,9 +144,9 @@ struct lmder_functor {
 
 void testLmder1()
 {
-  int m=15, n=3, info;
+  int n=3, info;
 
-  VectorXd x(n), fvec(m);
+  VectorXd x;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -153,13 +154,13 @@ void testLmder1()
   // do the computation
   lmder_functor functor;
   LevenbergMarquardt<lmder_functor,double> lm(functor);
-  info = lm.minimize(x, fvec);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
+  VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -172,9 +173,7 @@ void testLmder()
   const int m=15, n=3;
   int info, nfev=0, njev=0;
   double fnorm, covfac;
-  VectorXd x(n), fvec(m), diag(n), qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x, diag;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -182,7 +181,7 @@ void testLmder()
   // do the computation
   lmder_functor functor;
   LevenbergMarquardt<lmder_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -190,7 +189,7 @@ void testLmder()
   VERIFY(njev==5);
 
   // check norm
-  fnorm = fvec.blueNorm();
+  fnorm = lm.fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
@@ -200,7 +199,7 @@ void testLmder()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(fjac, ipvt);
+  ei_covar(lm.fjac, lm.ipvt); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref << 
@@ -211,7 +210,7 @@ void testLmder()
 //  std::cout << fjac*covfac << std::endl;
 
   MatrixXd cov;
-  cov =  covfac*fjac.corner<n,n>(TopLeft);
+  cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
   VERIFY_IS_APPROX( cov, cov_ref);
   // TODO: why isn't this allowed ? : 
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
@@ -262,8 +261,7 @@ void testHybrj1()
 {
   const int n=9;
   int info;
-  VectorXd x(n), fvec, diag(n);
-  MatrixXd fjac;
+  VectorXd x(n);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);
@@ -271,13 +269,13 @@ void testHybrj1()
   // do the computation
   hybrj_functor functor;
   HybridNonLinearSolver<hybrj_functor,double> solver(functor);
-  info = solver.solve(x, fvec, fjac);
+  info = solver.solve(x);
 
   // check return value
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
+  VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
 
 
 // check x
@@ -293,8 +291,7 @@ void testHybrj()
 {
   const int n=9;
   int info, nfev=0, njev=0, mode;
-  VectorXd x(n), fvec, diag(n), R, qtf;
-  MatrixXd fjac;
+  VectorXd x(n), diag(n);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);
@@ -305,7 +302,7 @@ void testHybrj()
   // do the computation
   hybrj_functor functor;
   HybridNonLinearSolver<hybrj_functor,double> solver(functor);
-  info = solver.solve(x,fvec, nfev, njev, fjac, R, qtf, diag, mode);
+  info = solver.solve(x, nfev, njev, diag, mode);
 
   // check return value
   VERIFY( 1 == info);
@@ -313,7 +310,7 @@ void testHybrj()
   VERIFY(njev==1);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
+  VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
 
 
 // check x
@@ -350,8 +347,7 @@ struct hybrd_functor {
 void testHybrd1()
 {
   int n=9, info;
-  VectorXd x(n), fvec(n);
-  MatrixXd fjac;
+  VectorXd x(n);
 
   /* the following starting values provide a rough solution. */
   x.setConstant(n, -1.);
@@ -359,13 +355,13 @@ void testHybrd1()
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolverNumericalDiff <hybrd_functor,double> solver(functor);
-  info = solver.solve(x, fvec, fjac);
+  info = solver.solve(x);
 
   // check return value
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
+  VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
 
   // check x
   VectorXd x_ref(n);
@@ -377,8 +373,7 @@ void testHybrd()
 {
   const int n=9;
   int info, nfev=0, ml, mu, mode;
-  VectorXd x(n), fvec, diag(n), R, qtf;
-  MatrixXd fjac;
+  VectorXd x, diag(n);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, -1.);
@@ -391,14 +386,14 @@ void testHybrd()
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolverNumericalDiff <hybrd_functor,double> solver(functor);
-  info = solver.solve(x,fvec, nfev, fjac, R, qtf, diag, mode, ml, mu);
+  info = solver.solve(x, nfev, diag, mode, ml, mu);
 
   // check return value
   VERIFY( 1 == info);
   VERIFY(nfev==14);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 1.192636e-08);
+  VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
 
   // check x
   VectorXd x_ref(n);
@@ -410,6 +405,7 @@ void testHybrd()
 }
 
 struct lmstr_functor {
+    int nbOfFunctions() const { return 15; }
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const VectorXd & /* fjac */) { return 0;}
     static int f(const VectorXd &x, VectorXd &fvec)
     {
@@ -450,9 +446,10 @@ struct lmstr_functor {
 
 void testLmstr1()
 {
-  int m=15, n=3, info;
+  const int n=3;
+  int info;
 
-  VectorXd x(n), fvec(m);
+  VectorXd x(n);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -460,13 +457,13 @@ void testLmstr1()
   // do the computation
   lmstr_functor functor;
   LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
-  info = lm.minimize(x, fvec);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
+  VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -476,12 +473,10 @@ void testLmstr1()
 
 void testLmstr()
 {
-  const int m=15, n=3;
+  const int n=3;
   int info, nfev=0, njev=0;
   double fnorm;
-  VectorXd x(n), fvec(m), diag(n), qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -489,7 +484,7 @@ void testLmstr()
   // do the computation
   lmstr_functor functor;
   LevenbergMarquardtOptimumStorage<lmstr_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return values
   VERIFY( 1 == info);
@@ -497,7 +492,7 @@ void testLmstr()
   VERIFY(njev==5);
 
   // check norm
-  fnorm = fvec.blueNorm();
+  fnorm = lm.fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
@@ -508,6 +503,7 @@ void testLmstr()
 }
 
 struct lmdif_functor {
+    int nbOfFunctions() const { return 15; }
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */) { return 0;}
     static int f(const VectorXd &x, VectorXd &fvec)
     {
@@ -535,9 +531,10 @@ struct lmdif_functor {
 
 void testLmdif1()
 {
-  int m=15, n=3, info;
+  const int n=3;
+  int info;
 
-  VectorXd x(n), fvec(m);
+  VectorXd x(n);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -545,13 +542,13 @@ void testLmdif1()
   // do the computation
   lmdif_functor functor;
   LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
-  info = lm.minimize(x, fvec);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info);
 
   // check norm
-  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
+  VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -565,9 +562,7 @@ void testLmdif()
   const int m=15, n=3;
   int info, nfev=0;
   double fnorm, covfac;
-  VectorXd x(n), fvec(m), diag(n), qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
@@ -575,14 +570,14 @@ void testLmdif()
   // do the computation
   lmdif_functor functor;
   LevenbergMarquardtNumericalDiff<lmdif_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, diag);
 
   // check return values
   VERIFY( 1 == info);
   VERIFY(nfev==21);
 
   // check norm
-  fnorm = fvec.blueNorm();
+  fnorm = lm.fvec.blueNorm();
   VERIFY_IS_APPROX(fnorm, 0.09063596);
 
   // check x
@@ -592,7 +587,7 @@ void testLmdif()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(fjac, ipvt);
+  ei_covar(lm.fjac, lm.ipvt);
 
   MatrixXd cov_ref(n,n);
   cov_ref << 
@@ -603,13 +598,14 @@ void testLmdif()
 //  std::cout << fjac*covfac << std::endl;
 
   MatrixXd cov;
-  cov =  covfac*fjac.corner<n,n>(TopLeft);
+  cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
   VERIFY_IS_APPROX( cov, cov_ref);
   // TODO: why isn't this allowed ? : 
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
 struct chwirut2_functor {
+    int nbOfFunctions() const { return 54; }
     static const double m_x[54];
     static const double m_y[54];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -647,12 +643,10 @@ const double chwirut2_functor::m_y[54] = { 92.9000E0 ,57.1000E0 ,31.0500E0 ,11.5
 // http://www.itl.nist.gov/div898/strd/nls/data/chwirut2.shtml
 void testNistChwirut2(void)
 {
-  const int m=54, n=3;
+  const int n=3;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -661,14 +655,14 @@ void testNistChwirut2(void)
   // do the computation
   chwirut2_functor functor;
   LevenbergMarquardt<chwirut2_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 10 == nfev); 
   VERIFY( 8 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.1304802941E+02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
   VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
@@ -679,7 +673,7 @@ void testNistChwirut2(void)
    */
   x<< 0.15, 0.008, 0.010;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E6*epsilon<double>(), 1.E6*epsilon<double>());
 
   // check return value
@@ -687,7 +681,7 @@ void testNistChwirut2(void)
   VERIFY( 7 == nfev); 
   VERIFY( 6 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.1304802941E+02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
   VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
@@ -696,6 +690,7 @@ void testNistChwirut2(void)
 
 
 struct misra1a_functor {
+    int nbOfFunctions() const { return 14; }
     static const double m_x[14];
     static const double m_y[14];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -726,12 +721,10 @@ const double misra1a_functor::m_y[14] = { 10.07E0, 14.73E0, 17.94E0, 23.93E0, 29
 // http://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml
 void testNistMisra1a(void)
 {
-  const int m=14, n=2;
+  const int n=2;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -740,14 +733,14 @@ void testNistMisra1a(void)
   // do the computation
   misra1a_functor functor;
   LevenbergMarquardt<misra1a_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 19 == nfev); 
   VERIFY( 15 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.2455138894E-01); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01); 
   // check x
   VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
@@ -757,20 +750,21 @@ void testNistMisra1a(void)
    */
   x<< 250., 0.0005;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 5 == nfev); 
   VERIFY( 4 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.2455138894E-01); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01); 
   // check x
   VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
 }
 
 struct hahn1_functor {
+    int nbOfFunctions() const { return 236; }
     static const double m_x[236];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
@@ -813,12 +807,10 @@ const double hahn1_functor::m_x[236] = { 24.41E0 , 34.82E0 , 44.09E0 , 45.07E0 ,
 // http://www.itl.nist.gov/div898/strd/nls/data/hahn1.shtml
 void testNistHahn1(void)
 {
-  const int m=236, n=7;
+  const int  n=7;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -827,14 +819,14 @@ void testNistHahn1(void)
   // do the computation
   hahn1_functor functor;
   LevenbergMarquardt<hahn1_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 11== nfev); 
   VERIFY( 10== njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.5324382854E+00); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.0776351733E+00  );
   VERIFY_IS_APPROX(x[1],-1.2269296921E-01  );
@@ -849,14 +841,14 @@ void testNistHahn1(void)
    */
   x<< .1, -.1, .005, -.000001, -.005, .0001, -.0000001;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 11 == nfev); 
   VERIFY( 10 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.5324382854E+00); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.077640); // should be :  1.0776351733E+00
   VERIFY_IS_APPROX(x[1], -0.1226933); // should be : -1.2269296921E-01
@@ -869,6 +861,7 @@ void testNistHahn1(void)
 }
 
 struct misra1d_functor {
+    int nbOfFunctions() const { return 14; }
     static const double x[14];
     static const double y[14];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -900,12 +893,10 @@ const double misra1d_functor::y[14] = { 10.07E0, 14.73E0, 17.94E0, 23.93E0, 29.6
 // http://www.itl.nist.gov/div898/strd/nls/data/misra1d.shtml
 void testNistMisra1d(void)
 {
-  const int m=14, n=2;
+  const int n=2;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -914,14 +905,14 @@ void testNistMisra1d(void)
   // do the computation
   misra1d_functor functor;
   LevenbergMarquardt<misra1d_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 3 == info); 
   VERIFY( 9 == nfev); 
   VERIFY( 7 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6419295283E-02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02); 
   // check x
   VERIFY_IS_APPROX(x[0], 4.3736970754E+02);
   VERIFY_IS_APPROX(x[1], 3.0227324449E-04);
@@ -931,14 +922,14 @@ void testNistMisra1d(void)
    */
   x<< 450., 0.0003;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 4 == nfev); 
   VERIFY( 3 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6419295283E-02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02); 
   // check x
   VERIFY_IS_APPROX(x[0], 4.3736970754E+02);
   VERIFY_IS_APPROX(x[1], 3.0227324449E-04);
@@ -946,6 +937,7 @@ void testNistMisra1d(void)
 
 
 struct lanczos1_functor {
+    int nbOfFunctions() const { return 24; }
     static const double x[24];
     static const double y[24];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -979,12 +971,10 @@ const double lanczos1_functor::y[24] = { 2.513400000000E+00 ,2.044333373291E+00 
 // http://www.itl.nist.gov/div898/strd/nls/data/lanczos1.shtml
 void testNistLanczos1(void)
 {
-  const int m=24, n=6;
+  const int n=6;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -993,14 +983,14 @@ void testNistLanczos1(void)
   // do the computation
   lanczos1_functor functor;
   LevenbergMarquardt<lanczos1_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 2 == info); 
   VERIFY( 79 == nfev); 
   VERIFY( 72 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1014,14 +1004,14 @@ void testNistLanczos1(void)
    */
   x<< 0.5, 0.7, 3.6, 4.2, 4., 6.3;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 2 == info); 
   VERIFY( 9 == nfev); 
   VERIFY( 8 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1033,6 +1023,7 @@ void testNistLanczos1(void)
 }
 
 struct rat42_functor {
+    int nbOfFunctions() const { return 9; }
     static const double x[9];
     static const double y[9];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1066,12 +1057,10 @@ const double rat42_functor::y[9] = { 8.930E0 ,10.800E0 ,18.590E0 ,22.330E0 ,39.3
 // http://www.itl.nist.gov/div898/strd/nls/data/ratkowsky2.shtml
 void testNistRat42(void)
 {
-  const int m=9, n=3;
+  const int n=3;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1080,14 +1069,14 @@ void testNistRat42(void)
   // do the computation
   rat42_functor functor;
   LevenbergMarquardt<rat42_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 10 == nfev); 
   VERIFY( 8 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.0565229338E+00);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.0565229338E+00);
   // check x
   VERIFY_IS_APPROX(x[0], 7.2462237576E+01);
   VERIFY_IS_APPROX(x[1], 2.6180768402E+00);
@@ -1098,14 +1087,14 @@ void testNistRat42(void)
    */
   x<< 75., 2.5, 0.07;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 6 == nfev); 
   VERIFY( 5 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.0565229338E+00);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.0565229338E+00);
   // check x
   VERIFY_IS_APPROX(x[0], 7.2462237576E+01);
   VERIFY_IS_APPROX(x[1], 2.6180768402E+00);
@@ -1113,6 +1102,7 @@ void testNistRat42(void)
 }
 
 struct MGH10_functor {
+    int nbOfFunctions() const { return 16; }
     static const double x[16];
     static const double y[16];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1145,12 +1135,10 @@ const double MGH10_functor::y[16] = { 3.478000E+04, 2.861000E+04, 2.365000E+04, 
 // http://www.itl.nist.gov/div898/strd/nls/data/mgh10.shtml
 void testNistMGH10(void)
 {
-  const int m=16, n=3;
+  const int n=3;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1159,14 +1147,14 @@ void testNistMGH10(void)
   // do the computation
   MGH10_functor functor;
   LevenbergMarquardt<MGH10_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 2 == info); 
   VERIFY( 285 == nfev); 
   VERIFY( 250 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7945855171E+01);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
   VERIFY_IS_APPROX(x[0], 5.6096364710E-03);
   VERIFY_IS_APPROX(x[1], 6.1813463463E+03);
@@ -1177,14 +1165,14 @@ void testNistMGH10(void)
    */
   x<< 0.02, 4000., 250.;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 2 == info); 
   VERIFY( 126 == nfev); 
   VERIFY( 116 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7945855171E+01);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
   VERIFY_IS_APPROX(x[0], 5.6096364710E-03);
   VERIFY_IS_APPROX(x[1], 6.1813463463E+03);
@@ -1193,6 +1181,7 @@ void testNistMGH10(void)
 
 
 struct BoxBOD_functor {
+    int nbOfFunctions() const { return 6; }
     static const double x[6];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
@@ -1222,12 +1211,10 @@ const double BoxBOD_functor::x[6] = { 1., 2., 3., 5., 7., 10. };
 // http://www.itl.nist.gov/div898/strd/nls/data/boxbod.shtml
 void testNistBoxBOD(void)
 {
-  const int m=6, n=2;
+  const int n=2;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1236,7 +1223,7 @@ void testNistBoxBOD(void)
   // do the computation
   BoxBOD_functor functor;
   LevenbergMarquardt<BoxBOD_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 10., 400, 1E6*epsilon<double>(), 1E6*epsilon<double>());
 
   // check return value
@@ -1244,7 +1231,7 @@ void testNistBoxBOD(void)
   VERIFY( 31 == nfev); 
   VERIFY( 25  == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 2.1380940889E+02);
   VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
@@ -1254,7 +1241,7 @@ void testNistBoxBOD(void)
    */
   x<< 100., 0.75;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 14000, epsilon<double>(), epsilon<double>());
 
   // check return value
@@ -1262,13 +1249,14 @@ void testNistBoxBOD(void)
   VERIFY( 15 == nfev); 
   VERIFY( 14 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.1680088766E+03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 2.1380940889E+02);
   VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
 }
 
 struct MGH17_functor {
+    int nbOfFunctions() const { return 33; }
     static const double x[33];
     static const double y[33];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1301,12 +1289,10 @@ const double MGH17_functor::y[33] = { 8.440000E-01, 9.080000E-01, 9.320000E-01, 
 // http://www.itl.nist.gov/div898/strd/nls/data/mgh17.shtml
 void testNistMGH17(void)
 {
-  const int m=33, n=5;
+  const int n=5;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1315,7 +1301,7 @@ void testNistMGH17(void)
   // do the computation
   MGH17_functor functor;
   LevenbergMarquardt<MGH17_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 5000, epsilon<double>(), epsilon<double>());
 
   // check return value
@@ -1323,7 +1309,7 @@ void testNistMGH17(void)
   VERIFY( 599 == nfev); 
   VERIFY( 544 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.4648946975E-05);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
   VERIFY_IS_APPROX(x[0], 3.7541005211E-01);
   VERIFY_IS_APPROX(x[1], 1.9358469127E+00);
@@ -1336,14 +1322,14 @@ void testNistMGH17(void)
    */
   x<< 0.5  ,1.5  ,-1   ,0.01 ,0.02;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 18 == nfev); 
   VERIFY( 15 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.4648946975E-05);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
   VERIFY_IS_APPROX(x[0], 3.7541005211E-01);
   VERIFY_IS_APPROX(x[1], 1.9358469127E+00);
@@ -1353,6 +1339,7 @@ void testNistMGH17(void)
 }
 
 struct MGH09_functor {
+    int nbOfFunctions() const { return 11; }
     static const double _x[11];
     static const double y[11];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1388,12 +1375,10 @@ const double MGH09_functor::y[11] = { 1.957000E-01, 1.947000E-01, 1.735000E-01, 
 // http://www.itl.nist.gov/div898/strd/nls/data/mgh09.shtml
 void testNistMGH09(void)
 {
-  const int m=11, n=4;
+  const int n=4;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1402,7 +1387,7 @@ void testNistMGH09(void)
   // do the computation
   MGH09_functor functor;
   LevenbergMarquardt<MGH09_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 5000);
 
   // check return value
@@ -1410,7 +1395,7 @@ void testNistMGH09(void)
   VERIFY( 503== nfev); 
   VERIFY( 385 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 3.0750560385E-04);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
   VERIFY_IS_APPROX(x[0], 0.19280624); // should be 1.9280693458E-01
   VERIFY_IS_APPROX(x[1], 0.19129774); // should be 1.9128232873E-01
@@ -1422,14 +1407,14 @@ void testNistMGH09(void)
    */
   x<< 0.25, 0.39, 0.415, 0.39;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 18 == nfev); 
   VERIFY( 16 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 3.0750560385E-04);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
   VERIFY_IS_APPROX(x[0], 0.19280781); // should be 1.9280693458E-01
   VERIFY_IS_APPROX(x[1], 0.19126265); // should be 1.9128232873E-01
@@ -1440,6 +1425,7 @@ void testNistMGH09(void)
 
 
 struct Bennett5_functor {
+    int nbOfFunctions() const { return 154; }
     static const double x[154];
     static const double y[154];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1471,12 +1457,10 @@ const double Bennett5_functor::y[154] = { -34.834702E0 ,-34.393200E0 ,-34.152901
 // http://www.itl.nist.gov/div898/strd/nls/data/bennett5.shtml
 void testNistBennett5(void)
 {
-  const int m=154, n=3;
+  const int  n=3;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1485,14 +1469,14 @@ void testNistBennett5(void)
   // do the computation
   Bennett5_functor functor;
   LevenbergMarquardt<Bennett5_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag, 1, 100., 5000);
+  info = lm.minimize(x, nfev, njev, diag, 1, 100., 5000);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 758 == nfev); 
   VERIFY( 744 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.2404744073E-04);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.2404744073E-04);
   // check x
   VERIFY_IS_APPROX(x[0], -2.5235058043E+03);
   VERIFY_IS_APPROX(x[1], 4.6736564644E+01);
@@ -1502,14 +1486,14 @@ void testNistBennett5(void)
    */
   x<< -1500., 45., 0.85;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 203 == nfev); 
   VERIFY( 192 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.2404744073E-04);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.2404744073E-04);
   // check x
   VERIFY_IS_APPROX(x[0], -2523.3007865); // should be -2.5235058043E+03
   VERIFY_IS_APPROX(x[1], 46.735705771); // should be 4.6736564644E+01);
@@ -1517,6 +1501,7 @@ void testNistBennett5(void)
 }
 
 struct thurber_functor {
+    int nbOfFunctions() const { return 37; }
     static const double _x[37];
     static const double _y[37];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1557,12 +1542,10 @@ const double thurber_functor::_y[37] = { 80.574E0, 84.248E0, 87.264E0, 87.195E0,
 // http://www.itl.nist.gov/div898/strd/nls/data/thurber.shtml
 void testNistThurber(void)
 {
-  const int m=37, n=7;
+  const int n=7;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1571,7 +1554,7 @@ void testNistThurber(void)
   // do the computation
   thurber_functor functor;
   LevenbergMarquardt<thurber_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E4*epsilon<double>(), 1.E4*epsilon<double>());
 
   // check return value
@@ -1579,7 +1562,7 @@ void testNistThurber(void)
   VERIFY( 39 == nfev); 
   VERIFY( 36== njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6427082397E+03); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
   VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
@@ -1594,7 +1577,7 @@ void testNistThurber(void)
    */
   x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E4*epsilon<double>(), 1.E4*epsilon<double>());
 
   // check return value
@@ -1602,7 +1585,7 @@ void testNistThurber(void)
   VERIFY( 29 == nfev); 
   VERIFY( 28 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 5.6427082397E+03); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03); 
   // check x
   VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
   VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
@@ -1614,6 +1597,7 @@ void testNistThurber(void)
 }
 
 struct rat43_functor {
+    int nbOfFunctions() const { return 15; }
     static const double x[15];
     static const double y[15];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1647,12 +1631,10 @@ const double rat43_functor::y[15] = { 16.08, 33.83, 65.80, 97.20, 191.55, 326.20
 // http://www.itl.nist.gov/div898/strd/nls/data/ratkowsky3.shtml
 void testNistRat43(void)
 {
-  const int m=15, n=4;
+  const int n=4;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1661,7 +1643,7 @@ void testNistRat43(void)
   // do the computation
   rat43_functor functor;
   LevenbergMarquardt<rat43_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E6*epsilon<double>(), 1.E6*epsilon<double>());
 
   // check return value
@@ -1669,7 +1651,7 @@ void testNistRat43(void)
   VERIFY( 27 == nfev); 
   VERIFY( 20 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7864049080E+03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7864049080E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 6.9964151270E+02);
   VERIFY_IS_APPROX(x[1], 5.2771253025E+00);
@@ -1681,7 +1663,7 @@ void testNistRat43(void)
    */
   x<< 700., 5., 0.75, 1.3;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag,
+  info = lm.minimize(x, nfev, njev, diag,
           1, 100., 400, 1.E5*epsilon<double>(), 1.E5*epsilon<double>());
 
   // check return value
@@ -1689,7 +1671,7 @@ void testNistRat43(void)
   VERIFY( 9 == nfev); 
   VERIFY( 8 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 8.7864049080E+03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7864049080E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 6.9964151270E+02);
   VERIFY_IS_APPROX(x[1], 5.2771253025E+00);
@@ -1700,6 +1682,7 @@ void testNistRat43(void)
 
 
 struct eckerle4_functor {
+    int nbOfFunctions() const { return 35; }
     static const double x[35];
     static const double y[35];
     static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
@@ -1732,12 +1715,10 @@ const double eckerle4_functor::y[35] = { 0.0001575, 0.0001699, 0.0002350, 0.0003
 // http://www.itl.nist.gov/div898/strd/nls/data/eckerle4.shtml
 void testNistEckerle4(void)
 {
-  const int m=35, n=3;
+  const int n=3;
   int info, nfev=0, njev=0;
 
-  VectorXd x(n), fvec(m), diag, qtf;
-  MatrixXd fjac;
-  VectorXi ipvt;
+  VectorXd x(n), diag;
 
   /*
    * First try
@@ -1746,14 +1727,14 @@ void testNistEckerle4(void)
   // do the computation
   eckerle4_functor functor;
   LevenbergMarquardt<eckerle4_functor,double> lm(functor);
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 18 == nfev); 
   VERIFY( 15 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4635887487E-03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.4635887487E-03);
   // check x
   VERIFY_IS_APPROX(x[0], 1.5543827178);
   VERIFY_IS_APPROX(x[1], 4.0888321754);
@@ -1764,14 +1745,14 @@ void testNistEckerle4(void)
    */
   x<< 1.5, 5., 450.;
   // do the computation
-  info = lm.minimize(x, fvec, nfev, njev, fjac, ipvt, qtf, diag);
+  info = lm.minimize(x, nfev, njev, diag);
 
   // check return value
   VERIFY( 1 == info); 
   VERIFY( 7 == nfev); 
   VERIFY( 6 == njev); 
   // check norm^2
-  VERIFY_IS_APPROX(fvec.squaredNorm(), 1.4635887487E-03);
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.4635887487E-03);
   // check x
   VERIFY_IS_APPROX(x[0], 1.5543827178);
   VERIFY_IS_APPROX(x[1], 4.0888321754);
