@@ -152,12 +152,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
-        return RelativeErrorTooSmall;
+        return ImproperInputParameters;
 
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return RelativeErrorTooSmall;
+                return ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -430,11 +430,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
-        return RelativeErrorTooSmall;
+        return ImproperInputParameters;
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return RelativeErrorTooSmall;
+                return ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -711,12 +711,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
-        return RelativeErrorTooSmall;
+        return ImproperInputParameters;
 
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return RelativeErrorTooSmall;
+                return ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */

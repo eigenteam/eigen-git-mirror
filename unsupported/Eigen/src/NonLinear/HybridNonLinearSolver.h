@@ -138,11 +138,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
-        return RelativeErrorTooSmall;
+        return ImproperInputParameters;
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return RelativeErrorTooSmall;
+                return ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -337,7 +337,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
             if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
-            /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
                 return TolTooSmall;
             if (nslow2 == 5)
@@ -460,11 +459,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
     /*     check the input parameters for errors. */
 
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nb_of_subdiagonals < 0 || nb_of_superdiagonals < 0 || parameters.factor <= 0. )
-        return RelativeErrorTooSmall;
+        return ImproperInputParameters;
     if (mode == 2)
         for (j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return RelativeErrorTooSmall;
+                return ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
@@ -665,7 +664,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
 
             if (nfev >= parameters.maxfev)
                 return TooManyFunctionEvaluation;
-            /* Computing MAX */
             if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
                 return TolTooSmall;
             if (nslow2 == 5)
