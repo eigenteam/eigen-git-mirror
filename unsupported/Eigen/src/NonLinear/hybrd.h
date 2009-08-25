@@ -1,9 +1,9 @@
 
 template<typename FunctorType, typename Scalar>
-class HybridNonLinearSolver
+class HybridNonLinearSolverNumericalDiff
 {
 public:
-    HybridNonLinearSolver(const FunctorType &_functor)
+    HybridNonLinearSolverNumericalDiff(const FunctorType &_functor)
         : functor(_functor) {}
     int solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
@@ -36,7 +36,7 @@ private:
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solve(
+int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Scalar tol
@@ -70,7 +70,7 @@ int HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
 
 template<typename FunctorType, typename Scalar>
-int HybridNonLinearSolver<FunctorType,Scalar>::solve(
+int HybridNonLinearSolverNumericalDiff<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         int &nfev,
