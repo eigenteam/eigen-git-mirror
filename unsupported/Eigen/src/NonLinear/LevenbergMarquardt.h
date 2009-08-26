@@ -36,69 +36,62 @@ public:
         Scalar epsfcn;
     };
 
-    Status minimize(
+    Status lmder1(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status minimize(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeInit(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
 
-    Status minimizeNumericalDiff(
+    Status lmdif1(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status minimizeNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeNumericalDiffInit(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeNumericalDiffOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
 
-    Status minimizeOptimumStorage(
+    Status lmstr1(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status minimizeOptimumStorage(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeOptimumStorageInit(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status minimizeOptimumStorageOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
 
+    void resetParameters(void) { parameters = Parameters(); }
+    Parameters parameters;
     Matrix< Scalar, Dynamic, 1 >  fvec;
     Matrix< Scalar, Dynamic, Dynamic > fjac;
     VectorXi ipvt;
@@ -123,27 +116,24 @@ private:
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimize(
+LevenbergMarquardt<FunctorType,Scalar>::lmder1(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     n = x.size();
     m = functor.nbOfFunctions();
-    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
 
+    resetParameters();
     parameters.ftol = tol;
     parameters.xtol = tol;
     parameters.maxfev = 100*(n+1);
 
-    return minimize(
-        x,
-        parameters
-    );
+    return minimize(x);
 }
 
 
@@ -151,13 +141,12 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimize(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
-    Status status = minimizeInit(x, parameters, mode);
+    Status status = minimizeInit(x, mode);
     while (status==Running)
-        status = minimizeOneStep(x, parameters, mode);
+        status = minimizeOneStep(x, mode);
     return status;
 }
 
@@ -165,7 +154,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -216,7 +204,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -408,34 +395,30 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
+LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     n = x.size();
     m = functor.nbOfFunctions();
-    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
 
+    resetParameters();
     parameters.ftol = tol;
     parameters.xtol = tol;
     parameters.maxfev = 200*(n+1);
 
-    return minimizeNumericalDiff(
-        x,
-        parameters
-    );
+    return minimizeNumericalDiff(x);
 }
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -484,7 +467,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffOneStep(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -679,20 +661,19 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
-    Status status = minimizeNumericalDiffInit(x, parameters, mode);
+    Status status = minimizeNumericalDiffInit(x, mode);
     while (status==Running)
-        status = minimizeNumericalDiffOneStep(x, parameters, mode);
+        status = minimizeNumericalDiffOneStep(x, mode);
     return status;
 }
 
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
+LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
@@ -701,27 +682,23 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
     m = functor.nbOfFunctions();
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     VectorXi ipvt;
-    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
         return ImproperInputParameters;
 
+    resetParameters();
     parameters.ftol = tol;
     parameters.xtol = tol;
     parameters.maxfev = 100*(n+1);
 
-    return minimizeOptimumStorage(
-        x,
-        parameters
-    );
+    return minimizeOptimumStorage(x);
 }
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -773,7 +750,6 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -986,13 +962,12 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
-    Status status = minimizeOptimumStorageInit(x, parameters, mode);
+    Status status = minimizeOptimumStorageInit(x, mode);
     while (status==Running)
-        status = minimizeOptimumStorageOneStep(x, parameters, mode);
+        status = minimizeOptimumStorageOneStep(x, mode);
     return status;
 }
 

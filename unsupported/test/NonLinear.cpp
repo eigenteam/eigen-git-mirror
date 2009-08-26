@@ -154,7 +154,7 @@ void testLmder1()
   // do the computation
   lmder_functor functor;
   LevenbergMarquardt<lmder_functor> lm(functor);
-  info = lm.minimize(x);
+  info = lm.lmder1(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -181,8 +181,7 @@ void testLmder()
   // do the computation
   lmder_functor functor;
   LevenbergMarquardt<lmder_functor> lm(functor);
-  LevenbergMarquardt<lmder_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return values
   VERIFY( 1 == info);
@@ -270,7 +269,7 @@ void testHybrj1()
   // do the computation
   hybrj_functor functor;
   HybridNonLinearSolver<hybrj_functor> solver(functor);
-  info = solver.solve(x);
+  info = solver.hybrj1(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -302,8 +301,7 @@ void testHybrj()
   hybrj_functor functor;
   HybridNonLinearSolver<hybrj_functor> solver(functor);
   solver.diag.setConstant(n, 1.);
-  HybridNonLinearSolver<hybrj_functor>::Parameters parameters;
-  info = solver.solve(x, parameters, 2);
+  info = solver.solve(x, 2);
 
   // check return value
   VERIFY( 1 == info);
@@ -356,7 +354,7 @@ void testHybrd1()
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolver<hybrd_functor> solver(functor);
-  info = solver.solveNumericalDiff(x);
+  info = solver.hybrd1(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -382,11 +380,10 @@ void testHybrd()
   // do the computation
   hybrd_functor functor;
   HybridNonLinearSolver<hybrd_functor> solver(functor);
-  HybridNonLinearSolver<hybrd_functor>::Parameters parameters;
-  parameters.nb_of_subdiagonals = 1;
-  parameters.nb_of_superdiagonals = 1;
+  solver.parameters.nb_of_subdiagonals = 1;
+  solver.parameters.nb_of_superdiagonals = 1;
   solver.diag.setConstant(n, 1.);
-  info = solver.solveNumericalDiff(x, parameters, 2);
+  info = solver.solveNumericalDiff(x, 2);
 
   // check return value
   VERIFY( 1 == info);
@@ -457,7 +454,7 @@ void testLmstr1()
   // do the computation
   lmstr_functor functor;
   LevenbergMarquardt<lmstr_functor> lm(functor);
-  info = lm.minimizeOptimumStorage(x);
+  info = lm.lmstr1(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -484,8 +481,7 @@ void testLmstr()
   // do the computation
   lmstr_functor functor;
   LevenbergMarquardt<lmstr_functor> lm(functor);
-  LevenbergMarquardt<lmstr_functor>::Parameters parameters;
-  info = lm.minimizeOptimumStorage(x, parameters);
+  info = lm.minimizeOptimumStorage(x);
 
   // check return values
   VERIFY( 1 == info);
@@ -543,7 +539,7 @@ void testLmdif1()
   // do the computation
   lmdif_functor functor;
   LevenbergMarquardt<lmdif_functor> lm(functor);
-  info = lm.minimizeNumericalDiff(x);
+  info = lm.lmdif1(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -571,8 +567,7 @@ void testLmdif()
   // do the computation
   lmdif_functor functor;
   LevenbergMarquardt<lmdif_functor> lm(functor);
-  LevenbergMarquardt<lmdif_functor>::Parameters parameters;
-  info = lm.minimizeNumericalDiff(x, parameters);
+  info = lm.minimizeNumericalDiff(x);
 
   // check return values
   VERIFY( 1 == info);
@@ -657,8 +652,7 @@ void testNistChwirut2(void)
   // do the computation
   chwirut2_functor functor;
   LevenbergMarquardt<chwirut2_functor> lm(functor);
-  LevenbergMarquardt<chwirut2_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -676,10 +670,10 @@ void testNistChwirut2(void)
    */
   x<< 0.15, 0.008, 0.010;
   // do the computation
-  parameters = LevenbergMarquardt<chwirut2_functor>::Parameters(); // get default back
-  parameters.ftol = 1.E6*epsilon<double>();
-  parameters.xtol = 1.E6*epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  lm.parameters.ftol = 1.E6*epsilon<double>();
+  lm.parameters.xtol = 1.E6*epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -738,8 +732,7 @@ void testNistMisra1a(void)
   // do the computation
   misra1a_functor functor;
   LevenbergMarquardt<misra1a_functor> lm(functor);
-  LevenbergMarquardt<misra1a_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -756,7 +749,7 @@ void testNistMisra1a(void)
    */
   x<< 250., 0.0005;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -825,8 +818,7 @@ void testNistHahn1(void)
   // do the computation
   hahn1_functor functor;
   LevenbergMarquardt<hahn1_functor> lm(functor);
-  LevenbergMarquardt<hahn1_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -848,7 +840,7 @@ void testNistHahn1(void)
    */
   x<< .1, -.1, .005, -.000001, -.005, .0001, -.0000001;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -912,8 +904,7 @@ void testNistMisra1d(void)
   // do the computation
   misra1d_functor functor;
   LevenbergMarquardt<misra1d_functor> lm(functor);
-  LevenbergMarquardt<misra1d_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 3 == info); 
@@ -930,7 +921,7 @@ void testNistMisra1d(void)
    */
   x<< 450., 0.0003;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -991,8 +982,7 @@ void testNistLanczos1(void)
   // do the computation
   lanczos1_functor functor;
   LevenbergMarquardt<lanczos1_functor> lm(functor);
-  LevenbergMarquardt<lanczos1_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1013,7 +1003,7 @@ void testNistLanczos1(void)
    */
   x<< 0.5, 0.7, 3.6, 4.2, 4., 6.3;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1078,8 +1068,7 @@ void testNistRat42(void)
   // do the computation
   rat42_functor functor;
   LevenbergMarquardt<rat42_functor> lm(functor);
-  LevenbergMarquardt<rat42_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1097,7 +1086,7 @@ void testNistRat42(void)
    */
   x<< 75., 2.5, 0.07;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1157,8 +1146,7 @@ void testNistMGH10(void)
   // do the computation
   MGH10_functor functor;
   LevenbergMarquardt<MGH10_functor> lm(functor);
-  LevenbergMarquardt<MGH10_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1176,7 +1164,7 @@ void testNistMGH10(void)
    */
   x<< 0.02, 4000., 250.;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 2 == info); 
@@ -1234,11 +1222,10 @@ void testNistBoxBOD(void)
   // do the computation
   BoxBOD_functor functor;
   LevenbergMarquardt<BoxBOD_functor> lm(functor);
-  LevenbergMarquardt<BoxBOD_functor>::Parameters parameters;
-  parameters.ftol = 1.E6*epsilon<double>();
-  parameters.xtol = 1.E6*epsilon<double>();
-  parameters.factor = 10.;
-  info = lm.minimize(x, parameters);
+  lm.parameters.ftol = 1.E6*epsilon<double>();
+  lm.parameters.xtol = 1.E6*epsilon<double>();
+  lm.parameters.factor = 10.;
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1255,10 +1242,10 @@ void testNistBoxBOD(void)
    */
   x<< 100., 0.75;
   // do the computation
-  parameters = LevenbergMarquardt<BoxBOD_functor>::Parameters(); // get default back
-  parameters.ftol = epsilon<double>();
-  parameters.xtol = epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  lm.parameters.ftol = epsilon<double>();
+  lm.parameters.xtol = epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1317,11 +1304,10 @@ void testNistMGH17(void)
   // do the computation
   MGH17_functor functor;
   LevenbergMarquardt<MGH17_functor> lm(functor);
-  LevenbergMarquardt<MGH17_functor>::Parameters parameters;
-  parameters.ftol = epsilon<double>();
-  parameters.xtol = epsilon<double>();
-  parameters.maxfev = 1000;
-  info = lm.minimize(x, parameters);
+  lm.parameters.ftol = epsilon<double>();
+  lm.parameters.xtol = epsilon<double>();
+  lm.parameters.maxfev = 1000;
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1341,8 +1327,8 @@ void testNistMGH17(void)
    */
   x<< 0.5  ,1.5  ,-1   ,0.01 ,0.02;
   // do the computation
-  parameters = LevenbergMarquardt<MGH17_functor>::Parameters(); // get default back
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1407,9 +1393,8 @@ void testNistMGH09(void)
   // do the computation
   MGH09_functor functor;
   LevenbergMarquardt<MGH09_functor> lm(functor);
-  LevenbergMarquardt<MGH09_functor>::Parameters parameters;
-  parameters.maxfev = 1000;
-  info = lm.minimize(x, parameters);
+  lm.parameters.maxfev = 1000;
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1428,8 +1413,8 @@ void testNistMGH09(void)
    */
   x<< 0.25, 0.39, 0.415, 0.39;
   // do the computation
-  parameters = LevenbergMarquardt<MGH09_functor>::Parameters();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1491,9 +1476,8 @@ void testNistBennett5(void)
   // do the computation
   Bennett5_functor functor;
   LevenbergMarquardt<Bennett5_functor> lm(functor);
-  LevenbergMarquardt<Bennett5_functor>::Parameters parameters;
-  parameters.maxfev = 1000;
-  info = lm.minimize(x, parameters);
+  lm.parameters.maxfev = 1000;
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1510,8 +1494,8 @@ void testNistBennett5(void)
    */
   x<< -1500., 45., 0.85;
   // do the computation
-  parameters = LevenbergMarquardt<Bennett5_functor>::Parameters();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1579,10 +1563,9 @@ void testNistThurber(void)
   // do the computation
   thurber_functor functor;
   LevenbergMarquardt<thurber_functor> lm(functor);
-  LevenbergMarquardt<thurber_functor>::Parameters parameters;
-  parameters.ftol = 1.E4*epsilon<double>();
-  parameters.xtol = 1.E4*epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.parameters.ftol = 1.E4*epsilon<double>();
+  lm.parameters.xtol = 1.E4*epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1604,10 +1587,10 @@ void testNistThurber(void)
    */
   x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
   // do the computation
-  parameters = LevenbergMarquardt<thurber_functor>::Parameters();
-  parameters.ftol = 1.E4*epsilon<double>();
-  parameters.xtol = 1.E4*epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  lm.parameters.ftol = 1.E4*epsilon<double>();
+  lm.parameters.xtol = 1.E4*epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1672,10 +1655,9 @@ void testNistRat43(void)
   // do the computation
   rat43_functor functor;
   LevenbergMarquardt<rat43_functor> lm(functor);
-  LevenbergMarquardt<rat43_functor>::Parameters parameters;
-  parameters.ftol = 1.E6*epsilon<double>();
-  parameters.xtol = 1.E6*epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.parameters.ftol = 1.E6*epsilon<double>();
+  lm.parameters.xtol = 1.E6*epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1694,10 +1676,10 @@ void testNistRat43(void)
    */
   x<< 700., 5., 0.75, 1.3;
   // do the computation
-  parameters = LevenbergMarquardt<rat43_functor>::Parameters(); // get default back
-  parameters.ftol = 1.E5*epsilon<double>();
-  parameters.xtol = 1.E5*epsilon<double>();
-  info = lm.minimize(x, parameters);
+  lm.resetParameters();
+  lm.parameters.ftol = 1.E5*epsilon<double>();
+  lm.parameters.xtol = 1.E5*epsilon<double>();
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1760,8 +1742,7 @@ void testNistEckerle4(void)
   // do the computation
   eckerle4_functor functor;
   LevenbergMarquardt<eckerle4_functor> lm(functor);
-  LevenbergMarquardt<eckerle4_functor>::Parameters parameters;
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 
@@ -1779,7 +1760,7 @@ void testNistEckerle4(void)
    */
   x<< 1.5, 5., 450.;
   // do the computation
-  info = lm.minimize(x, parameters);
+  info = lm.minimize(x);
 
   // check return value
   VERIFY( 1 == info); 

@@ -33,48 +33,44 @@ public:
         Scalar epsfcn;
     };
 
-    Status solve(
+    Status hybrj1(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveInit(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status solveOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status solve(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
 
-    Status solveNumericalDiff(
+    Status hybrd1(
             Matrix< Scalar, Dynamic, 1 >  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveNumericalDiffInit(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status solveNumericalDiffOneStep(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
     Status solveNumericalDiff(
             Matrix< Scalar, Dynamic, 1 >  &x,
-            const Parameters &parameters,
             const int mode=1
             );
 
+    void resetParameters(void) { parameters = Parameters(); }
+    Parameters parameters;
     Matrix< Scalar, Dynamic, 1 >  fvec;
     Matrix< Scalar, Dynamic, Dynamic > fjac;
     Matrix< Scalar, Dynamic, 1 >  R;
@@ -105,24 +101,23 @@ private:
 
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solve(
+HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     n = x.size();
-    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.)
         return ImproperInputParameters;
 
+    resetParameters();
     parameters.maxfev = 100*(n+1);
     parameters.xtol = tol;
     diag.setConstant(n, 1.);
     return solve(
         x, 
-        parameters,
         2
     );
 }
@@ -131,7 +126,6 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -182,7 +176,6 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
@@ -404,13 +397,12 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
-    Status status = solveInit(x, parameters, mode);
+    Status status = solveInit(x, mode);
     while (status==Running)
-        status = solveOneStep(x, parameters, mode);
+        status = solveOneStep(x, mode);
     return status;
 }
 
@@ -418,25 +410,24 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
+HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
         Matrix< Scalar, Dynamic, 1 >  &x,
         const Scalar tol
         )
 {
     n = x.size();
-    Parameters parameters;
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.)
         return ImproperInputParameters;
 
+    resetParameters();
     parameters.maxfev = 200*(n+1);
     parameters.xtol = tol;
 
     diag.setConstant(n, 1.);
     return solveNumericalDiff(
         x,
-        parameters,
         2
     );
 }
@@ -445,16 +436,13 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
     n = x.size();
 
-    int nsub = parameters.nb_of_subdiagonals;
-    int nsup = parameters.nb_of_superdiagonals;
-    if (nsub<0) nsub= n-1;
-    if (nsup<0) nsup= n-1;
+    if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
+    if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     qtf.resize(n);
@@ -472,7 +460,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 
     /*     check the input parameters for errors. */
 
-    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || nsub< 0 || nsup< 0 || parameters.factor <= 0. )
+    if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.nb_of_subdiagonals< 0 || parameters.nb_of_superdiagonals< 0 || parameters.factor <= 0. )
         return ImproperInputParameters;
     if (mode == 2)
         for (int j = 0; j < n; ++j)
@@ -502,22 +490,19 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
     int i, j, l, iwa[1];
     jeval = true;
-    int nsub = parameters.nb_of_subdiagonals;
-    int nsup = parameters.nb_of_superdiagonals;
-    if (nsub<0) nsub= n-1;
-    if (nsup<0) nsup= n-1;
+    if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
+    if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
 
     /* calculate the jacobian matrix. */
 
-    if (ei_fdjac1(functor, x, fvec, fjac, nsub, nsup, parameters.epsfcn) <0)
+    if (ei_fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
         return UserAksed;
-    nfev += std::min(nsub+ nsup+ 1, n);
+    nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
     /* compute the qr factorization of the jacobian. */
 
@@ -728,13 +713,12 @@ template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         Matrix< Scalar, Dynamic, 1 >  &x,
-        const Parameters &parameters,
         const int mode
         )
 {
-    Status status = solveNumericalDiffInit(x, parameters, mode);
+    Status status = solveNumericalDiffInit(x, mode);
     while (status==Running)
-        status = solveNumericalDiffOneStep(x, parameters, mode);
+        status = solveNumericalDiffOneStep(x, mode);
     return status;
 }
 
