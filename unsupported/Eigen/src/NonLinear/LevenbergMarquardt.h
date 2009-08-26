@@ -437,6 +437,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffInit(
 
     /* Function Body */
     nfev = 0;
+    njev = 0;
 
     /*     check the input parameters for errors. */
 

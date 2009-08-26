@@ -158,6 +158,8 @@ void testLmder1()
 
   // check return value
   VERIFY( 1 == info);
+  VERIFY(lm.nfev==6);
+  VERIFY(lm.njev==5);
 
   // check norm
   VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
@@ -273,6 +275,8 @@ void testHybrj1()
 
   // check return value
   VERIFY( 1 == info);
+  VERIFY(solver.nfev==11);
+  VERIFY(solver.njev==1);
 
   // check norm
   VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
@@ -358,6 +362,7 @@ void testHybrd1()
 
   // check return value
   VERIFY( 1 == info);
+  VERIFY(solver.nfev==20);
 
   // check norm
   VERIFY_IS_APPROX(solver.fvec.blueNorm(), 1.192636e-08);
@@ -458,6 +463,8 @@ void testLmstr1()
 
   // check return value
   VERIFY( 1 == info);
+  VERIFY(lm.nfev==6);
+  VERIFY(lm.njev==5);
 
   // check norm
   VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
@@ -543,6 +550,7 @@ void testLmdif1()
 
   // check return value
   VERIFY( 1 == info);
+  VERIFY(lm.nfev==21);
 
   // check norm
   VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
@@ -1813,6 +1821,9 @@ void test_NonLinear()
 /*
  * Can be useful for debugging...
   printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
+  printf("info, nfev : %d, %d\n", info, lm.nfev);
+  printf("info, nfev, njev : %d, %d, %d\n", info, solver.nfev, solver.njev);
+  printf("info, nfev : %d, %d\n", info, solver.nfev);
   printf("x[0] : %.32g\n", x[0]);
   printf("x[1] : %.32g\n", x[1]);
   printf("x[2] : %.32g\n", x[2]);

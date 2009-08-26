@@ -457,6 +457,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
     /* Function Body */
 
     nfev = 0;
+    njev = 0;
 
     /*     check the input parameters for errors. */
 
