@@ -94,7 +94,10 @@ if(MSVC)
 
   option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
   if(EIGEN_TEST_SSE2)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+    if(NOT CMAKE_CL_64)
+      # arch is not supported on 64 bit systems, SSE is enabled automatically.	
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
+    endif(NOT CMAKE_CL_64)
     message("Enabling SSE2 in tests/examples")
   endif(EIGEN_TEST_SSE2)
 endif(MSVC)
