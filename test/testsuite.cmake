@@ -132,8 +132,11 @@ endif(NOT EIGEN_MODE)
 
 ## mandatory variables (the default should be ok in most cases):
 
-SET (CTEST_CVS_COMMAND "hg")
-SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
+if(NOT IGNORE_CVS)
+  SET (CTEST_CVS_COMMAND "hg")
+  SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
+  SET(CTEST_BACKUP_AND_RESTORE TRUE) # the backup is CVS related ...
+endif(NOT IGNORE_CVS)
 
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
@@ -150,7 +153,6 @@ SET($ENV{LC_MESSAGES} "en_EN")
 
 # should ctest wipe the binary tree before running
 SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
-SET(CTEST_BACKUP_AND_RESTORE TRUE)
 
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
@@ -160,7 +162,8 @@ if(WIN32 AND NOT UNIX)
   SET (CTEST_INITIAL_CACHE "
     MAKECOMMAND:STRING=nmake -i
     CMAKE_MAKE_PROGRAM:FILEPATH=nmake
-    CMAKE_GENERATOR:INTERNAL=NMake Makefiles
+    CMAKE_GENERATOR:INTERNAL=NMake Makefiles  
+    CMAKE_BUILD_TYPE:STRING=Release
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}
     SITE:STRING=${EIGEN_SITE}
   ")
@@ -172,10 +175,11 @@ else(WIN32 AND NOT UNIX)
 endif(WIN32 AND NOT UNIX)
 
 # set any extra environment variables to use during the execution of the script here:
+# setting this variable on windows machines causes trouble ...
 
-if(EIGEN_CXX)
+if(EIGEN_CXX AND NOT WIN32)
   set(CTEST_ENVIRONMENT "CXX=${EIGEN_CXX}")
-endif(EIGEN_CXX)
+endif(EIGEN_CXX AND NOT WIN32)
 
 if(DEFINED EIGEN_EXPLICIT_VECTORIZATION)
   if(EIGEN_EXPLICIT_VECTORIZATION MATCHES SSE2)
