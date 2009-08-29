@@ -22,7 +22,7 @@ void ei_chkder(
     const int m = fvec.size(), n = x.size();
 
     if (mode != 2) {
-        xp.resize(m);
+        xp.resize(n);
         /*        mode = 1. */
         for (j = 0; j < n; ++j) {
             temp = eps * ei_abs(x[j]);

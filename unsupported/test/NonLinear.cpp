@@ -8,11 +8,13 @@
 #include "main.h"
 #include <unsupported/Eigen/NonLinear>
 
-int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
+int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
 {
     /*      subroutine fcn for chkder example. */
 
     int i;
+    assert(15 ==  fvec.size());
+    assert(3 ==  x.size());
     double tmp1, tmp2, tmp3, tmp4;
     double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
         3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
@@ -40,9 +42,9 @@ int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac
             tmp3 = tmp2;
             if (i >= 8) tmp3 = tmp2;
             tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4=tmp4*tmp4;
-            fjac[i+ ldfjac*(0)] = -1.;
-            fjac[i+ ldfjac*(1)] = tmp1*tmp2/tmp4;
-            fjac[i+ ldfjac*(2)] = tmp1*tmp3/tmp4;
+            fjac(i,0) = -1.;
+            fjac(i,1) = tmp1*tmp2/tmp4;
+            fjac(i,2) = tmp1*tmp3/tmp4;
         }
     }
     return 0;
@@ -61,9 +63,9 @@ void testChkder()
   x << 9.2e-1, 1.3e-1, 5.4e-1;
 
   ei_chkder(x, fvec, fjac, xp, fvecp, 1, err);
-  fcn_chkder(m, n, x.data(), fvec.data(), fjac.data(), m, 1);
-  fcn_chkder(m, n, x.data(), fvec.data(), fjac.data(), m, 2);
-  fcn_chkder(m, n, xp.data(), fvecp.data(), fjac.data(), m, 1);
+  fcn_chkder(x, fvec, fjac, 1);
+  fcn_chkder(x, fvec, fjac, 2);
+  fcn_chkder(xp, fvecp, fjac, 1);
   ei_chkder(x, fvec, fjac, xp, fvecp, 2, err);
 
   fvecp -= fvec;
