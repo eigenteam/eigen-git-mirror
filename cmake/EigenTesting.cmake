@@ -160,11 +160,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g2")
   endif(CMAKE_SYSTEM_NAME MATCHES Linux)
   set(EI_OFLAG "-O2")
-# MSVC fails with:
-# cl : Command line warning D9025 : overriding '/Od' with '/O2'
-# cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
-# elseif(MSVC)
-#   set(EI_OFLAG "/O2")
+elseif(MSVC)
+  set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+  set(EI_OFLAG "/O2")
 else(CMAKE_COMPILER_IS_GNUCXX)
   set(EI_OFLAG "")
 endif(CMAKE_COMPILER_IS_GNUCXX)

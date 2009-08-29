@@ -23,7 +23,7 @@ solving systems of linear equations, finding eigenvalues and eigenvectors, and s
 
 \section TutorialAdvSolvers Solving linear problems
 
-This part of the tutorial focuses on solving systems of linear equations. Such statems can be
+This part of the tutorial focuses on solving systems of linear equations. Such systems can be
 written in the form \f$ A \mathbf{x} = \mathbf{b} \f$, where both \f$ A \f$ and \f$ \mathbf{b} \f$
 are known, and \f$ \mathbf{x} \f$ is the unknown. Moreover, \f$ A \f$ is assumed to be a square
 matrix. 
@@ -105,7 +105,7 @@ then the system \f$ A \mathbf{x} = \mathbf{b} \f$ has either zero or infinitely 
 both cases, PartialLU::solve() will give nonsense results. For example, suppose that we want to
 solve the same system as above, but with the 10 in the last equation replaced by 9. Then the system
 of equations is inconsistent: adding the first and the third equation gives \f$ 8x + 10y + 12z = 7 \f$,
-which implies \f$ 4x + 5y + 6z = 3\frac12 \f$, in contradiction with the seocond equation. If we try
+which implies \f$ 4x + 5y + 6z = 3\frac12 \f$, in contradiction with the second equation. If we try
 to solve this inconsistent system with Eigen, we find:
 
 <table class="tutorial_code"><tr><td>

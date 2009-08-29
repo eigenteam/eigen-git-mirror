@@ -164,11 +164,20 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
+    EIGEN_STRONG_INLINE Scalar value() const
+    {
+      return (m_lhs.transpose().cwise()*m_rhs).sum();
+    }
+
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(dst.rows()==1 && dst.cols()==1);
-      dst.coeffRef(0,0) += alpha * (m_lhs.transpose().cwise()*m_rhs).sum();
+      dst.coeffRef(0,0) += alpha * value();
     }
+
+    EIGEN_STRONG_INLINE Scalar coeff(int, int) const { return value(); }
+
+    EIGEN_STRONG_INLINE Scalar coeff(int) const { return value(); }
 };
 
 /***********************************************************************
