@@ -6,6 +6,8 @@ namespace Eigen {
   - \ref summary
   - \ref allocator
   - \ref vector
+  - \ref newvector
+
 
 \section summary Executive summary
 
@@ -43,6 +45,18 @@ you can simply use
 std::vector<Eigen::Vector4f>
 \endcode
 without having to worry about anything.
+
+\section newvector The new and improved workaround for std::vector
+
+Well, except that in Eigen 2.0 the <Eigen/StdVector> header causes some compatibility issues as it reimplements the std::vector<T> container in a not-fully-compatible way. If you want to avoid these issues, starting in Eigen 2.0.6 a new implementation is available, which will become default in the next major version of Eigen. You can enable it by defining EIGEN_USE_NEW_STDVECTOR:
+
+\code
+#define EIGEN_USE_NEW_STDVECTOR
+#include<Eigen/StdVector>
+\endcode
+
+This new implementation <a href="http://eigen.tuxfamily.org/dox-devel/StlContainers.html#vector">is documented here</a>. In particular, note that if you use it, you must specify Eigen::aligned_allocator<T> as the allocator type, otherwise it doesn't make any difference from the standard std::vector. This new std::vector implementation \b only overrides the standard one if used with this allocator, which guarantees that it doesn't break existing non-Eigen code.
+
 
 <span class="note">\b Explanation: The resize() method of std::vector takes a value_type argument (defaulting to value_type()). So with std::vector<Eigen::Vector4f>, some Eigen::Vector4f objects will be passed by value, which discards any alignment modifiers, so a Eigen::Vector4f can be created at an unaligned location. In order to avoid that, the only solution we saw was to specialize std::vector to make it work on a slight modification of, here, Eigen::Vector4f, that is able to deal properly with this situation.
 </span>
