@@ -10,49 +10,42 @@
 
 int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac, int ldfjac, int iflag)
 {
-  /*      subroutine fcn for chkder example. */
+    /*      subroutine fcn for chkder example. */
 
-  int i;
-  double tmp1, tmp2, tmp3, tmp4;
-  double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
-		3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
+    int i;
+    double tmp1, tmp2, tmp3, tmp4;
+    double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+        3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
-  
-  if (iflag == 0) 
-    {
-      /*      insert print statements here when nprint is positive. */
-      return 0;
+
+    if (iflag == 0) 
+        return 0;
+
+    if (iflag != 2) 
+        for (i=1; i<=15; i++) {
+            tmp1 = i;
+            tmp2 = 16 - i;
+            tmp3 = tmp1;
+            if (i > 8) tmp3 = tmp2;
+            fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+        }
+    else {
+        for (i = 1; i <= 15; i++) {
+            tmp1 = i;
+            tmp2 = 16 - i;
+
+            /* error introduced into next statement for illustration. */
+            /* corrected statement should read    tmp3 = tmp1 . */
+
+            tmp3 = tmp2;
+            if (i > 8) tmp3 = tmp2;
+            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
+            fjac[i-1+ ldfjac*(1-1)] = -1.;
+            fjac[i-1+ ldfjac*(2-1)] = tmp1*tmp2/tmp4;
+            fjac[i-1+ ldfjac*(3-1)] = tmp1*tmp3/tmp4;
+        }
     }
-
-  if (iflag != 2) 
-
-    for (i=1; i<=15; i++)
-      {
-	tmp1 = i;
-	tmp2 = 16 - i;
-	tmp3 = tmp1;
-	if (i > 8) tmp3 = tmp2;
-	fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
-      }
-  else
-    {
-      for (i = 1; i <= 15; i++)
-	{
-	  tmp1 = i;
-	  tmp2 = 16 - i;
-	  
-	  /* error introduced into next statement for illustration. */
-	  /* corrected statement should read    tmp3 = tmp1 . */
-	  
-	  tmp3 = tmp2;
-	  if (i > 8) tmp3 = tmp2;
-	  tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
-	  fjac[i-1+ ldfjac*(1-1)] = -1.;
-	  fjac[i-1+ ldfjac*(2-1)] = tmp1*tmp2/tmp4;
-	  fjac[i-1+ ldfjac*(3-1)] = tmp1*tmp3/tmp4;
-	}
-    }
-  return 0;
+    return 0;
 }
 
 void testChkder()
