@@ -22,31 +22,32 @@ int fcn_chkder(int /*m*/, int /*n*/, const double *x, double *fvec, double *fjac
         return 0;
 
     if (iflag != 2) 
-        for (i=1; i<=15; i++) {
-            tmp1 = i;
-            tmp2 = 16 - i;
+        for (i=0; i<15; i++) {
+            tmp1 = i+1;
+            tmp2 = 16-i-1;
             tmp3 = tmp1;
-            if (i > 8) tmp3 = tmp2;
-            fvec[i-1] = y[i-1] - (x[1-1] + tmp1/(x[2-1]*tmp2 + x[3-1]*tmp3));
+            if (i >= 8) tmp3 = tmp2;
+            fvec[i] = y[i] - (x[0] + tmp1/(x[1]*tmp2 + x[2]*tmp3));
         }
     else {
-        for (i = 1; i <= 15; i++) {
-            tmp1 = i;
-            tmp2 = 16 - i;
+        for (i = 0; i < 15; i++) {
+            tmp1 = i+1;
+            tmp2 = 16-i-1;
 
             /* error introduced into next statement for illustration. */
             /* corrected statement should read    tmp3 = tmp1 . */
 
             tmp3 = tmp2;
-            if (i > 8) tmp3 = tmp2;
-            tmp4 = (x[2-1]*tmp2 + x[3-1]*tmp3); tmp4=tmp4*tmp4;
-            fjac[i-1+ ldfjac*(1-1)] = -1.;
-            fjac[i-1+ ldfjac*(2-1)] = tmp1*tmp2/tmp4;
-            fjac[i-1+ ldfjac*(3-1)] = tmp1*tmp3/tmp4;
+            if (i >= 8) tmp3 = tmp2;
+            tmp4 = (x[1]*tmp2 + x[2]*tmp3); tmp4=tmp4*tmp4;
+            fjac[i+ ldfjac*(0)] = -1.;
+            fjac[i+ ldfjac*(1)] = tmp1*tmp2/tmp4;
+            fjac[i+ ldfjac*(2)] = tmp1*tmp3/tmp4;
         }
     }
     return 0;
 }
+
 
 void testChkder()
 {
