@@ -1,3 +1,7 @@
+#ifdef EIGEN_USE_NEW_STDVECTOR
+#include "NewStdVector"
+#else
+
 #ifndef EIGEN_STDVECTOR_MODULE_H
 #define EIGEN_STDVECTOR_MODULE_H
 
@@ -139,3 +143,5 @@ class vector<T,DummyAlloc,true>
 }
 
 #endif // EIGEN_STDVECTOR_MODULE_H
+
+#endif // EIGEN_USE_NEW_STDVECTOR
