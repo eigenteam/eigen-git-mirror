@@ -259,8 +259,8 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
-      ei_gemv_selector<Side,int(MatrixType::Flags)&RowMajorBit,
-                       ei_blas_traits<MatrixType>::ActualAccess>::run(*this, dst, alpha);
+      ei_gemv_selector<Side,bool(int(MatrixType::Flags)&RowMajorBit),
+                       bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
 };
 

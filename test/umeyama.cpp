@@ -127,7 +127,7 @@ void run_test(int dim, int num_elements)
   MatrixX src = MatrixX::Random(dim+1, num_elements);
   src.row(dim) = Matrix<Scalar, 1, Dynamic>::Constant(num_elements, Scalar(1));
 
-  MatrixX dst = (cR_t*src).lazy();
+  MatrixX dst = cR_t*src;
 
   MatrixX cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
 
@@ -160,7 +160,7 @@ void run_fixed_size_test(int num_elements)
   MatrixX src = MatrixX::Random(dim+1, num_elements);
   src.row(dim) = Matrix<Scalar, 1, Dynamic>::Constant(num_elements, Scalar(1));
 
-  MatrixX dst = (cR_t*src).lazy();
+  MatrixX dst = cR_t*src;
 
   Block<MatrixX, Dimension, Dynamic> src_block(src,0,0,dim,num_elements);
   Block<MatrixX, Dimension, Dynamic> dst_block(dst,0,0,dim,num_elements);
