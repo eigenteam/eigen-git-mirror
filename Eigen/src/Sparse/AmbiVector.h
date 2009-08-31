@@ -41,7 +41,7 @@ template<typename _Scalar> class AmbiVector
       resize(size);
     }
 
-    void init(RealScalar estimatedDensity);
+    void init(double estimatedDensity);
     void init(int mode);
 
     int nonZeros() const;
@@ -143,7 +143,7 @@ int AmbiVector<Scalar>::nonZeros() const
 }
 
 template<typename Scalar>
-void AmbiVector<Scalar>::init(RealScalar estimatedDensity)
+void AmbiVector<Scalar>::init(double estimatedDensity)
 {
   if (estimatedDensity>0.1)
     init(IsDense);
