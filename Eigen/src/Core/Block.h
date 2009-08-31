@@ -201,6 +201,13 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
           m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0), x);
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** \sa MapBase::data() */
+    inline const Scalar* data() const;
+    /** \sa MapBase::stride() */
+    inline int stride() const;
+    #endif
+
   protected:
 
     const typename MatrixType::Nested m_matrix;
@@ -269,7 +276,14 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
              && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
-    inline int stride(void) const { return m_matrix.stride(); }
+    /** \sa MapBase::stride() */
+    inline int stride() const
+    {
+      return    ((!Base::IsVectorAtCompileTime)
+              || (BlockRows==1 && ((Flags&RowMajorBit)==0))
+              || (BlockCols==1 && ((Flags&RowMajorBit)==RowMajorBit)))
+              ? m_matrix.stride() : 1;
+    }
 
   #ifndef __SUNPRO_CC
   // FIXME sunstudio is not friendly with the above friend...
