@@ -166,11 +166,6 @@ template<typename Derived> class MapBase
                   && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
 
-    Derived& operator=(const MapBase& other)
-    {
-      return Base::operator=(other);
-    }
-
     using Base::operator=;
     using Base::operator*=;
 

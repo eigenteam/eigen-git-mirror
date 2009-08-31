@@ -251,11 +251,7 @@ using Base::operator =; \
 using Base::operator +=; \
 using Base::operator -=; \
 using Base::operator *=; \
-using Base::operator /=; \
-EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
-{ \
-  return Base::operator=(other); \
-}
+using Base::operator /=;
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \
