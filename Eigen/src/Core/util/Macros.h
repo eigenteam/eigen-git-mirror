@@ -246,12 +246,25 @@ using Eigen::ei_cos;
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, 0, " ", "\n", "", "")
 
+#ifdef _MSC_VER
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 using Base::operator =; \
 using Base::operator +=; \
 using Base::operator -=; \
 using Base::operator *=; \
 using Base::operator /=;
+#else
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+using Base::operator =; \
+using Base::operator +=; \
+using Base::operator -=; \
+using Base::operator *=; \
+using Base::operator /=; \
+EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
+{ \
+  return Base::operator=(other); \
+}
+#endif
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \

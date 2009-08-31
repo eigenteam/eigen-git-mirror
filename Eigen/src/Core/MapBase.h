@@ -166,6 +166,13 @@ template<typename Derived> class MapBase
                   && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
     }
 
+#ifndef _MSC_VER
+    Derived& operator=(const MapBase& other)
+    {
+      return Base::operator=(other);
+    }
+#endif
+
     using Base::operator=;
     using Base::operator*=;
 
