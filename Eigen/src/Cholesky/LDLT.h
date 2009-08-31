@@ -218,8 +218,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
     int endSize = size - j - 1;
     if (endSize > 0) {
-      _temporary.end(endSize) = ( m_matrix.block(j+1,0, endSize, j)
-                                * m_matrix.col(j).start(j).conjugate() ).lazy();
+      _temporary.end(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
+                                * m_matrix.col(j).start(j).conjugate();
 
       m_matrix.row(j).end(endSize) = m_matrix.row(j).end(endSize).conjugate()
                                    - _temporary.end(endSize).transpose();

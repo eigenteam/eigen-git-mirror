@@ -90,9 +90,9 @@ namespace MatrixExponentialInternal {
   {
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
     const Scalar b[] = {120., 60., 12., 1.};
-    M2 = (M * M).lazy();
+    M2.noalias() = M * M;
     tmp = b[3]*M2 + b[1]*Id;
-    U = (M * tmp).lazy();
+    U.noalias() = M * tmp;
     V = b[2]*M2 + b[0]*Id;
   }
   
@@ -115,10 +115,10 @@ namespace MatrixExponentialInternal {
   {
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
     const Scalar b[] = {30240., 15120., 3360., 420., 30., 1.};
-    M2 = (M * M).lazy();
-    MatrixType M4 = (M2 * M2).lazy();
+    M2.noalias() = M * M;
+    MatrixType M4 = M2 * M2;
     tmp = b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * tmp).lazy();
+    U.noalias() = M * tmp;
     V = b[4]*M4 + b[2]*M2 + b[0]*Id;
   }
   
@@ -141,11 +141,11 @@ namespace MatrixExponentialInternal {
   {
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
     const Scalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
-    M2 = (M * M).lazy();
-    MatrixType M4 = (M2 * M2).lazy();
-    MatrixType M6 = (M4 * M2).lazy();
+    M2.noalias() = M * M;
+    MatrixType M4 = M2 * M2;
+    MatrixType M6 = M4 * M2;
     tmp = b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * tmp).lazy();
+    U.noalias() = M * tmp;
     V = b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
   }
   
@@ -169,12 +169,12 @@ namespace MatrixExponentialInternal {
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
     const Scalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
   		      2162160., 110880., 3960., 90., 1.};
-    M2 = (M * M).lazy();
-    MatrixType M4 = (M2 * M2).lazy();
-    MatrixType M6 = (M4 * M2).lazy();
-    MatrixType M8 = (M6 * M2).lazy();
+    M2.noalias() = M * M;
+    MatrixType M4 = M2 * M2;
+    MatrixType M6 = M4 * M2;
+    MatrixType M8 = M6 * M2;
     tmp = b[9]*M8 + b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * tmp).lazy();
+    U.noalias() = M * tmp;
     V = b[8]*M8 + b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
   }
   
@@ -199,15 +199,15 @@ namespace MatrixExponentialInternal {
     const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600., 
   		      1187353796428800., 129060195264000., 10559470521600., 670442572800., 
   		      33522128640., 1323241920., 40840800., 960960., 16380., 182., 1.};
-    M2 = (M * M).lazy();
-    MatrixType M4 = (M2 * M2).lazy();
-    MatrixType M6 = (M4 * M2).lazy();
+    M2.noalias() = M * M;
+    MatrixType M4 = M2 * M2;
+    MatrixType M6 = M4 * M2;
     V = b[13]*M6 + b[11]*M4 + b[9]*M2;
-    tmp = (M6 * V).lazy();
+    tmp.noalias() = M6 * V;
     tmp += b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U = (M * tmp).lazy();
+    U.noalias() = M * tmp;
     tmp = b[12]*M6 + b[10]*M4 + b[8]*M2;
-    V = (M6 * tmp).lazy();
+    V.noalias() = M6 * tmp;
     V += b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
   }
   
@@ -252,7 +252,7 @@ namespace MatrixExponentialInternal {
       } else if (l1norm < 1.880152677804762e+000) {
         pade5(M, Id, tmp1, tmp2, U, V);
       } else {
-        const float maxnorm = 3.925724783138660;
+        const float maxnorm = 3.925724783138660f;
         *squarings = std::max(0, (int)ceil(log2(l1norm / maxnorm)));
         MatrixType A = M / std::pow(typename ei_traits<MatrixType>::Scalar(2), *squarings);
         pade7(A, Id, tmp1, tmp2, U, V);
@@ -294,7 +294,7 @@ namespace MatrixExponentialInternal {
   {
     MatrixType num, den, U, V;
     MatrixType Id = MatrixType::Identity(M.rows(), M.cols());
-    float l1norm = M.cwise().abs().colwise().sum().maxCoeff();
+    float l1norm = static_cast<float>(M.cwise().abs().colwise().sum().maxCoeff());
     int squarings;
     computeUV_selector<MatrixType>::run(M, Id, num, den, U, V, l1norm, &squarings);
     num = U + V;			// numerator of Pade approximant

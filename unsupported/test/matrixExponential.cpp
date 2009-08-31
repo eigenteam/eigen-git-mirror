@@ -43,10 +43,10 @@ void test2dRotation(double tol)
   A << 0, 1, -1, 0;
   for (int i=0; i<=20; i++) 
   {
-    angle = pow(10, i / 5. - 2);
+    angle = static_cast<T>(pow(10, i / 5. - 2));
     B << cos(angle), sin(angle), -sin(angle), cos(angle);
     ei_matrix_exponential(angle*A, &C);
-    VERIFY(C.isApprox(B, tol));
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
 
@@ -59,13 +59,13 @@ void test2dHyperbolicRotation(double tol)
 
   for (int i=0; i<=20; i++) 
   {
-    angle = (i-10) / 2.0;
+    angle = static_cast<T>((i-10) / 2.0);
     ch = std::cosh(angle);
     sh = std::sinh(angle);
     A << 0, angle*imagUnit, -angle*imagUnit, 0;
     B << ch, sh*imagUnit, -sh*imagUnit, ch;
     ei_matrix_exponential(A, &C);
-    VERIFY(C.isApprox(B, tol));
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
 
@@ -77,13 +77,13 @@ void testPascal(double tol)
     Matrix<T,Dynamic,Dynamic> A(size,size), B(size,size), C(size,size);
     A.setZero();
     for (int i=0; i<size-1; i++)
-      A(i+1,i) = i+1;
+      A(i+1,i) = static_cast<T>(i+1);
     B.setZero();
     for (int i=0; i<size; i++)
       for (int j=0; j<=i; j++)
-	B(i,j) = binom(i,j);
+    B(i,j) = static_cast<T>(binom(i,j));
     ei_matrix_exponential(A, &C);
-    VERIFY(C.isApprox(B, tol));
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
 
@@ -98,11 +98,13 @@ void randomTest(const MatrixType& m, double tol)
   MatrixType m1(rows, cols), m2(rows, cols), m3(rows, cols),
              identity = MatrixType::Identity(rows, rows);
 
+  typedef typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real RealScalar;
+
   for(int i = 0; i < g_repeat; i++) {
     m1 = MatrixType::Random(rows, cols);
     ei_matrix_exponential(m1, &m2);
     ei_matrix_exponential(-m1, &m3);
-    VERIFY(identity.isApprox(m2 * m3, tol));
+	VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
   }
 }
 
