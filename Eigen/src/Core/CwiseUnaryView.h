@@ -53,8 +53,7 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
 };
 
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryView : ei_no_assignment_operator,
-  public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
+class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
 {
   public:
 
