@@ -142,12 +142,21 @@ class Matrix
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
 
-    EIGEN_STRONG_INLINE int stride(void) const
+    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
+      *
+      * More precisely:
+      *  - for a column major matrix it returns the number of elements between two successive columns
+      *  - for a row major matrix it returns the number of elements between two successive rows
+      *  - for a vector it returns the number of elements between two successive coefficients
+      * This function has to be used together with the MapBase::data() function.
+      *
+      * \sa Matrix::data() */
+    EIGEN_STRONG_INLINE int stride() const
     {
-      if(Flags & RowMajorBit)
-        return m_storage.cols();
+      if(IsVectorAtCompileTime)
+        return 1;
       else
-        return m_storage.rows();
+        return (Flags & RowMajorBit) ? m_storage.cols() : m_storage.rows();
     }
 
     EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const

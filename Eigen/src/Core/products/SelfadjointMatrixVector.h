@@ -185,14 +185,14 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-    ei_assert((&dst.coeff(1))-(&dst.coeff(0))==1 && "not implemented yet");
+    ei_assert(dst.stride()==1 && "not implemented yet");
     ei_product_selfadjoint_vector<Scalar, ei_traits<_ActualLhsType>::Flags&RowMajorBit, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
       (
-        lhs.rows(),                                     // size
-        &lhs.coeff(0,0), lhs.stride(),                  // lhs info
-        &rhs.coeff(0), (&rhs.coeff(1))-(&rhs.coeff(0)), // rhs info
-        &dst.coeffRef(0),                               // result info
-        actualAlpha                                     // scale factor
+        lhs.rows(),                       // size
+        &lhs.coeff(0,0),  lhs.stride(),   // lhs info
+        &rhs.coeff(0),    rhs.stride(),   // rhs info
+        &dst.coeffRef(0),                 // result info
+        actualAlpha                       // scale factor
       );
   }
 };
