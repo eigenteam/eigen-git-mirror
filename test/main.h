@@ -153,6 +153,8 @@ namespace Eigen
 #define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_ei_isApproxOrLessThan(a, b))
 #define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_ei_isApproxOrLessThan(a, b))
 
+#define VERIFY_IS_UNITARY(a) VERIFY(test_isUnitary(a))
+
 #define CALL_SUBTEST(FUNC) do { \
     g_test_stack.push_back(EI_PP_MAKE_STRING(FUNC)); \
     FUNC; \
@@ -225,6 +227,12 @@ inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
                                    const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
 {
   return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
+}
+
+template<typename Derived>
+inline bool test_isUnitary(const MatrixBase<Derived>& m)
+{
+  return m.isUnitary(test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
 template<typename MatrixType>
