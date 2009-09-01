@@ -42,6 +42,8 @@ namespace Eigen {
 #include "src/QR/EigenSolver.h"
 #include "src/QR/SelfAdjointEigenSolver.h"
 #include "src/QR/HessenbergDecomposition.h"
+#include "src/QR/ComplexSchur.h"
+#include "src/QR/ComplexEigenSolver.h"
 
 // declare all classes for a given matrix type
 #define EIGEN_QR_MODULE_INSTANTIATE_TYPE(MATRIXTYPE,PREFIX) \
