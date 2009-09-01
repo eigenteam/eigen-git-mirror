@@ -380,7 +380,7 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
     if (matrixQ)
     {
       Map<Matrix<Scalar,Dynamic,Dynamic> > q(matrixQ,n,n);
-      q.applyJacobiOnTheRight(k,k+1,c,s);
+      q.applyJacobiOnTheRight(k,k+1,JacobiRotation<RealScalar>(c,s));
     }
   }
 }
