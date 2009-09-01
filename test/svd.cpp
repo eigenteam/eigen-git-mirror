@@ -41,15 +41,11 @@ template<typename MatrixType> void svd(const MatrixType& m)
     Matrix<Scalar, MatrixType::RowsAtCompileTime, 1>::Random(rows,1);
   Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x(cols,1), x2(cols,1);
 
-  RealScalar largerEps = test_precision<RealScalar>();
-  if (ei_is_same_type<RealScalar,float>::ret)
-    largerEps = 1e-3f;
-
   {
     SVD<MatrixType> svd(a);
     MatrixType sigma = MatrixType::Zero(rows,cols);
     MatrixType matU  = MatrixType::Zero(rows,rows);
-    sigma.block(0,0,cols,cols) = svd.singularValues().asDiagonal();
+    sigma.diagonal() = svd.singularValues();
     matU = svd.matrixU();
     VERIFY_IS_APPROX(a, matU * sigma * svd.matrixV().transpose());
   }
