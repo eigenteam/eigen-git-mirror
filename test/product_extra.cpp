@@ -59,7 +59,7 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 //       r0 = ei_random<int>(0,rows/2-1),
 //       r1 = ei_random<int>(rows/2,rows);
 
-  VERIFY_IS_APPROX(m3.noalias() = m1 * m2.adjoint(),                m1 * m2.adjoint().eval());
+  VERIFY_IS_APPROX(m3.noalias() = m1 * m2.adjoint(),                 m1 * m2.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * square.adjoint(),   m1.adjoint().eval() * square.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * m2,                 m1.adjoint().eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (s1 * m1.adjoint()) * m2,          (s1 * m1.adjoint()).eval() * m2);

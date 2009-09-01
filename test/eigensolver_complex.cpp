@@ -29,7 +29,7 @@
 template<typename MatrixType> void eigensolver(const MatrixType& m)
 {
   /* this test covers the following files:
-     ComplexEigenSolver.h
+     ComplexEigenSolver.h, and indirectly ComplexSchur.h
   */
   int rows = m.rows();
   int cols = m.cols();
@@ -40,20 +40,13 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
   typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
 
-  // RealScalar largerEps = 10*test_precision<RealScalar>();
-
   MatrixType a = MatrixType::Random(rows,cols);
-  MatrixType a1 = MatrixType::Random(rows,cols);
-  MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
+  MatrixType symmA =  a.adjoint() * a;
 
-//   ComplexEigenSolver<MatrixType> ei0(symmA);
+  ComplexEigenSolver<MatrixType> ei0(symmA);
+  VERIFY_IS_APPROX(symmA * ei0.eigenvectors(), ei0.eigenvectors() * ei0.eigenvalues().asDiagonal());
 
-//   VERIFY_IS_APPROX(symmA * ei0.eigenvectors(), ei0.eigenvectors() * ei0.eigenvalues().asDiagonal());
-
-//   a.imag().setZero();
-//   std::cerr << a << "\n\n";
   ComplexEigenSolver<MatrixType> ei1(a);
-//   exit(1);
   VERIFY_IS_APPROX(a * ei1.eigenvectors(), ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
 
 }
@@ -61,10 +54,8 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 void test_eigensolver_complex()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( eigensolver(Matrix4cf()) );
-//     CALL_SUBTEST( eigensolver(MatrixXcd(4,4)) );
-    CALL_SUBTEST( eigensolver(MatrixXcd(6,6)) );
-//     CALL_SUBTEST( eigensolver(MatrixXd(14,14)) );
+    CALL_SUBTEST( eigensolver(Matrix4cf()) );
+    CALL_SUBTEST( eigensolver(MatrixXcd(14,14)) );
   }
 }
 
