@@ -338,7 +338,15 @@ class Matrix
       */
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
-      return  _set(other);
+      return _set(other);
+    }
+
+    /** \sa MatrixBase::lazyAssign() */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& lazyAssign(const MatrixBase<OtherDerived>& other)
+    {
+      _resize_to_match(other);
+      return Base::lazyAssign(other.derived());
     }
 
     template<typename OtherDerived,typename OtherEvalType>
