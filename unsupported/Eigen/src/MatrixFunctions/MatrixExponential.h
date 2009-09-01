@@ -292,7 +292,10 @@ namespace MatrixExponentialInternal {
   template <typename MatrixType>
   void compute(const MatrixType &M, MatrixType* result)
   {
-    MatrixType num, den, U, V;
+    MatrixType num(M.rows(), M.cols());
+    MatrixType den(M.rows(), M.cols());
+    MatrixType U(M.rows(), M.cols());
+    MatrixType V(M.rows(), M.cols());
     MatrixType Id = MatrixType::Identity(M.rows(), M.cols());
     float l1norm = static_cast<float>(M.cwise().abs().colwise().sum().maxCoeff());
     int squarings;
