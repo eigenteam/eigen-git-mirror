@@ -26,56 +26,98 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
-/** Applies the counter clock wise 2D rotation of angle \c theta given by its
-  * cosine \a c and sine \a s to the set of 2D vectors of cordinates \a x and \a y:
-  * \f$ x = c x - s' y \f$
-  * \f$ y = s x + c y \f$
+/** \ingroup Jacobi
+  * \class JacobiRotation
+  * \brief Represents a rotation in the plane from a cosine-sine pair.
+  *
+  * This class represents a Jacobi rotation which is also known as a Givens rotation.
+  * This is a 2D clock-wise rotation in the plane \c J of angle \f$ \theta \f$ defined by
+  * its cosine \c c and sine \c s as follow:
+  * \f$ J = \left ( \begin{array}{cc} c & \overline s \\ -s  & \overline c \end{array} \right ) \f$
+  *
+  * \sa MatrixBase::makeJacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  */
+template<typename Scalar> class JacobiRotation
+{
+  public:
+    /** Default constructor without any initialization. */
+    JacobiRotation() {}
+
+    /** Construct a Jacobi rotation from a cosine-sine pair (\a c, \c s). */
+    JacobiRotation(const Scalar& c, const Scalar& s) : m_c(c), m_s(s) {}
+
+    Scalar& c() { return m_c; }
+    Scalar c() const { return m_c; }
+    Scalar& s() { return m_s; }
+    Scalar s() const { return m_s; }
+
+    /** Concatenates two Jacobi rotation */
+    JacobiRotation operator*(const JacobiRotation& other)
+    {
+      return JacobiRotation(m_c * other.m_c - ei_conj(m_s) * other.m_s,
+                            ei_conj(m_c * ei_conj(other.m_s) + ei_conj(m_s) * ei_conj(other.m_c)));
+    }
+
+    /** Returns the transposed transformation */
+    JacobiRotation transpose() const { return JacobiRotation(m_c, -ei_conj(m_s)); }
+
+    /** Returns the adjoint transformation */
+    JacobiRotation adjoint()   const { return JacobiRotation(ei_conj(m_c), -m_s); }
+
+  protected:
+    Scalar m_c, m_s;
+};
+
+/** Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
+  * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$
   *
   * \sa MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
   */
 template<typename VectorX, typename VectorY, typename JacobiScalar>
-void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, JacobiScalar c, JacobiScalar s);
+void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const JacobiRotation<JacobiScalar>& j);
 
-/** Applies a rotation in the plane defined by \a c, \a s to the rows \a p and \a q of \c *this.
-  * More precisely, it computes B = J' * B, with J = [c s ; -s' c] and B = [ *this.row(p) ; *this.row(q) ]
-  * \sa MatrixBase::applyJacobiOnTheRight(), ei_apply_rotation_in_the_plane()
+/** Applies the rotation in the plane \a j to the rows \a p and \a q of \c *this, i.e., it computes B = J * B,
+  * with \f$ B = \left ( \begin{array}{cc} \text{*this.row}(p) \\ \text{*this.row}(q) \end{array} \right ) \f$.
+  *
+  * \sa class JacobiRotation, MatrixBase::applyJacobiOnTheRight(), ei_apply_rotation_in_the_plane()
   */
 template<typename Derived>
 template<typename JacobiScalar>
-inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, JacobiScalar c, JacobiScalar s)
+inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, const JacobiRotation<JacobiScalar>& j)
 {
   RowXpr x(row(p));
   RowXpr y(row(q));
-  ei_apply_rotation_in_the_plane(x, y, c, s);
+  ei_apply_rotation_in_the_plane(x, y, j);
 }
 
-/** Applies a rotation in the plane defined by \a c, \a s to the columns \a p and \a q of \c *this.
-  * More precisely, it computes B = B * J, with J = [c s ; -s' c] and B = [ *this.col(p) ; *this.col(q) ]
-  * \sa MatrixBase::applyJacobiOnTheLeft(), ei_apply_rotation_in_the_plane()
+/** Applies the rotation in the plane \a j to the columns \a p and \a q of \c *this, i.e., it computes B = B * J
+  * with \f$ B = \left ( \begin{array}{cc} \text{*this.col}(p) & \text{*this.col}(q) \end{array} \right ) \f$.
+  *
+  * \sa class JacobiRotation, MatrixBase::applyJacobiOnTheLeft(), ei_apply_rotation_in_the_plane()
   */
 template<typename Derived>
 template<typename JacobiScalar>
-inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, JacobiScalar c, JacobiScalar s)
+inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, const JacobiRotation<JacobiScalar>& j)
 {
   ColXpr x(col(p));
   ColXpr y(col(q));
-  ei_apply_rotation_in_the_plane(x, y, c, -ei_conj(s));
+  ei_apply_rotation_in_the_plane(x, y, j.transpose());
 }
 
-/** Computes the cosine-sine pair (\a c, \a s) such that its associated
-  * rotation \f$ J = ( \begin{array}{cc} c & \overline s \\ -s & \overline c \end{array} )\f$
-  * applied to both the right and left of the 2x2 matrix
-  * \f$ B = ( \begin{array}{cc} x & y \\ * & z \end{array} )\f$ yields
-  * a diagonal matrix A: \f$ A = J^* B J \f$
+/** Computes the Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
+  * \f$ B = \left ( \begin{array}{cc} x & y \\ * & z \end{array} \right )\f$ yields
+  * a diagonal matrix \f$ A = J^* B J \f$
+  *
+  * \sa MatrixBase::makeJacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
   */
 template<typename Scalar>
-bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTraits<Scalar>::Real z, Scalar *c, Scalar *s)
+bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTraits<Scalar>::Real z, JacobiRotation<Scalar> *j)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
   if(y == Scalar(0))
   {
-    *c = Scalar(1);
-    *s = Scalar(0);
+    j->c() = Scalar(1);
+    j->s() = Scalar(0);
     return false;
   }
   else
@@ -93,20 +135,26 @@ bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTra
     }
     RealScalar sign_t = t > 0 ? 1 : -1;
     RealScalar n = RealScalar(1) / ei_sqrt(ei_abs2(t)+1);
-    *s = - sign_t * (ei_conj(y) / ei_abs(y)) * ei_abs(t) * n;
-    *c = n;
+    j->s() = - sign_t * (ei_conj(y) / ei_abs(y)) * ei_abs(t) * n;
+    j->c() = n;
     return true;
   }
 }
 
+/** Computes the Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
+  * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ * & \text{this}_{qq} \end{array} \right )\f$ yields
+  * a diagonal matrix \f$ A = J^* B J \f$
+  *
+  * \sa MatrixBase::ei_make_jacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  */
 template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobi(int p, int q, Scalar *c, Scalar *s) const
+inline bool MatrixBase<Derived>::makeJacobi(int p, int q, JacobiRotation<Scalar> *j) const
 {
-  return ei_makeJacobi(ei_real(coeff(p,p)), coeff(p,q), ei_real(coeff(q,q)), c, s);
+  return ei_makeJacobi(ei_real(coeff(p,p)), coeff(p,q), ei_real(coeff(q,q)), j);
 }
 
 template<typename VectorX, typename VectorY, typename JacobiScalar>
-void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, JacobiScalar c, JacobiScalar s)
+void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const JacobiRotation<JacobiScalar>& j)
 {
   typedef typename VectorX::Scalar Scalar;
   ei_assert(_x.size() == _y.size());
@@ -126,16 +174,16 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     int alignedStart = ei_alignmentOffset(y, size);
     int alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
-    const Packet pc = ei_pset1(Scalar(c));
-    const Packet ps = ei_pset1(Scalar(s));
+    const Packet pc = ei_pset1(Scalar(j.c()));
+    const Packet ps = ei_pset1(Scalar(j.s()));
     ei_conj_helper<NumTraits<Scalar>::IsComplex,false> cj;
 
     for(int i=0; i<alignedStart; ++i)
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi + ei_conj(s) * yi;
-      y[i] = - s * xi + ei_conj(c) * yi;
+      x[i] =  j.c() * xi + ei_conj(j.s()) * yi;
+      y[i] = -j.s() * xi + ei_conj(j.c()) * yi;
     }
 
     Scalar* px = x + alignedStart;
@@ -182,8 +230,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi + ei_conj(s) * yi;
-      y[i] = -s * xi + ei_conj(c) * yi;
+      x[i] =  j.c() * xi + ei_conj(j.s()) * yi;
+      y[i] = -j.s() * xi + ei_conj(j.c()) * yi;
     }
   }
   else
@@ -192,8 +240,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = *x;
       Scalar yi = *y;
-      *x = c * xi + ei_conj(s) * yi;
-      *y = -s * xi + ei_conj(c) * yi;
+      *x =  j.c() * xi + ei_conj(j.s()) * yi;
+      *y = -j.s() * xi + ei_conj(j.c()) * yi;
       x += incrx;
       y += incry;
     }

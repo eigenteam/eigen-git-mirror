@@ -54,7 +54,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
       MaxDiagSizeAtCompileTime = EIGEN_ENUM_MIN(MaxRowsAtCompileTime,MaxColsAtCompileTime),
       MatrixOptions = MatrixType::Options
     };
-    
+
     typedef Matrix<Scalar, Dynamic, Dynamic, MatrixOptions> DummyMatrixType;
     typedef typename ei_meta_if<ComputeU,
                                 Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime,
@@ -73,13 +73,13 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
 
     JacobiSVD() : m_isInitialized(false) {}
 
-    JacobiSVD(const MatrixType& matrix) : m_isInitialized(false) 
+    JacobiSVD(const MatrixType& matrix) : m_isInitialized(false)
     {
       compute(matrix);
     }
-    
+
     JacobiSVD& compute(const MatrixType& matrix);
-    
+
     const MatrixUType& matrixU() const
     {
       ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
@@ -103,7 +103,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
     MatrixVType m_matrixV;
     SingularValuesType m_singularValues;
     bool m_isInitialized;
-    
+
     template<typename _MatrixType, unsigned int _Options, bool _IsComplex>
     friend struct ei_svd_precondition_2x2_block_to_be_real;
 };
@@ -120,11 +120,12 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
   typedef JacobiSVD<MatrixType, Options> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  
+
   enum { ComputeU = SVD::ComputeU, ComputeV = SVD::ComputeV };
   static void run(MatrixType& work_matrix, JacobiSVD<MatrixType, Options>& svd, int p, int q)
   {
-    Scalar c, s, z;
+    Scalar z;
+    JacobiRotation<Scalar> rot;
     RealScalar n = ei_sqrt(ei_abs2(work_matrix.coeff(p,p)) + ei_abs2(work_matrix.coeff(q,p)));
     if(n==0)
     {
@@ -137,10 +138,10 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
     }
     else
     {
-      c = ei_conj(work_matrix.coeff(p,p)) / n;
-      s = work_matrix.coeff(q,p) / n;
-      work_matrix.applyJacobiOnTheLeft(p,q,c,s);
-      if(ComputeU) svd.m_matrixU.applyJacobiOnTheRight(p,q,ei_conj(c),-s);
+      rot.c() = ei_conj(work_matrix.coeff(p,p)) / n;
+      rot.s() = work_matrix.coeff(q,p) / n;
+      work_matrix.applyJacobiOnTheLeft(p,q,rot);
+      if(ComputeU) svd.m_matrixU.applyJacobiOnTheRight(p,q,rot.adjoint());
       if(work_matrix.coeff(p,q) != Scalar(0))
       {
         Scalar z = ei_abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
@@ -154,38 +155,34 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
         if(ComputeU) svd.m_matrixU.col(q) *= ei_conj(z);
       }
     }
-  }  
+  }
 };
 
 template<typename MatrixType, typename RealScalar>
 void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
-                            RealScalar *c_left, RealScalar *s_left,
-                            RealScalar *c_right, RealScalar *s_right)
+                            JacobiRotation<RealScalar> *j_left,
+                            JacobiRotation<RealScalar> *j_right)
 {
   Matrix<RealScalar,2,2> m;
   m << ei_real(matrix.coeff(p,p)), ei_real(matrix.coeff(p,q)),
-        ei_real(matrix.coeff(q,p)), ei_real(matrix.coeff(q,q));
-  RealScalar c1, s1;
+       ei_real(matrix.coeff(q,p)), ei_real(matrix.coeff(q,q));
+  JacobiRotation<RealScalar> rot1;
   RealScalar t = m.coeff(0,0) + m.coeff(1,1);
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
   if(t == RealScalar(0))
   {
-    c1 = 0;
-    s1 = d > 0 ? 1 : -1;
+    rot1.c() = 0;
+    rot1.s() = d > 0 ? 1 : -1;
   }
   else
   {
     RealScalar u = d / t;
-    c1 = RealScalar(1) / ei_sqrt(1 + ei_abs2(u));
-    s1 = c1 * u;
+    rot1.c() = RealScalar(1) / ei_sqrt(1 + ei_abs2(u));
+    rot1.s() = rot1.c() * u;
   }
-  m.applyJacobiOnTheLeft(0,1,c1,s1);
-  RealScalar c2, s2;
-  m.makeJacobi(0,1,&c2,&s2);
-  *c_left = c1*c2 + s1*s2;
-  *s_left = s1*c2 - c1*s2;
-  *c_right = c2;
-  *s_right = s2;
+  m.applyJacobiOnTheLeft(0,1,rot1);
+  m.makeJacobi(0,1,j_right);
+  *j_left  = rot1 * j_right->transpose();
 }
 
 template<typename MatrixType, unsigned int Options>
@@ -208,18 +205,18 @@ sweep_again:
       {
         ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options>::run(work_matrix, *this, p, q);
 
-        RealScalar c_left, s_left, c_right, s_right;
-        ei_real_2x2_jacobi_svd(work_matrix, p, q, &c_left, &s_left, &c_right, &s_right);
-        
-        work_matrix.applyJacobiOnTheLeft(p,q,c_left,s_left);
-        if(ComputeU) m_matrixU.applyJacobiOnTheRight(p,q,c_left,-s_left);
-        
-        work_matrix.applyJacobiOnTheRight(p,q,c_right,s_right);
-        if(ComputeV) m_matrixV.applyJacobiOnTheRight(p,q,c_right,s_right);
+        JacobiRotation<RealScalar> j_left, j_right;
+        ei_real_2x2_jacobi_svd(work_matrix, p, q, &j_left, &j_right);
+
+        work_matrix.applyJacobiOnTheLeft(p,q,j_left);
+        if(ComputeU) m_matrixU.applyJacobiOnTheRight(p,q,j_left.transpose());
+
+        work_matrix.applyJacobiOnTheRight(p,q,j_right);
+        if(ComputeV) m_matrixV.applyJacobiOnTheRight(p,q,j_right);
       }
     }
   }
-  
+
   RealScalar biggestOnDiag = work_matrix.diagonal().cwise().abs().maxCoeff();
   RealScalar maxAllowedOffDiag = biggestOnDiag * precision;
   for(int p = 0; p < size; ++p)
@@ -231,7 +228,7 @@ sweep_again:
       if(ei_abs(work_matrix.coeff(p,q)) > maxAllowedOffDiag)
         goto sweep_again;
   }
-  
+
   for(int i = 0; i < size; ++i)
   {
     RealScalar a = ei_abs(work_matrix.coeff(i,i));
@@ -251,7 +248,7 @@ sweep_again:
       if(ComputeV) m_matrixV.col(pos).swap(m_matrixV.col(i));
     }
   }
-  
+
   m_isInitialized = true;
   return *this;
 }
