@@ -33,19 +33,20 @@
   *
   * \sa MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
   */
-template<typename VectorX, typename VectorY>
-void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, typename VectorX::Scalar c, typename VectorY::Scalar s);
+template<typename VectorX, typename VectorY, typename JacobiScalar>
+void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, JacobiScalar c, JacobiScalar s);
 
 /** Applies a rotation in the plane defined by \a c, \a s to the rows \a p and \a q of \c *this.
   * More precisely, it computes B = J' * B, with J = [c s ; -s' c] and B = [ *this.row(p) ; *this.row(q) ]
   * \sa MatrixBase::applyJacobiOnTheRight(), ei_apply_rotation_in_the_plane()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s)
+template<typename JacobiScalar>
+inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, JacobiScalar c, JacobiScalar s)
 {
   RowXpr x(row(p));
   RowXpr y(row(q));
-  ei_apply_rotation_in_the_plane(x, y, ei_conj(c), ei_conj(s));
+  ei_apply_rotation_in_the_plane(x, y, c, s);
 }
 
 /** Applies a rotation in the plane defined by \a c, \a s to the columns \a p and \a q of \c *this.
@@ -53,23 +54,25 @@ inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, Scalar c, Sc
   * \sa MatrixBase::applyJacobiOnTheLeft(), ei_apply_rotation_in_the_plane()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s)
+template<typename JacobiScalar>
+inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, JacobiScalar c, JacobiScalar s)
 {
   ColXpr x(col(p));
   ColXpr y(col(q));
-  ei_apply_rotation_in_the_plane(x, y, c, s);
+  ei_apply_rotation_in_the_plane(x, y, c, -ei_conj(s));
 }
 
 /** Computes the cosine-sine pair (\a c, \a s) such that its associated
-  * rotation \f$ J = ( \begin{array}{cc} c & s \\ -s' c \end{array} )\f$
+  * rotation \f$ J = ( \begin{array}{cc} c & \overline s \\ -s & \overline c \end{array} )\f$
   * applied to both the right and left of the 2x2 matrix
   * \f$ B = ( \begin{array}{cc} x & y \\ * & z \end{array} )\f$ yields
-  * a diagonal matrix A: \f$ A = J' B J \f$
+  * a diagonal matrix A: \f$ A = J^* B J \f$
   */
 template<typename Scalar>
-bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
+bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTraits<Scalar>::Real z, Scalar *c, Scalar *s)
 {
-  if(y == 0)
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  if(y == Scalar(0))
   {
     *c = Scalar(1);
     *s = Scalar(0);
@@ -77,15 +80,21 @@ bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
   }
   else
   {
-    Scalar tau = (z - x) / (2 * y);
-    Scalar w = ei_sqrt(1 + ei_abs2(tau));
-    Scalar t;
+    RealScalar tau = (x-z)/(RealScalar(2)*ei_abs(y));
+    RealScalar w = ei_sqrt(ei_abs2(tau) + 1);
+    RealScalar t;
     if(tau>0)
-      t = Scalar(1) / (tau + w);
+    {
+      t = RealScalar(1) / (tau + w);
+    }
     else
-      t = Scalar(1) / (tau - w);
-    *c = Scalar(1) / ei_sqrt(1 + ei_abs2(t));
-    *s = *c * t;
+    {
+      t = RealScalar(1) / (tau - w);
+    }
+    RealScalar sign_t = t > 0 ? 1 : -1;
+    RealScalar n = RealScalar(1) / ei_sqrt(ei_abs2(t)+1);
+    *s = - sign_t * (ei_conj(y) / ei_abs(y)) * ei_abs(t) * n;
+    *c = n;
     return true;
   }
 }
@@ -93,41 +102,11 @@ bool ei_makeJacobi(Scalar x, Scalar y, Scalar z, Scalar *c, Scalar *s)
 template<typename Derived>
 inline bool MatrixBase<Derived>::makeJacobi(int p, int q, Scalar *c, Scalar *s) const
 {
-  return ei_makeJacobi(coeff(p,p), coeff(p,q), coeff(q,q), c, s);
+  return ei_makeJacobi(ei_real(coeff(p,p)), coeff(p,q), ei_real(coeff(q,q)), c, s);
 }
 
-template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const
-{
-  return ei_makeJacobi(ei_abs2(coeff(p,p)) + ei_abs2(coeff(q,p)),
-                       ei_conj(coeff(p,p))*coeff(p,q) + ei_conj(coeff(q,p))*coeff(q,q),
-                       ei_abs2(coeff(p,q)) + ei_abs2(coeff(q,q)),
-                       c,s);
-}
-
-template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const
-{
-  return ei_makeJacobi(ei_abs2(coeff(p,p)) + ei_abs2(coeff(p,q)),
-                       ei_conj(coeff(q,p))*coeff(p,p) + ei_conj(coeff(q,q))*coeff(p,q),
-                       ei_abs2(coeff(q,p)) + ei_abs2(coeff(q,q)),
-                       c,s);
-}
-
-template<typename Scalar>
-inline void ei_normalizeJacobi(Scalar *c, Scalar *s, const Scalar& x, const Scalar& y)
-{
-  Scalar a = x * *c - y * *s;
-  Scalar b = x * *s + y * *c;
-  if(ei_abs(b)>ei_abs(a)) {
-    Scalar x = *c;
-    *c = -*s;
-    *s = x;
-  }
-}
-
-template<typename VectorX, typename VectorY>
-void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, typename VectorX::Scalar c, typename VectorY::Scalar s)
+template<typename VectorX, typename VectorY, typename JacobiScalar>
+void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, JacobiScalar c, JacobiScalar s)
 {
   typedef typename VectorX::Scalar Scalar;
   ei_assert(_x.size() == _y.size());
@@ -138,7 +117,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
   Scalar* EIGEN_RESTRICT x = &_x.coeffRef(0);
   Scalar* EIGEN_RESTRICT y = &_y.coeffRef(0);
 
-  if (incrx==1 && incry==1)
+  if((VectorX::Flags & VectorY::Flags & PacketAccessBit) && incrx==1 && incry==1)
   {
     // both vectors are sequentially stored in memory => vectorization
     typedef typename ei_packet_traits<Scalar>::type Packet;
@@ -147,16 +126,16 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     int alignedStart = ei_alignmentOffset(y, size);
     int alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
-    const Packet pc = ei_pset1(c);
-    const Packet ps = ei_pset1(s);
+    const Packet pc = ei_pset1(Scalar(c));
+    const Packet ps = ei_pset1(Scalar(s));
     ei_conj_helper<NumTraits<Scalar>::IsComplex,false> cj;
 
     for(int i=0; i<alignedStart; ++i)
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi - ei_conj(s) * yi;
-      y[i] = s * xi + c * yi;
+      x[i] = c * xi + ei_conj(s) * yi;
+      y[i] = - s * xi + ei_conj(c) * yi;
     }
 
     Scalar* px = x + alignedStart;
@@ -168,8 +147,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       {
         Packet xi = ei_pload(px);
         Packet yi = ei_pload(py);
-        ei_pstore(px, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
-        ei_pstore(py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
+        ei_pstore(px, ei_padd(ei_pmul(pc,xi),cj.pmul(ps,yi)));
+        ei_pstore(py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
         px += PacketSize;
         py += PacketSize;
       }
@@ -183,10 +162,10 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
         Packet xi1  = ei_ploadu(px+PacketSize);
         Packet yi   = ei_pload (py);
         Packet yi1  = ei_pload (py+PacketSize);
-        ei_pstoreu(px, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
-        ei_pstoreu(px+PacketSize, ei_psub(ei_pmul(pc,xi1),cj.pmul(ps,yi1)));
-        ei_pstore (py, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
-        ei_pstore (py+PacketSize, ei_padd(ei_pmul(ps,xi1),ei_pmul(pc,yi1)));
+        ei_pstoreu(px, ei_padd(ei_pmul(pc,xi),cj.pmul(ps,yi)));
+        ei_pstoreu(px+PacketSize, ei_padd(ei_pmul(pc,xi1),cj.pmul(ps,yi1)));
+        ei_pstore (py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
+        ei_pstore (py+PacketSize, ei_psub(ei_pmul(pc,yi1),ei_pmul(ps,xi1)));
         px += Peeling*PacketSize;
         py += Peeling*PacketSize;
       }
@@ -194,8 +173,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       {
         Packet xi = ei_ploadu(x+peelingEnd);
         Packet yi = ei_pload (y+peelingEnd);
-        ei_pstoreu(x+peelingEnd, ei_psub(ei_pmul(pc,xi),cj.pmul(ps,yi)));
-        ei_pstore (y+peelingEnd, ei_padd(ei_pmul(ps,xi),ei_pmul(pc,yi)));
+        ei_pstoreu(x+peelingEnd, ei_padd(ei_pmul(pc,xi),cj.pmul(ps,yi)));
+        ei_pstore (y+peelingEnd, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
       }
     }
 
@@ -203,8 +182,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] = c * xi - ei_conj(s) * yi;
-      y[i] = s * xi + c * yi;
+      x[i] = c * xi + ei_conj(s) * yi;
+      y[i] = -s * xi + ei_conj(c) * yi;
     }
   }
   else
@@ -213,8 +192,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       Scalar xi = *x;
       Scalar yi = *y;
-      *x = c * xi - ei_conj(s) * yi;
-      *y = s * xi + c * yi;
+      *x = c * xi + ei_conj(s) * yi;
+      *y = -s * xi + ei_conj(c) * yi;
       x += incrx;
       y += incry;
     }

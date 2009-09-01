@@ -803,11 +803,11 @@ template<typename Derived> class MatrixBase
 
 ///////// Jacobi module /////////
 
-    void applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s);
-    void applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s);
+    template<typename JacobiScalar>
+    void applyJacobiOnTheLeft(int p, int q, JacobiScalar c, JacobiScalar s);
+    template<typename JacobiScalar>
+    void applyJacobiOnTheRight(int p, int q, JacobiScalar c, JacobiScalar s);
     bool makeJacobi(int p, int q, Scalar *c, Scalar *s) const;
-    bool makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const;
-    bool makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const;
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

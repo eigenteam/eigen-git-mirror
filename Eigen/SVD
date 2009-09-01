@@ -23,7 +23,7 @@ namespace Eigen {
   */
 
 #include "src/SVD/SVD.h"
-#include "src/SVD/JacobiSquareSVD.h"
+#include "src/SVD/JacobiSVD.h"
 
 } // namespace Eigen
 
