@@ -195,7 +195,7 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 /****************************************************************************************
 *   Implementation of MatrixBase methods
-/***************************************************************************************/
+****************************************************************************************/
 
 /** Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
   * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$

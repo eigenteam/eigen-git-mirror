@@ -80,6 +80,43 @@ template<typename _MatrixType> class ComplexSchur
     bool m_isInitialized;
 };
 
+/** Computes the principal value of the square root of the complex \a z. */
+template<typename RealScalar>
+std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
+{
+  RealScalar t, tre, tim;
+
+  t = ei_abs(z);
+
+  if (ei_abs(ei_real(z)) <= ei_abs(ei_real(z)))
+  {
+    // No cancellation in these formulas
+    tre = ei_sqrt(0.5*(t + ei_real(z)));
+    tim = ei_sqrt(0.5*(t - ei_real(z)));
+  }
+  else
+  {
+    // Stable computation of the above formulas
+    if (z.real() > 0)
+    {
+      tre = t + z.real();
+      tim = ei_abs(ei_imag(z))*ei_sqrt(0.5/tre);
+      tre = ei_sqrt(0.5*tre);
+    }
+    else
+    {
+      tim = t - z.real();
+      tre = ei_abs(ei_imag(z))*ei_sqrt(0.5/tim);
+      tim = ei_sqrt(0.5*tim);
+    }
+  }
+  if(z.imag() < 0)
+    tim = -tim;
+
+  return (std::complex<RealScalar>(tre,tim));
+
+}
+
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
 {
@@ -146,7 +183,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     c = t.determinant();
     b = t.diagonal().sum();
 
-    disc = csqrt(b*b - RealScalar(4)*c);
+    disc = ei_sqrt(b*b - RealScalar(4)*c);
 
     r1 = (b+disc)/RealScalar(2);
     r2 = (b-disc)/RealScalar(2);
@@ -183,56 +220,18 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
   }
 
   // FIXME : is it necessary ?
+  /*
   for(int i=0 ; i<n ; i++)
     for(int j=0 ; j<n ; j++)
     {
-      if(ei_abs(m_matT.coeff(i,j).real()) < eps)
-        m_matT.coeffRef(i,j).real() = 0;
-      if(ei_abs(m_matT.coeff(i,j).imag()) < eps)
-        m_matT.coeffRef(i,j).imag() = 0;
+      if(ei_abs(ei_real(m_matT.coeff(i,j))) < eps)
+        ei_real_ref(m_matT.coeffRef(i,j)) = 0;
+      if(ei_imag(ei_abs(m_matT.coeff(i,j))) < eps)
+        ei_imag_ref(m_matT.coeffRef(i,j)) = 0;
     }
+  */
 
   m_isInitialized = true;
 }
-
-/**
-  * Computes the principal value of the square root of the complex \a z.
-  */
-template<typename RealScalar>
-std::complex<RealScalar> csqrt(const std::complex<RealScalar> &z)
-{
-  RealScalar t, tre, tim;
-
-  t = ei_abs(z);
-
-  if (ei_abs(z.real()) <= ei_abs(z.imag()))
-  {
-    // No cancellation in these formulas
-    tre = ei_sqrt(0.5*(t+z.real()));
-    tim = ei_sqrt(0.5*(t-z.real()));
-  }
-  else
-  {
-    // Stable computation of the above formulas
-    if (z.real() > 0)
-    {
-      tre = t + z.real();
-      tim = ei_abs(z.imag())*ei_sqrt(0.5/tre);
-      tre = ei_sqrt(0.5*tre);
-    }
-    else
-    {
-      tim = t - z.real();
-      tre = ei_abs(z.imag())*ei_sqrt(0.5/tim);
-      tim = ei_sqrt(0.5*tim);
-    }
-  }
-  if(z.imag() < 0)
-    tim = -tim;
-
-  return (std::complex<RealScalar>(tre,tim));
-
-}
-
 
 #endif // EIGEN_COMPLEX_SCHUR_H

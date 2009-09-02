@@ -107,7 +107,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
         m_eivec.coeffRef(i,k) -= (schur.matrixT().row(i).segment(i+1,k-i-1) * m_eivec.col(k).segment(i+1,k-i-1)).value();
       z = schur.matrixT().coeff(i,i) - d2;
       if(z==Scalar(0))
-        z.real() = eps * norm;
+        ei_real_ref(z) = eps * norm;
       m_eivec.coeffRef(i,k) = m_eivec.coeff(i,k) / z;
 
     }
