@@ -135,28 +135,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
 
-// from Golub's "Matrix Computations", algorithm 5.1.3
-template<typename Scalar>
-static void ei_givens_rotation(Scalar a, Scalar b, Scalar& c, Scalar& s)
-{
-  if (b==0)
-  {
-    c = 1; s = 0;
-  }
-  else if (ei_abs(b)>ei_abs(a))
-  {
-    Scalar t = -a/b;
-    s = Scalar(1)/ei_sqrt(1+t*t);
-    c = s * t;
-  }
-  else
-  {
-    Scalar t = -b/a;
-    c = Scalar(1)/ei_sqrt(1+t*t);
-    s = c * t;
-  }
-}
-
 /** \internal
   *
   * \qr_module
@@ -353,34 +331,33 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int st
 
   for (int k = start; k < end; ++k)
   {
-    RealScalar c, s;
-    ei_givens_rotation(x, z, c, s);
+    PlanarRotation<RealScalar> rot;
+    rot.makeGivens(x, z);
 
     // do T = G' T G
-    RealScalar sdk = s * diag[k] + c * subdiag[k];
-    RealScalar dkp1 = s * subdiag[k] + c * diag[k+1];
+    RealScalar sdk = rot.s() * diag[k] + rot.c() * subdiag[k];
+    RealScalar dkp1 = rot.s() * subdiag[k] + rot.c() * diag[k+1];
 
-    diag[k] = c * (c * diag[k] - s * subdiag[k]) - s * (c * subdiag[k] - s * diag[k+1]);
-    diag[k+1] = s * sdk + c * dkp1;
-    subdiag[k] = c * sdk - s * dkp1;
+    diag[k] = rot.c() * (rot.c() * diag[k] - rot.s() * subdiag[k]) - rot.s() * (rot.c() * subdiag[k] - rot.s() * diag[k+1]);
+    diag[k+1] = rot.s() * sdk + rot.c() * dkp1;
+    subdiag[k] = rot.c() * sdk - rot.s() * dkp1;
 
     if (k > start)
-      subdiag[k - 1] = c * subdiag[k-1] - s * z;
+      subdiag[k - 1] = rot.c() * subdiag[k-1] - rot.s() * z;
 
     x = subdiag[k];
 
     if (k < end - 1)
     {
-      z = -s * subdiag[k+1];
-      subdiag[k + 1] = c * subdiag[k+1];
+      z = -rot.s() * subdiag[k+1];
+      subdiag[k + 1] = rot.c() * subdiag[k+1];
     }
 
     // apply the givens rotation to the unit matrix Q = Q * G
-    // G only modifies the two columns k and k+1
     if (matrixQ)
     {
       Map<Matrix<Scalar,Dynamic,Dynamic> > q(matrixQ,n,n);
-      q.applyJacobiOnTheRight(k,k+1,JacobiRotation<RealScalar>(c,s));
+      q.applyOnTheRight(k,k+1,rot);
     }
   }
 }

@@ -125,7 +125,7 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
   static void run(MatrixType& work_matrix, JacobiSVD<MatrixType, Options>& svd, int p, int q)
   {
     Scalar z;
-    JacobiRotation<Scalar> rot;
+    PlanarRotation<Scalar> rot;
     RealScalar n = ei_sqrt(ei_abs2(work_matrix.coeff(p,p)) + ei_abs2(work_matrix.coeff(q,p)));
     if(n==0)
     {
@@ -140,8 +140,8 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
     {
       rot.c() = ei_conj(work_matrix.coeff(p,p)) / n;
       rot.s() = work_matrix.coeff(q,p) / n;
-      work_matrix.applyJacobiOnTheLeft(p,q,rot);
-      if(ComputeU) svd.m_matrixU.applyJacobiOnTheRight(p,q,rot.adjoint());
+      work_matrix.applyOnTheLeft(p,q,rot);
+      if(ComputeU) svd.m_matrixU.applyOnTheRight(p,q,rot.adjoint());
       if(work_matrix.coeff(p,q) != Scalar(0))
       {
         Scalar z = ei_abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
@@ -160,13 +160,13 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
 
 template<typename MatrixType, typename RealScalar>
 void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
-                            JacobiRotation<RealScalar> *j_left,
-                            JacobiRotation<RealScalar> *j_right)
+                            PlanarRotation<RealScalar> *j_left,
+                            PlanarRotation<RealScalar> *j_right)
 {
   Matrix<RealScalar,2,2> m;
   m << ei_real(matrix.coeff(p,p)), ei_real(matrix.coeff(p,q)),
        ei_real(matrix.coeff(q,p)), ei_real(matrix.coeff(q,q));
-  JacobiRotation<RealScalar> rot1;
+  PlanarRotation<RealScalar> rot1;
   RealScalar t = m.coeff(0,0) + m.coeff(1,1);
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
   if(t == RealScalar(0))
@@ -180,8 +180,8 @@ void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
     rot1.c() = RealScalar(1) / ei_sqrt(1 + ei_abs2(u));
     rot1.s() = rot1.c() * u;
   }
-  m.applyJacobiOnTheLeft(0,1,rot1);
-  m.makeJacobi(0,1,j_right);
+  m.applyOnTheLeft(0,1,rot1);
+  j_right->makeJacobi(m,0,1);
   *j_left  = rot1 * j_right->transpose();
 }
 
@@ -214,7 +214,7 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
     if(ComputeU)
       for(int i = 0; i < rows; i++)
         m_matrixU.coeffRef(qr.colsPermutation().coeff(i),i) = Scalar(1);
-    
+
   }
   else
   {
@@ -232,14 +232,14 @@ sweep_again:
       {
         ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options>::run(work_matrix, *this, p, q);
 
-        JacobiRotation<RealScalar> j_left, j_right;
+        PlanarRotation<RealScalar> j_left, j_right;
         ei_real_2x2_jacobi_svd(work_matrix, p, q, &j_left, &j_right);
 
-        work_matrix.applyJacobiOnTheLeft(p,q,j_left);
-        if(ComputeU) m_matrixU.applyJacobiOnTheRight(p,q,j_left.transpose());
+        work_matrix.applyOnTheLeft(p,q,j_left);
+        if(ComputeU) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
 
-        work_matrix.applyJacobiOnTheRight(p,q,j_right);
-        if(ComputeV) m_matrixV.applyJacobiOnTheRight(p,q,j_right);
+        work_matrix.applyOnTheRight(p,q,j_right);
+        if(ComputeV) m_matrixV.applyOnTheRight(p,q,j_right);
       }
     }
   }

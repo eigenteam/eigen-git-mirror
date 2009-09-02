@@ -80,34 +80,6 @@ template<typename _MatrixType> class ComplexSchur
     bool m_isInitialized;
 };
 
-// computes the plane rotation G such that G' x |p| = | c  s' |' |p| = |z|
-//                                              |q|   |-s  c' |  |q|   |0|
-// and returns z if requested. Note that the returned c is real.
-template<typename T> void ei_make_givens(const std::complex<T>& p, const std::complex<T>& q,
-                                           JacobiRotation<std::complex<T> >& rot, std::complex<T>* z=0)
-{
-  typedef std::complex<T> Complex;
-  T scale, absx, absxy;
-  if(p==Complex(0))
-  {
-    // return identity
-    rot.c() = Complex(1,0);
-    rot.s() = Complex(0,0);
-    if(z) *z = p;
-  }
-  else
-  {
-    scale = cnorm1(p);
-    absx = scale * ei_sqrt(ei_abs2(p/scale));
-    scale = ei_abs(scale) + cnorm1(q);
-    absxy = scale * ei_sqrt((absx/scale)*(absx/scale) + ei_abs2(q/scale));
-    rot.c() = Complex(absx / absxy);
-    Complex np = p/absx;
-    rot.s() = -ei_conj(np) * q / absxy;
-    if(z) *z = np * absxy;
-  }
-}
-
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
 {
@@ -133,8 +105,8 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     //locate the range in which to iterate
     while(iu > 0)
     {
-      d = cnorm1(m_matT.coeffRef(iu,iu)) + cnorm1(m_matT.coeffRef(iu-1,iu-1));
-      sd = cnorm1(m_matT.coeffRef(iu,iu-1));
+      d = ei_norm1(m_matT.coeffRef(iu,iu)) + ei_norm1(m_matT.coeffRef(iu-1,iu-1));
+      sd = ei_norm1(m_matT.coeffRef(iu,iu-1));
 
       if(sd >= eps * d) break; // FIXME : precision criterion ??
 
@@ -156,8 +128,8 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     while( il > 0 )
     {
       // check if the current 2x2 block on the diagonal is upper triangular
-      d = cnorm1(m_matT.coeffRef(il,il)) + cnorm1(m_matT.coeffRef(il-1,il-1));
-      sd = cnorm1(m_matT.coeffRef(il,il-1));
+      d = ei_norm1(m_matT.coeffRef(il,il)) + ei_norm1(m_matT.coeffRef(il-1,il-1));
+      sd = ei_norm1(m_matT.coeffRef(il,il-1));
 
       if(sd < eps * d) break; // FIXME : precision criterion ??
 
@@ -179,32 +151,32 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     r1 = (b+disc)/RealScalar(2);
     r2 = (b-disc)/RealScalar(2);
 
-    if(cnorm1(r1) > cnorm1(r2))
+    if(ei_norm1(r1) > ei_norm1(r2))
       r2 = c/r1;
     else
       r1 = c/r2;
 
-    if(cnorm1(r1-t.coeff(1,1)) < cnorm1(r2-t.coeff(1,1)))
+    if(ei_norm1(r1-t.coeff(1,1)) < ei_norm1(r2-t.coeff(1,1)))
       kappa = sf * r1;
     else
       kappa = sf * r2;
 
     // perform the QR step using Givens rotations
-    JacobiRotation<Complex> rot;
-    ei_make_givens(m_matT.coeff(il,il) - kappa, m_matT.coeff(il+1,il), rot);
+    PlanarRotation<Complex> rot;
+    rot.makeGivens(m_matT.coeff(il,il) - kappa, m_matT.coeff(il+1,il));
 
     for(int i=il ; i<iu ; i++)
     {
-      m_matT.block(0,i,n,n-i).applyJacobiOnTheLeft(i, i+1, rot.adjoint());
-      m_matT.block(0,0,std::min(i+2,iu)+1,n).applyJacobiOnTheRight(i, i+1, rot);
-      m_matU.applyJacobiOnTheRight(i, i+1, rot);
+      m_matT.block(0,i,n,n-i).applyOnTheLeft(i, i+1, rot.adjoint());
+      m_matT.block(0,0,std::min(i+2,iu)+1,n).applyOnTheRight(i, i+1, rot);
+      m_matU.applyOnTheRight(i, i+1, rot);
 
       if(i != iu-1)
       {
         int i1 = i+1;
         int i2 = i+2;
 
-        ei_make_givens(m_matT.coeffRef(i1,i), m_matT.coeffRef(i2,i), rot, &m_matT.coeffRef(i1,i));
+        rot.makeGivens(m_matT.coeffRef(i1,i), m_matT.coeffRef(i2,i), &m_matT.coeffRef(i1,i));
         m_matT.coeffRef(i2,i) = Complex(0);
       }
     }
@@ -221,13 +193,6 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     }
 
   m_isInitialized = true;
-}
-
-// norm1 of complex numbers
-template<typename T>
-T cnorm1(const std::complex<T> &Z)
-{
-  return(ei_abs(Z.real()) + ei_abs(Z.imag()));
 }
 
 /**

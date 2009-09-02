@@ -116,6 +116,7 @@ inline float ei_imag(float)    { return 0.f; }
 inline float ei_conj(float x)  { return x; }
 inline float ei_abs(float x)   { return std::abs(x); }
 inline float ei_abs2(float x)  { return x*x; }
+inline float ei_norm1(float x) { return ei_abs(x); }
 inline float ei_sqrt(float x)  { return std::sqrt(x); }
 inline float ei_exp(float x)   { return std::exp(x); }
 inline float ei_log(float x)   { return std::log(x); }
@@ -164,6 +165,7 @@ inline double ei_imag(double)    { return 0.; }
 inline double ei_conj(double x)  { return x; }
 inline double ei_abs(double x)   { return std::abs(x); }
 inline double ei_abs2(double x)  { return x*x; }
+inline double ei_norm1(double x) { return ei_abs(x); }
 inline double ei_sqrt(double x)  { return std::sqrt(x); }
 inline double ei_exp(double x)   { return std::exp(x); }
 inline double ei_log(double x)   { return std::log(x); }
@@ -212,6 +214,7 @@ inline float& ei_imag_ref(std::complex<float>& x) { return reinterpret_cast<floa
 inline std::complex<float> ei_conj(const std::complex<float>& x) { return std::conj(x); }
 inline float ei_abs(const std::complex<float>& x) { return std::abs(x); }
 inline float ei_abs2(const std::complex<float>& x) { return std::norm(x); }
+inline float ei_norm1(const std::complex<float> &x) { return(ei_abs(x.real()) + ei_abs(x.imag())); }
 inline std::complex<float> ei_exp(std::complex<float> x)  { return std::exp(x); }
 inline std::complex<float> ei_sin(std::complex<float> x)  { return std::sin(x); }
 inline std::complex<float> ei_cos(std::complex<float> x)  { return std::cos(x); }
@@ -248,6 +251,7 @@ inline double& ei_imag_ref(std::complex<double>& x) { return reinterpret_cast<do
 inline std::complex<double> ei_conj(const std::complex<double>& x) { return std::conj(x); }
 inline double ei_abs(const std::complex<double>& x) { return std::abs(x); }
 inline double ei_abs2(const std::complex<double>& x) { return std::norm(x); }
+inline double ei_norm1(const std::complex<double> &x) { return(ei_abs(x.real()) + ei_abs(x.imag())); }
 inline std::complex<double> ei_exp(std::complex<double> x)  { return std::exp(x); }
 inline std::complex<double> ei_sin(std::complex<double> x)  { return std::sin(x); }
 inline std::complex<double> ei_cos(std::complex<double> x)  { return std::cos(x); }

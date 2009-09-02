@@ -27,97 +27,72 @@
 #define EIGEN_JACOBI_H
 
 /** \ingroup Jacobi
-  * \class JacobiRotation
+  * \class PlanarRotation
   * \brief Represents a rotation in the plane from a cosine-sine pair.
   *
-  * This class represents a Jacobi rotation which is also known as a Givens rotation.
+  * This class represents a Jacobi or Givens rotation.
   * This is a 2D clock-wise rotation in the plane \c J of angle \f$ \theta \f$ defined by
   * its cosine \c c and sine \c s as follow:
   * \f$ J = \left ( \begin{array}{cc} c & \overline s \\ -s  & \overline c \end{array} \right ) \f$
   *
-  * \sa MatrixBase::makeJacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  * \sa MatrixBase::makeJacobi(), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
-template<typename Scalar> class JacobiRotation
+template<typename Scalar> class PlanarRotation
 {
   public:
-    /** Default constructor without any initialization. */
-    JacobiRotation() {}
+    typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    /** Construct a Jacobi rotation from a cosine-sine pair (\a c, \c s). */
-    JacobiRotation(const Scalar& c, const Scalar& s) : m_c(c), m_s(s) {}
+    /** Default constructor without any initialization. */
+    PlanarRotation() {}
+
+    /** Construct a planar rotation from a cosine-sine pair (\a c, \c s). */
+    PlanarRotation(const Scalar& c, const Scalar& s) : m_c(c), m_s(s) {}
 
     Scalar& c() { return m_c; }
     Scalar c() const { return m_c; }
     Scalar& s() { return m_s; }
     Scalar s() const { return m_s; }
 
-    /** Concatenates two Jacobi rotation */
-    JacobiRotation operator*(const JacobiRotation& other)
+    /** Concatenates two planar rotation */
+    PlanarRotation operator*(const PlanarRotation& other)
     {
-      return JacobiRotation(m_c * other.m_c - ei_conj(m_s) * other.m_s,
+      return PlanarRotation(m_c * other.m_c - ei_conj(m_s) * other.m_s,
                             ei_conj(m_c * ei_conj(other.m_s) + ei_conj(m_s) * ei_conj(other.m_c)));
     }
 
     /** Returns the transposed transformation */
-    JacobiRotation transpose() const { return JacobiRotation(m_c, -ei_conj(m_s)); }
+    PlanarRotation transpose() const { return PlanarRotation(m_c, -ei_conj(m_s)); }
 
     /** Returns the adjoint transformation */
-    JacobiRotation adjoint()   const { return JacobiRotation(ei_conj(m_c), -m_s); }
+    PlanarRotation adjoint() const { return PlanarRotation(ei_conj(m_c), -m_s); }
+
+    template<typename Derived>
+    bool makeJacobi(const MatrixBase<Derived>&, int p, int q);
+    bool makeJacobi(RealScalar x, Scalar y, RealScalar z);
+
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
 
   protected:
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_true);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_false);
+
     Scalar m_c, m_s;
 };
 
-/** Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
-  * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$
-  *
-  * \sa MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
-  */
-template<typename VectorX, typename VectorY, typename JacobiScalar>
-void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const JacobiRotation<JacobiScalar>& j);
-
-/** Applies the rotation in the plane \a j to the rows \a p and \a q of \c *this, i.e., it computes B = J * B,
-  * with \f$ B = \left ( \begin{array}{cc} \text{*this.row}(p) \\ \text{*this.row}(q) \end{array} \right ) \f$.
-  *
-  * \sa class JacobiRotation, MatrixBase::applyJacobiOnTheRight(), ei_apply_rotation_in_the_plane()
-  */
-template<typename Derived>
-template<typename JacobiScalar>
-inline void MatrixBase<Derived>::applyJacobiOnTheLeft(int p, int q, const JacobiRotation<JacobiScalar>& j)
-{
-  RowXpr x(row(p));
-  RowXpr y(row(q));
-  ei_apply_rotation_in_the_plane(x, y, j);
-}
-
-/** Applies the rotation in the plane \a j to the columns \a p and \a q of \c *this, i.e., it computes B = B * J
-  * with \f$ B = \left ( \begin{array}{cc} \text{*this.col}(p) & \text{*this.col}(q) \end{array} \right ) \f$.
-  *
-  * \sa class JacobiRotation, MatrixBase::applyJacobiOnTheLeft(), ei_apply_rotation_in_the_plane()
-  */
-template<typename Derived>
-template<typename JacobiScalar>
-inline void MatrixBase<Derived>::applyJacobiOnTheRight(int p, int q, const JacobiRotation<JacobiScalar>& j)
-{
-  ColXpr x(col(p));
-  ColXpr y(col(q));
-  ei_apply_rotation_in_the_plane(x, y, j.transpose());
-}
-
-/** Computes the Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
+/** Makes \c *this as a Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
   * \f$ B = \left ( \begin{array}{cc} x & y \\ * & z \end{array} \right )\f$ yields
   * a diagonal matrix \f$ A = J^* B J \f$
   *
-  * \sa MatrixBase::makeJacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  * \sa MatrixBase::makeJacobi(), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
-bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTraits<Scalar>::Real z, JacobiRotation<Scalar> *j)
+bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
   if(y == Scalar(0))
   {
-    j->c() = Scalar(1);
-    j->s() = Scalar(0);
+    m_c = Scalar(1);
+    m_s = Scalar(0);
     return false;
   }
   else
@@ -135,26 +110,132 @@ bool ei_makeJacobi(typename NumTraits<Scalar>::Real x, Scalar y, typename NumTra
     }
     RealScalar sign_t = t > 0 ? 1 : -1;
     RealScalar n = RealScalar(1) / ei_sqrt(ei_abs2(t)+1);
-    j->s() = - sign_t * (ei_conj(y) / ei_abs(y)) * ei_abs(t) * n;
-    j->c() = n;
+    m_s = - sign_t * (ei_conj(y) / ei_abs(y)) * ei_abs(t) * n;
+    m_c = n;
     return true;
   }
 }
 
-/** Computes the Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
+/** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 matrix
   * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ * & \text{this}_{qq} \end{array} \right )\f$ yields
   * a diagonal matrix \f$ A = J^* B J \f$
   *
-  * \sa MatrixBase::ei_make_jacobi(), MatrixBase::applyJacobiOnTheLeft(), MatrixBase::applyJacobiOnTheRight()
+  * \sa PlanarRotation::makeJacobi(RealScalar, Scalar, RealScalar), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
+template<typename Scalar>
 template<typename Derived>
-inline bool MatrixBase<Derived>::makeJacobi(int p, int q, JacobiRotation<Scalar> *j) const
+inline bool PlanarRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, int p, int q)
 {
-  return ei_makeJacobi(ei_real(coeff(p,p)), coeff(p,q), ei_real(coeff(q,q)), j);
+  return makeJacobi(ei_real(m.coeff(p,p)), m.coeff(p,q), ei_real(m.coeff(q,q)));
 }
 
-template<typename VectorX, typename VectorY, typename JacobiScalar>
-void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const JacobiRotation<JacobiScalar>& j)
+/** Makes \c *this as a Givens rotation \c G such that applying \f$ G^* \f$ to the left of the vector
+  * \f$ V = \left ( \begin{array}{c} p \\ q \end{array} \right )\f$ yields:
+  * \f$ G^* V = \left ( \begin{array}{c} z \\ 0 \end{array} \right )\f$.
+  *
+  * The value of \a z is returned if \a z is not null (the default is null).
+  * Also note that G is built such that the cosine is always real.
+  *
+  * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
+  */
+template<typename Scalar>
+void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z)
+{
+  makeGivens(p, q, z, typename ei_meta_if<NumTraits<Scalar>::IsComplex, ei_meta_true, ei_meta_false>::ret());
+}
+
+
+// specialization for complexes
+template<typename Scalar>
+void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_true)
+{
+  RealScalar scale, absx, absxy;
+  if(q==Scalar(0))
+  {
+    // return identity
+    m_c = Scalar(1);
+    m_s = Scalar(0);
+    if(z) *z = p;
+  }
+  else
+  {
+    scale = ei_norm1(p);
+    absx = scale * ei_sqrt(ei_abs2(p/scale));
+    scale = ei_abs(scale) + ei_norm1(q);
+    absxy = scale * ei_sqrt((absx/scale)*(absx/scale) + ei_abs2(q/scale));
+    m_c = Scalar(absx / absxy);
+    Scalar np = p/absx;
+    m_s = -ei_conj(np) * q / absxy;
+    if(z) *z = np * absxy;
+  }
+}
+
+// specialization for reals
+template<typename Scalar>
+void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_false)
+{
+  // from Golub's "Matrix Computations", algorithm 5.1.3
+  if(q==0)
+  {
+    m_c = 1; m_s = 0;
+  }
+  else if(ei_abs(q)>ei_abs(p))
+  {
+    Scalar t = -p/q;
+    m_s = Scalar(1)/ei_sqrt(1+t*t);
+    m_c = m_s * t;
+  }
+  else
+  {
+    Scalar t = -q/p;
+    m_c = Scalar(1)/ei_sqrt(1+t*t);
+    m_s = m_c * t;
+  }
+}
+
+/****************************************************************************************
+*   Implementation of MatrixBase methods
+/***************************************************************************************/
+
+/** Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
+  * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$
+  *
+  * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
+  */
+template<typename VectorX, typename VectorY, typename OtherScalar>
+void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const PlanarRotation<OtherScalar>& j);
+
+/** Applies the rotation in the plane \a j to the rows \a p and \a q of \c *this, i.e., it computes B = J * B,
+  * with \f$ B = \left ( \begin{array}{cc} \text{*this.row}(p) \\ \text{*this.row}(q) \end{array} \right ) \f$.
+  *
+  * \sa class PlanarRotation, MatrixBase::applyOnTheRight(), ei_apply_rotation_in_the_plane()
+  */
+template<typename Derived>
+template<typename OtherScalar>
+inline void MatrixBase<Derived>::applyOnTheLeft(int p, int q, const PlanarRotation<OtherScalar>& j)
+{
+  RowXpr x(row(p));
+  RowXpr y(row(q));
+  ei_apply_rotation_in_the_plane(x, y, j);
+}
+
+/** Applies the rotation in the plane \a j to the columns \a p and \a q of \c *this, i.e., it computes B = B * J
+  * with \f$ B = \left ( \begin{array}{cc} \text{*this.col}(p) & \text{*this.col}(q) \end{array} \right ) \f$.
+  *
+  * \sa class PlanarRotation, MatrixBase::applyOnTheLeft(), ei_apply_rotation_in_the_plane()
+  */
+template<typename Derived>
+template<typename OtherScalar>
+inline void MatrixBase<Derived>::applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j)
+{
+  ColXpr x(col(p));
+  ColXpr y(col(q));
+  ei_apply_rotation_in_the_plane(x, y, j.transpose());
+}
+
+
+template<typename VectorX, typename VectorY, typename OtherScalar>
+void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const PlanarRotation<OtherScalar>& j)
 {
   typedef typename VectorX::Scalar Scalar;
   ei_assert(_x.size() == _y.size());
