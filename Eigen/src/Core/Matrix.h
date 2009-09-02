@@ -493,7 +493,7 @@ class Matrix
     using Base::swap;
     inline void swap(Matrix& other)
     {
-      ei_assert(matrix.rows() == other.rows() && matrix.cols() == other.cols());
+      ei_assert(rows() == other.rows() && cols() == other.cols());
       m_storage.swap(other.m_storage);
       // FIXME what about using this->Base::swap(other); for fixed size ?
     }
