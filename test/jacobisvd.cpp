@@ -91,12 +91,14 @@ void test_jacobisvd()
     CALL_SUBTEST( svd(Matrix3f()) );
     CALL_SUBTEST( svd(Matrix4d()) );
     CALL_SUBTEST( svd(MatrixXf(50,50)) );
-//    CALL_SUBTEST( svd(MatrixXd(14,7)) );
+    CALL_SUBTEST( svd(MatrixXcd(14,7)) );
+    CALL_SUBTEST( svd(MatrixXd(10,50)) );
+    
     CALL_SUBTEST( svd(MatrixXcf(3,3)) );
     CALL_SUBTEST( svd(MatrixXd(30,30)) );
   }
-  CALL_SUBTEST( svd(MatrixXf(200,200)) );
-  CALL_SUBTEST( svd(MatrixXcd(100,100)) );
+  CALL_SUBTEST( svd(MatrixXf(300,200)) );
+  CALL_SUBTEST( svd(MatrixXcd(100,150)) );
   
   CALL_SUBTEST( svd_verify_assert<Matrix3f>() );
   CALL_SUBTEST( svd_verify_assert<Matrix3d>() );

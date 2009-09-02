@@ -286,7 +286,7 @@ FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::co
   m_cols_permutation.resize(matrix.cols());
   int number_of_transpositions = 0;
   
-  RealScalar biggest;
+  RealScalar biggest(0);
   
   for (int k = 0; k < size; ++k)
   {

@@ -188,15 +188,42 @@ void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
 template<typename MatrixType, unsigned int Options>
 JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
 {
-  MatrixType work_matrix(matrix);
-  int size = matrix.rows();
-  if(ComputeU) m_matrixU = MatrixUType::Identity(size,size);
-  if(ComputeV) m_matrixV = MatrixUType::Identity(size,size);
-  m_singularValues.resize(size);
+  MatrixType work_matrix;
+  int rows = matrix.rows();
+  int cols = matrix.cols();
+  int diagSize = std::min(rows, cols);
+  if(ComputeU) m_matrixU = MatrixUType::Zero(rows,rows);
+  if(ComputeV) m_matrixV = MatrixVType::Zero(cols,cols);
+  m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * epsilon<Scalar>();
 
+  if(rows > cols)
+  {
+    FullPivotingHouseholderQR<MatrixType> qr(matrix);
+    work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>();
+    if(ComputeU) m_matrixU = qr.matrixQ();
+    if(ComputeV)
+      for(int i = 0; i < cols; i++)
+        m_matrixV.coeffRef(qr.colsPermutation().coeff(i),i) = Scalar(1);
+  }
+  else if(rows < cols)
+  {
+    FullPivotingHouseholderQR<MatrixType> qr(MatrixType(matrix.adjoint()));
+    work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>().adjoint();
+    if(ComputeV) m_matrixV = qr.matrixQ();
+    if(ComputeU)
+      for(int i = 0; i < rows; i++)
+        m_matrixU.coeffRef(qr.colsPermutation().coeff(i),i) = Scalar(1);
+    
+  }
+  else
+  {
+    work_matrix = matrix;
+    if(ComputeU) m_matrixU.diagonal().setOnes();
+    if(ComputeV) m_matrixV.diagonal().setOnes();
+  }
 sweep_again:
-  for(int p = 1; p < size; ++p)
+  for(int p = 1; p < diagSize; ++p)
   {
     for(int q = 0; q < p; ++q)
     {
@@ -219,27 +246,27 @@ sweep_again:
 
   RealScalar biggestOnDiag = work_matrix.diagonal().cwise().abs().maxCoeff();
   RealScalar maxAllowedOffDiag = biggestOnDiag * precision;
-  for(int p = 0; p < size; ++p)
+  for(int p = 0; p < diagSize; ++p)
   {
     for(int q = 0; q < p; ++q)
       if(ei_abs(work_matrix.coeff(p,q)) > maxAllowedOffDiag)
         goto sweep_again;
-    for(int q = p+1; q < size; ++q)
+    for(int q = p+1; q < diagSize; ++q)
       if(ei_abs(work_matrix.coeff(p,q)) > maxAllowedOffDiag)
         goto sweep_again;
   }
 
-  for(int i = 0; i < size; ++i)
+  for(int i = 0; i < diagSize; ++i)
   {
     RealScalar a = ei_abs(work_matrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
     if(ComputeU && (a!=RealScalar(0))) m_matrixU.col(i) *= work_matrix.coeff(i,i)/a;
   }
 
-  for(int i = 0; i < size; i++)
+  for(int i = 0; i < diagSize; i++)
   {
     int pos;
-    m_singularValues.end(size-i).maxCoeff(&pos);
+    m_singularValues.end(diagSize-i).maxCoeff(&pos);
     if(pos)
     {
       pos += i;
