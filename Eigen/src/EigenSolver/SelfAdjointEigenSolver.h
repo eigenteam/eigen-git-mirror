@@ -25,7 +25,7 @@
 #ifndef EIGEN_SELFADJOINTEIGENSOLVER_H
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
-/** \qr_module \ingroup QR_Module
+/** \eigensolver_module \ingroup EigenSolver_Module
   * \nonstableyet
   *
   * \class SelfAdjointEigenSolver
@@ -137,7 +137,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
 /** \internal
   *
-  * \qr_module
+  * \eigensolver_module
   *
   * Performs a QR step on a tridiagonal symmetric matrix represented as a
   * pair of two vectors \a diag and \a subdiag.
@@ -266,7 +266,7 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 
-/** \qr_module
+/** \eigensolver_module
   *
   * \returns a vector listing the eigenvalues of this matrix.
   */
@@ -307,7 +307,7 @@ template<typename Derived> struct ei_operatorNorm_selector<Derived, false>
   }
 };
 
-/** \qr_module
+/** \eigensolver_module
   *
   * \returns the matrix norm of this matrix.
   */

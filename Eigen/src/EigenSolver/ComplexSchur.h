@@ -120,6 +120,7 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
 {
+  // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
 

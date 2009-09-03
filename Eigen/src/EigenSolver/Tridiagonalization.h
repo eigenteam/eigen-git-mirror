@@ -25,7 +25,7 @@
 #ifndef EIGEN_TRIDIAGONALIZATION_H
 #define EIGEN_TRIDIAGONALIZATION_H
 
-/** \ingroup QR_Module
+/** \ingroup EigenSolver_Module
   * \nonstableyet
   *
   * \class Tridiagonalization

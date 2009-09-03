@@ -79,6 +79,7 @@ template<typename _MatrixType> class ComplexEigenSolver
 template<typename MatrixType>
 void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
+  // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);

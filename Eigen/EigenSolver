@@ -1,0 +1,74 @@
+#ifndef EIGEN_EIGEN_SOLVER_MODULE_H
+#define EIGEN_EIGEN_SOLVER_MODULE_H
+
+#include "Core"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+#include "Cholesky"
+#include "Jacobi"
+#include "Householder"
+
+// Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
+#if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)
+  #ifndef EIGEN_HIDE_HEAVY_CODE
+  #define EIGEN_HIDE_HEAVY_CODE
+  #endif
+#elif defined EIGEN_HIDE_HEAVY_CODE
+  #undef EIGEN_HIDE_HEAVY_CODE
+#endif
+
+namespace Eigen {
+
+/** \defgroup EigenSolver_Module Eigen Solver module
+  *
+  * \nonstableyet
+  *
+  * This module mainly provides various eigen value solvers.
+  * This module also provides some MatrixBase methods, including:
+  *  - MatrixBase::eigenvalues(),
+  *  - MatrixBase::operatorNorm()
+  *
+  * \code
+  * #include <Eigen/EigenSolver>
+  * \endcode
+  */
+
+#include "src/EigenSolver/Tridiagonalization.h"
+#include "src/EigenSolver/EigenSolver.h"
+#include "src/EigenSolver/SelfAdjointEigenSolver.h"
+#include "src/EigenSolver/HessenbergDecomposition.h"
+#include "src/EigenSolver/ComplexSchur.h"
+#include "src/EigenSolver/ComplexEigenSolver.h"
+
+// declare all classes for a given matrix type
+#define EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(MATRIXTYPE,PREFIX) \
+  PREFIX template class Tridiagonalization<MATRIXTYPE>; \
+  PREFIX template class HessenbergDecomposition<MATRIXTYPE>; \
+  PREFIX template class SelfAdjointEigenSolver<MATRIXTYPE>
+
+// removed because it does not support complex yet
+//  PREFIX template class EigenSolver<MATRIXTYPE>
+
+// declare all class for all types
+#define EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE(PREFIX) \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix2f,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix2d,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix3f,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix3d,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix4f,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(Matrix4d,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(MatrixXf,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(MatrixXd,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(MatrixXcf,PREFIX); \
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE_TYPE(MatrixXcd,PREFIX)
+
+#ifdef EIGEN_EXTERN_INSTANTIATIONS
+  EIGEN_EIGEN_SOLVER_MODULE_INSTANTIATE(extern);
+#endif // EIGEN_EXTERN_INSTANTIATIONS
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_EIGEN_SOLVER_MODULE_H
