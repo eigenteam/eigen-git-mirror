@@ -35,7 +35,9 @@
   *
   * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
   */
-template<typename Derived> struct AnyMatrixBase
+template<typename Derived> struct AnyMatrixBase 
+  : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
+                                     typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 {
   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
 
@@ -91,9 +93,7 @@ template<typename Derived> struct AnyMatrixBase
   */
 template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public AnyMatrixBase<Derived>,
-    public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
+  : public AnyMatrixBase<Derived>    
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
