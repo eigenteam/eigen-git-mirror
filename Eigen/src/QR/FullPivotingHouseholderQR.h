@@ -67,12 +67,10 @@ template<typename MatrixType> class FullPivotingHouseholderQR
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via FullPivotingHouseholderQR::compute(const MatrixType&).
       */
-    FullPivotingHouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
+    FullPivotingHouseholderQR() : m_isInitialized(false) {}
 
     FullPivotingHouseholderQR(const MatrixType& matrix)
-      : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
-        m_isInitialized(false)
+      : m_isInitialized(false)
     {
       compute(matrix);
     }

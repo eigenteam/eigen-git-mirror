@@ -27,7 +27,7 @@
 #include <Eigen/SVD>
 #include <Eigen/LU>
 
-template<typename MatrixType> void svd(const MatrixType& m, bool pickrandom = true)
+template<typename MatrixType, unsigned int Options> void svd(const MatrixType& m = MatrixType(), bool pickrandom = true)
 {
   int rows = m.rows();
   int cols = m.cols();
@@ -48,7 +48,7 @@ template<typename MatrixType> void svd(const MatrixType& m, bool pickrandom = tr
   if(pickrandom) a = MatrixType::Random(rows,cols);
   else a = m;
 
-  JacobiSVD<MatrixType> svd(a);
+  JacobiSVD<MatrixType,Options> svd(a);
   MatrixType sigma = MatrixType::Zero(rows,cols);
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
@@ -80,28 +80,27 @@ void test_jacobisvd()
     Matrix2cd m;
     m << 0, 1,
          0, 1;
-    CALL_SUBTEST( svd(m, false) );
+    CALL_SUBTEST(( svd<Matrix2cd,0>(m, false) ));
     m << 1, 0,
          1, 0;
-    CALL_SUBTEST( svd(m, false) );
+    CALL_SUBTEST(( svd<Matrix2cd,0>(m, false) ));
     Matrix2d n;
     n << 1, 1,
          1, -1;
-    CALL_SUBTEST( svd(n, false) );
-    CALL_SUBTEST( svd(Matrix3f()) );
-    CALL_SUBTEST( svd(Matrix4d()) );
-    CALL_SUBTEST( svd(MatrixXf(50,50)) );
-    CALL_SUBTEST( svd(MatrixXcd(14,7)) );
-    CALL_SUBTEST( svd(MatrixXd(10,50)) );
-    
-    CALL_SUBTEST( svd(MatrixXcf(3,3)) );
-    CALL_SUBTEST( svd(MatrixXd(30,30)) );
+    CALL_SUBTEST(( svd<Matrix2d,0>(n, false) ));
+    CALL_SUBTEST(( svd<Matrix3f,0>() ));
+    CALL_SUBTEST(( svd<Matrix4d,Square>() ));
+    CALL_SUBTEST(( svd<Matrix<float,3,5> , AtLeastAsManyColsAsRows>() ));
+    CALL_SUBTEST(( svd<Matrix<double,Dynamic,2> , AtLeastAsManyRowsAsCols>(Matrix<double,Dynamic,2>(10,2)) ));
+
+    CALL_SUBTEST(( svd<MatrixXf,Square>(MatrixXf(50,50)) ));
+    CALL_SUBTEST(( svd<MatrixXcd,AtLeastAsManyRowsAsCols>(MatrixXcd(14,7)) ));
   }
-  CALL_SUBTEST( svd(MatrixXf(300,200)) );
-  CALL_SUBTEST( svd(MatrixXcd(100,150)) );
+  CALL_SUBTEST(( svd<MatrixXf,0>(MatrixXf(300,200)) ));
+  CALL_SUBTEST(( svd<MatrixXcd,AtLeastAsManyColsAsRows>(MatrixXcd(100,150)) ));
   
-  CALL_SUBTEST( svd_verify_assert<Matrix3f>() );
-  CALL_SUBTEST( svd_verify_assert<Matrix3d>() );
-  CALL_SUBTEST( svd_verify_assert<MatrixXf>() );
-  CALL_SUBTEST( svd_verify_assert<MatrixXd>() );
+  CALL_SUBTEST(( svd_verify_assert<Matrix3f>() ));
+  CALL_SUBTEST(( svd_verify_assert<Matrix3d>() ));
+  CALL_SUBTEST(( svd_verify_assert<MatrixXf>() ));
+  CALL_SUBTEST(( svd_verify_assert<MatrixXd>() ));
 }
