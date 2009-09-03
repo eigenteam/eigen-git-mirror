@@ -321,6 +321,67 @@ class Matrix
       else resize(other.rows(), other.cols());
     }
 
+    /** Resizes \c *this to a \a rows x \a cols matrix while leaving old values of *this untouched.
+    *
+    * This method is intended for dynamic-size matrices, although it is legal to call it on any
+    * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
+    * of rows and/or of columns, you can use conservativeResize(NoChange_t, int), 
+    * conservativeResize(int, NoChange_t).
+    *
+    * The top-left part of the resized matrix will be the same as the overlapping top-left corner 
+    * of *this. In case values need to be appended to the matrix they will be uninitialized per
+    * default and set to zero when init_with_zero is set to true.
+    */
+    inline void conservativeResize(int rows, int cols, bool init_with_zero = false)
+    {
+      // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
+      // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the 
+      // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
+      // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
+      // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
+      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Matrix)
+      PlainMatrixType tmp = init_with_zero ? PlainMatrixType::Zero(rows, cols) : PlainMatrixType(rows,cols);
+      const int common_rows = std::min(rows, this->rows());
+      const int common_cols = std::min(cols, this->cols());
+      tmp.block(0,0,common_rows,common_cols) = this->block(0,0,common_rows,common_cols);
+      this->derived().swap(tmp);
+    }
+
+    EIGEN_STRONG_INLINE void conservativeResize(int rows, NoChange_t, bool init_with_zero = false)
+    {
+      // Note: see the comment in conservativeResize(int,int,bool)
+      conservativeResize(rows, cols(), init_with_zero);
+    }
+
+    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, int cols, bool init_with_zero = false)
+    {
+      // Note: see the comment in conservativeResize(int,int,bool)
+      conservativeResize(rows(), cols, init_with_zero);
+    }
+
+    /** Resizes \c *this to a vector of length \a size while retaining old values of *this.
+    *
+    * \only_for_vectors. This method does not work for
+    * partially dynamic matrices when the static dimension is anything other
+    * than 1. For example it will not work with Matrix<double, 2, Dynamic>.
+    *
+    * When values are appended, they will be uninitialized per default and set
+    * to zero when init_with_zero is set to true.
+    */
+    inline void conservativeResize(int size, bool init_with_zero = false)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
+      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Matrix)
+
+      if (RowsAtCompileTime == 1 || ColsAtCompileTime == 1)
+      {
+        PlainMatrixType tmp = init_with_zero ? PlainMatrixType::Zero(size) : PlainMatrixType(size);
+        const int common_size = std::min<int>(this->size(),size);
+        tmp.segment(0,common_size) = this->segment(0,common_size);
+        this->derived().swap(tmp);
+      }
+    }
+
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
