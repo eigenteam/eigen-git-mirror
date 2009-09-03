@@ -61,7 +61,75 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_RAISES_ASSERT(vf+=vd);
   VERIFY_RAISES_ASSERT(mcd=md);
 
+  vf.dot(vf);
+  VERIFY_RAISES_ASSERT(vd.dot(vf));
+  VERIFY_RAISES_ASSERT(vcf.dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
+}                                    // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+
+
+void mixingtypes_large(int size)
+{
+  static const int SizeAtCompileType = Dynamic;
+  typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
+  typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
+  typedef Matrix<std::complex<float>, SizeAtCompileType, SizeAtCompileType> Mat_cf;
+  typedef Matrix<std::complex<double>, SizeAtCompileType, SizeAtCompileType> Mat_cd;
+  typedef Matrix<float, SizeAtCompileType, 1> Vec_f;
+  typedef Matrix<double, SizeAtCompileType, 1> Vec_d;
+  typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
+  typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
+
+  Mat_f mf(size,size);
+  Mat_d md(size,size);
+  Mat_cf mcf(size,size);
+  Mat_cd mcd(size,size);
+  Vec_f vf(size,1);
+  Vec_d vd(size,1);
+  Vec_cf vcf(size,1);
+  Vec_cd vcd(size,1);
+
   mf*mf;
+  // FIXME large products does not allow mixing types
+  VERIFY_RAISES_ASSERT(md*mcd);
+  VERIFY_RAISES_ASSERT(mcd*md);
+  VERIFY_RAISES_ASSERT(mf*vcf);
+  VERIFY_RAISES_ASSERT(mcf*vf);
+  VERIFY_RAISES_ASSERT(mcf *= mf);
+  // VERIFY_RAISES_ASSERT(vcd = md*vcd); // does not even compile
+  VERIFY_RAISES_ASSERT(vcf = mcf*vf);
+
+  VERIFY_RAISES_ASSERT(mf*md);
+  VERIFY_RAISES_ASSERT(mcf*mcd);
+  VERIFY_RAISES_ASSERT(mcf*vcd);
+  VERIFY_RAISES_ASSERT(vcf = mf*vf);
+}
+
+template<int SizeAtCompileType> void mixingtypes_small()
+{
+  int size = SizeAtCompileType;
+  typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
+  typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
+  typedef Matrix<std::complex<float>, SizeAtCompileType, SizeAtCompileType> Mat_cf;
+  typedef Matrix<std::complex<double>, SizeAtCompileType, SizeAtCompileType> Mat_cd;
+  typedef Matrix<float, SizeAtCompileType, 1> Vec_f;
+  typedef Matrix<double, SizeAtCompileType, 1> Vec_d;
+  typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
+  typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
+
+  Mat_f mf(size,size);
+  Mat_d md(size,size);
+  Mat_cf mcf(size,size);
+  Mat_cd mcd(size,size);
+  Vec_f vf(size,1);
+  Vec_d vd(size,1);
+  Vec_cf vcf(size,1);
+  Vec_cd vcd(size,1);
+
+
+  mf*mf;
+  // FIXME shall we discard those products ?
+  // 1) currently they work only if SizeAtCompileType is small enough
+  // 2) in case we vectorize complexes this might be difficult to still allow that
   md*mcd;
   mcd*md;
   mf*vcf;
@@ -69,20 +137,19 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   mcf *= mf;
   vcd = md*vcd;
   vcf = mcf*vf;
-  VERIFY_RAISES_ASSERT(mf*md);
-  VERIFY_RAISES_ASSERT(mcf*mcd);
-  VERIFY_RAISES_ASSERT(mcf*vcd);
+//   VERIFY_RAISES_ASSERT(mf*md);   // does not even compile
+//   VERIFY_RAISES_ASSERT(mcf*mcd); // does not even compile
+//   VERIFY_RAISES_ASSERT(mcf*vcd); // does not even compile
   VERIFY_RAISES_ASSERT(vcf = mf*vf);
-
-  vf.dot(vf);
-  VERIFY_RAISES_ASSERT(vd.dot(vf));
-  VERIFY_RAISES_ASSERT(vcf.dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
-}                                    // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+}
 
 void test_mixingtypes()
 {
   // check that our operator new is indeed called:
-  CALL_SUBTEST(mixingtypes<3>(3));
-  CALL_SUBTEST(mixingtypes<4>(4));
+  CALL_SUBTEST(mixingtypes<3>());
+  CALL_SUBTEST(mixingtypes<4>());
   CALL_SUBTEST(mixingtypes<Dynamic>(20));
+
+  CALL_SUBTEST(mixingtypes_small<4>());
+  CALL_SUBTEST(mixingtypes_large(20));
 }
