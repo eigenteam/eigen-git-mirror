@@ -490,13 +490,8 @@ class Matrix
     /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
       * data pointers.
       */
-    using Base::swap;
-    inline void swap(Matrix& other)
-    {
-      ei_assert(rows() == other.rows() && cols() == other.cols());
-      m_storage.swap(other.m_storage);
-      // FIXME what about using this->Base::swap(other); for fixed size ?
-    }
+    template<typename OtherDerived>
+    void swap(const MatrixBase<OtherDerived>& other);
 
     /** \name Map
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
@@ -655,8 +650,37 @@ class Matrix
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
+    
+    template<typename MatrixType, typename OtherDerived, bool IsSameType, bool IsDynamicSize>
+    friend struct ei_matrix_swap_impl;
 };
 
+template<typename MatrixType, typename OtherDerived,
+         bool IsSameType = ei_is_same_type<MatrixType, OtherDerived>::ret,
+         bool IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic>
+struct ei_matrix_swap_impl
+{
+  static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
+  {
+    matrix.base().swap(other);
+  }
+};
+
+template<typename MatrixType, typename OtherDerived>
+struct ei_matrix_swap_impl<MatrixType, OtherDerived, true, true>
+{
+  static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
+  {
+    matrix.m_storage.swap(other.derived().m_storage);
+  }
+};
+
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+template<typename OtherDerived>
+inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(const MatrixBase<OtherDerived>& other)
+{
+  ei_matrix_swap_impl<Matrix, OtherDerived>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));
+}
 
 /** \defgroup matrixtypedefs Global matrix typedefs
   *
