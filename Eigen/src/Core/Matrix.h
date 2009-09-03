@@ -539,12 +539,13 @@ class Matrix
           INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
     
-    template<typename MatrixType, typename OtherDerived, bool IsSameType>
+    template<typename MatrixType, typename OtherDerived, bool IsSameType, bool IsDynamicSize>
     friend struct ei_matrix_swap_impl;
 };
 
 template<typename MatrixType, typename OtherDerived,
-         bool IsSameType = ei_is_same_type<MatrixType, OtherDerived>::ret>
+         bool IsSameType = ei_is_same_type<MatrixType, OtherDerived>::ret,
+         bool IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic>
 struct ei_matrix_swap_impl
 {
   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
@@ -554,11 +555,10 @@ struct ei_matrix_swap_impl
 };
 
 template<typename MatrixType, typename OtherDerived>
-struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
+struct ei_matrix_swap_impl<MatrixType, OtherDerived, true, true>
 {
   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
   {
-    ei_assert(matrix.rows() == other.rows() && matrix.cols() == other.cols());
     matrix.m_storage.swap(other.derived().m_storage);
   }
 };
