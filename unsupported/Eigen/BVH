@@ -94,8 +94,6 @@ namespace Eigen {
   * responsibility of the intersectObject function to keep track of the results in whatever manner is appropriate.
   * The cartesian product intersection and the BVMinimize queries are similar--see their individual documentation.
   *
-  * \addexample BVH_Example \label How to use a BVH to find the closest pair between two point sets
-  *
   * The following is a simple but complete example for how to use the BVH to accelerate the search for a closest red-blue point pair:
   * \include BVH_Example.cpp
   * Output: \verbinclude BVH_Example.out

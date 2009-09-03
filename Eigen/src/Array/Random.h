@@ -34,7 +34,7 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false, IsRepeatable = false }; };
 
 /** \array_module
-  * 
+  *
   * \returns a random matrix expression
   *
   * The parameters \a rows and \a cols are the number of rows and of columns of
@@ -43,8 +43,6 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
   * it is redundant to pass \a rows and \a cols as arguments, so Random() should be used
   * instead.
-  *
-  * \addexample RandomExample \label How to create a matrix with random coefficients
   *
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
@@ -63,7 +61,7 @@ MatrixBase<Derived>::Random(int rows, int cols)
 }
 
 /** \array_module
-  * 
+  *
   * \returns a random vector expression
   *
   * The parameter \a size is the size of the returned vector.
@@ -92,7 +90,7 @@ MatrixBase<Derived>::Random(int size)
 }
 
 /** \array_module
-  * 
+  *
   * \returns a fixed-size random matrix or vector expression
   *
   * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
@@ -115,7 +113,7 @@ MatrixBase<Derived>::Random()
 }
 
 /** \array_module
-  * 
+  *
   * Sets all coefficients in this expression to random values.
   *
   * Example: \include MatrixBase_setRandom.cpp

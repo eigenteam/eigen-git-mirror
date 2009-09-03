@@ -109,8 +109,6 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   * The template parameter \a CustomUnaryOp is the type of the functor
   * of the custom unary operator.
   *
-  * \addexample CustomCwiseUnaryFunctors \label How to use custom coeff wise unary functors
-  *
   * Example:
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out

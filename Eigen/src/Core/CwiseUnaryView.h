@@ -98,8 +98,6 @@ class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
   * The template parameter \a CustomUnaryOp is the type of the functor
   * of the custom unary operator.
   *
-  * \addexample CustomCwiseUnaryFunctors \label How to use custom coeff wise unary functors
-  *
   * Example:
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out

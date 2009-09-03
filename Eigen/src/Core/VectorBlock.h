@@ -88,7 +88,7 @@ template<typename VectorType, int Size, int PacketAccess> class VectorBlock
     using Base::operator-=;
     using Base::operator*=;
     using Base::operator/=;
-    
+
     /** Dynamic-size constructor
       */
     inline VectorBlock(const VectorType& vector, int start, int size)
@@ -96,7 +96,7 @@ template<typename VectorType, int Size, int PacketAccess> class VectorBlock
              IsColVector ? start : 0, IsColVector ? 0 : start,
              IsColVector ? size  : 1, IsColVector ? 1 : size)
     {
-      
+
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock);
     }
 
@@ -113,8 +113,6 @@ template<typename VectorType, int Size, int PacketAccess> class VectorBlock
 /** \returns a dynamic-size expression of a segment (i.e. a vector block) in *this.
   *
   * \only_for_vectors
-  *
-  * \addexample VectorBlockIntInt \label How to reference a sub-vector (dynamic size)
   *
   * \param start the first coefficient in the segment
   * \param size the number of coefficients in the segment
@@ -151,8 +149,6 @@ MatrixBase<Derived>::segment(int start, int size) const
   *
   * \param size the number of coefficients in the block
   *
-  * \addexample BlockInt \label How to reference a sub-vector (fixed-size)
-  *
   * Example: \include MatrixBase_start_int.cpp
   * Output: \verbinclude MatrixBase_start_int.out
   *
@@ -184,8 +180,6 @@ MatrixBase<Derived>::start(int size) const
   * \only_for_vectors
   *
   * \param size the number of coefficients in the block
-  *
-  * \addexample BlockEnd \label How to reference the end of a vector (fixed-size)
   *
   * Example: \include MatrixBase_end_int.cpp
   * Output: \verbinclude MatrixBase_end_int.out
@@ -250,8 +244,6 @@ MatrixBase<Derived>::segment(int start) const
   * \only_for_vectors
   *
   * The template parameter \a Size is the number of coefficients in the block
-  *
-  * \addexample BlockStart \label How to reference the start of a vector (fixed-size)
   *
   * Example: \include MatrixBase_template_int_start.cpp
   * Output: \verbinclude MatrixBase_template_int_start.out

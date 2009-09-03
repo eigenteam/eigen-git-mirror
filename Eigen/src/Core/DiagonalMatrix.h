@@ -32,7 +32,7 @@ class DiagonalBase : public AnyMatrixBase<Derived>
   public:
     typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;
     typedef typename DiagonalVectorType::Scalar Scalar;
-    
+
     enum {
       RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
       ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -41,14 +41,14 @@ class DiagonalBase : public AnyMatrixBase<Derived>
       IsVectorAtCompileTime = 0,
       Flags = 0
     };
-    
+
     typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
-        
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     #endif // not EIGEN_PARSED_BY_DOXYGEN
-    
+
     DenseMatrixType toDenseMatrix() const { return derived(); }
     template<typename DenseDerived>
     void evalToDense(MatrixBase<DenseDerived> &other) const;
@@ -64,7 +64,7 @@ class DiagonalBase : public AnyMatrixBase<Derived>
 
     inline int rows() const { return diagonal().size(); }
     inline int cols() const { return diagonal().size(); }
-    
+
     template<typename MatrixDerived>
     const DiagonalProduct<MatrixDerived, Derived, DiagonalOnTheLeft>
     operator*(const MatrixBase<MatrixDerived> &matrix) const;
@@ -100,20 +100,20 @@ class DiagonalMatrix
   : public DiagonalBase<DiagonalMatrix<_Scalar,_Size> >
 {
   public:
-    
+
     typedef typename ei_traits<DiagonalMatrix>::DiagonalVectorType DiagonalVectorType;
     typedef const DiagonalMatrix& Nested;
     typedef _Scalar Scalar;
-  
+
   protected:
 
     DiagonalVectorType m_diagonal;
-    
+
   public:
 
     inline const DiagonalVectorType& diagonal() const { return m_diagonal; }
     inline DiagonalVectorType& diagonal() { return m_diagonal; }
-    
+
     /** Default constructor without initialization */
     inline DiagonalMatrix() {}
 
@@ -152,7 +152,7 @@ class DiagonalMatrix
       m_diagonal = other.m_diagonal();
       return *this;
     }
-    
+
     inline void resize(int size) { m_diagonal.resize(size); }
     inline void setZero() { m_diagonal.setZero(); }
     inline void setZero(int size) { m_diagonal.setZero(size); }
@@ -194,10 +194,10 @@ class DiagonalWrapper
   public:
     typedef _DiagonalVectorType DiagonalVectorType;
     typedef DiagonalWrapper Nested;
-    
+
     inline DiagonalWrapper(const DiagonalVectorType& diagonal) : m_diagonal(diagonal) {}
     const DiagonalVectorType& diagonal() const { return m_diagonal; }
-    
+
   protected:
     const typename DiagonalVectorType::Nested m_diagonal;
 };
@@ -206,8 +206,6 @@ class DiagonalWrapper
   * \returns a pseudo-expression of a diagonal matrix with *this as vector of diagonal coefficients
   *
   * \only_for_vectors
-  *
-  * \addexample AsDiagonalExample \label How to build a diagonal matrix from a vector
   *
   * Example: \include MatrixBase_asDiagonal.cpp
   * Output: \verbinclude MatrixBase_asDiagonal.out
