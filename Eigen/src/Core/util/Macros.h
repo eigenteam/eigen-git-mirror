@@ -287,6 +287,9 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
 _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
+#define EIGEN_SIZE_MIN(a,b) (((int)a == 1 || (int)b == 1) ? 1 \
+                           : ((int)a == Dynamic || (int)b == Dynamic) ? Dynamic \
+                           : ((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 #define EIGEN_LOGICAL_XOR(a,b) (((a) || (b)) && !((a) && (b)))
 
