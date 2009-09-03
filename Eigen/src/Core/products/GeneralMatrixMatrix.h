@@ -149,9 +149,9 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
       ei_general_matrix_matrix_product<
         Scalar,
-        (_ActualLhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsBlasTraits::NeedToConjugate),
-        (_ActualRhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsBlasTraits::NeedToConjugate),
-        (Dest::Flags&RowMajorBit)?RowMajor:ColMajor>
+        (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
+        (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
+        (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(
           this->rows(), this->cols(), lhs.cols(),
           (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),

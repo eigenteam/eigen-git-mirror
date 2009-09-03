@@ -132,7 +132,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived());
 
-  enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit)?1:0 };
+  enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
 
   ei_selfadjoint_product<Scalar,
     _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,

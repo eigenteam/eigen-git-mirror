@@ -41,7 +41,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
-    IsRowMajor = StorageOrder==RowMajorBit ? 1 : 0,
+    IsRowMajor = StorageOrder==RowMajor ? 1 : 0,
     IsLower = UpLo == LowerTriangularBit ? 1 : 0,
     FirstTriangular = IsRowMajor == IsLower
   };
@@ -186,7 +186,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     ei_assert(dst.stride()==1 && "not implemented yet");
-    ei_product_selfadjoint_vector<Scalar, ei_traits<_ActualLhsType>::Flags&RowMajorBit, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
+    ei_product_selfadjoint_vector<Scalar, (ei_traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
       (
         lhs.rows(),                       // size
         &lhs.coeff(0,0),  lhs.stride(),   // lhs info

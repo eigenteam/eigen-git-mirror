@@ -63,7 +63,7 @@ template<typename Lhs, typename Rhs> struct ei_product_type
     Cols  = Rhs::ColsAtCompileTime,
     Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime)
   };
-  
+
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
@@ -73,7 +73,7 @@ private:
     depth_select = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
   };
   typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
-  
+
 public:
   enum {
     value = product_type_selector::ret
@@ -144,7 +144,7 @@ struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 ***********************************************************************/
 
 // FIXME : maybe the "inner product" could return a Scalar
-// instead of a 1x1 matrix ?? 
+// instead of a 1x1 matrix ??
 // Pro: more natural for the user
 // Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
 // product ends up to a row-vector times col-vector product... To tackle this use
@@ -201,7 +201,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      ei_outer_product_selector<Dest::Flags&RowMajorBit>::run(*this, dest, alpha);
+      ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
 };
 
@@ -259,7 +259,7 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
-      ei_gemv_selector<Side,bool(int(MatrixType::Flags)&RowMajorBit),
+      ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                        bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
 };
@@ -339,7 +339,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
 
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                * RhsBlasTraits::extractScalarFactor(prod.rhs());
-                               
+
     enum {
       DirectlyUseRhs = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
                      && (!(_ActualRhsType::Flags & RowMajorBit))
