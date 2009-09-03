@@ -88,7 +88,7 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
 
   t = ei_abs(z);
 
-  if (ei_abs(ei_real(z)) <= ei_abs(ei_real(z)))
+  if (ei_abs(ei_real(z)) <= ei_abs(ei_imag(z)))
   {
     // No cancellation in these formulas
     tre = ei_sqrt(0.5*(t + ei_real(z)));
