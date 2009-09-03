@@ -26,16 +26,23 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
-/** \ingroup Jacobi
+/** \ingroup Jacobi_Module
+  * \jacobi_module
   * \class PlanarRotation
   * \brief Represents a rotation in the plane from a cosine-sine pair.
   *
   * This class represents a Jacobi or Givens rotation.
-  * This is a 2D clock-wise rotation in the plane \c J of angle \f$ \theta \f$ defined by
+  * This is a 2D rotation in the plane \c J of angle \f$ \theta \f$ defined by
   * its cosine \c c and sine \c s as follow:
   * \f$ J = \left ( \begin{array}{cc} c & \overline s \\ -s  & \overline c \end{array} \right ) \f$
   *
-  * \sa MatrixBase::makeJacobi(), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
+  * You can apply the respective counter-clockwise rotation to a column vector \c v by
+  * applying its adjoint on the left: \f$ v = J^* v \f$ that translates to the following Eigen code:
+  * \code
+  * v.applyOnTheLeft(J.adjoint());
+  * \endcode
+  *
+  * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar> class PlanarRotation
 {
@@ -79,11 +86,10 @@ template<typename Scalar> class PlanarRotation
     Scalar m_c, m_s;
 };
 
-/** Makes \c *this as a Jacobi rotation \a J such that applying \a J on both the right and left sides of the 2x2 matrix
-  * \f$ B = \left ( \begin{array}{cc} x & y \\ * & z \end{array} \right )\f$ yields
-  * a diagonal matrix \f$ A = J^* B J \f$
+/** Makes \c *this as a Jacobi rotation \a J such that applying \a J on both the right and left sides of the selfadjoint 2x2 matrix
+  * \f$ B = \left ( \begin{array}{cc} x & y \\ * & z \end{array} \right )\f$ yields a diagonal matrix \f$ A = J^* B J \f$
   *
-  * \sa MatrixBase::makeJacobi(), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
+  * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, int, int), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
 bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
@@ -116,9 +122,12 @@ bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
   }
 }
 
-/** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 matrix
+/** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 selfadjoint matrix
   * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ * & \text{this}_{qq} \end{array} \right )\f$ yields
   * a diagonal matrix \f$ A = J^* B J \f$
+  *
+  * Example: \include Jacobi_makeJacobi.cpp
+  * Output: \verbinclude Jacobi_makeJacobi.out
   *
   * \sa PlanarRotation::makeJacobi(RealScalar, Scalar, RealScalar), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
@@ -135,6 +144,9 @@ inline bool PlanarRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, int
   *
   * The value of \a z is returned if \a z is not null (the default is null).
   * Also note that G is built such that the cosine is always real.
+  *
+  * Example: \include Jacobi_makeGivens.cpp
+  * Output: \verbinclude Jacobi_makeGivens.out
   *
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
@@ -171,9 +183,11 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 }
 
 // specialization for reals
+// TODO compute z
 template<typename Scalar>
 void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_false)
 {
+  ei_assert(z==0 && "not implemented yet");
   // from Golub's "Matrix Computations", algorithm 5.1.3
   if(q==0)
   {
@@ -197,7 +211,8 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 *   Implementation of MatrixBase methods
 ****************************************************************************************/
 
-/** Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
+/** \jacobi_module
+  * Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
   * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$
   *
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
@@ -205,7 +220,8 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 template<typename VectorX, typename VectorY, typename OtherScalar>
 void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const PlanarRotation<OtherScalar>& j);
 
-/** Applies the rotation in the plane \a j to the rows \a p and \a q of \c *this, i.e., it computes B = J * B,
+/** \jacobi_module
+  * Applies the rotation in the plane \a j to the rows \a p and \a q of \c *this, i.e., it computes B = J * B,
   * with \f$ B = \left ( \begin{array}{cc} \text{*this.row}(p) \\ \text{*this.row}(q) \end{array} \right ) \f$.
   *
   * \sa class PlanarRotation, MatrixBase::applyOnTheRight(), ei_apply_rotation_in_the_plane()
@@ -219,7 +235,8 @@ inline void MatrixBase<Derived>::applyOnTheLeft(int p, int q, const PlanarRotati
   ei_apply_rotation_in_the_plane(x, y, j);
 }
 
-/** Applies the rotation in the plane \a j to the columns \a p and \a q of \c *this, i.e., it computes B = B * J
+/** \ingroup Jacobi_Module
+  * Applies the rotation in the plane \a j to the columns \a p and \a q of \c *this, i.e., it computes B = B * J
   * with \f$ B = \left ( \begin{array}{cc} \text{*this.col}(p) & \text{*this.col}(q) \end{array} \right ) \f$.
   *
   * \sa class PlanarRotation, MatrixBase::applyOnTheLeft(), ei_apply_rotation_in_the_plane()
