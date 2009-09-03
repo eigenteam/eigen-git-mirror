@@ -87,7 +87,7 @@ template<typename Scalar> class PlanarRotation
 };
 
 /** Makes \c *this as a Jacobi rotation \a J such that applying \a J on both the right and left sides of the selfadjoint 2x2 matrix
-  * \f$ B = \left ( \begin{array}{cc} x & y \\ * & z \end{array} \right )\f$ yields a diagonal matrix \f$ A = J^* B J \f$
+  * \f$ B = \left ( \begin{array}{cc} x & y \\ \overline y & z \end{array} \right )\f$ yields a diagonal matrix \f$ A = J^* B J \f$
   *
   * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, int, int), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
@@ -123,7 +123,7 @@ bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
 }
 
 /** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 selfadjoint matrix
-  * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ * & \text{this}_{qq} \end{array} \right )\f$ yields
+  * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ \overline \text{this}_{pq} & \text{this}_{qq} \end{array} \right )\f$ yields
   * a diagonal matrix \f$ A = J^* B J \f$
   *
   * Example: \include Jacobi_makeJacobi.cpp
@@ -140,13 +140,17 @@ inline bool PlanarRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, int
 
 /** Makes \c *this as a Givens rotation \c G such that applying \f$ G^* \f$ to the left of the vector
   * \f$ V = \left ( \begin{array}{c} p \\ q \end{array} \right )\f$ yields:
-  * \f$ G^* V = \left ( \begin{array}{c} z \\ 0 \end{array} \right )\f$.
+  * \f$ G^* V = \left ( \begin{array}{c} r \\ 0 \end{array} \right )\f$.
   *
   * The value of \a z is returned if \a z is not null (the default is null).
   * Also note that G is built such that the cosine is always real.
   *
   * Example: \include Jacobi_makeGivens.cpp
   * Output: \verbinclude Jacobi_makeGivens.out
+  *
+  * This function implements the continuous Givens rotation generation algorithm
+  * found in Anderson (2000), Discontinuous Plane Rotations and the Symmetric Eigenvalue Problem.
+  * LAPACK Working Note 150, University of Tennessee, UT-CS-00-454, December 4, 2000.
   *
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
@@ -159,52 +163,97 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 // specialization for complexes
 template<typename Scalar>
-void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_true)
+void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, ei_meta_true)
 {
-  RealScalar scale, absx, absxy;
   if(q==Scalar(0))
   {
-    // return identity
-    m_c = Scalar(1);
-    m_s = Scalar(0);
-    if(z) *z = p;
+    m_c = ei_real(p)<0 ? Scalar(-1) : Scalar(1);
+    m_s = 0;
+    if(r) *r = m_c * p;
+  }
+  else if(p==Scalar(0))
+  {
+    m_c = 0;
+    m_s = -q/ei_abs(q);
+    if(r) *r = ei_abs(q);
   }
   else
   {
-    scale = ei_norm1(p);
-    absx = scale * ei_sqrt(ei_abs2(p/scale));
-    scale = ei_abs(scale) + ei_norm1(q);
-    absxy = scale * ei_sqrt((absx/scale)*(absx/scale) + ei_abs2(q/scale));
-    m_c = Scalar(absx / absxy);
-    Scalar np = p/absx;
-    m_s = -ei_conj(np) * q / absxy;
-    if(z) *z = np * absxy;
+    RealScalar p1 = ei_norm1(p);
+    RealScalar q1 = ei_norm1(q);
+    if(p1>=q1)
+    {
+      Scalar ps = p / p1;
+      RealScalar p2 = ei_abs2(ps);
+      Scalar qs = q / p1;
+      RealScalar q2 = ei_abs2(qs);
+
+      RealScalar u = ei_sqrt(RealScalar(1) + q2/p2);
+      if(ei_real(p)<RealScalar(0))
+        u = -u;
+
+      m_c = Scalar(1)/u;
+      m_s = -qs*ei_conj(ps)*(m_c/p2);
+      if(r) *r = p * u;
+    }
+    else
+    {
+      Scalar ps = p / q1;
+      RealScalar p2 = ei_abs2(ps);
+      Scalar qs = q / q1;
+      RealScalar q2 = ei_abs2(qs);
+
+      RealScalar u = q1 * ei_sqrt(p2 + q2);
+      if(ei_real(p)<RealScalar(0))
+        u = -u;
+
+      p1 = ei_abs(p);
+      ps = p/p1;
+      m_c = p1/u;
+      m_s = -ei_conj(ps) * (q/u);
+      if(r) *r = ps * u;
+    }
   }
 }
 
 // specialization for reals
-// TODO compute z
 template<typename Scalar>
-void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z, ei_meta_false)
+void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, ei_meta_false)
 {
-  ei_assert(z==0 && "not implemented yet");
-  // from Golub's "Matrix Computations", algorithm 5.1.3
+
   if(q==0)
   {
-    m_c = 1; m_s = 0;
+    m_c = p<Scalar(0) ? Scalar(-1) : Scalar(1);
+    m_s = 0;
+    if(r) *r = ei_abs(p);
   }
-  else if(ei_abs(q)>ei_abs(p))
+  else if(p==0)
   {
-    Scalar t = -p/q;
-    m_s = Scalar(1)/ei_sqrt(1+t*t);
-    m_c = m_s * t;
+    m_c = 0;
+    m_s = q<Scalar(0) ? Scalar(1) : Scalar(-1);
+    if(r) *r = ei_abs(q);
+  }
+  else if(p>q)
+  {
+    Scalar t = q/p;
+    Scalar u = ei_sqrt(Scalar(1) + ei_abs2(t));
+    if(p<Scalar(0))
+      u = -u;
+    m_c = Scalar(1)/u;
+    m_s = -t * m_c;
+    if(r) *r = p * u;
   }
   else
   {
-    Scalar t = -q/p;
-    m_c = Scalar(1)/ei_sqrt(1+t*t);
-    m_s = m_c * t;
+    Scalar t = p/q;
+    Scalar u = ei_sqrt(Scalar(1) + ei_abs2(t));
+    if(q<Scalar(0))
+      u = -u;
+    m_s = -Scalar(1)/u;
+    m_c = t * m_s;
+    if(r) *r = q * u;
   }
+
 }
 
 /****************************************************************************************
