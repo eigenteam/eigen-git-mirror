@@ -84,18 +84,18 @@ public:
  * based on the three dimensions of the product.
  * This is a compile time mapping from {1,Small,Large}^3 -> {product types} */
 // FIXME I'm not sure the current mapping is the ideal one.
-template<int Rows, int Cols>  struct ei_product_type_selector<Rows,Cols,1>        { enum { ret = OuterProduct }; };
-template<int Depth>           struct ei_product_type_selector<1,1,Depth>          { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<1,1,1>              { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,Small>      { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<1,Small,Small>      { enum { ret = UnrolledProduct }; };
+template<int Rows, int Cols>  struct ei_product_type_selector<Rows, Cols, 1>      { enum { ret = OuterProduct }; };
+template<int Depth>           struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = UnrolledProduct }; };
 template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<1,Large,Small>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,Large,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,Small,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,Small>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
@@ -164,7 +164,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
 
@@ -203,7 +203,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
 
@@ -217,6 +217,7 @@ template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure lhs is sequentially stored
+    // FIXME not very good if rhs is real and lhs complex while alpha is real too
     const int cols = dest.cols();
     for (int j=0; j<cols; ++j)
       dest.col(j) += (alpha * prod.rhs().coeff(j)) * prod.lhs();
@@ -227,6 +228,7 @@ template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure rhs is sequentially stored
+    // FIXME not very good if lhs is real and rhs complex while alpha is real too
     const int rows = dest.rows();
     for (int i=0; i<rows; ++i)
       dest.row(i) += (alpha * prod.lhs().coeff(i)) * prod.rhs();
