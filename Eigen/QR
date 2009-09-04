@@ -62,7 +62,7 @@ namespace Eigen {
 
 #include "src/Core/util/EnableMSVCWarnings.h"
 
-// FIXME for compatibility we include EigenSolver here:
-#include "EigenSolver"
+// FIXME for compatibility we include Eigenvalues here:
+#include "Eigenvalues"
 
 #endif // EIGEN_QR_MODULE_H

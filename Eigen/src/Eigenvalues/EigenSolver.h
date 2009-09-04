@@ -25,7 +25,7 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
-/** \ingroup EigenSolver_Module
+/** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
   * \class EigenSolver

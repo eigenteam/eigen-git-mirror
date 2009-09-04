@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/EigenSolver>
+#include <Eigen/Eigenvalues>
 #include <Eigen/LU>
 
 template<typename MatrixType> void eigensolver(const MatrixType& m)

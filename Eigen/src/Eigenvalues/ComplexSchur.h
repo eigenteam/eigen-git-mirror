@@ -26,9 +26,8 @@
 #ifndef EIGEN_COMPLEX_SCHUR_H
 #define EIGEN_COMPLEX_SCHUR_H
 
-#define MAXITER 30
-
-/** \ingroup QR
+/** \eigenvalues_module \ingroup Eigenvalues_Module
+  * \nonstableyet
   *
   * \class ComplexShur
   *
@@ -155,7 +154,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     if(iu==0) break;
     iter++;
 
-    if(iter >= MAXITER)
+    if(iter >= 30)
     {
       // FIXME : what to do when iter==MAXITER ??
       std::cerr << "MAXITER" << std::endl;

@@ -25,7 +25,7 @@
 #ifndef EIGEN_HESSENBERGDECOMPOSITION_H
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
-/** \ingroup EigenSolver_Module
+/** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
   * \class HessenbergDecomposition

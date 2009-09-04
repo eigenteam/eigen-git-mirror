@@ -26,8 +26,17 @@
 #ifndef EIGEN_COMPLEX_EIGEN_SOLVER_H
 #define EIGEN_COMPLEX_EIGEN_SOLVER_H
 
-#define MAXITER 30
-
+/** \eigenvalues_module \ingroup Eigenvalues_Module
+  * \nonstableyet
+  *
+  * \class ComplexEigenSolver
+  *
+  * \brief Eigen values/vectors solver for general complex matrices
+  *
+  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  *
+  * \sa class EigenSolver, class SelfAdjointEigenSolver
+  */
 template<typename _MatrixType> class ComplexEigenSolver
 {
   public:
