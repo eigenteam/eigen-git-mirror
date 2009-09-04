@@ -126,6 +126,7 @@ class Matrix
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
     enum { Options = _Options };
+    typedef typename Base::PlainMatrixType PlainMatrixType;
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
     friend class Eigen::Map<Matrix, Aligned>;
@@ -325,17 +326,17 @@ class Matrix
     *
     * This method is intended for dynamic-size matrices, although it is legal to call it on any
     * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
-    * of rows and/or of columns, you can use conservativeResize(NoChange_t, int), 
+    * of rows and/or of columns, you can use conservativeResize(NoChange_t, int),
     * conservativeResize(int, NoChange_t).
     *
-    * The top-left part of the resized matrix will be the same as the overlapping top-left corner 
+    * The top-left part of the resized matrix will be the same as the overlapping top-left corner
     * of *this. In case values need to be appended to the matrix they will be uninitialized per
     * default and set to zero when init_with_zero is set to true.
     */
     inline void conservativeResize(int rows, int cols, bool init_with_zero = false)
     {
       // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
-      // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the 
+      // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
       // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
       // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
       // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
@@ -711,7 +712,7 @@ class Matrix
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
-    
+
     template<typename MatrixType, typename OtherDerived, bool IsSameType, bool IsDynamicSize>
     friend struct ei_matrix_swap_impl;
 };
