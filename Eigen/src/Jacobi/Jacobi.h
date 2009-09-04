@@ -233,7 +233,7 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
     m_s = q<Scalar(0) ? Scalar(1) : Scalar(-1);
     if(r) *r = ei_abs(q);
   }
-  else if(p>q)
+  else if(ei_abs(p) > ei_abs(q))
   {
     Scalar t = q/p;
     Scalar u = ei_sqrt(Scalar(1) + ei_abs2(t));
@@ -250,7 +250,7 @@ void PlanarRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
     if(q<Scalar(0))
       u = -u;
     m_s = -Scalar(1)/u;
-    m_c = t * m_s;
+    m_c = -t * m_s;
     if(r) *r = q * u;
   }
 
