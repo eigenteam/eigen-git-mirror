@@ -33,6 +33,7 @@
 
 #include "main.h"
 
+using namespace std;
 
 template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 {
@@ -45,14 +46,14 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
   typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
 
-  Mat_f mf(size,size);
-  Mat_d md(size,size);
-  Mat_cf mcf(size,size);
-  Mat_cd mcd(size,size);
-  Vec_f vf(size,1);
-  Vec_d vd(size,1);
-  Vec_cf vcf(size,1);
-  Vec_cd vcd(size,1);
+  Mat_f mf = Mat_f::Random(size,size);
+  Mat_d md = mf.template cast<double>();
+  Mat_cf mcf = Mat_cf::Random(size,size);
+  Mat_cd mcd = mcf.template cast<complex<double> >();
+  Vec_f vf = Vec_f::Random(size,1);
+  Vec_d vd = vf.template cast<double>();
+  Vec_cf vcf = Vec_cf::Random(size,1);
+  Vec_cd vcd = vcf.template cast<complex<double> >();
 
   mf+mf;
   VERIFY_RAISES_ASSERT(mf+md);
@@ -64,7 +65,16 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   vf.dot(vf);
   VERIFY_RAISES_ASSERT(vd.dot(vf));
   VERIFY_RAISES_ASSERT(vcf.dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
-}                                    // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+                                     // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+
+  VERIFY_IS_APPROX(vf.asDiagonal() * mcf, vf.template cast<complex<float> >().asDiagonal() * mcf);
+  VERIFY_IS_APPROX(vcd.asDiagonal() * md, vcd.asDiagonal() * md.template cast<complex<double> >());
+  VERIFY_IS_APPROX(mcf * vf.asDiagonal(), mcf * vf.template cast<complex<float> >().asDiagonal());
+  VERIFY_IS_APPROX(md * vcd.asDiagonal(), md.template cast<complex<double> >() * vcd.asDiagonal());
+
+//   vd.asDiagonal() * mf;    // does not even compile
+//   vcd.asDiagonal() * mf;   // does not even compile
+}
 
 
 void mixingtypes_large(int size)
