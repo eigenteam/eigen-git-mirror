@@ -129,7 +129,7 @@ The default constructor leaves coefficients uninitialized. Any dynamic size is s
 Matrix3f A; // construct 3x3 matrix with uninitialized coefficients
 A(0,0) = 5; // OK
 MatrixXf B; // construct 0x0 matrix without allocating anything
-A(0,0) = 5; // Error, B is uninitialized, doesn't have any coefficients to address
+B(0,0) = 5; // Error, B is uninitialized, doesn't have any coefficients to address
 \endcode
 
 In the above example, B is an uninitialized matrix. What to do with such a matrix? You can call resize() on it, or you can assign another matrix to it. Like this:
@@ -261,7 +261,7 @@ v = 6 6 6
 
 \subsection TutorialCasting Casting
 
-In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitely casted to another one using the template MatrixBase::cast() function:
+In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitly casted to another one using the template MatrixBase::cast() function:
 \code
 Matrix3d md(1,2,3);
 Matrix3f mf = md.cast<float>();
@@ -328,7 +328,7 @@ In short, all arithmetic operators can be used right away as in the following ex
 mat4 -= mat1*1.5 + mat2 * (mat3/4);
 \endcode
 which includes two matrix scalar products ("mat1*1.5" and "mat3/4"), a matrix-matrix product ("mat2 * (mat3/4)"),
-a matrix addition ("+") and substraction with assignment ("-=").
+a matrix addition ("+") and subtraction with assignment ("-=").
 
 <table class="tutorial_code">
 <tr><td>
@@ -464,7 +464,7 @@ mat = 2 7 8
 
 Also note that maxCoeff and minCoeff can takes optional arguments returning the coordinates of the respective min/max coeff: \link MatrixBase::maxCoeff(int*,int*) const maxCoeff(int* i, int* j) \endlink, \link MatrixBase::minCoeff(int*,int*) const minCoeff(int* i, int* j) \endlink.
 
-<span class="note">\b Side \b note: The all() and any() functions are especially useful in combinaison with coeff-wise comparison operators (\ref CwiseAll "example").</span>
+<span class="note">\b Side \b note: The all() and any() functions are especially useful in combination with coeff-wise comparison operators (\ref CwiseAll "example").</span>
 
 
 
@@ -578,7 +578,7 @@ vec1.normalize();\endcode
 
 <a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
 
-Currently, Eigen does not provide any explcit triangular matrix, with storage class. Instead, we
+Currently, Eigen does not provide any explicit triangular matrix, with storage class. Instead, we
 can reference a triangular part of a square matrix or expression to perform special treatment on it.
 This is achieved by the class TriangularView and the MatrixBase::triangularView template function.
 Note that the opposite triangular part of  the matrix is never referenced, and so it can, e.g., store
@@ -595,12 +595,12 @@ m.triangularView<Eigen::LowerTriangular>()
 m.triangularView<Eigen::UnitLowerTriangular>()\endcode
 </td></tr>
 <tr><td>
-Writting to a specific triangular part:\n (only the referenced triangular part is evaluated)
+Writing to a specific triangular part:\n (only the referenced triangular part is evaluated)
 </td><td>\code
 m1.triangularView<Eigen::LowerTriangular>() = m2 + m3 \endcode
 </td></tr>
 <tr><td>
-Convertion to a dense matrix setting the opposite triangular part to zero:
+Conversion to a dense matrix setting the opposite triangular part to zero:
 </td><td>\code
 m2 = m1.triangularView<Eigen::UnitUpperTriangular>()\endcode
 </td></tr>
