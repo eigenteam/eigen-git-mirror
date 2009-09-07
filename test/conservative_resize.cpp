@@ -108,22 +108,36 @@ void run_vector_tests()
   }
 }
 
+template <typename Scalar, int Storage>
+void run_resize_like_tests()
+{
+  typedef Matrix<Scalar, Eigen::Dynamic, 1, Storage> MatrixType;
+
+  MatrixType m;
+
+  m = MatrixType::Random(5);
+  m.conservativeResizeLike( MatrixType::Ones(2) );
+  std::cout << m << std::endl;
+}
+
 void test_conservative_resize()
 {
-  run_matrix_tests<int, Eigen::RowMajor>();
-  run_matrix_tests<int, Eigen::ColMajor>();
-  run_matrix_tests<float, Eigen::RowMajor>();
-  run_matrix_tests<float, Eigen::ColMajor>();
-  run_matrix_tests<double, Eigen::RowMajor>();
-  run_matrix_tests<double, Eigen::ColMajor>();
-  run_matrix_tests<std::complex<float>, Eigen::RowMajor>();
-  run_matrix_tests<std::complex<float>, Eigen::ColMajor>();
-  run_matrix_tests<std::complex<double>, Eigen::RowMajor>();
-  run_matrix_tests<std::complex<double>, Eigen::ColMajor>();
+  run_resize_like_tests<int, Eigen::RowMajor>();
 
-  run_vector_tests<int>();
-  run_vector_tests<float>();
-  run_vector_tests<double>();
-  run_vector_tests<std::complex<float> >();
-  run_vector_tests<std::complex<double> >();
+  //run_matrix_tests<int, Eigen::RowMajor>();
+  //run_matrix_tests<int, Eigen::ColMajor>();
+  //run_matrix_tests<float, Eigen::RowMajor>();
+  //run_matrix_tests<float, Eigen::ColMajor>();
+  //run_matrix_tests<double, Eigen::RowMajor>();
+  //run_matrix_tests<double, Eigen::ColMajor>();
+  //run_matrix_tests<std::complex<float>, Eigen::RowMajor>();
+  //run_matrix_tests<std::complex<float>, Eigen::ColMajor>();
+  //run_matrix_tests<std::complex<double>, Eigen::RowMajor>();
+  //run_matrix_tests<std::complex<double>, Eigen::ColMajor>();
+
+  //run_vector_tests<int>();
+  //run_vector_tests<float>();
+  //run_vector_tests<double>();
+  //run_vector_tests<std::complex<float> >();
+  //run_vector_tests<std::complex<double> >();
 }
