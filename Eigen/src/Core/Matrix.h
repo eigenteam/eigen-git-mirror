@@ -713,13 +713,11 @@ class Matrix
       m_storage.data()[1] = y;
     }
 
-    template<typename MatrixType, typename OtherDerived, bool IsSameType, bool IsDynamicSize>
+    template<typename MatrixType, typename OtherDerived, bool SwapPointers>
     friend struct ei_matrix_swap_impl;
 };
 
-template<typename MatrixType, typename OtherDerived,
-         bool IsSameType = ei_is_same_type<MatrixType, OtherDerived>::ret,
-         bool IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic>
+template<typename MatrixType, typename OtherDerived, bool SwapPointers>
 struct ei_matrix_swap_impl
 {
   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
@@ -729,7 +727,7 @@ struct ei_matrix_swap_impl
 };
 
 template<typename MatrixType, typename OtherDerived>
-struct ei_matrix_swap_impl<MatrixType, OtherDerived, true, true>
+struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
 {
   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
   {
@@ -741,7 +739,8 @@ template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int
 template<typename OtherDerived>
 inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(const MatrixBase<OtherDerived>& other)
 {
-  ei_matrix_swap_impl<Matrix, OtherDerived>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));
+  enum { SwapPointers = ei_is_same_type<Matrix, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
+  ei_matrix_swap_impl<Matrix, OtherDerived, bool(SwapPointers)>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));
 }
 
 /** \defgroup matrixtypedefs Global matrix typedefs
