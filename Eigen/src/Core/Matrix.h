@@ -331,19 +331,9 @@ class Matrix
     * The top-left part of the resized matrix will be the same as the overlapping top-left corner
     * of *this. In case values need to be appended to the matrix they will be uninitialized.
     */
-    inline void conservativeResize(int rows, int cols)
+    EIGEN_STRONG_INLINE void conservativeResize(int rows, int cols)
     {
-      // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
-      // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
-      // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
-      // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
-      // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
-      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Matrix)
-      PlainMatrixType tmp(rows, cols);
-      const int common_rows = std::min(rows, this->rows());
-      const int common_cols = std::min(cols, this->cols());
-      tmp.block(0,0,common_rows,common_cols) = this->block(0,0,common_rows,common_cols);
-      this->derived().swap(tmp);
+      conservativeResizeLike(PlainMatrixType(rows, cols));
     }
 
     EIGEN_STRONG_INLINE void conservativeResize(int rows, NoChange_t)
@@ -366,19 +356,13 @@ class Matrix
     *
     * When values are appended, they will be uninitialized.
     */
-    inline void conservativeResize(int size)
+    EIGEN_STRONG_INLINE void conservativeResize(int size)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
-      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Matrix)
-
-      PlainMatrixType tmp(size);
-      const int common_size = std::min<int>(this->size(),size);
-      tmp.segment(0,common_size) = this->segment(0,common_size);
-      this->derived().swap(tmp);
+      conservativeResizeLike(PlainMatrixType(size));
     }
 
     template<typename OtherDerived>
-    inline void conservativeResizeLike(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE void conservativeResizeLike(const MatrixBase<OtherDerived>& other)
     {
       ei_conservative_resize_like_impl<Matrix, OtherDerived>::run(*this, other);
     }
@@ -722,6 +706,14 @@ struct ei_conservative_resize_like_impl
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
+    // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
+    // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
+    // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
+    // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
+    EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
+    EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
+
     MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_rows = std::min(tmp.rows(), _this.rows());
     const int common_cols = std::min(tmp.cols(), _this.cols());
@@ -735,6 +727,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    // segment(...) will check whether Derived/OtherDerived are vectors!
     MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
     tmp.segment(0,common_size) = _this.segment(0,common_size);
