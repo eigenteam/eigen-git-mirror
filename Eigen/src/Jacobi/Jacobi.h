@@ -123,7 +123,7 @@ bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
 }
 
 /** Makes \c *this as a Jacobi rotation \c J such that applying \a J on both the right and left sides of the 2x2 selfadjoint matrix
-  * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ \overline \text{this}_{pq} & \text{this}_{qq} \end{array} \right )\f$ yields
+  * \f$ B = \left ( \begin{array}{cc} \text{this}_{pp} & \text{this}_{pq} \\ (\text{this}_{pq})^* & \text{this}_{qq} \end{array} \right )\f$ yields
   * a diagonal matrix \f$ A = J^* B J \f$
   *
   * Example: \include Jacobi_makeJacobi.cpp
