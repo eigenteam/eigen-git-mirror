@@ -36,8 +36,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  Scalar big = ei_random<Scalar>() * std::numeric_limits<RealScalar>::max() * 1e-4;
-  Scalar small = 1/big;
+  Scalar big = ei_random<Scalar>() * std::numeric_limits<RealScalar>::max() * RealScalar(1e-4);
+  Scalar small = static_cast<RealScalar>(1)/big;
 
   MatrixType  vzero = MatrixType::Zero(rows, cols),
               vrand = MatrixType::Random(rows, cols),
@@ -52,19 +52,19 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   VERIFY_IS_APPROX(vrand.blueNorm(),        vrand.norm());
   VERIFY_IS_APPROX(vrand.hypotNorm(),       vrand.norm());
 
-  RealScalar size = m.size();
+  RealScalar size = static_cast<RealScalar>(m.size());
 
   // test overflow
-  VERIFY_IS_NOT_APPROX(vbig.norm(),   ei_sqrt(size)*big); // here the default norm must fail
-  VERIFY_IS_APPROX(vbig.stableNorm(), ei_sqrt(size)*big);
-  VERIFY_IS_APPROX(vbig.blueNorm(),   ei_sqrt(size)*big);
-  VERIFY_IS_APPROX(vbig.hypotNorm(),  ei_sqrt(size)*big);
+  VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vbig.norm()),   ei_sqrt(size)*big); // here the default norm must fail
+  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.stableNorm()), ei_sqrt(size)*big);
+  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.blueNorm()),   ei_sqrt(size)*big);
+  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.hypotNorm()),  ei_sqrt(size)*big);
 
   // test underflow
-  VERIFY_IS_NOT_APPROX(vsmall.norm(),   ei_sqrt(size)*small); // here the default norm must fail
-  VERIFY_IS_APPROX(vsmall.stableNorm(), ei_sqrt(size)*small);
-  VERIFY_IS_APPROX(vsmall.blueNorm(),   ei_sqrt(size)*small);
-  VERIFY_IS_APPROX(vsmall.hypotNorm(),  ei_sqrt(size)*small);
+  VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vsmall.norm()),   ei_sqrt(size)*small); // here the default norm must fail
+  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.stableNorm()), ei_sqrt(size)*small);
+  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.blueNorm()),   ei_sqrt(size)*small);
+  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.hypotNorm()),  ei_sqrt(size)*small);
 }
 
 void test_stable_norm()
@@ -77,4 +77,3 @@ void test_stable_norm()
     CALL_SUBTEST( stable_norm(VectorXcd(ei_random<int>(10,2000))) );
   }
 }
-
