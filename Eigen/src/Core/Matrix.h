@@ -25,6 +25,7 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 
 /** \class Matrix
   *
@@ -701,7 +702,7 @@ class Matrix
     friend struct ei_matrix_swap_impl;
 };
 
-template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)>
+template <typename Derived, typename OtherDerived, bool IsVector>
 struct ei_conservative_resize_like_impl
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
@@ -714,7 +715,7 @@ struct ei_conservative_resize_like_impl
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
 
-    MatrixBase<Derived>::PlainMatrixType tmp(other);
+    typename MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_rows = std::min(tmp.rows(), _this.rows());
     const int common_cols = std::min(tmp.cols(), _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
@@ -728,7 +729,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
     // segment(...) will check whether Derived/OtherDerived are vectors!
-    MatrixBase<Derived>::PlainMatrixType tmp(other);
+    typename MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
     tmp.segment(0,common_size) = _this.segment(0,common_size);
     _this.derived().swap(tmp);
