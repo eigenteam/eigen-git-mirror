@@ -25,6 +25,10 @@
 #ifndef EIGEN_MATRIX_EXPONENTIAL
 #define EIGEN_MATRIX_EXPONENTIAL
 
+#ifdef _MSC_VER
+  template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
+#endif
+
 /** \brief Compute the matrix exponential. 
  *
  * \param M      matrix whose exponential is to be computed. 
@@ -61,260 +65,243 @@ template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
 					       typename MatrixBase<Derived>::PlainMatrixType* result);
 
+/** \brief Class for computing the matrix exponential.*/
+template <typename MatrixType>
+class MatrixExponential {
 
-/** \internal \brief Internal helper functions for computing the
- *  matrix exponential.
- */
-namespace MatrixExponentialInternal {
+  public:
+  
+    /** \brief Compute the matrix exponential. 
+     *
+     * \param M      matrix whose exponential is to be computed. 
+     * \param result pointer to the matrix in which to store the result.
+     */
+    MatrixExponential(const MatrixType &M, MatrixType *result);  
 
-#ifdef _MSC_VER
-  template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
-#endif
+  private:
 
-  /** \internal \brief Compute the (3,3)-Pad&eacute; approximant to
-   *  the exponential.
-   *  
-   *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
-   *  approximant of \f$ \exp(M) \f$ around \f$ M = 0 \f$.
-   *
-   *  \param M   Argument of matrix exponential
-   *  \param Id  Identity matrix of same size as M
-   *  \param tmp Temporary storage, to be provided by the caller
-   *  \param M2  Temporary storage, to be provided by the caller
-   *  \param U   Even-degree terms in numerator of Pad&eacute; approximant
-   *  \param V   Odd-degree terms in numerator of Pad&eacute; approximant
-   */
-  template <typename MatrixType>
-  EIGEN_STRONG_INLINE void pade3(const MatrixType &M, const MatrixType& Id, MatrixType& tmp, 
-				 MatrixType& M2, MatrixType& U, MatrixType& V)
-  {
+    // Prevent copying
+    MatrixExponential(const MatrixExponential&);
+    MatrixExponential& operator=(const MatrixExponential&);
+
+    /** \brief Compute the (3,3)-Pad&eacute; approximant to the exponential.
+     *  
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  \param A   Argument of matrix exponential
+     */
+    void pade3(const MatrixType &A);
+
+    /** \brief Compute the (5,5)-Pad&eacute; approximant to the exponential.
+     *  
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  \param A   Argument of matrix exponential
+     */
+    void pade5(const MatrixType &A);
+
+    /** \brief Compute the (7,7)-Pad&eacute; approximant to the exponential.
+     *  
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  \param A   Argument of matrix exponential
+     */
+    void pade7(const MatrixType &A);
+
+    /** \brief Compute the (9,9)-Pad&eacute; approximant to the exponential.
+     *  
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  \param A   Argument of matrix exponential
+     */
+    void pade9(const MatrixType &A);
+
+    /** \brief Compute the (13,13)-Pad&eacute; approximant to the exponential.
+     *  
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  \param A   Argument of matrix exponential
+     */
+    void pade13(const MatrixType &A);
+
+    /** \brief Compute Pad&eacute; approximant to the exponential. 
+     *  
+     * Computes \c m_U, \c m_V and \c m_squarings such that 
+     * \f$ (V+U)(V-U)^{-1} \f$ is a Pad&eacute; of 
+     * \f$ \exp(2^{-\mbox{squarings}}M) \f$ around \f$ M = 0 \f$. The
+     * degree of the Pad&eacute; approximant and the value of
+     * squarings are chosen such that the approximation error is no
+     * more than the round-off error.
+     *
+     * The argument of this function should correspond with the (real
+     * part of) the entries of \c m_M.  It is used to select the
+     * correct implementation using overloading.
+     */
+    void computeUV(double);
+
+    /** \brief Compute Pad&eacute; approximant to the exponential. 
+     *
+     *  \sa computeUV(double);
+     */
+    void computeUV(float);
+
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    const Scalar b[] = {120., 60., 12., 1.};
-    M2.noalias() = M * M;
-    tmp = b[3]*M2 + b[1]*Id;
-    U.noalias() = M * tmp;
-    V = b[2]*M2 + b[0]*Id;
-  }
-  
-  /** \internal \brief Compute the (5,5)-Pad&eacute; approximant to
-   *  the exponential.
-   *  
-   *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
-   *  approximant of \f$ \exp(M) \f$ around \f$ M = 0 \f$.
-   *
-   *  \param M   Argument of matrix exponential
-   *  \param Id  Identity matrix of same size as M
-   *  \param tmp Temporary storage, to be provided by the caller
-   *  \param M2  Temporary storage, to be provided by the caller
-   *  \param U   Even-degree terms in numerator of Pad&eacute; approximant
-   *  \param V   Odd-degree terms in numerator of Pad&eacute; approximant
-   */
-  template <typename MatrixType>
-  EIGEN_STRONG_INLINE void pade5(const MatrixType &M, const MatrixType& Id, MatrixType& tmp, 
-				 MatrixType& M2, MatrixType& U, MatrixType& V)
-  {
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    const Scalar b[] = {30240., 15120., 3360., 420., 30., 1.};
-    M2.noalias() = M * M;
-    MatrixType M4 = M2 * M2;
-    tmp = b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U.noalias() = M * tmp;
-    V = b[4]*M4 + b[2]*M2 + b[0]*Id;
-  }
-  
-  /** \internal \brief Compute the (7,7)-Pad&eacute; approximant to
-   *  the exponential.
-   *  
-   *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
-   *  approximant of \f$ \exp(M) \f$ around \f$ M = 0 \f$.
-   *
-   *  \param M   Argument of matrix exponential
-   *  \param Id  Identity matrix of same size as M
-   *  \param tmp Temporary storage, to be provided by the caller
-   *  \param M2  Temporary storage, to be provided by the caller
-   *  \param U   Even-degree terms in numerator of Pad&eacute; approximant
-   *  \param V   Odd-degree terms in numerator of Pad&eacute; approximant
-   */
-  template <typename MatrixType>
-  EIGEN_STRONG_INLINE void pade7(const MatrixType &M, const MatrixType& Id, MatrixType& tmp, 
-				 MatrixType& M2, MatrixType& U, MatrixType& V)
-  {
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    const Scalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
-    M2.noalias() = M * M;
-    MatrixType M4 = M2 * M2;
-    MatrixType M6 = M4 * M2;
-    tmp = b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U.noalias() = M * tmp;
-    V = b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
-  }
-  
-  /** \internal \brief Compute the (9,9)-Pad&eacute; approximant to
-   *  the exponential.
-   *  
-   *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
-   *  approximant of \f$ \exp(M) \f$ around \f$ M = 0 \f$.
-   *
-   *  \param M   Argument of matrix exponential
-   *  \param Id  Identity matrix of same size as M
-   *  \param tmp Temporary storage, to be provided by the caller
-   *  \param M2  Temporary storage, to be provided by the caller
-   *  \param U   Even-degree terms in numerator of Pad&eacute; approximant
-   *  \param V   Odd-degree terms in numerator of Pad&eacute; approximant
-   */
-  template <typename MatrixType>
-  EIGEN_STRONG_INLINE void pade9(const MatrixType &M, const MatrixType& Id, MatrixType& tmp, 
-				 MatrixType& M2, MatrixType& U, MatrixType& V)
-  {
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    const Scalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
+    typedef typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real RealScalar;
+
+    /** \brief Pointer to matrix whose exponential is to be computed. */
+    const MatrixType* m_M; 
+
+    /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
+    MatrixType m_U;
+
+    /** \brief Odd-degree terms in numerator of Pad&eacute; approximant. */
+    MatrixType m_V;
+
+    /** \brief Used for temporary storage. */
+    MatrixType m_tmp1;
+
+    /** \brief Used for temporary storage. */
+    MatrixType m_tmp2;
+
+    /** \brief Identity matrix of the same size as \c m_M. */
+    MatrixType m_Id;
+
+    /** \brief Number of squarings required in the last step. */
+    int m_squarings;
+
+    /** \brief L1 norm of m_M. */
+    float m_l1norm;
+};
+
+template <typename MatrixType>
+MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M, MatrixType *result) :
+  m_M(&M), 
+  m_U(M.rows(),M.cols()), 
+  m_V(M.rows(),M.cols()), 
+  m_tmp1(M.rows(),M.cols()), 
+  m_tmp2(M.rows(),M.cols()), 
+  m_Id(MatrixType::Identity(M.rows(), M.cols())), 
+  m_squarings(0), 
+  m_l1norm(static_cast<float>(M.cwise().abs().colwise().sum().maxCoeff()))
+{
+  computeUV(RealScalar());
+  m_tmp1 = m_U + m_V;	// numerator of Pade approximant
+  m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
+  m_tmp2.partialLu().solve(m_tmp1, result);
+  for (int i=0; i<m_squarings; i++)
+    *result *= *result;		// undo scaling by repeated squaring
+}
+
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade3(const MatrixType &A)
+{
+  const Scalar b[] = {120., 60., 12., 1.};
+  m_tmp1.noalias() = A * A;
+  m_tmp2 = b[3]*m_tmp1 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_V = b[2]*m_tmp1 + b[0]*m_Id;
+}
+
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade5(const MatrixType &A)
+{
+  const Scalar b[] = {30240., 15120., 3360., 420., 30., 1.};
+  MatrixType A2 = A * A;
+  m_tmp1.noalias() = A2 * A2;
+  m_tmp2 = b[5]*m_tmp1 + b[3]*A2 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_V = b[4]*m_tmp1 + b[2]*A2 + b[0]*m_Id;
+}
+
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade7(const MatrixType &A)
+{
+  const Scalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
+  MatrixType A2 = A * A;
+  MatrixType A4 = A2 * A2;
+  m_tmp1.noalias() = A4 * A2;
+  m_tmp2 = b[7]*m_tmp1 + b[5]*A4 + b[3]*A2 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_V = b[6]*m_tmp1 + b[4]*A4 + b[2]*A2 + b[0]*m_Id;
+}
+
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade9(const MatrixType &A)
+{
+  const Scalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
   		      2162160., 110880., 3960., 90., 1.};
-    M2.noalias() = M * M;
-    MatrixType M4 = M2 * M2;
-    MatrixType M6 = M4 * M2;
-    MatrixType M8 = M6 * M2;
-    tmp = b[9]*M8 + b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U.noalias() = M * tmp;
-    V = b[8]*M8 + b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
-  }
-  
-  /** \internal \brief Compute the (13,13)-Pad&eacute; approximant to
-   *  the exponential.
-   *  
-   *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
-   *  approximant of \f$ \exp(M) \f$ around \f$ M = 0 \f$.
-   *
-   *  \param M   Argument of matrix exponential
-   *  \param Id  Identity matrix of same size as M
-   *  \param tmp Temporary storage, to be provided by the caller
-   *  \param M2  Temporary storage, to be provided by the caller
-   *  \param U   Even-degree terms in numerator of Pad&eacute; approximant
-   *  \param V   Odd-degree terms in numerator of Pad&eacute; approximant
-   */
-  template <typename MatrixType>
-  EIGEN_STRONG_INLINE void pade13(const MatrixType &M, const MatrixType& Id, MatrixType& tmp, 
-				  MatrixType& M2, MatrixType& U, MatrixType& V)
-  {
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600., 
+  MatrixType A2 = A * A;
+  MatrixType A4 = A2 * A2;
+  MatrixType A6 = A4 * A2;
+  m_tmp1.noalias() = A6 * A2;
+  m_tmp2 = b[9]*m_tmp1 + b[7]*A6 + b[5]*A4 + b[3]*A2 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_V = b[8]*m_tmp1 + b[6]*A6 + b[4]*A4 + b[2]*A2 + b[0]*m_Id;
+}
+
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType &A)
+{
+  const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600., 
   		      1187353796428800., 129060195264000., 10559470521600., 670442572800., 
   		      33522128640., 1323241920., 40840800., 960960., 16380., 182., 1.};
-    M2.noalias() = M * M;
-    MatrixType M4 = M2 * M2;
-    MatrixType M6 = M4 * M2;
-    V = b[13]*M6 + b[11]*M4 + b[9]*M2;
-    tmp.noalias() = M6 * V;
-    tmp += b[7]*M6 + b[5]*M4 + b[3]*M2 + b[1]*Id;
-    U.noalias() = M * tmp;
-    tmp = b[12]*M6 + b[10]*M4 + b[8]*M2;
-    V.noalias() = M6 * tmp;
-    V += b[6]*M6 + b[4]*M4 + b[2]*M2 + b[0]*Id;
-  }
-  
-  /** \internal \brief Helper class for computing Pad&eacute;
-   *  approximants to the exponential.
-   */
-  template <typename MatrixType, typename RealScalar = typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real>
-  struct computeUV_selector
-  {
-    /** \internal \brief Compute Pad&eacute; approximant to the exponential. 
-     *  
-     *  Computes \p U, \p V and \p squarings such that \f$ (V+U)(V-U)^{-1} \f$ 
-     *  is a Pad&eacute; of \f$ \exp(2^{-\mbox{squarings}}M) \f$
-     *  around \f$ M = 0 \f$. The degree of the Pad&eacute;
-     *  approximant and the value of squarings are chosen such that
-     *  the approximation error is no more than the round-off error.
-     *
-     *  \param M         Argument of matrix exponential
-     *  \param Id        Identity matrix of same size as M
-     *  \param tmp1      Temporary storage, to be provided by the caller
-     *  \param tmp2      Temporary storage, to be provided by the caller
-     *  \param U         Even-degree terms in numerator of Pad&eacute; approximant
-     *  \param V         Odd-degree terms in numerator of Pad&eacute; approximant
-     *  \param l1norm    L<sub>1</sub> norm of M
-     *  \param squarings Pointer to integer containing number of times
-     *                   that the result needs to be squared to find the
-     *                   matrix exponential 
-     */
-    static void run(const MatrixType &M, const MatrixType& Id, MatrixType& tmp1, MatrixType& tmp2, 
-		    MatrixType& U, MatrixType& V, float l1norm, int* squarings);
-  };
-  
-  template <typename MatrixType>
-  struct computeUV_selector<MatrixType, float>
-  {
-    static void run(const MatrixType &M, const MatrixType& Id, MatrixType& tmp1, MatrixType& tmp2, 
-		    MatrixType& U, MatrixType& V, float l1norm, int* squarings)
-    {
-      *squarings = 0;
-      if (l1norm < 4.258730016922831e-001) {
-        pade3(M, Id, tmp1, tmp2, U, V);
-      } else if (l1norm < 1.880152677804762e+000) {
-        pade5(M, Id, tmp1, tmp2, U, V);
-      } else {
-        const float maxnorm = 3.925724783138660f;
-        *squarings = std::max(0, (int)ceil(log2(l1norm / maxnorm)));
-        MatrixType A = M / std::pow(typename ei_traits<MatrixType>::Scalar(2), *squarings);
-        pade7(A, Id, tmp1, tmp2, U, V);
-      }
-    }
-  };
-  
-  template <typename MatrixType>
-  struct computeUV_selector<MatrixType, double>
-  {
-    static void run(const MatrixType &M, const MatrixType& Id, MatrixType& tmp1, MatrixType& tmp2, 
-		    MatrixType& U, MatrixType& V, float l1norm, int* squarings)
-    {
-      *squarings = 0;
-      if (l1norm < 1.495585217958292e-002) {
-        pade3(M, Id, tmp1, tmp2, U, V);
-      } else if (l1norm < 2.539398330063230e-001) {
-        pade5(M, Id, tmp1, tmp2, U, V);
-      } else if (l1norm < 9.504178996162932e-001) {
-        pade7(M, Id, tmp1, tmp2, U, V);
-      } else if (l1norm < 2.097847961257068e+000) {
-        pade9(M, Id, tmp1, tmp2, U, V);
-      } else {
-        const double maxnorm = 5.371920351148152;
-        *squarings = std::max(0, (int)ceil(log2(l1norm / maxnorm)));
-        MatrixType A = M / std::pow(typename ei_traits<MatrixType>::Scalar(2), *squarings);
-        pade13(A, Id, tmp1, tmp2, U, V);
-      }
-    }
-  };
-  
-  /** \internal \brief Compute the matrix exponential. 
-   *
-   * \param M      matrix whose exponential is to be computed. 
-   * \param result pointer to the matrix in which to store the result.
-   */
-  template <typename MatrixType>
-  void compute(const MatrixType &M, MatrixType* result)
-  {
-    MatrixType num(M.rows(), M.cols());
-    MatrixType den(M.rows(), M.cols());
-    MatrixType U(M.rows(), M.cols());
-    MatrixType V(M.rows(), M.cols());
-    MatrixType Id = MatrixType::Identity(M.rows(), M.cols());
-    float l1norm = static_cast<float>(M.cwise().abs().colwise().sum().maxCoeff());
-    int squarings;
-    computeUV_selector<MatrixType>::run(M, Id, num, den, U, V, l1norm, &squarings);
-    num = U + V;			// numerator of Pade approximant
-    den = -U + V;			// denominator of Pade approximant
-    den.partialLu().solve(num, result);
-    for (int i=0; i<squarings; i++)
-      *result *= *result;		// undo scaling by repeated squaring
-  }
+  MatrixType A2 = A * A;
+  MatrixType A4 = A2 * A2;
+  m_tmp1.noalias() = A4 * A2;
+  m_V = b[13]*m_tmp1 + b[11]*A4 + b[9]*A2; // used for temporary storage
+  m_tmp2.noalias() = m_tmp1 * m_V;
+  m_tmp2 += b[7]*m_tmp1 + b[5]*A4 + b[3]*A2 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_tmp2 = b[12]*m_tmp1 + b[10]*A4 + b[8]*A2;
+  m_V.noalias() = m_tmp1 * m_tmp2;
+  m_V += b[6]*m_tmp1 + b[4]*A4 + b[2]*A2 + b[0]*m_Id;
+}
 
-} // end of namespace MatrixExponentialInternal
+template <typename MatrixType>
+void MatrixExponential<MatrixType>::computeUV(float)
+{
+  if (m_l1norm < 4.258730016922831e-001) {
+    pade3(*m_M);
+  } else if (m_l1norm < 1.880152677804762e+000) {
+    pade5(*m_M);
+  } else {
+    const float maxnorm = 3.925724783138660f;
+    m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = *m_M / std::pow(Scalar(2), m_squarings);
+    pade7(A);
+  }
+}
+
+template <typename MatrixType>
+void MatrixExponential<MatrixType>::computeUV(double)
+{
+  if (m_l1norm < 1.495585217958292e-002) {
+    pade3(*m_M);
+  } else if (m_l1norm < 2.539398330063230e-001) {
+    pade5(*m_M);
+  } else if (m_l1norm < 9.504178996162932e-001) {
+    pade7(*m_M);
+  } else if (m_l1norm < 2.097847961257068e+000) {
+    pade9(*m_M);
+  } else {
+    const double maxnorm = 5.371920351148152;
+    m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = *m_M / std::pow(Scalar(2), m_squarings);
+    pade13(A);
+  }
+}
 
 template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
 					       typename MatrixBase<Derived>::PlainMatrixType* result)
 {
   ei_assert(M.rows() == M.cols());
-  MatrixExponentialInternal::compute(M.eval(), result);
+  MatrixExponential<typename MatrixBase<Derived>::PlainMatrixType>(M, result);
 }
 
 #endif // EIGEN_MATRIX_EXPONENTIAL
