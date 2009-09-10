@@ -144,7 +144,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // const Scalar dst_var = dst_demean.rowwise().squaredNorm().sum() * one_over_n;
 
   // Eq. (38)
-  const MatrixType sigma = (one_over_n * dst_demean * src_demean.transpose()).lazy();
+  const MatrixType sigma = one_over_n * dst_demean * src_demean.transpose();
 
   SVD<MatrixType> svd(sigma);
 
@@ -160,14 +160,14 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   int rank = 0; for (int i=0; i<m; ++i) if (!ei_isMuchSmallerThan(d.coeff(i),d.coeff(0))) ++rank;
   if (rank == m-1) {
     if ( svd.matrixU().determinant() * svd.matrixV().determinant() > 0 ) {
-      Rt.block(0,0,m,m) = (svd.matrixU()*svd.matrixV().transpose()).lazy();
+      Rt.block(0,0,m,m).noalias() = svd.matrixU()*svd.matrixV().transpose();
     } else {
       const Scalar s = S(m-1); S(m-1) = -1;
-      Rt.block(0,0,m,m) = (svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose()).lazy();
+      Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
       S(m-1) = s;
     }
   } else {
-    Rt.block(0,0,m,m) = (svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose()).lazy();
+    Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
   }
 
   // Eq. (42)
@@ -177,7 +177,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // Note that we first assign dst_mean to the destination so that there no need
   // for a temporary.
   Rt.col(m).start(m) = dst_mean;
-  Rt.col(m).start(m) -= (c*Rt.corner(TopLeft,m,m)*src_mean).lazy();
+  Rt.col(m).start(m).noalias() -= c*Rt.corner(TopLeft,m,m)*src_mean;
 
   if (with_scaling) Rt.block(0,0,m,m) *= c;
 

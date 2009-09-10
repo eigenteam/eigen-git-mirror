@@ -141,7 +141,7 @@ template<> struct ei_llt_inplace<LowerTriangular>
       if (x<=RealScalar(0))
         return false;
       mat.coeffRef(k,k) = x = ei_sqrt(x);
-      if (k>0 && rs>0) A21 -= (A20 * A10.adjoint()).lazy();
+      if (k>0 && rs>0) A21.noalias() -= A20 * A10.adjoint();
       if (rs>0) A21 *= RealScalar(1)/x;
     }
     return true;

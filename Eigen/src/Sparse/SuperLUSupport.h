@@ -48,6 +48,37 @@ DECL_GSSVX(SuperLU_C,cgssvx,float,std::complex<float>)
 DECL_GSSVX(SuperLU_D,dgssvx,double,double)
 DECL_GSSVX(SuperLU_Z,zgssvx,double,std::complex<double>)
 
+#ifdef MILU_ALPHA
+#define EIGEN_SUPERLU_HAS_ILU
+#endif
+
+#ifdef EIGEN_SUPERLU_HAS_ILU
+
+// similarly for the incomplete factorization using gsisx
+#define DECL_GSISX(NAMESPACE,FNAME,FLOATTYPE,KEYTYPE) \
+    inline float SuperLU_gsisx(superlu_options_t *options, SuperMatrix *A,  \
+         int *perm_c, int *perm_r, int *etree, char *equed,  \
+         FLOATTYPE *R, FLOATTYPE *C, SuperMatrix *L,         \
+         SuperMatrix *U, void *work, int lwork,              \
+         SuperMatrix *B, SuperMatrix *X,                     \
+         FLOATTYPE *recip_pivot_growth,                      \
+         FLOATTYPE *rcond,                                   \
+         SuperLUStat_t *stats, int *info, KEYTYPE) {         \
+    using namespace NAMESPACE; \
+    mem_usage_t mem_usage;                                    \
+    NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
+         U, work, lwork, B, X, recip_pivot_growth, rcond,    \
+         &mem_usage, stats, info);                           \
+    return mem_usage.for_lu; /* bytes used by the factor storage */     \
+  }
+
+DECL_GSISX(SuperLU_S,sgsisx,float,float)
+DECL_GSISX(SuperLU_C,cgsisx,float,std::complex<float>)
+DECL_GSISX(SuperLU_D,dgsisx,double,double)
+DECL_GSISX(SuperLU_Z,zgsisx,double,std::complex<double>)
+
+#endif
+
 template<typename MatrixType>
 struct SluMatrixMapHelper;
 
@@ -71,7 +102,7 @@ struct SluMatrix : SuperMatrix
     Store = &storage;
     storage = other.storage;
   }
-  
+
   SluMatrix& operator=(const SluMatrix& other)
   {
     SuperMatrix::operator=(static_cast<const SuperMatrix&>(other));
@@ -130,7 +161,7 @@ struct SluMatrix : SuperMatrix
     res.nrow      = mat.rows();
     res.ncol      = mat.cols();
 
-    res.storage.lda       = mat.stride();
+    res.storage.lda       = MatrixType::IsVectorAtCompileTime ? mat.size() : mat.stride();
     res.storage.values    = mat.data();
     return res;
   }
@@ -373,7 +404,7 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
   m_sluA = m_matrix.asSluMatrix();
   memset(&m_sluL,0,sizeof m_sluL);
   memset(&m_sluU,0,sizeof m_sluU);
-  m_sluEqued = 'B';
+  //m_sluEqued = 'B';
   int info = 0;
 
   m_p.resize(size);
@@ -395,14 +426,44 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
   m_sluX = m_sluB;
 
   StatInit(&m_sluStat);
-  SuperLU_gssvx(&m_sluOptions, &m_sluA, m_q.data(), m_p.data(), &m_sluEtree[0],
-          &m_sluEqued, &m_sluRscale[0], &m_sluCscale[0],
-          &m_sluL, &m_sluU,
-          NULL, 0,
-          &m_sluB, &m_sluX,
-          &recip_pivot_gross, &rcond,
-          &ferr, &berr,
-          &m_sluStat, &info, Scalar());
+  if (m_flags&IncompleteFactorization)
+  {
+    #ifdef EIGEN_SUPERLU_HAS_ILU
+    ilu_set_default_options(&m_sluOptions);
+
+    // no attempt to preserve column sum
+    m_sluOptions.ILU_MILU = SILU;
+
+    // only basic ILU(k) support -- no direct control over memory consumption
+    // better to use ILU_DropRule = DROP_BASIC | DROP_AREA
+    // and set ILU_FillFactor to max memory growth
+    m_sluOptions.ILU_DropRule = DROP_BASIC;
+    m_sluOptions.ILU_DropTol = Base::m_precision;
+
+    SuperLU_gsisx(&m_sluOptions, &m_sluA, m_q.data(), m_p.data(), &m_sluEtree[0],
+      &m_sluEqued, &m_sluRscale[0], &m_sluCscale[0],
+      &m_sluL, &m_sluU,
+      NULL, 0,
+      &m_sluB, &m_sluX,
+      &recip_pivot_gross, &rcond,
+      &m_sluStat, &info, Scalar());
+    #else
+    std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
+    Base::m_succeeded = false;
+    return;
+    #endif
+  }
+  else
+  {
+    SuperLU_gssvx(&m_sluOptions, &m_sluA, m_q.data(), m_p.data(), &m_sluEtree[0],
+      &m_sluEqued, &m_sluRscale[0], &m_sluCscale[0],
+      &m_sluL, &m_sluU,
+      NULL, 0,
+      &m_sluB, &m_sluX,
+      &recip_pivot_gross, &rcond,
+      &ferr, &berr,
+      &m_sluStat, &info, Scalar());
+  }
   StatFree(&m_sluStat);
 
   m_extractedDataAreDirty = true;
@@ -440,17 +501,36 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b,
   StatInit(&m_sluStat);
   int info = 0;
   RealScalar recip_pivot_gross, rcond;
-  SuperLU_gssvx(
-    &m_sluOptions, &m_sluA,
-    m_q.data(), m_p.data(),
-    &m_sluEtree[0], &m_sluEqued,
-    &m_sluRscale[0], &m_sluCscale[0],
-    &m_sluL, &m_sluU,
-    NULL, 0,
-    &m_sluB, &m_sluX,
-    &recip_pivot_gross, &rcond,
-    &m_sluFerr[0], &m_sluBerr[0],
-    &m_sluStat, &info, Scalar());
+
+  if (m_flags&IncompleteFactorization)
+  {
+    #ifdef EIGEN_SUPERLU_HAS_ILU
+    SuperLU_gsisx(&m_sluOptions, &m_sluA, m_q.data(), m_p.data(), &m_sluEtree[0],
+      &m_sluEqued, &m_sluRscale[0], &m_sluCscale[0],
+      &m_sluL, &m_sluU,
+      NULL, 0,
+      &m_sluB, &m_sluX,
+      &recip_pivot_gross, &rcond,
+      &m_sluStat, &info, Scalar());
+    #else
+    std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
+    return false;
+    #endif
+  }
+  else
+  {
+    SuperLU_gssvx(
+      &m_sluOptions, &m_sluA,
+      m_q.data(), m_p.data(),
+      &m_sluEtree[0], &m_sluEqued,
+      &m_sluRscale[0], &m_sluCscale[0],
+      &m_sluL, &m_sluU,
+      NULL, 0,
+      &m_sluB, &m_sluX,
+      &recip_pivot_gross, &rcond,
+      &m_sluFerr[0], &m_sluBerr[0],
+      &m_sluStat, &info, Scalar());
+  }
   StatFree(&m_sluStat);
 
   // reset to previous state

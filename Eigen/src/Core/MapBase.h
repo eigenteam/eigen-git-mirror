@@ -62,7 +62,21 @@ template<typename Derived> class MapBase
     inline int rows() const { return m_rows.value(); }
     inline int cols() const { return m_cols.value(); }
 
+    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
+      *
+      * More precisely:
+      *  - for a column major matrix it returns the number of elements between two successive columns
+      *  - for a row major matrix it returns the number of elements between two successive rows
+      *  - for a vector it returns the number of elements between two successive coefficients
+      * This function has to be used together with the MapBase::data() function.
+      *
+      * \sa MapBase::data() */
     inline int stride() const { return derived().stride(); }
+
+    /** Returns a pointer to the first coefficient of the matrix or vector.
+      * This function has to be used together with the stride() function.
+      *
+      * \sa MapBase::stride() */
     inline const Scalar* data() const { return m_data; }
 
     template<bool IsForceAligned,typename Dummy> struct force_aligned_impl {

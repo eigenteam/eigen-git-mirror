@@ -25,6 +25,7 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 
 /** \class Matrix
   *
@@ -126,6 +127,7 @@ class Matrix
     EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
     enum { Options = _Options };
+    typedef typename Base::PlainMatrixType PlainMatrixType;
     friend class Eigen::Map<Matrix, Unaligned>;
     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
     friend class Eigen::Map<Matrix, Aligned>;
@@ -139,15 +141,27 @@ class Matrix
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
+    Base& base() { return *static_cast<Base*>(this); }
+    const Base& base() const { return *static_cast<const Base*>(this); }
+
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
 
-    EIGEN_STRONG_INLINE int stride(void) const
+    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
+      *
+      * More precisely:
+      *  - for a column major matrix it returns the number of elements between two successive columns
+      *  - for a row major matrix it returns the number of elements between two successive rows
+      *  - for a vector it returns the number of elements between two successive coefficients
+      * This function has to be used together with the MapBase::data() function.
+      *
+      * \sa Matrix::data() */
+    EIGEN_STRONG_INLINE int stride() const
     {
-      if(Flags & RowMajorBit)
-        return m_storage.cols();
+      if(IsVectorAtCompileTime)
+        return 1;
       else
-        return m_storage.rows();
+        return (Flags & RowMajorBit) ? m_storage.cols() : m_storage.rows();
     }
 
     EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const
@@ -295,7 +309,7 @@ class Matrix
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE void resizeLike(const MatrixBase<OtherDerived>& other)
-    {
+    {      
       if(RowsAtCompileTime == 1)
       {
         ei_assert(other.isVector());
@@ -307,6 +321,51 @@ class Matrix
         resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
+    }
+
+    /** Resizes \c *this to a \a rows x \a cols matrix while leaving old values of *this untouched.
+    *
+    * This method is intended for dynamic-size matrices. If you only want to change the number
+    * of rows and/or of columns, you can use conservativeResize(NoChange_t, int),
+    * conservativeResize(int, NoChange_t).
+    *
+    * The top-left part of the resized matrix will be the same as the overlapping top-left corner
+    * of *this. In case values need to be appended to the matrix they will be uninitialized.
+    */
+    EIGEN_STRONG_INLINE void conservativeResize(int rows, int cols)
+    {
+      conservativeResizeLike(PlainMatrixType(rows, cols));
+    }
+
+    EIGEN_STRONG_INLINE void conservativeResize(int rows, NoChange_t)
+    {
+      // Note: see the comment in conservativeResize(int,int)
+      conservativeResize(rows, cols());
+    }
+
+    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, int cols)
+    {
+      // Note: see the comment in conservativeResize(int,int)
+      conservativeResize(rows(), cols);
+    }
+
+    /** Resizes \c *this to a vector of length \a size while retaining old values of *this.
+    *
+    * \only_for_vectors. This method does not work for
+    * partially dynamic matrices when the static dimension is anything other
+    * than 1. For example it will not work with Matrix<double, 2, Dynamic>.
+    *
+    * When values are appended, they will be uninitialized.
+    */
+    EIGEN_STRONG_INLINE void conservativeResize(int size)
+    {
+      conservativeResizeLike(PlainMatrixType(size));
+    }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void conservativeResizeLike(const MatrixBase<OtherDerived>& other)
+    {
+      ei_conservative_resize_like_impl<Matrix, OtherDerived>::run(*this, other);
     }
 
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
@@ -329,7 +388,15 @@ class Matrix
       */
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {
-      return  _set(other);
+      return _set(other);
+    }
+
+    /** \sa MatrixBase::lazyAssign() */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& lazyAssign(const MatrixBase<OtherDerived>& other)
+    {
+      _resize_to_match(other);
+      return Base::lazyAssign(other.derived());
     }
 
     template<typename OtherDerived,typename OtherEvalType>
@@ -470,13 +537,8 @@ class Matrix
     /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
       * data pointers.
       */
-    inline void swap(Matrix& other)
-    {
-      if (Base::SizeAtCompileTime==Dynamic)
-        m_storage.swap(other.m_storage);
-      else
-        this->Base::swap(other);
-    }
+    template<typename OtherDerived>
+    void swap(const MatrixBase<OtherDerived>& other);
 
     /** \name Map
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
@@ -635,7 +697,70 @@ class Matrix
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }
+
+    template<typename MatrixType, typename OtherDerived, bool SwapPointers>
+    friend struct ei_matrix_swap_impl;
 };
+
+template <typename Derived, typename OtherDerived, bool IsVector>
+struct ei_conservative_resize_like_impl
+{
+  static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
+  {
+    // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
+    // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
+    // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
+    // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
+    // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
+    EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
+    EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
+
+    typename MatrixBase<Derived>::PlainMatrixType tmp(other);
+    const int common_rows = std::min(tmp.rows(), _this.rows());
+    const int common_cols = std::min(tmp.cols(), _this.cols());
+    tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
+    _this.derived().swap(tmp);
+  }
+};
+
+template <typename Derived, typename OtherDerived>
+struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
+{
+  static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
+  {
+    // segment(...) will check whether Derived/OtherDerived are vectors!
+    typename MatrixBase<Derived>::PlainMatrixType tmp(other);
+    const int common_size = std::min<int>(_this.size(),tmp.size());
+    tmp.segment(0,common_size) = _this.segment(0,common_size);
+    _this.derived().swap(tmp);
+  }
+};
+
+template<typename MatrixType, typename OtherDerived, bool SwapPointers>
+struct ei_matrix_swap_impl
+{
+  static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
+  {
+    matrix.base().swap(other);
+  }
+};
+
+template<typename MatrixType, typename OtherDerived>
+struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
+{
+  static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
+  {
+    matrix.m_storage.swap(other.derived().m_storage);
+  }
+};
+
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+template<typename OtherDerived>
+inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(const MatrixBase<OtherDerived>& other)
+{
+  enum { SwapPointers = ei_is_same_type<Matrix, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
+  ei_matrix_swap_impl<Matrix, OtherDerived, bool(SwapPointers)>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));
+}
 
 /** \defgroup matrixtypedefs Global matrix typedefs
   *

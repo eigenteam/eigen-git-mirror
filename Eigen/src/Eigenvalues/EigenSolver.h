@@ -25,7 +25,7 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
-/** \ingroup QR_Module
+/** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
   * \class EigenSolver
@@ -53,7 +53,7 @@ template<typename _MatrixType> class EigenSolver
     typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
     typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
 
-    /** 
+    /**
     * \brief Default Constructor.
     *
     * The default constructor is useful in cases in which the user intends to
@@ -103,19 +103,19 @@ template<typename _MatrixType> class EigenSolver
       *
       * \sa pseudoEigenvalueMatrix()
       */
-    const MatrixType& pseudoEigenvectors() const 
-    { 
+    const MatrixType& pseudoEigenvectors() const
+    {
       ei_assert(m_isInitialized && "EigenSolver is not initialized.");
-      return m_eivec; 
+      return m_eivec;
     }
 
     MatrixType pseudoEigenvalueMatrix() const;
 
     /** \returns the eigenvalues as a column vector */
-    EigenvalueType eigenvalues() const 
-    { 
+    EigenvalueType eigenvalues() const
+    {
       ei_assert(m_isInitialized && "EigenSolver is not initialized.");
-      return m_eivalues; 
+      return m_eivalues;
     }
 
     EigenSolver& compute(const MatrixType& matrix);
@@ -244,11 +244,11 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
       // Apply Householder similarity transformation
       // H = (I-u*u'/h)*H*(I-u*u')/h)
       int bSize = high-m+1;
-      matH.block(m, m, bSize, n-m) -= ((ort.segment(m, bSize)/h)
-        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m))).lazy();
+      matH.block(m, m, bSize, n-m).noalias() -= ((ort.segment(m, bSize)/h)
+        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)));
 
-      matH.block(0, m, high+1, bSize) -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize))
-        * (ort.segment(m, bSize)/h).transpose()).lazy();
+      matH.block(0, m, high+1, bSize).noalias() -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize))
+        * (ort.segment(m, bSize)/h).transpose());
 
       ort.coeffRef(m) = scale*ort.coeff(m);
       matH.coeffRef(m,m-1) = scale*g;
@@ -265,8 +265,8 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
       ort.segment(m+1, high-m) = matH.col(m-1).segment(m+1, high-m);
 
       int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize) += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m))) 
-        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)) ).lazy();
+      m_eivec.block(m, m, bSize, bSize).noalias() += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m)))
+        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)) );
     }
   }
 }

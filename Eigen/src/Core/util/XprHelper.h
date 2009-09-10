@@ -217,7 +217,7 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
-struct ei_special_scalar_op_base
+struct ei_special_scalar_op_base : public AnyMatrixBase<Derived>
 {
   // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
@@ -225,7 +225,7 @@ struct ei_special_scalar_op_base
 };
 
 template<typename Derived,typename Scalar,typename OtherScalar>
-struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>
+struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public AnyMatrixBase<Derived>
 {
   const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const
@@ -233,6 +233,10 @@ struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>
     return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
       (*static_cast<const Derived*>(this), ei_scalar_multiple2_op<Scalar,OtherScalar>(scalar));
   }
+
+  inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+  operator*(const OtherScalar& scalar, const Derived& matrix)
+  { return matrix*scalar; }
 };
 
 /** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size

@@ -91,9 +91,8 @@ template<typename Derived> struct AnyMatrixBase
   */
 template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public AnyMatrixBase<Derived>,
-    public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
+  : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
+                                     typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
@@ -419,8 +418,15 @@ template<typename Derived> class MatrixBase
     const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
     operator/(const Scalar& scalar) const;
 
-    inline friend const CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+    const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+    operator*(const std::complex<Scalar>& scalar) const;
+
+    inline friend const ScalarMultipleReturnType
     operator*(const Scalar& scalar, const MatrixBase& matrix)
+    { return matrix*scalar; }
+
+    inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+    operator*(const std::complex<Scalar>& scalar, const MatrixBase& matrix)
     { return matrix*scalar; }
 
     template<typename OtherDerived>
@@ -803,11 +809,10 @@ template<typename Derived> class MatrixBase
 
 ///////// Jacobi module /////////
 
-    void applyJacobiOnTheLeft(int p, int q, Scalar c, Scalar s);
-    void applyJacobiOnTheRight(int p, int q, Scalar c, Scalar s);
-    bool makeJacobi(int p, int q, Scalar *c, Scalar *s) const;
-    bool makeJacobiForAtA(int p, int q, Scalar *c, Scalar *s) const;
-    bool makeJacobiForAAt(int p, int q, Scalar *c, Scalar *s) const;
+    template<typename OtherScalar>
+    void applyOnTheLeft(int p, int q, const PlanarRotation<OtherScalar>& j);
+    template<typename OtherScalar>
+    void applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j);
 
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN

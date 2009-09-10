@@ -40,8 +40,8 @@ template<typename Scalar> void trsm(int size,int cols)
   Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmRhs(size,cols), ref(size,cols);
   Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmRhs(size,cols);
 
-  cmLhs.setRandom(); cmLhs *= 0.1; cmLhs.diagonal().cwise() += 1;
-  rmLhs.setRandom(); rmLhs *= 0.1; rmLhs.diagonal().cwise() += 1;
+  cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().cwise() += static_cast<RealScalar>(1);
+  rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().cwise() += static_cast<RealScalar>(1);
 
   VERIFY_TRSM(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
   VERIFY_TRSM(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);

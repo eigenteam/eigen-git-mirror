@@ -309,7 +309,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
           h = Scalar(1.0)/h;
           c = g*h;
           s = -f*h;
-          V.applyJacobiOnTheRight(i,nm,c,s);
+          V.applyOnTheRight(i,nm,PlanarRotation<Scalar>(c,s));
         }
       }
       z = W[k];
@@ -342,7 +342,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         y = W[i];
         h = s*g;
         g = c*g;
-        
+
         z = pythag(f,h);
         rv1[j] = z;
         c = f/z;
@@ -351,8 +351,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         g = g*c - x*s;
         h = y*s;
         y *= c;
-        V.applyJacobiOnTheRight(i,j,c,s);
-        
+        V.applyOnTheRight(i,j,PlanarRotation<Scalar>(c,s));
+
         z = pythag(f,h);
         W[j] = z;
         // Rotation can be arbitrary if z = 0.
@@ -364,7 +364,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         }
         f = c*g + s*y;
         x = c*y - s*g;
-        A.applyJacobiOnTheRight(i,j,c,s);
+        A.applyOnTheRight(i,j,PlanarRotation<Scalar>(c,s));
       }
       rv1[l] = 0.0;
       rv1[k] = f;

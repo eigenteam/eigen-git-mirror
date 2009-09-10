@@ -29,7 +29,7 @@
 template<typename MatrixType, typename DiagonalType, int ProductOrder>
 struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
@@ -62,7 +62,7 @@ class DiagonalProduct : ei_no_assignment_operator,
     {
       return m_diagonal.diagonal().coeff(ProductOrder == DiagonalOnTheLeft ? row : col) * m_matrix.coeff(row, col);
     }
-    
+
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
@@ -72,7 +72,7 @@ class DiagonalProduct : ei_no_assignment_operator,
         DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
       };
       const int indexInDiagonalVector = ProductOrder == DiagonalOnTheLeft ? row : col;
-      
+
       if((int(StorageOrder) == RowMajor && int(ProductOrder) == DiagonalOnTheLeft)
        ||(int(StorageOrder) == ColMajor && int(ProductOrder) == DiagonalOnTheRight))
       {

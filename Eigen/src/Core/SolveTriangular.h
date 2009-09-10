@@ -30,7 +30,7 @@ template<typename Lhs, typename Rhs,
   int Side, // can be OnTheLeft/OnTheRight
   int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
                 ? CompleteUnrolling : NoUnrolling,
-  int StorageOrder = int(Lhs::Flags) & RowMajorBit,
+  int StorageOrder = (int(Lhs::Flags) & RowMajorBit) ? RowMajor : ColMajor,
   int RhsCols = Rhs::ColsAtCompileTime
   >
 struct ei_triangular_solver_selector;
@@ -157,7 +157,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,
   {
     const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     ei_triangular_solve_matrix<Scalar,Side,Mode,LhsProductTraits::NeedToConjugate,StorageOrder,
-                               Rhs::Flags&RowMajorBit>
+                               (Rhs::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(lhs.rows(), Side==OnTheLeft? rhs.cols() : rhs.rows(), &actualLhs.coeff(0,0), actualLhs.stride(), &rhs.coeffRef(0,0), rhs.stride());
   }
 };

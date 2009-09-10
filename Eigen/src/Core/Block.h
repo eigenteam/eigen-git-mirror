@@ -201,6 +201,13 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
           m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0), x);
     }
 
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** \sa MapBase::data() */
+    inline const Scalar* data() const;
+    /** \sa MapBase::stride() */
+    inline int stride() const;
+    #endif
+
   protected:
 
     const typename MatrixType::Nested m_matrix;
@@ -269,7 +276,14 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
              && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
-    inline int stride(void) const { return m_matrix.stride(); }
+    /** \sa MapBase::stride() */
+    inline int stride() const
+    {
+      return    ((!Base::IsVectorAtCompileTime)
+              || (BlockRows==1 && ((Flags&RowMajorBit)==0))
+              || (BlockCols==1 && ((Flags&RowMajorBit)==RowMajorBit)))
+              ? m_matrix.stride() : 1;
+    }
 
   #ifndef __SUNPRO_CC
   // FIXME sunstudio is not friendly with the above friend...
@@ -293,8 +307,6 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
   * \param startCol the first column in the block
   * \param blockRows the number of rows in the block
   * \param blockCols the number of columns in the block
-  *
-  * \addexample BlockIntIntIntInt \label How to reference a sub-matrix (dynamic-size)
   *
   * Example: \include MatrixBase_block_int_int_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int_int_int.out
@@ -326,8 +338,6 @@ inline const typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   * \a Eigen::BottomLeft, \a Eigen::BottomRight.
   * \param cRows the number of rows in the corner
   * \param cCols the number of columns in the corner
-  *
-  * \addexample BlockCornerDynamicSize \label How to reference a sub-corner of a matrix
   *
   * Example: \include MatrixBase_corner_enum_int_int.cpp
   * Output: \verbinclude MatrixBase_corner_enum_int_int.out
@@ -438,8 +448,6 @@ MatrixBase<Derived>::corner(CornerType type) const
   * \param startRow the first row in the block
   * \param startCol the first column in the block
   *
-  * \addexample BlockSubMatrixFixedSize \label How to reference a sub-matrix (fixed-size)
-  *
   * Example: \include MatrixBase_block_int_int.cpp
   * Output: \verbinclude MatrixBase_block_int_int.out
   *
@@ -467,8 +475,6 @@ MatrixBase<Derived>::block(int startRow, int startCol) const
 
 /** \returns an expression of the \a i-th column of *this. Note that the numbering starts at 0.
   *
-  * \addexample BlockColumn \label How to reference a single column of a matrix
-  *
   * Example: \include MatrixBase_col.cpp
   * Output: \verbinclude MatrixBase_col.out
   *
@@ -489,8 +495,6 @@ MatrixBase<Derived>::col(int i) const
 }
 
 /** \returns an expression of the \a i-th row of *this. Note that the numbering starts at 0.
-  *
-  * \addexample BlockRow \label How to reference a single row of a matrix
   *
   * Example: \include MatrixBase_row.cpp
   * Output: \verbinclude MatrixBase_row.out

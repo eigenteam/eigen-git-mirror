@@ -25,7 +25,7 @@
 #ifndef EIGEN_HESSENBERGDECOMPOSITION_H
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
-/** \ingroup QR_Module
+/** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
   * \class HessenbergDecomposition
@@ -156,7 +156,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
     // Apply similarity transformation to remaining columns,
     // i.e., compute A = H A H'
-    
+
     // A = H A
     matA.corner(BottomRight, remainingSize, remainingSize)
         .applyHouseholderOnTheLeft(matA.col(i).end(remainingSize-1), h, &temp.coeffRef(0));

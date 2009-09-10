@@ -63,7 +63,7 @@ template<typename Lhs, typename Rhs> struct ei_product_type
     Cols  = Rhs::ColsAtCompileTime,
     Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime)
   };
-  
+
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
@@ -73,7 +73,7 @@ private:
     depth_select = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
   };
   typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
-  
+
 public:
   enum {
     value = product_type_selector::ret
@@ -84,18 +84,18 @@ public:
  * based on the three dimensions of the product.
  * This is a compile time mapping from {1,Small,Large}^3 -> {product types} */
 // FIXME I'm not sure the current mapping is the ideal one.
-template<int Rows, int Cols>  struct ei_product_type_selector<Rows,Cols,1>        { enum { ret = OuterProduct }; };
-template<int Depth>           struct ei_product_type_selector<1,1,Depth>          { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<1,1,1>              { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,Small>      { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<1,Small,Small>      { enum { ret = UnrolledProduct }; };
+template<int Rows, int Cols>  struct ei_product_type_selector<Rows, Cols, 1>      { enum { ret = OuterProduct }; };
+template<int Depth>           struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = UnrolledProduct }; };
 template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<1,Large,Small>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,Large,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,Small,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,Small>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,Large>      { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,Large>      { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
@@ -144,7 +144,7 @@ struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 ***********************************************************************/
 
 // FIXME : maybe the "inner product" could return a Scalar
-// instead of a 1x1 matrix ?? 
+// instead of a 1x1 matrix ??
 // Pro: more natural for the user
 // Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
 // product ends up to a row-vector times col-vector product... To tackle this use
@@ -162,7 +162,11 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
 
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    }
 
     EIGEN_STRONG_INLINE Scalar value() const
     {
@@ -197,11 +201,15 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
 
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    }
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      ei_outer_product_selector<Dest::Flags&RowMajorBit>::run(*this, dest, alpha);
+      ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
 };
 
@@ -209,6 +217,7 @@ template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure lhs is sequentially stored
+    // FIXME not very good if rhs is real and lhs complex while alpha is real too
     const int cols = dest.cols();
     for (int j=0; j<cols; ++j)
       dest.col(j) += (alpha * prod.rhs().coeff(j)) * prod.lhs();
@@ -219,6 +228,7 @@ template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     // FIXME make sure rhs is sequentially stored
+    // FIXME not very good if lhs is real and rhs complex while alpha is real too
     const int rows = dest.rows();
     for (int i=0; i<rows; ++i)
       dest.row(i) += (alpha * prod.lhs().coeff(i)) * prod.rhs();
@@ -251,7 +261,11 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
 
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    }
 
     enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
     typedef typename ei_meta_if<int(Side)==OnTheRight,_LhsNested,_RhsNested>::ret MatrixType;
@@ -259,8 +273,8 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
-      ei_gemv_selector<Side,int(MatrixType::Flags)&RowMajorBit,
-                       ei_blas_traits<MatrixType>::ActualAccess>::run(*this, dst, alpha);
+      ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
+                       bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
 };
 
@@ -339,7 +353,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
 
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                * RhsBlasTraits::extractScalarFactor(prod.rhs());
-                               
+
     enum {
       DirectlyUseRhs = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
                      && (!(_ActualRhsType::Flags & RowMajorBit))

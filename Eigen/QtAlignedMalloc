@@ -6,8 +6,10 @@
 
 #if (!EIGEN_MALLOC_ALREADY_ALIGNED)
 
+#include "src/Core/util/DisableMSVCWarnings.h"
+
 void *qMalloc(size_t size)
-{std::cerr << "ok\n";
+{
   return Eigen::ei_aligned_malloc(size);
 }
 
@@ -23,6 +25,8 @@ void *qRealloc(void *ptr, size_t size)
   Eigen::ei_aligned_free(ptr);
   return newPtr;
 }
+
+#include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif
 

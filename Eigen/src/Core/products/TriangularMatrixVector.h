@@ -145,7 +145,7 @@ struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
        Mode,
        LhsBlasTraits::NeedToConjugate,
        RhsBlasTraits::NeedToConjugate,
-       ei_traits<Lhs>::Flags&RowMajorBit>
+       (int(ei_traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>
       ::run(lhs,rhs,dst,actualAlpha);
   }
 };

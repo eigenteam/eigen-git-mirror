@@ -120,8 +120,10 @@ template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class ColPivotingHouseholderQR;
 template<typename MatrixType> class FullPivotingHouseholderQR;
 template<typename MatrixType> class SVD;
+template<typename MatrixType, unsigned int Options = 0> class JacobiSVD;
 template<typename MatrixType, int UpLo = LowerTriangular> class LLT;
 template<typename MatrixType> class LDLT;
+template<typename Scalar>     class PlanarRotation;
 
 // Geometry module:
 template<typename Derived, int _Dim> class RotationBase;

@@ -44,21 +44,21 @@ template<typename MatrixType> void bandmatrix(const MatrixType& _m)
   dm1.diagonal().setConstant(123);
   for (int i=1; i<=m.supers();++i)
   {
-    m.diagonal(i).setConstant(i);
-    dm1.diagonal(i).setConstant(i);
+    m.diagonal(i).setConstant(static_cast<RealScalar>(i));
+    dm1.diagonal(i).setConstant(static_cast<RealScalar>(i));
   }
   for (int i=1; i<=m.subs();++i)
   {
-    m.diagonal(-i).setConstant(-i);
-    dm1.diagonal(-i).setConstant(-i);
+    m.diagonal(-i).setConstant(-static_cast<RealScalar>(i));
+    dm1.diagonal(-i).setConstant(-static_cast<RealScalar>(i));
   }
   //std::cerr << m.m_data << "\n\n" << m.toDense() << "\n\n" << dm1 << "\n\n\n\n";
   VERIFY_IS_APPROX(dm1,m.toDense());
 
   for (int i=0; i<cols; ++i)
   {
-    m.col(i).setConstant(i+1);
-    dm1.col(i).setConstant(i+1);
+    m.col(i).setConstant(static_cast<RealScalar>(i+1));
+    dm1.col(i).setConstant(static_cast<RealScalar>(i+1));
   }
   int d = std::min(rows,cols);
   int a = std::max(0,cols-d-supers);

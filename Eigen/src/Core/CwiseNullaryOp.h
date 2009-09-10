@@ -317,8 +317,6 @@ Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setConstant(int row
   * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
   * instead.
   *
-  * \addexample Zero \label How to take get a zero matrix
-  *
   * Example: \include MatrixBase_zero_int_int.cpp
   * Output: \verbinclude MatrixBase_zero_int_int.out
   *
@@ -448,8 +446,6 @@ Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setZero(int rows, i
   * it is redundant to pass \a rows and \a cols as arguments, so Ones() should be used
   * instead.
   *
-  * \addexample One \label How to get a matrix with all coefficients equal one
-  *
   * Example: \include MatrixBase_ones_int_int.cpp
   * Output: \verbinclude MatrixBase_ones_int_int.out
   *
@@ -575,8 +571,6 @@ Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setOnes(int rows, i
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
   * it is redundant to pass \a rows and \a cols as arguments, so Identity() should be used
   * instead.
-  *
-  * \addexample Identity \label How to get an identity matrix
   *
   * Example: \include MatrixBase_identity_int_int.cpp
   * Output: \verbinclude MatrixBase_identity_int_int.out

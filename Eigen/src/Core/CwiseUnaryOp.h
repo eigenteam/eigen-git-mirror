@@ -109,8 +109,6 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   * The template parameter \a CustomUnaryOp is the type of the functor
   * of the custom unary operator.
   *
-  * \addexample CustomCwiseUnaryFunctors \label How to use custom coeff wise unary functors
-  *
   * Example:
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
@@ -234,7 +232,7 @@ Cwise<ExpressionType>::log() const
 }
 
 
-/** \relates MatrixBase */
+/** \returns an expression of \c *this scaled by the scalar factor \a scalar */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::ScalarMultipleReturnType
 MatrixBase<Derived>::operator*(const Scalar& scalar) const
@@ -243,7 +241,17 @@ MatrixBase<Derived>::operator*(const Scalar& scalar) const
     (derived(), ei_scalar_multiple_op<Scalar>(scalar));
 }
 
-/** \relates MatrixBase */
+/** Overloaded for efficient real matrix times complex scalar value */
+template<typename Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_multiple2_op<typename ei_traits<Derived>::Scalar,
+                                                              std::complex<typename ei_traits<Derived>::Scalar> >, Derived>
+MatrixBase<Derived>::operator*(const std::complex<Scalar>& scalar) const
+{
+  return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+    (*static_cast<const Derived*>(this), ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
+}
+
+/** \returns an expression of \c *this divided by the scalar value \a scalar */
 template<typename Derived>
 EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
 MatrixBase<Derived>::operator/(const Scalar& scalar) const

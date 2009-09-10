@@ -85,7 +85,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived())
                              * VBlasTraits::extractScalarFactor(v.derived());
 
-  enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit)?1:0 };
+  enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   ei_selfadjoint_rank2_update_selector<Scalar,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,

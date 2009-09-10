@@ -53,8 +53,7 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
 };
 
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryView : ei_no_assignment_operator,
-  public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
+class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
 {
   public:
 
@@ -98,8 +97,6 @@ class CwiseUnaryView : ei_no_assignment_operator,
   *
   * The template parameter \a CustomUnaryOp is the type of the functor
   * of the custom unary operator.
-  *
-  * \addexample CustomCwiseUnaryFunctors \label How to use custom coeff wise unary functors
   *
   * Example:
   * \include class_CwiseUnaryOp.cpp

@@ -27,6 +27,13 @@
 #  - EIGEN_WORK_DIR: directory used to download the source files and make the builds
 #      default: folder which contains this script
 #  - EIGEN_CMAKE_ARGS: additional arguments passed to cmake
+#  - EIGEN_GENERATOR_TYPE: allows to overwrite the generator type
+#      default: nmake (windows
+#      See http://www.cmake.org/cmake/help/cmake2.6docs.html#section_Generators for a complete
+#      list of supported generators.
+#  - EIGEN_NO_UPDATE: allows to submit dash boards from local repositories
+#      This might be interesting in case you want to submit dashboards
+#      including local changes.
 #  - CTEST_SOURCE_DIRECTORY: path to eigen's src (use a new and empty folder, not the one you are working on)
 #      default: <EIGEN_WORK_DIR>/src
 #  - CTEST_BINARY_DIRECTORY: build directory
@@ -132,11 +139,11 @@ endif(NOT EIGEN_MODE)
 
 ## mandatory variables (the default should be ok in most cases):
 
-if(NOT IGNORE_CVS)
+if(NOT EIGEN_NO_UPDATE)
   SET (CTEST_CVS_COMMAND "hg")
   SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
   SET(CTEST_BACKUP_AND_RESTORE TRUE) # the backup is CVS related ...
-endif(NOT IGNORE_CVS)
+endif(NOT EIGEN_NO_UPDATE)
 
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
@@ -158,15 +165,24 @@ SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 # any quotes inside of this string if you use it
 if(WIN32 AND NOT UNIX)
   #message(SEND_ERROR "win32")
-  set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
-  SET (CTEST_INITIAL_CACHE "
-    MAKECOMMAND:STRING=nmake -i
-    CMAKE_MAKE_PROGRAM:FILEPATH=nmake
-    CMAKE_GENERATOR:INTERNAL=NMake Makefiles  
-    CMAKE_BUILD_TYPE:STRING=Release
-    BUILDNAME:STRING=${EIGEN_BUILD_STRING}
-    SITE:STRING=${EIGEN_SITE}
-  ")
+  if(EIGEN_GENERATOR_TYPE)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"${EIGEN_GENERATOR_TYPE}\"")
+    SET (CTEST_INITIAL_CACHE "
+      CMAKE_BUILD_TYPE:STRING=Release
+      BUILDNAME:STRING=${EIGEN_BUILD_STRING}
+      SITE:STRING=${EIGEN_SITE}
+    ")
+  else(EIGEN_GENERATOR_TYPE)
+    set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
+    SET (CTEST_INITIAL_CACHE "
+      MAKECOMMAND:STRING=nmake -i
+      CMAKE_MAKE_PROGRAM:FILEPATH=nmake
+      CMAKE_GENERATOR:INTERNAL=NMake Makefiles  
+      CMAKE_BUILD_TYPE:STRING=Release
+      BUILDNAME:STRING=${EIGEN_BUILD_STRING}
+      SITE:STRING=${EIGEN_SITE}
+    ")
+  endif(EIGEN_GENERATOR_TYPE)
 else(WIN32 AND NOT UNIX)
   SET (CTEST_INITIAL_CACHE "
     BUILDNAME:STRING=${EIGEN_BUILD_STRING}

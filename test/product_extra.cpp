@@ -59,16 +59,13 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 //       r0 = ei_random<int>(0,rows/2-1),
 //       r1 = ei_random<int>(rows/2,rows);
 
-  // all the expressions in this test should be compiled as a single matrix product
-  // TODO: add internal checks to verify that
-
-  VERIFY_IS_APPROX(m3 = (m1 * m2.adjoint()).lazy(),                 m1 * m2.adjoint().eval());
-  VERIFY_IS_APPROX(m3 = (m1.adjoint() * square.adjoint()).lazy(),   m1.adjoint().eval() * square.adjoint().eval());
-  VERIFY_IS_APPROX(m3 = (m1.adjoint() * m2).lazy(),                 m1.adjoint().eval() * m2);
-  VERIFY_IS_APPROX(m3 = ((s1 * m1.adjoint()) * m2).lazy(),          (s1 * m1.adjoint()).eval() * m2);
-  VERIFY_IS_APPROX(m3 = ((- m1.adjoint() * s1) * (s3 * m2)).lazy(), (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
-  VERIFY_IS_APPROX(m3 = ((s2 * m1.adjoint() * s1) * m2).lazy(),     (s2 * m1.adjoint()  * s1).eval() * m2);
-  VERIFY_IS_APPROX(m3 = ((-m1*s2) * s1*m2.adjoint()).lazy(),        (-m1*s2).eval() * (s1*m2.adjoint()).eval());
+  VERIFY_IS_APPROX(m3.noalias() = m1 * m2.adjoint(),                 m1 * m2.adjoint().eval());
+  VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * square.adjoint(),   m1.adjoint().eval() * square.adjoint().eval());
+  VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * m2,                 m1.adjoint().eval() * m2);
+  VERIFY_IS_APPROX(m3.noalias() = (s1 * m1.adjoint()) * m2,          (s1 * m1.adjoint()).eval() * m2);
+  VERIFY_IS_APPROX(m3.noalias() = (- m1.adjoint() * s1) * (s3 * m2), (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
+  VERIFY_IS_APPROX(m3.noalias() = (s2 * m1.adjoint() * s1) * m2,     (s2 * m1.adjoint()  * s1).eval() * m2);
+  VERIFY_IS_APPROX(m3.noalias() = (-m1*s2) * s1*m2.adjoint(),        (-m1*s2).eval() * (s1*m2.adjoint()).eval());
 
   // a very tricky case where a scale factor has to be automatically conjugated:
   VERIFY_IS_APPROX( m1.adjoint() * (s1*m2).conjugate(), (m1.adjoint()).eval() * ((s1*m2).conjugate()).eval());
@@ -76,7 +73,6 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 
   // test all possible conjugate combinations for the four matrix-vector product cases:
 
-//   std::cerr << "a\n";
   VERIFY_IS_APPROX((-m1.conjugate() * s2) * (s1 * vc2),
                    (-m1.conjugate()*s2).eval() * (s1 * vc2).eval());
   VERIFY_IS_APPROX((-m1 * s2) * (s1 * vc2.conjugate()),
@@ -84,7 +80,6 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   VERIFY_IS_APPROX((-m1.conjugate() * s2) * (s1 * vc2.conjugate()),
                    (-m1.conjugate()*s2).eval() * (s1 * vc2.conjugate()).eval());
 
-//   std::cerr << "b\n";
   VERIFY_IS_APPROX((s1 * vc2.transpose()) * (-m1.adjoint() * s2),
                    (s1 * vc2.transpose()).eval() * (-m1.adjoint()*s2).eval());
   VERIFY_IS_APPROX((s1 * vc2.adjoint()) * (-m1.transpose() * s2),
@@ -92,7 +87,6 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   VERIFY_IS_APPROX((s1 * vc2.adjoint()) * (-m1.adjoint() * s2),
                    (s1 * vc2.adjoint()).eval() * (-m1.adjoint()*s2).eval());
 
-//   std::cerr << "c\n";
   VERIFY_IS_APPROX((-m1.adjoint() * s2) * (s1 * v1.transpose()),
                    (-m1.adjoint()*s2).eval() * (s1 * v1.transpose()).eval());
   VERIFY_IS_APPROX((-m1.transpose() * s2) * (s1 * v1.adjoint()),
@@ -100,7 +94,6 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   VERIFY_IS_APPROX((-m1.adjoint() * s2) * (s1 * v1.adjoint()),
                    (-m1.adjoint()*s2).eval() * (s1 * v1.adjoint()).eval());
 
-//   std::cerr << "d\n";
   VERIFY_IS_APPROX((s1 * v1) * (-m1.conjugate() * s2),
                    (s1 * v1).eval() * (-m1.conjugate()*s2).eval());
   VERIFY_IS_APPROX((s1 * v1.conjugate()) * (-m1 * s2),
@@ -111,13 +104,24 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   VERIFY_IS_APPROX((-m1.adjoint() * s2) * (s1 * v1.adjoint()),
                    (-m1.adjoint()*s2).eval() * (s1 * v1.adjoint()).eval());
 
+  // test the vector-matrix product with non aligned starts
+  int i = ei_random<int>(0,m1.rows()-2);
+  int j = ei_random<int>(0,m1.cols()-2);
+  int r = ei_random<int>(1,m1.rows()-i);
+  int c = ei_random<int>(1,m1.cols()-j);
+  int i2 = ei_random<int>(0,m1.rows()-1);
+  int j2 = ei_random<int>(0,m1.cols()-1);
+
+  VERIFY_IS_APPROX(m1.col(j2).adjoint() * m1.block(0,j,m1.rows(),c), m1.col(j2).adjoint().eval() * m1.block(0,j,m1.rows(),c).eval());
+  VERIFY_IS_APPROX(m1.block(i,0,r,m1.cols()) * m1.row(i2).adjoint(), m1.block(i,0,r,m1.cols()).eval() * m1.row(i2).adjoint().eval());
+
 }
 
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product_extra(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST( product_extra(MatrixXf(ei_random<int>(2,320), ei_random<int>(2,320))) );
     CALL_SUBTEST( product_extra(MatrixXcf(ei_random<int>(50,50), ei_random<int>(50,50))) );
-    CALL_SUBTEST( product_extra(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,50), ei_random<int>(1,50))) );
+    CALL_SUBTEST( product_extra(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(ei_random<int>(2,50), ei_random<int>(2,50))) );
   }
 }

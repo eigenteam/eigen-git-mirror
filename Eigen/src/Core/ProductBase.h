@@ -33,7 +33,7 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> >
 {
   typedef typename ei_cleantype<_Lhs>::type Lhs;
   typedef typename ei_cleantype<_Rhs>::type Rhs;
-  typedef typename ei_traits<Lhs>::Scalar Scalar;
+  typedef typename ei_scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   enum {
     RowsAtCompileTime = ei_traits<Lhs>::RowsAtCompileTime,
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
@@ -146,7 +146,7 @@ class ScaledProduct;
 // functions of ProductBase, because, otherwise we would have to
 // define all overloads defined in MatrixBase. Furthermore, Using
 // "using Base::operator*" would not work with MSVC.
-// 
+//
 // Also note that here we accept any compatible scalar types
 template<typename Derived,typename Lhs,typename Rhs>
 const ScaledProduct<Derived>

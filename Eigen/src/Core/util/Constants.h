@@ -238,6 +238,15 @@ enum {
   OnTheRight = 2
 };
 
+// options for SVD decomposition
+enum {
+  SkipU = 0x1,
+  SkipV = 0x2,
+  AtLeastAsManyRowsAsCols = 0x4,
+  AtLeastAsManyColsAsRows = 0x8,
+  Square = AtLeastAsManyRowsAsCols | AtLeastAsManyColsAsRows
+};
+
 /* the following could as well be written:
  *   enum NoChange_t { NoChange };
  * but it feels dangerous to disambiguate overloaded functions on enum/integer types.

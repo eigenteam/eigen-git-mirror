@@ -135,7 +135,11 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
 
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    }
 
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
@@ -149,9 +153,9 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
       ei_general_matrix_matrix_product<
         Scalar,
-        (_ActualLhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(LhsBlasTraits::NeedToConjugate),
-        (_ActualRhsType::Flags&RowMajorBit)?RowMajor:ColMajor, bool(RhsBlasTraits::NeedToConjugate),
-        (Dest::Flags&RowMajorBit)?RowMajor:ColMajor>
+        (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
+        (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
+        (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(
           this->rows(), this->cols(), lhs.cols(),
           (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
