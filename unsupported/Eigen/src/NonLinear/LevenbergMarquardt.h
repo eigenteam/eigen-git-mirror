@@ -3,7 +3,7 @@ template<typename FunctorType, typename Scalar=double>
 class LevenbergMarquardt 
 {
 public:
-    LevenbergMarquardt(const FunctorType &_functor)
+    LevenbergMarquardt(FunctorType &_functor)
         : functor(_functor) {}
 
     enum Status {
@@ -101,7 +101,7 @@ public:
     int njev;
     int iter;
 private:
-    const FunctorType &functor;
+    FunctorType &functor;
     int n;
     int m;
     Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;

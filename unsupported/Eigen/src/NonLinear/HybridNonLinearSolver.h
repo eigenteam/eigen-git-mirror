@@ -3,7 +3,7 @@ template<typename FunctorType, typename Scalar=double>
 class HybridNonLinearSolver
 {
 public:
-    HybridNonLinearSolver(const FunctorType &_functor)
+    HybridNonLinearSolver(FunctorType &_functor)
         : functor(_functor) {}
 
     enum Status {
@@ -80,7 +80,7 @@ public:
     int njev;
     int iter;
 private:
-    const FunctorType &functor;
+    FunctorType &functor;
     int n;
     Scalar sum;
     bool sing;
