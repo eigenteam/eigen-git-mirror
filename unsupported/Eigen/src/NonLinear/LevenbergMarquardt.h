@@ -389,7 +389,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         /* end of the inner loop. repeat if iteration unsuccessful. */
     } while (ratio < Scalar(1e-4));
     /* end of the outer loop. */
-
     return Running;
 }
 
@@ -650,13 +649,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffOneStep(
             return XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
             return GtolTooSmall;
-
         /* end of the inner loop. repeat if iteration unsuccessful. */
     } while (ratio < Scalar(1e-4));
     /* end of the outer loop. */
     return Running;
 }
-
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
@@ -950,14 +947,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
             return XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
             return GtolTooSmall;
-
         /* end of the inner loop. repeat if iteration unsuccessful. */
     } while (ratio < Scalar(1e-4));
     /* end of the outer loop. */
-
     return Running;
 }
-
 
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
