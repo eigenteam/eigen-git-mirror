@@ -4,7 +4,7 @@ class HybridNonLinearSolver
 {
 public:
     HybridNonLinearSolver(FunctorType &_functor)
-        : functor(_functor) {}
+        : functor(_functor) { nfev=njev=iter = 0;  fnorm= 0.; }
 
     enum Status {
         Running = -1,
@@ -79,6 +79,7 @@ public:
     int nfev;
     int njev;
     int iter;
+    Scalar fnorm;
 private:
     FunctorType &functor;
     int n;
@@ -89,7 +90,6 @@ private:
     bool jeval;
     int ncsuc;
     Scalar ratio;
-    Scalar fnorm;
     Scalar pnorm, xnorm, fnorm1;
     int nslow1, nslow2;
     int ncfail;

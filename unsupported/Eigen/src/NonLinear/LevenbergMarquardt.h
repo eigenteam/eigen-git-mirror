@@ -4,7 +4,7 @@ class LevenbergMarquardt
 {
 public:
     LevenbergMarquardt(FunctorType &_functor)
-        : functor(_functor) {}
+        : functor(_functor) { nfev = njev = iter = 0;  fnorm=gnorm = 0.; }
 
     enum Status {
         Running = -1,
@@ -100,6 +100,7 @@ public:
     int nfev;
     int njev;
     int iter;
+    Scalar fnorm, gnorm;
 private:
     FunctorType &functor;
     int n;
@@ -110,7 +111,6 @@ private:
     Scalar temp, temp1, temp2;
     Scalar delta;
     Scalar ratio;
-    Scalar fnorm, gnorm;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 };
 
