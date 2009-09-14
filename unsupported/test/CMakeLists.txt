@@ -23,6 +23,6 @@ ei_add_test(FFT)
 
 find_package(FFTW)
 if(FFTW_FOUND)
-  ei_add_test(FFTW  " " "${FFTW_LIBRARIES}" )
+  ei_add_test(FFTW  " " "-lfftw3 -lfftw3f -lfftw3l" )
 endif(FFTW_FOUND)
 
