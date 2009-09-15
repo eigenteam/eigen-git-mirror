@@ -217,7 +217,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data(), wa2.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /* on the first iteration and if mode is 1, scale according */
@@ -480,7 +480,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffOneStep(
 
     /* compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data(), wa2.data());
     ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
 
     /* on the first iteration and if mode is 1, scale according */
@@ -783,7 +783,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     }
     if (sing) {
         ipvt.cwise()+=1;
-        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), n, wa1.data(), wa2.data());
+        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data(), wa2.data());
         ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
         for (j = 0; j < n; ++j) {
             if (fjac(j,j) != 0.) {

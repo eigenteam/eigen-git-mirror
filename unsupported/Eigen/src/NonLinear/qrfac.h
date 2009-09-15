@@ -1,7 +1,7 @@
 
 template <typename Scalar>
 void ei_qrfac(int m, int n, Scalar *a, int
-        lda, int pivot, int *ipvt, int /* lipvt */, Scalar *rdiag,
+        lda, int pivot, int *ipvt, Scalar *rdiag,
         Scalar *acnorm)
 {
     /* System generated locals */

@@ -190,12 +190,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data());
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data(), wa2.data());
 
-    /* on the first iteration and if mode is 1, scale according */
-    /* to the norms of the columns of the initial jacobian. */
 
     if (iter == 1) {
+
+        /* on the first iteration and if mode is 1, scale according */
+        /* to the norms of the columns of the initial jacobian. */
         if (mode != 2)
             for (j = 0; j < n; ++j) {
                 diag[j] = wa2[j];
@@ -205,7 +206,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-
         wa3 = diag.cwise() * x;
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
@@ -507,7 +507,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
     /* compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, 1, wa1.data(), wa2.data());
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data(), wa2.data());
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
