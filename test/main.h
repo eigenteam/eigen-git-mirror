@@ -40,6 +40,11 @@
 
 #define DEFAULT_REPEAT 10
 
+#ifdef __ICC
+// disable warning #279: controlling expression is constant
+#pragma warning disable 279
+#endif
+
 namespace Eigen
 {
   static std::vector<std::string> g_test_stack;
