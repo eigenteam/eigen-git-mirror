@@ -56,7 +56,7 @@ MatrixBase<Derived>::stableNorm() const
 {
   const int blockSize = 4096;
   RealScalar scale = 0;
-  RealScalar invScale;
+  RealScalar invScale = 1;
   RealScalar ssq = 0; // sum of square
   enum {
     Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? ForceAligned : AsRequested
