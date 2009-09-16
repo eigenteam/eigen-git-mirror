@@ -80,10 +80,10 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     int cols() const { return m_vectors.rows(); }
 
     HouseholderSequence transpose() const
-    { return  HouseholderSequence(m_vectors, m_coeffs, !m_trans); }
+    { return HouseholderSequence(m_vectors, m_coeffs, !m_trans); }
 
     ConjugateReturnType conjugate() const
-    { return  ConjugateReturnType(m_vectors, m_coeffs.conjugate(), m_trans); }
+    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), m_trans); }
 
     ConjugateReturnType adjoint() const
     { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), !m_trans); }
@@ -136,11 +136,33 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
       }
     }
 
+    template<typename OtherDerived>
+    typename OtherDerived::PlainMatrixType operator*(const MatrixBase<OtherDerived>& other) const
+    {
+      typename OtherDerived::PlainMatrixType res(other);
+      applyThisOnTheLeft(res);
+      return res;
+    }
+
+    template<typename OtherDerived> friend
+    typename OtherDerived::PlainMatrixType operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
+    {
+      typename OtherDerived::PlainMatrixType res(other);
+      h.applyThisOnTheRight(res);
+      return res;
+    }
+
   protected:
 
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
 };
+
+template<typename VectorsType, typename CoeffsType>
+HouseholderSequence<VectorsType,CoeffsType> makeHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
+{
+  return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans);
+}
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H

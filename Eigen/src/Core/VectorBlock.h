@@ -77,11 +77,12 @@ template<typename VectorType, int Size, int PacketAccess> class VectorBlock
     typedef Block<VectorType,
                   ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
                   ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size,
-                  PacketAccess> Base;
+                  PacketAccess> _Base;
     enum {
       IsColVector = ei_traits<VectorType>::ColsAtCompileTime==1
     };
   public:
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(VectorBlock, _Base)
 
     using Base::operator=;
     using Base::operator+=;

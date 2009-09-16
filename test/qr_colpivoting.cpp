@@ -42,18 +42,18 @@ template<typename MatrixType> void qr()
   VERIFY(!qr.isInjective());
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());
-  
+
   MatrixType r = qr.matrixQR();
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
-  
+
   MatrixType b = qr.matrixQ() * r;
 
   MatrixType c = MatrixType::Zero(rows,cols);
-  
+
   for(int i = 0; i < cols; ++i) c.col(qr.colsPermutation().coeff(i)) = b.col(i);
   VERIFY_IS_APPROX(m1, c);
-  
+
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
