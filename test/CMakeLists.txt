@@ -220,6 +220,7 @@ ei_add_test(sparse_basic)
 ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
 ei_add_test(sparse_product)
 ei_add_test(swap)
+ei_add_test(visitor)
 
 # print a summary of the different options
 message("************************************************************")
