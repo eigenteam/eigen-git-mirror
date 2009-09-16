@@ -306,6 +306,7 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
     cols_transpositions.coeffRef(k) = biggest_col_in_corner;
     if(k != biggest_col_in_corner) {
       m_qr.col(k).swap(m_qr.col(biggest_col_in_corner));
+      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_in_corner));
       ++number_of_transpositions;
     }
 

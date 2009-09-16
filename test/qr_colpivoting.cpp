@@ -116,9 +116,7 @@ template<typename MatrixType> void qr_verify_assert()
 
 void test_qr_colpivoting()
 {
- for(int i = 0; i < 1; i++) {
-    // FIXME : very weird bug here
-//     CALL_SUBTEST( qr(Matrix2f()) );
+  for(int i = 0; i < 1; i++) {
     CALL_SUBTEST( qr<MatrixXf>() );
     CALL_SUBTEST( qr<MatrixXd>() );
     CALL_SUBTEST( qr<MatrixXcd>() );
