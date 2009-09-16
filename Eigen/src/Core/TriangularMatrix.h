@@ -91,9 +91,9 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
     #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename DenseDerived>
-    void evalToDense(MatrixBase<DenseDerived> &other) const;
+    void evalTo(MatrixBase<DenseDerived> &other) const;
     template<typename DenseDerived>
-    void evalToDenseLazy(MatrixBase<DenseDerived> &other) const;
+    void evalToLazy(MatrixBase<DenseDerived> &other) const;
 
   protected:
 
@@ -546,23 +546,23 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDeri
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
 template<typename DenseDerived>
-void TriangularBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
+void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
   if(ei_traits<Derived>::Flags & EvalBeforeAssigningBit)
   {
     typename Derived::PlainMatrixType other_evaluated(rows(), cols());
-    evalToDenseLazy(other_evaluated);
+    evalToLazy(other_evaluated);
     other.derived().swap(other_evaluated);
   }
   else
-    evalToDenseLazy(other.derived());
+    evalToLazy(other.derived());
 }
 
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
 template<typename DenseDerived>
-void TriangularBase<Derived>::evalToDenseLazy(MatrixBase<DenseDerived> &other) const
+void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 {
   const bool unroll =   DenseDerived::SizeAtCompileTime * Derived::CoeffReadCost / 2
                      <= EIGEN_UNROLLING_LIMIT;

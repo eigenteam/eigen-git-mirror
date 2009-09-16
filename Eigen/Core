@@ -143,6 +143,7 @@ namespace Eigen {
 
 #include "src/Core/Functors.h"
 #include "src/Core/MatrixBase.h"
+#include "src/Core/AnyMatrixBase.h"
 #include "src/Core/Coeffs.h"
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN // work around Doxygen bug triggered by Assign.h r814874

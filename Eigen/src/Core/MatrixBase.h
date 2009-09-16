@@ -26,44 +26,6 @@
 #ifndef EIGEN_MATRIXBASE_H
 #define EIGEN_MATRIXBASE_H
 
-
-/** Common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
-  *
-  * In other words, an AnyMatrixBase object is an object that can be copied into a MatrixBase.
-  *
-  * Besides MatrixBase-derived classes, this also includes special matrix classes such as diagonal matrices, etc.
-  *
-  * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
-  */
-template<typename Derived> struct AnyMatrixBase
-{
-  typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
-
-  Derived& derived() { return *static_cast<Derived*>(this); }
-  const Derived& derived() const { return *static_cast<const Derived*>(this); }
-  /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-  inline int rows() const { return derived().rows(); }
-  /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-  inline int cols() const { return derived().cols(); }
-
-  template<typename Dest> inline void evalTo(Dest& dst) const
-  { derived().evalTo(dst); }
-
-  template<typename Dest> inline void addToDense(Dest& dst) const
-  {
-    typename Dest::PlainMatrixType res(rows(),cols());
-    evalToDense(res);
-    dst += res;
-  }
-
-  template<typename Dest> inline void subToDense(Dest& dst) const
-  {
-    typename Dest::PlainMatrixType res(rows(),cols());
-    evalToDense(res);
-    dst -= res;
-  }
-};
-
 /** \class MatrixBase
   *
   * \brief Base class for all matrices, vectors, and expressions
@@ -96,7 +58,6 @@ template<typename Derived> class MatrixBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
@@ -301,21 +262,14 @@ template<typename Derived> class MatrixBase
       */
     Derived& operator=(const MatrixBase& other);
 
-    /** Copies the generic expression \a other into *this. \returns a reference to *this.
-      * The expression must provide a (templated) evalToDense(Derived& dst) const function
-      * which does the actual job. In practice, this allows any user to write its own
-      * special matrix without having to modify MatrixBase */
     template<typename OtherDerived>
-    Derived& operator=(const AnyMatrixBase<OtherDerived> &other)
-    { other.derived().evalToDense(derived()); return derived(); }
+    Derived& operator=(const AnyMatrixBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    Derived& operator+=(const AnyMatrixBase<OtherDerived> &other)
-    { other.derived().addToDense(derived()); return derived(); }
+    Derived& operator+=(const AnyMatrixBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    Derived& operator-=(const AnyMatrixBase<OtherDerived> &other)
-    { other.derived().subToDense(derived()); return derived(); }
+    Derived& operator-=(const AnyMatrixBase<OtherDerived> &other);
 
     template<typename OtherDerived,typename OtherEvalType>
     Derived& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func);
@@ -435,6 +389,12 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     Derived& operator*=(const AnyMatrixBase<OtherDerived>& other);
+
+    template<typename OtherDerived>
+    void applyOnTheLeft(const AnyMatrixBase<OtherDerived>& other);
+
+    template<typename OtherDerived>
+    void applyOnTheRight(const AnyMatrixBase<OtherDerived>& other);
 
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
