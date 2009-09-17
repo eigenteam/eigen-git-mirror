@@ -51,7 +51,7 @@ class DiagonalBase : public AnyMatrixBase<Derived>
 
     DenseMatrixType toDenseMatrix() const { return derived(); }
     template<typename DenseDerived>
-    void evalToDense(MatrixBase<DenseDerived> &other) const;
+    void evalTo(MatrixBase<DenseDerived> &other) const;
     template<typename DenseDerived>
     void addToDense(MatrixBase<DenseDerived> &other) const
     { other.diagonal() += diagonal(); }
@@ -72,7 +72,7 @@ class DiagonalBase : public AnyMatrixBase<Derived>
 
 template<typename Derived>
 template<typename DenseDerived>
-void DiagonalBase<Derived>::evalToDense(MatrixBase<DenseDerived> &other) const
+void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
   other.setZero();
   other.diagonal() = diagonal();

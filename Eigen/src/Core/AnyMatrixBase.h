@@ -94,7 +94,7 @@ template<typename Derived> struct AnyMatrixBase
 ***************************************************************************/
 
 /** Copies the generic expression \a other into *this. \returns a reference to *this.
-  * The expression must provide a (templated) evalToDense(Derived& dst) const function
+  * The expression must provide a (templated) evalTo(Derived& dst) const function
   * which does the actual job. In practice, this allows any user to write its own
   * special matrix without having to modify MatrixBase */
 template<typename Derived>
