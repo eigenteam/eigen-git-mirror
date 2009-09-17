@@ -77,15 +77,16 @@ template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size
 #ifdef __GNUC__
 // Sometimes GCC implements _mm_set1_p* using multiple moves,
 // that is inefficient :(
+// TODO make sure the new solution using the shuffle/unpacklo is ok
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   Packet4f res = _mm_set_ss(from);
-  asm("shufps $0, %[x], %[x]" : [x] "+x" (res) : );
-  return res;
+  return _mm_shuffle_ps(res,res,0);
+  //asm("shufps $0, %[x], %[x]" : [x] "+x" (res) : );
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
   Packet2d res = _mm_set_sd(from);
-  asm("unpcklpd %[x], %[x]" : [x] "+x" (res) : );
-  return res;
+  return _mm_unpacklo_pd(res,res);
+//  asm("unpcklpd %[x], %[x]" : [x] "+x" (res) : );
 }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
