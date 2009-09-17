@@ -65,7 +65,7 @@ void run_matrix_tests()
     const int rows = ei_random<int>(50,75);
     const int cols = ei_random<int>(50,75);
     m = n = MatrixType::Random(50,50);
-    m.conservativeResize(rows,cols,true);
+    m.conservativeResizeLike(MatrixType::Zero(rows,cols));
     VERIFY_IS_APPROX(m.block(0,0,n.rows(),n.cols()), n);
     VERIFY( rows<=50 || m.block(50,0,rows-50,cols).sum() == Scalar(0) );
     VERIFY( cols<=50 || m.block(0,50,rows,cols-50).sum() == Scalar(0) );
@@ -102,7 +102,7 @@ void run_vector_tests()
   {
     const int size = ei_random<int>(50,100);
     m = n = MatrixType::Random(50);
-    m.conservativeResize(size,true);
+    m.conservativeResizeLike(MatrixType::Zero(size));
     VERIFY_IS_APPROX(m.segment(0,50), n);
     VERIFY( size<=50 || m.segment(50,size-50).sum() == Scalar(0) );
   }

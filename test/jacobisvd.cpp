@@ -36,14 +36,14 @@ template<typename MatrixType, unsigned int Options> void svd(const MatrixType& m
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime
   };
-    
+
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
   typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
   typedef Matrix<Scalar, ColsAtCompileTime, 1> InputVectorType;
-  
+
   MatrixType a;
   if(pickrandom) a = MatrixType::Random(rows,cols);
   else a = m;
@@ -53,7 +53,7 @@ template<typename MatrixType, unsigned int Options> void svd(const MatrixType& m
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
-  
+
   VERIFY_IS_APPROX(a, u * sigma * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
@@ -98,7 +98,7 @@ void test_jacobisvd()
   }
   CALL_SUBTEST(( svd<MatrixXf,0>(MatrixXf(300,200)) ));
   CALL_SUBTEST(( svd<MatrixXcd,AtLeastAsManyColsAsRows>(MatrixXcd(100,150)) ));
-  
+
   CALL_SUBTEST(( svd_verify_assert<Matrix3f>() ));
   CALL_SUBTEST(( svd_verify_assert<Matrix3d>() ));
   CALL_SUBTEST(( svd_verify_assert<MatrixXf>() ));

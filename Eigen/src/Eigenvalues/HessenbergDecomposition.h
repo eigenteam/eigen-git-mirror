@@ -88,14 +88,14 @@ template<typename _MatrixType> class HessenbergDecomposition
       _compute(m_matrix, m_hCoeffs);
     }
 
-    /** \returns the householder coefficients allowing to
+    /** \returns a const reference to the householder coefficients allowing to
       * reconstruct the matrix Q from the packed data.
       *
       * \sa packedMatrix()
       */
-    CoeffVectorType householderCoefficients() const { return m_hCoeffs; }
+    const CoeffVectorType& householderCoefficients() const { return m_hCoeffs; }
 
-    /** \returns the internal result of the decomposition.
+    /** \returns a const reference to the internal representation of the decomposition.
       *
       * The returned matrix contains the following information:
       *  - the upper part and lower sub-diagonal represent the Hessenberg matrix H

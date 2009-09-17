@@ -78,7 +78,7 @@ template<typename MatrixType> void qr_invertible()
   m3 = MatrixType::Random(size,size);
   qr.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
-  
+
   // now construct a matrix with prescribed determinant
   m1.setZero();
   for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();

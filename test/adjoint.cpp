@@ -72,13 +72,6 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   if(NumTraits<Scalar>::HasFloatingPoint)
     VERIFY_IS_APPROX(v1.squaredNorm(),                v1.norm() * v1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
-  if(NumTraits<Scalar>::HasFloatingPoint)
-  {
-    VERIFY_IS_MUCH_SMALLER_THAN(vzero.norm(),         static_cast<RealScalar>(1));
-    VERIFY_IS_APPROX(v1.norm(),                       v1.stableNorm());
-    VERIFY_IS_APPROX(v1.blueNorm(),                   v1.stableNorm());
-    VERIFY_IS_APPROX(v1.hypotNorm(),                  v1.stableNorm());
-  }
 
   // check compatibility of dot and adjoint
   VERIFY(ei_isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2), largerEps));
@@ -124,7 +117,7 @@ void test_adjoint()
   }
   // test a large matrix only once
   CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
-  
+
   {
     MatrixXcf a(10,10), b(10,10);
     VERIFY_RAISES_ASSERT(a = a.transpose());

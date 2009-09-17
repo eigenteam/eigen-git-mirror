@@ -43,7 +43,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
 
   Matrix<Scalar, EIGEN_ENUM_MAX(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime), 1> _tmp(std::max(rows,cols));
   Scalar* tmp = &_tmp.coeffRef(0,0);
-  
+
   Scalar beta;
   RealScalar alpha;
   EssentialVectorType essential;
@@ -58,7 +58,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   v2 = v1;
   v1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(v1.norm(), v2.norm());
-  
+
   MatrixType m1(rows, cols),
              m2(rows, cols);
 
@@ -72,7 +72,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(m1.block(1,0,rows-1,cols).norm(), m1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m1(0,0)), ei_real(m1(0,0)));
   VERIFY_IS_APPROX(ei_real(m1(0,0)), alpha);
-  
+
   v1 = VectorType::Random(rows);
   if(even) v1.end(rows-1).setZero();
   SquareMatrixType m3(rows,rows), m4(rows,rows);
@@ -84,6 +84,9 @@ template<typename MatrixType> void householder(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m3(0,0)), ei_real(m3(0,0)));
   VERIFY_IS_APPROX(ei_real(m3(0,0)), alpha);
+
+  // test householder sequence
+  // TODO test HouseholderSequence
 }
 
 void test_householder()

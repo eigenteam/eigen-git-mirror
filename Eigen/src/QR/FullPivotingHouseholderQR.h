@@ -45,14 +45,14 @@
 template<typename MatrixType> class FullPivotingHouseholderQR
 {
   public:
-    
+
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
       DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
-    
+
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
@@ -106,13 +106,13 @@ template<typename MatrixType> class FullPivotingHouseholderQR
     }
 
     FullPivotingHouseholderQR& compute(const MatrixType& matrix);
-    
+
     const IntRowVectorType& colsPermutation() const
     {
       ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
       return m_cols_permutation;
     }
-    
+
     const IntColVectorType& rowsTranspositions() const
     {
       ei_assert(m_isInitialized && "FullPivotingHouseholderQR is not initialized.");
@@ -147,7 +147,7 @@ template<typename MatrixType> class FullPivotingHouseholderQR
       * \sa absDeterminant(), MatrixBase::determinant()
       */
     typename MatrixType::RealScalar logAbsDeterminant() const;
-    
+
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
       * \note This is computed at the time of the construction of the QR decomposition. This
@@ -271,7 +271,7 @@ FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::co
   int cols = matrix.cols();
   int size = std::min(rows,cols);
   m_rank = size;
-  
+
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
@@ -283,9 +283,9 @@ FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::co
   IntRowVectorType cols_transpositions(matrix.cols());
   m_cols_permutation.resize(matrix.cols());
   int number_of_transpositions = 0;
-  
+
   RealScalar biggest(0);
-  
+
   for (int k = 0; k < size; ++k)
   {
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
@@ -297,7 +297,7 @@ FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::co
     row_of_biggest_in_corner += k;
     col_of_biggest_in_corner += k;
     if(k==0) biggest = biggest_in_corner;
-    
+
     // if the corner is negligible, then we have less than full rank, and we can finish early
     if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
     {
@@ -336,7 +336,7 @@ FullPivotingHouseholderQR<MatrixType>& FullPivotingHouseholderQR<MatrixType>::co
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   m_isInitialized = true;
-  
+
   return *this;
 }
 
@@ -358,13 +358,13 @@ bool FullPivotingHouseholderQR<MatrixType>::solve(
     }
     else return false;
   }
-  
+
   const int rows = m_qr.rows();
   const int cols = b.cols();
   ei_assert(b.rows() == rows);
-  
+
   typename OtherDerived::PlainMatrixType c(b);
-  
+
   Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
   for (int k = 0; k < m_rank; ++k)
   {

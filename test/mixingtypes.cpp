@@ -175,9 +175,9 @@ void test_mixingtypes()
 {
   // check that our operator new is indeed called:
   CALL_SUBTEST(mixingtypes<3>());
-//   CALL_SUBTEST(mixingtypes<4>());
-//   CALL_SUBTEST(mixingtypes<Dynamic>(20));
-//
-//   CALL_SUBTEST(mixingtypes_small<4>());
-//   CALL_SUBTEST(mixingtypes_large(20));
+  CALL_SUBTEST(mixingtypes<4>());
+  CALL_SUBTEST(mixingtypes<Dynamic>(20));
+
+  CALL_SUBTEST(mixingtypes_small<4>());
+  CALL_SUBTEST(mixingtypes_large(20));
 }

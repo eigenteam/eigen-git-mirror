@@ -45,14 +45,14 @@
 template<typename MatrixType> class ColPivotingHouseholderQR
 {
   public:
-    
+
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
       DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
-    
+
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
@@ -62,6 +62,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
     typedef Matrix<RealScalar, 1, ColsAtCompileTime> RealRowVectorType;
+    typedef typename HouseholderSequence<MatrixQType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
     /**
     * \brief Default Constructor.
@@ -99,7 +100,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixQType matrixQ(void) const;
+    HouseholderSequenceType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
@@ -110,13 +111,13 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     }
 
     ColPivotingHouseholderQR& compute(const MatrixType& matrix);
-    
+
     const IntRowVectorType& colsPermutation() const
     {
       ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
       return m_cols_permutation;
     }
-    
+
     /** \returns the absolute value of the determinant of the matrix of which
       * *this is the QR decomposition. It has only linear complexity
       * (that is, O(n) where n is the dimension of the square matrix)
@@ -145,7 +146,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       * \sa absDeterminant(), MatrixBase::determinant()
       */
     typename MatrixType::RealScalar logAbsDeterminant() const;
-    
+
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
       * \note This is computed at the time of the construction of the QR decomposition. This
@@ -268,7 +269,7 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
   int cols = matrix.cols();
   int size = std::min(rows,cols);
   m_rank = size;
-  
+
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
@@ -279,18 +280,18 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
   IntRowVectorType cols_transpositions(matrix.cols());
   m_cols_permutation.resize(matrix.cols());
   int number_of_transpositions = 0;
-  
+
   RealRowVectorType colSqNorms(cols);
   for(int k = 0; k < cols; ++k)
     colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
   RealScalar biggestColSqNorm = colSqNorms.maxCoeff();
-  
+
   for (int k = 0; k < size; ++k)
   {
     int biggest_col_in_corner;
     RealScalar biggestColSqNormInCorner = colSqNorms.end(cols-k).maxCoeff(&biggest_col_in_corner);
     biggest_col_in_corner += k;
-    
+
     // if the corner is negligible, then we have less than full rank, and we can finish early
     if(ei_isMuchSmallerThan(biggestColSqNormInCorner, biggestColSqNorm, m_precision))
     {
@@ -302,10 +303,11 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
       }
       break;
     }
-    
+
     cols_transpositions.coeffRef(k) = biggest_col_in_corner;
     if(k != biggest_col_in_corner) {
       m_qr.col(k).swap(m_qr.col(biggest_col_in_corner));
+      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_in_corner));
       ++number_of_transpositions;
     }
 
@@ -315,7 +317,7 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
-        
+
     colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwise().abs2();
   }
 
@@ -325,7 +327,7 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   m_isInitialized = true;
-  
+
   return *this;
 }
 
@@ -351,16 +353,11 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   const int rows = m_qr.rows();
   const int cols = b.cols();
   ei_assert(b.rows() == rows);
-  
+
   typename OtherDerived::PlainMatrixType c(b);
-  
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
-  for (int k = 0; k < m_rank; ++k)
-  {
-    int remainingSize = rows-k;
-    c.corner(BottomRight, remainingSize, cols)
-     .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
-  }
+
+  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  c.applyOnTheLeft(makeHouseholderSequence(m_qr.corner(TopLeft,rows,m_rank), m_hCoeffs.start(m_rank)).transpose());
 
   if(!isSurjective())
   {
@@ -380,25 +377,12 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   return true;
 }
 
-/** \returns the matrix Q */
+/** \returns the matrix Q as a sequence of householder transformations */
 template<typename MatrixType>
-typename ColPivotingHouseholderQR<MatrixType>::MatrixQType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
+typename ColPivotingHouseholderQR<MatrixType>::HouseholderSequenceType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
-  // compute the product H'_0 H'_1 ... H'_n-1,
-  // where H_k is the k-th Householder transformation I - h_k v_k v_k'
-  // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
-  int rows = m_qr.rows();
-  int cols = m_qr.cols();
-  int size = std::min(rows,cols);
-  MatrixQType res = MatrixQType::Identity(rows, rows);
-  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
-  for (int k = size-1; k >= 0; k--)
-  {
-    res.block(k, k, rows-k, rows-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
-  }
-  return res;
+  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

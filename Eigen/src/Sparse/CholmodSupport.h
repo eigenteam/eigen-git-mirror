@@ -99,7 +99,7 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   res.nrow   = mat.rows();
   res.ncol   = mat.cols();
   res.nzmax  = res.nrow * res.ncol;
-  res.d      = mat.derived().stride();
+  res.d      = Derived::IsVectorAtCompileTime ? mat.derived().size() : mat.derived().stride();
   res.x      = mat.derived().data();
   res.z      = 0;
 
@@ -157,7 +157,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
     inline const typename Base::CholMatrixType& matrixL(void) const;
 
     template<typename Derived>
-    void solveInPlace(MatrixBase<Derived> &b) const;
+    bool solveInPlace(MatrixBase<Derived> &b) const;
 
     void compute(const MatrixType& matrix);
 
@@ -216,7 +216,7 @@ SparseLLT<MatrixType,Cholmod>::matrixL() const
 
 template<typename MatrixType>
 template<typename Derived>
-void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
+bool SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const int size = m_cholmodFactor->n;
   ei_assert(size==b.rows());
@@ -228,9 +228,16 @@ void SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
   // as long as our own triangular sparse solver is not fully optimal,
   // let's use CHOLMOD's one:
   cholmod_dense cdb = ei_cholmod_map_eigen_to_dense(b);
-  cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, m_cholmodFactor, &cdb, &m_cholmod);
+  //cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, m_cholmodFactor, &cdb, &m_cholmod);
+  cholmod_dense* x = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &cdb, &m_cholmod);
+  if(!x)
+  {
+    std::cerr << "Eigen: cholmod_solve failed\n";
+    return false;
+  }
   b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
   cholmod_free_dense(&x, &m_cholmod);
+  return true;
 }
 
 #endif // EIGEN_CHOLMODSUPPORT_H
