@@ -55,12 +55,12 @@ void MatrixBase<Derived>::makeHouseholderInPlace(Scalar *tau, RealScalar *beta)
   * \f$ H = I - tau v v^*\f$
   * and the vector v is:
   * \f$ v^T = [1 essential^T] \f$
-  * 
+  *
   * On output:
   * \param essential the essential part of the vector \c v
   * \param tau the scaling factor of the householder transformation
   * \param beta the result of H * \c *this
-  * 
+  *
   * \sa MatrixBase::makeHouseholderInPlace(), MatrixBase::applyHouseholderOnTheLeft(),
   *     MatrixBase::applyHouseholderOnTheRight()
   */
@@ -73,10 +73,10 @@ void MatrixBase<Derived>::makeHouseholder(
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
   VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
-  
+
   RealScalar tailSqNorm = size()==1 ? 0 : tail.squaredNorm();
   Scalar c0 = coeff(0);
-  
+
   if(tailSqNorm == RealScalar(0) && ei_imag(c0)==RealScalar(0))
   {
     *tau = 0;
