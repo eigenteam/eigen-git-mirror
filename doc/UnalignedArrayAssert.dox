@@ -12,7 +12,7 @@ is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html
 **** READ THIS WEB PAGE !!! ****"' failed.
 </pre>
 
-There are 3 known causes for this issue. Please read on to understand them and learn how to fix them.
+There are 4 known causes for this issue. Please read on to understand them and learn how to fix them.
 
 \b Table \b of \b contents
  - \ref where
@@ -21,6 +21,7 @@ There are 3 known causes for this issue. Please read on to understand them and l
  - \ref c3
  - \ref c4
  - \ref explanation
+ - \ref getrid
 
 \section where Where in my own code is the cause of the problem?
 
@@ -100,6 +101,12 @@ Note that here, Eigen::Quaternionf is only used as an example, more generally th
 Eigen normally takes care of these alignment issues for you, by setting an alignment attribute on them and by overloading their "operator new".
 
 However there are a few corner cases where these alignment settings get overridden: they are the possible causes for this assertion.
+
+\section getrid I don't care about vectorization, how do I get rid of that stuff?
+
+Define both preprocessor symbols EIGEN_DONT_VECTORIZE and EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT.
+
+For more information, see <a href="http://eigen.tuxfamily.org/index.php?title=FAQ#I_disabled_vectorization.2C_but_I.27m_still_getting_annoyed_about_alignment_issues.21">this FAQ</a>.
 
 */
 
