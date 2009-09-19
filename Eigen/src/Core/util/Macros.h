@@ -221,7 +221,12 @@ using Eigen::ei_cos;
   #error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
 #endif
 
-#define EIGEN_RESTRICT __restrict
+#ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
+  #define EIGEN_RESTRICT
+#endif
+#ifndef EIGEN_RESTRICT
+  #define EIGEN_RESTRICT __restrict
+#endif
 
 #ifndef EIGEN_STACK_ALLOCATION_LIMIT
 #define EIGEN_STACK_ALLOCATION_LIMIT 1000000
