@@ -106,6 +106,9 @@
 #error The preprocessor symbols 'min' or 'max' are defined. If you are compiling on Windows, do #define NOMINMAX to prevent windows.h from defining these symbols.
 #endif
 
+// defined in bits/termios.h
+#undef B0
+
 namespace Eigen {
 
 /** \defgroup Core_Module Core module
