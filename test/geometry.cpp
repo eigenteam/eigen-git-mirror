@@ -151,7 +151,13 @@ template<typename Scalar> void geometry(void)
     a = ei_random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
+  // first test setIdentity() and Identity()
   t0.setIdentity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+  t0.matrix().setZero();
+  t0 = Transform3::Identity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+
   t0.linear() = q1.toRotationMatrix();
   t1.setIdentity();
   t1.linear() = q1.toRotationMatrix();

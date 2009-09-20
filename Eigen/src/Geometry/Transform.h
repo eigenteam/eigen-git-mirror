@@ -198,6 +198,10 @@ public:
 
   /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
+  static const typename MatrixType::IdentityReturnType Identity()
+  {
+    return MatrixType::Identity();
+  }
 
   template<typename OtherDerived>
   inline Transform& scale(const MatrixBase<OtherDerived> &other);
