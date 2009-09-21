@@ -538,7 +538,7 @@ class Matrix
       * data pointers.
       */
     template<typename OtherDerived>
-    void swap(const MatrixBase<OtherDerived>& other);
+    void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
     /** \name Map
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
@@ -756,7 +756,7 @@ struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 template<typename OtherDerived>
-inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(const MatrixBase<OtherDerived>& other)
+inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
 {
   enum { SwapPointers = ei_is_same_type<Matrix, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
   ei_matrix_swap_impl<Matrix, OtherDerived, bool(SwapPointers)>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));

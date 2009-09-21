@@ -108,6 +108,10 @@ if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   message("Disabling vectorization in tests/examples")
 endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 
+option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
+
+option(EIGEN_TEST_RVALUE_REF_SUPPORT "Enable rvalue references for unit tests." OFF)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 set(INCLUDE_INSTALL_DIR

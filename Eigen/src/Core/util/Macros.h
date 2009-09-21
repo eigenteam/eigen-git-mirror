@@ -251,6 +251,13 @@ using Eigen::ei_cos;
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, 0, " ", "\n", "", "")
 
+// C++0x features
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
+  #define EIGEN_REF_TO_TEMPORARY &&
+#else
+  #define EIGEN_REF_TO_TEMPORARY const &
+#endif
+
 #ifdef _MSC_VER
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 using Base::operator =; \

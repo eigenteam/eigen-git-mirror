@@ -41,7 +41,7 @@
 
 #ifndef EIGEN_NO_STATIC_ASSERT
 
-  #ifdef __GXX_EXPERIMENTAL_CXX0X__
+  #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
 
     // if native static_assert is enabled, let's use it
     #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG);
