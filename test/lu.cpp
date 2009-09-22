@@ -40,7 +40,6 @@ template<typename MatrixType> void lu_non_invertible()
   typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType m1kernel = lu.kernel();
   typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image();
 
-  std::cout << "rows:" << rows << "  cols:" << cols << "  |  " << rank << "  ----- " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -54,7 +53,8 @@ template<typename MatrixType> void lu_non_invertible()
   m2 = MatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  m2 = lu.solve(m3);
+  // test that the code, which does resize(), may be applied to an xpr
+  m2.block(0,0,cols,cols2) = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   
   typedef Matrix<typename MatrixType::Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
