@@ -247,14 +247,14 @@ public:
     ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
   }
 
-  template<typename OtherDerived,typename OtherEvalType>
-  Transform(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+  template<typename OtherDerived>
+  Transform(const ReturnByValue<OtherDerived>& other)
   {
     other.evalTo(*this);
   }
 
-  template<typename OtherDerived,typename OtherEvalType>
-  Transform& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+  template<typename OtherDerived>
+  Transform& operator=(const ReturnByValue<OtherDerived>& other)
   {
     other.evalTo(*this);
     return *this;

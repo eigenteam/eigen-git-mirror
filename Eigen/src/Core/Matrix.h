@@ -399,8 +399,8 @@ class Matrix
       return Base::lazyAssign(other.derived());
     }
 
-    template<typename OtherDerived,typename OtherEvalType>
-    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func)
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func)
     {
       resize(func.rows(), func.cols());
       return Base::operator=(func);
@@ -504,8 +504,8 @@ class Matrix
       _set_noalias(other);
     }
     /** Copy constructor with in-place evaluation */
-    template<typename OtherDerived,typename OtherEvalType>
-    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived>& other)
     {
       _check_template_params();
       resize(other.rows(), other.cols());
