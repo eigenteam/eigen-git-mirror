@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -37,9 +37,10 @@ template<typename MatrixType> void lu_non_invertible()
   createRandomMatrixOfRank(rank, rows, cols, m1);
 
   LU<MatrixType> lu(m1);
-  typename LU<MatrixType>::KernelResultType m1kernel = lu.kernel();
-  typename LU<MatrixType>::ImageResultType m1image = lu.image();
+  typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType m1kernel = lu.kernel();
+  typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image();
 
+  std::cout << "rows:" << rows << "  cols:" << cols << "  |  " << rank << "  ----- " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -101,8 +102,6 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(lu.matrixLU())
   VERIFY_RAISES_ASSERT(lu.permutationP())
   VERIFY_RAISES_ASSERT(lu.permutationQ())
-  VERIFY_RAISES_ASSERT(lu.computeKernel(&tmp))
-  VERIFY_RAISES_ASSERT(lu.computeImage(&tmp))
   VERIFY_RAISES_ASSERT(lu.kernel())
   VERIFY_RAISES_ASSERT(lu.image())
   VERIFY_RAISES_ASSERT(lu.solve(tmp))

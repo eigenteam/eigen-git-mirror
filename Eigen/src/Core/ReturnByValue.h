@@ -51,9 +51,9 @@ struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
 template<typename Derived>
   class ReturnByValue : public MatrixBase<ReturnByValue<Derived> >
 {
-    typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(ReturnByValue)
+    typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     { static_cast<const Derived* const>(this)->evalTo(dst); }

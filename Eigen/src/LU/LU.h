@@ -26,88 +26,8 @@
 #define EIGEN_LU_H
 
 template<typename MatrixType, typename Rhs> struct ei_lu_solve_impl;
-
-template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_lu_solve_impl<MatrixType,Rhs> >
-{
-  typedef Matrix<typename Rhs::Scalar,
-                 MatrixType::ColsAtCompileTime,
-                 Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
-                 MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
-};
-
-template<typename MatrixType, typename Rhs>
-struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs> >
-{
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef LU<MatrixType> LUType;
-  
-  ei_lu_solve_impl(const LUType& lu, const Rhs& rhs)
-    : m_lu(lu), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
-    if(m_lu.rank()==0)
-    {
-      dst.setZero();
-      return;
-    }
-    
-    /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
-    * So we proceed as follows:
-    * Step 1: compute c = P * rhs.
-    * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
-    * Step 3: replace c by the solution x to Ux = c. May or may not exist.
-    * Step 4: result = Q * c;
-    */
-
-    const int rows = m_lu.matrixLU().rows(),
-              cols = m_lu.matrixLU().cols(),
-              rank = m_lu.rank();
-    ei_assert(m_rhs.rows() == rows);
-    const int smalldim = std::min(rows, cols);
-
-    typename Rhs::PlainMatrixType c(m_rhs.rows(), m_rhs.cols());
-
-    // Step 1
-    for(int i = 0; i < rows; ++i)
-      c.row(m_lu.permutationP().coeff(i)) = m_rhs.row(i);
-
-    // Step 2
-    m_lu.matrixLU()
-        .corner(Eigen::TopLeft,smalldim,smalldim)
-        .template triangularView<UnitLowerTriangular>()
-        .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
-    if(rows>cols)
-    {
-      c.corner(Eigen::BottomLeft, rows-cols, c.cols())
-        -= m_lu.matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
-         * c.corner(Eigen::TopLeft, cols, c.cols());
-    }
-
-    // Step 3
-    m_lu.matrixLU()
-        .corner(TopLeft, rank, rank)
-        .template triangularView<UpperTriangular>()
-        .solveInPlace(c.corner(TopLeft, rank, c.cols()));
-
-    // Step 4
-    for(int i = 0; i < rank; ++i)
-      dst.row(m_lu.permutationQ().coeff(i)) = c.row(i);
-    for(int i = rank; i < m_lu.matrixLU().cols(); ++i)
-      dst.row(m_lu.permutationQ().coeff(i)).setZero();
-  }
-
-  const LUType& m_lu;
-  const typename Rhs::Nested m_rhs;
-};
+template<typename MatrixType> struct ei_lu_kernel_impl;
+template<typename MatrixType> struct ei_lu_image_impl;
 
 /** \ingroup LU_Module
   *
@@ -156,25 +76,6 @@ template<typename MatrixType> class LU
              MatrixType::MaxRowsAtCompileTime)
     };
 
-    typedef Matrix<typename MatrixType::Scalar,
-                  MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix" is the number of cols of the original matrix
-                                                 // so that the product "matrix * kernel = zero" makes sense
-                  Dynamic,                       // we don't know at compile-time the dimension of the kernel
-                  MatrixType::Options,
-                  MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
-                  MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space, whose dimension is the number
-                                                   // of columns of the original matrix
-    > KernelResultType;
-
-    typedef Matrix<typename MatrixType::Scalar,
-                   MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose 
-                                                  // dimension is the number of rows of the original matrix
-                   Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
-                   MatrixType::Options,
-                   MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
-                   MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
-    > ImageResultType;
-
     /**
     * \brief Default Constructor.
     *
@@ -210,7 +111,15 @@ template<typename MatrixType> class LU
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       return m_lu;
     }
-
+    
+    /** \returns a pointer to the matrix of which *this is the LU decomposition.
+      */
+    inline const MatrixType* originalMatrix() const
+    {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return m_originalMatrix;
+    }
+    
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
       * see the examples given in the documentation of class LU.
@@ -235,69 +144,37 @@ template<typename MatrixType> class LU
       return m_q;
     }
 
-    /** Computes a basis of the kernel of the matrix, also called the null-space of the matrix.
-      *
-      * \note This method is only allowed on non-invertible matrices, as determined by
-      * isInvertible(). Calling it on an invertible matrix will make an assertion fail.
-      *
-      * \param result a pointer to the matrix in which to store the kernel. The columns of this
-      * matrix will be set to form a basis of the kernel (it will be resized
-      * if necessary).
-      *
-      * Example: \include LU_computeKernel.cpp
-      * Output: \verbinclude LU_computeKernel.out
-      *
-      * \sa kernel(), computeImage(), image()
-      */
-    template<typename KernelMatrixType>
-    void computeKernel(KernelMatrixType *result) const;
-
-    /** Computes a basis of the image of the matrix, also called the column-space or range of he matrix.
-      *
-      * \note Calling this method on the zero matrix will make an assertion fail.
-      *
-      * \param result a pointer to the matrix in which to store the image. The columns of this
-      * matrix will be set to form a basis of the image (it will be resized
-      * if necessary).
-      *
-      * Example: \include LU_computeImage.cpp
-      * Output: \verbinclude LU_computeImage.out
-      *
-      * \sa image(), computeKernel(), kernel()
-      */
-    template<typename ImageMatrixType>
-    void computeImage(ImageMatrixType *result) const;
-
     /** \returns the kernel of the matrix, also called its null-space. The columns of the returned matrix
       * will form a basis of the kernel.
       *
-      * \note: this method is only allowed on non-invertible matrices, as determined by
-      * isInvertible(). Calling it on an invertible matrix will make an assertion fail.
-      *
-      * \note: this method returns a matrix by value, which induces some inefficiency.
-      *        If you prefer to avoid this overhead, use computeKernel() instead.
+      * \note If the kernel has dimension zero, then the returned matrix is a column-vector filled with zeros.
       *
       * Example: \include LU_kernel.cpp
       * Output: \verbinclude LU_kernel.out
       *
-      * \sa computeKernel(), image()
+      * \sa image()
       */
-    const KernelResultType kernel() const;
+    inline const ei_lu_kernel_impl<MatrixType> kernel() const
+    {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return ei_lu_kernel_impl<MatrixType>(*this);
+    }
 
     /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
       * will form a basis of the kernel.
       *
-      * \note: Calling this method on the zero matrix will make an assertion fail.
-      *
-      * \note: this method returns a matrix by value, which induces some inefficiency.
-      *        If you prefer to avoid this overhead, use computeImage() instead.
+      * \note If the image has dimension zero, then the returned matrix is a column-vector filled with zeros.
       *
       * Example: \include LU_image.cpp
       * Output: \verbinclude LU_image.out
       *
-      * \sa computeImage(), kernel()
+      * \sa kernel()
       */
-    const ImageResultType image() const;
+    inline const ei_lu_image_impl<MatrixType> image() const
+    {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return ei_lu_image_impl<MatrixType>(*this);
+    }
 
     /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
@@ -316,7 +193,7 @@ template<typename MatrixType> class LU
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out
       *
-      * \sa TriangularView::solve(), kernel(), computeKernel(), inverse(), computeInverse()
+      * \sa TriangularView::solve(), kernel(), inverse(), computeInverse()
       */
     template<typename Rhs>
     inline const ei_lu_solve_impl<MatrixType, Rhs>
@@ -547,71 +424,213 @@ typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
   return Scalar(m_det_pq) * m_lu.diagonal().prod();
 }
 
-template<typename MatrixType>
-template<typename KernelMatrixType>
-void LU<MatrixType>::computeKernel(KernelMatrixType *result) const
-{
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  const int dimker = dimensionOfKernel(), cols = m_lu.cols();
-  result->resize(cols, dimker);
+/********* Implementation of kernel() **************************************************/
 
-  /* Let us use the following lemma:
-    *
-    * Lemma: If the matrix A has the LU decomposition PAQ = LU,
-    * then Ker A = Q(Ker U).
-    *
-    * Proof: trivial: just keep in mind that P, Q, L are invertible.
+template<typename MatrixType>
+struct ei_traits<ei_lu_kernel_impl<MatrixType> >
+{
+  typedef Matrix<
+    typename MatrixType::Scalar,
+    MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix"
+                                   // is the number of cols of the original matrix
+                                   // so that the product "matrix * kernel = zero" makes sense
+    Dynamic,                       // we don't know at compile-time the dimension of the kernel
+    MatrixType::Options,
+    MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
+    MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space,
+                                     // whose dimension is the number of columns of the original matrix
+  > ReturnMatrixType;
+};
+
+template<typename MatrixType>
+struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
+{
+  typedef LU<MatrixType> LUType;
+  const LUType& m_lu;
+  int m_dimKer;
+  
+  ei_lu_kernel_impl(const LUType& lu) : m_lu(lu), m_dimKer(lu.dimensionOfKernel()) {}
+
+  inline int rows() const { return m_lu.matrixLU().cols(); }
+  inline int cols() const { return m_dimKer; }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    const int rank = m_lu.rank(),
+              cols = m_lu.matrixLU().cols();
+    if(m_dimKer == 0)
+    {
+      // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
+      // avoid crashing/asserting as that depends on floating point calculations. Let's
+      // just return a single column vector filled with zeros.
+      dst.resize(cols,1);
+      dst.setZero();
+      return;
+    }
+    
+    /* Let us use the following lemma:
+      *
+      * Lemma: If the matrix A has the LU decomposition PAQ = LU,
+      * then Ker A = Q(Ker U).
+      *
+      * Proof: trivial: just keep in mind that P, Q, L are invertible.
+      */
+
+    /* Thus, all we need to do is to compute Ker U, and then apply Q.
+      *
+      * U is upper triangular, with eigenvalues sorted so that any zeros appear at the end.
+      * Thus, the diagonal of U ends with exactly
+      * m_dimKer zero's. Let us use that to construct dimKer linearly
+      * independent vectors in Ker U.
+      */
+
+    dst.resize(cols, m_dimKer);
+
+    Matrix<typename MatrixType::Scalar, Dynamic, Dynamic, MatrixType::Options,
+           MatrixType::MaxColsAtCompileTime, MatrixType::MaxColsAtCompileTime>
+      y(-m_lu.matrixLU().corner(TopRight, rank, m_dimKer));
+
+    m_lu.matrixLU()
+        .corner(TopLeft, rank, rank)
+        .template triangularView<UpperTriangular>().solveInPlace(y);
+
+    for(int i = 0; i < rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = y.row(i);
+    for(int i = rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
+    for(int k = 0; k < m_dimKer; ++k) dst.coeffRef(m_lu.permutationQ().coeff(rank+k), k) = Scalar(1);
+  }
+};
+
+/***** Implementation of image() *****************************************************/
+
+template<typename MatrixType>
+struct ei_traits<ei_lu_image_impl<MatrixType> >
+{
+  typedef Matrix<
+    typename MatrixType::Scalar,
+    MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose 
+                                   // dimension is the number of rows of the original matrix
+    Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
+    MatrixType::Options,
+    MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
+    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
+  > ReturnMatrixType;
+};
+
+template<typename MatrixType>
+struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
+{
+  typedef LU<MatrixType> LUType;
+  const LUType& m_lu;
+  
+  ei_lu_image_impl(const LUType& lu) : m_lu(lu) {}
+
+  inline int rows() const { return m_lu.matrixLU().cols(); }
+  inline int cols() const { return m_lu.rank(); }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    int rank = m_lu.rank();
+    if(rank == 0)
+    {
+      // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
+      // avoid crashing/asserting as that depends on floating point calculations. Let's
+      // just return a single column vector filled with zeros.
+      dst.resize(m_lu.originalMatrix()->rows(), 1);
+      dst.setZero();
+      return;
+    }
+    
+    dst.resize(m_lu.originalMatrix()->rows(), rank);
+    for(int i = 0; i < rank; ++i)
+      dst.col(i) = m_lu.originalMatrix()->col(m_lu.permutationQ().coeff(i));
+  }
+};
+
+/***** Implementation of solve() *****************************************************/
+
+template<typename MatrixType,typename Rhs>
+struct ei_traits<ei_lu_solve_impl<MatrixType,Rhs> >
+{
+  typedef Matrix<typename Rhs::Scalar,
+                 MatrixType::ColsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 Rhs::PlainMatrixType::Options,
+                 MatrixType::MaxColsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+};
+
+template<typename MatrixType, typename Rhs>
+struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs> >
+{
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef LU<MatrixType> LUType;
+  const LUType& m_lu;
+  const typename Rhs::Nested m_rhs;
+  
+  ei_lu_solve_impl(const LUType& lu, const Rhs& rhs)
+    : m_lu(lu), m_rhs(rhs)
+  {}
+
+  inline int rows() const { return m_lu.matrixLU().cols(); }
+  inline int cols() const { return m_rhs.cols(); }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
+    if(m_lu.rank()==0)
+    {
+      dst.setZero();
+      return;
+    }
+    
+    /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
+    * So we proceed as follows:
+    * Step 1: compute c = P * rhs.
+    * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
+    * Step 3: replace c by the solution x to Ux = c. May or may not exist.
+    * Step 4: result = Q * c;
     */
 
-  /* Thus, all we need to do is to compute Ker U, and then apply Q.
-    *
-    * U is upper triangular, with eigenvalues sorted so that any zeros appear at the end.
-    * Thus, the diagonal of U ends with exactly
-    * m_dimKer zero's. Let us use that to construct m_dimKer linearly
-    * independent vectors in Ker U.
-    */
+    const int rows = m_lu.matrixLU().rows(),
+              cols = m_lu.matrixLU().cols(),
+              rank = m_lu.rank();
+    ei_assert(m_rhs.rows() == rows);
+    const int smalldim = std::min(rows, cols);
 
-  Matrix<Scalar, Dynamic, Dynamic, MatrixType::Options,
-         MatrixType::MaxColsAtCompileTime, MatrixType::MaxColsAtCompileTime>
-    y(-m_lu.corner(TopRight, m_rank, dimker));
+    typename Rhs::PlainMatrixType c(m_rhs.rows(), m_rhs.cols());
 
-  m_lu.corner(TopLeft, m_rank, m_rank)
-      .template triangularView<UpperTriangular>().solveInPlace(y);
+    // Step 1
+    for(int i = 0; i < rows; ++i)
+      c.row(m_lu.permutationP().coeff(i)) = m_rhs.row(i);
 
-  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = y.row(i);
-  for(int i = m_rank; i < cols; ++i) result->row(m_q.coeff(i)).setZero();
-  for(int k = 0; k < dimker; ++k) result->coeffRef(m_q.coeff(m_rank+k), k) = Scalar(1);
-}
+    // Step 2
+    m_lu.matrixLU()
+        .corner(Eigen::TopLeft,smalldim,smalldim)
+        .template triangularView<UnitLowerTriangular>()
+        .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
+    if(rows>cols)
+    {
+      c.corner(Eigen::BottomLeft, rows-cols, c.cols())
+        -= m_lu.matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
+         * c.corner(Eigen::TopLeft, cols, c.cols());
+    }
 
-template<typename MatrixType>
-const typename LU<MatrixType>::KernelResultType
-LU<MatrixType>::kernel() const
-{
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  KernelResultType result(m_lu.cols(), dimensionOfKernel());
-  computeKernel(&result);
-  return result;
-}
+    // Step 3
+    m_lu.matrixLU()
+        .corner(TopLeft, rank, rank)
+        .template triangularView<UpperTriangular>()
+        .solveInPlace(c.corner(TopLeft, rank, c.cols()));
 
-template<typename MatrixType>
-template<typename ImageMatrixType>
-void LU<MatrixType>::computeImage(ImageMatrixType *result) const
-{
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  result->resize(m_originalMatrix->rows(), m_rank);
-  for(int i = 0; i < m_rank; ++i)
-    result->col(i) = m_originalMatrix->col(m_q.coeff(i));
-}
+    // Step 4
+    for(int i = 0; i < rank; ++i)
+      dst.row(m_lu.permutationQ().coeff(i)) = c.row(i);
+    for(int i = rank; i < m_lu.matrixLU().cols(); ++i)
+      dst.row(m_lu.permutationQ().coeff(i)).setZero();
+  }
+};
 
-template<typename MatrixType>
-const typename LU<MatrixType>::ImageResultType
-LU<MatrixType>::image() const
-{
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  ImageResultType result(m_originalMatrix->rows(), m_rank);
-  computeImage(&result);
-  return result;
-}
+/******* MatrixBase methods *****************************************************************/
 
 /** \lu_module
   *
