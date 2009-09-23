@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,90 @@
 
 #ifndef EIGEN_LU_H
 #define EIGEN_LU_H
+
+template<typename MatrixType, typename Rhs> struct ei_lu_solve_impl;
+
+template<typename MatrixType,typename Rhs>
+struct ei_traits<ei_lu_solve_impl<MatrixType,Rhs> >
+{
+  typedef Matrix<typename Rhs::Scalar,
+                 MatrixType::ColsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 Rhs::PlainMatrixType::Options,
+                 MatrixType::MaxColsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+};
+
+template<typename MatrixType, typename Rhs>
+struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs> >
+{
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef LU<MatrixType> LUType;
+  
+  ei_lu_solve_impl(const LUType& lu, const Rhs& rhs)
+    : m_lu(lu), m_rhs(rhs)
+  {}
+
+  inline int rows() const { return m_lu.matrixLU().cols(); }
+  inline int cols() const { return m_rhs.cols(); }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
+    if(m_lu.rank()==0)
+    {
+      dst.setZero();
+      return;
+    }
+    
+    /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
+    * So we proceed as follows:
+    * Step 1: compute c = P * rhs.
+    * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
+    * Step 3: replace c by the solution x to Ux = c. May or may not exist.
+    * Step 4: result = Q * c;
+    */
+
+    const int rows = m_lu.matrixLU().rows(),
+              cols = m_lu.matrixLU().cols(),
+              rank = m_lu.rank();
+    ei_assert(m_rhs.rows() == rows);
+    const int smalldim = std::min(rows, cols);
+
+    typename Rhs::PlainMatrixType c(m_rhs.rows(), m_rhs.cols());
+
+    // Step 1
+    for(int i = 0; i < rows; ++i)
+      c.row(m_lu.permutationP().coeff(i)) = m_rhs.row(i);
+
+    // Step 2
+    m_lu.matrixLU()
+        .corner(Eigen::TopLeft,smalldim,smalldim)
+        .template triangularView<UnitLowerTriangular>()
+        .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
+    if(rows>cols)
+    {
+      c.corner(Eigen::BottomLeft, rows-cols, c.cols())
+        -= m_lu.matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
+         * c.corner(Eigen::TopLeft, cols, c.cols());
+    }
+
+    // Step 3
+    m_lu.matrixLU()
+        .corner(TopLeft, rank, rank)
+        .template triangularView<UpperTriangular>()
+        .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+
+    // Step 4
+    for(int i = 0; i < rank; ++i)
+      dst.row(m_lu.permutationQ().coeff(i)) = c.row(i);
+    for(int i = rank; i < m_lu.matrixLU().cols(); ++i)
+      dst.row(m_lu.permutationQ().coeff(i)).setZero();
+  }
+
+  const LUType& m_lu;
+  const typename Rhs::Nested m_rhs;
+};
 
 /** \ingroup LU_Module
   *
@@ -83,8 +167,8 @@ template<typename MatrixType> class LU
     > KernelResultType;
 
     typedef Matrix<typename MatrixType::Scalar,
-                   MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose dimension is the number
-                                                  // of rows of the original matrix
+                   MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose 
+                                                  // dimension is the number of rows of the original matrix
                    Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
                    MatrixType::Options,
                    MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
@@ -114,7 +198,7 @@ template<typename MatrixType> class LU
       * \returns a reference to *this
       */
     LU& compute(const MatrixType& matrix);
-
+    
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
       * case, special care is needed, see the documentation of class LU).
@@ -215,29 +299,35 @@ template<typename MatrixType> class LU
       */
     const ImageResultType image() const;
 
-    /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
-      * *this is the LU decomposition, if any exists.
+    /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
+      * *this is the LU decomposition.
+      *
+      * If no solution exists, then the result is undefined. If only an approximate solution exists,
+      * then the result is only such an approximate solution.
       *
       * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
       *          the only requirement in order for the equation to make sense is that
       *          b.rows()==A.rows(), where A is the matrix of which *this is the LU decomposition.
-      * \param result a pointer to the vector or matrix in which to store the solution, if any exists.
-      *          Resized if necessary, so that result->rows()==A.cols() and result->cols()==b.cols().
-      *          If no solution exists, *result is left with undefined coefficients.
       *
-      * \returns true if any solution exists, false if no solution exists.
-      *
-      * \note If there exist more than one solution, this method will arbitrarily choose one.
-      *       If you need a complete analysis of the space of solutions, take the one solution obtained
-      *       by this method and add to it elements of the kernel, as determined by kernel().
+      * \returns a solution, if any exists. See notes below.
       *
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out
       *
+      * \note \note_about_inexistant_solutions
+      *
+      * \note \note_about_arbitrary_choice_of_solution
+      *       \note_about_using_kernel_to_study_multiple_solutions
+      *
       * \sa TriangularView::solve(), kernel(), computeKernel(), inverse(), computeInverse()
       */
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
+    template<typename Rhs>
+    inline const ei_lu_solve_impl<MatrixType, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return ei_lu_solve_impl<MatrixType, Rhs>(*this, b.derived());
+    }
 
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
@@ -326,7 +416,7 @@ template<typename MatrixType> class LU
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
-      solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
+      *result = solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()));
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
@@ -524,71 +614,6 @@ LU<MatrixType>::image() const
   ImageResultType result(m_originalMatrix->rows(), m_rank);
   computeImage(&result);
   return result;
-}
-
-template<typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-bool LU<MatrixType>::solve(
-  const MatrixBase<OtherDerived>& b,
-  ResultType *result
-) const
-{
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-  result->resize(m_lu.cols(), b.cols());
-  if(m_rank==0)
-  {
-    if(b.squaredNorm() == RealScalar(0))
-    {
-      result->setZero();
-      return true;
-    }
-    else return false;
-  }
-  
-  /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
-   * So we proceed as follows:
-   * Step 1: compute c = Pb.
-   * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
-   * Step 3: replace c by the solution x to Ux = c. Check if a solution really exists.
-   * Step 4: result = Qc;
-   */
-
-  const int rows = m_lu.rows(), cols = m_lu.cols();
-  ei_assert(b.rows() == rows);
-  const int smalldim = std::min(rows, cols);
-
-  typename OtherDerived::PlainMatrixType c(b.rows(), b.cols());
-
-  // Step 1
-  for(int i = 0; i < rows; ++i) c.row(m_p.coeff(i)) = b.row(i);
-
-  // Step 2
-  m_lu.corner(Eigen::TopLeft,smalldim,smalldim)
-      .template triangularView<UnitLowerTriangular>()
-      .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
-  if(rows>cols)
-  {
-    c.corner(Eigen::BottomLeft, rows-cols, c.cols())
-      -= m_lu.corner(Eigen::BottomLeft, rows-cols, cols) * c.corner(Eigen::TopLeft, cols, c.cols());
-  }
-
-  // Step 3
-  if(!isSurjective())
-  {
-    // is c is in the image of U ?
-    RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
-    RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
-    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
-      return false;
-  }
-  m_lu.corner(TopLeft, m_rank, m_rank)
-      .template triangularView<UpperTriangular>()
-      .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
-
-  // Step 4
-  for(int i = 0; i < m_rank; ++i) result->row(m_q.coeff(i)) = c.row(i);
-  for(int i = m_rank; i < m_lu.cols(); ++i) result->row(m_q.coeff(i)).setZero();
-  return true;
 }
 
 /** \lu_module

@@ -53,10 +53,8 @@ template<typename MatrixType> void lu_non_invertible()
   m2 = MatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  VERIFY(lu.solve(m3, &m2));
+  m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-  m3 = MatrixType::Random(rows,cols2);
-  VERIFY(!lu.solve(m3, &m2));
   
   typedef Matrix<typename MatrixType::Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   SquareMatrixType m4(rows, rows), m5(rows, rows);
@@ -90,11 +88,9 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.isInvertible());
   VERIFY(lu.image().lu().isInvertible());
   m3 = MatrixType::Random(size,size);
-  lu.solve(m3, &m2);
+  m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
-  m3 = MatrixType::Random(size,size);
-  VERIFY(lu.solve(m3, &m2));
 }
 
 template<typename MatrixType> void lu_verify_assert()
@@ -109,7 +105,7 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(lu.computeImage(&tmp))
   VERIFY_RAISES_ASSERT(lu.kernel())
   VERIFY_RAISES_ASSERT(lu.image())
-  VERIFY_RAISES_ASSERT(lu.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(lu.solve(tmp))
   VERIFY_RAISES_ASSERT(lu.determinant())
   VERIFY_RAISES_ASSERT(lu.rank())
   VERIFY_RAISES_ASSERT(lu.dimensionOfKernel())

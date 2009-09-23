@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -37,6 +38,10 @@ struct ei_traits<ReturnByValue<Derived> >
   };
 };
 
+/* The ReturnByValue object doesn't even have a coeff() method.
+ * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
+ * So ei_nested always gives the plain return matrix type.
+ */
 template<typename Derived,int n,typename PlainMatrixType>
 struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
 {
