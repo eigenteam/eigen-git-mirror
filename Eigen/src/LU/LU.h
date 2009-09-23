@@ -302,22 +302,19 @@ template<typename MatrixType> class LU
     /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
       *
-      * If no solution exists, then the result is undefined. If only an approximate solution exists,
-      * then the result is only such an approximate solution.
-      *
       * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
       *          the only requirement in order for the equation to make sense is that
       *          b.rows()==A.rows(), where A is the matrix of which *this is the LU decomposition.
       *
-      * \returns a solution, if any exists. See notes below.
+      * \returns a solution.
+      *
+      * \note_about_inexistant_solutions
+      *
+      * \note_about_arbitrary_choice_of_solution
+      * \note_about_using_kernel_to_study_multiple_solutions
       *
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out
-      *
-      * \note \note_about_inexistant_solutions
-      *
-      * \note \note_about_arbitrary_choice_of_solution
-      *       \note_about_using_kernel_to_study_multiple_solutions
       *
       * \sa TriangularView::solve(), kernel(), computeKernel(), inverse(), computeInverse()
       */
