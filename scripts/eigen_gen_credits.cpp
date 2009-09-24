@@ -86,6 +86,15 @@ map<string,int> contributors_map_from_churn_output(const char *filename)
   return contributors_map;
 }
 
+// find the last name, i.e. the last word.
+// for "van den Schbling" types of last names, that's not a problem, that's actually what we want.
+string lastname(const string& name)
+{
+  size_t last_space = name.find_last_of(' ');
+  if(last_space >= name.length()-1) return name;
+  else return name.substr(last_space+1);
+}
+
 struct contributor
 {
   string name;
@@ -98,7 +107,7 @@ struct contributor
   
   bool operator < (const contributor& other)
   {
-    return changedlines > other.changedlines;
+    return lastname(name).compare(lastname(other.name)) < 0;
   }
 };
 
@@ -155,11 +164,6 @@ void add_online_info_into_contributors_list(list<contributor>& contributors_list
   }
 }
 
-ostream& operator<<(ostream& stream, const contributor& c)
-{
-  stream << c.name << "|" << c.changedlines << "|" << c.changesets << "|" << c.url << "|" << c.misc;
-}
-
 int main()
 {
   // parse the hg churn output files
@@ -185,7 +189,7 @@ int main()
   cout << "{| cellpadding=\"5\"\n";
   cout << "!\n";
   cout << "! Lines changed\n(changesets)\n";
-  cout << "! Misc\n";
+  cout << "!\n";
 
   list<contributor>::iterator itc;
   int i = 0;
@@ -201,7 +205,7 @@ int main()
     if(itc->changedlines)
       cout << "| " << itc->changedlines << " (" << itc->changesets << ")\n";
     else
-      cout << "| (no own changesets) \n";
+      cout << "| (no information)\n";
     cout << "| " << itc->misc << "\n";
     i++;
   }
