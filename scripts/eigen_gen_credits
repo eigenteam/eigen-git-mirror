@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# this script must be run from the eigen2/ directory.
+# when running hg churn from the scripts/ subdir, i hit a divide-by-zero error in hg churn.
+#
+# like this:
+#   cd eigen2
+#   scripts/eigen_gen_credits
+
+# configuration
+USER='bjacob'
+
+wget http://eigen.tuxfamily.org/index.php?title=ContributorsInfo -O online-info.out -o wget.log
+hg churn -r 37: --changesets -t {author} > churn-changesets.out
+hg churn -r 37: -t {author} > churn-changedlines.out
+
+g++ scripts/eigen_gen_credits.cpp -o e
+
+./e > credits.out
+
+rsync credits.out $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/credits.out ||  (echo "upload failed"; exit 1)
