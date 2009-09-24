@@ -168,7 +168,7 @@ int main()
 {
   // parse the hg churn output files
   map<string,int> contributors_map_for_changedlines = contributors_map_from_churn_output("churn-changedlines.out");
-  map<string,int> contributors_map_for_changesets = contributors_map_from_churn_output("churn-changesets.out");
+  //map<string,int> contributors_map_for_changesets = contributors_map_from_churn_output("churn-changesets.out");
   
   // merge into the contributors list
   list<contributor> contributors_list;
@@ -178,7 +178,7 @@ int main()
     contributor c;
     c.name = it->first;
     c.changedlines = it->second;
-    c.changesets = contributors_map_for_changesets.find(it->first)->second;
+    c.changesets = 0; //contributors_map_for_changesets.find(it->first)->second;
     contributors_list.push_back(c);
   }
   
@@ -188,7 +188,7 @@ int main()
   
   cout << "{| cellpadding=\"5\"\n";
   cout << "!\n";
-  cout << "! Lines changed\n(changesets)\n";
+  cout << "! Lines changed\n";
   cout << "!\n";
 
   list<contributor>::iterator itc;
@@ -203,7 +203,7 @@ int main()
     else
       cout << "| " << itc->name << "\n";
     if(itc->changedlines)
-      cout << "| " << itc->changedlines << " (" << itc->changesets << ")\n";
+      cout << "| " << itc->changedlines << "\n";
     else
       cout << "| (no information)\n";
     cout << "| " << itc->misc << "\n";
