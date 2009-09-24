@@ -12,6 +12,9 @@ if(NOT WIN32)
   option(EIGEN_BUILD_LIB "Build the binary shared library" OFF)
 endif(NOT WIN32)
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
+if(NOT WIN32)
+  option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
+endif(NOT WIN32)
 
 if(EIGEN_BUILD_LIB)
   option(EIGEN_TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
@@ -70,6 +73,13 @@ if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
+if(EIGEN_BUILD_PKGCONFIG)
+    configure_file(eigen2.pc.in eigen2.pc)
+    install(FILES eigen2.pc
+        DESTINATION lib/pkgconfig
+        )
+endif(EIGEN_BUILD_PKGCONFIG)
 
 add_subdirectory(Eigen)
 add_subdirectory(unsupported)
