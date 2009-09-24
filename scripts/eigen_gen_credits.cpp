@@ -105,9 +105,9 @@ struct contributor
 void add_online_info_into_contributors_list(list<contributor>& contributors_list, const char *filename)
 {
   string line;
-  ifstream churn_out;
-  churn_out.open(filename, ios::in);
-  while(!getline(churn_out,line).eof())
+  ifstream online_info;
+  online_info.open(filename, ios::in);
+  while(!getline(online_info,line).eof())
   {
     string hgname, realname, url, misc;
     
