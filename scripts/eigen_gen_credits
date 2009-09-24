@@ -8,9 +8,9 @@
 #   scripts/eigen_gen_credits
 
 # configuration
-USER='bjacob'
+USER='orzel'
 
-rm eigen_gen_credits.log
+rm -f eigen_gen_credits.log
 
 hg pull >> eigen_gen_credits.log
 
