@@ -15,8 +15,8 @@ rm eigen_gen_credits.log
 hg pull >> eigen_gen_credits.log
 
 wget http://eigen.tuxfamily.org/index.php?title=ContributorsInfo -O online-info.out -a eigen_gen_credits.log
-hg churn -r 37: --changesets -t {author} >> churn-changesets.out
-hg churn -r 37: -t {author} >> churn-changedlines.out
+hg churn -r 37: --changesets -t {author} > churn-changesets.out
+hg churn -r 37: -t {author} > churn-changedlines.out
 
 g++ scripts/eigen_gen_credits.cpp -o e
 
