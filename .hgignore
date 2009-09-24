@@ -20,4 +20,5 @@ CMakeCache.txt
 tags
 .*.swp
 activity.png
-gmon.out
+*.out
+*.php*
