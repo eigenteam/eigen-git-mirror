@@ -129,7 +129,7 @@ SparseVector<double> vec(size);
 for (SparseVector<double>::InnerIterator it(vec); it; ++it)
 {
   it.value(); // == vec[ it.index() ]
-  it.index(); 
+  it.index();
 }
 \endcode
 </td></tr>
@@ -138,58 +138,51 @@ for (SparseVector<double>::InnerIterator it(vec); it; ++it)
 
 \section TutorialSparseFilling Filling a sparse matrix
 
-A DynamicSparseMatrix object can be set and updated just like any dense matrix using the coeffRef(row,col) method. If the coefficient is not stored yet, then it will be inserted in the matrix. Here is an example:
+Owing to the special storage scheme of a SparseMatrix, it is obvious that for performance reasons a sparse matrix cannot be filled as easily as a dense matrix. For instance the cost of a purely random insertion into a SparseMatrix is in O(nnz) where nnz is the current number of non zeros. In order to cover all uses cases with best efficiency, Eigen provides various mechanisms, from the easiest but slowest, to the fastest but restrictive one.
+
+If you don't have any prior knowledge about the order your matrix will be filled, then the best choice is to use a DynamicSparseMatrix. With a DynamicSparseMatrix, you can add or modify any coefficients at any time using the coeffRef(row,col) method. Here is an example:
 \code
 DynamicSparseMatrix<float> aux(1000,1000);
+aux.reserve(estimated_number_of_non_zero); // optional
 for (...)
-  for each i
-    for each j interacting with i
-      aux.coeffRef(i,j) += foo(o1,o2);
-SparseMatrix<float> mat(aux); // convert the DynamicSparseMatrix to a SparseMatrix
+  for each j                          // the j can be random
+    for each i interacting with j     // the i can be random
+      aux.coeffRef(i,j) += foo(i,j);
+\endcode
+Then the DynamicSparseMatrix object can be converted to a compact SparseMatrix to be used, e.g., by one of our supported solver:
+\code
+SparseMatrix<float> mat(aux);
 \endcode
 
-Sometimes, however, we simply want to set all the coefficients of a matrix before using it through standard matrix operations (addition, product, etc.). In that case it faster to use the low-level startFill()/fill()/fillrand()/endFill() interface. Even though this interface is availabe for both sparse matrix types, their respective restrictions slightly differ from one representation to the other. In all case, a call to startFill() set the matrix to zero, and the fill*() functions will fail if the coefficient already exist.
+In order to optimize this process, instead of the generic coeffRef(i,j) method one can also use:
+ - \code m.insert(i,j) = value; \endcode which assumes the coefficient of coordinate (row,col) does not already exist (otherwise this is a programming error and your program will stop).
+ - \code m.insertBack(i,j) = value; \endcode which, in addition to the requirements of insert(), also assumes that the coefficient of coordinate (row,col) will be inserted at the end of the target inner-vector. More precisely, if the matrix m is column major, then the row index of the last non zero coefficient of the j-th column must be smaller than i.
 
-As a first difference, for SparseMatrix, the fill*() functions can only be called inside a startFill()/endFill() pair, and no other member functions are allowed during the filling process, i.e., until endFill() has been called. On the other hand, a DynamicSparseMatrix is always in a stable state, and the startFill()/endFill() functions are only for compatibility purpose.
 
-Another difference is that the fill*() functions must be called with increasing outer indices for a SparseMatrix, while they can be random for a DynamicSparseMatrix.
+Actually, the SparseMatrix class also supports random insertion via the insert() method. However, its uses should be reserved in cases where the inserted non zero is nearly the last one of the compact storage array. In practice, this means it should be used only to perform random (or sorted) insertion into the current inner-vector while filling the inner-vectors in an increasing order. Moreover, with a SparseMatrix an insertion session must be closed by a call to finalize() before any use of the matrix. Here is an example for a column major matrix:
 
-Finally, the fill() function assumes the coefficient are inserted in a sorted order per inner vector, while the fillrand() variante allows random insertions (the outer indices must still be sorted for SparseMatrix).
-
-Some examples:
-
-1 - If you can set the coefficients in exactly the same order that the storage order, then the matrix can be filled directly and very efficiently. Here is an example initializing a random, row-major sparse matrix:
 \code
-SparseMatrix<double,RowMajor> m(rows,cols);
-m.startFill(rows*cols*percent_of_non_zero); // estimate of the number of nonzeros (optional)
-for (int i=0; i\<rows; ++i)
-  for (int j=0; j\<cols; ++j)
-    if (rand()\<percent_of_non_zero)
-      m.fill(i,j) = rand();
-m.endFill();
+SparseMatrix<float> mat(1000,1000);
+mat.reserve(estimated_number_of_non_zero);  // optional
+for each j                                  // should be in increasing order for performance reasons
+  for each i interacting with j             // the i can be random
+    mat.insert(i,j) = foo(i,j);             // optional for a DynamicSparseMatrix
+mat.finalize();
 \endcode
 
-2 - If you can set each outer vector in a consistent order, but do not have sorted data for each inner vector, then you can use fillrand() instead of fill():
-\code
-SparseMatrix<double,RowMajor> m(rows,cols);
-m.startFill(rows*cols*percent_of_non_zero); // estimate of the number of nonzeros (optional)
-for (int i=0; i\<rows; ++i)
-  for (int k=0; k\<cols*percent_of_non_zero; ++k)
-      m.fillrand(i,rand(0,cols)) = rand();
-m.endFill();
-\endcode
-The fillrand() function performs a sorted insertion into an array sequentially stored in memory and requires a copy of all coefficients stored after its target position. This method is therefore reserved for matrices having only a few elements per row/column (up to 50) and works better if the insertion are almost sorted.
+Finally, the fastest way to fill a SparseMatrix object is to insert the elements in a purely coherence order (increasing inner index per increasing outer index). To this end, Eigen provides a very low but optimal API and illustrated below:
 
-3 - Eventually, if none of the above solution is practicable for you, then you have to use a RandomSetter which temporarily wraps the matrix into a more flexible hash map allowing complete random accesses:
 \code
-SparseMatrix<double,RowMajor> m(rows,cols);
+SparseMatrix<float> mat(1000,1000);
+mat.reserve(estimated_number_of_non_zero);  // optional
+for(int j=0; j<1000; ++j)
 {
-  RandomSetter<SparseMatrix<double,RowMajor> > setter(m);
-  for (int k=0; k\<cols*rows*percent_of_non_zero; ++k)
-    setter(rand(0,rows), rand(0,cols)) = rand();
+  mat.startVec(j);                          // optional for a DynamicSparseMatrix
+  for each i interacting with j             // with increasing i
+      mat.insertBack(i,j) = foo(i,j);
 }
+mat.finalize();                             // optional for a DynamicSparseMatrix
 \endcode
-The matrix \c m is set at the destruction of the setter, hence the use of a nested block. This imposed syntax has the advantage to emphasize the critical section where m is not valid and cannot be used.
 
 
 \section TutorialSparseFeatureSet Supported operators and functions
