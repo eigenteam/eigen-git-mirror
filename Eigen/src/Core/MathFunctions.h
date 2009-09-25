@@ -332,7 +332,7 @@ inline bool ei_sqrt(bool x)  { return x; }
 
 template<> inline bool ei_random()
 {
-  return ei_random<int>(0,1);
+  return (ei_random<int>(0,1) == 1);
 }
 inline bool ei_isMuchSmallerThan(bool a, bool, bool = precision<bool>())
 {
