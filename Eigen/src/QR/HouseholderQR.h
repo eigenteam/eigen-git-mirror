@@ -59,7 +59,7 @@ template<typename MatrixType> class HouseholderQR
 
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, AutoAlign | (ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor)> MatrixQType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef typename HouseholderSequence<MatrixQType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
