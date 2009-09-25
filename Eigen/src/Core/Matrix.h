@@ -707,6 +707,8 @@ struct ei_conservative_resize_like_impl
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
+
     // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
     // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
     // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
@@ -728,6 +730,8 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
+
     // segment(...) will check whether Derived/OtherDerived are vectors!
     typename MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
