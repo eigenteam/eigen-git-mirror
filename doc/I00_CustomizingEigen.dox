@@ -125,7 +125,7 @@ In order to add support for a custom type \c T you need:
  3 - define a couple of math functions for your type such as: ei_sqrt, ei_abs, etc...
      (see the file Eigen/src/Core/MathFunctions.h)
 
-Here is a concrete example adding support for the Adolc's \c adouble type. <a href="http://www.math.tu-dresden.de/~adol-c/">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
+Here is a concrete example adding support for the Adolc's \c adouble type. <a href="https://projects.coin-or.org/ADOL-C">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
 
 \code
 #ifndef ADLOCSUPPORT_H
