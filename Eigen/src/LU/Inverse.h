@@ -200,7 +200,7 @@ struct ei_compute_inverse
 {
   static inline void run(const MatrixType& matrix, MatrixType* result)
   {
-    matrix.partialLu().computeInverse(result);
+    result = matrix.partialLu().inverse();
   }
 };
 
@@ -281,9 +281,7 @@ inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
 template<typename Derived>
 inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::inverse() const
 {
-  PlainMatrixType result(rows(), cols());
-  computeInverse(&result);
-  return result;
+  return inverse(*this);
 }
 
 
@@ -299,7 +297,7 @@ struct ei_compute_inverse_with_check
     typedef typename MatrixType::Scalar Scalar;
     LU<MatrixType> lu( matrix );
     if( !lu.isInvertible() ) return false;
-    lu.computeInverse(result);
+    *result = lu.inverse();
     return true;
   }
 };

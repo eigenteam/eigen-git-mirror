@@ -58,7 +58,7 @@ template<typename MatrixType> struct ei_lu_image_impl;
   * \include class_LU.cpp
   * Output: \verbinclude class_LU.out
   *
-  * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse(), MatrixBase::computeInverse()
+  * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
 template<typename MatrixType> class LU
 {
@@ -193,7 +193,7 @@ template<typename MatrixType> class LU
       * Example: \include LU_solve.cpp
       * Output: \verbinclude LU_solve.out
       *
-      * \sa TriangularView::solve(), kernel(), inverse(), computeInverse()
+      * \sa TriangularView::solve(), kernel(), inverse()
       */
     template<typename Rhs>
     inline const ei_lu_solve_impl<MatrixType, Rhs>
@@ -277,34 +277,19 @@ template<typename MatrixType> class LU
       return isInjective() && isSurjective();
     }
 
-    /** Computes the inverse of the matrix of which *this is the LU decomposition.
-      *
-      * \param result a pointer to the matrix into which to store the inverse. Resized if needed.
-      *
-      * \note If this matrix is not invertible, *result is left with undefined coefficients.
-      *       Use isInvertible() to first determine whether this matrix is invertible.
-      *
-      * \sa MatrixBase::computeInverse(), inverse()
-      */
-    inline void computeInverse(MatrixType *result) const
-    {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
-      *result = solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()));
-    }
-
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
       *
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
       *
-      * \sa computeInverse(), MatrixBase::inverse()
+      * \sa MatrixBase::inverse()
       */
-    inline MatrixType inverse() const
+    inline const ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
-      MatrixType result;
-      computeInverse(&result);
-      return result;
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
+      return ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
+               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
   protected:

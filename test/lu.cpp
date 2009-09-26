@@ -40,6 +40,7 @@ template<typename MatrixType> void lu_non_invertible()
   typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType m1kernel = lu.kernel();
   typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image();
 
+  // std::cerr << rank << " " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -54,7 +55,7 @@ template<typename MatrixType> void lu_non_invertible()
   m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
   // test that the code, which does resize(), may be applied to an xpr
-  m2.block(0,0,cols,cols2) = lu.solve(m3);
+  m2.block(0,0,m2.rows(),m2.cols()) = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   
   typedef Matrix<typename MatrixType::Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
@@ -111,7 +112,6 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(lu.isInjective())
   VERIFY_RAISES_ASSERT(lu.isSurjective())
   VERIFY_RAISES_ASSERT(lu.isInvertible())
-  VERIFY_RAISES_ASSERT(lu.computeInverse(&tmp))
   VERIFY_RAISES_ASSERT(lu.inverse())
 
   PartialLU<MatrixType> plu;
@@ -119,7 +119,6 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(plu.permutationP())
   VERIFY_RAISES_ASSERT(plu.solve(tmp,&tmp))
   VERIFY_RAISES_ASSERT(plu.determinant())
-  VERIFY_RAISES_ASSERT(plu.computeInverse(&tmp))
   VERIFY_RAISES_ASSERT(plu.inverse())
 }
 
