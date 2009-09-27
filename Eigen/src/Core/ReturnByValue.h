@@ -65,8 +65,22 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
-  other.evalTo(derived());
-  return derived();
+  // Here we evaluate to a temporary matrix tmp, which we then copy. The main purpose
+  // of this is to limit the number of instantiations of the template method evalTo<Destination>():
+  // we only instantiate for PlainMatrixType.
+  // Notice that this behaviour is specific to this operator in MatrixBase. The corresponding operator in class Matrix
+  // does not evaluate into a temporary first.
+  // TODO find a way to avoid evaluating into a temporary in the cases that matter. At least Block<> matters
+  // for the implementation of blocked algorithms.
+  // Should we:
+  //  - try a trick like for the products, where the destination is abstracted as an array with stride?
+  //  - or just add an operator in class Block, so we get a separate instantiation there (bad) but at least not more
+  //    than that, and at least that's easy to make work?
+  //  - or, since here we're talking about a compromise between code size and performance, let the user choose?
+  //    Not obvious: many users will never find out about this feature, and it's hard to find a good API.
+  PlainMatrixType tmp;
+  other.evalTo(tmp);
+  return derived() = tmp;
 }
 
 #endif // EIGEN_RETURNBYVALUE_H
