@@ -111,7 +111,7 @@ struct TestFunc1
   }
 };
 
-template<typename Func> void adolc_forward_jacobian(const Func& f)
+template<typename Func> void forward_jacobian(const Func& f)
 {
     typename Func::InputType x = Func::InputType::Random(f.inputs());
     typename Func::ValueType y(f.values()), yref(f.values());
@@ -134,21 +134,29 @@ template<typename Func> void adolc_forward_jacobian(const Func& f)
     VERIFY_IS_APPROX(j, jref);
 }
 
-void test_autodiff()
+void test_autodiff_scalar()
 {
   std::cerr << foo<float>(1,2) << "\n";
   AutoDiffScalar<Vector2f> ax(1,Vector2f::UnitX());
   AutoDiffScalar<Vector2f> ay(2,Vector2f::UnitY());
   std::cerr << foo<AutoDiffScalar<Vector2f> >(ax,ay).value() << " <> "
             << foo<AutoDiffScalar<Vector2f> >(ax,ay).derivatives().transpose() << "\n\n";
-  
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,2,2>()) ));
-    CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,2,3>()) ));
-    CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,3,2>()) ));
-    CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double,3,3>()) ));
-    CALL_SUBTEST(( adolc_forward_jacobian(TestFunc1<double>(3,3)) ));
-  }
-  
-//   exit(1);
 }
+  
+void test_autodiff_jacobian()
+{
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST(( forward_jacobian(TestFunc1<double,2,2>()) ));
+    CALL_SUBTEST(( forward_jacobian(TestFunc1<double,2,3>()) ));
+    CALL_SUBTEST(( forward_jacobian(TestFunc1<double,3,2>()) ));
+    CALL_SUBTEST(( forward_jacobian(TestFunc1<double,3,3>()) ));
+    CALL_SUBTEST(( forward_jacobian(TestFunc1<double>(3,3)) ));
+  }
+}
+
+void test_autodiff()
+{
+    test_autodiff_scalar();
+    test_autodiff_jacobian();
+}
+
