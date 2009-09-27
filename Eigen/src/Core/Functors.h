@@ -351,6 +351,8 @@ struct ei_scalar_multiple_op {
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
+private:
+  ei_scalar_multiple_op& operator=(const ei_scalar_multiple_op&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
@@ -378,6 +380,8 @@ struct ei_scalar_quotient1_impl {
   EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const
   { return ei_pmul(a, ei_pset1(m_other)); }
   const Scalar m_other;
+private:
+  ei_scalar_quotient1_impl& operator=(const ei_scalar_quotient1_impl&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
@@ -423,6 +427,8 @@ struct ei_scalar_constant_op {
   EIGEN_STRONG_INLINE const Scalar operator() (int, int = 0) const { return m_other; }
   EIGEN_STRONG_INLINE const PacketScalar packetOp() const { return ei_pset1(m_other); }
   const Scalar m_other;
+private:
+  ei_scalar_constant_op& operator=(const ei_scalar_constant_op&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
