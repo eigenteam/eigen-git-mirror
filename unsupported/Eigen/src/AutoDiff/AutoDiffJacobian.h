@@ -56,7 +56,7 @@ public:
   typedef Matrix<ActiveScalar, InputsAtCompileTime, 1> ActiveInput;
   typedef Matrix<ActiveScalar, ValuesAtCompileTime, 1> ActiveValue;
 
-  void operator() (const InputType& x, ValueType* v, JacobianType* _jac) const
+  void operator() (const InputType& x, ValueType* v, JacobianType* _jac=0) const
   {
     ei_assert(v!=0);
     if (!_jac)
