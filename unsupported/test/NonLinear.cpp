@@ -96,21 +96,47 @@ void testChkder()
   VERIFY_IS_APPROX(err, err_ref);
 }
 
+// Generic functor
+template<typename _Scalar, int NX=Dynamic, int NY=Dynamic>
+struct Functor
+{
+  typedef _Scalar Scalar;
+  enum {
+    InputsAtCompileTime = NX,
+    ValuesAtCompileTime = NY
+  };
+  typedef Matrix<Scalar,InputsAtCompileTime,1> InputType;
+  typedef Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
+  typedef Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
+  
+  int m_inputs, m_values;
+  
+  Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
+  Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
+  
+  int inputs() const { return m_inputs; }
+  int values() const { return m_values; }
+
+  // you should define that in the subclass :
+//  void operator() (const InputType& x, ValueType* v, JacobianType* _j=0) const;
+};
+
+
+
 
 /**
   * This functor example uses non-static members, see other ones for static
   * methods
   */
-struct lmder_functor {
-    int nbOfFunctions() const { return 15; }
-    int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) const { return 0;}
+struct lmder_functor : Functor<double,3,15>
+{
     int f(const VectorXd &x, VectorXd &fvec) const
     {
         double tmp1, tmp2, tmp3;
-        double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+        double y[ValuesAtCompileTime] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < ValuesAtCompileTime; i++)
         {
             tmp1 = i+1;
             tmp2 = 16 - i - 1;
@@ -123,7 +149,7 @@ struct lmder_functor {
     int df(const VectorXd &x, MatrixXd &fjac) const
     {
         double tmp1, tmp2, tmp3, tmp4;
-        for (int i = 0; i < 15; i++)
+        for (int i = 0; i < ValuesAtCompileTime; i++)
         {
             tmp1 = i+1;
             tmp2 = 16 - i - 1;
@@ -136,7 +162,6 @@ struct lmder_functor {
         return 0;
     }
 };
-
 
 void testLmder1()
 {
@@ -218,9 +243,9 @@ void testLmder()
   * This functor example uses static members, see lmder_functor for an
   * example of a non-static functor.
   */
-struct hybrj_functor {
+struct hybrj_functor : Functor<double,9,9>
+{
 
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &x, VectorXd &fvec)
     {
         double temp, temp1, temp2;
@@ -322,8 +347,8 @@ void testHybrj()
 
 }
 
-struct hybrd_functor {
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */) { return 0;}
+struct hybrd_functor : Functor<double,9,9>
+{
     static int f(const VectorXd &x, VectorXd &fvec)
     {
         double temp, temp1, temp2;
@@ -402,9 +427,8 @@ void testHybrd()
   VERIFY_IS_APPROX(x, x_ref);
 }
 
-struct lmstr_functor {
-    int nbOfFunctions() const { return 15; }
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const VectorXd & /* fjac */) { return 0;}
+struct lmstr_functor : Functor<double,3,15>
+{
     static int f(const VectorXd &x, VectorXd &fvec)
     {
         /*  subroutine fcn for lmstr1 example. */
@@ -502,9 +526,8 @@ void testLmstr()
 
 }
 
-struct lmdif_functor {
-    int nbOfFunctions() const { return 15; }
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */) { return 0;}
+struct lmdif_functor : Functor<double,3,15>
+{
     static int f(const VectorXd &x, VectorXd &fvec)
     {
         /* function fcn for lmdif1 example */
@@ -605,11 +628,10 @@ void testLmdif()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
-struct chwirut2_functor {
-    int nbOfFunctions() const { return 54; }
+struct chwirut2_functor : Functor<double,3,54>
+{
     static const double m_x[54];
     static const double m_y[54];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         int i;
@@ -692,11 +714,10 @@ void testNistChwirut2(void)
 }
 
 
-struct misra1a_functor {
-    int nbOfFunctions() const { return 14; }
+struct misra1a_functor : Functor<double,2,14>
+{
     static const double m_x[14];
     static const double m_y[14];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==2);
@@ -766,10 +787,9 @@ void testNistMisra1a(void)
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
 }
 
-struct hahn1_functor {
-    int nbOfFunctions() const { return 236; }
+struct hahn1_functor : Functor<double,7,236>
+{
     static const double m_x[236];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         static const double m_y[236] = { .591E0 , 1.547E0 , 2.902E0 , 2.894E0 , 4.703E0 , 6.307E0 , 7.03E0  , 7.898E0 , 9.470E0 , 9.484E0 , 10.072E0 , 10.163E0 , 11.615E0 , 12.005E0 , 12.478E0 , 12.982E0 , 12.970E0 , 13.926E0 , 14.452E0 , 14.404E0 , 15.190E0 , 15.550E0 , 15.528E0 , 15.499E0 , 16.131E0 , 16.438E0 , 16.387E0 , 16.549E0 , 16.872E0 , 16.830E0 , 16.926E0 , 16.907E0 , 16.966E0 , 17.060E0 , 17.122E0 , 17.311E0 , 17.355E0 , 17.668E0 , 17.767E0 , 17.803E0 , 17.765E0 , 17.768E0 , 17.736E0 , 17.858E0 , 17.877E0 , 17.912E0 , 18.046E0 , 18.085E0 , 18.291E0 , 18.357E0 , 18.426E0 , 18.584E0 , 18.610E0 , 18.870E0 , 18.795E0 , 19.111E0 , .367E0 , .796E0 , 0.892E0 , 1.903E0 , 2.150E0 , 3.697E0 , 5.870E0 , 6.421E0 , 7.422E0 , 9.944E0 , 11.023E0 , 11.87E0  , 12.786E0 , 14.067E0 , 13.974E0 , 14.462E0 , 14.464E0 , 15.381E0 , 15.483E0 , 15.59E0  , 16.075E0 , 16.347E0 , 16.181E0 , 16.915E0 , 17.003E0 , 16.978E0 , 17.756E0 , 17.808E0 , 17.868E0 , 18.481E0 , 18.486E0 , 19.090E0 , 16.062E0 , 16.337E0 , 16.345E0 , 16.388E0 , 17.159E0 , 17.116E0 , 17.164E0 , 17.123E0 , 17.979E0 , 17.974E0 , 18.007E0 , 17.993E0 , 18.523E0 , 18.669E0 , 18.617E0 , 19.371E0 , 19.330E0 , 0.080E0 , 0.248E0 , 1.089E0 , 1.418E0 , 2.278E0 , 3.624E0 , 4.574E0 , 5.556E0 , 7.267E0 , 7.695E0 , 9.136E0 , 9.959E0 , 9.957E0 , 11.600E0 , 13.138E0 , 13.564E0 , 13.871E0 , 13.994E0 , 14.947E0 , 15.473E0 , 15.379E0 , 15.455E0 , 15.908E0 , 16.114E0 , 17.071E0 , 17.135E0 , 17.282E0 , 17.368E0 , 17.483E0 , 17.764E0 , 18.185E0 , 18.271E0 , 18.236E0 , 18.237E0 , 18.523E0 , 18.627E0 , 18.665E0 , 19.086E0 , 0.214E0 , 0.943E0 , 1.429E0 , 2.241E0 , 2.951E0 , 3.782E0 , 4.757E0 , 5.602E0 , 7.169E0 , 8.920E0 , 10.055E0 , 12.035E0 , 12.861E0 , 13.436E0 , 14.167E0 , 14.755E0 , 15.168E0 , 15.651E0 , 15.746E0 , 16.216E0 , 16.445E0 , 16.965E0 , 17.121E0 , 17.206E0 , 17.250E0 , 17.339E0 , 17.793E0 , 18.123E0 , 18.49E0  , 18.566E0 , 18.645E0 , 18.706E0 , 18.924E0 , 19.1E0   , 0.375E0 , 0.471E0 , 1.504E0 , 2.204E0 , 2.813E0 , 4.765E0 , 9.835E0 , 10.040E0 , 11.946E0 , 12.596E0 , 13.303E0 , 13.922E0 , 14.440E0 , 14.951E0 , 15.627E0 , 15.639E0 , 15.814E0 , 16.315E0 , 16.334E0 , 16.430E0 , 16.423E0 , 17.024E0 , 17.009E0 , 17.165E0 , 17.134E0 , 17.349E0 , 17.576E0 , 17.848E0 , 18.090E0 , 18.276E0 , 18.404E0 , 18.519E0 , 19.133E0 , 19.074E0 , 19.239E0 , 19.280E0 , 19.101E0 , 19.398E0 , 19.252E0 , 19.89E0  , 20.007E0 , 19.929E0 , 19.268E0 , 19.324E0 , 20.049E0 , 20.107E0 , 20.062E0 , 20.065E0 , 19.286E0 , 19.972E0 , 20.088E0 , 20.743E0 , 20.83E0  , 20.935E0 , 21.035E0 , 20.93E0  , 21.074E0 , 21.085E0 , 20.935E0 };
@@ -863,11 +883,10 @@ void testNistHahn1(void)
 
 }
 
-struct misra1d_functor {
-    int nbOfFunctions() const { return 14; }
+struct misra1d_functor : Functor<double,2,14>
+{
     static const double x[14];
     static const double y[14];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==2);
@@ -939,11 +958,10 @@ void testNistMisra1d(void)
 }
 
 
-struct lanczos1_functor {
-    int nbOfFunctions() const { return 24; }
+struct lanczos1_functor : Functor<double,6,24>
+{
     static const double x[24];
     static const double y[24];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==6);
@@ -1025,11 +1043,10 @@ void testNistLanczos1(void)
 
 }
 
-struct rat42_functor {
-    int nbOfFunctions() const { return 9; }
+struct rat42_functor : Functor<double,3,9>
+{
     static const double x[9];
     static const double y[9];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==3);
@@ -1104,11 +1121,10 @@ void testNistRat42(void)
   VERIFY_IS_APPROX(x[2], 6.7359200066E-02);
 }
 
-struct MGH10_functor {
-    int nbOfFunctions() const { return 16; }
+struct MGH10_functor : Functor<double,3,16>
+{
     static const double x[16];
     static const double y[16];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==3);
@@ -1183,10 +1199,9 @@ void testNistMGH10(void)
 }
 
 
-struct BoxBOD_functor {
-    int nbOfFunctions() const { return 6; }
+struct BoxBOD_functor : Functor<double,2,6>
+{
     static const double x[6];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         static const double y[6] = { 109., 149., 149., 191., 213., 224. };
@@ -1262,11 +1277,10 @@ void testNistBoxBOD(void)
   VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
 }
 
-struct MGH17_functor {
-    int nbOfFunctions() const { return 33; }
+struct MGH17_functor : Functor<double,5,33>
+{
     static const double x[33];
     static const double y[33];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==5);
@@ -1348,11 +1362,10 @@ void testNistMGH17(void)
   VERIFY_IS_APPROX(x[4], 2.2122699662E-02);
 }
 
-struct MGH09_functor {
-    int nbOfFunctions() const { return 11; }
+struct MGH09_functor : Functor<double,4,11>
+{
     static const double _x[11];
     static const double y[11];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==4);
@@ -1435,11 +1448,10 @@ void testNistMGH09(void)
 
 
 
-struct Bennett5_functor {
-    int nbOfFunctions() const { return 154; }
+struct Bennett5_functor : Functor<double,3,154>
+{
     static const double x[154];
     static const double y[154];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==3);
@@ -1513,11 +1525,10 @@ void testNistBennett5(void)
   VERIFY_IS_APPROX(x[2], 0.93219881891); // should be 9.3218483193E-01);
 }
 
-struct thurber_functor {
-    int nbOfFunctions() const { return 37; }
+struct thurber_functor : Functor<double,7,37>
+{
     static const double _x[37];
     static const double _y[37];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         //        static int called=0; printf("call hahn1_functor with  iflag=%d, called=%d\n", iflag, called); if (iflag==1) called++;
@@ -1612,11 +1623,10 @@ void testNistThurber(void)
   VERIFY_IS_APPROX(x[6], 4.9727297349E-02);
 }
 
-struct rat43_functor {
-    int nbOfFunctions() const { return 15; }
+struct rat43_functor : Functor<double,4,15>
+{
     static const double x[15];
     static const double y[15];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==4);
@@ -1700,11 +1710,10 @@ void testNistRat43(void)
 
 
 
-struct eckerle4_functor {
-    int nbOfFunctions() const { return 35; }
+struct eckerle4_functor : Functor<double,3,35>
+{
     static const double x[35];
     static const double y[35];
-    static int debug(const VectorXd & /* x */, const VectorXd & /* fvec */, const MatrixXd & /* fjac */) { return 0;}
     static int f(const VectorXd &b, VectorXd &fvec)
     {
         assert(b.size()==3);

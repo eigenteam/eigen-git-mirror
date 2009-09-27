@@ -122,7 +122,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
@@ -158,7 +158,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
@@ -400,7 +400,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
@@ -422,7 +422,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffInit(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
@@ -677,7 +677,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
     Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
     VectorXi ipvt;
 
@@ -701,7 +701,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
         )
 {
     n = x.size();
-    m = functor.nbOfFunctions();
+    m = functor.values();
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
