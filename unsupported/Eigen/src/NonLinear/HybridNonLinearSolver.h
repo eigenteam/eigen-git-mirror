@@ -157,7 +157,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
     /*     and calculate its norm. */
 
     nfev = 1;
-    if ( functor.f(x, fvec) < 0)
+    if ( functor(x, fvec) < 0)
         return UserAksed;
     fnorm = fvec.stableNorm();
 
@@ -273,7 +273,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
 
-        if ( functor.f(wa2, wa4) < 0)
+        if ( functor(wa2, wa4) < 0)
             return UserAksed;
         ++nfev;
         fnorm1 = wa4.stableNorm();
@@ -472,7 +472,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
     /*     and calculate its norm. */
 
     nfev = 1;
-    if ( functor.f(x, fvec) < 0)
+    if ( functor(x, fvec) < 0)
         return UserAksed;
     fnorm = fvec.stableNorm();
 
@@ -590,7 +590,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
 
-        if ( functor.f(wa2, wa4) < 0)
+        if ( functor(wa2, wa4) < 0)
             return UserAksed;
         ++nfev;
         fnorm1 = wa4.stableNorm();

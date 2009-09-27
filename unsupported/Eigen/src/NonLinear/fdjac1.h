@@ -32,7 +32,7 @@ int ei_fdjac1(
             if (h == 0.)
                 h = eps;
             x[j] = temp + h;
-            iflag = Functor.f(x, wa1);
+            iflag = Functor(x, wa1);
             if (iflag < 0)
                 return iflag;
             x[j] = temp;
@@ -48,7 +48,7 @@ int ei_fdjac1(
                 if (h == 0.) h = eps;
                 x[j] = wa2[j] + h;
             }
-            iflag = Functor.f(x, wa1);
+            iflag = Functor(x, wa1);
             if (iflag < 0) {
                 return iflag;
             }

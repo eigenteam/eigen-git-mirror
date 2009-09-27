@@ -24,7 +24,7 @@ int ei_fdjac2(
             h = eps;
         }
         x[j] = temp + h;
-        iflag = Functor.f(x, wa);
+        iflag = Functor(x, wa);
         if (iflag < 0)
             return iflag;
         x[j] = temp;

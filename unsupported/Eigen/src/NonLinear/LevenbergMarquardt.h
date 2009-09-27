@@ -188,7 +188,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     /*     and calculate its norm. */
 
     nfev = 1;
-    if ( functor.f(x, fvec) < 0)
+    if ( functor(x, fvec) < 0)
         return UserAsked;
     fnorm = fvec.stableNorm();
 
@@ -304,7 +304,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
 
-        if ( functor.f(wa2, wa4) < 0)
+        if ( functor(wa2, wa4) < 0)
             return UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
@@ -451,7 +451,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffInit(
     /*     and calculate its norm. */
 
     nfev = 1;
-    if ( functor.f(x, fvec) < 0)
+    if ( functor(x, fvec) < 0)
         return UserAsked;
     fnorm = fvec.stableNorm();
 
@@ -567,7 +567,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeNumericalDiffOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
 
-        if ( functor.f(wa2, wa4) < 0)
+        if ( functor(wa2, wa4) < 0)
             return UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
@@ -731,7 +731,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     /*     and calculate its norm. */
 
     nfev = 1;
-    if ( functor.f(x, fvec) < 0)
+    if ( functor(x, fvec) < 0)
         return UserAsked;
     fnorm = fvec.stableNorm();
 
@@ -865,7 +865,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
 
-        if ( functor.f(wa2, wa4) < 0)
+        if ( functor(wa2, wa4) < 0)
             return UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
