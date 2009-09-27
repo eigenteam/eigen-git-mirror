@@ -34,13 +34,13 @@ template<typename MatrixType, unsigned int Options,
          bool PossiblyMoreRowsThanCols = (Options & AtLeastAsManyColsAsRows) == 0
                                          && (MatrixType::RowsAtCompileTime==Dynamic
                                              || (MatrixType::RowsAtCompileTime>MatrixType::ColsAtCompileTime))>
-struct ei_svd_precondition_if_more_rows_than_cols {};
+struct ei_svd_precondition_if_more_rows_than_cols;
 
 template<typename MatrixType, unsigned int Options,
          bool PossiblyMoreColsThanRows = (Options & AtLeastAsManyRowsAsCols) == 0
                                          && (MatrixType::ColsAtCompileTime==Dynamic
                                              || (MatrixType::ColsAtCompileTime>MatrixType::RowsAtCompileTime))>
-struct ei_svd_precondition_if_more_cols_than_rows {};
+struct ei_svd_precondition_if_more_cols_than_rows;
 
 /** \ingroup SVD_Module
   * \nonstableyet
