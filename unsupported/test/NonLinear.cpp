@@ -128,15 +128,16 @@ struct Functor
   * This functor example uses non-static members, see other ones for static
   * methods
   */
-struct lmder_functor : Functor<double,3,15>
+struct lmder_functor : Functor<double>
 {
+    lmder_functor(void): Functor<double>(3,15) {}
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
         double tmp1, tmp2, tmp3;
-        double y[ValuesAtCompileTime] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+        double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
-        for (int i = 0; i < ValuesAtCompileTime; i++)
+        for (int i = 0; i < values(); i++)
         {
             tmp1 = i+1;
             tmp2 = 16 - i - 1;
@@ -149,7 +150,7 @@ struct lmder_functor : Functor<double,3,15>
     int df(const VectorXd &x, MatrixXd &fjac) const
     {
         double tmp1, tmp2, tmp3, tmp4;
-        for (int i = 0; i < ValuesAtCompileTime; i++)
+        for (int i = 0; i < values(); i++)
         {
             tmp1 = i+1;
             tmp2 = 16 - i - 1;
@@ -243,8 +244,9 @@ void testLmder()
   * This functor example uses static members, see lmder_functor for an
   * example of a non-static functor.
   */
-struct hybrj_functor : Functor<double,9,9>
+struct hybrj_functor : Functor<double>
 {
+    hybrj_functor(void) : Functor<double>(9,9) {}
 
     int operator()(const VectorXd &x, VectorXd &fvec)
     {
@@ -347,8 +349,9 @@ void testHybrj()
 
 }
 
-struct hybrd_functor : Functor<double,9,9>
+struct hybrd_functor : Functor<double>
 {
+    hybrd_functor(void) : Functor<double>(9,9) {}
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
         double temp, temp1, temp2;
@@ -427,8 +430,9 @@ void testHybrd()
   VERIFY_IS_APPROX(x, x_ref);
 }
 
-struct lmstr_functor : Functor<double,3,15>
+struct lmstr_functor : Functor<double>
 {
+    lmstr_functor(void) : Functor<double>(3,15) {}
     int operator()(const VectorXd &x, VectorXd &fvec)
     {
         /*  subroutine fcn for lmstr1 example. */
@@ -526,8 +530,9 @@ void testLmstr()
 
 }
 
-struct lmdif_functor : Functor<double,3,15>
+struct lmdif_functor : Functor<double>
 {
+    lmdif_functor(void) : Functor<double>(3,15) {}
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
         /* function fcn for lmdif1 example */
@@ -628,8 +633,9 @@ void testLmdif()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
-struct chwirut2_functor : Functor<double,3,54>
+struct chwirut2_functor : Functor<double>
 {
+    chwirut2_functor(void) : Functor<double>(3,54) {}
     static const double m_x[54];
     static const double m_y[54];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -714,8 +720,9 @@ void testNistChwirut2(void)
 }
 
 
-struct misra1a_functor : Functor<double,2,14>
+struct misra1a_functor : Functor<double>
 {
+    misra1a_functor(void) : Functor<double>(2,14) {}
     static const double m_x[14];
     static const double m_y[14];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -787,8 +794,9 @@ void testNistMisra1a(void)
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
 }
 
-struct hahn1_functor : Functor<double,7,236>
+struct hahn1_functor : Functor<double>
 {
+    hahn1_functor(void) : Functor<double>(7,236) {}
     static const double m_x[236];
     int operator()(const VectorXd &b, VectorXd &fvec)
     {
@@ -883,8 +891,9 @@ void testNistHahn1(void)
 
 }
 
-struct misra1d_functor : Functor<double,2,14>
+struct misra1d_functor : Functor<double>
 {
+    misra1d_functor(void) : Functor<double>(2,14) {}
     static const double x[14];
     static const double y[14];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -958,8 +967,9 @@ void testNistMisra1d(void)
 }
 
 
-struct lanczos1_functor : Functor<double,6,24>
+struct lanczos1_functor : Functor<double>
 {
+    lanczos1_functor(void) : Functor<double>(6,24) {}
     static const double x[24];
     static const double y[24];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1043,8 +1053,9 @@ void testNistLanczos1(void)
 
 }
 
-struct rat42_functor : Functor<double,3,9>
+struct rat42_functor : Functor<double>
 {
+    rat42_functor(void) : Functor<double>(3,9) {}
     static const double x[9];
     static const double y[9];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1121,8 +1132,9 @@ void testNistRat42(void)
   VERIFY_IS_APPROX(x[2], 6.7359200066E-02);
 }
 
-struct MGH10_functor : Functor<double,3,16>
+struct MGH10_functor : Functor<double>
 {
+    MGH10_functor(void) : Functor<double>(3,16) {}
     static const double x[16];
     static const double y[16];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1199,8 +1211,9 @@ void testNistMGH10(void)
 }
 
 
-struct BoxBOD_functor : Functor<double,2,6>
+struct BoxBOD_functor : Functor<double>
 {
+    BoxBOD_functor(void) : Functor<double>(2,6) {}
     static const double x[6];
     int operator()(const VectorXd &b, VectorXd &fvec)
     {
@@ -1277,8 +1290,9 @@ void testNistBoxBOD(void)
   VERIFY_IS_APPROX(x[1], 5.4723748542E-01);
 }
 
-struct MGH17_functor : Functor<double,5,33>
+struct MGH17_functor : Functor<double>
 {
+    MGH17_functor(void) : Functor<double>(5,33) {}
     static const double x[33];
     static const double y[33];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1362,8 +1376,9 @@ void testNistMGH17(void)
   VERIFY_IS_APPROX(x[4], 2.2122699662E-02);
 }
 
-struct MGH09_functor : Functor<double,4,11>
+struct MGH09_functor : Functor<double>
 {
+    MGH09_functor(void) : Functor<double>(4,11) {}
     static const double _x[11];
     static const double y[11];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1448,8 +1463,9 @@ void testNistMGH09(void)
 
 
 
-struct Bennett5_functor : Functor<double,3,154>
+struct Bennett5_functor : Functor<double>
 {
+    Bennett5_functor(void) : Functor<double>(3,154) {}
     static const double x[154];
     static const double y[154];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1525,8 +1541,9 @@ void testNistBennett5(void)
   VERIFY_IS_APPROX(x[2], 0.93219881891); // should be 9.3218483193E-01);
 }
 
-struct thurber_functor : Functor<double,7,37>
+struct thurber_functor : Functor<double>
 {
+    thurber_functor(void) : Functor<double>(7,37) {}
     static const double _x[37];
     static const double _y[37];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1623,8 +1640,9 @@ void testNistThurber(void)
   VERIFY_IS_APPROX(x[6], 4.9727297349E-02);
 }
 
-struct rat43_functor : Functor<double,4,15>
+struct rat43_functor : Functor<double>
 {
+    rat43_functor(void) : Functor<double>(4,15) {}
     static const double x[15];
     static const double y[15];
     int operator()(const VectorXd &b, VectorXd &fvec)
@@ -1710,8 +1728,9 @@ void testNistRat43(void)
 
 
 
-struct eckerle4_functor : Functor<double,3,35>
+struct eckerle4_functor : Functor<double>
 {
+    eckerle4_functor(void) : Functor<double>(3,35) {}
     static const double x[35];
     static const double y[35];
     int operator()(const VectorXd &b, VectorXd &fvec)
