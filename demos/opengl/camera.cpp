@@ -260,7 +260,7 @@ void Camera::activateGL(void)
 
 Vector3f Camera::unProject(const Vector2f& uv, float depth) const
 {
-    Matrix4f inv = mViewMatrix.inverse();
+    Matrix4f inv = mViewMatrix.inverse().matrix();
     return unProject(uv, depth, inv);
 }
 

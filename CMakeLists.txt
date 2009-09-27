@@ -33,19 +33,10 @@ include(CheckCXXCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(EIGEN_BUILD_TESTS "Build tests" OFF)
-option(EIGEN_BUILD_DEMOS "Build demos" OFF)
-if(NOT WIN32)
-  option(EIGEN_BUILD_LIB "Build the binary shared library" OFF)
-endif(NOT WIN32)
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
 if(NOT WIN32)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
 endif(NOT WIN32)
-
-if(EIGEN_BUILD_LIB)
-  option(EIGEN_TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
-endif(EIGEN_BUILD_LIB)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -129,27 +120,32 @@ endif(EIGEN_BUILD_PKGCONFIG)
 
 add_subdirectory(Eigen)
 
-add_subdirectory(doc)
+add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-if(EIGEN_BUILD_TESTS)
-  include(CTest)
-  add_subdirectory(test)
-endif(EIGEN_BUILD_TESTS)
+include(CTest)
+enable_testing() # must be called from the root CMakeLists, see man page
+add_subdirectory(test EXCLUDE_FROM_ALL)
 
 add_subdirectory(unsupported)
 
-if(EIGEN_BUILD_DEMOS)
-  add_subdirectory(demos)
-endif(EIGEN_BUILD_DEMOS)
+add_subdirectory(demos EXCLUDE_FROM_ALL)
 
-if(EIGEN_BUILD_BLAS)
-  add_subdirectory(blas)
-endif(EIGEN_BUILD_BLAS)
+add_subdirectory(blas EXCLUDE_FROM_ALL)
 
+# TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
 if(EIGEN_BUILD_BTL)
-  add_subdirectory(bench/btl)
+  add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif(EIGEN_BUILD_BTL)
 
-if(EIGEN_BUILD_TESTS)
-  ei_testing_print_summary()
-endif(EIGEN_BUILD_TESTS)
+ei_testing_print_summary()
+message("You can now do the following:")
+message("Command      |   Description")
+message("-------------+------------------------------------------------------------------")
+message("make install | Install Eigen to ${CMAKE_INSTALL_PREFIX}")
+message("             | Do:  cmake -DCMAKE_INSTALL_PREFIX=yourprefix .   to change that")
+message("make test    | Build and run the unit tests (using CTest)")
+message("             | Note: this takes lots of time & memory! Easy on the -j option!")
+message("make btest   | Only build tests, don't run them")
+message("make doc     | Generate the API documentation, requires Doxygen & LaTeX")
+message("make blas    | Build BLAS library")
+message("-------------+------------------------------------------------------------------")
