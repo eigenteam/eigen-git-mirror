@@ -26,6 +26,7 @@
 #define EIGEN_NONLINEAR_MODULE_H
 
 #include <Eigen/Core>
+#include <unsupported/Eigen/NumericalDiff>
 
 namespace Eigen {
 

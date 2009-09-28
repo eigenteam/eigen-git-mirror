@@ -524,8 +524,6 @@ struct lmdif_functor : Functor<double>
     lmdif_functor(void) : Functor<double>(3,15) {}
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
-        /* function fcn for lmdif1 example */
-
         int i;
         double tmp1,tmp2,tmp3;
         double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
@@ -551,22 +549,23 @@ void testLmdif1()
   const int n=3;
   int info;
 
-  VectorXd x(n);
+  VectorXd x(n), fvec(15);
 
   /* the following starting values provide a rough fit. */
   x.setConstant(n, 1.);
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardt<lmdif_functor> lm(functor);
-  info = lm.lmdif1(x);
+  int nfev;
+  info = LevenbergMarquardt<lmdif_functor>::lmdif1(functor, x, &nfev);
 
   // check return value
   VERIFY( 1 == info);
-  VERIFY(lm.nfev==21);
+  VERIFY(nfev==21);
 
   // check norm
-  VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
+  functor(x, fvec);
+  VERIFY_IS_APPROX(fvec.blueNorm(), 0.09063596);
 
   // check x
   VectorXd x_ref(n);
@@ -587,8 +586,9 @@ void testLmdif()
 
   // do the computation
   lmdif_functor functor;
-  LevenbergMarquardt<lmdif_functor> lm(functor);
-  info = lm.minimizeNumericalDiff(x);
+  NumericalDiff<lmdif_functor> numDiff(functor);
+  LevenbergMarquardt<NumericalDiff<lmdif_functor> > lm(numDiff);
+  info = lm.minimize(x);
 
   // check return values
   VERIFY( 1 == info);
