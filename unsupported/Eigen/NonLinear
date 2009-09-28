@@ -45,7 +45,6 @@ namespace Eigen {
 #include "src/NonLinear/r1mpyq.h"
 #include "src/NonLinear/rwupdt.h"
 #include "src/NonLinear/qrfac.h"
-#include "src/NonLinear/fdjac2.h"
 #include "src/NonLinear/fdjac1.h"
 #include "src/NonLinear/qform.h"
 #include "src/NonLinear/lmpar.h"
