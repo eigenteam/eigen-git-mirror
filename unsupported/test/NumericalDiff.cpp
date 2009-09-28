@@ -50,7 +50,7 @@ struct my_functor : Functor<double>
         return 0;
     }
 
-    int df(const VectorXd &x, MatrixXd &fjac) const
+    int actual_df(const VectorXd &x, MatrixXd &fjac) const
     {
         double tmp1, tmp2, tmp3, tmp4;
         for (int i = 0; i < values(); i++)
@@ -77,7 +77,7 @@ void test_forward()
     x << 0.082, 1.13, 2.35;
 
     // real one 
-    functor.df(x, actual_jac);
+    functor.actual_df(x, actual_jac);
 //    std::cout << actual_jac << std::endl << std::endl;
 
     // using NumericalDiff
@@ -98,7 +98,7 @@ void test_central()
     x << 0.082, 1.13, 2.35;
 
     // real one 
-    functor.df(x, actual_jac);
+    functor.actual_df(x, actual_jac);
 
     // using NumericalDiff
     NumericalDiff<my_functor,Central> numDiff(functor);
