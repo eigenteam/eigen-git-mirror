@@ -351,7 +351,6 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   }
 
   const int rows = m_qr.rows();
-  const int cols = b.cols();
   ei_assert(b.rows() == rows);
 
   typename OtherDerived::PlainMatrixType c(b);
