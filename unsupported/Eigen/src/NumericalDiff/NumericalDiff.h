@@ -28,7 +28,13 @@
 namespace Eigen
 {
 
-template<typename Functor> class NumericalDiff : public Functor
+enum NumericalDiffMode {
+    Forward,
+    Central
+};
+
+
+template<typename Functor, NumericalDiffMode mode=Forward> class NumericalDiff : public Functor
 {
 public:
     typedef typename Functor::Scalar Scalar;
@@ -62,14 +68,23 @@ public:
         int nfev=0;
         const int n = _x.size();
         const Scalar eps = ei_sqrt((std::max(epsfcn,epsilon<Scalar>() )));
-        ValueType val, fx;
+        ValueType val1, val2;
         InputType x = _x;
         // TODO : we should do this only if the size is not already known
-        val.resize(Functor::values());
-        fx.resize(Functor::values());
+        val1.resize(Functor::values());
+        val2.resize(Functor::values());
 
-        // compute f(x)
-        Functor::operator()(x, fx);
+        switch(mode) {
+            case Forward:
+                // compute f(x)
+                Functor::operator()(x, val1); nfev++;
+                break;
+            case Central:
+                // do nothing
+                break;
+            default:
+                assert(false);
+        };
 
         /* Function Body */
 
@@ -78,11 +93,25 @@ public:
             if (h == 0.) {
                 h = eps;
             }
-            x[j] += h;
-            Functor::operator()(x, val);
-            nfev++;
-            x[j] = _x[j];
-            jac.col(j) = (val-fx)/h;
+            switch(mode) {
+                case Forward:
+                    x[j] += h;
+                    Functor::operator()(x, val2);
+                    nfev++;
+                    x[j] = _x[j];
+                    jac.col(j) = (val2-val1)/h;
+                    break;
+                case Central:
+                    x[j] += h;
+                    Functor::operator()(x, val2); nfev++;
+                    x[j] -= 2*h;
+                    Functor::operator()(x, val1); nfev++;
+                    x[j] = _x[j];
+                    jac.col(j) = (val2-val1)/(2*h);
+                    break;
+                default:
+                    assert(false);
+            };
         }
         return nfev;
     }

@@ -88,8 +88,27 @@ void test_forward()
     VERIFY_IS_APPROX(jac, actual_jac);
 }
 
+void test_central()
+{
+    VectorXd x(3);
+    MatrixXd jac(15,3);
+    MatrixXd actual_jac(15,3);
+    my_functor functor;
+
+    x << 0.082, 1.13, 2.35;
+
+    // real one 
+    functor.df(x, actual_jac);
+
+    // using NumericalDiff
+    NumericalDiff<my_functor,Central> numDiff(functor);
+    numDiff.df(x, jac);
+
+    VERIFY_IS_APPROX(jac, actual_jac);
+}
 
 void test_NumericalDiff()
 {
     CALL_SUBTEST(test_forward());
+    CALL_SUBTEST(test_central());
 }
