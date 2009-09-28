@@ -561,7 +561,7 @@ void testLmdif1()
 
   // check return value
   VERIFY( 1 == info);
-  VERIFY(nfev==21);
+  VERIFY(nfev==26);
 
   // check norm
   functor(x, fvec);
@@ -592,7 +592,7 @@ void testLmdif()
 
   // check return values
   VERIFY( 1 == info);
-  VERIFY(lm.nfev==21);
+  VERIFY(lm.nfev==26);
 
   // check norm
   fnorm = lm.fvec.blueNorm();

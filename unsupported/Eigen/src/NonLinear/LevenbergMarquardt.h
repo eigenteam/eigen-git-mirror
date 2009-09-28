@@ -55,7 +55,7 @@ public:
             );
 
     static Status lmdif1(
-            FunctorType &_functor,
+            FunctorType &functor,
             Matrix< Scalar, Dynamic, 1 >  &x,
             int *nfev,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
@@ -200,9 +200,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* calculate the jacobian matrix. */
 
-    if (functor.df(x, fjac) < 0)
+    int df_ret = functor.df(x, fjac);
+    if (df_ret<0)
         return UserAsked;
-    ++njev;
+    if (df_ret>0)
+        // numerical diff, we evaluated the function df_ret times
+        nfev += df_ret;
+    else njev++;
 
     /* compute the qr factorization of the jacobian. */
 
@@ -702,10 +706,8 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
     lm.parameters.maxfev = 200*(n+1);
 
     Status info = Status(lm.minimize(x));
-
     if (nfev)
         * nfev = lm.nfev;
-
     return info;
 }
 

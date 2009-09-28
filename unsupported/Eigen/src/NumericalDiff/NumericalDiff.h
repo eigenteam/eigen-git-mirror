@@ -74,6 +74,7 @@ public:
         val1.resize(Functor::values());
         val2.resize(Functor::values());
 
+        // initialization
         switch(mode) {
             case Forward:
                 // compute f(x)
@@ -86,8 +87,7 @@ public:
                 assert(false);
         };
 
-        /* Function Body */
-
+        // Function Body
         for (int j = 0; j < n; ++j) {
             h = eps * ei_abs(x[j]);
             if (h == 0.) {
