@@ -121,13 +121,6 @@ struct Functor
 //  void operator() (const InputType& x, ValueType* v, JacobianType* _j=0) const;
 };
 
-
-
-
-/**
-  * This functor example uses non-static members, see other ones for static
-  * methods
-  */
 struct lmder_functor : Functor<double>
 {
     lmder_functor(void): Functor<double>(3,15) {}
@@ -240,10 +233,6 @@ void testLmder()
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
-/**
-  * This functor example uses static members, see lmder_functor for an
-  * example of a non-static functor.
-  */
 struct hybrj_functor : Functor<double>
 {
     hybrj_functor(void) : Functor<double>(9,9) {}
