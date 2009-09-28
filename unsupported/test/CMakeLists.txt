@@ -16,6 +16,7 @@ else(ADOLC_FOUND)
 endif(ADOLC_FOUND)
 
 ei_add_test(NonLinear)
+ei_add_test(NumericalDiff)
 ei_add_test(autodiff)
 ei_add_test(BVH)
 #ei_add_test(matrixExponential)

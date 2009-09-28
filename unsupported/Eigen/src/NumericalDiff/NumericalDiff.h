@@ -1,0 +1,95 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2009 Thomas Capricelli <orzel@freehackers.org>
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef EIGEN_NUMERICAL_DIFF_H
+#define EIGEN_NUMERICAL_DIFF_H
+
+namespace Eigen
+{
+
+template<typename Functor> class NumericalDiff : public Functor
+{
+public:
+    typedef typename Functor::Scalar Scalar;
+    typedef typename Functor::InputType InputType;
+    typedef typename Functor::ValueType ValueType;
+    typedef typename Functor::JacobianType JacobianType;
+
+    NumericalDiff(Scalar _epsfcn=0.) : Functor(), epsfcn(_epsfcn) {}
+    NumericalDiff(const Functor& f, Scalar _epsfcn=0.) : Functor(f), epsfcn(_epsfcn) {}
+
+    // forward constructors
+    template<typename T0>
+        NumericalDiff(const T0& a0) : Functor(a0), epsfcn(0) {}
+    template<typename T0, typename T1>
+        NumericalDiff(const T0& a0, const T1& a1) : Functor(a0, a1), epsfcn(0) {}
+    template<typename T0, typename T1, typename T2>
+        NumericalDiff(const T0& a0, const T1& a1, const T1& a2) : Functor(a0, a1, a2), epsfcn(0) {}
+
+    enum {
+        InputsAtCompileTime = Functor::InputsAtCompileTime,
+        ValuesAtCompileTime = Functor::ValuesAtCompileTime
+    };
+
+    /**
+      * return the number of evaluation of functor
+     */
+    int df(const InputType& _x, JacobianType &jac) const
+    {
+        /* Local variables */
+        Scalar h;
+        int nfev=0;
+        const int n = _x.size();
+        const Scalar eps = ei_sqrt((std::max(epsfcn,epsilon<Scalar>() )));
+        ValueType val, fx;
+        InputType x = _x;
+        // TODO : we should do this only if the size is not already known
+        val.resize(Functor::values());
+        fx.resize(Functor::values());
+
+        // compute f(x)
+        Functor::operator()(x, fx);
+
+        /* Function Body */
+
+        for (int j = 0; j < n; ++j) {
+            h = eps * ei_abs(x[j]);
+            if (h == 0.) {
+                h = eps;
+            }
+            x[j] += h;
+            Functor::operator()(x, val);
+            nfev++;
+            x[j] = _x[j];
+            jac.col(j) = (val-fx)/h;
+        }
+        return nfev;
+    }
+private:
+    Scalar epsfcn;
+};
+
+} // namespace
+
+#endif // EIGEN_NUMERICAL_DIFF_H
