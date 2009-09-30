@@ -212,6 +212,11 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
       ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
 
+    Scalar coeff(int row, int col) const
+    {
+      return this->lhs().coeff(row) * this->rhs().coeff(col);
+    }
+
   private:
     GeneralProduct& operator=(const GeneralProduct&);
 };
