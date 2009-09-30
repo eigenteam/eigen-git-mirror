@@ -92,6 +92,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
+  m_eivec.resize(n,n);
 
   RealScalar eps = epsilon<RealScalar>();
 

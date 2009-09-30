@@ -168,6 +168,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
+  m_eivec.resize(n,n);
 
   if(n==1)
   {
