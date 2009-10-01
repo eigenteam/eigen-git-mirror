@@ -34,4 +34,10 @@ void test_product_small()
     CALL_SUBTEST( product(Matrix4d()) );
     CALL_SUBTEST( product(Matrix4f()) );
   }
+
+  {
+    // test compilation of (outer_product) * vector
+    Vector3f v = Vector3f::Random();
+    VERIFY_IS_APPROX( (v * v.transpose()) * v, (v * v.transpose()).eval() * v);
+  }
 }

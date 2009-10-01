@@ -135,7 +135,7 @@ struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 {
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
-  typedef GeneralProduct<Lhs, Rhs, UnrolledProduct> Type;
+  typedef GeneralProduct<LhsNested, RhsNested, UnrolledProduct> Type;
 };
 
 
@@ -210,11 +210,6 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
       ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
-    }
-
-    Scalar coeff(int row, int col) const
-    {
-      return this->lhs().coeff(row) * this->rhs().coeff(col);
     }
 
   private:
