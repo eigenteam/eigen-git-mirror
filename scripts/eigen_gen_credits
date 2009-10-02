@@ -7,9 +7,6 @@
 #   cd eigen2
 #   scripts/eigen_gen_credits
 
-# configuration
-USER='orzel'
-
 rm -f eigen_gen_credits.log
 
 hg pull >> eigen_gen_credits.log
@@ -23,7 +20,4 @@ g++ scripts/eigen_gen_credits.cpp -o e
 ./e > credits.out
 
 rsync credits.out $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/credits.out ||  (echo "upload failed"; exit 1)
-
-# clear the server-side cache for Main Page
-wget "http://eigen.tuxfamily.org/index.php?title=Main_Page&action=purge" -O main-page.out -a eigen_gen_credits.log
-rm main-page.out
+ssh $USER@ssh.tuxfamily.org "cd eigen/eigen.tuxfamily.org-web/htdocs; chmod 666 credits.out; echo Main_Page | /usr/bin/php maintenance/purgeList.php"
