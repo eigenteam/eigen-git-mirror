@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # this script must be run from the eigen2/ directory.
-# when running hg churn from the scripts/ subdir, i hit a divide-by-zero error in hg churn.
+# when running hg churn from the scripts/ subdir, i hit a divide-by-zero error.
 #
 # like this:
 #   cd eigen2
-#   scripts/eigen_gen_credits
+#   USER=yourtuxfamilyuser scripts/eigen_gen_credits
 
 rm -f eigen_gen_credits.log
 
@@ -20,4 +20,4 @@ g++ scripts/eigen_gen_credits.cpp -o e
 ./e > credits.out
 
 rsync credits.out $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/credits.out ||  (echo "upload failed"; exit 1)
-ssh $USER@ssh.tuxfamily.org "cd eigen/eigen.tuxfamily.org-web/htdocs; chmod 666 credits.out; echo Main_Page | /usr/bin/php maintenance/purgeList.php"
+ssh $USER@ssh.tuxfamily.org "cd eigen/eigen.tuxfamily.org-web/htdocs; chmod 660 credits.out; echo Main_Page | /usr/bin/php maintenance/purgeList.php"
