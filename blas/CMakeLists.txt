@@ -1,3 +1,5 @@
+project(EigenBlas)
+
 add_custom_target(blas)
 
 set(EigenBlas_SRCS single.cpp double.cpp complex_single.cpp complex_double.cpp)

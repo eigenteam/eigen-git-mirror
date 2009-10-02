@@ -1,3 +1,5 @@
+project(EigenDemos)
+
 add_custom_target(demos)
 
 find_package(Qt4)
