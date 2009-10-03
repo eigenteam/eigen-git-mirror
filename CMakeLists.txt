@@ -155,4 +155,8 @@ message("make debug_qr| Build a test with full debug info. To run it:   test/deb
 message("make blas    | Build BLAS library")
 message("make doc     | Generate the API documentation, requires Doxygen & LaTeX")
 message("-------------+-----------------------------------------------------------------")
+message("")
+message("There's no need to do 'make' unless you really want to build the unit tests!")
+message("")
+
 
