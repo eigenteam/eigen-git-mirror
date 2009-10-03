@@ -27,7 +27,11 @@ endmacro(ei_add_property)
 # void test_<testname>() { ... }
 #
 # this macro add an executable test_<testname> as well as a ctest test
-# named <testname>
+# named <testname>.
+#
+# it also adds another executable debug_<testname> that compiles in full debug mode
+# and is not added to the test target. The idea is that when a test fails you want
+# a quick way of rebuilding this specific test in full debug mode.
 #
 # On platforms with bash simply run:
 #   "ctest -V" or "ctest -V -R <testname>"
@@ -36,39 +40,50 @@ endmacro(ei_add_property)
 macro(ei_add_test testname)
 
   set(targetname test_${testname})
+  set(debug_targetname debug_${testname})
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
-  add_dependencies(btest ${targetname})
+  add_executable(${debug_targetname} ${filename})
 
   if(NOT EIGEN_NO_ASSERTION_CHECKING)
 
     if(MSVC)
       set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
+      set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
     else(MSVC)
       set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
+      set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
     endif(MSVC)
 
     option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
     if(EIGEN_DEBUG_ASSERTS)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
+      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
     endif(EIGEN_DEBUG_ASSERTS)
 
   else(NOT EIGEN_NO_ASSERTION_CHECKING)
 
     ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
 
   endif(NOT EIGEN_NO_ASSERTION_CHECKING)
 
+  # let the user pass e.g. optimization flags, but don't apply them to the debug target
   if(${ARGC} GREATER 1)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV1}")
   endif(${ARGC} GREATER 1)
 
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  # for the debug target, add full debug options
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    # O0 is in principle redundant here, but doesn't hurt
+    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-O0 -g3")
+  elseif(MSVC)
+    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "/Od /Zi")
+  endif(CMAKE_COMPILER_IS_GNUCXX)
 
-  if(TEST_LIB)
-    target_link_libraries(${targetname} Eigen2)
-  endif(TEST_LIB)
+  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
 
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   if(${ARGC} GREATER 2)
