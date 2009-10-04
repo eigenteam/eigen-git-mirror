@@ -4,18 +4,17 @@
 # TODO : display error msg on stderr instead of stdout
 
 # configuration
-USER='orzel'
+# You should call this script with USER set as you want, else some default
+# will be used
+USER=${USER:-'orzel'}
 
-# step 1 : update
-hg pull -u || (echo "update failed"; exit 1)
-
-# step 2 : build
+# step 1 : build
 # todo if 'build is not there, create one:
 #mkdir build
 (cd build && cmake .. && make -j3 doc) || (echo "make failed"; exit 1)
 #todo: n+1 where n = number of cpus
 
-#step 3 : upload
+#step 2 : upload
 BRANCH=`hg branch`
 if [ $BRANCH == "default" ]
 then
