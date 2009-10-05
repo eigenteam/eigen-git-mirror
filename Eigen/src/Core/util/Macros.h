@@ -202,24 +202,28 @@ using Eigen::ei_cos;
 #define EIGEN_ASM_COMMENT(X)
 #endif
 
-/* EIGEN_ALIGN_128 forces data to be 16-byte aligned, EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
+/* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
+ * However, we do that EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
  * so that vectorization doesn't affect binary compatibility.
  *
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
 #if !EIGEN_ALIGN
-  #define EIGEN_ALIGN_128
+  #define EIGEN_ALIGN_TO_BOUNDARY(n)
 #elif (defined __GNUC__)
-  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
-  #define EIGEN_ALIGN_128 __declspec(align(16))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
 #elif (defined __SUNPRO_CC)
   // FIXME not sure about this one:
-  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #else
-  #error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
+  #error Please tell me what is the equivalent of __attribute__((aligned(n))) for your compiler
 #endif
+
+#define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
+#define EIGEN_ALIGN8 EIGEN_ALIGN_TO_BOUNDARY(8)
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
   #define EIGEN_RESTRICT

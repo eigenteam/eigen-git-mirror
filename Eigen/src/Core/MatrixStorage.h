@@ -29,29 +29,45 @@
 struct ei_constructor_without_unaligned_array_assert {};
 
 /** \internal
-  * Static array automatically aligned if the total byte size is a multiple of 16 and the matrix options require auto alignment
+  * Static array. If the MatrixOptions require auto-alignment, and the array will be automatically aligned:
+  *  - to 16 bytes boundary, if the total size is a multiple of 16 bytes;
+  *  - or else to 8 bytes boundary, if the total size is a multiple of 8 bytes.
   */
 template <typename T, int Size, int MatrixOptions,
-          bool Align = (!(MatrixOptions&DontAlign)) && (((Size*sizeof(T))&0xf)==0)
-> struct ei_matrix_array
-{
-  EIGEN_ALIGN_128 T array[Size];
-
-  ei_matrix_array()
-  {
-    #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-    ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
-              && "this assertion is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
-    #endif
-  }
-
-  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
-};
-
-template <typename T, int Size, int MatrixOptions> struct ei_matrix_array<T,Size,MatrixOptions,false>
+          int Alignment = (MatrixOptions&DontAlign) ? 0
+                        : (((Size*sizeof(T))%16)==0) ? 16
+                        : (((Size*sizeof(T))%8)==0) ? 8
+                        : 0 >
+struct ei_matrix_array
 {
   T array[Size];
   ei_matrix_array() {}
+  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
+};
+
+#ifdef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+  #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask)
+#else
+  #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
+    ei_assert((reinterpret_cast<size_t>(array) & sizemask) == 0 \
+              && "this assertion is explained here: " \
+              "http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html" \
+              " **** READ THIS WEB PAGE !!! ****");
+#endif
+
+template <typename T, int Size, int MatrixOptions>
+struct ei_matrix_array<T, Size, MatrixOptions, 16>
+{
+  EIGEN_ALIGN16 T array[Size];
+  ei_matrix_array() { EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf) }
+  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
+};
+
+template <typename T, int Size, int MatrixOptions>
+struct ei_matrix_array<T, Size, MatrixOptions, 8>
+{
+  EIGEN_ALIGN8 T array[Size];
+  ei_matrix_array() { EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0x7) }
   ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 

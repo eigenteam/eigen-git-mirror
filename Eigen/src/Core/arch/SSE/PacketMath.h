@@ -359,7 +359,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_mul<Packet4i>(const Packet4i& a)
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., reusing ei_pmul is very slow !)
   // TODO try to call _mm_mul_epu32 directly
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   return  (aux[0] * aux[1]) * (aux[2] * aux[3]);;
 }
@@ -378,7 +378,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_min<Packet4i>(const Packet4i& a)
 {
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the ei_pstore !!)
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
   register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
@@ -399,7 +399,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
 {
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the ei_pstore !!)
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
   register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
