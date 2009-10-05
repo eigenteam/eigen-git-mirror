@@ -124,7 +124,7 @@ add_subdirectory(doc EXCLUDE_FROM_ALL)
 
 include(CTest)
 enable_testing() # must be called from the root CMakeLists, see man page
-add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
+add_subdirectory(test EXCLUDE_FROM_ALL) # can't do EXCLUDE_FROM_ALL here, breaks CTest
 
 add_subdirectory(unsupported)
 
@@ -145,24 +145,12 @@ message("--------------+--------------------------------------------------------
 message("Command       |   Description")
 message("--------------+----------------------------------------------------------------")
 message("make install  | Install to ${CMAKE_INSTALL_PREFIX}")
-message("              | To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
-message("make          | Build the unit tests")
-message("              | * That's not needed if you just want to install Eigen!")
-message("              | * That takes lots of memory! Easy on the -j option!")
+message("              | * To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
+message("make btest    | Build the unit tests")
+message("              | * That takes lots of memory! Easy on the -j option")
 message("make test     | Build and run the unit tests (using CTest)")
 message("make test_qr  | Build a specific test, here test_qr. To run it: test/test_qr")
 message("make debug_qr | Build a test with full debug info. To run it: test/debug_qr")
 message("make blas     | Build BLAS library (not the same thing as Eigen)")
 message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
 message("--------------+----------------------------------------------------------------")
-
-if(NOT EIGEN_CMAKE_ALREADY_RUN)
-  unset(EIGEN_CMAKE_ALREADY_RUN CACHE) # in case it was manually set to OFF in cache
-  set(EIGEN_CMAKE_ALREADY_RUN "ON" CACHE BOOL "Set to ON if CMake has already run here.")
-  message("")
-  message("First-time tip:")
-  message("")
-  message("If you just want to install Eigen, do 'make install' right away.")
-  message("No need to do 'make' before. See INSTALL file for more details.")
-  message("")
-endif(NOT EIGEN_CMAKE_ALREADY_RUN)

@@ -1,5 +1,5 @@
 project(EigenTesting)
-
+add_custom_target(btest)
 include(EigenTesting)
 ei_init_testing()
 

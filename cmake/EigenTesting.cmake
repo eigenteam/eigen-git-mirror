@@ -44,6 +44,7 @@ macro(ei_add_test testname)
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
+  add_dependencies(btest ${targetname})
   add_executable(${debug_targetname} ${filename})
 
   if(NOT EIGEN_NO_ASSERTION_CHECKING)

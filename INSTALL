@@ -4,11 +4,9 @@ Installation instructions for Eigen
 Explanation before starting
 ***************************
 
-It is very important to understand that Eigen consists only of header files,
-hence there is nothing to compile before you can use it. Moreover, these
-header files do not depend on your platform, they are the same for
-everybody.
-
+Eigen consists only of header files, hence there is nothing to compile
+before you can use it. Moreover, these header files do not depend on your
+platform, they are the same for everybody.
 
 Method 1. Installing without using CMake
 ****************************************
