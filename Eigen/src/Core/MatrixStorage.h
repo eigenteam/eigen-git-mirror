@@ -29,14 +29,12 @@
 struct ei_constructor_without_unaligned_array_assert {};
 
 /** \internal
-  * Static array. If the MatrixOptions require auto-alignment, and the array will be automatically aligned:
-  *  - to 16 bytes boundary, if the total size is a multiple of 16 bytes;
-  *  - or else to 8 bytes boundary, if the total size is a multiple of 8 bytes.
+  * Static array. If the MatrixOptions require auto-alignment, the array will be automatically aligned:
+  * to 16 bytes boundary if the total size is a multiple of 16 bytes.
   */
 template <typename T, int Size, int MatrixOptions,
           int Alignment = (MatrixOptions&DontAlign) ? 0
                         : (((Size*sizeof(T))%16)==0) ? 16
-                        : (((Size*sizeof(T))%8)==0) ? 8
                         : 0 >
 struct ei_matrix_array
 {
@@ -60,14 +58,6 @@ struct ei_matrix_array<T, Size, MatrixOptions, 16>
 {
   EIGEN_ALIGN16 T array[Size];
   ei_matrix_array() { EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf) }
-  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
-};
-
-template <typename T, int Size, int MatrixOptions>
-struct ei_matrix_array<T, Size, MatrixOptions, 8>
-{
-  EIGEN_ALIGN8 T array[Size];
-  ei_matrix_array() { EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0x7) }
   ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 
