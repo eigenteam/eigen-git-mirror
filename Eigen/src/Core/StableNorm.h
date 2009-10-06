@@ -108,21 +108,15 @@ MatrixBase<Derived>::blueNorm() const
     iemax = std::numeric_limits<RealScalar>::max_exponent;  // maximum exponent
     rbig  = std::numeric_limits<RealScalar>::max();         // largest floating-point number
 
-    // Check the basic machine-dependent constants.
-    if(iemin > 1 - 2*it || 1+it>iemax || (it==2 && ibeta<5)
-      || (it<=4 && ibeta <= 3 ) || it<2)
-    {
-      ei_assert(false && "the algorithm cannot be guaranteed on this computer");
-    }
     iexp  = -((1-iemin)/2);
-    b1    = RealScalar(std::pow(double(ibeta),iexp));  // lower boundary of midrange
+    b1    = RealScalar(std::pow<RealScalar>(ibeta,iexp));  // lower boundary of midrange
     iexp  = (iemax + 1 - it)/2;
-    b2    = RealScalar(std::pow(double(ibeta),iexp));   // upper boundary of midrange
+    b2    = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // upper boundary of midrange
 
     iexp  = (2-iemin)/2;
-    s1m   = RealScalar(std::pow(double(ibeta),iexp));   // scaling factor for lower range
+    s1m   = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // scaling factor for lower range
     iexp  = - ((iemax+it)/2);
-    s2m   = RealScalar(std::pow(double(ibeta),iexp));   // scaling factor for upper range
+    s2m   = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // scaling factor for upper range
 
     overfl  = rbig*s2m;             // overfow boundary for abig
     eps     = RealScalar(std::pow(double(ibeta), 1-it));

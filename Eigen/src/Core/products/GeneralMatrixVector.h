@@ -57,8 +57,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
   if(ConjugateRhs)
     alpha = ei_conj(alpha);
 
-//   std::cerr << "prod " << size << " " << rhs.size() << "\n";
-
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
@@ -69,9 +68,9 @@ void ei_cache_friendly_product_colmajor_times_vector(
   const int PeelAlignedMask = PacketSize*peels-1;
 
   // How many coeffs of the result do we have to skip to be aligned.
-  // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
-  const int alignedStart = ei_alignmentOffset(res,size);
-  const int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
+  // Here we assume data are at least aligned on the base scalar type.
+  int alignedStart = ei_alignmentOffset(res,size);
+  int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
   const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
   const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
@@ -84,12 +83,18 @@ void ei_cache_friendly_product_colmajor_times_vector(
 
   // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns = 0;
-  if (PacketSize>1)
+  // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
+  if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(res)%sizeof(RealScalar)) )
+  {
+    alignedSize = 0;
+    alignedStart = 0;
+  }
+  else if (PacketSize>1)
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0 || size<PacketSize);
 
     while (skipColumns<PacketSize &&
-           alignedStart != ((lhsAlignmentOffset + alignmentStep*skipColumns)%PacketSize))
+          alignedStart != ((lhsAlignmentOffset + alignmentStep*skipColumns)%PacketSize))
       ++skipColumns;
     if (skipColumns==PacketSize)
     {
@@ -263,6 +268,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   ei_conj_helper<ConjugateLhs,ConjugateRhs> cj;
 
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = sizeof(Packet)/sizeof(Scalar);
 
@@ -274,9 +280,10 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   const int size = rhsSize;
 
   // How many coeffs of the result do we have to skip to be aligned.
-  // Here we assume data are at least aligned on the base scalar type that is mandatory anyway.
-  const int alignedStart = ei_alignmentOffset(rhs, size);
-  const int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
+  // Here we assume data are at least aligned on the base scalar type
+  // if that's not the case then vectorization is discarded, see below.
+  int alignedStart = ei_alignmentOffset(rhs, size);
+  int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
   const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
   const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
@@ -289,7 +296,13 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   int skipRows = 0;
-  if (PacketSize>1)
+  // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
+  if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(rhs)%sizeof(RealScalar)) )
+  {
+    alignedSize = 0;
+    alignedStart = 0;
+  }
+  else if (PacketSize>1)
   {
     ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || size<PacketSize);
 
