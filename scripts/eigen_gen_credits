@@ -20,4 +20,4 @@ g++ scripts/eigen_gen_credits.cpp -o e
 ./e > credits.out
 
 rsync credits.out $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/credits.out ||  (echo "upload failed"; exit 1)
-ssh $USER@ssh.tuxfamily.org "cd eigen/eigen.tuxfamily.org-web/htdocs; chmod 660 credits.out; echo Main_Page | /usr/bin/php maintenance/purgeList.php"
+ssh $USER@ssh.tuxfamily.org "cd eigen/eigen.tuxfamily.org-web/htdocs; chmod 664 credits.out; echo Main_Page | /usr/bin/php maintenance/purgeList.php"
