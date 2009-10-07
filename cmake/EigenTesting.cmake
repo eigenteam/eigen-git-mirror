@@ -45,7 +45,7 @@ macro(ei_add_test testname)
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
   add_dependencies(btest ${targetname})
-  add_executable(${debug_targetname} ${filename})
+  add_executable(${debug_targetname} EXCLUDE_FROM_ALL ${filename})
 
   if(NOT EIGEN_NO_ASSERTION_CHECKING)
 
@@ -92,6 +92,7 @@ macro(ei_add_test testname)
     string(LENGTH "${ARGV2_stripped}" ARGV2_stripped_length)
     if(${ARGV2_stripped_length} GREATER 0)
       target_link_libraries(${targetname} ${ARGV2})
+      target_link_libraries(${debug_targetname} ${ARGV2})
     endif(${ARGV2_stripped_length} GREATER 0)
   endif(${ARGC} GREATER 2)
 
