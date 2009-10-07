@@ -35,8 +35,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
   // Check the basic machine-dependent constants.
   {
-    int nbig, ibeta, it, iemin, iemax, iexp;
-    RealScalar abig, eps;
+    int ibeta, it, iemin, iemax;
 
     ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
     it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa

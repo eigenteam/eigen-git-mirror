@@ -109,14 +109,14 @@ MatrixBase<Derived>::blueNorm() const
     rbig  = std::numeric_limits<RealScalar>::max();         // largest floating-point number
 
     iexp  = -((1-iemin)/2);
-    b1    = RealScalar(std::pow<RealScalar>(ibeta,iexp));  // lower boundary of midrange
+    b1    = RealScalar(std::pow(RealScalar(ibeta),RealScalar(iexp)));  // lower boundary of midrange
     iexp  = (iemax + 1 - it)/2;
-    b2    = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // upper boundary of midrange
+    b2    = RealScalar(std::pow(RealScalar(ibeta),RealScalar(iexp)));   // upper boundary of midrange
 
     iexp  = (2-iemin)/2;
-    s1m   = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // scaling factor for lower range
+    s1m   = RealScalar(std::pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for lower range
     iexp  = - ((iemax+it)/2);
-    s2m   = RealScalar(std::pow<RealScalar>(ibeta,iexp));   // scaling factor for upper range
+    s2m   = RealScalar(std::pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for upper range
 
     overfl  = rbig*s2m;             // overfow boundary for abig
     eps     = RealScalar(std::pow(double(ibeta), 1-it));
