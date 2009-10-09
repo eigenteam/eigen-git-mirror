@@ -142,6 +142,7 @@ if(EIGEN_BUILD_BTL)
 endif(EIGEN_BUILD_BTL)
 
 ei_testing_print_summary()
+if(NOT MSVC_IDE)
 message("")
 message("Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message("You can now do the following:")
@@ -158,3 +159,4 @@ message("make debug_qr | Build a test with full debug info. To run it: test/debu
 message("make blas     | Build BLAS library (not the same thing as Eigen)")
 message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
 message("--------------+----------------------------------------------------------------")
+endif(NOT MSVC_IDE)
