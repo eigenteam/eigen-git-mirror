@@ -120,7 +120,7 @@ void test_redux()
     CALL_SUBTEST( matrixRedux(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( vectorRedux(VectorXf(5)) );
+    CALL_SUBTEST( vectorRedux(Vector4f()) );
     CALL_SUBTEST( vectorRedux(VectorXd(10)) );
     CALL_SUBTEST( vectorRedux(VectorXf(33)) );
   }

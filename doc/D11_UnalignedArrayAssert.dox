@@ -21,6 +21,7 @@ There are 4 known causes for this issue. Please read on to understand them and l
  - \ref c3
  - \ref c4
  - \ref explanation
+ - \ref getrid
 
 \section where Where in my own code is the cause of the problem?
 
@@ -100,6 +101,16 @@ Note that here, Eigen::Quaternionf is only used as an example, more generally th
 Eigen normally takes care of these alignment issues for you, by setting an alignment attribute on them and by overloading their "operator new".
 
 However there are a few corner cases where these alignment settings get overridden: they are the possible causes for this assertion.
+
+\section getrid I don't care about vectorization, how do I get rid of that stuff?
+
+Two possibilities:
+<ul>
+  <li>Define EIGEN_DONT_ALIGN. That disables all 128-bit alignment code, and in particular everything vectorization-related. But do note that this in particular breaks ABI compatibility with vectorized code.</li>
+  <li>Or define both EIGEN_DONT_VECTORIZE and EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT. This keeps the 128-bit alignment code and thus preserves ABI compatibility.</li>
+</ul>
+
+For more information, see <a href="http://eigen.tuxfamily.org/index.php?title=FAQ#I_disabled_vectorization.2C_but_I.27m_still_getting_annoyed_about_alignment_issues.21">this FAQ</a>.
 
 */
 

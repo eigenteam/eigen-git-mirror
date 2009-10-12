@@ -31,8 +31,15 @@
   *
   * \class ComplexShur
   *
-  * \brief Performs a complex Shur decomposition of a real or complex square matrix
+  * \brief Performs a complex Schur decomposition of a real or complex square matrix
   *
+  * Given a real or complex square matrix A, this class computes the Schur decomposition:
+  * \f$ A = U T U^*\f$ where U is a unitary complex matrix, and T is a complex upper
+  * triangular matrix.
+  *
+  * The diagonal of the matrix T corresponds to the eigenvalues of the matrix A.
+  *
+  * \sa class RealSchur, class EigenSolver
   */
 template<typename _MatrixType> class ComplexSchur
 {
@@ -42,41 +49,56 @@ template<typename _MatrixType> class ComplexSchur
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
     typedef Matrix<Complex, MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime> ComplexMatrixType;
+    enum {
+      Size = MatrixType::RowsAtCompileTime
+    };
 
-    /**
-      * \brief Default Constructor.
+    /** \brief Default Constructor.
       *
       * The default constructor is useful in cases in which the user intends to
-      * perform decompositions via ComplexSchur::compute(const MatrixType&).
+      * perform decompositions via ComplexSchur::compute().
       */
-    ComplexSchur() : m_matT(), m_matU(), m_isInitialized(false)
+    ComplexSchur(int size = Size==Dynamic ? 0 : Size)
+      : m_matT(size,size), m_matU(size,size), m_isInitialized(false), m_matUisUptodate(false)
     {}
 
-    ComplexSchur(const MatrixType& matrix)
+    /** Constructor computing the Schur decomposition of the matrix \a matrix.
+      * If \a skipU is true, then the matrix U is not computed. */
+    ComplexSchur(const MatrixType& matrix, bool skipU = false)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
-              m_isInitialized(false)
+              m_isInitialized(false),
+              m_matUisUptodate(false)
     {
-      compute(matrix);
+      compute(matrix, skipU);
     }
 
-    ComplexMatrixType matrixU() const
+    /** \returns a const reference to the matrix U of the respective Schur decomposition. */
+    const ComplexMatrixType& matrixU() const
     {
       ei_assert(m_isInitialized && "ComplexSchur is not initialized.");
+      ei_assert(m_matUisUptodate && "The matrix U has not been computed during the ComplexSchur decomposition.");
       return m_matU;
     }
 
-    ComplexMatrixType matrixT() const
+    /** \returns a const reference to the matrix T of the respective Schur decomposition.
+      * Note that this function returns a plain square matrix. If you want to reference
+      * only the upper triangular part, use:
+      * \code schur.matrixT().triangularView<Upper>() \endcode. */
+    const ComplexMatrixType& matrixT() const
     {
       ei_assert(m_isInitialized && "ComplexShur is not initialized.");
       return m_matT;
     }
 
-    void compute(const MatrixType& matrix);
+    /** Computes the Schur decomposition of the matrix \a matrix.
+      * If \a skipU is true, then the matrix U is not computed. */
+    void compute(const MatrixType& matrix, bool skipU = false);
 
   protected:
     ComplexMatrixType m_matT, m_matU;
     bool m_isInitialized;
+    bool m_matUisUptodate;
 };
 
 /** Computes the principal value of the square root of the complex \a z. */
@@ -117,17 +139,20 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
 }
 
 template<typename MatrixType>
-void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
+void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 {
   // this code is inspired from Jampack
+
+  m_matUisUptodate = false;
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
 
   // Reduce to Hessenberg form
+  // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
 
   m_matT = hess.matrixH();
-  m_matU = hess.matrixQ();
+  if(!skipU)  m_matU = hess.matrixQ();
 
   int iu = m_matT.cols() - 1;
   int il;
@@ -206,7 +231,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
     {
       m_matT.block(0,i,n,n-i).applyOnTheLeft(i, i+1, rot.adjoint());
       m_matT.block(0,0,std::min(i+2,iu)+1,n).applyOnTheRight(i, i+1, rot);
-      m_matU.applyOnTheRight(i, i+1, rot);
+      if(!skipU) m_matU.applyOnTheRight(i, i+1, rot);
 
       if(i != iu-1)
       {
@@ -232,6 +257,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix)
   */
 
   m_isInitialized = true;
+  m_matUisUptodate = !skipU;
 }
 
 #endif // EIGEN_COMPLEX_SCHUR_H

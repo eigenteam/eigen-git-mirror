@@ -38,10 +38,8 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,LowerTriangular>
   static void run(Scalar* mat, int stride, const UType& u, const VType& v, Scalar alpha)
   {
     const int size = u.size();
-//     std::cerr << "lower \n" << u.transpose() << "\n" << v.transpose() << "\n\n";
     for (int i=0; i<size; ++i)
     {
-//       std::cerr <<
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
                         (alpha * ei_conj(u.coeff(i))) * v.end(size-i)
                       + (alpha * ei_conj(v.coeff(i))) * u.end(size-i);

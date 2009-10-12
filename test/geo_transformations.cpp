@@ -102,7 +102,14 @@ template<typename Scalar, int Mode> void transformations(void)
     a = ei_random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
+
+  // first test setIdentity() and Identity()
   t0.setIdentity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+  t0.matrix().setZero();
+  t0 = Transform3::Identity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+  
   t0.linear() = q1.toRotationMatrix();
   t1.setIdentity();
   t1.linear() = q1.toRotationMatrix();
@@ -296,10 +303,10 @@ template<typename Scalar, int Mode> void transformations(void)
     t0.setIdentity();
     t0.translate(v0);
     t0.linear().setRandom();
-    VERIFY_IS_APPROX(t0.inverse(Affine), t0.matrix().inverse());
+    VERIFY_IS_APPROX(t0.inverse(Affine).matrix(), t0.matrix().inverse());
     t0.setIdentity();
     t0.translate(v0).rotate(q1);
-    VERIFY_IS_APPROX(t0.inverse(Isometry), t0.matrix().inverse());
+    VERIFY_IS_APPROX(t0.inverse(Isometry).matrix(), t0.matrix().inverse());
   }
 
   // test extract rotation and aligned scaling

@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -215,10 +216,10 @@ struct ei_partial_lu_impl
   typedef Map<Matrix<Scalar, Dynamic, Dynamic, StorageOrder> > MapLU;
   typedef Block<MapLU, Dynamic, Dynamic> MatrixType;
   typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
-    
+
   /** \internal performs the LU decomposition in-place of the matrix \a lu
     * using an unblocked algorithm.
-    * 
+    *
     * In addition, this function returns the row transpositions in the
     * vector \a row_transpositions which must have a size equal to the number
     * of columns of the matrix \a lu, and an integer \a nb_transpositions
@@ -232,7 +233,7 @@ struct ei_partial_lu_impl
     for(int k = 0; k < size; ++k)
     {
       int row_of_biggest_in_col;
-      lu.block(k,k,rows-k,1).cwise().abs().maxCoeff(&row_of_biggest_in_col);
+      lu.col(k).end(rows-k).cwise().abs().maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
 
       row_transpositions[k] = row_of_biggest_in_col;
@@ -295,7 +296,7 @@ struct ei_partial_lu_impl
       int bs = std::min(size-k,blockSize); // actual size of the block
       int trows = rows - k - bs; // trailing rows
       int tsize = size - k - bs; // trailing size
-      
+
       // partition the matrix:
       //        A00 | A01 | A02
       // lu  =  A10 | A11 | A12
@@ -343,7 +344,7 @@ void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& n
 {
   ei_assert(lu.cols() == row_transpositions.size());
   ei_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
-  
+
   ei_partial_lu_impl
     <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor>
     ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.stride(), &row_transpositions.coeffRef(0), nb_transpositions);

@@ -194,6 +194,7 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
+  m_eivec.resize(n,n);
 
   MatrixType matH = matrix;
   RealVectorType ort(n);

@@ -135,7 +135,7 @@ struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 {
   typedef typename ei_nested<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename ei_nested<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
-  typedef GeneralProduct<Lhs, Rhs, UnrolledProduct> Type;
+  typedef GeneralProduct<LhsNested, RhsNested, UnrolledProduct> Type;
 };
 
 
@@ -211,6 +211,9 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     {
       ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
+
+  private:
+    GeneralProduct& operator=(const GeneralProduct&);
 };
 
 template<> struct ei_outer_product_selector<ColMajor> {
@@ -276,6 +279,9 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
       ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                        bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
+
+private:
+  GeneralProduct& operator=(const GeneralProduct&);
 };
 
 // The vector is on the left => transposition
@@ -432,20 +438,6 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
     INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
   EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
-}
-
-
-
-/** replaces \c *this by \c *this * \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived &
-MatrixBase<Derived>::operator*=(const AnyMatrixBase<OtherDerived> &other)
-{
-  return derived() = derived() * other.derived();
 }
 
 #endif // EIGEN_PRODUCT_H

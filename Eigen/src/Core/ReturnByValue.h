@@ -28,45 +28,37 @@
 /** \class ReturnByValue
   *
   */
-template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int _MaxRows,int _MaxCols>
-struct ei_traits<ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> > >
-  : public ei_traits<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
+template<typename Derived>
+struct ei_traits<ReturnByValue<Derived> >
+  : public ei_traits<typename ei_traits<Derived>::ReturnMatrixType>
 {
   enum {
-    Flags = ei_traits<Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >::Flags | EvalBeforeNestingBit
+    Flags = ei_traits<typename ei_traits<Derived>::ReturnMatrixType>::Flags | EvalBeforeNestingBit
   };
 };
 
-template<typename Functor,typename EvalTypeDerived,int n>
-struct ei_nested<ReturnByValue<Functor,MatrixBase<EvalTypeDerived> >, n, EvalTypeDerived>
+template<typename Derived,int n,typename PlainMatrixType>
+struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
 {
-  typedef EvalTypeDerived type;
+  typedef typename ei_traits<Derived>::ReturnMatrixType type;
 };
 
-template<typename Functor, typename EvalType> class ReturnByValue
+template<typename Derived>
+  class ReturnByValue : public MatrixBase<ReturnByValue<Derived> >
 {
-  public:
-    template<typename Dest> inline void evalTo(Dest& dst) const
-    { static_cast<const Functor*>(this)->evalTo(dst); }
-};
-
-template<typename Functor, typename _Scalar,int _Rows,int _Cols,int _Options,int _MaxRows,int _MaxCols>
-  class ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> >
-  : public MatrixBase<ReturnByValue<Functor,Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> > >
-{
-    typedef Matrix<_Scalar,_Rows,_Cols,_Options,_MaxRows,_MaxCols> EvalType;
+    typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(ReturnByValue)
     template<typename Dest>
     inline void evalTo(Dest& dst) const
-    { static_cast<const Functor* const>(this)->evalTo(dst); }
-    inline int rows() const { return static_cast<const Functor* const>(this)->rows(); }
-    inline int cols() const { return static_cast<const Functor* const>(this)->cols(); }
+    { static_cast<const Derived* const>(this)->evalTo(dst); }
+    inline int rows() const { return static_cast<const Derived* const>(this)->rows(); }
+    inline int cols() const { return static_cast<const Derived* const>(this)->cols(); }
 };
 
 template<typename Derived>
-template<typename OtherDerived,typename OtherEvalType>
-Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+template<typename OtherDerived>
+Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
   other.evalTo(derived());
   return derived();

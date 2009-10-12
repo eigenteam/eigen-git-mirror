@@ -265,14 +265,14 @@ template<> inline void ei_pstoreu(int*    to , const v4i&    from )
 
 template<> inline float  ei_pfirst(const v4f&  a)
 {
-  float EIGEN_ALIGN_128 af[4];
+  float EIGEN_ALIGN16 af[4];
   vec_st(a, 0, af);
   return af[0];
 }
 
 template<> inline int    ei_pfirst(const v4i&  a)
 {
-  int EIGEN_ALIGN_128 ai[4];
+  int EIGEN_ALIGN16 ai[4];
   vec_st(a, 0, ai);
   return ai[0];
 }
@@ -373,7 +373,7 @@ inline float ei_predux_mul(const v4f& a)
 
 inline int ei_predux_mul(const v4i& a)
 {
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   return aux[0] * aux[1] * aux[2] * aux[3];
 }

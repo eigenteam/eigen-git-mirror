@@ -247,14 +247,14 @@ public:
     ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
   }
 
-  template<typename OtherDerived,typename OtherEvalType>
-  Transform(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+  template<typename OtherDerived>
+  Transform(const ReturnByValue<OtherDerived>& other)
   {
     other.evalTo(*this);
   }
 
-  template<typename OtherDerived,typename OtherEvalType>
-  Transform& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+  template<typename OtherDerived>
+  Transform& operator=(const ReturnByValue<OtherDerived>& other)
   {
     other.evalTo(*this);
     return *this;
@@ -345,6 +345,10 @@ public:
 
   /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
+  static const typename MatrixType::IdentityReturnType Identity()
+  {
+    return MatrixType::Identity();
+  }
 
   template<typename OtherDerived>
   inline Transform& scale(const MatrixBase<OtherDerived> &other);
@@ -395,7 +399,7 @@ public:
   Transform& fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
     const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale);
 
-  inline const MatrixType inverse(TransformTraits traits = (TransformTraits)Mode) const;
+  inline Transform inverse(TransformTraits traits = (TransformTraits)Mode) const;
 
   /** \returns a const pointer to the column major internal matrix */
   const Scalar* data() const { return m_matrix.data(); }
@@ -874,7 +878,7 @@ Transform<Scalar,Dim,Mode>::fromPositionOrientationScale(const MatrixBase<Positi
 
 /** \nonstableyet
   *
-  * \returns the inverse transformation matrix according to some given knowledge
+  * \returns the inverse transformation according to some given knowledge
   * on \c *this.
   *
   * \param traits allows to optimize the inversion process when the transformion
@@ -892,37 +896,37 @@ Transform<Scalar,Dim,Mode>::fromPositionOrientationScale(const MatrixBase<Positi
   * \sa MatrixBase::inverse()
   */
 template<typename Scalar, int Dim, int Mode>
-const typename Transform<Scalar,Dim,Mode>::MatrixType
+Transform<Scalar,Dim,Mode>
 Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
 {
+  Transform res;
   if (hint == Projective)
   {
-    return m_matrix.inverse();
+    res.matrix() = m_matrix.inverse();
   }
   else
   {
-    MatrixType res;
     if (hint == Isometry)
     {
-      res.template corner<Dim,Dim>(TopLeft) = linear().transpose();
+      res.matrix().template corner<Dim,Dim>(TopLeft) = linear().transpose();
     }
     else if(hint&Affine)
     {
-      res.template corner<Dim,Dim>(TopLeft) = linear().inverse();
+      res.matrix().template corner<Dim,Dim>(TopLeft) = linear().inverse();
     }
     else
     {
       ei_assert(false && "Invalid transform traits in Transform::Inverse");
     }
     // translation and remaining parts
-    res.template corner<Dim,1>(TopRight) = - res.template corner<Dim,Dim>(TopLeft) * translation();
+    res.matrix().template corner<Dim,1>(TopRight) = - res.matrix().template corner<Dim,Dim>(TopLeft) * translation();
     if(int(Mode)!=int(AffineCompact))
     {
-      res.template block<1,Dim>(Dim,0).setZero();
-      res.coeffRef(Dim,Dim) = 1;
+      res.matrix().template block<1,Dim>(Dim,0).setZero();
+      res.matrix().coeffRef(Dim,Dim) = 1;
     }
-    return res;
   }
+  return res;
 }
 
 /*****************************************************

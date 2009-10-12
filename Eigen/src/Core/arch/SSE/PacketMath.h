@@ -76,16 +76,14 @@ template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size
 
 #ifdef __GNUC__
 // Sometimes GCC implements _mm_set1_p* using multiple moves,
-// that is inefficient :(
+// that is inefficient :( (e.g., see ei_gemm_pack_rhs)
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   Packet4f res = _mm_set_ss(from);
-  asm("shufps $0, %[x], %[x]" : [x] "+x" (res) : );
-  return res;
+  return _mm_shuffle_ps(res,res,0);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
   Packet2d res = _mm_set_sd(from);
-  asm("unpcklpd %[x], %[x]" : [x] "+x" (res) : );
-  return res;
+  return _mm_unpacklo_pd(res,res);
 }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
@@ -361,7 +359,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_mul<Packet4i>(const Packet4i& a)
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., reusing ei_pmul is very slow !)
   // TODO try to call _mm_mul_epu32 directly
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   return  (aux[0] * aux[1]) * (aux[2] * aux[3]);;
 }
@@ -380,7 +378,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_min<Packet4i>(const Packet4i& a)
 {
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the ei_pstore !!)
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
   register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
@@ -401,7 +399,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
 {
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the ei_pstore !!)
-  EIGEN_ALIGN_128 int aux[4];
+  EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
   register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];

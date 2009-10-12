@@ -99,10 +99,10 @@ template<typename Scalar> void packetmath()
   const int PacketSize = ei_packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_128 Scalar data1[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_128 Scalar data2[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_128 Packet packets[PacketSize*2];
-  EIGEN_ALIGN_128 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Packet packets[PacketSize*2];
+  EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
   for (int i=0; i<size; ++i)
   {
     data1[i] = ei_random<Scalar>();
@@ -202,9 +202,9 @@ template<typename Scalar> void packetmath_real()
   const int PacketSize = ei_packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_128 Scalar data1[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_128 Scalar data2[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_128 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
   
   for (int i=0; i<size; ++i)
   {

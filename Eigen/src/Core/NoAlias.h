@@ -73,6 +73,9 @@ class NoAlias
 
   protected:
     ExpressionType& m_expression;
+
+  private:
+    NoAlias& operator=(const NoAlias&);
 };
 
 /** \returns a pseudo expression of \c *this with an operator= assuming

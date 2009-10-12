@@ -95,8 +95,8 @@ bool ei_compute_inverse_size3(const XprType& matrix, MatrixType* result)
   return true;
 }
 
-template<typename MatrixType>
-bool ei_compute_inverse_size4_helper(const MatrixType& matrix, MatrixType* result)
+template<typename MatrixType, typename ResultType>
+bool ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType* result)
 {
   /* Let's split M into four 2x2 blocks:
     * (P Q)
@@ -195,47 +195,47 @@ bool ei_compute_inverse_size4_with_check(const XprType& matrix, MatrixType* resu
 *** Part 2 : selector and MatrixBase methods ***
 ***********************************************/
 
-template<typename MatrixType, int Size = MatrixType::RowsAtCompileTime>
+template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
 struct ei_compute_inverse
 {
-  static inline void run(const MatrixType& matrix, MatrixType* result)
+  static inline void run(const MatrixType& matrix, ResultType* result)
   {
     matrix.partialLu().computeInverse(result);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse<MatrixType, 1>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 1>
 {
-  static inline void run(const MatrixType& matrix, MatrixType* result)
+  static inline void run(const MatrixType& matrix, ResultType* result)
   {
     typedef typename MatrixType::Scalar Scalar;
     result->coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse<MatrixType, 2>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 2>
 {
-  static inline void run(const MatrixType& matrix, MatrixType* result)
+  static inline void run(const MatrixType& matrix, ResultType* result)
   {
     ei_compute_inverse_size2(matrix, result);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse<MatrixType, 3>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 3>
 {
-  static inline void run(const MatrixType& matrix, MatrixType* result)
+  static inline void run(const MatrixType& matrix, ResultType* result)
   {
-    ei_compute_inverse_size3<false, MatrixType, MatrixType>(matrix, result);
+    ei_compute_inverse_size3<false, MatrixType, ResultType>(matrix, result);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse<MatrixType, 4>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 4>
 {
-  static inline void run(const MatrixType& matrix, MatrixType* result)
+  static inline void run(const MatrixType& matrix, ResultType* result)
   {
     ei_compute_inverse_size4_with_check(matrix, result);
   }
@@ -256,11 +256,12 @@ struct ei_compute_inverse<MatrixType, 4>
   * \sa inverse(), computeInverseWithCheck()
   */
 template<typename Derived>
-inline void MatrixBase<Derived>::computeInverse(PlainMatrixType *result) const
+template<typename ResultType>
+inline void MatrixBase<Derived>::computeInverse(ResultType *result) const
 {
   ei_assert(rows() == cols());
   EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
-  ei_compute_inverse<PlainMatrixType>::run(eval(), result);
+  ei_compute_inverse<PlainMatrixType, ResultType>::run(eval(), result);
 }
 
 /** \lu_module
@@ -291,10 +292,10 @@ inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::
  * Compute inverse with invertibility check *
  *******************************************/
 
-template<typename MatrixType, int Size = MatrixType::RowsAtCompileTime>
+template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
 struct ei_compute_inverse_with_check
 {
-  static inline bool run(const MatrixType& matrix, MatrixType* result)
+  static inline bool run(const MatrixType& matrix, ResultType* result)
   {
     typedef typename MatrixType::Scalar Scalar;
     LU<MatrixType> lu( matrix );
@@ -304,10 +305,10 @@ struct ei_compute_inverse_with_check
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse_with_check<MatrixType, 1>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_with_check<MatrixType, ResultType, 1>
 {
-  static inline bool run(const MatrixType& matrix, MatrixType* result)
+  static inline bool run(const MatrixType& matrix, ResultType* result)
   {
     typedef typename MatrixType::Scalar Scalar;
     if( matrix.coeff(0,0) == Scalar(0) ) return false;
@@ -316,28 +317,28 @@ struct ei_compute_inverse_with_check<MatrixType, 1>
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse_with_check<MatrixType, 2>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_with_check<MatrixType, ResultType, 2>
 {
-  static inline bool run(const MatrixType& matrix, MatrixType* result)
+  static inline bool run(const MatrixType& matrix, ResultType* result)
   {
     return ei_compute_inverse_size2_with_check(matrix, result);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse_with_check<MatrixType, 3>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_with_check<MatrixType, ResultType, 3>
 {
-  static inline bool run(const MatrixType& matrix, MatrixType* result)
+  static inline bool run(const MatrixType& matrix, ResultType* result)
   {
-    return ei_compute_inverse_size3<true, MatrixType, MatrixType>(matrix, result);
+    return ei_compute_inverse_size3<true, MatrixType, ResultType>(matrix, result);
   }
 };
 
-template<typename MatrixType>
-struct ei_compute_inverse_with_check<MatrixType, 4>
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_with_check<MatrixType, ResultType, 4>
 {
-  static inline bool run(const MatrixType& matrix, MatrixType* result)
+  static inline bool run(const MatrixType& matrix, ResultType* result)
   {
     return ei_compute_inverse_size4_with_check(matrix, result);
   }
@@ -354,11 +355,12 @@ struct ei_compute_inverse_with_check<MatrixType, 4>
   * \sa inverse(), computeInverse()
   */
 template<typename Derived>
-inline bool MatrixBase<Derived>::computeInverseWithCheck(PlainMatrixType *result) const
+template<typename ResultType>
+inline bool MatrixBase<Derived>::computeInverseWithCheck(ResultType *result) const
 {
   ei_assert(rows() == cols());
   EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
-  return ei_compute_inverse_with_check<PlainMatrixType>::run(eval(), result);
+  return ei_compute_inverse_with_check<PlainMatrixType, ResultType>::run(eval(), result);
 }
 
 

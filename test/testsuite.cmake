@@ -148,7 +148,7 @@ endif(NOT EIGEN_NO_UPDATE)
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
 # what cmake command to use for configuring this dashboard
-SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_BUILD_TESTS=on ")
+SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_CMAKE_RUN_FROM_CTEST=ON")
 
 ####################################################################
 # The values in this section are optional you can either
@@ -175,9 +175,9 @@ if(WIN32 AND NOT UNIX)
   else(EIGEN_GENERATOR_TYPE)
     set(CTEST_CMAKE_COMMAND "${CTEST_CMAKE_COMMAND} -G \"NMake Makefiles\" -DCMAKE_MAKE_PROGRAM=nmake")
     SET (CTEST_INITIAL_CACHE "
-      MAKECOMMAND:STRING=nmake -i
+      MAKECOMMAND:STRING=nmake /i
       CMAKE_MAKE_PROGRAM:FILEPATH=nmake
-      CMAKE_GENERATOR:INTERNAL=NMake Makefiles  
+      CMAKE_GENERATOR:INTERNAL=NMake Makefiles
       CMAKE_BUILD_TYPE:STRING=Release
       BUILDNAME:STRING=${EIGEN_BUILD_STRING}
       SITE:STRING=${EIGEN_SITE}

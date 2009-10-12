@@ -91,22 +91,22 @@ int main(int argc, char *argv[])
     {
       std::cout << "Eigen sparse\t" << sm1.nonZeros()/float(sm1.rows()*sm1.cols())*100 << "%\n";
 
-      BENCH(for (int k=0; k<REPEAT; ++k) v2 = sm1 * v1;)
+      BENCH(asm("#myc"); v2 = sm1 * v1; asm("#myd");)
       std::cout << "   a * v:\t" << timer.value() << endl;
 
-      
-      BENCH(for (int k=0; k<REPEAT; ++k) { asm("#mya"); v2 = sm1.transpose() * v1; asm("#myb"); })
-      
+
+      BENCH( { asm("#mya"); v2 = sm1.transpose() * v1; asm("#myb"); })
+
       std::cout << "   a' * v:\t" << timer.value() << endl;
     }
-    
+
 //     {
 //       DynamicSparseMatrix<Scalar> m1(sm1);
 //       std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/float(m1.rows()*m1.cols())*100 << "%\n";
-// 
+//
 //       BENCH(for (int k=0; k<REPEAT; ++k) v2 = m1 * v1;)
 //       std::cout << "   a * v:\t" << timer.value() << endl;
-// 
+//
 //       BENCH(for (int k=0; k<REPEAT; ++k) v2 = m1.transpose() * v1;)
 //       std::cout << "   a' * v:\t" << timer.value() << endl;
 //     }
@@ -118,23 +118,15 @@ int main(int argc, char *argv[])
       //GmmDynSparse  gmmT3(rows,cols);
       GmmSparse m1(rows,cols);
       eiToGmm(sm1, m1);
-      
+
       std::vector<Scalar> gmmV1(cols), gmmV2(cols);
       Map<Matrix<Scalar,Dynamic,1> >(&gmmV1[0], cols) = v1;
       Map<Matrix<Scalar,Dynamic,1> >(&gmmV2[0], cols) = v2;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        gmm::mult(m1, gmmV1, gmmV2);
-      timer.stop();
+      BENCH( asm("#myx"); gmm::mult(m1, gmmV1, gmmV2); asm("#myy"); )
       std::cout << "   a * v:\t" << timer.value() << endl;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        gmm::mult(gmm::transposed(m1), gmmV1, gmmV2);
-      timer.stop();
+      BENCH( gmm::mult(gmm::transposed(m1), gmmV1, gmmV2); )
       std::cout << "   a' * v:\t" << timer.value() << endl;
     }
     #endif

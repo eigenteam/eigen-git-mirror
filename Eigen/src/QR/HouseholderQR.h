@@ -56,12 +56,13 @@ template<typename MatrixType> class HouseholderQR
       Options = MatrixType::Options,
       DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
-    
+
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, AutoAlign | (ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor)> MatrixQType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
+    typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
     /**
     * \brief Default Constructor.
@@ -97,7 +98,12 @@ template<typename MatrixType> class HouseholderQR
     template<typename OtherDerived, typename ResultType>
     void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    MatrixQType matrixQ(void) const;
+    MatrixQType matrixQ() const;
+
+    HouseholderSequenceType matrixQAsHouseholderSequence() const
+    {
+      return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
+    }
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       * in a LAPACK-compatible way.
@@ -169,7 +175,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   int rows = matrix.rows();
   int cols = matrix.cols();
   int size = std::min(rows,cols);
-  
+
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
@@ -200,26 +206,22 @@ void HouseholderQR<MatrixType>::solve(
 ) const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+  result->resize(m_qr.cols(), b.cols());
   const int rows = m_qr.rows();
-  const int cols = b.cols();
+  const int rank = std::min(m_qr.rows(), m_qr.cols());
   ei_assert(b.rows() == rows);
-  result->resize(rows, cols);
 
-  *result = b;
-  
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
-  for (int k = 0; k < cols; ++k)
-  {
-    int remainingSize = rows-k;
+  typename OtherDerived::PlainMatrixType c(b);
 
-    result->corner(BottomRight, remainingSize, cols)
-           .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
-  }
+  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  c.applyOnTheLeft(makeHouseholderSequence(m_qr.corner(TopLeft,rows,rank), m_hCoeffs.start(rank)).transpose());
 
-  const int rank = std::min(result->rows(), result->cols());
   m_qr.corner(TopLeft, rank, rank)
       .template triangularView<UpperTriangular>()
-      .solveInPlace(result->corner(TopLeft, rank, result->cols()));
+      .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+
+  result->corner(TopLeft, rank, c.cols()) = c.corner(TopLeft,rank, c.cols());
+  result->corner(BottomLeft, result->rows()-rank, c.cols()).setZero();
 }
 
 /** \returns the matrix Q */
@@ -227,20 +229,7 @@ template<typename MatrixType>
 typename HouseholderQR<MatrixType>::MatrixQType HouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  // compute the product H'_0 H'_1 ... H'_n-1,
-  // where H_k is the k-th Householder transformation I - h_k v_k v_k'
-  // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
-  int rows = m_qr.rows();
-  int cols = m_qr.cols();
-  int size = std::min(rows,cols);
-  MatrixQType res = MatrixQType::Identity(rows, rows);
-  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
-  for (int k = size-1; k >= 0; k--)
-  {
-    res.block(k, k, rows-k, rows-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
-  }
-  return res;
+  return matrixQAsHouseholderSequence();
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

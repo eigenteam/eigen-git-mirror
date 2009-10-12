@@ -1,6 +1,6 @@
-
+project(EigenTesting)
+add_custom_target(btest)
 include(EigenTesting)
-enable_testing()
 ei_init_testing()
 
 find_package(GSL)
@@ -94,6 +94,7 @@ ei_add_test(basicstuff)
 ei_add_test(linearstructure)
 ei_add_test(cwiseop)
 ei_add_test(redux)
+ei_add_test(visitor)
 ei_add_test(product_small)
 ei_add_test(product_large ${EI_OFLAG})
 ei_add_test(product_extra ${EI_OFLAG})

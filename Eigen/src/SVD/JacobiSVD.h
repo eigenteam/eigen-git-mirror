@@ -25,6 +25,23 @@
 #ifndef EIGEN_JACOBISVD_H
 #define EIGEN_JACOBISVD_H
 
+// forward declarations (needed by ICC)
+// the empty bodies are required by VC
+template<typename MatrixType, unsigned int Options, bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
+struct ei_svd_precondition_2x2_block_to_be_real {};
+
+template<typename MatrixType, unsigned int Options,
+         bool PossiblyMoreRowsThanCols = (Options & AtLeastAsManyColsAsRows) == 0
+                                         && (MatrixType::RowsAtCompileTime==Dynamic
+                                             || (MatrixType::RowsAtCompileTime>MatrixType::ColsAtCompileTime))>
+struct ei_svd_precondition_if_more_rows_than_cols;
+
+template<typename MatrixType, unsigned int Options,
+         bool PossiblyMoreColsThanRows = (Options & AtLeastAsManyRowsAsCols) == 0
+                                         && (MatrixType::ColsAtCompileTime==Dynamic
+                                             || (MatrixType::ColsAtCompileTime>MatrixType::RowsAtCompileTime))>
+struct ei_svd_precondition_if_more_cols_than_rows;
+
 /** \ingroup SVD_Module
   * \nonstableyet
   *
@@ -118,8 +135,8 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
     friend struct ei_svd_precondition_if_more_cols_than_rows;
 };
 
-template<typename MatrixType, unsigned int Options, bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
-struct ei_svd_precondition_2x2_block_to_be_real
+template<typename MatrixType, unsigned int Options>
+struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, false>
 {
   typedef JacobiSVD<MatrixType, Options> SVD;
   static void run(typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&, int, int) {}
@@ -195,10 +212,7 @@ void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
   *j_left  = rot1 * j_right->transpose();
 }
 
-template<typename MatrixType, unsigned int Options,
-         bool PossiblyMoreRowsThanCols = (Options & AtLeastAsManyColsAsRows) == 0
-                                         && (MatrixType::RowsAtCompileTime==Dynamic
-                                             || MatrixType::RowsAtCompileTime>MatrixType::ColsAtCompileTime)>
+template<typename MatrixType, unsigned int Options, bool PossiblyMoreRowsThanCols>
 struct ei_svd_precondition_if_more_rows_than_cols
 {
   typedef JacobiSVD<MatrixType, Options> SVD;
@@ -231,10 +245,7 @@ struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
   }
 };
 
-template<typename MatrixType, unsigned int Options,
-         bool PossiblyMoreColsThanRows = (Options & AtLeastAsManyRowsAsCols) == 0
-                                         && (MatrixType::ColsAtCompileTime==Dynamic
-                                            || MatrixType::ColsAtCompileTime>MatrixType::RowsAtCompileTime)>
+template<typename MatrixType, unsigned int Options, bool PossiblyMoreColsThanRows>
 struct ei_svd_precondition_if_more_cols_than_rows
 {
   typedef JacobiSVD<MatrixType, Options> SVD;
@@ -256,7 +267,7 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
     MaxColsAtCompileTime = SVD::MaxColsAtCompileTime,
     MatrixOptions = SVD::MatrixOptions
   };
-  
+
   static bool run(const MatrixType& matrix, typename SVD::WorkMatrixType& work_matrix, SVD& svd)
   {
     int rows = matrix.rows();

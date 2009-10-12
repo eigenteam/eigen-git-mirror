@@ -24,52 +24,38 @@
 
 #include "main.h"
 
-struct Good1
+struct TestNew1
 {
   MatrixXd m; // good: m will allocate its own array, taking care of alignment.
-  Good1() : m(20,20) {}
+  TestNew1() : m(20,20) {}
 };
 
-struct Good2
+struct TestNew2
 {
-  Matrix3d m; // good: m's size isn't a multiple of 16 bytes, so m doesn't have to be aligned
+  Matrix3d m; // good: m's size isn't a multiple of 16 bytes, so m doesn't have to be 16-byte aligned,
+              // 8-byte alignment is good enough here, which we'll get automatically
 };
 
-struct Good3
+struct TestNew3
 {
-  Vector2f m; // good: same reason
+  Vector2f m; // good: m's size isn't a multiple of 16 bytes, so m doesn't have to be 16-byte aligned
 };
 
-struct Bad4
-{
-  Vector2d m; // bad: sizeof(m)%16==0 so alignment is required
-};
-
-struct Bad5
-{
-  Matrix<float, 2, 6> m; // bad: same reason
-};
-
-struct Bad6
-{
-  Matrix<double, 3, 4> m; // bad: same reason
-};
-
-struct Good7
+struct TestNew4
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Vector2d m;
   float f; // make the struct have sizeof%16!=0 to make it a little more tricky when we allow an array of 2 such objects
 };
 
-struct Good8
+struct TestNew5
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  float f; // try the f at first -- the EIGEN_ALIGN_128 attribute of m should make that still work
+  float f; // try the f at first -- the EIGEN_ALIGN16 attribute of m should make that still work
   Matrix4f m;
 };
 
-struct Good9
+struct TestNew6
 {
   Matrix<float,2,2,DontAlign> m; // good: no alignment requested
   float f;
@@ -94,34 +80,56 @@ void check_unalignedassert_good()
 
 #if EIGEN_ALIGN
 template<typename T>
-void check_unalignedassert_bad()
+void construct_at_boundary(int boundary)
 {
-  float buf[sizeof(T)+16];
-  float *unaligned = buf;
-  while((reinterpret_cast<size_t>(unaligned)&0xf)==0) ++unaligned; // make sure unaligned is really unaligned
-  T *x = ::new(static_cast<void*>(unaligned)) T;
+  char buf[sizeof(T)+256];
+  size_t _buf = reinterpret_cast<size_t>(buf);
+  _buf += (16 - (_buf % 16)); // make 16-byte aligned
+  _buf += boundary; // make exact boundary-aligned
+  T *x = ::new(reinterpret_cast<void*>(_buf)) T;
   x->~T();
 }
 #endif
 
 void unalignedassert()
 {
-  check_unalignedassert_good<Good1>();
-  check_unalignedassert_good<Good2>();
-  check_unalignedassert_good<Good3>();
-#if EIGEN_ALIGN
-  VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad4>());
-  VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad5>());
-  VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Bad6>());
-#endif
+  construct_at_boundary<Vector2f>(4);
+  construct_at_boundary<Vector3f>(4);
+  construct_at_boundary<Vector4f>(16);
+  construct_at_boundary<Matrix2f>(16);
+  construct_at_boundary<Matrix3f>(4);
+  construct_at_boundary<Matrix4f>(16);
+  
+  construct_at_boundary<Vector2d>(16);
+  construct_at_boundary<Vector3d>(4);
+  construct_at_boundary<Vector4d>(16);
+  construct_at_boundary<Matrix2d>(16);
+  construct_at_boundary<Matrix3d>(4);
+  construct_at_boundary<Matrix4d>(16);
+  
+  construct_at_boundary<Vector2cf>(16);
+  construct_at_boundary<Vector3cf>(4);
+  construct_at_boundary<Vector2cd>(16);
+  construct_at_boundary<Vector3cd>(16);
+  
+  check_unalignedassert_good<TestNew1>();
+  check_unalignedassert_good<TestNew2>();
+  check_unalignedassert_good<TestNew3>();
 
-  check_unalignedassert_good<Good7>();
-  check_unalignedassert_good<Good8>();
-  check_unalignedassert_good<Good9>();
+  check_unalignedassert_good<TestNew4>();
+  check_unalignedassert_good<TestNew5>();
+  check_unalignedassert_good<TestNew6>();
   check_unalignedassert_good<Depends<true> >();
-
+  
 #if EIGEN_ALIGN
-  VERIFY_RAISES_ASSERT(check_unalignedassert_bad<Depends<false> >());
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2d>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
+  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(8));
 #endif
 }
 

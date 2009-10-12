@@ -33,19 +33,10 @@ include(CheckCXXCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(EIGEN_BUILD_TESTS "Build tests" OFF)
-option(EIGEN_BUILD_DEMOS "Build demos" OFF)
-if(NOT WIN32)
-  option(EIGEN_BUILD_LIB "Build the binary shared library" OFF)
-endif(NOT WIN32)
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
 if(NOT WIN32)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
 endif(NOT WIN32)
-
-if(EIGEN_BUILD_LIB)
-  option(EIGEN_TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
-endif(EIGEN_BUILD_LIB)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -95,7 +86,7 @@ if(MSVC)
   option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
   if(EIGEN_TEST_SSE2)
     if(NOT CMAKE_CL_64)
-      # arch is not supported on 64 bit systems, SSE is enabled automatically.	
+      # arch is not supported on 64 bit systems, SSE is enabled automatically.
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
     endif(NOT CMAKE_CL_64)
     message("Enabling SSE2 in tests/examples")
@@ -107,6 +98,10 @@ if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
 endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+
+option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
+
+option(EIGEN_TEST_RVALUE_REF_SUPPORT "Enable rvalue references for unit tests." OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -125,23 +120,43 @@ endif(EIGEN_BUILD_PKGCONFIG)
 
 add_subdirectory(Eigen)
 
-add_subdirectory(doc)
+add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-if(EIGEN_BUILD_TESTS)
-  include(CTest)
-  add_subdirectory(test)
-endif(EIGEN_BUILD_TESTS)
+include(CTest)
+enable_testing() # must be called from the root CMakeLists, see man page
+if(EIGEN_CMAKE_RUN_FROM_CTEST)
+add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
+else(EIGEN_CMAKE_RUN_FROM_CTEST)
+add_subdirectory(test EXCLUDE_FROM_ALL)
+endif(EIGEN_CMAKE_RUN_FROM_CTEST)
 
 add_subdirectory(unsupported)
 
-if(EIGEN_BUILD_DEMOS)
-  add_subdirectory(demos)
-endif(EIGEN_BUILD_DEMOS)
+add_subdirectory(demos EXCLUDE_FROM_ALL)
 
+add_subdirectory(blas EXCLUDE_FROM_ALL)
+
+# TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
 if(EIGEN_BUILD_BTL)
-  add_subdirectory(bench/btl)
+  add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif(EIGEN_BUILD_BTL)
 
-if(EIGEN_BUILD_TESTS)
-  ei_testing_print_summary()
-endif(EIGEN_BUILD_TESTS)
+ei_testing_print_summary()
+if(NOT MSVC_IDE)
+message("")
+message("Configured Eigen ${EIGEN_VERSION_NUMBER}")
+message("You can now do the following:")
+message("--------------+----------------------------------------------------------------")
+message("Command       |   Description")
+message("--------------+----------------------------------------------------------------")
+message("make install  | Install to ${CMAKE_INSTALL_PREFIX}")
+message("              | * To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
+message("make btest    | Build the unit tests")
+message("              | * That takes lots of memory! Easy on the -j option")
+message("make test     | Build and run the unit tests (using CTest)")
+message("make test_qr  | Build a specific test, here test_qr. To run it: test/test_qr")
+message("make debug_qr | Build a test with full debug info. To run it: test/debug_qr")
+message("make blas     | Build BLAS library (not the same thing as Eigen)")
+message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
+message("--------------+----------------------------------------------------------------")
+endif(NOT MSVC_IDE)

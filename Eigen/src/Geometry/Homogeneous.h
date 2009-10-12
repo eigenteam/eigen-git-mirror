@@ -207,10 +207,19 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 }
 
 template<typename MatrixType,typename Lhs>
+struct ei_traits<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
+{
+  typedef Matrix<typename ei_traits<MatrixType>::Scalar,
+                 Lhs::RowsAtCompileTime,
+                 MatrixType::ColsAtCompileTime,
+                 MatrixType::PlainMatrixType::Options,
+                 Lhs::MaxRowsAtCompileTime,
+                 MatrixType::MaxColsAtCompileTime> ReturnMatrixType;
+};
+
+template<typename MatrixType,typename Lhs>
 struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
-  : public ReturnByValue<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>,
-                         Matrix<typename ei_traits<MatrixType>::Scalar,
-                                Lhs::RowsAtCompileTime,MatrixType::ColsAtCompileTime> >
+  : public ReturnByValue<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
   typedef typename ei_cleantype<typename Lhs::Nested>::type LhsNested;
   ei_homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
@@ -236,10 +245,19 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
 };
 
 template<typename MatrixType,typename Rhs>
+struct ei_traits<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
+{
+  typedef Matrix<typename ei_traits<MatrixType>::Scalar,
+                 MatrixType::RowsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 MatrixType::PlainMatrixType::Options,
+                 MatrixType::MaxRowsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+};
+
+template<typename MatrixType,typename Rhs>
 struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
-  : public ReturnByValue<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>,
-                         Matrix<typename ei_traits<MatrixType>::Scalar,
-                                MatrixType::RowsAtCompileTime, Rhs::ColsAtCompileTime> >
+  : public ReturnByValue<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
   ei_homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)

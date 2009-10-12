@@ -64,7 +64,7 @@ template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
 template<typename ExpressionType> class Cwise;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
-template<typename Functor, typename EvalType> class ReturnByValue;
+template<typename Derived> class ReturnByValue;
 
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
 
@@ -123,6 +123,7 @@ template<typename MatrixType> class SVD;
 template<typename MatrixType, unsigned int Options = 0> class JacobiSVD;
 template<typename MatrixType, int UpLo = LowerTriangular> class LLT;
 template<typename MatrixType> class LDLT;
+template<typename VectorsType, typename CoeffsType> class HouseholderSequence;
 template<typename Scalar>     class PlanarRotation;
 
 // Geometry module:

@@ -399,8 +399,8 @@ class Matrix
       return Base::lazyAssign(other.derived());
     }
 
-    template<typename OtherDerived,typename OtherEvalType>
-    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived,OtherEvalType>& func)
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func)
     {
       resize(func.rows(), func.cols());
       return Base::operator=(func);
@@ -504,8 +504,8 @@ class Matrix
       _set_noalias(other);
     }
     /** Copy constructor with in-place evaluation */
-    template<typename OtherDerived,typename OtherEvalType>
-    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived,OtherEvalType>& other)
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived>& other)
     {
       _check_template_params();
       resize(other.rows(), other.cols());
@@ -538,7 +538,7 @@ class Matrix
       * data pointers.
       */
     template<typename OtherDerived>
-    void swap(const MatrixBase<OtherDerived>& other);
+    void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
     /** \name Map
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
@@ -707,6 +707,8 @@ struct ei_conservative_resize_like_impl
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
+
     // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
     // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
     // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
@@ -728,6 +730,8 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
 {
   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
   {
+    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
+
     // segment(...) will check whether Derived/OtherDerived are vectors!
     typename MatrixBase<Derived>::PlainMatrixType tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
@@ -756,7 +760,7 @@ struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 template<typename OtherDerived>
-inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(const MatrixBase<OtherDerived>& other)
+inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
 {
   enum { SwapPointers = ei_is_same_type<Matrix, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
   ei_matrix_swap_impl<Matrix, OtherDerived, bool(SwapPointers)>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));

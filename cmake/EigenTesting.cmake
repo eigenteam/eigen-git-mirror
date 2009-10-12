@@ -27,7 +27,11 @@ endmacro(ei_add_property)
 # void test_<testname>() { ... }
 #
 # this macro add an executable test_<testname> as well as a ctest test
-# named <testname>
+# named <testname>.
+#
+# it also adds another executable debug_<testname> that compiles in full debug mode
+# and is not added to the test target. The idea is that when a test fails you want
+# a quick way of rebuilding this specific test in full debug mode.
 #
 # On platforms with bash simply run:
 #   "ctest -V" or "ctest -V -R <testname>"
@@ -36,38 +40,65 @@ endmacro(ei_add_property)
 macro(ei_add_test testname)
 
   set(targetname test_${testname})
+  if(NOT MSVC_IDE)
+    set(debug_targetname debug_${testname})
+  endif(NOT MSVC_IDE)
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
+  add_dependencies(btest ${targetname})
+  if(NOT MSVC_IDE)
+    add_executable(${debug_targetname} EXCLUDE_FROM_ALL ${filename})
+  endif(NOT MSVC_IDE)
 
   if(NOT EIGEN_NO_ASSERTION_CHECKING)
 
     if(MSVC)
       set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
+      if(NOT MSVC_IDE)
+        set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
+      endif(NOT MSVC_IDE)
     else(MSVC)
       set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
+      set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
     endif(MSVC)
 
     option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
     if(EIGEN_DEBUG_ASSERTS)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
+      if(NOT MSVC_IDE)
+        ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
+      endif(NOT MSVC_IDE)
     endif(EIGEN_DEBUG_ASSERTS)
 
   else(NOT EIGEN_NO_ASSERTION_CHECKING)
 
     ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+    if(NOT MSVC_IDE)
+      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+    endif(NOT MSVC_IDE)
 
   endif(NOT EIGEN_NO_ASSERTION_CHECKING)
 
+  # let the user pass e.g. optimization flags, but don't apply them to the debug target
   if(${ARGC} GREATER 1)
     ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV1}")
   endif(${ARGC} GREATER 1)
 
-  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  # for the debug target, add full debug options
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    # O0 is in principle redundant here, but doesn't hurt
+    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-O0 -g3")
+  elseif(MSVC)
+    if(NOT MSVC_IDE)
+      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "/Od /Zi")
+    endif(NOT MSVC_IDE)
+  endif(CMAKE_COMPILER_IS_GNUCXX)
 
-  if(TEST_LIB)
-    target_link_libraries(${targetname} Eigen2)
-  endif(TEST_LIB)
+  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  if(NOT MSVC_IDE)
+    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  endif(NOT MSVC_IDE)
 
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   if(${ARGC} GREATER 2)
@@ -75,11 +106,18 @@ macro(ei_add_test testname)
     string(LENGTH "${ARGV2_stripped}" ARGV2_stripped_length)
     if(${ARGV2_stripped_length} GREATER 0)
       target_link_libraries(${targetname} ${ARGV2})
+      if(NOT MSVC_IDE)
+        target_link_libraries(${debug_targetname} ${ARGV2})
+      endif(NOT MSVC_IDE)
     endif(${ARGV2_stripped_length} GREATER 0)
   endif(${ARGC} GREATER 2)
 
   if(WIN32)
-    add_test(${testname} "${targetname}")
+    if(CYGWIN)
+      add_test(${testname} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname}")
+    else(CYGWIN)
+      add_test(${testname} "${targetname}")
+    endif(CYGWIN)
   else(WIN32)
     add_test(${testname} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname}")
   endif(WIN32)
@@ -102,31 +140,31 @@ macro(ei_testing_print_summary)
   if(EIGEN_TEST_SSE2)
     message("SSE2:              ON")
   else(EIGEN_TEST_SSE2)
-    message("SSE2:              AUTO")
+    message("SSE2:              Using architecture defaults")
   endif(EIGEN_TEST_SSE2)
 
   if(EIGEN_TEST_SSE3)
     message("SSE3:              ON")
   else(EIGEN_TEST_SSE3)
-    message("SSE3:              AUTO")
+    message("SSE3:              Using architecture defaults")
   endif(EIGEN_TEST_SSE3)
 
   if(EIGEN_TEST_SSSE3)
     message("SSSE3:             ON")
   else(EIGEN_TEST_SSSE3)
-    message("SSSE3:             AUTO")
+    message("SSSE3:             Using architecture defaults")
   endif(EIGEN_TEST_SSSE3)
 
   if(EIGEN_TEST_ALTIVEC)
-    message("Altivec:           ON")
+    message("Altivec:           Using architecture defaults")
   else(EIGEN_TEST_ALTIVEC)
-    message("Altivec:           AUTO")
+    message("Altivec:           Using architecture defaults")
   endif(EIGEN_TEST_ALTIVEC)
 
   if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
     message("Explicit vec:      OFF")
   else(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
-    message("Explicit vec:      AUTO")
+    message("Explicit vec:      Using architecture defaults")
   endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 
   message("\n${EIGEN_TESTING_SUMMARY}")
@@ -159,6 +197,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   else(EIGEN_COVERAGE_TESTING)
     set(COVERAGE_FLAGS "")
   endif(EIGEN_COVERAGE_TESTING)
+  if(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  endif(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
   if(CMAKE_SYSTEM_NAME MATCHES Linux)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_FLAGS} -g2")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${COVERAGE_FLAGS} -O2 -g2")
