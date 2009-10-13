@@ -32,7 +32,7 @@ template<typename MatrixType> void qr()
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
   createRandomMatrixOfRank(rank,rows,cols,m1);
@@ -44,6 +44,10 @@ template<typename MatrixType> void qr()
   VERIFY(!qr.isSurjective());
 
   MatrixType r = qr.matrixQR();
+  
+  MatrixQType q = qr.matrixQ();
+  VERIFY_IS_UNITARY(q);
+  
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
 
