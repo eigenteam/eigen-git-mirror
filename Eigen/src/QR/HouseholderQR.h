@@ -206,7 +206,7 @@ void HouseholderQR<MatrixType>::solve(
 ) const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  result->resize(m_qr.cols(), b.cols());
+  result->derived().resize(m_qr.cols(), b.cols());
   const int rows = m_qr.rows();
   const int rank = std::min(m_qr.rows(), m_qr.cols());
   ei_assert(b.rows() == rows);
