@@ -370,6 +370,9 @@ class AmbiVector<_Scalar>::Iterator
     int m_cachedIndex;          // current coordinate
     Scalar m_cachedValue;       // current value
     bool m_isDense;             // mode of the vector
+
+  private:
+    Iterator& operator=(const Iterator&);
 };
 
 
