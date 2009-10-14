@@ -450,6 +450,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   protected:
     ExpressionTypeNested m_matrix;
+
+  private:
+    VectorwiseOp& operator=(const VectorwiseOp&);
 };
 
 /** \array_module

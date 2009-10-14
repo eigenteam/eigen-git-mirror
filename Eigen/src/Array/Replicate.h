@@ -94,6 +94,9 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     const typename MatrixType::Nested m_matrix;
     const ei_int_if_dynamic<RowFactor> m_rowFactor;
     const ei_int_if_dynamic<ColFactor> m_colFactor;
+
+  private:
+    Replicate& operator=(const Replicate&);
 };
 
 /** \nonstableyet
