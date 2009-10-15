@@ -147,7 +147,6 @@ EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, Derived>
 MatrixBase<Derived>::NullaryExpr(int size, const CustomNullaryOp& func)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  ei_assert(IsVectorAtCompileTime);
   if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, Derived>(1, size, func);
   else return CwiseNullaryOp<CustomNullaryOp, Derived>(size, 1, func);
 }
