@@ -361,8 +361,8 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
     col_of_biggest_in_corner += k;
     if(k==0) biggest = biggest_in_corner;
 
-    // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
+    // if the corner is exactly zero, terminate to avoid generating NaN values
+    if(biggest_in_corner == RealScalar(0))
     {
       m_rank = k;
       for(int i = k; i < size; i++)
