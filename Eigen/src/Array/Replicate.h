@@ -45,14 +45,10 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    RowsPlusOne = (MatrixType::RowsAtCompileTime != Dynamic) ?
-                  int(MatrixType::RowsAtCompileTime) + 1 : Dynamic,
-    ColsPlusOne = (MatrixType::ColsAtCompileTime != Dynamic) ?
-                  int(MatrixType::ColsAtCompileTime) + 1 : Dynamic,
-    RowsAtCompileTime = RowFactor==Dynamic || MatrixType::RowsAtCompileTime==Dynamic
+    RowsAtCompileTime = RowFactor==Dynamic || int(MatrixType::RowsAtCompileTime)==Dynamic
                       ? Dynamic
                       : RowFactor * MatrixType::RowsAtCompileTime,
-    ColsAtCompileTime = ColFactor==Dynamic || MatrixType::ColsAtCompileTime==Dynamic
+    ColsAtCompileTime = ColFactor==Dynamic || int(MatrixType::ColsAtCompileTime)==Dynamic
                       ? Dynamic
                       : ColFactor * MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -69,15 +65,22 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(Replicate)
 
-    inline Replicate(const MatrixType& matrix)
+    template<typename OriginalMatrixType>
+    inline explicit Replicate(const OriginalMatrixType& matrix)
       : m_matrix(matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
     {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<MatrixType,OriginalMatrixType>::ret),
+                          THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
       ei_assert(RowFactor!=Dynamic && ColFactor!=Dynamic);
     }
 
-    inline Replicate(const MatrixType& matrix, int rowFactor, int colFactor)
+    template<typename OriginalMatrixType>
+    inline Replicate(const OriginalMatrixType& matrix, int rowFactor, int colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
-    {}
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<MatrixType,OriginalMatrixType>::ret),
+                          THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
+    }
 
     inline int rows() const { return m_matrix.rows() * m_rowFactor.value(); }
     inline int cols() const { return m_matrix.cols() * m_colFactor.value(); }
@@ -91,6 +94,9 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     const typename MatrixType::Nested m_matrix;
     const ei_int_if_dynamic<RowFactor> m_rowFactor;
     const ei_int_if_dynamic<ColFactor> m_colFactor;
+
+  private:
+    Replicate& operator=(const Replicate&);
 };
 
 /** \nonstableyet
@@ -106,7 +112,7 @@ template<int RowFactor, int ColFactor>
 inline const Replicate<Derived,RowFactor,ColFactor>
 MatrixBase<Derived>::replicate() const
 {
-  return derived();
+  return Replicate<Derived,RowFactor,ColFactor>(derived());
 }
 
 /** \nonstableyet

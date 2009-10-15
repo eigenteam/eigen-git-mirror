@@ -26,8 +26,9 @@
 #define EIGEN_JACOBISVD_H
 
 // forward declarations (needed by ICC)
+// the empty bodies are required by VC
 template<typename MatrixType, unsigned int Options, bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
-struct ei_svd_precondition_2x2_block_to_be_real;
+struct ei_svd_precondition_2x2_block_to_be_real {};
 
 template<typename MatrixType, unsigned int Options,
          bool PossiblyMoreRowsThanCols = (Options & AtLeastAsManyColsAsRows) == 0

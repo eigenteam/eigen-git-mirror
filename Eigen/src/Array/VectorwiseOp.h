@@ -95,6 +95,14 @@ class PartialReduxExpr : ei_no_assignment_operator,
         return m_functor(m_matrix.row(i));
     }
 
+    const Scalar coeff(int index) const
+    {
+      if (Direction==Vertical)
+        return m_functor(m_matrix.col(index));
+      else
+        return m_functor(m_matrix.row(index));
+    }
+
   protected:
     const MatrixTypeNested m_matrix;
     const MemberOp m_functor;
@@ -442,6 +450,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   protected:
     ExpressionTypeNested m_matrix;
+
+  private:
+    VectorwiseOp& operator=(const VectorwiseOp&);
 };
 
 /** \array_module

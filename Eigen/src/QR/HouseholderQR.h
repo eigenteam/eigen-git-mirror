@@ -59,10 +59,10 @@ template<typename MatrixType> class HouseholderQR
 
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, AutoAlign | (ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor)> MatrixQType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
-    typedef typename HouseholderSequence<MatrixQType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
+    typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
     /**
     * \brief Default Constructor.
@@ -206,18 +206,22 @@ void HouseholderQR<MatrixType>::solve(
 ) const
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+  result->derived().resize(m_qr.cols(), b.cols());
   const int rows = m_qr.rows();
-  const int cols = b.cols();
+  const int rank = std::min(m_qr.rows(), m_qr.cols());
   ei_assert(b.rows() == rows);
-  result->resize(rows, cols);
 
-  *result = b;
-  result->applyOnTheLeft(matrixQAsHouseholderSequence().inverse());
+  typename OtherDerived::PlainMatrixType c(b);
 
-  const int rank = std::min(result->rows(), result->cols());
+  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  c.applyOnTheLeft(makeHouseholderSequence(m_qr.corner(TopLeft,rows,rank), m_hCoeffs.start(rank)).transpose());
+
   m_qr.corner(TopLeft, rank, rank)
       .template triangularView<UpperTriangular>()
-      .solveInPlace(result->corner(TopLeft, rank, result->cols()));
+      .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+
+  result->corner(TopLeft, rank, c.cols()) = c.corner(TopLeft,rank, c.cols());
+  result->corner(BottomLeft, result->rows()-rank, c.cols()).setZero();
 }
 
 /** \returns the matrix Q */

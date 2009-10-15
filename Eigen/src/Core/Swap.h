@@ -117,6 +117,9 @@ template<typename ExpressionType> class SwapWrapper
 
   protected:
     ExpressionType& m_expression;
+
+  private:
+    SwapWrapper& operator=(const SwapWrapper&);
 };
 
 /** swaps *this with the expression \a other.
@@ -128,15 +131,9 @@ template<typename ExpressionType> class SwapWrapper
   */
 template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Derived>::swap(const MatrixBase<OtherDerived>& other)
+void MatrixBase<Derived>::swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
 {
   (SwapWrapper<Derived>(derived())).lazyAssign(other);
 }
 
 #endif // EIGEN_SWAP_H
-
-
-
-
-
-

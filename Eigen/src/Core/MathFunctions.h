@@ -317,4 +317,34 @@ inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec
   return a <= b || ei_isApprox(a, b, prec);
 }
 
+/**************
+***  bool  ***
+**************/
+
+template<> inline bool precision<bool>() { return 0; }
+inline bool ei_real(bool x)  { return x; }
+inline bool& ei_real_ref(bool& x)  { return x; }
+inline bool ei_imag(bool)    { return 0; }
+inline bool ei_conj(bool x)  { return x; }
+inline bool ei_abs(bool x)   { return x; }
+inline bool ei_abs2(bool x)  { return x; }
+inline bool ei_sqrt(bool x)  { return x; }
+
+template<> inline bool ei_random()
+{
+  return (ei_random<int>(0,1) == 1);
+}
+inline bool ei_isMuchSmallerThan(bool a, bool, bool = precision<bool>())
+{
+  return !a;
+}
+inline bool ei_isApprox(bool a, bool b, bool = precision<bool>())
+{
+  return a == b;
+}
+inline bool ei_isApproxOrLessThan(bool a, bool b, bool = precision<bool>())
+{
+  return int(a) <= int(b);
+}
+
 #endif // EIGEN_MATHFUNCTIONS_H

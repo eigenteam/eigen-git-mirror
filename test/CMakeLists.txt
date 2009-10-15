@@ -1,6 +1,6 @@
-
+project(EigenTesting)
+add_custom_target(btest)
 include(EigenTesting)
-enable_testing()
 ei_init_testing()
 
 find_package(GSL)

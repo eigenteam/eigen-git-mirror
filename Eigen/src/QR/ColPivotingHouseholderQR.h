@@ -62,7 +62,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
     typedef Matrix<RealScalar, 1, ColsAtCompileTime> RealRowVectorType;
-    typedef typename HouseholderSequence<MatrixQType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
+    typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
     /**
     * \brief Default Constructor.
@@ -351,7 +351,6 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   }
 
   const int rows = m_qr.rows();
-  const int cols = b.cols();
   ei_assert(b.rows() == rows);
 
   typename OtherDerived::PlainMatrixType c(b);

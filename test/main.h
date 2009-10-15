@@ -248,18 +248,22 @@ template<typename MatrixType>
 void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  typedef Matrix<Scalar, Dynamic, 1> VectorType;
+  enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
 
-  MatrixType a = MatrixType::Random(rows,rows);
+  typedef Matrix<Scalar, Dynamic, 1> VectorType;
+  typedef Matrix<Scalar, Rows, Rows> MatrixAType;
+  typedef Matrix<Scalar, Cols, Cols> MatrixBType;
+
+  MatrixAType a = MatrixAType::Random(rows,rows);
   MatrixType d = MatrixType::Identity(rows,cols);
-  MatrixType  b = MatrixType::Random(cols,cols);
+  MatrixBType  b = MatrixBType::Random(cols,cols);
 
   // set the diagonal such that only desired_rank non-zero entries reamain
   const int diag_size = std::min(d.rows(),d.cols());
   d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
 
-  HouseholderQR<MatrixType> qra(a);
-  HouseholderQR<MatrixType> qrb(b);
+  HouseholderQR<MatrixAType> qra(a);
+  HouseholderQR<MatrixBType> qrb(b);
   m = qra.matrixQ() * d * qrb.matrixQ();
 }
 

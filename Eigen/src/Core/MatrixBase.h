@@ -592,7 +592,7 @@ template<typename Derived> class MatrixBase
     { return typename ei_eval<Derived>::type(derived()); }
 
     template<typename OtherDerived>
-    void swap(const MatrixBase<OtherDerived>& other);
+    void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
     template<unsigned int Added>
     const Flagged<Derived, Added, 0> marked() const;
@@ -702,8 +702,10 @@ template<typename Derived> class MatrixBase
     const LU<PlainMatrixType> lu() const;
     const PartialLU<PlainMatrixType> partialLu() const;
     const PlainMatrixType inverse() const;
-    void computeInverse(PlainMatrixType *result) const;
-    bool computeInverseWithCheck( PlainMatrixType *result ) const;
+    template<typename ResultType>
+    void computeInverse(ResultType *result) const;
+    template<typename ResultType>
+    bool computeInverseWithCheck(ResultType *result ) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////

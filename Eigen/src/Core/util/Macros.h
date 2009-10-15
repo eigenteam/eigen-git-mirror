@@ -29,8 +29,8 @@
 #undef minor
 
 #define EIGEN_WORLD_VERSION 2
-#define EIGEN_MAJOR_VERSION 0
-#define EIGEN_MINOR_VERSION 52
+#define EIGEN_MAJOR_VERSION 90
+#define EIGEN_MINOR_VERSION 0
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -202,24 +202,27 @@ using Eigen::ei_cos;
 #define EIGEN_ASM_COMMENT(X)
 #endif
 
-/* EIGEN_ALIGN_128 forces data to be 16-byte aligned, EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
+/* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
+ * However, we do that EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
  * so that vectorization doesn't affect binary compatibility.
  *
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
 #if !EIGEN_ALIGN
-  #define EIGEN_ALIGN_128
+  #define EIGEN_ALIGN_TO_BOUNDARY(n)
 #elif (defined __GNUC__)
-  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
-  #define EIGEN_ALIGN_128 __declspec(align(16))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
 #elif (defined __SUNPRO_CC)
   // FIXME not sure about this one:
-  #define EIGEN_ALIGN_128 __attribute__((aligned(16)))
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #else
-  #error Please tell me what is the equivalent of __attribute__((aligned(16))) for your compiler
+  #error Please tell me what is the equivalent of __attribute__((aligned(n))) for your compiler
 #endif
+
+#define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
   #define EIGEN_RESTRICT
@@ -250,6 +253,13 @@ using Eigen::ei_cos;
 // format used in Eigen's documentation
 // needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
 #define EIGEN_DOCS_IO_FORMAT IOFormat(3, 0, " ", "\n", "", "")
+
+// C++0x features
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
+  #define EIGEN_REF_TO_TEMPORARY &&
+#else
+  #define EIGEN_REF_TO_TEMPORARY const &
+#endif
 
 #ifdef _MSC_VER
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \

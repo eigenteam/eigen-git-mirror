@@ -27,23 +27,23 @@ typedef SparseMatrix<Scalar> EigenSparseMatrix;
 
 void fillMatrix(float density, int rows, int cols,  EigenSparseMatrix& dst)
 {
-  dst.startFill(rows*cols*density);
+  dst.reserve(rows*cols*density);
   for(int j = 0; j < cols; j++)
   {
     for(int i = 0; i < rows; i++)
     {
       Scalar v = (ei_random<float>(0,1) < density) ? ei_random<Scalar>() : 0;
       if (v!=0)
-        dst.fillrand(i,j) = v;
+        dst.insert(i,j) = v;
     }
   }
-  dst.endFill();
+  dst.finalize();
 }
 
 void fillMatrix2(int nnzPerCol, int rows, int cols,  EigenSparseMatrix& dst)
 {
   std::cout << "alloc " << nnzPerCol*cols << "\n";
-  dst.startFill(nnzPerCol*cols);
+  dst.reserve(nnzPerCol*cols);
   for(int j = 0; j < cols; j++)
   {
     std::set<int> aux;
@@ -54,10 +54,10 @@ void fillMatrix2(int nnzPerCol, int rows, int cols,  EigenSparseMatrix& dst)
         k = ei_random<int>(0,rows-1);
       aux.insert(k);
 
-      dst.fillrand(k,j) = ei_random<Scalar>();
+      dst.insert(k,j) = ei_random<Scalar>();
     }
   }
-  dst.endFill();
+  dst.finalize();
 }
 
 void eiToDense(const EigenSparseMatrix& src, DenseMatrix& dst)

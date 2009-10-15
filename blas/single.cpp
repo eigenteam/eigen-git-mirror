@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -22,17 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_EXTERN_INSTANTIATIONS
-#define EIGEN_EXTERN_INSTANTIATIONS
-#endif
-#include "../../Core"
-#undef EIGEN_EXTERN_INSTANTIATIONS
+#define SCALAR        float
+#define SCALAR_SUFFIX s
+#define ISCOMPLEX     0
 
-#include "../../QR"
-
-namespace Eigen
-{
-
-EIGEN_QR_MODULE_INSTANTIATE();
-
-}
+#include "level1_impl.h"
+#include "level2_impl.h"
+#include "level3_impl.h"

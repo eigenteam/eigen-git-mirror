@@ -137,6 +137,8 @@ class ProductBase : public MatrixBase<Derived>
     void coeffRef(int,int);
     void coeff(int) const;
     void coeffRef(int);
+
+    ProductBase& operator=(const ProductBase&);
 };
 
 template<typename NestedProduct>

@@ -32,7 +32,7 @@ template<typename MatrixType> void qr()
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
   createRandomMatrixOfRank(rank,rows,cols,m1);
@@ -44,6 +44,10 @@ template<typename MatrixType> void qr()
   VERIFY(!qr.isSurjective());
 
   MatrixType r = qr.matrixQR();
+  
+  MatrixQType q = qr.matrixQ();
+  VERIFY_IS_UNITARY(q);
+  
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
 
@@ -60,6 +64,40 @@ template<typename MatrixType> void qr()
   VERIFY(qr.solve(m3, &m2));
   VERIFY_IS_APPROX(m3, m1*m2);
   m3 = MatrixType::Random(rows,cols2);
+  VERIFY(!qr.solve(m3, &m2));
+}
+
+template<typename MatrixType, int Cols2> void qr_fixedsize()
+{
+  enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
+  typedef typename MatrixType::Scalar Scalar;
+  int rank = ei_random<int>(1, std::min(int(Rows), int(Cols))-1);
+  Matrix<Scalar,Rows,Cols> m1;
+  createRandomMatrixOfRank(rank,Rows,Cols,m1);
+  ColPivotingHouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
+  VERIFY_IS_APPROX(rank, qr.rank());
+  VERIFY(Cols - qr.rank() == qr.dimensionOfKernel());
+  VERIFY(!qr.isInjective());
+  VERIFY(!qr.isInvertible());
+  VERIFY(!qr.isSurjective());
+
+  Matrix<Scalar,Rows,Cols> r = qr.matrixQR();
+  // FIXME need better way to construct trapezoid
+  for(int i = 0; i < Rows; i++) for(int j = 0; j < Cols; j++) if(i>j) r(i,j) = Scalar(0);
+
+  Matrix<Scalar,Rows,Cols> b = qr.matrixQ() * r;
+
+  Matrix<Scalar,Rows,Cols> c = MatrixType::Zero(Rows,Cols);
+
+  for(int i = 0; i < Cols; ++i) c.col(qr.colsPermutation().coeff(i)) = b.col(i);
+  VERIFY_IS_APPROX(m1, c);
+
+  Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
+  Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
+  m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
+  VERIFY(qr.solve(m3, &m2));
+  VERIFY_IS_APPROX(m3, m1*m2);
+  m3 = Matrix<Scalar,Rows,Cols2>::Random(Rows,Cols2);
   VERIFY(!qr.solve(m3, &m2));
 }
 
@@ -120,6 +158,8 @@ void test_qr_colpivoting()
     CALL_SUBTEST( qr<MatrixXf>() );
     CALL_SUBTEST( qr<MatrixXd>() );
     CALL_SUBTEST( qr<MatrixXcd>() );
+    CALL_SUBTEST(( qr_fixedsize<Matrix<float,3,5>, 4 >() ));
+    CALL_SUBTEST(( qr_fixedsize<Matrix<double,6,2>, 3 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {

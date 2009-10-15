@@ -153,10 +153,12 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     }
 
   protected:
-
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
+
+private:
+  HouseholderSequence& operator=(const HouseholderSequence&);
 };
 
 template<typename VectorsType, typename CoeffsType>

@@ -33,6 +33,20 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
+  // Check the basic machine-dependent constants.
+  {
+    int ibeta, it, iemin, iemax;
+
+    ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
+    it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa
+    iemin = std::numeric_limits<RealScalar>::min_exponent;  // minimum exponent
+    iemax = std::numeric_limits<RealScalar>::max_exponent;  // maximum exponent
+
+    VERIFY( (!(iemin > 1 - 2*it || 1+it>iemax || (it==2 && ibeta<5) || (it<=4 && ibeta <= 3 ) || it<2))
+           && "the stable norm algorithm cannot be guaranteed on this computer");
+  }
+
+
   int rows = m.rows();
   int cols = m.cols();
 

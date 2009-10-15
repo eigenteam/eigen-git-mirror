@@ -31,30 +31,40 @@ template<typename MatrixType> void qr(const MatrixType& m)
   int cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);
   MatrixType r = qrOfA.matrixQR();
+  
+  MatrixQType q = qrOfA.matrixQ();
+  VERIFY_IS_UNITARY(q);
+  
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
 
   VERIFY_IS_APPROX(a, qrOfA.matrixQ() * r);
+}
 
-  SquareMatrixType b = a.adjoint() * a;
+template<typename MatrixType, int Cols2> void qr_fixedsize()
+{
+  enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
+  typedef typename MatrixType::Scalar Scalar;
+  Matrix<Scalar,Rows,Cols> m1 = Matrix<Scalar,Rows,Cols>::Random();
+  HouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
 
-  // check tridiagonalization
-  Tridiagonalization<SquareMatrixType> tridiag(b);
-  VERIFY_IS_APPROX(b, tridiag.matrixQ() * tridiag.matrixT() * tridiag.matrixQ().adjoint());
+  Matrix<Scalar,Rows,Cols> r = qr.matrixQR();
+  // FIXME need better way to construct trapezoid
+  for(int i = 0; i < Rows; i++) for(int j = 0; j < Cols; j++) if(i>j) r(i,j) = Scalar(0);
 
-  // check hessenberg decomposition
-  HessenbergDecomposition<SquareMatrixType> hess(b);
-  VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
-  VERIFY_IS_APPROX(tridiag.matrixT(), hess.matrixH());
-  b = SquareMatrixType::Random(cols,cols);
-  hess.compute(b);
-  VERIFY_IS_APPROX(b, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
+  VERIFY_IS_APPROX(m1, qr.matrixQ() * r);
+
+  Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
+  Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
+  m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
+  qr.solve(m3, &m2);
+  VERIFY_IS_APPROX(m3, m1*m2);
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -105,11 +115,11 @@ template<typename MatrixType> void qr_verify_assert()
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
-    // FIXME : very weird bug here
-//     CALL_SUBTEST( qr(Matrix2f()) );
-    CALL_SUBTEST( qr(Matrix4d()) );
-    CALL_SUBTEST( qr(MatrixXf(47,40)) );
-    CALL_SUBTEST( qr(MatrixXcd(17,7)) );
+   CALL_SUBTEST( qr(MatrixXf(47,40)) );
+   CALL_SUBTEST( qr(MatrixXcd(17,7)) );
+   CALL_SUBTEST(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
+   CALL_SUBTEST(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
+   CALL_SUBTEST(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {

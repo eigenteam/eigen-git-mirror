@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -22,22 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#define EIGEN_NO_STATIC_ASSERT
-#include "product.h"
+#define SCALAR        std::complex<double>
+#define SCALAR_SUFFIX c
+#define ISCOMPLEX     1
 
-void test_product_small()
-{
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(Matrix<float, 3, 2>()) );
-    CALL_SUBTEST( product(Matrix<int, 3, 5>()) );
-    CALL_SUBTEST( product(Matrix3d()) );
-    CALL_SUBTEST( product(Matrix4d()) );
-    CALL_SUBTEST( product(Matrix4f()) );
-  }
-
-  {
-    // test compilation of (outer_product) * vector
-    Vector3f v = Vector3f::Random();
-    VERIFY_IS_APPROX( (v * v.transpose()) * v, (v * v.transpose()).eval() * v);
-  }
-}
+#include "level1_impl.h"
+#include "level2_impl.h"
+#include "level3_impl.h"
