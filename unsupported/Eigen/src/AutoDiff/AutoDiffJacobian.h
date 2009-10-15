@@ -46,13 +46,14 @@ public:
     InputsAtCompileTime = Functor::InputsAtCompileTime,
     ValuesAtCompileTime = Functor::ValuesAtCompileTime
   };
-  
+
   typedef typename Functor::InputType InputType;
   typedef typename Functor::ValueType ValueType;
   typedef typename Functor::JacobianType JacobianType;
 
-  typedef AutoDiffScalar<Matrix<double,InputsAtCompileTime,1> > ActiveScalar;
-  
+  typedef Matrix<double,InputsAtCompileTime,1> DerivativeType;
+  typedef AutoDiffScalar<DerivativeType> ActiveScalar;
+
   typedef Matrix<ActiveScalar, InputsAtCompileTime, 1> ActiveInput;
   typedef Matrix<ActiveScalar, ValuesAtCompileTime, 1> ActiveValue;
 
@@ -69,26 +70,20 @@ public:
 
     ActiveInput ax = x.template cast<ActiveScalar>();
     ActiveValue av(jac.rows());
-    
+
     if(InputsAtCompileTime==Dynamic)
-    {
-      for (int j=0; j<jac.cols(); j++)
-        ax[j].derivatives().resize(this->inputs());
       for (int j=0; j<jac.rows(); j++)
         av[j].derivatives().resize(this->inputs());
-    }
-    
-    for (int j=0; j<jac.cols(); j++)
-      for (int i=0; i<jac.cols(); i++)
-        ax[i].derivatives().coeffRef(j) = i==j ? 1 : 0;
+
+    for (int i=0; i<jac.cols(); i++)
+      ax[i].derivatives() = DerivativeType::Unit(this->inputs(),i);
 
     Functor::operator()(ax, &av);
 
     for (int i=0; i<jac.rows(); i++)
     {
       (*v)[i] = av[i].value();
-      for (int j=0; j<jac.cols(); j++)
-        jac.coeffRef(i,j) = av[i].derivatives().coeff(j);
+      jac.row(i) = av[i].derivatives();
     }
   }
 protected:

@@ -46,12 +46,12 @@ struct TestFunc1
   typedef Matrix<Scalar,InputsAtCompileTime,1> InputType;
   typedef Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
   typedef Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
-  
+
   int m_inputs, m_values;
-  
+
   TestFunc1() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
   TestFunc1(int inputs, int values) : m_inputs(inputs), m_values(values) {}
-  
+
   int inputs() const { return m_inputs; }
   int values() const { return m_values; }
 
@@ -142,7 +142,7 @@ void test_autodiff_scalar()
   std::cerr << foo<AutoDiffScalar<Vector2f> >(ax,ay).value() << " <> "
             << foo<AutoDiffScalar<Vector2f> >(ax,ay).derivatives().transpose() << "\n\n";
 }
-  
+
 void test_autodiff_jacobian()
 {
   for(int i = 0; i < g_repeat; i++) {
