@@ -267,7 +267,7 @@ class SparseMatrix
       const int outerSize = IsRowMajor ? rows : cols;
       m_innerSize = IsRowMajor ? cols : rows;
       m_data.clear();
-      if (m_outerSize != outerSize)
+      if (m_outerSize != outerSize || m_outerSize==0)
       {
         delete[] m_outerIndex;
         m_outerIndex = new int [outerSize+1];
