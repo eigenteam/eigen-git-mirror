@@ -108,6 +108,22 @@ class AutoDiffScalar
     inline const DerType& derivatives() const { return m_derivatives; }
     inline DerType& derivatives() { return m_derivatives; }
 
+    inline const AutoDiffScalar<DerType> operator+(const Scalar& other) const
+    {
+      return AutoDiffScalar<DerType>(m_value + other, m_derivatives);
+    }
+
+    friend inline const AutoDiffScalar<DerType> operator+(const Scalar& a, const AutoDiffScalar& b)
+    {
+      return AutoDiffScalar<DerType>(a + b.value(), b.derivatives());
+    }
+
+    inline AutoDiffScalar& operator+=(const Scalar& other)
+    {
+      value() += other;
+      return *this;
+    }
+
     template<typename OtherDerType>
     inline const AutoDiffScalar<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerType,OtherDerType> >
     operator+(const AutoDiffScalar<OtherDerType>& other) const
