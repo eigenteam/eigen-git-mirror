@@ -110,6 +110,7 @@ namespace Eigen {
 #include "src/Sparse/SparseLLT.h"
 #include "src/Sparse/SparseLDLT.h"
 #include "src/Sparse/SparseLU.h"
+#include "src/Sparse/SparseExpressionMaker.h"
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
 # include "src/Sparse/CholmodSupport.h"

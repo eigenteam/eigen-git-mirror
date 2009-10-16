@@ -50,9 +50,11 @@ public:
   typedef typename Functor::InputType InputType;
   typedef typename Functor::ValueType ValueType;
   typedef typename Functor::JacobianType JacobianType;
+  typedef typename JacobianType::Scalar Scalar;
 
-  typedef Matrix<double,InputsAtCompileTime,1> DerivativeType;
+  typedef Matrix<Scalar,InputsAtCompileTime,1> DerivativeType;
   typedef AutoDiffScalar<DerivativeType> ActiveScalar;
+
 
   typedef Matrix<ActiveScalar, InputsAtCompileTime, 1> ActiveInput;
   typedef Matrix<ActiveScalar, ValuesAtCompileTime, 1> ActiveValue;
