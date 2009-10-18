@@ -168,7 +168,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       *
       * Example: \include LU_kernel.cpp
       * Output: \verbinclude LU_kernel.out
@@ -188,7 +188,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       *
       * Example: \include LU_image.cpp
       * Output: \verbinclude LU_image.out
@@ -250,67 +250,54 @@ template<typename MatrixType> class LU
       * LU decomposition itself.
       *
       * When it needs to get the threshold value, Eigen calls threshold(). By default, this calls
-      * defaultThreshold(). Once you have called the present method useThreshold(const RealScalar&),
+      * defaultThreshold(). Once you have called the present method setThreshold(const RealScalar&),
       * your value is used instead.
       *
       * \param threshold The new value to use as the threshold.
       *
       * A pivot will be considered nonzero if its absolute value is strictly greater than
-      *  \f$ \vert pivot \vert \leqslant precision \times \vert maxpivot \vert \f$
+      *  \f$ \vert pivot \vert \leqslant threshold \times \vert maxpivot \vert \f$
       * where maxpivot is the biggest pivot.
       *
-      * If you want to come back to the default behavior, call useThreshold(Default_t)
+      * If you want to come back to the default behavior, call setThreshold(Default_t)
       */
-    LU& useThreshold(const RealScalar& threshold)
+    LU& setThreshold(const RealScalar& threshold)
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
     }
     
-    /** Allows to come back to the default behavior, to use the return value of defaultThreshold().
+    /** Allows to come back to the default behavior, letting Eigen use its default formula for
+      * determining the threshold.
       *
       * You should pass the special object Eigen::Default as parameter here.
-      * \code lu.useThreshold(Eigen::Default); \endcode
+      * \code lu.setThreshold(Eigen::Default); \endcode
       *
-      * See the documentation of useThreshold(const RealScalar&).
+      * See the documentation of setThreshold(const RealScalar&).
       */
-    LU& useThreshold(Default_t)
+    LU& setThreshold(Default_t)
     {
       m_usePrescribedThreshold = false;
     }
     
-    /** Returns the threshold that will be used by default by certain methods such as rank(),
-      * unless the user overrides it by calling useThreshold(const RealScalar&).
-      *
-      * See the documentation of useThreshold(const RealScalar&).
-      *
-      * Notice that this method returns a value that depends on the size of the matrix being decomposed.
-      * Namely, it is the product of the diagonal size times the machine epsilon.
-      *
-      * \sa threshold()
-      */
-    RealScalar defaultThreshold() const
-    {
-      // this formula comes from experimenting (see "LU precision tuning" thread on the list)
-      // and turns out to be identical to Higham's formula used already in LDLt.
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return epsilon<Scalar>() * m_lu.diagonalSize();
-    }
-    
     /** Returns the threshold that will be used by certain methods such as rank().
       *
-      * See the documentation of useThreshold(const RealScalar&).
+      * See the documentation of setThreshold(const RealScalar&).
       */
     RealScalar threshold() const
     {
-      return m_usePrescribedThreshold ? m_prescribedThreshold : defaultThreshold();
+      ei_assert(m_originalMatrix != 0 || m_usePrescribedThreshold);
+      return m_usePrescribedThreshold ? m_prescribedThreshold
+      // this formula comes from experimenting (see "LU precision tuning" thread on the list)
+      // and turns out to be identical to Higham's formula used already in LDLt.
+                                      : epsilon<Scalar>() * m_lu.diagonalSize();
     }
     
     /** \returns the rank of the matrix of which *this is the LU decomposition.
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       */
     inline int rank() const
     {
@@ -326,7 +313,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       */
     inline int dimensionOfKernel() const
     {
@@ -339,7 +326,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       */
     inline bool isInjective() const
     {
@@ -352,7 +339,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       */
     inline bool isSurjective() const
     {
@@ -364,7 +351,7 @@ template<typename MatrixType> class LU
       *
       * \note This method has to determine which pivots should be considered nonzero.
       *       For that, it uses the threshold value that you can control by calling
-      *       useThreshold(const RealScalar&).
+      *       setThreshold(const RealScalar&).
       */
     inline bool isInvertible() const
     {
