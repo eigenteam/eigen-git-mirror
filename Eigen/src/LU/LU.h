@@ -107,7 +107,7 @@ template<typename MatrixType> class LU
       */
     inline const MatrixType& matrixLU() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return m_lu;
     }
     
@@ -120,7 +120,7 @@ template<typename MatrixType> class LU
       */
     inline int nonzeroPivots() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return m_nonzero_pivots;
     }
     
@@ -128,14 +128,6 @@ template<typename MatrixType> class LU
       *          diagonal coefficient of U.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
-    
-    /** \returns a pointer to the matrix of which *this is the LU decomposition.
-      */
-    inline const MatrixType* originalMatrix() const
-    {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return m_originalMatrix;
-    }
     
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
@@ -145,7 +137,7 @@ template<typename MatrixType> class LU
       */
     inline const IntColVectorType& permutationP() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return m_p;
     }
 
@@ -157,7 +149,7 @@ template<typename MatrixType> class LU
       */
     inline const IntRowVectorType& permutationQ() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return m_q;
     }
 
@@ -177,12 +169,17 @@ template<typename MatrixType> class LU
       */
     inline const ei_lu_kernel_impl<MatrixType> kernel() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return ei_lu_kernel_impl<MatrixType>(*this);
     }
 
     /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
       * will form a basis of the kernel.
+      *
+      * \param originalMatrix the original matrix, of which *this is the LU decomposition.
+      *                       The reason why it is needed to pass it here, is that this allows
+      *                       a large optimization, as otherwise this method would need to reconstruct it
+      *                       from the LU decomposition.
       *
       * \note If the image has dimension zero, then the returned matrix is a column-vector filled with zeros.
       *
@@ -195,10 +192,12 @@ template<typename MatrixType> class LU
       *
       * \sa kernel()
       */
-    inline const ei_lu_image_impl<MatrixType> image() const
+    template<typename OriginalMatrixType>
+    inline const ei_lu_image_impl<MatrixType>
+      image(const MatrixBase<OriginalMatrixType>& originalMatrix) const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return ei_lu_image_impl<MatrixType>(*this);
+      ei_assert(m_isInitialized && "LU is not initialized.");
+      return ei_lu_image_impl<MatrixType>(*this, originalMatrix.derived());
     }
 
     /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
@@ -224,7 +223,7 @@ template<typename MatrixType> class LU
     inline const ei_lu_solve_impl<MatrixType, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return ei_lu_solve_impl<MatrixType, Rhs>(*this, b.derived());
     }
 
@@ -286,7 +285,7 @@ template<typename MatrixType> class LU
       */
     RealScalar threshold() const
     {
-      ei_assert(m_originalMatrix != 0 || m_usePrescribedThreshold);
+      ei_assert(m_isInitialized || m_usePrescribedThreshold);
       return m_usePrescribedThreshold ? m_prescribedThreshold
       // this formula comes from experimenting (see "LU precision tuning" thread on the list)
       // and turns out to be identical to Higham's formula used already in LDLt.
@@ -301,7 +300,7 @@ template<typename MatrixType> class LU
       */
     inline int rank() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       RealScalar premultiplied_threshold = ei_abs(m_maxpivot) * threshold();
       int result = 0;
       for(int i = 0; i < m_nonzero_pivots; ++i)
@@ -317,7 +316,7 @@ template<typename MatrixType> class LU
       */
     inline int dimensionOfKernel() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return m_lu.cols() - rank();
     }
 
@@ -330,7 +329,7 @@ template<typename MatrixType> class LU
       */
     inline bool isInjective() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return rank() == m_lu.cols();
     }
 
@@ -343,7 +342,7 @@ template<typename MatrixType> class LU
       */
     inline bool isSurjective() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return rank() == m_lu.rows();
     }
 
@@ -355,7 +354,7 @@ template<typename MatrixType> class LU
       */
     inline bool isInvertible() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       return isInjective() && (m_lu.rows() == m_lu.cols());
     }
 
@@ -368,14 +367,14 @@ template<typename MatrixType> class LU
       */
     inline const ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
-      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      ei_assert(m_isInitialized && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
       return ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
   protected:
-    const MatrixType* m_originalMatrix;
+    bool m_isInitialized;
     MatrixType m_lu;
     IntColVectorType m_p;
     IntRowVectorType m_q;
@@ -388,13 +387,13 @@ template<typename MatrixType> class LU
 
 template<typename MatrixType>
 LU<MatrixType>::LU()
-  : m_originalMatrix(0), m_usePrescribedThreshold(false)
+  : m_isInitialized(false), m_usePrescribedThreshold(false)
 {
 }
 
 template<typename MatrixType>
 LU<MatrixType>::LU(const MatrixType& matrix)
-  : m_originalMatrix(0), m_usePrescribedThreshold(false)
+  : m_isInitialized(false), m_usePrescribedThreshold(false)
 {
   compute(matrix);
 }
@@ -402,7 +401,7 @@ LU<MatrixType>::LU(const MatrixType& matrix)
 template<typename MatrixType>
 LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 {
-  m_originalMatrix = &matrix;
+  m_isInitialized = true;
   m_lu = matrix;
   m_p.resize(matrix.rows());
   m_q.resize(matrix.cols());
@@ -475,7 +474,7 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 template<typename MatrixType>
 typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
 {
-  ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+  ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
   return Scalar(m_det_pq) * m_lu.diagonal().prod();
 }
@@ -605,9 +604,10 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
   typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
   int m_rank;
+  const MatrixType& m_originalMatrix;
   
-  ei_lu_image_impl(const LUType& lu)
-    : m_lu(lu), m_rank(lu.rank()) {}
+  ei_lu_image_impl(const LUType& lu, const MatrixType& originalMatrix)
+    : m_lu(lu), m_rank(lu.rank()), m_originalMatrix(originalMatrix) {}
 
   inline int rows() const { return m_lu.matrixLU().cols(); }
   inline int cols() const { return m_rank; }
@@ -619,7 +619,7 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
       // just return a single column vector filled with zeros.
-      dst.resize(m_lu.originalMatrix()->rows(), 1);
+      dst.resize(m_originalMatrix.rows(), 1);
       dst.setZero();
       return;
     }
@@ -632,9 +632,9 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
         pivots.coeffRef(p++) = i;
     ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
     
-    dst.resize(m_lu.originalMatrix()->rows(), m_rank);
+    dst.resize(m_originalMatrix.rows(), m_rank);
     for(int i = 0; i < m_rank; ++i)
-      dst.col(i) = m_lu.originalMatrix()->col(m_lu.permutationQ().coeff(pivots.coeff(i)));
+      dst.col(i) = m_originalMatrix.col(m_lu.permutationQ().coeff(pivots.coeff(i)));
   }
 };
 

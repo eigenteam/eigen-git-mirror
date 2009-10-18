@@ -38,7 +38,7 @@ template<typename MatrixType> void lu_non_invertible()
 
   LU<MatrixType> lu(m1);
   typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType m1kernel = lu.kernel();
-  typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image();
+  typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image(m1);
 
   // std::cerr << rank << " " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
@@ -88,7 +88,7 @@ template<typename MatrixType> void lu_invertible()
   VERIFY(lu.isInjective());
   VERIFY(lu.isSurjective());
   VERIFY(lu.isInvertible());
-  VERIFY(lu.image().lu().isInvertible());
+  VERIFY(lu.image(m1).lu().isInvertible());
   m3 = MatrixType::Random(size,size);
   m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
@@ -104,7 +104,7 @@ template<typename MatrixType> void lu_verify_assert()
   VERIFY_RAISES_ASSERT(lu.permutationP())
   VERIFY_RAISES_ASSERT(lu.permutationQ())
   VERIFY_RAISES_ASSERT(lu.kernel())
-  VERIFY_RAISES_ASSERT(lu.image())
+  VERIFY_RAISES_ASSERT(lu.image(tmp))
   VERIFY_RAISES_ASSERT(lu.solve(tmp))
   VERIFY_RAISES_ASSERT(lu.determinant())
   VERIFY_RAISES_ASSERT(lu.rank())
