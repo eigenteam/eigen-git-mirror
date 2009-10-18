@@ -126,19 +126,19 @@ void test_lu()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST( lu_non_invertible<MatrixXf>() );
-    CALL_SUBTEST( lu_non_invertible<MatrixXd>() );
+/*    CALL_SUBTEST( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST( lu_non_invertible<MatrixXcf>() );
     CALL_SUBTEST( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST( lu_invertible<MatrixXf>() );
     CALL_SUBTEST( lu_invertible<MatrixXd>() );
     CALL_SUBTEST( lu_invertible<MatrixXcf>() );
-    CALL_SUBTEST( lu_invertible<MatrixXcd>() );
+    CALL_SUBTEST( lu_invertible<MatrixXcd>() );*/
   }
 
-  CALL_SUBTEST( lu_verify_assert<Matrix3f>() );
+/*  CALL_SUBTEST( lu_verify_assert<Matrix3f>() );
   CALL_SUBTEST( lu_verify_assert<Matrix3d>() );
   CALL_SUBTEST( lu_verify_assert<MatrixXf>() );
   CALL_SUBTEST( lu_verify_assert<MatrixXd>() );
   CALL_SUBTEST( lu_verify_assert<MatrixXcf>() );
-  CALL_SUBTEST( lu_verify_assert<MatrixXcd>() );
+  CALL_SUBTEST( lu_verify_assert<MatrixXcd>() );*/
 }

@@ -258,6 +258,11 @@ namespace {
   EIGEN_UNUSED NoChange_t NoChange;
 }
 
+struct Default_t {};
+namespace {
+  EIGEN_UNUSED Default_t Default;
+}
+
 enum {
   IsDense         = 0,
   IsSparse        = SparseBit,

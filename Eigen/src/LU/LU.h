@@ -40,8 +40,7 @@ template<typename MatrixType> struct ei_lu_image_impl;
   * This class represents a LU decomposition of any matrix, with complete pivoting: the matrix A
   * is decomposed as A = PLUQ where L is unit-lower-triangular, U is upper-triangular, and P and Q
   * are permutation matrices. This is a rank-revealing LU decomposition. The eigenvalues (diagonal
-  * coefficients) of U are sorted in such a way that any zeros are at the end, so that the rank
-  * of A is the index of the first zero on the diagonal of U (with indices starting at 0) if any.
+  * coefficients) of U are sorted in such a way that any zeros are at the end.
   *
   * This decomposition provides the generic approach to solving systems of linear equations, computing
   * the rank, invertibility, inverse, kernel, and determinant.
@@ -112,6 +111,24 @@ template<typename MatrixType> class LU
       return m_lu;
     }
     
+    /** \returns the number of nonzero pivots in the LU decomposition.
+      * Here nonzero is meant in the exact sense, not in a fuzzy sense.
+      * So that notion isn't really intrinsically interesting, but it is
+      * still useful when implementing algorithms.
+      *
+      * \sa rank()
+      */
+    inline int nonzeroPivots() const
+    {
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return m_nonzero_pivots;
+    }
+    
+    /** \returns the absolute value of the biggest pivot, i.e. the biggest
+      *          diagonal coefficient of U.
+      */
+    RealScalar maxPivot() const { return m_maxpivot; }
+    
     /** \returns a pointer to the matrix of which *this is the LU decomposition.
       */
     inline const MatrixType* originalMatrix() const
@@ -149,6 +166,10 @@ template<typename MatrixType> class LU
       *
       * \note If the kernel has dimension zero, then the returned matrix is a column-vector filled with zeros.
       *
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
+      *
       * Example: \include LU_kernel.cpp
       * Output: \verbinclude LU_kernel.out
       *
@@ -164,6 +185,10 @@ template<typename MatrixType> class LU
       * will form a basis of the kernel.
       *
       * \note If the image has dimension zero, then the returned matrix is a column-vector filled with zeros.
+      *
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       *
       * Example: \include LU_image.cpp
       * Output: \verbinclude LU_image.out
@@ -220,61 +245,131 @@ template<typename MatrixType> class LU
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
 
+    /** Allows to prescribe a threshold to be used by certain methods, such as rank(),
+      * who need to determine when pivots are to be considered nonzero. This is not used for the
+      * LU decomposition itself.
+      *
+      * When it needs to get the threshold value, Eigen calls threshold(). By default, this calls
+      * defaultThreshold(). Once you have called the present method useThreshold(const RealScalar&),
+      * your value is used instead.
+      *
+      * \param threshold The new value to use as the threshold.
+      *
+      * A pivot will be considered nonzero if its absolute value is strictly greater than
+      *  \f$ \vert pivot \vert \leqslant precision \times \vert maxpivot \vert \f$
+      * where maxpivot is the biggest pivot.
+      *
+      * If you want to come back to the default behavior, call useThreshold(Default_t)
+      */
+    LU& useThreshold(const RealScalar& threshold)
+    {
+      m_usePrescribedThreshold = true;
+      m_prescribedThreshold = threshold;
+    }
+    
+    /** Allows to come back to the default behavior, to use the return value of defaultThreshold().
+      *
+      * You should pass the special object Eigen::Default as parameter here.
+      * \code lu.useThreshold(Eigen::Default); \endcode
+      *
+      * See the documentation of useThreshold(const RealScalar&).
+      */
+    LU& useThreshold(Default_t)
+    {
+      m_usePrescribedThreshold = false;
+    }
+    
+    /** Returns the threshold that will be used by default by certain methods such as rank(),
+      * unless the user overrides it by calling useThreshold(const RealScalar&).
+      *
+      * See the documentation of useThreshold(const RealScalar&).
+      *
+      * Notice that this method returns a value that depends on the size of the matrix being decomposed.
+      * Namely, it is the product of the diagonal size times the machine epsilon.
+      *
+      * \sa threshold()
+      */
+    RealScalar defaultThreshold() const
+    {
+      // this formula comes from experimenting (see "LU precision tuning" thread on the list)
+      // and turns out to be identical to Higham's formula used already in LDLt.
+      ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
+      return epsilon<Scalar>() * m_lu.diagonalSize();
+    }
+    
+    /** Returns the threshold that will be used by certain methods such as rank().
+      *
+      * See the documentation of useThreshold(const RealScalar&).
+      */
+    RealScalar threshold() const
+    {
+      return m_usePrescribedThreshold ? m_prescribedThreshold : defaultThreshold();
+    }
+    
     /** \returns the rank of the matrix of which *this is the LU decomposition.
       *
-      * \note This is computed at the time of the construction of the LU decomposition. This
-      *       method does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       */
     inline int rank() const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return m_rank;
+      RealScalar premultiplied_threshold = ei_abs(m_maxpivot) * threshold();
+      int result = 0;
+      for(int i = 0; i < m_nonzero_pivots; ++i)
+        result += (ei_abs(m_lu.coeff(i,i)) > premultiplied_threshold);
+      return result;
     }
-
+    
     /** \returns the dimension of the kernel of the matrix of which *this is the LU decomposition.
       *
-      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       */
     inline int dimensionOfKernel() const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return m_lu.cols() - m_rank;
+      return m_lu.cols() - rank();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition represents an injective
       *          linear map, i.e. has trivial kernel; false otherwise.
       *
-      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       */
     inline bool isInjective() const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return m_rank == m_lu.cols();
+      return rank() == m_lu.cols();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition represents a surjective
       *          linear map; false otherwise.
       *
-      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       */
     inline bool isSurjective() const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return m_rank == m_lu.rows();
+      return rank() == m_lu.rows();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition is invertible.
       *
-      * \note Since the rank is computed at the time of the construction of the LU decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       useThreshold(const RealScalar&).
       */
     inline bool isInvertible() const
     {
       ei_assert(m_originalMatrix != 0 && "LU is not initialized.");
-      return isInjective() && isSurjective();
+      return isInjective() && (m_lu.rows() == m_lu.cols());
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
@@ -298,31 +393,21 @@ template<typename MatrixType> class LU
     IntColVectorType m_p;
     IntRowVectorType m_q;
     int m_det_pq;
-    int m_rank;
-    RealScalar m_precision;
+    int m_nonzero_pivots;
+    RealScalar m_maxpivot;
+    bool m_usePrescribedThreshold;
+    RealScalar m_prescribedThreshold;
 };
 
 template<typename MatrixType>
 LU<MatrixType>::LU()
-  : m_originalMatrix(0),
-    m_lu(),
-    m_p(),
-    m_q(),
-    m_det_pq(0),
-    m_rank(-1),
-    m_precision(precision<RealScalar>())
+  : m_originalMatrix(0), m_usePrescribedThreshold(false)
 {
 }
 
 template<typename MatrixType>
 LU<MatrixType>::LU(const MatrixType& matrix)
-  : m_originalMatrix(0),
-    m_lu(),
-    m_p(),
-    m_q(),
-    m_det_pq(0),
-    m_rank(-1),
-    m_precision(precision<RealScalar>())
+  : m_originalMatrix(0), m_usePrescribedThreshold(false)
 {
   compute(matrix);
 }
@@ -339,16 +424,13 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
   const int rows = matrix.rows();
   const int cols = matrix.cols();
 
-  // this formula comes from experimenting (see "LU precision tuning" thread on the list)
-  // and turns out to be identical to Higham's formula used already in LDLt.
-  m_precision = epsilon<Scalar>() * size;
-
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
   int number_of_transpositions = 0;
 
   RealScalar biggest = RealScalar(0);
-  m_rank = size;
+  m_nonzero_pivots = size;
+  m_maxpivot = RealScalar(0);
   for(int k = 0; k < size; ++k)
   {
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
@@ -361,10 +443,10 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
     col_of_biggest_in_corner += k;
     if(k==0) biggest = biggest_in_corner;
 
-    // if the corner is exactly zero, terminate to avoid generating NaN values
+    // if the corner is exactly zero, terminate to avoid generating nan/inf values
     if(biggest_in_corner == RealScalar(0))
     {
-      m_rank = k;
+      m_nonzero_pivots = k;
       for(int i = k; i < size; i++)
       {
         rows_transpositions.coeffRef(i) = i;
@@ -372,6 +454,8 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
       }
       break;
     }
+
+    if(biggest_in_corner > m_maxpivot) m_maxpivot = biggest_in_corner;
 
     rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
     cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
@@ -431,20 +515,23 @@ template<typename MatrixType>
 struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
 {
   typedef LU<MatrixType> LUType;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
-  int m_dimKer;
+  int m_rank, m_dimker;
   
-  ei_lu_kernel_impl(const LUType& lu) : m_lu(lu), m_dimKer(lu.dimensionOfKernel()) {}
+  ei_lu_kernel_impl(const LUType& lu)
+    : m_lu(lu),
+      m_rank(lu.rank()),
+      m_dimker(m_lu.matrixLU().cols() - m_rank) {}
 
   inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_dimKer; }
+  inline int cols() const { return m_dimker; }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    typedef typename MatrixType::Scalar Scalar;
-    const int rank = m_lu.rank(),
-              cols = m_lu.matrixLU().cols();
-    if(m_dimKer == 0)
+    const int cols = m_lu.matrixLU().cols();
+    if(m_dimker == 0)
     {
       // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
@@ -470,19 +557,41 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
       * independent vectors in Ker U.
       */
 
-    dst.resize(cols, m_dimKer);
+    dst.resize(cols, m_dimker);
 
+    Matrix<int, Dynamic, 1, 0, LUType::MaxSmallDimAtCompileTime, 1> pivots(m_rank);
+    RealScalar premultiplied_threshold = m_lu.maxPivot() * m_lu.threshold();
+    int p = 0;
+    for(int i = 0; i < m_lu.nonzeroPivots(); ++i)
+      if(ei_abs(m_lu.matrixLU().coeff(i,i)) > premultiplied_threshold)
+        pivots.coeffRef(p++) = i;
+    ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
+    
+    // FIXME when we get triangularView-for-rectangular-matrices, this can be simplified
     Matrix<typename MatrixType::Scalar, Dynamic, Dynamic, MatrixType::Options,
-           MatrixType::MaxColsAtCompileTime, MatrixType::MaxColsAtCompileTime>
-      y(-m_lu.matrixLU().corner(TopRight, rank, m_dimKer));
+           LUType::MaxSmallDimAtCompileTime, MatrixType::MaxColsAtCompileTime>
+      m(m_lu.matrixLU().block(0, 0, m_rank, cols));
+    for(int i = 0; i < m_rank; ++i)
+    {
+      if(i) m.row(i).start(i).setZero();
+      m.row(i).end(cols-i) = m_lu.matrixLU().row(pivots.coeff(i)).end(cols-i);
+    }
+    m.block(0, 0, m_rank, m_rank).template triangularView<StrictlyLowerTriangular>().setZero();
+    
+    for(int i = 0; i < m_rank; ++i)
+      m.col(i).swap(m.col(pivots.coeff(i)));
 
-    m_lu.matrixLU()
-        .corner(TopLeft, rank, rank)
-        .template triangularView<UpperTriangular>().solveInPlace(y);
+    m.corner(TopLeft, m_rank, m_rank)
+     .template triangularView<UpperTriangular>().solveInPlace(
+        m.corner(TopRight, m_rank, m_dimker)
+      );
 
-    for(int i = 0; i < rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = y.row(i);
-    for(int i = rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
-    for(int k = 0; k < m_dimKer; ++k) dst.coeffRef(m_lu.permutationQ().coeff(rank+k), k) = Scalar(1);
+    for(int i = m_rank-1; i >= 0; --i)
+      m.col(i).swap(m.col(pivots.coeff(i)));
+
+    for(int i = 0; i < m_rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = -m.row(i).end(m_dimker);
+    for(int i = m_rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
+    for(int k = 0; k < m_dimker; ++k) dst.coeffRef(m_lu.permutationQ().coeff(m_rank+k), k) = Scalar(1);
   }
 };
 
@@ -506,17 +615,19 @@ template<typename MatrixType>
 struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
 {
   typedef LU<MatrixType> LUType;
+  typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
+  int m_rank;
   
-  ei_lu_image_impl(const LUType& lu) : m_lu(lu) {}
+  ei_lu_image_impl(const LUType& lu)
+    : m_lu(lu), m_rank(lu.rank()) {}
 
   inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_lu.rank(); }
+  inline int cols() const { return m_rank; }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    int rank = m_lu.rank();
-    if(rank == 0)
+    if(m_rank == 0)
     {
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
@@ -526,9 +637,17 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
       return;
     }
     
-    dst.resize(m_lu.originalMatrix()->rows(), rank);
-    for(int i = 0; i < rank; ++i)
-      dst.col(i) = m_lu.originalMatrix()->col(m_lu.permutationQ().coeff(i));
+    Matrix<int, Dynamic, 1, 0, LUType::MaxSmallDimAtCompileTime, 1> pivots(m_rank);
+    RealScalar premultiplied_threshold = m_lu.maxPivot() * m_lu.threshold();
+    int p = 0;
+    for(int i = 0; i < m_lu.nonzeroPivots(); ++i)
+      if(ei_abs(m_lu.matrixLU().coeff(i,i)) > premultiplied_threshold)
+        pivots.coeffRef(p++) = i;
+    ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
+    
+    dst.resize(m_lu.originalMatrix()->rows(), m_rank);
+    for(int i = 0; i < m_rank; ++i)
+      dst.col(i) = m_lu.originalMatrix()->col(m_lu.permutationQ().coeff(pivots.coeff(i)));
   }
 };
 
@@ -562,13 +681,6 @@ struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
-    if(m_lu.rank()==0)
-    {
-      dst.setZero();
-      return;
-    }
-    
     /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
     * So we proceed as follows:
     * Step 1: compute c = P * rhs.
@@ -579,10 +691,18 @@ struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs>
 
     const int rows = m_lu.matrixLU().rows(),
               cols = m_lu.matrixLU().cols(),
-              rank = m_lu.rank();
+              nonzero_pivots = m_lu.nonzeroPivots();
     ei_assert(m_rhs.rows() == rows);
     const int smalldim = std::min(rows, cols);
 
+    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
+
+    if(nonzero_pivots == 0)
+    {
+      dst.setZero();
+      return;
+    }
+    
     typename Rhs::PlainMatrixType c(m_rhs.rows(), m_rhs.cols());
 
     // Step 1
@@ -603,14 +723,14 @@ struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs>
 
     // Step 3
     m_lu.matrixLU()
-        .corner(TopLeft, rank, rank)
+        .corner(TopLeft, nonzero_pivots, nonzero_pivots)
         .template triangularView<UpperTriangular>()
-        .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+        .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
     // Step 4
-    for(int i = 0; i < rank; ++i)
+    for(int i = 0; i < nonzero_pivots; ++i)
       dst.row(m_lu.permutationQ().coeff(i)) = c.row(i);
-    for(int i = rank; i < m_lu.matrixLU().cols(); ++i)
+    for(int i = nonzero_pivots; i < m_lu.matrixLU().cols(); ++i)
       dst.row(m_lu.permutationQ().coeff(i)).setZero();
   }
 };
