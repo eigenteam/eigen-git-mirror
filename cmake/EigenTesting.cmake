@@ -1,5 +1,3 @@
-
-
 option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
 
 # similar to set_target_properties but append the property instead of overwriting it
@@ -118,6 +116,10 @@ endmacro(ei_add_test_internal)
 # #include "main.h"
 # void test_<testname>() { ... }
 #
+# Depending on the contents of that file, this macro can have 2 behaviors.
+#
+# A. Default behavior
+#
 # this macro add an executable test_<testname> as well as a ctest test
 # named <testname>.
 #
@@ -129,50 +131,60 @@ endmacro(ei_add_test_internal)
 #   "ctest -V" or "ctest -V -R <testname>"
 # On other platform use ctest as usual
 #
+# B. Multi-part behavior
+#
+# If the source file matches the regexp
+#    CALL_SUBTEST[0-9]+|EIGEN_TEST_PART_[0-9]+
+# then it is interpreted as a multi-part test. The behavior then depends on the
+# CMake option EIGEN_SPLIT_LARGE_TESTS, which is ON by default.
+#
+# If EIGEN_SPLIT_LARGE_TESTS is OFF, the behavior is the same as in A (the multi-part
+# aspect is ignored).
+#
+# If EIGEN_SPLIT_LARGE_TESTS is ON, the test is split into multiple executables
+#   test_<testname>_<N>
+# where N runs from 1 to the greatest occurence found in the source file. Each of these
+# executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
+# into smaller executables.
+#
+# The same holds for the debug executables.
+#
+# Moreover, targets test_<testname> and debug_<testname> are still generated, they
+# have the effect of building all the parts of the test.
+#
+# Again, ctest -R allows to run all matching tests.
+#
 macro(ei_add_test testname)
-  ei_add_test_internal(${testname} ${testname} "${ARGV1}" "${ARGV2}")
-endmacro(ei_add_test)
-
-# Macro to add a multi-part test. Allows to split large tests into multiple executables.
-#
-# The first parameter is the number of parts.
-#
-# the second parameter testname must correspond to a file
-# <testname>.cpp which follows this pattern:
-#
-# #include "main.h"
-# void test_<testname>() { ... }
-#
-# this macro adds executables test_<testname>_N for N ranging from 1 to the number of parts
-# (first parameter) as well as corresponding ctest tests named <testname_N>.
-#
-# it also adds corresponding debug targets and ctest tests, see the documentation of ei_add_test.
-#
-# On platforms with bash simply run:
-#   "ctest -V" or "ctest -V -R <testname>"
-# On other platforms use ctest as usual
-macro(ei_add_test_multi parts testname)
-  if(EIGEN_SPLIT_LARGE_TESTS)
+  file(READ "${testname}.cpp" test_source)
+  set(parts 0)
+  string(REGEX MATCHALL "CALL_SUBTEST[0-9]+|EIGEN_TEST_PART_[0-9]+" occurences "${test_source}")
+  foreach(occurence ${occurences})
+    string(REGEX MATCH "([0-9]+)" _number_in_occurence "${occurence}")
+    set(number ${CMAKE_MATCH_1})
+    if(${number} GREATER ${parts})
+      set(parts ${number})
+    endif(${number} GREATER ${parts})
+  endforeach(occurence)
+  if(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
     add_custom_target(test_${testname})
     if(NOT MSVC_IDE)
       add_custom_target(debug_${testname})
     endif(NOT MSVC_IDE)
     foreach(part RANGE 1 ${parts})
-      message("multipart argv2 ${ARGV2} argv3 ${ARGV3}")
-      ei_add_test_internal(${testname} ${testname}_${part} "${ARGV2} -DEIGEN_TEST_PART_${part}" "${ARGV3}")
+      ei_add_test_internal(${testname} ${testname}_${part} "${ARGV1} -DEIGEN_TEST_PART_${part}" "${ARGV2}")
       add_dependencies(test_${testname} test_${testname}_${part})
       if(NOT MSVC_IDE)
         add_dependencies(debug_${testname} debug_${testname}_${part})
       endif(NOT MSVC_IDE)
     endforeach(part)
-  else(EIGEN_SPLIT_LARGE_TESTS)
+  else(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
     set(symbols_to_enable_all_parts "")
     foreach(part RANGE 1 ${parts})
       set(symbols_to_enable_all_parts "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${part}")
     endforeach(part)
-    ei_add_test_internal(${testname} ${testname} "${ARGV2} ${symbols_to_enable_all_parts}" "${ARGV3}")
-  endif(EIGEN_SPLIT_LARGE_TESTS)
-endmacro(ei_add_test_multi)
+    ei_add_test_internal(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
+  endif(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
+endmacro(ei_add_test)
 
 # print a summary of the different options
 macro(ei_testing_print_summary)

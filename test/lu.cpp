@@ -153,28 +153,26 @@ template<typename MatrixType> void lu_verify_assert()
 void test_lu()
 {
   for(int i = 0; i < g_repeat; i++) {
-#if defined EIGEN_TEST_PART_1
-    CALL_SUBTEST( lu_non_invertible<Matrix3f>() );
-    CALL_SUBTEST( lu_verify_assert<Matrix3f>() );
-#elif defined EIGEN_TEST_PART_2
-    CALL_SUBTEST( (lu_non_invertible<Matrix<double, 4, 6> >()) );
-    CALL_SUBTEST( (lu_verify_assert<Matrix<double, 4, 6> >()) );
-#elif defined EIGEN_TEST_PART_3
-    CALL_SUBTEST( lu_non_invertible<MatrixXf>() );
-    CALL_SUBTEST( lu_invertible<MatrixXf>() );
-    CALL_SUBTEST( lu_verify_assert<MatrixXf>() );
-#elif defined EIGEN_TEST_PART_4
-    CALL_SUBTEST( lu_non_invertible<MatrixXd>() );
-    CALL_SUBTEST( lu_invertible<MatrixXd>() );
-    CALL_SUBTEST( lu_verify_assert<MatrixXd>() );
-#elif defined EIGEN_TEST_PART_5
-    CALL_SUBTEST( lu_non_invertible<MatrixXcf>() );
-    CALL_SUBTEST( lu_invertible<MatrixXcf>() );
-    CALL_SUBTEST( lu_verify_assert<MatrixXcf>() );
-#elif defined EIGEN_TEST_PART_6
-    CALL_SUBTEST( lu_non_invertible<MatrixXcd>() );
-    CALL_SUBTEST( lu_invertible<MatrixXcd>() );
-    CALL_SUBTEST( lu_verify_assert<MatrixXcd>() );
-#endif
+    CALL_SUBTEST1( lu_non_invertible<Matrix3f>() );
+    CALL_SUBTEST1( lu_verify_assert<Matrix3f>() );
+
+    CALL_SUBTEST2( (lu_non_invertible<Matrix<double, 4, 6> >()) );
+    CALL_SUBTEST2( (lu_verify_assert<Matrix<double, 4, 6> >()) );
+    
+    CALL_SUBTEST3( lu_non_invertible<MatrixXf>() );
+    CALL_SUBTEST3( lu_invertible<MatrixXf>() );
+    CALL_SUBTEST3( lu_verify_assert<MatrixXf>() );
+    
+    CALL_SUBTEST4( lu_non_invertible<MatrixXd>() );
+    CALL_SUBTEST4( lu_invertible<MatrixXd>() );
+    CALL_SUBTEST4( lu_verify_assert<MatrixXd>() );
+    
+    CALL_SUBTEST5( lu_non_invertible<MatrixXcf>() );
+    CALL_SUBTEST5( lu_invertible<MatrixXcf>() );
+    CALL_SUBTEST5( lu_verify_assert<MatrixXcf>() );
+    
+    CALL_SUBTEST6( lu_non_invertible<MatrixXcd>() );
+    CALL_SUBTEST6( lu_invertible<MatrixXcd>() );
+    CALL_SUBTEST6( lu_verify_assert<MatrixXcd>() );
   }
 }

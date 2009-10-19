@@ -27,13 +27,14 @@
 void test_product_large()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
-    CALL_SUBTEST( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST1( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST2( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST3( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST4( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
+    CALL_SUBTEST5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
   }
 
+#if defined EIGEN_TEST_PART_6
   {
     // test a specific issue in DiagonalProduct
     int N = 1000000;
@@ -48,4 +49,5 @@ void test_product_large()
     MatrixXf a = MatrixXf::Random(10,4), b = MatrixXf::Random(4,10), c = a;
     VERIFY_IS_APPROX((a = a * b), (c * b).eval());
   }
+#endif
 }

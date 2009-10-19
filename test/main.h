@@ -170,6 +170,66 @@ namespace Eigen
     g_test_stack.pop_back(); \
   } while (0)
 
+#ifdef EIGEN_TEST_PART_1
+#define CALL_SUBTEST1(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST1(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_2
+#define CALL_SUBTEST2(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST2(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_3
+#define CALL_SUBTEST3(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST3(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_4
+#define CALL_SUBTEST4(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST4(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_5
+#define CALL_SUBTEST5(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST5(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_6
+#define CALL_SUBTEST6(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST6(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_7
+#define CALL_SUBTEST7(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST7(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_8
+#define CALL_SUBTEST8(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST8(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_9
+#define CALL_SUBTEST9(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST9(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_10
+#define CALL_SUBTEST10(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST10(FUNC)
+#endif
+
 namespace Eigen {
 
 template<typename T> inline typename NumTraits<T>::Real test_precision();

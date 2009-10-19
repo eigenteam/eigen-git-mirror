@@ -108,10 +108,10 @@ void test_product_symm()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    CALL_SUBTEST(( symm<float,Dynamic,Dynamic>(ei_random<int>(10,320),ei_random<int>(10,320)) ));
-    CALL_SUBTEST(( symm<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(10,320),ei_random<int>(10,320)) ));
+    CALL_SUBTEST1(( symm<float,Dynamic,Dynamic>(ei_random<int>(10,320),ei_random<int>(10,320)) ));
+    CALL_SUBTEST2(( symm<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(10,320),ei_random<int>(10,320)) ));
 
-    CALL_SUBTEST(( symm<float,Dynamic,1>(ei_random<int>(10,320)) ));
-    CALL_SUBTEST(( symm<std::complex<double>,Dynamic,1>(ei_random<int>(10,320)) ));
+    CALL_SUBTEST3(( symm<float,Dynamic,1>(ei_random<int>(10,320)) ));
+    CALL_SUBTEST4(( symm<std::complex<double>,Dynamic,1>(ei_random<int>(10,320)) ));
   }
 }
