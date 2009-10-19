@@ -110,13 +110,18 @@ endmacro(ei_add_test_internal)
 
 # Macro to add a test
 #
-# the unique parameter testname must correspond to a file
+# the unique mandatory parameter testname must correspond to a file
 # <testname>.cpp which follows this pattern:
 #
 # #include "main.h"
 # void test_<testname>() { ... }
 #
-# Depending on the contents of that file, this macro can have 2 behaviors.
+# Depending on the contents of that file, this macro can have 2 behaviors,
+# see below.
+#
+# Optional parameters can be passed: the 2nd parameter is additional compile flags
+# (optimization will be explicitly disabled for the debug test targets) and the 3rd
+# parameter is libraries to link to.
 #
 # A. Default behavior
 #
