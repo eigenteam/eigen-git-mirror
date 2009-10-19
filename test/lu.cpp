@@ -30,15 +30,43 @@ template<typename MatrixType> void lu_non_invertible()
   /* this test covers the following files:
      LU.h
   */
-  int rows = ei_random<int>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
+  int rows, cols, cols2;
+  if(MatrixType::RowsAtCompileTime==Dynamic)
+  {
+    rows = ei_random<int>(20,200);
+  }
+  else
+  {
+    rows = MatrixType::RowsAtCompileTime;
+  }
+  if(MatrixType::ColsAtCompileTime==Dynamic)
+  {
+    cols = ei_random<int>(20,200);
+    cols2 = ei_random<int>(20,200);
+  }
+  else
+  {
+    cols2 = cols = MatrixType::ColsAtCompileTime;
+  }
+
+  typedef typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType KernelMatrixType;
+  typedef typename ei_lu_image_impl <MatrixType>::ReturnMatrixType ImageMatrixType;
+  typedef Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> DynamicMatrixType;
+  typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime>
+          CMatrixType;
+
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
-  MatrixType m1(rows, cols), m2(cols, cols2), m3(rows, cols2), k(1,1);
+  // The image of the zero matrix should consist of a single (zero) column vector
+  VERIFY((MatrixType::Zero(rows,cols).lu().image(MatrixType::Zero(rows,cols)).cols() == 1));
+  
+  MatrixType m1(rows, cols), m3(rows, cols2);
+  CMatrixType m2(cols, cols2);
   createRandomMatrixOfRank(rank, rows, cols, m1);
 
   LU<MatrixType> lu(m1);
-  typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType m1kernel = lu.kernel();
-  typename ei_lu_image_impl <MatrixType>::ReturnMatrixType m1image  = lu.image(m1);
+  KernelMatrixType m1kernel = lu.kernel();
+  ImageMatrixType m1image  = lu.image(m1);
 
   // std::cerr << rank << " " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
@@ -48,19 +76,18 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY(!lu.isSurjective());
   VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
   VERIFY(m1image.lu().rank() == rank);
-  MatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
+  DynamicMatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
   sidebyside << m1, m1image;
   VERIFY(sidebyside.lu().rank() == rank);
-  m2 = MatrixType::Random(cols,cols2);
+  m2 = CMatrixType::Random(cols,cols2);
   m3 = m1*m2;
-  m2 = MatrixType::Random(cols,cols2);
+  m2 = CMatrixType::Random(cols,cols2);
   // test that the code, which does resize(), may be applied to an xpr
   m2.block(0,0,m2.rows(),m2.cols()) = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   
-  typedef Matrix<typename MatrixType::Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
-  SquareMatrixType m4(rows, rows), m5(rows, rows);
-  createRandomMatrixOfRank(rows/2, rows, rows, m4);
+  CMatrixType m4(cols, cols), m5(cols, cols);
+  createRandomMatrixOfRank(cols/2, cols, cols, m4);
   VERIFY(!m4.computeInverseWithCheck(&m5));
 }
 
@@ -84,6 +111,7 @@ template<typename MatrixType> void lu_invertible()
 
   LU<MatrixType> lu(m1);
   VERIFY(0 == lu.dimensionOfKernel());
+  VERIFY(lu.kernel().cols() == 1); // the kernel() should consist of a single (zero) column vector
   VERIFY(size == lu.rank());
   VERIFY(lu.isInjective());
   VERIFY(lu.isSurjective());
@@ -125,6 +153,8 @@ template<typename MatrixType> void lu_verify_assert()
 void test_lu()
 {
   for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST( lu_non_invertible<Matrix3f>() );
+    CALL_SUBTEST( (lu_non_invertible<Matrix<double, 4, 6> >()) );
     CALL_SUBTEST( lu_non_invertible<MatrixXf>() );
     CALL_SUBTEST( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST( lu_non_invertible<MatrixXcf>() );

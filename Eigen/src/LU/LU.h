@@ -504,25 +504,24 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
-  int m_rank, m_dimker;
+  int m_rank, m_cols;
   
   ei_lu_kernel_impl(const LUType& lu)
     : m_lu(lu),
       m_rank(lu.rank()),
-      m_dimker(m_lu.matrixLU().cols() - m_rank) {}
+      m_cols(m_rank==lu.matrixLU().cols() ? 1 : lu.matrixLU().cols() - m_rank){}
 
   inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_dimker; }
+  inline int cols() const { return m_cols; }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    const int cols = m_lu.matrixLU().cols();
-    if(m_dimker == 0)
+    const int cols = m_lu.matrixLU().cols(), dimker = cols - m_rank;
+    if(dimker == 0)
     {
       // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
       // just return a single column vector filled with zeros.
-      dst.resize(cols,1);
       dst.setZero();
       return;
     }
@@ -542,8 +541,6 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
       * m_dimKer zero's. Let us use that to construct dimKer linearly
       * independent vectors in Ker U.
       */
-
-    dst.resize(cols, m_dimker);
 
     Matrix<int, Dynamic, 1, 0, LUType::MaxSmallDimAtCompileTime, 1> pivots(m_rank);
     RealScalar premultiplied_threshold = m_lu.maxPivot() * m_lu.threshold();
@@ -569,15 +566,15 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
 
     m.corner(TopLeft, m_rank, m_rank)
      .template triangularView<UpperTriangular>().solveInPlace(
-        m.corner(TopRight, m_rank, m_dimker)
+        m.corner(TopRight, m_rank, dimker)
       );
 
     for(int i = m_rank-1; i >= 0; --i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
-    for(int i = 0; i < m_rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = -m.row(i).end(m_dimker);
+    for(int i = 0; i < m_rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = -m.row(i).end(dimker);
     for(int i = m_rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
-    for(int k = 0; k < m_dimker; ++k) dst.coeffRef(m_lu.permutationQ().coeff(m_rank+k), k) = Scalar(1);
+    for(int k = 0; k < dimker; ++k) dst.coeffRef(m_lu.permutationQ().coeff(m_rank+k), k) = Scalar(1);
   }
 };
 
@@ -603,14 +600,16 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
   typedef LU<MatrixType> LUType;
   typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
-  int m_rank;
+  int m_rank, m_cols;
   const MatrixType& m_originalMatrix;
   
   ei_lu_image_impl(const LUType& lu, const MatrixType& originalMatrix)
-    : m_lu(lu), m_rank(lu.rank()), m_originalMatrix(originalMatrix) {}
+    : m_lu(lu), m_rank(lu.rank()),
+      m_cols(m_rank == 0 ? 1 : m_rank),
+      m_originalMatrix(originalMatrix) {}
 
-  inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_rank; }
+  inline int rows() const { return m_lu.matrixLU().rows(); }
+  inline int cols() const { return m_cols; }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
@@ -619,7 +618,6 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
       // just return a single column vector filled with zeros.
-      dst.resize(m_originalMatrix.rows(), 1);
       dst.setZero();
       return;
     }
@@ -632,7 +630,6 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
         pivots.coeffRef(p++) = i;
     ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
     
-    dst.resize(m_originalMatrix.rows(), m_rank);
     for(int i = 0; i < m_rank; ++i)
       dst.col(i) = m_originalMatrix.col(m_lu.permutationQ().coeff(pivots.coeff(i)));
   }
@@ -681,8 +678,6 @@ struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs>
               nonzero_pivots = m_lu.nonzeroPivots();
     ei_assert(m_rhs.rows() == rows);
     const int smalldim = std::min(rows, cols);
-
-    dst.resize(m_lu.matrixLU().cols(), m_rhs.cols());
 
     if(nonzero_pivots == 0)
     {
