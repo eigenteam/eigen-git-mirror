@@ -9,4 +9,3 @@ if((m*x).isApprox(y))
 }
 else
   cout << "The equation mx=y does not have any solution." << endl;
-

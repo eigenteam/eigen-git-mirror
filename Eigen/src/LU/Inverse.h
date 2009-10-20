@@ -200,7 +200,7 @@ struct ei_compute_inverse
 {
   static inline void run(const MatrixType& matrix, ResultType* result)
   {
-    result = matrix.partialLu().inverse();
+    *result = matrix.partialLu().inverse();
   }
 };
 
@@ -282,7 +282,9 @@ inline void MatrixBase<Derived>::computeInverse(ResultType *result) const
 template<typename Derived>
 inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::inverse() const
 {
-  return inverse(*this);
+  typename MatrixBase<Derived>::PlainMatrixType result;
+  computeInverse(&result);
+  return result;
 }
 
 

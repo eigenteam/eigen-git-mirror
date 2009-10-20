@@ -83,19 +83,21 @@ void test_inverse()
 {
   int s;
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( inverse(Matrix<double,1,1>()) );
-    CALL_SUBTEST( inverse(Matrix2d()) );
-    CALL_SUBTEST( inverse(Matrix3f()) );
-    CALL_SUBTEST( inverse(Matrix4f()) );
+    CALL_SUBTEST1( inverse(Matrix<double,1,1>()) );
+    CALL_SUBTEST2( inverse(Matrix2d()) );
+    CALL_SUBTEST3( inverse(Matrix3f()) );
+    CALL_SUBTEST4( inverse(Matrix4f()) );
     s = ei_random<int>(50,320);
-    CALL_SUBTEST( inverse(MatrixXf(s,s)) );
+    CALL_SUBTEST5( inverse(MatrixXf(s,s)) );
     s = ei_random<int>(25,100);
-    CALL_SUBTEST( inverse(MatrixXcd(s,s)) );
+    CALL_SUBTEST6( inverse(MatrixXcd(s,s)) );
   }
 
+#ifdef EIGEN_TEST_PART_4
   // test some tricky cases for 4x4 matrices
   VERIFY_IS_APPROX((Matrix4f() << 0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).finished().inverse(),
                    (Matrix4f() << 0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).finished());
   VERIFY_IS_APPROX((Matrix4f() << 1,0,0,0, 0,0,1,0, 0,0,0,1, 0,1,0,0).finished().inverse(),
                    (Matrix4f() << 1,0,0,0, 0,0,0,1, 0,1,0,0, 0,0,1,0).finished());
+#endif
 }

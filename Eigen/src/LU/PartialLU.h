@@ -216,6 +216,7 @@ struct ei_partial_lu_impl
   typedef Map<Matrix<Scalar, Dynamic, Dynamic, StorageOrder> > MapLU;
   typedef Block<MapLU, Dynamic, Dynamic> MatrixType;
   typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
+  typedef typename MatrixType::RealScalar RealScalar;
 
   /** \internal performs the LU decomposition in-place of the matrix \a lu
     * using an unblocked algorithm.
@@ -224,8 +225,12 @@ struct ei_partial_lu_impl
     * vector \a row_transpositions which must have a size equal to the number
     * of columns of the matrix \a lu, and an integer \a nb_transpositions
     * which returns the actual number of transpositions.
+    *
+    * \returns false if some pivot is exactly zero, in which case the matrix is left with
+    *          undefined coefficients (to avoid generating inf/nan values). Returns true
+    *          otherwise.
     */
-  static void unblocked_lu(MatrixType& lu, int* row_transpositions, int& nb_transpositions)
+  static bool unblocked_lu(MatrixType& lu, int* row_transpositions, int& nb_transpositions)
   {
     const int rows = lu.rows();
     const int size = std::min(lu.rows(),lu.cols());
@@ -233,8 +238,21 @@ struct ei_partial_lu_impl
     for(int k = 0; k < size; ++k)
     {
       int row_of_biggest_in_col;
-      lu.col(k).end(rows-k).cwise().abs().maxCoeff(&row_of_biggest_in_col);
+      RealScalar biggest_in_corner
+        = lu.col(k).end(rows-k).cwise().abs().maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
+
+      if(biggest_in_corner == 0) // the pivot is exactly zero: the matrix is singular
+      {
+        // end quickly, avoid generating inf/nan values. Although in this unblocked_lu case
+        // the result is still valid, there's no need to boast about it because
+        // the blocked_lu code can't guarantee the same.
+        // before exiting, make sure to initialize the still uninitialized row_transpositions
+        // in a sane state without destroying what we already have.
+        for(int i = k; i < size; i++)
+          row_transpositions[i] = i;
+        return false;
+      }
 
       row_transpositions[k] = row_of_biggest_in_col;
 
@@ -252,6 +270,7 @@ struct ei_partial_lu_impl
         lu.corner(BottomRight,rrows,rsize).noalias() -= lu.col(k).end(rrows) * lu.row(k).end(rsize);
       }
     }
+    return true;
   }
 
   /** \internal performs the LU decomposition in-place of the matrix represented
@@ -263,11 +282,15 @@ struct ei_partial_lu_impl
     * of columns of the matrix \a lu, and an integer \a nb_transpositions
     * which returns the actual number of transpositions.
     *
+    * \returns false if some pivot is exactly zero, in which case the matrix is left with
+    *          undefined coefficients (to avoid generating inf/nan values). Returns true
+    *          otherwise.
+    *
     * \note This very low level interface using pointers, etc. is to:
     *   1 - reduce the number of instanciations to the strict minimum
     *   2 - avoid infinite recursion of the instanciations with Block<Block<Block<...> > >
     */
-  static void blocked_lu(int rows, int cols, Scalar* lu_data, int luStride, int* row_transpositions, int& nb_transpositions, int maxBlockSize=256)
+  static bool blocked_lu(int rows, int cols, Scalar* lu_data, int luStride, int* row_transpositions, int& nb_transpositions, int maxBlockSize=256)
   {
     MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
     MatrixType lu(lu1,0,0,rows,cols);
@@ -277,8 +300,7 @@ struct ei_partial_lu_impl
     // if the matrix is too small, no blocking:
     if(size<=16)
     {
-      unblocked_lu(lu, row_transpositions, nb_transpositions);
-      return;
+      return unblocked_lu(lu, row_transpositions, nb_transpositions);
     }
 
     // automatically adjust the number of subdivisions to the size
@@ -311,12 +333,20 @@ struct ei_partial_lu_impl
       int nb_transpositions_in_panel;
       // recursively calls the blocked LU algorithm with a very small
       // blocking size:
-      blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
-                 row_transpositions+k, nb_transpositions_in_panel, 16);
+      if(!blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
+                   row_transpositions+k, nb_transpositions_in_panel, 16))
+      {
+        // end quickly with undefined coefficients, just avoid generating inf/nan values.
+        // before exiting, make sure to initialize the still uninitialized row_transpositions
+        // in a sane state without destroying what we already have.
+        for(int i=k; i<size; ++i)
+          row_transpositions[i] = i;
+        return false;
+      }
       nb_transpositions += nb_transpositions_in_panel;
 
       // update permutations and apply them to A10
-      for(int i=k;i<k+bs; ++i)
+      for(int i=k; i<k+bs; ++i)
       {
         int piv = (row_transpositions[i] += k);
         A_0.row(i).swap(A_0.row(piv));
@@ -334,6 +364,7 @@ struct ei_partial_lu_impl
         A22 -= A21 * A12;
       }
     }
+    return true;
   }
 };
 

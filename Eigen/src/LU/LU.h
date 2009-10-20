@@ -410,28 +410,32 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
   const int rows = matrix.rows();
   const int cols = matrix.cols();
 
+  // will store the transpositions, before we accumulate them at the end.
+  // can't accumulate on-the-fly because that will be done in reverse order for the rows.
   IntColVectorType rows_transpositions(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
-  int number_of_transpositions = 0;
+  int number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. rows_transpositions[i]!=i
 
-  RealScalar biggest = RealScalar(0);
-  m_nonzero_pivots = size;
+  m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
   for(int k = 0; k < size; ++k)
   {
+    // First, we need to find the pivot.
+
+    // biggest coefficient in the remaining bottom-right corner (starting at row k, col k)
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
-
     biggest_in_corner = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
                         .cwise().abs()
                         .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
-    row_of_biggest_in_corner += k;
-    col_of_biggest_in_corner += k;
-    if(k==0) biggest = biggest_in_corner;
+    row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
+    col_of_biggest_in_corner += k; // need to add k to them.
 
-    // if the corner is exactly zero, terminate to avoid generating nan/inf values
+    // if the pivot (hence the corner) is exactly zero, terminate to avoid generating nan/inf values
     if(biggest_in_corner == RealScalar(0))
     {
+      // before exiting, make sure to initialize the still uninitialized row_transpositions
+      // in a sane state without destroying what we already have.
       m_nonzero_pivots = k;
       for(int i = k; i < size; i++)
       {
@@ -443,6 +447,9 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 
     if(biggest_in_corner > m_maxpivot) m_maxpivot = biggest_in_corner;
 
+    // Now that we've found the pivot, we need to apply the row/col swaps to
+    // bring it to the location (k,k).
+
     rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
     cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
@@ -453,11 +460,18 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
       m_lu.col(k).swap(m_lu.col(col_of_biggest_in_corner));
       ++number_of_transpositions;
     }
+
+    // Now that the pivot is at the right location, we update the remaining
+    // bottom-right corner by Gaussian elimination.
+    
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
       m_lu.block(k+1,k+1,rows-k-1,cols-k-1).noalias() -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
   }
+
+  // the main loop is over, we still have to accumulate the transpositions to find the
+  // permutations P and Q
 
   for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;
   for(int k = size-1; k >= 0; --k)
@@ -549,7 +563,10 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
       if(ei_abs(m_lu.matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
     ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
-    
+
+    // we construct a temporaty trapezoid matrix m, by taking the U matrix and
+    // permuting the rows and cols to bring the nonnegligible pivots to the top of
+    // the main diagonal. We need that to be able to apply our triangular solvers.
     // FIXME when we get triangularView-for-rectangular-matrices, this can be simplified
     Matrix<typename MatrixType::Scalar, Dynamic, Dynamic, MatrixType::Options,
            LUType::MaxSmallDimAtCompileTime, MatrixType::MaxColsAtCompileTime>
@@ -560,18 +577,22 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
       m.row(i).end(cols-i) = m_lu.matrixLU().row(pivots.coeff(i)).end(cols-i);
     }
     m.block(0, 0, m_rank, m_rank).template triangularView<StrictlyLowerTriangular>().setZero();
-    
     for(int i = 0; i < m_rank; ++i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
+    // ok, we have our trapezoid matrix, we can apply the triangular solver.
+    // notice that the math behind this suggests that we should apply this to the
+    // negative of the RHS, but for performance we just put the negative sign elsewhere, see below.
     m.corner(TopLeft, m_rank, m_rank)
      .template triangularView<UpperTriangular>().solveInPlace(
         m.corner(TopRight, m_rank, dimker)
       );
 
+    // now we must undo the column permutation that we had applied!
     for(int i = m_rank-1; i >= 0; --i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
+    // see the negative sign in the next line, that's what we were talking about above.
     for(int i = 0; i < m_rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = -m.row(i).end(dimker);
     for(int i = m_rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
     for(int k = 0; k < dimker; ++k) dst.coeffRef(m_lu.permutationQ().coeff(m_rank+k), k) = Scalar(1);
