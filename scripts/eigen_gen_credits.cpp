@@ -13,10 +13,24 @@ using namespace std;
 std::string contributor_name(const std::string& line)
 {
   string result;
+
+  // let's first take care of the case of isolated email addresses, like
+  // "user@localhost.localdomain" entries
+  if(line.find("markb@localhost.localdomain") != string::npos)
+  {
+    return "Mark Borgerding";
+  }
+
+  // from there on we assume that we have a entry of the form
+  // either:
+  //   Bla bli Blurp
+  // or:
+  //   Bla bli Blurp <bblurp@email.com>
+  
   size_t position_of_email_address = line.find_first_of('<');
   if(position_of_email_address != string::npos)
   {
-    // there is an e-mail address.
+    // there is an e-mail address in <...>.
     
     // Hauke once committed as "John Smith", fix that.
     if(line.find("hauke.heibel") != string::npos)
@@ -29,7 +43,7 @@ std::string contributor_name(const std::string& line)
   }
   else
   {
-    // there is no e-mail address.
+    // there is no e-mail address in <...>.
     
     if(line.find("convert-repo") != string::npos)
       result = "";
