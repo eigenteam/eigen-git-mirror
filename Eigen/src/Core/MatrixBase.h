@@ -190,6 +190,25 @@ template<typename Derived> class MatrixBase
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
+    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
+      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+      * nothing else.
+      */
+    void resize(int size)
+    {
+      ei_assert(size == this->size()
+                && "MatrixBase::resize() does not actually allow to resize.");
+    }
+    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
+      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+      * nothing else.
+      */
+    void resize(int rows, int cols)
+    {
+      ei_assert(rows == this->rows() && cols == this->cols()
+                && "MatrixBase::resize() does not actually allow to resize.");
+    }
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
       * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
