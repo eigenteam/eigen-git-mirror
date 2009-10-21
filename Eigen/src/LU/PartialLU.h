@@ -26,6 +26,8 @@
 #ifndef EIGEN_PARTIALLU_H
 #define EIGEN_PARTIALLU_H
 
+template<typename MatrixType, typename Rhs> struct ei_partiallu_solve_impl;
+
 /** \ingroup LU_Module
   *
   * \class PartialLU
@@ -112,26 +114,46 @@ template<typename MatrixType> class PartialLU
       return m_p;
     }
 
-    /** This method finds the solution x to the equation Ax=b, where A is the matrix of which
-      * *this is the LU decomposition. Since if this partial pivoting decomposition the matrix is assumed
-      * to have full rank, such a solution is assumed to exist and to be unique.
-      *
-      * \warning Again, if your matrix may not have full rank, use class LU instead. See LU::solve().
+    /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
+      * *this is the LU decomposition.
       *
       * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
       *          the only requirement in order for the equation to make sense is that
       *          b.rows()==A.rows(), where A is the matrix of which *this is the LU decomposition.
-      * \param result a pointer to the vector or matrix in which to store the solution, if any exists.
-      *          Resized if necessary, so that result->rows()==A.cols() and result->cols()==b.cols().
-      *          If no solution exists, *result is left with undefined coefficients.
+      *
+      * \returns the solution.
       *
       * Example: \include PartialLU_solve.cpp
       * Output: \verbinclude PartialLU_solve.out
       *
+      * Since this PartialLU class assumes anyway that the matrix A is invertible, the solution
+      * theoretically exists and is unique regardless of b.
+      *
+      * \note_about_checking_solutions
+      *
       * \sa TriangularView::solve(), inverse(), computeInverse()
       */
-    template<typename OtherDerived, typename ResultType>
-    void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
+    template<typename Rhs>
+    inline const ei_partiallu_solve_impl<MatrixType, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "LU is not initialized.");
+      return ei_partiallu_solve_impl<MatrixType, Rhs>(*this, b.derived());
+    }
+
+    /** \returns the inverse of the matrix of which *this is the LU decomposition.
+      *
+      * \warning The matrix being decomposed here is assumed to be invertible. If you need to check for
+      *          invertibility, use class LU instead.
+      *
+      * \sa MatrixBase::inverse(), LU::inverse()
+      */
+    inline const ei_partiallu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    {
+      ei_assert(m_isInitialized && "LU is not initialized.");
+      return ei_partiallu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
+               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
+    }
 
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
@@ -147,34 +169,6 @@ template<typename MatrixType> class PartialLU
       * \sa MatrixBase::determinant()
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
-
-    /** Computes the inverse of the matrix of which *this is the LU decomposition.
-      *
-      * \param result a pointer to the matrix into which to store the inverse. Resized if needed.
-      *
-      * \warning The matrix being decomposed here is assumed to be invertible. If you need to check for
-      *          invertibility, use class LU instead.
-      *
-      * \sa MatrixBase::computeInverse(), inverse()
-      */
-    inline void computeInverse(MatrixType *result) const
-    {
-      solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
-    }
-
-    /** \returns the inverse of the matrix of which *this is the LU decomposition.
-      *
-      * \warning The matrix being decomposed here is assumed to be invertible. If you need to check for
-      *          invertibility, use class LU instead.
-      *
-      * \sa computeInverse(), MatrixBase::inverse()
-      */
-    inline MatrixType inverse() const
-    {
-      MatrixType result;
-      computeInverse(&result);
-      return result;
-    }
 
   protected:
     MatrixType m_lu;
@@ -411,36 +405,60 @@ typename ei_traits<MatrixType>::Scalar PartialLU<MatrixType>::determinant() cons
   return Scalar(m_det_p) * m_lu.diagonal().prod();
 }
 
-template<typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-void PartialLU<MatrixType>::solve(
-  const MatrixBase<OtherDerived>& b,
-  ResultType *result
-) const
+/***** Implementation of solve() *****************************************************/
+
+template<typename MatrixType,typename Rhs>
+struct ei_traits<ei_partiallu_solve_impl<MatrixType,Rhs> >
 {
-  ei_assert(m_isInitialized && "PartialLU is not initialized.");
+  typedef Matrix<typename Rhs::Scalar,
+                 MatrixType::ColsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 Rhs::PlainMatrixType::Options,
+                 MatrixType::MaxColsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+};
 
-  /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
-   * So we proceed as follows:
-   * Step 1: compute c = Pb.
-   * Step 2: replace c by the solution x to Lx = c.
-   * Step 3: replace c by the solution x to Ux = c.
-   */
+template<typename MatrixType, typename Rhs>
+struct ei_partiallu_solve_impl : public ReturnByValue<ei_partiallu_solve_impl<MatrixType, Rhs> >
+{
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef PartialLU<MatrixType> LUType;
+  const LUType& m_lu;
+  const typename Rhs::Nested m_rhs;
 
-  const int size = m_lu.rows();
-  ei_assert(b.rows() == size);
+  ei_partiallu_solve_impl(const LUType& lu, const Rhs& rhs)
+    : m_lu(lu), m_rhs(rhs)
+  {}
 
-  result->resize(size, b.cols());
+  inline int rows() const { return m_lu.matrixLU().cols(); }
+  inline int cols() const { return m_rhs.cols(); }
 
-  // Step 1
-  for(int i = 0; i < size; ++i) result->row(m_p.coeff(i)) = b.row(i);
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
+    * So we proceed as follows:
+    * Step 1: compute c = Pb.
+    * Step 2: replace c by the solution x to Lx = c.
+    * Step 3: replace c by the solution x to Ux = c.
+    */
 
-  // Step 2
-  m_lu.template triangularView<UnitLowerTriangular>().solveInPlace(*result);
+    const int size = m_lu.matrixLU().rows();
+    ei_assert(m_rhs.rows() == size);
 
-  // Step 3
-  m_lu.template triangularView<UpperTriangular>().solveInPlace(*result);
-}
+    dst.resize(size, m_rhs.cols());
+
+    // Step 1
+    for(int i = 0; i < size; ++i) dst.row(m_lu.permutationP().coeff(i)) = m_rhs.row(i);
+
+    // Step 2
+    m_lu.matrixLU().template triangularView<UnitLowerTriangular>().solveInPlace(dst);
+
+    // Step 3
+    m_lu.matrixLU().template triangularView<UpperTriangular>().solveInPlace(dst);
+  }
+};
+
+/******** MatrixBase methods *******/
 
 /** \lu_module
   *

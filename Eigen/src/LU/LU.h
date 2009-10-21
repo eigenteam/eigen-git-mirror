@@ -209,7 +209,7 @@ template<typename MatrixType> class LU
       *
       * \returns a solution.
       *
-      * \note_about_inexistant_solutions
+      * \note_about_checking_solutions
       *
       * \note_about_arbitrary_choice_of_solution
       * \note_about_using_kernel_to_study_multiple_solutions
@@ -374,15 +374,12 @@ template<typename MatrixType> class LU
     }
 
   protected:
-    bool m_isInitialized;
     MatrixType m_lu;
     IntColVectorType m_p;
     IntRowVectorType m_q;
-    int m_det_pq;
-    int m_nonzero_pivots;
-    RealScalar m_maxpivot;
-    bool m_usePrescribedThreshold;
-    RealScalar m_prescribedThreshold;
+    int m_det_pq, m_nonzero_pivots;
+    RealScalar m_maxpivot, m_prescribedThreshold;
+    bool m_isInitialized, m_usePrescribedThreshold;
 };
 
 template<typename MatrixType>
