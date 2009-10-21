@@ -3,6 +3,7 @@
 #define EIGEN_QTMALLOC_MODULE_H
 
 #include "Core"
+#include <QtCore/QVectorData>
 
 #if (!EIGEN_MALLOC_ALREADY_ALIGNED)
 
@@ -22,6 +23,16 @@ inline void *qRealloc(void *ptr, size_t size)
   memcpy(newPtr, ptr, size);
   Eigen::ei_aligned_free(ptr);
   return newPtr;
+}
+
+// needed to copy that too because it is implemented in the qt binary library, hence
+// wouldn't otherwise honor our qMalloc.
+QVectorData *QVectorData::malloc(int sizeofTypedData, int size, int sizeofT, QVectorData *init)
+{
+    QVectorData* p = (QVectorData *)qMalloc(sizeofTypedData + (size - 1) * sizeofT);
+    Q_CHECK_PTR(p);
+    ::memcpy(p, init, sizeofTypedData + (qMin(size, init->alloc) - 1) * sizeofT);
+    return p;
 }
 
 #endif
