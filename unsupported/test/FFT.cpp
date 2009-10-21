@@ -39,16 +39,16 @@ complex<long double>  promote(double x) { return complex<long double>( x); }
 complex<long double>  promote(long double x) { return complex<long double>( x); }
     
 
-    template <typename T1,typename T2>
-    long double fft_rmse( const vector<T1> & fftbuf,const vector<T2> & timebuf)
+    template <typename VectorType1,typename VectorType2>
+    long double fft_rmse( const VectorType1 & fftbuf,const VectorType2 & timebuf)
     {
         long double totalpower=0;
         long double difpower=0;
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
-        for (size_t k0=0;k0<fftbuf.size();++k0) {
+        for (size_t k0=0;k0<size_t(fftbuf.size());++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* M_PIl / timebuf.size();
-            for (size_t k1=0;k1<timebuf.size();++k1) {
+            for (size_t k1=0;k1<size_t(timebuf.size());++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
             totalpower += norm(acc);
@@ -61,8 +61,8 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         return sqrt(difpower/totalpower);
     }
 
-    template <typename T1,typename T2>
-    long double dif_rmse( const vector<T1> buf1,const vector<T2> buf2)
+    template <typename VectorType1,typename VectorType2>
+    long double dif_rmse( const VectorType1& buf1,const VectorType2& buf2)
     {
         long double totalpower=0;
         long double difpower=0;
@@ -74,35 +74,59 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         return sqrt(difpower/totalpower);
     }
 
-template <class T>
-void test_scalar(int nfft)
+enum { StdVectorContainer, EigenVectorContainer };
+
+template<int Container, typename Scalar> struct VectorType;
+
+template<typename Scalar> struct VectorType<StdVectorContainer,Scalar>
 {
-    typedef typename Eigen::FFT<T>::Complex Complex;
-    typedef typename Eigen::FFT<T>::Scalar Scalar;
+  typedef vector<Scalar> type;
+};
+
+template<typename Scalar> struct VectorType<EigenVectorContainer,Scalar>
+{
+  typedef Matrix<Scalar,Dynamic,1> type;
+};
+
+template <int Container, typename T>
+void test_scalar_generic(int nfft)
+{
+    typedef typename FFT<T>::Complex Complex;
+    typedef typename FFT<T>::Scalar Scalar;
+    typedef typename VectorType<Container,Scalar>::type ScalarVector;
+    typedef typename VectorType<Container,Complex>::type ComplexVector;
 
     FFT<T> fft;
-    vector<Scalar> inbuf(nfft);
-    vector<Complex> outbuf;
+    ScalarVector inbuf(nfft);
+    ComplexVector outbuf;
     for (int k=0;k<nfft;++k)
         inbuf[k]= (T)(rand()/(double)RAND_MAX - .5);
     fft.fwd( outbuf,inbuf);
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
-    vector<Scalar> buf3;
+    ScalarVector buf3;
     fft.inv( buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
-template <class T>
-void test_complex(int nfft)
+template <typename T>
+void test_scalar(int nfft)
 {
-    typedef typename Eigen::FFT<T>::Complex Complex;
+  test_scalar_generic<StdVectorContainer,T>(nfft);
+  test_scalar_generic<EigenVectorContainer,T>(nfft);
+}
+
+template <int Container, typename T>
+void test_complex_generic(int nfft)
+{
+    typedef typename FFT<T>::Complex Complex;
+    typedef typename VectorType<Container,Complex>::type ComplexVector;
 
     FFT<T> fft;
 
-    vector<Complex> inbuf(nfft);
-    vector<Complex> outbuf;
-    vector<Complex> buf3;
+    ComplexVector inbuf(nfft);
+    ComplexVector outbuf;
+    ComplexVector buf3;
     for (int k=0;k<nfft;++k)
         inbuf[k]= Complex( (T)(rand()/(double)RAND_MAX - .5), (T)(rand()/(double)RAND_MAX - .5) );
     fft.fwd( outbuf , inbuf);
@@ -114,22 +138,63 @@ void test_complex(int nfft)
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
+template <typename T>
+void test_complex(int nfft)
+{
+  test_complex_generic<StdVectorContainer,T>(nfft);
+  test_complex_generic<EigenVectorContainer,T>(nfft);
+}
+
 void test_FFT()
 {
 
-  CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
-  CALL_SUBTEST( test_complex<float>(256) ); CALL_SUBTEST( test_complex<double>(256) ); CALL_SUBTEST( test_complex<long double>(256) );
-  CALL_SUBTEST( test_complex<float>(3*8) ); CALL_SUBTEST( test_complex<double>(3*8) ); CALL_SUBTEST( test_complex<long double>(3*8) );
-  CALL_SUBTEST( test_complex<float>(5*32) ); CALL_SUBTEST( test_complex<double>(5*32) ); CALL_SUBTEST( test_complex<long double>(5*32) );
-  CALL_SUBTEST( test_complex<float>(2*3*4) ); CALL_SUBTEST( test_complex<double>(2*3*4) ); CALL_SUBTEST( test_complex<long double>(2*3*4) );
-  CALL_SUBTEST( test_complex<float>(2*3*4*5) ); CALL_SUBTEST( test_complex<double>(2*3*4*5) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5) );
-  CALL_SUBTEST( test_complex<float>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<double>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5*7) );
+  CALL_SUBTEST( test_complex<float>(32) );
+  CALL_SUBTEST( test_complex<double>(32) );
+  CALL_SUBTEST( test_complex<long double>(32) );
+  
+  CALL_SUBTEST( test_complex<float>(256) );
+  CALL_SUBTEST( test_complex<double>(256) );
+  CALL_SUBTEST( test_complex<long double>(256) );
+  
+  CALL_SUBTEST( test_complex<float>(3*8) );
+  CALL_SUBTEST( test_complex<double>(3*8) );
+  CALL_SUBTEST( test_complex<long double>(3*8) );
+  
+  CALL_SUBTEST( test_complex<float>(5*32) );
+  CALL_SUBTEST( test_complex<double>(5*32) );
+  CALL_SUBTEST( test_complex<long double>(5*32) );
+  
+  CALL_SUBTEST( test_complex<float>(2*3*4) );
+  CALL_SUBTEST( test_complex<double>(2*3*4) );
+  CALL_SUBTEST( test_complex<long double>(2*3*4) );
+  
+  CALL_SUBTEST( test_complex<float>(2*3*4*5) );
+  CALL_SUBTEST( test_complex<double>(2*3*4*5) );
+  CALL_SUBTEST( test_complex<long double>(2*3*4*5) );
+  
+  CALL_SUBTEST( test_complex<float>(2*3*4*5*7) );
+  CALL_SUBTEST( test_complex<double>(2*3*4*5*7) );
+  CALL_SUBTEST( test_complex<long double>(2*3*4*5*7) );
 
 
 
-  CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
-  CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
-  CALL_SUBTEST( test_scalar<float>(50) ); CALL_SUBTEST( test_scalar<double>(50) ); CALL_SUBTEST( test_scalar<long double>(50) );
-  CALL_SUBTEST( test_scalar<float>(256) ); CALL_SUBTEST( test_scalar<double>(256) ); CALL_SUBTEST( test_scalar<long double>(256) );
-  CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) ); CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
+  CALL_SUBTEST( test_scalar<float>(32) );
+  CALL_SUBTEST( test_scalar<double>(32) );
+  CALL_SUBTEST( test_scalar<long double>(32) );
+  
+  CALL_SUBTEST( test_scalar<float>(45) );
+  CALL_SUBTEST( test_scalar<double>(45) );
+  CALL_SUBTEST( test_scalar<long double>(45) );
+  
+  CALL_SUBTEST( test_scalar<float>(50) );
+  CALL_SUBTEST( test_scalar<double>(50) );
+  CALL_SUBTEST( test_scalar<long double>(50) );
+  
+  CALL_SUBTEST( test_scalar<float>(256) );
+  CALL_SUBTEST( test_scalar<double>(256) );
+  CALL_SUBTEST( test_scalar<long double>(256) );
+  
+  CALL_SUBTEST( test_scalar<float>(2*3*4*5*7) );
+  CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) );
+  CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
 }
