@@ -46,21 +46,21 @@
 namespace Eigen {
 
 template <typename _Scalar,
-         typename _Traits=DEFAULT_FFT_IMPL<_Scalar> 
+         typename _Impl=DEFAULT_FFT_IMPL<_Scalar> 
          >
 class FFT
 {
   public:
-    typedef _Traits traits_type;
-    typedef typename traits_type::Scalar Scalar;
-    typedef typename traits_type::Complex Complex;
+    typedef _Impl impl_type;
+    typedef typename impl_type::Scalar Scalar;
+    typedef typename impl_type::Complex Complex;
 
-    FFT(const traits_type & traits=traits_type() ) :m_traits(traits) { }
+    FFT(const impl_type & impl=impl_type() ) :m_impl(impl) { }
 
     template <typename _Input>
     void fwd( Complex * dst, const _Input * src, int nfft)
     {
-        m_traits.fwd(dst,src,nfft);
+        m_impl.fwd(dst,src,nfft);
     }
 
     template <typename _Input>
@@ -73,7 +73,7 @@ class FFT
     template <typename _Output>
     void inv( _Output * dst, const Complex * src, int nfft)
     {
-        m_traits.inv( dst,src,nfft );
+        m_impl.inv( dst,src,nfft );
     }
 
     template <typename _Output>
@@ -86,10 +86,11 @@ class FFT
     // TODO: multi-dimensional FFTs
     // TODO: handle Eigen MatrixBase
 
-    traits_type & traits() {return m_traits;}
+    impl_type & impl() {return m_impl;}
   private:
-    traits_type m_traits;
+    impl_type m_impl;
 };
 #undef DEFAULT_FFT_IMPL
 }
 #endif
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

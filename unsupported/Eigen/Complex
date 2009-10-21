@@ -178,3 +178,5 @@ operator<< (std::basic_ostream<charT,traits>& ostr, const Complex<T>& rhs)
 }
 
 #endif
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */
+
