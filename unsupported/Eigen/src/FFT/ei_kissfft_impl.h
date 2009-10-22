@@ -22,11 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include <complex>
-#include <vector>
-#include <map>
 
-namespace Eigen {
 
   // This FFT implementation was derived from kissfft http:sourceforge.net/projects/kissfft
   // Copyright 2003-2009 Mark Borgerding
@@ -49,13 +45,6 @@ namespace Eigen {
         Scalar phinc =  (inverse?2:-2)* acos( (Scalar) -1)  / nfft;
         for (int i=0;i<nfft;++i)
           m_twiddles[i] = exp( Complex(0,i*phinc) );
-      }
-
-      void conjugate()
-      {
-        m_inverse = !m_inverse;
-        for ( size_t i=0;i<m_twiddles.size() ;++i)
-          m_twiddles[i] = conj( m_twiddles[i] );
       }
 
       void factorize(int nfft)
@@ -116,6 +105,7 @@ namespace Eigen {
           }
         }
 
+      inline
       void bfly2( Complex * Fout, const size_t fstride, int m)
       {
         for (int k=0;k<m;++k) {
@@ -125,6 +115,7 @@ namespace Eigen {
         }
       }
 
+      inline
       void bfly4( Complex * Fout, const size_t fstride, const size_t m)
       {
         Complex scratch[6];
@@ -147,6 +138,7 @@ namespace Eigen {
         }
       }
 
+      inline
       void bfly3( Complex * Fout, const size_t fstride, const size_t m)
       {
         size_t k=m;
@@ -175,6 +167,7 @@ namespace Eigen {
         }while(--k);
       }
 
+      inline
       void bfly5( Complex * Fout, const size_t fstride, const size_t m)
       {
         Complex *Fout0,*Fout1,*Fout2,*Fout3,*Fout4;
@@ -241,6 +234,7 @@ namespace Eigen {
       }
 
       /* perform the butterfly for one stage of a mixed radix FFT */
+      inline
       void bfly_generic(
           Complex * Fout,
           const size_t fstride,
@@ -290,6 +284,7 @@ namespace Eigen {
       }
 
       template <typename _Src>
+      inline
         void fwd( Complex * dst,const _Src *src,int nfft)
         {
           get_plan(nfft,false).work(0, dst, src, 1,1);
@@ -299,6 +294,7 @@ namespace Eigen {
       // perform two FFTs of src even and src odd
       // then twiddle to recombine them into the half-spectrum format
       // then fill in the conjugate symmetric half
+      inline
       void fwd( Complex * dst,const Scalar * src,int nfft) 
       {
         if ( nfft&3  ) {
@@ -334,6 +330,7 @@ namespace Eigen {
       }
 
       // inverse complex-to-complex
+      inline
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
         get_plan(nfft,true).work(0, dst, src, 1,1);
@@ -341,6 +338,7 @@ namespace Eigen {
       }
 
       // half-complex to scalar
+      inline
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         if (nfft&3) {
@@ -369,7 +367,7 @@ namespace Eigen {
         }
       }
 
-      private:
+      protected:
       typedef ei_kiss_cpx_fft<Scalar> PlanData;
       typedef std::map<int,PlanData> PlanMap;
 
@@ -377,8 +375,10 @@ namespace Eigen {
       std::map<int, std::vector<Complex> > m_realTwiddles;
       std::vector<Complex> m_tmpBuf;
 
+      inline
       int PlanKey(int nfft,bool isinverse) const { return (nfft<<1) | isinverse; }
 
+      inline
       PlanData & get_plan(int nfft,bool inverse)
       {
         // TODO look for PlanKey(nfft, ! inverse) and conjugate the twiddles
@@ -390,6 +390,7 @@ namespace Eigen {
         return pd;
       }
 
+      inline
       Complex * real_twiddles(int ncfft2)
       {
         std::vector<Complex> & twidref = m_realTwiddles[ncfft2];// creates new if not there
@@ -403,10 +404,11 @@ namespace Eigen {
         return &twidref[0];
       }
 
+      // TODO move scaling up into Eigen::FFT
+      inline
       void scale(Complex *dst,int n,Scalar s) 
       {
         for (int k=0;k<n;++k)
           dst[k] *= s;
       }
     };
-}

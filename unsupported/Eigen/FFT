@@ -25,29 +25,39 @@
 #ifndef EIGEN_FFT_H
 #define EIGEN_FFT_H
 
-// ei_kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
-#include "src/FFT/ei_kissfft_impl.h"
-#define DEFAULT_FFT_IMPL ei_kissfft_impl
+#include <complex>
+#include <vector>
+#include <map>
 
+#ifdef EIGEN_FFTW_DEFAULT
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
-#ifdef FFTW_ESTIMATE  // definition of FFTW_ESTIMATE indicates the caller has included fftw3.h, we can use FFTW routines
-#include "src/FFT/ei_fftw_impl.h"
-#undef DEFAULT_FFT_IMPL
-#define DEFAULT_FFT_IMPL ei_fftw_impl
-#endif
-
-// intel Math Kernel Library: fastest, commercial -- incompatible with Eigen in GPL form
-#ifdef _MKL_DFTI_H_ // mkl_dfti.h has been included, we can use MKL FFT routines
+#  include <fftw3.h>
+   namespace Eigen {
+#    include "src/FFT/ei_fftw_impl.h"
+     //template <typename T> typedef struct ei_fftw_impl  default_fft_impl; this does not work
+     template <typename T> struct default_fft_impl : public ei_fftw_impl<T> {};
+   }
+#elif defined EIGEN_MKL_DEFAULT
 // TODO 
-// #include "src/FFT/ei_imkl_impl.h"
-// #define DEFAULT_FFT_IMPL ei_imkl_impl
+// intel Math Kernel Library: fastest, commercial -- may be incompatible with Eigen in GPL form
+   namespace Eigen {
+#    include "src/FFT/ei_imklfft_impl.h"
+     template <typename T> struct default_fft_impl : public ei_imklfft_impl {};
+   }
+#else
+// ei_kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
+//
+  namespace Eigen {
+#   include "src/FFT/ei_kissfft_impl.h"
+     template <typename T> 
+       struct default_fft_impl : public ei_kissfft_impl<T> {};
+  }
 #endif
 
 namespace Eigen {
 
 template <typename _Scalar,
-         typename _Impl=DEFAULT_FFT_IMPL<_Scalar> 
-         >
+         typename _Impl=default_fft_impl<_Scalar> >
 class FFT
 {
   public:
@@ -120,7 +130,6 @@ class FFT
   private:
     impl_type m_impl;
 };
-#undef DEFAULT_FFT_IMPL
 }
 #endif
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */

@@ -22,7 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-namespace Eigen {
+
+
   // FFTW uses non-const arguments
   // so we must use ugly const_cast calls for all the args it uses
   //
@@ -32,21 +33,25 @@ namespace Eigen {
   // 2. fftw_complex is compatible with std::complex
   //    This assumes std::complex<T> layout is array of size 2 with real,imag
   template <typename T> 
+  inline 
   T * ei_fftw_cast(const T* p) 
   { 
       return const_cast<T*>( p); 
   }
 
+  inline 
   fftw_complex * ei_fftw_cast( const std::complex<double> * p) 
-  { 
+  {
       return const_cast<fftw_complex*>( reinterpret_cast<const fftw_complex*>(p) ); 
   }
 
+  inline 
   fftwf_complex * ei_fftw_cast( const std::complex<float> * p) 
   { 
       return const_cast<fftwf_complex*>( reinterpret_cast<const fftwf_complex*>(p) ); 
   }
 
+  inline 
   fftwl_complex * ei_fftw_cast( const std::complex<long double> * p) 
   { 
       return const_cast<fftwl_complex*>( reinterpret_cast<const fftwl_complex*>(p) ); 
@@ -64,18 +69,22 @@ namespace Eigen {
       ei_fftw_plan() :m_plan(NULL) {}
       ~ei_fftw_plan() {if (m_plan) fftwf_destroy_plan(m_plan);}
 
+      inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
           fftwf_execute_dft( m_plan, src,dst);
       }
+      inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
           fftwf_execute_dft( m_plan, src,dst);
       }
+      inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwf_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
           fftwf_execute_dft_r2c( m_plan,src,dst);
       }
+      inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
               m_plan = fftwf_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
@@ -91,18 +100,22 @@ namespace Eigen {
       ei_fftw_plan() :m_plan(NULL) {}
       ~ei_fftw_plan() {if (m_plan) fftw_destroy_plan(m_plan);}
 
+      inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
           fftw_execute_dft( m_plan, src,dst);
       }
+      inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
           fftw_execute_dft( m_plan, src,dst);
       }
+      inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftw_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
           fftw_execute_dft_r2c( m_plan,src,dst);
       }
+      inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
               m_plan = fftw_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
@@ -118,18 +131,22 @@ namespace Eigen {
       ei_fftw_plan() :m_plan(NULL) {}
       ~ei_fftw_plan() {if (m_plan) fftwl_destroy_plan(m_plan);}
 
+      inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
           fftwl_execute_dft( m_plan, src,dst);
       }
+      inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
           fftwl_execute_dft( m_plan, src,dst);
       }
+      inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
           if (m_plan==NULL) m_plan = fftwl_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
           fftwl_execute_dft_r2c( m_plan,src,dst);
       }
+      inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
               m_plan = fftwl_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
@@ -143,17 +160,20 @@ namespace Eigen {
       typedef _Scalar Scalar;
       typedef std::complex<Scalar> Complex;
 
+      inline
       void clear() 
       {
         m_plans.clear();
       }
 
+      inline
       void fwd( Complex * dst,const Complex *src,int nfft)
       {
         get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
       }
 
       // real-to-complex forward FFT
+      inline
       void fwd( Complex * dst,const Scalar * src,int nfft) 
       {
           get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src) ,nfft);
@@ -163,30 +183,37 @@ namespace Eigen {
       }
 
       // inverse complex-to-complex
+      inline
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
+
+        //TODO move scaling to Eigen::FFT
         // scaling
-        Scalar s = 1./nfft;
+        Scalar s = Scalar(1.)/nfft;
         for (int k=0;k<nfft;++k)
           dst[k] *= s;
       }
 
       // half-complex to scalar
+      inline
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
-        Scalar s = 1./nfft;
+
+        //TODO move scaling to Eigen::FFT
+        Scalar s = Scalar(1.)/nfft;
         for (int k=0;k<nfft;++k)
           dst[k] *= s;
       }
 
-  private:
+  protected:
       typedef ei_fftw_plan<Scalar> PlanData;
       typedef std::map<int,PlanData> PlanMap;
 
       PlanMap m_plans;
 
+      inline
       PlanData & get_plan(int nfft,bool inverse,void * dst,const void * src)
       {
           bool inplace = (dst==src);
@@ -195,4 +222,3 @@ namespace Eigen {
           return m_plans[key];
       }
   };
-}
