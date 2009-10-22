@@ -1,8 +1,21 @@
-
 #ifndef EIGEN_QTMALLOC_MODULE_H
 #define EIGEN_QTMALLOC_MODULE_H
 
+#ifdef QVECTOR_H
+#error You must include <Eigen/QtAlignedMalloc> before <QtCore/QVector>.
+#endif                                           
+
+#ifdef Q_DECL_IMPORT
+  #define Q_DECL_IMPORT_ORIG Q_DECL_IMPORT
+  #undef Q_DECL_IMPORT
+  #define Q_DECL_IMPORT
+#else
+  #define Q_DECL_IMPORT
+#endif
+
 #include "Core"
+
+#include <QtCore/QVector>
 #include <QtCore/QVectorData>
 
 #if (!EIGEN_MALLOC_ALREADY_ALIGNED)
@@ -35,6 +48,13 @@ QVectorData *QVectorData::malloc(int sizeofTypedData, int size, int sizeofT, QVe
     return p;
 }
 
+#endif
+
+#ifdef Q_DECL_IMPORT_ORIG
+  #define Q_DECL_IMPORT Q_DECL_IMPORT_ORIG
+  #undef Q_DECL_IMPORT_ORIG
+#else
+  #undef Q_DECL_IMPORT
 #endif
 
 #endif // EIGEN_QTMALLOC_MODULE_H

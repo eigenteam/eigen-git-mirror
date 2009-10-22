@@ -26,9 +26,11 @@
 #define EIGEN_WORK_AROUND_QT_BUG_CALLING_WRONG_OPERATOR_NEW_FIXED_IN_QT_4_5
 
 #include "main.h"
-#include <QtCore/QVector>
+
 #include <Eigen/Geometry>
 #include <Eigen/QtAlignedMalloc>
+
+#include <QtCore/QVector>
 
 template<typename MatrixType>
 void check_qtvector_matrix(const MatrixType& m)
