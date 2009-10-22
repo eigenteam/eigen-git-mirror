@@ -131,17 +131,11 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   const VectorType dst_mean = dst.rowwise().sum() * one_over_n;
 
   // demeaning of src and dst points
-  RowMajorMatrixType src_demean(m,n);
-  RowMajorMatrixType dst_demean(m,n);
-  for (int i=0; i<n; ++i)
-  {
-    src_demean.col(i) = src.col(i) - src_mean;
-    dst_demean.col(i) = dst.col(i) - dst_mean;
-  }
+  const RowMajorMatrixType src_demean = src.colwise() - src_mean;
+  const RowMajorMatrixType dst_demean = dst.colwise() - dst_mean;
 
   // Eq. (36)-(37)
   const Scalar src_var = src_demean.rowwise().squaredNorm().sum() * one_over_n;
-  // const Scalar dst_var = dst_demean.rowwise().squaredNorm().sum() * one_over_n;
 
   // Eq. (38)
   const MatrixType sigma = one_over_n * dst_demean * src_demean.transpose();
