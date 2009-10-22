@@ -121,7 +121,8 @@ template<typename Scalar> void lines()
     VERIFY_IS_APPROX(result, center);
 
     // check conversions between two types of lines
-    CoeffsType converted_coeffs(HLine(PLine(line_u)).coeffs());
+    PLine pl(line_u); // gcc 3.3 will commit suicide if we don't name this variable
+    CoeffsType converted_coeffs(HLine(pl).coeffs());
     converted_coeffs *= line_u.coeffs()(0)/converted_coeffs(0);
     VERIFY(line_u.coeffs().isApprox(converted_coeffs));
   }
