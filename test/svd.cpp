@@ -95,5 +95,8 @@ void test_svd()
     // complex are not implemented yet
 //     CALL_SUBTEST( svd(MatrixXcd(6,6)) );
 //     CALL_SUBTEST( svd(MatrixXcf(3,3)) );
+    SVD<MatrixXf> s;
+    MatrixXf m = MatrixXf::Random(10,1);
+    s.compute(m);
   }
 }
