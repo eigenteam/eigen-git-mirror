@@ -33,10 +33,10 @@
   * \param MatrixType the type of the object in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param _PacketAccess allows to enforce aligned loads and stores if set to \b ForceAligned.
-  *                      The default is \b AsRequested. This parameter is internaly used by Eigen
-  *                      in expressions such as \code mat.block() += other; \endcode and most of
-  *                      the time this is the only way it is used.
+  * \param _PacketAccess \internal used to enforce aligned loads in expressions such as
+  *                      \code mat.block() += other; \endcode. Possible values are
+  *                      \c AsRequested (default) and \c EnforceAlignedAccess.
+  *                      See class MapBase for more details.
   * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
@@ -84,9 +84,9 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
     CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost,
     PacketAccess = _PacketAccess
   };
-  typedef typename ei_meta_if<int(PacketAccess)==ForceAligned,
+  typedef typename ei_meta_if<int(PacketAccess)==EnforceAlignedAccess,
                  Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus>&,
-                 Block<MatrixType, BlockRows, BlockCols, ForceAligned, _DirectAccessStatus> >::ret AlignedDerivedType;
+                 Block<MatrixType, BlockRows, BlockCols, EnforceAlignedAccess, _DirectAccessStatus> >::ret AlignedDerivedType;
 };
 
 template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus> class Block
@@ -228,13 +228,13 @@ class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
 
     class InnerIterator;
     typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
-    friend class Block<MatrixType,BlockRows,BlockCols,PacketAccess==AsRequested?ForceAligned:AsRequested,HasDirectAccess>;
+    friend class Block<MatrixType,BlockRows,BlockCols,PacketAccess==EnforceAlignedAccess?AsRequested:EnforceAlignedAccess,HasDirectAccess>;
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
-    AlignedDerivedType _convertToForceAligned()
+    AlignedDerivedType _convertToEnforceAlignedAccess()
     {
-      return Block<MatrixType,BlockRows,BlockCols,ForceAligned,HasDirectAccess>
+      return Block<MatrixType,BlockRows,BlockCols,EnforceAlignedAccess,HasDirectAccess>
                     (m_matrix, Base::m_data, Base::m_rows.value(), Base::m_cols.value());
     }
 
