@@ -80,8 +80,8 @@ endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 if(EIGEN_BUILD_PKGCONFIG)
-    configure_file(eigen2.pc.in eigen2.pc)
-    install(FILES eigen2.pc
+    configure_file(eigen2.pc.in ${CMAKE_INSTALL_PREFIX}/eigen2.pc)
+    install(FILES ${CMAKE_INSTALL_PREFIX}/eigen2.pc
         DESTINATION lib/pkgconfig
         )
 endif(EIGEN_BUILD_PKGCONFIG)
