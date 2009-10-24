@@ -1,6 +1,12 @@
 project(Eigen)
 cmake_minimum_required(VERSION 2.6.2)
 
+set(INCLUDE_INSTALL_DIR
+    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
+    CACHE PATH
+    "The directory where we install the header files"
+    FORCE)
+
 set(EIGEN_VERSION_NUMBER "2.0.8")
 set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 
@@ -80,8 +86,8 @@ endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 if(EIGEN_BUILD_PKGCONFIG)
-    configure_file(eigen2.pc.in eigen2.pc)
-    install(FILES ${CMAKE_INSTALL_PREFIX}/eigen2.pc
+    configure_file(eigen2.pc.in eigen2.pc) # uses INCLUDE_INSTALL_DIR
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen2.pc
         DESTINATION lib/pkgconfig
         )
 endif(EIGEN_BUILD_PKGCONFIG)
