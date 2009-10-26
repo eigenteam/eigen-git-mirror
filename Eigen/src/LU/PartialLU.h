@@ -40,18 +40,20 @@ template<typename MatrixType, typename Rhs> struct ei_partiallu_solve_impl;
   * is decomposed as A = PLU where L is unit-lower-triangular, U is upper-triangular, and P
   * is a permutation matrix.
   *
-  * Typically, partial pivoting LU decomposition is only considered numerically stable for square invertible matrices.
-  * So in this class, we plainly require that and take advantage of that to do some simplifications and optimizations.
-  * This class will assert that the matrix is square, but it won't (actually it can't) check that the matrix is invertible:
-  * it is your task to check that you only use this decomposition on invertible matrices.
+  * Typically, partial pivoting LU decomposition is only considered numerically stable for square invertible
+  * matrices. Thus LAPACK's dgesv and dgesvx require the matrix to be square and invertible. The present class
+  * does the same. It will assert that the matrix is square, but it won't (actually it can't) check that the
+  * matrix is invertible: it is your task to check that you only use this decomposition on invertible matrices.
   *
-  * The guaranteed safe alternative, working for all matrices, is the full pivoting LU decomposition, provided by class LU.
+  * The guaranteed safe alternative, working for all matrices, is the full pivoting LU decomposition, provided
+  * by class LU.
   *
   * This is \b not a rank-revealing LU decomposition. Many features are intentionally absent from this class,
   * such as rank computation. If you need these features, use class LU.
   *
-  * This LU decomposition is suitable to invert invertible matrices. It is what MatrixBase::inverse() uses. On the other hand,
-  * it is \b not suitable to determine whether a given matrix is invertible.
+  * This LU decomposition is suitable to invert invertible matrices. It is what MatrixBase::inverse() uses
+  * in the general case.
+  * On the other hand, it is \b not suitable to determine whether a given matrix is invertible.
   *
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(), permutationP().
   *

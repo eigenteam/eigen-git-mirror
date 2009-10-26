@@ -281,6 +281,38 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
 *** MatrixBase methods ***
 *************************/
 
+template<typename MatrixType>
+struct ei_traits<ei_inverse_impl<MatrixType> >
+{
+  typedef typename MatrixType::PlainMatrixType ReturnMatrixType;
+};
+
+template<typename MatrixType>
+struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
+{
+  // for 2x2, it's worth giving a chance to avoid evaluating.
+  // for larger sizes, evaluating has negligible cost and limits code size.
+  typedef typename ei_meta_if<
+    MatrixType::RowsAtCompileTime == 2,
+    typename ei_nested<MatrixType,2>::type,
+    typename ei_eval<MatrixType>::type
+  >::ret MatrixTypeNested;
+  typedef typename ei_cleantype<MatrixTypeNested>::type MatrixTypeNestedCleaned;
+  const MatrixTypeNested m_matrix;
+
+  ei_inverse_impl(const MatrixType& matrix)
+    : m_matrix(matrix)
+  {}
+
+  inline int rows() const { return m_matrix.rows(); }
+  inline int cols() const { return m_matrix.cols(); }
+
+  template<typename Dest> inline void evalTo(Dest& dst) const
+  {
+    ei_compute_inverse<MatrixTypeNestedCleaned, Dest>::run(m_matrix, dst);
+  }
+};
+
 /** \lu_module
   *
   * \returns the matrix inverse of this matrix.
@@ -299,21 +331,11 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
   * \sa computeInverseAndDetWithCheck()
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::inverse() const
+inline const ei_inverse_impl<Derived> MatrixBase<Derived>::inverse() const
 {
   EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
   ei_assert(rows() == cols());
-  typedef typename MatrixBase<Derived>::PlainMatrixType ResultType;
-  ResultType result(rows(), cols());
-  // for 2x2, it's worth giving a chance to avoid evaluating.
-  // for larger sizes, evaluating has negligible cost and limits code size.
-  typedef typename ei_meta_if<
-    RowsAtCompileTime == 2,
-    typename ei_cleantype<typename ei_nested<Derived,2>::type>::type,
-    PlainMatrixType
-  >::ret MatrixType;
-  ei_compute_inverse<MatrixType, ResultType>::run(derived(), result);
-  return result;
+  return ei_inverse_impl<Derived>(derived());
 }
 
 /** \lu_module
@@ -329,7 +351,7 @@ inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::
   *                                The matrix will be declared invertible if the absolute value of its
   *                                determinant is greater than this threshold.
   *
-  * \sa inverse()
+  * \sa inverse(), computeInverseWithCheck()
   */
 template<typename Derived>
 template<typename ResultType>
@@ -351,6 +373,34 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   >::ret MatrixType;
   ei_compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
+}
+
+/** \lu_module
+  *
+  * Computation of matrix inverse, with invertibility check.
+  *
+  * This is only for fixed-size square matrices of size up to 4x4.
+  *
+  * \param inverse Reference to the matrix in which to store the inverse.
+  * \param invertible Reference to the bool variable in which to store whether the matrix is invertible.
+  * \param absDeterminantThreshold Optional parameter controlling the invertibility check.
+  *                                The matrix will be declared invertible if the absolute value of its
+  *                                determinant is greater than this threshold.
+  *
+  * \sa inverse(), computeInverseAndDetWithCheck()
+  */
+template<typename Derived>
+template<typename ResultType>
+inline void MatrixBase<Derived>::computeInverseWithCheck(
+    ResultType& inverse,
+    bool& invertible,
+    const RealScalar& absDeterminantThreshold
+  ) const
+{
+  RealScalar determinant;
+  // i'd love to put some static assertions there, but SFINAE means that they have no effect...
+  ei_assert(rows() == cols());
+  computeInverseAndDetWithCheck(inverse,determinant,invertible,absDeterminantThreshold);
 }
 
 #endif // EIGEN_INVERSE_H

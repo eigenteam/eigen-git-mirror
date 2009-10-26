@@ -68,10 +68,17 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   //First: an invertible matrix
   bool invertible;
   RealScalar det;
+
+  m2.setZero();
   m1.computeInverseAndDetWithCheck(m2, det, invertible);
   VERIFY(invertible);
   VERIFY_IS_APPROX(identity, m1*m2);
   VERIFY_IS_APPROX(det, m1.determinant());
+
+  m2.setZero();
+  m1.computeInverseWithCheck(m2, invertible);
+  VERIFY(invertible);
+  VERIFY_IS_APPROX(identity, m1*m2);
 
   //Second: a rank one matrix (not invertible, except for 1x1 matrices)
   VectorType v3 = VectorType::Random(rows);
@@ -79,6 +86,8 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   m3.computeInverseAndDetWithCheck(m4, det, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
   VERIFY_IS_APPROX(det, m3.determinant());
+  m3.computeInverseWithCheck(m4, invertible);
+  VERIFY( rows==1 ? invertible : !invertible );
 #endif
 }
 

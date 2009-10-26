@@ -701,11 +701,17 @@ template<typename Derived> class MatrixBase
 
     const LU<PlainMatrixType> lu() const;
     const PartialLU<PlainMatrixType> partialLu() const;
-    const PlainMatrixType inverse() const;
+    const ei_inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
       ResultType& inverse,
       typename ResultType::Scalar& determinant,
+      bool& invertible,
+      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+    ) const;
+    template<typename ResultType>
+    void computeInverseWithCheck(
+      ResultType& inverse,
       bool& invertible,
       const RealScalar& absDeterminantThreshold = precision<Scalar>()
     ) const;

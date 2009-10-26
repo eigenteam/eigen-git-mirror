@@ -116,6 +116,7 @@ template<typename MatrixType, int Direction = BothDirections> class Reverse;
 
 template<typename MatrixType> class LU;
 template<typename MatrixType> class PartialLU;
+template<typename MatrixType> struct ei_inverse_impl;
 template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class ColPivotingHouseholderQR;
 template<typename MatrixType> class FullPivotingHouseholderQR;
