@@ -25,9 +25,56 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
-/********************************************************************
-*** Part 1 : optimized implementations for fixed-size 2,3,4 cases ***
-********************************************************************/
+/**********************************
+*** General case implementation ***
+**********************************/
+
+template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
+struct ei_compute_inverse
+{
+  static inline void run(const MatrixType& matrix, ResultType& result)
+  {
+    result = matrix.partialLu().inverse();
+  }
+};
+
+template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
+struct ei_compute_inverse_and_det_with_check { /* nothing! general case not supported. */ };
+
+/****************************
+*** Size 1 implementation ***
+****************************/
+
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 1>
+{
+  static inline void run(const MatrixType& matrix, ResultType& result)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    result.coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
+  }
+};
+
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 1>
+{
+  static inline void run(
+    const MatrixType& matrix,
+    const typename MatrixType::RealScalar& absDeterminantThreshold,
+    ResultType& result,
+    typename ResultType::Scalar& determinant,
+    bool& invertible
+  )
+  {
+    determinant = matrix.coeff(0,0);
+    invertible = ei_abs(determinant) > absDeterminantThreshold;
+    if(invertible) result.coeffRef(0,0) = typename ResultType::Scalar(1) / determinant;
+  }
+};
+
+/****************************
+*** Size 2 implementation ***
+****************************/
 
 template<typename MatrixType, typename ResultType>
 inline void ei_compute_inverse_size2_helper(
@@ -41,29 +88,39 @@ inline void ei_compute_inverse_size2_helper(
 }
 
 template<typename MatrixType, typename ResultType>
-inline void ei_compute_inverse_size2(const MatrixType& matrix, ResultType& result)
+struct ei_compute_inverse<MatrixType, ResultType, 2>
 {
-  typedef typename ResultType::Scalar Scalar;
-  const Scalar invdet = typename MatrixType::Scalar(1) / matrix.determinant();
-  ei_compute_inverse_size2_helper(matrix, invdet, result);
-}
+  static inline void run(const MatrixType& matrix, ResultType& result)
+  {
+    typedef typename ResultType::Scalar Scalar;
+    const Scalar invdet = typename MatrixType::Scalar(1) / matrix.determinant();
+    ei_compute_inverse_size2_helper(matrix, invdet, result);
+  }
+};
 
 template<typename MatrixType, typename ResultType>
-inline void ei_compute_inverse_and_det_size2_with_check(
-  const MatrixType& matrix,
-  const typename MatrixType::RealScalar& absDeterminantThreshold,
-  ResultType& inverse,
-  typename ResultType::Scalar& determinant,
-  bool& invertible
-  )
+struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
 {
-  typedef typename ResultType::Scalar Scalar;
-  determinant = matrix.determinant();
-  invertible = ei_abs(determinant) > absDeterminantThreshold;
-  if(!invertible) return;
-  const Scalar invdet = Scalar(1) / determinant;
-  ei_compute_inverse_size2_helper(matrix, invdet, inverse);
-}
+  static inline void run(
+    const MatrixType& matrix,
+    const typename MatrixType::RealScalar& absDeterminantThreshold,
+    ResultType& inverse,
+    typename ResultType::Scalar& determinant,
+    bool& invertible
+  )
+  {
+    typedef typename ResultType::Scalar Scalar;
+    determinant = matrix.determinant();
+    invertible = ei_abs(determinant) > absDeterminantThreshold;
+    if(!invertible) return;
+    const Scalar invdet = Scalar(1) / determinant;
+    ei_compute_inverse_size2_helper(matrix, invdet, inverse);
+  }
+};
+
+/****************************
+*** Size 3 implementation ***
+****************************/
 
 template<typename MatrixType, typename ResultType>
 void ei_compute_inverse_size3_helper(
@@ -82,40 +139,48 @@ void ei_compute_inverse_size3_helper(
 }
 
 template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_size3(
-  const MatrixType& matrix,
-  ResultType& result)
+struct ei_compute_inverse<MatrixType, ResultType, 3>
 {
-  typedef typename ResultType::Scalar Scalar;
-  Matrix<Scalar,3,1> cofactors_col0;
-  cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
-  cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
-  cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
-  const Scalar det = (cofactors_col0.cwise()*matrix.col(0)).sum();
-  const Scalar invdet = Scalar(1) / det;
-  ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, result);
-}
+  static inline void run(const MatrixType& matrix, ResultType& result)
+  {
+    typedef typename ResultType::Scalar Scalar;
+    Matrix<Scalar,3,1> cofactors_col0;
+    cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
+    cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
+    cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
+    const Scalar det = (cofactors_col0.cwise()*matrix.col(0)).sum();
+    const Scalar invdet = Scalar(1) / det;
+    ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, result);
+  }
+};
 
 template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_and_det_size3_with_check(
-  const MatrixType& matrix,
-  const typename MatrixType::RealScalar& absDeterminantThreshold,
-  ResultType& inverse,
-  typename ResultType::Scalar& determinant,
-  bool& invertible
-  )
+struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 {
-  typedef typename ResultType::Scalar Scalar;
-  Matrix<Scalar,3,1> cofactors_col0;
-  cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
-  cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
-  cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
-  determinant = (cofactors_col0.cwise()*matrix.col(0)).sum();
-  invertible = ei_abs(determinant) > absDeterminantThreshold;
-  if(!invertible) return;
-  const Scalar invdet = Scalar(1) / determinant;
-  ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, inverse);
-}
+  static inline void run(
+    const MatrixType& matrix,
+    const typename MatrixType::RealScalar& absDeterminantThreshold,
+    ResultType& inverse,
+    typename ResultType::Scalar& determinant,
+    bool& invertible
+  )
+  {
+    typedef typename ResultType::Scalar Scalar;
+    Matrix<Scalar,3,1> cofactors_col0;
+    cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
+    cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
+    cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
+    determinant = (cofactors_col0.cwise()*matrix.col(0)).sum();
+    invertible = ei_abs(determinant) > absDeterminantThreshold;
+    if(!invertible) return;
+    const Scalar invdet = Scalar(1) / determinant;
+    ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, inverse);
+  }
+};
+
+/****************************
+*** Size 4 implementation ***
+****************************/
 
 template<typename MatrixType, typename ResultType>
 void ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType& result)
@@ -136,7 +201,7 @@ void ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType& resul
   typedef Block<ResultType,2,2> XprBlock22;
   typedef typename MatrixBase<XprBlock22>::PlainMatrixType Block22;
   Block22 P_inverse;
-  ei_compute_inverse_size2(matrix.template block<2,2>(0,0), P_inverse);
+  ei_compute_inverse<XprBlock22, Block22>::run(matrix.template block<2,2>(0,0), P_inverse);
   const Block22 Q = matrix.template block<2,2>(0,2);
   const Block22 P_inverse_times_Q = P_inverse * Q;
   const XprBlock22 R = matrix.template block<2,2>(2,0);
@@ -145,7 +210,7 @@ void ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType& resul
   const XprBlock22 S = matrix.template block<2,2>(2,2);
   const Block22 X = S - R_times_P_inverse_times_Q;
   Block22 Y;
-  ei_compute_inverse_size2(X, Y);
+  ei_compute_inverse<Block22, Block22>::run(X, Y);
   result.template block<2,2>(2,2) = Y;
   result.template block<2,2>(2,0) = - Y * R_times_P_inverse;
   const Block22 Z = P_inverse_times_Q * Y;
@@ -154,107 +219,67 @@ void ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType& resul
 }
 
 template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_size4(const MatrixType& _matrix, ResultType& result)
-{
-  typedef typename ResultType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-
-  // we will do row permutations on the matrix. This copy should have negligible cost.
-  // if not, consider working in-place on the matrix (const-cast it, but then undo the permutations
-  // to nevertheless honor constness)
-  typename MatrixType::PlainMatrixType matrix(_matrix);
-
-  // let's extract from the 2 first colums a 2x2 block whose determinant is as big as possible.
-  int good_row0=0, good_row1=1;
-  RealScalar good_absdet(-1);
-  // this double for loop shouldn't be too costly: only 6 iterations
-  for(int row0=0; row0<4; ++row0) {
-    for(int row1=row0+1; row1<4; ++row1)
-    {
-      RealScalar absdet = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1)
-                               - matrix.coeff(row0,1)*matrix.coeff(row1,0));
-      if(absdet > good_absdet)
-      {
-        good_absdet = absdet;
-        good_row0 = row0;
-        good_row1 = row1;
-      }
-    }
-  }
-  // do row permutations to move this 2x2 block to the top
-  matrix.row(0).swap(matrix.row(good_row0));
-  matrix.row(1).swap(matrix.row(good_row1));
-  // now applying our helper function is numerically stable
-  ei_compute_inverse_size4_helper(matrix, result);
-  // Since we did row permutations on the original matrix, we need to do column permutations
-  // in the reverse order on the inverse
-  result.col(1).swap(result.col(good_row1));
-  result.col(0).swap(result.col(good_row0));
-}
-
-template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_and_det_size4_with_check(
-  const MatrixType& matrix,
-  const typename MatrixType::RealScalar& absDeterminantThreshold,
-  ResultType& result,
-  typename ResultType::Scalar& determinant,
-  bool& invertible
-  )
-{
-  determinant = matrix.determinant();
-  invertible = ei_abs(determinant) > absDeterminantThreshold;
-  if(invertible) ei_compute_inverse_size4(matrix, result);
-}
-
-/***********************************************
-*** Part 2 : selectors and MatrixBase methods ***
-***********************************************/
-
-template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
-struct ei_compute_inverse
-{
-  static inline void run(const MatrixType& matrix, ResultType& result)
-  {
-    result = matrix.partialLu().inverse();
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse<MatrixType, ResultType, 1>
-{
-  static inline void run(const MatrixType& matrix, ResultType& result)
-  {
-    typedef typename MatrixType::Scalar Scalar;
-    result.coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse<MatrixType, ResultType, 2>
-{
-  static inline void run(const MatrixType& matrix, ResultType& result)
-  {
-    ei_compute_inverse_size2(matrix, result);
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse<MatrixType, ResultType, 3>
-{
-  static inline void run(const MatrixType& matrix, ResultType& result)
-  {
-    ei_compute_inverse_size3(matrix, result);
-  }
-};
-
-template<typename MatrixType, typename ResultType>
 struct ei_compute_inverse<MatrixType, ResultType, 4>
 {
-  static inline void run(const MatrixType& matrix, ResultType& result)
+  static inline void run(const MatrixType& _matrix, ResultType& result)
   {
-    ei_compute_inverse_size4(matrix, result);
+    typedef typename ResultType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+
+    // we will do row permutations on the matrix. This copy should have negligible cost.
+    // if not, consider working in-place on the matrix (const-cast it, but then undo the permutations
+    // to nevertheless honor constness)
+    typename MatrixType::PlainMatrixType matrix(_matrix);
+
+    // let's extract from the 2 first colums a 2x2 block whose determinant is as big as possible.
+    int good_row0=0, good_row1=1;
+    RealScalar good_absdet(-1);
+    // this double for loop shouldn't be too costly: only 6 iterations
+    for(int row0=0; row0<4; ++row0) {
+      for(int row1=row0+1; row1<4; ++row1)
+      {
+        RealScalar absdet = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1)
+                                 - matrix.coeff(row0,1)*matrix.coeff(row1,0));
+        if(absdet > good_absdet)
+        {
+          good_absdet = absdet;
+          good_row0 = row0;
+          good_row1 = row1;
+        }
+      }
+    }
+    // do row permutations to move this 2x2 block to the top
+    matrix.row(0).swap(matrix.row(good_row0));
+    matrix.row(1).swap(matrix.row(good_row1));
+    // now applying our helper function is numerically stable
+    ei_compute_inverse_size4_helper(matrix, result);
+    // Since we did row permutations on the original matrix, we need to do column permutations
+    // in the reverse order on the inverse
+    result.col(1).swap(result.col(good_row1));
+    result.col(0).swap(result.col(good_row0));
   }
 };
+
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
+{
+  static inline void run(
+    const MatrixType& matrix,
+    const typename MatrixType::RealScalar& absDeterminantThreshold,
+    ResultType& inverse,
+    typename ResultType::Scalar& determinant,
+    bool& invertible
+  )
+  {
+    determinant = matrix.determinant();
+    invertible = ei_abs(determinant) > absDeterminantThreshold;
+    if(invertible) ei_compute_inverse<MatrixType, ResultType>::run(matrix, inverse);
+  }
+};
+
+/*************************
+*** MatrixBase methods ***
+*************************/
 
 /** \lu_module
   *
@@ -290,79 +315,6 @@ inline const typename MatrixBase<Derived>::PlainMatrixType MatrixBase<Derived>::
   ei_compute_inverse<MatrixType, ResultType>::run(derived(), result);
   return result;
 }
-
-
-/********************************************
- * Compute inverse with invertibility check *
- *******************************************/
-
-template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
-struct ei_compute_inverse_and_det_with_check {};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 1>
-{
-  static inline void run(
-    const MatrixType& matrix,
-    const typename MatrixType::RealScalar& absDeterminantThreshold,
-    ResultType& result,
-    typename ResultType::Scalar& determinant,
-    bool& invertible
-  )
-  {
-    determinant = matrix.coeff(0,0);
-    invertible = ei_abs(determinant) > absDeterminantThreshold;
-    if(invertible) result.coeffRef(0,0) = typename ResultType::Scalar(1) / determinant;
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
-{
-  static inline void run(
-    const MatrixType& matrix,
-    const typename MatrixType::RealScalar& absDeterminantThreshold,
-    ResultType& result,
-    typename ResultType::Scalar& determinant,
-    bool& invertible
-  )
-  {
-    ei_compute_inverse_and_det_size2_with_check
-      (matrix, absDeterminantThreshold, result, determinant, invertible);
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
-{
-  static inline void run(
-    const MatrixType& matrix,
-    const typename MatrixType::RealScalar& absDeterminantThreshold,
-    ResultType& result,
-    typename ResultType::Scalar& determinant,
-    bool& invertible
-  )
-  {
-    ei_compute_inverse_and_det_size3_with_check
-      (matrix, absDeterminantThreshold, result, determinant, invertible);
-  }
-};
-
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
-{
-  static inline void run(
-    const MatrixType& matrix,
-    const typename MatrixType::RealScalar& absDeterminantThreshold,
-    ResultType& result,
-    typename ResultType::Scalar& determinant,
-    bool& invertible
-  )
-  {
-    ei_compute_inverse_and_det_size4_with_check
-      (matrix, absDeterminantThreshold, result, determinant, invertible);
-  }
-};
 
 /** \lu_module
   *
@@ -400,6 +352,5 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   ei_compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
 }
-
 
 #endif // EIGEN_INVERSE_H
