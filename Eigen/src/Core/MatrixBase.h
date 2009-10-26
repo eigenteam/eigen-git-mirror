@@ -703,9 +703,12 @@ template<typename Derived> class MatrixBase
     const PartialLU<PlainMatrixType> partialLu() const;
     const PlainMatrixType inverse() const;
     template<typename ResultType>
-    void computeInverse(ResultType *result) const;
-    template<typename ResultType>
-    bool computeInverseWithCheck(ResultType *result ) const;
+    void computeInverseAndDetWithCheck(
+      ResultType& inverse,
+      typename ResultType::Scalar& determinant,
+      bool& invertible,
+      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+    ) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
