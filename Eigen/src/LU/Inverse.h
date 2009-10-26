@@ -351,6 +351,9 @@ inline const ei_inverse_impl<Derived> MatrixBase<Derived>::inverse() const
   *                                The matrix will be declared invertible if the absolute value of its
   *                                determinant is greater than this threshold.
   *
+  * Example: \include MatrixBase_computeInverseAndDetWithCheck.cpp
+  * Output: \verbinclude MatrixBase_computeInverseAndDetWithCheck.out
+  *
   * \sa inverse(), computeInverseWithCheck()
   */
 template<typename Derived>
@@ -386,6 +389,9 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   * \param absDeterminantThreshold Optional parameter controlling the invertibility check.
   *                                The matrix will be declared invertible if the absolute value of its
   *                                determinant is greater than this threshold.
+  *
+  * Example: \include MatrixBase_computeInverseWithCheck.cpp
+  * Output: \verbinclude MatrixBase_computeInverseWithCheck.out
   *
   * \sa inverse(), computeInverseAndDetWithCheck()
   */

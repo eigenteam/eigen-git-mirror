@@ -4,10 +4,10 @@ PartialLU<Matrix3f> luOfA(A); // compute LU decomposition of A
 Vector3f b;
 b << 3,3,4;
 Vector3f x;
-luOfA.solve(b, &x);
+x = luOfA.solve(b);
 cout << "The solution with right-hand side (3,3,4) is:" << endl;
 cout << x << endl;
 b << 1,1,1;
-luOfA.solve(b, &x);
+x = luOfA.solve(b);
 cout << "The solution with right-hand side (1,1,1) is:" << endl;
 cout << x << endl;
