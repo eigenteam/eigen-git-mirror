@@ -26,31 +26,12 @@
 #ifndef EIGEN_GEOMETRY_SSE_H
 #define EIGEN_GEOMETRY_SSE_H
 
-template<> inline Quaternion<float>
-ei_quaternion_product<EiArch_SSE,float>(const Quaternion<float>& _a, const Quaternion<float>& _b)
-{
-  const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0,0,0,0x80000000));
-  Quaternion<float> res;
-  __m128 a = _a.coeffs().packet<Aligned>(0);
-  __m128 b = _b.coeffs().packet<Aligned>(0);
-  __m128 flip1 = _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a,1,2,0,2),
-                                       ei_vec4f_swizzle1(b,2,0,1,2)),mask);
-  __m128 flip2 = _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a,3,3,3,1),
-                                       ei_vec4f_swizzle1(b,0,1,2,1)),mask);
-  ei_pstore(&res.x(),
-            _mm_add_ps(_mm_sub_ps(_mm_mul_ps(a,ei_vec4f_swizzle1(b,3,3,3,3)),
-                                  _mm_mul_ps(ei_vec4f_swizzle1(a,2,0,1,0),
-                                             ei_vec4f_swizzle1(b,1,2,0,0))),
-                       _mm_add_ps(flip1,flip2)));
-  return res;
-}
-
 template<class Derived, class OtherDerived> struct ei_quat_product<EiArch_SSE, Derived, OtherDerived, float, Aligned>
 {
-  inline static Quat<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
+  inline static Quaternion<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
   {
     const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0,0,0,0x80000000));
-    Quat<float> res;
+    Quaternion<float> res;
     __m128 a = _a.coeffs().packet<Aligned>(0);
     __m128 b = _b.coeffs().packet<Aligned>(0);
     __m128 flip1 = _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a,1,2,0,2),
