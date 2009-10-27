@@ -58,6 +58,9 @@ template <typename Derived, typename OtherDerived, bool IsVector = static_cast<b
   * \li \c MatrixXf is a dynamic-size matrix of floats (\c Matrix<float, Dynamic, Dynamic>)
   * \li \c VectorXf is a dynamic-size vector of floats (\c Matrix<float, Dynamic, 1>)
   *
+  * \li \c Matrix2Xf is a partially fixed-size (dynamic-size) matrix of floats (\c Matrix<float, 2, Dynamic>)
+  * \li \c MatrixX3d is a partially dynamic-size (fixed-size) matrix of double (\c Matrix<double, Dynamic, 3>)
+  *
   * See \link matrixtypedefs this page \endlink for a complete list of predefined \em %Matrix and \em Vector typedefs.
   *
   * You can access elements of vectors and matrices using normal subscripting:
