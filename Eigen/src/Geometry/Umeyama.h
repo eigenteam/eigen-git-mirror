@@ -117,7 +117,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   enum { Dimension = EIGEN_ENUM_MIN(Derived::RowsAtCompileTime, OtherDerived::RowsAtCompileTime) };
 
   typedef Matrix<Scalar, Dimension, 1> VectorType;
-  typedef typename ei_plain_matrix_type<Derived>::type MatrixType;
+  typedef Matrix<Scalar, Dimension, Dimension> MatrixType;
   typedef typename ei_plain_matrix_type_row_major<Derived>::type RowMajorMatrixType;
 
   const int m = src.rows(); // dimension
