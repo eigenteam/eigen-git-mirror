@@ -119,46 +119,42 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
 }
 
 template<typename MatrixType>
-void ei_compute_inverse_in_size4_case(const MatrixType& matrix, MatrixType* result)
+void ei_compute_inverse_in_size4_case(const MatrixType& _matrix, MatrixType* result)
 {
-  if(ei_compute_inverse_in_size4_case_helper(matrix, result))
-  {
-    // good ! The topleft 2x2 block was invertible, so the 2x2 blocks approach is successful.
-    return;
-  }
-  else
-  {
-    // rare case: the topleft 2x2 block is not invertible (but the matrix itself is assumed to be).
-    // since this is a rare case, we don't need to optimize it. We just want to handle it with little
-    // additional code.
-    MatrixType m(matrix);
-    m.row(0).swap(m.row(2));
-    m.row(1).swap(m.row(3));
-    if(ei_compute_inverse_in_size4_case_helper(m, result))
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+
+  // we will do row permutations on the matrix. This copy should have negligible cost.
+  // if not, consider working in-place on the matrix (const-cast it, but then undo the permutations
+  // to nevertheless honor constness)
+  typename MatrixType::PlainMatrixType matrix(_matrix);
+
+  // let's extract from the 2 first colums a 2x2 block whose determinant is as big as possible.
+  int good_row0=0, good_row1=1;
+  RealScalar good_absdet(-1);
+  // this double for loop shouldn't be too costly: only 6 iterations
+  for(int row0=0; row0<4; ++row0) {
+    for(int row1=row0+1; row1<4; ++row1)
     {
-      // good, the topleft 2x2 block of m is invertible. Since m is different from matrix in that some
-      // rows were permuted, the actual inverse of matrix is derived from the inverse of m by permuting
-      // the corresponding columns.
-      result->col(0).swap(result->col(2));
-      result->col(1).swap(result->col(3));
-    }
-    else
-    {
-      // last possible case. Since matrix is assumed to be invertible, this last case has to work.
-      // first, undo the swaps previously made
-      m.row(0).swap(m.row(2));
-      m.row(1).swap(m.row(3));
-      // swap row 0 with the the row among 0 and 1 that has the biggest 2 first coeffs
-      int swap0with = ei_abs(m.coeff(0,0))+ei_abs(m.coeff(0,1))>ei_abs(m.coeff(1,0))+ei_abs(m.coeff(1,1)) ? 0 : 1;
-      m.row(0).swap(m.row(swap0with));
-      // swap row 1 with the the row among 2 and 3 that has the biggest 2 first coeffs
-      int swap1with = ei_abs(m.coeff(2,0))+ei_abs(m.coeff(2,1))>ei_abs(m.coeff(3,0))+ei_abs(m.coeff(3,1)) ? 2 : 3;
-      m.row(1).swap(m.row(swap1with));
-      ei_compute_inverse_in_size4_case_helper(m, result);
-      result->col(1).swap(result->col(swap1with));
-      result->col(0).swap(result->col(swap0with));
+      RealScalar absdet = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1)
+                              - matrix.coeff(row0,1)*matrix.coeff(row1,0));
+      if(absdet > good_absdet)
+      {
+        good_absdet = absdet;
+        good_row0 = row0;
+        good_row1 = row1;
+      }
     }
   }
+  // do row permutations to move this 2x2 block to the top
+  matrix.row(0).swap(matrix.row(good_row0));
+  matrix.row(1).swap(matrix.row(good_row1));
+  // now applying our helper function is numerically stable
+  ei_compute_inverse_in_size4_case_helper(matrix, result);
+  // Since we did row permutations on the original matrix, we need to do column permutations
+  // in the reverse order on the inverse
+  result->col(1).swap(result->col(good_row1));
+  result->col(0).swap(result->col(good_row0));
 }
 
 /***********************************************
