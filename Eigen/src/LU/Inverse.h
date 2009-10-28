@@ -138,13 +138,13 @@ void ei_compute_inverse_in_size4_case(const MatrixType& _matrix, MatrixType* res
   #define ei_inv_size4_helper_macro(i,row0,row1) \
   absdet[i] = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1) \
                                 - matrix.coeff(row0,1)*matrix.coeff(row1,0)); \
-  if(absdet[i] > d) { good_row0=row0; good_row1=row1; goto good;}
-  ei_inv_size4_helper_macro(0,0,1);
-  ei_inv_size4_helper_macro(1,0,2);
-  ei_inv_size4_helper_macro(2,0,3);
-  ei_inv_size4_helper_macro(3,1,2);
-  ei_inv_size4_helper_macro(4,1,3);
-  ei_inv_size4_helper_macro(5,2,3);
+  if(absdet[i] > d) { good_row0=row0; good_row1=row1; goto good; }
+  ei_inv_size4_helper_macro(0,0,1)
+  ei_inv_size4_helper_macro(1,0,2)
+  ei_inv_size4_helper_macro(2,0,3)
+  ei_inv_size4_helper_macro(3,1,2)
+  ei_inv_size4_helper_macro(4,1,3)
+  ei_inv_size4_helper_macro(5,2,3)
 
   // no 2x2 block has determinant bigger than the threshold. So just take the one that
   // has the biggest determinant
