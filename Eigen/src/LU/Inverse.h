@@ -130,22 +130,31 @@ void ei_compute_inverse_in_size4_case(const MatrixType& _matrix, MatrixType* res
   typename MatrixType::PlainMatrixType matrix(_matrix);
 
   // let's extract from the 2 first colums a 2x2 block whose determinant is as big as possible.
-  int good_row0=0, good_row1=1;
-  RealScalar good_absdet(-1);
-  // this double for loop shouldn't be too costly: only 6 iterations
-  for(int row0=0; row0<4; ++row0) {
-    for(int row1=row0+1; row1<4; ++row1)
-    {
-      RealScalar absdet = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1)
-                              - matrix.coeff(row0,1)*matrix.coeff(row1,0));
-      if(absdet > good_absdet)
-      {
-        good_absdet = absdet;
-        good_row0 = row0;
-        good_row1 = row1;
-      }
-    }
-  }
+  int good_row0, good_row1, good_i;
+  Matrix<RealScalar,6,1> absdet;
+
+  // any 2x2 block with determinant above this threshold will be considered good enough
+  RealScalar d = (matrix.col(0).squaredNorm()+matrix.col(1).squaredNorm()) * 1e-2f;
+  #define ei_inv_size4_helper_macro(i,row0,row1) \
+  absdet[i] = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1) \
+                                - matrix.coeff(row0,1)*matrix.coeff(row1,0)); \
+  if(absdet[i] > d) { good_row0=row0; good_row1=row1; goto good;}
+  ei_inv_size4_helper_macro(0,0,1);
+  ei_inv_size4_helper_macro(1,0,2);
+  ei_inv_size4_helper_macro(2,0,3);
+  ei_inv_size4_helper_macro(3,1,2);
+  ei_inv_size4_helper_macro(4,1,3);
+  ei_inv_size4_helper_macro(5,2,3);
+
+  // no 2x2 block has determinant bigger than the threshold. So just take the one that
+  // has the biggest determinant
+  absdet.maxCoeff(&good_i);
+  good_row0 = good_i <= 2 ? 0 : good_i <= 4 ? 1 : 2;
+  good_row1 = good_i <= 2 ? good_i+1 : good_i <= 4 ? good_i-1 : 3;
+
+  // now good_row0 and good_row1 are correctly set
+  good:
+
   // do row permutations to move this 2x2 block to the top
   matrix.row(0).swap(matrix.row(good_row0));
   matrix.row(1).swap(matrix.row(good_row1));
