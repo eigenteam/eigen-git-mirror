@@ -134,7 +134,7 @@ void ei_compute_inverse_in_size4_case(const MatrixType& _matrix, MatrixType* res
   Matrix<RealScalar,6,1> absdet;
 
   // any 2x2 block with determinant above this threshold will be considered good enough
-  RealScalar d = (matrix.col(0).squaredNorm()+matrix.col(1).squaredNorm()) * 1e-2f;
+  RealScalar d = (matrix.col(0).squaredNorm()+matrix.col(1).squaredNorm()) * RealScalar(1e-2);
   #define ei_inv_size4_helper_macro(i,row0,row1) \
   absdet[i] = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1) \
                                 - matrix.coeff(row0,1)*matrix.coeff(row1,0)); \
