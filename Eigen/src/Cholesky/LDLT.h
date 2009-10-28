@@ -88,7 +88,7 @@ template<typename MatrixType> class LDLT
 
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class LU.
+      * see the examples given in the documentation of class FullPivLU.
       */
     inline const IntColVectorType& permutationP() const
     {

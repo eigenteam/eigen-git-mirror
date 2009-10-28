@@ -163,19 +163,20 @@ template<typename MatrixType> void reverse(const MatrixType& m)
 void test_array_reverse()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( reverse(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( reverse(Matrix2f()) );
-    CALL_SUBTEST( reverse(Matrix4f()) );
-    CALL_SUBTEST( reverse(Matrix4d()) );
-    CALL_SUBTEST( reverse(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( reverse(MatrixXi(6, 3)) );
-    CALL_SUBTEST( reverse(MatrixXcd(20, 20)) );
-    CALL_SUBTEST( reverse(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST( reverse(Matrix<float,Dynamic,Dynamic,RowMajor>(6,3)) );
+    CALL_SUBTEST_1( reverse(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( reverse(Matrix2f()) );
+    CALL_SUBTEST_3( reverse(Matrix4f()) );
+    CALL_SUBTEST_4( reverse(Matrix4d()) );
+    CALL_SUBTEST_5( reverse(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_6( reverse(MatrixXi(6, 3)) );
+    CALL_SUBTEST_7( reverse(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_8( reverse(Matrix<float, 100, 100>()) );
+    CALL_SUBTEST_9( reverse(Matrix<float,Dynamic,Dynamic,RowMajor>(6,3)) );
   }
+#ifdef EIGEN_TEST_PART_3
   Vector4f x; x << 1, 2, 3, 4;
   Vector4f y; y << 4, 3, 2, 1;
   VERIFY(x.reverse()[1] == 3);
   VERIFY(x.reverse() == y);
-
+#endif
 }

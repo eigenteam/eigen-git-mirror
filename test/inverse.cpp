@@ -95,14 +95,14 @@ void test_inverse()
 {
   int s;
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST1( inverse(Matrix<double,1,1>()) );
-    CALL_SUBTEST2( inverse(Matrix2d()) );
-    CALL_SUBTEST3( inverse(Matrix3f()) );
-    CALL_SUBTEST4( inverse(Matrix4f()) );
+    CALL_SUBTEST_1( inverse(Matrix<double,1,1>()) );
+    CALL_SUBTEST_2( inverse(Matrix2d()) );
+    CALL_SUBTEST_3( inverse(Matrix3f()) );
+    CALL_SUBTEST_4( inverse(Matrix4f()) );
     s = ei_random<int>(50,320);
-    CALL_SUBTEST5( inverse(MatrixXf(s,s)) );
+    CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
     s = ei_random<int>(25,100);
-    CALL_SUBTEST6( inverse(MatrixXcd(s,s)) );
+    CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
   }
 
 #ifdef EIGEN_TEST_PART_4

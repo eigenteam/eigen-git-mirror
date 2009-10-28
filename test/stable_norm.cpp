@@ -84,10 +84,10 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 void test_stable_norm()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( stable_norm(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( stable_norm(Vector4d()) );
-    CALL_SUBTEST( stable_norm(VectorXd(ei_random<int>(10,2000))) );
-    CALL_SUBTEST( stable_norm(VectorXf(ei_random<int>(10,2000))) );
-    CALL_SUBTEST( stable_norm(VectorXcd(ei_random<int>(10,2000))) );
+    CALL_SUBTEST_1( stable_norm(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( stable_norm(Vector4d()) );
+    CALL_SUBTEST_3( stable_norm(VectorXd(ei_random<int>(10,2000))) );
+    CALL_SUBTEST_4( stable_norm(VectorXf(ei_random<int>(10,2000))) );
+    CALL_SUBTEST_5( stable_norm(VectorXcd(ei_random<int>(10,2000))) );
   }
 }

@@ -699,8 +699,9 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const LU<PlainMatrixType> lu() const;
-    const PartialLU<PlainMatrixType> partialLu() const;
+    const FullPivLU<PlainMatrixType> fullPivLu() const;
+    const PartialPivLU<PlainMatrixType> partialPivLu() const;
+    const PartialPivLU<PlainMatrixType> lu() const;
     const ei_inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
@@ -725,8 +726,8 @@ template<typename Derived> class MatrixBase
 /////////// QR module ///////////
 
     const HouseholderQR<PlainMatrixType> householderQr() const;
-    const ColPivotingHouseholderQR<PlainMatrixType> colPivotingHouseholderQr() const;
-    const FullPivotingHouseholderQR<PlainMatrixType> fullPivotingHouseholderQr() const;
+    const ColPivHouseholderQR<PlainMatrixType> colPivHouseholderQr() const;
+    const FullPivHouseholderQR<PlainMatrixType> fullPivHouseholderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

@@ -112,11 +112,11 @@ void test_dynalloc()
 
   for (int i=0; i<g_repeat*100; ++i)
   {
-    CALL_SUBTEST( check_dynaligned<Vector4f>() );
-    CALL_SUBTEST( check_dynaligned<Vector2d>() );
-    CALL_SUBTEST( check_dynaligned<Matrix4f>() );
-    CALL_SUBTEST( check_dynaligned<Vector4d>() );
-    CALL_SUBTEST( check_dynaligned<Vector4i>() );
+    CALL_SUBTEST(check_dynaligned<Vector4f>() );
+    CALL_SUBTEST(check_dynaligned<Vector2d>() );
+    CALL_SUBTEST(check_dynaligned<Matrix4f>() );
+    CALL_SUBTEST(check_dynaligned<Vector4d>() );
+    CALL_SUBTEST(check_dynaligned<Vector4i>() );
   }
   
   // check static allocation, who knows ?

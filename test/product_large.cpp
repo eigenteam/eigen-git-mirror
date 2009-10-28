@@ -27,11 +27,11 @@
 void test_product_large()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST1( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST2( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST3( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST4( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
-    CALL_SUBTEST5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST_1( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST_2( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST_3( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST_4( product(MatrixXcf(ei_random<int>(1,50), ei_random<int>(1,50))) );
+    CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
   }
 
 #if defined EIGEN_TEST_PART_6

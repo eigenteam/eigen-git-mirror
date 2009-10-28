@@ -100,17 +100,17 @@ template<typename MatrixType> void svd_verify_assert()
 void test_svd()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( svd(Matrix3f()) );
-    CALL_SUBTEST( svd(Matrix4d()) );
-    CALL_SUBTEST( svd(MatrixXf(7,7)) );
-    CALL_SUBTEST( svd(MatrixXd(14,7)) );
+    CALL_SUBTEST_1( svd(Matrix3f()) );
+    CALL_SUBTEST_2( svd(Matrix4d()) );
+    CALL_SUBTEST_3( svd(MatrixXf(7,7)) );
+    CALL_SUBTEST_4( svd(MatrixXd(14,7)) );
     // complex are not implemented yet
-//     CALL_SUBTEST( svd(MatrixXcd(6,6)) );
-//     CALL_SUBTEST( svd(MatrixXcf(3,3)) );
+//     CALL_SUBTEST(svd(MatrixXcd(6,6)) );
+//     CALL_SUBTEST(svd(MatrixXcf(3,3)) );
   }
 
-  CALL_SUBTEST( svd_verify_assert<Matrix3f>() );
-  CALL_SUBTEST( svd_verify_assert<Matrix3d>() );
-  CALL_SUBTEST( svd_verify_assert<MatrixXf>() );
-  CALL_SUBTEST( svd_verify_assert<MatrixXd>() );
+  CALL_SUBTEST_1( svd_verify_assert<Matrix3f>() );
+  CALL_SUBTEST_2( svd_verify_assert<Matrix4d>() );
+  CALL_SUBTEST_3( svd_verify_assert<MatrixXf>() );
+  CALL_SUBTEST_4( svd_verify_assert<MatrixXd>() );
 }

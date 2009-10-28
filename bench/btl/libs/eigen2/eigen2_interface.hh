@@ -218,7 +218,7 @@ public :
   }
 
   static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
-    C = X.partialLu().matrixLU();
+    C = X.partialPivLu().matrixLU();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){

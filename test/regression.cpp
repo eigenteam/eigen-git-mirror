@@ -95,6 +95,7 @@ void test_regression()
 {
   for(int i = 0; i < g_repeat; i++)
   {
+#ifdef EIGEN_TEST_PART_1
     {
       Vector2f points2f [1000];
       Vector2f *points2f_ptrs [1000];
@@ -108,7 +109,9 @@ void test_regression()
       CALL_SUBTEST(check_linearRegression(100, points2f_ptrs, coeffs2f, 0.01f));
       CALL_SUBTEST(check_linearRegression(1000, points2f_ptrs, coeffs2f, 0.002f));
     }
+#endif
     
+#ifdef EIGEN_TEST_PART_2
     {
       Vector2f points2f [1000];
       Vector2f *points2f_ptrs [1000];
@@ -119,7 +122,9 @@ void test_regression()
       CALL_SUBTEST(check_fitHyperplane(100, points2f_ptrs, coeffs3f, 0.01f));
       CALL_SUBTEST(check_fitHyperplane(1000, points2f_ptrs, coeffs3f, 0.002f));
     }
+#endif
 
+#ifdef EIGEN_TEST_PART_3
     {
       Vector4d points4d [1000];
       Vector4d *points4d_ptrs [1000];
@@ -130,7 +135,9 @@ void test_regression()
       CALL_SUBTEST(check_fitHyperplane(100, points4d_ptrs, coeffs5d, 0.01));
       CALL_SUBTEST(check_fitHyperplane(1000, points4d_ptrs, coeffs5d, 0.002));
     }
+#endif
 
+#ifdef EIGEN_TEST_PART_4
     {
       VectorXcd *points11cd_ptrs[1000];
       for(int i = 0; i < 1000; i++) points11cd_ptrs[i] = new VectorXcd(11);
@@ -141,5 +148,6 @@ void test_regression()
       delete coeffs12cd;
       for(int i = 0; i < 1000; i++) delete points11cd_ptrs[i];
     }
+#endif
   }
 }

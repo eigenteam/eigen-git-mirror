@@ -70,6 +70,10 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   # for the debug target, add full debug options
   if(CMAKE_COMPILER_IS_GNUCXX)
+    # disable debug symbols: i get 2 GB of them!
+    # the user can still use the debug targets as needed.
+    # for MSVC, the equivalent (release mode) does the same.
+    ei_add_target_property(${targetname} COMPILE_FLAGS "-g0")
     # O0 is in principle redundant here, but doesn't hurt
     ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-O0 -g3")
   elseif(MSVC)
@@ -139,7 +143,7 @@ endmacro(ei_add_test_internal)
 # B. Multi-part behavior
 #
 # If the source file matches the regexp
-#    CALL_SUBTEST[0-9]+|EIGEN_TEST_PART_[0-9]+
+#    CALL_SUBTEST(-9]+|EIGEN_TEST_PART_[0-9]+
 # then it is interpreted as a multi-part test. The behavior then depends on the
 # CMake option EIGEN_SPLIT_LARGE_TESTS, which is ON by default.
 #
@@ -162,33 +166,31 @@ endmacro(ei_add_test_internal)
 macro(ei_add_test testname)
   file(READ "${testname}.cpp" test_source)
   set(parts 0)
-  string(REGEX MATCHALL "CALL_SUBTEST[0-9]+|EIGEN_TEST_PART_[0-9]+" occurences "${test_source}")
-  foreach(occurence ${occurences})
-    string(REGEX MATCH "([0-9]+)" _number_in_occurence "${occurence}")
-    set(number ${CMAKE_MATCH_1})
-    if(${number} GREATER ${parts})
-      set(parts ${number})
-    endif(${number} GREATER ${parts})
-  endforeach(occurence)
-  if(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
+  string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+"
+         occurences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_" "" suffixes "${occurences}")
+  list(REMOVE_DUPLICATES suffixes)
+  if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     add_custom_target(test_${testname})
     if(NOT MSVC_IDE)
       add_custom_target(debug_${testname})
     endif(NOT MSVC_IDE)
-    foreach(part RANGE 1 ${parts})
-      ei_add_test_internal(${testname} ${testname}_${part} "${ARGV1} -DEIGEN_TEST_PART_${part}" "${ARGV2}")
-      add_dependencies(test_${testname} test_${testname}_${part})
+    foreach(suffix ${suffixes})
+      ei_add_test_internal(${testname} ${testname}_${suffix}
+        "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
+      add_dependencies(test_${testname} test_${testname}_${suffix})
       if(NOT MSVC_IDE)
-        add_dependencies(debug_${testname} debug_${testname}_${part})
+        add_dependencies(debug_${testname} debug_${testname}_${suffix})
       endif(NOT MSVC_IDE)
-    endforeach(part)
-  else(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
+    endforeach(suffix)
+  else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     set(symbols_to_enable_all_parts "")
-    foreach(part RANGE 1 ${parts})
-      set(symbols_to_enable_all_parts "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${part}")
-    endforeach(part)
+    foreach(suffix ${suffixes})
+      set(symbols_to_enable_all_parts
+        "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${suffix}=1")
+    endforeach(suffix)
     ei_add_test_internal(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
-  endif(EIGEN_SPLIT_LARGE_TESTS AND (parts GREATER 0))
+  endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
 endmacro(ei_add_test)
 
 # print a summary of the different options

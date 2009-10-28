@@ -23,26 +23,26 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
-#define EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
+#ifndef EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H
+#define EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H
 
 /** \ingroup QR_Module
   * \nonstableyet
   *
-  * \class ColPivotingHouseholderQR
+  * \class FullPivHouseholderQR
   *
-  * \brief Householder rank-revealing QR decomposition of a matrix with column-pivoting
+  * \brief Householder rank-revealing QR decomposition of a matrix with full pivoting
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
   * This class performs a rank-revealing QR decomposition using Householder transformations.
   *
-  * This decomposition performs column pivoting in order to be rank-revealing and improve
-  * numerical stability. It is slower than HouseholderQR, and faster than FullPivotingHouseholderQR.
+  * This decomposition performs a very prudent full pivoting in order to be rank-revealing and achieve optimal
+  * numerical stability. The trade-off is that it is slower than HouseholderQR and ColPivHouseholderQR.
   *
-  * \sa MatrixBase::colPivotingHouseholderQr()
+  * \sa MatrixBase::fullPivHouseholderQr()
   */
-template<typename MatrixType> class ColPivotingHouseholderQR
+template<typename MatrixType> class FullPivHouseholderQR
 {
   public:
 
@@ -61,21 +61,16 @@ template<typename MatrixType> class ColPivotingHouseholderQR
     typedef Matrix<int, RowsAtCompileTime, 1> IntColVectorType;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
-    typedef Matrix<RealScalar, 1, ColsAtCompileTime> RealRowVectorType;
-    typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via ColPivotingHouseholderQR::compute(const MatrixType&).
-    */
-    ColPivotingHouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
+    /** \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via FullPivHouseholderQR::compute(const MatrixType&).
+      */
+    FullPivHouseholderQR() : m_isInitialized(false) {}
 
-    ColPivotingHouseholderQR(const MatrixType& matrix)
-      : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
-        m_isInitialized(false)
+    FullPivHouseholderQR(const MatrixType& matrix)
+      : m_isInitialized(false)
     {
       compute(matrix);
     }
@@ -94,28 +89,34 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       * \note The case where b is a matrix is not yet implemented. Also, this
       *       code is space inefficient.
       *
-      * Example: \include ColPivotingHouseholderQR_solve.cpp
-      * Output: \verbinclude ColPivotingHouseholderQR_solve.out
+      * Example: \include FullPivHouseholderQR_solve.cpp
+      * Output: \verbinclude FullPivHouseholderQR_solve.out
       */
     template<typename OtherDerived, typename ResultType>
     bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
 
-    HouseholderSequenceType matrixQ(void) const;
+    MatrixQType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
     const MatrixType& matrixQR() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_qr;
     }
 
-    ColPivotingHouseholderQR& compute(const MatrixType& matrix);
+    FullPivHouseholderQR& compute(const MatrixType& matrix);
 
     const IntRowVectorType& colsPermutation() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_cols_permutation;
+    }
+
+    const IntColVectorType& rowsTranspositions() const
+    {
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      return m_rows_transpositions;
     }
 
     /** \returns the absolute value of the determinant of the matrix of which
@@ -154,7 +155,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline int rank() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank;
     }
 
@@ -165,7 +166,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline int dimensionOfKernel() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_qr.cols() - m_rank;
     }
 
@@ -177,7 +178,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline bool isInjective() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank == m_qr.cols();
     }
 
@@ -189,7 +190,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline bool isSurjective() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank == m_qr.rows();
     }
 
@@ -200,7 +201,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline bool isInvertible() const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return isInjective() && isSurjective();
     }
 
@@ -215,7 +216,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
       */
     inline void computeInverse(MatrixType *result) const
     {
-      ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the inverse of a non-square matrix!");
       solve(MatrixType::Identity(m_qr.rows(), m_qr.cols()), result);
     }
@@ -237,6 +238,7 @@ template<typename MatrixType> class ColPivotingHouseholderQR
   protected:
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
+    IntColVectorType m_rows_transpositions;
     IntRowVectorType m_cols_permutation;
     bool m_isInitialized;
     RealScalar m_precision;
@@ -247,23 +249,23 @@ template<typename MatrixType> class ColPivotingHouseholderQR
 #ifndef EIGEN_HIDE_HEAVY_CODE
 
 template<typename MatrixType>
-typename MatrixType::RealScalar ColPivotingHouseholderQR<MatrixType>::absDeterminant() const
+typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::absDeterminant() const
 {
-  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
   ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
   return ei_abs(m_qr.diagonal().prod());
 }
 
 template<typename MatrixType>
-typename MatrixType::RealScalar ColPivotingHouseholderQR<MatrixType>::logAbsDeterminant() const
+typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::logAbsDeterminant() const
 {
-  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
   ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
   return m_qr.diagonal().cwise().abs().cwise().log().sum();
 }
 
 template<typename MatrixType>
-ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
+FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
   int rows = matrix.rows();
   int cols = matrix.cols();
@@ -277,37 +279,46 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
   m_precision = epsilon<Scalar>() * size;
 
+  m_rows_transpositions.resize(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
   m_cols_permutation.resize(matrix.cols());
   int number_of_transpositions = 0;
 
-  RealRowVectorType colSqNorms(cols);
-  for(int k = 0; k < cols; ++k)
-    colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
-  RealScalar biggestColSqNorm = colSqNorms.maxCoeff();
+  RealScalar biggest(0);
 
   for (int k = 0; k < size; ++k)
   {
-    int biggest_col_in_corner;
-    RealScalar biggestColSqNormInCorner = colSqNorms.end(cols-k).maxCoeff(&biggest_col_in_corner);
-    biggest_col_in_corner += k;
+    int row_of_biggest_in_corner, col_of_biggest_in_corner;
+    RealScalar biggest_in_corner;
+
+    biggest_in_corner = m_qr.corner(Eigen::BottomRight, rows-k, cols-k)
+                            .cwise().abs()
+                            .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
+    row_of_biggest_in_corner += k;
+    col_of_biggest_in_corner += k;
+    if(k==0) biggest = biggest_in_corner;
 
     // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggestColSqNormInCorner, biggestColSqNorm, m_precision))
+    if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
     {
       m_rank = k;
       for(int i = k; i < size; i++)
       {
+        m_rows_transpositions.coeffRef(i) = i;
         cols_transpositions.coeffRef(i) = i;
         m_hCoeffs.coeffRef(i) = Scalar(0);
       }
       break;
     }
 
-    cols_transpositions.coeffRef(k) = biggest_col_in_corner;
-    if(k != biggest_col_in_corner) {
-      m_qr.col(k).swap(m_qr.col(biggest_col_in_corner));
-      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_in_corner));
+    m_rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
+    cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
+    if(k != row_of_biggest_in_corner) {
+      m_qr.row(k).end(cols-k).swap(m_qr.row(row_of_biggest_in_corner).end(cols-k));
+      ++number_of_transpositions;
+    }
+    if(k != col_of_biggest_in_corner) {
+      m_qr.col(k).swap(m_qr.col(col_of_biggest_in_corner));
       ++number_of_transpositions;
     }
 
@@ -317,8 +328,6 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
-
-    colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwise().abs2();
   }
 
   for(int k = 0; k < matrix.cols(); ++k) m_cols_permutation.coeffRef(k) = k;
@@ -333,12 +342,12 @@ ColPivotingHouseholderQR<MatrixType>& ColPivotingHouseholderQR<MatrixType>::comp
 
 template<typename MatrixType>
 template<typename OtherDerived, typename ResultType>
-bool ColPivotingHouseholderQR<MatrixType>::solve(
+bool FullPivHouseholderQR<MatrixType>::solve(
   const MatrixBase<OtherDerived>& b,
   ResultType *result
 ) const
 {
-  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
+  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
   result->resize(m_qr.cols(), b.cols());
   if(m_rank==0)
   {
@@ -351,22 +360,28 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   }
 
   const int rows = m_qr.rows();
+  const int cols = b.cols();
   ei_assert(b.rows() == rows);
 
   typename OtherDerived::PlainMatrixType c(b);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-  c.applyOnTheLeft(makeHouseholderSequence(m_qr.corner(TopLeft,rows,m_rank), m_hCoeffs.start(m_rank)).transpose());
+  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
+  for (int k = 0; k < m_rank; ++k)
+  {
+    int remainingSize = rows-k;
+    c.row(k).swap(c.row(m_rows_transpositions.coeff(k)));
+    c.corner(BottomRight, remainingSize, cols)
+     .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
+  }
 
   if(!isSurjective())
   {
     // is c is in the image of R ?
     RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
     RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
-    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision*4))
+    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
       return false;
   }
-
   m_qr.corner(TopLeft, m_rank, m_rank)
       .template triangularView<UpperTriangular>()
       .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
@@ -376,26 +391,39 @@ bool ColPivotingHouseholderQR<MatrixType>::solve(
   return true;
 }
 
-/** \returns the matrix Q as a sequence of householder transformations */
+/** \returns the matrix Q */
 template<typename MatrixType>
-typename ColPivotingHouseholderQR<MatrixType>::HouseholderSequenceType ColPivotingHouseholderQR<MatrixType>::matrixQ() const
+typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<MatrixType>::matrixQ() const
 {
-  ei_assert(m_isInitialized && "ColPivotingHouseholderQR is not initialized.");
-  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
+  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+  // compute the product H'_0 H'_1 ... H'_n-1,
+  // where H_k is the k-th Householder transformation I - h_k v_k v_k'
+  // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
+  int rows = m_qr.rows();
+  int cols = m_qr.cols();
+  int size = std::min(rows,cols);
+  MatrixQType res = MatrixQType::Identity(rows, rows);
+  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
+  for (int k = size-1; k >= 0; k--)
+  {
+    res.block(k, k, rows-k, rows-k)
+       .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
+    res.row(k).swap(res.row(m_rows_transpositions.coeff(k)));
+  }
+  return res;
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 
-/** \return the column-pivoting Householder QR decomposition of \c *this.
+/** \return the full-pivoting Householder QR decomposition of \c *this.
   *
-  * \sa class ColPivotingHouseholderQR
+  * \sa class FullPivHouseholderQR
   */
 template<typename Derived>
-const ColPivotingHouseholderQR<typename MatrixBase<Derived>::PlainMatrixType>
-MatrixBase<Derived>::colPivotingHouseholderQr() const
+const FullPivHouseholderQR<typename MatrixBase<Derived>::PlainMatrixType>
+MatrixBase<Derived>::fullPivHouseholderQr() const
 {
-  return ColPivotingHouseholderQR<PlainMatrixType>(eval());
+  return FullPivHouseholderQR<PlainMatrixType>(eval());
 }
 
-
-#endif // EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
+#endif // EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H

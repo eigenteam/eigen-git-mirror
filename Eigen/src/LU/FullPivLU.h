@@ -31,7 +31,7 @@ template<typename MatrixType> struct ei_lu_image_impl;
 
 /** \ingroup LU_Module
   *
-  * \class LU
+  * \class FullPivLU
   *
   * \brief LU decomposition of a matrix with complete pivoting, and related features
   *
@@ -54,12 +54,12 @@ template<typename MatrixType> struct ei_lu_image_impl;
   * permutationP(), permutationQ().
   *
   * As an exemple, here is how the original matrix can be retrieved:
-  * \include class_LU.cpp
-  * Output: \verbinclude class_LU.out
+  * \include class_FullPivLU.cpp
+  * Output: \verbinclude class_FullPivLU.out
   *
-  * \sa MatrixBase::lu(), MatrixBase::determinant(), MatrixBase::inverse()
+  * \sa MatrixBase::fullPivLu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
-template<typename MatrixType> class LU
+template<typename MatrixType> class FullPivLU
 {
   public:
 
@@ -81,14 +81,14 @@ template<typename MatrixType> class LU
     * The default constructor is useful in cases in which the user intends to
     * perform decompositions via LU::compute(const MatrixType&).
     */
-    LU();
+    FullPivLU();
 
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
       *               It is required to be nonzero.
       */
-    LU(const MatrixType& matrix);
+    FullPivLU(const MatrixType& matrix);
 
     /** Computes the LU decomposition of the given matrix.
       *
@@ -97,11 +97,11 @@ template<typename MatrixType> class LU
       *
       * \returns a reference to *this
       */
-    LU& compute(const MatrixType& matrix);
+    FullPivLU& compute(const MatrixType& matrix);
     
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
-      * case, special care is needed, see the documentation of class LU).
+      * case, special care is needed, see the documentation of class FullPivLU).
       *
       * \sa matrixL(), matrixU()
       */
@@ -131,7 +131,7 @@ template<typename MatrixType> class LU
     
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class LU.
+      * see the examples given in the documentation of class FullPivLU.
       *
       * \sa permutationQ()
       */
@@ -143,7 +143,7 @@ template<typename MatrixType> class LU
 
     /** \returns a vector of integers, whose size is the number of columns of the matrix being
       * decomposed, representing the Q permutation i.e. the permutation of the columns.
-      * For its precise meaning, see the examples given in the documentation of class LU.
+      * For its precise meaning, see the examples given in the documentation of class FullPivLU.
       *
       * \sa permutationP()
       */
@@ -162,8 +162,8 @@ template<typename MatrixType> class LU
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       *
-      * Example: \include LU_kernel.cpp
-      * Output: \verbinclude LU_kernel.out
+      * Example: \include FullPivLU_kernel.cpp
+      * Output: \verbinclude FullPivLU_kernel.out
       *
       * \sa image()
       */
@@ -187,8 +187,8 @@ template<typename MatrixType> class LU
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       *
-      * Example: \include LU_image.cpp
-      * Output: \verbinclude LU_image.out
+      * Example: \include FullPivLU_image.cpp
+      * Output: \verbinclude FullPivLU_image.out
       *
       * \sa kernel()
       */
@@ -214,8 +214,8 @@ template<typename MatrixType> class LU
       * \note_about_arbitrary_choice_of_solution
       * \note_about_using_kernel_to_study_multiple_solutions
       *
-      * Example: \include LU_solve.cpp
-      * Output: \verbinclude LU_solve.out
+      * Example: \include FullPivLU_solve.cpp
+      * Output: \verbinclude FullPivLU_solve.out
       *
       * \sa TriangularView::solve(), kernel(), inverse()
       */
@@ -260,7 +260,7 @@ template<typename MatrixType> class LU
       *
       * If you want to come back to the default behavior, call setThreshold(Default_t)
       */
-    LU& setThreshold(const RealScalar& threshold)
+    FullPivLU& setThreshold(const RealScalar& threshold)
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
@@ -274,7 +274,7 @@ template<typename MatrixType> class LU
       *
       * See the documentation of setThreshold(const RealScalar&).
       */
-    LU& setThreshold(Default_t)
+    FullPivLU& setThreshold(Default_t)
     {
       m_usePrescribedThreshold = false;
     }
@@ -383,20 +383,20 @@ template<typename MatrixType> class LU
 };
 
 template<typename MatrixType>
-LU<MatrixType>::LU()
+FullPivLU<MatrixType>::FullPivLU()
   : m_isInitialized(false), m_usePrescribedThreshold(false)
 {
 }
 
 template<typename MatrixType>
-LU<MatrixType>::LU(const MatrixType& matrix)
+FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
   : m_isInitialized(false), m_usePrescribedThreshold(false)
 {
   compute(matrix);
 }
 
 template<typename MatrixType>
-LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
+FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_isInitialized = true;
   m_lu = matrix;
@@ -483,7 +483,7 @@ LU<MatrixType>& LU<MatrixType>::compute(const MatrixType& matrix)
 }
 
 template<typename MatrixType>
-typename ei_traits<MatrixType>::Scalar LU<MatrixType>::determinant() const
+typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() const
 {
   ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
@@ -511,7 +511,7 @@ struct ei_traits<ei_lu_kernel_impl<MatrixType> >
 template<typename MatrixType>
 struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
 {
-  typedef LU<MatrixType> LUType;
+  typedef FullPivLU<MatrixType> LUType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
@@ -615,7 +615,7 @@ struct ei_traits<ei_lu_image_impl<MatrixType> >
 template<typename MatrixType>
 struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
 {
-  typedef LU<MatrixType> LUType;
+  typedef FullPivLU<MatrixType> LUType;
   typedef typename MatrixType::RealScalar RealScalar;
   const LUType& m_lu;
   int m_rank, m_cols;
@@ -670,7 +670,7 @@ template<typename MatrixType, typename Rhs>
 struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef LU<MatrixType> LUType;
+  typedef FullPivLU<MatrixType> LUType;
   const LUType& m_lu;
   const typename Rhs::Nested m_rhs;
   
@@ -739,15 +739,15 @@ struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs>
 
 /** \lu_module
   *
-  * \return the LU decomposition of \c *this.
+  * \return the full-pivoting LU decomposition of \c *this.
   *
-  * \sa class LU
+  * \sa class FullPivLU
   */
 template<typename Derived>
-inline const LU<typename MatrixBase<Derived>::PlainMatrixType>
-MatrixBase<Derived>::lu() const
+inline const FullPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+MatrixBase<Derived>::fullPivLu() const
 {
-  return LU<PlainMatrixType>(eval());
+  return FullPivLU<PlainMatrixType>(eval());
 }
 
 #endif // EIGEN_LU_H

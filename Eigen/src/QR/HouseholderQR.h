@@ -39,10 +39,10 @@
   * stored in a compact way compatible with LAPACK.
   *
   * Note that no pivoting is performed. This is \b not a rank-revealing decomposition.
-  * If you want that feature, use FullPivotingHouseholderQR or ColPivotingHouseholderQR instead.
+  * If you want that feature, use FullPivHouseholderQR or ColPivHouseholderQR instead.
   *
   * This Householder QR decomposition is faster, but less numerically stable and less feature-full than
-  * FullPivotingHouseholderQR or ColPivotingHouseholderQR.
+  * FullPivHouseholderQR or ColPivHouseholderQR.
   *
   * \sa MatrixBase::householderQr()
   */

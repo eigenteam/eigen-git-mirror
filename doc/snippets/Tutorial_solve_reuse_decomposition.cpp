@@ -1,6 +1,6 @@
 Matrix3f A(3,3);
 A << 1,2,3,  4,5,6,  7,8,10;
-PartialLU<Matrix3f> luOfA(A); // compute LU decomposition of A
+PartialPivLU<Matrix3f> luOfA(A); // compute LU decomposition of A
 Vector3f b;
 b << 3,3,4;
 Vector3f x;

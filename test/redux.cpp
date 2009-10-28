@@ -112,16 +112,16 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
 void test_redux()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( matrixRedux(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( matrixRedux(Matrix2f()) );
-    CALL_SUBTEST( matrixRedux(Matrix4d()) );
-    CALL_SUBTEST( matrixRedux(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( matrixRedux(MatrixXd(8, 12)) );
-    CALL_SUBTEST( matrixRedux(MatrixXi(8, 12)) );
+    CALL_SUBTEST_1( matrixRedux(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( matrixRedux(Matrix2f()) );
+    CALL_SUBTEST_3( matrixRedux(Matrix4d()) );
+    CALL_SUBTEST_4( matrixRedux(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_5( matrixRedux(MatrixXd(8, 12)) );
+    CALL_SUBTEST_6( matrixRedux(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( vectorRedux(Vector4f()) );
-    CALL_SUBTEST( vectorRedux(VectorXd(10)) );
-    CALL_SUBTEST( vectorRedux(VectorXf(33)) );
+    CALL_SUBTEST_7( vectorRedux(Vector4f()) );
+    CALL_SUBTEST_5( vectorRedux(VectorXd(10)) );
+    CALL_SUBTEST_8( vectorRedux(VectorXf(33)) );
   }
 }

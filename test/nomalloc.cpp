@@ -77,7 +77,7 @@ void test_nomalloc()
 {
   // check that our operator new is indeed called:
   VERIFY_RAISES_ASSERT(MatrixXd dummy = MatrixXd::Random(3,3));
-  CALL_SUBTEST( nomalloc(Matrix<float, 1, 1>()) );
-  CALL_SUBTEST( nomalloc(Matrix4d()) );
-  CALL_SUBTEST( nomalloc(Matrix<float,32,32>()) );
+  CALL_SUBTEST(nomalloc(Matrix<float, 1, 1>()) );
+  CALL_SUBTEST(nomalloc(Matrix4d()) );
+  CALL_SUBTEST(nomalloc(Matrix<float,32,32>()) );
 }

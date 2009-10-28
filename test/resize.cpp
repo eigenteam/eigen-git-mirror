@@ -50,7 +50,7 @@ void resizeLikeTest31() { resizeLikeTest<3,1>(); }
 
 void test_resize()
 {
-  CALL_SUBTEST( resizeLikeTest12() );
-  CALL_SUBTEST( resizeLikeTest1020() );
-  CALL_SUBTEST( resizeLikeTest31() );
+  CALL_SUBTEST(resizeLikeTest12() );
+  CALL_SUBTEST(resizeLikeTest1020() );
+  CALL_SUBTEST(resizeLikeTest31() );
 }

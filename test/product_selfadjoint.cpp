@@ -78,13 +78,13 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
 void test_product_selfadjoint()
 {
   for(int i = 0; i < g_repeat ; i++) {
-    CALL_SUBTEST1( product_selfadjoint(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST2( product_selfadjoint(Matrix<float, 2, 2>()) );
-    CALL_SUBTEST3( product_selfadjoint(Matrix3d()) );
-    CALL_SUBTEST4( product_selfadjoint(MatrixXcf(4, 4)) );
-    CALL_SUBTEST5( product_selfadjoint(MatrixXcd(21,21)) );
-    CALL_SUBTEST6( product_selfadjoint(MatrixXd(14,14)) );
-    CALL_SUBTEST7( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(17,17)) );
-    CALL_SUBTEST8( product_selfadjoint(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(19, 19)) );
+    CALL_SUBTEST_1( product_selfadjoint(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( product_selfadjoint(Matrix<float, 2, 2>()) );
+    CALL_SUBTEST_3( product_selfadjoint(Matrix3d()) );
+    CALL_SUBTEST_4( product_selfadjoint(MatrixXcf(4, 4)) );
+    CALL_SUBTEST_5( product_selfadjoint(MatrixXcd(21,21)) );
+    CALL_SUBTEST_6( product_selfadjoint(MatrixXd(14,14)) );
+    CALL_SUBTEST_7( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(17,17)) );
+    CALL_SUBTEST_8( product_selfadjoint(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(19, 19)) );
   }
 }

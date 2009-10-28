@@ -146,26 +146,26 @@ template<typename VectorType> void lpNorm(const VectorType& v)
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( array(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( array(Matrix2f()) );
-    CALL_SUBTEST( array(Matrix4d()) );
-    CALL_SUBTEST( array(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( array(MatrixXf(8, 12)) );
-    CALL_SUBTEST( array(MatrixXi(8, 12)) );
+    CALL_SUBTEST_1( array(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( array(Matrix2f()) );
+    CALL_SUBTEST_3( array(Matrix4d()) );
+    CALL_SUBTEST_4( array(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_5( array(MatrixXf(8, 12)) );
+    CALL_SUBTEST_6( array(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( comparisons(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( comparisons(Matrix2f()) );
-    CALL_SUBTEST( comparisons(Matrix4d()) );
-    CALL_SUBTEST( comparisons(MatrixXf(8, 12)) );
-    CALL_SUBTEST( comparisons(MatrixXi(8, 12)) );
+    CALL_SUBTEST_1( comparisons(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( comparisons(Matrix2f()) );
+    CALL_SUBTEST_3( comparisons(Matrix4d()) );
+    CALL_SUBTEST_5( comparisons(MatrixXf(8, 12)) );
+    CALL_SUBTEST_6( comparisons(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( lpNorm(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( lpNorm(Vector2f()) );
-    CALL_SUBTEST( lpNorm(Vector3d()) );
-    CALL_SUBTEST( lpNorm(Vector4f()) );
-    CALL_SUBTEST( lpNorm(VectorXf(16)) );
-    CALL_SUBTEST( lpNorm(VectorXcd(10)) );
+    CALL_SUBTEST_1( lpNorm(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( lpNorm(Vector2f()) );
+    CALL_SUBTEST_7( lpNorm(Vector3d()) );
+    CALL_SUBTEST_8( lpNorm(Vector4f()) );
+    CALL_SUBTEST_5( lpNorm(VectorXf(16)) );
+    CALL_SUBTEST_4( lpNorm(VectorXcf(10)) );
   }
 }

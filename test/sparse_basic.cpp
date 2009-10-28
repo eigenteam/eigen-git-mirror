@@ -344,10 +344,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( sparse_basic(SparseMatrix<double>(8, 8)) );
-    CALL_SUBTEST( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
-    CALL_SUBTEST( sparse_basic(SparseMatrix<double>(33, 33)) );
+    CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST_2( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
+    CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(33, 33)) );
     
-    CALL_SUBTEST( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST_3( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
   }
 }

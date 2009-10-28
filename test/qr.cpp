@@ -115,24 +115,24 @@ template<typename MatrixType> void qr_verify_assert()
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
-   CALL_SUBTEST( qr(MatrixXf(47,40)) );
-   CALL_SUBTEST( qr(MatrixXcd(17,7)) );
-   CALL_SUBTEST(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
-   CALL_SUBTEST(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
-   CALL_SUBTEST(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
+   CALL_SUBTEST_1( qr(MatrixXf(47,40)) );
+   CALL_SUBTEST_2( qr(MatrixXcd(17,7)) );
+   CALL_SUBTEST_3(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
+   CALL_SUBTEST_4(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
+   CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( qr_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXd>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcd>() );
+    CALL_SUBTEST_1( qr_invertible<MatrixXf>() );
+    CALL_SUBTEST_6( qr_invertible<MatrixXd>() );
+    CALL_SUBTEST_7( qr_invertible<MatrixXcf>() );
+    CALL_SUBTEST_8( qr_invertible<MatrixXcd>() );
   }
 
-  CALL_SUBTEST(qr_verify_assert<Matrix3f>());
-  CALL_SUBTEST(qr_verify_assert<Matrix3d>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXd>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcd>());
+  CALL_SUBTEST_9(qr_verify_assert<Matrix3f>());
+  CALL_SUBTEST_10(qr_verify_assert<Matrix3d>());
+  CALL_SUBTEST_1(qr_verify_assert<MatrixXf>());
+  CALL_SUBTEST_6(qr_verify_assert<MatrixXd>());
+  CALL_SUBTEST_7(qr_verify_assert<MatrixXcf>());
+  CALL_SUBTEST_8(qr_verify_assert<MatrixXcd>());
 }

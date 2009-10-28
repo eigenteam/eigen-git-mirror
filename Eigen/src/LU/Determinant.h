@@ -53,7 +53,7 @@ template<typename Derived,
 {
   static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
-    return m.partialLu().determinant();
+    return m.partialPivLu().determinant();
   }
 };
 

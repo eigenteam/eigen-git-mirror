@@ -39,7 +39,7 @@ enum {
   *
   * \param MatrixType the type of the matrix of which we are computing the LU factorization
   *
-  * \sa class LU, class SparseLLT
+  * \sa class FullPivLU, class SparseLLT
   */
 template<typename MatrixType, int Backend = DefaultBackend>
 class SparseLU

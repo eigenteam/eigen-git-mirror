@@ -130,11 +130,11 @@ template<typename Scalar> void lines()
 void test_geo_hyperplane()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( hyperplane(Hyperplane<float,2>()) );
-    CALL_SUBTEST( hyperplane(Hyperplane<float,3>()) );
-    CALL_SUBTEST( hyperplane(Hyperplane<double,4>()) );
-    CALL_SUBTEST( hyperplane(Hyperplane<std::complex<double>,5>()) );
-    CALL_SUBTEST( lines<float>() );
-    CALL_SUBTEST( lines<double>() );
+    CALL_SUBTEST_1( hyperplane(Hyperplane<float,2>()) );
+    CALL_SUBTEST_2( hyperplane(Hyperplane<float,3>()) );
+    CALL_SUBTEST_3( hyperplane(Hyperplane<double,4>()) );
+    CALL_SUBTEST_4( hyperplane(Hyperplane<std::complex<double>,5>()) );
+    CALL_SUBTEST_1( lines<float>() );
+    CALL_SUBTEST_2( lines<double>() );
   }
 }

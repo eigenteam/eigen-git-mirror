@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
       BenchTimer timer;
       timer.start();
-      LU<DenseMatrix> lu(m1);
+      FullPivLU<DenseMatrix> lu(m1);
       timer.stop();
       std::cout << "Eigen/dense:\t" << timer.value() << endl;
 

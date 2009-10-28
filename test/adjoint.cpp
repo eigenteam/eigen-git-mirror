@@ -108,16 +108,17 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 void test_adjoint()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( adjoint(Matrix3d()) );
-    CALL_SUBTEST( adjoint(Matrix4f()) );
-    CALL_SUBTEST( adjoint(MatrixXcf(4, 4)) );
-    CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
-    CALL_SUBTEST( adjoint(MatrixXf(21, 21)) );
+    CALL_SUBTEST_1( adjoint(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( adjoint(Matrix3d()) );
+    CALL_SUBTEST_3( adjoint(Matrix4f()) );
+    CALL_SUBTEST_4( adjoint(MatrixXcf(4, 4)) );
+    CALL_SUBTEST_5( adjoint(MatrixXi(8, 12)) );
+    CALL_SUBTEST_6( adjoint(MatrixXf(21, 21)) );
   }
   // test a large matrix only once
-  CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
+  CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );
 
+#ifdef EIGEN_TEST_PART_4
   {
     MatrixXcf a(10,10), b(10,10);
     VERIFY_RAISES_ASSERT(a = a.transpose());
@@ -128,5 +129,6 @@ void test_adjoint()
     VERIFY_RAISES_ASSERT(a = a.adjoint() + b);
     VERIFY_RAISES_ASSERT(a = b + a.adjoint());
   }
+#endif
 }
 

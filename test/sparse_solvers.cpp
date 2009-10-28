@@ -172,8 +172,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
 
-    LU<DenseMatrix> refLu(refMat2);
-    refLu.solve(b, &refX);
+    FullPivLU<DenseMatrix> refLu(refMat2);
+    refX = refLu.solve(b);
     #if defined(EIGEN_SUPERLU_SUPPORT) || defined(EIGEN_UMFPACK_SUPPORT)
     Scalar refDet = refLu.determinant();
     #endif
@@ -229,8 +229,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 void test_sparse_solvers()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( sparse_solvers<double>(8, 8) );
-    CALL_SUBTEST( sparse_solvers<std::complex<double> >(16, 16) );
-//     CALL_SUBTEST( sparse_solvers<double>(100, 100) );
+//     CALL_SUBTEST(sparse_solvers<double>(8, 8) );
+    CALL_SUBTEST(sparse_solvers<std::complex<double> >(16, 16) );
+//     CALL_SUBTEST(sparse_solvers<double>(100, 100) );
   }
 }

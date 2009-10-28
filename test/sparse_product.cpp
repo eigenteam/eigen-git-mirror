@@ -123,10 +123,10 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
 void test_sparse_product()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( sparse_product(SparseMatrix<double>(8, 8)) );
-    CALL_SUBTEST( sparse_product(SparseMatrix<std::complex<double> >(16, 16)) );
-    CALL_SUBTEST( sparse_product(SparseMatrix<double>(33, 33)) );
+    CALL_SUBTEST_1( sparse_product(SparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST_2( sparse_product(SparseMatrix<std::complex<double> >(16, 16)) );
+    CALL_SUBTEST_1( sparse_product(SparseMatrix<double>(33, 33)) );
 
-    CALL_SUBTEST( sparse_product(DynamicSparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST_3( sparse_product(DynamicSparseMatrix<double>(8, 8)) );
   }
 }

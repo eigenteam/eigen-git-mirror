@@ -34,7 +34,14 @@ struct ei_traits<ReturnByValue<Derived> >
   : public ei_traits<typename ei_traits<Derived>::ReturnMatrixType>
 {
   enum {
-    Flags = ei_traits<typename ei_traits<Derived>::ReturnMatrixType>::Flags | EvalBeforeNestingBit
+    // FIXME had to remove the DirectAccessBit for usage like
+    //   matrix.inverse().block(...)
+    // because the Block ctor with direct access
+    // wants to call coeffRef() to get an address, and that fails (infinite recursion) as ReturnByValue
+    // doesnt implement coeffRef(). The better fix is probably rather to make Block work directly
+    // on the nested type, right?
+    Flags = (ei_traits<typename ei_traits<Derived>::ReturnMatrixType>::Flags
+             | EvalBeforeNestingBit) & ~DirectAccessBit
   };
 };
 
