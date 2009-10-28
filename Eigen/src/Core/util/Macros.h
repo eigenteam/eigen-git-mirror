@@ -256,7 +256,7 @@ using Eigen::ei_cos;
 
 // C++0x features
 #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
-  #define EIGEN_REF_TO_TEMPORARY &&
+  #define EIGEN_REF_TO_TEMPORARY const &
 #else
   #define EIGEN_REF_TO_TEMPORARY const &
 #endif

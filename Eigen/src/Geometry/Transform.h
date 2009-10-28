@@ -481,6 +481,15 @@ typedef Transform<double,2> Transform2d;
 typedef Transform<double,3> Transform3d;
 
 /** \ingroup Geometry_Module */
+typedef Transform<float,2,Isometry> Isometry2f;
+/** \ingroup Geometry_Module */
+typedef Transform<float,3,Isometry> Isometry3f;
+/** \ingroup Geometry_Module */
+typedef Transform<double,2,Isometry> Isometry2d;
+/** \ingroup Geometry_Module */
+typedef Transform<double,3,Isometry> Isometry3d;
+
+/** \ingroup Geometry_Module */
 typedef Transform<float,2> Affine2f;
 /** \ingroup Geometry_Module */
 typedef Transform<float,3> Affine3f;
@@ -512,7 +521,7 @@ typedef Transform<double,3,Projective> Projective3d;
 **************************/
 
 #ifdef EIGEN_QT_SUPPORT
-/** Initialises \c *this from a QMatrix assuming the dimension is 2.
+/** Initializes \c *this from a QMatrix assuming the dimension is 2.
   *
   * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
@@ -538,7 +547,7 @@ Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::operator=(const QMatrix&
 
 /** \returns a QMatrix from \c *this assuming the dimension is 2.
   *
-  * \warning this convertion might loss data if \c *this is not affine
+  * \warning this conversion might loss data if \c *this is not affine
   *
   * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
@@ -551,7 +560,7 @@ QMatrix Transform<Scalar,Dim,Mode>::toQMatrix(void) const
                  matrix.coeff(0,2), matrix.coeff(1,2));
 }
 
-/** Initialises \c *this from a QTransform assuming the dimension is 2.
+/** Initializes \c *this from a QTransform assuming the dimension is 2.
   *
   * This function is available only if the token EIGEN_QT_SUPPORT is defined.
   */
@@ -899,7 +908,7 @@ struct ei_projective_transform_inverse<TransformType, Projective>
   * \returns the inverse transformation according to some given knowledge
   * on \c *this.
   *
-  * \param traits allows to optimize the inversion process when the transformion
+  * \param traits allows to optimize the inversion process when the transformation
   * is known to be not a general transformation. The possible values are:
   *  - Projective if the transformation is not necessarily affine, i.e., if the
   *    last row is not guaranteed to be [0 ... 0 1]
@@ -968,7 +977,7 @@ struct ei_transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
 };
 
 /*****************************************************
-*** Specializations of construct from matix        ***
+*** Specializations of construct from matrix       ***
 *****************************************************/
 
 template<typename Other, int Mode, int Dim, int HDim>

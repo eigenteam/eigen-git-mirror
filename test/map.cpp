@@ -37,14 +37,15 @@ template<typename VectorType> void map_class(const VectorType& m)
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
   
   Map<VectorType, Aligned>(array1, size) = VectorType::Random(size);
-  Map<VectorType>(array2, size) = Map<VectorType>(array1, size);
+  Map<VectorType, Aligned>(array2, size) = Map<VectorType,Aligned>(array1, size);
   Map<VectorType>(array3unaligned, size) = Map<VectorType>(array1, size);
-  VectorType ma1 = Map<VectorType>(array1, size);
+  VectorType ma1 = Map<VectorType, Aligned>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VectorType ma3 = Map<VectorType>(array3unaligned, size);
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
-  
+  VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)));
+
   ei_aligned_delete(array1, size);
   ei_aligned_delete(array2, size);
   delete[] array3;

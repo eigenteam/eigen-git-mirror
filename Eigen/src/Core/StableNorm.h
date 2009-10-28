@@ -59,7 +59,7 @@ MatrixBase<Derived>::stableNorm() const
   RealScalar invScale = 1;
   RealScalar ssq = 0; // sum of square
   enum {
-    Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? ForceAligned : AsRequested
+    Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? EnforceAlignedAccess : AsRequested
   };
   int n = size();
   int bi=0;
