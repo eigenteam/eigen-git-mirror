@@ -645,8 +645,9 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
-
+    
     Scalar sum() const;
+    Scalar mean() const;
     Scalar trace() const;
 
     Scalar prod() const;
