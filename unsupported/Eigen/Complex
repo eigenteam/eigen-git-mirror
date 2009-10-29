@@ -210,8 +210,20 @@ operator<< (std::basic_ostream<charT,traits>& ostr, const Complex<T>& rhs)
  template<class T> Complex<T> sqrt (const  Complex<T>&x){return sqrt(ei_to_std(x));}
  template<class T> Complex<T> tan (const  Complex<T>&x){return tan(ei_to_std(x));}
  template<class T> Complex<T> tanh (const  Complex<T>&x){return tanh(ei_to_std(x));}
-}
 
+  template<typename _Real> struct NumTraits<Complex<_Real> >
+  {
+    typedef _Real Real;
+    typedef Complex<_Real> FloatingPoint;
+    enum {
+      IsComplex = 1,
+      HasFloatingPoint = NumTraits<Real>::HasFloatingPoint,
+      ReadCost = 2,
+      AddCost = 2 * NumTraits<Real>::AddCost,
+      MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
+    };
+  };
+}
 #endif
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */
 
