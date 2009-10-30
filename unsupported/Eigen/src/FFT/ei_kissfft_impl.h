@@ -334,7 +334,6 @@
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
         get_plan(nfft,true).work(0, dst, src, 1,1);
-        scale(dst, nfft, Scalar(1)/nfft );
       }
 
       // half-complex to scalar
@@ -362,7 +361,6 @@
             m_tmpBuf[k] = fek + fok;
             m_tmpBuf[ncfft-k] = conj(fek - fok);
           }
-          scale(&m_tmpBuf[0], ncfft, Scalar(1)/nfft );
           get_plan(ncfft,true).work(0, reinterpret_cast<Complex*>(dst), &m_tmpBuf[0], 1,1);
         }
       }
@@ -402,13 +400,5 @@
             twidref[k-1] = exp( Complex(0,-pi * ((double) (k) / ncfft + .5) ) );
         }
         return &twidref[0];
-      }
-
-      // TODO move scaling up into Eigen::FFT
-      inline
-      void scale(Complex *dst,int n,Scalar s) 
-      {
-        for (int k=0;k<n;++k)
-          dst[k] *= s;
       }
     };

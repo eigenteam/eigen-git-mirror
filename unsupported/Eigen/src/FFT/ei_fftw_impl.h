@@ -187,12 +187,6 @@
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
-
-        //TODO move scaling to Eigen::FFT
-        // scaling
-        Scalar s = Scalar(1.)/nfft;
-        for (int k=0;k<nfft;++k)
-          dst[k] *= s;
       }
 
       // half-complex to scalar
@@ -200,11 +194,6 @@
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
-
-        //TODO move scaling to Eigen::FFT
-        Scalar s = Scalar(1.)/nfft;
-        for (int k=0;k<nfft;++k)
-          dst[k] *= s;
       }
 
   protected:
