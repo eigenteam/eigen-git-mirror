@@ -49,8 +49,8 @@ template<typename MatrixType> void lu_non_invertible()
     cols2 = cols = MatrixType::ColsAtCompileTime;
   }
 
-  typedef typename ei_lu_kernel_impl<MatrixType>::ReturnMatrixType KernelMatrixType;
-  typedef typename ei_lu_image_impl <MatrixType>::ReturnMatrixType ImageMatrixType;
+  typedef typename ei_fullpivlu_kernel_impl<MatrixType>::ReturnMatrixType KernelMatrixType;
+  typedef typename ei_fullpivlu_image_impl <MatrixType>::ReturnMatrixType ImageMatrixType;
   typedef Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> DynamicMatrixType;
   typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime>
           CMatrixType;

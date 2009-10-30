@@ -26,7 +26,7 @@
 #ifndef EIGEN_PARTIALLU_H
 #define EIGEN_PARTIALLU_H
 
-template<typename MatrixType, typename Rhs> struct ei_partiallu_solve_impl;
+template<typename MatrixType, typename Rhs> struct ei_partialpivlu_solve_impl;
 
 /** \ingroup LU_Module
   *
@@ -116,7 +116,7 @@ template<typename MatrixType> class PartialPivLU
       return m_p;
     }
 
-    /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
+    /** This method returns the solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
       *
       * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
@@ -131,16 +131,14 @@ template<typename MatrixType> class PartialPivLU
       * Since this PartialPivLU class assumes anyway that the matrix A is invertible, the solution
       * theoretically exists and is unique regardless of b.
       *
-      * \note_about_checking_solutions
-      *
       * \sa TriangularView::solve(), inverse(), computeInverse()
       */
     template<typename Rhs>
-    inline const ei_partiallu_solve_impl<MatrixType, Rhs>
+    inline const ei_partialpivlu_solve_impl<MatrixType, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_partiallu_solve_impl<MatrixType, Rhs>(*this, b.derived());
+      ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return ei_partialpivlu_solve_impl<MatrixType, Rhs>(*this, b.derived());
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
@@ -150,10 +148,10 @@ template<typename MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::inverse(), LU::inverse()
       */
-    inline const ei_partiallu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_partialpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
-      ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_partiallu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
+      ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return ei_partialpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
@@ -200,7 +198,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
 
 
 
-/** This is the blocked version of ei_lu_unblocked() */
+/** This is the blocked version of ei_fullpivlu_unblocked() */
 template<typename Scalar, int StorageOrder>
 struct ei_partial_lu_impl
 {
@@ -410,7 +408,7 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
 /***** Implementation of solve() *****************************************************/
 
 template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_partiallu_solve_impl<MatrixType,Rhs> >
+struct ei_traits<ei_partialpivlu_solve_impl<MatrixType,Rhs> >
 {
   typedef Matrix<typename Rhs::Scalar,
                  MatrixType::ColsAtCompileTime,
@@ -421,14 +419,14 @@ struct ei_traits<ei_partiallu_solve_impl<MatrixType,Rhs> >
 };
 
 template<typename MatrixType, typename Rhs>
-struct ei_partiallu_solve_impl : public ReturnByValue<ei_partiallu_solve_impl<MatrixType, Rhs> >
+struct ei_partialpivlu_solve_impl : public ReturnByValue<ei_partialpivlu_solve_impl<MatrixType, Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
   typedef PartialPivLU<MatrixType> LUType;
   const LUType& m_lu;
   const typename Rhs::Nested m_rhs;
 
-  ei_partiallu_solve_impl(const LUType& lu, const Rhs& rhs)
+  ei_partialpivlu_solve_impl(const LUType& lu, const Rhs& rhs)
     : m_lu(lu), m_rhs(rhs)
   {}
 

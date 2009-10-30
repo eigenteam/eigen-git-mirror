@@ -25,9 +25,9 @@
 #ifndef EIGEN_LU_H
 #define EIGEN_LU_H
 
-template<typename MatrixType, typename Rhs> struct ei_lu_solve_impl;
-template<typename MatrixType> struct ei_lu_kernel_impl;
-template<typename MatrixType> struct ei_lu_image_impl;
+template<typename MatrixType, typename Rhs> struct ei_fullpivlu_solve_impl;
+template<typename MatrixType> struct ei_fullpivlu_kernel_impl;
+template<typename MatrixType> struct ei_fullpivlu_image_impl;
 
 /** \ingroup LU_Module
   *
@@ -167,10 +167,10 @@ template<typename MatrixType> class FullPivLU
       *
       * \sa image()
       */
-    inline const ei_lu_kernel_impl<MatrixType> kernel() const
+    inline const ei_fullpivlu_kernel_impl<MatrixType> kernel() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_lu_kernel_impl<MatrixType>(*this);
+      return ei_fullpivlu_kernel_impl<MatrixType>(*this);
     }
 
     /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
@@ -193,11 +193,11 @@ template<typename MatrixType> class FullPivLU
       * \sa kernel()
       */
     template<typename OriginalMatrixType>
-    inline const ei_lu_image_impl<MatrixType>
+    inline const ei_fullpivlu_image_impl<MatrixType>
       image(const MatrixBase<OriginalMatrixType>& originalMatrix) const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_lu_image_impl<MatrixType>(*this, originalMatrix.derived());
+      return ei_fullpivlu_image_impl<MatrixType>(*this, originalMatrix.derived());
     }
 
     /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
@@ -220,11 +220,11 @@ template<typename MatrixType> class FullPivLU
       * \sa TriangularView::solve(), kernel(), inverse()
       */
     template<typename Rhs>
-    inline const ei_lu_solve_impl<MatrixType, Rhs>
+    inline const ei_fullpivlu_solve_impl<MatrixType, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_lu_solve_impl<MatrixType, Rhs>(*this, b.derived());
+      return ei_fullpivlu_solve_impl<MatrixType, Rhs>(*this, b.derived());
     }
 
     /** \returns the determinant of the matrix of which
@@ -365,11 +365,11 @@ template<typename MatrixType> class FullPivLU
       *
       * \sa MatrixBase::inverse()
       */
-    inline const ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_fullpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
-      return ei_lu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_fullpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
@@ -493,7 +493,7 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
 /********* Implementation of kernel() **************************************************/
 
 template<typename MatrixType>
-struct ei_traits<ei_lu_kernel_impl<MatrixType> >
+struct ei_traits<ei_fullpivlu_kernel_impl<MatrixType> >
 {
   typedef Matrix<
     typename MatrixType::Scalar,
@@ -509,7 +509,7 @@ struct ei_traits<ei_lu_kernel_impl<MatrixType> >
 };
 
 template<typename MatrixType>
-struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
+struct ei_fullpivlu_kernel_impl : public ReturnByValue<ei_fullpivlu_kernel_impl<MatrixType> >
 {
   typedef FullPivLU<MatrixType> LUType;
   typedef typename MatrixType::Scalar Scalar;
@@ -517,7 +517,7 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
   const LUType& m_lu;
   int m_rank, m_cols;
   
-  ei_lu_kernel_impl(const LUType& lu)
+  ei_fullpivlu_kernel_impl(const LUType& lu)
     : m_lu(lu),
       m_rank(lu.rank()),
       m_cols(m_rank==lu.matrixLU().cols() ? 1 : lu.matrixLU().cols() - m_rank){}
@@ -599,7 +599,7 @@ struct ei_lu_kernel_impl : public ReturnByValue<ei_lu_kernel_impl<MatrixType> >
 /***** Implementation of image() *****************************************************/
 
 template<typename MatrixType>
-struct ei_traits<ei_lu_image_impl<MatrixType> >
+struct ei_traits<ei_fullpivlu_image_impl<MatrixType> >
 {
   typedef Matrix<
     typename MatrixType::Scalar,
@@ -613,7 +613,7 @@ struct ei_traits<ei_lu_image_impl<MatrixType> >
 };
 
 template<typename MatrixType>
-struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
+struct ei_fullpivlu_image_impl : public ReturnByValue<ei_fullpivlu_image_impl<MatrixType> >
 {
   typedef FullPivLU<MatrixType> LUType;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -621,7 +621,7 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
   int m_rank, m_cols;
   const MatrixType& m_originalMatrix;
   
-  ei_lu_image_impl(const LUType& lu, const MatrixType& originalMatrix)
+  ei_fullpivlu_image_impl(const LUType& lu, const MatrixType& originalMatrix)
     : m_lu(lu), m_rank(lu.rank()),
       m_cols(m_rank == 0 ? 1 : m_rank),
       m_originalMatrix(originalMatrix) {}
@@ -656,7 +656,7 @@ struct ei_lu_image_impl : public ReturnByValue<ei_lu_image_impl<MatrixType> >
 /***** Implementation of solve() *****************************************************/
 
 template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_lu_solve_impl<MatrixType,Rhs> >
+struct ei_traits<ei_fullpivlu_solve_impl<MatrixType,Rhs> >
 {
   typedef Matrix<typename Rhs::Scalar,
                  MatrixType::ColsAtCompileTime,
@@ -667,14 +667,14 @@ struct ei_traits<ei_lu_solve_impl<MatrixType,Rhs> >
 };
 
 template<typename MatrixType, typename Rhs>
-struct ei_lu_solve_impl : public ReturnByValue<ei_lu_solve_impl<MatrixType, Rhs> >
+struct ei_fullpivlu_solve_impl : public ReturnByValue<ei_fullpivlu_solve_impl<MatrixType, Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
   typedef FullPivLU<MatrixType> LUType;
   const LUType& m_lu;
   const typename Rhs::Nested m_rhs;
   
-  ei_lu_solve_impl(const LUType& lu, const Rhs& rhs)
+  ei_fullpivlu_solve_impl(const LUType& lu, const Rhs& rhs)
     : m_lu(lu), m_rhs(rhs)
   {}
 

@@ -27,6 +27,8 @@
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
 
+template<typename MatrixType, typename Rhs> struct ei_ldlt_solve_impl;
+
 /** \ingroup cholesky_Module
   *
   * \class LDLT
@@ -43,8 +45,8 @@
   * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
   * on D also stabilizes the computation.
   *
-  * Remember that Cholesky decompositions are not rank-revealing.  Also, do not use a Cholesky decomposition to determine
-  * whether a system of equations has a solution.
+  * Remember that Cholesky decompositions are not rank-revealing.  Also, do not use a Cholesky
+	* decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
   */
@@ -117,14 +119,37 @@ template<typename MatrixType> class LDLT
       return m_sign == -1;
     }
 
-    template<typename RhsDerived, typename ResultType>
-    bool solve(const MatrixBase<RhsDerived> &b, ResultType *result) const;
-
+    /** \returns a solution x of \f$ A x = b \f$ using the current decomposition of A.
+      *
+      * \note_about_checking_solutions
+      *
+      * \sa solveInPlace(), MatrixBase::ldlt()
+      */
+    template<typename Rhs>
+    inline const ei_ldlt_solve_impl<MatrixType, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      ei_assert(m_matrix.rows()==b.rows()
+                && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
+      return ei_ldlt_solve_impl<MatrixType, Rhs>(*this, b.derived());
+    }
+    
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
     LDLT& compute(const MatrixType& matrix);
 
+    /** \returns the LDLT decomposition matrix
+      *
+      * TODO: document the storage layout
+      */
+    inline const MatrixType& matrixLDLT() const
+    {
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_matrix;
+    }
+    
   protected:
     /** \internal
       * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
@@ -134,7 +159,7 @@ template<typename MatrixType> class LDLT
       */
     MatrixType m_matrix;
     IntColVectorType m_p;
-    IntColVectorType m_transpositions;
+    IntColVectorType m_transpositions; // FIXME do we really need to store permanently the transpositions?
     int m_sign;
     bool m_isInitialized;
 };
@@ -238,27 +263,38 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   return *this;
 }
 
-/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
-  * The result is stored in \a result
-  *
-  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
-  *
-  * In other words, it computes \f$ b = A^{-1} b \f$ with
-  * \f$ P^T{L^{*}}^{-1} D^{-1} L^{-1} P b \f$ from right to left.
-  *
-  * \sa LDLT::solveInPlace(), MatrixBase::ldlt()
-  */
-template<typename MatrixType>
-template<typename RhsDerived, typename ResultType>
-bool LDLT<MatrixType>
-::solve(const MatrixBase<RhsDerived> &b, ResultType *result) const
+template<typename MatrixType,typename Rhs>
+struct ei_traits<ei_ldlt_solve_impl<MatrixType,Rhs> >
 {
-  ei_assert(m_isInitialized && "LDLT is not initialized.");
-  const int size = m_matrix.rows();
-  ei_assert(size==b.rows() && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
-  *result = b;
-  return solveInPlace(*result);
-}
+  typedef Matrix<typename Rhs::Scalar,
+                 MatrixType::ColsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 Rhs::PlainMatrixType::Options,
+                 MatrixType::MaxColsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+};
+
+template<typename MatrixType, typename Rhs>
+struct ei_ldlt_solve_impl : public ReturnByValue<ei_ldlt_solve_impl<MatrixType, Rhs> >
+{
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef LDLT<MatrixType> LDLTType;
+  const LDLTType& m_ldlt;
+  const typename Rhs::Nested m_rhs;
+
+  ei_ldlt_solve_impl(const LDLTType& ldlt, const Rhs& rhs)
+    : m_ldlt(ldlt), m_rhs(rhs)
+  {}
+
+  inline int rows() const { return m_ldlt.matrixLDLT().cols(); }
+  inline int cols() const { return m_rhs.cols(); }
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dst = m_rhs;
+    m_ldlt.solveInPlace(dst);
+  }
+};
 
 /** This is the \em in-place version of solve().
   *
