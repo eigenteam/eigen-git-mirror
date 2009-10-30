@@ -59,7 +59,7 @@ template<typename MatrixType> void svd(const MatrixType& m)
       a += a * a.adjoint() + a1 * a1.adjoint();
     }
     SVD<MatrixType> svd(a);
-    svd.solve(b, &x);
+    x = svd.solve(b);
     VERIFY_IS_APPROX(a * x,b);
   }
 
@@ -87,7 +87,7 @@ template<typename MatrixType> void svd_verify_assert()
   MatrixType tmp;
 
   SVD<MatrixType> svd;
-  VERIFY_RAISES_ASSERT(svd.solve(tmp, &tmp))
+  VERIFY_RAISES_ASSERT(svd.solve(tmp))
   VERIFY_RAISES_ASSERT(svd.matrixU())
   VERIFY_RAISES_ASSERT(svd.singularValues())
   VERIFY_RAISES_ASSERT(svd.matrixV())

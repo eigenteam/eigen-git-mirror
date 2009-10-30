@@ -200,7 +200,7 @@ template<typename MatrixType> class FullPivLU
       return ei_fullpivlu_image_impl<MatrixType>(*this, originalMatrix.derived());
     }
 
-    /** This method returns a solution x to the equation Ax=b, where A is the matrix of which
+    /** \return a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the LU decomposition.
       *
       * \param b the right-hand-side of the equation to solve. Can be a vector or a matrix,
