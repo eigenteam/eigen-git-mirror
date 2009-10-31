@@ -88,6 +88,8 @@ class FFT
     void fwd( Complex * dst, const Scalar * src, int nfft)
     {
         m_impl.fwd(dst,src,nfft);
+        if ( HasFlag(HalfSpectrum) == false)
+          ReflectSpectrum(dst,nfft);
     }
 
     void fwd( Complex * dst, const Complex * src, int nfft)
@@ -108,15 +110,19 @@ class FFT
     template<typename InputDerived, typename ComplexDerived>
     void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
     {
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
-        EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
-        EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
-                            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-        EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
-                            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
-        dst.derived().resize( src.size() );
-        fwd( &dst[0],&src[0],src.size() );
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
+      EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
+            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
+            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+
+      if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.derived().resize( (src.size()>>1)+1);
+      else
+        dst.derived().resize(src.size());
+      fwd( &dst[0],&src[0],src.size() );
     }
 
     void inv( Complex * dst, const Complex * src, int nfft)
@@ -160,7 +166,6 @@ class FFT
       inv( &dst[0],&src[0],dst.size() );
     }
 
-
     // TODO: multi-dimensional FFTs
     
     // TODO: handle Eigen MatrixBase
@@ -174,6 +179,13 @@ class FFT
     {
       for (int k=0;k<nx;++k)
         *x++ *= s;
+    }
+
+    void ReflectSpectrum(Complex * freq,int nfft)
+    {
+      int nhbins=(nfft>>1)+1;
+      for (int k=nhbins;k < nfft; ++k )
+        freq[k] = conj(freq[nfft-k]);
     }
 
     impl_type m_impl;

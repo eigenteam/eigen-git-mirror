@@ -177,9 +177,6 @@
       void fwd( Complex * dst,const Scalar * src,int nfft) 
       {
           get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src) ,nfft);
-          int nhbins=(nfft>>1)+1;
-          for (int k=nhbins;k < nfft; ++k )
-              dst[k] = conj(dst[nfft-k]);
       }
 
       // inverse complex-to-complex

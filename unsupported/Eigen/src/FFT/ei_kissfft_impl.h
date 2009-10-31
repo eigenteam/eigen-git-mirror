@@ -322,8 +322,6 @@
 
           // place conjugate-symmetric half at the end for completeness
           // TODO: make this configurable ( opt-out )
-          for ( k=1;k < ncfft ; ++k )
-            dst[nfft-k] = conj(dst[k]);
           dst[0] = dc;
           dst[ncfft] = nyquist;
         }
