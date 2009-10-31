@@ -166,6 +166,7 @@
         m_plans.clear();
       }
 
+      // complex-to-complex forward FFT
       inline
       void fwd( Complex * dst,const Complex *src,int nfft)
       {
@@ -208,3 +209,5 @@
           return m_plans[key];
       }
   };
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */
+

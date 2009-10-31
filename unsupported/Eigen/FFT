@@ -85,6 +85,7 @@ class FFT
     inline
     void ClearFlag(Flag f) { m_flag &= (~(int)f);}
 
+    inline
     void fwd( Complex * dst, const Scalar * src, int nfft)
     {
         m_impl.fwd(dst,src,nfft);
@@ -92,12 +93,14 @@ class FFT
           ReflectSpectrum(dst,nfft);
     }
 
+    inline
     void fwd( Complex * dst, const Complex * src, int nfft)
     {
         m_impl.fwd(dst,src,nfft);
     }
 
     template <typename _Input>
+    inline
     void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
     {
       if ( NumTraits<_Input>::IsComplex == 0 && HasFlag(HalfSpectrum) )
@@ -108,6 +111,7 @@ class FFT
     }
 
     template<typename InputDerived, typename ComplexDerived>
+    inline
     void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
@@ -125,6 +129,7 @@ class FFT
       fwd( &dst[0],&src[0],src.size() );
     }
 
+    inline
     void inv( Complex * dst, const Complex * src, int nfft)
     {
         m_impl.inv( dst,src,nfft );
@@ -132,6 +137,7 @@ class FFT
           scale(dst,1./nfft,nfft);
     }
 
+    inline
     void inv( Scalar * dst, const Complex * src, int nfft)
     {
         m_impl.inv( dst,src,nfft );
@@ -140,6 +146,7 @@ class FFT
     }
 
     template<typename OutputDerived, typename ComplexDerived>
+    inline
     void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src)
     {
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
@@ -157,6 +164,7 @@ class FFT
     }
 
     template <typename _Output>
+    inline
     void inv( std::vector<_Output> & dst, const std::vector<Complex> & src)
     {
       if ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) )
@@ -171,18 +179,22 @@ class FFT
     // TODO: handle Eigen MatrixBase
      // ---> i added fwd and inv specializations above + unit test, is this enough? (bjacob)
 
+    inline
     impl_type & impl() {return m_impl;}
   private:
 
     template <typename _It,typename _Val>
+    inline
     void scale(_It x,_Val s,int nx)
     {
       for (int k=0;k<nx;++k)
         *x++ *= s;
     }
 
+    inline
     void ReflectSpectrum(Complex * freq,int nfft)
     {
+      // create the implicit right-half spectrum (conjugate-mirror of the left-half)
       int nhbins=(nfft>>1)+1;
       for (int k=nhbins;k < nfft; ++k )
         freq[k] = conj(freq[nfft-k]);
