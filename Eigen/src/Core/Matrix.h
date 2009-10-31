@@ -402,9 +402,10 @@ class Matrix
     void swap(const MatrixBase<OtherDerived>& other);
 
     /** \name Map
-      * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
-      * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
-      * \a data pointers.
+      * These are convenience functions returning Map objects.
+      *
+      * \warning Do not use MapAligned in the Eigen 2.0. Mapping aligned arrays will be fully
+      * supported in Eigen 3.0 (already implemented in the development branch)
       *
       * \see class Map
       */
