@@ -283,12 +283,11 @@
         m_realTwiddles.clear();
       }
 
-      template <typename _Src>
       inline
-        void fwd( Complex * dst,const _Src *src,int nfft)
-        {
-          get_plan(nfft,false).work(0, dst, src, 1,1);
-        }
+      void fwd( Complex * dst,const Complex *src,int nfft)
+      {
+        get_plan(nfft,false).work(0, dst, src, 1,1);
+      }
 
       // real-to-complex forward FFT
       // perform two FFTs of src even and src odd
@@ -299,7 +298,9 @@
       {
         if ( nfft&3  ) {
           // use generic mode for odd
-          get_plan(nfft,false).work(0, dst, src, 1,1);
+          m_tmpBuf1.resize(nfft);
+          get_plan(nfft,false).work(0, &m_tmpBuf1[0], src, 1,1);
+          std::copy(m_tmpBuf1.begin(),m_tmpBuf1.begin()+(nfft>>1)+1,dst );
         }else{
           int ncfft = nfft>>1;
           int ncfft2 = nfft>>2;
@@ -319,9 +320,6 @@
             dst[k] =  (f1k + tw) * Scalar(.5);
             dst[ncfft-k] =  conj(f1k -tw)*Scalar(.5);
           }
-
-          // place conjugate-symmetric half at the end for completeness
-          // TODO: make this configurable ( opt-out )
           dst[0] = dc;
           dst[ncfft] = nyquist;
         }
@@ -339,27 +337,31 @@
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         if (nfft&3) {
-          m_tmpBuf.resize(nfft);
-          inv(&m_tmpBuf[0],src,nfft);
+          m_tmpBuf1.resize(nfft);
+          m_tmpBuf2.resize(nfft);
+          std::copy(src,src+(nfft>>1)+1,m_tmpBuf1.begin() );
+          for (int k=1;k<(nfft>>1)+1;++k)
+            m_tmpBuf1[nfft-k] = conj(m_tmpBuf1[k]);
+          inv(&m_tmpBuf2[0],&m_tmpBuf1[0],nfft);
           for (int k=0;k<nfft;++k)
-            dst[k] = m_tmpBuf[k].real();
+            dst[k] = m_tmpBuf2[k].real();
         }else{
           // optimized version for multiple of 4
           int ncfft = nfft>>1;
           int ncfft2 = nfft>>2;
           Complex * rtw = real_twiddles(ncfft2);
-          m_tmpBuf.resize(ncfft);
-          m_tmpBuf[0] = Complex( src[0].real() + src[ncfft].real(), src[0].real() - src[ncfft].real() );
+          m_tmpBuf1.resize(ncfft);
+          m_tmpBuf1[0] = Complex( src[0].real() + src[ncfft].real(), src[0].real() - src[ncfft].real() );
           for (int k = 1; k <= ncfft / 2; ++k) {
             Complex fk = src[k];
             Complex fnkc = conj(src[ncfft-k]);
             Complex fek = fk + fnkc;
             Complex tmp = fk - fnkc;
             Complex fok = tmp * conj(rtw[k-1]);
-            m_tmpBuf[k] = fek + fok;
-            m_tmpBuf[ncfft-k] = conj(fek - fok);
+            m_tmpBuf1[k] = fek + fok;
+            m_tmpBuf1[ncfft-k] = conj(fek - fok);
           }
-          get_plan(ncfft,true).work(0, reinterpret_cast<Complex*>(dst), &m_tmpBuf[0], 1,1);
+          get_plan(ncfft,true).work(0, reinterpret_cast<Complex*>(dst), &m_tmpBuf1[0], 1,1);
         }
       }
 
@@ -369,7 +371,8 @@
 
       PlanMap m_plans;
       std::map<int, std::vector<Complex> > m_realTwiddles;
-      std::vector<Complex> m_tmpBuf;
+      std::vector<Complex> m_tmpBuf1;
+      std::vector<Complex> m_tmpBuf2;
 
       inline
       int PlanKey(int nfft,bool isinverse) const { return (nfft<<1) | isinverse; }
