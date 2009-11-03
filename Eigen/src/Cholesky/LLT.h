@@ -26,7 +26,6 @@
 #define EIGEN_LLT_H
 
 template<typename MatrixType, int UpLo> struct LLT_Traits;
-template<typename MatrixType, int UpLo, typename Rhs> struct ei_llt_solve_impl;
 
 /** \ingroup cholesky_Module
   *
@@ -54,9 +53,10 @@ template<typename MatrixType, int UpLo, typename Rhs> struct ei_llt_solve_impl;
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   */
-template<typename MatrixType, int _UpLo> class LLT
+template<typename _MatrixType, int _UpLo> class LLT
 {
-  private:
+  public:
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
@@ -68,8 +68,6 @@ template<typename MatrixType, int _UpLo> class LLT
     };
 
     typedef LLT_Traits<MatrixType,UpLo> Traits;
-
-  public:
 
     /**
     * \brief Default Constructor.
@@ -111,13 +109,13 @@ template<typename MatrixType, int _UpLo> class LLT
       * \sa solveInPlace(), MatrixBase::llt()
       */
     template<typename Rhs>
-    inline const ei_llt_solve_impl<MatrixType, UpLo, Rhs>
+    inline const ei_solve_return_value<LLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "LLT is not initialized.");
       ei_assert(m_matrix.rows()==b.rows()
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-      return ei_llt_solve_impl<MatrixType, UpLo, Rhs>(*this, b.derived());
+      return ei_solve_return_value<LLT, Rhs>(*this, b.derived());
     }
     
     template<typename Derived>
@@ -134,7 +132,10 @@ template<typename MatrixType, int _UpLo> class LLT
       ei_assert(m_isInitialized && "LLT is not initialized.");
       return m_matrix;
     }
-    
+
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
+
   protected:
     /** \internal
       * Used to compute and store L
@@ -257,36 +258,14 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   return *this;
 }
 
-template<typename MatrixType, int UpLo, typename Rhs>
-struct ei_traits<ei_llt_solve_impl<MatrixType,UpLo,Rhs> >
+template<typename MatrixType, int UpLo, typename Rhs, typename Dest>
+struct ei_solve_impl<LLT<MatrixType, UpLo>, Rhs, Dest>
+  : ei_solve_return_value<LLT<MatrixType, UpLo>, Rhs>
 {
-  typedef Matrix<typename Rhs::Scalar,
-                 MatrixType::ColsAtCompileTime,
-                 Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
-                 MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
-};
-
-template<typename MatrixType, int UpLo, typename Rhs>
-struct ei_llt_solve_impl : public ReturnByValue<ei_llt_solve_impl<MatrixType,UpLo,Rhs> >
-{
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef LLT<MatrixType,UpLo> LLTType;
-  const LLTType& m_llt;
-  const typename Rhs::Nested m_rhs;
-
-  ei_llt_solve_impl(const LLTType& llt, const Rhs& rhs)
-    : m_llt(llt), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_llt.matrixLLT().cols(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
-    dst = m_rhs;
-    m_llt.solveInPlace(dst);
+    dst = this->m_rhs;
+    this->m_dec.solveInPlace(dst);
   }
 };
 

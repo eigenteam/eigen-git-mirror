@@ -22,7 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef EIGEN_NO_ASSERTION_CHECKING
 #define EIGEN_NO_ASSERTION_CHECKING
+#endif
+
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/QR>

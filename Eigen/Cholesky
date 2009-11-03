@@ -30,6 +30,7 @@ namespace Eigen {
   * \endcode
   */
 
+#include "src/misc/Solve.h"
 #include "src/Array/CwiseOperators.h"
 #include "src/Array/Functors.h"
 #include "src/Cholesky/LLT.h"

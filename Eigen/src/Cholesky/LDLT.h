@@ -27,8 +27,6 @@
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
 
-template<typename MatrixType, typename Rhs> struct ei_ldlt_solve_impl;
-
 /** \ingroup cholesky_Module
   *
   * \class LDLT
@@ -54,10 +52,10 @@ template<typename MatrixType, typename Rhs> struct ei_ldlt_solve_impl;
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   */
-template<typename MatrixType> class LDLT
+template<typename _MatrixType> class LDLT
 {
   public:
-
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
@@ -126,13 +124,13 @@ template<typename MatrixType> class LDLT
       * \sa solveInPlace(), MatrixBase::ldlt()
       */
     template<typename Rhs>
-    inline const ei_ldlt_solve_impl<MatrixType, Rhs>
+    inline const ei_solve_return_value<LDLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
       ei_assert(m_matrix.rows()==b.rows()
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
-      return ei_ldlt_solve_impl<MatrixType, Rhs>(*this, b.derived());
+      return ei_solve_return_value<LDLT, Rhs>(*this, b.derived());
     }
     
     template<typename Derived>
@@ -149,6 +147,9 @@ template<typename MatrixType> class LDLT
       ei_assert(m_isInitialized && "LDLT is not initialized.");
       return m_matrix;
     }
+
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
     
   protected:
     /** \internal
@@ -263,36 +264,14 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   return *this;
 }
 
-template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_ldlt_solve_impl<MatrixType,Rhs> >
+template<typename MatrixType, typename Rhs, typename Dest>
+struct ei_solve_impl<LDLT<MatrixType>, Rhs, Dest>
+  : ei_solve_return_value<LDLT<MatrixType>, Rhs>
 {
-  typedef Matrix<typename Rhs::Scalar,
-                 MatrixType::ColsAtCompileTime,
-                 Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
-                 MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
-};
-
-template<typename MatrixType, typename Rhs>
-struct ei_ldlt_solve_impl : public ReturnByValue<ei_ldlt_solve_impl<MatrixType, Rhs> >
-{
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef LDLT<MatrixType> LDLTType;
-  const LDLTType& m_ldlt;
-  const typename Rhs::Nested m_rhs;
-
-  ei_ldlt_solve_impl(const LDLTType& ldlt, const Rhs& rhs)
-    : m_ldlt(ldlt), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_ldlt.matrixLDLT().cols(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
-    dst = m_rhs;
-    m_ldlt.solveInPlace(dst);
+    dst = this->m_rhs;
+    this->m_dec.solveInPlace(dst);
   }
 };
 
