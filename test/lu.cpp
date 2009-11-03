@@ -49,8 +49,8 @@ template<typename MatrixType> void lu_non_invertible()
     cols2 = cols = MatrixType::ColsAtCompileTime;
   }
 
-  typedef typename ei_fullpivlu_kernel_impl<MatrixType>::ReturnMatrixType KernelMatrixType;
-  typedef typename ei_fullpivlu_image_impl <MatrixType>::ReturnMatrixType ImageMatrixType;
+  typedef typename ei_kernel_return_value<FullPivLU<MatrixType> >::ReturnMatrixType KernelMatrixType;
+  typedef typename ei_image_return_value<FullPivLU<MatrixType> >::ReturnMatrixType ImageMatrixType;
   typedef Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> DynamicMatrixType;
   typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime>
           CMatrixType;
@@ -65,10 +65,10 @@ template<typename MatrixType> void lu_non_invertible()
   createRandomMatrixOfRank(rank, rows, cols, m1);
 
   FullPivLU<MatrixType> lu(m1);
+  std::cout << lu.kernel().rows() << " " << lu.kernel().cols() << std::endl;
   KernelMatrixType m1kernel = lu.kernel();
-  ImageMatrixType m1image  = lu.image(m1);
+  ImageMatrixType m1image = lu.image(m1);
 
-  // std::cerr << rank << " " << lu.rank() << std::endl;
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());

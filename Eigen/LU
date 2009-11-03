@@ -18,6 +18,9 @@ namespace Eigen {
   * \endcode
   */
 
+#include "src/misc/Solve.h"
+#include "src/misc/Kernel.h"
+#include "src/misc/Image.h"
 #include "src/LU/FullPivLU.h"
 #include "src/LU/PartialPivLU.h"
 #include "src/LU/Determinant.h"

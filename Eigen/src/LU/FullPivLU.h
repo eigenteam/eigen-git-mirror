@@ -25,10 +25,6 @@
 #ifndef EIGEN_LU_H
 #define EIGEN_LU_H
 
-template<typename MatrixType, typename Rhs> struct ei_fullpivlu_solve_impl;
-template<typename MatrixType> struct ei_fullpivlu_kernel_impl;
-template<typename MatrixType> struct ei_fullpivlu_image_impl;
-
 /** \ingroup LU_Module
   *
   * \class FullPivLU
@@ -59,10 +55,10 @@ template<typename MatrixType> struct ei_fullpivlu_image_impl;
   *
   * \sa MatrixBase::fullPivLu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
-template<typename MatrixType> class FullPivLU
+template<typename _MatrixType> class FullPivLU
 {
   public:
-
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
@@ -70,17 +66,12 @@ template<typename MatrixType> class FullPivLU
     typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
 
-    enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
-             MatrixType::MaxColsAtCompileTime,
-             MatrixType::MaxRowsAtCompileTime)
-    };
-
     /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via LU::compute(const MatrixType&).
-    */
+      * \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via LU::compute(const MatrixType&).
+      */
     FullPivLU();
 
     /** Constructor.
@@ -167,10 +158,10 @@ template<typename MatrixType> class FullPivLU
       *
       * \sa image()
       */
-    inline const ei_fullpivlu_kernel_impl<MatrixType> kernel() const
+    inline const ei_kernel_return_value<FullPivLU> kernel() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_fullpivlu_kernel_impl<MatrixType>(*this);
+      return ei_kernel_return_value<FullPivLU>(*this);
     }
 
     /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
@@ -192,12 +183,11 @@ template<typename MatrixType> class FullPivLU
       *
       * \sa kernel()
       */
-    template<typename OriginalMatrixType>
-    inline const ei_fullpivlu_image_impl<MatrixType>
-      image(const MatrixBase<OriginalMatrixType>& originalMatrix) const
+    inline const ei_image_return_value<FullPivLU>
+      image(const MatrixType& originalMatrix) const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_fullpivlu_image_impl<MatrixType>(*this, originalMatrix.derived());
+      return ei_image_return_value<FullPivLU>(*this, originalMatrix);
     }
 
     /** \return a solution x to the equation Ax=b, where A is the matrix of which
@@ -220,11 +210,11 @@ template<typename MatrixType> class FullPivLU
       * \sa TriangularView::solve(), kernel(), inverse()
       */
     template<typename Rhs>
-    inline const ei_fullpivlu_solve_impl<MatrixType, Rhs>
+    inline const ei_solve_return_value<FullPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return ei_fullpivlu_solve_impl<MatrixType, Rhs>(*this, b.derived());
+      return ei_solve_return_value<FullPivLU, Rhs>(*this, b.derived());
     }
 
     /** \returns the determinant of the matrix of which
@@ -365,14 +355,17 @@ template<typename MatrixType> class FullPivLU
       *
       * \sa MatrixBase::inverse()
       */
-    inline const ei_fullpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_solve_return_value<FullPivLU,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
-      return ei_fullpivlu_solve_impl<MatrixType,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_return_value<FullPivLU,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
+    inline int rows() const { return m_lu.rows(); }
+    inline int cols() const { return m_lu.cols(); }
+    
   protected:
     MatrixType m_lu;
     IntColVectorType m_p;
@@ -492,42 +485,21 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
 
 /********* Implementation of kernel() **************************************************/
 
-template<typename MatrixType>
-struct ei_traits<ei_fullpivlu_kernel_impl<MatrixType> >
+template<typename MatrixType, typename Dest>
+struct ei_kernel_impl<FullPivLU<MatrixType>, Dest>
+  : ei_kernel_return_value<FullPivLU<MatrixType> >
 {
-  typedef Matrix<
-    typename MatrixType::Scalar,
-    MatrixType::ColsAtCompileTime, // the number of rows in the "kernel matrix"
-                                   // is the number of cols of the original matrix
-                                   // so that the product "matrix * kernel = zero" makes sense
-    Dynamic,                       // we don't know at compile-time the dimension of the kernel
-    MatrixType::Options,
-    MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
-    MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space,
-                                     // whose dimension is the number of columns of the original matrix
-  > ReturnMatrixType;
-};
-
-template<typename MatrixType>
-struct ei_fullpivlu_kernel_impl : public ReturnByValue<ei_fullpivlu_kernel_impl<MatrixType> >
-{
-  typedef FullPivLU<MatrixType> LUType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  const LUType& m_lu;
-  int m_rank, m_cols;
-  
-  ei_fullpivlu_kernel_impl(const LUType& lu)
-    : m_lu(lu),
-      m_rank(lu.rank()),
-      m_cols(m_rank==lu.matrixLU().cols() ? 1 : lu.matrixLU().cols() - m_rank){}
+  enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+            MatrixType::MaxColsAtCompileTime,
+            MatrixType::MaxRowsAtCompileTime)
+  };
 
-  inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_cols; }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
-    const int cols = m_lu.matrixLU().cols(), dimker = cols - m_rank;
+    const FullPivLU<MatrixType>& dec = this->m_dec;
+    const int cols = dec.matrixLU().cols(), rank = this->m_rank, dimker = cols - rank;
     if(dimker == 0)
     {
       // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
@@ -549,89 +521,73 @@ struct ei_fullpivlu_kernel_impl : public ReturnByValue<ei_fullpivlu_kernel_impl<
       *
       * U is upper triangular, with eigenvalues sorted so that any zeros appear at the end.
       * Thus, the diagonal of U ends with exactly
-      * m_dimKer zero's. Let us use that to construct dimKer linearly
+      * dimKer zero's. Let us use that to construct dimKer linearly
       * independent vectors in Ker U.
       */
 
-    Matrix<int, Dynamic, 1, 0, LUType::MaxSmallDimAtCompileTime, 1> pivots(m_rank);
-    RealScalar premultiplied_threshold = m_lu.maxPivot() * m_lu.threshold();
+    Matrix<int, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank);
+    RealScalar premultiplied_threshold = dec.maxPivot() * dec.threshold();
     int p = 0;
-    for(int i = 0; i < m_lu.nonzeroPivots(); ++i)
-      if(ei_abs(m_lu.matrixLU().coeff(i,i)) > premultiplied_threshold)
+    for(int i = 0; i < dec.nonzeroPivots(); ++i)
+      if(ei_abs(dec.matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
-    ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
+    ei_internal_assert(p == rank);
 
     // we construct a temporaty trapezoid matrix m, by taking the U matrix and
     // permuting the rows and cols to bring the nonnegligible pivots to the top of
     // the main diagonal. We need that to be able to apply our triangular solvers.
     // FIXME when we get triangularView-for-rectangular-matrices, this can be simplified
     Matrix<typename MatrixType::Scalar, Dynamic, Dynamic, MatrixType::Options,
-           LUType::MaxSmallDimAtCompileTime, MatrixType::MaxColsAtCompileTime>
-      m(m_lu.matrixLU().block(0, 0, m_rank, cols));
-    for(int i = 0; i < m_rank; ++i)
+           MaxSmallDimAtCompileTime, MatrixType::MaxColsAtCompileTime>
+      m(dec.matrixLU().block(0, 0, rank, cols));
+    for(int i = 0; i < rank; ++i)
     {
       if(i) m.row(i).start(i).setZero();
-      m.row(i).end(cols-i) = m_lu.matrixLU().row(pivots.coeff(i)).end(cols-i);
+      m.row(i).end(cols-i) = dec.matrixLU().row(pivots.coeff(i)).end(cols-i);
     }
-    m.block(0, 0, m_rank, m_rank).template triangularView<StrictlyLowerTriangular>().setZero();
-    for(int i = 0; i < m_rank; ++i)
+    m.block(0, 0, rank, rank);
+    m.block(0, 0, rank, rank).template triangularView<StrictlyLowerTriangular>().setZero();
+    for(int i = 0; i < rank; ++i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // ok, we have our trapezoid matrix, we can apply the triangular solver.
     // notice that the math behind this suggests that we should apply this to the
     // negative of the RHS, but for performance we just put the negative sign elsewhere, see below.
-    m.corner(TopLeft, m_rank, m_rank)
+    m.corner(TopLeft, rank, rank)
      .template triangularView<UpperTriangular>().solveInPlace(
-        m.corner(TopRight, m_rank, dimker)
+        m.corner(TopRight, rank, dimker)
       );
 
     // now we must undo the column permutation that we had applied!
-    for(int i = m_rank-1; i >= 0; --i)
+    for(int i = rank-1; i >= 0; --i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // see the negative sign in the next line, that's what we were talking about above.
-    for(int i = 0; i < m_rank; ++i) dst.row(m_lu.permutationQ().coeff(i)) = -m.row(i).end(dimker);
-    for(int i = m_rank; i < cols; ++i) dst.row(m_lu.permutationQ().coeff(i)).setZero();
-    for(int k = 0; k < dimker; ++k) dst.coeffRef(m_lu.permutationQ().coeff(m_rank+k), k) = Scalar(1);
+    for(int i = 0; i < rank; ++i) dst.row(dec.permutationQ().coeff(i)) = -m.row(i).end(dimker);
+    for(int i = rank; i < cols; ++i) dst.row(dec.permutationQ().coeff(i)).setZero();
+    for(int k = 0; k < dimker; ++k) dst.coeffRef(dec.permutationQ().coeff(rank+k), k) = Scalar(1);
   }
 };
 
 /***** Implementation of image() *****************************************************/
 
-template<typename MatrixType>
-struct ei_traits<ei_fullpivlu_image_impl<MatrixType> >
+template<typename MatrixType, typename Dest>
+struct ei_image_impl<FullPivLU<MatrixType>, Dest>
+  : ei_image_return_value<FullPivLU<MatrixType> >
 {
-  typedef Matrix<
-    typename MatrixType::Scalar,
-    MatrixType::RowsAtCompileTime, // the image is a subspace of the destination space, whose 
-                                   // dimension is the number of rows of the original matrix
-    Dynamic,                       // we don't know at compile time the dimension of the image (the rank)
-    MatrixType::Options,
-    MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
-    MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
-  > ReturnMatrixType;
-};
-
-template<typename MatrixType>
-struct ei_fullpivlu_image_impl : public ReturnByValue<ei_fullpivlu_image_impl<MatrixType> >
-{
-  typedef FullPivLU<MatrixType> LUType;
+  typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  const LUType& m_lu;
-  int m_rank, m_cols;
-  const MatrixType& m_originalMatrix;
-  
-  ei_fullpivlu_image_impl(const LUType& lu, const MatrixType& originalMatrix)
-    : m_lu(lu), m_rank(lu.rank()),
-      m_cols(m_rank == 0 ? 1 : m_rank),
-      m_originalMatrix(originalMatrix) {}
+  enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+            MatrixType::MaxColsAtCompileTime,
+            MatrixType::MaxRowsAtCompileTime)
+  };
 
-  inline int rows() const { return m_lu.matrixLU().rows(); }
-  inline int cols() const { return m_cols; }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
-    if(m_rank == 0)
+    const int rank = this->m_rank;
+    const FullPivLU<MatrixType>& dec = this->m_dec;
+    const MatrixType& originalMatrix = this->m_originalMatrix;
+    if(rank == 0)
     {
       // The Image is just {0}, so it doesn't have a basis properly speaking, but let's
       // avoid crashing/asserting as that depends on floating point calculations. Let's
@@ -640,61 +596,40 @@ struct ei_fullpivlu_image_impl : public ReturnByValue<ei_fullpivlu_image_impl<Ma
       return;
     }
     
-    Matrix<int, Dynamic, 1, 0, LUType::MaxSmallDimAtCompileTime, 1> pivots(m_rank);
-    RealScalar premultiplied_threshold = m_lu.maxPivot() * m_lu.threshold();
+    Matrix<int, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank);
+    RealScalar premultiplied_threshold = dec.maxPivot() * dec.threshold();
     int p = 0;
-    for(int i = 0; i < m_lu.nonzeroPivots(); ++i)
-      if(ei_abs(m_lu.matrixLU().coeff(i,i)) > premultiplied_threshold)
+    for(int i = 0; i < dec.nonzeroPivots(); ++i)
+      if(ei_abs(dec.matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
-    ei_assert(p == m_rank && "You hit a bug in Eigen! Please report (backtrace and matrix)!");
+    ei_internal_assert(p == rank);
     
-    for(int i = 0; i < m_rank; ++i)
-      dst.col(i) = m_originalMatrix.col(m_lu.permutationQ().coeff(pivots.coeff(i)));
+    for(int i = 0; i < rank; ++i)
+      dst.col(i) = originalMatrix.col(dec.permutationQ().coeff(pivots.coeff(i)));
   }
 };
 
 /***** Implementation of solve() *****************************************************/
 
-template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_fullpivlu_solve_impl<MatrixType,Rhs> >
+template<typename MatrixType, typename Rhs, typename Dest>
+struct ei_solve_impl<FullPivLU<MatrixType>, Rhs, Dest>
+  : ei_solve_return_value<FullPivLU<MatrixType>, Rhs>
 {
-  typedef Matrix<typename Rhs::Scalar,
-                 MatrixType::ColsAtCompileTime,
-                 Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
-                 MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
-};
-
-template<typename MatrixType, typename Rhs>
-struct ei_fullpivlu_solve_impl : public ReturnByValue<ei_fullpivlu_solve_impl<MatrixType, Rhs> >
-{
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef FullPivLU<MatrixType> LUType;
-  const LUType& m_lu;
-  const typename Rhs::Nested m_rhs;
-  
-  ei_fullpivlu_solve_impl(const LUType& lu, const Rhs& rhs)
-    : m_lu(lu), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_lu.matrixLU().cols(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
     /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
-    * So we proceed as follows:
-    * Step 1: compute c = P * rhs.
-    * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
-    * Step 3: replace c by the solution x to Ux = c. May or may not exist.
-    * Step 4: result = Q * c;
-    */
+     * So we proceed as follows:
+     * Step 1: compute c = P * rhs.
+     * Step 2: replace c by the solution x to Lx = c. Exists because L is invertible.
+     * Step 3: replace c by the solution x to Ux = c. May or may not exist.
+     * Step 4: result = Q * c;
+     */
 
-    const int rows = m_lu.matrixLU().rows(),
-              cols = m_lu.matrixLU().cols(),
-              nonzero_pivots = m_lu.nonzeroPivots();
-    ei_assert(m_rhs.rows() == rows);
+    const FullPivLU<MatrixType>& dec = this->m_dec;
+    const Rhs& rhs = this->m_rhs;
+    const int rows = dec.matrixLU().rows(), cols = dec.matrixLU().cols(),
+              nonzero_pivots = dec.nonzeroPivots();
+    ei_assert(rhs.rows() == rows);
     const int smalldim = std::min(rows, cols);
 
     if(nonzero_pivots == 0)
@@ -702,36 +637,36 @@ struct ei_fullpivlu_solve_impl : public ReturnByValue<ei_fullpivlu_solve_impl<Ma
       dst.setZero();
       return;
     }
-    
-    typename Rhs::PlainMatrixType c(m_rhs.rows(), m_rhs.cols());
+
+    typename Rhs::PlainMatrixType c(rhs.rows(), rhs.cols());
 
     // Step 1
     for(int i = 0; i < rows; ++i)
-      c.row(m_lu.permutationP().coeff(i)) = m_rhs.row(i);
+      c.row(dec.permutationP().coeff(i)) = rhs.row(i);
 
     // Step 2
-    m_lu.matrixLU()
+    dec.matrixLU()
         .corner(Eigen::TopLeft,smalldim,smalldim)
         .template triangularView<UnitLowerTriangular>()
         .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
     if(rows>cols)
     {
       c.corner(Eigen::BottomLeft, rows-cols, c.cols())
-        -= m_lu.matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
-         * c.corner(Eigen::TopLeft, cols, c.cols());
+        -= dec.matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
+        * c.corner(Eigen::TopLeft, cols, c.cols());
     }
 
     // Step 3
-    m_lu.matrixLU()
+    dec.matrixLU()
         .corner(TopLeft, nonzero_pivots, nonzero_pivots)
         .template triangularView<UpperTriangular>()
         .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
     // Step 4
     for(int i = 0; i < nonzero_pivots; ++i)
-      dst.row(m_lu.permutationQ().coeff(i)) = c.row(i);
-    for(int i = nonzero_pivots; i < m_lu.matrixLU().cols(); ++i)
-      dst.row(m_lu.permutationQ().coeff(i)).setZero();
+      dst.row(dec.permutationQ().coeff(i)) = c.row(i);
+    for(int i = nonzero_pivots; i < dec.matrixLU().cols(); ++i)
+      dst.row(dec.permutationQ().coeff(i)).setZero();
   }
 };
 

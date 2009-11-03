@@ -66,6 +66,13 @@ template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
 
+template<typename DecompositionType, typename Rhs> struct ei_solve_return_value;
+template<typename DecompositionType, typename Rhs, typename Dest> struct ei_solve_impl;
+template<typename DecompositionType> struct ei_kernel_return_value;
+template<typename DecompositionType, typename Dest> struct ei_kernel_impl;
+template<typename DecompositionType> struct ei_image_return_value;
+template<typename DecompositionType, typename Dest> struct ei_image_impl;
+
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
 
 

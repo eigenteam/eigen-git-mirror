@@ -38,8 +38,10 @@ struct ei_traits<ReturnByValue<Derived> >
     //   matrix.inverse().block(...)
     // because the Block ctor with direct access
     // wants to call coeffRef() to get an address, and that fails (infinite recursion) as ReturnByValue
-    // doesnt implement coeffRef(). The better fix is probably rather to make Block work directly
-    // on the nested type, right?
+    // doesnt implement coeffRef().
+    // The fact that I had to do that shows that when doing xpr.block() with a non-direct-access xpr,
+    // even if xpr has the EvalBeforeNestingBit, the block() doesn't use direct access on the evaluated
+    // xpr.
     Flags = (ei_traits<typename ei_traits<Derived>::ReturnMatrixType>::Flags
              | EvalBeforeNestingBit) & ~DirectAccessBit
   };
