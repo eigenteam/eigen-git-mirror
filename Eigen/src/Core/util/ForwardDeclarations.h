@@ -74,7 +74,7 @@ template<typename DecompositionType> struct ei_image_retval_base;
 template<typename DecompositionType> struct ei_image_retval;
 
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
-
+template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int ColsUsed=Dynamic, int Options=0> class ColumnMatrix;
 
 template<typename Lhs, typename Rhs> struct ei_product_type;
 template<typename Lhs, typename Rhs,
@@ -150,5 +150,8 @@ template<typename MatrixType,int Direction> class Homogeneous;
 
 // Sparse module:
 template<typename Lhs, typename Rhs, int ProductMode> class SparseProduct;
+// Skyline module:
+template<typename Lhs, typename Rhs, int ProductMode> class SkylineProduct;
+
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

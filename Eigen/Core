@@ -88,6 +88,7 @@
 #include <cstring>
 #include <string>
 #include <limits>
+#include <vector>
 // for min/max:
 #include <algorithm>
 
@@ -200,6 +201,7 @@ namespace Eigen {
 #include "src/Core/products/TriangularMatrixMatrix.h"
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
+#include "src/Core/ColumnMatrix.h"
 #include "src/Core/ExpressionMaker.h"
 
 } // namespace Eigen
