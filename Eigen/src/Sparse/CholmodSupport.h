@@ -126,6 +126,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
     typedef SparseLLT<MatrixType> Base;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
+    typedef typename Base::CholMatrixType CholMatrixType;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
@@ -154,7 +155,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
       cholmod_finish(&m_cholmod);
     }
 
-    inline const typename Base::CholMatrixType& matrixL(void) const;
+    inline const CholMatrixType& matrixL() const;
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &b) const;
@@ -198,7 +199,7 @@ void SparseLLT<MatrixType,Cholmod>::compute(const MatrixType& a)
 }
 
 template<typename MatrixType>
-inline const typename SparseLLT<MatrixType>::CholMatrixType&
+inline const typename SparseLLT<MatrixType,Cholmod>::CholMatrixType&
 SparseLLT<MatrixType,Cholmod>::matrixL() const
 {
   if (m_status & MatrixLIsDirty)
