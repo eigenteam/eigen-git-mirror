@@ -426,8 +426,11 @@ bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* resul
       else
         aux.coeffRef(i) /= si;
     }
-
-    result->col(j) = m_matV * aux;
+    const int cols = m_matV.rows();
+    const int minsize = std::min(rows,cols);
+    result->col(j).start(minsize) = aux.start(minsize);
+    if(cols>rows) result->col(j).end(cols-minsize).setZero();
+    result->col(j) = m_matV * result->col(j);
   }
   return true;
 }
