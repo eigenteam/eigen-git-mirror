@@ -40,9 +40,10 @@ template<typename MatrixType, typename Rhs> struct ei_svd_solve_impl;
   *
   * \sa MatrixBase::SVD()
   */
-template<typename MatrixType> class SVD
+template<typename _MatrixType> class SVD
 {
   public:
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
 
@@ -90,11 +91,11 @@ template<typename MatrixType> class SVD
       * \sa MatrixBase::svd(),
       */
     template<typename Rhs>
-    inline const ei_svd_solve_impl<MatrixType, Rhs>
+    inline const ei_solve_return_value<SVD, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
-      return ei_svd_solve_impl<MatrixType, Rhs>(*this, b.derived());
+      return ei_solve_return_value<SVD, Rhs>(*this, b.derived());
     }
 
     const MatrixUType& matrixU() const
@@ -428,54 +429,33 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   return *this;
 }
 
-template<typename MatrixType,typename Rhs>
-struct ei_traits<ei_svd_solve_impl<MatrixType,Rhs> >
+template<typename MatrixType, typename Rhs, typename Dest>
+struct ei_solve_impl<SVD<MatrixType>, Rhs, Dest>
+  : ei_solve_return_value<SVD<MatrixType>, Rhs>
 {
-  typedef Matrix<typename Rhs::Scalar,
-                 MatrixType::ColsAtCompileTime,
-                 Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
-                 MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
-};
-
-template<typename MatrixType, typename Rhs>
-struct ei_svd_solve_impl : public ReturnByValue<ei_svd_solve_impl<MatrixType, Rhs> >
-{
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
-  typedef SVD<MatrixType> SVDType;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename MatrixType::Scalar Scalar;
-  const SVDType& m_svd;
-  const typename Rhs::Nested m_rhs;
-
-  ei_svd_solve_impl(const SVDType& svd, const Rhs& rhs)
-    : m_svd(svd), m_rhs(rhs)
-  {}
-
-  inline int rows() const { return m_svd.cols(); }
-  inline int cols() const { return m_rhs.cols(); }
-
-  template<typename Dest> void evalTo(Dest& dst) const
+  void evalTo(Dest& dst) const
   {
-    ei_assert(m_rhs.rows() == m_svd.rows());
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    const int cols = this->cols();
+    const SVD<MatrixType>& svd = this->m_dec;
+    const Rhs& rhs = this->m_rhs;
+    ei_assert(rhs.rows() == svd.rows());
 
-    dst.resize(rows(), cols());
-
-    for (int j=0; j<cols(); ++j)
+    for (int j=0; j<cols; ++j)
     {
-      Matrix<Scalar,SVDType::RowsAtCompileTime,1> aux = m_svd.matrixU().adjoint() * m_rhs.col(j);
+      Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = svd.matrixU().adjoint() * rhs.col(j);
 
-      for (int i = 0; i <m_svd.rows(); ++i)
+      for (int i = 0; i <svd.rows(); ++i)
       {
-        Scalar si = m_svd.singularValues().coeff(i);
+        Scalar si = svd.singularValues().coeff(i);
         if(si == RealScalar(0))
           aux.coeffRef(i) = Scalar(0);
         else
           aux.coeffRef(i) /= si;
       }
 
-      dst.col(j) = m_svd.matrixV() * aux;
+      dst.col(j) = svd.matrixV() * aux;
     }
   }
 };
