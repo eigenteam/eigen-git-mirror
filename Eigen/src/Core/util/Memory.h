@@ -83,7 +83,7 @@ inline void* ei_aligned_malloc(size_t size)
     ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
-  void *result;  
+  void *result;
   #if !EIGEN_ALIGN
     result = malloc(size);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
@@ -97,7 +97,7 @@ inline void* ei_aligned_malloc(size_t size)
   #else
     result = ei_handmade_aligned_malloc(size);
   #endif
-    
+
   #ifdef EIGEN_EXCEPTIONS
     if(result == 0)
       throw std::bad_alloc();
@@ -324,34 +324,34 @@ public:
         typedef aligned_allocator<U> other;
     };
 
-    pointer address( reference value ) const 
+    pointer address( reference value ) const
     {
         return &value;
     }
 
-    const_pointer address( const_reference value ) const 
+    const_pointer address( const_reference value ) const
     {
         return &value;
     }
 
-    aligned_allocator() throw() 
+    aligned_allocator() throw()
     {
     }
 
-    aligned_allocator( const aligned_allocator& ) throw() 
+    aligned_allocator( const aligned_allocator& ) throw()
     {
     }
 
     template<class U>
-    aligned_allocator( const aligned_allocator<U>& ) throw() 
+    aligned_allocator( const aligned_allocator<U>& ) throw()
     {
     }
 
-    ~aligned_allocator() throw() 
+    ~aligned_allocator() throw()
     {
     }
 
-    size_type max_size() const throw() 
+    size_type max_size() const throw()
     {
         return std::numeric_limits<size_type>::max();
     }
@@ -362,24 +362,24 @@ public:
         return static_cast<pointer>( ei_aligned_malloc( num * sizeof(T) ) );
     }
 
-    void construct( pointer p, const T& value ) 
+    void construct( pointer p, const T& value )
     {
         ::new( p ) T( value );
     }
 
-    void destroy( pointer p ) 
+    void destroy( pointer p )
     {
         p->~T();
     }
 
-    void deallocate( pointer p, size_type /*num*/ ) 
+    void deallocate( pointer p, size_type /*num*/ )
     {
         ei_aligned_free( p );
     }
-    
+
     bool operator!=(const aligned_allocator<T>& other) const
     { return false; }
-    
+
     bool operator==(const aligned_allocator<T>& other) const
     { return true; }
 };
