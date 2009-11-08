@@ -86,7 +86,6 @@ template<typename _MatrixType> class SVD
       * \note_about_checking_solutions
       *
       * \note_about_arbitrary_choice_of_solution
-      * \note_about_using_kernel_to_study_multiple_solutions
       *
       * \sa MatrixBase::svd(),
       */

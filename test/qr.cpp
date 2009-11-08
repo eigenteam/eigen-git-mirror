@@ -63,7 +63,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
   Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
   m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
-  qr.solve(m3, &m2);
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 }
 
@@ -86,7 +86,7 @@ template<typename MatrixType> void qr_invertible()
 
   HouseholderQR<MatrixType> qr(m1);
   m3 = MatrixType::Random(size,size);
-  qr.solve(m3, &m2);
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 
   // now construct a matrix with prescribed determinant
@@ -106,7 +106,7 @@ template<typename MatrixType> void qr_verify_assert()
 
   HouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
-  VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(qr.solve(tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())

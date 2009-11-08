@@ -42,17 +42,17 @@
   *
   * \sa MatrixBase::fullPivHouseholderQr()
   */
-template<typename MatrixType> class FullPivHouseholderQR
+template<typename _MatrixType> class FullPivHouseholderQR
 {
   public:
 
+    typedef _MatrixType MatrixType;
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
       DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
-
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
@@ -78,22 +78,27 @@ template<typename MatrixType> class FullPivHouseholderQR
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the QR decomposition, if any exists.
       *
-      * \returns \c true if a solution exists, \c false if no solution exists.
-      *
       * \param b the right-hand-side of the equation to solve.
       *
-      * \param result a pointer to the vector/matrix in which to store the solution, if any exists.
-      *          Resized if necessary, so that result->rows()==A.cols() and result->cols()==b.cols().
-      *          If no solution exists, *result is left with undefined coefficients.
+      * \returns a solution.
       *
       * \note The case where b is a matrix is not yet implemented. Also, this
       *       code is space inefficient.
       *
+      * \note_about_checking_solutions
+      *
+      * \note_about_arbitrary_choice_of_solution
+      *
       * Example: \include FullPivHouseholderQR_solve.cpp
       * Output: \verbinclude FullPivHouseholderQR_solve.out
       */
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
+    template<typename Rhs>
+    inline const ei_solve_return_value<FullPivHouseholderQR, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      return ei_solve_return_value<FullPivHouseholderQR, Rhs>(*this, b.derived());
+    }
 
     MatrixQType matrixQ(void) const;
 
@@ -205,35 +210,22 @@ template<typename MatrixType> class FullPivHouseholderQR
       return isInjective() && isSurjective();
     }
 
-    /** Computes the inverse of the matrix of which *this is the QR decomposition.
-      *
-      * \param result a pointer to the matrix into which to store the inverse. Resized if needed.
-      *
-      * \note If this matrix is not invertible, *result is left with undefined coefficients.
-      *       Use isInvertible() to first determine whether this matrix is invertible.
-      *
-      * \sa inverse()
-      */
-    inline void computeInverse(MatrixType *result) const
-    {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the inverse of a non-square matrix!");
-      solve(MatrixType::Identity(m_qr.rows(), m_qr.cols()), result);
-    }
-
     /** \returns the inverse of the matrix of which *this is the QR decomposition.
       *
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
-      *
-      * \sa computeInverse()
-      */
-    inline MatrixType inverse() const
+      */    inline const
+    ei_solve_return_value<FullPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
+    inverse() const
     {
-      MatrixType result;
-      computeInverse(&result);
-      return result;
+      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      return ei_solve_return_value<FullPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
+               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
     }
+
+    inline int rows() const { return m_qr.rows(); }
+    inline int cols() const { return m_qr.cols(); }
+    const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
 
   protected:
     MatrixType m_qr;
@@ -340,56 +332,59 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
   return *this;
 }
 
-template<typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-bool FullPivHouseholderQR<MatrixType>::solve(
-  const MatrixBase<OtherDerived>& b,
-  ResultType *result
-) const
+template<typename MatrixType, typename Rhs, typename Dest>
+struct ei_solve_impl<FullPivHouseholderQR<MatrixType>, Rhs, Dest>
+  : ei_solve_return_value<FullPivHouseholderQR<MatrixType>, Rhs>
 {
-  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  result->resize(m_qr.cols(), b.cols());
-  if(m_rank==0)
+  void evalTo(Dest& dst) const
   {
-    if(b.squaredNorm() == RealScalar(0))
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    const FullPivHouseholderQR<MatrixType>& dec = this->m_dec;
+    const Rhs& rhs = this->m_rhs;
+    const int rows = dec.rows(), cols = dec.cols();
+    dst.resize(cols, rhs.cols());
+    ei_assert(rhs.rows() == rows);
+
+    // FIXME introduce nonzeroPivots() and use it here. and more generally,
+    // make the same improvements in this dec as in FullPivLU.
+    if(dec.rank()==0)
     {
-      result->setZero();
-      return true;
+      dst.setZero();
+      return;
     }
-    else return false;
+
+    typename Rhs::PlainMatrixType c(rhs);
+
+    Matrix<Scalar,1,Rhs::ColsAtCompileTime> temp(rhs.cols());
+    for (int k = 0; k < dec.rank(); ++k)
+    {
+      int remainingSize = rows-k;
+      c.row(k).swap(c.row(dec.rowsTranspositions().coeff(k)));
+      c.corner(BottomRight, remainingSize, rhs.cols())
+       .applyHouseholderOnTheLeft(dec.matrixQR().col(k).end(remainingSize-1),
+                                  dec.hCoeffs().coeff(k), &temp.coeffRef(0));
+    }
+
+    if(!dec.isSurjective())
+    {
+      // is c is in the image of R ?
+      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec.rank(), c.cols()).cwise().abs().maxCoeff();
+      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec.rank(), c.cols()).cwise().abs().maxCoeff();
+      // FIXME brain dead
+      const RealScalar m_precision = epsilon<Scalar>() * std::min(rows,cols);
+      if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
+        return;
+    }
+    dec.matrixQR()
+       .corner(TopLeft, dec.rank(), dec.rank())
+       .template triangularView<UpperTriangular>()
+       .solveInPlace(c.corner(TopLeft, dec.rank(), c.cols()));
+
+    for(int i = 0; i < dec.rank(); ++i) dst.row(dec.colsPermutation().coeff(i)) = c.row(i);
+    for(int i = dec.rank(); i < cols; ++i) dst.row(dec.colsPermutation().coeff(i)).setZero();
   }
-
-  const int rows = m_qr.rows();
-  const int cols = b.cols();
-  ei_assert(b.rows() == rows);
-
-  typename OtherDerived::PlainMatrixType c(b);
-
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(cols);
-  for (int k = 0; k < m_rank; ++k)
-  {
-    int remainingSize = rows-k;
-    c.row(k).swap(c.row(m_rows_transpositions.coeff(k)));
-    c.corner(BottomRight, remainingSize, cols)
-     .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingSize-1), m_hCoeffs.coeff(k), &temp.coeffRef(0));
-  }
-
-  if(!isSurjective())
-  {
-    // is c is in the image of R ?
-    RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, m_rank, c.cols()).cwise().abs().maxCoeff();
-    RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-m_rank, c.cols()).cwise().abs().maxCoeff();
-    if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
-      return false;
-  }
-  m_qr.corner(TopLeft, m_rank, m_rank)
-      .template triangularView<UpperTriangular>()
-      .solveInPlace(c.corner(TopLeft, m_rank, c.cols()));
-
-  for(int i = 0; i < m_rank; ++i) result->row(m_cols_permutation.coeff(i)) = c.row(i);
-  for(int i = m_rank; i < m_qr.cols(); ++i) result->row(m_cols_permutation.coeff(i)).setZero();
-  return true;
-}
+};
 
 /** \returns the matrix Q */
 template<typename MatrixType>

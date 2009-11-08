@@ -46,17 +46,17 @@
   *
   * \sa MatrixBase::householderQr()
   */
-template<typename MatrixType> class HouseholderQR
+template<typename _MatrixType> class HouseholderQR
 {
   public:
 
+    typedef _MatrixType MatrixType;
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
       DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
-
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, AutoAlign | (ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor)> MatrixQType;
@@ -85,19 +85,26 @@ template<typename MatrixType> class HouseholderQR
       *
       * \param b the right-hand-side of the equation to solve.
       *
-      * \param result a pointer to the vector/matrix in which to store the solution, if any exists.
-      *          Resized if necessary, so that result->rows()==A.cols() and result->cols()==b.cols().
-      *          If no solution exists, *result is left with undefined coefficients.
+      * \returns a solution.
       *
       * \note The case where b is a matrix is not yet implemented. Also, this
       *       code is space inefficient.
       *
+      * \note_about_checking_solutions
+      *
+      * \note_about_arbitrary_choice_of_solution
+      *
       * Example: \include HouseholderQR_solve.cpp
       * Output: \verbinclude HouseholderQR_solve.out
       */
-    template<typename OtherDerived, typename ResultType>
-    void solve(const MatrixBase<OtherDerived>& b, ResultType *result) const;
-
+    template<typename Rhs>
+    inline const ei_solve_return_value<HouseholderQR, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
+      return ei_solve_return_value<HouseholderQR, Rhs>(*this, b.derived());
+    }
+    
     MatrixQType matrixQ() const;
 
     HouseholderSequenceType matrixQAsHouseholderSequence() const
@@ -144,6 +151,10 @@ template<typename MatrixType> class HouseholderQR
       * \sa absDeterminant(), MatrixBase::determinant()
       */
     typename MatrixType::RealScalar logAbsDeterminant() const;
+
+    inline int rows() const { return m_qr.rows(); }
+    inline int cols() const { return m_qr.cols(); }
+    const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
 
   protected:
     MatrixType m_qr;
@@ -198,31 +209,36 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   return *this;
 }
 
-template<typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-void HouseholderQR<MatrixType>::solve(
-  const MatrixBase<OtherDerived>& b,
-  ResultType *result
-) const
+template<typename MatrixType, typename Rhs, typename Dest>
+struct ei_solve_impl<HouseholderQR<MatrixType>, Rhs, Dest>
+  : ei_solve_return_value<HouseholderQR<MatrixType>, Rhs>
 {
-  ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  result->derived().resize(m_qr.cols(), b.cols());
-  const int rows = m_qr.rows();
-  const int rank = std::min(m_qr.rows(), m_qr.cols());
-  ei_assert(b.rows() == rows);
+  void evalTo(Dest& dst) const
+  {
+    const HouseholderQR<MatrixType>& dec = this->m_dec;
+    const Rhs& rhs = this->m_rhs;
+    const int rows = dec.rows(), cols = dec.cols();
+    dst.resize(cols, rhs.cols());
+    const int rank = std::min(rows, cols);
+    ei_assert(rhs.rows() == rows);
 
-  typename OtherDerived::PlainMatrixType c(b);
+    typename Rhs::PlainMatrixType c(rhs);
 
-  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-  c.applyOnTheLeft(makeHouseholderSequence(m_qr.corner(TopLeft,rows,rank), m_hCoeffs.start(rank)).transpose());
+    // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+    c.applyOnTheLeft(makeHouseholderSequence(
+      dec.matrixQR().corner(TopLeft,rows,rank),
+      dec.hCoeffs().start(rank)).transpose()
+    );
 
-  m_qr.corner(TopLeft, rank, rank)
-      .template triangularView<UpperTriangular>()
-      .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+    dec.matrixQR()
+       .corner(TopLeft, rank, rank)
+       .template triangularView<UpperTriangular>()
+       .solveInPlace(c.corner(TopLeft, rank, c.cols()));
 
-  result->corner(TopLeft, rank, c.cols()) = c.corner(TopLeft,rank, c.cols());
-  result->corner(BottomLeft, result->rows()-rank, c.cols()).setZero();
-}
+    dst.corner(TopLeft, rank, c.cols()) = c.corner(TopLeft, rank, c.cols());
+    dst.corner(BottomLeft, cols-rank, c.cols()).setZero();
+  }
+};
 
 /** \returns the matrix Q */
 template<typename MatrixType>

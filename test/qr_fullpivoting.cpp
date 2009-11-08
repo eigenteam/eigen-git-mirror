@@ -61,10 +61,8 @@ template<typename MatrixType> void qr()
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  VERIFY(qr.solve(m3, &m2));
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-  m3 = MatrixType::Random(rows,cols2);
-  VERIFY(!qr.solve(m3, &m2));
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -90,7 +88,7 @@ template<typename MatrixType> void qr_invertible()
   VERIFY(qr.isSurjective());
 
   m3 = MatrixType::Random(size,size);
-  VERIFY(qr.solve(m3, &m2));
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 
   // now construct a matrix with prescribed determinant
@@ -110,13 +108,12 @@ template<typename MatrixType> void qr_verify_assert()
 
   FullPivHouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
-  VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(qr.solve(tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
   VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
   VERIFY_RAISES_ASSERT(qr.isInjective())
   VERIFY_RAISES_ASSERT(qr.isSurjective())
   VERIFY_RAISES_ASSERT(qr.isInvertible())
-  VERIFY_RAISES_ASSERT(qr.computeInverse(&tmp))
   VERIFY_RAISES_ASSERT(qr.inverse())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
