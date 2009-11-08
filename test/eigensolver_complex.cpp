@@ -49,6 +49,10 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   ComplexEigenSolver<MatrixType> ei1(a);
   VERIFY_IS_APPROX(a * ei1.eigenvectors(), ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
 
+  // Regression test for issue #66
+  MatrixType z = MatrixType::Zero(rows,cols);
+  ComplexEigenSolver<MatrixType> eiz(z);
+  VERIFY((eiz.eigenvalues().cwise()==0).all());
 }
 
 void test_eigensolver_complex()
@@ -58,4 +62,3 @@ void test_eigensolver_complex()
     CALL_SUBTEST( eigensolver(MatrixXcd(14,14)) );
   }
 }
-

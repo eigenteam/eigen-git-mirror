@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -26,8 +26,14 @@
 #ifndef EIGEN_BENCH_TIMER_H
 #define EIGEN_BENCH_TIMER_H
 
-#include <sys/time.h>
+#ifndef WIN32
+#include <time.h>
 #include <unistd.h>
+#else
+#define NOMINMAX
+#include <windows.h>
+#endif
+
 #include <cstdlib>
 #include <numeric>
 
@@ -35,12 +41,25 @@ namespace Eigen
 {
 
 /** Elapsed time timer keeping the best try.
+  *
+  * On POSIX platforms we use clock_gettime with CLOCK_PROCESS_CPUTIME_ID.
+  * On Windows we use QueryPerformanceCounter
+  *
+  * Important: on linux, you must link with -lrt
   */
 class BenchTimer
 {
 public:
 
-  BenchTimer() { reset(); }
+  BenchTimer() 
+  { 
+#ifdef WIN32
+    LARGE_INTEGER freq;
+    QueryPerformanceFrequency(&freq);
+    m_frequency = (double)freq.QuadPart;
+#endif
+    reset(); 
+  }
 
   ~BenchTimer() {}
 
@@ -51,23 +70,34 @@ public:
     m_best = std::min(m_best, getTime() - m_start);
   }
 
-  /** Return the best elapsed time.
+  /** Return the best elapsed time in seconds.
     */
   inline double value(void)
   {
-      return m_best;
+    return m_best;
   }
 
+#ifdef WIN32
+  inline double getTime(void)
+#else
   static inline double getTime(void)
+#endif
   {
-      struct timeval tv;
-      struct timezone tz;
-      gettimeofday(&tv, &tz);
-      return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
+#ifdef WIN32
+    LARGE_INTEGER query_ticks;
+    QueryPerformanceCounter(&query_ticks);
+    return query_ticks.QuadPart/m_frequency;
+#else
+    timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    return double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
+#endif
   }
 
 protected:
-
+#ifdef WIN32
+  double m_frequency;
+#endif
   double m_best, m_start;
 
 };

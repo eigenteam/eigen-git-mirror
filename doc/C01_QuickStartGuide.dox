@@ -278,18 +278,24 @@ Of course, fixed-size matrices can't be resized.
 
 
 \subsection TutorialMap Map
-Any memory buffer can be mapped as an Eigen expression:
-<table class="tutorial_code"><tr><td>
+Any memory buffer can be mapped as an Eigen expression using the Map() static method:
 \code
 std::vector<float> stlarray(10);
-Map<VectorXf>(&stlarray[0], stlarray.size()).setOnes();
-int data[4] = 1, 2, 3, 4;
-Matrix2i mat2x2(data);
-MatrixXi mat2x2 = Map<Matrix2i>(data);
-MatrixXi mat2x2 = Map<MatrixXi>(data,2,2);
+VectorXf::Map(&stlarray[0], stlarray.size()).squaredNorm();
 \endcode
-</td></tr></table>
-
+Here VectorXf::Map returns an object of class Map<VectorXf>, which behaves like a VectorXf except that it uses the existing array. You can write to this object, that will write to the existing array. You can also construct a named obtect to reuse it:
+\code
+float array[rows*cols];
+Map<MatrixXf> m(array,rows,cols);
+m = othermatrix1 * othermatrix2;
+m.eigenvalues();
+\endcode
+In the fixed-size case, no need to pass sizes:
+\code
+float array[9];
+Map<Matrix3d> m(array);
+Matrix3d::Map(array).setIdentity();
+\endcode
 
 
 \subsection TutorialCommaInit Comma initializer

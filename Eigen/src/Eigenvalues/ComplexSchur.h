@@ -167,10 +167,11 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     //locate the range in which to iterate
     while(iu > 0)
     {
-      d = ei_norm1(m_matT.coeffRef(iu,iu)) + ei_norm1(m_matT.coeffRef(iu-1,iu-1));
-      sd = ei_norm1(m_matT.coeffRef(iu,iu-1));
+      d = ei_norm1(m_matT.coeff(iu,iu)) + ei_norm1(m_matT.coeff(iu-1,iu-1));
+      sd = ei_norm1(m_matT.coeff(iu,iu-1));
 
-      if(sd >= eps * d) break; // FIXME : precision criterion ??
+      if(!ei_isMuchSmallerThan(sd,d,eps))
+        break;
 
       m_matT.coeffRef(iu,iu-1) = Complex(0);
       iter = 0;
@@ -187,13 +188,14 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     }
 
     il = iu-1;
-    while( il > 0 )
+    while(il > 0)
     {
       // check if the current 2x2 block on the diagonal is upper triangular
-      d = ei_norm1(m_matT.coeffRef(il,il)) + ei_norm1(m_matT.coeffRef(il-1,il-1));
-      sd = ei_norm1(m_matT.coeffRef(il,il-1));
+      d = ei_norm1(m_matT.coeff(il,il)) + ei_norm1(m_matT.coeff(il-1,il-1));
+      sd = ei_norm1(m_matT.coeff(il,il-1));
 
-      if(sd < eps * d) break; // FIXME : precision criterion ??
+      if(ei_isMuchSmallerThan(sd,d,eps))
+        break;
 
       --il;
     }

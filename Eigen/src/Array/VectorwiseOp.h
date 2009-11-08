@@ -95,6 +95,14 @@ class PartialReduxExpr : ei_no_assignment_operator,
         return m_functor(m_matrix.row(i));
     }
 
+    const Scalar coeff(int index) const
+    {
+      if (Direction==Vertical)
+        return m_functor(m_matrix.col(index));
+      else
+        return m_functor(m_matrix.row(index));
+    }
+
   protected:
     const MatrixTypeNested m_matrix;
     const MemberOp m_functor;
@@ -114,6 +122,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(mean, (Size-1)*NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(all, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -289,6 +298,13 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     const typename ReturnType<ei_member_sum>::Type sum() const
     { return _expression(); }
 
+    /** \returns a row (or column) vector expression of the mean
+    * of each column (or row) of the referenced expression.
+    *
+    * \sa MatrixBase::mean() */
+    const typename ReturnType<ei_member_mean>::Type mean() const
+    { return _expression(); }
+
     /** \returns a row (or column) vector expression representing
       * whether \b all coefficients of each respective column (or row) are \c true.
       *
@@ -442,6 +458,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   protected:
     ExpressionTypeNested m_matrix;
+
+  private:
+    VectorwiseOp& operator=(const VectorwiseOp&);
 };
 
 /** \array_module

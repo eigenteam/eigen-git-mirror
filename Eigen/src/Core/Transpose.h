@@ -69,7 +69,6 @@ template<typename MatrixType> class Transpose
 
     inline int rows() const { return m_matrix.cols(); }
     inline int cols() const { return m_matrix.rows(); }
-    inline int nonZeros() const { return m_matrix.nonZeros(); }
     inline int stride() const { return m_matrix.stride(); }
     inline Scalar* data() { return m_matrix.data(); }
     inline const Scalar* data() const { return m_matrix.data(); }
@@ -354,5 +353,5 @@ lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei
   return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > > >& >(other));
 }
 #endif
-    
+
 #endif // EIGEN_TRANSPOSE_H

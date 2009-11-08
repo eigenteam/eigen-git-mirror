@@ -40,7 +40,7 @@ template<typename MatrixType> void matrixVisitor(const MatrixType& p)
         m(i) = ei_random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
-  int minrow,mincol,maxrow,maxcol;
+  int minrow=0,mincol=0,maxrow=0,maxcol=0;
   for(int j = 0; j < cols; j++)
   for(int i = 0; i < rows; i++)
   {
@@ -86,7 +86,7 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
         v(i) = ei_random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
-  int minidx,maxidx;
+  int minidx=0,maxidx=0;
   for(int i = 0; i < size; i++)
   {
     if(v(i) < minc)

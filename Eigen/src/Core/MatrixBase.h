@@ -145,12 +145,6 @@ template<typename Derived> class MatrixBase
 #endif
     };
 
-    /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
-    MatrixBase()
-    {
-      ei_assert(ei_are_flags_consistent<Flags>::ret);
-    }
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
@@ -177,7 +171,7 @@ template<typename Derived> class MatrixBase
     inline int diagonalSize() const { return std::min(rows(),cols()); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline int nonZeros() const { return derived().nonZeros(); }
+    inline int nonZeros() const { return size(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -189,6 +183,25 @@ template<typename Derived> class MatrixBase
     /** \returns the size of the inner dimension according to the storage order,
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
     int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
+
+    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
+      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+      * nothing else.
+      */
+    void resize(int size)
+    {
+      ei_assert(size == this->size()
+                && "MatrixBase::resize() does not actually allow to resize.");
+    }
+    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
+      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+      * nothing else.
+      */
+    void resize(int rows, int cols)
+    {
+      ei_assert(rows == this->rows() && cols == this->cols()
+                && "MatrixBase::resize() does not actually allow to resize.");
+    }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
@@ -626,8 +639,9 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
-
+    
     Scalar sum() const;
+    Scalar mean() const;
     Scalar trace() const;
 
     Scalar prod() const;
@@ -782,6 +796,24 @@ template<typename Derived> class MatrixBase
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif
+
+  protected:
+    /** Default constructor. Do nothing. */
+    MatrixBase()
+    {
+      /* Just checks for self-consistency of the flags.
+       * Only do it when debugging Eigen, as this borders on paranoiac and could slow compilation down
+       */
+#ifdef EIGEN_INTERNAL_DEBUGGING
+      EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
+                          INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
+#endif
+    }
+    
+  private:
+    explicit MatrixBase(int);
+    MatrixBase(int,int);
+    template<typename OtherDerived> explicit MatrixBase(const MatrixBase<OtherDerived>&);
 };
 
 #endif // EIGEN_MATRIXBASE_H

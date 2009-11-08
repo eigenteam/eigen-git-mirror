@@ -1,0 +1,208 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra. 
+//
+// Copyright (C) 2009 Mark Borgerding mark a borgerding net
+//
+// Eigen is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// Alternatively, you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License, or (at your option) any later version.
+//
+// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License and a copy of the GNU General Public License along with
+// Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+#ifndef EIGEN_FFT_H
+#define EIGEN_FFT_H
+
+#include <complex>
+#include <vector>
+#include <map>
+#include <Eigen/Core>
+
+#ifdef EIGEN_FFTW_DEFAULT
+// FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
+#  include <fftw3.h>
+   namespace Eigen {
+#    include "src/FFT/ei_fftw_impl.h"
+     //template <typename T> typedef struct ei_fftw_impl  default_fft_impl; this does not work
+     template <typename T> struct default_fft_impl : public ei_fftw_impl<T> {};
+   }
+#elif defined EIGEN_MKL_DEFAULT
+// TODO 
+// intel Math Kernel Library: fastest, commercial -- may be incompatible with Eigen in GPL form
+   namespace Eigen {
+#    include "src/FFT/ei_imklfft_impl.h"
+     template <typename T> struct default_fft_impl : public ei_imklfft_impl {};
+   }
+#else
+// ei_kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
+//
+  namespace Eigen {
+#   include "src/FFT/ei_kissfft_impl.h"
+     template <typename T> 
+       struct default_fft_impl : public ei_kissfft_impl<T> {};
+  }
+#endif
+
+namespace Eigen {
+
+template <typename _Scalar,
+         typename _Impl=default_fft_impl<_Scalar> >
+class FFT
+{
+  public:
+    typedef _Impl impl_type;
+    typedef typename impl_type::Scalar Scalar;
+    typedef typename impl_type::Complex Complex;
+
+    enum Flag {
+      Default=0, // goof proof
+      Unscaled=1,
+      HalfSpectrum=2,
+      // SomeOtherSpeedOptimization=4
+      Speedy=32767
+    };
+
+    FFT( const impl_type & impl=impl_type() , Flag flags=Default ) :m_impl(impl),m_flag(flags) { }
+
+    inline
+    bool HasFlag(Flag f) const { return (m_flag & (int)f) == f;}
+
+    inline
+    void SetFlag(Flag f) { m_flag |= (int)f;}
+
+    inline
+    void ClearFlag(Flag f) { m_flag &= (~(int)f);}
+
+    inline
+    void fwd( Complex * dst, const Scalar * src, int nfft)
+    {
+        m_impl.fwd(dst,src,nfft);
+        if ( HasFlag(HalfSpectrum) == false)
+          ReflectSpectrum(dst,nfft);
+    }
+
+    inline
+    void fwd( Complex * dst, const Complex * src, int nfft)
+    {
+        m_impl.fwd(dst,src,nfft);
+    }
+
+    template <typename _Input>
+    inline
+    void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
+    {
+      if ( NumTraits<_Input>::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.resize( (src.size()>>1)+1);
+      else
+        dst.resize(src.size());
+      fwd(&dst[0],&src[0],src.size());
+    }
+
+    template<typename InputDerived, typename ComplexDerived>
+    inline
+    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
+      EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
+            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
+            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+
+      if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.derived().resize( (src.size()>>1)+1);
+      else
+        dst.derived().resize(src.size());
+      fwd( &dst[0],&src[0],src.size() );
+    }
+
+    inline
+    void inv( Complex * dst, const Complex * src, int nfft)
+    {
+        m_impl.inv( dst,src,nfft );
+        if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./nfft,nfft);
+    }
+
+    inline
+    void inv( Scalar * dst, const Complex * src, int nfft)
+    {
+        m_impl.inv( dst,src,nfft );
+        if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./nfft,nfft);
+    }
+
+    template<typename OutputDerived, typename ComplexDerived>
+    inline
+    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src)
+    {
+        EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
+        EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
+        EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,OutputDerived) // size at compile-time
+        EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
+                            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+        EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
+                            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+
+        int nfft = src.size();
+        int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
+        dst.derived().resize( nout );
+        inv( &dst[0],&src[0],src.size() );
+    }
+
+    template <typename _Output>
+    inline
+    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src)
+    {
+      if ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.resize( 2*(src.size()-1) );
+      else
+        dst.resize( src.size() );
+      inv( &dst[0],&src[0],dst.size() );
+    }
+
+    // TODO: multi-dimensional FFTs
+    
+    // TODO: handle Eigen MatrixBase
+     // ---> i added fwd and inv specializations above + unit test, is this enough? (bjacob)
+
+    inline
+    impl_type & impl() {return m_impl;}
+  private:
+
+    template <typename _It,typename _Val>
+    inline
+    void scale(_It x,_Val s,int nx)
+    {
+      for (int k=0;k<nx;++k)
+        *x++ *= s;
+    }
+
+    inline
+    void ReflectSpectrum(Complex * freq,int nfft)
+    {
+      // create the implicit right-half spectrum (conjugate-mirror of the left-half)
+      int nhbins=(nfft>>1)+1;
+      for (int k=nhbins;k < nfft; ++k )
+        freq[k] = conj(freq[nfft-k]);
+    }
+
+    impl_type m_impl;
+    int m_flag;
+};
+}
+#endif
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

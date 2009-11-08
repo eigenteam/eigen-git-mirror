@@ -42,9 +42,9 @@ template<typename MatrixType> void replicate(const MatrixType& m)
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols);
-  
+
   VectorType v1 = VectorType::Random(rows);
-  
+
   MatrixX x1, x2;
   VectorX vx1;
 
@@ -56,17 +56,17 @@ template<typename MatrixType> void replicate(const MatrixType& m)
   for(int i=0; i<f1; i++)
     x1.block(i*rows,j*cols,rows,cols) = m1;
   VERIFY_IS_APPROX(x1, m1.replicate(f1,f2));
-  
+
   x2.resize(2*rows,3*cols);
   x2 << m2, m2, m2,
         m2, m2, m2;
   VERIFY_IS_APPROX(x2, (m2.template replicate<2,3>()));
-  
+
   x2.resize(rows,f1);
   for (int j=0; j<f1; ++j)
     x2.col(j) = v1;
   VERIFY_IS_APPROX(x2, v1.rowwise().replicate(f1));
-  
+
   vx1.resize(rows*f2);
   for (int j=0; j<f2; ++j)
     vx1.segment(j*rows,rows) = v1;

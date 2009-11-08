@@ -64,6 +64,13 @@ template<typename T> struct ei_cleantype<T&>        { typedef typename ei_cleant
 template<typename T> struct ei_cleantype<const T*>  { typedef typename ei_cleantype<T>::type type; };
 template<typename T> struct ei_cleantype<T*>        { typedef typename ei_cleantype<T>::type type; };
 
+template<typename T> struct ei_makeconst            { typedef const T type;  };
+template<typename T> struct ei_makeconst<const T>   { typedef const T type;  };
+template<typename T> struct ei_makeconst<T&>        { typedef const T& type; };
+template<typename T> struct ei_makeconst<const T&>  { typedef const T& type; };
+template<typename T> struct ei_makeconst<T*>        { typedef const T* type; };
+template<typename T> struct ei_makeconst<const T*>  { typedef const T* type; };
+
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */

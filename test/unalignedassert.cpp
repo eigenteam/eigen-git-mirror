@@ -93,25 +93,27 @@ void construct_at_boundary(int boundary)
 
 void unalignedassert()
 {
+  #if EIGEN_ALIGN
   construct_at_boundary<Vector2f>(4);
   construct_at_boundary<Vector3f>(4);
   construct_at_boundary<Vector4f>(16);
   construct_at_boundary<Matrix2f>(16);
   construct_at_boundary<Matrix3f>(4);
   construct_at_boundary<Matrix4f>(16);
-  
+
   construct_at_boundary<Vector2d>(16);
   construct_at_boundary<Vector3d>(4);
   construct_at_boundary<Vector4d>(16);
   construct_at_boundary<Matrix2d>(16);
   construct_at_boundary<Matrix3d>(4);
   construct_at_boundary<Matrix4d>(16);
-  
+
   construct_at_boundary<Vector2cf>(16);
   construct_at_boundary<Vector3cf>(4);
   construct_at_boundary<Vector2cd>(16);
   construct_at_boundary<Vector3cd>(16);
-  
+  #endif
+
   check_unalignedassert_good<TestNew1>();
   check_unalignedassert_good<TestNew2>();
   check_unalignedassert_good<TestNew3>();
@@ -120,7 +122,7 @@ void unalignedassert()
   check_unalignedassert_good<TestNew5>();
   check_unalignedassert_good<TestNew6>();
   check_unalignedassert_good<Depends<true> >();
-  
+
 #if EIGEN_ALIGN
   VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
   VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(8));

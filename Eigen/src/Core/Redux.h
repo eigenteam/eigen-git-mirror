@@ -112,6 +112,16 @@ struct ei_redux_novec_unroller<Func, Derived, Start, 1>
   }
 };
 
+// This is actually dead code and will never be called. It is required
+// to prevent false warnings regarding failed inlining though
+// for 0 length run() will never be called at all.
+template<typename Func, typename Derived, int Start>
+struct ei_redux_novec_unroller<Func, Derived, Start, 0>
+{
+  typedef typename Derived::Scalar Scalar;
+  EIGEN_STRONG_INLINE static Scalar run(const Derived&, const Func&) { return Scalar(); }
+};
+
 /*** vectorization ***/
   
 template<typename Func, typename Derived, int Start, int Length>
@@ -297,7 +307,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorization, CompleteUnrolling>
 /** \returns the result of a full redux operation on the whole matrix or vector using \a func
   *
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
-  * an assiociative operator. Both current STL and TR1 functor styles are handled.
+  * an associative operator. Both current STL and TR1 functor styles are handled.
   *
   * \sa MatrixBase::sum(), MatrixBase::minCoeff(), MatrixBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
@@ -332,7 +342,7 @@ MatrixBase<Derived>::maxCoeff() const
 
 /** \returns the sum of all coefficients of *this
   *
-  * \sa trace(), prod()
+  * \sa trace(), prod(), mean()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
@@ -341,12 +351,23 @@ MatrixBase<Derived>::sum() const
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
 
+/** \returns the mean of all coefficients of *this
+*
+* \sa trace(), prod(), sum()
+*/
+template<typename Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
+MatrixBase<Derived>::mean() const
+{
+  return this->redux(Eigen::ei_scalar_sum_op<Scalar>()) / this->size();
+}
+
 /** \returns the product of all coefficients of *this
   *
   * Example: \include MatrixBase_prod.cpp
   * Output: \verbinclude MatrixBase_prod.out
   *
-  * \sa sum()
+  * \sa sum(), mean(), trace()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar

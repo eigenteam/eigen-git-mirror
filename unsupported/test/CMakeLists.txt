@@ -21,3 +21,11 @@ ei_add_test(autodiff)
 ei_add_test(BVH)
 #ei_add_test(matrixExponential)
 ei_add_test(alignedvector3)
+ei_add_test(FFT)
+
+find_package(FFTW)
+if(FFTW_FOUND)
+  ei_add_test(FFTW  "-DEIGEN_FFTW_DEFAULT " "-lfftw3 -lfftw3f -lfftw3l" )
+endif(FFTW_FOUND)
+
+ei_add_test(Complex)

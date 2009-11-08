@@ -8,6 +8,7 @@
 #include "Cholesky"
 #include "Jacobi"
 #include "Householder"
+#include "LU"
 
 // Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
 #if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)

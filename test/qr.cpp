@@ -31,12 +31,16 @@ template<typename MatrixType> void qr(const MatrixType& m)
   int cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);
   MatrixType r = qrOfA.matrixQR();
+  
+  MatrixQType q = qrOfA.matrixQ();
+  VERIFY_IS_UNITARY(q);
+  
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
 

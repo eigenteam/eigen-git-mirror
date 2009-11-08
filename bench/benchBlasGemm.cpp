@@ -178,13 +178,13 @@ using namespace Eigen;
 void bench_eigengemm(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops)
 {
   for (uint j=0 ; j<nbloops ; ++j)
-      mc += (ma * mb).lazy();
+      mc.noalias() += ma * mb;
 }
 
 void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops)
 {
   for (uint j=0 ; j<nbloops ; ++j)
-    mc += Product<MyMatrix,MyMatrix,NormalProduct>(ma,mb).lazy();
+    mc.noalias() += GeneralProduct<MyMatrix,MyMatrix,UnrolledProduct>(ma,mb);
 }
 
 #define MYVERIFY(A,M) if (!(A)) { \
