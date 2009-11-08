@@ -57,9 +57,16 @@ template<typename _DecompositionType, typename Rhs> struct ei_solve_return_value
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_solve_impl<DecompositionType, RhsNestedCleaned, Dest> *>
-      (this)->evalTo(dst);
+    static_cast<const ei_solve_impl<DecompositionType,Rhs>*>(this)->evalTo(dst);
   }
 };
+
+#define EIGEN_MAKE_SOLVE_HELPERS(DecompositionType,Rhs) \
+  typedef typename DecompositionType::MatrixType MatrixType; \
+  typedef typename MatrixType::Scalar Scalar; \
+  typedef typename MatrixType::RealScalar RealScalar; \
+  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNestedCleaned; \
+  inline const DecompositionType& dec() const { return this->m_dec; } \
+  inline const RhsNestedCleaned& rhs() const { return this->m_rhs; }
 
 #endif // EIGEN_MISC_SOLVE_H

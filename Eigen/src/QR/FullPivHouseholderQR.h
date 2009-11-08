@@ -332,57 +332,55 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
   return *this;
 }
 
-template<typename MatrixType, typename Rhs, typename Dest>
-struct ei_solve_impl<FullPivHouseholderQR<MatrixType>, Rhs, Dest>
-  : ei_solve_return_value<FullPivHouseholderQR<MatrixType>, Rhs>
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_impl<FullPivHouseholderQR<_MatrixType>, Rhs>
+  : ei_solve_return_value<FullPivHouseholderQR<_MatrixType>, Rhs>
 {
-  void evalTo(Dest& dst) const
+  EIGEN_MAKE_SOLVE_HELPERS(FullPivHouseholderQR<_MatrixType>,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    const FullPivHouseholderQR<MatrixType>& dec = this->m_dec;
-    const Rhs& rhs = this->m_rhs;
-    const int rows = dec.rows(), cols = dec.cols();
-    dst.resize(cols, rhs.cols());
-    ei_assert(rhs.rows() == rows);
+    const int rows = dec().rows(), cols = dec().cols();
+    dst.resize(cols, rhs().cols());
+    ei_assert(rhs().rows() == rows);
 
     // FIXME introduce nonzeroPivots() and use it here. and more generally,
     // make the same improvements in this dec as in FullPivLU.
-    if(dec.rank()==0)
+    if(dec().rank()==0)
     {
       dst.setZero();
       return;
     }
 
-    typename Rhs::PlainMatrixType c(rhs);
+    typename Rhs::PlainMatrixType c(rhs());
 
-    Matrix<Scalar,1,Rhs::ColsAtCompileTime> temp(rhs.cols());
-    for (int k = 0; k < dec.rank(); ++k)
+    Matrix<Scalar,1,Rhs::ColsAtCompileTime> temp(rhs().cols());
+    for (int k = 0; k < dec().rank(); ++k)
     {
       int remainingSize = rows-k;
-      c.row(k).swap(c.row(dec.rowsTranspositions().coeff(k)));
-      c.corner(BottomRight, remainingSize, rhs.cols())
-       .applyHouseholderOnTheLeft(dec.matrixQR().col(k).end(remainingSize-1),
-                                  dec.hCoeffs().coeff(k), &temp.coeffRef(0));
+      c.row(k).swap(c.row(dec().rowsTranspositions().coeff(k)));
+      c.corner(BottomRight, remainingSize, rhs().cols())
+       .applyHouseholderOnTheLeft(dec().matrixQR().col(k).end(remainingSize-1),
+                                  dec().hCoeffs().coeff(k), &temp.coeffRef(0));
     }
 
-    if(!dec.isSurjective())
+    if(!dec().isSurjective())
     {
       // is c is in the image of R ?
-      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec.rank(), c.cols()).cwise().abs().maxCoeff();
-      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec.rank(), c.cols()).cwise().abs().maxCoeff();
+      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwise().abs().maxCoeff();
+      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwise().abs().maxCoeff();
       // FIXME brain dead
       const RealScalar m_precision = epsilon<Scalar>() * std::min(rows,cols);
       if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
         return;
     }
-    dec.matrixQR()
-       .corner(TopLeft, dec.rank(), dec.rank())
+    dec().matrixQR()
+       .corner(TopLeft, dec().rank(), dec().rank())
        .template triangularView<UpperTriangular>()
-       .solveInPlace(c.corner(TopLeft, dec.rank(), c.cols()));
+       .solveInPlace(c.corner(TopLeft, dec().rank(), c.cols()));
 
-    for(int i = 0; i < dec.rank(); ++i) dst.row(dec.colsPermutation().coeff(i)) = c.row(i);
-    for(int i = dec.rank(); i < cols; ++i) dst.row(dec.colsPermutation().coeff(i)).setZero();
+    for(int i = 0; i < dec().rank(); ++i) dst.row(dec().colsPermutation().coeff(i)) = c.row(i);
+    for(int i = dec().rank(); i < cols; ++i) dst.row(dec().colsPermutation().coeff(i)).setZero();
   }
 };
 

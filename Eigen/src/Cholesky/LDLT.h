@@ -264,14 +264,16 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   return *this;
 }
 
-template<typename MatrixType, typename Rhs, typename Dest>
-struct ei_solve_impl<LDLT<MatrixType>, Rhs, Dest>
-  : ei_solve_return_value<LDLT<MatrixType>, Rhs>
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_impl<LDLT<_MatrixType>, Rhs>
+  : ei_solve_return_value<LDLT<_MatrixType>, Rhs>
 {
-  void evalTo(Dest& dst) const
+  EIGEN_MAKE_SOLVE_HELPERS(LDLT<_MatrixType>,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst = this->m_rhs;
-    this->m_dec.solveInPlace(dst);
+    dst = rhs();
+    dec().solveInPlace(dst);
   }
 };
 

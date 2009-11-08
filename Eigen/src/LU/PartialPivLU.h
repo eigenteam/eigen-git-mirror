@@ -407,11 +407,13 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
 
 /***** Implementation of solve() *****************************************************/
 
-template<typename MatrixType, typename Rhs, typename Dest>
-struct ei_solve_impl<PartialPivLU<MatrixType>, Rhs, Dest>
-  : ei_solve_return_value<PartialPivLU<MatrixType>, Rhs>
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_impl<PartialPivLU<_MatrixType>, Rhs>
+  : ei_solve_return_value<PartialPivLU<_MatrixType>, Rhs>
 {
-  void evalTo(Dest& dst) const
+  EIGEN_MAKE_SOLVE_HELPERS(PartialPivLU<_MatrixType>,Rhs)
+  
+  template<typename Dest> void evalTo(Dest& dst) const
   {
     /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
     * So we proceed as follows:
@@ -419,23 +421,20 @@ struct ei_solve_impl<PartialPivLU<MatrixType>, Rhs, Dest>
     * Step 2: replace c by the solution x to Lx = c.
     * Step 3: replace c by the solution x to Ux = c.
     */
-
-    const PartialPivLU<MatrixType>& dec = this->m_dec;
-    const Rhs& rhs = this->m_rhs;
     
-    const int size = dec.matrixLU().rows();
-    ei_assert(rhs.rows() == size);
+    const int size = dec().matrixLU().rows();
+    ei_assert(rhs().rows() == size);
 
-    dst.resize(size, rhs.cols());
+    dst.resize(size, rhs().cols());
 
     // Step 1
-    for(int i = 0; i < size; ++i) dst.row(dec.permutationP().coeff(i)) = rhs.row(i);
+    for(int i = 0; i < size; ++i) dst.row(dec().permutationP().coeff(i)) = rhs().row(i);
 
     // Step 2
-    dec.matrixLU().template triangularView<UnitLowerTriangular>().solveInPlace(dst);
+    dec().matrixLU().template triangularView<UnitLowerTriangular>().solveInPlace(dst);
 
     // Step 3
-    dec.matrixLU().template triangularView<UpperTriangular>().solveInPlace(dst);
+    dec().matrixLU().template triangularView<UpperTriangular>().solveInPlace(dst);
   }
 };
 

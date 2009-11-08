@@ -64,9 +64,16 @@ template<typename _DecompositionType> struct ei_image_return_value
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_image_impl<DecompositionType, Dest> *>
-      (this)->evalTo(dst);
+    static_cast<const ei_image_impl<DecompositionType>*>(this)->evalTo(dst);
   }
 };
+
+#define EIGEN_MAKE_IMAGE_HELPERS(DecompositionType) \
+  typedef typename DecompositionType::MatrixType MatrixType; \
+  typedef typename MatrixType::Scalar Scalar; \
+  typedef typename MatrixType::RealScalar RealScalar; \
+  inline const DecompositionType& dec() const { return this->m_dec; } \
+  inline const MatrixType& originalMatrix() const { return this->m_originalMatrix; } \
+  inline int rank() const { return this->m_rank; }
 
 #endif // EIGEN_MISC_IMAGE_H

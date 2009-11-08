@@ -258,14 +258,17 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   return *this;
 }
 
-template<typename MatrixType, int UpLo, typename Rhs, typename Dest>
-struct ei_solve_impl<LLT<MatrixType, UpLo>, Rhs, Dest>
-  : ei_solve_return_value<LLT<MatrixType, UpLo>, Rhs>
+template<typename _MatrixType, int UpLo, typename Rhs>
+struct ei_solve_impl<LLT<_MatrixType, UpLo>, Rhs>
+  : ei_solve_return_value<LLT<_MatrixType, UpLo>, Rhs>
 {
-  void evalTo(Dest& dst) const
+  typedef LLT<_MatrixType,UpLo> LLTType;
+  EIGEN_MAKE_SOLVE_HELPERS(LLTType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst = this->m_rhs;
-    this->m_dec.solveInPlace(dst);
+    dst = rhs();
+    dec().solveInPlace(dst);
   }
 };
 

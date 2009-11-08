@@ -63,9 +63,15 @@ template<typename _DecompositionType> struct ei_kernel_return_value
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_kernel_impl<DecompositionType, Dest> *>
-      (this)->evalTo(dst);
+    static_cast<const ei_kernel_impl<DecompositionType>*>(this)->evalTo(dst);
   }
 };
+
+#define EIGEN_MAKE_KERNEL_HELPERS(DecompositionType) \
+  typedef typename DecompositionType::MatrixType MatrixType; \
+  typedef typename MatrixType::Scalar Scalar; \
+  typedef typename MatrixType::RealScalar RealScalar; \
+  inline const DecompositionType& dec() const { return this->m_dec; } \
+  inline int rank() const { return this->m_rank; }
 
 #endif // EIGEN_MISC_KERNEL_H

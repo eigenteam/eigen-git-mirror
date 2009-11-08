@@ -209,28 +209,28 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   return *this;
 }
 
-template<typename MatrixType, typename Rhs, typename Dest>
-struct ei_solve_impl<HouseholderQR<MatrixType>, Rhs, Dest>
-  : ei_solve_return_value<HouseholderQR<MatrixType>, Rhs>
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_impl<HouseholderQR<_MatrixType>, Rhs>
+  : ei_solve_return_value<HouseholderQR<_MatrixType>, Rhs>
 {
-  void evalTo(Dest& dst) const
-  {
-    const HouseholderQR<MatrixType>& dec = this->m_dec;
-    const Rhs& rhs = this->m_rhs;
-    const int rows = dec.rows(), cols = dec.cols();
-    dst.resize(cols, rhs.cols());
-    const int rank = std::min(rows, cols);
-    ei_assert(rhs.rows() == rows);
+  EIGEN_MAKE_SOLVE_HELPERS(HouseholderQR<_MatrixType>,Rhs)
 
-    typename Rhs::PlainMatrixType c(rhs);
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    const int rows = dec().rows(), cols = dec().cols();
+    dst.resize(cols, rhs().cols());
+    const int rank = std::min(rows, cols);
+    ei_assert(rhs().rows() == rows);
+
+    typename Rhs::PlainMatrixType c(rhs());
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(makeHouseholderSequence(
-      dec.matrixQR().corner(TopLeft,rows,rank),
-      dec.hCoeffs().start(rank)).transpose()
+      dec().matrixQR().corner(TopLeft,rows,rank),
+      dec().hCoeffs().start(rank)).transpose()
     );
 
-    dec.matrixQR()
+    dec().matrixQR()
        .corner(TopLeft, rank, rank)
        .template triangularView<UpperTriangular>()
        .solveInPlace(c.corner(TopLeft, rank, c.cols()));

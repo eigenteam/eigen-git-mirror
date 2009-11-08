@@ -428,33 +428,31 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   return *this;
 }
 
-template<typename MatrixType, typename Rhs, typename Dest>
-struct ei_solve_impl<SVD<MatrixType>, Rhs, Dest>
-  : ei_solve_return_value<SVD<MatrixType>, Rhs>
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_impl<SVD<_MatrixType>, Rhs>
+  : ei_solve_return_value<SVD<_MatrixType>, Rhs>
 {
-  void evalTo(Dest& dst) const
+  EIGEN_MAKE_SOLVE_HELPERS(SVD<_MatrixType>,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
     const int cols = this->cols();
-    const SVD<MatrixType>& svd = this->m_dec;
-    const Rhs& rhs = this->m_rhs;
-    ei_assert(rhs.rows() == svd.rows());
+    ei_assert(rhs().rows() == dec().rows());
 
     for (int j=0; j<cols; ++j)
     {
-      Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = svd.matrixU().adjoint() * rhs.col(j);
+      Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = dec().matrixU().adjoint() * rhs().col(j);
 
-      for (int i = 0; i <svd.rows(); ++i)
+      for (int i = 0; i <dec().rows(); ++i)
       {
-        Scalar si = svd.singularValues().coeff(i);
+        Scalar si = dec().singularValues().coeff(i);
         if(si == RealScalar(0))
           aux.coeffRef(i) = Scalar(0);
         else
           aux.coeffRef(i) /= si;
       }
 
-      dst.col(j) = svd.matrixV() * aux;
+      dst.col(j) = dec().matrixV() * aux;
     }
   }
 };
