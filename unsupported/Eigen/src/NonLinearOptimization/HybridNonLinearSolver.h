@@ -28,6 +28,16 @@
 #ifndef EIGEN_HYBRIDNONLINEARSOLVER_H
 #define EIGEN_HYBRIDNONLINEARSOLVER_H
 
+/**
+  * \brief Finds a zero of a system of n
+  * nonlinear functions in n variables by a modification of the Powell
+  * hybrid method ("dogleg").
+  *
+  * The user must provide a subroutine which calculates the
+  * functions. The Jacobian is either provided by the user, or approximated
+  * using a forward-difference method. 
+  *
+  */
 template<typename FunctorType, typename Scalar=double>
 class HybridNonLinearSolver
 {

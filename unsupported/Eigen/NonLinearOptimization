@@ -33,11 +33,40 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup NonLinearOptimization_Module Non linear optimization module
   *
+  * This module provides implementation of two important algorithms in non linear
+  * optimization. In both cases, we consider a system of non linear functions. Of
+  * course, this should work, and even work very well if those functions are
+  * actually linear. But if this is so, you should probably better use other
+  * methods more fitted to this special case.
+  *
+  * One algorithm allows to find the extremum of such a system (Levenberg
+  * Marquardt algorithm) and the second one is used to find 
+  * a zero for the system (Powell hybrid "dogleg" method).
+  *
+  * This code is a port of a reknown implementation for both algorithms,
+  * called minpack (http://en.wikipedia.org/wiki/MINPACK). Those
+  * implementations have been carefully tuned, tested, and used for several
+  * decades.
+  * The original fortran code was automatically translated in C and then c++,
+  * and then cleaned by several authors
+  * (check http://devernay.free.fr/hacks/cminpack.html).
+  * 
+  * Finally, we ported this code to Eigen, creating classes and API
+  * coherent with Eigen. When possible, we switched to Eigen
+  * implementation, such as most linear algebra (vectors, matrices, "good" norms).
+  *
+  * Doing so, we were very careful to check the tests we setup at the very
+  * beginning, which ensure that the same results are found, with the same
+  * number of iterations.
+  *
   * \code
   * #include <unsupported/Eigen/NonLinearOptimization>
   * \endcode
   */
+
 //@{
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 
 #include "src/NonLinearOptimization/qrsolv.h"
 #include "src/NonLinearOptimization/r1updt.h"
@@ -52,9 +81,10 @@ namespace Eigen {
 
 #include "src/NonLinearOptimization/chkder.h"
 
+#endif
+
 #include "src/NonLinearOptimization/HybridNonLinearSolver.h"
 #include "src/NonLinearOptimization/LevenbergMarquardt.h"
-
 //@}
 
 }

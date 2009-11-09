@@ -36,6 +36,22 @@ namespace Eigen {
   * Warning : this should NOT be confused with automatic differentiation, which
   * is a different method and has its own module in Eigen.
   *
+  * Currently only "Forward" and "Central" scheme are implemented. Those
+  * are basic methods, and there exist some more elaborated way of
+  * computing such approximates. They are implemented using both
+  * proprietary and free software, and usually requires linking to an
+  * external library. It is very easy for you to write a functor
+  * using such software, and the purpose is quite orthogonal to what we
+  * want to achieve with Eigen.
+  *
+  * This is why we will not provide wrappers for every great numerical
+  * differenciation software that exist, but should rather stick with those
+  * basic ones, that still are useful for testing.
+  *
+  * Also, the module "Non linear optimization" needs this in order to
+  * provide full features compatibility with the original (c)minpack
+  * package.
+  *
   * \code
   * #include <unsupported/Eigen/NumericalDiff>
   * \endcode
