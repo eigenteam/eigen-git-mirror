@@ -206,7 +206,7 @@ template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
       * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
-      * reference to a matrix, not a matrix! It guaranteed however, that the return type of eval() is either
+      * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
       * PlainMatrixType or const PlainMatrixType&.
       */
     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
@@ -713,13 +713,23 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const LU<PlainMatrixType> lu() const;
-    const PartialLU<PlainMatrixType> partialLu() const;
-    const PlainMatrixType inverse() const;
+    const FullPivLU<PlainMatrixType> fullPivLu() const;
+    const PartialPivLU<PlainMatrixType> partialPivLu() const;
+    const PartialPivLU<PlainMatrixType> lu() const;
+    const ei_inverse_impl<Derived> inverse() const;
     template<typename ResultType>
-    void computeInverse(ResultType *result) const;
+    void computeInverseAndDetWithCheck(
+      ResultType& inverse,
+      typename ResultType::Scalar& determinant,
+      bool& invertible,
+      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+    ) const;
     template<typename ResultType>
-    bool computeInverseWithCheck(ResultType *result ) const;
+    void computeInverseWithCheck(
+      ResultType& inverse,
+      bool& invertible,
+      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+    ) const;
     Scalar determinant() const;
 
 /////////// Cholesky module ///////////
@@ -730,8 +740,8 @@ template<typename Derived> class MatrixBase
 /////////// QR module ///////////
 
     const HouseholderQR<PlainMatrixType> householderQr() const;
-    const ColPivotingHouseholderQR<PlainMatrixType> colPivotingHouseholderQr() const;
-    const FullPivotingHouseholderQR<PlainMatrixType> fullPivotingHouseholderQr() const;
+    const ColPivHouseholderQR<PlainMatrixType> colPivHouseholderQr() const;
+    const FullPivHouseholderQR<PlainMatrixType> fullPivHouseholderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

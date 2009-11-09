@@ -119,8 +119,8 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product_extra(MatrixXf(ei_random<int>(2,320), ei_random<int>(2,320))) );
-    CALL_SUBTEST( product_extra(MatrixXcf(ei_random<int>(50,50), ei_random<int>(50,50))) );
-    CALL_SUBTEST( product_extra(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(ei_random<int>(2,50), ei_random<int>(2,50))) );
+    CALL_SUBTEST_1( product_extra(MatrixXf(ei_random<int>(2,320), ei_random<int>(2,320))) );
+    CALL_SUBTEST_2( product_extra(MatrixXcf(ei_random<int>(50,50), ei_random<int>(50,50))) );
+    CALL_SUBTEST_3( product_extra(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(ei_random<int>(2,50), ei_random<int>(2,50))) );
   }
 }

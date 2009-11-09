@@ -113,15 +113,15 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
 void test_geo_orthomethods()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( orthomethods_3<float>() );
-    CALL_SUBTEST( orthomethods_3<double>() );
-    CALL_SUBTEST( (orthomethods<float,2>()) );
-    CALL_SUBTEST( (orthomethods<double,2>()) );
-    CALL_SUBTEST( (orthomethods<float,3>()) );
-    CALL_SUBTEST( (orthomethods<double,3>()) );
-    CALL_SUBTEST( (orthomethods<float,7>()) );
-    CALL_SUBTEST( (orthomethods<std::complex<double>,8>()) );
-    CALL_SUBTEST( (orthomethods<float,Dynamic>(36)) );
-    CALL_SUBTEST( (orthomethods<double,Dynamic>(35)) );
+    CALL_SUBTEST_1( orthomethods_3<float>() );
+    CALL_SUBTEST_2( orthomethods_3<double>() );
+    CALL_SUBTEST_1( (orthomethods<float,2>()) );
+    CALL_SUBTEST_2( (orthomethods<double,2>()) );
+    CALL_SUBTEST_1( (orthomethods<float,3>()) );
+    CALL_SUBTEST_2( (orthomethods<double,3>()) );
+    CALL_SUBTEST_3( (orthomethods<float,7>()) );
+    CALL_SUBTEST_4( (orthomethods<std::complex<double>,8>()) );
+    CALL_SUBTEST_5( (orthomethods<float,Dynamic>(36)) );
+    CALL_SUBTEST_6( (orthomethods<double,Dynamic>(35)) );
   }
 }

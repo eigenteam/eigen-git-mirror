@@ -192,7 +192,7 @@ MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M, MatrixType
   computeUV(RealScalar());
   m_tmp1 = m_U + m_V;	// numerator of Pade approximant
   m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
-  m_tmp2.partialLu().solve(m_tmp1, result);
+  *result = m_tmp2.partialPivLu().solve(m_tmp1);
   for (int i=0; i<m_squarings; i++)
     *result *= *result;		// undo scaling by repeated squaring
 }

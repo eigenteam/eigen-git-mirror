@@ -115,17 +115,17 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
 void test_visitor()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( matrixVisitor(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( matrixVisitor(Matrix2f()) );
-    CALL_SUBTEST( matrixVisitor(Matrix4d()) );
-    CALL_SUBTEST( matrixVisitor(MatrixXd(8, 12)) );
-    CALL_SUBTEST( matrixVisitor(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 20)) );
-    CALL_SUBTEST( matrixVisitor(MatrixXi(8, 12)) );
+    CALL_SUBTEST_1( matrixVisitor(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( matrixVisitor(Matrix2f()) );
+    CALL_SUBTEST_3( matrixVisitor(Matrix4d()) );
+    CALL_SUBTEST_4( matrixVisitor(MatrixXd(8, 12)) );
+    CALL_SUBTEST_5( matrixVisitor(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 20)) );
+    CALL_SUBTEST_6( matrixVisitor(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( vectorVisitor(Vector4f()) );
-    CALL_SUBTEST( vectorVisitor(VectorXd(10)) );
-    CALL_SUBTEST( vectorVisitor(RowVectorXd(10)) );
-    CALL_SUBTEST( vectorVisitor(VectorXf(33)) );
+    CALL_SUBTEST_7( vectorVisitor(Vector4f()) );
+    CALL_SUBTEST_8( vectorVisitor(VectorXd(10)) );
+    CALL_SUBTEST_9( vectorVisitor(RowVectorXd(10)) );
+    CALL_SUBTEST_10( vectorVisitor(VectorXf(33)) );
   }
 }

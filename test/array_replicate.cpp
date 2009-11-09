@@ -76,11 +76,11 @@ template<typename MatrixType> void replicate(const MatrixType& m)
 void test_array_replicate()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( replicate(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( replicate(Vector2f()) );
-    CALL_SUBTEST( replicate(Vector3d()) );
-    CALL_SUBTEST( replicate(Vector4f()) );
-    CALL_SUBTEST( replicate(VectorXf(16)) );
-    CALL_SUBTEST( replicate(VectorXcd(10)) );
+    CALL_SUBTEST_1( replicate(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( replicate(Vector2f()) );
+    CALL_SUBTEST_3( replicate(Vector3d()) );
+    CALL_SUBTEST_4( replicate(Vector4f()) );
+    CALL_SUBTEST_5( replicate(VectorXf(16)) );
+    CALL_SUBTEST_6( replicate(VectorXcd(10)) );
   }
 }

@@ -22,7 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef EIGEN_NO_ASSERTION_CHECKING
 #define EIGEN_NO_ASSERTION_CHECKING
+#endif
+
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
@@ -93,17 +96,17 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   {
     LLT<SquareMatrixType,LowerTriangular> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.matrixL().toDense() * chollo.matrixL().adjoint().toDense());
-    chollo.solve(vecB, &vecX);
+    vecX = chollo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    chollo.solve(matB, &matX);
+    matX = chollo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
     // test the upper mode
     LLT<SquareMatrixType,UpperTriangular> cholup(symmUp);
     VERIFY_IS_APPROX(symm, cholup.matrixL().toDense() * cholup.matrixL().adjoint().toDense());
-    cholup.solve(vecB, &vecX);
+    vecX = cholup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    cholup.solve(matB, &matX);
+    matX = cholup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
@@ -118,9 +121,9 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     LDLT<SquareMatrixType> ldlt(symm);
     // TODO(keir): This doesn't make sense now that LDLT pivots.
     //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
-    ldlt.solve(vecB, &vecX);
+    vecX = ldlt.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    ldlt.solve(matB, &matX);
+    matX = ldlt.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
@@ -132,7 +135,7 @@ template<typename MatrixType> void cholesky_verify_assert()
 
   LLT<MatrixType> llt;
   VERIFY_RAISES_ASSERT(llt.matrixL())
-  VERIFY_RAISES_ASSERT(llt.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(llt.solve(tmp))
   VERIFY_RAISES_ASSERT(llt.solveInPlace(&tmp))
 
   LDLT<MatrixType> ldlt;
@@ -141,24 +144,24 @@ template<typename MatrixType> void cholesky_verify_assert()
   VERIFY_RAISES_ASSERT(ldlt.vectorD())
   VERIFY_RAISES_ASSERT(ldlt.isPositive())
   VERIFY_RAISES_ASSERT(ldlt.isNegative())
-  VERIFY_RAISES_ASSERT(ldlt.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(ldlt.solve(tmp))
   VERIFY_RAISES_ASSERT(ldlt.solveInPlace(&tmp))
 }
 
 void test_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( cholesky(Matrix<double,1,1>()) );
-    CALL_SUBTEST( cholesky(MatrixXd(1,1)) );
-    CALL_SUBTEST( cholesky(Matrix2d()) );
-    CALL_SUBTEST( cholesky(Matrix3f()) );
-    CALL_SUBTEST( cholesky(Matrix4d()) );
-    CALL_SUBTEST( cholesky(MatrixXd(200,200)) );
-    CALL_SUBTEST( cholesky(MatrixXcd(100,100)) );
+    CALL_SUBTEST_1( cholesky(Matrix<double,1,1>()) );
+    CALL_SUBTEST_2( cholesky(MatrixXd(1,1)) );
+    CALL_SUBTEST_3( cholesky(Matrix2d()) );
+    CALL_SUBTEST_4( cholesky(Matrix3f()) );
+    CALL_SUBTEST_5( cholesky(Matrix4d()) );
+    CALL_SUBTEST_2( cholesky(MatrixXd(200,200)) );
+    CALL_SUBTEST_6( cholesky(MatrixXcd(100,100)) );
   }
 
-  CALL_SUBTEST( cholesky_verify_assert<Matrix3f>() );
-  CALL_SUBTEST( cholesky_verify_assert<Matrix3d>() );
-  CALL_SUBTEST( cholesky_verify_assert<MatrixXf>() );
-  CALL_SUBTEST( cholesky_verify_assert<MatrixXd>() );
+  CALL_SUBTEST_4( cholesky_verify_assert<Matrix3f>() );
+  CALL_SUBTEST_7( cholesky_verify_assert<Matrix3d>() );
+  CALL_SUBTEST_8( cholesky_verify_assert<MatrixXf>() );
+  CALL_SUBTEST_2( cholesky_verify_assert<MatrixXd>() );
 }

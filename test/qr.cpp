@@ -63,7 +63,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
   Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
   m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
-  qr.solve(m3, &m2);
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 }
 
@@ -86,7 +86,7 @@ template<typename MatrixType> void qr_invertible()
 
   HouseholderQR<MatrixType> qr(m1);
   m3 = MatrixType::Random(size,size);
-  qr.solve(m3, &m2);
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 
   // now construct a matrix with prescribed determinant
@@ -106,7 +106,7 @@ template<typename MatrixType> void qr_verify_assert()
 
   HouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
-  VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(qr.solve(tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
@@ -115,24 +115,24 @@ template<typename MatrixType> void qr_verify_assert()
 void test_qr()
 {
   for(int i = 0; i < 1; i++) {
-   CALL_SUBTEST( qr(MatrixXf(47,40)) );
-   CALL_SUBTEST( qr(MatrixXcd(17,7)) );
-   CALL_SUBTEST(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
-   CALL_SUBTEST(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
-   CALL_SUBTEST(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
+   CALL_SUBTEST_1( qr(MatrixXf(47,40)) );
+   CALL_SUBTEST_2( qr(MatrixXcd(17,7)) );
+   CALL_SUBTEST_3(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
+   CALL_SUBTEST_4(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
+   CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( qr_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXd>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcd>() );
+    CALL_SUBTEST_1( qr_invertible<MatrixXf>() );
+    CALL_SUBTEST_6( qr_invertible<MatrixXd>() );
+    CALL_SUBTEST_7( qr_invertible<MatrixXcf>() );
+    CALL_SUBTEST_8( qr_invertible<MatrixXcd>() );
   }
 
-  CALL_SUBTEST(qr_verify_assert<Matrix3f>());
-  CALL_SUBTEST(qr_verify_assert<Matrix3d>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXd>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcd>());
+  CALL_SUBTEST_9(qr_verify_assert<Matrix3f>());
+  CALL_SUBTEST_10(qr_verify_assert<Matrix3d>());
+  CALL_SUBTEST_1(qr_verify_assert<MatrixXf>());
+  CALL_SUBTEST_6(qr_verify_assert<MatrixXd>());
+  CALL_SUBTEST_7(qr_verify_assert<MatrixXcf>());
+  CALL_SUBTEST_8(qr_verify_assert<MatrixXcd>());
 }

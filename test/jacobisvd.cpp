@@ -80,27 +80,27 @@ void test_jacobisvd()
     Matrix2cd m;
     m << 0, 1,
          0, 1;
-    CALL_SUBTEST(( svd<Matrix2cd,0>(m, false) ));
+    CALL_SUBTEST_1(( svd<Matrix2cd,0>(m, false) ));
     m << 1, 0,
          1, 0;
-    CALL_SUBTEST(( svd<Matrix2cd,0>(m, false) ));
+    CALL_SUBTEST_1(( svd<Matrix2cd,0>(m, false) ));
     Matrix2d n;
     n << 1, 1,
          1, -1;
-    CALL_SUBTEST(( svd<Matrix2d,0>(n, false) ));
-    CALL_SUBTEST(( svd<Matrix3f,0>() ));
-    CALL_SUBTEST(( svd<Matrix4d,Square>() ));
-    CALL_SUBTEST(( svd<Matrix<float,3,5> , AtLeastAsManyColsAsRows>() ));
-    CALL_SUBTEST(( svd<Matrix<double,Dynamic,2> , AtLeastAsManyRowsAsCols>(Matrix<double,Dynamic,2>(10,2)) ));
+    CALL_SUBTEST_2(( svd<Matrix2d,0>(n, false) ));
+    CALL_SUBTEST_3(( svd<Matrix3f,0>() ));
+    CALL_SUBTEST_4(( svd<Matrix4d,Square>() ));
+    CALL_SUBTEST_5(( svd<Matrix<float,3,5> , AtLeastAsManyColsAsRows>() ));
+    CALL_SUBTEST_6(( svd<Matrix<double,Dynamic,2> , AtLeastAsManyRowsAsCols>(Matrix<double,Dynamic,2>(10,2)) ));
 
-    CALL_SUBTEST(( svd<MatrixXf,Square>(MatrixXf(50,50)) ));
-    CALL_SUBTEST(( svd<MatrixXcd,AtLeastAsManyRowsAsCols>(MatrixXcd(14,7)) ));
+    CALL_SUBTEST_7(( svd<MatrixXf,Square>(MatrixXf(50,50)) ));
+    CALL_SUBTEST_8(( svd<MatrixXcd,AtLeastAsManyRowsAsCols>(MatrixXcd(14,7)) ));
   }
-  CALL_SUBTEST(( svd<MatrixXf,0>(MatrixXf(300,200)) ));
-  CALL_SUBTEST(( svd<MatrixXcd,AtLeastAsManyColsAsRows>(MatrixXcd(100,150)) ));
+  CALL_SUBTEST_9(( svd<MatrixXf,0>(MatrixXf(300,200)) ));
+  CALL_SUBTEST_10(( svd<MatrixXcd,AtLeastAsManyColsAsRows>(MatrixXcd(100,150)) ));
 
-  CALL_SUBTEST(( svd_verify_assert<Matrix3f>() ));
-  CALL_SUBTEST(( svd_verify_assert<Matrix3d>() ));
-  CALL_SUBTEST(( svd_verify_assert<MatrixXf>() ));
-  CALL_SUBTEST(( svd_verify_assert<MatrixXd>() ));
+  CALL_SUBTEST_3(( svd_verify_assert<Matrix3f>() ));
+  CALL_SUBTEST_3(( svd_verify_assert<Matrix3d>() ));
+  CALL_SUBTEST_9(( svd_verify_assert<MatrixXf>() ));
+  CALL_SUBTEST_11(( svd_verify_assert<MatrixXd>() ));
 }

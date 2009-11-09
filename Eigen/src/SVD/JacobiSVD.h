@@ -233,7 +233,7 @@ struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
     int diagSize = cols;
     if(rows > cols)
     {
-      FullPivotingHouseholderQR<MatrixType> qr(matrix);
+      FullPivHouseholderQR<MatrixType> qr(matrix);
       work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>();
       if(ComputeU) svd.m_matrixU = qr.matrixQ();
       if(ComputeV)
@@ -278,7 +278,7 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
       typedef Matrix<Scalar,ColsAtCompileTime,RowsAtCompileTime,
                       MatrixOptions,MaxColsAtCompileTime,MaxRowsAtCompileTime>
               TransposeTypeWithSameStorageOrder;
-      FullPivotingHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
+      FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
       work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>().adjoint();
       if(ComputeV) svd.m_matrixV = qr.matrixQ();
       if(ComputeU)

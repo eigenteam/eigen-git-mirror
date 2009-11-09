@@ -885,6 +885,24 @@ Transform<Scalar,Dim,Mode>::fromPositionOrientationScale(const MatrixBase<Positi
   return *this;
 }
 
+// selector needed to avoid taking the inverse of a 3x4 matrix
+template<typename TransformType, int Mode=TransformType::Mode>
+struct ei_projective_transform_inverse
+{
+  static inline void run(const TransformType&, TransformType&)
+  {}
+};
+
+template<typename TransformType>
+struct ei_projective_transform_inverse<TransformType, Projective>
+{
+  static inline void run(const TransformType& m, TransformType& res)
+  {
+    res.matrix() = m.matrix().inverse();
+  }
+};
+
+
 /** \nonstableyet
   *
   * \returns the inverse transformation according to some given knowledge
@@ -911,7 +929,7 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
   Transform res;
   if (hint == Projective)
   {
-    res.matrix() = m_matrix.inverse();
+    ei_projective_transform_inverse<Transform>::run(*this, res);
   }
   else
   {

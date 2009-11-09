@@ -298,16 +298,19 @@ template<typename Scalar, int Mode> void transformations(void)
   VERIFY_IS_APPROX((t0 * v1).template start<3>(), AlignedScaling3(v0) * v1);
 
   // test transform inversion
-  if(Mode!=AffineCompact)
-  {
-    t0.setIdentity();
-    t0.translate(v0);
-    t0.linear().setRandom();
-    VERIFY_IS_APPROX(t0.inverse(Affine).matrix(), t0.matrix().inverse());
-    t0.setIdentity();
-    t0.translate(v0).rotate(q1);
-    VERIFY_IS_APPROX(t0.inverse(Isometry).matrix(), t0.matrix().inverse());
-  }
+  t0.setIdentity();
+  t0.translate(v0);
+  t0.linear().setRandom();
+  Matrix4 t044 = Matrix4::Zero();
+  t044(3,3) = 1;
+  t044.block(0,0,t0.matrix().rows(),4) = t0.matrix();
+  VERIFY_IS_APPROX(t0.inverse(Affine).matrix(), t044.inverse().block(0,0,t0.matrix().rows(),4));
+  t0.setIdentity();
+  t0.translate(v0).rotate(q1);
+  t044 = Matrix4::Zero();
+  t044(3,3) = 1;
+  t044.block(0,0,t0.matrix().rows(),4) = t0.matrix();
+  VERIFY_IS_APPROX(t0.inverse(Isometry).matrix(), t044.inverse().block(0,0,t0.matrix().rows(),4));
 
   // test extract rotation and aligned scaling
 //   t0.setIdentity();
@@ -354,9 +357,8 @@ template<typename Scalar, int Mode> void transformations(void)
 void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( transformations<float>() );
-    CALL_SUBTEST(( transformations<double,Affine>() ));
-    CALL_SUBTEST(( transformations<double,AffineCompact>() ));
-    CALL_SUBTEST(( transformations<double,Projective>() ));
+    CALL_SUBTEST_1(( transformations<double,Affine>() ));
+    CALL_SUBTEST_2(( transformations<float,AffineCompact>() ));
+    CALL_SUBTEST_3(( transformations<double,Projective>() ));
   }
 }

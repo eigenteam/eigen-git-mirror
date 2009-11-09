@@ -109,7 +109,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     initSPD(density, refMat2, m2);
 
-    refMat2.llt().solve(b, &refX);
+    refX = refMat2.llt().solve(b);
     typedef SparseMatrix<Scalar,LowerTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
     if (!NumTraits<Scalar>::IsComplex)
     {
@@ -152,7 +152,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     refMat2 += refMat2.adjoint();
     refMat2.diagonal() *= 0.5;
 
-    refMat2.llt().solve(b, &refX); // FIXME use LLT to compute the reference because LDLT seems to fail with large matrices
+    refX = refMat2.llt().solve(b); // FIXME use LLT to compute the reference because LDLT seems to fail with large matrices
     typedef SparseMatrix<Scalar,UpperTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLDLT<SparseSelfAdjointMatrix> ldlt(m2);
@@ -172,8 +172,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
 
-    LU<DenseMatrix> refLu(refMat2);
-    refLu.solve(b, &refX);
+    FullPivLU<DenseMatrix> refLu(refMat2);
+    refX = refLu.solve(b);
     #if defined(EIGEN_SUPERLU_SUPPORT) || defined(EIGEN_UMFPACK_SUPPORT)
     Scalar refDet = refLu.determinant();
     #endif
@@ -229,8 +229,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 void test_sparse_solvers()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( sparse_solvers<double>(8, 8) );
-    CALL_SUBTEST( sparse_solvers<std::complex<double> >(16, 16) );
-//     CALL_SUBTEST( sparse_solvers<double>(100, 100) );
+//     CALL_SUBTEST(sparse_solvers<double>(8, 8) );
+    CALL_SUBTEST(sparse_solvers<std::complex<double> >(16, 16) );
+//     CALL_SUBTEST(sparse_solvers<double>(100, 100) );
   }
 }

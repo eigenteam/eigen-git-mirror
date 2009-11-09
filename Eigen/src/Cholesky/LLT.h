@@ -53,9 +53,10 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   */
-template<typename MatrixType, int _UpLo> class LLT
+template<typename _MatrixType, int _UpLo> class LLT
 {
-  private:
+  public:
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
@@ -67,8 +68,6 @@ template<typename MatrixType, int _UpLo> class LLT
     };
 
     typedef LLT_Traits<MatrixType,UpLo> Traits;
-
-  public:
 
     /**
     * \brief Default Constructor.
@@ -99,13 +98,43 @@ template<typename MatrixType, int _UpLo> class LLT
       return Traits::getL(m_matrix);
     }
 
-    template<typename RhsDerived, typename ResultType>
-    bool solve(const MatrixBase<RhsDerived> &b, ResultType *result) const;
-
+    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+      *
+      * Since this LLT class assumes anyway that the matrix A is invertible, the solution
+      * theoretically exists and is unique regardless of b.
+      *
+      * Example: \include LLT_solve.cpp
+      * Output: \verbinclude LLT_solve.out
+      *
+      * \sa solveInPlace(), MatrixBase::llt()
+      */
+    template<typename Rhs>
+    inline const ei_solve_retval<LLT, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      ei_assert(m_matrix.rows()==b.rows()
+                && "LLT::solve(): invalid number of rows of the right hand side matrix b");
+      return ei_solve_retval<LLT, Rhs>(*this, b.derived());
+    }
+    
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
     LLT& compute(const MatrixType& matrix);
+
+    /** \returns the LLT decomposition matrix
+      *
+      * TODO: document the storage layout
+      */
+    inline const MatrixType& matrixLLT() const
+    {
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      return m_matrix;
+    }
+
+    inline int rows() const { return m_matrix.rows(); }
+    inline int cols() const { return m_matrix.cols(); }
 
   protected:
     /** \internal
@@ -229,28 +258,19 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   return *this;
 }
 
-/** Computes the solution x of \f$ A x = b \f$ using the current decomposition of A.
-  * The result is stored in \a result
-  *
-  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
-  *
-  * In other words, it computes \f$ b = A^{-1} b \f$ with
-  * \f$ {L^{*}}^{-1} L^{-1} b \f$ from right to left.
-  *
-  * Example: \include LLT_solve.cpp
-  * Output: \verbinclude LLT_solve.out
-  *
-  * \sa LLT::solveInPlace(), MatrixBase::llt()
-  */
-template<typename MatrixType, int _UpLo>
-template<typename RhsDerived, typename ResultType>
-bool LLT<MatrixType,_UpLo>::solve(const MatrixBase<RhsDerived> &b, ResultType *result) const
+template<typename _MatrixType, int UpLo, typename Rhs>
+struct ei_solve_retval<LLT<_MatrixType, UpLo>, Rhs>
+  : ei_solve_retval_base<LLT<_MatrixType, UpLo>, Rhs>
 {
-  ei_assert(m_isInitialized && "LLT is not initialized.");
-  const int size = m_matrix.rows();
-  ei_assert(size==b.rows() && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-  return solveInPlace((*result) = b);
-}
+  typedef LLT<_MatrixType,UpLo> LLTType;
+  EIGEN_MAKE_SOLVE_HELPERS(LLTType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dst = rhs();
+    dec().solveInPlace(dst);
+  }
+};
 
 /** This is the \em in-place version of solve().
   *

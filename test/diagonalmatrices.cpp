@@ -95,14 +95,14 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
 void test_diagonalmatrices()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( diagonalmatrices(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( diagonalmatrices(Matrix3f()) );
-    CALL_SUBTEST( diagonalmatrices(Matrix<double,3,3,RowMajor>()) );
-    CALL_SUBTEST( diagonalmatrices(Matrix4d()) );
-    CALL_SUBTEST( diagonalmatrices(Matrix<float,4,4,RowMajor>()) );
-    CALL_SUBTEST( diagonalmatrices(MatrixXcf(3, 5)) );
-    CALL_SUBTEST( diagonalmatrices(MatrixXi(10, 8)) );
-    CALL_SUBTEST( diagonalmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 20)) );
-    CALL_SUBTEST( diagonalmatrices(MatrixXf(21, 24)) );
+    CALL_SUBTEST_1( diagonalmatrices(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( diagonalmatrices(Matrix3f()) );
+    CALL_SUBTEST_3( diagonalmatrices(Matrix<double,3,3,RowMajor>()) );
+    CALL_SUBTEST_4( diagonalmatrices(Matrix4d()) );
+    CALL_SUBTEST_5( diagonalmatrices(Matrix<float,4,4,RowMajor>()) );
+    CALL_SUBTEST_6( diagonalmatrices(MatrixXcf(3, 5)) );
+    CALL_SUBTEST_7( diagonalmatrices(MatrixXi(10, 8)) );
+    CALL_SUBTEST_8( diagonalmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 20)) );
+    CALL_SUBTEST_9( diagonalmatrices(MatrixXf(21, 24)) );
   }
 }

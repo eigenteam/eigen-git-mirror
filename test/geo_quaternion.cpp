@@ -92,9 +92,12 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX( v2.normalized(),(q2.setFromTwoVectors(v1, v2)*v1).normalized());
   VERIFY_IS_APPROX( v1.normalized(),(q2.setFromTwoVectors(v1, v1)*v1).normalized());
   VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
-  v3 = v1.cwise()+eps;
-  VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());
-  VERIFY_IS_APPROX(-v3.normalized(),(q2.setFromTwoVectors(v1,-v3)*v1).normalized());
+  if (ei_is_same_type<Scalar,double>::ret)
+  {
+    v3 = v1.cwise()+eps;
+    VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());
+    VERIFY_IS_APPROX(-v3.normalized(),(q2.setFromTwoVectors(v1,-v3)*v1).normalized());
+  }
 
   // inverse and conjugate
   VERIFY_IS_APPROX(q1 * (q1.inverse() * v1), v1);
@@ -110,7 +113,7 @@ template<typename Scalar> void quaternion(void)
 void test_geo_quaternion()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST( quaternion<float>() );
-    CALL_SUBTEST( quaternion<double>() );
+    CALL_SUBTEST_1( quaternion<float>() );
+    CALL_SUBTEST_2( quaternion<double>() );
   }
 }

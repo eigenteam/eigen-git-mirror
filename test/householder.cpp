@@ -92,12 +92,12 @@ template<typename MatrixType> void householder(const MatrixType& m)
 void test_householder()
 {
   for(int i = 0; i < 2*g_repeat; i++) {
-    CALL_SUBTEST( householder(Matrix<double,2,2>()) );
-    CALL_SUBTEST( householder(Matrix<float,2,3>()) );
-    CALL_SUBTEST( householder(Matrix<double,3,5>()) );
-    CALL_SUBTEST( householder(Matrix<float,4,4>()) );
-    CALL_SUBTEST( householder(MatrixXd(10,12)) );
-    CALL_SUBTEST( householder(MatrixXcf(16,17)) );
+    CALL_SUBTEST_1( householder(Matrix<double,2,2>()) );
+    CALL_SUBTEST_2( householder(Matrix<float,2,3>()) );
+    CALL_SUBTEST_3( householder(Matrix<double,3,5>()) );
+    CALL_SUBTEST_4( householder(Matrix<float,4,4>()) );
+    CALL_SUBTEST_5( householder(MatrixXd(10,12)) );
+    CALL_SUBTEST_6( householder(MatrixXcf(16,17)) );
   }
 
 }

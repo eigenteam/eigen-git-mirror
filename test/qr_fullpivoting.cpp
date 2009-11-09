@@ -36,7 +36,7 @@ template<typename MatrixType> void qr()
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
   createRandomMatrixOfRank(rank,rows,cols,m1);
-  FullPivotingHouseholderQR<MatrixType> qr(m1);
+  FullPivHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
   VERIFY(!qr.isInjective());
@@ -61,10 +61,8 @@ template<typename MatrixType> void qr()
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
-  VERIFY(qr.solve(m3, &m2));
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-  m3 = MatrixType::Random(rows,cols2);
-  VERIFY(!qr.solve(m3, &m2));
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -84,13 +82,13 @@ template<typename MatrixType> void qr_invertible()
     m1 += a * a.adjoint();
   }
 
-  FullPivotingHouseholderQR<MatrixType> qr(m1);
+  FullPivHouseholderQR<MatrixType> qr(m1);
   VERIFY(qr.isInjective());
   VERIFY(qr.isInvertible());
   VERIFY(qr.isSurjective());
 
   m3 = MatrixType::Random(size,size);
-  VERIFY(qr.solve(m3, &m2));
+  m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
 
   // now construct a matrix with prescribed determinant
@@ -108,15 +106,14 @@ template<typename MatrixType> void qr_verify_assert()
 {
   MatrixType tmp;
 
-  FullPivotingHouseholderQR<MatrixType> qr;
+  FullPivHouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
-  VERIFY_RAISES_ASSERT(qr.solve(tmp,&tmp))
+  VERIFY_RAISES_ASSERT(qr.solve(tmp))
   VERIFY_RAISES_ASSERT(qr.matrixQ())
   VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
   VERIFY_RAISES_ASSERT(qr.isInjective())
   VERIFY_RAISES_ASSERT(qr.isSurjective())
   VERIFY_RAISES_ASSERT(qr.isInvertible())
-  VERIFY_RAISES_ASSERT(qr.computeInverse(&tmp))
   VERIFY_RAISES_ASSERT(qr.inverse())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
@@ -126,23 +123,23 @@ void test_qr_fullpivoting()
 {
  for(int i = 0; i < 1; i++) {
     // FIXME : very weird bug here
-//     CALL_SUBTEST( qr(Matrix2f()) );
-    CALL_SUBTEST( qr<MatrixXf>() );
-    CALL_SUBTEST( qr<MatrixXd>() );
-    CALL_SUBTEST( qr<MatrixXcd>() );
+//     CALL_SUBTEST(qr(Matrix2f()) );
+    CALL_SUBTEST_1( qr<MatrixXf>() );
+    CALL_SUBTEST_2( qr<MatrixXd>() );
+    CALL_SUBTEST_3( qr<MatrixXcd>() );
   }
 
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( qr_invertible<MatrixXf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXd>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcf>() );
-    CALL_SUBTEST( qr_invertible<MatrixXcd>() );
+    CALL_SUBTEST_1( qr_invertible<MatrixXf>() );
+    CALL_SUBTEST_2( qr_invertible<MatrixXd>() );
+    CALL_SUBTEST_4( qr_invertible<MatrixXcf>() );
+    CALL_SUBTEST_3( qr_invertible<MatrixXcd>() );
   }
 
-  CALL_SUBTEST(qr_verify_assert<Matrix3f>());
-  CALL_SUBTEST(qr_verify_assert<Matrix3d>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXd>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcf>());
-  CALL_SUBTEST(qr_verify_assert<MatrixXcd>());
+  CALL_SUBTEST_5(qr_verify_assert<Matrix3f>());
+  CALL_SUBTEST_6(qr_verify_assert<Matrix3d>());
+  CALL_SUBTEST_1(qr_verify_assert<MatrixXf>());
+  CALL_SUBTEST_2(qr_verify_assert<MatrixXd>());
+  CALL_SUBTEST_4(qr_verify_assert<MatrixXcf>());
+  CALL_SUBTEST_3(qr_verify_assert<MatrixXcd>());
 }

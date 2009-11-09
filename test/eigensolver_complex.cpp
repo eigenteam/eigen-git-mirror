@@ -58,7 +58,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 void test_eigensolver_complex()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( eigensolver(Matrix4cf()) );
-    CALL_SUBTEST( eigensolver(MatrixXcd(14,14)) );
+    CALL_SUBTEST_1( eigensolver(Matrix4cf()) );
+    CALL_SUBTEST_2( eigensolver(MatrixXcd(14,14)) );
   }
 }

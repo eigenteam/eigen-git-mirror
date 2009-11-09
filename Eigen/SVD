@@ -22,6 +22,7 @@ namespace Eigen {
   * \endcode
   */
 
+#include "src/misc/Solve.h"
 #include "src/SVD/SVD.h"
 #include "src/SVD/JacobiSVD.h"
 

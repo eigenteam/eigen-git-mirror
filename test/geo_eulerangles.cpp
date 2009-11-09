@@ -64,7 +64,7 @@ template<typename Scalar> void eulerangles(void)
 void test_geo_eulerangles()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( eulerangles<float>() );
-    CALL_SUBTEST( eulerangles<double>() );
+    CALL_SUBTEST_1( eulerangles<float>() );
+    CALL_SUBTEST_2( eulerangles<double>() );
   }
 }

@@ -28,16 +28,18 @@
 void test_product_small()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( product(Matrix<float, 3, 2>()) );
-    CALL_SUBTEST( product(Matrix<int, 3, 5>()) );
-    CALL_SUBTEST( product(Matrix3d()) );
-    CALL_SUBTEST( product(Matrix4d()) );
-    CALL_SUBTEST( product(Matrix4f()) );
+    CALL_SUBTEST_1( product(Matrix<float, 3, 2>()) );
+    CALL_SUBTEST_2( product(Matrix<int, 3, 5>()) );
+    CALL_SUBTEST_3( product(Matrix3d()) );
+    CALL_SUBTEST_4( product(Matrix4d()) );
+    CALL_SUBTEST_5( product(Matrix4f()) );
   }
 
+#ifdef EIGEN_TEST_PART_6
   {
     // test compilation of (outer_product) * vector
     Vector3f v = Vector3f::Random();
     VERIFY_IS_APPROX( (v * v.transpose()) * v, (v * v.transpose()).eval() * v);
   }
+#endif
 }

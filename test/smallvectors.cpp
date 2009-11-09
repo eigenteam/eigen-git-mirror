@@ -50,8 +50,8 @@ template<typename Scalar> void smallVectors()
 void test_smallvectors()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( smallVectors<int>() );
-    CALL_SUBTEST( smallVectors<float>() );
-    CALL_SUBTEST( smallVectors<double>() );
+    CALL_SUBTEST(smallVectors<int>() );
+    CALL_SUBTEST(smallVectors<float>() );
+    CALL_SUBTEST(smallVectors<double>() );
   }
 }

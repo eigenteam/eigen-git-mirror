@@ -75,18 +75,18 @@ template<typename MatrixType> void eigensolver_verify_assert()
 void test_eigensolver_generic()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( eigensolver(Matrix4f()) );
-    CALL_SUBTEST( eigensolver(MatrixXd(17,17)) );
+    CALL_SUBTEST_1( eigensolver(Matrix4f()) );
+    CALL_SUBTEST_2( eigensolver(MatrixXd(17,17)) );
 
     // some trivial but implementation-wise tricky cases
-    CALL_SUBTEST( eigensolver(MatrixXd(1,1)) );
-    CALL_SUBTEST( eigensolver(MatrixXd(2,2)) );
-    CALL_SUBTEST( eigensolver(Matrix<double,1,1>()) );
-    CALL_SUBTEST( eigensolver(Matrix<double,2,2>()) );
+    CALL_SUBTEST_2( eigensolver(MatrixXd(1,1)) );
+    CALL_SUBTEST_2( eigensolver(MatrixXd(2,2)) );
+    CALL_SUBTEST_3( eigensolver(Matrix<double,1,1>()) );
+    CALL_SUBTEST_4( eigensolver(Matrix2d()) );
   }
 
-  CALL_SUBTEST( eigensolver_verify_assert<Matrix3f>() );
-  CALL_SUBTEST( eigensolver_verify_assert<Matrix3d>() );
-  CALL_SUBTEST( eigensolver_verify_assert<MatrixXf>() );
-  CALL_SUBTEST( eigensolver_verify_assert<MatrixXd>() );
+  CALL_SUBTEST_1( eigensolver_verify_assert<Matrix4f>() );
+  CALL_SUBTEST_2( eigensolver_verify_assert<MatrixXd>() );
+  CALL_SUBTEST_4( eigensolver_verify_assert<Matrix2d>() );
+  CALL_SUBTEST_5( eigensolver_verify_assert<MatrixXf>() );
 }

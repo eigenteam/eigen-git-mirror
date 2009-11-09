@@ -117,17 +117,17 @@ void test_eigensolver_selfadjoint()
 {
   for(int i = 0; i < g_repeat; i++) {
     // very important to test a 3x3 matrix since we provide a special path for it
-    CALL_SUBTEST( selfadjointeigensolver(Matrix3f()) );
-    CALL_SUBTEST( selfadjointeigensolver(Matrix4d()) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXf(10,10)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(17,17)) );
+    CALL_SUBTEST_1( selfadjointeigensolver(Matrix3f()) );
+    CALL_SUBTEST_2( selfadjointeigensolver(Matrix4d()) );
+    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(10,10)) );
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(19,19)) );
+    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXcd(17,17)) );
 
     // some trivial but implementation-wise tricky cases
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(1,1)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(2,2)) );
-    CALL_SUBTEST( selfadjointeigensolver(Matrix<double,1,1>()) );
-    CALL_SUBTEST( selfadjointeigensolver(Matrix<double,2,2>()) );
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(1,1)) );
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(2,2)) );
+    CALL_SUBTEST_6( selfadjointeigensolver(Matrix<double,1,1>()) );
+    CALL_SUBTEST_7( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
 }
 

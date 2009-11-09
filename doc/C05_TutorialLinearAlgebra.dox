@@ -55,8 +55,8 @@ matrix with a vector or another matrix: \f$ A^{-1} \mathbf{v} \f$ or \f$ A^{-1} 
 This is a general-purpose algorithm which performs well in most cases (provided the matrix \f$ A \f$
 is invertible), so if you are unsure about which algorithm to pick, choose this. The method proceeds
 in two steps. First, the %LU decomposition with partial pivoting is computed using the
-MatrixBase::partialLu() function. This yields an object of the class PartialLU. Then, the
-PartialLU::solve() method is called to compute a solution.
+MatrixBase::partialPivLu() function. This yields an object of the class PartialPivLU. Then, the
+PartialPivLU::solve() method is called to compute a solution.
 
 As an example, suppose we want to solve the following system of linear equations:
 
@@ -69,9 +69,9 @@ As an example, suppose we want to solve the following system of linear equations
 The following program solves this system:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_PartialLU_solve.cpp
+\include Tutorial_PartialPivLU_solve.cpp
 </td><td>
-output: \include Tutorial_PartialLU_solve.out
+output: \include Tutorial_PartialPivLU_solve.out
 </td></tr></table>
 
 There are many situations in which we want to solve the same system of equations with different
@@ -91,7 +91,7 @@ problem, and whether you want to solve it at all, after you solved the first pro
 case, it's best to save the %LU decomposition and reuse it to solve the second problem. This is
 worth the effort because computing the %LU decomposition is much more expensive than using it to
 solve the equation. Here is some code to illustrate the procedure. It uses the constructor
-PartialLU::PartialLU(const MatrixType&) to compute the %LU decomposition.
+PartialPivLU::PartialPivLU(const MatrixType&) to compute the %LU decomposition.
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_solve_reuse_decomposition.cpp
@@ -102,7 +102,7 @@ output: \include Tutorial_solve_reuse_decomposition.out
 \b Warning: All this code presumes that the matrix \f$ A \f$ is invertible, so that the system 
 \f$ A \mathbf{x} = \mathbf{b} \f$ has a unique solution. If the matrix \f$ A \f$ is not invertible,
 then the system \f$ A \mathbf{x} = \mathbf{b} \f$ has either zero or infinitely many solutions. In
-both cases, PartialLU::solve() will give nonsense results. For example, suppose that we want to
+both cases, PartialPivLU::solve() will give nonsense results. For example, suppose that we want to
 solve the same system as above, but with the 10 in the last equation replaced by 9. Then the system
 of equations is inconsistent: adding the first and the third equation gives \f$ 8x + 10y + 12z = 7 \f$,
 which implies \f$ 4x + 5y + 6z = 3\frac12 \f$, in contradiction with the second equation. If we try
@@ -114,10 +114,10 @@ to solve this inconsistent system with Eigen, we find:
 output: \include Tutorial_solve_singular.out
 </td></tr></table>
 
-The %LU decomposition with \b full pivoting (class LU) and the singular value decomposition (class
+The %LU decomposition with \b full pivoting (class FullPivLU) and the singular value decomposition (class
 SVD) may be helpful in this case, as explained in the section \ref TutorialAdvSolvers_Misc below.
 
-\sa LU_Module, MatrixBase::partialLu(), PartialLU::solve(), class PartialLU.
+\sa LU_Module, MatrixBase::partialPivLu(), PartialPivLU::solve(), class PartialPivLU.
 
 
 \subsection TutorialAdvSolvers_Cholesky Cholesky decomposition
@@ -228,7 +228,7 @@ Note that the function inverse() is defined in the \ref LU_Module.
 
 Finally, Eigen also offer solvers based on a singular value decomposition (%SVD) or the %LU
 decomposition with full pivoting. These have the same API as the solvers based on the %LU
-decomposition with partial pivoting (PartialLU). 
+decomposition with partial pivoting (PartialPivLU). 
 
 The solver based on the %SVD uses the class SVD. It can handle singular matrices. Here is an example
 of its use:
@@ -245,7 +245,7 @@ svdOfA.solve(b, &x);
 \endcode
 
 %LU decomposition with full pivoting has better numerical stability than %LU decomposition with
-partial pivoting. It is defined in the class LU. The solver can also handle singular matrices.
+partial pivoting. It is defined in the class FullPivLU. The solver can also handle singular matrices.
 
 \code
 #include <Eigen/LU>
@@ -254,13 +254,13 @@ MatrixXf A = MatrixXf::Random(20,20);
 VectorXf b = VectorXf::Random(20);
 VectorXf x;
 A.lu().solve(b, &x);
-LU<MatrixXf> luOfA(A);
+FullPivLU<MatrixXf> luOfA(A);
 luOfA.solve(b, &x);
 \endcode
 
 See the section \ref TutorialAdvLU below.
 
-\sa class SVD, SVD::solve(), SVD_Module, class LU, LU::solve(), LU_Module.
+\sa class SVD, SVD::solve(), SVD_Module, class FullPivLU, LU::solve(), LU_Module.
 
 
 
@@ -281,7 +281,7 @@ Alternatively, you can construct a named LU decomposition, which allows you to r
 \code
 #include <Eigen/LU>
 MatrixXf A = MatrixXf::Random(20,20);
-Eigen::LU<MatrixXf> lu(A);
+Eigen::FullPivLU<MatrixXf> lu(A);
 cout << "The rank of A is" << lu.rank() << endl;
 if(lu.isInvertible()) {
   cout << "A is invertible, its inverse is:" << endl << lu.inverse() << endl;
@@ -292,7 +292,7 @@ else {
 }
 \endcode
 
-\sa LU_Module, LU::solve(), class LU
+\sa LU_Module, LU::solve(), class FullPivLU
 
 <a href="#" class="top">top</a>\section TutorialAdvCholesky Cholesky
 todo

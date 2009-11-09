@@ -25,6 +25,8 @@
 #ifndef EIGEN_SVD_H
 #define EIGEN_SVD_H
 
+template<typename MatrixType, typename Rhs> struct ei_svd_solve_impl;
+
 /** \ingroup SVD_Module
   * \nonstableyet
   *
@@ -38,26 +40,27 @@
   *
   * \sa MatrixBase::SVD()
   */
-template<typename MatrixType> class SVD
+template<typename _MatrixType> class SVD
 {
-  private:
+  public:
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
 
     enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       PacketSize = ei_packet_traits<Scalar>::size,
       AlignmentMask = int(PacketSize)-1,
-      MinSize = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime)
+      MinSize = EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime)
     };
 
-    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVector;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> RowVector;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVector;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1> RowVector;
 
-    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixUType;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> MatrixVType;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> SingularValuesType;
-
-  public:
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
+    typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1> SingularValuesType;
 
     /**
     * \brief Default Constructor.
@@ -76,8 +79,23 @@ template<typename MatrixType> class SVD
       compute(matrix);
     }
 
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived> &b, ResultType* result) const;
+    /** \returns a solution of \f$ A x = b \f$ using the current SVD decomposition of A.
+      *
+      * \param b the right-hand-side of the equation to solve.
+      *
+      * \note_about_checking_solutions
+      *
+      * \note_about_arbitrary_choice_of_solution
+      *
+      * \sa MatrixBase::svd(),
+      */
+    template<typename Rhs>
+    inline const ei_solve_retval<SVD, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return ei_solve_retval<SVD, Rhs>(*this, b.derived());
+    }
 
     const MatrixUType& matrixU() const
     {
@@ -108,6 +126,18 @@ template<typename MatrixType> class SVD
     template<typename ScalingType, typename RotationType>
     void computeScalingRotation(ScalingType *positive, RotationType *unitary) const;
 
+    inline int rows() const
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_rows;
+    }
+
+    inline int cols() const
+    {
+      ei_assert(m_isInitialized && "SVD is not initialized.");
+      return m_cols;
+    }
+    
   protected:
     // Computes (a^2 + b^2)^(1/2) without destructive underflow or overflow.
     inline static Scalar pythag(Scalar a, Scalar b)
@@ -133,6 +163,7 @@ template<typename MatrixType> class SVD
     /** \internal */
     SingularValuesType m_sigma;
     bool m_isInitialized;
+    int m_rows, m_cols;
 };
 
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
@@ -144,8 +175,8 @@ template<typename MatrixType> class SVD
 template<typename MatrixType>
 SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 {
-  const int m = matrix.rows();
-  const int n = matrix.cols();
+  const int m = m_rows = matrix.rows();
+  const int n = m_cols = matrix.cols();
 
   m_matU.resize(m, m);
   m_matU.setZero();
@@ -397,43 +428,35 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   return *this;
 }
 
-/** \returns the solution of \f$ A x = b \f$ using the current SVD decomposition of A.
-  * The parts of the solution corresponding to zero singular values are ignored.
-  *
-  * \sa MatrixBase::svd(), LU::solve(), LLT::solve()
-  */
-template<typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-bool SVD<MatrixType>::solve(const MatrixBase<OtherDerived> &b, ResultType* result) const
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_retval<SVD<_MatrixType>, Rhs>
+  : ei_solve_retval_base<SVD<_MatrixType>, Rhs>
 {
-  ei_assert(m_isInitialized && "SVD is not initialized.");
+  EIGEN_MAKE_SOLVE_HELPERS(SVD<_MatrixType>,Rhs)
 
-  const int rows = m_matU.rows();
-  ei_assert(b.rows() == rows);
-
-  result->resize(m_matV.rows(), b.cols());
-
-  Scalar maxVal = m_sigma.cwise().abs().maxCoeff();
-  for (int j=0; j<b.cols(); ++j)
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    Matrix<Scalar,MatrixUType::RowsAtCompileTime,1> aux = m_matU.transpose() * b.col(j);
+    ei_assert(rhs().rows() == dec().rows());
 
-    for (int i = 0; i <m_matU.cols(); ++i)
+    for (int j=0; j<cols(); ++j)
     {
-      Scalar si = m_sigma.coeff(i);
-      if (ei_isMuchSmallerThan(ei_abs(si),maxVal))
-        aux.coeffRef(i) = 0;
-      else
-        aux.coeffRef(i) /= si;
+      Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = dec().matrixU().adjoint() * rhs().col(j);
+
+      for (int i = 0; i < dec().rows(); ++i)
+      {
+        Scalar si = dec().singularValues().coeff(i);
+        if(si == RealScalar(0))
+          aux.coeffRef(i) = Scalar(0);
+        else
+          aux.coeffRef(i) /= si;
+      }
+      const int minsize = std::min(dec().rows(),dec().cols());
+      dst.col(j).start(minsize) = aux.start(minsize);
+      if(dec().cols()>dec().rows()) dst.col(j).end(cols()-minsize).setZero();
+      dst.col(j) = dec().matrixV() * dst.col(j);
     }
-    const int cols = m_matV.rows();
-    const int minsize = std::min(rows,cols);
-    result->col(j).start(minsize) = aux.start(minsize);
-    if(cols>rows) result->col(j).end(cols-minsize).setZero();
-    result->col(j) = m_matV * result->col(j);
   }
-  return true;
-}
+};
 
 /** Computes the polar decomposition of the matrix, as a product unitary x positive.
   *

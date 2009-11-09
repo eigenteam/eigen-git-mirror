@@ -181,17 +181,17 @@ void test_umeyama()
     // works also for dimensions bigger than 3...
     for (int dim=2; dim<8; ++dim)
     {
-      CALL_SUBTEST(run_test<MatrixXd>(dim, num_elements));
-      CALL_SUBTEST(run_test<MatrixXf>(dim, num_elements));
+      CALL_SUBTEST_1(run_test<MatrixXd>(dim, num_elements));
+      CALL_SUBTEST_2(run_test<MatrixXf>(dim, num_elements));
     }
 
-    CALL_SUBTEST((run_fixed_size_test<float, 2>(num_elements)));
-    CALL_SUBTEST((run_fixed_size_test<float, 3>(num_elements)));
-    CALL_SUBTEST((run_fixed_size_test<float, 4>(num_elements)));
+    CALL_SUBTEST_3((run_fixed_size_test<float, 2>(num_elements)));
+    CALL_SUBTEST_4((run_fixed_size_test<float, 3>(num_elements)));
+    CALL_SUBTEST_5((run_fixed_size_test<float, 4>(num_elements)));
 
-    CALL_SUBTEST((run_fixed_size_test<double, 2>(num_elements)));
-    CALL_SUBTEST((run_fixed_size_test<double, 3>(num_elements)));
-    CALL_SUBTEST((run_fixed_size_test<double, 4>(num_elements)));
+    CALL_SUBTEST_6((run_fixed_size_test<double, 2>(num_elements)));
+    CALL_SUBTEST_7((run_fixed_size_test<double, 3>(num_elements)));
+    CALL_SUBTEST_8((run_fixed_size_test<double, 4>(num_elements)));
   }
 
   // Those two calls don't compile and result in meaningful error messages!

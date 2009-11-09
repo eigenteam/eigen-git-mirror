@@ -79,6 +79,6 @@ void test_bandmatrix()
     int cols = ei_random<int>(1,10);
     int sups = ei_random<int>(0,cols-1);
     int subs = ei_random<int>(0,rows-1);
-    CALL_SUBTEST( bandmatrix(BandMatrix<float>(rows,cols,sups,subs)) );
+    CALL_SUBTEST(bandmatrix(BandMatrix<float>(rows,cols,sups,subs)) );
   }
 }

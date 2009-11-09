@@ -3,6 +3,8 @@ add_custom_target(btest)
 include(EigenTesting)
 ei_init_testing()
 
+option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
+
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
   set(GSL_FOUND "")
