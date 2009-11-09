@@ -11,30 +11,30 @@ namespace Eigen {
 // please list here all unsupported modules
 
 /** \ingroup Unsupported_modules
-  * \ref AdolcForward_Module */
+  * \defgroup AdolcForward_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref AlignedVector3_Module */
+  * \defgroup AlignedVector3_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref AutoDiff_Module */
+  * \defgroup AutoDiff_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref BVH_Module */
+  * \defgroup BVH_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref IterativeSolvers_Module */
+  * \defgroup IterativeSolvers_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref MatrixFunctions_Module */
+  * \defgroup MatrixFunctions_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref MoreVectorization */
+  * \defgroup MoreVectorization */
 
 /** \ingroup Unsupported_modules
-  * \ref NonLinearOptimization_Module */
+  * \defgroup NonLinearOptimization_Module */
 
 /** \ingroup Unsupported_modules
-  * \ref NumericalDiff_Module */
+  * \defgroup NumericalDiff_Module */
 
 } // namespace Eigen
