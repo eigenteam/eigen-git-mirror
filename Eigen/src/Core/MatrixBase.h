@@ -145,12 +145,6 @@ template<typename Derived> class MatrixBase
 #endif
     };
 
-    /** Default constructor. Just checks at compile-time for self-consistency of the flags. */
-    MatrixBase()
-    {
-      ei_assert(ei_are_flags_consistent<Flags>::ret);
-    }
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
       * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
@@ -177,7 +171,7 @@ template<typename Derived> class MatrixBase
     inline int diagonalSize() const { return std::min(rows(),cols()); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline int nonZeros() const { return derived().nonZeros(); }
+    inline int nonZeros() const { return size(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -645,8 +639,9 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
-
+    
     Scalar sum() const;
+    Scalar mean() const;
     Scalar trace() const;
 
     Scalar prod() const;
@@ -811,6 +806,24 @@ template<typename Derived> class MatrixBase
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif
+
+  protected:
+    /** Default constructor. Do nothing. */
+    MatrixBase()
+    {
+      /* Just checks for self-consistency of the flags.
+       * Only do it when debugging Eigen, as this borders on paranoiac and could slow compilation down
+       */
+#ifdef EIGEN_INTERNAL_DEBUGGING
+      EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
+                          INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
+#endif
+    }
+    
+  private:
+    explicit MatrixBase(int);
+    MatrixBase(int,int);
+    template<typename OtherDerived> explicit MatrixBase(const MatrixBase<OtherDerived>&);
 };
 
 #endif // EIGEN_MATRIXBASE_H

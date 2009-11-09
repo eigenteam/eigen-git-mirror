@@ -28,6 +28,7 @@
 #include <complex>
 #include <vector>
 #include <map>
+#include <Eigen/Core>
 
 #ifdef EIGEN_FFTW_DEFAULT
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
@@ -65,49 +66,87 @@ class FFT
     typedef typename impl_type::Scalar Scalar;
     typedef typename impl_type::Complex Complex;
 
-    FFT(const impl_type & impl=impl_type() ) :m_impl(impl) { }
+    enum Flag {
+      Default=0, // goof proof
+      Unscaled=1,
+      HalfSpectrum=2,
+      // SomeOtherSpeedOptimization=4
+      Speedy=32767
+    };
 
-    template <typename _Input>
-    void fwd( Complex * dst, const _Input * src, int nfft)
+    FFT( const impl_type & impl=impl_type() , Flag flags=Default ) :m_impl(impl),m_flag(flags) { }
+
+    inline
+    bool HasFlag(Flag f) const { return (m_flag & (int)f) == f;}
+
+    inline
+    void SetFlag(Flag f) { m_flag |= (int)f;}
+
+    inline
+    void ClearFlag(Flag f) { m_flag &= (~(int)f);}
+
+    inline
+    void fwd( Complex * dst, const Scalar * src, int nfft)
+    {
+        m_impl.fwd(dst,src,nfft);
+        if ( HasFlag(HalfSpectrum) == false)
+          ReflectSpectrum(dst,nfft);
+    }
+
+    inline
+    void fwd( Complex * dst, const Complex * src, int nfft)
     {
         m_impl.fwd(dst,src,nfft);
     }
 
     template <typename _Input>
+    inline
     void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
     {
-        dst.resize( src.size() );
-        fwd( &dst[0],&src[0],src.size() );
+      if ( NumTraits<_Input>::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.resize( (src.size()>>1)+1);
+      else
+        dst.resize(src.size());
+      fwd(&dst[0],&src[0],src.size());
     }
 
     template<typename InputDerived, typename ComplexDerived>
+    inline
     void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
     {
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
-        EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
-        EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
-                            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-        EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
-                            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
-        dst.derived().resize( src.size() );
-        fwd( &dst[0],&src[0],src.size() );
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
+      EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
+      EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
+            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
+            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+
+      if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.derived().resize( (src.size()>>1)+1);
+      else
+        dst.derived().resize(src.size());
+      fwd( &dst[0],&src[0],src.size() );
     }
 
-    template <typename _Output>
-    void inv( _Output * dst, const Complex * src, int nfft)
+    inline
+    void inv( Complex * dst, const Complex * src, int nfft)
     {
         m_impl.inv( dst,src,nfft );
+        if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./nfft,nfft);
     }
 
-    template <typename _Output>
-    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src) 
+    inline
+    void inv( Scalar * dst, const Complex * src, int nfft)
     {
-        dst.resize( src.size() );
-        inv( &dst[0],&src[0],src.size() );
+        m_impl.inv( dst,src,nfft );
+        if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./nfft,nfft);
     }
 
     template<typename OutputDerived, typename ComplexDerived>
+    inline
     void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src)
     {
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
@@ -117,8 +156,22 @@ class FFT
                             YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
         EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
                             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
-        dst.derived().resize( src.size() );
+
+        int nfft = src.size();
+        int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
+        dst.derived().resize( nout );
         inv( &dst[0],&src[0],src.size() );
+    }
+
+    template <typename _Output>
+    inline
+    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src)
+    {
+      if ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.resize( 2*(src.size()-1) );
+      else
+        dst.resize( src.size() );
+      inv( &dst[0],&src[0],dst.size() );
     }
 
     // TODO: multi-dimensional FFTs
@@ -126,9 +179,29 @@ class FFT
     // TODO: handle Eigen MatrixBase
      // ---> i added fwd and inv specializations above + unit test, is this enough? (bjacob)
 
+    inline
     impl_type & impl() {return m_impl;}
   private:
+
+    template <typename _It,typename _Val>
+    inline
+    void scale(_It x,_Val s,int nx)
+    {
+      for (int k=0;k<nx;++k)
+        *x++ *= s;
+    }
+
+    inline
+    void ReflectSpectrum(Complex * freq,int nfft)
+    {
+      // create the implicit right-half spectrum (conjugate-mirror of the left-half)
+      int nhbins=(nfft>>1)+1;
+      for (int k=nhbins;k < nfft; ++k )
+        freq[k] = conj(freq[nfft-k]);
+    }
+
     impl_type m_impl;
+    int m_flag;
 };
 }
 #endif

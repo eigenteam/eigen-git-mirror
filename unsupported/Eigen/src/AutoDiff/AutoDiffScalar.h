@@ -29,7 +29,7 @@ namespace Eigen {
 
 template<typename A, typename B>
 struct ei_make_coherent_impl {
-  static void run(A& a, B& b) {}
+  static void run(A&, B&) {}
 };
 
 // resize a to match b is a.size()==0, and conversely.

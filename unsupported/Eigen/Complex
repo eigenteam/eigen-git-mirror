@@ -33,14 +33,26 @@
 
 namespace Eigen {
 
-template <typename _NativePtr,typename _PunnedPtr>
+template <typename _NativeData,typename _PunnedData>
 struct castable_pointer
 {
-    castable_pointer(_NativePtr ptr) : _ptr(ptr) {}
-    operator _NativePtr ()  {return _ptr;}
-    operator _PunnedPtr ()  {return reinterpret_cast<_PunnedPtr>(_ptr);}
+    castable_pointer(_NativeData * ptr) : _ptr(ptr) { }
+    operator _NativeData * ()  {return _ptr;}
+    operator _PunnedData * ()  {return reinterpret_cast<_PunnedData*>(_ptr);}
+    operator const _NativeData * () const {return _ptr;}
+    operator const _PunnedData * () const {return reinterpret_cast<_PunnedData*>(_ptr);}
     private: 
-    _NativePtr _ptr;
+    _NativeData *  _ptr;
+};
+
+template <typename _NativeData,typename _PunnedData>
+struct const_castable_pointer
+{
+    const_castable_pointer(_NativeData * ptr) : _ptr(ptr) { }
+    operator const _NativeData * () const {return _ptr;}
+    operator const _PunnedData * () const {return reinterpret_cast<_PunnedData*>(_ptr);}
+    private: 
+    _NativeData * _ptr;
 };
 
 template <typename T>
@@ -50,7 +62,8 @@ struct Complex
     typedef T value_type;
 
     // constructors
-    Complex(const T& re = T(), const T& im = T()) : _re(re),_im(im) { }
+    Complex() {}
+    Complex(const T& re, const T& im = T()) : _re(re),_im(im) { }
     Complex(const Complex&other ): _re(other.real()) ,_im(other.imag()) {}
 
     template<class X> 
@@ -58,40 +71,63 @@ struct Complex
     template<class X> 
     Complex(const std::complex<X>&other): _re(other.real()) ,_im(other.imag()) {}
 
-
     // allow binary access to the object as a std::complex
-    typedef castable_pointer< Complex<T>*, StandardComplex* > pointer_type;
-    typedef castable_pointer< const Complex<T>*, const StandardComplex* > const_pointer_type;
+    typedef castable_pointer< Complex<T>, StandardComplex > pointer_type;
+    typedef const_castable_pointer< Complex<T>, StandardComplex > const_pointer_type;
+
+    inline
     pointer_type operator & () {return pointer_type(this);}
+
+    inline
     const_pointer_type operator & () const {return const_pointer_type(this);}
 
+    inline
     operator StandardComplex () const {return std_type();}
+    inline
     operator StandardComplex & () {return std_type();}
 
-    StandardComplex std_type() const {return StandardComplex(real(),imag());}
+    inline
+    const StandardComplex & std_type() const {return *reinterpret_cast<const StandardComplex*>(this);}
+
+    inline
     StandardComplex & std_type() {return *reinterpret_cast<StandardComplex*>(this);}
 
 
     // every sort of accessor and mutator that has ever been in fashion.
     // For a brief history, search for "std::complex over-encapsulated"
     // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#387
+    inline
     const T & real() const {return _re;}
+    inline
     const T & imag() const {return _im;}
+    inline
     T & real() {return _re;}
+    inline
     T & imag() {return _im;}
+    inline
     T & real(const T & x) {return _re=x;}
+    inline
     T & imag(const T & x) {return _im=x;}
+    inline
     void set_real(const T & x) {_re = x;}
+    inline
     void set_imag(const T & x) {_im = x;}
 
     // *** complex member functions: ***
+    inline
     Complex<T>& operator= (const T& val) { _re=val;_im=0;return *this;  }
+    inline
     Complex<T>& operator+= (const T& val) {_re+=val;return *this;}
+    inline
     Complex<T>& operator-= (const T& val) {_re-=val;return *this;}
+    inline
     Complex<T>& operator*= (const T& val) {_re*=val;_im*=val;return *this;  }
+    inline
     Complex<T>& operator/= (const T& val) {_re/=val;_im/=val;return *this;  }
 
+    inline
     Complex& operator= (const Complex& rhs) {_re=rhs._re;_im=rhs._im;return *this;}
+    inline
     Complex& operator= (const StandardComplex& rhs) {_re=rhs.real();_im=rhs.imag();return *this;}
 
     template<class X> Complex<T>& operator= (const Complex<X>& rhs) { _re=rhs._re;_im=rhs._im;return *this;}
@@ -105,8 +141,7 @@ struct Complex
     T _im;
 };
 
-template <typename T>
-T ei_to_std( const T & x) {return x;}
+//template <typename T> T ei_to_std( const T & x) {return x;}
 
 template <typename T>
 std::complex<T> ei_to_std( const Complex<T> & x) {return x.std_type();}
@@ -165,7 +200,7 @@ operator<< (std::basic_ostream<charT,traits>& ostr, const Complex<T>& rhs)
  template<class T> Complex<T> log (const  Complex<T>&x){return log(ei_to_std(x));}
  template<class T> Complex<T> log10 (const  Complex<T>&x){return log10(ei_to_std(x));}
 
- template<class T> Complex<T> pow(const Complex<T>&x, int p) {return pow(ei_to_std(x),ei_to_std(p));}
+ template<class T> Complex<T> pow(const Complex<T>&x, int p) {return pow(ei_to_std(x),p);}
  template<class T> Complex<T> pow(const Complex<T>&x, const T&p) {return pow(ei_to_std(x),ei_to_std(p));}
  template<class T> Complex<T> pow(const Complex<T>&x, const Complex<T>&p) {return pow(ei_to_std(x),ei_to_std(p));}
  template<class T> Complex<T> pow(const T&x, const Complex<T>&p) {return pow(ei_to_std(x),ei_to_std(p));}
@@ -175,8 +210,20 @@ operator<< (std::basic_ostream<charT,traits>& ostr, const Complex<T>& rhs)
  template<class T> Complex<T> sqrt (const  Complex<T>&x){return sqrt(ei_to_std(x));}
  template<class T> Complex<T> tan (const  Complex<T>&x){return tan(ei_to_std(x));}
  template<class T> Complex<T> tanh (const  Complex<T>&x){return tanh(ei_to_std(x));}
-}
 
+  template<typename _Real> struct NumTraits<Complex<_Real> >
+  {
+    typedef _Real Real;
+    typedef Complex<_Real> FloatingPoint;
+    enum {
+      IsComplex = 1,
+      HasFloatingPoint = NumTraits<Real>::HasFloatingPoint,
+      ReadCost = 2,
+      AddCost = 2 * NumTraits<Real>::AddCost,
+      MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
+    };
+  };
+}
 #endif
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */
 

@@ -436,14 +436,13 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    const int cols = this->cols();
     ei_assert(rhs().rows() == dec().rows());
 
-    for (int j=0; j<cols; ++j)
+    for (int j=0; j<cols(); ++j)
     {
       Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = dec().matrixU().adjoint() * rhs().col(j);
 
-      for (int i = 0; i <dec().rows(); ++i)
+      for (int i = 0; i < dec().rows(); ++i)
       {
         Scalar si = dec().singularValues().coeff(i);
         if(si == RealScalar(0))
@@ -451,8 +450,10 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
         else
           aux.coeffRef(i) /= si;
       }
-
-      dst.col(j) = dec().matrixV() * aux;
+      const int minsize = std::min(dec().rows(),dec().cols());
+      dst.col(j).start(minsize) = aux.start(minsize);
+      if(dec().cols()>dec().rows()) dst.col(j).end(cols()-minsize).setZero();
+      dst.col(j) = dec().matrixV() * dst.col(j);
     }
   }
 };

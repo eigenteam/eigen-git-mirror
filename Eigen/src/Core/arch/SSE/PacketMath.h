@@ -220,8 +220,14 @@ template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const Packet2
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { ei_pstoreu((double*)to, _mm_castps_pd(from)); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { ei_pstoreu((double*)to, _mm_castsi128_pd(from)); }
 
-#ifdef _MSC_VER
-// this fix internal compilation error
+#if defined(_MSC_VER) && (_MSC_VER <= 1500) && defined(_WIN64)
+// The temporary variable fixes an internal compilation error.
+// Direct of the struct members fixed bug #62.
+template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { return a.m128_f32[0]; }
+template<> EIGEN_STRONG_INLINE double ei_pfirst<Packet2d>(const Packet2d& a) { return a.m128d_f64[0]; }
+template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
+#elif defined(_MSC_VER) && (_MSC_VER <= 1500)
+// The temporary variable fixes an internal compilation error.
 template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { float x = _mm_cvtss_f32(a); return x; }
 template<> EIGEN_STRONG_INLINE double ei_pfirst<Packet2d>(const Packet2d& a) { double x = _mm_cvtsd_f64(a); return x; }
 template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }

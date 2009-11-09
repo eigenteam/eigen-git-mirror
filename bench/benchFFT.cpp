@@ -22,13 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#include <bench/BenchUtil.h>
 #include <complex>
 #include <vector>
 #include <Eigen/Core>
-#include <bench/BenchTimer.h>
-#ifdef USE_FFTW
-#include <fftw3.h>
-#endif
 
 #include <unsupported/Eigen/FFT>
 

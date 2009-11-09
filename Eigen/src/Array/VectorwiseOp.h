@@ -122,6 +122,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(mean, (Size-1)*NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(maxCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(all, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -295,6 +296,13 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \sa MatrixBase::sum() */
     const typename ReturnType<ei_member_sum>::Type sum() const
+    { return _expression(); }
+
+    /** \returns a row (or column) vector expression of the mean
+    * of each column (or row) of the referenced expression.
+    *
+    * \sa MatrixBase::mean() */
+    const typename ReturnType<ei_member_mean>::Type mean() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing

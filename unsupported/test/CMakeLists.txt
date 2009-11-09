@@ -26,3 +26,4 @@ if(FFTW_FOUND)
   ei_add_test(FFTW  "-DEIGEN_FFTW_DEFAULT " "-lfftw3 -lfftw3f -lfftw3l" )
 endif(FFTW_FOUND)
 
+ei_add_test(Complex)

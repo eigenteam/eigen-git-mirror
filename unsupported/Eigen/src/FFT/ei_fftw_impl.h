@@ -166,6 +166,7 @@
         m_plans.clear();
       }
 
+      // complex-to-complex forward FFT
       inline
       void fwd( Complex * dst,const Complex *src,int nfft)
       {
@@ -177,9 +178,6 @@
       void fwd( Complex * dst,const Scalar * src,int nfft) 
       {
           get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src) ,nfft);
-          int nhbins=(nfft>>1)+1;
-          for (int k=nhbins;k < nfft; ++k )
-              dst[k] = conj(dst[nfft-k]);
       }
 
       // inverse complex-to-complex
@@ -187,12 +185,6 @@
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
-
-        //TODO move scaling to Eigen::FFT
-        // scaling
-        Scalar s = Scalar(1.)/nfft;
-        for (int k=0;k<nfft;++k)
-          dst[k] *= s;
       }
 
       // half-complex to scalar
@@ -200,11 +192,6 @@
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
         get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
-
-        //TODO move scaling to Eigen::FFT
-        Scalar s = Scalar(1.)/nfft;
-        for (int k=0;k<nfft;++k)
-          dst[k] *= s;
       }
 
   protected:
@@ -222,3 +209,5 @@
           return m_plans[key];
       }
   };
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */
+

@@ -52,6 +52,7 @@ template<> struct NumTraits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
+  typedef int Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 0,
@@ -65,6 +66,7 @@ template<> struct NumTraits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
+  typedef float Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 1,
@@ -78,6 +80,7 @@ template<> struct NumTraits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
+  typedef double Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 1,
@@ -91,6 +94,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<_Real> FloatingPoint;
+  typedef std::complex<_Real> Nested;
   enum {
     IsComplex = 1,
     HasFloatingPoint = NumTraits<Real>::HasFloatingPoint,
@@ -104,6 +108,7 @@ template<> struct NumTraits<long long int>
 {
   typedef long long int Real;
   typedef long double FloatingPoint;
+  typedef long long int Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 0,
@@ -117,6 +122,7 @@ template<> struct NumTraits<long double>
 {
   typedef long double Real;
   typedef long double FloatingPoint;
+  typedef long double Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 1,
@@ -130,6 +136,7 @@ template<> struct NumTraits<bool>
 {
   typedef bool Real;
   typedef float FloatingPoint;
+  typedef bool Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 0,

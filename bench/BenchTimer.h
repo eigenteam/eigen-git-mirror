@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 #define EIGEN_BENCH_TIMER_H
 
 #ifndef WIN32
-#include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 #else
 #define NOMINMAX
@@ -41,6 +41,11 @@ namespace Eigen
 {
 
 /** Elapsed time timer keeping the best try.
+  *
+  * On POSIX platforms we use clock_gettime with CLOCK_PROCESS_CPUTIME_ID.
+  * On Windows we use QueryPerformanceCounter
+  *
+  * Important: on linux, you must link with -lrt
   */
 class BenchTimer
 {
@@ -83,10 +88,9 @@ public:
     QueryPerformanceCounter(&query_ticks);
     return query_ticks.QuadPart/m_frequency;
 #else
-      struct timeval tv;
-      struct timezone tz;
-      gettimeofday(&tv, &tz);
-      return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
+    timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    return double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
 #endif
   }
 

@@ -93,7 +93,7 @@ public:
               ? ( int(MayUnrollCompletely) && int(DstIsAligned) ? int(CompleteUnrolling) : int(NoUnrolling) )
               : int(NoUnrolling)
   };
-  
+
   static void debug()
   {
     EIGEN_DEBUG_VAR(DstIsAligned)
