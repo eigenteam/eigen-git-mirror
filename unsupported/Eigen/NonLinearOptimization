@@ -34,26 +34,26 @@ namespace Eigen {
   * \defgroup NonLinearOptimization_Module Non linear optimization module
   *
   * \code
-  * #include <unsupported/Eigen/NonLinear>
+  * #include <unsupported/Eigen/NonLinearOptimization>
   * \endcode
   */
 //@{
 
-#include "src/NonLinear/qrsolv.h"
-#include "src/NonLinear/r1updt.h"
-#include "src/NonLinear/r1mpyq.h"
-#include "src/NonLinear/rwupdt.h"
-#include "src/NonLinear/qrfac.h"
-#include "src/NonLinear/fdjac1.h"
-#include "src/NonLinear/qform.h"
-#include "src/NonLinear/lmpar.h"
-#include "src/NonLinear/dogleg.h"
-#include "src/NonLinear/covar.h"
+#include "src/NonLinearOptimization/qrsolv.h"
+#include "src/NonLinearOptimization/r1updt.h"
+#include "src/NonLinearOptimization/r1mpyq.h"
+#include "src/NonLinearOptimization/rwupdt.h"
+#include "src/NonLinearOptimization/qrfac.h"
+#include "src/NonLinearOptimization/fdjac1.h"
+#include "src/NonLinearOptimization/qform.h"
+#include "src/NonLinearOptimization/lmpar.h"
+#include "src/NonLinearOptimization/dogleg.h"
+#include "src/NonLinearOptimization/covar.h"
 
-#include "src/NonLinear/chkder.h"
+#include "src/NonLinearOptimization/chkder.h"
 
-#include "src/NonLinear/HybridNonLinearSolver.h"
-#include "src/NonLinear/LevenbergMarquardt.h"
+#include "src/NonLinearOptimization/HybridNonLinearSolver.h"
+#include "src/NonLinearOptimization/LevenbergMarquardt.h"
 
 //@}
 

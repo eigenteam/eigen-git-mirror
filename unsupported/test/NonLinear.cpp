@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #include "main.h"
-#include <unsupported/Eigen/NonLinear>
+#include <unsupported/Eigen/NonLinearOptimization>
 
 int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
 {
