@@ -25,16 +25,42 @@
 #ifndef EIGEN_NUMERICAL_DIFF_H
 #define EIGEN_NUMERICAL_DIFF_H
 
-namespace Eigen
-{
-
 enum NumericalDiffMode {
     Forward,
     Central
 };
 
 
-template<typename Functor, NumericalDiffMode mode=Forward> class NumericalDiff : public Functor
+/**
+  * \brief asdf 
+  *
+  * This class allows you to add a method df() to your functor, which will 
+  * use numerical differentiation to compute an approximate of the
+  * derivative for the functor. Of course, if you have an analytical form
+  * for the derivative, you should rather implement df() using it.
+  *
+  * More information on
+  * http://en.wikipedia.org/wiki/Numerical_differentiation
+  *
+  * Currently only "Forward" and "Central" scheme are implemented. Those
+  * are basic methods, and there exist some more elaborated way of
+  * computing such approximates. They are implemented using both
+  * proprietary and free software, and usually requires linking to an
+  * external library. It is very easy for you to write a functor
+  * using such software, and the purpose is quite orthogonal to what we
+  * want to achieve with Eigen.
+  *
+  * This is why we will not provide wrappers for every great numerical
+  * differenciation software that exist, but should rather stick with those
+  * basic ones, that still are useful for testing.
+  *
+  * Also, the module "Non linear optimization" needs this in order to
+  * provide full features compatibility with the original (c)minpack
+  * package.
+  *
+  */
+template<typename Functor, NumericalDiffMode mode=Forward>
+class NumericalDiff : public Functor
 {
 public:
     typedef typename Functor::Scalar Scalar;
@@ -118,7 +144,5 @@ public:
 private:
     Scalar epsfcn;
 };
-
-} // namespace
 
 #endif // EIGEN_NUMERICAL_DIFF_H

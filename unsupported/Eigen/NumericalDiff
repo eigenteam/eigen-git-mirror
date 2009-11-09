@@ -42,12 +42,10 @@ namespace Eigen {
   */
 //@{
 
-}
-
 #include "src/NumericalDiff/NumericalDiff.h"
 
-namespace Eigen {
 //@}
 }
+
 
 #endif // EIGEN_NUMERICALDIFF_MODULE
