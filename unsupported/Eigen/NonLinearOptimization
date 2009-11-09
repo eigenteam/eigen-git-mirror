@@ -33,6 +33,10 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup NonLinearOptimization_Module Non linear optimization module
   *
+  * \code
+  * #include <unsupported/Eigen/NonLinearOptimization>
+  * \endcode
+  *
   * This module provides implementation of two important algorithms in non linear
   * optimization. In both cases, we consider a system of non linear functions. Of
   * course, this should work, and even work very well if those functions are
@@ -43,13 +47,15 @@ namespace Eigen {
   * Marquardt algorithm) and the second one is used to find 
   * a zero for the system (Powell hybrid "dogleg" method).
   *
-  * This code is a port of a reknown implementation for both algorithms,
-  * called minpack (http://en.wikipedia.org/wiki/MINPACK). Those
-  * implementations have been carefully tuned, tested, and used for several
-  * decades.
-  * The original fortran code was automatically translated in C and then c++,
-  * and then cleaned by several authors
-  * (check http://devernay.free.fr/hacks/cminpack.html).
+  * This code is a port of minpack (http://en.wikipedia.org/wiki/MINPACK).
+  * Minpack is a very famous, old, robust and well-reknown package, written in 
+  * fortran. Those implementations have been carefully tuned, tested, and used
+  * for several decades.
+  *
+  * The original fortran code was automatically translated (using f2c) in C and
+  * then c++, and then cleaned by several different authors.
+  * The last one of those cleanings being our starting point : 
+  * http://devernay.free.fr/hacks/cminpack.html
   * 
   * Finally, we ported this code to Eigen, creating classes and API
   * coherent with Eigen. When possible, we switched to Eigen
@@ -59,9 +65,62 @@ namespace Eigen {
   * beginning, which ensure that the same results are found, with the same
   * number of iterations.
   *
+  * \section Tests Tests
+  * 
+  * The tests are placed in the directory unsupported/test/NonLinear.cpp.
+  * 
+  * There are two kinds of tests : those that come from examples bundled with cminpack.
+  * They guaranty we get the same results as the original algorithms (value for 'x',
+  * for the number of evaluations of the function, and for the number of evaluations
+  * of the jacobian if ever).
+  * 
+  * Other tests were added by myself at the very beginning of the 
+  * process and check the results for levenberg-marquardt using the reference data 
+  * on http://www.itl.nist.gov/div898/strd/nls/nls_main.shtml. Since then i've 
+  * carefully checked that the same results were obtained when modifiying the 
+  * code. Please note that we do not always get the exact same decimals as they do,
+  * but this is ok : they use 128bits float, and we do the tests using the C type 'double',
+  * which is 64 bits on most platforms (x86 and amd64, at least).
+  * 
+  * I've performed those tests on several other implementations of levenberg-marquardt, and
+  * (c)minpack perform VERY well compared to those, both in accuracy and speed.
+  * 
+  * The documentation for running the test is on the wiki
+  * http://eigen.tuxfamily.org/index.php?title=Developer%27s_Corner#Running_the_unit_tests
+  * 
+  * \section API API : overview of methods
+  * 
+  * All algorithms can use either the jacobian (provided by the user) or compute 
+  * an approximation by themselves (or rather, using Eigen \ref NumericalDiff_Module)
+  * The part of API referring to the latter use 'NumericalDiff' in the method name
+  * (exemple: LevenbergMarquardt.minimizeNumericalDiff() ) 
+  * 
+  * The methods LevenbergMarquardt.lmder1()/lmdif1()/lmstr1() and 
+  * HybridNonLinearSolver.hybrj1()/hybrd1() are specific methods from the original 
+  * minpack package that you probably should NOT use but if you port a code that was 
+  * previously using minpack. They just define a 'simple' API with default values 
+  * for some parameters.
+  * 
+  * All algorithms are provided using Two APIs :
+  *     - one where you init the algorithm, and use '*OneStep()' as much as you want : 
+  * this way the caller have control over the steps
+  *     - one where you just call a method (optimize() or solve()) which will 
+  * basically do exactly the same : init + loop until a stop condition is met. 
+  * Those are provided for convenience.
+  * 
+  * As an example, the method LevenbergMarquardt.minimizeNumericalDiff() is 
+  * implemented as follow : 
   * \code
-  * #include <unsupported/Eigen/NonLinearOptimization>
+  * LevenbergMarquardt.minimizeNumericalDiff(Matrix< Scalar, Dynamic, 1 >  &x, 
+  * const int mode )
+  * {
+  *     Status status = minimizeNumericalDiffInit(x, mode);
+  *     while (status==Running)
+  *         status = minimizeNumericalDiffOneStep(x, mode);
+  *     return status;
+  * }
   * \endcode
+  * 
   */
 
 //@{

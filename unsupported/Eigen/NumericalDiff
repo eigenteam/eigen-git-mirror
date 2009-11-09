@@ -34,7 +34,8 @@ namespace Eigen {
   * See http://en.wikipedia.org/wiki/Numerical_differentiation
   *
   * Warning : this should NOT be confused with automatic differentiation, which
-  * is a different method and has its own module in Eigen.
+  * is a different method and has its own module in Eigen : \ref
+  * AutoDiff_Module.
   *
   * Currently only "Forward" and "Central" scheme are implemented. Those
   * are basic methods, and there exist some more elaborated way of

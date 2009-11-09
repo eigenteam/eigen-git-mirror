@@ -36,7 +36,7 @@ namespace Eigen {
   * templated scalar type wrapper AutoDiffScalar.
   *
   * Warning : this should NOT be confused with numerical differentiation, which
-  * is a different method and has its own module in Eigen.
+  * is a different method and has its own module in Eigen : \ref NumericalDiff_Module.
   *
   * \code
   * #include <unsupported/Eigen/AutoDiff>
