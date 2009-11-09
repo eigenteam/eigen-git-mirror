@@ -93,11 +93,11 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * Output: \verbinclude FullPivHouseholderQR_solve.out
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<FullPivHouseholderQR, Rhs>
+    inline const ei_solve_retval<FullPivHouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return ei_solve_return_value<FullPivHouseholderQR, Rhs>(*this, b.derived());
+      return ei_solve_retval<FullPivHouseholderQR, Rhs>(*this, b.derived());
     }
 
     MatrixQType matrixQ(void) const;
@@ -215,11 +215,11 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */    inline const
-    ei_solve_return_value<FullPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
+    ei_solve_retval<FullPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
     inverse() const
     {
       ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return ei_solve_return_value<FullPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<FullPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
     }
 
@@ -333,8 +333,8 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
 }
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_impl<FullPivHouseholderQR<_MatrixType>, Rhs>
-  : ei_solve_return_value<FullPivHouseholderQR<_MatrixType>, Rhs>
+struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
+  : ei_solve_retval_base<FullPivHouseholderQR<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(FullPivHouseholderQR<_MatrixType>,Rhs)
 

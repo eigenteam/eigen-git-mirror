@@ -109,13 +109,13 @@ template<typename _MatrixType, int _UpLo> class LLT
       * \sa solveInPlace(), MatrixBase::llt()
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<LLT, Rhs>
+    inline const ei_solve_retval<LLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "LLT is not initialized.");
       ei_assert(m_matrix.rows()==b.rows()
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-      return ei_solve_return_value<LLT, Rhs>(*this, b.derived());
+      return ei_solve_retval<LLT, Rhs>(*this, b.derived());
     }
     
     template<typename Derived>
@@ -259,8 +259,8 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 }
 
 template<typename _MatrixType, int UpLo, typename Rhs>
-struct ei_solve_impl<LLT<_MatrixType, UpLo>, Rhs>
-  : ei_solve_return_value<LLT<_MatrixType, UpLo>, Rhs>
+struct ei_solve_retval<LLT<_MatrixType, UpLo>, Rhs>
+  : ei_solve_retval_base<LLT<_MatrixType, UpLo>, Rhs>
 {
   typedef LLT<_MatrixType,UpLo> LLTType;
   EIGEN_MAKE_SOLVE_HELPERS(LLTType,Rhs)

@@ -98,11 +98,11 @@ template<typename _MatrixType> class ColPivHouseholderQR
       * Output: \verbinclude ColPivHouseholderQR_solve.out
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<ColPivHouseholderQR, Rhs>
+    inline const ei_solve_retval<ColPivHouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return ei_solve_return_value<ColPivHouseholderQR, Rhs>(*this, b.derived());
+      return ei_solve_retval<ColPivHouseholderQR, Rhs>(*this, b.derived());
     }
 
     HouseholderSequenceType matrixQ(void) const;
@@ -215,11 +215,11 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */
     inline const
-    ei_solve_return_value<ColPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
+    ei_solve_retval<ColPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
     inverse() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return ei_solve_return_value<ColPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<ColPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
     }
 
@@ -325,8 +325,8 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 }
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_impl<ColPivHouseholderQR<_MatrixType>, Rhs>
-  : ei_solve_return_value<ColPivHouseholderQR<_MatrixType>, Rhs>
+struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
+  : ei_solve_retval_base<ColPivHouseholderQR<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(ColPivHouseholderQR<_MatrixType>,Rhs)
   

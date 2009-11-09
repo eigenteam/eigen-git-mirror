@@ -25,11 +25,11 @@
 #ifndef EIGEN_MISC_IMAGE_H
 #define EIGEN_MISC_IMAGE_H
 
-/** \class ei_image_return_value
+/** \class ei_image_retval_base
   *
   */
 template<typename DecompositionType>
-struct ei_traits<ei_image_return_value<DecompositionType> >
+struct ei_traits<ei_image_retval_base<DecompositionType> >
 {
   typedef typename DecompositionType::MatrixType MatrixType;
   typedef Matrix<
@@ -43,17 +43,13 @@ struct ei_traits<ei_image_return_value<DecompositionType> >
   > ReturnMatrixType;
 };
 
-template<typename _DecompositionType> struct ei_image_return_value
- : public ReturnByValue<ei_image_return_value<_DecompositionType> >
+template<typename _DecompositionType> struct ei_image_retval_base
+ : public ReturnByValue<ei_image_retval_base<_DecompositionType> >
 {
   typedef _DecompositionType DecompositionType;
   typedef typename DecompositionType::MatrixType MatrixType;
 
-  const DecompositionType& m_dec;
-  int m_rank, m_cols;
-  const MatrixType& m_originalMatrix;
-
-  ei_image_return_value(const DecompositionType& dec, const MatrixType& originalMatrix)
+  ei_image_retval_base(const DecompositionType& dec, const MatrixType& originalMatrix)
     : m_dec(dec), m_rank(dec.rank()),
       m_cols(m_rank == 0 ? 1 : m_rank),
       m_originalMatrix(originalMatrix)
@@ -61,19 +57,32 @@ template<typename _DecompositionType> struct ei_image_return_value
 
   inline int rows() const { return m_dec.rows(); }
   inline int cols() const { return m_cols; }
+  inline int rank() const { return m_rank; }
+  inline const DecompositionType& dec() const { return m_dec; }
+  inline const MatrixType& originalMatrix() const { return m_originalMatrix; }
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_image_impl<DecompositionType>*>(this)->evalTo(dst);
+    static_cast<const ei_image_retval<DecompositionType>*>(this)->evalTo(dst);
   }
+
+  protected:
+  const DecompositionType& m_dec;
+  int m_rank, m_cols;
+  const MatrixType& m_originalMatrix;
 };
 
 #define EIGEN_MAKE_IMAGE_HELPERS(DecompositionType) \
   typedef typename DecompositionType::MatrixType MatrixType; \
   typedef typename MatrixType::Scalar Scalar; \
   typedef typename MatrixType::RealScalar RealScalar; \
-  inline const DecompositionType& dec() const { return this->m_dec; } \
-  inline const MatrixType& originalMatrix() const { return this->m_originalMatrix; } \
-  inline int rank() const { return this->m_rank; }
+  typedef ei_image_retval_base<DecompositionType> Base; \
+  using Base::dec; \
+  using Base::originalMatrix; \
+  using Base::rank; \
+  using Base::rows; \
+  using Base::cols; \
+  ei_image_retval(const DecompositionType& dec, const MatrixType& originalMatrix) \
+    : Base(dec, originalMatrix) {}
 
 #endif // EIGEN_MISC_IMAGE_H

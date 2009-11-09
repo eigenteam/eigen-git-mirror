@@ -25,11 +25,11 @@
 #ifndef EIGEN_MISC_SOLVE_H
 #define EIGEN_MISC_SOLVE_H
 
-/** \class ei_solve_return_value
+/** \class ei_solve_retval_base
   *
   */
 template<typename DecompositionType, typename Rhs>
-struct ei_traits<ei_solve_return_value<DecompositionType, Rhs> >
+struct ei_traits<ei_solve_retval_base<DecompositionType, Rhs> >
 {
   typedef typename DecompositionType::MatrixType MatrixType;
   typedef Matrix<typename Rhs::Scalar,
@@ -40,33 +40,41 @@ struct ei_traits<ei_solve_return_value<DecompositionType, Rhs> >
                  Rhs::MaxColsAtCompileTime> ReturnMatrixType;
 };
 
-template<typename _DecompositionType, typename Rhs> struct ei_solve_return_value
- : public ReturnByValue<ei_solve_return_value<_DecompositionType, Rhs> >
+template<typename _DecompositionType, typename Rhs> struct ei_solve_retval_base
+ : public ReturnByValue<ei_solve_retval_base<_DecompositionType, Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNestedCleaned;
   typedef _DecompositionType DecompositionType;
-  const DecompositionType& m_dec;
-  const typename Rhs::Nested m_rhs;
 
-  ei_solve_return_value(const DecompositionType& dec, const Rhs& rhs)
+  ei_solve_retval_base(const DecompositionType& dec, const Rhs& rhs)
     : m_dec(dec), m_rhs(rhs)
   {}
 
   inline int rows() const { return m_dec.cols(); }
   inline int cols() const { return m_rhs.cols(); }
+  inline const DecompositionType& dec() const { return m_dec; }
+  inline const RhsNestedCleaned& rhs() const { return m_rhs; }
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_solve_impl<DecompositionType,Rhs>*>(this)->evalTo(dst);
+    static_cast<const ei_solve_retval<DecompositionType,Rhs>*>(this)->evalTo(dst);
   }
+
+  protected:
+  const DecompositionType& m_dec;
+  const typename Rhs::Nested m_rhs;
 };
 
 #define EIGEN_MAKE_SOLVE_HELPERS(DecompositionType,Rhs) \
   typedef typename DecompositionType::MatrixType MatrixType; \
   typedef typename MatrixType::Scalar Scalar; \
   typedef typename MatrixType::RealScalar RealScalar; \
-  typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNestedCleaned; \
-  inline const DecompositionType& dec() const { return this->m_dec; } \
-  inline const RhsNestedCleaned& rhs() const { return this->m_rhs; }
+  typedef ei_solve_retval_base<DecompositionType,Rhs> Base; \
+  using Base::dec; \
+  using Base::rhs; \
+  using Base::rows; \
+  using Base::cols; \
+  ei_solve_retval(const DecompositionType& dec, const Rhs& rhs) \
+    : Base(dec, rhs) {}
 
 #endif // EIGEN_MISC_SOLVE_H

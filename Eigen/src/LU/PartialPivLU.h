@@ -133,11 +133,11 @@ template<typename _MatrixType> class PartialPivLU
       * \sa TriangularView::solve(), inverse(), computeInverse()
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<PartialPivLU, Rhs>
+    inline const ei_solve_retval<PartialPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ei_solve_return_value<PartialPivLU, Rhs>(*this, b.derived());
+      return ei_solve_retval<PartialPivLU, Rhs>(*this, b.derived());
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
@@ -147,10 +147,10 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::inverse(), LU::inverse()
       */
-    inline const ei_solve_return_value<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_solve_retval<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
     {
       ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ei_solve_return_value<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> >
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
@@ -408,8 +408,8 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
 /***** Implementation of solve() *****************************************************/
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_impl<PartialPivLU<_MatrixType>, Rhs>
-  : ei_solve_return_value<PartialPivLU<_MatrixType>, Rhs>
+struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
+  : ei_solve_retval_base<PartialPivLU<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(PartialPivLU<_MatrixType>,Rhs)
   

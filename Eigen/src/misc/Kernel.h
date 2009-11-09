@@ -25,11 +25,11 @@
 #ifndef EIGEN_MISC_KERNEL_H
 #define EIGEN_MISC_KERNEL_H
 
-/** \class ei_kernel_return_value
+/** \class ei_kernel_retval_base
   *
   */
 template<typename DecompositionType>
-struct ei_traits<ei_kernel_return_value<DecompositionType> >
+struct ei_traits<ei_kernel_retval_base<DecompositionType> >
 {
   typedef typename DecompositionType::MatrixType MatrixType;
   typedef Matrix<
@@ -45,14 +45,12 @@ struct ei_traits<ei_kernel_return_value<DecompositionType> >
   > ReturnMatrixType;
 };
 
-template<typename _DecompositionType> struct ei_kernel_return_value
- : public ReturnByValue<ei_kernel_return_value<_DecompositionType> >
+template<typename _DecompositionType> struct ei_kernel_retval_base
+ : public ReturnByValue<ei_kernel_retval_base<_DecompositionType> >
 {
   typedef _DecompositionType DecompositionType;
-  const DecompositionType& m_dec;
-  int m_rank, m_cols;
 
-  ei_kernel_return_value(const DecompositionType& dec)
+  ei_kernel_retval_base(const DecompositionType& dec)
     : m_dec(dec),
       m_rank(dec.rank()),
       m_cols(m_rank==dec.cols() ? 1 : dec.cols() - m_rank)
@@ -60,18 +58,28 @@ template<typename _DecompositionType> struct ei_kernel_return_value
 
   inline int rows() const { return m_dec.cols(); }
   inline int cols() const { return m_cols; }
+  inline int rank() const { return m_rank; }
+  inline const DecompositionType& dec() const { return m_dec; }
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    static_cast<const ei_kernel_impl<DecompositionType>*>(this)->evalTo(dst);
+    static_cast<const ei_kernel_retval<DecompositionType>*>(this)->evalTo(dst);
   }
+
+  protected:
+  const DecompositionType& m_dec;
+  int m_rank, m_cols;
 };
 
 #define EIGEN_MAKE_KERNEL_HELPERS(DecompositionType) \
   typedef typename DecompositionType::MatrixType MatrixType; \
   typedef typename MatrixType::Scalar Scalar; \
   typedef typename MatrixType::RealScalar RealScalar; \
-  inline const DecompositionType& dec() const { return this->m_dec; } \
-  inline int rank() const { return this->m_rank; }
+  typedef ei_kernel_retval_base<DecompositionType> Base; \
+  using Base::dec; \
+  using Base::rank; \
+  using Base::rows; \
+  using Base::cols; \
+  ei_kernel_retval(const DecompositionType& dec) : Base(dec) {}
 
 #endif // EIGEN_MISC_KERNEL_H

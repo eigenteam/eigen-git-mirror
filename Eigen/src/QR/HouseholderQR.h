@@ -98,11 +98,11 @@ template<typename _MatrixType> class HouseholderQR
       * Output: \verbinclude HouseholderQR_solve.out
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<HouseholderQR, Rhs>
+    inline const ei_solve_retval<HouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-      return ei_solve_return_value<HouseholderQR, Rhs>(*this, b.derived());
+      return ei_solve_retval<HouseholderQR, Rhs>(*this, b.derived());
     }
     
     MatrixQType matrixQ() const;
@@ -210,8 +210,8 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
 }
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_impl<HouseholderQR<_MatrixType>, Rhs>
-  : ei_solve_return_value<HouseholderQR<_MatrixType>, Rhs>
+struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
+  : ei_solve_retval_base<HouseholderQR<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(HouseholderQR<_MatrixType>,Rhs)
 

@@ -90,11 +90,11 @@ template<typename _MatrixType> class SVD
       * \sa MatrixBase::svd(),
       */
     template<typename Rhs>
-    inline const ei_solve_return_value<SVD, Rhs>
+    inline const ei_solve_retval<SVD, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
-      return ei_solve_return_value<SVD, Rhs>(*this, b.derived());
+      return ei_solve_retval<SVD, Rhs>(*this, b.derived());
     }
 
     const MatrixUType& matrixU() const
@@ -429,8 +429,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 }
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_impl<SVD<_MatrixType>, Rhs>
-  : ei_solve_return_value<SVD<_MatrixType>, Rhs>
+struct ei_solve_retval<SVD<_MatrixType>, Rhs>
+  : ei_solve_retval_base<SVD<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(SVD<_MatrixType>,Rhs)
 

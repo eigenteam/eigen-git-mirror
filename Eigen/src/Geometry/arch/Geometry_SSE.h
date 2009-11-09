@@ -32,8 +32,8 @@ template<class Derived, class OtherDerived> struct ei_quat_product<EiArch_SSE, D
   {
     const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0,0,0,0x80000000));
     Quaternion<float> res;
-    __m128 a = _a.coeffs().packet<Aligned>(0);
-    __m128 b = _b.coeffs().packet<Aligned>(0);
+    __m128 a = _a.coeffs().template packet<Aligned>(0);
+    __m128 b = _b.coeffs().template packet<Aligned>(0);
     __m128 flip1 = _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a,1,2,0,2),
                                          ei_vec4f_swizzle1(b,2,0,1,2)),mask);
     __m128 flip2 = _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a,3,3,3,1),
