@@ -1,4 +1,12 @@
 
+
+/**
+  * \brief Performs non linear optimization over a non-linear function,
+  * using a variant of the Levenberg Marquardt algorithm.
+  *
+  * Check wikipedia for more information.
+  * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
+  */
 template<typename FunctorType, typename Scalar=double>
 class LevenbergMarquardt 
 {

@@ -31,8 +31,7 @@
 namespace Eigen {
 
 /** \ingroup Unsupported_modules
-  * \defgroup NonLinear Support for non linear optimization and non linear least
-  * square using minpack routines.
+  * \defgroup NonLinearOptimization_Module Non linear optimization module
   *
   * \code
   * #include <unsupported/Eigen/NonLinear>

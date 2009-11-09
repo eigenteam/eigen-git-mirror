@@ -35,6 +35,9 @@ namespace Eigen {
   * This module features forward automatic differentation via a simple
   * templated scalar type wrapper AutoDiffScalar.
   *
+  * Warning : this should NOT be confused with numerical differentiation, which
+  * is a different method and has its own module in Eigen.
+  *
   * \code
   * #include <unsupported/Eigen/AutoDiff>
   * \endcode

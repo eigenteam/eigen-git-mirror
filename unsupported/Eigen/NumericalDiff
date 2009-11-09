@@ -30,8 +30,11 @@
 namespace Eigen {
 
 /** \ingroup Unsupported_modules
-  * \defgroup NumericalDiff_Module Support for numerical differenciation.
+  * \defgroup NumericalDiff_Module Numerical differenciation module
   * See http://en.wikipedia.org/wiki/Numerical_differentiation
+  *
+  * Warning : this should NOT be confused with automatic differentiation, which
+  * is a different method and has its own module in Eigen.
   *
   * \code
   * #include <unsupported/Eigen/NumericalDiff>
