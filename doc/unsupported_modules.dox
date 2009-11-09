@@ -29,12 +29,12 @@ namespace Eigen {
   * \ref MatrixFunctions_Module */
 
 /** \ingroup Unsupported_modules
+  * \ref MoreVectorization */
+
+/** \ingroup Unsupported_modules
   * \ref NonLinearOptimization_Module */
 
 /** \ingroup Unsupported_modules
   * \ref NumericalDiff_Module */
-
-/** \ingroup Unsupported_modules
-  * \ref MoreVectorization */
 
 } // namespace Eigen

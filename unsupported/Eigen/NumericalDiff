@@ -31,13 +31,18 @@ namespace Eigen {
 
 /** \ingroup Unsupported_modules
   * \defgroup NumericalDiff_Module Numerical differenciation module
+  *
+  * \code
+  * #include <unsupported/Eigen/NumericalDiff>
+  * \endcode
+  *
   * See http://en.wikipedia.org/wiki/Numerical_differentiation
   *
   * Warning : this should NOT be confused with automatic differentiation, which
   * is a different method and has its own module in Eigen : \ref
   * AutoDiff_Module.
   *
-  * Currently only "Forward" and "Central" scheme are implemented. Those
+  * Currently only "Forward" and "Central" schemes are implemented. Those
   * are basic methods, and there exist some more elaborated way of
   * computing such approximates. They are implemented using both
   * proprietary and free software, and usually requires linking to an
@@ -53,9 +58,6 @@ namespace Eigen {
   * provide full features compatibility with the original (c)minpack
   * package.
   *
-  * \code
-  * #include <unsupported/Eigen/NumericalDiff>
-  * \endcode
   */
 //@{
 

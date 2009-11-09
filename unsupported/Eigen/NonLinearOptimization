@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_NONLINEAR_MODULE_H
-#define EIGEN_NONLINEAR_MODULE_H
+#ifndef EIGEN_NONLINEAROPTIMIZATION_MODULE
+#define EIGEN_NONLINEAROPTIMIZATION_MODULE
 
 #include <Eigen/Core>
 #include <unsupported/Eigen/NumericalDiff>
@@ -150,4 +150,4 @@ namespace Eigen {
 
 
 
-#endif // EIGEN_NONLINEAR_MODULE_H
+#endif // EIGEN_NONLINEAROPTIMIZATION_MODULE
