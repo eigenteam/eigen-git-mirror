@@ -33,6 +33,7 @@ namespace Eigen {
   * \endcode
   */
 
+#include "src/misc/Solve.h"
 #include "src/QR/HouseholderQR.h"
 #include "src/QR/FullPivHouseholderQR.h"
 #include "src/QR/ColPivHouseholderQR.h"
