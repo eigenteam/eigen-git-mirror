@@ -54,7 +54,7 @@ namespace Eigen {
   * differenciation software that exist, but should rather stick with those
   * basic ones, that still are useful for testing.
   *
-  * Also, the module "Non linear optimization" needs this in order to
+  * Also, the \ref NonLinearOptimization_Module needs this in order to
   * provide full features compatibility with the original (c)minpack
   * package.
   *
