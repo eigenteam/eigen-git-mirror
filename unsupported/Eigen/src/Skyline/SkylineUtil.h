@@ -33,8 +33,8 @@
 
 const unsigned int SkylineBit = 0x1200;
 template<typename Lhs, typename Rhs, int ProductMode> class SkylineProduct;
-enum AdditionalProductEvaluationMode {SkylineTimeSkylineProduct, DenseTimeSkylineProduct};
-enum {IsSkyline        = SkylineBit};
+enum AdditionalProductEvaluationMode {SkylineTimeDenseProduct, SkylineTimeSkylineProduct, DenseTimeSkylineProduct};
+enum {IsSkyline = SkylineBit};
 
 
 #define EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \

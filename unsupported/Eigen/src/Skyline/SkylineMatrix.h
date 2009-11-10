@@ -400,7 +400,7 @@ public:
     }
 
     /** \returns a reference to a novel non zero coefficient with coordinates \a row x \a col.
-    
+
      *
      * \warning This function can be extremely slow if the non zero coefficients
      * are not inserted in a coherent order.

@@ -35,8 +35,6 @@
  *
  * \param Derived
  *
- *
- *
  */
 template<typename Derived> class SkylineMatrixBase : public AnyMatrixBase<Derived> {
 public:
