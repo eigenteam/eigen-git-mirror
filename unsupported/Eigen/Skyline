@@ -13,7 +13,8 @@
 
 namespace Eigen {
 
-    /** \defgroup Skyline_Module Skyline module
+    /** \ingroup Unsupported_modules
+     *  \defgroup Skyline_Module Skyline module
      *
      * \nonstableyet
      *
