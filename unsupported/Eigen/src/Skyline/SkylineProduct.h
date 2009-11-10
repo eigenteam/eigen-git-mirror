@@ -25,17 +25,6 @@
 #ifndef EIGEN_SKYLINEPRODUCT_H
 #define EIGEN_SKYLINEPRODUCT_H
 
-template<typename Lhs, typename Rhs> struct ei_skyline_product_mode {
-
-    enum {
-        value = (Rhs::Flags & Lhs::Flags & SkylineBit) == SkylineBit
-        ? SkylineTimeSkylineProduct
-        : (Lhs::Flags & SkylineBit) == SkylineBit
-        ? SkylineTimeDenseProduct
-        : DenseTimeSkylineProduct
-    };
-};
-
 template<typename Lhs, typename Rhs, int ProductMode>
 struct SkylineProductReturnType {
     typedef const typename ei_nested<Lhs, Rhs::RowsAtCompileTime>::type LhsNested;
@@ -290,16 +279,16 @@ struct ei_skyline_product_selector<Lhs, Rhs, ResultType, ColMajor> {
     }
 };
 
-template<typename Derived>
-template<typename Lhs, typename Rhs >
-Derived & MatrixBase<Derived>::lazyAssign(const SkylineProduct<Lhs, Rhs, SkylineTimeDenseProduct>& product) {
-    typedef typename ei_cleantype<Lhs>::type _Lhs;
-    ei_skyline_product_selector<typename ei_cleantype<Lhs>::type,
-            typename ei_cleantype<Rhs>::type,
-            Derived>::run(product.lhs(), product.rhs(), derived());
-
-    return derived();
-}
+// template<typename Derived>
+// template<typename Lhs, typename Rhs >
+// Derived & MatrixBase<Derived>::lazyAssign(const SkylineProduct<Lhs, Rhs, SkylineTimeDenseProduct>& product) {
+//     typedef typename ei_cleantype<Lhs>::type _Lhs;
+//     ei_skyline_product_selector<typename ei_cleantype<Lhs>::type,
+//             typename ei_cleantype<Rhs>::type,
+//             Derived>::run(product.lhs(), product.rhs(), derived());
+// 
+//     return derived();
+// }
 
 // skyline * dense
 
