@@ -35,7 +35,7 @@
   * \defgroup FFT_Module Fast Fourier Transform module
   *
   * \code
-  * #include <unsupported/Eigen/NonLinearOptimization>
+  * #include <unsupported/Eigen/FFT>
   * \endcode
   *
   * This module provides Fast Fourier transformation, either using a built-in implementation

@@ -28,7 +28,18 @@
 // Eigen::Complex reuses as much as possible from std::complex
 // and allows easy conversion to and from, even at the pointer level.
 
-
+/** \ingroup Unsupported_modules
+  * \defgroup Complex_Module Complex module
+  *
+  * \code
+  * #include <unsupported/Eigen/Complex>
+  * \endcode
+  *
+  * The C++ complex type has some severe limitations that prevent an
+  * optimal use within Eigen. This (still unsupported) module is an attempt
+  * to fix this.
+  */
+ 
 #include <complex>
 
 namespace Eigen {
