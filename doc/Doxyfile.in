@@ -614,6 +614,8 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = CMake* \
                          *.txt \
                          *.sh \
+                         *.diff \
+                         diff
                          *~
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
