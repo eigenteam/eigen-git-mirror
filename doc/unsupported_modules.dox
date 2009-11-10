@@ -23,6 +23,9 @@ namespace Eigen {
   * \defgroup BVH_Module */
 
 /** \ingroup Unsupported_modules
+  * \defgroup FFT_Module */
+
+/** \ingroup Unsupported_modules
   * \defgroup IterativeSolvers_Module */
 
 /** \ingroup Unsupported_modules

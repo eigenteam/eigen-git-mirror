@@ -30,6 +30,28 @@
 #include <map>
 #include <Eigen/Core>
 
+
+/** \ingroup Unsupported_modules
+  * \defgroup FFT_Module Fast Fourier Transform module
+  *
+  * \code
+  * #include <unsupported/Eigen/NonLinearOptimization>
+  * \endcode
+  *
+  * This module provides Fast Fourier transformation, either using a built-in implementation
+  * or as a frontend to various FFT libraries.
+  *
+  * The build-in implementation is based on kissfft. It is a small, free, and
+  * reasonably efficient default.
+  *
+  * Frontends are
+  *
+  * - fftw (http://www.fftw.org) : faster, GPL -- incompatible with Eigen in LGPL form, bigger code size.
+  * - MLK (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form
+  *
+  */
+ 
+
 #ifdef EIGEN_FFTW_DEFAULT
 // FFTW: faster, GPL -- incompatible with Eigen in LGPL form, bigger code size
 #  include <fftw3.h>
