@@ -781,11 +781,6 @@ template<typename Derived> class MatrixBase
     template<typename Derived1, typename Derived2>
     Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
 
-// dense = skyline * dense
-	template<typename Derived1, typename Derived2>
-	Derived& lazyAssign(const SkylineProduct<Derived1,Derived2,SkylineTimeDenseProduct>& product);
-
-
 ////////// Householder module ///////////
 
     void makeHouseholderInPlace(Scalar *tau, RealScalar *beta);
