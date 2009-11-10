@@ -39,9 +39,10 @@ using namespace Eigen;
 template <typename T>
 void take_std( std::complex<T> * dst, int n )
 {
+    for (int i=0;i<n;++i)
+        dst[i] = std::complex<T>(i,i);
     cout << dst[n-1] << endl;
 }
-
 
 template <typename T>
 void syntax()
