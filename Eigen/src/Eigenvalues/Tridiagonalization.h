@@ -204,7 +204,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
-    matA.col(i).end(remainingSize).makeHouseholderInPlace(&h, &beta);
+    matA.col(i).end(remainingSize).makeHouseholderInPlace(h, beta);
 
     // Apply similarity transformation to remaining columns,
     // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).end(n-i-1)

@@ -315,7 +315,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     }
 
     RealScalar beta;
-    m_qr.col(k).end(rows-k).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &beta);
+    m_qr.col(k).end(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
     m_qr.coeffRef(k,k) = beta;
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)

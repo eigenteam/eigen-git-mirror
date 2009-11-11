@@ -783,10 +783,10 @@ template<typename Derived> class MatrixBase
 
 ////////// Householder module ///////////
 
-    void makeHouseholderInPlace(Scalar *tau, RealScalar *beta);
+    void makeHouseholderInPlace(Scalar& tau, RealScalar& beta);
     template<typename EssentialPart>
-    void makeHouseholder(EssentialPart *essential,
-                         Scalar *tau, RealScalar *beta) const;
+    void makeHouseholder(EssentialPart& essential,
+                         Scalar& tau, RealScalar& beta) const;
     template<typename EssentialPart>
     void applyHouseholderOnTheLeft(const EssentialPart& essential,
                                    const Scalar& tau,

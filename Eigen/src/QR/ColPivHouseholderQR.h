@@ -305,7 +305,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     }
 
     RealScalar beta;
-    m_qr.col(k).end(rows-k).makeHouseholderInPlace(&m_hCoeffs.coeffRef(k), &beta);
+    m_qr.col(k).end(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
     m_qr.coeffRef(k,k) = beta;
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
@@ -347,7 +347,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
     typename Rhs::PlainMatrixType c(rhs());
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-    c.applyOnTheLeft(makeHouseholderSequence(
+    c.applyOnTheLeft(householderSequence(
       dec().matrixQR().corner(TopLeft,rows,dec().rank()),
       dec().hCoeffs().start(dec().rank())).transpose()
     );

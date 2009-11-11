@@ -162,7 +162,7 @@ private:
 };
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> makeHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
+HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
 {
   return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans);
 }
