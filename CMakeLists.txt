@@ -88,7 +88,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 if(EIGEN_BUILD_PKGCONFIG)
     configure_file(eigen2.pc.in eigen2.pc) # uses INCLUDE_INSTALL_DIR
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen2.pc
-        DESTINATION lib/pkgconfig
+        DESTINATION share/pkgconfig
         )
 endif(EIGEN_BUILD_PKGCONFIG)
 
