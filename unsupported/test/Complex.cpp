@@ -50,7 +50,7 @@ void syntax()
     // this works fine
     Matrix< Complex<T>, 9, 1>  a;
     std::complex<T> * pa = &a[0];
-    Complex<T> * pa2 = &a[0];
+    //Complex<T> * pa2 = &a[0];
     take_std( pa,9);
 
     // this does not work, but I wish it would

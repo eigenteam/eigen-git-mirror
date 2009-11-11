@@ -1,4 +1,5 @@
-option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
+option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions using exceptions" OFF)
+option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
 
 # similar to set_target_properties but append the property instead of overwriting it
 macro(ei_add_target_property target prop value)
@@ -19,83 +20,34 @@ endmacro(ei_add_property)
 #internal. See documentation of ei_add_test for details.
 macro(ei_add_test_internal testname testname_with_suffix)
   set(targetname test_${testname_with_suffix})
-  if(NOT MSVC_IDE)
-    set(debug_targetname debug_${testname_with_suffix})
-  endif(NOT MSVC_IDE)
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
   add_dependencies(btest ${targetname})
-  if(NOT MSVC_IDE)
-    add_executable(${debug_targetname} EXCLUDE_FROM_ALL ${filename})
-  endif(NOT MSVC_IDE)
 
-  if(NOT EIGEN_NO_ASSERTION_CHECKING)
-
-    if(MSVC)
-      set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
-      if(NOT MSVC_IDE)
-        set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "/EHsc")
-      endif(NOT MSVC_IDE)
-    else(MSVC)
-      set_target_properties(${targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
-      set_target_properties(${debug_targetname} PROPERTIES COMPILE_FLAGS "-fexceptions")
-    endif(MSVC)
-
-    option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
+  if(EIGEN_NO_ASSERTION_CHECKING)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+  else(EIGEN_NO_ASSERTION_CHECKING)
     if(EIGEN_DEBUG_ASSERTS)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
-      if(NOT MSVC_IDE)
-        ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
-      endif(NOT MSVC_IDE)
     endif(EIGEN_DEBUG_ASSERTS)
-
-  else(NOT EIGEN_NO_ASSERTION_CHECKING)
-
-    ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
-    if(NOT MSVC_IDE)
-      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
-    endif(NOT MSVC_IDE)
-
-  endif(NOT EIGEN_NO_ASSERTION_CHECKING)
-
-  # let the user pass flags. Note that if the user passes an optimization flag here, it's important that
-  # we counter it by a no-optimization flag!
-  if(${ARGC} GREATER 2)
-    ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
-    if(NOT MSVC_IDE)
-      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "${ARGV2} ${EI_NO_OPTIMIZATION_FLAG}")
-    endif(NOT MSVC_IDE)
-  endif(${ARGC} GREATER 2)
-
-  # for the debug target, add full debug options
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    # disable debug symbols: i get 2 GB of them!
-    # the user can still use the debug targets as needed.
-    # for MSVC, the equivalent (release mode) does the same.
-    ei_add_target_property(${targetname} COMPILE_FLAGS "-g0")
-    # O0 is in principle redundant here, but doesn't hurt
-    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-O0 -g3")
-  elseif(MSVC)
-    if(NOT MSVC_IDE)
-      ei_add_target_property(${debug_targetname} COMPILE_FLAGS "/Od /Zi")
-    endif(NOT MSVC_IDE)
-  endif(CMAKE_COMPILER_IS_GNUCXX)
+  endif(EIGEN_NO_ASSERTION_CHECKING)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
-  if(NOT MSVC_IDE)
-    ei_add_target_property(${debug_targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
-  endif(NOT MSVC_IDE)
 
-  target_link_libraries(${targetname} ${EXTERNAL_LIBS})
+  # let the user pass flags.
+  if(${ARGC} GREATER 2)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
+  endif(${ARGC} GREATER 2)
+
+  if(EXTERNAL_LIBS)
+    target_link_libraries(${targetname} ${EXTERNAL_LIBS})
+  endif()
   if(${ARGC} GREATER 3)
     string(STRIP "${ARGV3}" ARGV3_stripped)
     string(LENGTH "${ARGV3_stripped}" ARGV3_stripped_length)
     if(${ARGV3_stripped_length} GREATER 0)
       target_link_libraries(${targetname} ${ARGV3})
-      if(NOT MSVC_IDE)
-        target_link_libraries(${debug_targetname} ${ARGV3})
-      endif(NOT MSVC_IDE)
     endif(${ARGV3_stripped_length} GREATER 0)
   endif(${ARGC} GREATER 3)
 
@@ -123,18 +75,12 @@ endmacro(ei_add_test_internal)
 # Depending on the contents of that file, this macro can have 2 behaviors,
 # see below.
 #
-# Optional parameters can be passed: the 2nd parameter is additional compile flags
-# (optimization will be explicitly disabled for the debug test targets) and the 3rd
-# parameter is libraries to link to.
+# The optional 2nd parameter is libraries to link to.
 #
 # A. Default behavior
 #
 # this macro add an executable test_<testname> as well as a ctest test
 # named <testname>.
-#
-# it also adds another executable debug_<testname> that compiles in full debug mode
-# and is not added to the test target. The idea is that when a test fails you want
-# a quick way of rebuilding this specific test in full debug mode.
 #
 # On platforms with bash simply run:
 #   "ctest -V" or "ctest -V -R <testname>"
@@ -143,7 +89,7 @@ endmacro(ei_add_test_internal)
 # B. Multi-part behavior
 #
 # If the source file matches the regexp
-#    CALL_SUBTEST(-9]+|EIGEN_TEST_PART_[0-9]+
+#    CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+
 # then it is interpreted as a multi-part test. The behavior then depends on the
 # CMake option EIGEN_SPLIT_LARGE_TESTS, which is ON by default.
 #
@@ -156,13 +102,10 @@ endmacro(ei_add_test_internal)
 # executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
 # into smaller executables.
 #
-# The same holds for the debug executables.
-#
-# Moreover, targets test_<testname> and debug_<testname> are still generated, they
+# Moreover, targets test_<testname> are still generated, they
 # have the effect of building all the parts of the test.
 #
 # Again, ctest -R allows to run all matching tests.
-#
 macro(ei_add_test testname)
   file(READ "${testname}.cpp" test_source)
   set(parts 0)
@@ -172,16 +115,10 @@ macro(ei_add_test testname)
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     add_custom_target(test_${testname})
-    if(NOT MSVC_IDE)
-      add_custom_target(debug_${testname})
-    endif(NOT MSVC_IDE)
     foreach(suffix ${suffixes})
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
       add_dependencies(test_${testname} test_${testname}_${suffix})
-      if(NOT MSVC_IDE)
-        add_dependencies(debug_${testname} debug_${testname}_${suffix})
-      endif(NOT MSVC_IDE)
     endforeach(suffix)
   else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     set(symbols_to_enable_all_parts "")
@@ -199,7 +136,11 @@ macro(ei_testing_print_summary)
   message("************************************************************")
   message("***    Eigen's unit tests configuration summary          ***")
   message("************************************************************")
-
+  message("")
+  message("Build type: ${CMAKE_BUILD_TYPE}")
+  message("  * To change that: cmake . -DCMAKE_BUILD_TYPE=type")
+  message("  * Available types are Debug and Release")
+  message("")
   get_property(EIGEN_TESTING_SUMMARY GLOBAL PROPERTY EIGEN_TESTING_SUMMARY)
   get_property(EIGEN_TESTED_BACKENDS GLOBAL PROPERTY EIGEN_TESTED_BACKENDS)
   get_property(EIGEN_MISSING_BACKENDS GLOBAL PROPERTY EIGEN_MISSING_BACKENDS)
@@ -275,13 +216,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${COVERAGE_FLAGS} -fno-inline-functions")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COVERAGE_FLAGS} -O0 -g3")
   endif(CMAKE_SYSTEM_NAME MATCHES Linux)
-  set(EI_OFLAG "-O2")
-  set(EI_NO_OPTIMIZATION_FLAG "-O0")
 elseif(MSVC)
   set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-  set(EI_OFLAG "/O2")
-  set(EI_NO_OPTIMIZATION_FLAG "/O0")
-else(CMAKE_COMPILER_IS_GNUCXX)
-  set(EI_OFLAG "")
-  set(EI_NO_OPTIMIZATION_FLAG "")
 endif(CMAKE_COMPILER_IS_GNUCXX)
