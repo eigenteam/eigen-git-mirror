@@ -150,7 +150,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
-    matA.col(i).end(remainingSize).makeHouseholderInPlace(&h, &beta);
+    matA.col(i).end(remainingSize).makeHouseholderInPlace(h, beta);
     matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = h;
 
