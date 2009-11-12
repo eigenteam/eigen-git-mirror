@@ -8,7 +8,7 @@ then
 fi
 
 TESTSLIST="${cmake_tests_list}"
-targets_to_make=`echo "$TESTSLIST" | grep "$1" | sed s/^/test_/g | xargs`
+targets_to_make=`echo "$TESTSLIST" | grep "$1" | sed s/^/test_/g | xargs echo`
 
 if [ $# == 1 ]
 then
