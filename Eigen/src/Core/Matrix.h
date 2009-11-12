@@ -25,6 +25,12 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+#ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+# define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED setZero();
+#else
+# define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+#endif
+
 template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 
 /** \class Matrix
@@ -427,13 +433,14 @@ class Matrix
     EIGEN_STRONG_INLINE explicit Matrix() : m_storage()
     {
       _check_template_params();
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     Matrix(ei_constructor_without_unaligned_array_assert)
       : m_storage(ei_constructor_without_unaligned_array_assert())
-    { _check_template_params(); }
+    { _check_template_params(); EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED }
 #endif
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -449,6 +456,7 @@ class Matrix
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       ei_assert(dim > 0);
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -692,6 +700,7 @@ class Matrix
       ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows*cols,rows,cols);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
