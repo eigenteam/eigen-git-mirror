@@ -131,17 +131,19 @@ add_subdirectory(doc EXCLUDE_FROM_ALL)
 
 include(CTest)
 enable_testing() # must be called from the root CMakeLists, see man page
-if(EIGEN_CMAKE_RUN_FROM_CTEST)
+if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
 add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
-else(EIGEN_CMAKE_RUN_FROM_CTEST)
+else()
 add_subdirectory(test EXCLUDE_FROM_ALL)
-endif(EIGEN_CMAKE_RUN_FROM_CTEST)
+endif()
 
 add_subdirectory(unsupported)
 
 add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 add_subdirectory(blas EXCLUDE_FROM_ALL)
+
+add_subdirectory(scripts EXCLUDE_FROM_ALL)
 
 # TODO: consider also replacing EIGEN_BUILD_BTL by a custom target "make btl"?
 if(EIGEN_BUILD_BTL)
@@ -155,16 +157,18 @@ message("Configured Eigen ${EIGEN_VERSION_NUMBER}")
 
 string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile")
-  message("You can now do the following:")
+  message("Some things you can do now:")
   message("--------------+----------------------------------------------------------------")
   message("Command       |   Description")
   message("--------------+----------------------------------------------------------------")
   message("make install  | Install to ${CMAKE_INSTALL_PREFIX}")
   message("              | * To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
-  message("make btest    | Build the unit tests")
-  message("make test     | Build and run the unit tests (using CTest)")
-  message("make test_qr  | Build a specific test, here test_qr.")
-  message("make blas     | Build BLAS library (not the same thing as Eigen)")
   message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
+  message("make blas     | Build BLAS library (not the same thing as Eigen)")
   message("--------------+----------------------------------------------------------------")
 endif()
+
+message("")
+message("To build/run the unit tests, read this page:")
+message("  http://eigen.tuxfamily.org/index.php?title=Tests")
+message("")

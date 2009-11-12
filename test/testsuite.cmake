@@ -148,7 +148,7 @@ endif(NOT EIGEN_NO_UPDATE)
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
 # what cmake command to use for configuring this dashboard
-SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_CMAKE_RUN_FROM_CTEST=ON")
+SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_LEAVE_TEST_IN_ALL_TARGET=ON")
 
 ####################################################################
 # The values in this section are optional you can either
