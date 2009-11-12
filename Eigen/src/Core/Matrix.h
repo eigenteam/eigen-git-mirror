@@ -260,6 +260,7 @@ class Matrix
              && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows * cols, rows, cols);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     /** Resizes \c *this to a vector of length \a size
@@ -281,6 +282,7 @@ class Matrix
         m_storage.resize(size, 1, size);
       else
         m_storage.resize(size, size, 1);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     /** Resizes the matrix, changing only the number of columns. For the parameter of type NoChange_t, just pass the special value \c NoChange
