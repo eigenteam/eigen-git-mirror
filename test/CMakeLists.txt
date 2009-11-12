@@ -164,3 +164,4 @@ ei_add_property(EIGEN_TESTING_SUMMARY "CXX_FLAGS:         ${CMAKE_CXX_FLAGS}\n")
 ei_add_property(EIGEN_TESTING_SUMMARY "Sparse lib flags:  ${SPARSE_LIBS}\n")
 
 configure_file(maketests.in ${CMAKE_BINARY_DIR}/maketests)
+configure_file(mctestr.in ${CMAKE_BINARY_DIR}/mctestr)

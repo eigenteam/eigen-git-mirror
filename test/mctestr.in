@@ -1,0 +1,14 @@
+#!/bin/bash
+# mctestr : shorthand for make and ctest -R
+
+if [ $# == 0 -o $# -ge 3 ]
+then
+  echo "usage: ./mctestr regexp [jobs]"
+  echo "  makes and runs tests matching the regexp, with <jobs> concurrent make jobs"
+  exit 0
+fi
+
+./maketests $*
+
+# TODO when ctest 2.8 comes out, honor the jobs parameter
+ctest -R $1

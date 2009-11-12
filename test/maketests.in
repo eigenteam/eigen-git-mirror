@@ -7,7 +7,6 @@ then
   exit 0
 fi
 
-SRCDIR=${CMAKE_CURRENT_SOURCE_DIR}
 TESTSLIST="${cmake_tests_list}"
 targets_to_make=`echo "$TESTSLIST" | grep "$1" | sed s/^/test_/g | xargs`
 
