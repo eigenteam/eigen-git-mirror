@@ -25,6 +25,11 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+#ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+# define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED setZero();
+#else
+# define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+#endif
 
 /** \class Matrix
   *
@@ -234,6 +239,7 @@ class Matrix
              && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows * cols, rows, cols);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     /** Resizes \c *this to a vector of length \a size
@@ -247,6 +253,7 @@ class Matrix
         m_storage.resize(size, 1, size);
       else
         m_storage.resize(size, size, 1);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
@@ -290,13 +297,14 @@ class Matrix
     EIGEN_STRONG_INLINE explicit Matrix() : m_storage()
     {
       _check_template_params();
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     Matrix(ei_constructor_without_unaligned_array_assert)
       : m_storage(ei_constructor_without_unaligned_array_assert())
-    {}
+    {EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED}
 #endif
 
     /** Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -312,6 +320,7 @@ class Matrix
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
       ei_assert(dim > 0);
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
+      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
     /** This constructor has two very different behaviors, depending on the type of *this.
@@ -337,6 +346,7 @@ class Matrix
       {
         ei_assert(x > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == x)
                && y > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == y));
+        EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
       }
     }
     /** constructs an initialized 2D vector with given coefficients */
