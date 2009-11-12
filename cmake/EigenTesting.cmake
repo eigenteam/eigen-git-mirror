@@ -107,6 +107,7 @@ endmacro(ei_add_test_internal)
 #
 # Again, ctest -R allows to run all matching tests.
 macro(ei_add_test testname)
+  set(cmake_tests_list "${cmake_tests_list}${testname}\n")
   file(READ "${testname}.cpp" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+"

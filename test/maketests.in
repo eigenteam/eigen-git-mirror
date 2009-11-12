@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ $# == 0 -o $# -ge 3 ]
+then
+  echo "usage: ./maketests regexp [jobs]"
+  echo "  makes tests matching the regexp, with <jobs> concurrent make jobs"
+  exit 0
+fi
+
+SRCDIR=${CMAKE_CURRENT_SOURCE_DIR}
+TESTSLIST="${cmake_tests_list}"
+targets_to_make=`echo "$TESTSLIST" | grep "$1" | sed s/^/test_/g | xargs`
+
+if [ $# == 1 ]
+then
+  make $targets_to_make
+fi
+
+if [ $# == 2 ]
+then
+  make -j $2 $targets_to_make
+fi
