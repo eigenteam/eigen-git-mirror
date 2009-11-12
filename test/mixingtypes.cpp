@@ -23,6 +23,9 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+// work around "uninitialized" warnings and give that option some testing
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+
 #ifndef EIGEN_NO_STATIC_ASSERT
 #define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
 #endif

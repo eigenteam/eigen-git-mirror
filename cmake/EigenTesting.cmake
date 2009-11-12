@@ -23,7 +23,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
-  add_dependencies(btest ${targetname})
+  add_dependencies(buildtests ${targetname})
 
   if(EIGEN_NO_ASSERTION_CHECKING)
     ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
