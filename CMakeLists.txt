@@ -132,9 +132,9 @@ add_subdirectory(doc EXCLUDE_FROM_ALL)
 include(CTest)
 enable_testing() # must be called from the root CMakeLists, see man page
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
-add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
+  add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
 else()
-add_subdirectory(test EXCLUDE_FROM_ALL)
+  add_subdirectory(test EXCLUDE_FROM_ALL)
 endif()
 
 add_subdirectory(unsupported)
