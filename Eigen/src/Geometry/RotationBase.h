@@ -73,7 +73,7 @@ class RotationBase
       *  - a vector of size Dim
       */
     template<typename OtherDerived>
-    inline typename ei_rotation_base_generic_product_selector<Derived,OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
+    EIGEN_STRONG_INLINE typename ei_rotation_base_generic_product_selector<Derived,OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
     operator*(const AnyMatrixBase<OtherDerived>& e) const
     { return ei_rotation_base_generic_product_selector<Derived,OtherDerived>::run(derived(), e.derived()); }
 
@@ -107,7 +107,7 @@ struct ei_rotation_base_generic_product_selector<RotationDerived,OtherVectorType
 {
   enum { Dim = RotationDerived::Dim };
   typedef Matrix<typename RotationDerived::Scalar,Dim,1> ReturnType;
-  inline static ReturnType run(const RotationDerived& r, const OtherVectorType& v)
+  EIGEN_STRONG_INLINE static ReturnType run(const RotationDerived& r, const OtherVectorType& v)
   {
     return r._transformVector(v);
   }

@@ -89,7 +89,7 @@ public:
   template<typename Derived>
   inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
   /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
-  inline AngleAxis(const QuaternionType& q) { *this = q; }
+  template<typename QuatDerived> inline explicit AngleAxis(const QuaternionBase<QuatDerived>& q) { *this = q; }
   /** Constructs and initialize the angle-axis rotation from a 3x3 rotation matrix. */
   template<typename Derived>
   inline explicit AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
@@ -116,7 +116,8 @@ public:
   AngleAxis inverse() const
   { return AngleAxis(-m_angle, m_axis); }
 
-  AngleAxis& operator=(const QuaternionType& q);
+  template<class QuatDerived>
+  AngleAxis& operator=(const QuaternionBase<QuatDerived>& q);
   template<typename Derived>
   AngleAxis& operator=(const MatrixBase<Derived>& m);
 
@@ -160,7 +161,8 @@ typedef AngleAxis<double> AngleAxisd;
   * The axis is normalized.
   */
 template<typename Scalar>
-AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
+template<typename QuatDerived>
+AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
   Scalar n2 = q.vec().squaredNorm();
   if (n2 < precision<Scalar>()*precision<Scalar>())

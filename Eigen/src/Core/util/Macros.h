@@ -168,7 +168,7 @@ using Eigen::ei_cos;
 #endif
 
 // EIGEN_FORCE_INLINE means "inline as much as possible"
-#if (defined _MSC_VER)
+#if (defined _MSC_VER) || (defined __intel_compiler)
 #define EIGEN_STRONG_INLINE __forceinline
 #else
 #define EIGEN_STRONG_INLINE inline
@@ -261,25 +261,25 @@ using Eigen::ei_cos;
   #define EIGEN_REF_TO_TEMPORARY const &
 #endif
 
-#ifdef _MSC_VER
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-using Base::operator =; \
-using Base::operator +=; \
-using Base::operator -=; \
-using Base::operator *=; \
-using Base::operator /=;
+#if defined(_MSC_VER) && (!defined(__INTEL_COMPILER))
+#define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
+using Base::operator =;
 #else
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+#define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
 using Base::operator =; \
+EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
+{ \
+  Base::operator=(other); \
+  return *this; \
+}
+#endif
+
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 using Base::operator +=; \
 using Base::operator -=; \
 using Base::operator *=; \
 using Base::operator /=; \
-EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
-{ \
-  return Base::operator=(other); \
-}
-#endif
+EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
 typedef BaseClass Base; \

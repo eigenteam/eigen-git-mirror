@@ -81,7 +81,7 @@ template<typename Scalar, int Mode> void transformations(void)
     * (AngleAxisx(Scalar(0.3), Vector3(0,0,1)).toRotationMatrix() * v1)));
 
   // angle-axis conversion
-  AngleAxisx aa = q1;
+  AngleAxisx aa = AngleAxisx(q1);
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
   VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
 

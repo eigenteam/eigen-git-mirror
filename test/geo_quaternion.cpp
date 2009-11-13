@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009 Mathieu Gautier <mathieu.gautier@cea.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -84,7 +85,7 @@ template<typename Scalar> void quaternion(void)
 
 
   // angle-axis conversion
-  AngleAxisx aa = q1;
+  AngleAxisx aa = AngleAxisx(q1);
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
   VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
 
@@ -110,10 +111,35 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX(q1d.template cast<Scalar>(),q1);
 }
 
+template<typename Scalar> void mapQuaternion(void){
+  typedef Map<Quaternion<Scalar>, Aligned> MQuaternionA;
+  typedef Map<Quaternion<Scalar> > MQuaternionUA;
+  typedef Quaternion<Scalar> Quaternionx;
+
+	EIGEN_ALIGN16 Scalar array1[4];
+	EIGEN_ALIGN16 Scalar array2[4];
+	EIGEN_ALIGN16 Scalar array3[4+1];
+	Scalar* array3unaligned = array3+1;
+
+  MQuaternionA(array1).coeffs().setRandom();
+  (MQuaternionA(array2)) = MQuaternionA(array1);
+  (MQuaternionUA(array3unaligned)) = MQuaternionA(array1);
+
+  Quaternionx q1 = MQuaternionA(array1);
+  Quaternionx q2 = MQuaternionA(array2);
+  Quaternionx q3 = MQuaternionUA(array3unaligned);
+
+  VERIFY_IS_APPROX(q1.coeffs(), q2.coeffs());
+  VERIFY_IS_APPROX(q1.coeffs(), q3.coeffs());
+  VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
+}
+
 void test_geo_quaternion()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( quaternion<float>() );
     CALL_SUBTEST_2( quaternion<double>() );
+    CALL_SUBTEST( mapQuaternion<float>() );
+    CALL_SUBTEST( mapQuaternion<double>() );
   }
 }
