@@ -2,6 +2,10 @@ project(Eigen)
 
 cmake_minimum_required(VERSION 2.6.2)
 
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
+endif()
+
 # automatically parse the version number
 file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header)
 string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen2_world_version_match "${_eigen2_version_header}")
@@ -164,6 +168,7 @@ if(cmake_generator_tolower MATCHES "makefile")
   message("make install  | Install to ${CMAKE_INSTALL_PREFIX}")
   message("              | * To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
   message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
+  message("make check    | Build and run the unit-tests")
   message("make blas     | Build BLAS library (not the same thing as Eigen)")
   message("--------------+----------------------------------------------------------------")
 endif()
