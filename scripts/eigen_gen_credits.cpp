@@ -21,6 +21,11 @@ std::string contributor_name(const std::string& line)
     return "Mark Borgerding";
   }
 
+  if(line.find("kayhman@contact.intra.cea.fr") != string::npos)
+  {
+    return "Guillaume Saupin";
+  }
+
   // from there on we assume that we have a entry of the form
   // either:
   //   Bla bli Blurp
