@@ -8,7 +8,7 @@ then
   exit 0
 fi
 
-./maketests $*
+./buildtests $*
 
 # TODO when ctest 2.8 comes out, honor the jobs parameter
 ctest -R $1
