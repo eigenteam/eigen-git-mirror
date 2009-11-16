@@ -2,7 +2,7 @@
 
 if [ $# == 0 -o $# -ge 3 ]
 then
-  echo "usage: ./maketests regexp [jobs]"
+  echo "usage: ./buildtests regexp [jobs]"
   echo "  makes tests matching the regexp, with <jobs> concurrent make jobs"
   exit 0
 fi

@@ -52,7 +52,7 @@ class DiagonalProduct : ei_no_assignment_operator,
     inline DiagonalProduct(const MatrixType& matrix, const DiagonalType& diagonal)
       : m_matrix(matrix), m_diagonal(diagonal)
     {
-      ei_assert(diagonal.diagonal().size() == (ProductOrder == DiagonalOnTheLeft ? matrix.rows() : matrix.cols()));
+      ei_assert(diagonal.diagonal().size() == (ProductOrder == OnTheLeft ? matrix.rows() : matrix.cols()));
     }
 
     inline int rows() const { return m_matrix.rows(); }
@@ -60,7 +60,7 @@ class DiagonalProduct : ei_no_assignment_operator,
 
     const Scalar coeff(int row, int col) const
     {
-      return m_diagonal.diagonal().coeff(ProductOrder == DiagonalOnTheLeft ? row : col) * m_matrix.coeff(row, col);
+      return m_diagonal.diagonal().coeff(ProductOrder == OnTheLeft ? row : col) * m_matrix.coeff(row, col);
     }
 
     template<int LoadMode>
@@ -71,10 +71,10 @@ class DiagonalProduct : ei_no_assignment_operator,
         InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
         DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
       };
-      const int indexInDiagonalVector = ProductOrder == DiagonalOnTheLeft ? row : col;
+      const int indexInDiagonalVector = ProductOrder == OnTheLeft ? row : col;
 
-      if((int(StorageOrder) == RowMajor && int(ProductOrder) == DiagonalOnTheLeft)
-       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == DiagonalOnTheRight))
+      if((int(StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
+       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight))
       {
         return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
                        ei_pset1(m_diagonal.diagonal().coeff(indexInDiagonalVector)));
@@ -95,20 +95,20 @@ class DiagonalProduct : ei_no_assignment_operator,
   */
 template<typename Derived>
 template<typename DiagonalDerived>
-inline const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
+inline const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
 MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &diagonal) const
 {
-  return DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>(derived(), diagonal.derived());
+  return DiagonalProduct<Derived, DiagonalDerived, OnTheRight>(derived(), diagonal.derived());
 }
 
 /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
   */
 template<typename DiagonalDerived>
 template<typename MatrixDerived>
-inline const DiagonalProduct<MatrixDerived, DiagonalDerived, DiagonalOnTheLeft>
+inline const DiagonalProduct<MatrixDerived, DiagonalDerived, OnTheLeft>
 DiagonalBase<DiagonalDerived>::operator*(const MatrixBase<MatrixDerived> &matrix) const
 {
-  return DiagonalProduct<MatrixDerived, DiagonalDerived, DiagonalOnTheLeft>(matrix.derived(), derived());
+  return DiagonalProduct<MatrixDerived, DiagonalDerived, OnTheLeft>(matrix.derived(), derived());
 }
 
 

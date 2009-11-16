@@ -410,7 +410,7 @@ template<typename Derived> class MatrixBase
     void applyOnTheRight(const AnyMatrixBase<OtherDerived>& other);
 
     template<typename DiagonalDerived>
-    const DiagonalProduct<Derived, DiagonalDerived, DiagonalOnTheRight>
+    const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
 
     template<typename OtherDerived>

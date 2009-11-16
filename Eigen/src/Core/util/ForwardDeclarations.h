@@ -53,7 +53,7 @@ template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;
 
 template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
-template<typename _Scalar, int _Size> class DiagonalMatrix;
+template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
 

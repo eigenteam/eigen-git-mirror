@@ -3,7 +3,7 @@
 
 if [ $# == 0 -o $# -ge 3 ]
 then
-  echo "usage: ./mctestr regexp [jobs]"
+  echo "usage: ./check regexp [jobs]"
   echo "  makes and runs tests matching the regexp, with <jobs> concurrent make jobs"
   exit 0
 fi

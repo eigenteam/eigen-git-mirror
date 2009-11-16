@@ -66,7 +66,7 @@ class DiagonalBase : public AnyMatrixBase<Derived>
     inline int cols() const { return diagonal().size(); }
 
     template<typename MatrixDerived>
-    const DiagonalProduct<MatrixDerived, Derived, DiagonalOnTheLeft>
+    const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
     operator*(const MatrixBase<MatrixDerived> &matrix) const;
 };
 
@@ -88,16 +88,16 @@ void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   *
   * \sa class Matrix
   */
-template<typename _Scalar, int _Size>
-struct ei_traits<DiagonalMatrix<_Scalar,_Size> >
- : ei_traits<Matrix<_Scalar,_Size,_Size> >
+template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
+struct ei_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
+ : ei_traits<Matrix<_Scalar,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
-  typedef Matrix<_Scalar,_Size,1> DiagonalVectorType;
+  typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
 };
 
-template<typename _Scalar, int _Size>
+template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
 class DiagonalMatrix
-  : public DiagonalBase<DiagonalMatrix<_Scalar,_Size> >
+  : public DiagonalBase<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   public:
 
@@ -156,8 +156,8 @@ class DiagonalMatrix
     inline void resize(int size) { m_diagonal.resize(size); }
     inline void setZero() { m_diagonal.setZero(); }
     inline void setZero(int size) { m_diagonal.setZero(size); }
-    inline void setIdentity() { m_diagonal.setIdentity(); }
-    inline void setIdentity(int size) { m_diagonal.setIdentity(size); }
+    inline void setIdentity() { m_diagonal.setOnes(); }
+    inline void setIdentity(int size) { m_diagonal.setOnes(size); }
 };
 
 /** \class DiagonalWrapper
