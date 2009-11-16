@@ -171,7 +171,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
     }
 
-    PlainMatrixType toDense() const
+    PlainMatrixType toDenseMatrix() const
     {
       PlainMatrixType res(rows(),cols());
       res.setZero();
