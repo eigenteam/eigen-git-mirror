@@ -13,8 +13,4 @@ cout << "Here is the U part:" << endl;
 Matrix5x3 u = lu.matrixLU().part<UpperTriangular>();
 cout << u << endl;
 cout << "Let us now reconstruct the original matrix m:" << endl;
-Matrix5x3 x = l * u;
-Matrix5x3 y;
-for(int i = 0; i < 5; i++) for(int j = 0; j < 3; j++)
-  y(i, lu.permutationQ()[j]) = x(lu.permutationP()[i], j);
-cout << y << endl; // should be equal to the original matrix m
+cout << lu.permutationP().inverse() * l * u * lu.permutationQ().inverse() << endl;

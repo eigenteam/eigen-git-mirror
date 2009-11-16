@@ -63,8 +63,8 @@ template<typename _MatrixType> class FullPivLU
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
-    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
+    typedef PermutationMatrix<MatrixType::ColsAtCompileTime> PermutationQType;
+    typedef PermutationMatrix<MatrixType::RowsAtCompileTime> PermutationPType;
 
     /**
       * \brief Default Constructor.
@@ -120,25 +120,21 @@ template<typename _MatrixType> class FullPivLU
       */
     RealScalar maxPivot() const { return m_maxpivot; }
     
-    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
-      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class FullPivLU.
+    /** \returns the permutation matrix P
       *
       * \sa permutationQ()
       */
-    inline const IntColVectorType& permutationP() const
+    inline const PermutationPType& permutationP() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_p;
     }
 
-    /** \returns a vector of integers, whose size is the number of columns of the matrix being
-      * decomposed, representing the Q permutation i.e. the permutation of the columns.
-      * For its precise meaning, see the examples given in the documentation of class FullPivLU.
+    /** \returns the permutation matrix Q
       *
       * \sa permutationP()
       */
-    inline const IntRowVectorType& permutationQ() const
+    inline const PermutationQType& permutationQ() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_q;
@@ -368,8 +364,8 @@ template<typename _MatrixType> class FullPivLU
     
   protected:
     MatrixType m_lu;
-    IntColVectorType m_p;
-    IntRowVectorType m_q;
+    PermutationPType m_p;
+    PermutationQType m_q;
     int m_det_pq, m_nonzero_pivots;
     RealScalar m_maxpivot, m_prescribedThreshold;
     bool m_isInitialized, m_usePrescribedThreshold;
@@ -463,13 +459,13 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
   // the main loop is over, we still have to accumulate the transpositions to find the
   // permutations P and Q
 
-  for(int k = 0; k < matrix.rows(); ++k) m_p.coeffRef(k) = k;
+  for(int k = 0; k < matrix.rows(); ++k) m_p.indices().coeffRef(k) = k;
   for(int k = size-1; k >= 0; --k)
-    std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
+    std::swap(m_p.indices().coeffRef(k), m_p.indices().coeffRef(rows_transpositions.coeff(k)));
 
-  for(int k = 0; k < matrix.cols(); ++k) m_q.coeffRef(k) = k;
+  for(int k = 0; k < matrix.cols(); ++k) m_q.indices().coeffRef(k) = k;
   for(int k = 0; k < size; ++k)
-    std::swap(m_q.coeffRef(k), m_q.coeffRef(cols_transpositions.coeff(k)));
+    std::swap(m_q.indices().coeffRef(k), m_q.indices().coeffRef(cols_transpositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   return *this;
@@ -562,9 +558,9 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // see the negative sign in the next line, that's what we were talking about above.
-    for(int i = 0; i < rank(); ++i) dst.row(dec().permutationQ().coeff(i)) = -m.row(i).end(dimker);
-    for(int i = rank(); i < cols; ++i) dst.row(dec().permutationQ().coeff(i)).setZero();
-    for(int k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().coeff(rank()+k), k) = Scalar(1);
+    for(int i = 0; i < rank(); ++i) dst.row(dec().permutationQ().indices().coeff(i)) = -m.row(i).end(dimker);
+    for(int i = rank(); i < cols; ++i) dst.row(dec().permutationQ().indices().coeff(i)).setZero();
+    for(int k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().indices().coeff(rank()+k), k) = Scalar(1);
   }
 };
 
@@ -599,9 +595,8 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
       if(ei_abs(dec().matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
     ei_internal_assert(p == rank());
-    
-    for(int i = 0; i < rank(); ++i)
-      dst.col(i) = originalMatrix().col(dec().permutationQ().coeff(pivots.coeff(i)));
+
+    dst.block(0,0,dst.rows(),rank()) = (originalMatrix()*dec().permutationQ()).block(0,0,dst.rows(),rank());
   }
 };
 
@@ -638,7 +633,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
 
     // Step 1
     for(int i = 0; i < rows; ++i)
-      c.row(dec().permutationP().coeff(i)) = rhs().row(i);
+      c.row(dec().permutationP().indices().coeff(i)) = rhs().row(i);
 
     // Step 2
     dec().matrixLU()
@@ -660,9 +655,9 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
 
     // Step 4
     for(int i = 0; i < nonzero_pivots; ++i)
-      dst.row(dec().permutationQ().coeff(i)) = c.row(i);
+      dst.row(dec().permutationQ().indices().coeff(i)) = c.row(i);
     for(int i = nonzero_pivots; i < dec().matrixLU().cols(); ++i)
-      dst.row(dec().permutationQ().coeff(i)).setZero();
+      dst.row(dec().permutationQ().indices().coeff(i)).setZero();
   }
 };
 

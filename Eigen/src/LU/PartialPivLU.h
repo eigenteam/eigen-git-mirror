@@ -103,9 +103,7 @@ template<typename _MatrixType> class PartialPivLU
       return m_lu;
     }
 
-    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
-      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class FullPivLU.
+    /** \returns the permutation matrix P.
       */
     inline const PermutationType& permutationP() const
     {
