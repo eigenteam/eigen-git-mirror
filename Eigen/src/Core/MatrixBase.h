@@ -226,29 +226,6 @@ template<typename Derived> class MatrixBase
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
-    /** \internal Represents a scalar multiple of a matrix */
-    typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
-    /** \internal Represents a quotient of a matrix by a scalar*/
-    typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
-    /** \internal the return type of MatrixBase::conjugate() */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
-                        const Derived&
-                     >::ret ConjugateReturnType;
-    /** \internal the return type of MatrixBase::real() const */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        const CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived>,
-                        const Derived&
-                     >::ret RealReturnType;
-    /** \internal the return type of MatrixBase::real() */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryView<ei_scalar_real_op<Scalar>, Derived>,
-                        Derived&
-                     >::ret NonConstRealReturnType;
-    /** \internal the return type of MatrixBase::imag() const */
-    typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
-    /** \internal the return type of MatrixBase::imag() */
-    typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<Derived> > >,
@@ -268,6 +245,7 @@ template<typename Derived> class MatrixBase
                   ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
+    #include "CwiseUnaryOps.h"
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -363,8 +341,6 @@ template<typename Derived> class MatrixBase
     Scalar& w();
 
 
-    const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
-
     template<typename OtherDerived>
     const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     operator+(const MatrixBase<OtherDerived> &other) const;
@@ -377,27 +353,6 @@ template<typename Derived> class MatrixBase
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const MatrixBase<OtherDerived>& other);
-
-    Derived& operator*=(const Scalar& other);
-    Derived& operator/=(const Scalar& other);
-
-    const ScalarMultipleReturnType operator*(const Scalar& scalar) const;
-    #ifdef EIGEN_PARSED_BY_DOXYGEN
-    const ScalarMultipleReturnType operator*(const RealScalar& scalar) const;
-    #endif
-    const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
-    operator/(const Scalar& scalar) const;
-
-    const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
-    operator*(const std::complex<Scalar>& scalar) const;
-
-    inline friend const ScalarMultipleReturnType
-    operator*(const Scalar& scalar, const MatrixBase& matrix)
-    { return matrix*scalar; }
-
-    inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
-    operator*(const std::complex<Scalar>& scalar, const MatrixBase& matrix)
-    { return matrix*scalar; }
 
     template<typename OtherDerived>
     const typename ProductReturnType<Derived,OtherDerived>::Type
@@ -592,13 +547,6 @@ template<typename Derived> class MatrixBase
     { return (cwise() != other).any(); }
 
 
-    template<typename NewType>
-    typename ei_cast_return_type<
-        Derived,
-        const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
-      >::type
-    cast() const;
-
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
@@ -625,18 +573,6 @@ template<typename Derived> class MatrixBase
 
     inline const NestByValue<Derived> nestByValue() const;
 
-
-    ConjugateReturnType conjugate() const;
-    RealReturnType real() const;
-    NonConstRealReturnType real();
-    const ImagReturnType imag() const;
-    NonConstImagReturnType imag();
-
-    template<typename CustomUnaryOp>
-    const CwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
-
-    template<typename CustomViewOp>
-    const CwiseUnaryView<CustomViewOp, Derived> unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const;
 
     template<typename CustomBinaryOp, typename OtherDerived>
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
@@ -670,9 +606,6 @@ template<typename Derived> class MatrixBase
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
 #endif // not EIGEN_PARSED_BY_DOXYGEN
-
-    const Cwise<Derived> cwise() const;
-    Cwise<Derived> cwise();
 
     inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 

@@ -56,41 +56,23 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   };
 };
 
+template<typename UnaryOp, typename MatrixType, typename StorageType>
+class CwiseUnaryOpImpl;
+
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOp : ei_no_assignment_operator,
-  public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
+  public CwiseUnaryOpImpl<UnaryOp, MatrixType, typename ei_traits<MatrixType>::StorageType>
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+    typedef typename CwiseUnaryOpImpl<UnaryOp, MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryOp)
 
     inline CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())
       : m_matrix(mat), m_functor(func) {}
 
     EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
-
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
-    {
-      return m_functor(m_matrix.coeff(row, col));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
-    {
-      return m_functor.packetOp(m_matrix.template packet<LoadMode>(row, col));
-    }
-
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
-    {
-      return m_functor(m_matrix.coeff(index));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
-    {
-      return m_functor.packetOp(m_matrix.template packet<LoadMode>(index));
-    }
 
     /** \internal used for introspection */
     const UnaryOp& _functor() const { return m_functor; }
@@ -99,38 +81,52 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     const typename ei_cleantype<typename MatrixType::Nested>::type&
     _expression() const { return m_matrix; }
 
+    const typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() const { return m_matrix; }
+
+    typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() { return m_matrix.const_cast_derived(); }
+
   protected:
     const typename MatrixType::Nested m_matrix;
     const UnaryOp m_functor;
 };
 
-/** \returns an expression of a custom coefficient-wise unary operator \a func of *this
-  *
-  * The template parameter \a CustomUnaryOp is the type of the functor
-  * of the custom unary operator.
-  *
-  * Example:
-  * \include class_CwiseUnaryOp.cpp
-  * Output: \verbinclude class_CwiseUnaryOp.out
-  *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
-  */
-template<typename Derived>
-template<typename CustomUnaryOp>
-EIGEN_STRONG_INLINE const CwiseUnaryOp<CustomUnaryOp, Derived>
-MatrixBase<Derived>::unaryExpr(const CustomUnaryOp& func) const
+template<typename UnaryOp, typename MatrixType>
+class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
 {
-  return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
-}
+    const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
+    { return derived().nestedExpression(); }
+    typename ei_cleantype<typename MatrixType::Nested>::type& matrix()
+    { return derived().nestedExpression(); }
 
-/** \returns an expression of the opposite of \c *this
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
-MatrixBase<Derived>::operator-() const
-{
-  return derived();
-}
+  public:
+
+    typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
+    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    {
+      return derived()._functor()(matrix().coeff(row, col));
+    }
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    {
+      return derived()._functor().packetOp(matrix().template packet<LoadMode>(row, col));
+    }
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    {
+      return derived()._functor()(matrix().coeff(index));
+    }
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
+    {
+      return derived()._functor().packetOp(matrix().template packet<LoadMode>(index));
+    }
+};
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
@@ -160,49 +156,6 @@ Cwise<ExpressionType>::abs2() const
   return _expression();
 }
 
-/** \returns an expression of the complex conjugate of \c *this.
-  *
-  * \sa adjoint() */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename MatrixBase<Derived>::ConjugateReturnType
-MatrixBase<Derived>::conjugate() const
-{
-  return ConjugateReturnType(derived());
-}
-
-/** \returns a read-only expression of the real part of \c *this.
-  *
-  * \sa imag() */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename MatrixBase<Derived>::RealReturnType
-MatrixBase<Derived>::real() const { return derived(); }
-
-/** \returns an read-only expression of the imaginary part of \c *this.
-  *
-  * \sa real() */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::ImagReturnType
-MatrixBase<Derived>::imag() const { return derived(); }
-
-/** \returns an expression of *this with the \a Scalar type casted to
-  * \a NewScalar.
-  *
-  * The template parameter \a NewScalar is the type we are casting the scalars to.
-  *
-  * \sa class CwiseUnaryOp
-  */
-template<typename Derived>
-template<typename NewType>
-EIGEN_STRONG_INLINE
-typename ei_cast_return_type<
-            Derived,
-            const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived>
-          >::type
-MatrixBase<Derived>::cast() const
-{
-  return derived();
-}
-
 /** \returns an expression of the coefficient-wise exponential of *this.
   *
   * Example: \include Cwise_exp.cpp
@@ -229,49 +182,6 @@ inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
 Cwise<ExpressionType>::log() const
 {
   return _expression();
-}
-
-
-/** \returns an expression of \c *this scaled by the scalar factor \a scalar */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::ScalarMultipleReturnType
-MatrixBase<Derived>::operator*(const Scalar& scalar) const
-{
-  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
-    (derived(), ei_scalar_multiple_op<Scalar>(scalar));
-}
-
-/** Overloaded for efficient real matrix times complex scalar value */
-template<typename Derived>
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_multiple2_op<typename ei_traits<Derived>::Scalar,
-                                                              std::complex<typename ei_traits<Derived>::Scalar> >, Derived>
-MatrixBase<Derived>::operator*(const std::complex<Scalar>& scalar) const
-{
-  return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
-    (*static_cast<const Derived*>(this), ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
-}
-
-/** \returns an expression of \c *this divided by the scalar value \a scalar */
-template<typename Derived>
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
-MatrixBase<Derived>::operator/(const Scalar& scalar) const
-{
-  return CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived>
-    (derived(), ei_scalar_quotient1_op<Scalar>(scalar));
-}
-
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived&
-MatrixBase<Derived>::operator*=(const Scalar& other)
-{
-  return *this = *this * other;
-}
-
-template<typename Derived>
-EIGEN_STRONG_INLINE Derived&
-MatrixBase<Derived>::operator/=(const Scalar& other)
-{
-  return *this = *this / other;
 }
 
 #endif // EIGEN_CWISE_UNARY_OP_H

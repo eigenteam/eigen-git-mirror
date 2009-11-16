@@ -52,12 +52,17 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
   };
 };
 
+template<typename ViewOp, typename MatrixType, typename StorageType>
+class CwiseUnaryViewImpl;
+
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
+class CwiseUnaryView : ei_no_assignment_operator,
+  public CwiseUnaryViewImpl<ViewOp, MatrixType, typename ei_traits<MatrixType>::StorageType>
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryView)
+    typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryView)
 
     inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}
@@ -67,25 +72,14 @@ class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
     EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
-    {
-      return m_functor(m_matrix.coeff(row, col));
-    }
+    /** \internal used for introspection */
+    const ViewOp& _functor() const { return m_functor; }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
-    {
-      return m_functor(m_matrix.coeff(index));
-    }
+    const typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() const { return m_matrix; }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
-    {
-      return m_functor(m_matrix.const_cast_derived().coeffRef(row, col));
-    }
-
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
-    {
-      return m_functor(m_matrix.const_cast_derived().coeffRef(index));
-    }
+    typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:
     // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
@@ -93,37 +87,40 @@ class CwiseUnaryView : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
     const ViewOp m_functor;
 };
 
-/** \returns an expression of a custom coefficient-wise unary operator \a func of *this
-  *
-  * The template parameter \a CustomUnaryOp is the type of the functor
-  * of the custom unary operator.
-  *
-  * Example:
-  * \include class_CwiseUnaryOp.cpp
-  * Output: \verbinclude class_CwiseUnaryOp.out
-  *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
-  */
-template<typename Derived>
-template<typename CustomViewOp>
-EIGEN_STRONG_INLINE const CwiseUnaryView<CustomViewOp, Derived>
-MatrixBase<Derived>::unaryViewExpr(const CustomViewOp& func) const
+template<typename ViewOp, typename MatrixType>
+class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
 {
-  return CwiseUnaryView<CustomViewOp, Derived>(derived(), func);
-}
+    const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
+    { return derived().nestedExpression(); }
+    typename ei_cleantype<typename MatrixType::Nested>::type& matrix()
+    { return derived().nestedExpression(); }
 
-/** \returns a non const expression of the real part of \c *this.
-  *
-  * \sa imag() */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename MatrixBase<Derived>::NonConstRealReturnType
-MatrixBase<Derived>::real() { return derived(); }
+  public:
 
-/** \returns a non const expression of the imaginary part of \c *this.
-  *
-  * \sa real() */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename MatrixBase<Derived>::NonConstImagReturnType
-MatrixBase<Derived>::imag() { return derived(); }
+    typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
+    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    {
+      return derived()._functor()(matrix().coeff(row, col));
+    }
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    {
+      return derived()._functor()(matrix().coeff(index));
+    }
+
+    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
+    {
+      return derived()._functor()(matrix().const_cast_derived().coeffRef(row, col));
+    }
+
+    EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
+    {
+      return derived()._functor()(matrix().const_cast_derived().coeffRef(index));
+    }
+};
+
+
 
 #endif // EIGEN_CWISE_UNARY_VIEW_H

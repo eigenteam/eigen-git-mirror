@@ -97,20 +97,22 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
       #endif
     };
 
-    /** \internal the return type of MatrixBase::conjugate() */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        const SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
-                        const Derived&
-                     >::ret ConjugateReturnType;
-    /** \internal the return type of MatrixBase::real() */
-    typedef SparseCwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
-    /** \internal the return type of MatrixBase::imag() */
-    typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
+    /* \internal the return type of MatrixBase::conjugate() */
+//     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
+//                         const SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
+//                         const Derived&
+//                      >::ret ConjugateReturnType;
+    /* \internal the return type of MatrixBase::real() */
+//     typedef SparseCwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived> RealReturnType;
+    /* \internal the return type of MatrixBase::imag() */
+//     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                         SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::Transpose<Derived> > >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
+
+    #include "../Core/CwiseUnaryOps.h"
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -284,7 +286,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
       return s;
     }
 
-    const SparseCwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
+//     const SparseCwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
 
     template<typename OtherDerived>
     const SparseCwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
@@ -302,17 +304,17 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     template<typename Lhs,typename Rhs>
 //     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
-    Derived& operator*=(const Scalar& other);
-    Derived& operator/=(const Scalar& other);
+//     Derived& operator*=(const Scalar& other);
+//     Derived& operator/=(const Scalar& other);
 
-    const SparseCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
-    operator*(const Scalar& scalar) const;
-    const SparseCwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
-    operator/(const Scalar& scalar) const;
+//     const SparseCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+//     operator*(const Scalar& scalar) const;
+//     const SparseCwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
+//     operator/(const Scalar& scalar) const;
 
-    inline friend const SparseCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
-    operator*(const Scalar& scalar, const SparseMatrixBase& matrix)
-    { return matrix*scalar; }
+//     inline friend const SparseCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
+//     operator*(const Scalar& scalar, const SparseMatrixBase& matrix)
+//     { return matrix*scalar; }
 
 
     // sparse * sparse
@@ -543,12 +545,12 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     inline const SparseNestByValue<Derived> nestByValue() const;
 
 
-    ConjugateReturnType conjugate() const;
-    const RealReturnType real() const;
-    const ImagReturnType imag() const;
+//     ConjugateReturnType conjugate() const;
+//     const RealReturnType real() const;
+//     const ImagReturnType imag() const;
 
-    template<typename CustomUnaryOp>
-    const SparseCwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
+//     template<typename CustomUnaryOp>
+//     const SparseCwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
 
 //     template<typename CustomBinaryOp, typename OtherDerived>
 //     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
@@ -572,8 +574,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     void visit(Visitor& func) const;
 
 
-    const SparseCwise<Derived> cwise() const;
-    SparseCwise<Derived> cwise();
+//     const SparseCwise<Derived> cwise() const;
+//     SparseCwise<Derived> cwise();
 
 //     inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 
