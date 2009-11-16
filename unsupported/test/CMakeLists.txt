@@ -15,7 +15,7 @@ else(ADOLC_FOUND)
   ei_add_property(EIGEN_MISSING_BACKENDS "Adolc")
 endif(ADOLC_FOUND)
 
-ei_add_test(NonLinear)
+ei_add_test(NonLinearOptimization)
 ei_add_test(NumericalDiff)
 ei_add_test(autodiff)
 ei_add_test(BVH)
