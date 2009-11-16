@@ -64,10 +64,9 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   RightPermutationType rp(rv);
   MatrixType m_permuted = lp * m_original * rp;
 
-  int i = ei_random<int>(0, rows-1);
-  int j = ei_random<int>(0, cols-1);
-
-  VERIFY_IS_APPROX(m_original(lv(i),j), m_permuted(i,rv(j)));
+  for (int i=0; i<rows; i++)
+    for (int j=0; j<cols; j++)
+        VERIFY_IS_APPROX(m_original(lv(i),j), m_permuted(i,rv(j)));
 
   Matrix<Scalar,Rows,Rows> lm(lp);
   Matrix<Scalar,Cols,Cols> rm(rp);
