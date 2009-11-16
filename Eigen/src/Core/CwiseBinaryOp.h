@@ -54,6 +54,8 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                        typename Rhs::Scalar
                      )
                    >::type Scalar;
+  typedef typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
+                                           typename ei_traits<Rhs>::StorageType>::ret StorageType;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
   typedef typename ei_unref<LhsNested>::type _LhsNested;

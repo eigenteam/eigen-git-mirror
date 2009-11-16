@@ -263,43 +263,79 @@ using Eigen::ei_cos;
 
 #if defined(_MSC_VER) && (!defined(__INTEL_COMPILER))
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
-using Base::operator =;
+  using Base::operator =;
 #else
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
-using Base::operator =; \
-EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
-{ \
-  Base::operator=(other); \
-  return *this; \
-}
+  using Base::operator =; \
+  EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
+  { \
+    Base::operator=(other); \
+    return *this; \
+  }
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-using Base::operator +=; \
-using Base::operator -=; \
-using Base::operator *=; \
-using Base::operator /=; \
-EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
+  using Base::operator +=; \
+  using Base::operator -=; \
+  using Base::operator *=; \
+  using Base::operator /=; \
+  EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-typedef BaseClass Base; \
-typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-typedef typename Base::PacketScalar PacketScalar; \
-typedef typename Base::CoeffReturnType CoeffReturnType; \
-typedef typename Eigen::ei_nested<Derived>::type Nested; \
-enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-       ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-       MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
-       MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
-       Flags = Eigen::ei_traits<Derived>::Flags, \
-       CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
-       SizeAtCompileTime = Base::SizeAtCompileTime, \
-       MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+  typedef BaseClass Base; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Base::PacketScalar PacketScalar; \
+  typedef typename Base::CoeffReturnType CoeffReturnType; \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
+        MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
+  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
+
+#define EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Derived) \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Base::CoeffReturnType CoeffReturnType; \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+
+
+#define _EIGEN_DENSE_PUBLIC_INTERFACE(Derived, BaseClass) \
+  typedef BaseClass Base; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Base::PacketScalar PacketScalar; \
+  typedef typename Base::CoeffReturnType CoeffReturnType; \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
+        MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
+  using Base::derived;
+
+#define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
+  _EIGEN_DENSE_PUBLIC_INTERFACE(Derived, Eigen::MatrixBase<Derived>)
+
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_SIZE_MIN(a,b) (((int)a == 1 || (int)b == 1) ? 1 \

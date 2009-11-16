@@ -36,11 +36,15 @@
   *
   *
   */
+
+struct Sparse {};
+
 template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived>
 {
   public:
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 //     typedef typename Derived::InnerIterator InnerIterator;
 
     enum {
@@ -86,7 +90,11 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
           * this expression.
           */
 
-      IsRowMajor = Flags&RowMajorBit ? 1 : 0
+      IsRowMajor = Flags&RowMajorBit ? 1 : 0,
+
+      #ifndef EIGEN_PARSED_BY_DOXYGEN
+      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
+      #endif
     };
 
     /** \internal the return type of MatrixBase::conjugate() */
@@ -100,8 +108,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::SparseTranspose<Derived> > >,
-                        SparseTranspose<Derived>
+                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::Transpose<Derived> > >,
+                        Transpose<Derived>
                      >::ret AdjointReturnType;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -112,6 +120,10 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
       * \sa class NumTraits
       */
     typedef typename NumTraits<Scalar>::Real RealScalar;
+
+    /** \internal the return type of coeff()
+      */
+    typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** type of the equivalent square matrix */
     typedef Matrix<Scalar,EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime),
@@ -353,8 +365,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     const PlainMatrixType normalized() const;
 //     void normalize();
 
-    SparseTranspose<Derived> transpose() { return derived(); }
-    const SparseTranspose<Derived> transpose() const { return derived(); }
+    Transpose<Derived> transpose() { return derived(); }
+    const Transpose<Derived> transpose() const { return derived(); }
     // void transposeInPlace();
     const AdjointReturnType adjoint() const { return transpose().nestByValue(); }
 

@@ -67,6 +67,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   enum{
     RowsAtCompileTime = BlockRows,
     ColsAtCompileTime = BlockCols,

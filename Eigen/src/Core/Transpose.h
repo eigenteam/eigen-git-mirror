@@ -43,6 +43,7 @@ struct ei_traits<Transpose<MatrixType> >
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -56,12 +57,15 @@ struct ei_traits<Transpose<MatrixType> >
   };
 };
 
+template<typename MatrixType, typename StorageType> class TransposeImpl;
+
 template<typename MatrixType> class Transpose
-  : public MatrixBase<Transpose<MatrixType> >
+  : public TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageType>
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
+    typedef typename TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Transpose)
 
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 
@@ -69,60 +73,84 @@ template<typename MatrixType> class Transpose
 
     inline int rows() const { return m_matrix.cols(); }
     inline int cols() const { return m_matrix.rows(); }
-    inline int stride() const { return m_matrix.stride(); }
-    inline Scalar* data() { return m_matrix.data(); }
-    inline const Scalar* data() const { return m_matrix.data(); }
-
-    inline Scalar& coeffRef(int row, int col)
-    {
-      return m_matrix.const_cast_derived().coeffRef(col, row);
-    }
-
-    inline Scalar& coeffRef(int index)
-    {
-      return m_matrix.const_cast_derived().coeffRef(index);
-    }
-
-    inline const CoeffReturnType coeff(int row, int col) const
-    {
-      return m_matrix.coeff(col, row);
-    }
-
-    inline const CoeffReturnType coeff(int index) const
-    {
-      return m_matrix.coeff(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(int row, int col) const
-    {
-      return m_matrix.template packet<LoadMode>(col, row);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
-    {
-      m_matrix.const_cast_derived().template writePacket<LoadMode>(col, row, x);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(int index) const
-    {
-      return m_matrix.template packet<LoadMode>(index);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
-    {
-      m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
-    }
 
     /** \internal used for introspection */
     const typename ei_cleantype<typename MatrixType::Nested>::type&
     _expression() const { return m_matrix; }
 
+    const typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() const { return m_matrix; }
+
+    typename ei_cleantype<typename MatrixType::Nested>::type&
+    nestedExpression() { return m_matrix.const_cast_derived(); }
+
   protected:
     const typename MatrixType::Nested m_matrix;
+};
+
+
+template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
+  : public MatrixBase<Transpose<MatrixType> >
+{
+    const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
+    { return derived().nestedExpression(); }
+    typename ei_cleantype<typename MatrixType::Nested>::type& matrix()
+    { return derived().nestedExpression(); }
+
+  public:
+
+    //EIGEN_DENSE_PUBLIC_INTERFACE(TransposeImpl,MatrixBase<Transpose<MatrixType> >)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
+
+//     EIGEN_EXPRESSION_IMPL_COMMON(MatrixBase<Transpose<MatrixType> >)
+
+    inline int stride() const { return matrix().stride(); }
+    inline Scalar* data() { return matrix().data(); }
+    inline const Scalar* data() const { return matrix().data(); }
+
+    inline Scalar& coeffRef(int row, int col)
+    {
+      return matrix().const_cast_derived().coeffRef(col, row);
+    }
+
+    inline Scalar& coeffRef(int index)
+    {
+      return matrix().const_cast_derived().coeffRef(index);
+    }
+
+    inline const CoeffReturnType coeff(int row, int col) const
+    {
+      return matrix().coeff(col, row);
+    }
+
+    inline const CoeffReturnType coeff(int index) const
+    {
+      return matrix().coeff(index);
+    }
+
+    template<int LoadMode>
+    inline const PacketScalar packet(int row, int col) const
+    {
+      return matrix().template packet<LoadMode>(col, row);
+    }
+
+    template<int LoadMode>
+    inline void writePacket(int row, int col, const PacketScalar& x)
+    {
+      matrix().const_cast_derived().template writePacket<LoadMode>(col, row, x);
+    }
+
+    template<int LoadMode>
+    inline const PacketScalar packet(int index) const
+    {
+      return matrix().template packet<LoadMode>(index);
+    }
+
+    template<int LoadMode>
+    inline void writePacket(int index, const PacketScalar& x)
+    {
+      matrix().const_cast_derived().template writePacket<LoadMode>(index, x);
+    }
 };
 
 /** \returns an expression of the transpose of *this.

@@ -69,7 +69,23 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
+  _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
+
+#define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
+  typedef BaseClass Base; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
+  using Base::derived;
+
+#define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
+  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
 
 enum SparseBackend {
   DefaultBackend,
@@ -107,7 +123,7 @@ template<typename _Scalar, int _Flags = 0> class SparseVector;
 template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
 
 template<typename MatrixType>                            class SparseNestByValue;
-template<typename MatrixType>                            class SparseTranspose;
+// template<typename MatrixType>                            class SparseTranspose;
 template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
 template<typename Derived>                               class SparseCwise;
 template<typename UnaryOp,   typename MatrixType>        class SparseCwiseUnaryOp;
@@ -127,7 +143,7 @@ const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRand
 
 // const int AccessPatternNotSupported = 0x0;
 // const int AccessPatternSupported    = 0x1;
-// 
+//
 // template<typename MatrixType, int AccessPattern> struct ei_support_access_pattern
 // {
 //   enum { ret = (int(ei_traits<MatrixType>::SupportedAccessPatterns) & AccessPattern) == AccessPattern

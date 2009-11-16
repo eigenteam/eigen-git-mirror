@@ -118,6 +118,7 @@ template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int
 struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
+  typedef Dense StorageType;
   enum {
     RowsAtCompileTime = _Rows,
     ColsAtCompileTime = _Cols,
@@ -320,7 +321,7 @@ class Matrix
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE void resizeLike(const MatrixBase<OtherDerived>& other)
-    {      
+    {
       if(RowsAtCompileTime == 1)
       {
         ei_assert(other.isVector());

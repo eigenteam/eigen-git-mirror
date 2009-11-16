@@ -32,7 +32,7 @@
 
 /* Since the all the dimensions of the product are small, here we can rely
  * on the generic Assign mechanism to evaluate the product per coeff (or packet).
- * 
+ *
  * Note that here the inner-loops should always be unrolled.
  */
 
@@ -48,7 +48,9 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename ei_scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
-  
+  typedef typename ei_promote_storage_type<typename ei_traits<_LhsNested>::StorageType,
+                                           typename ei_traits<_RhsNested>::StorageType>::ret StorageType;
+
   enum {
       LhsCoeffReadCost = _LhsNested::CoeffReadCost,
       RhsCoeffReadCost = _RhsNested::CoeffReadCost,

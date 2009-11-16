@@ -45,6 +45,7 @@ template<typename _Scalar, int _Options>
 struct ei_traits<SparseMatrix<_Scalar, _Options> >
 {
   typedef _Scalar Scalar;
+  typedef Sparse StorageType;
   enum {
     RowsAtCompileTime = Dynamic,
     ColsAtCompileTime = Dynamic,

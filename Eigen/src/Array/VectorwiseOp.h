@@ -50,6 +50,7 @@ template<typename MatrixType, typename MemberOp, int Direction>
 struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 {
   typedef typename MemberOp::result_type Scalar;
+  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   typedef typename MatrixType::Scalar InputScalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;

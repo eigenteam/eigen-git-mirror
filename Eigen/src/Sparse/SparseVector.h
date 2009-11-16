@@ -38,6 +38,7 @@ template<typename _Scalar, int _Options>
 struct ei_traits<SparseVector<_Scalar, _Options> >
 {
   typedef _Scalar Scalar;
+  typedef Sparse StorageType;
   enum {
     IsColVector = _Options & RowMajorBit ? 0 : 1,
 

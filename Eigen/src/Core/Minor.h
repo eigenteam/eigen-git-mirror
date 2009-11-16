@@ -25,7 +25,7 @@
 #ifndef EIGEN_MINOR_H
 #define EIGEN_MINOR_H
 
-/** \nonstableyet 
+/** \nonstableyet
   * \class Minor
   *
   * \brief Expression of a minor
@@ -42,6 +42,7 @@ template<typename MatrixType>
 struct ei_traits<Minor<MatrixType> >
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
@@ -93,7 +94,7 @@ template<typename MatrixType> class Minor
     const int m_row, m_col;
 };
 
-/** \nonstableyet 
+/** \nonstableyet
   * \return an expression of the (\a row, \a col)-minor of *this,
   * i.e. an expression constructed from *this by removing the specified
   * row and column.
@@ -110,7 +111,7 @@ MatrixBase<Derived>::minor(int row, int col)
   return Minor<Derived>(derived(), row, col);
 }
 
-/** \nonstableyet 
+/** \nonstableyet
   * This is the const version of minor(). */
 template<typename Derived>
 inline const Minor<Derived>

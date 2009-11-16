@@ -28,7 +28,7 @@
 
 /** \class MatrixBase
   *
-  * \brief Base class for all matrices, vectors, and expressions
+  * \brief Base class for all dense matrices, vectors, and expressions
   *
   * This class is the base that is inherited by all matrix, vector, and expression
   * types. Most of the Eigen API is contained in this class. Other important classes for
@@ -51,6 +51,9 @@
     }
   * \endcode
   */
+
+struct Dense {};
+
 template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
@@ -639,7 +642,7 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
-    
+
     Scalar sum() const;
     Scalar mean() const;
     Scalar trace() const;
@@ -819,7 +822,7 @@ template<typename Derived> class MatrixBase
                           INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
 #endif
     }
-    
+
   private:
     explicit MatrixBase(int);
     MatrixBase(int,int);

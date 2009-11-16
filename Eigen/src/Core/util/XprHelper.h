@@ -268,4 +268,11 @@ template<typename XprType, typename CastType> struct ei_cast_return_type
                               const XprType&,CastType>::ret type;
 };
 
+template <typename A, typename B> struct ei_promote_storage_type;
+
+template <typename A> struct ei_promote_storage_type<A,A>
+{
+  typedef A ret;
+};
+
 #endif // EIGEN_XPRHELPER_H
