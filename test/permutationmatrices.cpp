@@ -66,7 +66,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
 
   for (int i=0; i<rows; i++)
     for (int j=0; j<cols; j++)
-        VERIFY_IS_APPROX(m_original(lv(i),j), m_permuted(i,rv(j)));
+        VERIFY_IS_APPROX(m_permuted(lv(i),j), m_original(i,rv(j)));
 
   Matrix<Scalar,Rows,Rows> lm(lp);
   Matrix<Scalar,Cols,Cols> rm(rp);
@@ -80,7 +80,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   randomPermutationVector(lv2, rows);
   LeftPermutationType lp2(lv2);
   Matrix<Scalar,Rows,Rows> lm2(lp2);
-  VERIFY_IS_APPROX((lp*lp2).toDenseMatrix().template cast<Scalar>(), lm2*lm);
+  VERIFY_IS_APPROX((lp*lp2).toDenseMatrix().template cast<Scalar>(), lm*lm2);
 }
 
 void test_permutationmatrices()
