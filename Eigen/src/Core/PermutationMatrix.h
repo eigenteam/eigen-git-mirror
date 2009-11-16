@@ -105,10 +105,10 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
       ei_assert(rows == cols);
     }
 
-    /** \returns the number of columns */
+    /** \returns the number of rows */
     inline int rows() const { return m_indices.size(); }
 
-    /** \returns the number of rows */
+    /** \returns the number of columns */
     inline int cols() const { return m_indices.size(); }
 
     template<typename DenseDerived>
@@ -126,7 +126,31 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
 
     const IndicesType& indices() const { return m_indices; }
     IndicesType& indices() { return m_indices; }
-    
+
+    /**** inversion and multiplication helpers to hopefully get RVO ****/
+
+  protected:
+    enum Inverse_t {Inverse};
+    PermutationMatrix(Inverse_t, const PermutationMatrix& other)
+      : m_indices(other.m_indices.size())
+    {
+      for (int i=0; i<rows();++i) m_indices.coeffRef(other.m_indices.coeff(i)) = i;
+    }
+    enum Product_t {Product};
+    PermutationMatrix(Product_t, const PermutationMatrix& lhs, const PermutationMatrix& rhs)
+      : m_indices(lhs.m_indices.size())
+    {
+      ei_assert(lhs.cols() == rhs.rows());
+      for (int i=0; i<rows();++i) m_indices.coeffRef(i) = lhs.m_indices.coeff(rhs.m_indices.coeff(i));
+    }
+
+  public:
+    inline PermutationMatrix inverse() const
+    { return PermutationMatrix(Inverse, *this); }
+    template<int OtherSize, int OtherMaxSize>
+    inline PermutationMatrix operator*(const PermutationMatrix<OtherSize, OtherMaxSize>& other) const
+    { return PermutationMatrix(Product, *this, other); }
+
   protected:
 
     IndicesType m_indices;
