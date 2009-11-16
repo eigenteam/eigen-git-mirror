@@ -159,6 +159,9 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
     /** \returns a reference to the stored array representing the permutation. */
     IndicesType& indices() { return m_indices; }
 
+    /** Resizes to given size. */
+    inline void resize(int size) { m_indices.resize(size); }
+
     /**** inversion and multiplication helpers to hopefully get RVO ****/
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN

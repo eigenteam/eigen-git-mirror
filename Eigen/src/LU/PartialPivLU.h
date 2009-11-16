@@ -64,10 +64,8 @@ template<typename _MatrixType> class PartialPivLU
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
-    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
-    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
+    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> PermutationVectorType;
+    typedef PermutationMatrix<MatrixType::RowsAtCompileTime> PermutationType;
 
     enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
              MatrixType::MaxColsAtCompileTime,
@@ -109,7 +107,7 @@ template<typename _MatrixType> class PartialPivLU
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
       * see the examples given in the documentation of class FullPivLU.
       */
-    inline const IntColVectorType& permutationP() const
+    inline const PermutationType& permutationP() const
     {
       ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
       return m_p;
@@ -174,7 +172,7 @@ template<typename _MatrixType> class PartialPivLU
 
   protected:
     MatrixType m_lu;
-    IntColVectorType m_p;
+    PermutationType m_p;
     int m_det_p;
     bool m_isInitialized;
 };
@@ -384,15 +382,15 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   ei_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const int size = matrix.rows();
 
-  IntColVectorType rows_transpositions(size);
+  PermutationVectorType rows_transpositions(size);
 
   int nb_transpositions;
   ei_partial_lu_inplace(m_lu, rows_transpositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
-  for(int k = 0; k < size; ++k) m_p.coeffRef(k) = k;
+  for(int k = 0; k < size; ++k) m_p.indices().coeffRef(k) = k;
   for(int k = size-1; k >= 0; --k)
-    std::swap(m_p.coeffRef(k), m_p.coeffRef(rows_transpositions.coeff(k)));
+    std::swap(m_p.indices().coeffRef(k), m_p.indices().coeffRef(rows_transpositions.coeff(k)));
 
   m_isInitialized = true;
   return *this;
@@ -428,7 +426,7 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
     dst.resize(size, rhs().cols());
 
     // Step 1
-    for(int i = 0; i < size; ++i) dst.row(dec().permutationP().coeff(i)) = rhs().row(i);
+    dst = dec().permutationP() * rhs();
 
     // Step 2
     dec().matrixLU().template triangularView<UnitLowerTriangular>().solveInPlace(dst);
