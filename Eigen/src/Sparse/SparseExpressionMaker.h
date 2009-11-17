@@ -21,7 +21,7 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
-
+#if 0
 #ifndef EIGEN_SPARSE_EXPRESSIONMAKER_H
 #define EIGEN_SPARSE_EXPRESSIONMAKER_H
 
@@ -46,3 +46,4 @@ struct MakeCwiseBinaryOp<Func,A,B,IsSparse>
 // TODO complete the list
 
 #endif // EIGEN_SPARSE_EXPRESSIONMAKER_H
+#endif

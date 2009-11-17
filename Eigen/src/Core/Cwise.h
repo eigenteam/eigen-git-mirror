@@ -87,7 +87,7 @@ template<typename ExpressionType> class Cwise
 
     template<typename OtherDerived>
     const EIGEN_CWISE_PRODUCT_RETURN_TYPE
-    operator*(const MatrixBase<OtherDerived> &other) const;
+    operator*(const AnyMatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
@@ -182,33 +182,5 @@ template<typename ExpressionType> class Cwise
   private:
     Cwise& operator=(const Cwise&);
 };
-
-/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
-  *
-  * Example: \include MatrixBase_cwise_const.cpp
-  * Output: \verbinclude MatrixBase_cwise_const.out
-  *
-  * \sa class Cwise, cwise()
-  */
-template<typename Derived>
-inline const Cwise<Derived>
-MatrixBase<Derived>::cwise() const
-{
-  return derived();
-}
-
-/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
-  *
-  * Example: \include MatrixBase_cwise.cpp
-  * Output: \verbinclude MatrixBase_cwise.out
-  *
-  * \sa class Cwise, cwise() const
-  */
-template<typename Derived>
-inline Cwise<Derived>
-MatrixBase<Derived>::cwise()
-{
-  return derived();
-}
 
 #endif // EIGEN_CWISE_H

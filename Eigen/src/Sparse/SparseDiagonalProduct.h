@@ -107,9 +107,9 @@ class SparseDiagonalProduct
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class ei_sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsDiagonal,SDP_IsSparseRowMajor>
-  : public SparseCwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator
+  : public CwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator
 {
-    typedef typename SparseCwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator Base;
+    typedef typename CwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator Base;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
@@ -120,12 +120,12 @@ class ei_sparse_diagonal_product_inner_iterator_selector
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class ei_sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsDiagonal,SDP_IsSparseColMajor>
-  : public SparseCwiseBinaryOp<
+  : public CwiseBinaryOp<
       ei_scalar_product_op<typename Lhs::Scalar>,
       SparseInnerVectorSet<Rhs,1>,
       typename Lhs::DiagonalVectorType>::InnerIterator
 {
-    typedef typename SparseCwiseBinaryOp<
+    typedef typename CwiseBinaryOp<
       ei_scalar_product_op<typename Lhs::Scalar>,
       SparseInnerVectorSet<Rhs,1>,
       typename Lhs::DiagonalVectorType>::InnerIterator Base;
@@ -139,9 +139,9 @@ class ei_sparse_diagonal_product_inner_iterator_selector
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class ei_sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsSparseColMajor,SDP_IsDiagonal>
-  : public SparseCwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator
+  : public CwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator
 {
-    typedef typename SparseCwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator Base;
+    typedef typename CwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator Base;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
@@ -152,12 +152,12 @@ class ei_sparse_diagonal_product_inner_iterator_selector
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class ei_sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsSparseRowMajor,SDP_IsDiagonal>
-  : public SparseCwiseBinaryOp<
+  : public CwiseBinaryOp<
       ei_scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
       NestByValue<Transpose<typename Rhs::DiagonalVectorType> > >::InnerIterator
 {
-    typedef typename SparseCwiseBinaryOp<
+    typedef typename CwiseBinaryOp<
       ei_scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
       NestByValue<Transpose<typename Rhs::DiagonalVectorType> > >::InnerIterator Base;

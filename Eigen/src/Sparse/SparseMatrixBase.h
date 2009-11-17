@@ -45,7 +45,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-//     typedef typename Derived::InnerIterator InnerIterator;
+    typedef SparseMatrixBase Self;
 
     enum {
 
@@ -108,7 +108,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::Transpose<Derived> > >,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::Transpose<Derived> > >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
@@ -126,6 +126,9 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     /** \internal the return type of coeff()
       */
     typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
+
+    /** \internal Represents a matrix with all coefficients equal to one another*/
+    typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Matrix<Scalar,Dynamic,Dynamic> > ConstantReturnType;
 
     /** type of the equivalent square matrix */
     typedef Matrix<Scalar,EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime),
@@ -289,11 +292,11 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     const SparseCwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
 
     template<typename OtherDerived>
-    const SparseCwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     operator+(const SparseMatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    const SparseCwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+    const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
     operator-(const SparseMatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -517,8 +520,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     { return (cwise() != other).any(); }
 
 
-    template<typename NewType>
-    const SparseCwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
+//     template<typename NewType>
+//     const SparseCwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
     /** \returns the matrix or vector obtained by evaluating this expression.
       *

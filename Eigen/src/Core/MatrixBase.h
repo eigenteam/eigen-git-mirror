@@ -62,6 +62,7 @@ template<typename Derived> class MatrixBase
 {
   public:
 #ifndef EIGEN_PARSED_BY_DOXYGEN
+    typedef MatrixBase Self;
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
 

@@ -78,13 +78,24 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   };
 };
 
+template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageType>
+class CwiseBinaryOpImpl;
+
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOp : ei_no_assignment_operator,
-  public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+  public CwiseBinaryOpImpl<
+          BinaryOp, Lhs, Rhs,
+          typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
+                                           typename ei_traits<Rhs>::StorageType>::ret>
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
+    typedef typename CwiseBinaryOpImpl<
+        BinaryOp, Lhs, Rhs,
+        typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
+                                         typename ei_traits<Rhs>::StorageType>::ret>::Base Base;
+    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseBinaryOp)
+    
     typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::_LhsNested _LhsNested;
@@ -112,28 +123,6 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_lhs.cols(); }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
-    {
-      return m_functor(m_lhs.coeff(row, col), m_rhs.coeff(row, col));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
-    {
-      return m_functor.packetOp(m_lhs.template packet<LoadMode>(row, col), m_rhs.template packet<LoadMode>(row, col));
-    }
-
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
-    {
-      return m_functor(m_lhs.coeff(index), m_rhs.coeff(index));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
-    {
-      return m_functor.packetOp(m_lhs.template packet<LoadMode>(index), m_rhs.template packet<LoadMode>(index));
-    }
-
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
     const BinaryOp& functor() const { return m_functor; }
@@ -142,6 +131,42 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     const LhsNested m_lhs;
     const RhsNested m_rhs;
     const BinaryOp m_functor;
+};
+
+template<typename BinaryOp, typename Lhs, typename Rhs>
+class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
+  : public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+{
+  public:
+
+    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
+    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    {
+      return derived().functor()(derived().lhs().coeff(row, col),
+                                 derived().rhs().coeff(row, col));
+    }
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    {
+      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(row, col),
+                                          derived().rhs().template packet<LoadMode>(row, col));
+    }
+
+    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    {
+      return derived().functor()(derived().lhs().coeff(index),
+                                 derived().rhs().coeff(index));
+    }
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
+    {
+      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(index),
+                                          derived().rhs().template packet<LoadMode>(index));
+    }
 };
 
 /**\returns an expression of the difference of \c *this and \a other
@@ -210,7 +235,7 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 template<typename ExpressionType>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
-Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator*(const AnyMatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
 }

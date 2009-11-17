@@ -42,72 +42,56 @@
 //  4 - dense op dense     product      dense
 //                         generic      dense
 
-template<typename BinaryOp, typename Lhs, typename Rhs>
-struct ei_traits<SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> >
-{
-  typedef typename ei_result_of<
-                     BinaryOp(
-                       typename Lhs::Scalar,
-                       typename Rhs::Scalar
-                     )
-                   >::type Scalar;
-  typedef typename Lhs::Nested LhsNested;
-  typedef typename Rhs::Nested RhsNested;
-  typedef typename ei_unref<LhsNested>::type _LhsNested;
-  typedef typename ei_unref<RhsNested>::type _RhsNested;
-  enum {
-    LhsCoeffReadCost = _LhsNested::CoeffReadCost,
-    RhsCoeffReadCost = _RhsNested::CoeffReadCost,
-    LhsFlags = _LhsNested::Flags,
-    RhsFlags = _RhsNested::Flags,
-    RowsAtCompileTime = Lhs::RowsAtCompileTime,
-    ColsAtCompileTime = Lhs::ColsAtCompileTime,
-    MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-    Flags = (int(LhsFlags) | int(RhsFlags)) & HereditaryBits,
-    CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
-  };
-};
+// template<typename BinaryOp, typename Lhs, typename Rhs>
+// struct ei_traits<SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+// {
+//   typedef typename ei_result_of<
+//                      BinaryOp(
+//                        typename Lhs::Scalar,
+//                        typename Rhs::Scalar
+//                      )
+//                    >::type Scalar;
+//   typedef typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
+//                                            typename ei_traits<Rhs>::StorageType>::ret StorageType;
+//   typedef typename Lhs::Nested LhsNested;
+//   typedef typename Rhs::Nested RhsNested;
+//   typedef typename ei_unref<LhsNested>::type _LhsNested;
+//   typedef typename ei_unref<RhsNested>::type _RhsNested;
+//   enum {
+//     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
+//     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
+//     LhsFlags = _LhsNested::Flags,
+//     RhsFlags = _RhsNested::Flags,
+//     RowsAtCompileTime = Lhs::RowsAtCompileTime,
+//     ColsAtCompileTime = Lhs::ColsAtCompileTime,
+//     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
+//     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
+//     Flags = (int(LhsFlags) | int(RhsFlags)) & HereditaryBits,
+//     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
+//   };
+// };
+
+template<> struct ei_promote_storage_type<Dense,Sparse>
+{ typedef Sparse ret; };
+
+template<> struct ei_promote_storage_type<Sparse,Dense>
+{ typedef Sparse ret; };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
-class SparseCwiseBinaryOp : ei_no_assignment_operator,
-  public SparseMatrixBase<SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
+  : public SparseMatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   public:
 
     class InnerIterator;
 
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseCwiseBinaryOp)
-    typedef typename ei_traits<SparseCwiseBinaryOp>::LhsNested LhsNested;
-    typedef typename ei_traits<SparseCwiseBinaryOp>::RhsNested RhsNested;
-    typedef typename ei_unref<LhsNested>::type _LhsNested;
-    typedef typename ei_unref<RhsNested>::type _RhsNested;
+    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
+    EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
+//     typedef typename ei_traits<SparseCwiseBinaryOp>::LhsNested LhsNested;
+//     typedef typename ei_traits<SparseCwiseBinaryOp>::RhsNested RhsNested;
+//     typedef typename ei_unref<LhsNested>::type _LhsNested;
+//     typedef typename ei_unref<RhsNested>::type _RhsNested;
 
-    EIGEN_STRONG_INLINE SparseCwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
-      : m_lhs(lhs), m_rhs(rhs), m_functor(func)
-    {
-      EIGEN_STATIC_ASSERT((_LhsNested::Flags&RowMajorBit)==(_RhsNested::Flags&RowMajorBit),
-        BOTH_MATRICES_MUST_HAVE_THE_SAME_STORAGE_ORDER)
-      EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
-                           ? int(ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret)
-                           : int(ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-      // require the sizes to match
-      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
-      ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
-    }
-
-    EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_lhs.cols(); }
-
-    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
-    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
-    EIGEN_STRONG_INLINE const BinaryOp& functor() const { return m_functor; }
-
-  protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
-    const BinaryOp m_functor;
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,
@@ -116,15 +100,15 @@ template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,
 class ei_sparse_cwise_binary_op_inner_iterator_selector;
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
-class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
-  : public ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp,Lhs,Rhs, typename SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator>
+class CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator
+  : public ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp,Lhs,Rhs,typename CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator>
 {
   public:
     typedef ei_sparse_cwise_binary_op_inner_iterator_selector<
       BinaryOp,Lhs,Rhs, InnerIterator> Base;
 
-    EIGEN_STRONG_INLINE InnerIterator(const SparseCwiseBinaryOp& binOp, int outer)
-      : Base(binOp,outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseBinaryOpImpl& binOp, int outer)
+      : Base(binOp.derived(),outer)
     {}
 };
 
@@ -141,7 +125,7 @@ class SparseCwiseBinaryOp<BinaryOp,Lhs,Rhs>::InnerIterator
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Derived, IsSparse, IsSparse>
 {
-    typedef SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
+    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename ei_traits<CwiseBinaryXpr>::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename ei_traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
@@ -204,7 +188,7 @@ template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsSparse>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
-    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
+    typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
@@ -257,7 +241,7 @@ template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsDense>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
-    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
+    typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename ei_traits<CwiseBinaryXpr>::RhsNested RhsNested;
@@ -297,7 +281,7 @@ template<typename T, typename Lhs, typename Rhs, typename Derived>
 class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsDense, IsSparse>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
-    typedef SparseCwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
+    typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
     typedef typename ei_traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
     typedef typename _RhsNested::InnerIterator RhsIterator;
@@ -337,11 +321,11 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const SparseCwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
+EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
                                  Derived, OtherDerived>
 SparseMatrixBase<Derived>::operator-(const SparseMatrixBase<OtherDerived> &other) const
 {
-  return SparseCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+  return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
                        Derived, OtherDerived>(derived(), other.derived());
 }
 
@@ -355,10 +339,10 @@ SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &othe
 
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const SparseCwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
 SparseMatrixBase<Derived>::operator+(const SparseMatrixBase<OtherDerived> &other) const
 {
-  return SparseCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 template<typename Derived>
@@ -369,21 +353,21 @@ SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& othe
   return *this = derived() + other.derived();
 }
 
-template<typename ExpressionType>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
-SparseCwise<ExpressionType>::operator*(const SparseMatrixBase<OtherDerived> &other) const
-{
-  return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
-}
-
-template<typename ExpressionType>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
-SparseCwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
-{
-  return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
-}
+// template<typename ExpressionType>
+// template<typename OtherDerived>
+// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+// SparseCwise<ExpressionType>::operator*(const SparseMatrixBase<OtherDerived> &other) const
+// {
+//   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
+// }
+//
+// template<typename ExpressionType>
+// template<typename OtherDerived>
+// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+// SparseCwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
+// {
+//   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
+// }
 
 // template<typename ExpressionType>
 // template<typename OtherDerived>
@@ -401,42 +385,12 @@ SparseCwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) co
 //   return EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
 // }
 
-template<typename ExpressionType>
-template<typename OtherDerived>
-inline ExpressionType& SparseCwise<ExpressionType>::operator*=(const SparseMatrixBase<OtherDerived> &other)
-{
-  return m_matrix.const_cast_derived() = _expression() * other.derived();
-}
-
 // template<typename ExpressionType>
 // template<typename OtherDerived>
-// inline ExpressionType& SparseCwise<ExpressionType>::operator/=(const SparseMatrixBase<OtherDerived> &other)
+// inline ExpressionType& SparseCwise<ExpressionType>::operator*=(const SparseMatrixBase<OtherDerived> &other)
 // {
-//   return m_matrix.const_cast_derived() = *this / other;
+//   return m_matrix.const_cast_derived() = _expression() * other.derived();
 // }
 
-template<typename ExpressionType>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
-SparseCwise<ExpressionType>::min(const SparseMatrixBase<OtherDerived> &other) const
-{
-  return EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
-}
-
-template<typename ExpressionType>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
-SparseCwise<ExpressionType>::max(const SparseMatrixBase<OtherDerived> &other) const
-{
-  return EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
-}
-
-// template<typename Derived>
-// template<typename CustomBinaryOp, typename OtherDerived>
-// EIGEN_STRONG_INLINE const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-// SparseMatrixBase<Derived>::binaryExpr(const SparseMatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
-// {
-//   return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);
-// }
 
 #endif // EIGEN_SPARSE_CWISE_BINARY_OP_H

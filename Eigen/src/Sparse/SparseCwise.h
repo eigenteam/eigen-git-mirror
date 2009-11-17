@@ -23,6 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#if 0
+
 #ifndef EIGEN_SPARSE_CWISE_H
 #define EIGEN_SPARSE_CWISE_H
 
@@ -158,18 +160,20 @@ template<typename ExpressionType> class SparseCwise
     ExpressionTypeNested m_matrix;
 };
 
-template<typename Derived>
-inline const SparseCwise<Derived>
-SparseMatrixBase<Derived>::cwise() const
-{
-  return derived();
-}
-
-template<typename Derived>
-inline SparseCwise<Derived>
-SparseMatrixBase<Derived>::cwise()
-{
-  return derived();
-}
+// template<typename Derived>
+// inline const SparseCwise<Derived>
+// SparseMatrixBase<Derived>::cwise() const
+// {
+//   return derived();
+// }
+// 
+// template<typename Derived>
+// inline SparseCwise<Derived>
+// SparseMatrixBase<Derived>::cwise()
+// {
+//   return derived();
+// }
 
 #endif // EIGEN_SPARSE_CWISE_H
+
+#endif
