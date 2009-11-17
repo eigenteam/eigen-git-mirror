@@ -594,7 +594,8 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
         pivots.coeffRef(p++) = i;
     ei_internal_assert(p == rank());
 
-    dst.block(0,0,dst.rows(),rank()) = (originalMatrix()*dec().permutationQ()).block(0,0,dst.rows(),rank());
+    for(int i = 0; i < rank(); ++i)
+      dst.col(i) = originalMatrix().col(dec().permutationQ().indices().coeff(pivots.coeff(i)));
   }
 };
 
@@ -630,8 +631,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
     typename Rhs::PlainMatrixType c(rhs().rows(), rhs().cols());
 
     // Step 1
-    for(int i = 0; i < rows; ++i)
-      c.row(dec().permutationP().indices().coeff(i)) = rhs().row(i);
+    c = dec().permutationP() * rhs();
 
     // Step 2
     dec().matrixLU()
