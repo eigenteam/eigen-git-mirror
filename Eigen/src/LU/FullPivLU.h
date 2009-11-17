@@ -389,8 +389,6 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_isInitialized = true;
   m_lu = matrix;
-  m_p.resize(matrix.rows());
-  m_q.resize(matrix.cols());
 
   const int size = matrix.diagonalSize();
   const int rows = matrix.rows();
@@ -459,13 +457,13 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
   // the main loop is over, we still have to accumulate the transpositions to find the
   // permutations P and Q
 
-  for(int k = 0; k < matrix.rows(); ++k) m_p.indices().coeffRef(k) = k;
+  m_p.setIdentity(rows);
   for(int k = size-1; k >= 0; --k)
-    std::swap(m_p.indices().coeffRef(k), m_p.indices().coeffRef(rows_transpositions.coeff(k)));
+    m_p.applyTranspositionOnTheRight(k, rows_transpositions.coeff(k));
 
-  for(int k = 0; k < matrix.cols(); ++k) m_q.indices().coeffRef(k) = k;
+  m_q.setIdentity(cols);
   for(int k = 0; k < size; ++k)
-    std::swap(m_q.indices().coeffRef(k), m_q.indices().coeffRef(cols_transpositions.coeff(k)));
+    m_q.applyTranspositionOnTheRight(k, cols_transpositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   return *this;

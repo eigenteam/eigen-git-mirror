@@ -81,6 +81,30 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   LeftPermutationType lp2(lv2);
   Matrix<Scalar,Rows,Rows> lm2(lp2);
   VERIFY_IS_APPROX((lp*lp2).toDenseMatrix().template cast<Scalar>(), lm*lm2);
+
+  LeftPermutationType identityp;
+  identityp.setIdentity(rows);
+  VERIFY_IS_APPROX(m_original, identityp*m_original);
+
+  if(rows>1 && cols>1)
+  {
+    lp2 = lp;
+    int i = ei_random<int>(0, rows-1);
+    int j;
+    do j = ei_random<int>(0, rows-1); while(j==i);
+    lp2.applyTranspositionOnTheLeft(i, j);
+    lm = lp;
+    lm.row(i).swap(lm.row(j));
+    VERIFY_IS_APPROX(lm, lp2.toDenseMatrix().template cast<Scalar>());
+
+    RightPermutationType rp2 = rp;
+    i = ei_random<int>(0, cols-1);
+    do j = ei_random<int>(0, cols-1); while(j==i);
+    rp2.applyTranspositionOnTheRight(i, j);
+    rm = rp;
+    rm.col(i).swap(rm.col(j));
+    VERIFY_IS_APPROX(rm, rp2.toDenseMatrix().template cast<Scalar>());
+  }
 }
 
 void test_permutationmatrices()

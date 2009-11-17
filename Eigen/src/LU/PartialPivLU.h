@@ -375,7 +375,6 @@ template<typename MatrixType>
 PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
   m_lu = matrix;
-  m_p.resize(matrix.rows());
 
   ei_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const int size = matrix.rows();
@@ -386,9 +385,9 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   ei_partial_lu_inplace(m_lu, rows_transpositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
-  for(int k = 0; k < size; ++k) m_p.indices().coeffRef(k) = k;
+  m_p.setIdentity(size);
   for(int k = size-1; k >= 0; --k)
-    std::swap(m_p.indices().coeffRef(k), m_p.indices().coeffRef(rows_transpositions.coeff(k)));
+    m_p.applyTranspositionOnTheRight(k, rows_transpositions.coeff(k));
 
   m_isInitialized = true;
   return *this;

@@ -116,18 +116,15 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
       */
     PermutationMatrix& operator=(const PermutationMatrix& other)
     {
-      m_indices = other.m_indices();
+      m_indices = other.m_indices;
       return *this;
     }
     #endif
 
-    /** Constructs an uninitialized permutation matrix of given size. Note that it is required
-      * that rows == cols, since permutation matrices are square. The \a cols parameter may be omitted.
+    /** Constructs an uninitialized permutation matrix of given size.
       */
-    inline PermutationMatrix(int rows, int cols = rows) : m_indices(rows)
-    {
-      ei_assert(rows == cols);
-    }
+    inline PermutationMatrix(int size) : m_indices(size)
+    {}
 
     /** \returns the number of rows */
     inline int rows() const { return m_indices.size(); }
@@ -159,8 +156,62 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
     /** \returns a reference to the stored array representing the permutation. */
     IndicesType& indices() { return m_indices; }
 
-    /** Resizes to given size. */
-    inline void resize(int size) { m_indices.resize(size); }
+    /** Resizes to given size.
+      */
+    inline void resize(int size)
+    {
+      m_indices.resize(size);
+    }
+
+    /** Sets *this to be the identity permutation matrix */
+    void setIdentity()
+    {
+      for(int i = 0; i < m_indices.size(); ++i)
+        m_indices.coeffRef(i) = i;
+    }
+
+    /** Sets *this to be the identity permutation matrix of given size.
+      */
+    void setIdentity(int size)
+    {
+      resize(size);
+      setIdentity();
+    }
+
+    /** Multiplies *this by the transposition \f$(ij)\f$ on the left.
+      *
+      * \returns a reference to *this.
+      *
+      * \warning This is much slower than applyTranspositionOnTheRight(int,int):
+      * this has linear complexity and requires a lot of branching.
+      *
+      * \sa applyTranspositionOnTheRight(int,int)
+      */
+    PermutationMatrix& applyTranspositionOnTheLeft(int i, int j)
+    {
+      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      for(int k = 0; k < m_indices.size(); ++k)
+      {
+        if(m_indices.coeff(k) == i) m_indices.coeffRef(k) = j;
+        else if(m_indices.coeff(k) == j) m_indices.coeffRef(k) = i;
+      }
+      return *this;
+    }
+
+    /** Multiplies *this by the transposition \f$(ij)\f$ on the right.
+      *
+      * \returns a reference to *this.
+      *
+      * This is a fast operation, it only consists in swapping two indices.
+      *
+      * \sa applyTranspositionOnTheLeft(int,int)
+      */
+    PermutationMatrix& applyTranspositionOnTheRight(int i, int j)
+    {
+      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      std::swap(m_indices.coeffRef(i), m_indices.coeffRef(j));
+      return *this;
+    }
 
     /**** inversion and multiplication helpers to hopefully get RVO ****/
 
