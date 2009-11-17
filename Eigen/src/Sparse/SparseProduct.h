@@ -25,16 +25,9 @@
 #ifndef EIGEN_SPARSEPRODUCT_H
 #define EIGEN_SPARSEPRODUCT_H
 
-template<typename Lhs, typename Rhs> struct ei_sparse_product_mode
-{
-  enum {
-
-    value = (Rhs::Flags&Lhs::Flags&SparseBit)==SparseBit
-          ? SparseTimeSparseProduct
-          : (Lhs::Flags&SparseBit)==SparseBit
-          ? SparseTimeDenseProduct
-          : DenseTimeSparseProduct };
-};
+template<typename Lhs, typename Rhs> struct ei_sparse_product_mode<Lhs,Rhs,Sparse,Sparse> { enum { value = SparseTimeSparseProduct }; };
+template<typename Lhs, typename Rhs> struct ei_sparse_product_mode<Lhs,Rhs,Dense, Sparse> { enum { value = DenseTimeSparseProduct }; };
+template<typename Lhs, typename Rhs> struct ei_sparse_product_mode<Lhs,Rhs,Sparse,Dense>  { enum { value = SparseTimeDenseProduct }; };
 
 template<typename Lhs, typename Rhs, int ProductMode>
 struct SparseProductReturnType
@@ -91,13 +84,10 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
     MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
 
-//     LhsIsRowMajor = (LhsFlags & RowMajorBit)==RowMajorBit,
-//     RhsIsRowMajor = (RhsFlags & RowMajorBit)==RowMajorBit,
-
     EvalToRowMajor = (RhsFlags & LhsFlags & RowMajorBit),
     ResultIsSparse = ProductMode==SparseTimeSparseProduct,
 
-    RemovedBits = ~( (EvalToRowMajor ? 0 : RowMajorBit) | (ResultIsSparse ? 0 : SparseBit) ),
+    RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
     Flags = (int(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
           | EvalBeforeAssigningBit
@@ -105,6 +95,8 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested, ProductMode> >
 
     CoeffReadCost = Dynamic
   };
+
+  typedef typename ei_meta_if<ResultIsSparse, Sparse, Dense>::ret StorageType;
 
   typedef typename ei_meta_if<ResultIsSparse,
     SparseMatrixBase<SparseProduct<LhsNested, RhsNested, ProductMode> >,

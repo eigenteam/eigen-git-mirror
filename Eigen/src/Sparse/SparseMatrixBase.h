@@ -36,16 +36,13 @@
   *
   *
   */
-
-struct Sparse {};
-
 template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived>
 {
   public:
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-    typedef SparseMatrixBase Self;
+    typedef SparseMatrixBase StorageBaseType;
 
     enum {
 
@@ -112,7 +109,9 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
+    #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
     #include "../Core/CwiseUnaryOps.h"
+    #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -534,8 +533,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     template<typename OtherDerived>
 //     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
-    template<unsigned int Added>
-    const SparseFlagged<Derived, Added, 0> marked() const;
+//     template<unsigned int Added>
+//     const SparseFlagged<Derived, Added, 0> marked() const;
 //     const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another

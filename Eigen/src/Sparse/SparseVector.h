@@ -46,7 +46,7 @@ struct ei_traits<SparseVector<_Scalar, _Options> >
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = SparseBit | _Options,
+    Flags = _Options,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };

@@ -108,9 +108,9 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
  * in order to avoid a useless copy
  */
 
-template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
+template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_eval;
 
-template<typename T> struct ei_eval<T,IsDense>
+template<typename T> struct ei_eval<T,Dense>
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
@@ -123,7 +123,7 @@ template<typename T> struct ei_eval<T,IsDense>
 
 // for matrices, no need to evaluate, just use a const reference to avoid a useless copy
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, IsDense>
+struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, Dense>
 {
   typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
 };

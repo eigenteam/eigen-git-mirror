@@ -82,6 +82,9 @@ namespace Eigen {
   * \endcode
   */
 
+/** The type used to identify a general sparse storage. */
+struct Sparse {};
+
 #include "src/Sparse/SparseUtil.h"
 #include "src/Sparse/SparseMatrixBase.h"
 #include "src/Sparse/SparseNestByValue.h"
@@ -102,7 +105,6 @@ namespace Eigen {
 #include "src/Sparse/SparseAssign.h"
 #include "src/Sparse/SparseRedux.h"
 #include "src/Sparse/SparseFuzzy.h"
-#include "src/Sparse/SparseFlagged.h"
 #include "src/Sparse/SparseProduct.h"
 #include "src/Sparse/SparseDiagonalProduct.h"
 #include "src/Sparse/SparseTriangular.h"

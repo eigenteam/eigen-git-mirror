@@ -121,6 +121,9 @@ namespace Eigen {
   * \endcode
   */
 
+/** The type used to identify a dense storage. */
+struct Dense {};
+
 #include "src/Core/util/Macros.h"
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
@@ -201,7 +204,6 @@ namespace Eigen {
 #include "src/Core/products/TriangularMatrixMatrix.h"
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
-#include "src/Core/ExpressionMaker.h"
 
 } // namespace Eigen
 

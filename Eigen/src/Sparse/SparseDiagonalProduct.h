@@ -43,21 +43,22 @@ struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> >
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   typedef typename _Lhs::Scalar Scalar;
+  typedef Sparse StorageType;
   enum {
     RowsAtCompileTime = _Lhs::RowsAtCompileTime,
     ColsAtCompileTime = _Rhs::ColsAtCompileTime,
 
     MaxRowsAtCompileTime = _Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = _Rhs::MaxColsAtCompileTime,
-    
+
     SparseFlags = ei_is_diagonal<_Lhs>::ret ? int(_Rhs::Flags) : int(_Lhs::Flags),
-    Flags = SparseBit | (SparseFlags&RowMajorBit),
+    Flags = (SparseFlags&RowMajorBit),
     CoeffReadCost = Dynamic
   };
 };
 
 enum {SDP_IsDiagonal, SDP_IsSparseRowMajor, SDP_IsSparseColMajor};
-template<typename Lhs, typename Rhs, typename SparseDiagonalProductType, int RhsMode, int LhsMode> 
+template<typename Lhs, typename Rhs, typename SparseDiagonalProductType, int RhsMode, int LhsMode>
 class ei_sparse_diagonal_product_inner_iterator_selector;
 
 template<typename Lhs, typename Rhs>
@@ -70,7 +71,7 @@ class SparseDiagonalProduct
 
     typedef typename ei_cleantype<LhsNested>::type _LhsNested;
     typedef typename ei_cleantype<RhsNested>::type _RhsNested;
-    
+
     enum {
       LhsMode = ei_is_diagonal<_LhsNested>::ret ? SDP_IsDiagonal
               : (_LhsNested::Flags&RowMajorBit) ? SDP_IsSparseRowMajor : SDP_IsSparseColMajor,
@@ -81,7 +82,7 @@ class SparseDiagonalProduct
   public:
 
     EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseDiagonalProduct)
-    
+
     typedef ei_sparse_diagonal_product_inner_iterator_selector
                 <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
 

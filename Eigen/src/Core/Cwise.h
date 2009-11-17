@@ -71,7 +71,7 @@
   *
   * \sa MatrixBase::cwise() const, MatrixBase::cwise()
   */
-template<typename ExpressionType> class Cwise
+template<typename ExpressionType, template<typename> class StorageBase> class Cwise
 {
   public:
 
@@ -91,15 +91,15 @@ template<typename ExpressionType> class Cwise
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
-    operator/(const MatrixBase<OtherDerived> &other) const;
+    operator/(const StorageBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
-    min(const MatrixBase<OtherDerived> &other) const;
+    min(const StorageBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
-    max(const MatrixBase<OtherDerived> &other) const;
+    max(const StorageBase<OtherDerived> &other) const;
 
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)      abs() const;
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)     abs2() const;
@@ -129,28 +129,28 @@ template<typename ExpressionType> class Cwise
     ExpressionType& operator-=(const Scalar& scalar);
 
     template<typename OtherDerived>
-    inline ExpressionType& operator*=(const MatrixBase<OtherDerived> &other);
+    inline ExpressionType& operator*=(const StorageBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    inline ExpressionType& operator/=(const MatrixBase<OtherDerived> &other);
+    inline ExpressionType& operator/=(const StorageBase<OtherDerived> &other);
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
-    operator<(const MatrixBase<OtherDerived>& other) const;
+    operator<(const StorageBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
-    operator<=(const MatrixBase<OtherDerived>& other) const;
+    operator<=(const StorageBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
-    operator>(const MatrixBase<OtherDerived>& other) const;
+    operator>(const StorageBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
-    operator>=(const MatrixBase<OtherDerived>& other) const;
+    operator>=(const StorageBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)
-    operator==(const MatrixBase<OtherDerived>& other) const;
+    operator==(const StorageBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
-    operator!=(const MatrixBase<OtherDerived>& other) const;
+    operator!=(const StorageBase<OtherDerived>& other) const;
 
     // comparisons to a scalar value
     const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)

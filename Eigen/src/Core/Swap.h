@@ -32,18 +32,7 @@
   * \brief Internal helper class for swapping two expressions
   */
 template<typename ExpressionType>
-struct ei_traits<SwapWrapper<ExpressionType> >
-{
-  typedef typename ExpressionType::Scalar Scalar;
-  enum {
-    RowsAtCompileTime = ExpressionType::RowsAtCompileTime,
-    ColsAtCompileTime = ExpressionType::ColsAtCompileTime,
-    MaxRowsAtCompileTime = ExpressionType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = ExpressionType::MaxColsAtCompileTime,
-    Flags = ExpressionType::Flags,
-    CoeffReadCost = ExpressionType::CoeffReadCost
-  };
-};
+struct ei_traits<SwapWrapper<ExpressionType> > : ei_traits<ExpressionType> {};
 
 template<typename ExpressionType> class SwapWrapper
   : public MatrixBase<SwapWrapper<ExpressionType> >

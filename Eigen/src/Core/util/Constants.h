@@ -174,16 +174,10 @@ const unsigned int UpperTriangularBit = 0x400;
   * means the strictly upper triangular part is 0 */
 const unsigned int LowerTriangularBit = 0x800;
 
-/** \ingroup flags
-  *
-  * means the expression includes sparse matrices and the sparse path has to be taken. */
-const unsigned int SparseBit = 0x1000;
-
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
-                                  | EvalBeforeAssigningBit
-                                  | SparseBit;
+                                  | EvalBeforeAssigningBit;
 
 // Possible values for the Mode parameter of part()
 const unsigned int UpperTriangular = UpperTriangularBit;
@@ -262,7 +256,7 @@ namespace {
 
 enum {
   IsDense         = 0,
-  IsSparse        = SparseBit,
+  IsSparse,
   NoDirectAccess  = 0,
   HasDirectAccess = DirectAccessBit
 };

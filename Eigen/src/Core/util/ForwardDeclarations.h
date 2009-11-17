@@ -35,13 +35,12 @@ template<typename _Scalar, int _Rows, int _Cols,
          int _MaxRows = _Rows, int _MaxCols = _Cols> class Matrix;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
-template<typename ExpressionType> class NoAlias;
+template<typename ExpressionType, template <typename> class StorageBase > class NoAlias;
 template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=AsRequested,
-         int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit ? DirectAccessBit
-                                 : ei_traits<MatrixType>::Flags&SparseBit> class Block;
+         int _DirectAccessStatus = (ei_traits<MatrixType>::Flags&DirectAccessBit) ? HasDirectAccess : NoDirectAccess> class Block;
 template<typename MatrixType, int Size=Dynamic, int PacketAccess=AsRequested> class VectorBlock;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
@@ -61,7 +60,7 @@ template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
-template<typename ExpressionType> class Cwise;
+template<typename ExpressionType, template <typename> class StorageBase> class Cwise;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;

@@ -82,7 +82,8 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
-  using Base::derived;
+  using Base::derived; \
+  using Base::const_cast_derived;
 
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
@@ -129,7 +130,10 @@ template<typename ExpressionType,
 template<typename ExpressionType, int Mode>              class SparseTriangular;
 template<typename Lhs, typename Rhs>                     class SparseDiagonalProduct;
 
-template<typename Lhs, typename Rhs> struct ei_sparse_product_mode;
+template<typename Lhs, typename Rhs,
+         typename LhsStorage = typename ei_traits<Lhs>::StorageType,
+         typename RhsStorage = typename ei_traits<Rhs>::StorageType> struct ei_sparse_product_mode;
+
 template<typename Lhs, typename Rhs, int ProductMode = ei_sparse_product_mode<Lhs,Rhs>::value> struct SparseProductReturnType;
 
 const int CoherentAccessPattern  = 0x1;
@@ -137,18 +141,7 @@ const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
 const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
 const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
-// const int AccessPatternNotSupported = 0x0;
-// const int AccessPatternSupported    = 0x1;
-//
-// template<typename MatrixType, int AccessPattern> struct ei_support_access_pattern
-// {
-//   enum { ret = (int(ei_traits<MatrixType>::SupportedAccessPatterns) & AccessPattern) == AccessPattern
-//              ? AccessPatternSupported
-//              : AccessPatternNotSupported
-//   };
-// };
-
-template<typename T> class ei_eval<T,IsSparse>
+template<typename T> class ei_eval<T,Sparse>
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
     enum {

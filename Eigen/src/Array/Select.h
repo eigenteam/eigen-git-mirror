@@ -45,6 +45,7 @@ template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMat
 struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 {
   typedef typename ei_traits<ThenMatrixType>::Scalar Scalar;
+  typedef Dense StorageType;
   typedef typename ConditionMatrixType::Nested ConditionMatrixNested;
   typedef typename ThenMatrixType::Nested ThenMatrixNested;
   typedef typename ElseMatrixType::Nested ElseMatrixNested;
@@ -87,7 +88,7 @@ class Select : ei_no_assignment_operator,
       else
         return m_else.coeff(i,j);
     }
-    
+
     const Scalar coeff(int i) const
     {
       if (m_condition.coeff(i))

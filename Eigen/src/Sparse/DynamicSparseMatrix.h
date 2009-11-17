@@ -52,7 +52,7 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = SparseBit | _Flags,
+    Flags = _Flags,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = OuterRandomAccessPattern
   };

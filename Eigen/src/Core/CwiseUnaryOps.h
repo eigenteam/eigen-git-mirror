@@ -66,11 +66,11 @@ operator*(const std::complex<Scalar>& scalar) const
 }
 
 inline friend const ScalarMultipleReturnType
-operator*(const Scalar& scalar, const Self& matrix)
+operator*(const Scalar& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
 
 inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
-operator*(const std::complex<Scalar>& scalar, const Self& matrix)
+operator*(const std::complex<Scalar>& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
 
 /** \returns an expression of *this with the \a Scalar type casted to
@@ -163,7 +163,7 @@ imag() { return derived(); }
   *
   * \sa class Cwise, cwise()
   */
-inline const Cwise<Derived> cwise() const
+inline const Cwise<Derived,EIGEN_CURRENT_STORAGE_BASE_CLASS> cwise() const
 {
   return derived();
 }
@@ -175,7 +175,7 @@ inline const Cwise<Derived> cwise() const
   *
   * \sa class Cwise, cwise() const
   */
-inline Cwise<Derived> cwise()
+inline Cwise<Derived,EIGEN_CURRENT_STORAGE_BASE_CLASS> cwise()
 {
   return derived();
 }

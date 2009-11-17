@@ -95,8 +95,8 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,
-  int _LhsStorageMode = int(Lhs::Flags) & SparseBit,
-  int _RhsStorageMode = int(Rhs::Flags) & SparseBit>
+  typename _LhsStorageMode = typename ei_traits<Lhs>::StorageType,
+  typename _RhsStorageMode = typename ei_traits<Rhs>::StorageType>
 class ei_sparse_cwise_binary_op_inner_iterator_selector;
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
@@ -123,7 +123,7 @@ class CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator
 
 // sparse - sparse  (generic)
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived>
-class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Derived, IsSparse, IsSparse>
+class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Derived, Sparse, Sparse>
 {
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename ei_traits<CwiseBinaryXpr>::Scalar Scalar;
@@ -185,7 +185,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
 
 // sparse - sparse  (product)
 template<typename T, typename Lhs, typename Rhs, typename Derived>
-class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsSparse>
+class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, Sparse, Sparse>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
@@ -238,7 +238,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 
 // sparse - dense  (product)
 template<typename T, typename Lhs, typename Rhs, typename Derived>
-class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsSparse, IsDense>
+class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, Sparse, Dense>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
@@ -278,7 +278,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 
 // sparse - dense  (product)
 template<typename T, typename Lhs, typename Rhs, typename Derived>
-class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, IsDense, IsSparse>
+class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>, Lhs, Rhs, Derived, Dense, Sparse>
 {
     typedef ei_scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;

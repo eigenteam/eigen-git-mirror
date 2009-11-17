@@ -51,9 +51,6 @@
     }
   * \endcode
   */
-
-struct Dense {};
-
 template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
@@ -62,7 +59,9 @@ template<typename Derived> class MatrixBase
 {
   public:
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    typedef MatrixBase Self;
+    /** The base class for a given storage type. */
+    typedef MatrixBase StorageBaseType;
+
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
 
@@ -246,7 +245,9 @@ template<typename Derived> class MatrixBase
                   ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
+    #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
     #include "CwiseUnaryOps.h"
+    #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -563,7 +564,7 @@ template<typename Derived> class MatrixBase
     const Flagged<Derived, Added, 0> marked() const;
     const Flagged<Derived, 0, EvalBeforeAssigningBit> lazy() const;
 
-    NoAlias<Derived> noalias();
+    NoAlias<Derived,Eigen::MatrixBase > noalias();
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
       * for a row-major (resp. column-major) matrix.

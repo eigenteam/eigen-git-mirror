@@ -39,7 +39,7 @@
   *
   * \sa MatrixBase::noalias()
   */
-template<typename ExpressionType>
+template<typename ExpressionType, template <typename> class StorageBase>
 class NoAlias
 {
   public:
@@ -48,17 +48,17 @@ class NoAlias
     /** Behaves like MatrixBase::lazyAssign(other)
       * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
     { return m_expression.lazyAssign(other.derived()); }
 
     /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator+=(const StorageBase<OtherDerived>& other)
     { return m_expression.lazyAssign(m_expression + other.derived()); }
 
     /** \sa MatrixBase::operator-= */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE ExpressionType& operator-=(const StorageBase<OtherDerived>& other)
     { return m_expression.lazyAssign(m_expression - other.derived()); }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -80,12 +80,12 @@ class NoAlias
 
 /** \returns a pseudo expression of \c *this with an operator= assuming
   * no aliasing between \c *this and the source expression.
-  * 
+  *
   * More precisely, noalias() allows to bypass the EvalBeforeAssignBit flag.
   * Currently, even though several expressions may alias, only product
   * expressions have this flag. Therefore, noalias() is only usefull when
   * the source expression contains a matrix product.
-  * 
+  *
   * Here are some examples where noalias is usefull:
   * \code
   * D.noalias()  = A * B;
@@ -107,7 +107,7 @@ class NoAlias
   * \sa class NoAlias
   */
 template<typename Derived>
-NoAlias<Derived> MatrixBase<Derived>::noalias()
+NoAlias<Derived,MatrixBase> MatrixBase<Derived>::noalias()
 {
   return derived();
 }

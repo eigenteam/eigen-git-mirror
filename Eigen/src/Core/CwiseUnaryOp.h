@@ -135,9 +135,9 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryO
   *
   * \sa abs2()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
-Cwise<ExpressionType>::abs() const
+Cwise<ExpressionType,StorageBase>::abs() const
 {
   return _expression();
 }
@@ -149,9 +149,9 @@ Cwise<ExpressionType>::abs() const
   *
   * \sa abs(), square()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)
-Cwise<ExpressionType>::abs2() const
+Cwise<ExpressionType,StorageBase>::abs2() const
 {
   return _expression();
 }
@@ -163,9 +163,9 @@ Cwise<ExpressionType>::abs2() const
   *
   * \sa pow(), log(), sin(), cos()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)
-Cwise<ExpressionType>::exp() const
+Cwise<ExpressionType,StorageBase>::exp() const
 {
   return _expression();
 }
@@ -177,9 +177,9 @@ Cwise<ExpressionType>::exp() const
   *
   * \sa exp()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
-Cwise<ExpressionType>::log() const
+Cwise<ExpressionType,StorageBase>::log() const
 {
   return _expression();
 }

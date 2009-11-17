@@ -95,7 +95,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
         typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
                                          typename ei_traits<Rhs>::StorageType>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseBinaryOp)
-    
+
     typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
     typedef typename ei_traits<CwiseBinaryOp>::_LhsNested _LhsNested;
@@ -232,10 +232,10 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   *
   * \sa class CwiseBinaryOp, operator/(), square()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
-Cwise<ExpressionType>::operator*(const AnyMatrixBase<OtherDerived> &other) const
+Cwise<ExpressionType,StorageBase>::operator*(const AnyMatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
 }
@@ -247,10 +247,10 @@ Cwise<ExpressionType>::operator*(const AnyMatrixBase<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp, operator*(), inverse()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
-Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
+Cwise<ExpressionType,StorageBase>::operator/(const StorageBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
 }
@@ -262,9 +262,9 @@ Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
   *
   * \sa operator*(), operator/=()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
-inline ExpressionType& Cwise<ExpressionType>::operator*=(const MatrixBase<OtherDerived> &other)
+inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator*=(const StorageBase<OtherDerived> &other)
 {
   return m_matrix.const_cast_derived() = *this * other;
 }
@@ -276,9 +276,9 @@ inline ExpressionType& Cwise<ExpressionType>::operator*=(const MatrixBase<OtherD
   *
   * \sa operator/(), operator*=()
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
-inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherDerived> &other)
+inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator/=(const StorageBase<OtherDerived> &other)
 {
   return m_matrix.const_cast_derived() = *this / other;
 }
@@ -290,10 +290,10 @@ inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherD
   *
   * \sa class CwiseBinaryOp
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
-Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
+Cwise<ExpressionType,StorageBase>::min(const StorageBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
 }
@@ -305,10 +305,10 @@ Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp
   */
-template<typename ExpressionType>
+template<typename ExpressionType,template <typename> class StorageBase>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
-Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
+Cwise<ExpressionType,StorageBase>::max(const StorageBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
 }
