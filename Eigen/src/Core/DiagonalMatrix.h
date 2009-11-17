@@ -52,10 +52,10 @@ class DiagonalBase : public AnyMatrixBase<Derived>
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived> &other) const;
     template<typename DenseDerived>
-    void addToDense(MatrixBase<DenseDerived> &other) const
+    void addTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() += diagonal(); }
     template<typename DenseDerived>
-    void subToDense(MatrixBase<DenseDerived> &other) const
+    void subTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() -= diagonal(); }
 
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
