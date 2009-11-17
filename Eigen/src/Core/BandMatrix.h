@@ -87,7 +87,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       : m_data(1+supers+subs,cols),
         m_rows(rows), m_supers(supers), m_subs(subs)
     {
-        m_data.setConstant(666);
+        //m_data.setConstant(666);
     }
 
     /** \returns the number of columns */
