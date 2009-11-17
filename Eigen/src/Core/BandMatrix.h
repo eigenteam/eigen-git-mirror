@@ -70,7 +70,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       MaxColsAtCompileTime = ei_traits<BandMatrix>::MaxColsAtCompileTime
     };
     typedef typename ei_traits<BandMatrix>::Scalar Scalar;
-    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> PlainMatrixType;
+    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> DenseMatrixType;
 
   protected:
     enum {
@@ -171,9 +171,9 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
     }
 
-    PlainMatrixType toDenseMatrix() const
+    DenseMatrixType toDenseMatrix() const
     {
-      PlainMatrixType res(rows(),cols());
+      DenseMatrixType res(rows(),cols());
       res.setZero();
       res.diagonal() = diagonal();
       for (int i=1; i<=supers();++i)
