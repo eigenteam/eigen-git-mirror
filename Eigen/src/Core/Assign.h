@@ -28,7 +28,7 @@
 #define EIGEN_ASSIGN_H
 
 /***************************************************************************
-* Part 1 : the logic deciding a strategy for vectorization and unrolling
+* Part 1 : the logic deciding a strategy for traversal and unrolling       *
 ***************************************************************************/
 
 template <typename Derived, typename OtherDerived>
@@ -53,11 +53,12 @@ private:
   };
 
   enum {
-    MightVectorize = (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
-                  && ((int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit)),
+    StorageOrdersAgree = (int(Derived::Flags)&RowMajorBit)==(int(OtherDerived::Flags)&RowMajorBit),
+    MightVectorize = StorageOrdersAgree
+                  && (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
-    MayLinearize = (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
+    MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize
                                         && (DstIsAligned || InnerMaxSize == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
@@ -73,7 +74,7 @@ public:
     Traversal = int(MayInnerVectorize)  ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
-//              : int(MayLinearize)       ? int(LinearTraversal)
+              : int(MayLinearize)       ? int(LinearTraversal)
                                         : int(DefaultTraversal),
     Vectorized = int(Traversal) == InnerVectorizedTraversal
               || int(Traversal) == LinearVectorizedTraversal
@@ -110,6 +111,7 @@ public:
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
     EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
     EIGEN_DEBUG_VAR(MayInnerVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)

@@ -67,11 +67,16 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     ColsAtCompileTime = Lhs::ColsAtCompileTime,
     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
+    StorageOrdersAgree = (int(Lhs::Flags)&RowMajorBit)==(int(Rhs::Flags)&RowMajorBit),
     Flags = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
-      | (int(LhsFlags) & int(RhsFlags) & (LinearAccessBit | AlignedBit))
-      | (ei_functor_traits<BinaryOp>::PacketAccess && ((int(LhsFlags) & RowMajorBit)==(int(RhsFlags) & RowMajorBit))
-        ? (int(LhsFlags) & int(RhsFlags) & PacketAccessBit) : 0)),
+      | (int(LhsFlags) & int(RhsFlags) &
+           ( AlignedBit
+           | (StorageOrdersAgree ? LinearAccessBit : 0)
+           | (ei_functor_traits<BinaryOp>::PacketAccess && StorageOrdersAgree ? PacketAccessBit : 0)
+           )
+        )
+     ),
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
