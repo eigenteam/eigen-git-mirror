@@ -73,16 +73,18 @@ public:
     Traversal = int(MayInnerVectorize)  ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
-              : int(MayLinearize)       ? int(LinearTraversal)
+//              : int(MayLinearize)       ? int(LinearTraversal)
                                         : int(DefaultTraversal),
-    Vectorized = int(Traversal) != LinearTraversal && int(Traversal) == DefaultTraversal
+    Vectorized = int(Traversal) == InnerVectorizedTraversal
+              || int(Traversal) == LinearVectorizedTraversal
+              || int(Traversal) == SliceVectorizedTraversal
   };
 
 private:
   enum {
-    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (Vectorized ? 1 : int(PacketSize)),
+    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (Vectorized ? int(PacketSize) : 1),
     MayUnrollCompletely = int(Derived::SizeAtCompileTime) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit),
-    MayUnrollInner      = int(InnerSize * OtherDerived::CoeffReadCost) <= int(UnrollingLimit)
+    MayUnrollInner      = int(InnerSize) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit)
   };
 
 public:
@@ -91,7 +93,7 @@ public:
                 ? (
                     int(MayUnrollCompletely) ? int(CompleteUnrolling)
                   : int(MayUnrollInner)      ? int(InnerUnrolling)
-                                              : int(NoUnrolling)
+                                             : int(NoUnrolling)
                   )
               : int(Traversal) == int(LinearVectorizedTraversal)
                 ? ( int(MayUnrollCompletely) && int(DstIsAligned) ? int(CompleteUnrolling) : int(NoUnrolling) )
