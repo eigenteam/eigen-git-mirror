@@ -118,25 +118,29 @@ enum {
 };
 
 template<typename Derived> class SparseMatrixBase;
-template<typename _Scalar, int _Flags = 0> class SparseMatrix;
-template<typename _Scalar, int _Flags = 0> class DynamicSparseMatrix;
-template<typename _Scalar, int _Flags = 0> class SparseVector;
-template<typename _Scalar, int _Flags = 0> class MappedSparseMatrix;
+template<typename _Scalar, int _Flags = 0>  class SparseMatrix;
+template<typename _Scalar, int _Flags = 0>  class DynamicSparseMatrix;
+template<typename _Scalar, int _Flags = 0>  class SparseVector;
+template<typename _Scalar, int _Flags = 0>  class MappedSparseMatrix;
 
-template<typename MatrixType>                            class SparseNestByValue;
-template<typename MatrixType, int Size>                  class SparseInnerVectorSet;
-template<typename ExpressionType,
-         unsigned int Added, unsigned int Removed>       class SparseFlagged;
-template<typename ExpressionType, int Mode>              class SparseTriangular;
-template<typename Lhs, typename Rhs>                     class SparseDiagonalProduct;
+template<typename MatrixType>               class SparseNestByValue;
+template<typename MatrixType, int Size>     class SparseInnerVectorSet;
+template<typename MatrixType, int Mode>     class SparseTriangularView;
+template<typename MatrixType, unsigned int UpLo>     class SparseSelfAdjointView;
+template<typename Lhs, typename Rhs>        class SparseDiagonalProduct;
+
+
+template<typename Lhs, typename Rhs>        class SparseProduct;
+template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;
+template<typename Lhs, typename Rhs>        class DenseTimeSparseProduct;
 
 template<typename Lhs, typename Rhs,
          typename LhsStorage = typename ei_traits<Lhs>::StorageType,
          typename RhsStorage = typename ei_traits<Rhs>::StorageType> struct ei_sparse_product_mode;
 
-template<typename Lhs, typename Rhs, int ProductMode = ei_sparse_product_mode<Lhs,Rhs>::value> struct SparseProductReturnType;
+template<typename Lhs, typename Rhs> struct SparseProductReturnType;
 
-const int CoherentAccessPattern  = 0x1;
+const int CoherentAccessPattern     = 0x1;
 const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
 const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
 const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;

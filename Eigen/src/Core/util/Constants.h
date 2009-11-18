@@ -193,7 +193,7 @@ enum { AsRequested=0, EnforceAlignedAccess=2 };
 enum { ConditionalJumpCost = 5 };
 enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
 enum DirectionType { Vertical, Horizontal, BothDirections };
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, SparseTimeSparseProduct, SparseTimeDenseProduct, DenseTimeSparseProduct };
+enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct };
 
 enum {
   /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignment

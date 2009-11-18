@@ -146,8 +146,4 @@ template<typename Scalar,int Dim> class Translation;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
 
-// Sparse module:
-template<typename Lhs, typename Rhs, int ProductMode> class SparseProduct;
-
-
 #endif // EIGEN_FORWARDDECLARATIONS_H

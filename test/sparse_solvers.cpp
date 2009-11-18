@@ -66,12 +66,12 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     // lower - dense
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template triangularView<LowerTriangular>().solve(vec2),
-                     m2.template triangular<LowerTriangular>().solve(vec3));
+                     m2.template triangularView<LowerTriangular>().solve(vec3));
 
     // upper - dense
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template triangularView<UpperTriangular>().solve(vec2),
-                     m2.template triangular<UpperTriangular>().solve(vec3));
+                     m2.template triangularView<UpperTriangular>().solve(vec3));
 
     // TODO test row major
 
@@ -82,20 +82,20 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular);
     initSparse<Scalar>(density, refMatB, matB);
     refMat2.template triangularView<LowerTriangular>().solveInPlace(refMatB);
-    m2.template triangular<LowerTriangular>().solveInPlace(matB);
+    m2.template triangularView<LowerTriangular>().solveInPlace(matB);
     VERIFY_IS_APPROX(matB.toDense(), refMatB);
 
     // upper - sparse
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular);
     initSparse<Scalar>(density, refMatB, matB);
     refMat2.template triangularView<UpperTriangular>().solveInPlace(refMatB);
-    m2.template triangular<UpperTriangular>().solveInPlace(matB);
+    m2.template triangularView<UpperTriangular>().solveInPlace(matB);
     VERIFY_IS_APPROX(matB, refMatB);
 
     // test deprecated API
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template triangularView<LowerTriangular>().solve(vec2),
-                     m2.template triangular<LowerTriangular>().solve(vec3));
+                     m2.template triangularView<LowerTriangular>().solve(vec3));
   }
 
   // test LLT

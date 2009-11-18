@@ -42,35 +42,6 @@
 //  4 - dense op dense     product      dense
 //                         generic      dense
 
-// template<typename BinaryOp, typename Lhs, typename Rhs>
-// struct ei_traits<SparseCwiseBinaryOp<BinaryOp, Lhs, Rhs> >
-// {
-//   typedef typename ei_result_of<
-//                      BinaryOp(
-//                        typename Lhs::Scalar,
-//                        typename Rhs::Scalar
-//                      )
-//                    >::type Scalar;
-//   typedef typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageType,
-//                                            typename ei_traits<Rhs>::StorageType>::ret StorageType;
-//   typedef typename Lhs::Nested LhsNested;
-//   typedef typename Rhs::Nested RhsNested;
-//   typedef typename ei_unref<LhsNested>::type _LhsNested;
-//   typedef typename ei_unref<RhsNested>::type _RhsNested;
-//   enum {
-//     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
-//     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
-//     LhsFlags = _LhsNested::Flags,
-//     RhsFlags = _RhsNested::Flags,
-//     RowsAtCompileTime = Lhs::RowsAtCompileTime,
-//     ColsAtCompileTime = Lhs::ColsAtCompileTime,
-//     MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-//     MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
-//     Flags = (int(LhsFlags) | int(RhsFlags)) & HereditaryBits,
-//     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
-//   };
-// };
-
 template<> struct ei_promote_storage_type<Dense,Sparse>
 { typedef Sparse ret; };
 
@@ -82,16 +53,9 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
   : public SparseMatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   public:
-
     class InnerIterator;
-
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
-//     typedef typename ei_traits<SparseCwiseBinaryOp>::LhsNested LhsNested;
-//     typedef typename ei_traits<SparseCwiseBinaryOp>::RhsNested RhsNested;
-//     typedef typename ei_unref<LhsNested>::type _LhsNested;
-//     typedef typename ei_unref<RhsNested>::type _RhsNested;
-
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,

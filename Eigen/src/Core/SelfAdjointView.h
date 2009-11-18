@@ -201,15 +201,15 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint, Dynami
 ***************************************************************************/
 
 template<typename Derived>
-template<unsigned int Mode>
-const SelfAdjointView<Derived, Mode> MatrixBase<Derived>::selfadjointView() const
+template<unsigned int UpLo>
+const SelfAdjointView<Derived, UpLo> MatrixBase<Derived>::selfadjointView() const
 {
   return derived();
 }
 
 template<typename Derived>
-template<unsigned int Mode>
-SelfAdjointView<Derived, Mode> MatrixBase<Derived>::selfadjointView()
+template<unsigned int UpLo>
+SelfAdjointView<Derived, UpLo> MatrixBase<Derived>::selfadjointView()
 {
   return derived();
 }

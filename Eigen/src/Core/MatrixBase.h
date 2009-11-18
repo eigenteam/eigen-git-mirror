@@ -710,15 +710,6 @@ template<typename Derived> class MatrixBase
     typedef Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> HomogeneousReturnType;
     const HomogeneousReturnType homogeneous() const;
 
-/////////// Sparse module ///////////
-
-    // dense = sparse * dense
-    template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const SparseProduct<Derived1,Derived2,SparseTimeDenseProduct>& product);
-    // dense = dense * sparse
-    template<typename Derived1, typename Derived2>
-    Derived& lazyAssign(const SparseProduct<Derived1,Derived2,DenseTimeSparseProduct>& product);
-
 ////////// Householder module ///////////
 
     void makeHouseholderInPlace(Scalar& tau, RealScalar& beta);

@@ -160,7 +160,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,ColMajor
 
 template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
-void SparseTriangular<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDerived>& other) const
+void SparseTriangularView<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDerived>& other) const
 {
   ei_assert(m_matrix.cols() == m_matrix.rows());
   ei_assert(m_matrix.cols() == other.rows());
@@ -182,7 +182,7 @@ void SparseTriangular<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDerived
 template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
 typename ei_plain_matrix_type_column_major<OtherDerived>::type
-SparseTriangular<ExpressionType,Mode>::solve(const MatrixBase<OtherDerived>& other) const
+SparseTriangularView<ExpressionType,Mode>::solve(const MatrixBase<OtherDerived>& other) const
 {
   typename ei_plain_matrix_type_column_major<OtherDerived>::type res(other);
   solveInPlace(res);
@@ -210,10 +210,10 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
     const bool IsLowerTriangular = (UpLo==LowerTriangular);
     AmbiVector<Scalar> tempVector(other.rows()*2);
     tempVector.setBounds(0,other.rows());
-    
+
     Rhs res(other.rows(), other.cols());
     res.reserve(other.nonZeros());
-    
+
     for(int col=0 ; col<other.cols() ; ++col)
     {
       // FIXME estimate number of non zeros
@@ -224,7 +224,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
       {
         tempVector.coeffRef(rhsIt.index()) = rhsIt.value();
       }
-      
+
       for(int i=IsLowerTriangular?0:lhs.cols()-1;
           IsLowerTriangular?i<lhs.cols():i>=0;
           i+=IsLowerTriangular?1:-1)
@@ -233,7 +233,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
         Scalar& ci = tempVector.coeffRef(i);
         if (ci!=Scalar(0))
         {
-          // find 
+          // find
           typename Lhs::InnerIterator it(lhs, i);
           if(!(Mode & UnitDiagBit))
           {
@@ -260,8 +260,8 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
           }
         }
       }
-      
-      
+
+
       int count = 0;
       // FIXME compute a reference value to filter zeros
       for (typename AmbiVector<Scalar>::Iterator it(tempVector/*,1e-12*/); it; ++it)
@@ -281,7 +281,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 
 template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
-void SparseTriangular<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<OtherDerived>& other) const
+void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<OtherDerived>& other) const
 {
   ei_assert(m_matrix.cols() == m_matrix.rows());
   ei_assert(m_matrix.cols() == other.rows());

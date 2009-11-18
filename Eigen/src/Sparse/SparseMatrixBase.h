@@ -244,7 +244,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     }
 
     template<typename Lhs, typename Rhs>
-    inline Derived& operator=(const SparseProduct<Lhs,Rhs,SparseTimeSparseProduct>& product);
+    inline Derived& operator=(const SparseProduct<Lhs,Rhs>& product);
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
@@ -337,12 +337,13 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
     // dense * sparse (return a dense object)
     template<typename OtherDerived> friend
-    const typename SparseProductReturnType<OtherDerived,Derived>::Type
+    const DenseTimeSparseProduct<OtherDerived,Derived>
     operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
-    { return typename SparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
+    { return DenseTimeSparseProduct<OtherDerived,Derived>(lhs.derived(),rhs); }
 
+    // sparse * dense (returns a dense object)
     template<typename OtherDerived>
-    const typename SparseProductReturnType<Derived,OtherDerived>::Type
+    const SparseTimeDenseProduct<Derived,OtherDerived>
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
@@ -360,7 +361,10 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     void solveTriangularInPlace(SparseMatrixBase<OtherDerived>& other) const;
 
     template<int Mode>
-    inline const SparseTriangular<Derived, Mode> triangular() const;
+    inline const SparseTriangularView<Derived, Mode> triangularView() const;
+
+    template<unsigned int UpLo> inline const SparseSelfAdjointView<Derived, UpLo> selfadjointView() const;
+    template<unsigned int UpLo> inline SparseSelfAdjointView<Derived, UpLo> selfadjointView();
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;

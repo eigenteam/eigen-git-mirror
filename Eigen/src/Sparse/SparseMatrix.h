@@ -540,6 +540,7 @@ class SparseMatrix<Scalar,_Options>::InnerIterator
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.m_data.value(m_id)); }
 
     inline int index() const { return m_matrix.m_data.index(m_id); }
+    inline int outer() const { return m_outer; }
     inline int row() const { return IsRowMajor ? m_outer : index(); }
     inline int col() const { return IsRowMajor ? index() : m_outer; }
 
